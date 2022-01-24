@@ -122,20 +122,20 @@ args+=("-t")
 args+=("text/turtle") # content type
 
 turtle+="@prefix def:	<https://w3id.org/atomgraph/linkeddatahub/default#> .\n"
-turtle+="@prefix apl:	<https://w3id.org/atomgraph/linkeddatahub/domain#> .\n"
+turtle+="@prefix ldh:	<https://w3id.org/atomgraph/linkeddatahub#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
 turtle+="@prefix foaf:	<http://xmlns.com/foaf/0.1/> .\n"
 turtle+="@prefix sioc:	<http://rdfs.org/sioc/ns#> .\n"
 turtle+="_:import a def:RDFImport .\n"
 turtle+="_:import dct:title \"${title}\" .\n"
-turtle+="_:import apl:file <${file}> .\n"
+turtle+="_:import ldh:file <${file}> .\n"
 turtle+="_:item a def:Item .\n"
 turtle+="_:item foaf:primaryTopic _:import .\n"
 turtle+="_:item sioc:has_container <${container}> .\n"
 turtle+="_:item dct:title \"${title}\" .\n"
 
 if [ -n "$action" ] ; then
-    turtle+="_:import apl:action <${action}> .\n"
+    turtle+="_:import ldh:action <${action}> .\n"
 fi
 if [ -n "$graph" ] ; then
     turtle+="@prefix sd:	<http://www.w3.org/ns/sparql-service-description#> .\n"

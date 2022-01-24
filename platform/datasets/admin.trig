@@ -1,9 +1,9 @@
 @prefix ns:	<model/ontologies/namespace/#> .
 @prefix adm:	<https://w3id.org/atomgraph/linkeddatahub/admin#> .
-@prefix lacl:	<https://w3id.org/atomgraph/linkeddatahub/admin/acl/domain#> .
-@prefix lsm:	<https://w3id.org/atomgraph/linkeddatahub/admin/sitemap/domain#> .
+@prefix lacl:	<https://w3id.org/atomgraph/linkeddatahub/admin/acl#> .
+@prefix lsm:	<https://w3id.org/atomgraph/linkeddatahub/admin/sitemap#> .
 @prefix def:	<https://w3id.org/atomgraph/linkeddatahub/default#> .
-@prefix apl:	<https://w3id.org/atomgraph/linkeddatahub/domain#> .
+@prefix ldh:	<https://w3id.org/atomgraph/linkeddatahub#> .
 @prefix a:	<https://w3id.org/atomgraph/core#> .
 @prefix rdf:	<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .
@@ -53,9 +53,9 @@
 
     <sign%20up> a adm:Item ;
         dct:title "Sign up" ;
-        apl:content <sign%20up#content> .
+        ldh:content <sign%20up#content> .
 
-    <sign%20up#content> a apl:Content ;
+    <sign%20up#content> a ldh:Content ;
         rdf:first """<div xmlns="http://www.w3.org/1999/xhtml">
     <p class="lead">Welcome. Create your free account and join the web of data.</p>
     <p>LinkedDataHub uses WebID as the single sign-on (SSO) protocol for distributed applications, which is based on
@@ -74,9 +74,9 @@
 
     <request%20access> a adm:Item ;
         dct:title "Request access" ;
-        apl:content <request%20access#id023e3fee-a546-4209-b52c-7b65ebb52aa4> .
+        ldh:content <request%20access#id023e3fee-a546-4209-b52c-7b65ebb52aa4> .
 
-    <request%20access#id023e3fee-a546-4209-b52c-7b65ebb52aa4> a apl:Content ;
+    <request%20access#id023e3fee-a546-4209-b52c-7b65ebb52aa4> a ldh:Content ;
         rdf:first """<div xmlns="http://www.w3.org/1999/xhtml">
     <p class="lead">Request access</p>
     <p>Ask for access to a restricted resource by making a request. It will be reviewed by the application's

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xsl:stylesheet [
     <!ENTITY def    "https://w3id.org/atomgraph/linkeddatahub/default#">
-    <!ENTITY apl    "https://w3id.org/atomgraph/linkeddatahub/domain#">
+    <!ENTITY ldh    "https://w3id.org/atomgraph/linkeddatahub#">
     <!ENTITY ac     "https://w3id.org/atomgraph/client#">
     <!ENTITY ac     "https://w3id.org/atomgraph/client#">
     <!ENTITY rdf    "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
@@ -22,7 +22,7 @@ xmlns:map="http://www.w3.org/2005/xpath-functions/map"
 xmlns:json="http://www.w3.org/2005/xpath-functions"
 xmlns:array="http://www.w3.org/2005/xpath-functions/array"
 xmlns:ac="&ac;"
-xmlns:apl="&apl;"
+xmlns:ldh="&ldh;"
 xmlns:rdf="&rdf;"
 xmlns:ldt="&ldt;"
 xmlns:sd="&sd;"
@@ -110,11 +110,11 @@ exclude-result-prefixes="#all"
         <xsl:param name="chart-type" as="xs:anyURI"/>
         <xsl:param name="category" as="xs:string?"/>
         <xsl:param name="series" as="xs:string*"/>
-        <xsl:variable name="query-type" select="apl:query-type($query-string)" as="xs:string"/>
+        <xsl:variable name="query-type" select="ldh:query-type($query-string)" as="xs:string"/>
         <xsl:variable name="forClass" select="xs:anyURI('&def;' || upper-case(substring($query-type, 1, 1)) || lower-case(substring($query-type, 2)))" as="xs:anyURI"/>
         <!--- show a modal form if this button is in a <fieldset>, meaning on a resource-level and not form level. Otherwise (e.g. for the "Create" button) show normal form -->
         <xsl:variable name="modal-form" select="true()" as="xs:boolean"/>
-        <xsl:variable name="href" select="ac:build-uri(apl:absolute-path(apl:href()), let $params := map{ 'forClass': string($forClass) } return if ($modal-form) then map:merge(($params, map{ 'mode': '&ac;ModalMode' })) else $params)" as="xs:anyURI"/>
+        <xsl:variable name="href" select="ac:build-uri(ldh:absolute-path(ldh:href()), let $params := map{ 'forClass': string($forClass) } return if ($modal-form) then map:merge(($params, map{ 'mode': '&ac;ModalMode' })) else $params)" as="xs:anyURI"/>
         <xsl:message>Form URI: <xsl:value-of select="$href"/></xsl:message>
 
         <xsl:variable name="form-id" select="'id' || ixsl:call(ixsl:window(), 'generateUUID', [])" as="xs:string"/>
@@ -141,12 +141,12 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
         
         <!-- handle both ResultSetChart and GraphChart here -->
-        <xsl:variable name="chart-type-group" select="$form/descendant::div[contains-token(@class, 'control-group')][input[@name = 'pu'][@value = '&apl;chartType']]" as="element()"/>
+        <xsl:variable name="chart-type-group" select="$form/descendant::div[contains-token(@class, 'control-group')][input[@name = 'pu'][@value = '&ldh;chartType']]" as="element()"/>
         <ixsl:set-property name="value" select="$chart-type" object="$chart-type-group/descendant::select[@name = 'ou']"/>
-        <xsl:variable name="category-control-group" select="$form/descendant::div[contains-token(@class, 'control-group')][input[@name = 'pu'][@value = ('&apl;categoryVarName', '&apl;categoryProperty')]]" as="element()"/>
+        <xsl:variable name="category-control-group" select="$form/descendant::div[contains-token(@class, 'control-group')][input[@name = 'pu'][@value = ('&ldh;categoryVarName', '&ldh;categoryProperty')]]" as="element()"/>
         <ixsl:set-property name="value" select="$category" object="$category-control-group/descendant::input[@name = ('ou', 'ol')]"/>
         <!-- TO-DO: support more than one series variable -->
-        <xsl:variable name="series-control-group" select="$form/descendant::div[contains-token(@class, 'control-group')][input[@name = 'pu'][@value = ('&apl;seriesVarName', '&apl;seriesProperty')]]" as="element()"/>
+        <xsl:variable name="series-control-group" select="$form/descendant::div[contains-token(@class, 'control-group')][input[@name = 'pu'][@value = ('&ldh;seriesVarName', '&ldh;seriesProperty')]]" as="element()"/>
         <ixsl:set-property name="value" select="$series" object="$series-control-group/descendant::input[@name = ('ou', 'ol')]"/>
         <xsl:variable name="query-control-group" select="$form/descendant::div[contains-token(@class, 'control-group')][input[@name = 'pu'][@value = '&spin;query']]" as="element()*"/>
         <xsl:variable name="target-id" select="$query-control-group/descendant::input[@name = 'ou']/@id" as="xs:string"/>
@@ -166,21 +166,21 @@ exclude-result-prefixes="#all"
     </xsl:template>
     
     <!-- chart content -->
-    <xsl:template match="*[@rdf:about][spin:query/@rdf:resource][apl:chartType/@rdf:resource]" mode="apl:Content" priority="1">
+    <xsl:template match="*[@rdf:about][spin:query/@rdf:resource][ldh:chartType/@rdf:resource]" mode="ldh:Content" priority="1">
         <xsl:param name="container" as="element()"/>
         <!-- replace dots with dashes to avoid Saxon-JS treating them as field separators: https://saxonica.plan.io/issues/5031 -->
         <xsl:param name="content-uri" select="xs:anyURI(translate(@rdf:about, '.', '-'))" as="xs:anyURI"/>
         <xsl:variable name="query-uri" select="xs:anyURI(spin:query/@rdf:resource)" as="xs:anyURI"/>
-        <xsl:variable name="chart-type" select="xs:anyURI(apl:chartType/@rdf:resource)" as="xs:anyURI?"/>
-        <xsl:variable name="category" select="apl:categoryProperty/@rdf:resource | apl:categoryVarName" as="xs:string?"/>
-        <xsl:variable name="series" select="apl:seriesProperty/@rdf:resource | apl:seriesVarName" as="xs:string*"/>
+        <xsl:variable name="chart-type" select="xs:anyURI(ldh:chartType/@rdf:resource)" as="xs:anyURI?"/>
+        <xsl:variable name="category" select="ldh:categoryProperty/@rdf:resource | ldh:categoryVarName" as="xs:string?"/>
+        <xsl:variable name="series" select="ldh:seriesProperty/@rdf:resource | ldh:seriesVarName" as="xs:string*"/>
         <xsl:message>$chart-type: <xsl:value-of select="$chart-type"/> $category: <xsl:value-of select="$category"/> $series: <xsl:value-of select="$series"/></xsl:message>
 
         <xsl:for-each select="$container//div[@class = 'bar']">
             <ixsl:set-style name="width" select="'66%'" object="."/>
         </xsl:for-each>
 
-        <xsl:variable name="request-uri" select="apl:href($ldt:base, $query-uri)" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="ldh:href($ldt:base, $query-uri)" as="xs:anyURI"/>
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                 <xsl:call-template name="onChartQueryLoad">
@@ -302,12 +302,12 @@ exclude-result-prefixes="#all"
         <xsl:variable name="yasqe" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe'), $textarea-id)"/>
         <xsl:variable name="query-string" select="ixsl:call($yasqe, 'getValue', [])" as="xs:string"/> <!-- get query string from YASQE -->
         <xsl:variable name="service-uri" select="xs:anyURI(ixsl:get(id('query-service'), 'value'))" as="xs:anyURI?"/>
-        <xsl:variable name="query-type" select="apl:query-type($query-string)" as="xs:string"/>
+        <xsl:variable name="query-type" select="ldh:query-type($query-string)" as="xs:string"/>
         <xsl:variable name="forClass" select="if (upper-case($query-type) = ('SELECT', 'ASK')) then xs:anyURI('&def;ResultSetChart') else xs:anyURI('&def;GraphChart')" as="xs:anyURI"/>
         <xsl:message>Query type: <xsl:value-of select="$query-type"/> Chart $forClass: <xsl:value-of select="$forClass"/></xsl:message>
         <!--- show a modal form if this button is in a <fieldset>, meaning on a resource-level and not form level. Otherwise (e.g. for the "Create" button) show normal form -->
         <xsl:variable name="modal-form" select="true()" as="xs:boolean"/>
-        <xsl:variable name="href" select="ac:build-uri(apl:absolute-path(apl:href()), let $params := map{ 'forClass': string($forClass) } return if ($modal-form) then map:merge(($params, map{ 'mode': '&ac;ModalMode' })) else $params)" as="xs:anyURI"/>
+        <xsl:variable name="href" select="ac:build-uri(ldh:absolute-path(ldh:href()), let $params := map{ 'forClass': string($forClass) } return if ($modal-form) then map:merge(($params, map{ 'mode': '&ac;ModalMode' })) else $params)" as="xs:anyURI"/>
         <xsl:message>Form URI: <xsl:value-of select="$href"/></xsl:message>
         <xsl:variable name="chart-type" select="../..//select[contains-token(@class, 'chart-type')]/ixsl:get(., 'value')" as="xs:anyURI?"/>
         <xsl:variable name="category" select="../..//select[contains-token(@class, 'chart-category')]/ixsl:get(., 'value')" as="xs:string?"/>
@@ -356,11 +356,11 @@ exclude-result-prefixes="#all"
                     <xsl:variable name="query-string" select="key('resources', $query-uri)/sp:text" as="xs:string"/>
                     <!-- TO-DO: use SPARQLBuilder to set LIMIT -->
                     <!--<xsl:variable name="query-string" select="concat($query-string, ' LIMIT 100')" as="xs:string"/>-->
-                    <xsl:variable name="service-uri" select="xs:anyURI(key('resources', $query-uri)/apl:service/@rdf:resource)" as="xs:anyURI?"/>
+                    <xsl:variable name="service-uri" select="xs:anyURI(key('resources', $query-uri)/ldh:service/@rdf:resource)" as="xs:anyURI?"/>
                     <xsl:variable name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.apps'))" as="element()?"/>
                     <xsl:variable name="endpoint" select="($service/sd:endpoint/@rdf:resource/xs:anyURI(.), ac:endpoint())[1]" as="xs:anyURI"/>
                     <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': $query-string })" as="xs:anyURI"/>
-                    <xsl:variable name="request-uri" select="apl:href($ldt:base, $results-uri)" as="xs:anyURI"/>
+                    <xsl:variable name="request-uri" select="ldh:href($ldt:base, $results-uri)" as="xs:anyURI"/>
 
                     <!-- update progress bar -->
                     <xsl:for-each select="$container//div[@class = 'bar']">

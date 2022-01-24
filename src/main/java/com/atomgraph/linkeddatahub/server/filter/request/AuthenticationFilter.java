@@ -22,7 +22,7 @@ import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.client.SesameProtocolClient;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
-import com.atomgraph.linkeddatahub.vocabulary.APLT;
+import com.atomgraph.linkeddatahub.vocabulary.LDHT;
 import java.io.IOException;
 import java.util.Optional;
 import javax.inject.Inject;
@@ -143,8 +143,8 @@ public abstract class AuthenticationFilter implements ContainerRequestFilter
     {
         if (request == null) throw new IllegalArgumentException("ContainerRequestContext cannot be null");
         
-        if (request.getUriInfo().getQueryParameters().getFirst(APLT.login.getLocalName()) != null)
-            return request.getUriInfo().getQueryParameters().getFirst(APLT.login.getLocalName()).equalsIgnoreCase(scheme);
+        if (request.getUriInfo().getQueryParameters().getFirst(LDHT.login.getLocalName()) != null)
+            return request.getUriInfo().getQueryParameters().getFirst(LDHT.login.getLocalName()).equalsIgnoreCase(scheme);
         
         return false;
     }
@@ -153,8 +153,8 @@ public abstract class AuthenticationFilter implements ContainerRequestFilter
     {
         if (request == null) throw new IllegalArgumentException("ContainerRequestContext cannot be null");
 
-        if (request.getUriInfo().getQueryParameters().getFirst(APLT.logout.getLocalName()) != null)
-            return request.getUriInfo().getQueryParameters().getFirst(APLT.logout.getLocalName()).equalsIgnoreCase(scheme);
+        if (request.getUriInfo().getQueryParameters().getFirst(LDHT.logout.getLocalName()) != null)
+            return request.getUriInfo().getQueryParameters().getFirst(LDHT.logout.getLocalName()).equalsIgnoreCase(scheme);
         
         return false;
     }

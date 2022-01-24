@@ -1,7 +1,7 @@
-@base		<https://w3id.org/atomgraph/linkeddatahub/admin/acl/domain> .
+@base		<https://w3id.org/atomgraph/linkeddatahub/admin/acl> .
 
 @prefix :	<#> .
-@prefix apl:	<https://w3id.org/atomgraph/linkeddatahub/domain#> .
+@prefix ldh:	<https://w3id.org/atomgraph/linkeddatahub#> .
 @prefix rdf:	<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .
 @prefix xsd:	<http://www.w3.org/2001/XMLSchema#> .
@@ -17,7 +17,7 @@
 @prefix foaf:	<http://xmlns.com/foaf/0.1/> .
 
 : a owl:Ontology ;
-    owl:imports apl:, sp:, spin:, acl:, cert: ;
+    owl:imports ldh:, sp:, spin:, acl:, cert: ;
     owl:versionInfo "1.1.4" ;
     rdfs:label "LinkedDataHub ACL ontology" .
 
@@ -75,17 +75,17 @@
     rdfs:label "Authorization request" ;
     rdfs:isDefinedBy : .
 
-:MissingRequestMode a apl:MissingPropertyValue ;
+:MissingRequestMode a ldh:MissingPropertyValue ;
     rdfs:label "Missing request agent" ;
     sp:arg1 :requestMode ;
     rdfs:isDefinedBy : .
 
-:MissingRequestAgent a apl:MissingPropertyValue ;
+:MissingRequestAgent a ldh:MissingPropertyValue ;
     rdfs:label "Missing request agent" ;
     sp:arg1 :requestAgent ;
     rdfs:isDefinedBy : .
 
-:MissingRequestAccessTo a apl:MissingPropertyValue ;
+:MissingRequestAccessTo a ldh:MissingPropertyValue ;
     rdfs:label "Missing request access to" ;
     sp:arg1 :requestAccessTo ;
     rdfs:isDefinedBy : .
@@ -96,7 +96,7 @@
         PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
         PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
         PREFIX acl:     <http://www.w3.org/ns/auth/acl#>
-        PREFIX lacl:    <https://w3id.org/atomgraph/linkeddatahub/admin/acl/domain#>
+        PREFIX lacl:    <https://w3id.org/atomgraph/linkeddatahub/admin/acl#>
 
         CONSTRUCT {
             ?this lacl:requestMode [ a acl:Mode ] ;
@@ -114,10 +114,10 @@
     spin:constructor :AuthorizationConstructor ;
     spin:constraint :MissingACLMode, :MissingRDFSLabel ;
     rdfs:label "Authorization" ;
-    apl:template :AuthorizationAgents ;
+    ldh:template :AuthorizationAgents ;
     rdfs:isDefinedBy : .
 
-:AuthorizationAgents a apl:Content ;
+:AuthorizationAgents a ldh:Content ;
     rdf:first :SelectAuthorizationAgents ;
     rdf:rest rdf:nil ;
     rdfs:isDefinedBy : .
@@ -144,7 +144,7 @@ WHERE
     rdfs:comment "Creators have full control of their created resources" ;
     rdfs:isDefinedBy : .
 
-:MissingACLMode a apl:MissingPropertyValue ;
+:MissingACLMode a ldh:MissingPropertyValue ;
     rdfs:label "Missing acl:mode" ;
     sp:arg1 acl:mode ;
     rdfs:isDefinedBy : .
@@ -156,8 +156,8 @@ WHERE
         PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
         PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
         PREFIX acl:     <http://www.w3.org/ns/auth/acl#>
-        PREFIX lacl:    <https://w3id.org/atomgraph/linkeddatahub/admin/acl/domain#>
-        PREFIX lsm:     <https://w3id.org/atomgraph/linkeddatahub/admin/sitemap/domain#>
+        PREFIX lacl:    <https://w3id.org/atomgraph/linkeddatahub/admin/acl#>
+        PREFIX lsm:     <https://w3id.org/atomgraph/linkeddatahub/admin/sitemap#>
 
         CONSTRUCT {
             ?this rdfs:label [ a xsd:string ] ;
@@ -181,17 +181,17 @@ WHERE
     rdfs:label "User account" ;
     rdfs:isDefinedBy : .
 
-:MissingSIOCName a apl:MissingPropertyValue ;
+:MissingSIOCName a ldh:MissingPropertyValue ;
     rdfs:label "Missing sioc:name" ;
     sp:arg1 sioc:name ;
     rdfs:isDefinedBy : .
 
-:MissingSIOCEmail a apl:MissingPropertyValue ;
+:MissingSIOCEmail a ldh:MissingPropertyValue ;
     rdfs:label "Missing sioc:email" ;
     sp:arg1 sioc:email ;
     rdfs:isDefinedBy : .
 
-:MissingSIOCAccountOf a apl:MissingPropertyValue ;
+:MissingSIOCAccountOf a ldh:MissingPropertyValue ;
     rdfs:label "Missing sioc:account_of" ;
     sp:arg1 sioc:account_of ;
     rdfs:isDefinedBy : .
@@ -202,7 +202,7 @@ WHERE
         PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
         PREFIX foaf:    <http://xmlns.com/foaf/0.1/>
         PREFIX sioc:    <http://rdfs.org/sioc/ns#>
-        PREFIX lacl:    <https://w3id.org/atomgraph/linkeddatahub/admin/acl/domain#>
+        PREFIX lacl:    <https://w3id.org/atomgraph/linkeddatahub/admin/acl#>
         PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
 
         CONSTRUCT {
@@ -222,7 +222,7 @@ WHERE
     rdfs:label "Agent" ;
     rdfs:isDefinedBy : .
 
-:MissingCertKey a apl:MissingPropertyValue ;
+:MissingCertKey a ldh:MissingPropertyValue ;
     rdfs:label "Missing cert:key" ;
     sp:arg1 cert:key ;
     rdfs:isDefinedBy : .
@@ -234,7 +234,7 @@ WHERE
         PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
         PREFIX acl:     <http://www.w3.org/ns/auth/acl#>
         PREFIX cert:    <http://www.w3.org/ns/auth/cert#>
-        PREFIX lacl:    <https://w3id.org/atomgraph/linkeddatahub/admin/acl/domain#>
+        PREFIX lacl:    <https://w3id.org/atomgraph/linkeddatahub/admin/acl#>
 
         CONSTRUCT {
             ?this cert:key [ a lacl:PublicKey ] ;
@@ -250,22 +250,22 @@ WHERE
     rdfs:label "Person" ;
     rdfs:isDefinedBy : .
 
-:MissingFOAFGivenName a apl:MissingPropertyValue ;
+:MissingFOAFGivenName a ldh:MissingPropertyValue ;
     rdfs:label "Missing foaf:givenName" ;
     sp:arg1 foaf:givenName ;
     rdfs:isDefinedBy : .
 
-:MissingFOAFFamilyName a apl:MissingPropertyValue ;
+:MissingFOAFFamilyName a ldh:MissingPropertyValue ;
     rdfs:label "Missing foaf:familyName" ;
     sp:arg1 foaf:familyName ;
     rdfs:isDefinedBy : .
 
-:MissingFOAFBasedNear a apl:MissingPropertyValue ;
+:MissingFOAFBasedNear a ldh:MissingPropertyValue ;
     rdfs:label "Missing foaf:based_near" ;
     sp:arg1 foaf:based_near ;
     rdfs:isDefinedBy : .
 
-:MissingFOAFMbox a apl:MissingPropertyValue ;
+:MissingFOAFMbox a ldh:MissingPropertyValue ;
     rdfs:label "Missing foaf:mbox" ;
     sp:arg1 foaf:mbox ;
     rdfs:isDefinedBy : .
@@ -310,12 +310,12 @@ WHERE
         WHERE {}""" ;
     rdfs:isDefinedBy : .
 
-:MissingCertModulus a apl:MissingPropertyValue ;
+:MissingCertModulus a ldh:MissingPropertyValue ;
     rdfs:label "Missing cert:modulus" ;
     sp:arg1 cert:modulus ;
     rdfs:isDefinedBy : .
 
-:MissingCertExponent a apl:MissingPropertyValue ;
+:MissingCertExponent a ldh:MissingPropertyValue ;
     rdfs:label "Missing cert:exponent" ;
     sp:arg1 cert:exponent ;
     rdfs:isDefinedBy : .
@@ -325,7 +325,7 @@ WHERE
 :Group a rdfs:Class ;
     rdfs:subClassOf foaf:Group ;
     spin:constructor :GroupConstructor ;
-    spin:constraint [ a apl:MissingPropertyValue ;
+    spin:constraint [ a ldh:MissingPropertyValue ;
         rdfs:label "Missing name" ;
         sp:arg1 foaf:name
     ] ;
@@ -337,7 +337,7 @@ WHERE
     sp:text """
         PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
         PREFIX foaf:    <http://xmlns.com/foaf/0.1/>
-        PREFIX lacl:    <https://w3id.org/atomgraph/linkeddatahub/admin/acl/domain#>
+        PREFIX lacl:    <https://w3id.org/atomgraph/linkeddatahub/admin/acl#>
         PREFIX dct:     <http://purl.org/dc/terms/>
 
         CONSTRUCT {
@@ -350,7 +350,7 @@ WHERE
 
 # CONSTRAINTS
 
-:MissingRDFSLabel a apl:MissingPropertyValue ;
+:MissingRDFSLabel a ldh:MissingPropertyValue ;
     rdfs:label "Missing rdfs:label" ;
     sp:arg1 rdfs:label ;
     rdfs:isDefinedBy : .

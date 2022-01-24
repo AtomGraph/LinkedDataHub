@@ -17,7 +17,6 @@
 PREFIX  def:  <https://w3id.org/atomgraph/linkeddatahub/default#>
 PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX  acl:  <http://www.w3.org/ns/auth/acl#>
-PREFIX  lacl: <https://w3id.org/atomgraph/linkeddatahub/admin/acl/domain#>
 PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
 PREFIX  sioc: <http://rdfs.org/sioc/ns#>
 
@@ -86,7 +85,6 @@ WHERE
         <param-value><![CDATA[
 PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX  acl:  <http://www.w3.org/ns/auth/acl#>
-PREFIX  lacl: <https://w3id.org/atomgraph/linkeddatahub/admin/acl/domain#>
 PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
 PREFIX  sioc: <http://rdfs.org/sioc/ns#>
 
@@ -149,7 +147,7 @@ WHERE
     <context-param>
         <param-name>https://w3id.org/atomgraph/linkeddatahub/config#userAccountQuery</param-name>
         <param-value><![CDATA[
-PREFIX  lacl: <https://w3id.org/atomgraph/linkeddatahub/admin/acl/domain#>
+PREFIX  lacl: <https://w3id.org/atomgraph/linkeddatahub/admin/acl#>
 PREFIX  sioc: <http://rdfs.org/sioc/ns#>
 
 DESCRIBE ?account ?agent

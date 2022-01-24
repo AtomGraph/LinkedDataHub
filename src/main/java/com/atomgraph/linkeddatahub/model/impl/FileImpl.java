@@ -17,7 +17,7 @@
 package com.atomgraph.linkeddatahub.model.impl;
 
 import com.atomgraph.linkeddatahub.model.File;
-import com.atomgraph.linkeddatahub.vocabulary.APL;
+import com.atomgraph.linkeddatahub.vocabulary.LDH;
 import javax.ws.rs.core.MediaType;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.enhanced.EnhNode;
@@ -58,7 +58,7 @@ public class FileImpl extends ResourceImpl implements File
         {
             if (eg == null) throw new IllegalArgumentException("EnhGraph cannot be null");
 
-            return eg.asGraph().contains(node, RDF.type.asNode(), APL.File.asNode());
+            return eg.asGraph().contains(node, RDF.type.asNode(), LDH.File.asNode());
         }
     };
     

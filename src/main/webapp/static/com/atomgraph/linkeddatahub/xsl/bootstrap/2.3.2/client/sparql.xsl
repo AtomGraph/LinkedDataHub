@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xsl:stylesheet [
     <!ENTITY def    "https://w3id.org/atomgraph/linkeddatahub/default#">
-    <!ENTITY apl    "https://w3id.org/atomgraph/linkeddatahub/domain#">
+    <!ENTITY ldh    "https://w3id.org/atomgraph/linkeddatahub#">
     <!ENTITY ac     "https://w3id.org/atomgraph/client#">
     <!ENTITY rdf    "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
     <!ENTITY xsd    "http://www.w3.org/2001/XMLSchema#">
@@ -18,7 +18,7 @@ xmlns:ixsl="http://saxonica.com/ns/interactiveXSLT"
 xmlns:xs="http://www.w3.org/2001/XMLSchema"
 xmlns:map="http://www.w3.org/2005/xpath-functions/map"
 xmlns:ac="&ac;"
-xmlns:apl="&apl;"
+xmlns:ldh="&ldh;"
 xmlns:rdf="&rdf;"
 xmlns:srx="&srx;"
 xmlns:sd="&sd;"
@@ -38,7 +38,7 @@ LIMIT 100</xsl:param>
 
     <!-- TEMPLATES -->
     
-    <xsl:template match="*[@rdf:nodeID = 'run']" mode="apl:logo">
+    <xsl:template match="*[@rdf:nodeID = 'run']" mode="ldh:logo">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'btn-run-query')"/>
@@ -135,12 +135,12 @@ LIMIT 100</xsl:param>
                     </xsl:for-each>
     
                     <button type="submit">
-                        <xsl:apply-templates select="key('resources', 'run', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="apl:logo">
+                        <xsl:apply-templates select="key('resources', 'run', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ldh:logo">
                             <xsl:with-param name="class" select="'btn btn-primary'"/>
                         </xsl:apply-templates>
                     </button>
                     <button class="btn btn-save-query" type="button">
-                        <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="apl:logo">
+                        <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ldh:logo">
                             <xsl:with-param name="class" select="'btn btn-save-query'"/>
                         </xsl:apply-templates>
                     </button>
@@ -173,7 +173,7 @@ LIMIT 100</xsl:param>
         
         <!-- initialize SPARQL query service dropdown -->
         <xsl:variable name="service-uri" select="if (id('search-service', ixsl:page())) then xs:anyURI(ixsl:get(id('search-service', ixsl:page()), 'value')) else ()" as="xs:anyURI?"/>
-        <xsl:call-template name="apl:RenderServices">
+        <xsl:call-template name="ldh:RenderServices">
             <xsl:with-param name="select" select="id('query-service', ixsl:page())"/>
             <xsl:with-param name="apps" select="ixsl:get(ixsl:window(), 'LinkedDataHub.apps')"/>
             <xsl:with-param name="selected-service" select="$service"/>
@@ -199,7 +199,7 @@ LIMIT 100</xsl:param>
         <xsl:variable name="endpoint" select="($service/sd:endpoint/@rdf:resource/xs:anyURI(.), ac:endpoint())[1]" as="xs:anyURI"/>
         <xsl:variable name="container" select="id('content-body', ixsl:page())" as="element()"/>
         <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': $query })" as="xs:anyURI"/>
-        <xsl:variable name="request-uri" select="apl:href($ldt:base, $results-uri)" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="ldh:href($ldt:base, $results-uri)" as="xs:anyURI"/>
         <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml,application/rdf+xml;q=0.9' } }" as="map(xs:string, item())"/>
         <xsl:variable name="content-uri" select="xs:anyURI(translate($results-uri, '.', '-'))" as="xs:anyURI"/> <!-- replace dots -->
 
@@ -224,12 +224,12 @@ LIMIT 100</xsl:param>
         <xsl:variable name="yasqe" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe'), $textarea-id)"/>
         <xsl:variable name="query-string" select="ixsl:call($yasqe, 'getValue', [])" as="xs:string"/> <!-- get query string from YASQE -->
         <xsl:variable name="service-uri" select="xs:anyURI(ixsl:get(id('query-service'), 'value'))" as="xs:anyURI?"/>
-        <xsl:variable name="query-type" select="apl:query-type($query-string)" as="xs:string"/>
+        <xsl:variable name="query-type" select="ldh:query-type($query-string)" as="xs:string"/>
         <xsl:variable name="forClass" select="xs:anyURI('&def;' || upper-case(substring($query-type, 1, 1)) || lower-case(substring($query-type, 2)))" as="xs:anyURI"/>
         <xsl:message>Query type: <xsl:value-of select="$query-type"/> forClass: <xsl:value-of select="$forClass"/></xsl:message>
         <!--- show a modal form if this button is in a <fieldset>, meaning on a resource-level and not form level. Otherwise (e.g. for the "Create" button) show normal form -->
         <xsl:variable name="modal-form" select="true()" as="xs:boolean"/>
-        <xsl:variable name="href" select="ac:build-uri(apl:absolute-path(apl:href()), let $params := map{ 'forClass': string($forClass) } return if ($modal-form) then map:merge(($params, map{ 'mode': '&ac;ModalMode' })) else $params)" as="xs:anyURI"/>
+        <xsl:variable name="href" select="ac:build-uri(ldh:absolute-path(ldh:href()), let $params := map{ 'forClass': string($forClass) } return if ($modal-form) then map:merge(($params, map{ 'mode': '&ac;ModalMode' })) else $params)" as="xs:anyURI"/>
         <xsl:message>Form $href: <xsl:value-of select="$href"/> $service-uri: <xsl:value-of select="$service-uri"/></xsl:message>
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
@@ -280,7 +280,7 @@ LIMIT 100</xsl:param>
         <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
             
         <xsl:if test="$service-uri">
-            <xsl:variable name="service-control-group" select="$form/descendant::div[contains-token(@class, 'control-group')][input[@name = 'pu'][@value = '&apl;service']]" as="element()"/>
+            <xsl:variable name="service-control-group" select="$form/descendant::div[contains-token(@class, 'control-group')][input[@name = 'pu'][@value = '&ldh;service']]" as="element()"/>
             
             <xsl:variable name="request" as="item()*">
                 <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $service-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">

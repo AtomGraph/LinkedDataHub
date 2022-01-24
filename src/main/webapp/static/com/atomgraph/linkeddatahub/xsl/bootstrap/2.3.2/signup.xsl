@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xsl:stylesheet [
-    <!ENTITY lacl   "https://w3id.org/atomgraph/linkeddatahub/admin/acl/domain#">
+    <!ENTITY lacl   "https://w3id.org/atomgraph/linkeddatahub/admin/acl#">
     <!ENTITY adm    "https://w3id.org/atomgraph/linkeddatahub/admin#">
-    <!ENTITY apl    "https://w3id.org/atomgraph/linkeddatahub/domain#">
+    <!ENTITY ldh    "https://w3id.org/atomgraph/linkeddatahub#">
     <!ENTITY ac     "https://w3id.org/atomgraph/client#">
     <!ENTITY a      "https://w3id.org/atomgraph/core#">
     <!ENTITY rdf    "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
@@ -27,7 +27,7 @@ xmlns:xs="http://www.w3.org/2001/XMLSchema"
 xmlns:ac="&ac;"
 xmlns:a="&a;"
 xmlns:lacl="&lacl;"
-xmlns:apl="&apl;"
+xmlns:ldh="&ldh;"
 xmlns:rdf="&rdf;"
 xmlns:rdfs="&rdfs;"
 xmlns:http="&http;"
@@ -49,7 +49,7 @@ exclude-result-prefixes="#all">
 
             <div id="content-body" class="container-fluid">
                 <xsl:for-each select="key('resources', ac:uri())">
-                    <xsl:apply-templates select="key('resources', apl:content/@rdf:*)" mode="apl:ContentList"/>
+                    <xsl:apply-templates select="key('resources', ldh:content/@rdf:*)" mode="ldh:ContentList"/>
                 </xsl:for-each>
 
                 <xsl:apply-templates select="." mode="bs2:RowBlock"/>
@@ -304,7 +304,7 @@ exclude-result-prefixes="#all">
         <xsl:param name="for" select="generate-id()" as="xs:string"/>
         <xsl:param name="required" select="true()" as="xs:boolean"/>
         <xsl:param name="violations" as="element()*"/>
-        <xsl:param name="error" select="@rdf:resource = $violations/apl:violationValue or $violations/spin:violationPath/@rdf:resource = $this" as="xs:boolean"/>
+        <xsl:param name="error" select="@rdf:resource = $violations/ldh:violationValue or $violations/spin:violationPath/@rdf:resource = $this" as="xs:boolean"/>
         <xsl:param name="class" select="concat('control-group', if ($error) then ' error' else (), if ($required) then ' required' else ())" as="xs:string?"/>
         
         <div>

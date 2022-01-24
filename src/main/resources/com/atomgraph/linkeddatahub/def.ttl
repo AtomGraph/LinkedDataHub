@@ -1,8 +1,8 @@
 @base		<https://w3id.org/atomgraph/linkeddatahub/default> .
 
 @prefix :	<#> .
-@prefix lapp:   <https://w3id.org/atomgraph/linkeddatahub/apps/domain#> .
-@prefix apl:	<https://w3id.org/atomgraph/linkeddatahub/domain#> .
+@prefix lapp:   <https://w3id.org/atomgraph/linkeddatahub/apps#> .
+@prefix ldh:	<https://w3id.org/atomgraph/linkeddatahub#> .
 @prefix rdf:	<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .
 @prefix owl:	<http://www.w3.org/2002/07/owl#> .
@@ -16,14 +16,14 @@
 : a owl:Ontology ;
     rdfs:label "Default" ;
     rdfs:comment "Default document model" ;
-    owl:imports apl:, lapp: ;
+    owl:imports ldh:, lapp: ;
     owl:versionInfo "1.0-SNAPSHOT" .
 
 :Root a rdfs:Class ;
     rdfs:subClassOf sioc:Space, dh:Container ;
     spin:constructor :TitleConstructor, :DescriptionConstructor, :PrimaryTopicConstructor, :ContentConstructor ;
     spin:constraint :MissingTitle ; # roots do not have parents, therefore no :MissingParent
-    apl:template :ContainerChildren ;
+    ldh:template :ContainerChildren ;
     rdfs:label "Root" ;
     rdfs:isDefinedBy : .
 
@@ -31,11 +31,11 @@
     rdfs:subClassOf dh:Container ;
     spin:constructor :TitleConstructor, :DescriptionConstructor, :PrimaryTopicConstructor, :ContentConstructor ;
     spin:constraint :MissingParent, :MissingTitle ;
-    apl:template :ContainerChildren ;
+    ldh:template :ContainerChildren ;
     rdfs:label "Container" ;
     rdfs:isDefinedBy : .
 
-:ContainerChildren a apl:Content ;
+:ContainerChildren a ldh:Content ;
     rdf:first :SelectChildren ;
     rdf:rest rdf:nil ;
     rdfs:label "Container children" ;
@@ -57,7 +57,7 @@
     rdfs:isDefinedBy : .
 
 :GenericService a rdfs:Class ;
-    rdfs:subClassOf apl:GenericService ;
+    rdfs:subClassOf ldh:GenericService ;
     spin:constructor :TitleConstructor, :DescriptionConstructor ;
     spin:constraint :MissingTitle ;
     rdfs:label "Generic service" ;
@@ -65,63 +65,63 @@
     rdfs:isDefinedBy : .
 
 :File a rdfs:Class ;
-    rdfs:subClassOf apl:File ;
+    rdfs:subClassOf ldh:File ;
     spin:constructor :TitleConstructor, :DescriptionConstructor ;
     spin:constraint :MissingTitle ;
     rdfs:label "File" ;
     rdfs:isDefinedBy : .
 
 :Construct a rdfs:Class ;
-    rdfs:subClassOf apl:Construct ;
+    rdfs:subClassOf ldh:Construct ;
     spin:constructor :TitleConstructor, :DescriptionConstructor ;
     spin:constraint :MissingTitle ;
     rdfs:label "CONSTRUCT" ;
     rdfs:isDefinedBy : .
 
 :Describe a rdfs:Class ;
-    rdfs:subClassOf apl:Describe ;
+    rdfs:subClassOf ldh:Describe ;
     spin:constructor :TitleConstructor, :DescriptionConstructor ;
     spin:constraint :MissingTitle ;
     rdfs:label "DESCRIBE" ;
     rdfs:isDefinedBy : .
 
 :Select a rdfs:Class ;
-    rdfs:subClassOf apl:Select ;
+    rdfs:subClassOf ldh:Select ;
     spin:constructor :TitleConstructor, :DescriptionConstructor ;
     spin:constraint :MissingTitle ;
     rdfs:label "SELECT" ;
     rdfs:isDefinedBy : .
 
 :Ask a rdfs:Class ;
-    rdfs:subClassOf apl:Ask ;
+    rdfs:subClassOf ldh:Ask ;
     spin:constructor :TitleConstructor, :DescriptionConstructor ;
     spin:constraint :MissingTitle ;
     rdfs:label "ASK" ;
     rdfs:isDefinedBy : .
 
 :RDFImport a rdfs:Class ;
-    rdfs:subClassOf apl:RDFImport ;
+    rdfs:subClassOf ldh:RDFImport ;
     spin:constructor :TitleConstructor, :DescriptionConstructor ;
     spin:constraint :MissingTitle ;
     rdfs:label "RDF import" ;
     rdfs:isDefinedBy : .
 
 :CSVImport a rdfs:Class ;
-    rdfs:subClassOf apl:CSVImport ;
+    rdfs:subClassOf ldh:CSVImport ;
     spin:constructor :TitleConstructor, :DescriptionConstructor ;
     spin:constraint :MissingTitle ;
     rdfs:label "CSV import" ;
     rdfs:isDefinedBy : .
 
 :GraphChart a rdfs:Class ;
-    rdfs:subClassOf apl:GraphChart ;
+    rdfs:subClassOf ldh:GraphChart ;
     spin:constructor :TitleConstructor, :DescriptionConstructor ;
     spin:constraint :MissingTitle ;
     rdfs:label "Graph chart" ;
     rdfs:isDefinedBy : .
 
 :ResultSetChart a rdfs:Class ;
-    rdfs:subClassOf apl:ResultSetChart ;
+    rdfs:subClassOf ldh:ResultSetChart ;
     spin:constructor :TitleConstructor, :DescriptionConstructor ;
     spin:constraint :MissingTitle ;
     rdfs:label "Result set chart" ;
@@ -168,27 +168,27 @@
 :ContentConstructor a sp:Construct ;
     rdfs:label "Content constructor" ;
     sp:text """
-        PREFIX apl:     <https://w3id.org/atomgraph/linkeddatahub/domain#>
+        PREFIX ldh:     <https://w3id.org/atomgraph/linkeddatahub#>
 
         CONSTRUCT {
-          ?this apl:content [ a apl:Content ] .
+          ?this ldh:content [ a ldh:Content ] .
         }
         WHERE {}""" ;
     rdfs:isDefinedBy : .
 
-:MissingParent a apl:MissingPropertyValue ;
+:MissingParent a ldh:MissingPropertyValue ;
     rdfs:label "Missing parent" ;
     rdfs:comment "Requires containers to have a parent container" ;
     sp:arg1 sioc:has_parent ;
     rdfs:isDefinedBy : .
 
-:MissingContainer a apl:MissingPropertyValue ;
+:MissingContainer a ldh:MissingPropertyValue ;
     rdfs:label "Missing container" ;
     rdfs:comment "Requires items to have a parent container" ;
     sp:arg1 sioc:has_container ;
     rdfs:isDefinedBy : .
 
-:MissingTitle a apl:MissingPropertyValue ;
+:MissingTitle a ldh:MissingPropertyValue ;
     rdfs:label "Missing title" ;
     rdfs:comment "Requires resources to have a title from Dublin Core Terms vocabulary" ;
     sp:arg1 dct:title ;

@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xsl:stylesheet [
     <!ENTITY adm    "https://w3id.org/atomgraph/linkeddatahub/admin#">
-    <!ENTITY apl    "https://w3id.org/atomgraph/linkeddatahub/domain#">
+    <!ENTITY ldh    "https://w3id.org/atomgraph/linkeddatahub#">
     <!ENTITY ac     "https://w3id.org/atomgraph/client#">
     <!ENTITY a      "https://w3id.org/atomgraph/core#">
-    <!ENTITY lacl   "https://w3id.org/atomgraph/linkeddatahub/admin/acl/domain#">
-    <!ENTITY lsm    "https://w3id.org/atomgraph/linkeddatahub/admin/sitemap/domain#">
+    <!ENTITY lacl   "https://w3id.org/atomgraph/linkeddatahub/admin/acl#">
+    <!ENTITY lsm    "https://w3id.org/atomgraph/linkeddatahub/admin/sitemap#">
     <!ENTITY rdf    "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
     <!ENTITY rdfs   "http://www.w3.org/2000/01/rdf-schema#">
     <!ENTITY owl    "http://www.w3.org/2002/07/owl#">
@@ -21,7 +21,7 @@
 xmlns:xhtml="http://www.w3.org/1999/xhtml"
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 xmlns:xs="http://www.w3.org/2001/XMLSchema"
-xmlns:apl="&apl;"
+xmlns:ldh="&ldh;"
 xmlns:ac="&ac;"
 xmlns:a="&a;"
 xmlns:lacl="&lacl;"

@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xsl:stylesheet [
-    <!ENTITY lacl   "https://w3id.org/atomgraph/linkeddatahub/admin/acl/domain#">
+    <!ENTITY lacl   "https://w3id.org/atomgraph/linkeddatahub/admin/acl#">
     <!ENTITY adm    "https://w3id.org/atomgraph/linkeddatahub/admin#">
     <!ENTITY def    "https://w3id.org/atomgraph/linkeddatahub/default#">
-    <!ENTITY apl    "https://w3id.org/atomgraph/linkeddatahub/domain#">
+    <!ENTITY ldh    "https://w3id.org/atomgraph/linkeddatahub#">
     <!ENTITY ac     "https://w3id.org/atomgraph/client#">
     <!ENTITY rdf    "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
     <!ENTITY rdfs   "http://www.w3.org/2000/01/rdf-schema#">
@@ -24,7 +24,7 @@ xmlns:xhtml="http://www.w3.org/1999/xhtml"
 xmlns:xs="http://www.w3.org/2001/XMLSchema"
 xmlns:ac="&ac;"
 xmlns:lacl="&lacl;"
-xmlns:apl="&apl;"
+xmlns:ldh="&ldh;"
 xmlns:rdf="&rdf;"
 xmlns:rdfs="&rdfs;"
 xmlns:owl="&owl;"
@@ -38,7 +38,7 @@ xmlns:spin="&spin;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 exclude-result-prefixes="#all">
 
-    <xsl:param name="apl:access-to" as="xs:anyURI?"/>
+    <xsl:param name="ldh:access-to" as="xs:anyURI?"/>
 
     <xsl:template match="rdf:RDF[ac:uri() = resolve-uri('request%20access', $ldt:base)][$ac:method = 'POST'][key('resources-by-type', '&spin;ConstraintViolation')]" mode="xhtml:Body" priority="3">
         <xsl:apply-templates select="." mode="bs2:RowForm">
@@ -54,7 +54,7 @@ exclude-result-prefixes="#all">
 
             <div id="content-body" class="container-fluid">
                 <xsl:for-each select="key('resources', ac:uri())">
-                    <xsl:apply-templates select="key('resources', apl:content/@rdf:*)" mode="apl:ContentList"/>
+                    <xsl:apply-templates select="key('resources', ldh:content/@rdf:*)" mode="ldh:ContentList"/>
                 </xsl:for-each>
 
                 <xsl:apply-templates select="." mode="bs2:RowBlock"/>
@@ -73,7 +73,7 @@ exclude-result-prefixes="#all">
         <xsl:variable name="constructor" as="document-node()">
             <xsl:document>
                 <xsl:for-each select="ac:construct($ldt:ontology, (xs:anyURI('&lacl;AuthorizationRequest'), xs:anyURI('&adm;Item')), $ldt:base)">
-                    <xsl:apply-templates select="." mode="apl:SetPrimaryTopic">
+                    <xsl:apply-templates select="." mode="ldh:SetPrimaryTopic">
                         <xsl:with-param name="topic-id" select="key('resources-by-type', '&lacl;AuthorizationRequest')/@rdf:nodeID" tunnel="yes"/>
                         <xsl:with-param name="doc-id" select="key('resources-by-type', '&adm;Item')/@rdf:nodeID" tunnel="yes"/>
                     </xsl:apply-templates>
@@ -201,7 +201,7 @@ exclude-result-prefixes="#all">
         </xsl:call-template>
     </xsl:template>
     
-    <xsl:template match="lacl:requestAccessTo/@rdf:*[ac:uri() = resolve-uri('request%20access', $ldt:base)][$apl:access-to]" mode="bs2:FormControl" priority="2">
+    <xsl:template match="lacl:requestAccessTo/@rdf:*[ac:uri() = resolve-uri('request%20access', $ldt:base)][$ldh:access-to]" mode="bs2:FormControl" priority="2">
         <select name="ou" id="{generate-id()}" multiple="multiple" size="3">
             <option value="{resolve-uri('../add', $ldt:base)}" selected="selected">Add RDF endpoint</option>
             <option value="{resolve-uri('../service', $ldt:base)}" selected="selected">Graph Store endpoint</option>
@@ -246,8 +246,8 @@ exclude-result-prefixes="#all">
         </xsl:apply-templates>
     </xsl:template>
 
-    <!-- suppress apl:content property -->
-    <xsl:template match="apl:content[ac:uri() = resolve-uri('request%20access', $ldt:base)]" mode="bs2:FormControl" priority="3"/>
+    <!-- suppress ldh:content property -->
+    <xsl:template match="ldh:content[ac:uri() = resolve-uri('request%20access', $ldt:base)]" mode="bs2:FormControl" priority="3"/>
 
     <!-- turn off additional properties - it applies on the constructor document and not the $main-doc -->
     <xsl:template match="*[ac:uri() = resolve-uri('request%20access', $ldt:base)]" mode="bs2:PropertyControl" priority="1"/>

@@ -114,8 +114,8 @@ turtle+="_:container a def:Container .\n"
 turtle+="_:container dct:title \"${title}\" .\n"
 turtle+="_:container sioc:has_parent <${parent}> .\n"
 if [ -n "$content" ] ; then
-    turtle+="@prefix apl:	<https://w3id.org/atomgraph/linkeddatahub/domain#> .\n"
-    turtle+="_:container apl:content <${content}> .\n"
+    turtle+="@prefix ldh:	<https://w3id.org/atomgraph/linkeddatahub#> .\n"
+    turtle+="_:container ldh:content <${content}> .\n"
 fi
 if [ -n "$description" ] ; then
     turtle+="_:container dct:description \"${description}\" .\n"

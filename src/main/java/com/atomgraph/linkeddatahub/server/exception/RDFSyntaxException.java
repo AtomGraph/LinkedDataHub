@@ -22,7 +22,7 @@ import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.RDFS;
 import com.atomgraph.linkeddatahub.server.io.CollectingErrorHandler.Violation;
-import com.atomgraph.linkeddatahub.vocabulary.APL;
+import com.atomgraph.linkeddatahub.vocabulary.LDH;
 import com.atomgraph.server.exception.ModelException;
 
 /**
@@ -44,7 +44,7 @@ public class RDFSyntaxException extends ModelException
         
         for (Violation violation : violations)
         {
-            Resource violationRes = model.createResource().addProperty(RDF.type, APL.URISyntaxViolation).
+            Resource violationRes = model.createResource().addProperty(RDF.type, LDH.URISyntaxViolation).
                 addLiteral(RDFS.label, violation.getMessage());
             
             // hacky heuristic to extract the invalid URI value, which Jena's ErrorHandler does not directly expose
@@ -52,7 +52,7 @@ public class RDFSyntaxException extends ModelException
             {
                 String value = violation.getMessage().substring(violation.getMessage().lastIndexOf("<") + 1,
                     violation.getMessage().lastIndexOf(">"));
-                violationRes.addLiteral(APL.violationValue, value);
+                violationRes.addLiteral(LDH.violationValue, value);
             }
         }
     }

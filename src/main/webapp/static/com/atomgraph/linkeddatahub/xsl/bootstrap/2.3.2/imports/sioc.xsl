@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xsl:stylesheet [
     <!ENTITY ac     "https://w3id.org/atomgraph/client#">
-    <!ENTITY apl    "https://w3id.org/atomgraph/linkeddatahub/domain#">
+    <!ENTITY ldh    "https://w3id.org/atomgraph/linkeddatahub#">
     <!ENTITY rdf    "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
     <!ENTITY rdfs   "http://www.w3.org/2000/01/rdf-schema#">
     <!ENTITY xsd    "http://www.w3.org/2001/XMLSchema#">
@@ -15,7 +15,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 xmlns:xs="http://www.w3.org/2001/XMLSchema"
 xmlns:xhtml="http://www.w3.org/1999/xhtml"
 xmlns:ac="&ac;"
-xmlns:apl="&apl;"
+xmlns:ldh="&ldh;"
 xmlns:rdf="&rdf;"
 xmlns:rdfs="&rdfs;"
 xmlns:owl="&owl;"
@@ -36,7 +36,7 @@ exclude-result-prefixes="#all">
         <xsl:param name="container" select="ac:uri()" as="xs:anyURI"/>
 
         <span>
-            <xsl:apply-templates select="key('resources', $container, document($container))" mode="apl:Typeahead"/>
+            <xsl:apply-templates select="key('resources', $container, document($container))" mode="ldh:Typeahead"/>
         </span>
         
         <xsl:text> </xsl:text>
@@ -45,7 +45,7 @@ exclude-result-prefixes="#all">
         <xsl:variable name="forClass" select="key('resources', .)/rdf:type/@rdf:resource" as="xs:anyURI"/>
         <xsl:choose>
             <xsl:when test="not($forClass = '&rdfs;Resource') and doc-available(ac:document-uri($forClass))">
-                <xsl:variable name="subclasses" select="apl:listSubClasses($forClass, false(), $ldt:ontology)" as="attribute()*"/>
+                <xsl:variable name="subclasses" select="ldh:listSubClasses($forClass, false(), $ldt:ontology)" as="attribute()*"/>
                 <!-- add subclasses as forClass -->
                 <xsl:for-each select="distinct-values($subclasses)[not(. = $forClass)]">
                     <input type="hidden" class="forClass" value="{.}"/>

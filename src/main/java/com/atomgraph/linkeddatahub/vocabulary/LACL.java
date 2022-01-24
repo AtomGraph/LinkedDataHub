@@ -34,7 +34,7 @@ public class LACL
     private static OntModel m_model = ModelFactory.createOntologyModel(OntModelSpec.OWL_MEM, null);
     
     /** <p>The namespace of the vocabulary as a string</p> */
-    public static final String NS = "https://w3id.org/atomgraph/linkeddatahub/admin/acl/domain#";
+    public static final String NS = "https://w3id.org/atomgraph/linkeddatahub/admin/acl#";
     
     /** <p>The namespace of the vocabulary as a string</p>
      *  @see #NS */

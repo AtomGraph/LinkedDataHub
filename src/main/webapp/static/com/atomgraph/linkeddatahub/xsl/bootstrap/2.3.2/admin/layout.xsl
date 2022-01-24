@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xsl:stylesheet [
     <!ENTITY lmod   "https://w3id.org/atomgraph/linkeddatahub/admin/modules/domain#">
-    <!ENTITY lsm    "https://w3id.org/atomgraph/linkeddatahub/admin/sitemap/domain#">
-    <!ENTITY lacl   "https://w3id.org/atomgraph/linkeddatahub/admin/acl/domain#">
-    <!ENTITY lapp   "https://w3id.org/atomgraph/linkeddatahub/apps/domain#">
+    <!ENTITY lsm    "https://w3id.org/atomgraph/linkeddatahub/admin/sitemap#">
+    <!ENTITY lacl   "https://w3id.org/atomgraph/linkeddatahub/admin/acl#">
+    <!ENTITY lapp   "https://w3id.org/atomgraph/linkeddatahub/apps#">
     <!ENTITY adm    "https://w3id.org/atomgraph/linkeddatahub/admin#">
-    <!ENTITY apl    "https://w3id.org/atomgraph/linkeddatahub/domain#">
+    <!ENTITY ldh    "https://w3id.org/atomgraph/linkeddatahub#">
     <!ENTITY ac     "https://w3id.org/atomgraph/client#">
     <!ENTITY rdf    "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
     <!ENTITY rdfs   "http://www.w3.org/2000/01/rdf-schema#">
@@ -22,7 +22,7 @@ xmlns:xhtml="http://www.w3.org/1999/xhtml"
 xmlns:xs="http://www.w3.org/2001/XMLSchema"
 xmlns:map="http://www.w3.org/2005/xpath-functions/map"
 xmlns:lapp="&lapp;"
-xmlns:apl="&apl;"
+xmlns:ldh="&ldh;"
 xmlns:ac="&ac;"
 xmlns:rdf="&rdf;"
 xmlns:rdfs="&rdfs;"
@@ -38,7 +38,7 @@ exclude-result-prefixes="#all">
     <xsl:include href="acl/layout.xsl"/>
     <xsl:include href="sitemap/layout.xsl"/>
 
-    <xsl:template match="rdf:RDF" mode="apl:Constructor" as="document-node()">
+    <xsl:template match="rdf:RDF" mode="ldh:Constructor" as="document-node()">
         <xsl:param name="forClass" as="xs:anyURI"/>
         <xsl:param name="createGraph" as="xs:boolean"/>
 
@@ -47,7 +47,7 @@ exclude-result-prefixes="#all">
             <xsl:when test="$createGraph and not($forClass = ('&adm;Container', '&adm;Item'))">
                 <xsl:document>
                     <xsl:for-each select="ac:construct($ldt:ontology, ($forClass, xs:anyURI('&adm;Item')), $ldt:base)">
-                        <xsl:apply-templates select="." mode="apl:SetPrimaryTopic">
+                        <xsl:apply-templates select="." mode="ldh:SetPrimaryTopic">
                             <xsl:with-param name="topic-id" select="key('resources-by-type', $forClass)[* except rdf:type]/@rdf:nodeID" tunnel="yes"/>
                             <xsl:with-param name="doc-id" select="key('resources-by-type', '&adm;Item')/@rdf:nodeID" tunnel="yes"/>
                         </xsl:apply-templates>
@@ -94,7 +94,7 @@ exclude-result-prefixes="#all">
 
         <div class="btn-group pull-left">
             <button type="button" title="{ac:label(key('resources', 'create-instance-title', document('../translations.rdf')))}">
-                <xsl:apply-templates select="key('resources', '&ac;ConstructMode', document(ac:document-uri('&ac;')))" mode="apl:logo">
+                <xsl:apply-templates select="key('resources', '&ac;ConstructMode', document(ac:document-uri('&ac;')))" mode="ldh:logo">
                     <xsl:with-param name="class" select="'btn btn-primary dropdown-toggle'"/>
                 </xsl:apply-templates>
                 <xsl:value-of>

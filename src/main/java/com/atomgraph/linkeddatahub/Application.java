@@ -107,7 +107,7 @@ import com.atomgraph.linkeddatahub.server.mapper.auth.oauth2.TokenExpiredExcepti
 import com.atomgraph.linkeddatahub.server.model.impl.Dispatcher;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.server.util.MessageBuilder;
-import com.atomgraph.linkeddatahub.vocabulary.APL;
+import com.atomgraph.linkeddatahub.vocabulary.LDH;
 import com.atomgraph.linkeddatahub.vocabulary.APLC;
 import com.atomgraph.linkeddatahub.vocabulary.Google;
 import com.atomgraph.linkeddatahub.vocabulary.LAPP;
@@ -580,7 +580,7 @@ public class Application extends ResourceConfig
             }
             
             xsltComp = xsltProc.newXsltCompiler();
-            xsltComp.setParameter(new QName("apl", APL.base.getNameSpace(), APL.base.getLocalName()), new XdmAtomicValue(baseURI));
+            xsltComp.setParameter(new QName("apl", LDH.base.getNameSpace(), LDH.base.getLocalName()), new XdmAtomicValue(baseURI));
             xsltComp.setURIResolver(new XsltResolver(LocationMapper.get(), new HashMap<>(), client, mediaTypes, false, false, true)); // default Xerces parser does not support HTTPS
             xsltExec = xsltComp.compile(stylesheet);
         }

@@ -128,7 +128,7 @@ args+=("$cert_password")
 args+=("-t")
 args+=("text/turtle") # content type
 
-turtle+="@prefix lsm:	<https://w3id.org/atomgraph/linkeddatahub/admin/sitemap/domain#> .\n"
+turtle+="@prefix lsm:	<https://w3id.org/atomgraph/linkeddatahub/admin/sitemap#> .\n"
 turtle+="@prefix adm:	<https://w3id.org/atomgraph/linkeddatahub/admin#> .\n"
 turtle+="@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
@@ -148,8 +148,8 @@ if [ -n "$comment" ] ; then
     turtle+="${query} rdfs:comment \"${comment}\" .\n"
 fi
 if [ -n "$service" ] ; then
-    turtle+="@prefix apl:	<https://w3id.org/atomgraph/linkeddatahub/domain#> .\n"
-    turtle+="${query} apl:service <${service}> .\n"
+    turtle+="@prefix ldh:	<https://w3id.org/atomgraph/linkeddatahub#> .\n"
+    turtle+="${query} ldh:service <${service}> .\n"
 fi
 if [ -n "$slug" ] ; then
     turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .\n"

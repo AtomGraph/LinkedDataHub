@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xsl:stylesheet [
     <!ENTITY lsmt   "https://w3id.org/atomgraph/linkeddatahub/admin/sitemap/templates#">
-    <!ENTITY apl    "https://w3id.org/atomgraph/linkeddatahub/domain#">
+    <!ENTITY ldh    "https://w3id.org/atomgraph/linkeddatahub#">
     <!ENTITY ac     "https://w3id.org/atomgraph/client#">
     <!ENTITY a      "https://w3id.org/atomgraph/core#">
-    <!ENTITY lsm    "https://w3id.org/atomgraph/linkeddatahub/admin/sitemap/domain#">
+    <!ENTITY lsm    "https://w3id.org/atomgraph/linkeddatahub/admin/sitemap#">
     <!ENTITY rdf    "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
     <!ENTITY owl    "http://www.w3.org/2002/07/owl#">
     <!ENTITY acl    "http://www.w3.org/ns/auth/acl#">
@@ -17,7 +17,7 @@
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 xmlns:xhtml="http://www.w3.org/1999/xhtml"
 xmlns:xs="http://www.w3.org/2001/XMLSchema"
-xmlns:apl="&apl;"
+xmlns:ldh="&ldh;"
 xmlns:ac="&ac;"
 xmlns:a="&a;"
 xmlns:rdf="&rdf;"
@@ -29,7 +29,7 @@ xmlns:spin="&spin;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 exclude-result-prefixes="#all">
 
-    <xsl:template match="*[rdf:type/@rdf:resource][foaf:isPrimaryTopicOf/@rdf:resource][apl:listSuperClasses(rdf:type/@rdf:resource) = '&lsm;Ontology']" mode="bs2:Actions">
+    <xsl:template match="*[rdf:type/@rdf:resource][foaf:isPrimaryTopicOf/@rdf:resource][ldh:listSuperClasses(rdf:type/@rdf:resource) = '&lsm;Ontology']" mode="bs2:Actions">
         <xsl:if test="$acl:Agent//@rdf:about">
             <form class="pull-right" action="{foaf:isPrimaryTopicOf/@rdf:resource[starts-with(., $ldt:base)]}" method="get">
                 <input type="hidden" name="clear"/>

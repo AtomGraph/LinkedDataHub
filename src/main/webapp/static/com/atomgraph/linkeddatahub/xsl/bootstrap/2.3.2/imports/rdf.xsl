@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xsl:stylesheet [
-    <!ENTITY lapp   "https://w3id.org/atomgraph/linkeddatahub/apps/domain#">
-    <!ENTITY apl    "https://w3id.org/atomgraph/linkeddatahub/domain#">
+    <!ENTITY lapp   "https://w3id.org/atomgraph/linkeddatahub/apps#">
+    <!ENTITY ldh    "https://w3id.org/atomgraph/linkeddatahub#">
     <!ENTITY ac     "https://w3id.org/atomgraph/client#">
     <!ENTITY rdf    "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
     <!ENTITY rdfs   "http://www.w3.org/2000/01/rdf-schema#">
@@ -22,7 +22,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 xmlns:xhtml="http://www.w3.org/1999/xhtml"
 xmlns:xs="http://www.w3.org/2001/XMLSchema"
 xmlns:lapp="&lapp;"
-xmlns:apl="&apl;"
+xmlns:ldh="&ldh;"
 xmlns:ac="&ac;"
 xmlns:rdf="&rdf;"
 xmlns:rdfs="&rdfs;"
@@ -80,7 +80,7 @@ exclude-result-prefixes="#all">
                         <!--
                         <span>
                             <button type="button" class="btn add-type">
-                                <xsl:apply-templates use-when="system-property('xsl:product-name') = 'SAXON'" select="key('resources', 'add', document('translations.rdf'))" mode="apl:logo"/>
+                                <xsl:apply-templates use-when="system-property('xsl:product-name') = 'SAXON'" select="key('resources', 'add', document('translations.rdf'))" mode="ldh:logo"/>
                                 <xsl:text use-when="system-property('xsl:product-name') eq 'Saxon-JS'">&#x2715;</xsl:text>
                             </button>
                         </span>
@@ -102,7 +102,7 @@ exclude-result-prefixes="#all">
         <xsl:choose>
             <xsl:when test="doc-available($doc-uri) and key('resources', ., document($doc-uri))">
                 <span>
-                    <xsl:apply-templates select="key('resources', ., document($doc-uri))" mode="apl:Typeahead">
+                    <xsl:apply-templates select="key('resources', ., document($doc-uri))" mode="ldh:Typeahead">
                         <xsl:with-param name="class" select="'btn add-typeahead add-typetypeahead'"/>
                     </xsl:apply-templates>
                 </span>

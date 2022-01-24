@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xsl:stylesheet [
     <!ENTITY def        "https://w3id.org/atomgraph/linkeddatahub/default#">
-    <!ENTITY apl        "https://w3id.org/atomgraph/linkeddatahub/domain#">
+    <!ENTITY ldh        "https://w3id.org/atomgraph/linkeddatahub#">
     <!ENTITY ac         "https://w3id.org/atomgraph/client#">
     <!ENTITY typeahead  "http://graphity.org/typeahead#">
     <!ENTITY rdf        "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
@@ -23,7 +23,7 @@ xmlns:map="http://www.w3.org/2005/xpath-functions/map"
 xmlns:json="http://www.w3.org/2005/xpath-functions"
 xmlns:array="http://www.w3.org/2005/xpath-functions/array"
 xmlns:ac="&ac;"
-xmlns:apl="&apl;"
+xmlns:ldh="&ldh;"
 xmlns:rdf="&rdf;"
 xmlns:dct="&dct;"
 xmlns:typeahead="&typeahead;"
@@ -50,28 +50,28 @@ exclude-result-prefixes="#all"
         <xsl:param name="id" as="xs:string"/>
         
         <xsl:for-each select="id($id, ixsl:page())">
-            <xsl:apply-templates select="." mode="apl:PostConstruct"/>
+            <xsl:apply-templates select="." mode="ldh:PostConstruct"/>
             
             <xsl:value-of select="ixsl:call(., 'focus', [])"/>
         </xsl:for-each>
     </xsl:template>
     
-    <xsl:template match="*" mode="apl:PostConstruct">
+    <xsl:template match="*" mode="ldh:PostConstruct">
         <xsl:apply-templates mode="#current"/>
     </xsl:template>
     
     <!-- listener identity transform - binding event listeners to inputs -->
     
-    <xsl:template match="text()" mode="apl:PostConstruct"/>
+    <xsl:template match="text()" mode="ldh:PostConstruct"/>
 
     <!-- subject type change -->
-    <xsl:template match="select[contains-token(@class, 'subject-type')]" mode="apl:PostConstruct" priority="1">
+    <xsl:template match="select[contains-token(@class, 'subject-type')]" mode="ldh:PostConstruct" priority="1">
         <xsl:message>
             <xsl:value-of select="ixsl:call(., 'addEventListener', [ 'change', ixsl:get(ixsl:window(), 'onSubjectTypeChange') ])"/>
         </xsl:message>
     </xsl:template>
     
-    <xsl:template match="textarea[contains-token(@class, 'wymeditor')]" mode="apl:PostConstruct" priority="1">
+    <xsl:template match="textarea[contains-token(@class, 'wymeditor')]" mode="ldh:PostConstruct" priority="1">
         <!-- without wrapping into comment, we get: SEVERE: In delayed event: DOM error appending text node with value: '[object Object]' to node with name: #document -->
         <xsl:message>
             <!-- call .wymeditor() on textarea to show WYMEditor -->
@@ -80,7 +80,7 @@ exclude-result-prefixes="#all"
     </xsl:template>
 
     <!-- TO-DO: phase out as regular ixsl: event templates -->
-    <xsl:template match="fieldset//input" mode="apl:PostConstruct" priority="1">
+    <xsl:template match="fieldset//input" mode="ldh:PostConstruct" priority="1">
         <!-- subject value change -->
         <xsl:if test="contains-token(@class, 'subject')">
             <xsl:message>
@@ -165,7 +165,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="action" select="ixsl:get(., 'action')" as="xs:anyURI"/>
         <xsl:variable name="enctype" select="ixsl:get(., 'enctype')" as="xs:string"/>
         <xsl:variable name="accept" select="'application/xhtml+xml'" as="xs:string"/>
-        <xsl:variable name="request-uri" select="apl:href($ldt:base, $action)" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="ldh:href($ldt:base, $action)" as="xs:anyURI"/>
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
         
@@ -212,7 +212,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="control-group" select="../.." as="element()"/> <!-- ../../copy-of() -->
         <xsl:variable name="property" select="../preceding-sibling::*/select/option[ixsl:get(., 'selected') = true()]/ixsl:get(., 'value')" as="xs:anyURI"/>
         <xsl:variable name="forClass" select="preceding-sibling::input/@value" as="xs:anyURI*"/>
-        <xsl:variable name="href" select="ac:build-uri(apl:absolute-path(apl:href()), map{ 'forClass': string($forClass) })" as="xs:anyURI"/>
+        <xsl:variable name="href" select="ac:build-uri(ldh:absolute-path(ldh:href()), map{ 'forClass': string($forClass) })" as="xs:anyURI"/>
         <xsl:message>Form URI: <xsl:value-of select="$href"/></xsl:message>
         
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
@@ -242,7 +242,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="create-graph" select="empty($form)" as="xs:boolean"/>
         <xsl:variable name="query-params" select="map:merge((map{ 'forClass': string($forClass) }, if ($modal-form) then map{ 'mode': '&ac;ModalMode' } else (), if ($create-graph) then map{ 'createGraph': string(true()) } else ()))" as="map(xs:string, xs:string*)"/>
         <!-- do not use @href from the HTML because it does not update with AJAX document loads -->
-        <xsl:variable name="href" select="ac:build-uri(apl:absolute-path(apl:href()), $query-params)" as="xs:anyURI"/>
+        <xsl:variable name="href" select="ac:build-uri(ldh:absolute-path(ldh:href()), $query-params)" as="xs:anyURI"/>
         <xsl:message>Form URI: <xsl:value-of select="$href"/></xsl:message>
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
@@ -257,8 +257,8 @@ exclude-result-prefixes="#all"
         </xsl:variable>
         <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
 
-        <xsl:call-template name="apl:PushState">
-            <xsl:with-param name="href" select="apl:href($ldt:base, $href)"/>
+        <xsl:call-template name="ldh:PushState">
+            <xsl:with-param name="href" select="ldh:href($ldt:base, $href)"/>
             <!--<xsl:with-param name="title" select="/html/head/title"/>-->
             <xsl:with-param name="container" select="id('content-body', ixsl:page())"/>
         </xsl:call-template>
@@ -274,7 +274,7 @@ exclude-result-prefixes="#all"
                 <xsl:document>
                     <rdf:RDF>
                         <rdf:Description rdf:nodeID="A1">
-                            <rdf:type rdf:resource="&apl;Content"/>
+                            <rdf:type rdf:resource="&ldh;Content"/>
                             <rdf:first rdf:nodeID="A2"/>
                         </rdf:Description>
                         <rdf:Description rdf:nodeID="A2">
@@ -299,7 +299,7 @@ exclude-result-prefixes="#all"
                 <xsl:document>
                     <rdf:RDF>
                         <rdf:Description rdf:nodeID="A1">
-                            <rdf:type rdf:resource="&apl;Content"/>
+                            <rdf:type rdf:resource="&ldh;Content"/>
                             <rdf:first rdf:parseType="Literal">
                                 <xhtml:div/>
                             </rdf:first>
@@ -318,9 +318,9 @@ exclude-result-prefixes="#all"
                 </xsl:result-document>
                 
                 <!-- key() lookup doesn't work because of https://saxonica.plan.io/issues/5036 -->
-                <!--<xsl:apply-templates select="key('elements-by-class', 'wymeditor', .)" mode="apl:PostConstruct"/>-->
+                <!--<xsl:apply-templates select="key('elements-by-class', 'wymeditor', .)" mode="ldh:PostConstruct"/>-->
                 <!-- initialize wymeditor textarea -->
-                <xsl:apply-templates select="descendant::*[contains-token(@class, 'wymeditor')]" mode="apl:PostConstruct"/>
+                <xsl:apply-templates select="descendant::*[contains-token(@class, 'wymeditor')]" mode="ldh:PostConstruct"/>
             </xsl:for-each>
         </xsl:if>
     </xsl:template>
@@ -564,7 +564,7 @@ exclude-result-prefixes="#all"
                             
                             <!-- add event listeners to the descendants of the form. TO-DO: replace with XSLT -->
                             <xsl:if test="id($form-id, ixsl:page())">
-                                <xsl:apply-templates select="id($form-id, ixsl:page())" mode="apl:PostConstruct"/>
+                                <xsl:apply-templates select="id($form-id, ixsl:page())" mode="ldh:PostConstruct"/>
                             </xsl:if>
                             
                             <xsl:if test="$new-target-id">
@@ -626,7 +626,7 @@ exclude-result-prefixes="#all"
                             
                             <!-- add event listeners to the descendants of the form. TO-DO: replace with XSLT -->
                             <xsl:if test="id($form-id, ixsl:page())">
-                                <xsl:apply-templates select="id($form-id, ixsl:page())" mode="apl:PostConstruct"/>
+                                <xsl:apply-templates select="id($form-id, ixsl:page())" mode="ldh:PostConstruct"/>
                             </xsl:if>
                     
                             <xsl:if test="$new-target-id">
@@ -720,7 +720,7 @@ exclude-result-prefixes="#all"
                 <xsl:variable name="request" as="item()*">
                     <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
                         <xsl:call-template name="onDocumentLoad">
-                            <xsl:with-param name="href" select="apl:absolute-path($uri)"/>
+                            <xsl:with-param name="href" select="ldh:absolute-path($uri)"/>
                             <xsl:with-param name="fragment" select="encode-for-uri($uri)"/>
                         </xsl:call-template>
                     </ixsl:schedule-action>
@@ -739,14 +739,14 @@ exclude-result-prefixes="#all"
             <xsl:when test="?status = 200">
                 <xsl:choose>
                     <xsl:when test="starts-with(?media-type, 'application/xhtml+xml')"> <!-- allow 'application/xhtml+xml;charset=UTF-8' as well -->
-                        <xsl:apply-templates select="?body" mode="apl:LoadedHTMLDocument">
+                        <xsl:apply-templates select="?body" mode="ldh:LoadedHTMLDocument">
                             <!-- $uri does not change at this point -->
                             <xsl:with-param name="container" select="$container"/>
                         </xsl:apply-templates>
                     </xsl:when>
                     <xsl:otherwise>
                         <!-- trim the query string if it's present --> 
-                        <xsl:variable name="uri" select="apl:absolute-path($action)" as="xs:anyURI"/>
+                        <xsl:variable name="uri" select="ldh:absolute-path($action)" as="xs:anyURI"/>
                         
                         <!--reload resource--> 
                         <xsl:variable name="request" as="item()*">
@@ -783,7 +783,7 @@ exclude-result-prefixes="#all"
                         <xsl:variable name="request" as="item()*">
                             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $created-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
                                 <xsl:call-template name="onDocumentLoad">
-                                    <xsl:with-param name="href" select="apl:absolute-path($created-uri)"/>
+                                    <xsl:with-param name="href" select="ldh:absolute-path($created-uri)"/>
                                     <xsl:with-param name="fragment" select="encode-for-uri($created-uri)"/>
                                 </xsl:call-template>
                             </ixsl:schedule-action>
@@ -810,7 +810,7 @@ exclude-result-prefixes="#all"
                         <xsl:copy-of select="$form/*"/>
                     </xsl:result-document>
 
-                    <xsl:apply-templates select="id($form-id, ixsl:page())" mode="apl:PostConstruct"/>
+                    <xsl:apply-templates select="id($form-id, ixsl:page())" mode="ldh:PostConstruct"/>
                     
                     <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
                 </xsl:for-each>

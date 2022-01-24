@@ -124,8 +124,8 @@ turtle+="_:item foaf:primaryTopic _:query .\n"
 turtle+="_:item sioc:has_container <${container}> .\n"
 
 if [ -n "$service" ] ; then
-    turtle+="@prefix apl:	<https://w3id.org/atomgraph/linkeddatahub/domain#> .\n"
-    turtle+="_:query apl:service <${service}> .\n"
+    turtle+="@prefix ldh:	<https://w3id.org/atomgraph/linkeddatahub#> .\n"
+    turtle+="_:query ldh:service <${service}> .\n"
 fi
 if [ -n "$description" ] ; then
     turtle+="_:query dct:description \"${description}\" .\n"

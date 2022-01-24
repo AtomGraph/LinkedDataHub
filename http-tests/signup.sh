@@ -14,7 +14,7 @@ curl -k -s \
   --data-urlencode "rdf=" \
   --data-urlencode "sb=agent" \
   --data-urlencode "pu=http://www.w3.org/1999/02/22-rdf-syntax-ns#type" \
-  --data-urlencode "ou=https://w3id.org/atomgraph/linkeddatahub/admin/acl/domain#Person" \
+  --data-urlencode "ou=https://w3id.org/atomgraph/linkeddatahub/admin/acl#Person" \
   --data-urlencode "pu=http://xmlns.com/foaf/0.1/primaryTopic" \
   --data-urlencode "ob=agent" \
   --data-urlencode "pu=http://xmlns.com/foaf/0.1/based_near" \
@@ -30,9 +30,9 @@ curl -k -s \
   --data-urlencode "pu=http://www.w3.org/ns/auth/cert#key" \
   --data-urlencode "ob=key" \
   --data-urlencode "sb=key" \
-  --data-urlencode "pu=https://w3id.org/atomgraph/linkeddatahub/admin/acl/domain#password" \
+  --data-urlencode "pu=https://w3id.org/atomgraph/linkeddatahub/admin/acl#password" \
   --data-urlencode "ol=${password}" \
-  --data-urlencode "pu=https://w3id.org/atomgraph/linkeddatahub/admin/acl/domain#password" \
+  --data-urlencode "pu=https://w3id.org/atomgraph/linkeddatahub/admin/acl#password" \
   --data-urlencode "ol=${password}" \
   --data-urlencode "sb=agent" \
   --data-urlencode "sb=doc" \

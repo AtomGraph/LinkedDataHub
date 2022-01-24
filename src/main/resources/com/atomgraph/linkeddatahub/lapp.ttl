@@ -1,7 +1,7 @@
-@base           <https://w3id.org/atomgraph/linkeddatahub/apps/domain> .
+@base           <https://w3id.org/atomgraph/linkeddatahub/apps> .
 
 @prefix :	<#> .
-@prefix apl:	<https://w3id.org/atomgraph/linkeddatahub/domain#> .
+@prefix ldh:	<https://w3id.org/atomgraph/linkeddatahub#> .
 @prefix a:	<https://w3id.org/atomgraph/core#> .
 @prefix rdf:	<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .
@@ -17,7 +17,7 @@
 @prefix dct:	<http://purl.org/dc/terms/> .
 
 : a owl:Ontology ;
-    owl:imports apl:, ldt:, sp:, spin: ;
+    owl:imports ldh:, ldt:, sp:, spin: ;
     rdfs:label "AtomGraph Application ontology" ;
     rdfs:comment "Ontology of AtomGraph applications" ;
     owl:versionInfo "1.1.4" .
@@ -70,11 +70,11 @@
     rdfs:subClassOf ldt:Application ;
     spin:constructor :ApplicationConstructor ;
     spin:constraint :OneBasePerHostName, :StartsWithHTTPS,
-        [ a apl:MissingPropertyValue ;
+        [ a ldh:MissingPropertyValue ;
             rdfs:label "Missing base URI" ;
             sp:arg1 ldt:base
         ] ;
-        #[ a apl:MissingPropertyValue ;
+        #[ a ldh:MissingPropertyValue ;
         #    rdfs:label "Missing SPARQL service" ;
         #    sp:arg1 ldt:service
         #] ;
@@ -84,13 +84,13 @@
 
 :ApplicationConstructor a sp:Construct ;
     sp:text """
-      PREFIX apl:     <https://w3id.org/atomgraph/linkeddatahub/domain#>
+      PREFIX ldh:     <https://w3id.org/atomgraph/linkeddatahub#>
       PREFIX ldt:     <https://www.w3.org/ns/ldt#>
       PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
 
       CONSTRUCT {
           ?this ldt:base [ a rdfs:Resource ] ;
-            ldt:service [ a apl:Service ] .
+            ldt:service [ a ldh:Service ] .
       }
       WHERE {
     }""" ;
@@ -102,7 +102,7 @@
 :EndUserApplication a rdfs:Class, owl:Class ;
     rdfs:subClassOf :ClientApplication ;
     spin:constructor :EndUserApplicationConstructor ;
-    spin:constraint [ a apl:MissingPropertyValue ;
+    spin:constraint [ a ldh:MissingPropertyValue ;
             rdfs:label "Missing admin application" ;
             sp:arg1 :adminApplication
         ] ;
@@ -112,8 +112,8 @@
 
 :EndUserApplicationConstructor a sp:Construct ;
     sp:text """
-      PREFIX lapp:    <https://w3id.org/atomgraph/linkeddatahub/apps/domain#>
-      PREFIX apl:     <https://w3id.org/atomgraph/linkeddatahub/domain#>
+      PREFIX lapp:    <https://w3id.org/atomgraph/linkeddatahub/apps#>
+      PREFIX ldh:     <https://w3id.org/atomgraph/linkeddatahub#>
       PREFIX ac:      <https://w3id.org/atomgraph/client#>
       PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
       PREFIX ldt:     <https://www.w3.org/ns/ldt#>
@@ -123,7 +123,7 @@
           ?this dct:title [ a xsd:string ] ;
             dct:description [ a xsd:string ] ;
             lapp:adminApplication [ a lapp:AdminApplication ] ;
-            ac:stylesheet [ a apl:File ] ;
+            ac:stylesheet [ a ldh:File ] ;
             lapp:public [ a xsd:boolean ] .
       }
       WHERE {}""" ;
@@ -135,7 +135,7 @@
 :AdminApplication a rdfs:Class, owl:Class ;
     rdfs:subClassOf :ClientApplication ;
     spin:constructor :AdminApplicationConstructor ;
-    spin:constraint [ a apl:MissingPropertyValue ;
+    spin:constraint [ a ldh:MissingPropertyValue ;
             rdfs:label "Missing end-user application" ;
             sp:arg1 :endUserApplication
         ] ;
@@ -145,7 +145,7 @@
 
 :AdminApplicationConstructor a sp:Construct ;
     sp:text """
-      PREFIX lapp:    <https://w3id.org/atomgraph/linkeddatahub/apps/domain#>
+      PREFIX lapp:    <https://w3id.org/atomgraph/linkeddatahub/apps#>
       PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
       PREFIX dct:     <http://purl.org/dc/terms/>
 

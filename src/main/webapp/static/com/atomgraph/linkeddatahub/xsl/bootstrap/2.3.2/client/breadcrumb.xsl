@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xsl:stylesheet [
     <!ENTITY def    "https://w3id.org/atomgraph/linkeddatahub/default#">
-    <!ENTITY apl    "https://w3id.org/atomgraph/linkeddatahub/domain#">
+    <!ENTITY ldh    "https://w3id.org/atomgraph/linkeddatahub#">
     <!ENTITY ac     "https://w3id.org/atomgraph/client#">
     <!ENTITY rdf    "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
     <!ENTITY xsd    "http://www.w3.org/2001/XMLSchema#">
@@ -18,7 +18,7 @@ xmlns:map="http://www.w3.org/2005/xpath-functions/map"
 xmlns:json="http://www.w3.org/2005/xpath-functions"
 xmlns:array="http://www.w3.org/2005/xpath-functions/array"
 xmlns:ac="&ac;"
-xmlns:apl="&apl;"
+xmlns:ldh="&ldh;"
 xmlns:rdf="&rdf;"
 xmlns:ldt="&ldt;"
 xmlns:sioc="&sioc;"
@@ -29,7 +29,7 @@ exclude-result-prefixes="#all"
 
     <!-- CALLBACKS -->
     
-    <xsl:template name="apl:BreadCrumbResourceLoad">
+    <xsl:template name="ldh:BreadCrumbResourceLoad">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="id" as="xs:string"/>
         <xsl:param name="uri" as="xs:anyURI"/>
@@ -41,10 +41,10 @@ exclude-result-prefixes="#all"
                     <xsl:variable name="resource" select="key('resources', $uri)" as="element()?"/>
                     <xsl:variable name="parent-uri" select="$resource/sioc:has_container/@rdf:resource | $resource/sioc:has_parent/@rdf:resource" as="xs:anyURI?"/>
                     <xsl:if test="$parent-uri">
-                        <xsl:variable name="request-uri" select="apl:href($ldt:base, $parent-uri)" as="xs:anyURI"/>
+                        <xsl:variable name="request-uri" select="ldh:href($ldt:base, $parent-uri)" as="xs:anyURI"/>
                         <xsl:variable name="request" as="item()*">
                             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-                                <xsl:call-template name="apl:BreadCrumbResourceLoad">
+                                <xsl:call-template name="ldh:BreadCrumbResourceLoad">
                                     <xsl:with-param name="id" select="$id"/>
                                     <xsl:with-param name="uri" select="$parent-uri"/>
                                     <xsl:with-param name="leaf" select="false()"/> <!-- parent resources cannot be leaves -->

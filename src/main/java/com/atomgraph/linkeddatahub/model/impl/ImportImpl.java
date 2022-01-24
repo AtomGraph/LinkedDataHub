@@ -17,7 +17,7 @@
 package com.atomgraph.linkeddatahub.model.impl;
 
 import com.atomgraph.linkeddatahub.model.Import;
-import com.atomgraph.linkeddatahub.vocabulary.APL;
+import com.atomgraph.linkeddatahub.vocabulary.LDH;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.enhanced.EnhNode;
 import org.apache.jena.enhanced.Implementation;
@@ -55,7 +55,7 @@ public class ImportImpl extends ResourceImpl implements Import
         {
             if (eg == null) throw new IllegalArgumentException("EnhGraph cannot be null");
 
-            return eg.asGraph().contains(node, RDF.type.asNode(), APL.Import.asNode());
+            return eg.asGraph().contains(node, RDF.type.asNode(), LDH.Import.asNode());
         }
     };
     
@@ -67,13 +67,13 @@ public class ImportImpl extends ResourceImpl implements Import
     @Override
     public Resource getFile()
     {
-        return getPropertyResourceValue(APL.file);
+        return getPropertyResourceValue(LDH.file);
     }
     
     @Override
     public Resource getContainer()
     {
-        return getPropertyResourceValue(APL.action);
+        return getPropertyResourceValue(LDH.action);
     }
 
 }

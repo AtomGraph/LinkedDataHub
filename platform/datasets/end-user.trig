@@ -1,5 +1,5 @@
 @prefix def:	<https://w3id.org/atomgraph/linkeddatahub/default#> .
-@prefix apl:	<https://w3id.org/atomgraph/linkeddatahub/domain#> .
+@prefix ldh:	<https://w3id.org/atomgraph/linkeddatahub#> .
 @prefix rdf:	<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix xsd:	<http://www.w3.org/2001/XMLSchema#> .
 @prefix sp:	<http://spinrdf.org/sp#> .
@@ -61,9 +61,9 @@
     <geo/> a def:Item ;
         dct:title "Geo" ;
         dct:description "Geolocated resources" ;
-        apl:content <geo/#id31036be3-4fb4-493b-bc2d-3ab98693acc9> .
+        ldh:content <geo/#id31036be3-4fb4-493b-bc2d-3ab98693acc9> .
 
-    <geo/#id31036be3-4fb4-493b-bc2d-3ab98693acc9> a apl:Content ;
+    <geo/#id31036be3-4fb4-493b-bc2d-3ab98693acc9> a ldh:Content ;
         rdf:first <geo/#id3aa6c894-4412-11ec-81d3-0242ac130003> ;
         rdf:rest rdf:nil .
 
@@ -95,9 +95,9 @@
     <latest/> a def:Item ;
         dct:title "Latest" ;
         dct:description "Latest resources" ;
-        apl:content <latest/#id17e6a62e-d319-44e7-b4ac-f38e29d461e7> .
+        ldh:content <latest/#id17e6a62e-d319-44e7-b4ac-f38e29d461e7> .
 
-    <latest/#id17e6a62e-d319-44e7-b4ac-f38e29d461e7> a apl:Content ;
+    <latest/#id17e6a62e-d319-44e7-b4ac-f38e29d461e7> a ldh:Content ;
         rdf:first <latest/#idf3dfb452-4411-11ec-81d3-0242ac130003> ;
         rdf:rest rdf:nil .
 

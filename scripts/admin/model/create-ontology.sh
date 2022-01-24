@@ -106,7 +106,7 @@ args+=("$cert_password")
 args+=("-t")
 args+=("text/turtle") # content type
 
-turtle+="@prefix lsm:	<https://w3id.org/atomgraph/linkeddatahub/admin/sitemap/domain#> .\n"
+turtle+="@prefix lsm:	<https://w3id.org/atomgraph/linkeddatahub/admin/sitemap#> .\n"
 turtle+="@prefix adm:	<https://w3id.org/atomgraph/linkeddatahub/admin#> .\n"
 turtle+="@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"

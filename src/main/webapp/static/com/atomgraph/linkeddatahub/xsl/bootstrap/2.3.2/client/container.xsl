@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xsl:stylesheet [
     <!ENTITY def    "https://w3id.org/atomgraph/linkeddatahub/default#">
-    <!ENTITY apl    "https://w3id.org/atomgraph/linkeddatahub/domain#">
+    <!ENTITY ldh    "https://w3id.org/atomgraph/linkeddatahub#">
     <!ENTITY ac     "https://w3id.org/atomgraph/client#">
     <!ENTITY rdf    "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
     <!ENTITY xsd    "http://www.w3.org/2001/XMLSchema#">
@@ -20,7 +20,7 @@ xmlns:map="http://www.w3.org/2005/xpath-functions/map"
 xmlns:json="http://www.w3.org/2005/xpath-functions"
 xmlns:array="http://www.w3.org/2005/xpath-functions/array"
 xmlns:ac="&ac;"
-xmlns:apl="&apl;"
+xmlns:ldh="&ldh;"
 xmlns:rdf="&rdf;"
 xmlns:srx="&srx;"
 xmlns:ldt="&ldt;"
@@ -140,7 +140,7 @@ exclude-result-prefixes="#all"
 
     <!-- result counts -->
     
-    <xsl:template name="apl:ResultCounts">
+    <xsl:template name="ldh:ResultCounts">
         <xsl:param name="count-var-name" select="'count'" as="xs:string"/>
         <xsl:param name="select-xml" as="document-node()"/>
         <xsl:param name="focus-var-name" as="xs:string"/>
@@ -149,20 +149,20 @@ exclude-result-prefixes="#all"
                 <!-- unset ORDER BY/LIMIT/OFFSET - we want to COUNT all of the container's children; ordering is irrelevant -->
                 <xsl:variable name="select-xml" as="document-node()">
                     <xsl:document>
-                        <xsl:apply-templates select="$select-xml" mode="apl:replace-limit"/>
+                        <xsl:apply-templates select="$select-xml" mode="ldh:replace-limit"/>
                     </xsl:document>
                 </xsl:variable>
                 <xsl:variable name="select-xml" as="document-node()">
                     <xsl:document>
-                        <xsl:apply-templates select="$select-xml" mode="apl:replace-offset"/>
+                        <xsl:apply-templates select="$select-xml" mode="ldh:replace-offset"/>
                     </xsl:document>
                 </xsl:variable>
                 <xsl:variable name="select-xml" as="document-node()">
                     <xsl:document>
-                        <xsl:apply-templates select="$select-xml" mode="apl:replace-order-by"/>
+                        <xsl:apply-templates select="$select-xml" mode="ldh:replace-order-by"/>
                     </xsl:document>
                 </xsl:variable>
-                <xsl:apply-templates select="$select-xml" mode="apl:result-count">
+                <xsl:apply-templates select="$select-xml" mode="ldh:result-count">
                     <xsl:with-param name="count-var-name" select="$count-var-name" tunnel="yes"/>
                     <xsl:with-param name="expression-var-name" select="$focus-var-name" tunnel="yes"/>
                 </xsl:apply-templates>
@@ -174,12 +174,12 @@ exclude-result-prefixes="#all"
         <xsl:variable name="service" select="if (ixsl:contains(ixsl:window(), 'LinkedDataHub.service')) then ixsl:get(ixsl:window(), 'LinkedDataHub.service') else ()" as="element()?"/>
         <xsl:variable name="endpoint" select="($service/sd:endpoint/@rdf:resource/xs:anyURI(.), ac:endpoint())[1]" as="xs:anyURI"/>
         <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': $query-string })" as="xs:anyURI"/>
-        <xsl:variable name="request-uri" select="apl:href($ldt:base, $results-uri)" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="ldh:href($ldt:base, $results-uri)" as="xs:anyURI"/>
 
         <!-- load result count -->
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml' } }">
-                <xsl:call-template name="apl:ResultCountResultsLoad">
+                <xsl:call-template name="ldh:ResultCountResultsLoad">
                     <xsl:with-param name="container-id" select="'result-counts'"/>
                     <xsl:with-param name="count-var-name" select="$count-var-name"/>
                 </xsl:call-template>
@@ -276,7 +276,7 @@ exclude-result-prefixes="#all"
 
     <!-- container -->
     
-    <xsl:template name="apl:RenderContainer">
+    <xsl:template name="ldh:RenderContainer">
         <xsl:param name="container" as="element()"/>
         <xsl:param name="content-uri" as="xs:anyURI"/>
         <xsl:param name="content" as="element()?"/>
@@ -287,13 +287,13 @@ exclude-result-prefixes="#all"
         
         <!-- wrap SELECT into a DESCRIBE -->
         <xsl:variable name="query-xml" as="element()">
-            <xsl:apply-templates select="$select-xml" mode="apl:wrap-describe"/>
+            <xsl:apply-templates select="$select-xml" mode="ldh:wrap-describe"/>
         </xsl:variable>
         <xsl:variable name="query-json-string" select="xml-to-json($query-xml)" as="xs:string"/>
         <xsl:variable name="query-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $query-json-string ])"/>
         <xsl:variable name="query-string" select="ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromQuery', [ $query-json ]), 'toString', [])" as="xs:string"/>
         <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': $query-string })" as="xs:anyURI"/>
-        <xsl:variable name="request-uri" select="apl:href($ldt:base, $results-uri)" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="ldh:href($ldt:base, $results-uri)" as="xs:anyURI"/>
 
         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
             <xsl:call-template name="onContainerResultsLoad">
@@ -429,12 +429,12 @@ exclude-result-prefixes="#all"
             <!-- unset LIMIT and OFFSET - we want all of the container's children on the map -->
             <xsl:variable name="select-xml" as="document-node()">
                 <xsl:document>
-                    <xsl:apply-templates select="$select-xml" mode="apl:replace-limit"/>
+                    <xsl:apply-templates select="$select-xml" mode="ldh:replace-limit"/>
                 </xsl:document>
             </xsl:variable>
             <xsl:variable name="select-xml" as="document-node()">
                 <xsl:document>
-                    <xsl:apply-templates select="$select-xml" mode="apl:replace-offset"/>
+                    <xsl:apply-templates select="$select-xml" mode="ldh:replace-offset"/>
                 </xsl:document>
             </xsl:variable>
             <xsl:variable name="select-json-string" select="xml-to-json($select-xml)" as="xs:string"/>
@@ -511,7 +511,7 @@ exclude-result-prefixes="#all"
                 </xsl:if>
 
                 <a>
-                    <xsl:apply-templates select="key('resources', '&ac;ReadMode', document(ac:document-uri('&ac;')))" mode="apl:logo"/>
+                    <xsl:apply-templates select="key('resources', '&ac;ReadMode', document(ac:document-uri('&ac;')))" mode="ldh:logo"/>
                 </a>
             </li>
             <li class="list-mode">
@@ -520,7 +520,7 @@ exclude-result-prefixes="#all"
                 </xsl:if>
 
                 <a>
-                    <xsl:apply-templates select="key('resources', '&ac;ListMode', document(ac:document-uri('&ac;')))" mode="apl:logo"/>
+                    <xsl:apply-templates select="key('resources', '&ac;ListMode', document(ac:document-uri('&ac;')))" mode="ldh:logo"/>
                 </a>
             </li>
             <li class="table-mode">
@@ -529,7 +529,7 @@ exclude-result-prefixes="#all"
                 </xsl:if>
 
                 <a>
-                    <xsl:apply-templates select="key('resources', '&ac;TableMode', document(ac:document-uri('&ac;')))" mode="apl:logo"/>
+                    <xsl:apply-templates select="key('resources', '&ac;TableMode', document(ac:document-uri('&ac;')))" mode="ldh:logo"/>
                 </a>
             </li>
             <li class="grid-mode">
@@ -538,7 +538,7 @@ exclude-result-prefixes="#all"
                 </xsl:if>
 
                 <a>
-                    <xsl:apply-templates select="key('resources', '&ac;GridMode', document(ac:document-uri('&ac;')))" mode="apl:logo"/>
+                    <xsl:apply-templates select="key('resources', '&ac;GridMode', document(ac:document-uri('&ac;')))" mode="ldh:logo"/>
                 </a>
             </li>
             <li class="chart-mode">
@@ -547,7 +547,7 @@ exclude-result-prefixes="#all"
                 </xsl:if>
 
                 <a>
-                    <xsl:apply-templates select="key('resources', '&ac;ChartMode', document(ac:document-uri('&ac;')))" mode="apl:logo"/>
+                    <xsl:apply-templates select="key('resources', '&ac;ChartMode', document(ac:document-uri('&ac;')))" mode="ldh:logo"/>
                 </a>
             </li>
             <li class="map-mode">
@@ -556,7 +556,7 @@ exclude-result-prefixes="#all"
                 </xsl:if>
 
                 <a>
-                    <xsl:apply-templates select="key('resources', '&ac;MapMode', document(ac:document-uri('&ac;')))" mode="apl:logo"/>
+                    <xsl:apply-templates select="key('resources', '&ac;MapMode', document(ac:document-uri('&ac;')))" mode="ldh:logo"/>
                 </a>
             </li>
             <li class="graph-mode">
@@ -565,7 +565,7 @@ exclude-result-prefixes="#all"
                 </xsl:if>
 
                 <a>
-                    <xsl:apply-templates select="key('resources', '&ac;GraphMode', document(ac:document-uri('&ac;')))" mode="apl:logo"/>
+                    <xsl:apply-templates select="key('resources', '&ac;GraphMode', document(ac:document-uri('&ac;')))" mode="ldh:logo"/>
                 </a>
             </li>
         </ul>
@@ -688,7 +688,7 @@ exclude-result-prefixes="#all"
                 <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
             </xsl:if>
 
-            <xsl:apply-templates select="." mode="apl:logo">
+            <xsl:apply-templates select="." mode="ldh:logo">
                 <xsl:with-param name="class" select="'well'"/>
             </xsl:apply-templates>
             
@@ -815,7 +815,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="query-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $query-json-string ])"/>
         <xsl:variable name="query-string" select="ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromQuery', [ $query-json ]), 'toString', [])" as="xs:string"/>
         <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': $query-string })" as="xs:anyURI"/>
-        <xsl:variable name="request-uri" select="apl:href($ldt:base, $results-uri)" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="ldh:href($ldt:base, $results-uri)" as="xs:anyURI"/>
 
         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml' } }">
             <xsl:call-template name="onParallaxSelectLoad">
@@ -880,13 +880,13 @@ exclude-result-prefixes="#all"
 
         <xsl:variable name="select-xml" as="document-node()">
             <xsl:document>
-                <xsl:apply-templates select="$select-xml" mode="apl:replace-offset">
+                <xsl:apply-templates select="$select-xml" mode="ldh:replace-offset">
                     <xsl:with-param name="offset" select="$offset" tunnel="yes"/>
                 </xsl:apply-templates>
             </xsl:document>
         </xsl:variable>
-<!--        <xsl:call-template name="apl:PushContentState">
-            <xsl:with-param name="href" select="apl:href($ldt:base, ac:uri())"/>
+<!--        <xsl:call-template name="ldh:PushContentState">
+            <xsl:with-param name="href" select="ldh:href($ldt:base, ac:uri())"/>
             <xsl:with-param name="content-uri" select="$content-uri"/>
             <xsl:with-param name="select-string" select="$select-string"/>
             <xsl:with-param name="select-xml" select="$select-xml"/>
@@ -894,7 +894,7 @@ exclude-result-prefixes="#all"
         <!-- store the transformed query XML -->
         <ixsl:set-property name="select-xml" select="$select-xml" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $content-uri)"/>
         
-        <xsl:call-template name="apl:RenderContainer">
+        <xsl:call-template name="ldh:RenderContainer">
             <xsl:with-param name="container" select="$container"/>
             <xsl:with-param name="content-uri" select="$content-uri"/>
             <xsl:with-param name="content" select="$content"/>
@@ -927,13 +927,13 @@ exclude-result-prefixes="#all"
 
         <xsl:variable name="select-xml" as="document-node()">
             <xsl:document>
-                <xsl:apply-templates select="$select-xml" mode="apl:replace-offset">
+                <xsl:apply-templates select="$select-xml" mode="ldh:replace-offset">
                     <xsl:with-param name="offset" select="$offset" tunnel="yes"/>
                 </xsl:apply-templates>
             </xsl:document>
         </xsl:variable>
-<!--        <xsl:call-template name="apl:PushContentState">
-            <xsl:with-param name="href" select="apl:href($ldt:base, ac:uri())"/>
+<!--        <xsl:call-template name="ldh:PushContentState">
+            <xsl:with-param name="href" select="ldh:href($ldt:base, ac:uri())"/>
             <xsl:with-param name="content-uri" select="$content-uri"/>
             <xsl:with-param name="select-string" select="$select-string"/>
             <xsl:with-param name="select-xml" select="$select-xml"/>
@@ -941,7 +941,7 @@ exclude-result-prefixes="#all"
         <!-- store the transformed query XML -->
         <ixsl:set-property name="select-xml" select="$select-xml" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $content-uri)"/>
         
-        <xsl:call-template name="apl:RenderContainer">
+        <xsl:call-template name="ldh:RenderContainer">
             <xsl:with-param name="container" select="$container"/>
             <xsl:with-param name="content-uri" select="$content-uri"/>
             <xsl:with-param name="content" select="$content"/>
@@ -973,13 +973,13 @@ exclude-result-prefixes="#all"
 
         <xsl:variable name="select-xml" as="document-node()">
             <xsl:document>
-                <xsl:apply-templates select="$select-xml" mode="apl:replace-order-by">
+                <xsl:apply-templates select="$select-xml" mode="ldh:replace-order-by">
                     <xsl:with-param name="var-name" select="$var-name" tunnel="yes"/>
                 </xsl:apply-templates>
             </xsl:document>
         </xsl:variable>
-<!--        <xsl:call-template name="apl:PushContentState">
-            <xsl:with-param name="href" select="apl:href($ldt:base, ac:uri())"/>
+<!--        <xsl:call-template name="ldh:PushContentState">
+            <xsl:with-param name="href" select="ldh:href($ldt:base, ac:uri())"/>
             <xsl:with-param name="content-uri" select="$content-uri"/>
             <xsl:with-param name="select-string" select="$select-string"/>
             <xsl:with-param name="select-xml" select="$select-xml"/>
@@ -987,7 +987,7 @@ exclude-result-prefixes="#all"
         <!-- store the transformed query XML -->
         <ixsl:set-property name="select-xml" select="$select-xml" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $content-uri)"/>
 
-        <xsl:call-template name="apl:RenderContainer">
+        <xsl:call-template name="ldh:RenderContainer">
             <xsl:with-param name="container" select="$container"/>
             <xsl:with-param name="content-uri" select="$content-uri"/>
             <xsl:with-param name="content" select="$content"/>
@@ -1018,13 +1018,13 @@ exclude-result-prefixes="#all"
 
         <xsl:variable name="select-xml" as="document-node()">
             <xsl:document>
-                <xsl:apply-templates select="$select-xml" mode="apl:toggle-desc">
+                <xsl:apply-templates select="$select-xml" mode="ldh:toggle-desc">
                     <xsl:with-param name="desc" select="not($desc)" tunnel="yes"/>
                 </xsl:apply-templates>
             </xsl:document>
         </xsl:variable>
-<!--        <xsl:call-template name="apl:PushContentState">
-            <xsl:with-param name="href" select="apl:href($ldt:base, ac:uri())"/>
+<!--        <xsl:call-template name="ldh:PushContentState">
+            <xsl:with-param name="href" select="ldh:href($ldt:base, ac:uri())"/>
             <xsl:with-param name="content-uri" select="$content-uri"/>
             <xsl:with-param name="select-string" select="$select-string"/>
             <xsl:with-param name="select-xml" select="$select-xml"/>
@@ -1032,7 +1032,7 @@ exclude-result-prefixes="#all"
         <!-- store the transformed query XML -->
         <ixsl:set-property name="select-xml" select="$select-xml" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $content-uri)"/>
 
-        <xsl:call-template name="apl:RenderContainer">
+        <xsl:call-template name="ldh:RenderContainer">
             <xsl:with-param name="container" select="$container"/>
             <xsl:with-param name="content-uri" select="$content-uri"/>
             <xsl:with-param name="content" select="$content"/>
@@ -1088,7 +1088,7 @@ exclude-result-prefixes="#all"
                     <!-- generate the XML structure of a SPARQL query which is used to load facet values, their counts and labels -->
                     <xsl:variable name="select-xml" as="document-node()">
                         <xsl:document>
-                            <xsl:apply-templates select="$select-xml" mode="apl:bgp-value-counts">
+                            <xsl:apply-templates select="$select-xml" mode="ldh:bgp-value-counts">
                                 <xsl:with-param name="bgp-triples-map" select="$bgp-triples-map" tunnel="yes"/>
                                 <xsl:with-param name="subject-var-name" select="$subject-var-name" tunnel="yes"/>
                                 <xsl:with-param name="object-var-name" select="$object-var-name" tunnel="yes"/>
@@ -1102,7 +1102,7 @@ exclude-result-prefixes="#all"
                     <xsl:variable name="select-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $select-json-string ])"/>
                     <xsl:variable name="query-string" select="ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromQuery', [ $select-json ]), 'toString', [])" as="xs:string"/>
                     <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': $query-string })" as="xs:anyURI"/>
-                    <xsl:variable name="request-uri" select="apl:href($ldt:base, $results-uri)" as="xs:anyURI"/>
+                    <xsl:variable name="request-uri" select="ldh:href($ldt:base, $results-uri)" as="xs:anyURI"/>
 
                     <!-- load facet values, their counts and optional labels -->
                     <xsl:variable name="request" as="item()*">
@@ -1162,14 +1162,14 @@ exclude-result-prefixes="#all"
 
         <xsl:variable name="select-xml" as="document-node()">
             <xsl:document>
-                <xsl:apply-templates select="$select-xml" mode="apl:filter-in">
+                <xsl:apply-templates select="$select-xml" mode="ldh:filter-in">
                     <xsl:with-param name="var-name" select="$var-name" tunnel="yes"/>
                     <xsl:with-param name="values" select="$values" tunnel="yes"/>
                 </xsl:apply-templates>
             </xsl:document>
         </xsl:variable>
-<!--        <xsl:call-template name="apl:PushContentState">
-            <xsl:with-param name="href" select="apl:href($ldt:base, ac:uri())"/>
+<!--        <xsl:call-template name="ldh:PushContentState">
+            <xsl:with-param name="href" select="ldh:href($ldt:base, ac:uri())"/>
             <xsl:with-param name="content-uri" select="$content-uri"/>
             <xsl:with-param name="select-string" select="$select-string"/>
             <xsl:with-param name="select-xml" select="$select-xml"/>
@@ -1177,7 +1177,7 @@ exclude-result-prefixes="#all"
         <!-- store the transformed query XML -->
         <ixsl:set-property name="select-xml" select="$select-xml" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $content-uri)"/>
 
-        <xsl:call-template name="apl:RenderContainer">
+        <xsl:call-template name="ldh:RenderContainer">
             <xsl:with-param name="container" select="$container"/>
             <xsl:with-param name="content-uri" select="$content-uri"/>
             <xsl:with-param name="content" select="$content"/>
@@ -1207,13 +1207,13 @@ exclude-result-prefixes="#all"
 
         <xsl:variable name="select-xml" as="document-node()">
             <xsl:document>
-                <xsl:apply-templates select="$select-xml" mode="apl:add-parallax-step">
+                <xsl:apply-templates select="$select-xml" mode="ldh:add-parallax-step">
                     <xsl:with-param name="predicate" select="$predicate" tunnel="yes"/>
                 </xsl:apply-templates>
             </xsl:document>
         </xsl:variable>
-<!--        <xsl:call-template name="apl:PushContentState">
-            <xsl:with-param name="href" select="apl:href($ldt:base, ac:uri())"/>
+<!--        <xsl:call-template name="ldh:PushContentState">
+            <xsl:with-param name="href" select="ldh:href($ldt:base, ac:uri())"/>
             <xsl:with-param name="content-uri" select="$content-uri"/>
             <xsl:with-param name="select-string" select="$select-string"/>
             <xsl:with-param name="select-xml" select="$select-xml"/>
@@ -1221,7 +1221,7 @@ exclude-result-prefixes="#all"
         <!-- store the transformed query XML -->
         <ixsl:set-property name="select-xml" select="$select-xml" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $content-uri)"/>
 
-        <xsl:call-template name="apl:RenderContainer">
+        <xsl:call-template name="ldh:RenderContainer">
             <xsl:with-param name="container" select="$container"/>
             <xsl:with-param name="content-uri" select="$content-uri"/>
             <xsl:with-param name="content" select="$content"/>
@@ -1312,7 +1312,7 @@ exclude-result-prefixes="#all"
 
                     <!-- result counts -->
                     <!-- <xsl:if test="id('result-counts', ixsl:page())">
-                        <xsl:call-template name="apl:ResultCounts">
+                        <xsl:call-template name="ldh:ResultCounts">
                             <xsl:with-param name="focus-var-name" select="$focus-var-name"/>
                             <xsl:with-param name="select-xml" select="$select-xml"/>
                         </xsl:call-template>
@@ -1584,7 +1584,7 @@ exclude-result-prefixes="#all"
         </xsl:for-each>
     </xsl:template>
     
-    <xsl:template name="apl:ResultCountResultsLoad">
+    <xsl:template name="ldh:ResultCountResultsLoad">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="container-id" as="xs:string"/>
         <xsl:param name="count-var-name" as="xs:string"/>

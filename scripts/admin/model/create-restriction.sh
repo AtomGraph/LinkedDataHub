@@ -129,7 +129,7 @@ args+=("${cert_password}")
 args+=("-t")
 args+=("text/turtle") # content type
 
-turtle+="@prefix lsm:	<https://w3id.org/atomgraph/linkeddatahub/admin/sitemap/domain#> .\n"
+turtle+="@prefix lsm:	<https://w3id.org/atomgraph/linkeddatahub/admin/sitemap#> .\n"
 turtle+="@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .\n"
 turtle+="@prefix owl:	<http://www.w3.org/2002/07/owl#> .\n"
 turtle+="@prefix ldt:	<https://www.w3.org/ns/ldt#> .\n"

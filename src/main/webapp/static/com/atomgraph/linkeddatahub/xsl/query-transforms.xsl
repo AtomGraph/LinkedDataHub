@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xsl:stylesheet [
-    <!ENTITY apl        "https://w3id.org/atomgraph/linkeddatahub/domain#">
+    <!ENTITY ldh        "https://w3id.org/atomgraph/linkeddatahub#">
 ]>
 <xsl:stylesheet version="3.0"
 xmlns:xhtml="http://www.w3.org/1999/xhtml"
@@ -10,7 +10,7 @@ xmlns:xs="http://www.w3.org/2001/XMLSchema"
 xmlns:map="http://www.w3.org/2005/xpath-functions/map"
 xmlns:json="http://www.w3.org/2005/xpath-functions"
 xmlns:array="http://www.w3.org/2005/xpath-functions/array"
-xmlns:apl="&apl;"
+xmlns:ldh="&ldh;"
 exclude-result-prefixes="#all"
 extension-element-prefixes="ixsl"
 >
@@ -18,13 +18,13 @@ extension-element-prefixes="ixsl"
     <!-- replace LIMIT -->
     
     <!-- identity transform -->
-    <xsl:template match="@* | node()" mode="apl:replace-limit">
+    <xsl:template match="@* | node()" mode="ldh:replace-limit">
         <xsl:copy>
             <xsl:apply-templates select="@* | node()" mode="#current"/>
         </xsl:copy>
     </xsl:template>
     
-    <xsl:template match="/json:map" mode="apl:replace-limit" priority="1">
+    <xsl:template match="/json:map" mode="ldh:replace-limit" priority="1">
         <xsl:param name="limit" as="xs:integer?" tunnel="yes"/>
 
         <xsl:copy>
@@ -38,18 +38,18 @@ extension-element-prefixes="ixsl"
         </xsl:copy>
     </xsl:template>
 
-    <xsl:template match="json:number[@key = 'limit']" mode="apl:replace-limit" priority="1"/>
+    <xsl:template match="json:number[@key = 'limit']" mode="ldh:replace-limit" priority="1"/>
     
     <!-- replace OFFSET -->
     
     <!-- identity transform -->
-    <xsl:template match="@* | node()" mode="apl:replace-offset">
+    <xsl:template match="@* | node()" mode="ldh:replace-offset">
         <xsl:copy>
             <xsl:apply-templates select="@* | node()" mode="#current"/>
         </xsl:copy>
     </xsl:template>
     
-    <xsl:template match="/json:map" mode="apl:replace-offset" priority="1">
+    <xsl:template match="/json:map" mode="ldh:replace-offset" priority="1">
         <xsl:param name="offset" as="xs:integer?" tunnel="yes"/>
 
         <xsl:copy>
@@ -63,18 +63,18 @@ extension-element-prefixes="ixsl"
         </xsl:copy>
     </xsl:template>
 
-    <xsl:template match="json:number[@key = 'offset']" mode="apl:replace-offset" priority="1"/>
+    <xsl:template match="json:number[@key = 'offset']" mode="ldh:replace-offset" priority="1"/>
 
     <!-- wrap SELECT into DESCRIBE -->
     
     <!-- identity transform -->
-    <xsl:template match="@* | node()" mode="apl:wrap-describe">
+    <xsl:template match="@* | node()" mode="ldh:wrap-describe">
         <xsl:copy>
             <xsl:apply-templates select="@* | node()" mode="#current"/>
         </xsl:copy>
     </xsl:template>
     
-    <xsl:template match="/json:map" mode="apl:wrap-describe" priority="1">
+    <xsl:template match="/json:map" mode="ldh:wrap-describe" priority="1">
         <json:map>
             <json:string key="queryType">DESCRIBE</json:string>
             <json:array key="variables">
@@ -89,13 +89,13 @@ extension-element-prefixes="ixsl"
     <!-- add parallax step -->
     
     <!-- identity transform -->
-    <xsl:template match="@* | node()" mode="apl:add-parallax-step">
+    <xsl:template match="@* | node()" mode="ldh:add-parallax-step">
         <xsl:copy>
             <xsl:apply-templates select="@* | node()" mode="#current"/>
         </xsl:copy>
     </xsl:template>
 
-    <xsl:template match="/json:map" mode="apl:add-parallax-step" priority="1">
+    <xsl:template match="/json:map" mode="ldh:add-parallax-step" priority="1">
         <!-- use the first ?var from the SELECT -->
         <xsl:param name="var-name" select="/json:map/json:array[@key = 'variables']/json:string[1]/substring-after(., '?')" as="xs:string" tunnel="yes"/>
         <xsl:param name="uuid" select="ixsl:call(ixsl:window(), 'generateUUID', [])" as="xs:string" tunnel="yes"/>
@@ -111,7 +111,7 @@ extension-element-prefixes="ixsl"
         </xsl:copy>
     </xsl:template>
 
-    <xsl:template match="/json:map/json:array[@key = 'variables']" mode="apl:add-parallax-step" priority="1">
+    <xsl:template match="/json:map/json:array[@key = 'variables']" mode="ldh:add-parallax-step" priority="1">
         <xsl:param name="new-var-name" as="xs:string" tunnel="yes"/>
 
         <xsl:copy>
@@ -121,7 +121,7 @@ extension-element-prefixes="ixsl"
         </xsl:copy>
     </xsl:template>
     
-    <xsl:template match="json:array[@key = 'where']" mode="apl:add-parallax-step" priority="1">
+    <xsl:template match="json:array[@key = 'where']" mode="ldh:add-parallax-step" priority="1">
         <!-- use the first ?var from the SELECT -->
         <xsl:param name="var-name" as="xs:string" tunnel="yes"/>
         <xsl:param name="predicate" as="xs:anyURI" tunnel="yes"/>
@@ -166,18 +166,18 @@ extension-element-prefixes="ixsl"
     </xsl:template>
     
     <!-- reset the OFFSET on parallax because otherwise we can get an empty result -->
-    <xsl:template match="/json:map/json:number[@key = 'offset']" mode="apl:add-parallax-step" priority="1"/>
+    <xsl:template match="/json:map/json:number[@key = 'offset']" mode="ldh:add-parallax-step" priority="1"/>
 
     <!-- change ORDER BY -->
 
     <!-- identity transform -->
-    <xsl:template match="@* | node()" mode="apl:replace-order-by">
+    <xsl:template match="@* | node()" mode="ldh:replace-order-by">
         <xsl:copy>
             <xsl:apply-templates select="@* | node()" mode="#current"/>
         </xsl:copy>
     </xsl:template>
     
-    <xsl:template match="/json:map[not(json:array[@key = 'order'])]" mode="apl:replace-order-by" priority="1">
+    <xsl:template match="/json:map[not(json:array[@key = 'order'])]" mode="ldh:replace-order-by" priority="1">
         <xsl:param name="var-name" as="xs:string?" tunnel="yes"/>
 
         <xsl:copy>
@@ -194,7 +194,7 @@ extension-element-prefixes="ixsl"
     </xsl:template>
     
     <!-- if a new sort key is present, insert it as the first one -->
-    <xsl:template match="json:array[@key = 'order'][count(json:map) = 1]" mode="apl:replace-order-by" priority="1">
+    <xsl:template match="json:array[@key = 'order'][count(json:map) = 1]" mode="ldh:replace-order-by" priority="1">
         <xsl:param name="var-name" as="xs:string?" tunnel="yes"/>
 
         <xsl:if test="$var-name">
@@ -214,7 +214,7 @@ extension-element-prefixes="ixsl"
     </xsl:template>
 
     <!-- if there are two sort keys already, replace the first one with the new one - if it's not empty and not equal to the second one -->
-    <xsl:template match="json:array[@key = 'order'][count(json:map) = 2]/json:map[1]" mode="apl:replace-order-by" priority="1">
+    <xsl:template match="json:array[@key = 'order'][count(json:map) = 2]/json:map[1]" mode="ldh:replace-order-by" priority="1">
         <xsl:param name="var-name" as="xs:string?" tunnel="yes"/>
         
         <xsl:if test="$var-name and not('?' || $var-name = following-sibling::json:map/json:string[@key = 'expression'])">
@@ -225,7 +225,7 @@ extension-element-prefixes="ixsl"
     </xsl:template>
     
     <!-- replace the first one's expression with the new one -->
-    <xsl:template match="json:array[@key = 'order'][count(json:map) = 2]/json:map[1]/json:string[@key = 'expression']" mode="apl:replace-order-by" priority="1">
+    <xsl:template match="json:array[@key = 'order'][count(json:map) = 2]/json:map[1]/json:string[@key = 'expression']" mode="ldh:replace-order-by" priority="1">
         <xsl:param name="var-name" as="xs:string" tunnel="yes"/>
 
         <xsl:copy>
@@ -237,13 +237,13 @@ extension-element-prefixes="ixsl"
     <!-- toggle DESC -->
     
     <!-- identity transform -->
-    <xsl:template match="@* | node()" mode="apl:toggle-desc">
+    <xsl:template match="@* | node()" mode="ldh:toggle-desc">
         <xsl:copy>
             <xsl:apply-templates select="@* | node()" mode="#current"/>
         </xsl:copy>
     </xsl:template>
     
-    <xsl:template match="json:array[@key = 'order']/json:map[1]" mode="apl:toggle-desc" priority="1">
+    <xsl:template match="json:array[@key = 'order']/json:map[1]" mode="ldh:toggle-desc" priority="1">
         <xsl:param name="desc" as="xs:boolean?" tunnel="yes"/>
 
         <xsl:copy>
@@ -255,7 +255,7 @@ extension-element-prefixes="ixsl"
         </xsl:copy>
     </xsl:template>
 
-    <xsl:template match="json:array[@key = 'order']/json:map[1]/json:boolean[@key = 'descending'][. = 'true']" mode="apl:toggle-desc" priority="1">
+    <xsl:template match="json:array[@key = 'order']/json:map[1]/json:boolean[@key = 'descending'][. = 'true']" mode="ldh:toggle-desc" priority="1">
         <xsl:param name="desc" as="xs:boolean?" tunnel="yes"/>
 
         <xsl:if test="$desc">
@@ -268,14 +268,14 @@ extension-element-prefixes="ixsl"
     <!--  facet values and COUNTs -->
     
     <!-- identity transform -->
-    <xsl:template match="@* | node()" mode="apl:bgp-value-counts">
+    <xsl:template match="@* | node()" mode="ldh:bgp-value-counts">
         <xsl:copy>
             <xsl:apply-templates select="@* | node()" mode="#current"/>
         </xsl:copy>
     </xsl:template>
 
     <!-- replace query variables with ?varName (COUNT(DISTINCT ?varName) AS ?countVarName) -->
-    <xsl:template match="json:map/json:array[@key = 'variables']" mode="apl:bgp-value-counts" priority="1">
+    <xsl:template match="json:map/json:array[@key = 'variables']" mode="ldh:bgp-value-counts" priority="1">
         <xsl:param name="subject-var-name" as="xs:string" tunnel="yes"/>
         <xsl:param name="object-var-name" as="xs:string" tunnel="yes"/>
         <xsl:param name="count-var-name" as="xs:string" tunnel="yes"/>
@@ -310,7 +310,7 @@ extension-element-prefixes="ixsl"
     </xsl:template>
 
     <!-- add GROUP BY ?varName and ORDER BY DESC(?varName) after the WHERE -->
-    <xsl:template match="json:map[json:string[@key = 'type'] = 'query']" mode="apl:bgp-value-counts" priority="1">
+    <xsl:template match="json:map[json:string[@key = 'type'] = 'query']" mode="ldh:bgp-value-counts" priority="1">
         <xsl:param name="object-var-name" as="xs:string" tunnel="yes"/>
         <xsl:param name="count-var-name" as="xs:string" tunnel="yes"/>
         <xsl:param name="descending" select="true()" as="xs:boolean" tunnel="yes"/>
@@ -337,7 +337,7 @@ extension-element-prefixes="ixsl"
     </xsl:template>
 
     <!-- append OPTIONAL pattern with ?label property paths after the BGP with object var name -->
-    <xsl:template match="json:array[@key = 'where']" mode="apl:bgp-value-counts" priority="1">
+    <xsl:template match="json:array[@key = 'where']" mode="ldh:bgp-value-counts" priority="1">
         <xsl:param name="bgp-triples-map" as="element()" tunnel="yes"/>
         <xsl:param name="object-var-name" as="xs:string" tunnel="yes"/>
         <xsl:param name="label-var-name" as="xs:string" tunnel="yes"/>
@@ -483,7 +483,7 @@ extension-element-prefixes="ixsl"
         </xsl:copy>
     </xsl:template>
     
-    <xsl:template match="json:map/json:array[@key = 'order']" mode="apl:bgp-value-counts" priority="1">
+    <xsl:template match="json:map/json:array[@key = 'order']" mode="ldh:bgp-value-counts" priority="1">
         <xsl:param name="count-var-name" as="xs:string" tunnel="yes"/>
         <xsl:param name="descending" select="true()" as="xs:boolean" tunnel="yes"/>
 
@@ -500,14 +500,14 @@ extension-element-prefixes="ixsl"
     <!-- facet FILTERs -->
     
     <!-- identity transform -->
-    <xsl:template match="@* | node()" mode="apl:filter-in">
+    <xsl:template match="@* | node()" mode="ldh:filter-in">
         <xsl:copy>
             <xsl:apply-templates select="@* | node()" mode="#current"/>
         </xsl:copy>
     </xsl:template>
 
     <!-- append FILTER (?varName IN ()) to WHERE, if it's not present yet, and replace IN() values -->
-    <xsl:template match="json:array[@key = 'where']" mode="apl:filter-in" priority="1">
+    <xsl:template match="json:array[@key = 'where']" mode="ldh:filter-in" priority="1">
         <xsl:param name="var-name" as="xs:string" tunnel="yes"/>
         <xsl:param name="values" as="array(map(xs:string, xs:string))" tunnel="yes"/>
         <xsl:variable name="var-filter" select="json:map[json:string[@key = 'type'] = 'filter'][json:map[@key = 'expression']/json:array[@key = 'args']/json:string eq '?' || $var-name]" as="element()?"/>
@@ -540,20 +540,20 @@ extension-element-prefixes="ixsl"
         </xsl:variable>
         
         <!-- append value to IN() -->
-        <xsl:apply-templates select="$where" mode="apl:set-filter-in-values">
+        <xsl:apply-templates select="$where" mode="ldh:set-filter-in-values">
             <xsl:with-param name="var-name" select="$var-name" tunnel="yes"/>
             <xsl:with-param name="values" select="$values" tunnel="yes"/>
         </xsl:apply-templates>
     </xsl:template>
 
     <!-- identity transform -->
-    <xsl:template match="@* | node()" mode="apl:set-filter-in-values">
+    <xsl:template match="@* | node()" mode="ldh:set-filter-in-values">
         <xsl:copy>
             <xsl:apply-templates select="@* | node()" mode="#current"/>
         </xsl:copy>
     </xsl:template>
 
-    <xsl:template match="json:map[json:string[@key = 'type'] = 'filter']" mode="apl:set-filter-in-values" priority="1">
+    <xsl:template match="json:map[json:string[@key = 'type'] = 'filter']" mode="ldh:set-filter-in-values" priority="1">
         <xsl:param name="var-name" as="xs:string" tunnel="yes"/>
         <xsl:param name="values" as="array(map(xs:string, xs:string))" tunnel="yes"/>
         
@@ -566,7 +566,7 @@ extension-element-prefixes="ixsl"
     </xsl:template>
     
     <!-- replace IN () values for the FILTER with matching variable name -->
-    <xsl:template match="json:map[json:string[@key = 'type'] = 'filter']/json:map[@key = 'expression']/json:array[@key = 'args']/json:array" mode="apl:set-filter-in-values" priority="1">
+    <xsl:template match="json:map[json:string[@key = 'type'] = 'filter']/json:map[@key = 'expression']/json:array[@key = 'args']/json:array" mode="ldh:set-filter-in-values" priority="1">
         <xsl:param name="var-name" as="xs:string" tunnel="yes"/>
         <xsl:param name="values" as="array(map(xs:string, xs:string))" tunnel="yes"/>
         
@@ -607,14 +607,14 @@ extension-element-prefixes="ixsl"
     <!-- result COUNT -->
     
     <!-- identity transform -->
-    <xsl:template match="@* | node()" mode="apl:result-count">
+    <xsl:template match="@* | node()" mode="ldh:result-count">
         <xsl:copy>
             <xsl:apply-templates select="@* | node()" mode="#current"/>
         </xsl:copy>
     </xsl:template>
     
     <!-- replace query variables with (COUNT(DISTINCT *) AS ?count) -->
-    <xsl:template match="json:map/json:array[@key = 'variables']" mode="apl:result-count" priority="1">
+    <xsl:template match="json:map/json:array[@key = 'variables']" mode="ldh:result-count" priority="1">
         <xsl:param name="expression-var-name" as="xs:string?" tunnel="yes"/>
         <xsl:param name="count-var-name" as="xs:string" tunnel="yes"/>
 
