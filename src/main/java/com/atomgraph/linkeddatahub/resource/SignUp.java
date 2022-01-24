@@ -31,7 +31,7 @@ import com.atomgraph.linkeddatahub.server.util.MessageBuilder;
 import com.atomgraph.linkeddatahub.server.util.WebIDCertGen;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
 import com.atomgraph.linkeddatahub.vocabulary.ADM;
-import com.atomgraph.linkeddatahub.vocabulary.APLC;
+import com.atomgraph.linkeddatahub.vocabulary.LDHC;
 import com.atomgraph.linkeddatahub.vocabulary.Cert;
 import com.atomgraph.linkeddatahub.vocabulary.FOAF;
 import com.atomgraph.linkeddatahub.vocabulary.LACL;
@@ -143,15 +143,15 @@ public class SignUp extends GraphStoreImpl
             throw new InternalServerErrorException(ex);
         }
         
-        emailSubject = servletConfig.getServletContext().getInitParameter(APLC.signUpEMailSubject.getURI());
-        if (emailSubject == null) throw new InternalServerErrorException(new ConfigurationException(APLC.signUpEMailSubject));
+        emailSubject = servletConfig.getServletContext().getInitParameter(LDHC.signUpEMailSubject.getURI());
+        if (emailSubject == null) throw new InternalServerErrorException(new ConfigurationException(LDHC.signUpEMailSubject));
 
-        emailText = servletConfig.getServletContext().getInitParameter(APLC.webIDSignUpEMailText.getURI());
-        if (emailText == null) throw new InternalServerErrorException(new ConfigurationException(APLC.webIDSignUpEMailText));
+        emailText = servletConfig.getServletContext().getInitParameter(LDHC.webIDSignUpEMailText.getURI());
+        if (emailText == null) throw new InternalServerErrorException(new ConfigurationException(LDHC.webIDSignUpEMailText));
         
-        if (servletConfig.getServletContext().getInitParameter(APLC.signUpCertValidity.getURI()) == null)
-            throw new InternalServerErrorException(new ConfigurationException(APLC.signUpCertValidity));
-        validityDays = Integer.parseInt(servletConfig.getServletContext().getInitParameter(APLC.signUpCertValidity.getURI()));
+        if (servletConfig.getServletContext().getInitParameter(LDHC.signUpCertValidity.getURI()) == null)
+            throw new InternalServerErrorException(new ConfigurationException(LDHC.signUpCertValidity));
+        validityDays = Integer.parseInt(servletConfig.getServletContext().getInitParameter(LDHC.signUpCertValidity.getURI()));
         
         download = uriInfo.getQueryParameters().containsKey("download"); // debug param that allows downloading the certificate
     }

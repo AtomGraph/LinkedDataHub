@@ -568,29 +568,29 @@ fi
 
 # change context configuration
 
-BASE_URI_PARAM="--stringparam aplc:baseUri '$BASE_URI' "
-CLIENT_KEYSTORE_PARAM="--stringparam aplc:clientKeyStore 'file://$CLIENT_KEYSTORE' "
-SECRETARY_CERT_ALIAS_PARAM="--stringparam aplc:secretaryCertAlias '$SECRETARY_CERT_ALIAS' "
-CLIENT_TRUSTSTORE_PARAM="--stringparam aplc:clientTrustStore 'file://$CLIENT_TRUSTSTORE' "
-CLIENT_KEYSTORE_PASSWORD_PARAM="--stringparam aplc:clientKeyStorePassword '$CLIENT_KEYSTORE_PASSWORD' "
-CLIENT_TRUSTSTORE_PASSWORD_PARAM="--stringparam aplc:clientTrustStorePassword '$CLIENT_TRUSTSTORE_PASSWORD' "
-UPLOAD_ROOT_PARAM="--stringparam aplc:uploadRoot 'file://$UPLOAD_ROOT' "
-SIGN_UP_CERT_VALIDITY_PARAM="--stringparam aplc:signUpCertValidity '$SIGN_UP_CERT_VALIDITY' "
-CONTEXT_DATASET_PARAM="--stringparam aplc:contextDataset '$webapp_context_dataset' "
+BASE_URI_PARAM="--stringparam ldhc:baseUri '$BASE_URI' "
+CLIENT_KEYSTORE_PARAM="--stringparam ldhc:clientKeyStore 'file://$CLIENT_KEYSTORE' "
+SECRETARY_CERT_ALIAS_PARAM="--stringparam ldhc:secretaryCertAlias '$SECRETARY_CERT_ALIAS' "
+CLIENT_TRUSTSTORE_PARAM="--stringparam ldhc:clientTrustStore 'file://$CLIENT_TRUSTSTORE' "
+CLIENT_KEYSTORE_PASSWORD_PARAM="--stringparam ldhc:clientKeyStorePassword '$CLIENT_KEYSTORE_PASSWORD' "
+CLIENT_TRUSTSTORE_PASSWORD_PARAM="--stringparam ldhc:clientTrustStorePassword '$CLIENT_TRUSTSTORE_PASSWORD' "
+UPLOAD_ROOT_PARAM="--stringparam ldhc:uploadRoot 'file://$UPLOAD_ROOT' "
+SIGN_UP_CERT_VALIDITY_PARAM="--stringparam ldhc:signUpCertValidity '$SIGN_UP_CERT_VALIDITY' "
+CONTEXT_DATASET_PARAM="--stringparam ldhc:contextDataset '$webapp_context_dataset' "
 MAIL_SMTP_HOST_PARAM="--stringparam mail.smtp.host '$MAIL_SMTP_HOST' "
 MAIL_SMTP_PORT_PARAM="--stringparam mail.smtp.port '$MAIL_SMTP_PORT' "
 MAIL_USER_PARAM="--stringparam mail.user '$MAIL_USER' "
 
 if [ -n "$PROXY_SCHEME" ] ; then
-    PROXY_SCHEME_PARAM="--stringparam aplc:proxyScheme '$PROXY_SCHEME' "
+    PROXY_SCHEME_PARAM="--stringparam ldhc:proxyScheme '$PROXY_SCHEME' "
 fi
 
 if [ -n "$PROXY_HOST" ] ; then
-    PROXY_HOST_PARAM="--stringparam aplc:proxyHost '$PROXY_HOST' "
+    PROXY_HOST_PARAM="--stringparam ldhc:proxyHost '$PROXY_HOST' "
 fi
 
 if [ -n "$PROXY_PORT" ] ; then
-    PROXY_PORT_PARAM="--stringparam aplc:proxyPort '$PROXY_PORT' "
+    PROXY_PORT_PARAM="--stringparam ldhc:proxyPort '$PROXY_PORT' "
 fi
 
 if [ -n "$CACHE_MODEL_LOADS" ] ; then
@@ -611,31 +611,31 @@ if [ -n "$RESOLVING_UNCACHED" ] ; then
 fi
 
 if [ -n "$AUTH_QUERY" ] ; then
-    AUTH_QUERY_PARAM="--stringparam aplc:authQuery '$AUTH_QUERY' "
+    AUTH_QUERY_PARAM="--stringparam ldhc:authQuery '$AUTH_QUERY' "
 fi
 
 if [ -n "$OWNER_AUTH_QUERY" ] ; then
-    OWNER_AUTH_QUERY_PARAM="--stringparam aplc:ownerAuthQuery '$OWNER_AUTH_QUERY' "
+    OWNER_AUTH_QUERY_PARAM="--stringparam ldhc:ownerAuthQuery '$OWNER_AUTH_QUERY' "
 fi
 
 if [ -n "$MAX_CONTENT_LENGTH" ] ; then
-    MAX_CONTENT_LENGTH_PARAM="--stringparam aplc:maxContentLength '$MAX_CONTENT_LENGTH' "
+    MAX_CONTENT_LENGTH_PARAM="--stringparam ldhc:maxContentLength '$MAX_CONTENT_LENGTH' "
 fi
 
 if [ -n "$MAX_CONN_PER_ROUTE" ] ; then
-    MAX_CONN_PER_ROUTE_PARAM="--stringparam aplc:maxConnPerRoute '$MAX_CONN_PER_ROUTE' "
+    MAX_CONN_PER_ROUTE_PARAM="--stringparam ldhc:maxConnPerRoute '$MAX_CONN_PER_ROUTE' "
 fi
 
 if [ -n "$MAX_TOTAL_CONN" ] ; then
-    MAX_TOTAL_CONN_PARAM="--stringparam aplc:maxTotalConn '$MAX_TOTAL_CONN' "
+    MAX_TOTAL_CONN_PARAM="--stringparam ldhc:maxTotalConn '$MAX_TOTAL_CONN' "
 fi
 
 if [ -n "$IMPORT_KEEPALIVE" ] ; then
-    IMPORT_KEEPALIVE_PARAM="--stringparam aplc:importKeepAlive '$IMPORT_KEEPALIVE' "
+    IMPORT_KEEPALIVE_PARAM="--stringparam ldhc:importKeepAlive '$IMPORT_KEEPALIVE' "
 fi
 
 if [ -n "$NOTIFICATION_ADDRESS" ] ; then
-    NOTIFICATION_ADDRESS_PARAM="--stringparam aplc:notificationAddress '$NOTIFICATION_ADDRESS' "
+    NOTIFICATION_ADDRESS_PARAM="--stringparam ldhc:notificationAddress '$NOTIFICATION_ADDRESS' "
 fi
 
 if [ -n "$MAIL_PASSWORD" ] ; then

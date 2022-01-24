@@ -25,7 +25,7 @@ import com.atomgraph.linkeddatahub.listener.EMailListener;
 import com.atomgraph.linkeddatahub.model.Agent;
 import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
 import com.atomgraph.linkeddatahub.server.util.MessageBuilder;
-import com.atomgraph.linkeddatahub.vocabulary.APLC;
+import com.atomgraph.linkeddatahub.vocabulary.LDHC;
 import com.atomgraph.linkeddatahub.vocabulary.FOAF;
 import com.atomgraph.linkeddatahub.vocabulary.LACL;
 import java.io.UnsupportedEncodingException;
@@ -94,11 +94,11 @@ public class RequestAccess extends GraphStoreImpl
         agentQuery = system.getAgentQuery();
         authRequestContainerUriBuilder = uriInfo.getBaseUriBuilder().path(com.atomgraph.linkeddatahub.Application.AUTHORIZATION_REQUEST_PATH);
         
-        emailSubject = servletConfig.getServletContext().getInitParameter(APLC.requestAccessEMailSubject.getURI());
-        if (emailSubject == null) throw new InternalServerErrorException(new ConfigurationException(APLC.requestAccessEMailSubject));
+        emailSubject = servletConfig.getServletContext().getInitParameter(LDHC.requestAccessEMailSubject.getURI());
+        if (emailSubject == null) throw new InternalServerErrorException(new ConfigurationException(LDHC.requestAccessEMailSubject));
         
-        emailText = servletConfig.getServletContext().getInitParameter(APLC.requestAccessEMailText.getURI());
-        if (emailText == null) throw new InternalServerErrorException(new ConfigurationException(APLC.requestAccessEMailText));
+        emailText = servletConfig.getServletContext().getInitParameter(LDHC.requestAccessEMailText.getURI());
+        if (emailText == null) throw new InternalServerErrorException(new ConfigurationException(LDHC.requestAccessEMailText));
     }
     
     @GET

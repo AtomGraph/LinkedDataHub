@@ -108,7 +108,7 @@ import com.atomgraph.linkeddatahub.server.model.impl.Dispatcher;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.server.util.MessageBuilder;
 import com.atomgraph.linkeddatahub.vocabulary.LDH;
-import com.atomgraph.linkeddatahub.vocabulary.APLC;
+import com.atomgraph.linkeddatahub.vocabulary.LDHC;
 import com.atomgraph.linkeddatahub.vocabulary.Google;
 import com.atomgraph.linkeddatahub.vocabulary.LAPP;
 import com.atomgraph.linkeddatahub.writer.Mode;
@@ -249,7 +249,7 @@ public class Application extends ResourceConfig
     private final Source stylesheet;
     private final boolean cacheStylesheet;
     private final boolean resolvingUncached;
-    private final URI baseURI, uploadRoot;
+    private final URI baseURI, uploadRoot; // TO-DO: replace baseURI with ServletContext URI?
     private final boolean invalidateCache;
     private final Integer cookieMaxAge;
     private final CacheControl authCacheControl;
@@ -267,8 +267,7 @@ public class Application extends ResourceConfig
     
     public Application(@Context ServletConfig servletConfig) throws URISyntaxException, MalformedURLException, IOException
     {
-        this(
-            servletConfig,
+        this(servletConfig,
             new MediaTypes(),
             servletConfig.getServletContext().getInitParameter(A.maxGetRequestSize.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(A.maxGetRequestSize.getURI())) : null,
             servletConfig.getServletContext().getInitParameter(A.cacheModelLoads.getURI()) != null ? Boolean.parseBoolean(servletConfig.getServletContext().getInitParameter(A.cacheModelLoads.getURI())) : true,
@@ -278,30 +277,30 @@ public class Application extends ResourceConfig
             com.atomgraph.client.Application.getSource(servletConfig.getServletContext(), servletConfig.getServletContext().getInitParameter(AC.stylesheet.getURI()) != null ? servletConfig.getServletContext().getInitParameter(AC.stylesheet.getURI()) : null),
             servletConfig.getServletContext().getInitParameter(AC.cacheStylesheet.getURI()) != null ? Boolean.parseBoolean(servletConfig.getServletContext().getInitParameter(AC.cacheStylesheet.getURI())) : false,
             servletConfig.getServletContext().getInitParameter(AC.resolvingUncached.getURI()) != null ? Boolean.parseBoolean(servletConfig.getServletContext().getInitParameter(AC.resolvingUncached.getURI())) : true,
-            servletConfig.getServletContext().getInitParameter(APLC.clientKeyStore.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.clientKeyStore.getURI()) : null,
-            servletConfig.getServletContext().getInitParameter(APLC.clientKeyStorePassword.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.clientKeyStorePassword.getURI()) : null,
-            servletConfig.getServletContext().getInitParameter(APLC.secretaryCertAlias.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.secretaryCertAlias.getURI()) : null,
-            servletConfig.getServletContext().getInitParameter(APLC.clientTrustStore.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.clientTrustStore.getURI()) : null,
-            servletConfig.getServletContext().getInitParameter(APLC.clientTrustStorePassword.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.clientTrustStorePassword.getURI()) : null,
-            servletConfig.getServletContext().getInitParameter(APLC.authQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.authQuery.getURI()) : null,
-            servletConfig.getServletContext().getInitParameter(APLC.ownerAuthQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.ownerAuthQuery.getURI()) : null,
-            servletConfig.getServletContext().getInitParameter(APLC.webIDQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.webIDQuery.getURI()) : null,
-            servletConfig.getServletContext().getInitParameter(APLC.agentQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.agentQuery.getURI()) : null,
-            servletConfig.getServletContext().getInitParameter(APLC.userAccountQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.userAccountQuery.getURI()) : null,
-            servletConfig.getServletContext().getInitParameter(APLC.baseUri.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.baseUri.getURI()) : null,
-            servletConfig.getServletContext().getInitParameter(APLC.proxyScheme.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.proxyScheme.getURI()) : null,
-            servletConfig.getServletContext().getInitParameter(APLC.proxyHost.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.proxyHost.getURI()) : null,
-            servletConfig.getServletContext().getInitParameter(APLC.proxyPort.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(APLC.proxyPort.getURI())) : null,
-            servletConfig.getServletContext().getInitParameter(APLC.uploadRoot.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.uploadRoot.getURI()) : null,
-            servletConfig.getServletContext().getInitParameter(APLC.invalidateCache.getURI()) != null ? Boolean.parseBoolean(servletConfig.getServletContext().getInitParameter(APLC.invalidateCache.getURI())) : false,
-            servletConfig.getServletContext().getInitParameter(APLC.cookieMaxAge.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(APLC.cookieMaxAge.getURI())) : null,
-            servletConfig.getServletContext().getInitParameter(APLC.authCacheControl.getURI()) != null ? CacheControl.valueOf(servletConfig.getServletContext().getInitParameter(APLC.authCacheControl.getURI())) : null,
-            servletConfig.getServletContext().getInitParameter(APLC.maxContentLength.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(APLC.maxContentLength.getURI())) : null,
-            servletConfig.getServletContext().getInitParameter(APLC.maxConnPerRoute.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(APLC.maxConnPerRoute.getURI())) : null,
-            servletConfig.getServletContext().getInitParameter(APLC.maxTotalConn.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(APLC.maxTotalConn.getURI())) : null,
+            servletConfig.getServletContext().getInitParameter(LDHC.clientKeyStore.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.clientKeyStore.getURI()) : null,
+            servletConfig.getServletContext().getInitParameter(LDHC.clientKeyStorePassword.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.clientKeyStorePassword.getURI()) : null,
+            servletConfig.getServletContext().getInitParameter(LDHC.secretaryCertAlias.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.secretaryCertAlias.getURI()) : null,
+            servletConfig.getServletContext().getInitParameter(LDHC.clientTrustStore.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.clientTrustStore.getURI()) : null,
+            servletConfig.getServletContext().getInitParameter(LDHC.clientTrustStorePassword.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.clientTrustStorePassword.getURI()) : null,
+            servletConfig.getServletContext().getInitParameter(LDHC.authQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.authQuery.getURI()) : null,
+            servletConfig.getServletContext().getInitParameter(LDHC.ownerAuthQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.ownerAuthQuery.getURI()) : null,
+            servletConfig.getServletContext().getInitParameter(LDHC.webIDQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.webIDQuery.getURI()) : null,
+            servletConfig.getServletContext().getInitParameter(LDHC.agentQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.agentQuery.getURI()) : null,
+            servletConfig.getServletContext().getInitParameter(LDHC.userAccountQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.userAccountQuery.getURI()) : null,
+            servletConfig.getServletContext().getInitParameter(LDHC.baseUri.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.baseUri.getURI()) : null,
+            servletConfig.getServletContext().getInitParameter(LDHC.proxyScheme.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.proxyScheme.getURI()) : null,
+            servletConfig.getServletContext().getInitParameter(LDHC.proxyHost.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.proxyHost.getURI()) : null,
+            servletConfig.getServletContext().getInitParameter(LDHC.proxyPort.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(LDHC.proxyPort.getURI())) : null,
+            servletConfig.getServletContext().getInitParameter(LDHC.uploadRoot.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.uploadRoot.getURI()) : null,
+            servletConfig.getServletContext().getInitParameter(LDHC.invalidateCache.getURI()) != null ? Boolean.parseBoolean(servletConfig.getServletContext().getInitParameter(LDHC.invalidateCache.getURI())) : false,
+            servletConfig.getServletContext().getInitParameter(LDHC.cookieMaxAge.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(LDHC.cookieMaxAge.getURI())) : null,
+            servletConfig.getServletContext().getInitParameter(LDHC.authCacheControl.getURI()) != null ? CacheControl.valueOf(servletConfig.getServletContext().getInitParameter(LDHC.authCacheControl.getURI())) : null,
+            servletConfig.getServletContext().getInitParameter(LDHC.maxContentLength.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(LDHC.maxContentLength.getURI())) : null,
+            servletConfig.getServletContext().getInitParameter(LDHC.maxConnPerRoute.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(LDHC.maxConnPerRoute.getURI())) : null,
+            servletConfig.getServletContext().getInitParameter(LDHC.maxTotalConn.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(LDHC.maxTotalConn.getURI())) : null,
             // TO-DO: respect "timeout" header param in the ConnectionKeepAliveStrategy?
-            servletConfig.getServletContext().getInitParameter(APLC.importKeepAlive.getURI()) != null ? (HttpResponse response, HttpContext context) -> Integer.valueOf(servletConfig.getServletContext().getInitParameter(APLC.importKeepAlive.getURI())) : null,
-            servletConfig.getServletContext().getInitParameter(APLC.notificationAddress.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.notificationAddress.getURI()) : null,
+            servletConfig.getServletContext().getInitParameter(LDHC.importKeepAlive.getURI()) != null ? (HttpResponse response, HttpContext context) -> Integer.valueOf(servletConfig.getServletContext().getInitParameter(LDHC.importKeepAlive.getURI())) : null,
+            servletConfig.getServletContext().getInitParameter(LDHC.notificationAddress.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.notificationAddress.getURI()) : null,
             servletConfig.getServletContext().getInitParameter("mail.user") != null ? servletConfig.getServletContext().getInitParameter("mail.user") : null,
             servletConfig.getServletContext().getInitParameter("mail.password") != null ? servletConfig.getServletContext().getInitParameter("mail.password") : null,
             servletConfig.getServletContext().getInitParameter("mail.smtp.host") != null ? servletConfig.getServletContext().getInitParameter("mail.smtp.host") : null,
@@ -310,11 +309,11 @@ public class Application extends ResourceConfig
             servletConfig.getServletContext().getInitParameter(Google.clientSecret.getURI()) != null ? servletConfig.getServletContext().getInitParameter(Google.clientSecret.getURI()) : null
         );
 
-        URI contextDatasetURI = servletConfig.getServletContext().getInitParameter(APLC.contextDataset.getURI()) != null ? new URI(servletConfig.getServletContext().getInitParameter(APLC.contextDataset.getURI())) : null;
+        URI contextDatasetURI = servletConfig.getServletContext().getInitParameter(LDHC.contextDataset.getURI()) != null ? new URI(servletConfig.getServletContext().getInitParameter(LDHC.contextDataset.getURI())) : null;
         if (contextDatasetURI == null)
         {
-            if (log.isErrorEnabled()) log.error("Context dataset URI '{}' not configured", APLC.contextDataset.getURI());
-            throw new ConfigurationException(APLC.contextDataset);
+            if (log.isErrorEnabled()) log.error("Context dataset URI '{}' not configured", LDHC.contextDataset.getURI());
+            throw new ConfigurationException(LDHC.contextDataset);
         }
         this.contextDataset = getDataset(servletConfig.getServletContext(), contextDatasetURI);
     }
@@ -335,74 +334,74 @@ public class Application extends ResourceConfig
     {
         if (clientKeyStoreURIString == null)
         {
-            if (log.isErrorEnabled()) log.error("Client key store ({}) not configured", APLC.clientKeyStore.getURI());
-            throw new ConfigurationException(APLC.clientKeyStore);
+            if (log.isErrorEnabled()) log.error("Client key store ({}) not configured", LDHC.clientKeyStore.getURI());
+            throw new ConfigurationException(LDHC.clientKeyStore);
         }
 
         if (secretaryCertAlias == null)
         {
-            if (log.isErrorEnabled()) log.error("Secretary client certificate alias ({}) not configured", APLC.secretaryCertAlias.getURI());
-            throw new ConfigurationException(APLC.secretaryCertAlias);
+            if (log.isErrorEnabled()) log.error("Secretary client certificate alias ({}) not configured", LDHC.secretaryCertAlias.getURI());
+            throw new ConfigurationException(LDHC.secretaryCertAlias);
         }
         
         if (clientTrustStoreURIString == null)
         {
-            if (log.isErrorEnabled()) log.error("Client truststore store ({}) not configured", APLC.clientTrustStore.getURI());
-            throw new ConfigurationException(APLC.clientTrustStore);
+            if (log.isErrorEnabled()) log.error("Client truststore store ({}) not configured", LDHC.clientTrustStore.getURI());
+            throw new ConfigurationException(LDHC.clientTrustStore);
         }
         
         if (authQueryString == null)
         {
             if (log.isErrorEnabled()) log.error("Authentication SPARQL query is not configured properly");
-            throw new ConfigurationException(APLC.authQuery);
+            throw new ConfigurationException(LDHC.authQuery);
         }
         this.authQuery = QueryFactory.create(authQueryString);
         
         if (ownerAuthQueryString == null)
         {
             if (log.isErrorEnabled()) log.error("Owner authorization SPARQL query is not configured properly");
-            throw new ConfigurationException(APLC.ownerAuthQuery);
+            throw new ConfigurationException(LDHC.ownerAuthQuery);
         }
         this.ownerAuthQuery = QueryFactory.create(ownerAuthQueryString);
         
         if (webIDQueryString == null)
         {
             if (log.isErrorEnabled()) log.error("WebID SPARQL query is not configured properly");
-            throw new ConfigurationException(APLC.webIDQuery);
+            throw new ConfigurationException(LDHC.webIDQuery);
         }
         this.webIDQuery = QueryFactory.create(webIDQueryString);
         
         if (userAccountQueryString == null)
         {
             if (log.isErrorEnabled()) log.error("UserAccount SPARQL query is not configured properly");
-            throw new ConfigurationException(APLC.userAccountQuery);
+            throw new ConfigurationException(LDHC.userAccountQuery);
         }
         this.userAccountQuery = QueryFactory.create(userAccountQueryString);
         
         if (agentQueryString == null)
         {
             if (log.isErrorEnabled()) log.error("Agent SPARQL query is not configured properly");
-            throw new ConfigurationException(APLC.agentQuery);
+            throw new ConfigurationException(LDHC.agentQuery);
         }
         this.agentQuery = QueryFactory.create(agentQueryString);
         
         if (baseURIString == null)
         {
-            if (log.isErrorEnabled()) log.error("Base URI property '{}' not configured", APLC.baseUri.getURI());
-            throw new ConfigurationException(APLC.baseUri);
+            if (log.isErrorEnabled()) log.error("Base URI property '{}' not configured", LDHC.baseUri.getURI());
+            throw new ConfigurationException(LDHC.baseUri);
         }
         baseURI = URI.create(baseURIString);
         
         if (uploadRootString == null)
         {
-            if (log.isErrorEnabled()) log.error("Upload root ({}) not configured", APLC.uploadRoot.getURI());
-            throw new ConfigurationException(APLC.uploadRoot);
+            if (log.isErrorEnabled()) log.error("Upload root ({}) not configured", LDHC.uploadRoot.getURI());
+            throw new ConfigurationException(LDHC.uploadRoot);
         }
         
         if (cookieMaxAge == null)
         {
-            if (log.isErrorEnabled()) log.error("JWT cookie max age property '{}' not configured", APLC.cookieMaxAge.getURI());
-            throw new ConfigurationException(APLC.cookieMaxAge);
+            if (log.isErrorEnabled()) log.error("JWT cookie max age property '{}' not configured", LDHC.cookieMaxAge.getURI());
+            throw new ConfigurationException(LDHC.cookieMaxAge);
         }
         this.cookieMaxAge = cookieMaxAge;
 

@@ -32,7 +32,7 @@ import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
 import com.atomgraph.linkeddatahub.server.util.MessageBuilder;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
 import com.atomgraph.linkeddatahub.vocabulary.ADM;
-import com.atomgraph.linkeddatahub.vocabulary.APLC;
+import com.atomgraph.linkeddatahub.vocabulary.LDHC;
 import com.atomgraph.linkeddatahub.vocabulary.FOAF;
 import com.atomgraph.linkeddatahub.vocabulary.Google;
 import com.atomgraph.linkeddatahub.vocabulary.LACL;
@@ -113,11 +113,11 @@ public class Login extends GraphStoreImpl
         this.httpHeaders = httpHeaders;
         this.application = application;
         
-        emailSubject = servletConfig.getServletContext().getInitParameter(APLC.signUpEMailSubject.getURI());
-        if (emailSubject == null) throw new InternalServerErrorException(new ConfigurationException(APLC.signUpEMailSubject));
+        emailSubject = servletConfig.getServletContext().getInitParameter(LDHC.signUpEMailSubject.getURI());
+        if (emailSubject == null) throw new InternalServerErrorException(new ConfigurationException(LDHC.signUpEMailSubject));
 
-        emailText = servletConfig.getServletContext().getInitParameter(APLC.oAuthSignUpEMailText.getURI());
-        if (emailText == null) throw new InternalServerErrorException(new ConfigurationException(APLC.oAuthSignUpEMailText));
+        emailText = servletConfig.getServletContext().getInitParameter(LDHC.oAuthSignUpEMailText.getURI());
+        if (emailText == null) throw new InternalServerErrorException(new ConfigurationException(LDHC.oAuthSignUpEMailText));
         
         userAccountQuery = system.getUserAccountQuery();
         clientID = (String)system.getProperty(Google.clientID.getURI());
