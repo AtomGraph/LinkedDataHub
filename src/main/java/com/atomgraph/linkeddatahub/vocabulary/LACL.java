@@ -50,7 +50,7 @@ public class LACL
 
     public static final OntClass AuthorizationRequest = m_model.createClass( NS + "AuthorizationRequest" );
 
-    public static final OntClass Person = m_model.createClass( NS + "Person" );
+//    public static final OntClass Person = m_model.createClass( NS + "Person" );
     
 //    public static final OntClass Agent = m_model.createClass( NS + "Agent" );
 

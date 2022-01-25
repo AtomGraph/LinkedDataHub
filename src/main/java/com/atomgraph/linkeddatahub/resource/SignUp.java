@@ -170,7 +170,7 @@ public class SignUp extends GraphStoreImpl
         URI agentGraphUri = getUriInfo().getBaseUriBuilder().path(AGENT_PATH).path("{slug}/").build(UUID.randomUUID().toString());
         skolemize(agentModel, agentGraphUri);
         
-        ResIterator it = agentModel.listResourcesWithProperty(RDF.type, LACL.Person);
+        ResIterator it = agentModel.listResourcesWithProperty(RDF.type, FOAF.Person);
         try
         {
             Resource agent = it.next();
@@ -190,7 +190,7 @@ public class SignUp extends GraphStoreImpl
                     getRequiredProperty(DCTerms.title).getString();
             agent = appendAgent(agentModel,
                 agentGraphUri,
-                LACL.Person.getNameSpace(),
+                FOAF.Person.getNameSpace(),
                 agentModel.createResource(getUriInfo().getBaseUri().resolve(AGENT_PATH).toString()),
                 agent); // append Item data
             
