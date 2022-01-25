@@ -573,7 +573,7 @@ public class Application extends ResourceConfig
 
                     // if there are additional LinkedDataHub-specific assertions for this mapping, add them to the ontology model
                     String overlayAltName = altName + ".ldh.ttl";
-                    try (InputStream overlayStream = servletConfig.getServletContext().getResourceAsStream(overlayAltName))
+                    try (InputStream overlayStream = servletConfig.getServletContext().getResourceAsStream("WEB-INF/classes/" + overlayAltName))
                     {
                         if (overlayStream != null) dataManager.getModel(name).add(ModelFactory.createDefaultModel().read(overlayStream, null));
                     }
