@@ -356,7 +356,7 @@ public class SignUp extends GraphStoreImpl
             addLiteral(DH.slug, UUID.randomUUID().toString());
         
         Resource publicKeyRes = model.createResource().
-            addProperty(RDF.type, LACL.PublicKey).
+            addProperty(RDF.type, Cert.PublicKey).
             addLiteral(Cert.exponent, publicKey.getPublicExponent()).
             addLiteral(Cert.modulus, ResourceFactory.createTypedLiteral(publicKey.getModulus().toString(16), XSDhexBinary));
         
@@ -373,7 +373,7 @@ public class SignUp extends GraphStoreImpl
             addLiteral(DH.slug, UUID.randomUUID().toString());
         
         Resource auth = model.createResource().
-            addProperty(RDF.type, LACL.Authorization).
+            addProperty(RDF.type, ACL.Authorization).
             addLiteral(DH.slug, UUID.randomUUID().toString()). // TO-DO: get rid of slug properties!
             addProperty(ACL.accessTo, ResourceFactory.createResource(agentGraphURI.toString())).
             addProperty(ACL.accessTo, ResourceFactory.createResource(publicKeyURI.toString())).

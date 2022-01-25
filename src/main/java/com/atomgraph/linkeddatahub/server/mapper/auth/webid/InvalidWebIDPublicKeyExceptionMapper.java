@@ -19,7 +19,6 @@ package com.atomgraph.linkeddatahub.server.mapper.auth.webid;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.server.exception.auth.webid.InvalidWebIDPublicKeyException;
 import com.atomgraph.linkeddatahub.vocabulary.Cert;
-import com.atomgraph.linkeddatahub.vocabulary.LACL;
 import com.atomgraph.linkeddatahub.vocabulary.PROV;
 import com.atomgraph.server.mapper.ExceptionMapperBase;
 import javax.inject.Inject;
@@ -55,7 +54,7 @@ public class InvalidWebIDPublicKeyExceptionMapper extends ExceptionMapperBase im
         // if public key is provided, append its metadata to the error response
         if (ex.getPublicKey() != null)
             resource.addProperty(PROV.wasDerivedFrom, resource.getModel().createResource().
-                addProperty(RDF.type, LACL.PublicKey).
+                addProperty(RDF.type, Cert.PublicKey).
                 addLiteral(Cert.modulus, ResourceFactory.createTypedLiteral(ex.getPublicKey().getModulus().toString(16), XSDDatatype.XSDhexBinary)).
                 addLiteral(Cert.exponent, ResourceFactory.createTypedLiteral(ex.getPublicKey().getPublicExponent())));
                 

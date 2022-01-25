@@ -96,7 +96,7 @@ exclude-result-prefixes="#all">
     <xsl:param name="ac:endpoint" select="resolve-uri('sparql', $ldt:base)" as="xs:anyURI"/>
     <xsl:param name="a:graphStore" select="resolve-uri('service', $ldt:base)" as="xs:anyURI"/> <!-- TO-DO: rename to ac:graphStore? -->
     <xsl:param name="lapp:Application" as="document-node()?"/>
-    <xsl:param name="acl:Agent" as="document-node()?"/>
+    <xsl:param name="foaf:Agent" as="document-node()?"/>
     <xsl:param name="force-exclude-all-namespaces" select="true()"/>
     <xsl:param name="ac:httpHeaders" as="xs:string"/> 
     <xsl:param name="ac:method" as="xs:string"/>
@@ -104,7 +104,7 @@ exclude-result-prefixes="#all">
     <xsl:param name="ac:mode" as="xs:anyURI*"/> <!-- select="xs:anyURI('&ac;ReadMode')"  -->
     <xsl:param name="ac:googleMapsKey" select="'AIzaSyCQ4rt3EnNCmGTpBN0qoZM1Z_jXhUnrTpQ'" as="xs:string"/>
     <xsl:param name="acl:agent" as="xs:anyURI?"/>
-    <xsl:param name="acl:mode" select="$acl:Agent[doc-available($ldh:absolutePath)]//*[acl:accessToClass/@rdf:resource = (key('resources', $ldh:absolutePath, document($ldh:absolutePath))/rdf:type/@rdf:resource, key('resources', $ldh:absolutePath, document($ldh:absolutePath))/rdf:type/@rdf:resource/ldh:listSuperClasses(.))]/acl:mode/@rdf:resource" as="xs:anyURI*"/>
+    <xsl:param name="acl:mode" select="$foaf:Agent[doc-available($ldh:absolutePath)]//*[acl:accessToClass/@rdf:resource = (key('resources', $ldh:absolutePath, document($ldh:absolutePath))/rdf:type/@rdf:resource, key('resources', $ldh:absolutePath, document($ldh:absolutePath))/rdf:type/@rdf:resource/ldh:listSuperClasses(.))]/acl:mode/@rdf:resource" as="xs:anyURI*"/>
     <xsl:param name="ldh:createGraph" select="false()" as="xs:boolean"/>
     <xsl:param name="ldh:ajaxRendering" select="true()" as="xs:boolean"/>
     <xsl:param name="google:clientID" as="xs:string?"/>
@@ -206,7 +206,7 @@ exclude-result-prefixes="#all">
     <!-- STYLE -->
     
     <xsl:template match="rdf:RDF" mode="xhtml:Style">
-        <xsl:param name="load-wymeditor" select="exists($acl:Agent//@rdf:about)" as="xs:boolean"/>
+        <xsl:param name="load-wymeditor" select="exists($foaf:Agent//@rdf:about)" as="xs:boolean"/>
         <xsl:param name="load-yasqe" select="true()" as="xs:boolean"/>
 
         <xsl:apply-imports/>
@@ -245,7 +245,7 @@ exclude-result-prefixes="#all">
                 var absolutePath = ]]><xsl:value-of select="'&quot;' || $ldh:absolutePath || '&quot;'"/><![CDATA[;
                 var ontologyUri = ]]><xsl:value-of select="'&quot;' || $ldt:ontology || '&quot;'"/><![CDATA[;
                 var contextUri = ]]><xsl:value-of select="if ($ac:contextUri) then '&quot;' || $ac:contextUri || '&quot;'  else 'null'"/><![CDATA[;
-                var agentUri = ]]><xsl:value-of select="if ($acl:agent) then '&quot;' || $acl:agent || '&quot;'  else 'null'"/><![CDATA[;
+                var agentUri = ]]><xsl:value-of select="if ($foaf:Agent) then '&quot;' || $foaf:Agent || '&quot;'  else 'null'"/><![CDATA[;
                 var accessModeUri = []]><xsl:value-of select="string-join(for $mode in $acl:mode return '&quot;' || $mode || '&quot;', ', ')"/><![CDATA[];
             ]]>
         </script>
@@ -492,7 +492,7 @@ exclude-result-prefixes="#all">
     </xsl:template>
     
     <xsl:template match="rdf:RDF" mode="bs2:NavBarNavList">
-        <xsl:if test="$acl:Agent//@rdf:about">
+        <xsl:if test="$foaf:Agent//@rdf:about">
             <ul class="nav pull-right">
                 <li>
                     <xsl:if test="$ac:mode = '&ac;QueryEditorMode'">
@@ -533,14 +533,14 @@ exclude-result-prefixes="#all">
                 <!-- overridden in acl/layout.xsl! TO-DO: extract into separate template -->
                 <li>
                     <div class="btn-group">
-                        <button type="button" title="{ac:label($acl:Agent//*[@rdf:about][1])}">
+                        <button type="button" title="{ac:label($foaf:Agent//*[@rdf:about][1])}">
                             <xsl:apply-templates select="key('resources', '&foaf;Agent', document(ac:document-uri('&foaf;')))" mode="ldh:logo">
                                 <xsl:with-param name="class" select="'btn dropdown-toggle'"/>
                             </xsl:apply-templates>
                         </button>
                         <ul class="dropdown-menu pull-right">
                             <li>
-                                <xsl:for-each select="key('resources-by-type', '&lacl;Agent', $acl:Agent)">
+                                <xsl:for-each select="key('resources-by-type', '&foaf;Agent', $foaf:Agent)">
                                     <xsl:apply-templates select="." mode="xhtml:Anchor"/>
                                 </xsl:for-each>
                             </li>
@@ -553,7 +553,7 @@ exclude-result-prefixes="#all">
         <xsl:apply-templates select="." mode="bs2:SignUp"/>
     </xsl:template>
 
-    <xsl:template match="rdf:RDF[not($acl:Agent//@rdf:about)][$lapp:Application//rdf:type/@rdf:resource = '&lapp;EndUserApplication']" mode="bs2:SignUp" priority="1">
+    <xsl:template match="rdf:RDF[not($foaf:Agent//@rdf:about)][$lapp:Application//rdf:type/@rdf:resource = '&lapp;EndUserApplication']" mode="bs2:SignUp" priority="1">
         <xsl:param name="uri" select="resolve-uri(encode-for-uri('sign up'), $lapp:Application//*[rdf:type/@rdf:resource = '&lapp;AdminApplication']/ldt:base/@rdf:resource)" as="xs:anyURI"/>
         <xsl:param name="google-signup" select="exists($google:clientID)" as="xs:boolean"/>
         <xsl:param name="webid-signup" select="true()" as="xs:boolean"/>
@@ -924,7 +924,7 @@ exclude-result-prefixes="#all">
     <!-- HEADER  -->
 
     <!-- TO-DO: move http:Response templates to error.xsl -->
-    <xsl:template match="*[rdf:type/@rdf:resource = '&http;Response'][lacl:requestAccess/@rdf:resource][$acl:Agent]" mode="bs2:Header" priority="2">
+    <xsl:template match="*[rdf:type/@rdf:resource = '&http;Response'][lacl:requestAccess/@rdf:resource][$foaf:Agent]" mode="bs2:Header" priority="2">
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" select="'alert alert-info well'" as="xs:string?"/>
 
@@ -997,7 +997,7 @@ exclude-result-prefixes="#all">
     <!-- NAVBAR ACTIONS -->
 
     <xsl:template match="rdf:RDF" mode="bs2:NavBarActions" priority="1">
-        <xsl:if test="$acl:Agent//@rdf:about">
+        <xsl:if test="$foaf:Agent//@rdf:about">
             <div class="pull-right">
                 <button type="button" title="{ac:label(key('resources', 'nav-bar-action-delete-title', document('translations.rdf')))}">
                     <xsl:apply-templates select="key('resources', '&ac;Delete', document(ac:document-uri('&ac;')))" mode="ldh:logo">
@@ -1102,7 +1102,7 @@ exclude-result-prefixes="#all">
             </button>
 
             <ul class="dropdown-menu">
-                <xsl:if test="$acl:Agent//@rdf:about and $lapp:Application//*[ldt:base/@rdf:resource = $ldt:base]/rdf:type/@rdf:resource = '&lapp;EndUserApplication'">
+                <xsl:if test="$foaf:Agent//@rdf:about and $lapp:Application//*[ldt:base/@rdf:resource = $ldt:base]/rdf:type/@rdf:resource = '&lapp;EndUserApplication'">
                     <li>
                         <xsl:for-each select="$lapp:Application">
                             <a href="{key('resources', //*[ldt:base/@rdf:resource = $ldt:base]/lapp:adminApplication/(@rdf:resource, @rdf:nodeID))/ldt:base/@rdf:resource[starts-with(., $ac:contextUri)]}" target="_blank">

@@ -27,7 +27,7 @@ import com.atomgraph.linkeddatahub.server.exception.auth.webid.WebIDDelegationEx
 import com.atomgraph.linkeddatahub.server.security.AgentSecurityContext;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
 import com.atomgraph.linkeddatahub.vocabulary.Cert;
-import com.atomgraph.linkeddatahub.vocabulary.LACL;
+import com.atomgraph.linkeddatahub.vocabulary.FOAF;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.security.cert.CertificateException;
@@ -136,7 +136,7 @@ public class WebIDFilter extends AuthenticationFilter
             }
 
             // imitate type inference, otherwise we'll get Jena's polymorphism exception
-            return new AgentSecurityContext(getScheme(), agent.addProperty(RDF.type, LACL.Agent).as(Agent.class));
+            return new AgentSecurityContext(getScheme(), agent.addProperty(RDF.type, FOAF.Agent).as(Agent.class));
         }
         catch (CertificateException ex)
         {

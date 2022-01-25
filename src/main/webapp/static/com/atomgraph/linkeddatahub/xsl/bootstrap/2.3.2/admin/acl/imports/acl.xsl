@@ -58,7 +58,7 @@ exclude-result-prefixes="#all">
 
     <xsl:template match="*[lacl:requestAccessTo/@rdf:resource]" mode="bs2:Block" priority="1">
         <xsl:param name="method" select="'post'" as="xs:string"/>
-        <xsl:param name="action" select="ac:build-uri($a:graphStore, map{ 'forClass': '&lacl;Authorization' })" as="xs:anyURI"/>
+        <xsl:param name="action" select="ac:build-uri($a:graphStore, map{ 'forClass': '&acl;Authorization' })" as="xs:anyURI"/>
         <xsl:param name="id" select="concat('form-', generate-id())" as="xs:string?"/>
         <xsl:param name="class" select="'form-horizontal'" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
@@ -107,7 +107,7 @@ exclude-result-prefixes="#all">
             </xsl:call-template>
             <xsl:call-template name="xhtml:Input">
                 <xsl:with-param name="name" select="'ou'"/>
-                <xsl:with-param name="value" select="'&lacl;Authorization'"/> <!-- Authorization class URI -->
+                <xsl:with-param name="value" select="'&acl;Authorization'"/> <!-- Authorization class URI -->
                 <xsl:with-param name="type" select="'hidden'"/>
             </xsl:call-template>
             <xsl:call-template name="xhtml:Input">
