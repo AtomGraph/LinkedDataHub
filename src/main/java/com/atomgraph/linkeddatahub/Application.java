@@ -562,13 +562,14 @@ public class Application extends ResourceConfig
             
             Model mappingModel = locationMapper.toModel();
             
-            ResIterator mappedNames = mappingModel.listResourcesWithProperty(LocationMappingVocab.name);
+            ResIterator nameMappings = mappingModel.listResourcesWithProperty(LocationMappingVocab.name);
             try
             {
-                while (mappedNames.hasNext())
+                while (nameMappings.hasNext())
                 {
-                    Resource altName = mappedNames.next();
-                    String name = altName.getRequiredProperty(LocationMappingVocab.name).getString();
+                    Resource nameMapping = nameMappings.next();
+                    String name = nameMapping.getRequiredProperty(LocationMappingVocab.name).getString();
+                    String altName = nameMapping.getRequiredProperty(LocationMappingVocab.altName).getString();
 
                     // if there are additional LinkedDataHub-specific assertions for this mapping, add them to the ontology model
                     String overlayAltName = altName + ".ldh.ttl";
@@ -580,16 +581,17 @@ public class Application extends ResourceConfig
             }
             finally
             {
-                mappedNames.close();
+                nameMappings.close();
             }
             
-            ResIterator prefixedNames = mappingModel.listResourcesWithProperty(LocationMappingVocab.prefix);
+            ResIterator prefixedMappings = mappingModel.listResourcesWithProperty(LocationMappingVocab.prefix);
             try
             {
-                while (prefixedNames.hasNext())
+                while (prefixedMappings.hasNext())
                 {
-                    Resource altName = prefixedNames.next();
-                    String prefix = altName.getRequiredProperty(LocationMappingVocab.prefix).getString();
+                    Resource prefixMapping = prefixedMappings.next();
+                    String prefix = prefixMapping.getRequiredProperty(LocationMappingVocab.prefix).getString();
+                    
                     // register mapped RDF documents in the XSLT processor so that document() returns them cached, throughout multiple transformations
                     TreeInfo doc = xsltProc.getUnderlyingConfiguration().buildDocumentTree(dataManager.resolve("", prefix));
                     xsltProc.getUnderlyingConfiguration().getGlobalDocumentPool().add(doc, prefix);
@@ -602,7 +604,7 @@ public class Application extends ResourceConfig
             }
             finally
             {
-                prefixedNames.close();
+                prefixedMappings.close();
             }
             
             xsltComp = xsltProc.newXsltCompiler();
