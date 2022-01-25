@@ -692,10 +692,8 @@ exclude-result-prefixes="#all">
         </body>
     </xsl:template>
 
-    <xsl:template match="rdf:RDF[key('resources-by-type', '&http;Response')]" mode="bs2:ModeTabs" priority="1"/>
-
-    <!-- don't show document-level tabs if we're in EditMode -->
-    <xsl:template match="rdf:RDF[$ac:forClass or $ac:mode = '&ac;EditMode']" mode="bs2:ModeTabs" priority="1"/>
+    <!-- don't show document-level tabs if the response returned an error or if we're in EditMode -->
+    <xsl:template match="rdf:RDF[key('resources-by-type', '&http;Response')] | rdf:RDF[$ac:forClass or $ac:mode = '&ac;EditMode']" mode="bs2:ModeTabs" priority="1"/>
 
     <xsl:template match="rdf:RDF" mode="bs2:ModeTabs">
         <xsl:param name="has-content" select="key('resources', key('resources', ac:uri())/ldh:content/@rdf:resource) or key('resources', ac:uri())/rdf:type/@rdf:resource[doc-available(ac:document-uri(.))]/key('resources', ., document(ac:document-uri(.)))/ldh:template/@rdf:resource[doc-available(ac:document-uri(.))]/key('resources', ., document(ac:document-uri(.)))" as="xs:boolean"/>
