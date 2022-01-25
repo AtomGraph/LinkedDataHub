@@ -1,0 +1,60 @@
+@base           <http://www.w3.org/ns/auth/acl> .
+@prefix :       <#> .
+@prefix rdf:	<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .
+@prefix ldh:	<https://w3id.org/atomgraph/linkeddatahub#> .
+@prefix sp:	<http://spinrdf.org/sp#> .
+@prefix spin:	<http://spinrdf.org/spin#> .
+
+:Authorization spin:constructor :AuthorizationConstructor ;
+    spin:constraint :MissingACLMode, :MissingRDFSLabel ;
+    ldh:template :AuthorizationAgents .
+
+:AuthorizationConstructor a sp:Construct ;
+    sp:text """
+        PREFIX dct:     <http://purl.org/dc/terms/>
+        PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
+        PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
+        PREFIX acl:     <http://www.w3.org/ns/auth/acl#>
+        PREFIX lacl:    <https://w3id.org/atomgraph/linkeddatahub/admin/acl#>
+        PREFIX lsm:     <https://w3id.org/atomgraph/linkeddatahub/admin/sitemap#>
+
+        CONSTRUCT {
+            ?this rdfs:label [ a xsd:string ] ;
+                dct:description [ a xsd:string ] ;
+                acl:mode [ a acl:Mode ] ;
+                acl:accessTo [ a rdfs:Resource ] ;
+                acl:accessToClass [ a lsm:Class ] ;
+                acl:agent [ a lacl:Agent ] ;
+                acl:agentClass [ a lsm:Class ] ;
+                acl:agentGroup [ a lacl:Group ] .
+        }
+        WHERE {}""" .
+
+# CONSTRAINTS
+
+:MissingACLMode a ldh:MissingPropertyValue ;
+    sp:arg1 :mode .
+
+:MissingRDFSLabel a ldh:MissingPropertyValue ;
+    sp:arg1 rdfs:label .
+
+# CONTENT TEMPLATES
+
+:AuthorizationAgents a ldh:Content ;
+    rdf:first :SelectAuthorizationAgents ;
+    rdf:rest rdf:nil .
+
+:SelectAuthorizationAgents a sp:Select ;
+    sp:text """
+PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
+PREFIX  acl:  <http://www.w3.org/ns/auth/acl#>
+
+SELECT DISTINCT  ?agent
+WHERE
+{ GRAPH ?authGraph
+  { ?this  foaf:primaryTopic  ?auth .
+    ?auth  acl:agent          ?agent
+  }
+}
+""" .

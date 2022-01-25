@@ -530,7 +530,12 @@ public class Application extends ResourceConfig
         
             // TO-DO: config property for cacheModelLoads
             dataManager = new DataManagerImpl(locationMapper, new HashMap<>(), client, mediaTypes, cacheModelLoads, preemptiveAuth, resolvingUncached);
-            
+            ontModelSpec = OntModelSpec.OWL_MEM_RDFS_INF;
+            ontModelSpec.setImportModelGetter(dataManager);
+            OntDocumentManager.getInstance().setFileManager((FileManager)dataManager);
+            OntDocumentManager.getInstance().setCacheModels(cacheSitemap); // need to re-set after changing FileManager
+            ontModelSpec.setDocumentManager(OntDocumentManager.getInstance());
+
             if (mailUser != null && mailPassword !=  null) // enable SMTP authentication
             {
                 emailProperties.put("mail.smtp.auth", "true");
@@ -556,15 +561,37 @@ public class Application extends ResourceConfig
             xsltProc.registerExtensionFunction(new ConstructForClass(xsltProc));
             
             Model mappingModel = locationMapper.toModel();
-            ResIterator altLocationIt = mappingModel.listResourcesWithProperty(LocationMappingVocab.prefix);
+            
+            ResIterator mappedNames = mappingModel.listResourcesWithProperty(LocationMappingVocab.name);
             try
             {
-                while (altLocationIt.hasNext())
+                while (mappedNames.hasNext())
                 {
-                    Resource altLocation = altLocationIt.next();
-                    String prefix = altLocation.getRequiredProperty(LocationMappingVocab.prefix).getString();
+                    Resource altName = mappedNames.next();
+                    String name = altName.getRequiredProperty(LocationMappingVocab.name).getString();
+
+                    // if there are additional LinkedDataHub-specific assertions for this mapping, add them to the ontology model
+                    String overlayAltName = altName + ".ldh.ttl";
+                    try (InputStream overlayStream = servletConfig.getServletContext().getResourceAsStream(overlayAltName))
+                    {
+                        if (overlayStream != null) dataManager.getModel(name).add(ModelFactory.createDefaultModel().read(overlayStream, null));
+                    }
+                }
+            }
+            finally
+            {
+                mappedNames.close();
+            }
+            
+            ResIterator prefixedNames = mappingModel.listResourcesWithProperty(LocationMappingVocab.prefix);
+            try
+            {
+                while (prefixedNames.hasNext())
+                {
+                    Resource altName = prefixedNames.next();
+                    String prefix = altName.getRequiredProperty(LocationMappingVocab.prefix).getString();
+                    // register mapped RDF documents in the XSLT processor so that document() returns them cached, throughout multiple transformations
                     TreeInfo doc = xsltProc.getUnderlyingConfiguration().buildDocumentTree(dataManager.resolve("", prefix));
-                    // registering mapped RDF documents in the XSLT processor so that document() returns them cached, throughout multiple transformations
                     xsltProc.getUnderlyingConfiguration().getGlobalDocumentPool().add(doc, prefix);
                 }
             }
@@ -575,7 +602,7 @@ public class Application extends ResourceConfig
             }
             finally
             {
-                altLocationIt.close();
+                prefixedNames.close();
             }
             
             xsltComp = xsltProc.newXsltCompiler();
@@ -623,12 +650,6 @@ public class Application extends ResourceConfig
             if (log.isErrorEnabled()) log.error("System XSLT stylesheet error", ex);
             throw new IllegalStateException(ex);
         }
-        
-        this.ontModelSpec = OntModelSpec.OWL_MEM_RDFS_INF;
-        this.ontModelSpec.setImportModelGetter(dataManager);
-        OntDocumentManager.getInstance().setFileManager((FileManager)dataManager);
-        OntDocumentManager.getInstance().setCacheModels(cacheSitemap); // need to re-set after changing FileManager
-        this.ontModelSpec.setDocumentManager(OntDocumentManager.getInstance());
     }
     
     @PostConstruct
@@ -810,12 +831,8 @@ public class Application extends ResourceConfig
     {
         String baseURI = servletContext.getResource("/").toString();
 
-        InputStream datasetStream = null;
-        try
+        try (InputStream datasetStream = (uri.isAbsolute() ? new FileInputStream(new java.io.File(uri)) : servletContext.getResourceAsStream(uri.toString())))
         {
-            if (uri.isAbsolute()) datasetStream = new FileInputStream(new java.io.File(uri));
-            else datasetStream = servletContext.getResourceAsStream(uri.toString());
-
             if (datasetStream == null) throw new IOException("Dataset not found at URI: " + uri.toString());
             Lang lang = RDFDataMgr.determineLang(uri.toString(), null, null);
             if (lang == null) throw new IOException("Could not determing RDF format from dataset URI: " + uri.toString());
@@ -824,10 +841,6 @@ public class Application extends ResourceConfig
             if (log.isDebugEnabled()) log.debug("Loading Model from dataset: {}", uri);
             RDFDataMgr.read(dataset, datasetStream, baseURI, lang);
             return dataset;
-        }
-        finally
-        {
-            if (datasetStream != null) datasetStream.close();
         }
     }
 
