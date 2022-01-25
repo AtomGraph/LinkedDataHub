@@ -46,6 +46,8 @@ public class Cert
     /** <p>The namespace of the vocabulary as a resource</p> */
     public static final Resource NAMESPACE = m_model.createResource( NS );
 
+    public static final OntClass PublicKey = m_model.createClass(NS + "PublicKey");
+
     public static final OntClass RSAPublicKey = m_model.createClass(NS + "RSAPublicKey");
 
     public static final ObjectProperty key = m_model.createObjectProperty( NS + "key" );
@@ -53,7 +55,5 @@ public class Cert
     public static final DatatypeProperty modulus = m_model.createDatatypeProperty( NS + "modulus" );
     
     public static final DatatypeProperty exponent = m_model.createDatatypeProperty( NS + "exponent" );
-
-    // public static final ObjectProperty secretary = m_model.createObjectProperty( NS + "secretary" );
 
 }

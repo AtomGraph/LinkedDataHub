@@ -10,6 +10,7 @@
     <!ENTITY rdf    "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
     <!ENTITY rdfs   "http://www.w3.org/2000/01/rdf-schema#">
     <!ENTITY acl    "http://www.w3.org/ns/auth/acl#">
+    <!ENTITY cert   "http://www.w3.org/ns/auth/cert#">
     <!ENTITY ldt    "https://www.w3.org/ns/ldt#">
     <!ENTITY dh     "https://www.w3.org/ns/ldt/document-hierarchy/domain#">
     <!ENTITY sioc   "http://rdfs.org/sioc/ns#">
@@ -70,7 +71,7 @@ exclude-result-prefixes="#all">
     <xsl:template match="rdf:RDF" mode="bs2:ActionBarLeft">
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" select="'span2'" as="xs:string?"/>
-        <xsl:param name="classes" select="(key('resources', ('&lacl;Authorization', '&lacl;Person', '&lacl;PublicKey', '&lacl;UserAccount', '&lacl;Group'), document(ac:document-uri('&lacl;'))), key('resources', ('&lsm;Ontology'), document(ac:document-uri('&lsm;'))))" as="element()*"/>
+        <xsl:param name="classes" select="(key('resources', '&acl;Authorization', document(ac:document-uri('&acl;'))), key('resources', ('&foaf;Person', '&foaf;Group'), document(ac:document-uri('&foaf;'))), key('resources', '&cert;PublicKey', document(ac:document-uri('&cert;'))), key('resources', '&sioc;UserAccount', document(ac:document-uri('&sioc;'))), key('resources', ('&lsm;Ontology'), document(ac:document-uri('&lsm;'))))" as="element()*"/>
 
         <div>
             <xsl:if test="$id">
@@ -88,7 +89,7 @@ exclude-result-prefixes="#all">
         </div>
     </xsl:template>
     
-    <xsl:template match="rdf:RDF[$acl:Agent]" mode="bs2:Create" priority="1">
+    <xsl:template match="rdf:RDF[$foaf:Agent]" mode="bs2:Create" priority="1">
         <xsl:param name="classes" as="element()*"/>
         <xsl:param name="create-graph" select="false()" as="xs:boolean"/>
 
@@ -141,11 +142,11 @@ exclude-result-prefixes="#all">
         <xsl:param name="class-containers" as="map(xs:string, xs:anyURI)">
             <xsl:map>
                 <xsl:map-entry key="'&lsm;Ontology'" select="resolve-uri('model/ontologies/', $ldt:base)"/>
-                <xsl:map-entry key="'&lacl;Authorization'" select="resolve-uri('acl/authorizations/', $ldt:base)"/>
-                <xsl:map-entry key="'&lacl;Person'" select="resolve-uri('acl/agents/', $ldt:base)"/>
-                <xsl:map-entry key="'&lacl;PublicKey'" select="resolve-uri('acl/public-keys/', $ldt:base)"/>
-                <xsl:map-entry key="'&lacl;UserAccount'" select="resolve-uri('acl/users/', $ldt:base)"/>
-                <xsl:map-entry key="'&lacl;Group'" select="resolve-uri('acl/groups/', $ldt:base)"/>
+                <xsl:map-entry key="'&acl;Authorization'" select="resolve-uri('acl/authorizations/', $ldt:base)"/>
+                <xsl:map-entry key="'&foaf;Person'" select="resolve-uri('acl/agents/', $ldt:base)"/>
+                <xsl:map-entry key="'&cert;PublicKey'" select="resolve-uri('acl/public-keys/', $ldt:base)"/>
+                <xsl:map-entry key="'&sioc;UserAccount'" select="resolve-uri('acl/users/', $ldt:base)"/>
+                <xsl:map-entry key="'&foaf;Group'" select="resolve-uri('acl/groups/', $ldt:base)"/>
             </xsl:map>
         </xsl:param>
         

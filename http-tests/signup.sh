@@ -14,7 +14,7 @@ curl -k -s \
   --data-urlencode "rdf=" \
   --data-urlencode "sb=agent" \
   --data-urlencode "pu=http://www.w3.org/1999/02/22-rdf-syntax-ns#type" \
-  --data-urlencode "ou=https://w3id.org/atomgraph/linkeddatahub/admin/acl#Person" \
+  --data-urlencode "ou=http://xmlns.com/foaf/0.1/Person" \
   --data-urlencode "pu=http://xmlns.com/foaf/0.1/primaryTopic" \
   --data-urlencode "ob=agent" \
   --data-urlencode "pu=http://xmlns.com/foaf/0.1/based_near" \

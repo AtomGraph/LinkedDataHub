@@ -29,6 +29,7 @@ import com.atomgraph.linkeddatahub.vocabulary.LDHT;
 import com.atomgraph.linkeddatahub.vocabulary.Google;
 import com.atomgraph.linkeddatahub.vocabulary.LAPP;
 import com.atomgraph.client.vocabulary.LDT;
+import com.atomgraph.linkeddatahub.vocabulary.FOAF;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.annotation.Annotation;
@@ -132,16 +133,16 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
             if (getSecurityContext() != null && getSecurityContext().getUserPrincipal() instanceof Agent)
             {
                 Agent agent = (Agent)getSecurityContext().getUserPrincipal();
-                if (log.isDebugEnabled()) log.debug("Passing $acl:Agent to XSLT: <{}>", agent);
+                if (log.isDebugEnabled()) log.debug("Passing $foaf:Agent to XSLT: <{}>", agent);
                 Source source = getSource(agent.getModel());
                 
                 URI agentURI = URI.create(agent.getURI());
                 URI agentDocUri = new URI(agentURI.getScheme(), agentURI.getSchemeSpecificPart(), null); // strip the fragment identifier
-                source.setSystemId(agentDocUri.toString()); // URI accessible via document-uri($lacl:Agent)
+                source.setSystemId(agentDocUri.toString()); // URI accessible via document-uri($foaf:Agent)
 
                 params.put(new QName("acl", ACL.agent.getNameSpace(), ACL.agent.getLocalName()),
                     new XdmAtomicValue(URI.create(agent.getURI())));
-                params.put(new QName("acl", ACL.Agent.getNameSpace(), ACL.Agent.getLocalName()),
+                params.put(new QName("foaf", FOAF.Agent.getNameSpace(), FOAF.Agent.getLocalName()),
                     getXsltExecutable().getProcessor().newDocumentBuilder().build(source));
             }
 

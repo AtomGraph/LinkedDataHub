@@ -22,6 +22,7 @@ import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.model.Agent;
 import com.atomgraph.linkeddatahub.server.security.IDTokenSecurityContext;
+import com.atomgraph.linkeddatahub.vocabulary.FOAF;
 import com.atomgraph.linkeddatahub.vocabulary.LACL;
 import com.atomgraph.processor.vocabulary.SIOC;
 import com.auth0.jwt.JWT;
@@ -133,7 +134,7 @@ public class IDTokenFilter extends AuthenticationFilter
         getSystem().getOIDCModelCache().put(cacheKey, agentModel, expiration, TimeUnit.SECONDS);
         
         // imitate type inference, otherwise we'll get Jena's polymorphism exception
-        return new IDTokenSecurityContext(getScheme(), agent.addProperty(RDF.type, LACL.Agent).as(Agent.class), jwtString);
+        return new IDTokenSecurityContext(getScheme(), agent.addProperty(RDF.type, FOAF.Agent).as(Agent.class), jwtString);
     }
     
     protected String getJWTToken(ContainerRequestContext request)

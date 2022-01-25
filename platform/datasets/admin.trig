@@ -186,7 +186,7 @@
         dct:title "Public access" ;
         foaf:primaryTopic <acl/authorizations/public/#this> .
 
-    <acl/authorizations/public/#this> a lacl:Authorization ;
+    <acl/authorizations/public/#this> a acl:Authorization ;
         rdfs:label "Public access" ;
         rdfs:comment "Allows non-authenticated access" ;
         acl:accessTo <model/ontologies/namespace/> ; # end-user ontologies are public
@@ -205,7 +205,7 @@
         dct:title "Signup access" ;
         foaf:primaryTopic <acl/authorizations/sign-up/#this> .
 
-    <acl/authorizations/sign-up/#this> a lacl:Authorization ;
+    <acl/authorizations/sign-up/#this> a acl:Authorization ;
         rdfs:label "Signup access" ;
         rdfs:comment "Required to enable public signup" ;
         acl:accessTo <sign%20up> ;
@@ -224,7 +224,7 @@
         dct:title "Authorization request access" ;
         foaf:primaryTopic <acl/authorizations/request-access/#this> .
 
-    <acl/authorizations/request-access/#this> a lacl:Authorization ;
+    <acl/authorizations/request-access/#this> a acl:Authorization ;
         rdfs:label "Request access" ;
         rdfs:comment "Required to enable authorization requests" ;
         acl:accessTo <request%20access> ;
@@ -243,7 +243,7 @@
         dct:title "OAuth2 login access" ;
         foaf:primaryTopic <acl/authorizations/oauth2-login/#this> .
 
-    <acl/authorizations/oauth2-login/#this> a lacl:Authorization ;
+    <acl/authorizations/oauth2-login/#this> a acl:Authorization ;
         rdfs:label "OAuth2 login access" ;
         rdfs:comment "Required to enable public OAuth2 login" ;
         acl:accessTo <oauth2/login> ;
@@ -262,7 +262,7 @@
         dct:title "Google's OAuth2 authorization" ;
         foaf:primaryTopic <acl/authorizations/authorize-google/#this> .
 
-    <acl/authorizations/authorize-google/#this> a lacl:Authorization ;
+    <acl/authorizations/authorize-google/#this> a acl:Authorization ;
         rdfs:label "Google's OAuth2 authorization" ;
         rdfs:comment "Required to enable public OAuth2 login" ;
         acl:accessTo <oauth2/authorize/google> ;
@@ -281,7 +281,7 @@
         dct:title "Append authorization request" ;
         foaf:primaryTopic <acl/authorizations/append-request/#this> .
 
-    <acl/authorizations/append-request/#this> a lacl:Authorization ;
+    <acl/authorizations/append-request/#this> a acl:Authorization ;
         rdfs:label "Append authorization request" ;
         rdfs:comment "Required to enable authorization requests" ;
         acl:accessTo <acl/authorization-requests/> ;
@@ -301,7 +301,7 @@
         dct:title "Full control" ;
         foaf:primaryTopic <acl/authorizations/full-control/#this> .
 
-    <acl/authorizations/full-control/#this> a lacl:Authorization ;
+    <acl/authorizations/full-control/#this> a acl:Authorization ;
         rdfs:label "Full control" ;
         rdfs:comment "Allows full read/write access to all application resources" ;
         acl:accessToClass def:Item, def:Container, def:Root ;
@@ -321,7 +321,7 @@
         dct:title "Write/append access" ;
         foaf:primaryTopic <acl/authorizations/write-append/#this> .
 
-    <acl/authorizations/write-append/#this> a lacl:Authorization ;
+    <acl/authorizations/write-append/#this> a acl:Authorization ;
         rdfs:label "Write/append access" ;
         rdfs:comment "Allows write access to all documents and containers" ;
         acl:accessToClass def:Item, def:Container, def:Root ;
@@ -341,7 +341,7 @@
         dct:title "Read access" ;
         foaf:primaryTopic <acl/authorizations/read/#this> .
 
-    <acl/authorizations/read/#this> a lacl:Authorization ;
+    <acl/authorizations/read/#this> a acl:Authorization ;
         rdfs:label "Read access" ;
         rdfs:comment "Allows read access to all resources" ;
         acl:accessToClass def:Item, def:Container, def:Root, def:File ;
@@ -382,7 +382,7 @@
         dct:title "Owners" ;
         foaf:primaryTopic <acl/groups/owners/#this> .
 
-    <acl/groups/owners/#this> a lacl:Group ;
+    <acl/groups/owners/#this> a foaf:Group ;
         foaf:name "Owners" ;
         dct:description "Group of agents that own the application" .
 
@@ -398,7 +398,7 @@
         dct:title "Writers" ;
         foaf:primaryTopic <acl/groups/writers/#this> .
 
-    <acl/groups/writers/#this> a lacl:Group ;
+    <acl/groups/writers/#this> a foaf:Group ;
         foaf:name "Writers" ;
         dct:description "Group of agents that have write access" .
 
@@ -414,7 +414,7 @@
         dct:title "Readers" ;
         foaf:primaryTopic <acl/groups/readers/#this> .
 
-    <acl/groups/readers/#this> a lacl:Group ;
+    <acl/groups/readers/#this> a foaf:Group ;
         foaf:name "Readers" ;
         dct:description "Group of agents that have read access" .
 

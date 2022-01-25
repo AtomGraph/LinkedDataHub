@@ -54,7 +54,7 @@ exclude-result-prefixes="#all"
 extension-element-prefixes="ixsl"
 >
     
-    <xsl:param name="acl:Agent" as="document-node()?"/>
+    <xsl:param name="foaf:Agent" as="document-node()?"/>
 
     <!-- LOGO -->
 

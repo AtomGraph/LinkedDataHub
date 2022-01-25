@@ -295,7 +295,7 @@ public class Login extends GraphStoreImpl
             addLiteral(DH.slug, UUID.randomUUID().toString());
         
         Resource agent = model.createResource().
-            addProperty(RDF.type, LACL.Agent).
+            addProperty(RDF.type, FOAF.Agent).
             addLiteral(FOAF.givenName, givenName).
             addLiteral(FOAF.familyName, familyName).
             addProperty(FOAF.mbox, model.createResource("mailto:" + email));
@@ -315,7 +315,7 @@ public class Login extends GraphStoreImpl
         
         Resource account = model.createResource().
             addLiteral(DCTerms.created, GregorianCalendar.getInstance()).
-            addProperty(RDF.type, LACL.UserAccount).
+            addProperty(RDF.type, SIOC.USER_ACCOUNT).
             addLiteral(SIOC.ID, id).
             addLiteral(LACL.issuer, issuer).
             addLiteral(SIOC.NAME, name).
@@ -334,7 +334,7 @@ public class Login extends GraphStoreImpl
             addLiteral(DH.slug, UUID.randomUUID().toString());
         
         Resource auth = model.createResource().
-            addProperty(RDF.type, LACL.Authorization).
+            addProperty(RDF.type, ACL.Authorization).
             addLiteral(DH.slug, UUID.randomUUID().toString()). // TO-DO: get rid of slug properties!
             addProperty(ACL.accessTo, ResourceFactory.createResource(agentGraphURI.toString())).
             addProperty(ACL.accessTo, ResourceFactory.createResource(userAccountGraphURI.toString())).

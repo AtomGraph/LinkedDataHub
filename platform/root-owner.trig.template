@@ -17,7 +17,7 @@
         sioc:has_container <acl/agents/> ;
         dct:title "${OWNER_COMMON_NAME}" .
 
-    <${OWNER_URI}> a adm:Agent ;
+    <${OWNER_URI}> a foaf:Agent ;
         foaf:name "${OWNER_COMMON_NAME}" ;
         foaf:mbox <mailto:${OWNER_MBOX}> ;
         cert:key <acl/public-keys/${OWNER_KEY_UUID}/#this> .
@@ -38,7 +38,7 @@
         sioc:has_container <acl/public-keys/> ;
         dct:title "${OWNER_COMMON_NAME}" .
 
-    <acl/public-keys/${OWNER_KEY_UUID}/#this> a adm:PublicKey ;
+    <acl/public-keys/${OWNER_KEY_UUID}/#this> a cert:PublicKey ;
         rdfs:label "${OWNER_COMMON_NAME}" ;
         cert:modulus "${OWNER_CERT_MODULUS}"^^xsd:hexBinary;
         cert:exponent 65537 .
@@ -63,7 +63,7 @@
         sioc:has_container <acl/authorizations/> ;
         dct:title "Public owner's WebID" .
 
-    <acl/authorizations/${OWNER_KEY_UUID}/#auth> a adm:Authorization ;
+    <acl/authorizations/${OWNER_KEY_UUID}/#auth> a acl:Authorization ;
         acl:accessTo <${OWNER_DOC_URI}>, <acl/public-keys/${OWNER_KEY_UUID}/> ;
         acl:mode acl:Read ;
         acl:agentClass foaf:Agent, acl:AuthenticatedAgent .
