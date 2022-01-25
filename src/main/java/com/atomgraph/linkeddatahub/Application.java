@@ -575,7 +575,7 @@ public class Application extends ResourceConfig
                     String overlayAltName = altName + ".ldh.ttl";
                     try (InputStream overlayStream = servletConfig.getServletContext().getResourceAsStream("WEB-INF/classes/" + overlayAltName))
                     {
-                        if (overlayStream != null) dataManager.getModel(name).add(ModelFactory.createDefaultModel().read(overlayStream, null, Lang.TURTLE));
+                        if (overlayStream != null) dataManager.getModel(name).add(ModelFactory.createDefaultModel().read(overlayStream, null, Lang.TURTLE.getName()));
                     }
                 }
             }
