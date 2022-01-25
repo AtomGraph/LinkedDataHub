@@ -19,6 +19,7 @@ xmlns:rdf="&rdf;"
 xmlns:acl="&acl;"
 xmlns:ldt="&ldt;"
 xmlns:dct="&dct;"
+xmlns:foaf="&foaf;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 exclude-result-prefixes="#all">
 
