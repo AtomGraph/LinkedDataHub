@@ -47,6 +47,8 @@ public class FOAF
 
     public static final OntClass Agent = m_model.createClass( NS + "Agent" );
     
+    public static final OntClass Person = m_model.createClass( NS + "Person" );
+    
     public static final OntClass Document = m_model.createClass( NS + "Document" );
 
     public static final DatatypeProperty name = m_model.createDatatypeProperty( NS + "name" );
