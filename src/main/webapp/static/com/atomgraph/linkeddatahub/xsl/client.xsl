@@ -2,7 +2,6 @@
 <!DOCTYPE xsl:stylesheet [
     <!ENTITY lapp       "https://w3id.org/atomgraph/linkeddatahub/apps#">
     <!ENTITY def        "https://w3id.org/atomgraph/linkeddatahub/default#">
-    <!ENTITY lsm        "https://w3id.org/atomgraph/linkeddatahub/admin/sitemap#">
     <!ENTITY adm        "https://w3id.org/atomgraph/linkeddatahub/admin#">
     <!ENTITY ldh        "https://w3id.org/atomgraph/linkeddatahub#">
     <!ENTITY ac         "https://w3id.org/atomgraph/client#">
@@ -527,7 +526,7 @@ WHERE
     </xsl:template>
     
     <!-- assuming SELECT query here. what do we do about DESCRIBE/CONSTRUCT? -->
-    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = ('&def;Select', '&lsm;Select', '&sp;Select')][sp:text]" mode="ldh:Content" priority="1">
+    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = ('&def;Select', '&sp;Select')][sp:text]" mode="ldh:Content" priority="1">
         <xsl:param name="uri" as="xs:anyURI"/>
         <xsl:param name="container" as="element()"/>
         <!-- replace dots with dashes to avoid Saxon-JS treating them as field separators: https://saxonica.plan.io/issues/5031 -->

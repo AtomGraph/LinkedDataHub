@@ -36,7 +36,6 @@ import javax.ws.rs.ext.Providers;
 import org.apache.jena.rdfxml.xmloutput.impl.Basic;
 import org.apache.jena.riot.Lang;
 import com.atomgraph.linkeddatahub.server.exception.RDFSyntaxException;
-import com.atomgraph.linkeddatahub.vocabulary.LSM;
 import com.atomgraph.processor.vocabulary.SIOC;
 import com.atomgraph.server.exception.SPINConstraintViolationException;
 import com.atomgraph.spinrdf.constraints.ConstraintViolation;
@@ -46,6 +45,7 @@ import com.atomgraph.spinrdf.vocabulary.SP;
 import javax.ws.rs.core.MediaType;
 import org.apache.jena.rdf.model.RDFWriterI;
 import org.apache.jena.vocabulary.DCTerms;
+import org.apache.jena.vocabulary.OWL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -206,7 +206,7 @@ public class ValidatingModelProvider extends com.atomgraph.server.io.ValidatingM
             }
         }
         
-        if (resource.hasProperty(RDF.type, LSM.Ontology))
+        if (resource.hasProperty(RDF.type, OWL.Ontology))
         {
             // clear cached OntModel if ontology is updated. TO-DO: send event instead
             OntDocumentManager.getInstance().getFileManager().removeCacheModel(resource.getURI());

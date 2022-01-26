@@ -46,17 +46,7 @@ public class LACL
     /** <p>The namespace of the vocabulary as a resource</p> */
     public static final Resource NAMESPACE = m_model.createResource( NS );
 
-//    public static final OntClass Authorization = m_model.createClass( NS + "Authorization" );
-
     public static final OntClass AuthorizationRequest = m_model.createClass( NS + "AuthorizationRequest" );
-
-//    public static final OntClass Person = m_model.createClass( NS + "Person" );
-    
-//    public static final OntClass Agent = m_model.createClass( NS + "Agent" );
-
-//    public static final OntClass UserAccount = m_model.createClass( NS + "UserAccount" );
-
-//    public static final OntClass PublicKey = m_model.createClass(NS + "PublicKey");
 
     public static final DatatypeProperty password = m_model.createDatatypeProperty( NS + "password" );
     
