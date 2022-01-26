@@ -18,8 +18,6 @@ print_usage()
     printf "  --uri URI                            URI of the class (optional)\n"
     printf "  --constructor CONSTRUCT_URI          URI of the constructor CONSTRUCT query (optional)\n"
     printf "  --constraint CONSTRAINT_URI          URI of the SPIN constraint (optional)\n"
-    printf "  --path PATH_TEMPLATE                 URI path template used to build instance URIs (optional)\n"
-    printf "  --fragment FRAGMENT_TEMPLATE         URI fragment template used to build instance URIs (optional)\n"
     printf "  --sub-class-of SUPER_CLASS_URI       URI of the superclass (optional)\n"
 
 }
@@ -170,12 +168,6 @@ if [ -n "$constructor" ] ; then
 fi
 if [ -n "$constraint" ] ; then
     turtle+="${class} spin:constraint <$constraint> .\n"
-fi
-if [ -n "$path" ] ; then
-    turtle+="${class} ldt:path \"${path}\" .\n"
-fi
-if [ -n "$fragment" ] ; then
-    turtle+="${class} ldt:fragment \"${fragment}\" .\n"
 fi
 
 for sub_class_of in "${super_classes[@]}"

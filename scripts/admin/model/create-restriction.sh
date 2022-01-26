@@ -130,9 +130,9 @@ args+=("-t")
 args+=("text/turtle") # content type
 
 turtle+="@prefix owl:	<http://www.w3.org/2002/07/owl#> .\n"
+turtle+="@prefix adm:	<https://w3id.org/atomgraph/linkeddatahub/admin#> .\n"
 turtle+="@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .\n"
 turtle+="@prefix owl:	<http://www.w3.org/2002/07/owl#> .\n"
-turtle+="@prefix ldt:	<https://www.w3.org/ns/ldt#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
 turtle+="@prefix foaf:	<http://xmlns.com/foaf/0.1/> .\n"
 turtle+="@prefix spin:	<http://spinrdf.org/spin#> .\n"
