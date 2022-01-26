@@ -10,7 +10,6 @@
 @prefix ldt:	<https://www.w3.org/ns/ldt#> .
 @prefix c:	<https://www.w3.org/ns/ldt/core/domain#> .
 @prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .
-@prefix prov:	<http://www.w3.org/ns/prov#> .
 @prefix sd:	<http://www.w3.org/ns/sparql-service-description#> .
 @prefix sp:	<http://spinrdf.org/sp#> .
 @prefix spin:	<http://spinrdf.org/spin#> .
@@ -20,7 +19,7 @@
 @prefix sioc:	<http://rdfs.org/sioc/ns#> .
 
 : a owl:Ontology ;
-    owl:imports dh:, ac:, spin:, foaf:, sd:, prov:, nfo: ;
+    owl:imports dh:, ac:, spin:, foaf:, sd:, nfo: ;
     rdfs:label "LinkedDataHub ontology" ;
     rdfs:comment "Should be imported and reused by all extending applications" ;
     owl:versionInfo "1.1.5" .
