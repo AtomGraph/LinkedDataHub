@@ -36,6 +36,7 @@ _:MissingRDFSLabel a ldh:MissingPropertyValue ;
 
 :Class spin:constructor [
         a sp:Construct ;
+        rdfs:label "Class constructor" ;
         sp:text """
     PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
     PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
@@ -60,6 +61,7 @@ _:MissingRDFSLabel a ldh:MissingPropertyValue ;
 
 :ObjectProperty spin:constructor [
         a sp:Construct ;
+        rdfs:label "Object property constructor" ;
         sp:text """
     PREFIX rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
     PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
@@ -78,6 +80,7 @@ _:MissingRDFSLabel a ldh:MissingPropertyValue ;
 
 :DatatypeProperty spin:constructor [
         a sp:Construct ;
+        rdfs:label "Datatype property constructor" ;
         sp:text """
     PREFIX rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
     PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
@@ -97,22 +100,23 @@ _:MissingRDFSLabel a ldh:MissingPropertyValue ;
 # RESTRICTION
 
 :Restriction spin:constructor [
-    a sp:Construct ;
-    sp:text """
-        PREFIX rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-        PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
-        PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
-        PREFIX owl:     <http://www.w3.org/2002/07/owl#>
-        PREFIX sp:      <http://spinrdf.org/sp#>
+        a sp:Construct ;
+        rdfs:label "Restriction constructor" ;
+        sp:text """
+            PREFIX rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+            PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
+            PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
+            PREFIX owl:     <http://www.w3.org/2002/07/owl#>
+            PREFIX sp:      <http://spinrdf.org/sp#>
 
-        CONSTRUCT {
-            ?this rdfs:label [ a xsd:string ] ;
-              rdfs:comment [ a xsd:string ] ;
-              owl:onProperty [ a rdf:Property ] ;
-              owl:allValuesFrom [ a rdfs:Resource ] ;
-              owl:hasValue [ a rdfs:Resource ] ;
-              rdfs:isDefinedBy [ a owl:Ontology ] .
-        }
-        WHERE {}"""
+            CONSTRUCT {
+                ?this rdfs:label [ a xsd:string ] ;
+                  rdfs:comment [ a xsd:string ] ;
+                  owl:onProperty [ a rdf:Property ] ;
+                  owl:allValuesFrom [ a rdfs:Resource ] ;
+                  owl:hasValue [ a rdfs:Resource ] ;
+                  rdfs:isDefinedBy [ a owl:Ontology ] .
+            }
+            WHERE {}"""
     ];
     spin:constraint _:MissingRDFSLabel .
