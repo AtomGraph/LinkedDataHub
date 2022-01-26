@@ -119,7 +119,7 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
 
         try
         {
-            params.put(new QName("apl", LDH.absolutePath.getNameSpace(), LDH.absolutePath.getLocalName()), new XdmAtomicValue(getAbsolutePath()));
+            params.put(new QName("ldh", LDH.absolutePath.getNameSpace(), LDH.absolutePath.getLocalName()), new XdmAtomicValue(getAbsolutePath()));
             if (getURI() != null) params.put(new QName("ac", AC.uri.getNameSpace(), AC.uri.getLocalName()), new XdmAtomicValue(getURI()));
             else params.put(new QName("ac", AC.uri.getNameSpace(), AC.uri.getLocalName()), new XdmAtomicValue(getAbsolutePath()));
 
@@ -147,12 +147,12 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
             }
 
             if (getUriInfo().getQueryParameters().containsKey(LDH.createGraph.getLocalName()))
-                params.put(new QName("apl", LDH.createGraph.getNameSpace(), LDH.createGraph.getLocalName()),
+                params.put(new QName("ldh", LDH.createGraph.getNameSpace(), LDH.createGraph.getLocalName()),
                     new XdmAtomicValue(Boolean.valueOf(getUriInfo().getQueryParameters().getFirst(LDH.createGraph.getLocalName()))));
 
             // TO-DO: move to client-side?
             if (getUriInfo().getQueryParameters().containsKey(LDH.access_to.getLocalName()))
-                params.put(new QName("apl", LDH.access_to.getNameSpace(), LDH.access_to.getLocalName()),
+                params.put(new QName("ldh", LDH.access_to.getNameSpace(), LDH.access_to.getLocalName()),
                     new XdmAtomicValue(URI.create(getUriInfo().getQueryParameters().getFirst(LDH.access_to.getLocalName()))));
             
             if (getHttpHeaders().getRequestHeader(HttpHeaders.REFERER) != null)

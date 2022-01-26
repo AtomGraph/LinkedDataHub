@@ -591,6 +591,14 @@ public class Application extends ResourceConfig
                 {
                     Resource prefixMapping = prefixedMappings.next();
                     String prefix = prefixMapping.getRequiredProperty(LocationMappingVocab.prefix).getString();
+                    String altName = prefixMapping.getRequiredProperty(LocationMappingVocab.altName).getString();
+
+                    // if there are additional LinkedDataHub-specific assertions for this mapping, add them to the ontology model
+                    String overlayAltName = altName + ".ldh.ttl";
+                    try (InputStream overlayStream = servletConfig.getServletContext().getResourceAsStream("WEB-INF/classes/" + overlayAltName))
+                    {
+                        if (overlayStream != null) dataManager.getModel(prefix).add(ModelFactory.createDefaultModel().read(overlayStream, null, Lang.TURTLE.getName()));
+                    }
                     
                     // register mapped RDF documents in the XSLT processor so that document() returns them cached, throughout multiple transformations
                     TreeInfo doc = xsltProc.getUnderlyingConfiguration().buildDocumentTree(dataManager.resolve("", prefix));
@@ -608,7 +616,7 @@ public class Application extends ResourceConfig
             }
             
             xsltComp = xsltProc.newXsltCompiler();
-            xsltComp.setParameter(new QName("apl", LDH.base.getNameSpace(), LDH.base.getLocalName()), new XdmAtomicValue(baseURI));
+            xsltComp.setParameter(new QName("ldh", LDH.base.getNameSpace(), LDH.base.getLocalName()), new XdmAtomicValue(baseURI));
             xsltComp.setURIResolver(new XsltResolver(LocationMapper.get(), new HashMap<>(), client, mediaTypes, false, false, true)); // default Xerces parser does not support HTTPS
             xsltExec = xsltComp.compile(stylesheet);
         }

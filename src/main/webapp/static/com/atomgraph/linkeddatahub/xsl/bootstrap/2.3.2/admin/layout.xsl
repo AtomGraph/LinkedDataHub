@@ -39,35 +39,6 @@ exclude-result-prefixes="#all">
     <xsl:include href="acl/layout.xsl"/>
     <xsl:include href="sitemap/layout.xsl"/>
 
-    <xsl:template match="rdf:RDF" mode="ldh:Constructor" as="document-node()">
-        <xsl:param name="forClass" as="xs:anyURI"/>
-        <xsl:param name="createGraph" as="xs:boolean"/>
-
-        <xsl:choose>
-            <!-- if $forClass is not a document class, then pair the instance with a document instance -->
-            <xsl:when test="$createGraph and not($forClass = ('&adm;Container', '&adm;Item'))">
-                <xsl:document>
-                    <xsl:for-each select="ac:construct($ldt:ontology, ($forClass, xs:anyURI('&adm;Item')), $ldt:base)">
-                        <xsl:apply-templates select="." mode="ldh:SetPrimaryTopic">
-                            <xsl:with-param name="topic-id" select="key('resources-by-type', $forClass)[* except rdf:type]/@rdf:nodeID" tunnel="yes"/>
-                            <xsl:with-param name="doc-id" select="key('resources-by-type', '&adm;Item')/@rdf:nodeID" tunnel="yes"/>
-                        </xsl:apply-templates>
-                    </xsl:for-each>
-                </xsl:document>
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:sequence select="ac:construct($ldt:ontology, $forClass, $ldt:base)"/>
-            </xsl:otherwise>
-        </xsl:choose>
-    </xsl:template>
-    
-    <xsl:template match="rdf:RDF[$ac:forClass or $ac:mode = '&ac;EditMode']" mode="bs2:RowForm" priority="1">
-        <xsl:param name="classes" select="key('resources', ('&lsm;Construct', '&lsm;Class', '&lsm;Select', '&lsm;MissingPropertyValue', '&lsm;Property'), document(ac:document-uri('&lsm;')))" as="element()*"/>
-        <xsl:next-match>
-            <xsl:with-param name="classes" select="$classes"/>
-        </xsl:next-match>
-    </xsl:template>
-    
     <xsl:template match="rdf:RDF" mode="bs2:ActionBarLeft">
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" select="'span2'" as="xs:string?"/>
@@ -129,10 +100,39 @@ exclude-result-prefixes="#all">
         </ul>
     </xsl:template>
 
+    <xsl:template match="rdf:RDF" mode="ldh:Constructor" as="document-node()">
+        <xsl:param name="forClass" as="xs:anyURI"/>
+        <xsl:param name="createGraph" as="xs:boolean"/>
+
+        <xsl:choose>
+            <!-- if $forClass is not a document class, then pair the instance with a document instance -->
+            <xsl:when test="$createGraph and not($forClass = ('&adm;Container', '&adm;Item'))">
+                <xsl:document>
+                    <xsl:for-each select="ac:construct($ldt:ontology, ($forClass, xs:anyURI('&adm;Item')), $ldt:base)">
+                        <xsl:apply-templates select="." mode="ldh:SetPrimaryTopic">
+                            <xsl:with-param name="topic-id" select="key('resources-by-type', $forClass)[* except rdf:type]/@rdf:nodeID" tunnel="yes"/>
+                            <xsl:with-param name="doc-id" select="key('resources-by-type', '&adm;Item')/@rdf:nodeID" tunnel="yes"/>
+                        </xsl:apply-templates>
+                    </xsl:for-each>
+                </xsl:document>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:sequence select="ac:construct($ldt:ontology, $forClass, $ldt:base)"/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:template>
+    
+    <xsl:template match="rdf:RDF[$ac:forClass or $ac:mode = '&ac;EditMode']" mode="bs2:RowForm" priority="1">
+        <xsl:param name="classes" select="key('resources', ('&lsm;Construct', '&lsm;Class', '&lsm;Select', '&lsm;MissingPropertyValue', '&lsm;Property'), document(ac:document-uri('&lsm;')))" as="element()*"/>
+        <xsl:next-match>
+            <xsl:with-param name="classes" select="$classes"/>
+        </xsl:next-match>
+    </xsl:template>
+    
     <!-- allow subject editing in admin EditMode -->
     <xsl:template match="*[*][@rdf:about or @rdf:nodeID]" mode="bs2:FormControl">
         <xsl:apply-imports>
-            <xsl:with-param name="show-subject" select="true()" tunnel="yes"/>
+            <xsl:with-param name="show-subject" select="not(rdf:type/@rdf:resource = ('&adm;Item', '&adm;Container'))" tunnel="yes"/>
         </xsl:apply-imports>
     </xsl:template>
         
