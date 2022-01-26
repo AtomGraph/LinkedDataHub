@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xsl:stylesheet [
-    <!ENTITY lmod   "https://w3id.org/atomgraph/linkeddatahub/admin/modules/domain#">
-    <!ENTITY lsm    "https://w3id.org/atomgraph/linkeddatahub/admin/sitemap#">
     <!ENTITY lacl   "https://w3id.org/atomgraph/linkeddatahub/admin/acl#">
     <!ENTITY lapp   "https://w3id.org/atomgraph/linkeddatahub/apps#">
     <!ENTITY adm    "https://w3id.org/atomgraph/linkeddatahub/admin#">
@@ -9,10 +7,12 @@
     <!ENTITY ac     "https://w3id.org/atomgraph/client#">
     <!ENTITY rdf    "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
     <!ENTITY rdfs   "http://www.w3.org/2000/01/rdf-schema#">
+    <!ENTITY owl    "http://www.w3.org/2002/07/owl#">
     <!ENTITY acl    "http://www.w3.org/ns/auth/acl#">
     <!ENTITY cert   "http://www.w3.org/ns/auth/cert#">
     <!ENTITY ldt    "https://www.w3.org/ns/ldt#">
     <!ENTITY dh     "https://www.w3.org/ns/ldt/document-hierarchy/domain#">
+    <!ENTITY sp     "http://spinrdf.org/sp#">
     <!ENTITY sioc   "http://rdfs.org/sioc/ns#">
     <!ENTITY foaf   "http://xmlns.com/foaf/0.1/">
     <!ENTITY spin   "http://spinrdf.org/spin#">
@@ -42,7 +42,7 @@ exclude-result-prefixes="#all">
     <xsl:template match="rdf:RDF" mode="bs2:ActionBarLeft">
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" select="'span2'" as="xs:string?"/>
-        <xsl:param name="classes" select="(key('resources', '&acl;Authorization', document(ac:document-uri('&acl;'))), key('resources', ('&foaf;Person', '&foaf;Group'), document(ac:document-uri('&foaf;'))), key('resources', '&cert;PublicKey', document(ac:document-uri('&cert;'))), key('resources', '&sioc;UserAccount', document(ac:document-uri('&sioc;'))), key('resources', ('&lsm;Ontology'), document(ac:document-uri('&lsm;'))))" as="element()*"/>
+        <xsl:param name="classes" select="(key('resources', '&acl;Authorization', document(ac:document-uri('&acl;'))), key('resources', ('&foaf;Person', '&foaf;Group'), document(ac:document-uri('&foaf;'))), key('resources', '&cert;PublicKey', document(ac:document-uri('&cert;'))), key('resources', '&sioc;UserAccount', document(ac:document-uri('&sioc;'))), key('resources', ('&owl;Ontology'), document(ac:document-uri('&owl;'))))" as="element()*"/>
 
         <div>
             <xsl:if test="$id">
@@ -123,7 +123,7 @@ exclude-result-prefixes="#all">
     </xsl:template>
     
     <xsl:template match="rdf:RDF[$ac:forClass or $ac:mode = '&ac;EditMode']" mode="bs2:RowForm" priority="1">
-        <xsl:param name="classes" select="key('resources', ('&lsm;Construct', '&lsm;Class', '&lsm;Select', '&lsm;MissingPropertyValue', '&lsm;Property'), document(ac:document-uri('&lsm;')))" as="element()*"/>
+        <xsl:param name="classes" select="(key('resources', ('&sp;Construct', '&sp;Select'), document(ac:document-uri('&sp;'))), key('resources', ('&owl;Class', '&owl;ObjectProperty', '&owl;DatatypeProperty'), document(ac:document-uri('&owl;'))), key('resources', (''&ldh;MissingPropertyValue'), document(ac:document-uri('&ldh;'))))" as="element()*"/>
         <xsl:next-match>
             <xsl:with-param name="classes" select="$classes"/>
         </xsl:next-match>
@@ -141,7 +141,7 @@ exclude-result-prefixes="#all">
     <xsl:template match="*[@rdf:about or @rdf:nodeID][$ac:forClass]/sioc:has_parent/@rdf:nodeID | *[@rdf:about or @rdf:nodeID][$ac:forClass]/sioc:has_container/@rdf:nodeID" mode="bs2:FormControl">
         <xsl:param name="class-containers" as="map(xs:string, xs:anyURI)">
             <xsl:map>
-                <xsl:map-entry key="'&lsm;Ontology'" select="resolve-uri('model/ontologies/', $ldt:base)"/>
+                <xsl:map-entry key="'&owl;Ontology'" select="resolve-uri('model/ontologies/', $ldt:base)"/>
                 <xsl:map-entry key="'&acl;Authorization'" select="resolve-uri('acl/authorizations/', $ldt:base)"/>
                 <xsl:map-entry key="'&foaf;Person'" select="resolve-uri('acl/agents/', $ldt:base)"/>
                 <xsl:map-entry key="'&cert;PublicKey'" select="resolve-uri('acl/public-keys/', $ldt:base)"/>

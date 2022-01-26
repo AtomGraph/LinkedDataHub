@@ -4,7 +4,6 @@
     <!ENTITY ldh    "https://w3id.org/atomgraph/linkeddatahub#">
     <!ENTITY ac     "https://w3id.org/atomgraph/client#">
     <!ENTITY a      "https://w3id.org/atomgraph/core#">
-    <!ENTITY lsm    "https://w3id.org/atomgraph/linkeddatahub/admin/sitemap#">
     <!ENTITY rdf    "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
     <!ENTITY owl    "http://www.w3.org/2002/07/owl#">
     <!ENTITY acl    "http://www.w3.org/ns/auth/acl#">
@@ -29,7 +28,7 @@ xmlns:spin="&spin;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 exclude-result-prefixes="#all">
 
-    <xsl:template match="*[rdf:type/@rdf:resource][foaf:isPrimaryTopicOf/@rdf:resource][ldh:listSuperClasses(rdf:type/@rdf:resource) = '&lsm;Ontology']" mode="bs2:Actions">
+    <xsl:template match="*[rdf:type/@rdf:resource][foaf:isPrimaryTopicOf/@rdf:resource][ldh:listSuperClasses(rdf:type/@rdf:resource) = '&owl;Ontology']" mode="bs2:Actions">
         <xsl:if test="$foaf:Agent//@rdf:about">
             <form class="pull-right" action="{foaf:isPrimaryTopicOf/@rdf:resource[starts-with(., $ldt:base)]}" method="get">
                 <input type="hidden" name="clear"/>
@@ -41,7 +40,7 @@ exclude-result-prefixes="#all">
     </xsl:template>
 
     <!-- hide extra class -->
-    <xsl:template match="*[rdf:type/@rdf:resource = '&lsm;Class'][not(* except rdf:type)]" mode="bs2:Form" priority="1"/>
+    <xsl:template match="*[rdf:type/@rdf:resource = '&owl;Class'][not(* except rdf:type)]" mode="bs2:Form" priority="1"/>
     
     <xsl:template match="*[@rdf:about = resolve-uri('sitemap/ontologies/', $ldt:base)] | *[@rdf:about = resolve-uri('model/ontologies/', $ldt:base)]" mode="bs2:Right">
         <xsl:if test="$foaf:Agent//@rdf:about">

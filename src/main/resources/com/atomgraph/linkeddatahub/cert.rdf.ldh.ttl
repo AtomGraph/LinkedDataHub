@@ -9,26 +9,24 @@
 
 # PUBLIC KEY
 
-:PublicKey spin:constructor :PublicKeyConstructor ;
-    spin:constraint :MissingCertModulus, :MissingCertExponent .
+:PublicKey spin:constructor [
+        a sp:Construct ;
+        sp:text """
+            PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
+            PREFIX cert:    <http://www.w3.org/ns/auth/cert#>
 
-:PublicKeyConstructor a sp:Construct ;
-    rdfs:label "Public key constructor" ;
-    sp:text """
-        PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
-        PREFIX cert:    <http://www.w3.org/ns/auth/cert#>
-
-        CONSTRUCT {
-            ?this cert:modulus [ a xsd:hexBinary ] ;
-                cert:exponent 65537 .
-        }
-        WHERE {}""" ;
-    rdfs:isDefinedBy : .
-
-:MissingCertModulus a ldh:MissingPropertyValue ;
-    rdfs:label "Missing cert:modulus" ;
-    sp:arg1 :modulus .
-
-:MissingCertExponent a ldh:MissingPropertyValue ;
-    rdfs:label "Missing cert:exponent" ;
-    sp:arg1 :exponent .
+            CONSTRUCT {
+                ?this cert:modulus [ a xsd:hexBinary ] ;
+                    cert:exponent 65537 .
+            }
+            WHERE {}"""
+    ] ;
+    spin:constraint [
+        a ldh:MissingPropertyValue ;
+            rdfs:label "Missing cert:modulus" ;
+            sp:arg1 :modulus
+    ], [
+        a ldh:MissingPropertyValue ;
+            rdfs:label "Missing cert:exponent" ;
+            sp:arg1 :exponent
+    ] .

@@ -1,7 +1,6 @@
 @prefix ns:	<model/ontologies/namespace/#> .
 @prefix adm:	<https://w3id.org/atomgraph/linkeddatahub/admin#> .
 @prefix lacl:	<https://w3id.org/atomgraph/linkeddatahub/admin/acl#> .
-@prefix lsm:	<https://w3id.org/atomgraph/linkeddatahub/admin/sitemap#> .
 @prefix def:	<https://w3id.org/atomgraph/linkeddatahub/default#> .
 @prefix ldh:	<https://w3id.org/atomgraph/linkeddatahub#> .
 @prefix a:	<https://w3id.org/atomgraph/core#> .
@@ -456,7 +455,7 @@
         dct:title "Namespace" ;
         foaf:primaryTopic ns: .
 
-    ns: a lsm:Ontology ;
+    ns: a owl:Ontology ;
         rdfs:label "Namespace" ;
         rdfs:comment "Namespace of the application" ;
         owl:imports <https://w3id.org/atomgraph/linkeddatahub/default#> ;
