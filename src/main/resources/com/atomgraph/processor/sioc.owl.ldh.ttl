@@ -10,18 +10,18 @@
 # USER ACCOUNT
 
 :UserAccount spin:constructor :UserAccountConstructor ;
-    spin:constraint :MissingName, :MissingEmail, :MissingAccountOf ;
+    spin:constraint _:MissingName, _:MissingEmail, _:MissingAccountOf ;
     rdfs:label "User account" .
 
-:MissingName a ldh:MissingPropertyValue ;
+_:MissingName a ldh:MissingPropertyValue ;
     rdfs:label "Missing sioc:name" ;
     sp:arg1 :name .
 
-:MissingEmail a ldh:MissingPropertyValue ;
+_:MissingEmail a ldh:MissingPropertyValue ;
     rdfs:label "Missing sioc:email" ;
     sp:arg1 :email .
 
-:MissingAccountOf a ldh:MissingPropertyValue ;
+_:MissingAccountOf a ldh:MissingPropertyValue ;
     rdfs:label "Missing sioc:account_of" ;
     sp:arg1 :account_of .
 

@@ -12,6 +12,7 @@
 
 :Authorization spin:constructor [
         a sp:Construct ;
+        rdfs:label "Authorization constructor" ;
         sp:text """
             PREFIX dct:     <http://purl.org/dc/terms/>
             PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
@@ -34,10 +35,10 @@
     ] ;
     spin:constraint [
         a ldh:MissingPropertyValue ;
-            sp:arg1 :mode
+        sp:arg1 :mode
     ], [
         a ldh:MissingPropertyValue ;
-            sp:arg1 rdfs:label
+        sp:arg1 rdfs:label
     ] ;
     ldh:template :AuthorizationAgents .
 
@@ -46,7 +47,7 @@
     rdf:rest rdf:nil .
 
 :SelectAuthorizationAgents a sp:Select ;
-    dct:title "Select agents" ;
+    rdfs:label "Select agents" ;
     sp:text """
 PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
 PREFIX  acl:  <http://www.w3.org/ns/auth/acl#>
