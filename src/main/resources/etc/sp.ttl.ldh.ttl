@@ -32,5 +32,5 @@ _:MissingSPText a ldh:MissingPropertyValue ;
                   sp:text [ a xsd:string ] .
           }
           WHERE {}"""
-    ] ;
-    spin:constraint _:MissingRDFSLabel, _:MissingSPText .
+    ] .
+    # spin:constraint _:MissingRDFSLabel, _:MissingSPText . # TO-DO: replace with a query that allows either rdfs:label or sp:text
