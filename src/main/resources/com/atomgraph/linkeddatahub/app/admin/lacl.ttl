@@ -109,7 +109,7 @@
     rdfs:isDefinedBy : .
 
 :CreatorAuthorization a rdfs:Class ;
-    rdfs:subClassOf :Authorization ;
+    rdfs:subClassOf acl:Authorization ;
     rdfs:label "Creator access" ;
     rdfs:comment "Creators have full control of their created resources" ;
     rdfs:isDefinedBy : .

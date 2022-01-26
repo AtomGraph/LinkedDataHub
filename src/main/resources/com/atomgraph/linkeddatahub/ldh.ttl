@@ -15,13 +15,12 @@
 @prefix sp:	<http://spinrdf.org/sp#> .
 @prefix spin:	<http://spinrdf.org/spin#> .
 @prefix spl:	<http://spinrdf.org/spl#> .
-@prefix void:	<http://rdfs.org/ns/void#> .
 @prefix foaf:	<http://xmlns.com/foaf/0.1/> .
 @prefix nfo:	<http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#> .
 @prefix sioc:	<http://rdfs.org/sioc/ns#> .
 
 : a owl:Ontology ;
-    owl:imports dh:, ac:, spin:, foaf:, void:, sd:, prov:, nfo: ;
+    owl:imports dh:, ac:, spin:, foaf:, sd:, prov:, nfo: ;
     rdfs:label "LinkedDataHub ontology" ;
     rdfs:comment "Should be imported and reused by all extending applications" ;
     owl:versionInfo "1.1.5" .
