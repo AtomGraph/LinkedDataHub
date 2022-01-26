@@ -358,7 +358,7 @@ spin:constraint
   a rdf:Property ;
   rdfs:comment "Links a class with constraints on its instances. The values of this property are \"axioms\" expressed as CONSTRUCT or ASK queries where the variable ?this refers to the instances of the surrounding class. ASK queries must evaluate to false for each member of this class - returning true means that the instance ?this violates the constraint. CONSTRUCT queries must create instances of spin:ConstraintViolation to provide details on the reason for the violation." ;
   rdfs:domain rdfs:Class ;
-  rdfs:label "constraint" .
+  rdfs:label "constraint" ;
   # rdfs:subPropertyOf spin:query ;
 .
 spin:construct
