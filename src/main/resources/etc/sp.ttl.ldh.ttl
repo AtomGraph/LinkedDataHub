@@ -8,6 +8,8 @@
 @prefix spin:	<http://spinrdf.org/spin#> .
 @prefix dct:	<http://purl.org/dc/terms/> .
 
+: rdfs:label "SPIN SPARQL Syntax" .
+
 _:MissingRDFSLabel a ldh:MissingPropertyValue ;
     rdfs:label "Missing rdfs:label" ;
     sp:arg1 rdfs:label .

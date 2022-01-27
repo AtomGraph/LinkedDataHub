@@ -7,6 +7,8 @@
 @prefix sp:	<http://spinrdf.org/sp#> .
 @prefix spin:	<http://spinrdf.org/spin#> .
 
+: rdfs:label "Basic Access Control ontology" .
+
 # AUTHORIZATION
 
 :Authorization spin:constructor [
