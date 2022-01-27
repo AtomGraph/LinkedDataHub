@@ -6,7 +6,6 @@
 @prefix ldh:	<https://w3id.org/atomgraph/linkeddatahub#> .
 @prefix sp:	<http://spinrdf.org/sp#> .
 @prefix spin:	<http://spinrdf.org/spin#> .
-@prefix dct:	<http://purl.org/dc/terms/> .
 
 # AUTHORIZATION
 

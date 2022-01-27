@@ -7,6 +7,8 @@
 @prefix sp:	<http://spinrdf.org/sp#> .
 @prefix spin:	<http://spinrdf.org/spin#> .
 
+: rdfs:label "SIOC Core Ontology Namespace" .
+
 # USER ACCOUNT
 
 :UserAccount spin:constructor :UserAccountConstructor ;
