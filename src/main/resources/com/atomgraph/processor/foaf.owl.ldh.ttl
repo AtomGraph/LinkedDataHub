@@ -8,6 +8,8 @@
 @prefix spin:	<http://spinrdf.org/spin#> .
 @prefix cert:   <http://www.w3.org/ns/auth/cert#> .
 
+: rdfs:label "Friend of a Friend (FOAF) vocabulary" .
+
 # AGENT
 
 :Agent spin:constructor :AgentConstructor .
