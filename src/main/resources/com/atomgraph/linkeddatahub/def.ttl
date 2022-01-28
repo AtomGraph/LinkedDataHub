@@ -23,7 +23,7 @@
     spin:constraint :MissingTitle ; # roots do not have parents, therefore no :MissingParent
     ldh:template :ContainerChildren ;
     rdfs:label "Root" ;
-    rdfs:isDefinedBy : 
+    rdfs:isDefinedBy : .
 
 :DocumentConstructor a sp:Construct, sp:Query ;
   sp:text """
