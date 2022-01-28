@@ -17,7 +17,7 @@
 package com.atomgraph.linkeddatahub.model.generic;
 
 import com.atomgraph.core.MediaTypes;
-import com.atomgraph.linkeddatahub.vocabulary.LDH;
+import com.atomgraph.core.vocabulary.SD;
 import javax.ws.rs.client.Client;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.enhanced.EnhNode;
@@ -53,7 +53,7 @@ public class ServiceImplementation extends Implementation
         }
         else
         {
-            throw new ConversionException( "Cannot convert node " + node.toString() + " to GenericService: it does not have rdf:type apl:GenericService or equivalent");
+            throw new ConversionException( "Cannot convert node " + node.toString() + " to Service: it does not have rdf:type sd:Service or equivalent");
         }
     }
 
@@ -62,7 +62,7 @@ public class ServiceImplementation extends Implementation
     {
         if (eg == null) throw new IllegalArgumentException("EnhGraph cannot be null");
 
-        return eg.asGraph().contains(node, RDF.type.asNode(), LDH.GenericService.asNode());
+        return eg.asGraph().contains(node, RDF.type.asNode(), SD.Service.asNode());
     }
  
     public Client getClient()

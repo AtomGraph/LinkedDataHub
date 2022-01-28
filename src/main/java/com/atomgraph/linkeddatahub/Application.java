@@ -561,29 +561,6 @@ public class Application extends ResourceConfig
             xsltProc.registerExtensionFunction(new ConstructForClass(xsltProc));
             
             Model mappingModel = locationMapper.toModel();
-            
-            ResIterator nameMappings = mappingModel.listResourcesWithProperty(LocationMappingVocab.name);
-            try
-            {
-                while (nameMappings.hasNext())
-                {
-                    Resource nameMapping = nameMappings.next();
-                    String name = nameMapping.getRequiredProperty(LocationMappingVocab.name).getString();
-                    String altName = nameMapping.getRequiredProperty(LocationMappingVocab.altName).getString();
-
-                    // if there are additional LinkedDataHub-specific assertions for this mapping, add them to the ontology model
-                    String overlayAltName = altName + ".ldh.ttl";
-                    try (InputStream overlayStream = servletConfig.getServletContext().getResourceAsStream("WEB-INF/classes/" + overlayAltName))
-                    {
-                        if (overlayStream != null) dataManager.getModel(name).add(ModelFactory.createDefaultModel().read(overlayStream, null, Lang.TURTLE.getName()));
-                    }
-                }
-            }
-            finally
-            {
-                nameMappings.close();
-            }
-            
             ResIterator prefixedMappings = mappingModel.listResourcesWithProperty(LocationMappingVocab.prefix);
             try
             {
@@ -591,15 +568,6 @@ public class Application extends ResourceConfig
                 {
                     Resource prefixMapping = prefixedMappings.next();
                     String prefix = prefixMapping.getRequiredProperty(LocationMappingVocab.prefix).getString();
-                    String altName = prefixMapping.getRequiredProperty(LocationMappingVocab.altName).getString();
-
-                    // if there are additional LinkedDataHub-specific assertions for this mapping, add them to the ontology model
-                    String overlayAltName = altName + ".ldh.ttl";
-                    try (InputStream overlayStream = servletConfig.getServletContext().getResourceAsStream("WEB-INF/classes/" + overlayAltName))
-                    {
-                        if (overlayStream != null) dataManager.getModel(prefix).add(ModelFactory.createDefaultModel().read(overlayStream, null, Lang.TURTLE.getName()));
-                    }
-                    
                     // register mapped RDF documents in the XSLT processor so that document() returns them cached, throughout multiple transformations
                     TreeInfo doc = xsltProc.getUnderlyingConfiguration().buildDocumentTree(dataManager.resolve("", prefix));
                     xsltProc.getUnderlyingConfiguration().getGlobalDocumentPool().add(doc, prefix);

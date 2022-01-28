@@ -27,8 +27,6 @@
 
 # PROPERTIES
 
-sd:name a owl:ObjectProperty . # otherwise causes com.hp.hpl.jena.ontology.ConversionException
-
 :count a owl:DatatypeProperty ;
     rdfs:domain dh:Container ;
     rdfs:range xsd:integer ;
@@ -42,7 +40,7 @@ sd:name a owl:ObjectProperty . # otherwise causes com.hp.hpl.jena.ontology.Conve
 
 :file a owl:ObjectProperty ;
     rdfs:domain :Import ;
-    rdfs:range :File ;
+    rdfs:range nfo:FileDataObject ;
     rdfs:label "File" ;
     rdfs:isDefinedBy : .
 
@@ -72,7 +70,7 @@ sd:name a owl:ObjectProperty . # otherwise causes com.hp.hpl.jena.ontology.Conve
 
 :service a owl:ObjectProperty ;
     rdfs:label "Service" ;
-    rdfs:range :Service ;
+    rdfs:range sd:Service ;
     rdfs:isDefinedBy : .
 
 :categoryProperty a owl:ObjectProperty ;
@@ -107,136 +105,6 @@ sd:name a owl:ObjectProperty . # otherwise causes com.hp.hpl.jena.ontology.Conve
 
 # CLASSES
 
-# service
-
-:Service a rdfs:Class, owl:Class ;
-    rdfs:subClassOf sd:Service ;
-    spin:constructor :ServiceConstructor ;
-    spin:constraint [ a :MissingPropertyValue ;
-            rdfs:label "Missing supported language" ;
-            sp:arg1 sd:supportedLanguage
-        ] ;
-    rdfs:label "Service" ;
-    rdfs:comment "SPARQL service" ;
-    rdfs:isDefinedBy : .
-
-:ServiceConstructor a sp:Construct ;
-    sp:text """
-      PREFIX a:       <https://w3id.org/atomgraph/core#>
-      PREFIX lapp:    <https://w3id.org/atomgraph/linkeddatahub/apps#>
-      PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
-      PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
-      PREFIX sd:      <http://www.w3.org/ns/sparql-service-description#>
-
-      CONSTRUCT {
-          ?this sd:supportedLanguage sd:SPARQL11Query, sd:SPARQL11Update ;
-              a:authUser [ a xsd:string ] ;
-              a:authPwd [ a xsd:string ] ;
-              lapp:proxy [ a rdfs:Resource ] .
-      }
-      WHERE {}""" ;
-    rdfs:label "Service constructor" ;
-    rdfs:isDefinedBy : .
-
-:GenericService a rdfs:Class, owl:Class ;
-    rdfs:subClassOf :Service ;
-    spin:constructor :GenericServiceConstructor ;
-    spin:constraint [ a :MissingPropertyValue ;
-            rdfs:label "Missing SPARQL endpoint" ;
-            sp:arg1 sd:endpoint
-        ] ;
-        #[ a :MissingPropertyValue ;
-        #    rdfs:label "Missing Graph Store" ;
-        #    sp:arg1 a:graphStore
-        #]
-    rdfs:label "Generic service" ;
-    rdfs:comment "A service is a SPARQL 1.1 service providing queries and updates over an RDF dataset. It is accessible as HTTP Protocol and Graph Store Protocol endpoints." ;
-    rdfs:isDefinedBy : .
-
-:GenericServiceConstructor a sp:Construct ;
-    sp:text """
-      PREFIX a:       <https://w3id.org/atomgraph/core#>
-      PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
-      PREFIX sd:      <http://www.w3.org/ns/sparql-service-description#>
-
-      CONSTRUCT {
-          ?this sd:endpoint [ a rdfs:Resource ] ;
-              a:graphStore [ a rdfs:Resource ] .
-      }
-      WHERE {}""" ;
-    rdfs:label "Generic service constructor" ;
-    rdfs:isDefinedBy : .
-
-# queries
-
-:Query a rdfs:Class, owl:Class ;
-    rdfs:subClassOf ldt:Query ;
-    spin:constructor :QueryConstructor ;
-    spin:constraint [ a :MissingPropertyValue ;
-            rdfs:label "Missing sp:text" ;
-            sp:arg1 sp:text
-        ] ;
-    rdfs:label "SPARQL query" ;
-    rdfs:isDefinedBy : .
-
-:Construct a rdfs:Class, owl:Class ;
-    rdfs:subClassOf :Query, sp:Construct ;
-    rdfs:label "CONSTRUCT" ;
-    rdfs:isDefinedBy : .
-
-:Describe a rdfs:Class, owl:Class ;
-    rdfs:subClassOf :Query, sp:Describe ;
-    rdfs:label "DESCRIBE" ;
-    rdfs:isDefinedBy : .
-
-:Select a rdfs:Class, owl:Class ;
-    rdfs:subClassOf :Query, sp:Select ;
-    rdfs:label "SELECT" ;
-    rdfs:isDefinedBy : .
-
-:Ask a rdfs:Class, owl:Class ;
-    rdfs:subClassOf :Query, sp:Ask ;
-    rdfs:label "ASK" ;
-    rdfs:isDefinedBy : .
-
-:QueryConstructor a sp:Construct ;
-  sp:text """
-      PREFIX :        <https://w3id.org/atomgraph/linkeddatahub#>
-      PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
-      PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
-      PREFIX sp:      <http://spinrdf.org/sp#>
-
-      CONSTRUCT {
-          ?this sp:text [ a xsd:string ] ;
-            :service [ a :Service ] .
-      }
-      WHERE {}""" ;
-    rdfs:label "Query constructor" ;
-    rdfs:isDefinedBy : .
-
-# files
-
-:File a rdfs:Class, owl:Class ;
-    rdfs:subClassOf nfo:FileDataObject ;
-    spin:constructor :FileConstructor ;
-    spin:constraint :MissingFileName ;
-    rdfs:label "File" ;
-    rdfs:isDefinedBy : .
-
-:FileConstructor a sp:Construct ;
-    sp:text """PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
-    PREFIX nfo:     <http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#>
-    PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
-    PREFIX dct:     <http://purl.org/dc/terms/>
-
-    CONSTRUCT {
-        ?this nfo:fileName [ a xsd:string ] ;
-            dct:format [ a rdfs:Resource ] .
-    }
-    WHERE {}""" ;
-    rdfs:label "File constructor" ;
-    rdfs:isDefinedBy : .
-
 # imports
 
 :Import a rdfs:Class, owl:Class ;
@@ -268,13 +136,14 @@ sd:name a owl:ObjectProperty . # otherwise causes com.hp.hpl.jena.ontology.Conve
 :ImportConstructor a sp:Construct ;
     sp:text """PREFIX :        <https://w3id.org/atomgraph/linkeddatahub#>
         PREFIX rdfs:  <http://www.w3.org/2000/01/rdf-schema#>
-        PREFIX dh:      <https://www.w3.org/ns/ldt/document-hierarchy/domain#>
+        PREFIX sioc:  <http://rdfs.org/sioc/ns#>
         PREFIX sd:    <http://www.w3.org/ns/sparql-service-description#>
+        PREFIX nfo:   <http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#>
 
         CONSTRUCT {
-            ?this :action [ a dh:Container ] ;
+            ?this :action [ a sioc:Container ] ;
                 sd:name [ a rdfs:Resource ] ;
-                :file [ a :File ] .
+                :file [ a nfo:FileDataObject ] .
         }
         WHERE {}""" ;
     rdfs:label "Import constructor" ;
@@ -468,11 +337,6 @@ WHERE
     sp:arg1 rdfs:isDefinedBy ;
     rdfs:isDefinedBy : .
 
-:MissingFileName a :MissingPropertyValue ;
-    rdfs:label "Missing nfo:fileName" ;
-    sp:arg1 nfo:fileName ;
-    rdfs:isDefinedBy : .
-
 :MissingAction a :MissingPropertyValue ;
     rdfs:label "Missing action" ;
     rdfs:comment "Requires resources to have a target resource" ;
@@ -556,3 +420,93 @@ ac:Timeline a rdfs:Class, owl:Class ;
 ac:ChartMode a ac:Mode, ac:ContainerMode ;
     rdfs:label "Chart" ;
     rdfs:isDefinedBy ac: .
+
+### EXTERNAL ASSERTIONS
+
+# http://spinrdf.org/sp
+
+sp:Query spin:constructor [
+        a sp:Construct ;
+        rdfs:label "Query constructor" ;
+        sp:text """
+          PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
+          PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
+          PREFIX sp:      <http://spinrdf.org/sp#>
+          PREFIX sd:      <http://www.w3.org/ns/sparql-service-description#>
+          PREFIX ldh:     <https://w3id.org/atomgraph/linkeddatahub#>
+
+          CONSTRUCT {
+              ?this rdfs:label [ a xsd:string ] ;
+                  rdfs:comment [ a xsd:string ] ;
+                  sp:text [ a xsd:string ] ;
+                  ldh:service [ a sd:Service ] .
+          }
+          WHERE {}"""
+    ] ;
+    spin:constraint :MissingSPText .
+
+:MissingSPText a :MissingPropertyValue ;
+    rdfs:label "Missing sp:text" ;
+    sp:arg1 sp:text .
+
+# http://www.semanticdesktop.org/ontologies/2007/03/22/nfo
+
+nfo: rdfs:label "NEPOMUK File Ontology" .
+
+nfo:FileDataObject spin:constructor :FileConstructor ;
+    spin:constraint [
+        a :MissingPropertyValue ;
+        rdfs:label "Missing nfo:fileName" ;
+        sp:arg1 nfo:fileName
+    ] .
+
+:FileConstructor a sp:Construct ;
+    sp:text """PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
+    PREFIX nfo:     <http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#>
+    PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
+    PREFIX dct:     <http://purl.org/dc/terms/>
+
+    CONSTRUCT {
+        ?this nfo:fileName [ a xsd:string ] ;
+            dct:format [ a rdfs:Resource ] .
+    }
+    WHERE {}""" ;
+    rdfs:label "File constructor" ;
+    rdfs:isDefinedBy : .
+
+# http://www.w3.org/ns/sparql-service-description
+
+sd: rdfs:label "SPARQL Service Description" .
+
+sd:name a owl:ObjectProperty . # otherwise causes com.hp.hpl.jena.ontology.ConversionException
+
+sd:Service spin:constructor :ServiceConstructor ;
+    spin:constraint [
+            a :MissingPropertyValue ;
+            rdfs:label "Missing supported language" ;
+            sp:arg1 sd:supportedLanguage
+        ] , [
+            a :MissingPropertyValue ;
+            rdfs:label "Missing SPARQL endpoint" ;
+            sp:arg1 sd:endpoint
+        ] .
+
+:ServiceConstructor a sp:Construct ;
+    sp:text """
+      PREFIX a:       <https://w3id.org/atomgraph/core#>
+      PREFIX lapp:    <https://w3id.org/atomgraph/linkeddatahub/apps#>
+      PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
+      PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
+      PREFIX sd:      <http://www.w3.org/ns/sparql-service-description#>
+
+      CONSTRUCT {
+          ?this sd:supportedLanguage sd:SPARQL11Query, sd:SPARQL11Update ;
+              sd:endpoint [ a rdfs:Resource ] ;
+              a:graphStore [ a rdfs:Resource ] ;
+              a:authUser [ a xsd:string ] ;
+              a:authPwd [ a xsd:string ] ;
+              lapp:proxy [ a rdfs:Resource ] .
+      }
+      WHERE {}""" ;
+    rdfs:label "Service constructor" ;
+    rdfs:isDefinedBy : .

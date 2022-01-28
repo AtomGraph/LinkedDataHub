@@ -25,15 +25,12 @@ import org.apache.jena.graph.Node;
 import org.apache.jena.ontology.ConversionException;
 import org.apache.jena.rdf.model.impl.ResourceImpl;
 import org.apache.jena.vocabulary.RDF;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
 public class AgentImpl extends ResourceImpl implements Agent
 {
-    private static final Logger log = LoggerFactory.getLogger(Agent.class);
 
     public static Implementation factory = new Implementation() 
     {
