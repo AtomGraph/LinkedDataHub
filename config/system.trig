@@ -1,4 +1,3 @@
-@prefix ldh:	<https://w3id.org/atomgraph/linkeddatahub#> .
 @prefix lapp:	<https://w3id.org/atomgraph/linkeddatahub/apps#> .
 @prefix a:	<https://w3id.org/atomgraph/core#> .
 @prefix ac:	<https://w3id.org/atomgraph/client#> .
@@ -39,7 +38,7 @@
 
 # root admin
 
-<urn:linkeddatahub:services/admin> a ldh:GenericService ;
+<urn:linkeddatahub:services/admin> a sd:Service ;
     dct:title "LinkedDataHub admin service" ;
     sd:supportedLanguage sd:SPARQL11Query, sd:SPARQL11Update ;
     sd:endpoint <http://fuseki-admin:3030/ds/> ;
@@ -48,7 +47,7 @@
  
 # root end-user
 
-<urn:linkeddatahub:services/end-user> a ldh:GenericService ;
+<urn:linkeddatahub:services/end-user> a sd:Service ;
     dct:title "LinkedDataHub service" ;
     sd:supportedLanguage sd:SPARQL11Query, sd:SPARQL11Update ;
     sd:endpoint <http://fuseki-end-user:3030/ds/> ;
