@@ -31,7 +31,6 @@ import com.atomgraph.linkeddatahub.server.filter.response.BackendInvalidationFil
 import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
 import com.atomgraph.linkeddatahub.server.util.MessageBuilder;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
-import com.atomgraph.linkeddatahub.vocabulary.ADM;
 import com.atomgraph.linkeddatahub.vocabulary.LDHC;
 import com.atomgraph.linkeddatahub.vocabulary.FOAF;
 import com.atomgraph.linkeddatahub.vocabulary.Google;
@@ -290,7 +289,7 @@ public class Login extends GraphStoreImpl
     public Resource createAgent(Model model, URI graphURI, Resource container, String givenName, String familyName, String email, String imgUrl)
     {
         Resource item =  model.createResource(graphURI.toString()).
-            addProperty(RDF.type, ADM.Item).
+            addProperty(RDF.type, SIOC.ITEM).
             addProperty(SIOC.HAS_CONTAINER, container).
             addLiteral(DH.slug, UUID.randomUUID().toString());
         
@@ -309,7 +308,7 @@ public class Login extends GraphStoreImpl
     public Resource createUserAccount(Model model, URI graphURI, Resource container, String id, String issuer, String name, String email)
     {
         Resource item = model.createResource(graphURI.toString()).
-            addProperty(RDF.type, ADM.Item).
+            addProperty(RDF.type, SIOC.ITEM).
             addProperty(SIOC.HAS_CONTAINER, container).
             addLiteral(DH.slug, UUID.randomUUID().toString());
         
@@ -329,7 +328,7 @@ public class Login extends GraphStoreImpl
     public Resource createAuthorization(Model model, URI graphURI, String namespace, Resource container, URI agentGraphURI, URI userAccountGraphURI)
     {
         Resource item = model.createResource(graphURI.toString()).
-            addProperty(RDF.type, ADM.Item).
+            addProperty(RDF.type, SIOC.ITEM).
             addProperty(SIOC.HAS_CONTAINER, container).
             addLiteral(DH.slug, UUID.randomUUID().toString());
         

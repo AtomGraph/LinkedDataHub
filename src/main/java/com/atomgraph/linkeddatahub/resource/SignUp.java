@@ -30,7 +30,6 @@ import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
 import com.atomgraph.linkeddatahub.server.util.MessageBuilder;
 import com.atomgraph.linkeddatahub.server.util.WebIDCertGen;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
-import com.atomgraph.linkeddatahub.vocabulary.ADM;
 import com.atomgraph.linkeddatahub.vocabulary.LDHC;
 import com.atomgraph.linkeddatahub.vocabulary.Cert;
 import com.atomgraph.linkeddatahub.vocabulary.FOAF;
@@ -351,7 +350,7 @@ public class SignUp extends GraphStoreImpl
     public Resource createPublicKey(Model model, URI graphURI, Resource container, RSAPublicKey publicKey)
     {
         Resource item = model.createResource(graphURI.toString()).
-            addProperty(RDF.type, ADM.Item).
+            addProperty(RDF.type, SIOC.ITEM).
             addProperty(SIOC.HAS_CONTAINER, container).
             addLiteral(DH.slug, UUID.randomUUID().toString());
         
@@ -368,7 +367,7 @@ public class SignUp extends GraphStoreImpl
     public Resource createAuthorization(Model model, URI graphURI, Resource container, URI agentGraphURI, URI publicKeyURI)
     {
         Resource item = model.createResource(graphURI.toString()).
-            addProperty(RDF.type, ADM.Item).
+            addProperty(RDF.type, SIOC.ITEM).
             addProperty(SIOC.HAS_CONTAINER, container).
             addLiteral(DH.slug, UUID.randomUUID().toString());
         
