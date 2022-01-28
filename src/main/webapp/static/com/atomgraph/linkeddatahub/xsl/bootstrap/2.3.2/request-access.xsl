@@ -72,10 +72,10 @@ exclude-result-prefixes="#all">
     <xsl:template match="*[@rdf:about = resolve-uri('request%20access', $ldt:base)][$ac:method = 'GET']" mode="bs2:RowBlock" priority="2">
         <xsl:variable name="constructor" as="document-node()">
             <xsl:document>
-                <xsl:for-each select="ac:construct($ldt:ontology, (xs:anyURI('&lacl;AuthorizationRequest'), xs:anyURI('&adm;Item')), $ldt:base)">
+                <xsl:for-each select="ac:construct($ldt:ontology, (xs:anyURI('&lacl;AuthorizationRequest'), xs:anyURI('&sioc;Item')), $ldt:base)">
                     <xsl:apply-templates select="." mode="ldh:SetPrimaryTopic">
                         <xsl:with-param name="topic-id" select="key('resources-by-type', '&lacl;AuthorizationRequest')/@rdf:nodeID" tunnel="yes"/>
-                        <xsl:with-param name="doc-id" select="key('resources-by-type', '&adm;Item')/@rdf:nodeID" tunnel="yes"/>
+                        <xsl:with-param name="doc-id" select="key('resources-by-type', '&sioc;Item')/@rdf:nodeID" tunnel="yes"/>
                     </xsl:apply-templates>
                 </xsl:for-each>
             </xsl:document>
@@ -113,7 +113,7 @@ exclude-result-prefixes="#all">
     <xsl:template match="*[ac:uri() = resolve-uri('request%20access', $ldt:base)][$ac:method = 'POST'][not(key('resources-by-type', '&http;Response'))]" mode="bs2:RowBlock" priority="2"/>
 
     <!-- hide object blank nodes (that only have a single rdf:type property) from constructed models -->
-    <xsl:template match="rdf:Description[$ac:method = 'GET'][@rdf:nodeID][not(rdf:type/@rdf:resource = ('&lacl;AuthorizationRequest', '&adm;Item'))][ac:uri() = resolve-uri('request%20access', $ldt:base)]" mode="bs2:RowForm" priority="3"/>
+    <xsl:template match="rdf:Description[$ac:method = 'GET'][@rdf:nodeID][not(rdf:type/@rdf:resource = ('&lacl;AuthorizationRequest', '&sioc;Item'))][ac:uri() = resolve-uri('request%20access', $ldt:base)]" mode="bs2:RowForm" priority="3"/>
 
     <xsl:template match="*[*][@rdf:about or @rdf:nodeID][ac:uri() = resolve-uri('request%20access', $ldt:base)]" mode="bs2:FormControl" priority="1">
         <xsl:next-match>
@@ -212,7 +212,7 @@ exclude-result-prefixes="#all">
     <!-- show first property as a select -->
     <xsl:template match="lacl:requestAccessToClass[1]/@rdf:*[ac:uri() = resolve-uri('request%20access', $ldt:base)]" mode="bs2:FormControl" priority="2">
         <xsl:variable name="this" select="../concat(namespace-uri(), local-name())" as="xs:string"/>
-        <xsl:variable name="classes" select="key('resources', ('&def;Root', '&def;Container','&def;Item', '&def;File'), document(ac:document-uri('&def;')))" as="element()*"/>
+        <xsl:variable name="classes" select="key('resources', ('&def;Root', '&sioc;Container','&sioc;Item', '&def;File'), document(ac:document-uri('&def;')))" as="element()*"/>
         <select name="ou" id="{generate-id()}" multiple="multiple" size="{count($classes)}">
             <xsl:for-each select="$classes">
                 <xsl:sort select="ac:label(.)" lang="{$ldt:lang}"/>

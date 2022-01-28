@@ -42,7 +42,7 @@ exclude-result-prefixes="#all">
     </xsl:template>-->
     
     <!-- hide the dct:created/dct:modified properties of graph resources - those are managed automatically by the Graph Store -->
-    <xsl:template match="*[rdf:type/@rdf:resource = ('&def;Root', '&def;Container', '&def;Item')]/dct:created | *[rdf:type/@rdf:resource = ('&def;Root', '&def;Container', '&def;Item')]/dct:modified | *[rdf:type/@rdf:resource = ('&adm;Root', '&adm;Container', '&adm;Item')]/dct:created | *[rdf:type/@rdf:resource = ('&adm;Root', '&adm;Container', '&adm;Item')]/dct:modified" mode="bs2:FormControl" priority="1"/>
+    <xsl:template match="*[rdf:type/@rdf:resource = ('&def;Root', '&sioc;Container', '&sioc;Item')]/dct:created | *[rdf:type/@rdf:resource = ('&def;Root', '&sioc;Container', '&sioc;Item')]/dct:modified | *[rdf:type/@rdf:resource = ('&adm;Root', '&sioc;Container', '&sioc;Item')]/dct:created | *[rdf:type/@rdf:resource = ('&adm;Root', '&sioc;Container', '&sioc;Item')]/dct:modified" mode="bs2:FormControl" priority="1"/>
 
     <xsl:template match="dct:format/@rdf:nodeID" mode="bs2:FormControl">
         <xsl:param name="id" select="generate-id()" as="xs:string"/>

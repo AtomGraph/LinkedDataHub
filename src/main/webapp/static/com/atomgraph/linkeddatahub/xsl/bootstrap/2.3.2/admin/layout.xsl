@@ -106,12 +106,12 @@ exclude-result-prefixes="#all">
 
         <xsl:choose>
             <!-- if $forClass is not a document class, then pair the instance with a document instance -->
-            <xsl:when test="$createGraph and not($forClass = ('&adm;Container', '&adm;Item'))">
+            <xsl:when test="$createGraph and not($forClass = ('&sioc;Container', '&sioc;Item'))">
                 <xsl:document>
-                    <xsl:for-each select="ac:construct($ldt:ontology, ($forClass, xs:anyURI('&adm;Item')), $ldt:base)">
+                    <xsl:for-each select="ac:construct($ldt:ontology, ($forClass, xs:anyURI('&sioc;Item')), $ldt:base)">
                         <xsl:apply-templates select="." mode="ldh:SetPrimaryTopic">
                             <xsl:with-param name="topic-id" select="key('resources-by-type', $forClass)[* except rdf:type]/@rdf:nodeID" tunnel="yes"/>
-                            <xsl:with-param name="doc-id" select="key('resources-by-type', '&adm;Item')/@rdf:nodeID" tunnel="yes"/>
+                            <xsl:with-param name="doc-id" select="key('resources-by-type', '&sioc;Item')/@rdf:nodeID" tunnel="yes"/>
                         </xsl:apply-templates>
                     </xsl:for-each>
                 </xsl:document>
@@ -132,7 +132,7 @@ exclude-result-prefixes="#all">
     <!-- allow subject editing in admin EditMode -->
     <xsl:template match="*[*][@rdf:about or @rdf:nodeID]" mode="bs2:FormControl">
         <xsl:apply-imports>
-            <xsl:with-param name="show-subject" select="not(rdf:type/@rdf:resource = ('&adm;Item', '&adm;Container'))" tunnel="yes"/>
+            <xsl:with-param name="show-subject" select="not(rdf:type/@rdf:resource = ('&sioc;Item', '&sioc;Container'))" tunnel="yes"/>
         </xsl:apply-imports>
     </xsl:template>
         

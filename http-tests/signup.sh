@@ -37,7 +37,7 @@ curl -k -s \
   --data-urlencode "sb=agent" \
   --data-urlencode "sb=doc" \
   --data-urlencode "pu=http://www.w3.org/1999/02/22-rdf-syntax-ns#type" \
-  --data-urlencode "ou=https://w3id.org/atomgraph/linkeddatahub/admin#Item" \
+  --data-urlencode "ou=http://rdfs.org/sioc/ns#Item" \
   --data-urlencode "pu=http://purl.org/dc/terms/description" \
   --data-urlencode "lt=http://www.w3.org/2001/XMLSchema#string" \
   --data-urlencode "pu=http://rdfs.org/sioc/ns#has_container" \

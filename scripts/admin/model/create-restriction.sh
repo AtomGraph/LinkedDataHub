@@ -130,7 +130,6 @@ args+=("-t")
 args+=("text/turtle") # content type
 
 turtle+="@prefix owl:	<http://www.w3.org/2002/07/owl#> .\n"
-turtle+="@prefix adm:	<https://w3id.org/atomgraph/linkeddatahub/admin#> .\n"
 turtle+="@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .\n"
 turtle+="@prefix owl:	<http://www.w3.org/2002/07/owl#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
@@ -139,7 +138,7 @@ turtle+="@prefix spin:	<http://spinrdf.org/spin#> .\n"
 turtle+="@prefix sioc:	<http://rdfs.org/sioc/ns#> .\n"
 turtle+="${restriction} a owl:Restriction .\n"
 turtle+="${restriction} rdfs:label \"${label}\" .\n"
-turtle+="_:item a adm:Item .\n"
+turtle+="_:item a sioc:Item .\n"
 turtle+="_:item foaf:primaryTopic ${restriction} .\n"
 turtle+="_:item sioc:has_container <${container}> .\n"
 turtle+="_:item dct:title \"${label}\" .\n"

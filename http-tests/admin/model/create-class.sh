@@ -20,7 +20,7 @@ class="${ontology_doc}#NewClass"
 --uri "$class" \
 --label "New class" \
 --slug new-class \
---sub-class-of "https://w3id.org/atomgraph/linkeddatahub/default#Item" \
+--sub-class-of "http://rdfs.org/sioc/ns#Item" \
 "$ontology_doc"
 
 popd > /dev/null

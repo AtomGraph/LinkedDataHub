@@ -14,7 +14,6 @@
     <context-param>
         <param-name>https://w3id.org/atomgraph/linkeddatahub/config#authQuery</param-name>
         <param-value><![CDATA[
-PREFIX  def:  <https://w3id.org/atomgraph/linkeddatahub/default#>
 PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX  acl:  <http://www.w3.org/ns/auth/acl#>
 PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
@@ -37,7 +36,7 @@ WHERE
                   }
                 UNION
                   { { GRAPH ?g
-                        { $this  a  def:File ;
+                        { $this  a  <http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#FileDataObject> ;
                                  a  ?Type
                         }
                     }
@@ -69,7 +68,7 @@ WHERE
                   }
                 UNION
                   { { GRAPH ?g
-                        { $this  a  def:File ;
+                        { $this  a  <http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#FileDataObject> ;
                                  a  ?Type
                         }
                     }

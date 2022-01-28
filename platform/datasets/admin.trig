@@ -22,7 +22,7 @@
 <>
 {
 
-    <> a adm:Container ;
+    <> a sioc:Container ;
         dct:title "Root" ;
         dct:description "Root container" .
 
@@ -31,7 +31,7 @@
 <queries/>
 {
 
-    <queries/> a adm:Container ;
+    <queries/> a sioc:Container ;
         dct:title "Queries" ;
         dct:description "SPARQL queries" .
 
@@ -40,7 +40,7 @@
 <queries/default/>
 {
 
-    <queries/default/> a adm:Container ;
+    <queries/default/> a sioc:Container ;
         sioc:has_parent <queries/> ;
         dct:title "Default" ;
         dct:description "Default queries" .
@@ -50,7 +50,7 @@
 <sign%20up>
 {
 
-    <sign%20up> a adm:Item ;
+    <sign%20up> a sioc:Item ;
         dct:title "Sign up" ;
         ldh:content <sign%20up#content> .
 
@@ -71,7 +71,7 @@
 <request%20access>
 {
 
-    <request%20access> a adm:Item ;
+    <request%20access> a sioc:Item ;
         dct:title "Request access" ;
         ldh:content <request%20access#id023e3fee-a546-4209-b52c-7b65ebb52aa4> .
 
@@ -88,7 +88,7 @@
 <oauth2/login>
 {
 
-    <oauth2/login> a adm:Item ;
+    <oauth2/login> a sioc:Item ;
         dct:title "OAuth 2.0 login" .
 
 }
@@ -96,7 +96,7 @@
 <oauth2/authorize/google>
 {
 
-    <oauth2/authorize/google> a adm:Item ;
+    <oauth2/authorize/google> a sioc:Item ;
         dct:title "Google OAuth2.0 authorization" .
 
 }
@@ -106,7 +106,7 @@
 <acl/>
 {
 
-    <acl/> a adm:Container ;
+    <acl/> a sioc:Container ;
         sioc:has_parent <> ;
         dct:title "Access control" ;
         dct:description "Manage agents, user accounts and authorizations" .
@@ -116,7 +116,7 @@
 <acl/authorizations/>
 {
 
-    <acl/authorizations/> a adm:Container ;
+    <acl/authorizations/> a sioc:Container ;
         sioc:has_parent <acl/> ;
         dct:title "Authorizations" ;
         dct:description "Manage who has access to which resources" .
@@ -126,7 +126,7 @@
 <acl/authorization-requests/>
 {
 
-    <acl/authorization-requests/> a adm:Container ;
+    <acl/authorization-requests/> a sioc:Container ;
         sioc:has_parent <acl/> ;
         dct:title "Authorization requests" ;
         dct:description "Manage who has access to which resources" .
@@ -136,7 +136,7 @@
 <acl/agents/>
 {
 
-    <acl/agents/> a adm:Container ;
+    <acl/agents/> a sioc:Container ;
         sioc:has_parent <acl/> ;
         dct:title "Agents" ;
         dct:description "Manage people and software agents that have access" .
@@ -146,7 +146,7 @@
 <acl/public-keys/>
 {
 
-    <acl/public-keys/> a adm:Container ;
+    <acl/public-keys/> a sioc:Container ;
         sioc:has_parent <acl/> ;
         dct:title "Public keys" ;
         dct:description "Manage RSA public keys" .
@@ -156,7 +156,7 @@
 <acl/users/>
 {
 
-    <acl/users/> a adm:Container ;
+    <acl/users/> a sioc:Container ;
         sioc:has_parent <acl/> ;
         dct:title "Users" ;
         dct:description "Manage agent user accounts and credentials" .
@@ -166,7 +166,7 @@
 <acl/groups/>
 {
 
-    <acl/groups/> a adm:Container ;
+    <acl/groups/> a sioc:Container ;
         sioc:has_parent <acl/> ;
         dct:title "Groups" ;
         dct:description "Manage agent groups that have access" .
@@ -180,7 +180,7 @@
 <acl/authorizations/public/>
 {
 
-    <acl/authorizations/public/> a adm:Item ;
+    <acl/authorizations/public/> a sioc:Item ;
         sioc:has_container <acl/authorizations/> ;
         dct:title "Public access" ;
         foaf:primaryTopic <acl/authorizations/public/#this> .
@@ -199,7 +199,7 @@
 <acl/authorizations/sign-up/>
 {
 
-    <acl/authorizations/sign-up/> a adm:Item ;
+    <acl/authorizations/sign-up/> a sioc:Item ;
         sioc:has_container <acl/authorizations/> ;
         dct:title "Signup access" ;
         foaf:primaryTopic <acl/authorizations/sign-up/#this> .
@@ -218,7 +218,7 @@
 <acl/authorizations/request-access/>
 {
 
-    <acl/authorizations/request-access/> a adm:Item ;
+    <acl/authorizations/request-access/> a sioc:Item ;
         sioc:has_container <acl/authorizations/> ;
         dct:title "Authorization request access" ;
         foaf:primaryTopic <acl/authorizations/request-access/#this> .
@@ -237,7 +237,7 @@
 <acl/authorizations/oauth2-login/>
 {
 
-    <acl/authorizations/oauth2-login/> a adm:Item ;
+    <acl/authorizations/oauth2-login/> a sioc:Item ;
         sioc:has_container <acl/authorizations/> ;
         dct:title "OAuth2 login access" ;
         foaf:primaryTopic <acl/authorizations/oauth2-login/#this> .
@@ -256,7 +256,7 @@
 <acl/authorizations/authorize-google/>
 {
 
-    <acl/authorizations/authorize-google/> a adm:Item ;
+    <acl/authorizations/authorize-google/> a sioc:Item ;
         sioc:has_container <acl/authorizations/> ;
         dct:title "Google's OAuth2 authorization" ;
         foaf:primaryTopic <acl/authorizations/authorize-google/#this> .
@@ -275,7 +275,7 @@
 <acl/authorizations/append-request/>
 {
 
-    <acl/authorizations/append-request/> a adm:Item ;
+    <acl/authorizations/append-request/> a sioc:Item ;
         sioc:has_container <acl/authorizations/> ;
         dct:title "Append authorization request" ;
         foaf:primaryTopic <acl/authorizations/append-request/#this> .
@@ -295,7 +295,7 @@
 <acl/authorizations/full-control/>
 {
 
-    <acl/authorizations/full-control/> a adm:Item ;
+    <acl/authorizations/full-control/> a sioc:Item ;
         sioc:has_container <acl/authorizations/> ;
         dct:title "Full control" ;
         foaf:primaryTopic <acl/authorizations/full-control/#this> .
@@ -303,7 +303,7 @@
     <acl/authorizations/full-control/#this> a acl:Authorization ;
         rdfs:label "Full control" ;
         rdfs:comment "Allows full read/write access to all application resources" ;
-        acl:accessToClass def:Item, def:Container, def:Root ;
+        acl:accessToClass sioc:Item, sioc:Container, def:Root ;
         acl:accessTo <../sparql>, <../service>, <../imports>, <../add>, <../clone>, <../skolemize> ;
         acl:mode acl:Read, acl:Append, acl:Write, acl:Control ;
         acl:agentGroup <acl/groups/owners/#this> .
@@ -315,7 +315,7 @@
 <acl/authorizations/write-append/>
 {
 
-    <acl/authorizations/write-append/> a adm:Item ;
+    <acl/authorizations/write-append/> a sioc:Item ;
         sioc:has_container <acl/authorizations/> ;
         dct:title "Write/append access" ;
         foaf:primaryTopic <acl/authorizations/write-append/#this> .
@@ -323,7 +323,7 @@
     <acl/authorizations/write-append/#this> a acl:Authorization ;
         rdfs:label "Write/append access" ;
         rdfs:comment "Allows write access to all documents and containers" ;
-        acl:accessToClass def:Item, def:Container, def:Root ;
+        acl:accessToClass sioc:Item, sioc:Container, def:Root ;
         acl:accessTo <../sparql>, <../service>, <../imports>, <../add>, <../clone>, <../skolemize> ;
         acl:mode acl:Write, acl:Append ;
         acl:agentGroup <acl/groups/owners/#this>, <acl/groups/writers/#this> .
@@ -335,7 +335,7 @@
 <acl/authorizations/read/>
 {
 
-    <acl/authorizations/read/> a adm:Item ;
+    <acl/authorizations/read/> a sioc:Item ;
         sioc:has_container <acl/authorizations/> ;
         dct:title "Read access" ;
         foaf:primaryTopic <acl/authorizations/read/#this> .
@@ -343,7 +343,7 @@
     <acl/authorizations/read/#this> a acl:Authorization ;
         rdfs:label "Read access" ;
         rdfs:comment "Allows read access to all resources" ;
-        acl:accessToClass def:Item, def:Container, def:Root, def:File ;
+        acl:accessToClass sioc:Item, sioc:Container, def:Root, <http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#FileDataObject> ;
         acl:accessTo <../sparql>, <../service> ;
         acl:mode acl:Read ;
         acl:agentGroup <acl/groups/owners/#this>, <acl/groups/writers/#this>, <acl/groups/readers/#this> .
@@ -355,7 +355,7 @@
 <acl/authorizations/creator/>
 {
 
-    <acl/authorizations/creator/> a adm:Item ;
+    <acl/authorizations/creator/> a sioc:Item ;
         sioc:has_container <acl/authorizations/> ;
         dct:title "Creator access" ;
         foaf:primaryTopic <acl/authorizations/creator/#this> .
@@ -364,7 +364,7 @@
         rdfs:label "Creator access" ;
         rdfs:comment "Creators have full control of their created resources" ;
         lacl:accessProperty foaf:maker ;
-        acl:accessToClass def:Item, def:Container, def:Root ;
+        acl:accessToClass sioc:Item, sioc:Container, def:Root ;
         acl:agentClass acl:AuthenticatedAgent .
 
 }
@@ -376,7 +376,7 @@
 <acl/groups/owners/>
 {
 
-    <acl/groups/owners/> a adm:Item ;
+    <acl/groups/owners/> a sioc:Item ;
         sioc:has_container <acl/groups/> ;
         dct:title "Owners" ;
         foaf:primaryTopic <acl/groups/owners/#this> .
@@ -392,7 +392,7 @@
 <acl/groups/writers/>
 {
 
-    <acl/groups/writers/> a adm:Item ;
+    <acl/groups/writers/> a sioc:Item ;
         sioc:has_container <acl/groups/> ;
         dct:title "Writers" ;
         foaf:primaryTopic <acl/groups/writers/#this> .
@@ -408,7 +408,7 @@
 <acl/groups/readers/>
 {
 
-    <acl/groups/readers/> a adm:Item ;
+    <acl/groups/readers/> a sioc:Item ;
         sioc:has_container <acl/groups/> ;
         dct:title "Readers" ;
         foaf:primaryTopic <acl/groups/readers/#this> .
@@ -426,7 +426,7 @@
 <model/>
 {
 
-    <model/> a adm:Container ;
+    <model/> a sioc:Container ;
         sioc:has_parent <> ;
         dct:title "Model" ;
         dct:description "Manage application model: classes, properties, constraints etc." .
@@ -436,7 +436,7 @@
 <model/ontologies/>
 {
 
-    <model/ontologies/> a adm:Container ;
+    <model/ontologies/> a sioc:Container ;
         sioc:has_parent <model/> ;
         dct:title "Ontologies" ;
         dct:description "Manage ontologies that define application domain" .
@@ -450,7 +450,7 @@
 <model/ontologies/namespace/>
 {
 
-    <model/ontologies/namespace/> a adm:Item ;
+    <model/ontologies/namespace/> a sioc:Item ;
         sioc:has_container <model/ontologies/> ;
         dct:title "Namespace" ;
         foaf:primaryTopic ns: .

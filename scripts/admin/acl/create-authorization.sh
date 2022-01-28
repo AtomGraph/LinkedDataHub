@@ -172,7 +172,6 @@ args+=("$cert_password")
 args+=("-t")
 args+=("text/turtle") # content type
 
-turtle+="@prefix adm:	<https://w3id.org/atomgraph/linkeddatahub/admin#> .\n"
 turtle+="@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .\n"
 turtle+="@prefix acl:	<http://www.w3.org/ns/auth/acl#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
@@ -180,7 +179,7 @@ turtle+="@prefix foaf:	<http://xmlns.com/foaf/0.1/> .\n"
 turtle+="@prefix sioc:	<http://rdfs.org/sioc/ns#> .\n"
 turtle+="${auth} a acl:Authorization .\n"
 turtle+="${auth} rdfs:label \"${label}\" .\n"
-turtle+="_:item a adm:Item .\n"
+turtle+="_:item a sioc:Item .\n"
 turtle+="_:item foaf:primaryTopic ${auth} .\n"
 turtle+="_:item sioc:has_container <${container}> .\n"
 turtle+="_:item dct:title \"${label}\" .\n"

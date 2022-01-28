@@ -996,19 +996,19 @@ WHERE
                                                             <ul class="resource-typeahead typeahead dropdown-menu" id="ul-upload-rdf-doc" style="display: none;"></ul>
                                                         </span>
 
-                                                        <input type="hidden" class="forClass" value="&def;Container" autocomplete="off"/>
-                                                        <input type="hidden" class="forClass" value="&def;Item" autocomplete="off"/>
+                                                        <input type="hidden" class="forClass" value="&sioc;Container" autocomplete="off"/>
+                                                        <input type="hidden" class="forClass" value="&sioc;Item" autocomplete="off"/>
                                                         <div class="btn-group">
                                                             <button type="button" class="btn dropdown-toggle create-action"></button>
                                                             <ul class="dropdown-menu">
                                                                 <li>
-                                                                    <a href="{ldh:href($ldt:base, ldh:absolute-path(ldh:href()), xs:anyURI('&ac;ModalMode'), xs:anyURI('&def;Container'))}" class="btn add-constructor" title="&def;Container" id="{generate-id()}-upload-rdf-container">
+                                                                    <a href="{ldh:href($ldt:base, ldh:absolute-path(ldh:href()), xs:anyURI('&ac;ModalMode'), xs:anyURI('&sioc;Container'))}" class="btn add-constructor" title="&sioc;Container" id="{generate-id()}-upload-rdf-container">
                                                                         <xsl:text>Container</xsl:text>
-                                                                        <input type="hidden" class="forClass" value="&def;Container"/>
+                                                                        <input type="hidden" class="forClass" value="&sioc;Container"/>
                                                                     </a>
-                                                                    <a href="{ldh:href($ldt:base, ldh:absolute-path(ldh:href()), xs:anyURI('&ac;ModalMode'), xs:anyURI('&def;Item'))}" class="btn add-constructor" title="&def;Item" id="{generate-id()}-upload-rdf-item">
+                                                                    <a href="{ldh:href($ldt:base, ldh:absolute-path(ldh:href()), xs:anyURI('&ac;ModalMode'), xs:anyURI('&sioc;Item'))}" class="btn add-constructor" title="&sioc;Item" id="{generate-id()}-upload-rdf-item">
                                                                         <xsl:text>Item</xsl:text>
-                                                                        <input type="hidden" class="forClass" value="&def;Item"/>
+                                                                        <input type="hidden" class="forClass" value="&sioc;Item"/>
                                                                     </a>
                                                                 </li>
                                                             </ul>
@@ -1061,21 +1061,21 @@ WHERE
                                                             <ul class="resource-typeahead typeahead dropdown-menu" id="ul-upload-rdf-doc" style="display: none;"></ul>
                                                         </span>
 
-                                                        <input type="hidden" class="forClass" value="&def;Container" autocomplete="off"/>
-                                                        <input type="hidden" class="forClass" value="&def;Item" autocomplete="off"/>
+                                                        <input type="hidden" class="forClass" value="&sioc;Container" autocomplete="off"/>
+                                                        <input type="hidden" class="forClass" value="&sioc;Item" autocomplete="off"/>
                                                         <div class="btn-group">
                                                             <button type="button" class="btn dropdown-toggle create-action"></button>
                                                             <ul class="dropdown-menu">
                                                                 <li>
-                                                                    <a href="{ldh:href($ldt:base, ldh:absolute-path(ldh:href()), xs:anyURI('&ac;ModalMode'), xs:anyURI('&def;Container'))}" class="btn add-constructor" title="&def;Container" id="{generate-id()}-remote-rdf-container">
+                                                                    <a href="{ldh:href($ldt:base, ldh:absolute-path(ldh:href()), xs:anyURI('&ac;ModalMode'), xs:anyURI('&sioc;Container'))}" class="btn add-constructor" title="&sioc;Container" id="{generate-id()}-remote-rdf-container">
                                                                         <xsl:text>Container</xsl:text>
-                                                                        <input type="hidden" class="forClass" value="&def;Container"/>
+                                                                        <input type="hidden" class="forClass" value="&sioc;Container"/>
                                                                     </a>
                                                                 </li>
                                                                 <li>
-                                                                    <a href="{ldh:href($ldt:base, ldh:absolute-path(ldh:href()), xs:anyURI('&ac;ModalMode'), xs:anyURI('&def;Item'))}" type="button" class="btn add-constructor" title="&def;Item" id="{generate-id()}-remote-rdf-item">
+                                                                    <a href="{ldh:href($ldt:base, ldh:absolute-path(ldh:href()), xs:anyURI('&ac;ModalMode'), xs:anyURI('&sioc;Item'))}" type="button" class="btn add-constructor" title="&sioc;Item" id="{generate-id()}-remote-rdf-item">
                                                                         <xsl:text>Item</xsl:text>
-                                                                        <input type="hidden" class="forClass" value="&def;Item"/>
+                                                                        <input type="hidden" class="forClass" value="&sioc;Item"/>
                                                                     </a>
                                                                 </li>
                                                             </ul>

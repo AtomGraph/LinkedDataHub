@@ -19,25 +19,19 @@
 @prefix dct:	<http://purl.org/dc/terms/> .
 
 : a owl:Ontology ;
-    owl:imports ldh:, lacl:, foaf:, <http://www.w3.org/2002/07/owl> ;
+    owl:imports sioc:, ldh:, lacl:, foaf:, <http://www.w3.org/2002/07/owl> ;
     owl:versionInfo "1.1.4" ;
     rdfs:label "Admin ontology" ;
     rdfs:comment "AtomGraph admin application ontology" .
 
-:Container a rdfs:Class ;
-    rdfs:subClassOf dh:Container ;
-    spin:constructor :DocumentConstructor ;
-    # spin:constraint :MissingTitle ;
-    ldh:template def:ContainerChildren ;
-    rdfs:label "Container" ;
-    rdfs:isDefinedBy : .
+### EXTERNAL ASSERTIONS
 
-:Item a rdfs:Class ;
-    rdfs:subClassOf dh:Item ;
-    spin:constructor :DocumentConstructor ;
-    # spin:constraint :MissingTitle ;
-    rdfs:label "Item" ;
-    rdfs:isDefinedBy : .
+# http://rdfs.org/sioc/ns
+
+sioc:Container spin:constructor :DocumentConstructor ;
+    ldh:template def:ContainerChildren .
+
+sioc:Item spin:constructor :DocumentConstructor .
 
 :DocumentConstructor a sp:Construct ;
     sp:text """
@@ -57,16 +51,9 @@
     rdfs:label "Document constructor" ;
     rdfs:isDefinedBy : .
 
-:MissingTitle a ldh:MissingPropertyValue ;
-    sp:arg1 dct:title ;
-    rdfs:label "Missing title" ;
-    rdfs:isDefinedBy : .
-
 :MissingRDFSLabel a ldh:MissingPropertyValue ;
     rdfs:label "Missing rdfs:label" ;
     sp:arg1 rdfs:label .
-
-### EXTERNAL ASSERTIONS
 
 # http://spinrdf.org/sp
 

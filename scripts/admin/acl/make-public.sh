@@ -72,12 +72,14 @@ BASE <${base}admin/>
 
 PREFIX  acl:  <http://www.w3.org/ns/auth/acl#>
 PREFIX  def: <https://w3id.org/atomgraph/linkeddatahub/default#>
+PREFIX  sioc: <http://rdfs.org/sioc/ns#>
+PREFIX  nfo: <http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#>
 
 INSERT DATA
 {
   GRAPH <acl/authorizations/public/>
   {
-    <acl/authorizations/public/#this> acl:accessToClass def:Root, def:Container, def:Item, def:File ;
+    <acl/authorizations/public/#this> acl:accessToClass def:Root, sioc:Container, sioc:Item, nfo:FileDataObject ;
         acl:accessTo <../sparql> .
   }
 }

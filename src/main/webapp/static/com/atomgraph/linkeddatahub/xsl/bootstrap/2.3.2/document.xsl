@@ -117,7 +117,7 @@ extension-element-prefixes="ixsl"
 
     <xsl:template match="rdf:RDF" mode="bs2:ChartForm" priority="-1">
         <xsl:param name="method" select="'post'" as="xs:string"/>
-        <xsl:param name="doc-type" select="xs:anyURI('&def;Item')" as="xs:anyURI"/>
+        <xsl:param name="doc-type" select="xs:anyURI('&sioc;Item')" as="xs:anyURI"/>
         <xsl:param name="type" select="xs:anyURI('&def;GraphChart')" as="xs:anyURI"/>
         <xsl:param name="action" select="ac:build-uri(resolve-uri('charts/', $ldt:base), map{ 'forClass': string($type) })" as="xs:anyURI"/>
         <xsl:param name="id" as="xs:string?"/>
@@ -285,7 +285,7 @@ extension-element-prefixes="ixsl"
 
     <xsl:template match="srx:sparql" mode="bs2:ChartForm">
         <xsl:param name="method" select="'post'" as="xs:string"/>
-        <xsl:param name="doc-type" select="xs:anyURI('&def;Item')" as="xs:anyURI"/>
+        <xsl:param name="doc-type" select="xs:anyURI('&sioc;Item')" as="xs:anyURI"/>
         <xsl:param name="type" select="xs:anyURI('&def;ResultSetChart')" as="xs:anyURI"/>
         <xsl:param name="action" select="ac:build-uri(resolve-uri('charts/', $ldt:base), map{ 'forClass': string($type) })" as="xs:anyURI"/>
         <xsl:param name="id" as="xs:string?"/>
@@ -432,13 +432,13 @@ extension-element-prefixes="ixsl"
         
         <xsl:choose>
             <!-- if $forClass is not a document class or content, then pair the instance with a document instance -->
-            <xsl:when test="$createGraph and not($forClass = ('&def;Container', '&def;Item', '&ldh;Content'))">
+            <xsl:when test="$createGraph and not($forClass = ('&sioc;Container', '&sioc;Item', '&ldh;Content'))">
                 <xsl:document>
-                    <xsl:for-each select="ac:construct($ldt:ontology, ($forClass, xs:anyURI('&def;Item')), $ldt:base)">
+                    <xsl:for-each select="ac:construct($ldt:ontology, ($forClass, xs:anyURI('&sioc;Item')), $ldt:base)">
                         <xsl:apply-templates select="." mode="ldh:SetPrimaryTopic">
                             <!-- avoid selecting object blank nodes which only have rdf:type -->
                             <xsl:with-param name="topic-id" select="key('resources-by-type', $forClass)[* except rdf:type]/@rdf:nodeID" tunnel="yes"/>
-                            <xsl:with-param name="doc-id" select="key('resources-by-type', '&def;Item')/@rdf:nodeID" tunnel="yes"/>
+                            <xsl:with-param name="doc-id" select="key('resources-by-type', '&sioc;Item')/@rdf:nodeID" tunnel="yes"/>
                         </xsl:apply-templates>
                     </xsl:for-each>
                 </xsl:document>
@@ -543,7 +543,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="button-class" select="'btn btn-primary wymupdate'" as="xs:string?"/>
         <xsl:param name="create-resource" select="true()" as="xs:boolean"/>
         <xsl:param name="classes" select="document(ac:document-uri($ldt:ontology))/rdf:RDF/*[@rdf:about][rdfs:isDefinedBy/@rdf:resource = $ldt:ontology][spin:constructor or (rdfs:subClassOf and ldh:listSuperClasses(@rdf:about)/../../spin:constructor)]" as="element()*"/>
-        <xsl:param name="default-classes" select="(key('resources-by-type', '&rdfs;Class', document(ac:document-uri('&def;')))[not(@rdf:about = ('&def;Root', '&def;Container', '&def;Item'))])" as="element()*"/>
+        <xsl:param name="default-classes" select="(key('resources-by-type', '&rdfs;Class', document(ac:document-uri('&def;')))[not(@rdf:about = ('&def;Root', '&sioc;Container', '&sioc;Item'))])" as="element()*"/>
 
         <form method="{$method}" action="{$action}">
             <xsl:if test="$id">
@@ -682,7 +682,7 @@ extension-element-prefixes="ixsl"
     
     <xsl:template match="rdf:RDF[$acl:mode = '&acl;Append']" mode="bs2:Create" priority="1">
         <xsl:param name="class" select="'btn-group'" as="xs:string?"/>
-        <xsl:param name="default-classes" select="key('resources-by-type', '&rdfs;Class', document(ac:document-uri('&def;')))[not(@rdf:about = ('&def;Root', '&def;Container', '&def;Item'))]" as="element()*"/>
+        <xsl:param name="default-classes" select="key('resources-by-type', '&rdfs;Class', document(ac:document-uri('&def;')))[not(@rdf:about = ('&def;Root', '&sioc;Container', '&sioc;Item'))]" as="element()*"/>
         <xsl:param name="classes" as="element()*"/>
         <xsl:param name="show-document-classes" select="true()" as="xs:boolean"/>
         <xsl:param name="create-graph" select="false()" as="xs:boolean"/>
@@ -721,9 +721,9 @@ extension-element-prefixes="ixsl"
 
                 <xsl:if test="$show-document-classes">
                     <!--if the current resource is a Container, show Container and Item constructors--> 
-                    <xsl:variable name="document-classes" select="key('resources', ('&def;Container', '&def;Item'), document(ac:document-uri('&def;')))" as="element()*"/>
+                    <xsl:variable name="document-classes" select="key('resources', ('&sioc;Container', '&sioc;Item'), document(ac:document-uri('&def;')))" as="element()*"/>
                     <!-- current resource is a container -->
-                    <xsl:if test="exists($document-classes) and key('resources', ac:uri())/rdf:type/@rdf:resource = ('&def;Root', '&def;Container')">
+                    <xsl:if test="exists($document-classes) and key('resources', ac:uri())/rdf:type/@rdf:resource = ('&def;Root', '&sioc;Container')">
                         <xsl:apply-templates select="$document-classes" mode="bs2:ConstructorListItem">
                             <xsl:with-param name="create-graph" select="$create-graph"/>
                             <xsl:sort select="ac:label(.)"/>

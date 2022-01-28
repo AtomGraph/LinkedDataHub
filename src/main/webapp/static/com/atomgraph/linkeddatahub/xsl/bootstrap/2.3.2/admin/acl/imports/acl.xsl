@@ -188,7 +188,7 @@ exclude-result-prefixes="#all">
             </xsl:call-template>
             <xsl:call-template name="xhtml:Input">
                 <xsl:with-param name="name" select="'ou'"/>
-                <xsl:with-param name="value" select="'&adm;Item'"/> <!-- Item class URI -->
+                <xsl:with-param name="value" select="'&sioc;Item'"/> <!-- Item class URI -->
                 <xsl:with-param name="type" select="'hidden'"/>
             </xsl:call-template>
             <xsl:call-template name="xhtml:Input">
