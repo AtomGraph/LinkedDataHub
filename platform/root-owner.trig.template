@@ -1,4 +1,3 @@
-@prefix adm:    <https://w3id.org/atomgraph/linkeddatahub/admin#> .
 @prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .
 @prefix xsd:	<http://www.w3.org/2001/XMLSchema#> .
 @prefix acl:    <http://www.w3.org/ns/auth/acl#> .
@@ -12,7 +11,7 @@
 <${OWNER_DOC_URI}>
 {
 
-    <${OWNER_DOC_URI}> a adm:Item ;
+    <${OWNER_DOC_URI}> a sioc:Item ;
         foaf:primaryTopic <${OWNER_URI}> ;
         sioc:has_container <acl/agents/> ;
         dct:title "${OWNER_COMMON_NAME}" .
@@ -33,7 +32,7 @@
 <acl/public-keys/${OWNER_KEY_UUID}/>
 {
 
-    <acl/public-keys/${OWNER_KEY_UUID}/> a adm:Item ;
+    <acl/public-keys/${OWNER_KEY_UUID}/> a sioc:Item ;
         foaf:primaryTopic <acl/public-keys/${OWNER_KEY_UUID}/#this> ;
         sioc:has_container <acl/public-keys/> ;
         dct:title "${OWNER_COMMON_NAME}" .
@@ -58,7 +57,7 @@
 <acl/authorizations/${OWNER_KEY_UUID}/> # TO-DO: use $OWNER_AUTH_UUID
 {
 
-    <acl/authorizations/${OWNER_KEY_UUID}/> a adm:Item ;
+    <acl/authorizations/${OWNER_KEY_UUID}/> a sioc:Item ;
         foaf:primaryTopic <acl/authorizations/${OWNER_KEY_UUID}/#auth> ;
         sioc:has_container <acl/authorizations/> ;
         dct:title "Public owner's WebID" .
