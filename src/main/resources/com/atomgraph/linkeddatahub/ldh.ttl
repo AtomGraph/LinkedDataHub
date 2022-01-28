@@ -28,13 +28,13 @@
 # PROPERTIES
 
 :count a owl:DatatypeProperty ;
-    rdfs:domain dh:Container ;
+    rdfs:domain sioc:Container ;
     rdfs:range xsd:integer ;
     rdfs:label "Children count" ;
     rdfs:isDefinedBy : .
 
 :action a owl:ObjectProperty ;
-    rdfs:range dh:Container ;
+    rdfs:range sioc:Container ;
     rdfs:label "Target container" ;
     rdfs:isDefinedBy : .
 
