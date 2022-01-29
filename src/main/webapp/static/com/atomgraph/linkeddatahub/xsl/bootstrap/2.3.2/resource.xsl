@@ -15,7 +15,7 @@
     <!ENTITY http   "http://www.w3.org/2011/http#">
     <!ENTITY acl    "http://www.w3.org/ns/auth/acl#">
     <!ENTITY ldt    "https://www.w3.org/ns/ldt#">
-    <!ENTITY dh     "https://www.w3.org/ns/ldt/document-hierarchy/domain#">
+    <!ENTITY dh     "https://www.w3.org/ns/ldt/document-hierarchy#">
     <!ENTITY dct    "http://purl.org/dc/terms/">
     <!ENTITY foaf   "http://xmlns.com/foaf/0.1/">
     <!ENTITY sioc   "http://rdfs.org/sioc/ns#">
@@ -57,13 +57,13 @@ extension-element-prefixes="ixsl"
 
     <!-- LOGO -->
 
-    <xsl:template match="*[rdf:type/@rdf:resource = ('&def;Root', '&sioc;Container')]" mode="ldh:logo">
+    <xsl:template match="*[rdf:type/@rdf:resource = ('&def;Root', '&dh;Container')]" mode="ldh:logo">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'btn-logo btn-container')"/>
     </xsl:template>
 
-    <xsl:template match="*[rdf:type/@rdf:resource = '&sioc;Item']" mode="ldh:logo">
+    <xsl:template match="*[rdf:type/@rdf:resource = '&dh;Item']" mode="ldh:logo">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'btn-logo btn-item')"/>
@@ -76,13 +76,13 @@ extension-element-prefixes="ixsl"
         <!-- <xsl:sequence select="ac:label(.)"/> -->
     </xsl:template>
 
-    <xsl:template match="*[@rdf:about = '&sioc;Container']" mode="ldh:logo" priority="1">
+    <xsl:template match="*[@rdf:about = '&dh;Container']" mode="ldh:logo" priority="1">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'btn-logo btn-container')"/>
     </xsl:template>
 
-    <xsl:template match="*[@rdf:about = '&sioc;Item']" mode="ldh:logo">
+    <xsl:template match="*[@rdf:about = '&dh;Item']" mode="ldh:logo">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'btn-logo btn-item')"/>
@@ -384,7 +384,7 @@ extension-element-prefixes="ixsl"
     </xsl:template>
     
     <!-- hide the current document resource -->
-    <xsl:template match="*[rdf:type/@rdf:resource = ('&def;Root', '&sioc;Container', '&sioc;Item', '&sioc;Container', '&sioc;Item')]" mode="bs2:RowBlock" priority="1"/>
+    <xsl:template match="*[rdf:type/@rdf:resource = ('&def;Root', '&dh;Container', '&dh;Item', '&dh;Container', '&dh;Item')]" mode="bs2:RowBlock" priority="1"/>
 
     <!-- hide Content resources -->
     <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;Content']" mode="bs2:RowBlock" priority="2"/>
@@ -753,7 +753,7 @@ extension-element-prefixes="ixsl"
     <xsl:template match="*[rdf:type/@rdf:resource = '&spin;ConstraintViolation'] | *[rdf:type/@rdf:resource = '&http;Response']" mode="bs2:ModalForm" priority="3"/>
 
     <!-- hide object blank nodes (that only have a single rdf:type property) from constructed models -->
-    <xsl:template match="*[@rdf:nodeID][$ac:forClass][not(rdf:type/@rdf:resource = ($ac:forClass, '&sioc;Item'))]" mode="bs2:ModalForm" priority="2"/>
+    <xsl:template match="*[@rdf:nodeID][$ac:forClass][not(rdf:type/@rdf:resource = ($ac:forClass, '&dh;Item'))]" mode="bs2:ModalForm" priority="2"/>
 
     <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:ModalForm">
         <xsl:apply-templates select="." mode="bs2:Form"/>
@@ -765,7 +765,7 @@ extension-element-prefixes="ixsl"
     <xsl:template match="*[rdf:type/@rdf:resource = '&spin;ConstraintViolation'] | *[rdf:type/@rdf:resource = '&http;Response']" mode="bs2:RowForm" priority="3"/>
 
     <!-- hide object blank nodes (that only have a single rdf:type property) from constructed models -->
-    <xsl:template match="*[@rdf:nodeID][$ac:forClass][not(rdf:type/@rdf:resource = ($ac:forClass, '&sioc;Item', '&sioc;Item'))]" mode="bs2:RowForm" priority="2"/>
+    <xsl:template match="*[@rdf:nodeID][$ac:forClass][not(rdf:type/@rdf:resource = ($ac:forClass, '&dh;Item', '&dh;Item'))]" mode="bs2:RowForm" priority="2"/>
 
     <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:RowForm">
         <xsl:param name="id" select="generate-id()" as="xs:string?"/>

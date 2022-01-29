@@ -106,6 +106,7 @@ args+=("$cert_password")
 args+=("-t")
 args+=("text/turtle") # content type
 
+turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy#> .\n"
 turtle+="@prefix owl:	<http://www.w3.org/2002/07/owl#> .\n"
 turtle+="@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
@@ -114,7 +115,7 @@ turtle+="@prefix sp:	<http://spinrdf.org/sp#> .\n"
 turtle+="@prefix sioc:	<http://rdfs.org/sioc/ns#> .\n"
 turtle+="${ontology} a owl:Ontology .\n"
 turtle+="${ontology} rdfs:label \"${label}\" .\n"
-turtle+="_:item a sioc:Item .\n"
+turtle+="_:item a dh:Item .\n"
 turtle+="_:item foaf:primaryTopic ${ontology} .\n"
 turtle+="_:item sioc:has_container <${container}> .\n"
 turtle+="_:item dct:title \"${label}\" .\n"
@@ -123,7 +124,6 @@ if [ -n "$comment" ] ; then
     turtle+="${ontology} rdfs:comment \"${comment}\" .\n"
 fi
 if [ -n "$slug" ] ; then
-    turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .\n"
     turtle+="_:item dh:slug \"${slug}\" .\n"
 fi
 

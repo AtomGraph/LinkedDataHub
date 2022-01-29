@@ -121,6 +121,7 @@ args+=("$cert_password")
 args+=("-t")
 args+=("text/turtle") # content type
 
+turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy#> .\n"
 turtle+="@prefix ldh:	<https://w3id.org/atomgraph/linkeddatahub#> .\n"
 turtle+="@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
@@ -130,7 +131,7 @@ turtle+="@prefix sioc:	<http://rdfs.org/sioc/ns#> .\n"
 turtle+="${constraint} a ldh:MissingPropertyValue .\n"
 turtle+="${constraint} rdfs:label \"${label}\" .\n"
 turtle+="${constraint} sp:arg1 <${property}> .\n"
-turtle+="_:item a sioc:Item .\n"
+turtle+="_:item a dh:Item .\n"
 turtle+="_:item foaf:primaryTopic ${constraint} .\n"
 turtle+="_:item sioc:has_container <${container}> .\n"
 turtle+="_:item dct:title \"${label}\" .\n"
@@ -139,7 +140,6 @@ if [ -n "$comment" ] ; then
     turtle+="${constraint} rdfs:comment \"${comment}\" .\n"
 fi
 if [ -n "$slug" ] ; then
-    turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .\n"
     turtle+="_:item dh:slug \"${slug}\" .\n"
 fi
 

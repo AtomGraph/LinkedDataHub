@@ -18,8 +18,8 @@ curl -w "%{http_code}\n" -o /dev/null -k -s \
   --data-urlencode "ou=${END_USER_BASE_URL}sparql" \
   --data-urlencode "pu=https://w3id.org/atomgraph/linkeddatahub/admin/acl#requestAccessToClass" \
   --data-urlencode "ou=https://w3id.org/atomgraph/linkeddatahub/default#Root" \
-  --data-urlencode "ou=http://rdfs.org/sioc/ns#Container" \
-  --data-urlencode "ou=http://rdfs.org/sioc/ns#Item" \
+  --data-urlencode "ou=https://www.w3.org/ns/ldt/document-hierarchy#Container" \
+  --data-urlencode "ou=https://www.w3.org/ns/ldt/document-hierarchy#Item" \
   --data-urlencode "ou=http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#FileDataObject" \
   --data-urlencode "pu=https://w3id.org/atomgraph/linkeddatahub/admin/acl#requestMode" \
   --data-urlencode "ou=http://www.w3.org/ns/auth/acl#Read" \
@@ -30,7 +30,7 @@ curl -w "%{http_code}\n" -o /dev/null -k -s \
   --data-urlencode "ou=${AGENT_URI}" \
   --data-urlencode "sb=request-item" \
   --data-urlencode "pu=http://www.w3.org/1999/02/22-rdf-syntax-ns#type" \
-  --data-urlencode "ou=http://rdfs.org/sioc/ns#Item" \
+  --data-urlencode "ou=https://www.w3.org/ns/ldt/document-hierarchy#Item" \
   --data-urlencode "pu=http://rdfs.org/sioc/ns#has_container" \
   --data-urlencode "ou=${ADMIN_BASE_URL}acl/authorization-requests/" \
   --data-urlencode "pu=http://xmlns.com/foaf/0.1/primaryTopic" \

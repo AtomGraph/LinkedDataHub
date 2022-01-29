@@ -8,7 +8,7 @@
     <!ENTITY rdfs       "http://www.w3.org/2000/01/rdf-schema#">
     <!ENTITY xsd        "http://www.w3.org/2001/XMLSchema#">
     <!ENTITY ldt        "https://www.w3.org/ns/ldt#">
-    <!ENTITY dh         "https://www.w3.org/ns/ldt/document-hierarchy/domain#">
+    <!ENTITY dh         "https://www.w3.org/ns/ldt/document-hierarchy#">
     <!ENTITY sd         "http://www.w3.org/ns/sparql-service-description#">
     <!ENTITY dct        "http://purl.org/dc/terms/">
 ]>

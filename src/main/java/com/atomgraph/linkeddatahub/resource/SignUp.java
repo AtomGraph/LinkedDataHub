@@ -350,7 +350,7 @@ public class SignUp extends GraphStoreImpl
     public Resource createPublicKey(Model model, URI graphURI, Resource container, RSAPublicKey publicKey)
     {
         Resource item = model.createResource(graphURI.toString()).
-            addProperty(RDF.type, SIOC.ITEM).
+            addProperty(RDF.type, DH.Item).
             addProperty(SIOC.HAS_CONTAINER, container).
             addLiteral(DH.slug, UUID.randomUUID().toString());
         
@@ -367,7 +367,7 @@ public class SignUp extends GraphStoreImpl
     public Resource createAuthorization(Model model, URI graphURI, Resource container, URI agentGraphURI, URI publicKeyURI)
     {
         Resource item = model.createResource(graphURI.toString()).
-            addProperty(RDF.type, SIOC.ITEM).
+            addProperty(RDF.type, DH.Item).
             addProperty(SIOC.HAS_CONTAINER, container).
             addLiteral(DH.slug, UUID.randomUUID().toString());
         

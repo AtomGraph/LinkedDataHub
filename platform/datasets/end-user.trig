@@ -2,6 +2,7 @@
 @prefix ldh:	<https://w3id.org/atomgraph/linkeddatahub#> .
 @prefix rdf:	<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix xsd:	<http://www.w3.org/2001/XMLSchema#> .
+@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy#> .
 @prefix sp:	<http://spinrdf.org/sp#> .
 @prefix dct:	<http://purl.org/dc/terms/> .
 @prefix sioc:	<http://rdfs.org/sioc/ns#> .
@@ -21,7 +22,7 @@
 <queries/>
 {
 
-    <queries/> a sioc:Container ;
+    <queries/> a dh:Container ;
         dct:title "Queries" ;
         dct:description "SPARQL queries" .
 
@@ -30,7 +31,7 @@
 <queries/default/>
 {
 
-    <queries/default/> a sioc:Container ;
+    <queries/default/> a dh:Container ;
         sioc:has_parent <queries/> ;
         dct:title "Default" ;
         dct:description "Default queries" .
@@ -40,7 +41,7 @@
 <files/>
 {
 
-    <files/> a sioc:Container ;
+    <files/> a dh:Container ;
         dct:title "Files" ;
         dct:description "Uploaded files" .
 
@@ -49,7 +50,7 @@
 <imports/>
 {
 
-    <imports/> a sioc:Container ;
+    <imports/> a dh:Container ;
         dct:title "Imports" ;
         dct:description "Data imports" .
 
@@ -58,7 +59,7 @@
 <geo/>
 {
 
-    <geo/> a sioc:Item ;
+    <geo/> a dh:Item ;
         dct:title "Geo" ;
         dct:description "Geolocated resources" ;
         ldh:content <geo/#id31036be3-4fb4-493b-bc2d-3ab98693acc9> .
@@ -92,7 +93,7 @@
 <latest/>
 {
 
-    <latest/> a sioc:Item ;
+    <latest/> a dh:Item ;
         dct:title "Latest" ;
         dct:description "Latest resources" ;
         ldh:content <latest/#id17e6a62e-d319-44e7-b4ac-f38e29d461e7> .
@@ -119,7 +120,7 @@
 <charts/>
 {
 
-    <charts/> a sioc:Container ;
+    <charts/> a dh:Container ;
         dct:title "Charts" ;
         dct:description "Saved charts" .
 
@@ -129,7 +130,7 @@
 <apps/>
 {
 
-    <apps/> a sioc:Container ;
+    <apps/> a dh:Container ;
         dct:title "Apps" ;
         dct:description "Linked Data applications" .
 
@@ -138,7 +139,7 @@
 <services/>
 {
 
-    <services/> a sioc:Container ;
+    <services/> a dh:Container ;
         dct:title "Services" ;
         dct:description "SPARQL services" .
 

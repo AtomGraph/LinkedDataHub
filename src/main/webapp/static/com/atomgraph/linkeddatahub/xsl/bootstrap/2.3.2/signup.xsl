@@ -14,7 +14,7 @@
     <!ENTITY cert   "http://www.w3.org/ns/auth/cert#">
     <!ENTITY ldt    "https://www.w3.org/ns/ldt#">
     <!ENTITY c      "https://www.w3.org/ns/ldt/core/domain#">
-    <!ENTITY dh     "https://www.w3.org/ns/ldt/document-hierarchy/domain#">
+    <!ENTITY dh     "https://www.w3.org/ns/ldt/document-hierarchy#">
     <!ENTITY dct    "http://purl.org/dc/terms/">
     <!ENTITY foaf   "http://xmlns.com/foaf/0.1/">
     <!ENTITY sioc   "http://rdfs.org/sioc/ns#">
@@ -106,7 +106,7 @@ exclude-result-prefixes="#all">
     <xsl:template match="*[*][@rdf:about or @rdf:nodeID][ac:uri() = resolve-uri('sign%20up', $ldt:base)]" mode="bs2:Right"/>
 
     <!-- hide object blank nodes (that only have a single rdf:type property) from constructed models -->
-    <xsl:template match="rdf:Description[$ac:method = 'GET'][@rdf:nodeID][not(rdf:type/@rdf:resource = ('&foaf;Person', '&sioc;Item'))][ac:uri() = resolve-uri('sign%20up', $ldt:base)]" mode="bs2:RowForm" priority="3"/>
+    <xsl:template match="rdf:Description[$ac:method = 'GET'][@rdf:nodeID][not(rdf:type/@rdf:resource = ('&foaf;Person', '&dh;Item'))][ac:uri() = resolve-uri('sign%20up', $ldt:base)]" mode="bs2:RowForm" priority="3"/>
 
     <xsl:template match="*[*][@rdf:about or @rdf:nodeID][ac:uri() = resolve-uri('sign%20up', $ldt:base)]" mode="bs2:FormControl" priority="1">
         <xsl:next-match>

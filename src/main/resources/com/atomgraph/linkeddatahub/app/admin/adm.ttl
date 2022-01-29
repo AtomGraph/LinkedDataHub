@@ -9,7 +9,7 @@
 @prefix acl:	<http://www.w3.org/ns/auth/acl#> .
 @prefix cert:	<http://www.w3.org/ns/auth/cert#> .
 @prefix ldt:	<https://www.w3.org/ns/ldt#> .
-@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .
+@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy#> .
 @prefix sp:	<http://spinrdf.org/sp#> .
 @prefix spin:	<http://spinrdf.org/spin#> .
 @prefix sioc:	<http://rdfs.org/sioc/ns#> .
@@ -28,10 +28,10 @@
 
 # http://rdfs.org/sioc/ns
 
-sioc:Container spin:constructor :DocumentConstructor ;
+dh:Container spin:constructor :DocumentConstructor ;
     ldh:template def:ContainerChildren .
 
-sioc:Item spin:constructor :DocumentConstructor .
+dh:Item spin:constructor :DocumentConstructor .
 
 :DocumentConstructor a sp:Construct ;
     sp:text """

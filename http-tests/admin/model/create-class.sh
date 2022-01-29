@@ -20,7 +20,7 @@ class="${ontology_doc}#NewClass"
 --uri "$class" \
 --label "New class" \
 --slug new-class \
---sub-class-of "http://rdfs.org/sioc/ns#Item" \
+--sub-class-of "https://www.w3.org/ns/ldt/document-hierarchy#Item" \
 "$ontology_doc"
 
 popd > /dev/null

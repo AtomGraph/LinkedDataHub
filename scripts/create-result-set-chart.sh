@@ -133,6 +133,7 @@ args+=("${cert_password}")
 args+=("-t")
 args+=("text/turtle") # content type
 
+turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy#> .\n"
 turtle+="@prefix def:	<https://w3id.org/atomgraph/linkeddatahub/default#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
 turtle+="@prefix foaf:	<http://xmlns.com/foaf/0.1/> .\n"
@@ -145,7 +146,7 @@ turtle+="_:chart spin:query <${query}> .\n"
 turtle+="_:chart ldh:chartType <${chart_type}> .\n"
 turtle+="_:chart ldh:categoryVarName \"${category_var_name}\" .\n"
 turtle+="_:chart ldh:seriesVarName \"${series_var_name}\" .\n"
-turtle+="_:item a sioc:Item .\n"
+turtle+="_:item a dh:Item .\n"
 turtle+="_:item dct:title \"${title}\" .\n"
 turtle+="_:item foaf:primaryTopic _:chart .\n"
 turtle+="_:item sioc:has_container <${container}> .\n"
@@ -154,7 +155,6 @@ if [ -n "$description" ] ; then
     turtle+="_:chart dct:description \"${description}\" .\n"
 fi
 if [ -n "$slug" ] ; then
-    turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .\n"
     turtle+="_:item dh:slug \"${slug}\" .\n"
 fi
 

@@ -13,7 +13,7 @@
     <!ENTITY srx    "http://www.w3.org/2005/sparql-results#">
     <!ENTITY http   "http://www.w3.org/2011/http#">
     <!ENTITY ldt    "https://www.w3.org/ns/ldt#">
-    <!ENTITY dh     "https://www.w3.org/ns/ldt/document-hierarchy/domain#">
+    <!ENTITY dh     "https://www.w3.org/ns/ldt/document-hierarchy#">
     <!ENTITY sp     "http://spinrdf.org/sp#">
     <!ENTITY spin   "http://spinrdf.org/spin#">
     <!ENTITY dct    "http://purl.org/dc/terms/">

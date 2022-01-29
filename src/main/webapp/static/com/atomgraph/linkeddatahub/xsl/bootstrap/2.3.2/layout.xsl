@@ -23,7 +23,7 @@
     <!ENTITY ldt    "https://www.w3.org/ns/ldt#">
     <!ENTITY c      "https://www.w3.org/ns/ldt/core/domain#">
     <!ENTITY ct     "https://www.w3.org/ns/ldt/core/templates#">
-    <!ENTITY dh     "https://www.w3.org/ns/ldt/document-hierarchy/domain#">
+    <!ENTITY dh     "https://www.w3.org/ns/ldt/document-hierarchy#">
     <!ENTITY dct    "http://purl.org/dc/terms/">
     <!ENTITY foaf   "http://xmlns.com/foaf/0.1/">
     <!ENTITY sioc   "http://rdfs.org/sioc/ns#">

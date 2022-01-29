@@ -104,6 +104,7 @@ args+=("${cert_password}")
 args+=("-t")
 args+=("text/turtle") # content type
 
+turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy#> .\n"
 turtle+="@prefix rdf:	<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
 turtle+="@prefix ldh:	<https://w3id.org/atomgraph/linkeddatahub#> .\n"
@@ -119,7 +120,6 @@ if [ -n "$title" ] ; then
     turtle+="${content} dct:title \"${title}\" .\n"
 fi
 if [ -n "$slug" ] ; then
-    turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .\n"
     turtle+="${content} dh:slug \"${slug}\" .\n"
 fi
 

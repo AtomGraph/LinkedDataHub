@@ -6,6 +6,7 @@
 @prefix rdf:	<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .
 @prefix owl:	<http://www.w3.org/2002/07/owl#> .
+@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy#> .
 @prefix sp:	<http://spinrdf.org/sp#> .
 @prefix spin:	<http://spinrdf.org/spin#> .
 @prefix sioc:	<http://rdfs.org/sioc/ns#> .
@@ -15,10 +16,10 @@
 : a owl:Ontology ;
     rdfs:label "Default" ;
     rdfs:comment "Default document model" ;
-    owl:imports ldh:, lapp:, sioc:, sp: ;
+    owl:imports ldh:, lapp:, dh:, sp: ;
     owl:versionInfo "1.0-SNAPSHOT" .
 
-:Root rdfs:subClassOf sioc:Container ;
+:Root rdfs:subClassOf dh:Container ;
     spin:constructor :DocumentConstructor, :TitleConstructor, :DescriptionConstructor, :PrimaryTopicConstructor, :ContentConstructor ;
     spin:constraint :MissingTitle ; # roots do not have parents, therefore no :MissingParent
     ldh:template :ContainerChildren ;
@@ -120,17 +121,18 @@ WHERE
 
 ### EXTERNAL ASSERTIONS
 
-# http://rdfs.org/sioc/ns
+# https://www.w3.org/ns/ldt/document-hierarchy
 
-sioc:Item spin:constructor :DocumentConstructor, :ItemConstructor, :TitleConstructor, :DescriptionConstructor, :PrimaryTopicConstructor, :ContentConstructor ;
+dh:Item spin:constructor :DocumentConstructor, :ItemConstructor, :TitleConstructor, :DescriptionConstructor, :PrimaryTopicConstructor, :ContentConstructor ;
     spin:constraint :MissingContainer, :MissingTitle .
 
 :ItemConstructor a sp:Construct ;
   sp:text """
       PREFIX sioc:    <http://rdfs.org/sioc/ns#>
+      PREFIX dh:      <https://www.w3.org/ns/ldt/document-hierarchy#>
 
       CONSTRUCT {
-        ?this sioc:has_container [ a sioc:Container ] .
+        ?this sioc:has_container [ a dh:Container ] .
       }
       WHERE {}""" ;
     rdfs:label "Container constructor" ;
@@ -142,16 +144,17 @@ sioc:Item spin:constructor :DocumentConstructor, :ItemConstructor, :TitleConstru
     sp:arg1 sioc:has_container ;
     rdfs:isDefinedBy : .
 
-sioc:Container spin:constructor :DocumentConstructor, :ContainerConstructor, :TitleConstructor, :DescriptionConstructor, :PrimaryTopicConstructor, :ContentConstructor ;
+dh:Container spin:constructor :DocumentConstructor, :ContainerConstructor, :TitleConstructor, :DescriptionConstructor, :PrimaryTopicConstructor, :ContentConstructor ;
     spin:constraint :MissingParent, :MissingTitle ;
     ldh:template :ContainerChildren .
 
 :ContainerConstructor a sp:Construct ;
   sp:text """
       PREFIX sioc:    <http://rdfs.org/sioc/ns#>
+      PREFIX dh:      <https://www.w3.org/ns/ldt/document-hierarchy#>
 
       CONSTRUCT {
-        ?this sioc:has_parent [ a sioc:Container ] .
+        ?this sioc:has_parent [ a dh:Container ] .
       }
       WHERE {}""" ;
     rdfs:label "Container constructor" ;

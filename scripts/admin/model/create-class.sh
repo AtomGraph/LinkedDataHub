@@ -141,6 +141,7 @@ args+=("$cert_password")
 args+=("-t")
 args+=("text/turtle") # content type
 
+turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy#> .\n"
 turtle+="@prefix owl:	<http://www.w3.org/2002/07/owl#> .\n"
 turtle+="@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .\n"
 turtle+="@prefix ldt:	<https://www.w3.org/ns/ldt#> .\n"
@@ -150,7 +151,7 @@ turtle+="@prefix spin:	<http://spinrdf.org/spin#> .\n"
 turtle+="@prefix sioc:	<http://rdfs.org/sioc/ns#> .\n"
 turtle+="${class} a owl:Class .\n"
 turtle+="${class} rdfs:label \"${label}\" .\n"
-turtle+="_:item a sioc:Item .\n"
+turtle+="_:item a dh:Item .\n"
 turtle+="_:item foaf:primaryTopic ${class} .\n"
 turtle+="_:item sioc:has_container <${container}> .\n"
 turtle+="_:item dct:title \"${label}\" .\n"
@@ -159,7 +160,6 @@ if [ -n "$comment" ] ; then
     turtle+="${class} rdfs:comment \"${comment}\" .\n"
 fi
 if [ -n "$slug" ] ; then
-    turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .\n"
     turtle+="_:item dh:slug \"${slug}\" .\n"
 fi
 if [ -n "$constructor" ] ; then

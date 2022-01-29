@@ -154,7 +154,7 @@ if [ -n "$description" ] ; then
 fi
 if [ -n "$file_slug" ] ; then
     rdf_post+="-F \"sb=file\"\n"
-    rdf_post+="-F \"pu=https://www.w3.org/ns/ldt/document-hierarchy/domain#slug\"\n"
+    rdf_post+="-F \"pu=https://www.w3.org/ns/ldt/document-hierarchy#slug\"\n"
     rdf_post+="-F \"ol=${file_slug}\"\n"
 
 fi

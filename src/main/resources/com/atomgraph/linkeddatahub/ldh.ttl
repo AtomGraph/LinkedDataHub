@@ -27,13 +27,13 @@
 # PROPERTIES
 
 :count a owl:DatatypeProperty ;
-    rdfs:domain sioc:Container ;
+    rdfs:domain dh:Container ;
     rdfs:range xsd:integer ;
     rdfs:label "Children count" ;
     rdfs:isDefinedBy : .
 
 :action a owl:ObjectProperty ;
-    rdfs:range sioc:Container ;
+    rdfs:range dh:Container ;
     rdfs:label "Target container" ;
     rdfs:isDefinedBy : .
 
@@ -138,9 +138,10 @@
         PREFIX sioc:  <http://rdfs.org/sioc/ns#>
         PREFIX sd:    <http://www.w3.org/ns/sparql-service-description#>
         PREFIX nfo:   <http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#>
+        PREFIX dh:      <https://www.w3.org/ns/ldt/document-hierarchy#>
 
         CONSTRUCT {
-            ?this :action [ a sioc:Container ] ;
+            ?this :action [ a dh:Container ] ;
                 sd:name [ a rdfs:Resource ] ;
                 :file [ a nfo:FileDataObject ] .
         }
@@ -203,9 +204,10 @@
       PREFIX :      <https://w3id.org/atomgraph/linkeddatahub#>
       PREFIX rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
       PREFIX spin:  <http://spinrdf.org/spin#>
+      PREFIX sp:    <http://spinrdf.org/sp#>
 
       CONSTRUCT {
-          ?this spin:query [ a :Query ] ; # really a union of :Describe and :Construct
+          ?this spin:query [ a sp:Query ] ; # really a union of :Describe and :Construct
             :categoryProperty [ a rdf:Property ] ;
             :seriesProperty [ a rdf:Property ] .
       }

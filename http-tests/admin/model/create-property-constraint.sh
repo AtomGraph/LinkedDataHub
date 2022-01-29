@@ -33,7 +33,7 @@ constraint="${ontology_doc}#NewConstraint"
 --label "Constrained class" \
 --slug constrained-class \
 --constraint "$constraint" \
---sub-class-of "http://rdfs.org/sioc/ns#Item" \
+--sub-class-of "https://www.w3.org/ns/ldt/document-hierarchy#Item" \
 "$ontology_doc"
 
 popd > /dev/null

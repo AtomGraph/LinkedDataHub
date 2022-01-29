@@ -6,7 +6,7 @@
    [ lm:name "http://www.w3.org/2011/http-statusCodes#" ;                       lm:altName "com/atomgraph/processor/http-statusCodes.rdf" ] ,
    [ lm:name "https://www.w3.org/ns/ldt#" ;                                     lm:altName "com/atomgraph/processor/ldt.ttl" ] ,
    [ lm:name "https://www.w3.org/ns/ldt/core/domain#" ;                         lm:altName "com/atomgraph/processor/c.ttl" ] ,
-   [ lm:name "https://www.w3.org/ns/ldt/document-hierarchy/domain#" ;           lm:altName "com/atomgraph/processor/dh.ttl" ] ,
+   [ lm:name "https://www.w3.org/ns/ldt/document-hierarchy#" ;                  lm:altName "com/atomgraph/processor/dh.ttl" ] ,
    [ lm:name "http://www.w3.org/ns/sparql-service-description#" ;               lm:altName "com/atomgraph/processor/sparql-service.owl" ] ,
    [ lm:name "http://rdfs.org/sioc/ns#" ;                                       lm:altName "com/atomgraph/processor/sioc.owl" ] ,
    [ lm:name "http://rdfs.org/ns/void#" ;                                       lm:altName "com/atomgraph/processor/void.owl" ] ,
