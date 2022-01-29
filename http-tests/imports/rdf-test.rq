@@ -1,5 +1,4 @@
-PREFIX def:   <https://w3id.org/atomgraph/linkeddatahub/default#>
-PREFIX dh:    <https://www.w3.org/ns/ldt/document-hierarchy/domain#>
+PREFIX dh:    <https://www.w3.org/ns/ldt/document-hierarchy#>
 PREFIX sioc:  <http://rdfs.org/sioc/ns#>
 PREFIX foaf:  <http://xmlns.com/foaf/0.1/>
 PREFIX skos:  <http://www.w3.org/2004/02/skos/core#>
@@ -10,7 +9,7 @@ CONSTRUCT
     GRAPH ?item
     {
         ?concept ?p ?o .
-        ?item a def:Item ;
+        ?item a dh:Item ;
             foaf:primaryTopic ?concept ;
             sioc:has_container ?this ;
             dh:slug ?id ;
