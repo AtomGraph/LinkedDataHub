@@ -10,7 +10,7 @@
     <!ENTITY owl    "http://www.w3.org/2002/07/owl#">
     <!ENTITY acl    "http://www.w3.org/ns/auth/acl#">
     <!ENTITY ldt    "https://www.w3.org/ns/ldt#">
-    <!ENTITY c      "https://www.w3.org/ns/ldt/core/domain#"> 
+    <!ENTITY dh     "https://www.w3.org/ns/ldt/document-hierarchy#">
     <!ENTITY prov   "http://www.w3.org/ns/prov#">
     <!ENTITY foaf   "http://xmlns.com/foaf/0.1/">
     <!ENTITY sioc   "http://rdfs.org/sioc/ns#">
@@ -29,7 +29,7 @@ xmlns:rdfs="&rdfs;"
 xmlns:owl="&owl;"
 xmlns:acl="&acl;"
 xmlns:ldt="&ldt;"
-xmlns:core="&c;"
+xmlns:dh="&dh;"
 xmlns:foaf="&foaf;"
 xmlns:sioc="&sioc;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
