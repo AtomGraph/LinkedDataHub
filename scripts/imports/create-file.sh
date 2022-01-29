@@ -111,8 +111,6 @@ if [ -z "$file_content_type" ] ; then
     exit 1
 fi
 
-ns="https://w3id.org/atomgraph/linkeddatahub/default#"
-class="${ns}File"
 container="${base}files/"
 
 if [ -z "$1" ]; then
@@ -136,12 +134,12 @@ rdf_post+="-F \"ol=@${file};type=${file_content_type}\"\n"
 rdf_post+="-F \"pu=http://purl.org/dc/terms/title\"\n"
 rdf_post+="-F \"ol=${title}\"\n"
 rdf_post+="-F \"pu=http://www.w3.org/1999/02/22-rdf-syntax-ns#type\"\n"
-rdf_post+="-F \"ou=${class}\"\n"
+rdf_post+="-F \"ou=http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#FileDataObject\"\n"
 rdf_post+="-F \"sb=item\"\n"
 rdf_post+="-F \"pu=http://purl.org/dc/terms/title\"\n"
 rdf_post+="-F \"ol=${title}\"\n"
 rdf_post+="-F \"pu=http://www.w3.org/1999/02/22-rdf-syntax-ns#type\"\n"
-rdf_post+="-F \"ou=${ns}Item\"\n"
+rdf_post+="-F \"ou=https://www.w3.org/ns/ldt/document-hierarchy#Item\"\n"
 rdf_post+="-F \"pu=http://xmlns.com/foaf/0.1/primaryTopic\"\n"
 rdf_post+="-F \"ob=file\"\n"
 rdf_post+="-F \"pu=http://rdfs.org/sioc/ns#has_container\"\n"

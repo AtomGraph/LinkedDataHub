@@ -1,5 +1,4 @@
 @prefix ns:	<model/ontologies/namespace/#> .
-@prefix adm:	<https://w3id.org/atomgraph/linkeddatahub/admin#> .
 @prefix lacl:	<https://w3id.org/atomgraph/linkeddatahub/admin/acl#> .
 @prefix def:	<https://w3id.org/atomgraph/linkeddatahub/default#> .
 @prefix ldh:	<https://w3id.org/atomgraph/linkeddatahub#> .

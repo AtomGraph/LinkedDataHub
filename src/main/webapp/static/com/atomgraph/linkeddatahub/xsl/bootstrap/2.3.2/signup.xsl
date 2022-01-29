@@ -99,7 +99,7 @@ exclude-result-prefixes="#all">
         <xsl:apply-templates select="key('resources-by-type', '&cert;PublicKey')[@rdf:about]" mode="#current"/>
     </xsl:template>
     
-    <!-- suppress resources other than adm:Person and adm:PublicKey -->
+    <!-- suppress resources other than foaf:Person and cert:PublicKey -->
     <xsl:template match="*[ac:uri() = resolve-uri('sign%20up', $ldt:base)][$ac:method = 'POST'][not(key('resources-by-type', '&http;Response'))][not(rdf:type/@rdf:resource = ('&foaf;Person', '&cert;PublicKey'))]" mode="bs2:RowBlock" priority="2"/>
 
     <!-- disable the right nav (backlinks etc.) -->

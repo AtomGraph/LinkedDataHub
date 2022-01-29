@@ -113,10 +113,3 @@
     rdfs:label "Creator access" ;
     rdfs:comment "Creators have full control of their created resources" ;
     rdfs:isDefinedBy : .
-
-# CONSTRAINTS
-
-:MissingRDFSLabel a ldh:MissingPropertyValue ;
-    rdfs:label "Missing rdfs:label" ;
-    sp:arg1 rdfs:label ;
-    rdfs:isDefinedBy : .
