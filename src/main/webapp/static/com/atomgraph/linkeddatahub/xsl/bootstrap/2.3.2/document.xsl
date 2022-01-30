@@ -577,12 +577,13 @@ extension-element-prefixes="ixsl"
             <xsl:if test="$create-resource">
                 <div class="create-resource row-fluid">
                     <div class="offset2 span7">
-                        <xsl:apply-templates select="." mode="bs2:Create">
+<!--                        <xsl:apply-templates select="." mode="bs2:Create">
                             <xsl:with-param name="classes" select="$classes"/>
                             <xsl:with-param name="default-classes" select="$default-classes"/>
                             <xsl:with-param name="show-document-classes" select="false()"/>
-                        </xsl:apply-templates>
-
+                        </xsl:apply-templates>-->
+                        <button class="btn btn-primary add-constructor create-action">Create</button>
+                        
                         <!-- separate "Create" button only for Content -->
                         <a href="{ac:build-uri(ac:uri(), map{ 'forClass': '&ldh;Content' })}" class="btn btn-primary add-constructor create-action">
                             <xsl:value-of>

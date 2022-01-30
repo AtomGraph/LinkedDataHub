@@ -230,8 +230,7 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
     
-    <!-- a.add-constructor with forClass type -->
-    <xsl:template match="a[contains-token(@class, 'add-constructor')][input[@class = 'forClass']/@value]" mode="ixsl:onclick" priority="2">
+    <xsl:template match="a[contains-token(@class, 'add-constructor')]" mode="ixsl:onclick" priority="1">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="form" select="ancestor::form" as="element()?"/>
         <xsl:variable name="bnode-ids" select="distinct-values($form//input[@name = ('sb', 'ob')]/ixsl:get(., 'value'))" as="xs:string*"/>
@@ -266,8 +265,7 @@ exclude-result-prefixes="#all"
         </xsl:call-template>
     </xsl:template>
     
-    <!-- a.add-constructor without forClass type - add empty resource -->
-    <xsl:template match="a[contains-token(@class, 'add-constructor')]" mode="ixsl:onclick" priority="1">
+    <xsl:template match="button[contains-token(@class, 'add-constructor')]" mode="ixsl:onclick" priority="1">
         <xsl:variable name="container" select="id('content-body', ixsl:page())" as="element()"/>
         
         <!--<ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>-->
