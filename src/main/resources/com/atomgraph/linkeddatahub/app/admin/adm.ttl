@@ -57,7 +57,7 @@ dh:Item spin:constructor :DocumentConstructor .
 
 # http://spinrdf.org/sp
 
-sp:Query spin:constraint :MissingRDFSLabel .
+# sp:Query spin:constraint :MissingRDFSLabel .
 
 # http://www.w3.org/2002/07/owl
 
