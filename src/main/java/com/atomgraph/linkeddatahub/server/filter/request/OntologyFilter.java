@@ -18,9 +18,7 @@ package com.atomgraph.linkeddatahub.server.filter.request;
 
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.core.io.ModelProvider;
-import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
 import com.atomgraph.linkeddatahub.apps.model.Application;
-import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.vocabulary.LAPP;
 import com.atomgraph.processor.exception.OntologyException;
 import com.atomgraph.client.vocabulary.LDT;
@@ -35,7 +33,6 @@ import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.container.PreMatching;
 import javax.ws.rs.core.Response;
-import org.apache.jena.ontology.OntModel;
 import org.apache.jena.ontology.OntModelSpec;
 import org.apache.jena.ontology.Ontology;
 import org.apache.jena.rdf.model.InfModel;
@@ -165,25 +162,14 @@ public class OntologyFilter implements ContainerRequestFilter
     public Ontology getOntology(Application app)
     {
         if (app.getPropertyResourceValue(LDT.ontology) == null) return null;
-        
-        final OntModel schema;
-        
-        if (app.canAs(EndUserApplication.class)) // load admin ontology since end-user ontology imports it
-        {
-            AdminApplication adminApp = app.as(EndUserApplication.class).getAdminApplication();
-            schema = getOntology(adminApp).getOntModel();
-        }
-        else
-            schema = null;
 
-        return getOntology(app, app.getPropertyResourceValue(LDT.ontology).getURI(), getSystem().getOntModelSpec(), schema);
+        return getOntology(app, app.getPropertyResourceValue(LDT.ontology).getURI(), getSystem().getOntModelSpec());
     }
     
-    public Ontology getOntology(Application app, String uri, OntModelSpec ontModelSpec, OntModel schema)
+    public Ontology getOntology(Application app, String uri, OntModelSpec ontModelSpec)
     {
         if (app == null) throw new IllegalArgumentException("Application string cannot be null");
         if (uri == null) throw new IllegalArgumentException("Ontology URI string cannot be null");
-        if (ontModelSpec == null) throw new IllegalArgumentException("OntModelSpec cannot be null");
 
         // only create InfModel if ontology is not already cached
         if (!ontModelSpec.getDocumentManager().getFileManager().hasCachedModel(uri))
@@ -191,9 +177,7 @@ public class OntologyFilter implements ContainerRequestFilter
             ModelGetter modelGetter = new ModelGetter(app, ontModelSpec);
             Model model = modelGetter.getModel(uri);
 
-            final InfModel infModel;
-            if (schema != null) infModel = ModelFactory.createInfModel(ontModelSpec.getReasoner(), schema, model);
-            else infModel = ModelFactory.createInfModel(ontModelSpec.getReasoner(), model);
+            final InfModel infModel = ModelFactory.createInfModel(ontModelSpec.getReasoner(), model);
 
             ontModelSpec.getDocumentManager().addModel(uri, infModel);
             ontModelSpec.setImportModelGetter(modelGetter);

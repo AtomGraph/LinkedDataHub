@@ -334,7 +334,7 @@ extension-element-prefixes="ixsl"
     <!-- BLOCK ROW -->
     
     <!-- mark query instances as .resource-content which is then rendered by client.xsl -->
-    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = ('&def;Select', '&sp;Select')][sp:text]" mode="bs2:RowBlock" priority="1">
+    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&sp;Select'][sp:text]" mode="bs2:RowBlock" priority="1">
         <xsl:param name="content-uri" select="@rdf:about" as="xs:anyURI"/>
 
         <xsl:next-match>
@@ -384,7 +384,7 @@ extension-element-prefixes="ixsl"
     </xsl:template>
     
     <!-- hide the current document resource -->
-    <xsl:template match="*[rdf:type/@rdf:resource = ('&def;Root', '&dh;Container', '&dh;Item', '&dh;Container', '&dh;Item')]" mode="bs2:RowBlock" priority="1"/>
+    <xsl:template match="*[rdf:type/@rdf:resource = ('&def;Root', '&dh;Container', '&dh;Item')]" mode="bs2:RowBlock" priority="1"/>
 
     <!-- hide Content resources -->
     <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;Content']" mode="bs2:RowBlock" priority="2"/>
