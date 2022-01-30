@@ -582,7 +582,7 @@ extension-element-prefixes="ixsl"
                             <xsl:with-param name="default-classes" select="$default-classes"/>
                             <xsl:with-param name="show-document-classes" select="false()"/>
                         </xsl:apply-templates>-->
-                        <button class="btn btn-primary add-constructor create-action">Create</button>
+                        <button type="button" class="btn btn-primary add-constructor create-action">Create</button>
                         
                         <!-- separate "Create" button only for Content -->
                         <a href="{ac:build-uri(ac:uri(), map{ 'forClass': '&ldh;Content' })}" class="btn btn-primary add-constructor create-action">
