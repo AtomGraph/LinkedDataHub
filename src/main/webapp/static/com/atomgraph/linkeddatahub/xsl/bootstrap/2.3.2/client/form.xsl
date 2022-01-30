@@ -7,6 +7,7 @@
     <!ENTITY rdf        "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
     <!ENTITY rdfs       "http://www.w3.org/2000/01/rdf-schema#">
     <!ENTITY xsd        "http://www.w3.org/2001/XMLSchema#">
+    <!ENTITY owl        "http://www.w3.org/2002/07/owl#">
     <!ENTITY ldt        "https://www.w3.org/ns/ldt#">
     <!ENTITY dh         "https://www.w3.org/ns/ldt/document-hierarchy#">
     <!ENTITY sd         "http://www.w3.org/ns/sparql-service-description#">
@@ -228,8 +229,9 @@ exclude-result-prefixes="#all"
         </xsl:variable>
         <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
-
-    <xsl:template match="a[contains-token(@class, 'add-constructor')]" mode="ixsl:onclick" priority="1">
+    
+    <!-- a.add-constructor with forClass type -->
+    <xsl:template match="a[contains-token(@class, 'add-constructor')][input[@class = 'forClass']/@value]" mode="ixsl:onclick" priority="2">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="form" select="ancestor::form" as="element()?"/>
         <xsl:variable name="bnode-ids" select="distinct-values($form//input[@name = ('sb', 'ob')]/ixsl:get(., 'value'))" as="xs:string*"/>
@@ -264,6 +266,29 @@ exclude-result-prefixes="#all"
         </xsl:call-template>
     </xsl:template>
     
+    <!-- a.add-constructor without forClass type - add empty resource -->
+    <xsl:template match="a[contains-token(@class, 'add-constructor')]" mode="ixsl:onclick" priority="1">
+        <xsl:variable name="container" select="id('content-body', ixsl:page())" as="element()"/>
+        
+        <!--<ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>-->
+
+        <xsl:variable name="constructor" as="document-node()">
+            <xsl:document>
+                <rdf:RDF>
+                    <rdf:Description rdf:nodeID="A1">
+                        <rdf:type rdf:resource="&owl;Thing"/>
+                    </rdf:Description>
+                </rdf:RDF>
+            </xsl:document>
+        </xsl:variable>
+        
+        <xsl:for-each select="$container">
+            <xsl:result-document href="?." method="ixsl:append-content">
+                <xsl:apply-templates select="key('resources', 'A1', $constructor)" mode="bs2:RowForm"/>
+            </xsl:result-document>
+        </xsl:for-each>
+    </xsl:template>
+
     <!-- toggle between Content as URI resource and HTML (rdf:XMLLiteral) -->
     <xsl:template match="select[contains-token(@class, 'content-type')]" mode="ixsl:onchange">
         <xsl:variable name="content-type" select="ixsl:get(., 'value')" as="xs:anyURI"/>
