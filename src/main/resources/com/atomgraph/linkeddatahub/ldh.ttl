@@ -385,6 +385,37 @@ WHERE
     sp:arg1 :seriesVarName ;
     rdfs:isDefinedBy : .
 
+# CONTENTS
+
+:ContainerChildren a :Content ;
+    rdf:first :SelectChildren ;
+    rdf:rest rdf:nil ;
+    rdfs:label "Container children" ;
+    rdfs:isDefinedBy : .
+
+:SelectChildren a sp:Select ;
+    rdfs:label "Select children" ;
+    sp:text """
+PREFIX  dct:  <http://purl.org/dc/terms/>
+PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
+PREFIX  sioc: <http://rdfs.org/sioc/ns#>
+
+SELECT DISTINCT  ?child ?thing
+WHERE
+{ GRAPH ?childGraph
+  {   { ?child  sioc:has_parent  ?this }
+    UNION
+      { ?child  sioc:has_container  ?this }
+    ?child  a                     ?Type
+    OPTIONAL
+      { ?child  dct:title  ?title }
+    OPTIONAL
+      { ?child  foaf:primaryTopic  ?thing }
+  }
+}
+ORDER BY ?title
+""" .
+
 # CLIENT TERMS. TO-DO: move to a separate Web-Client ontology?
 
 ac:Chart a rdfs:Class, owl:Class ;
@@ -434,13 +465,13 @@ sp:Query spin:constructor [
           PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
           PREFIX sp:      <http://spinrdf.org/sp#>
           PREFIX sd:      <http://www.w3.org/ns/sparql-service-description#>
-          PREFIX ldh:     <https://w3id.org/atomgraph/linkeddatahub#>
+          PREFIX :     <https://w3id.org/atomgraph/linkeddatahub#>
 
           CONSTRUCT {
               ?this rdfs:label [ a xsd:string ] ;
                   rdfs:comment [ a xsd:string ] ;
                   sp:text [ a xsd:string ] ;
-                  ldh:service [ a sd:Service ] .
+                  :service [ a sd:Service ] .
           }
           WHERE {}"""
     ] ;

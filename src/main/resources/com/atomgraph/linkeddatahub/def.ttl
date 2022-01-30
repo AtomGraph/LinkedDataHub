@@ -7,11 +7,13 @@
 @prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .
 @prefix owl:	<http://www.w3.org/2002/07/owl#> .
 @prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy#> .
+@prefix sd:	<http://www.w3.org/ns/sparql-service-description#> .
 @prefix sp:	<http://spinrdf.org/sp#> .
 @prefix spin:	<http://spinrdf.org/spin#> .
 @prefix sioc:	<http://rdfs.org/sioc/ns#> .
 @prefix foaf:	<http://xmlns.com/foaf/0.1/> .
 @prefix dct:	<http://purl.org/dc/terms/> .
+@prefix nfo:	<http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#> .
 
 : a owl:Ontology ;
     rdfs:label "Default" ;
@@ -22,7 +24,7 @@
 :Root rdfs:subClassOf dh:Container ;
     spin:constructor :TitleConstructor, :DescriptionConstructor, :PrimaryTopicConstructor, :ContentConstructor ;
     spin:constraint :MissingTitle ; # roots do not have parents, therefore no :MissingParent
-    ldh:template :ContainerChildren ;
+    ldh:template ldh:ContainerChildren ;
     rdfs:label "Root" ;
     rdfs:isDefinedBy : .
 
@@ -120,42 +122,13 @@ dh:Item spin:constructor :TitleConstructor, :DescriptionConstructor, :PrimaryTop
 
 dh:Container spin:constructor :TitleConstructor, :DescriptionConstructor, :PrimaryTopicConstructor, :ContentConstructor ;
     spin:constraint :MissingParent, :MissingTitle ;
-    ldh:template :ContainerChildren .
+    ldh:template ldh:ContainerChildren .
 
 :MissingParent a ldh:MissingPropertyValue ;
     rdfs:label "Missing parent" ;
     rdfs:comment "Requires containers to have a parent container" ;
     sp:arg1 sioc:has_parent ;
     rdfs:isDefinedBy : .
-
-:ContainerChildren a ldh:Content ;
-    rdf:first :SelectChildren ;
-    rdf:rest rdf:nil ;
-    rdfs:label "Container children" ;
-    rdfs:isDefinedBy : .
-
-:SelectChildren a sp:Select ;
-    rdfs:label "Select children" ;
-    sp:text """
-PREFIX  dct:  <http://purl.org/dc/terms/>
-PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
-PREFIX  sioc: <http://rdfs.org/sioc/ns#>
-
-SELECT DISTINCT  ?child ?thing
-WHERE
-{ GRAPH ?childGraph
-  {   { ?child  sioc:has_parent  ?this }
-    UNION
-      { ?child  sioc:has_container  ?this }
-    ?child  a                     ?Type
-    OPTIONAL
-      { ?child  dct:title  ?title }
-    OPTIONAL
-      { ?child  foaf:primaryTopic  ?thing }
-  }
-}
-ORDER BY ?title
-""" .
 
 # http://spinrdf.org/sp
 
@@ -170,10 +143,10 @@ ldh:Import spin:constructor :TitleConstructor, :DescriptionConstructor ;
 ldh:Chart spin:constructor :TitleConstructor, :DescriptionConstructor ;
     spin:constraint :MissingTitle .
 
-ldh:File spin:constructor :TitleConstructor, :DescriptionConstructor ;
+nfo:FileDataObject spin:constructor :TitleConstructor, :DescriptionConstructor ;
     spin:constraint :MissingTitle .
 
-ldh:GenericService spin:constructor :TitleConstructor, :DescriptionConstructor ;
+sd:Service spin:constructor :TitleConstructor, :DescriptionConstructor ;
     spin:constraint :MissingTitle .
 
 # https://w3id.org/atomgraph/linkeddatahub/apps

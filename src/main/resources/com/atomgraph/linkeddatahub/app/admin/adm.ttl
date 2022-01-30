@@ -1,7 +1,6 @@
 @base		<https://w3id.org/atomgraph/linkeddatahub/admin> .
 
 @prefix :	<#> .
-@prefix def:    <https://w3id.org/atomgraph/linkeddatahub/default#> .
 @prefix rdf:	<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .
 @prefix xsd:	<http://www.w3.org/2001/XMLSchema#> .
@@ -29,7 +28,7 @@
 # http://rdfs.org/sioc/ns
 
 dh:Container spin:constructor :DocumentConstructor ;
-    ldh:template def:ContainerChildren .
+    ldh:template ldh:ContainerChildren .
 
 dh:Item spin:constructor :DocumentConstructor .
 
@@ -57,7 +56,7 @@ dh:Item spin:constructor :DocumentConstructor .
 
 # http://spinrdf.org/sp
 
-# sp:Query spin:constraint :MissingRDFSLabel .
+sp:Query spin:constraint :MissingRDFSLabel .
 
 # http://www.w3.org/2002/07/owl
 
