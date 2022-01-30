@@ -134,13 +134,12 @@ args+=("-t")
 args+=("text/turtle") # content type
 
 turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy#> .\n"
-turtle+="@prefix def:	<https://w3id.org/atomgraph/linkeddatahub/default#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
 turtle+="@prefix foaf:	<http://xmlns.com/foaf/0.1/> .\n"
 turtle+="@prefix spin:  <http://spinrdf.org/spin#> .\n"
 turtle+="@prefix ldh:	<https://w3id.org/atomgraph/linkeddatahub#> .\n"
 turtle+="@prefix sioc:	<http://rdfs.org/sioc/ns#> .\n"
-turtle+="_:chart a def:ResultSetChart .\n"
+turtle+="_:chart a ldh:ResultSetChart .\n"
 turtle+="_:chart dct:title \"${title}\" .\n"
 turtle+="_:chart spin:query <${query}> .\n"
 turtle+="_:chart ldh:chartType <${chart_type}> .\n"

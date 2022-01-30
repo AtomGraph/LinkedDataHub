@@ -134,13 +134,12 @@ args+=("-t")
 args+=("text/turtle") # content type
 
 turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy#> .\n"
-turtle+="@prefix def:	<https://w3id.org/atomgraph/linkeddatahub/default#> .\n"
 turtle+="@prefix ldh:	<https://w3id.org/atomgraph/linkeddatahub#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
 turtle+="@prefix foaf:	<http://xmlns.com/foaf/0.1/> .\n"
 turtle+="@prefix spin:	<http://spinrdf.org/spin#> .\n"
 turtle+="@prefix sioc:	<http://rdfs.org/sioc/ns#> .\n"
-turtle+="_:import a def:CSVImport .\n"
+turtle+="_:import a ldh:CSVImport .\n"
 turtle+="_:import dct:title \"${title}\" .\n"
 turtle+="_:import spin:query <${query}> .\n"
 turtle+="_:import ldh:action <${action}> .\n"

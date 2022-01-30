@@ -101,7 +101,6 @@ args+=("${cert_password}")
 args+=("-t")
 args+=("text/turtle")
 
-turtle+="@prefix def:	<https://w3id.org/atomgraph/linkeddatahub/default#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
 turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy#> .\n"
 turtle+="@prefix sioc:	<http://rdfs.org/sioc/ns#> .\n"

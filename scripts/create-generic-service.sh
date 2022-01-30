@@ -121,7 +121,6 @@ args+=("-t")
 args+=("text/turtle") # content type
 
 turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy#> .\n"
-turtle+="@prefix def:	<https://w3id.org/atomgraph/linkeddatahub/default#> .\n"
 turtle+="@prefix a:	<https://w3id.org/atomgraph/core#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
 turtle+="@prefix foaf:	<http://xmlns.com/foaf/0.1/> .\n"
