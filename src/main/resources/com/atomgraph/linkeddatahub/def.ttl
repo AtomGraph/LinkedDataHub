@@ -18,7 +18,7 @@
 : a owl:Ontology ;
     rdfs:label "Default" ;
     rdfs:comment "Default document model" ;
-    owl:imports ldh:, lapp:, sd:, nfo:, dh:, sp: ;
+    owl:imports ldh:, lapp:, sd:, dh:, sp: ;
     owl:versionInfo "1.0-SNAPSHOT" .
 
 :Root a owl:Class ;
@@ -120,7 +120,8 @@ ldh:Import spin:constructor :TitleConstructor, :DescriptionConstructor ;
 ldh:Chart spin:constructor :TitleConstructor, :DescriptionConstructor ;
     spin:constraint :MissingTitle .
 
-nfo:FileDataObject spin:constructor :TitleConstructor, :DescriptionConstructor ;
+nfo:FileDataObject rdfs:label "File" ;
+    spin:constructor :TitleConstructor, :DescriptionConstructor ;
     spin:constraint :MissingTitle .
 
 sd:Service spin:constructor :TitleConstructor, :DescriptionConstructor ;
