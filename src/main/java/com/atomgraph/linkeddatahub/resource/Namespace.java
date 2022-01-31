@@ -25,7 +25,6 @@ import static com.atomgraph.core.model.SPARQLEndpoint.DEFAULT_GRAPH_URI;
 import static com.atomgraph.core.model.SPARQLEndpoint.NAMED_GRAPH_URI;
 import static com.atomgraph.core.model.SPARQLEndpoint.QUERY;
 import com.atomgraph.linkeddatahub.server.model.impl.SPARQLEndpointImpl;
-import com.atomgraph.linkeddatahub.server.util.DataManagerDataset;
 import java.net.URI;
 import java.util.List;
 import java.util.Optional;
@@ -33,7 +32,7 @@ import javax.inject.Inject;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.GET;
 import javax.ws.rs.QueryParam;
-import org.apache.jena.query.Dataset;
+import org.apache.jena.ontology.Ontology;
 import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryExecution;
 import org.apache.jena.query.ResultSetFactory;
@@ -55,13 +54,13 @@ public class Namespace extends SPARQLEndpointImpl
 
     private static final Logger log = LoggerFactory.getLogger(Namespace.class);
 
-    private final Dataset dataset;
+    private final Ontology ontology;
     
     @Inject
-    public Namespace(@Context Request request, Optional<Service> service, MediaTypes mediaTypes, com.atomgraph.linkeddatahub.Application system)
+    public Namespace(@Context Request request, Optional<Service> service, Optional<Ontology> ontology, MediaTypes mediaTypes, com.atomgraph.linkeddatahub.Application system)
     {
         super(request, service, mediaTypes);
-        dataset = new DataManagerDataset(system.getDataManager());
+        this.ontology = ontology.get();
     }
 
     @Override
@@ -80,14 +79,14 @@ public class Namespace extends SPARQLEndpointImpl
         if (query.isSelectType())
         {
             if (log.isDebugEnabled()) log.debug("Loading ResultSet using SELECT/ASK query: {}", query);
-            return getResponseBuilder(new ResultSetMem(QueryExecution.create(query, getDataset()).execSelect()));
+            return getResponseBuilder(new ResultSetMem(QueryExecution.create(query, getOntology().getOntModel()).execSelect()));
         }
         if (query.isAskType())
         {
             Model model = ModelFactory.createDefaultModel();
             model.createResource().
                 addProperty(RDF.type, ResultSetGraphVocab.ResultSet).
-                addLiteral(ResultSetGraphVocab.p_boolean, QueryExecution.create(query, getDataset()).execAsk());
+                addLiteral(ResultSetGraphVocab.p_boolean, QueryExecution.create(query, getOntology().getOntModel()).execAsk());
                 
             if (log.isDebugEnabled()) log.debug("Loading ResultSet using SELECT/ASK query: {}", query);
             return getResponseBuilder(ResultSetFactory.copyResults(ResultSetFactory.makeResults(model)));
@@ -96,22 +95,22 @@ public class Namespace extends SPARQLEndpointImpl
         if (query.isDescribeType())
         {
             if (log.isDebugEnabled()) log.debug("Loading Model using CONSTRUCT/DESCRIBE query: {}", query);
-            return getResponseBuilder(QueryExecution.create(query, getDataset()).execDescribe());
+            return getResponseBuilder(QueryExecution.create(query, getOntology().getOntModel()).execDescribe());
         }
         
         if (query.isConstructType())
         {
             if (log.isDebugEnabled()) log.debug("Loading Model using CONSTRUCT/DESCRIBE query: {}", query);
-            return getResponseBuilder(QueryExecution.create(query, getDataset()).execConstruct());
+            return getResponseBuilder(QueryExecution.create(query, getOntology().getOntModel()).execConstruct());
         }
         
         if (log.isWarnEnabled()) log.warn("SPARQL endpoint received unknown type of query: {}", query);
         throw new BadRequestException("Unknown query type");
     }
     
-    public Dataset getDataset()
+    public Ontology getOntology()
     {
-        return dataset;
+        return ontology;
     }
     
 }

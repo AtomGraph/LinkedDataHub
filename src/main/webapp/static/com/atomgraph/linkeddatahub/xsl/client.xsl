@@ -115,8 +115,47 @@ extension-element-prefixes="ixsl"
     <xsl:param name="ac:query" select="ixsl:query-params()?query" as="xs:string?"/>
     <xsl:param name="ac:container-mode" select="if (ixsl:query-params()?container-mode) then xs:anyURI(ixsl:query-params()?container-mode) else xs:anyURI('&ac;ListMode')" as="xs:anyURI?"/>
     <xsl:param name="ac:googleMapsKey" select="'AIzaSyCQ4rt3EnNCmGTpBN0qoZM1Z_jXhUnrTpQ'" as="xs:string"/>
-    <xsl:param name="select-labelled-string" select="key('resources', '&def;SelectLabelled', document(ac:document-uri('&def;')))/sp:text" as="xs:string"/> <!-- def: ontology is location-mapped (pre-loaded) by Saxon-JS -->
-    <xsl:param name="backlinks-string" as="xs:string">DESCRIBE ?subject
+    <xsl:param name="select-labelled-string" as="xs:string">
+<![CDATA[
+PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX  skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
+PREFIX  sioc: <http://rdfs.org/sioc/ns#>
+PREFIX  dc:   <http://purl.org/dc/elements/1.1/>
+PREFIX  dct:  <http://purl.org/dc/terms/>
+PREFIX  schema1: <http://schema.org/>
+PREFIX  schema2: <https://schema.org/>
+
+SELECT DISTINCT  ?resource
+WHERE
+  { GRAPH ?graph
+      { ?resource  a  ?Type .
+        ?resource (((((((((rdfs:label|dc:title)|dct:title)|foaf:name)|foaf:givenName)|foaf:familyName)|sioc:name)|skos:prefLabel)|sioc:content)|schema1:name)|schema2:name ?label
+        FILTER isURI(?resource)
+      }
+  }
+]]>
+    </xsl:param>
+    <xsl:param name="select-labelled-class-string" as="xs:string">
+<![CDATA[
+PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX  spin: <http://spinrdf.org/spin#>
+
+SELECT  *
+FROM <urn:x-arq:UnionGraph>
+WHERE
+  { ?class (rdfs:subClassOf)* ?superClass .
+    ?superClass  spin:constructor  ?constructor .
+    ?class    rdfs:label        ?label
+    FILTER isURI(?class)
+    FILTER ( ?class != ?superClass )
+    FILTER NOT EXISTS { ?subClass  rdfs:subClassOf  ?class }
+  }
+]]>
+    </xsl:param>
+    <xsl:param name="backlinks-string" as="xs:string">
+<![CDATA[
+DESCRIBE ?subject
 WHERE
   { SELECT DISTINCT  ?subject
     WHERE
@@ -126,7 +165,8 @@ WHERE
           }
       }
     LIMIT   10
-  }</xsl:param>
+  }
+]]></xsl:param>
 
     <xsl:key name="resources" match="*[*][@rdf:about] | *[*][@rdf:nodeID]" use="@rdf:about | @rdf:nodeID"/>
     <xsl:key name="elements-by-class" match="*" use="tokenize(@class, ' ')"/>
@@ -2044,6 +2084,7 @@ WHERE
     <xsl:template match="input[contains-token(@class, 'type-typeahead')]" mode="ixsl:onkeyup" priority="1">
         <xsl:next-match>
             <xsl:with-param name="endpoint" select="resolve-uri('ns', $ldt:base)"/>
+            <xsl:with-param name="select-string" select="$select-labelled-class-string"/>
         </xsl:next-match>
     </xsl:template>
     
