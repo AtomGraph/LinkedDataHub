@@ -803,8 +803,8 @@ extension-element-prefixes="ixsl"
     
     <!-- FORM CONTROL -->
 
-    <!-- turn off blank node resources from constructor graph -->
-    <xsl:template match="*[@rdf:nodeID][$ac:forClass][rdf:type/starts-with(@rdf:resource, '&xsd;')] | *[@rdf:nodeID][$ac:forClass][rdf:type/@rdf:resource = '&rdfs;Resource']" mode="bs2:FormControl" priority="2"/>
+    <!-- turn off blank node resources from constructor graph (only those that are objects) -->
+    <xsl:template match="*[@rdf:nodeID][$ac:forClass][rdf:type/starts-with(@rdf:resource, '&xsd;')] | *[@rdf:nodeID][$ac:forClass][count(key('predicates-by-object', @rdf:nodeID)) &gt; 0][rdf:type/@rdf:resource = '&rdfs;Resource']" mode="bs2:FormControl" priority="2"/>
 
     <!-- turn off default form controls for rdf:type as we are handling it specially with bs2:TypeControl -->
     <xsl:template match="rdf:type[@rdf:resource]" mode="bs2:FormControl" priority="1"/>
