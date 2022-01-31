@@ -265,8 +265,9 @@ exclude-result-prefixes="#all"
     </xsl:template>
     
     <xsl:template match="button[contains-token(@class, 'add-constructor')]" mode="ixsl:onclick" priority="1">
-        <xsl:variable name="container" select="id('content-body', ixsl:page())" as="element()"/>
+        <xsl:variable name="form" select="ancestor::form" as="element()?"/>
         
+        <xsl:message>button.add-constructor clicked</xsl:message>
         <!--<ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>-->
 
         <xsl:variable name="constructor" as="document-node()">
@@ -279,7 +280,7 @@ exclude-result-prefixes="#all"
             </xsl:document>
         </xsl:variable>
         
-        <xsl:for-each select="$container">
+        <xsl:for-each select="$form">
             <xsl:result-document href="?." method="ixsl:append-content">
                 <xsl:apply-templates select="key('resources', 'A1', $constructor)" mode="bs2:RowForm"/>
             </xsl:result-document>
