@@ -18,7 +18,7 @@
 : a owl:Ontology ;
     rdfs:label "Default" ;
     rdfs:comment "Default document model" ;
-    owl:imports ldh:, lapp:, dh:, sp: ;
+    owl:imports ldh:, lapp:, sd:, nfo:, dh:, sp: ;
     owl:versionInfo "1.0-SNAPSHOT" .
 
 :Root a owl:Class ;

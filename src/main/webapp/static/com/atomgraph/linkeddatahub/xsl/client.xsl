@@ -143,7 +143,7 @@ PREFIX  spin: <http://spinrdf.org/spin#>
 
 SELECT  *
 WHERE
-  { ?class (rdfs:subClassOf)* ?superClass .
+  { ?class a ?Type ; (rdfs:subClassOf)* ?superClass .
     ?superClass  spin:constructor  ?constructor .
     ?class    rdfs:label        ?label
     FILTER isURI(?class)
