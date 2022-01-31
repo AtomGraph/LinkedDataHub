@@ -141,7 +141,7 @@ WHERE
 PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX  spin: <http://spinrdf.org/spin#>
 
-SELECT  *
+SELECT  ?class
 WHERE
   { ?class (rdfs:subClassOf)* ?superClass .
     ?superClass  spin:constructor  ?constructor .
