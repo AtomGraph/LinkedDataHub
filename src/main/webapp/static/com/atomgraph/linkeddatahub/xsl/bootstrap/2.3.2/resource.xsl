@@ -898,7 +898,7 @@ extension-element-prefixes="ixsl"
     </xsl:template>
     
     <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:TypeControl">
-        <xsl:param name="forClass" select="xs:anyURI('&owl;Class')" as="xs:anyURI?"/> <!-- allow subclasses of owl:Class? -->
+        <xsl:param name="forClass" as="xs:anyURI?"/> <!-- allow subclasses of owl:Class? -->
         <xsl:param name="hidden" select="false()" as="xs:boolean"/>
 
         <xsl:apply-templates mode="#current">
