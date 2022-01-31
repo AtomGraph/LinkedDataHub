@@ -21,7 +21,8 @@
     owl:imports ldh:, lapp:, dh:, sp: ;
     owl:versionInfo "1.0-SNAPSHOT" .
 
-:Root rdfs:subClassOf dh:Container ;
+:Root a owl:Class ;
+    rdfs:subClassOf dh:Container ;
     spin:constructor :TitleConstructor, :DescriptionConstructor, :PrimaryTopicConstructor, :ContentConstructor ;
     spin:constraint :MissingTitle ; # roots do not have parents, therefore no :MissingParent
     ldh:template ldh:ContainerChildren ;
