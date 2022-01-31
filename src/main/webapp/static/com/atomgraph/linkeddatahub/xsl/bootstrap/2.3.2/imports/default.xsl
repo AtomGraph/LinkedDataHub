@@ -299,6 +299,7 @@ exclude-result-prefixes="#all"
             <xsl:with-param name="type" select="$type"/>
             <xsl:with-param name="id" select="$id"/>
             <xsl:with-param name="class" select="$class"/>
+            <xsl:with-param name="autocomplete" select="false()"/>
         </xsl:call-template>
         
         <ul class="{$list-class}" id="{$list-id}" style="display: none;"></ul>
