@@ -194,7 +194,7 @@
 
 :GraphChart a rdfs:Class, owl:Class ;
     rdfs:subClassOf :Chart ;
-    rdfs:label "Model chart" ;
+    rdfs:label "Graph chart" ;
     spin:constructor :GraphChartConstructor ;
     spin:constraint :MissingSeriesProperty ; # - category property not required if URI/ID is used instead
     rdfs:isDefinedBy : .

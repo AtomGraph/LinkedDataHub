@@ -87,17 +87,23 @@ exclude-result-prefixes="#all">
                 <span class="caret"></span>
             </button>
 
-            <xsl:call-template name="bs2:ConstructorList">
+<!--            <xsl:call-template name="bs2:ConstructorList">
                 <xsl:with-param name="ontology" select="key('resources', $ldt:ontology, document(ac:document-uri($ldt:ontology)))"/>
                 <xsl:with-param name="classes" select="$classes"/>
                 <xsl:with-param name="visited-classes" select="()"/>
                 <xsl:with-param name="create-graph" select="$create-graph"/>
-            </xsl:call-template>
+            </xsl:call-template>-->
+            <ul class="dropdown-menu">
+                <xsl:apply-templates select="$classes" mode="bs2:ConstructorListItem">
+                    <xsl:with-param name="create-graph" select="$create-graph"/>
+                    <xsl:sort select="ac:label(.)"/>
+                </xsl:apply-templates>
+            </ul>
         </div>
     </xsl:template>
     
     <!-- unlike in the end-user app, only show classes from top-level ontology - don't recurse into imports -->
-    <xsl:template name="bs2:ConstructorList">
+<!--    <xsl:template name="bs2:ConstructorList">
         <xsl:param name="ontology" as="element()"/>
         <xsl:param name="classes" as="element()*"/>
         <xsl:param name="visited-classes" as="element()*"/>
@@ -109,7 +115,7 @@ exclude-result-prefixes="#all">
                 <xsl:sort select="ac:label(.)"/>
             </xsl:apply-templates>
         </ul>
-    </xsl:template>
+    </xsl:template>-->
 
     <xsl:template match="rdf:RDF" mode="ldh:Constructor" as="document-node()">
         <xsl:param name="forClass" as="xs:anyURI"/>

@@ -722,6 +722,13 @@ extension-element-prefixes="ixsl"
                     <li class="divider"></li>
                 </xsl:if>-->
 
+                <xsl:apply-templates select="key('resources', '&rdfs;Resource', document(ac:document-uri('&rdfs;'))" mode="bs2:ConstructorListItem">
+                    <xsl:with-param name="create-graph" select="$create-graph"/>
+                    <xsl:sort select="ac:label(.)"/>
+                </xsl:apply-templates>
+
+                <li class="divider"></li>
+
                 <xsl:if test="$show-document-classes">
                     <!--if the current resource is a Container, show Container and Item constructors--> 
                     <xsl:variable name="document-classes" select="key('resources', ('&dh;Container', '&dh;Item'), document(ac:document-uri('&def;')))" as="element()*"/>
@@ -748,20 +755,20 @@ extension-element-prefixes="ixsl"
 
     <xsl:template match="*" mode="bs2:Create"/>
 
-    <xsl:template name="bs2:ConstructorList">
+<!--    <xsl:template name="bs2:ConstructorList">
         <xsl:param name="ontology" as="element()"/>
         <xsl:param name="classes" as="element()*"/>
         <xsl:param name="visited-classes" as="element()*"/>
         <xsl:param name="create-graph" select="false()" as="xs:boolean"/>
 
         <xsl:variable name="constructor-list" as="element()*">
-            <!-- eliminate matches where a class is a subclass of itself (happens in inferenced ontology models) -->
+             eliminate matches where a class is a subclass of itself (happens in inferenced ontology models) 
             <xsl:apply-templates select="$classes[not(@rdf:about = $visited-classes/@rdf:about)][let $about := @rdf:about return not(@rdf:about = ($classes, $visited-classes)[not(@rdf:about = $about)]/rdfs:subClassOf/@rdf:resource)]" mode="bs2:ConstructorListItem">
                 <xsl:with-param name="create-graph" select="$create-graph"/>
                 <xsl:sort select="ac:label(.)"/>
             </xsl:apply-templates>
 
-            <!-- show user-defined classes. Apply to owl:imported ontologies recursively -->
+             show user-defined classes. Apply to owl:imported ontologies recursively 
             <xsl:for-each select="$ontology/owl:imports/@rdf:resource[doc-available(ac:document-uri(.))]">
                 <xsl:variable name="import-uri" select="." as="xs:anyURI"/>
                 
@@ -779,13 +786,13 @@ extension-element-prefixes="ixsl"
                 </xsl:for-each>
             </xsl:for-each>
         </xsl:variable>
-        <!-- avoid nesting lists without items (classes) -->
+         avoid nesting lists without items (classes) 
         <xsl:if test="$constructor-list">
             <ul>
                 <xsl:copy-of select="$constructor-list"/>
             </ul>
         </xsl:if>
-    </xsl:template>
+    </xsl:template>-->
     
     <!-- OBJECT -->
     
