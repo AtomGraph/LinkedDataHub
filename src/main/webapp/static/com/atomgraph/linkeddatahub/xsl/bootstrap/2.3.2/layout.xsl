@@ -107,7 +107,22 @@ exclude-result-prefixes="#all">
     <xsl:param name="ldh:createGraph" select="false()" as="xs:boolean"/>
     <xsl:param name="ldh:ajaxRendering" select="true()" as="xs:boolean"/>
     <xsl:param name="google:clientID" as="xs:string?"/>
-    
+    <xsl:param name="default-classes" as="map(xs:string, xs:anyURI)">
+        <xsl:map>
+            <xsl:map-entry key="'&lapp;Application'" select="resolve-uri('apps/', $ldt:base)"/>
+            <xsl:map-entry key="'&sd;Service'" select="resolve-uri('services/', $ldt:base)"/>
+            <xsl:map-entry key="'&nfo;FileDataObject'" select="resolve-uri('files/', $ldt:base)"/>
+            <xsl:map-entry key="'&sp;Construct'" select="resolve-uri('queries/', $ldt:base)"/>
+            <xsl:map-entry key="'&sp;Describe'" select="resolve-uri('queries/', $ldt:base)"/>
+            <xsl:map-entry key="'&sp;Select'" select="resolve-uri('queries/', $ldt:base)"/>
+            <xsl:map-entry key="'&sp;Ask'" select="resolve-uri('queries/', $ldt:base)"/>
+            <xsl:map-entry key="'&ldh;RDFImport'" select="resolve-uri('imports/', $ldt:base)"/>
+            <xsl:map-entry key="'&ldh;CSVImport'" select="resolve-uri('imports/', $ldt:base)"/>
+            <xsl:map-entry key="'&ldh;GraphChart'" select="resolve-uri('charts/', $ldt:base)"/>
+            <xsl:map-entry key="'&ldh;ResultSetChart'" select="resolve-uri('charts/', $ldt:base)"/>
+        </xsl:map>
+    </xsl:param>
+
     <!-- the query has to support services that do not belong to any app -->
     <xsl:variable name="app-query" as="xs:string">
         DESCRIBE  ?resource
@@ -964,27 +979,12 @@ exclude-result-prefixes="#all">
     <!-- CONTENT HEADER -->
 
     <!-- hide the header of def:SelectChildren content -->
-    <xsl:template match="*[*][$ldh:ajaxRendering][@rdf:about = '&def;SelectChildren']" mode="ldh:ContentHeader"/>
+    <xsl:template match="*[*][$ldh:ajaxRendering][@rdf:about = '&ldh;SelectChildren']" mode="ldh:ContentHeader"/>
 
     <!-- FORM CONTROL -->
     
     <xsl:template match="*[@rdf:about or @rdf:nodeID][$ac:forClass]/sioc:has_parent/@rdf:nodeID | *[@rdf:about or @rdf:nodeID][$ac:forClass]/sioc:has_container/@rdf:nodeID" mode="bs2:FormControl">
-        <xsl:param name="class-containers" as="map(xs:string, xs:anyURI)">
-            <xsl:map>
-                <xsl:map-entry key="'&def;Application'" select="resolve-uri('apps/', $ldt:base)"/>
-                <xsl:map-entry key="'&def;GenericService'" select="resolve-uri('services/', $ldt:base)"/>
-                <xsl:map-entry key="'&def;File'" select="resolve-uri('files/', $ldt:base)"/>
-                <xsl:map-entry key="'&def;Construct'" select="resolve-uri('queries/', $ldt:base)"/>
-                <xsl:map-entry key="'&def;Describe'" select="resolve-uri('queries/', $ldt:base)"/>
-                <xsl:map-entry key="'&def;Select'" select="resolve-uri('queries/', $ldt:base)"/>
-                <xsl:map-entry key="'&def;Ask'" select="resolve-uri('queries/', $ldt:base)"/>
-                <xsl:map-entry key="'&def;RDFImport'" select="resolve-uri('imports/', $ldt:base)"/>
-                <xsl:map-entry key="'&def;CSVImport'" select="resolve-uri('imports/', $ldt:base)"/>
-                <xsl:map-entry key="'&def;GraphChart'" select="resolve-uri('charts/', $ldt:base)"/>
-                <xsl:map-entry key="'&def;ResultSetChart'" select="resolve-uri('charts/', $ldt:base)"/>
-            </xsl:map>
-        </xsl:param>
-        <xsl:param name="container" select="if (map:contains($class-containers, $ac:forClass)) then map:get($class-containers, $ac:forClass) else ac:uri()" as="xs:anyURI"/>
+        <xsl:param name="container" select="if (map:contains($default-classes, $ac:forClass)) then map:get($default-classes, $ac:forClass) else ac:uri()" as="xs:anyURI"/>
 
         <xsl:next-match>
             <xsl:with-param name="container" select="$container" as="xs:anyURI"/>

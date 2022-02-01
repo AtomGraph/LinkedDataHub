@@ -118,7 +118,7 @@ extension-element-prefixes="ixsl"
     <xsl:template match="rdf:RDF" mode="bs2:ChartForm" priority="-1">
         <xsl:param name="method" select="'post'" as="xs:string"/>
         <xsl:param name="doc-type" select="xs:anyURI('&dh;Item')" as="xs:anyURI"/>
-        <xsl:param name="type" select="xs:anyURI('&def;GraphChart')" as="xs:anyURI"/>
+        <xsl:param name="type" select="xs:anyURI('&ldh;GraphChart')" as="xs:anyURI"/>
         <xsl:param name="action" select="ac:build-uri(resolve-uri('charts/', $ldt:base), map{ 'forClass': string($type) })" as="xs:anyURI"/>
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" select="'form-inline'" as="xs:string?"/>
@@ -286,7 +286,7 @@ extension-element-prefixes="ixsl"
     <xsl:template match="srx:sparql" mode="bs2:ChartForm">
         <xsl:param name="method" select="'post'" as="xs:string"/>
         <xsl:param name="doc-type" select="xs:anyURI('&dh;Item')" as="xs:anyURI"/>
-        <xsl:param name="type" select="xs:anyURI('&def;ResultSetChart')" as="xs:anyURI"/>
+        <xsl:param name="type" select="xs:anyURI('&ldh;ResultSetChart')" as="xs:anyURI"/>
         <xsl:param name="action" select="ac:build-uri(resolve-uri('charts/', $ldt:base), map{ 'forClass': string($type) })" as="xs:anyURI"/>
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" select="'form-inline'" as="xs:string?"/>
@@ -515,7 +515,7 @@ extension-element-prefixes="ixsl"
     
     <!-- ROW FORM -->
 
-    <xsl:template match="rdf:RDF[$ac:forClass = ('&def;CSVImport', '&def;RDFImport')][$ac:method = 'GET']" mode="bs2:RowForm" priority="2">
+    <xsl:template match="rdf:RDF[$ac:forClass = ('&ldh;CSVImport', '&ldh;RDFImport')][$ac:method = 'GET']" mode="bs2:RowForm" priority="2">
         <xsl:param name="action" select="ac:build-uri(resolve-uri('imports', $ldt:base), map{ 'forClass': string($ac:forClass), 'mode': '&ac;EditMode' })" as="xs:anyURI"/>
 
         <xsl:next-match>

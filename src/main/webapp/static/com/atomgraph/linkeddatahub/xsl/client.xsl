@@ -184,7 +184,7 @@ WHERE
         <xsl:message>$ldt:base: <xsl:value-of select="$ldt:base"/></xsl:message>
         <xsl:message>$ldh:absolutePath: <xsl:value-of select="$ldh:absolutePath"/></xsl:message>
         <xsl:message>$ldt:ontology: <xsl:value-of select="$ldt:ontology"/></xsl:message>
-        <xsl:message>count($ldh:apps//*[rdf:type/@rdf:resource = '&def;GenericService']): <xsl:value-of select="count($ldh:apps//*[rdf:type/@rdf:resource = '&def;GenericService'])"/></xsl:message>
+        <xsl:message>count($ldh:apps//*[rdf:type/@rdf:resource = '&sd;Service']): <xsl:value-of select="count($ldh:apps//*[rdf:type/@rdf:resource = '&sd;Service'])"/></xsl:message>
         <xsl:message>$ac:lang: <xsl:value-of select="$ac:lang"/></xsl:message>
         <xsl:message>$ac:endpoint: <xsl:value-of select="$ac:endpoint"/></xsl:message>
         <xsl:message>$ac:forClass: <xsl:value-of select="$ac:forClass"/></xsl:message>
@@ -986,7 +986,7 @@ WHERE
                                     <div>
                                         <xsl:attribute name="class">tab-pane <xsl:if test="not($source)">active</xsl:if></xsl:attribute>
 
-                                        <form id="form-add-data" method="POST" action="{ac:build-uri(resolve-uri('add', $ldt:base), map{ 'forClass': '&def;File' })}" enctype="multipart/form-data">
+                                        <form id="form-add-data" method="POST" action="{ac:build-uri(resolve-uri('add', $ldt:base), map{ 'forClass': '&nfo;FileDataObject' })}" enctype="multipart/form-data">
                                             <xsl:comment>This form uses RDF/POST encoding: http://www.lsrn.org/semweb/rdfpost.html</xsl:comment>
                                             <xsl:call-template name="xhtml:Input">
                                                 <xsl:with-param name="name" select="'rdf'"/>
@@ -996,7 +996,7 @@ WHERE
                                             <fieldset>
                                                 <input type="hidden" name="sb" value="file"/>
                                                 <input type="hidden" name="pu" value="&rdf;type"/>
-                                                <input type="hidden" name="ou" value="&def;File"/>
+                                                <input type="hidden" name="ou" value="&nfo;FileDataObject"/>
 
                                                 <!-- file title is unused, just needed to pass the ldh:File constraints -->
                                                 <input type="hidden" name="pu" value="&dct;title"/>
@@ -1338,7 +1338,7 @@ WHERE
             <xsl:result-document href="?." method="ixsl:replace-content">
                 <option value="">[SPARQL service]</option>
                 
-                <xsl:for-each select="$apps//*[rdf:type/@rdf:resource = '&def;GenericService']">
+                <xsl:for-each select="$apps//*[rdf:type/@rdf:resource = '&sd;Service']">
                     <xsl:sort select="ac:label(.)"/>
 
                     <xsl:apply-templates select="." mode="xhtml:Option">

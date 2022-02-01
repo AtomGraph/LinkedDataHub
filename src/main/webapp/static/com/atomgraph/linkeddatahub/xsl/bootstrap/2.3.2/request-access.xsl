@@ -17,6 +17,7 @@
     <!ENTITY sioc   "http://rdfs.org/sioc/ns#">
     <!ENTITY dct    "http://purl.org/dc/terms/">
     <!ENTITY spin   "http://spinrdf.org/spin#">
+    <!ENTITY nfo    "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#">
 ]>
 <xsl:stylesheet version="2.0"
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
@@ -212,7 +213,7 @@ exclude-result-prefixes="#all">
     <!-- show first property as a select -->
     <xsl:template match="lacl:requestAccessToClass[1]/@rdf:*[ac:uri() = resolve-uri('request%20access', $ldt:base)]" mode="bs2:FormControl" priority="2">
         <xsl:variable name="this" select="../concat(namespace-uri(), local-name())" as="xs:string"/>
-        <xsl:variable name="classes" select="key('resources', ('&def;Root', '&dh;Container','&dh;Item', '&def;File'), document(ac:document-uri('&def;')))" as="element()*"/>
+        <xsl:variable name="classes" select="key('resources', ('&def;Root', '&dh;Container','&dh;Item', '&nfo;FileDataObject'), document(ac:document-uri('&def;')))" as="element()*"/>
         <select name="ou" id="{generate-id()}" multiple="multiple" size="{count($classes)}">
             <xsl:for-each select="$classes">
                 <xsl:sort select="ac:label(.)" lang="{$ldt:lang}"/>
