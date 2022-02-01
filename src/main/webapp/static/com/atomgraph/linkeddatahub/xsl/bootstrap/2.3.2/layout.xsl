@@ -15,6 +15,7 @@
     <!ENTITY xsd    "http://www.w3.org/2001/XMLSchema#">
     <!ENTITY owl    "http://www.w3.org/2002/07/owl#">
     <!ENTITY geo    "http://www.w3.org/2003/01/geo/wgs84_pos#">
+    <!ENTITY srx    "http://www.w3.org/2005/sparql-results#">
     <!ENTITY http   "http://www.w3.org/2011/http#">
     <!ENTITY sc     "http://www.w3.org/2011/http-statusCodes#">
     <!ENTITY acl    "http://www.w3.org/ns/auth/acl#">
@@ -64,6 +65,7 @@ xmlns:spl="&spl;"
 xmlns:void="&void;"
 xmlns:nfo="&nfo;"
 xmlns:geo="&geo;"
+xmlns:srx="&srx;"
 xmlns:google="&google;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 exclude-result-prefixes="#all">
@@ -679,7 +681,7 @@ exclude-result-prefixes="#all">
                                 ]]>
                             </xsl:variable>
                             <!-- TO-DO: support more than one rdf:type -->
-                            <xsl:variable name="query-string" select="replace($backlinks-string, '\?Type', concat('&lt;', rdf:type/@rdf:resource[1], '&gt;'))" as="xs:string"/>
+                            <xsl:variable name="query-string" select="replace($content-query, '\?Type', concat('&lt;', rdf:type/@rdf:resource[1], '&gt;'))" as="xs:string"/>
                             <xsl:variable name="results-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': string($query-string) })" as="xs:anyURI"/>
                             <xsl:variable name="request-uri" select="ldh:href($ldt:base, $results-uri)" as="xs:anyURI"/>
 
