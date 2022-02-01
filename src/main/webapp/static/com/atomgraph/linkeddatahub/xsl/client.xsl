@@ -147,9 +147,8 @@ WHERE
     ?superClass  spin:constructor  ?constructor .
     ?class    rdfs:label        ?label
     FILTER isURI(?class)
-    # FILTER ( ?class != ?superClass )
     FILTER (!strstarts(str(?class), 'http://spinrdf.org/spin#'))
-    FILTER NOT EXISTS { ?subClass  rdfs:subClassOf  ?class }
+    # FILTER NOT EXISTS { ?subClass  rdfs:subClassOf  ?class }
   }
 ]]>
     </xsl:param>
