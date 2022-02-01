@@ -757,12 +757,6 @@ exclude-result-prefixes="#all"
                 <!-- remove the modal div -->
                 <xsl:sequence select="ixsl:call($form/ancestor::div[contains-token(@class, 'modal')], 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:when>
-            <!-- special case for "Save query/chart" forms: simpy hide the modal form -->
-            <xsl:when test="tokenize($form/@class, ' ') = ('form-save-query', 'form-save-chart')">
-                <!-- remove the modal div -->
-                <xsl:sequence select="ixsl:call($form/ancestor::div[contains-token(@class, 'modal')], 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
-                <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
-            </xsl:when>
             <xsl:when test="?status = 200">
                 <xsl:choose>
                     <xsl:when test="starts-with(?media-type, 'application/xhtml+xml')"> <!-- allow 'application/xhtml+xml;charset=UTF-8' as well -->
@@ -792,6 +786,12 @@ exclude-result-prefixes="#all"
             <xsl:when test="?status = 201 and ?headers?location">
                 <xsl:variable name="created-uri" select="?headers?location" as="xs:anyURI"/>
                 <xsl:choose>
+                    <!-- special case for "Save query/chart" forms: simpy hide the modal form -->
+                    <xsl:when test="tokenize($form/@class, ' ') = ('form-save-query', 'form-save-chart')">
+                        <!-- remove the modal div -->
+                        <xsl:sequence select="ixsl:call($form/ancestor::div[contains-token(@class, 'modal')], 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
+                        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
+                    </xsl:when>
                     <!-- render the created resource as a typeahead input -->
                     <xsl:when test="$typeahead-span">
                         <xsl:variable name="request" as="item()*">

@@ -504,6 +504,7 @@ exclude-result-prefixes="#all"
                                         <xsl:apply-templates select="key('resources', $forClass, document(ac:document-uri($forClass)))" mode="bs2:Constructor">
                                             <xsl:with-param name="modal-form" select="true()"/>
                                             <xsl:with-param name="subclasses" select="$subclasses"/>
+                                            <xsl:with-param name="create-graph" select="true()"/>
                                         </xsl:apply-templates>
                                     </xsl:when>
                                     <xsl:otherwise>
@@ -675,6 +676,7 @@ exclude-result-prefixes="#all"
                 <xsl:apply-templates select="key('resources', $forClass, document(ac:document-uri($forClass)))" mode="bs2:Constructor">
                     <xsl:with-param name="modal-form" select="true()"/>
                     <xsl:with-param name="subclasses" select="$subclasses"/>
+                    <xsl:with-param name="create-graph" select="true()"/>
                 </xsl:apply-templates>
             </xsl:when>
             <xsl:otherwise>
