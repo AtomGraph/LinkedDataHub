@@ -138,6 +138,17 @@ exclude-result-prefixes="#all">
           }
     </xsl:variable>
     <xsl:variable name="app-request-uri" select="ac:build-uri($ac:endpoint, map{ 'query': $app-query })" as="xs:anyURI"/>
+    <xsl:variable name="template-query" as="xs:string">
+        <![CDATA[
+            PREFIX  ldh:  <https://w3id.org/atomgraph/linkeddatahub#>
+
+            SELECT  *
+            WHERE
+              {
+                ?Type  ldh:template  ?content
+              }
+        ]]>
+    </xsl:variable>
 
     <xsl:key name="resources-by-primary-topic" match="*[@rdf:about] | *[@rdf:nodeID]" use="foaf:primaryTopic/@rdf:resource"/>
     <xsl:key name="violations-by-root" match="*" use="spin:violationRoot/@rdf:resource"/>
@@ -636,7 +647,7 @@ exclude-result-prefixes="#all">
 
     <xsl:template match="rdf:RDF" mode="xhtml:Body">
         <xsl:param name="classes" select="for $class-uri in map:keys($default-classes) return key('resources', $class-uri, document(ac:document-uri($class-uri)))" as="element()*"/>
-        <xsl:param name="content-uris" select="key('resources', ac:uri())/rdf:type/@rdf:resource/ldh:template(., resolve-uri('ns', $ldt:base))" as="xs:anyURI*"/>
+        <xsl:param name="content-uris" select="key('resources', ac:uri())/rdf:type/@rdf:resource/ldh:template(., resolve-uri('ns', $ldt:base), $template-query)" as="xs:anyURI*"/>
 
         <body>
             <xsl:apply-templates select="." mode="bs2:NavBar"/>
