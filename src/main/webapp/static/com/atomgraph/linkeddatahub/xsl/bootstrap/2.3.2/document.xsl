@@ -542,8 +542,8 @@ extension-element-prefixes="ixsl"
         <xsl:param name="enctype" select="'multipart/form-data'" as="xs:string?"/>
         <xsl:param name="button-class" select="'btn btn-primary wymupdate'" as="xs:string?"/>
         <xsl:param name="create-resource" select="true()" as="xs:boolean"/>
-        <xsl:param name="classes" select="document(ac:document-uri($ldt:ontology))/rdf:RDF/*[@rdf:about][rdfs:isDefinedBy/@rdf:resource = $ldt:ontology][spin:constructor or (rdfs:subClassOf and ldh:listSuperClasses(@rdf:about)/../../spin:constructor)]" as="element()*"/>
-        <xsl:param name="default-classes" select="(key('resources-by-type', '&rdfs;Class', document(ac:document-uri('&def;')))[not(@rdf:about = ('&def;Root', '&dh;Container', '&dh;Item'))])" as="element()*"/>
+        <xsl:param name="classes" select="for $class-uri in map:keys($default-classes) return key('resources', $class-uri, document(ac:document-uri($class-uri)))" as="element()*"/>
+        <!--<xsl:param name="default-classes" select="(key('resources-by-type', '&rdfs;Class', document(ac:document-uri('&def;')))[not(@rdf:about = ('&def;Root', '&dh;Container', '&dh;Item'))])" as="element()*"/>-->
 
         <form method="{$method}" action="{$action}">
             <xsl:if test="$id">
@@ -577,12 +577,12 @@ extension-element-prefixes="ixsl"
             <xsl:if test="$create-resource">
                 <div class="create-resource row-fluid">
                     <div class="offset2 span7">
-<!--                        <xsl:apply-templates select="." mode="bs2:Create">
+                        <xsl:apply-templates select="." mode="bs2:Create">
                             <xsl:with-param name="classes" select="$classes"/>
-                            <xsl:with-param name="default-classes" select="$default-classes"/>
+                            <!--<xsl:with-param name="default-classes" select="$default-classes"/>-->
                             <xsl:with-param name="show-document-classes" select="false()"/>
-                        </xsl:apply-templates>-->
-                        <button type="button" class="btn btn-primary add-constructor create-action">Create</button>
+                        </xsl:apply-templates>
+                        <!--<button type="button" class="btn btn-primary add-constructor create-action">Create</button>-->
                         
                         <!-- separate "Create" button only for Content -->
                         <a href="{ac:build-uri(ac:uri(), map{ 'forClass': '&ldh;Content' })}" class="btn btn-primary add-constructor create-action">
@@ -683,7 +683,7 @@ extension-element-prefixes="ixsl"
     
     <xsl:template match="rdf:RDF[$acl:mode = '&acl;Append']" mode="bs2:Create" priority="1">
         <xsl:param name="class" select="'btn-group'" as="xs:string?"/>
-        <xsl:param name="default-classes" select="key('resources-by-type', '&rdfs;Class', document(ac:document-uri('&def;')))[not(@rdf:about = ('&def;Root', '&dh;Container', '&dh;Item'))]" as="element()*"/>
+        <!--<xsl:param name="default-classes" as="element()*"/>-->
         <xsl:param name="classes" as="element()*"/>
         <xsl:param name="show-document-classes" select="true()" as="xs:boolean"/>
         <xsl:param name="create-graph" select="false()" as="xs:boolean"/>
@@ -705,7 +705,7 @@ extension-element-prefixes="ixsl"
             </button>
 
             <ul class="dropdown-menu">
-                <xsl:variable name="constructor-list" as="element()*">
+<!--                <xsl:variable name="constructor-list" as="element()*">
                     <xsl:call-template name="bs2:ConstructorList">
                         <xsl:with-param name="ontology" select="key('resources', $ldt:ontology, document(ac:document-uri($ldt:ontology)))"/>
                         <xsl:with-param name="classes" select="$classes"/>
@@ -718,7 +718,7 @@ extension-element-prefixes="ixsl"
                 
                 <xsl:if test="$constructor-list and $default-classes">
                     <li class="divider"></li>
-                </xsl:if>
+                </xsl:if>-->
 
                 <xsl:if test="$show-document-classes">
                     <!--if the current resource is a Container, show Container and Item constructors--> 
@@ -730,13 +730,13 @@ extension-element-prefixes="ixsl"
                             <xsl:sort select="ac:label(.)"/>
                         </xsl:apply-templates>
 
-                        <xsl:if test="$default-classes">
+                        <xsl:if test="$classes">
                             <li class="divider"></li>
                         </xsl:if>
                     </xsl:if>
                 </xsl:if>
                 
-                <xsl:apply-templates select="$default-classes" mode="bs2:ConstructorListItem">
+                <xsl:apply-templates select="$classes" mode="bs2:ConstructorListItem">
                     <xsl:with-param name="create-graph" select="$create-graph"/>
                     <xsl:sort select="ac:label(.)"/>
                 </xsl:apply-templates>

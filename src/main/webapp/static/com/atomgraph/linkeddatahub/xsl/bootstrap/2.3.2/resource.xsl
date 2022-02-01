@@ -219,6 +219,37 @@ extension-element-prefixes="ixsl"
         <xsl:attribute name="class" select="concat($class, ' ', 'btn-notifications')"/>
     </xsl:template>
 
+    <xsl:template match="*[@rdf:nodeID = 'add']" mode="ldh:logo">
+        <xsl:param name="class" as="xs:string?"/>
+        
+        <xsl:attribute name="class" select="concat($class, ' ', 'btn-add')"/>
+    </xsl:template>
+    
+    <xsl:template match="*[@rdf:nodeID = 'remove']" mode="ldh:logo">
+        <xsl:param name="class" as="xs:string?"/>
+        
+        <xsl:attribute name="class" select="concat($class, ' ', 'btn-remove-property')"/>
+    </xsl:template>
+
+    <xsl:template match="*[@rdf:about = '&ac;EditMode']" mode="ldh:logo">
+        <xsl:param name="class" as="xs:string?"/>
+        
+        <xsl:attribute name="class" select="concat($class, ' ', 'btn-edit')"/>
+        <xsl:sequence select="ac:label(.)"/>
+    </xsl:template>
+    
+    <xsl:template match="*[@rdf:nodeID = 'copy-uri']" mode="ldh:logo">
+        <xsl:param name="class" as="xs:string?"/>
+        
+        <xsl:attribute name="class" select="concat($class, ' ', 'btn-copy-uri')"/>
+    </xsl:template>
+
+    <xsl:template match="*[@rdf:nodeID = 'save-as']" mode="ldh:logo">
+        <xsl:param name="class" as="xs:string?"/>
+        
+        <xsl:attribute name="class" select="concat($class, ' ', 'btn-save-as')"/>
+    </xsl:template>
+    
     <xsl:template match="*[@rdf:about = '&foaf;Agent']" mode="ldh:logo">
         <xsl:param name="class" as="xs:string?"/>
         
@@ -268,6 +299,31 @@ extension-element-prefixes="ixsl"
         <xsl:sequence select="ac:label(.)"/>
     </xsl:template>
 
+    <xsl:template match="*" mode="ldh:logo" priority="0">
+        <xsl:param name="class" as="xs:string?"/>
+        
+        <xsl:if test="$class">
+            <xsl:attribute name="class" select="$class"/>
+        </xsl:if>
+    </xsl:template>
+
+    <!-- ANCHOR -->
+    
+    <!-- subject resource -->
+    <xsl:template match="*[@rdf:about]" mode="xhtml:Anchor">
+        <xsl:param name="href" select="@rdf:about" as="xs:anyURI"/>
+        <xsl:param name="id" select="encode-for-uri(@rdf:about)" as="xs:string?"/>
+        <xsl:param name="title" select="@rdf:about" as="xs:string?"/>
+        <xsl:param name="class" as="xs:string?"/>
+        
+        <xsl:next-match>
+            <xsl:with-param name="href" select="$href"/>
+            <xsl:with-param name="id" select="$id"/>
+            <xsl:with-param name="title" select="$title"/>
+            <xsl:with-param name="class" select="$class"/>
+        </xsl:next-match>
+    </xsl:template>
+    
     <!-- BREADCRUMBS -->
 
     <xsl:template match="*[@rdf:about]" mode="bs2:BreadCrumbListItem">

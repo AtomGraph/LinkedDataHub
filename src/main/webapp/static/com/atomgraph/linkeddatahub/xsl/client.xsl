@@ -148,7 +148,6 @@ WHERE
     ?class    rdfs:label        ?label
     FILTER isURI(?class)
     FILTER (!strstarts(str(?class), 'http://spinrdf.org/spin#'))
-    # FILTER NOT EXISTS { ?subClass  rdfs:subClassOf  ?class }
   }
 ]]>
     </xsl:param>

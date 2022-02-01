@@ -53,7 +53,7 @@ exclude-result-prefixes="#all">
     <xsl:template match="rdf:RDF" mode="bs2:ActionBarLeft">
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" select="'span2'" as="xs:string?"/>
-        <xsl:param name="classes" select="(key('resources', '&acl;Authorization', document(ac:document-uri('&acl;'))), key('resources', ('&foaf;Person', '&foaf;Group'), document(ac:document-uri('&foaf;'))), key('resources', '&cert;PublicKey', document(ac:document-uri('&cert;'))), key('resources', '&sioc;UserAccount', document(ac:document-uri('&sioc;'))), key('resources', ('&owl;Ontology'), document(ac:document-uri('&owl;'))))" as="element()*"/>
+        <xsl:param name="classes" select="for $class-uri in map:keys($default-classes) return key('resources', $class-uri, document(ac:document-uri($class-uri)))" as="element()*"/>
 
         <div>
             <xsl:if test="$id">
@@ -149,10 +149,10 @@ exclude-result-prefixes="#all">
         
     <!-- FORM CONTROL -->
     
-    <xsl:template match="*[@rdf:about or @rdf:nodeID][$ac:forClass]/sioc:has_parent/@rdf:nodeID | *[@rdf:about or @rdf:nodeID][$ac:forClass]/sioc:has_container/@rdf:nodeID" mode="bs2:FormControl">
+<!--    <xsl:template match="*[@rdf:about or @rdf:nodeID][$ac:forClass]/sioc:has_parent/@rdf:nodeID | *[@rdf:about or @rdf:nodeID][$ac:forClass]/sioc:has_container/@rdf:nodeID" mode="bs2:FormControl">
         <xsl:next-match>
             <xsl:with-param name="default-classes" select="$default-classes"/>
         </xsl:next-match>
-    </xsl:template>
+    </xsl:template>-->
     
 </xsl:stylesheet>
