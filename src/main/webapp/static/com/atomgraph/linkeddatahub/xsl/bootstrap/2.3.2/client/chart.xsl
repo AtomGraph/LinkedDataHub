@@ -127,7 +127,6 @@ exclude-result-prefixes="#all"
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
         
         <xsl:variable name="form" select="id($form-id, ixsl:page())" as="element()"/>
-        
         <xsl:variable name="item-control-group" select="$form/descendant::div[contains-token(@class, 'control-group')][input[@name = 'pu'][@value = '&sioc;has_container']]" as="element()"/>
         <xsl:variable name="container" select="resolve-uri('charts/', $ldt:base)" as="xs:anyURI"/>
         
