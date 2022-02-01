@@ -119,6 +119,7 @@ exclude-result-prefixes="#all"
 
         <xsl:variable name="form-id" select="'id' || ixsl:call(ixsl:window(), 'generateUUID', [])" as="xs:string"/>
         <xsl:call-template name="onAddForm">
+            <xsl:with-param name="container" select="id('content-body', ixsl:page())"/>
             <xsl:with-param name="add-class" select="'form-save-chart'"/>
             <xsl:with-param name="new-form-id" select="$form-id"/>
         </xsl:call-template>
