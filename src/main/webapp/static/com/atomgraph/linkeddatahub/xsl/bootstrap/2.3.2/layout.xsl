@@ -643,7 +643,7 @@ exclude-result-prefixes="#all">
             <div id="content-body" class="container-fluid">
                 <xsl:apply-templates select="." mode="bs2:ModeTabs"/>
             
-                <xsl:variable name="has-content" select="key('resources', key('resources', ac:uri())/ldh:content/@rdf:resource) or key('resources', ac:uri())/rdf:type/@rdf:resource[doc-available(ac:document-uri(.))]/key('resources', ., document(ac:document-uri(.)))/ldh:template/@rdf:resource[doc-available(ac:document-uri(.))]/key('resources', ., document(ac:document-uri(.)))" as="xs:boolean"/>
+                <!--<xsl:variable name="has-content" select="key('resources', key('resources', ac:uri())/ldh:content/@rdf:resource) or key('resources', ac:uri())/rdf:type/@rdf:resource[doc-available(ac:document-uri(.))]/key('resources', ., document(ac:document-uri(.)))/ldh:template/@rdf:resource[doc-available(ac:document-uri(.))]/key('resources', ., document(ac:document-uri(.)))" as="xs:boolean"/>-->
                 <xsl:choose>
                     <xsl:when test="$ac:forClass and $ac:method = 'GET'">
                         <xsl:variable name="constructor" as="document-node()">
@@ -668,7 +668,7 @@ exclude-result-prefixes="#all">
                         </xsl:choose>
                     </xsl:when>
                     <!-- check if the current document has content or its class has content -->
-                    <xsl:when test="(empty($ac:mode) or $ac:mode = '&ldh;ContentMode') and $has-content">
+                    <xsl:when test="(empty($ac:mode) or $ac:mode = '&ldh;ContentMode')"> <!-- and $has-content -->
                         <xsl:for-each select="key('resources', ac:uri())">
                             <xsl:variable name="content-query" as="xs:string">
                                 <![CDATA[
