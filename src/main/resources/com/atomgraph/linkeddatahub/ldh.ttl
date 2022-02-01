@@ -9,7 +9,6 @@
 @prefix owl:	<http://www.w3.org/2002/07/owl#> .
 @prefix ldt:	<https://www.w3.org/ns/ldt#> .
 @prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy#> .
-@prefix prov:	<http://www.w3.org/ns/prov#> .
 @prefix sd:	<http://www.w3.org/ns/sparql-service-description#> .
 @prefix sp:	<http://spinrdf.org/sp#> .
 @prefix spin:	<http://spinrdf.org/spin#> .
@@ -107,7 +106,7 @@
 # imports
 
 :Import a rdfs:Class, owl:Class ;
-    rdfs:subClassOf prov:Activity ;
+    # rdfs:subClassOf prov:Activity ;
     spin:constructor :ImportConstructor ;
     spin:constraint :MissingFile ;
     rdfs:label "Import" ;
