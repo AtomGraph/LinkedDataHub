@@ -82,6 +82,27 @@ exclude-result-prefixes="#all"
         </xsl:choose>
     </xsl:function>
 
+    <xsl:function name="ldh:template" as="xs:anyURI*" cache="yes">
+        <xsl:param name="class" as="xs:anyURI"/>
+        <xsl:param name="endpoint" as="xs:anyURI"/>
+        <xsl:param name="content-query" as="xs:string">
+            <![CDATA[
+                PREFIX  ldh:  <https://w3id.org/atomgraph/linkeddatahub#>
+
+                SELECT  *
+                WHERE
+                  {
+                    ?Type  ldh:template  ?content
+                  }
+            ]]>
+        </xsl:param>
+        
+        <xsl:variable name="query-string" select="replace($content-query, '\?Type', concat('&lt;', rdf:type/@rdf:resource[1], '&gt;'))" as="xs:string"/>
+        <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': string($query-string) })" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="ldh:href($ldt:base, $results-uri)" as="xs:anyURI"/>
+        <xsl:sequence select="document($request-uri)//srx:binding[@name = 'content']/srx:uri/xs:anyURI(.)"/>
+    </xsl:function>
+    
     <xsl:function name="ldh:listSuperClasses" as="attribute()*" cache="yes">
         <xsl:param name="class" as="xs:anyURI"/>
         
