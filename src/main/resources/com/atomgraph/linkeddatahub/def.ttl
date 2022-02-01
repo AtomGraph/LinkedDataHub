@@ -109,8 +109,8 @@ dh:Container spin:constructor :TitleConstructor, :DescriptionConstructor, :Prima
 
 # http://spinrdf.org/sp
 
-sp:Query spin:constructor :TitleConstructor, :DescriptionConstructor .
-    # spin:constraint :MissingTitle .
+sp:Query spin:constructor :TitleConstructor, :DescriptionConstructor ;
+    spin:constraint :MissingTitle .
 
 # https://w3id.org/atomgraph/linkeddatahub#
 
