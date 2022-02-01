@@ -687,7 +687,7 @@ exclude-result-prefixes="#all">
                             
                             <xsl:for-each select="$content-uris">
                                 <xsl:if test="doc-available(ac:document-uri(.))">
-                                    <xsl:apply-templates select="key('resources', ., document(ac:document-uri($content-uri)))" mode="ldh:ContentList"/>
+                                    <xsl:apply-templates select="key('resources', ., document(ac:document-uri(.)))" mode="ldh:ContentList"/>
                                 </xsl:if>
                             </xsl:for-each>
                         </xsl:for-each>
