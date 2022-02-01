@@ -722,7 +722,7 @@ extension-element-prefixes="ixsl"
                     <li class="divider"></li>
                 </xsl:if>-->
 
-                <xsl:apply-templates select="key('resources', '&rdfs;Resource', document(ac:document-uri('&rdfs;'))" mode="bs2:ConstructorListItem">
+                <xsl:apply-templates select="key('resources', '&rdfs;Resource', document(ac:document-uri('&rdfs;')))" mode="bs2:ConstructorListItem">
                     <xsl:with-param name="create-graph" select="$create-graph"/>
                     <xsl:sort select="ac:label(.)"/>
                 </xsl:apply-templates>
