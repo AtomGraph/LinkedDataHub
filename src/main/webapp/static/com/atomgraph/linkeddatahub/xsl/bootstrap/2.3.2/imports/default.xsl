@@ -87,7 +87,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="endpoint" as="xs:anyURI"/>
         <xsl:param name="query" as="xs:string"/>
         
-        <xsl:variable name="query-string" select="replace($content-query, '\?Type', concat('&lt;', rdf:type/@rdf:resource[1], '&gt;'))" as="xs:string"/>
+        <xsl:variable name="query-string" select="replace($query, '\?Type', concat('&lt;', $class, '&gt;'))" as="xs:string"/>
         <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': string($query-string) })" as="xs:anyURI"/>
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, $results-uri)" as="xs:anyURI"/>
         <xsl:sequence select="document($request-uri)//srx:binding[@name = 'content']/srx:uri/xs:anyURI(.)"/>
