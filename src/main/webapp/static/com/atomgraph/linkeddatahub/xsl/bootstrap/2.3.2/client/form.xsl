@@ -552,7 +552,6 @@ exclude-result-prefixes="#all"
     <xsl:template name="onAddForm">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="container" as="element()"/>
-        <!--<xsl:param name="href" as="xs:anyURI?"/>-->
         <xsl:param name="add-class" as="xs:string?"/>
         <xsl:param name="target-id" as="xs:string?"/>
         <xsl:param name="new-form-id" as="xs:string?"/>
