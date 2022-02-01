@@ -517,15 +517,17 @@ extension-element-prefixes="ixsl"
 
     <xsl:template match="rdf:RDF[$ac:forClass = ('&ldh;CSVImport', '&ldh;RDFImport')][$ac:method = 'GET']" mode="bs2:RowForm" priority="2">
         <xsl:param name="action" select="ac:build-uri(resolve-uri('imports', $ldt:base), map{ 'forClass': string($ac:forClass), 'mode': '&ac;EditMode' })" as="xs:anyURI"/>
+        <xsl:param name="classes" as="element()*"/>
 
         <xsl:next-match>
             <xsl:with-param name="action" select="$action"/>
+            <xsl:with-param name="classes" select="$classes"/>
         </xsl:next-match>
     </xsl:template>
     
     <xsl:template match="rdf:RDF[$ac:forClass][$ac:method = 'GET']" mode="bs2:RowForm" priority="1">
         <xsl:param name="action" select="ac:build-uri($a:graphStore, map{ 'forClass': string($ac:forClass), 'mode': '&ac;EditMode' })" as="xs:anyURI"/>
-        <xsl:param name="classes" select="document(ac:document-uri($ldt:ontology))/rdf:RDF/*[@rdf:about][rdfs:isDefinedBy/@rdf:resource = $ldt:ontology][spin:constructor or (rdfs:subClassOf and ldh:listSuperClasses(@rdf:about)/../../spin:constructor)]" as="element()*"/>
+        <xsl:param name="classes" as="element()*"/>
 
         <xsl:next-match>
             <xsl:with-param name="action" select="$action"/>
@@ -542,7 +544,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="enctype" select="'multipart/form-data'" as="xs:string?"/>
         <xsl:param name="button-class" select="'btn btn-primary wymupdate'" as="xs:string?"/>
         <xsl:param name="create-resource" select="true()" as="xs:boolean"/>
-        <xsl:param name="classes" select="for $class-uri in map:keys($default-classes) return key('resources', $class-uri, document(ac:document-uri($class-uri)))" as="element()*"/>
+        <xsl:param name="classes" as="element()*"/>
         <!--<xsl:param name="default-classes" select="(key('resources-by-type', '&rdfs;Class', document(ac:document-uri('&def;')))[not(@rdf:about = ('&def;Root', '&dh;Container', '&dh;Item'))])" as="element()*"/>-->
 
         <form method="{$method}" action="{$action}">

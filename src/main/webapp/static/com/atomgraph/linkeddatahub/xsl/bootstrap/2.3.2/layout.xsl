@@ -633,6 +633,8 @@ exclude-result-prefixes="#all">
     </xsl:template>
 
     <xsl:template match="rdf:RDF" mode="xhtml:Body">
+        <xsl:param name="classes" select="for $class-uri in map:keys($default-classes) return key('resources', $class-uri, document(ac:document-uri($class-uri)))" as="element()*"/>
+
         <body>
             <xsl:apply-templates select="." mode="bs2:NavBar"/>
 
@@ -657,6 +659,7 @@ exclude-result-prefixes="#all">
                             </xsl:when>
                             <xsl:otherwise>
                                 <xsl:apply-templates select="$constructor" mode="bs2:RowForm">
+                                    <xsl:with-param name="classes" select="$classes"/>
                                     <xsl:sort select="ac:label(.)"/>
                                 </xsl:apply-templates>
                             </xsl:otherwise>
@@ -691,6 +694,7 @@ exclude-result-prefixes="#all">
                     </xsl:when>
                     <xsl:when test="$ac:mode = '&ac;EditMode'">
                         <xsl:apply-templates select="." mode="bs2:RowForm">
+                            <xsl:with-param name="classes" select="$classes"/>
                             <xsl:sort select="ac:label(.)"/>
                         </xsl:apply-templates>
                     </xsl:when>
