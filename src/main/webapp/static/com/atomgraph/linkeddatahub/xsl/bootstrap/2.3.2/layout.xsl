@@ -668,8 +668,28 @@ exclude-result-prefixes="#all">
                     <!-- check if the current document has content or its class has content -->
                     <xsl:when test="(empty($ac:mode) or $ac:mode = '&ldh;ContentMode') and $has-content">
                         <xsl:for-each select="key('resources', ac:uri())">
+                            <xsl:variable name="content-query" as="xs:string">
+                                <![CDATA[
+                                    PREFIX  ldh:  <https://w3id.org/atomgraph/linkeddatahub#>
+
+                                    SELECT  *
+                                    WHERE
+                                          { ?Type  ldh:template  ?content }
+                                      }
+                                ]]>
+                            </xsl:variable>
+                            <!-- TO-DO: support more than one rdf:type -->
+                            <xsl:variable name="query-string" select="replace($backlinks-string, '\?Type', concat('&lt;', rdf:type/@rdf:resource[1], '&gt;'))" as="xs:string"/>
+                            <xsl:variable name="results-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': string($query-string) })" as="xs:anyURI"/>
+                            <xsl:variable name="request-uri" select="ldh:href($ldt:base, $results-uri)" as="xs:anyURI"/>
+
                             <xsl:apply-templates select="key('resources', ldh:content/@rdf:*)" mode="ldh:ContentList"/>
-                            <xsl:apply-templates select="rdf:type/@rdf:resource[doc-available(ac:document-uri(.))]/key('resources', ., document(ac:document-uri(.)))/ldh:template/@rdf:resource[doc-available(ac:document-uri(.))]/key('resources', ., document(ac:document-uri(.)))" mode="ldh:ContentList"/>
+                            <xsl:for-each select="document($request-uri)/srx:sparql/srx:results/srx:result">
+                                <xsl:variable name="content-uri" select="srx:binding[@name = 'content']/srx:uri" as="xs:anyURI"/>
+                                <xsl:if test="doc-available(ac:document-uri($content-uri))">
+                                    <xsl:apply-templates select="key('resources', $content-uri, document(ac:document-uri($content-uri)))" mode="ldh:ContentList"/>
+                                </xsl:if>
+                            </xsl:for-each>
                         </xsl:for-each>
                     </xsl:when>
                     <xsl:when test="$ac:mode = '&ac;MapMode'">

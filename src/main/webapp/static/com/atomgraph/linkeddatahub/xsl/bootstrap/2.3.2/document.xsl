@@ -707,28 +707,6 @@ extension-element-prefixes="ixsl"
             </button>
 
             <ul class="dropdown-menu">
-<!--                <xsl:variable name="constructor-list" as="element()*">
-                    <xsl:call-template name="bs2:ConstructorList">
-                        <xsl:with-param name="ontology" select="key('resources', $ldt:ontology, document(ac:document-uri($ldt:ontology)))"/>
-                        <xsl:with-param name="classes" select="$classes"/>
-                        <xsl:with-param name="visited-classes" select="($default-classes, $default-classes/ldh:listSuperClasses(@rdf:about)/../..)"/>
-                        <xsl:with-param name="create-graph" select="$create-graph"/>
-                    </xsl:call-template>
-                </xsl:variable>
-
-                <xsl:copy-of select="$constructor-list"/>
-                
-                <xsl:if test="$constructor-list and $default-classes">
-                    <li class="divider"></li>
-                </xsl:if>-->
-
-                <xsl:apply-templates select="key('resources', '&rdfs;Resource', document(ac:document-uri('&rdfs;')))" mode="bs2:ConstructorListItem">
-                    <xsl:with-param name="create-graph" select="$create-graph"/>
-                    <xsl:sort select="ac:label(.)"/>
-                </xsl:apply-templates>
-
-                <li class="divider"></li>
-
                 <xsl:if test="$show-document-classes">
                     <!--if the current resource is a Container, show Container and Item constructors--> 
                     <xsl:variable name="document-classes" select="key('resources', ('&dh;Container', '&dh;Item'), document(ac:document-uri('&def;')))" as="element()*"/>
@@ -745,6 +723,13 @@ extension-element-prefixes="ixsl"
                     </xsl:if>
                 </xsl:if>
                 
+                <xsl:apply-templates select="key('resources', '&rdfs;Resource', document(ac:document-uri('&rdfs;')))" mode="bs2:ConstructorListItem">
+                    <xsl:with-param name="create-graph" select="$create-graph"/>
+                    <xsl:sort select="ac:label(.)"/>
+                </xsl:apply-templates>
+
+                <li class="divider"></li>
+                
                 <xsl:apply-templates select="$classes" mode="bs2:ConstructorListItem">
                     <xsl:with-param name="create-graph" select="$create-graph"/>
                     <xsl:sort select="ac:label(.)"/>
@@ -754,45 +739,6 @@ extension-element-prefixes="ixsl"
     </xsl:template>
 
     <xsl:template match="*" mode="bs2:Create"/>
-
-<!--    <xsl:template name="bs2:ConstructorList">
-        <xsl:param name="ontology" as="element()"/>
-        <xsl:param name="classes" as="element()*"/>
-        <xsl:param name="visited-classes" as="element()*"/>
-        <xsl:param name="create-graph" select="false()" as="xs:boolean"/>
-
-        <xsl:variable name="constructor-list" as="element()*">
-             eliminate matches where a class is a subclass of itself (happens in inferenced ontology models) 
-            <xsl:apply-templates select="$classes[not(@rdf:about = $visited-classes/@rdf:about)][let $about := @rdf:about return not(@rdf:about = ($classes, $visited-classes)[not(@rdf:about = $about)]/rdfs:subClassOf/@rdf:resource)]" mode="bs2:ConstructorListItem">
-                <xsl:with-param name="create-graph" select="$create-graph"/>
-                <xsl:sort select="ac:label(.)"/>
-            </xsl:apply-templates>
-
-             show user-defined classes. Apply to owl:imported ontologies recursively 
-            <xsl:for-each select="$ontology/owl:imports/@rdf:resource[doc-available(ac:document-uri(.))]">
-                <xsl:variable name="import-uri" select="." as="xs:anyURI"/>
-                
-                <xsl:for-each select="document(ac:document-uri($import-uri))">
-                    <xsl:variable name="classes" select="rdf:RDF/*[@rdf:about][rdfs:isDefinedBy/@rdf:resource = $import-uri][spin:constructor or (rdfs:subClassOf and ldh:listSuperClasses(@rdf:about)/../../spin:constructor)]" as="element()*"/>
-
-                    <xsl:if test="key('resources', $import-uri)">
-                        <xsl:call-template name="bs2:ConstructorList">
-                            <xsl:with-param name="ontology" select="key('resources', $import-uri)"/>
-                            <xsl:with-param name="classes" select="$classes"/>
-                            <xsl:with-param name="visited-classes" select="($visited-classes, $classes)"/>
-                            <xsl:with-param name="create-graph" select="$create-graph"/>
-                        </xsl:call-template>
-                    </xsl:if>
-                </xsl:for-each>
-            </xsl:for-each>
-        </xsl:variable>
-         avoid nesting lists without items (classes) 
-        <xsl:if test="$constructor-list">
-            <ul>
-                <xsl:copy-of select="$constructor-list"/>
-            </ul>
-        </xsl:if>
-    </xsl:template>-->
     
     <!-- OBJECT -->
     
