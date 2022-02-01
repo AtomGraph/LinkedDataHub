@@ -676,7 +676,8 @@ exclude-result-prefixes="#all">
 
                                     SELECT  *
                                     WHERE
-                                          { ?Type  ldh:template  ?content }
+                                      {
+                                        ?Type  ldh:template  ?content
                                       }
                                 ]]>
                             </xsl:variable>
