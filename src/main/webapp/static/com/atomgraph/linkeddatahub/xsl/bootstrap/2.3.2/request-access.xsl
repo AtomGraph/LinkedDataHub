@@ -46,6 +46,7 @@ exclude-result-prefixes="#all">
             <xsl:with-param name="action" select="ac:uri()"/>
             <xsl:with-param name="enctype" select="()"/> <!-- don't use 'multipart/form-data' which is the default -->
             <xsl:with-param name="create-resource" select="false()"/>
+            <xsl:with-param name="constraint-query" select="$constraint-query" tunnel="yes"/>
         </xsl:apply-templates>
     </xsl:template>
     
@@ -86,6 +87,7 @@ exclude-result-prefixes="#all">
             <xsl:with-param name="action" select="ac:uri()"/>
             <xsl:with-param name="enctype" select="()"/> <!-- don't use 'multipart/form-data' which is the default -->
             <xsl:with-param name="create-resource" select="false()"/>
+            <xsl:with-param name="constraint-query" select="$constraint-query" tunnel="yes"/>
         </xsl:apply-templates>
     </xsl:template>
 
