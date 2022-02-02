@@ -158,12 +158,10 @@ exclude-result-prefixes="#all">
 
             SELECT  ?property
             WHERE
-              { ?Type (rdfs:subClassOf)* ?superClass .
-                ?superClass  spin:constraint  ?constraint .
+              { ?Type (rdfs:subClassOf)*/spin:constraint  ?constraint .
                 ?constraint  a             ldh:MissingPropertyValue ;
                           sp:arg1          ?property
-                FILTER ( ! strstarts(str(?class), "http://spinrdf.org/spin#") )
-  }
+              }
         ]]>
     </xsl:variable>
     
