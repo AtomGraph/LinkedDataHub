@@ -197,14 +197,8 @@ WHERE
         <ixsl:set-property name="LinkedDataHub" select="ldh:new-object()"/>
         <ixsl:set-property name="contents" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
         <ixsl:set-property name="typeahead" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/> <!-- used by typeahead.xsl -->
-        <ixsl:set-property name="href" select="if (ixsl:query-params()?uri) then xs:anyURI(ixsl:query-params()?uri) else $ldh:absolutePath" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
-        <!--<ixsl:set-property name="local-href" select="$ldh:absolutePath" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>-->
         <ixsl:set-property name="endpoint" select="$ac:endpoint" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
         <ixsl:set-property name="yasqe" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
-        <!-- load application's ontology RDF document -->
-<!--        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $ldt:ontology, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-            <xsl:call-template name="onOntologyLoad"/>
-        </ixsl:schedule-action>-->
         <xsl:apply-templates select="ixsl:page()" mode="ldh:LoadedHTMLDocument">
             <xsl:with-param name="href" select="ldh:href()"/>
             <xsl:with-param name="fragment" select="encode-for-uri(ldh:href())"/>
@@ -254,7 +248,14 @@ WHERE
     </xsl:function>
 
     <xsl:function name="ac:uri" as="xs:anyURI">
-        <xsl:sequence select="xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.href'))"/>
+        <xsl:choose>
+            <xsl:when test="ixsl:query-params()?uri">
+                <xsl:sequence select="xs:anyURI(ixsl:query-params()?uri)"/>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:sequence select="ldh:absolute-path()"/>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:function>
 
     <xsl:function name="ac:endpoint" as="xs:anyURI">
@@ -1615,7 +1616,6 @@ WHERE
         </xsl:if>
         
         <xsl:if test="$uri">
-            <ixsl:set-property name="href" select="$uri" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
             <!-- update the a.btn-edit link if it is visible -->
             <xsl:for-each select="ixsl:page()//div[contains-token(@class, 'action-bar')]//a[contains-token(@class, 'btn-edit')]">
                 <xsl:variable name="edit-uri" select="ldh:href($ldt:base, $uri, xs:anyURI('&ac;EditMode'))" as="xs:anyURI"/>
@@ -1692,7 +1692,7 @@ WHERE
             <xsl:for-each select="id('export-rdf', ixsl:page())/following-sibling::ul/li/a">
                 <!-- use @title attribute for the media type TO-DO: find a better way, a hidden input or smth -->
                 <xsl:variable name="href" select="ac:build-uri(ldh:absolute-path(ldh:href()), let $params := map{ 'accept': string(@title) } return if (not(starts-with(ldh:absolute-path(ldh:href()), $ldt:base))) then map:merge(($params, map{ 'uri': ldh:absolute-path(ldh:href()) })) else $params)" as="xs:anyURI"/>
-                <ixsl:set-property name="href" select="$href" object="."/>
+                <ixsl:set-attribute name="href" select="$href" object="."/>
             </xsl:for-each>
         </xsl:if>
 
