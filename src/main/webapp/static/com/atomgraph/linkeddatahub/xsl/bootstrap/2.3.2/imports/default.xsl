@@ -382,8 +382,8 @@ exclude-result-prefixes="#all"
         <xsl:param name="template" as="element()*"/>
         <xsl:param name="cloneable" select="false()" as="xs:boolean"/>
         <xsl:param name="types" select="../rdf:type/@rdf:resource" as="xs:anyURI*"/>
-        <xsl:param name="constraint-query" as="xs:string" tunnel="yes"/>
-        <xsl:param name="required" select="exists(for $type in $types return spin:constraints($type, resolve-uri('ns', $ldt:base), $constraint-query)//srx:binding[@name = 'property'][srx:uri = $this])" as="xs:boolean"/>
+        <xsl:param name="constraint-query" as="xs:string?" tunnel="yes"/>
+        <xsl:param name="required" select="if ($constraint-query) then exists(for $type in $types return spin:constraints($type, resolve-uri('ns', $ldt:base), $constraint-query)//srx:binding[@name = 'property'][srx:uri = $this]) else false()" as="xs:boolean"/>
         <xsl:param name="id" select="generate-id()" as="xs:string"/>
         <xsl:param name="for" select="generate-id((node() | @rdf:resource | @rdf:nodeID)[1])" as="xs:string"/>
         <xsl:param name="class" select="concat('control-group', if ($error) then ' error' else (), if ($required) then ' required' else ())" as="xs:string?"/>
