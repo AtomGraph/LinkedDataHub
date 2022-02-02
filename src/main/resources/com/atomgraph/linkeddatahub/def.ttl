@@ -22,7 +22,7 @@
     owl:versionInfo "1.0-SNAPSHOT" .
 
 :Root a owl:Class ;
-    rdfs:subClassOf dh:Container ;
+    rdfs:subClassOf sioc:Space, sioc:Container ;
     spin:constructor :TitleConstructor, :DescriptionConstructor, :PrimaryTopicConstructor, :ContentConstructor ;
     spin:constraint :MissingTitle ; # roots do not have parents, therefore no :MissingParent
     ldh:template ldh:ContainerChildren ;
