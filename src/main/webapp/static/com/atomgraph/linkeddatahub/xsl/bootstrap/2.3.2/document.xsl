@@ -721,7 +721,7 @@ extension-element-prefixes="ixsl"
                     </xsl:if>
                 </xsl:if>
                 
-                <xsl:apply-templates select="key('resources', '&owl;Individual', document(ac:document-uri('&owl;')))" mode="bs2:ConstructorListItem">
+                <xsl:apply-templates select="key('resources', '&owl;NamedIndividual', document(ac:document-uri('&owl;')))" mode="bs2:ConstructorListItem">
                     <xsl:with-param name="create-graph" select="$create-graph"/>
                     <xsl:sort select="ac:label(.)"/>
                 </xsl:apply-templates>

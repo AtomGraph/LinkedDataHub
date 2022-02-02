@@ -80,6 +80,10 @@ extension-element-prefixes="ixsl"
         <xsl:text>File</xsl:text>
     </xsl:template>
 
+    <xsl:template match="*[rdf:type/@rdf:resource = '&owl;NamedIndividual']" mode="ac:label">
+        <xsl:text>Instance</xsl:text>
+    </xsl:template>
+    
     <!-- LOGO -->
 
     <xsl:template match="*[rdf:type/@rdf:resource = ('&def;Root', '&dh;Container')]" mode="ldh:logo">
