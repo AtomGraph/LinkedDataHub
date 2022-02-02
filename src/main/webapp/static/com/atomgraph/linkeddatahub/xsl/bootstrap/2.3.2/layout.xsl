@@ -149,7 +149,21 @@ exclude-result-prefixes="#all">
               }
         ]]>
     </xsl:variable>
+    <xsl:variable name="constraint-query" as="xs:string">
+        <![CDATA[
+            PREFIX  ldh:  <https://w3id.org/atomgraph/linkeddatahub#>
+            PREFIX  sp:   <http://spinrdf.org/sp#>
+            PREFIX  spin: <http://spinrdf.org/spin#>
 
+            SELECT  *
+            WHERE
+              { ?Type     spin:constraint  ?constraint .
+                ?constraint  a             ldh:MissingPropertyValue ;
+                          sp:arg1          ?property
+              }
+        ]]>
+    </xsl:variable>
+    
     <xsl:key name="resources-by-primary-topic" match="*[@rdf:about] | *[@rdf:nodeID]" use="foaf:primaryTopic/@rdf:resource"/>
     <xsl:key name="violations-by-root" match="*" use="spin:violationRoot/@rdf:resource"/>
     <xsl:key name="violations-by-value" match="*" use="ldh:violationValue/text()"/>
@@ -669,12 +683,14 @@ exclude-result-prefixes="#all">
                         <xsl:choose>
                             <xsl:when test="$ac:mode = '&ac;ModalMode'">
                                 <xsl:apply-templates select="$constructor" mode="bs2:ModalForm">
+                                    <xsl:with-param name="constraint-query" select="$constraint-query" tunnel="yes"/>
                                     <xsl:sort select="ac:label(.)"/>
                                 </xsl:apply-templates>
                             </xsl:when>
                             <xsl:otherwise>
                                 <xsl:apply-templates select="$constructor" mode="bs2:RowForm">
                                     <xsl:with-param name="classes" select="$classes"/>
+                                    <xsl:with-param name="constraint-query" select="$constraint-query" tunnel="yes"/>
                                     <xsl:sort select="ac:label(.)"/>
                                 </xsl:apply-templates>
                             </xsl:otherwise>
@@ -709,12 +725,14 @@ exclude-result-prefixes="#all">
                     </xsl:when>
                     <xsl:when test="$ac:mode = '&ac;EditMode' and $ac:mode = '&ac;ModalMode'">
                         <xsl:apply-templates select="." mode="bs2:ModalForm">
+                            <xsl:with-param name="constraint-query" select="$constraint-query" tunnel="yes"/>
                             <xsl:sort select="ac:label(.)"/>
                         </xsl:apply-templates>
                     </xsl:when>
                     <xsl:when test="$ac:mode = '&ac;EditMode'">
                         <xsl:apply-templates select="." mode="bs2:RowForm">
                             <xsl:with-param name="classes" select="$classes"/>
+                            <xsl:with-param name="constraint-query" select="$constraint-query" tunnel="yes"/>
                             <xsl:sort select="ac:label(.)"/>
                         </xsl:apply-templates>
                     </xsl:when>
