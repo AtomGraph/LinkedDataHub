@@ -59,27 +59,8 @@ extension-element-prefixes="ixsl"
     <xsl:param name="foaf:Agent" as="document-node()?"/>
 
     <!-- LABEL -->
-    
-    <xsl:template match="*[rdf:type/@rdf:resource = '&sp;Ask']" mode="ac:label">
-        <xsl:text>ASK</xsl:text>
-    </xsl:template>
 
-    <xsl:template match="*[rdf:type/@rdf:resource = '&sp;Select']" mode="ac:label">
-        <xsl:text>SELECT</xsl:text>
-    </xsl:template>
-
-    <xsl:template match="*[rdf:type/@rdf:resource = '&sp;Describe']" mode="ac:label">
-        <xsl:text>DESCRIBE</xsl:text>
-    </xsl:template>
-
-    <xsl:template match="*[rdf:type/@rdf:resource = '&sp;Construct']" mode="ac:label">
-        <xsl:text>CONSTRUCT</xsl:text>
-    </xsl:template>
-
-    <xsl:template match="*[rdf:type/@rdf:resource = '&nfo;FileDataObject']" mode="ac:label">
-        <xsl:text>File</xsl:text>
-    </xsl:template>
-
+    <!-- TO-DO: move to owl.xsl -->
     <xsl:template match="*[rdf:type/@rdf:resource = '&owl;NamedIndividual']" mode="ac:label">
         <xsl:text>Instance</xsl:text>
     </xsl:template>
@@ -850,7 +831,7 @@ extension-element-prefixes="ixsl"
     <xsl:template match="*[rdf:type/@rdf:resource = '&spin;ConstraintViolation'] | *[rdf:type/@rdf:resource = '&http;Response']" mode="bs2:RowForm" priority="3"/>
 
     <!-- hide object blank nodes that only have a single rdf:type property from constructed models, unless the type is rdfs:Resource -->
-    <xsl:template match="*[@rdf:nodeID][$ac:forClass][not($ac:forClass = '&rdfs;Resource')][$ac:method = 'GET'][not(* except rdf:type)]" mode="bs2:RowForm" priority="2"/>
+    <xsl:template match="*[@rdf:nodeID][$ac:forClass][$ac:method = 'GET'][not(* except rdf:type)]" mode="bs2:RowForm" priority="2"/>
         
     <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:RowForm">
         <xsl:param name="id" select="generate-id()" as="xs:string?"/>

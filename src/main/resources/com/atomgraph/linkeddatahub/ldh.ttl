@@ -18,7 +18,7 @@
 @prefix sioc:	<http://rdfs.org/sioc/ns#> .
 
 : a owl:Ontology ;
-    owl:imports ac:, <http://spinrdf.org/spin>, foaf:, sd:, nfo: ;
+    owl:imports ac:, <http://spinrdf.org/spin>, foaf:, sd:, nfo:, owl: ;
     rdfs:label "LinkedDataHub ontology" ;
     rdfs:comment "Should be imported and reused by all extending applications" ;
     owl:versionInfo "1.1.5" .

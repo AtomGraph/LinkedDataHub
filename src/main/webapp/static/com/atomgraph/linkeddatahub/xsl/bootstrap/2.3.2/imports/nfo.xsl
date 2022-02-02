@@ -18,7 +18,11 @@ xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 exclude-result-prefixes="#all">
 
     <xsl:preserve-space elements="nfo:fileName"/>
-        
+    
+    <xsl:template match="*[@rdf:about = '&nfo;FileDataObject']" mode="ac:label">
+        <xsl:text>File</xsl:text>
+    </xsl:template>
+
     <xsl:template match="*[@rdf:*[local-name() = 'nodeID']]/nfo:fileName/@rdf:*[local-name() = 'nodeID'][key('resources', .)[not(* except rdf:type[@rdf:resource = '&xsd;string'])]]" mode="bs2:FormControl">
         <xsl:param name="id" select="generate-id()" as="xs:string"/>
         <xsl:param name="class" as="xs:string?"/>

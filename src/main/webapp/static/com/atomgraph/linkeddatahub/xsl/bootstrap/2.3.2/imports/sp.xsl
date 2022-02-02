@@ -14,6 +14,22 @@ xmlns:sp="&sp;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 exclude-result-prefixes="#all">
     
+    <xsl:template match="*[@rdf:about = '&sp;Ask']" mode="ac:label">
+        <xsl:text>ASK</xsl:text>
+    </xsl:template>
+
+    <xsl:template match="*[@rdf:about = '&sp;Select']" mode="ac:label">
+        <xsl:text>SELECT</xsl:text>
+    </xsl:template>
+
+    <xsl:template match="*[@rdf:about = '&sp;Describe']" mode="ac:label">
+        <xsl:text>DESCRIBE</xsl:text>
+    </xsl:template>
+
+    <xsl:template match="*[@rdf:about = '&sp;Construct']" mode="ac:label">
+        <xsl:text>CONSTRUCT</xsl:text>
+    </xsl:template>
+
     <xsl:template match="sp:text/text() | *[@rdf:*[local-name() = 'nodeID']]/sp:text/@rdf:*[local-name() = 'nodeID'][key('resources', .)[not(* except rdf:type[@rdf:resource = '&xsd;string'])]]" mode="bs2:FormControl">
         <xsl:param name="type-label" select="true()" as="xs:boolean"/>
         
