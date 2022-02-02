@@ -61,7 +61,7 @@ extension-element-prefixes="ixsl"
     <!-- LABEL -->
 
     <!-- TO-DO: move to owl.xsl -->
-    <xsl:template match="*[rdf:type/@rdf:resource = '&owl;NamedIndividual']" mode="ac:label">
+    <xsl:template match="*[@rdf:about = '&owl;NamedIndividual']" mode="ac:label">
         <xsl:text>Instance</xsl:text>
     </xsl:template>
     
@@ -831,7 +831,7 @@ extension-element-prefixes="ixsl"
     <xsl:template match="*[rdf:type/@rdf:resource = '&spin;ConstraintViolation'] | *[rdf:type/@rdf:resource = '&http;Response']" mode="bs2:RowForm" priority="3"/>
 
     <!-- hide object blank nodes that only have a single rdf:type property from constructed models, unless the type is rdfs:Resource -->
-    <xsl:template match="*[@rdf:nodeID][$ac:forClass][$ac:method = 'GET'][not(* except rdf:type)]" mode="bs2:RowForm" priority="2"/>
+    <xsl:template match="*[@rdf:nodeID][$ac:forClass][$ac:method = 'GET'][not(rdf:type/@rdf:resource = '&owl;NamedIndividual')][not(* except rdf:type)]" mode="bs2:RowForm" priority="2"/>
         
     <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:RowForm">
         <xsl:param name="id" select="generate-id()" as="xs:string?"/>
