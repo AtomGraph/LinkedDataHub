@@ -661,14 +661,15 @@ exclude-result-prefixes="#all">
 
     <xsl:template match="rdf:RDF" mode="xhtml:Body">
         <xsl:param name="classes" select="for $class-uri in map:keys($default-classes) return key('resources', $class-uri, document(ac:document-uri($class-uri)))" as="element()*"/>
-        <xsl:param name="content-uris" select="key('resources', ac:uri())/rdf:type/@rdf:resource/ldh:template(., resolve-uri('ns', $ldt:base), $template-query)" as="xs:anyURI*"/>
+        <xsl:param name="content-uris" select="key('resources', ac:uri())/rdf:type/@rdf:resource/ldh:templates(., resolve-uri('ns', $ldt:base), $template-query)//srx:binding[@name = 'content']/srx:uri/xs:anyURI(.)" as="xs:anyURI*"/>
+        <xsl:param name="has-content" select="key('resources', key('resources', ac:uri())/ldh:content/@rdf:resource) or exists($content-uris)" as="xs:boolean"/>
 
         <body>
             <xsl:apply-templates select="." mode="bs2:NavBar"/>
 
             <div id="content-body" class="container-fluid">
                 <xsl:apply-templates select="." mode="bs2:ModeTabs">
-                    <xsl:with-param name="content-uris" select="$content-uris"/>
+                    <xsl:with-param name="has-content" select="$has-content"/>
                 </xsl:apply-templates>
             
                 <xsl:choose>
@@ -697,7 +698,7 @@ exclude-result-prefixes="#all">
                         </xsl:choose>
                     </xsl:when>
                     <!-- check if the current document has content or its class has content -->
-                    <xsl:when test="(empty($ac:mode) or $ac:mode = '&ldh;ContentMode') and exists($content-uris)">
+                    <xsl:when test="(empty($ac:mode) or $ac:mode = '&ldh;ContentMode') and $has-content">
                         <xsl:for-each select="key('resources', ac:uri())">
                             <xsl:apply-templates select="key('resources', ldh:content/@rdf:*)" mode="ldh:ContentList"/>
                             
@@ -752,11 +753,11 @@ exclude-result-prefixes="#all">
     <xsl:template match="rdf:RDF[key('resources-by-type', '&http;Response')] | rdf:RDF[$ac:forClass or $ac:mode = '&ac;EditMode']" mode="bs2:ModeTabs" priority="1"/>
 
     <xsl:template match="rdf:RDF" mode="bs2:ModeTabs">
-        <xsl:param name="content-uris" as="xs:anyURI*"/>
+        <xsl:param name="has-content" as="xs:boolean"/>
 
         <div class="row-fluid">
             <ul class="nav nav-tabs offset2 span7">
-                <xsl:if test="exists($content-uris)">
+                <xsl:if test="$has-content">
                     <li class="content-mode{if ((empty($ac:mode) and not($ac:forClass)) or $ac:mode = '&ldh;ContentMode') then ' active' else() }">
                         <a href="{ac:build-uri(ac:uri(), map{ 'mode': '&ldh;ContentMode' })}">
                             <xsl:value-of>
@@ -768,7 +769,7 @@ exclude-result-prefixes="#all">
 
                 <xsl:for-each select="key('resources', '&ac;ReadMode', document(ac:document-uri('&ac;')))">
                     <xsl:apply-templates select="." mode="bs2:ModeTabsItem">
-                        <xsl:with-param name="active" select="@rdf:about = $ac:mode or (empty($ac:mode) and empty($content-uris))"/>
+                        <xsl:with-param name="active" select="@rdf:about = $ac:mode or (empty($ac:mode) and $has-content)"/>
                     </xsl:apply-templates>
                 </xsl:for-each>
                 <xsl:for-each select="key('resources', '&ac;MapMode', document(ac:document-uri('&ac;')))">

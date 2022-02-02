@@ -82,7 +82,7 @@ exclude-result-prefixes="#all"
         </xsl:choose>
     </xsl:function>
 
-    <xsl:function name="ldh:template" as="xs:anyURI*" cache="yes">
+    <xsl:function name="ldh:templates" as="document-node()" cache="yes">
         <xsl:param name="class" as="xs:anyURI"/>
         <xsl:param name="endpoint" as="xs:anyURI"/>
         <xsl:param name="query" as="xs:string"/>
@@ -90,10 +90,10 @@ exclude-result-prefixes="#all"
         <xsl:variable name="query-string" select="replace($query, '\?Type', concat('&lt;', $class, '&gt;'))" as="xs:string"/>
         <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': string($query-string) })" as="xs:anyURI"/>
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, $results-uri)" as="xs:anyURI"/>
-        <xsl:sequence select="document($request-uri)//srx:binding[@name = 'content']/srx:uri/xs:anyURI(.)"/>
+        <xsl:sequence select="document($request-uri)"/>
     </xsl:function>
 
-    <xsl:function name="spin:constraint" as="xs:anyURI*" cache="yes">
+    <xsl:function name="spin:constraints" as="document-node()" cache="yes">
         <xsl:param name="class" as="xs:anyURI"/>
         <xsl:param name="endpoint" as="xs:anyURI"/>
         <xsl:param name="query" as="xs:string"/>
@@ -101,7 +101,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="query-string" select="replace($query, '\?Type', concat('&lt;', $class, '&gt;'))" as="xs:string"/>
         <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': string($query-string) })" as="xs:anyURI"/>
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, $results-uri)" as="xs:anyURI"/>
-        <xsl:sequence select="document($request-uri)//srx:binding[@name = 'constraint']/srx:uri/xs:anyURI(.)"/>
+        <xsl:sequence select="document($request-uri)"/>
     </xsl:function>
 
     <xsl:function name="ldh:listSuperClasses" as="attribute()*" cache="yes">
@@ -383,7 +383,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="cloneable" select="false()" as="xs:boolean"/>
         <xsl:param name="types" select="../rdf:type/@rdf:resource" as="xs:anyURI*"/>
         <xsl:param name="constraint-query" as="xs:string" tunnel="yes"/>
-        <xsl:param name="required" select="exists(for $type in $types return spin:constraint($type, resolve-uri('ns', $ldt:base), $constraint-query))" as="xs:boolean"/>
+        <xsl:param name="required" select="exists(for $type in $types return spin:constraints($type, resolve-uri('ns', $ldt:base), $constraint-query)//srx:binding[@name = 'property'][srx:uri = $this])" as="xs:boolean"/>
         <xsl:param name="id" select="generate-id()" as="xs:string"/>
         <xsl:param name="for" select="generate-id((node() | @rdf:resource | @rdf:nodeID)[1])" as="xs:string"/>
         <xsl:param name="class" select="concat('control-group', if ($error) then ' error' else (), if ($required) then ' required' else ())" as="xs:string?"/>
