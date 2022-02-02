@@ -132,7 +132,7 @@
 #    rdfs:isDefinedBy : .
 
 :ImportConstructor a sp:Construct ;
-    sp:text """PREFIX :        <https://w3id.org/atomgraph/linkeddatahub#>
+    sp:text """PREFIX ldh:      <https://w3id.org/atomgraph/linkeddatahub#>
         PREFIX rdfs:  <http://www.w3.org/2000/01/rdf-schema#>
         PREFIX sioc:  <http://rdfs.org/sioc/ns#>
         PREFIX sd:    <http://www.w3.org/ns/sparql-service-description#>
@@ -140,32 +140,33 @@
         PREFIX dh:      <https://www.w3.org/ns/ldt/document-hierarchy#>
 
         CONSTRUCT {
-            ?this :action [ a dh:Container ] ;
+            ?this ldh:action [ a dh:Container ] ;
                 sd:name [ a rdfs:Resource ] ;
-                :file [ a nfo:FileDataObject ] .
+                ldh:file [ a nfo:FileDataObject ] .
         }
         WHERE {}""" ;
     rdfs:label "Import constructor" ;
     rdfs:isDefinedBy : .
 
 :CSVImportConstructor a sp:Construct ;
-    sp:text """PREFIX :        <https://w3id.org/atomgraph/linkeddatahub#>
+    sp:text """PREFIX ldh:        <https://w3id.org/atomgraph/linkeddatahub#>
+        PREFIX sp:      <http://spinrdf.org/sp#>
         PREFIX spin:    <http://spinrdf.org/spin#>
 
         CONSTRUCT {
-            ?this spin:query [ a :Construct ] ;
-                :delimiter "," .
+            ?this spin:query [ a sp:Construct ] ;
+                ldh:delimiter "," .
         }
         WHERE {}""" ;
     rdfs:label "CSV import constructor" ;
     rdfs:isDefinedBy : .
 
 :RDFImportConstructor a sp:Construct ;
-    sp:text """PREFIX :        <https://w3id.org/atomgraph/linkeddatahub#>
+    sp:text """PREFIX sp:      <http://spinrdf.org/sp#>
         PREFIX spin:    <http://spinrdf.org/spin#>
 
         CONSTRUCT {
-            ?this spin:query [ a :Construct ] .
+            ?this spin:query [ a sp:Construct ] .
         }
         WHERE {}""" ;
     rdfs:label "RDF import constructor" ;
@@ -181,11 +182,11 @@
 
 :ChartConstructor a sp:Construct ;
   sp:text """
-      PREFIX :      <https://w3id.org/atomgraph/linkeddatahub#>
+      PREFIX ldh:   <https://w3id.org/atomgraph/linkeddatahub#>
       PREFIX rdfs:  <http://www.w3.org/2000/01/rdf-schema#>
 
       CONSTRUCT {
-          ?this :chartType [ a rdfs:Resource ] .
+          ?this ldh:chartType [ a rdfs:Resource ] .
       }
       WHERE {}""" ;
     rdfs:label "Chart constructor" ;
@@ -200,15 +201,15 @@
 
 :GraphChartConstructor a sp:Construct ;
   sp:text """
-      PREFIX :      <https://w3id.org/atomgraph/linkeddatahub#>
+      PREFIX ldh:   <https://w3id.org/atomgraph/linkeddatahub#>
       PREFIX rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
       PREFIX spin:  <http://spinrdf.org/spin#>
       PREFIX sp:    <http://spinrdf.org/sp#>
 
       CONSTRUCT {
           ?this spin:query [ a sp:Query ] ; # really a union of :Describe and :Construct
-            :categoryProperty [ a rdf:Property ] ;
-            :seriesProperty [ a rdf:Property ] .
+            ldh:categoryProperty [ a rdf:Property ] ;
+            ldh:seriesProperty [ a rdf:Property ] .
       }
       WHERE {}""" ;
     rdfs:label "Model chart constructor" ;
@@ -223,14 +224,15 @@
 
 :ResultSetChartConstructor a sp:Construct ;
   sp:text """
-      PREFIX :      <https://w3id.org/atomgraph/linkeddatahub#>
+      PREFIX ldh:   <https://w3id.org/atomgraph/linkeddatahub#>
       PREFIX xsd:   <http://www.w3.org/2001/XMLSchema#>
       PREFIX spin:  <http://spinrdf.org/spin#>
+      PREFIX sp:    <http://spinrdf.org/sp#>
 
       CONSTRUCT {
-          ?this spin:query [ a :Select ] ;
-            :categoryVarName [ a xsd:string ] ;
-            :seriesVarName [ a xsd:string ] .
+          ?this spin:query [ a sp:Select ] ;
+            ldh:categoryVarName [ a xsd:string ] ;
+            ldh:seriesVarName [ a xsd:string ] .
       }
       WHERE {}""" ;
     rdfs:label "Model chart constructor" ;

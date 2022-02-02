@@ -101,28 +101,13 @@ exclude-result-prefixes="#all">
             </ul>
         </div>
     </xsl:template>
-    
-    <!-- unlike in the end-user app, only show classes from top-level ontology - don't recurse into imports -->
-<!--    <xsl:template name="bs2:ConstructorList">
-        <xsl:param name="ontology" as="element()"/>
-        <xsl:param name="classes" as="element()*"/>
-        <xsl:param name="visited-classes" as="element()*"/>
-        <xsl:param name="create-graph" select="false()" as="xs:boolean"/>
 
-        <ul class="dropdown-menu">
-            <xsl:apply-templates select="$classes" mode="bs2:ConstructorListItem">
-                <xsl:with-param name="create-graph" select="$create-graph"/>
-                <xsl:sort select="ac:label(.)"/>
-            </xsl:apply-templates>
-        </ul>
-    </xsl:template>-->
-
-    <xsl:template match="rdf:RDF" mode="ldh:Constructor" as="document-node()">
+<!--    <xsl:template match="rdf:RDF" mode="ldh:Constructor" as="document-node()">
         <xsl:param name="forClass" as="xs:anyURI"/>
         <xsl:param name="createGraph" as="xs:boolean"/>
 
         <xsl:choose>
-            <!-- if $forClass is not a document class, then pair the instance with a document instance -->
+             if $forClass is not a document class, then pair the instance with a document instance 
             <xsl:when test="$createGraph and not($forClass = ('&dh;Container', '&dh;Item'))">
                 <xsl:document>
                     <xsl:for-each select="ac:construct($ldt:ontology, ($forClass, xs:anyURI('&dh;Item')), $ldt:base)">
@@ -137,14 +122,6 @@ exclude-result-prefixes="#all">
                 <xsl:sequence select="ac:construct($ldt:ontology, $forClass, $ldt:base)"/>
             </xsl:otherwise>
         </xsl:choose>
-    </xsl:template>
-    
-<!--    <xsl:template match="rdf:RDF[$ac:forClass or $ac:mode = '&ac;EditMode']" mode="bs2:RowForm" priority="1">
-        <xsl:param name="classes" as="element()*"/>
-        
-        <xsl:next-match>
-            <xsl:with-param name="classes" select="$classes"/>
-        </xsl:next-match>
     </xsl:template>-->
     
     <!-- allow subject editing in admin EditMode -->
