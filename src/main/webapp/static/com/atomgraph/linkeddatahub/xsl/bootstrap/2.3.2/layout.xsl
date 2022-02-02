@@ -152,15 +152,18 @@ exclude-result-prefixes="#all">
     <xsl:variable name="constraint-query" as="xs:string">
         <![CDATA[
             PREFIX  ldh:  <https://w3id.org/atomgraph/linkeddatahub#>
+            PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
             PREFIX  sp:   <http://spinrdf.org/sp#>
             PREFIX  spin: <http://spinrdf.org/spin#>
 
-            SELECT  *
+            SELECT  ?property
             WHERE
-              { ?Type     spin:constraint  ?constraint .
+              { ?Type (rdfs:subClassOf)* ?superClass .
+                ?superClass  spin:constraint  ?constraint .
                 ?constraint  a             ldh:MissingPropertyValue ;
                           sp:arg1          ?property
-              }
+                FILTER ( ! strstarts(str(?class), "http://spinrdf.org/spin#") )
+  }
         ]]>
     </xsl:variable>
     
