@@ -936,7 +936,7 @@ extension-element-prefixes="ixsl"
             <!-- create inputs for both resource description and constructor template properties -->
             <xsl:apply-templates select="* | $template/*[not(concat(namespace-uri(), local-name()) = current()/*/concat(namespace-uri(), local-name()))][not(self::rdf:type)]" mode="#current">
                 <!-- move required properties up -->
-                <xsl:sort select="exists(for $type in $types return (if (doc-available(ac:document-uri($type))) then document(ac:document-uri($type))/key('resources', key('resources', $types)/spin:constraint/(@rdf:resource|@rdf:nodeID))[rdf:type/@rdf:resource = '&ldh;MissingPropertyValue'][sp:arg1/@rdf:resource = current()/concat(namespace-uri(), local-name())] else ()))" order="descending"/>
+                <xsl:sort select="exists(spin:constraints($type, resolve-uri('ns', $ldt:base), $constraint-query)//srx:binding[@name = 'property'][srx:uri = namespace-uri() || local-name()])" order="descending"/>
                 <xsl:sort select="ac:property-label(.)"/>
                 <xsl:with-param name="violations" select="$violations"/>
                 <xsl:with-param name="constructor" select="$constructor"/>
