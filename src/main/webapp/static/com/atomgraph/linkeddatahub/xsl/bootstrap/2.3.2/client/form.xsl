@@ -257,11 +257,13 @@ exclude-result-prefixes="#all"
         </xsl:variable>
         <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
 
-        <xsl:call-template name="ldh:PushState">
-            <xsl:with-param name="href" select="ldh:href($ldt:base, $href)"/>
-            <!--<xsl:with-param name="title" select="/html/head/title"/>-->
-            <xsl:with-param name="container" select="id('content-body', ixsl:page())"/>
-        </xsl:call-template>
+        <xsl:if test="not($modal-form)">
+            <xsl:call-template name="ldh:PushState">
+                <xsl:with-param name="href" select="ldh:href($ldt:base, $href)"/>
+                <!--<xsl:with-param name="title" select="/html/head/title"/>-->
+                <xsl:with-param name="container" select="id('content-body', ixsl:page())"/>
+            </xsl:call-template>
+        </xsl:if>
     </xsl:template>
     
     <xsl:template match="button[contains-token(@class, 'add-constructor')]" mode="ixsl:onclick" priority="1">
