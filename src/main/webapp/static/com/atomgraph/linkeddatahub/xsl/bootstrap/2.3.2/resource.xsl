@@ -884,6 +884,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="traversed-ids" select="@rdf:*" as="xs:string*" tunnel="yes"/>
         <xsl:param name="show-subject" select="false()" as="xs:boolean" tunnel="yes"/>
         <xsl:param name="required" select="false()" as="xs:boolean"/>
+        <xsl:param name="constraint-query" as="xs:string" tunnel="yes"/>
 
         <fieldset>
             <xsl:if test="$id">
