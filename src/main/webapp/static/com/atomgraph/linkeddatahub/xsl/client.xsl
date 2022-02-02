@@ -253,7 +253,7 @@ WHERE
                 <xsl:sequence select="xs:anyURI(ixsl:query-params()?uri)"/>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:sequence select="ldh:absolute-path()"/>
+                <xsl:sequence select="ldh:absolute-path(ldh:href())"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:function>
