@@ -812,7 +812,7 @@ exclude-result-prefixes="#all">
                 <xsl:attribute name="class"><xsl:sequence select="$class"/></xsl:attribute>
             </xsl:if>
 
-            <a href="{ac:build-uri(ac:uri(), map{ 'mode': string(@rdf:about) })}">
+            <a href="{ldh:href($ldt:base, ac:uri(), xs:anyURI(@rdf:about))}">
                 <xsl:value-of>
                     <xsl:apply-templates select="." mode="ac:label"/>
                 </xsl:value-of>
