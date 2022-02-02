@@ -355,10 +355,10 @@ exclude-result-prefixes="#all"
         </xsl:if>
     </xsl:template>
 
-    <!-- remove <fieldset> (button is within <legend>) -->
+    <!-- remove div.row-fluid (button is within <legend>) -->
     <xsl:template match="fieldset/legend/div/button[contains-token(@class, 'btn-remove-resource')]" mode="ixsl:onclick" priority="1">
         <xsl:message>
-            <xsl:value-of select="ixsl:call(../../.., 'remove', [])"/>
+            <xsl:value-of select="ixsl:call(../../../../.., 'remove', [])"/>
         </xsl:message>
     </xsl:template>
 
