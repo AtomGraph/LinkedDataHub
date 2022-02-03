@@ -11,7 +11,6 @@
 @prefix spin:	<http://spinrdf.org/spin#> .
 @prefix sioc:	<http://rdfs.org/sioc/ns#> .
 @prefix foaf:	<http://xmlns.com/foaf/0.1/> .
-@prefix dct:	<http://purl.org/dc/terms/> .
 @prefix nfo:	<http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#> .
 
 : a owl:Ontology ;
@@ -22,90 +21,35 @@
 
 :Root a owl:Class ;
     rdfs:subClassOf sioc:Space, sioc:Container ;
-    spin:constructor :TitleConstructor, :DescriptionConstructor, :PrimaryTopicConstructor, :ContentConstructor ;
-    spin:constraint :MissingTitle ; # roots do not have parents, therefore no :MissingParent
+    spin:constructor ldh:TitleConstructor, ldh:DescriptionConstructor, ldh:PrimaryTopicConstructor, ldh:ContentConstructor ;
+    spin:constraint ldh:MissingTitle ; # roots do not have parents, therefore no ldh:MissingParent
     ldh:template ldh:ContainerChildren ;
     rdfs:label "Root" ;
-    rdfs:isDefinedBy : .
-
-:TitleConstructor a sp:Construct ;
-    rdfs:label "Title constructor" ;
-    sp:text """
-        PREFIX rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-        PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
-        PREFIX dct:     <http://purl.org/dc/terms/>
-
-        CONSTRUCT {
-          ?this dct:title [ a xsd:string ] .
-        }
-        WHERE {}""" ;
-    rdfs:isDefinedBy : .
-
-:DescriptionConstructor a sp:Construct ;
-    rdfs:label "Description constructor" ;
-    sp:text """
-        PREFIX rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-        PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
-        PREFIX dct:     <http://purl.org/dc/terms/>
-
-        CONSTRUCT {
-          ?this dct:description [ a xsd:string ] .
-        }
-        WHERE {}""" ;
-    rdfs:isDefinedBy : .
-
-:PrimaryTopicConstructor a sp:Construct ;
-    rdfs:label "Primary topic constructor" ;
-    sp:text """
-        PREFIX foaf:    <http://xmlns.com/foaf/0.1/>
-        PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
-
-        CONSTRUCT {
-          ?this foaf:primaryTopic [ a rdfs:Resource ] .
-        }
-        WHERE {}""" ;
-    rdfs:isDefinedBy : .
-
-:ContentConstructor a sp:Construct ;
-    rdfs:label "Content constructor" ;
-    sp:text """
-        PREFIX ldh:     <https://w3id.org/atomgraph/linkeddatahub#>
-
-        CONSTRUCT {
-          ?this ldh:content [ a ldh:Content ] .
-        }
-        WHERE {}""" ;
-    rdfs:isDefinedBy : .
-
-:MissingTitle a ldh:MissingPropertyValue ;
-    rdfs:label "Missing title" ;
-    rdfs:comment "Requires resources to have a title from Dublin Core Terms vocabulary" ;
-    sp:arg1 dct:title ;
     rdfs:isDefinedBy : .
 
 ### EXTERNAL ASSERTIONS
 
 # http://spinrdf.org/sp
 
-sp:Query spin:constructor :TitleConstructor, :DescriptionConstructor ;
-    spin:constraint :MissingTitle .
+sp:Query spin:constructor ldh:TitleConstructor, ldh:DescriptionConstructor ;
+    spin:constraint ldh:MissingTitle .
 
 # https://w3id.org/atomgraph/linkeddatahub#
 
-ldh:Import spin:constructor :TitleConstructor, :DescriptionConstructor ;
-    spin:constraint :MissingTitle .
+ldh:Import spin:constructor ldh:TitleConstructor, ldh:DescriptionConstructor ;
+    spin:constraint ldh:MissingTitle .
 
-ldh:Chart spin:constructor :TitleConstructor, :DescriptionConstructor ;
-    spin:constraint :MissingTitle .
+ldh:Chart spin:constructor ldh:TitleConstructor, ldh:DescriptionConstructor ;
+    spin:constraint ldh:MissingTitle .
 
 nfo:FileDataObject rdfs:label "File" ;
-    spin:constructor :TitleConstructor, :DescriptionConstructor ;
-    spin:constraint :MissingTitle .
+    spin:constructor ldh:TitleConstructor, ldh:DescriptionConstructor ;
+    spin:constraint ldh:MissingTitle .
 
-sd:Service spin:constructor :TitleConstructor, :DescriptionConstructor ;
-    spin:constraint :MissingTitle .
+sd:Service spin:constructor ldh:TitleConstructor, ldh:DescriptionConstructor ;
+    spin:constraint ldh:MissingTitle .
 
 # https://w3id.org/atomgraph/linkeddatahub/apps
 
-lapp:Application spin:constructor :TitleConstructor, :DescriptionConstructor ;
-    spin:constraint :MissingTitle .
+lapp:Application spin:constructor ldh:TitleConstructor, ldh:DescriptionConstructor ;
+    spin:constraint ldh:MissingTitle .
