@@ -763,7 +763,8 @@ exclude-result-prefixes="#all"
                 <xsl:choose>
                     <xsl:when test="starts-with(?media-type, 'application/xhtml+xml')"> <!-- allow 'application/xhtml+xml;charset=UTF-8' as well -->
                         <xsl:apply-templates select="?body" mode="ldh:LoadedHTMLDocument">
-                            <!-- $uri does not change at this point -->
+                            <!-- $href does not change at this point -->
+                            <xsl:with-param name="href" select="ldh:href()"/>
                             <xsl:with-param name="container" select="$container"/>
                         </xsl:apply-templates>
                     </xsl:when>

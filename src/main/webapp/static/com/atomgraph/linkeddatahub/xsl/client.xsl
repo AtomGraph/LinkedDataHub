@@ -1590,7 +1590,7 @@ WHERE
     
     <!-- cannot be a named template because overriding templates need to be able to call xsl:next-match (cannot use xsl:origin with Saxon-JS because of XSLT 3.0 packages) -->
     <xsl:template match="/" mode="ldh:LoadedHTMLDocument">
-        <xsl:param name="href" as="xs:anyURI?"/>
+        <xsl:param name="href" as="xs:anyURI"/>
         <xsl:param name="uri" select="ldh:absolute-path($href)" as="xs:anyURI?"/>
         <xsl:param name="fragment" as="xs:string?"/>
         <xsl:param name="container" as="element()"/>
