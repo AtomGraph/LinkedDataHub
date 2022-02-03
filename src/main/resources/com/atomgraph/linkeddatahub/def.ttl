@@ -7,11 +7,13 @@
 @prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .
 @prefix owl:	<http://www.w3.org/2002/07/owl#> .
 @prefix sd:	<http://www.w3.org/ns/sparql-service-description#> .
+@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy#> .
 @prefix sp:	<http://spinrdf.org/sp#> .
 @prefix spin:	<http://spinrdf.org/spin#> .
 @prefix sioc:	<http://rdfs.org/sioc/ns#> .
 @prefix foaf:	<http://xmlns.com/foaf/0.1/> .
 @prefix nfo:	<http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#> .
+@prefix dct:	<http://purl.org/dc/terms/> .
 
 : a owl:Ontology ;
     rdfs:label "Default" ;
@@ -22,34 +24,44 @@
 :Root a owl:Class ;
     rdfs:subClassOf sioc:Space, sioc:Container ;
     spin:constructor ldh:TitleConstructor, ldh:DescriptionConstructor, ldh:PrimaryTopicConstructor, ldh:ContentConstructor ;
-    spin:constraint ldh:MissingTitle ; # roots do not have parents, therefore no ldh:MissingParent
+    spin:constraint :MissingTitle ; # roots do not have parents, therefore no ldh:MissingParent
     ldh:template ldh:ContainerChildren ;
     rdfs:label "Root" ;
     rdfs:isDefinedBy : .
 
+:MissingTitle a ldh:MissingPropertyValue ;
+    rdfs:label "Missing title" ;
+    rdfs:comment "Requires resources to have a title from Dublin Core Terms vocabulary" ;
+    sp:arg1 dct:title ;
+    rdfs:isDefinedBy : .
+
 ### EXTERNAL ASSERTIONS
+
+dh:Container spin:constraint :MissingTitle .
+
+dh:Item  spin:constraint :MissingTitle .
 
 # http://spinrdf.org/sp
 
 sp:Query spin:constructor ldh:TitleConstructor, ldh:DescriptionConstructor ;
-    spin:constraint ldh:MissingTitle .
+    spin:constraint :MissingTitle .
 
 # https://w3id.org/atomgraph/linkeddatahub#
 
 ldh:Import spin:constructor ldh:TitleConstructor, ldh:DescriptionConstructor ;
-    spin:constraint ldh:MissingTitle .
+    spin:constraint :MissingTitle .
 
 ldh:Chart spin:constructor ldh:TitleConstructor, ldh:DescriptionConstructor ;
-    spin:constraint ldh:MissingTitle .
+    spin:constraint :MissingTitle .
 
 nfo:FileDataObject rdfs:label "File" ;
     spin:constructor ldh:TitleConstructor, ldh:DescriptionConstructor ;
-    spin:constraint ldh:MissingTitle .
+    spin:constraint :MissingTitle .
 
 sd:Service spin:constructor ldh:TitleConstructor, ldh:DescriptionConstructor ;
-    spin:constraint ldh:MissingTitle .
+    spin:constraint :MissingTitle .
 
 # https://w3id.org/atomgraph/linkeddatahub/apps
 
 lapp:Application spin:constructor ldh:TitleConstructor, ldh:DescriptionConstructor ;
-    spin:constraint ldh:MissingTitle .
+    spin:constraint :MissingTitle .

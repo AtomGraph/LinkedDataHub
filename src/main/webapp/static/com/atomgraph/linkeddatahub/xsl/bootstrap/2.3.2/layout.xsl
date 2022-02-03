@@ -1028,8 +1028,18 @@ exclude-result-prefixes="#all">
     <!-- FORM CONTROL -->
 
     <xsl:template match="*[rdf:type/@rdf:resource = ('&def;Root', '&dh;Container', '&dh;Item')]" mode="bs2:FormControl">
+        <xsl:param name="id" select="concat('form-control-', generate-id())" as="xs:string?"/>
+        <xsl:param name="class" as="xs:string?"/>
+        <xsl:param name="legend" select="true()" as="xs:boolean"/>
+        <xsl:param name="show-subject" select="false()" as="xs:boolean" tunnel="yes"/>
+        <xsl:param name="required" select="true()" as="xs:boolean"/>
+        
         <xsl:next-match>
-            <xsl:with-param name="required" select="true()"/>
+            <xsl:with-param name="required" select="$id"/>
+            <xsl:with-param name="class" select="$class"/>
+            <xsl:with-param name="legend" select="$legend"/>
+            <xsl:with-param name="show-subject" select="$show-subject"/>
+            <xsl:with-param name="required" select="$required"/>
         </xsl:next-match>
     </xsl:template>
     

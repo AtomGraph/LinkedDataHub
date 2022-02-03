@@ -14,7 +14,6 @@
 @prefix spin:	<http://spinrdf.org/spin#> .
 @prefix spl:	<http://spinrdf.org/spl#> .
 @prefix foaf:	<http://xmlns.com/foaf/0.1/> .
-@prefix dct:	<http://purl.org/dc/terms/> .
 @prefix nfo:	<http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#> .
 @prefix sioc:	<http://rdfs.org/sioc/ns#> .
 
@@ -460,7 +459,7 @@ ac:ChartMode a ac:Mode, ac:ContainerMode ;
 # https://www.w3.org/ns/ldt/document-hierarchy
 
 dh:Item spin:constructor :TitleConstructor, :DescriptionConstructor, :PrimaryTopicConstructor, :ContentConstructor ;
-    spin:constraint :MissingContainer, :MissingTitle .
+    spin:constraint :MissingContainer .
 
 :PrimaryTopicConstructor a sp:Construct ;
     rdfs:label "Primary topic constructor" ;
@@ -511,12 +510,6 @@ dh:Item spin:constructor :TitleConstructor, :DescriptionConstructor, :PrimaryTop
         WHERE {}""" ;
     rdfs:isDefinedBy : .
 
-:MissingTitle a :MissingPropertyValue ;
-    rdfs:label "Missing title" ;
-    rdfs:comment "Requires resources to have a title from Dublin Core Terms vocabulary" ;
-    sp:arg1 dct:title ;
-    rdfs:isDefinedBy : .
-
 :MissingContainer a :MissingPropertyValue ;
     rdfs:label "Missing container" ;
     rdfs:comment "Requires items to have a parent container" ;
@@ -524,7 +517,7 @@ dh:Item spin:constructor :TitleConstructor, :DescriptionConstructor, :PrimaryTop
     rdfs:isDefinedBy : .
 
 dh:Container spin:constructor :TitleConstructor, :DescriptionConstructor, :PrimaryTopicConstructor, :ContentConstructor ;
-    spin:constraint :MissingParent, :MissingTitle ;
+    spin:constraint :MissingParent ;
     :template :ContainerChildren .
 
 :MissingParent a :MissingPropertyValue ;

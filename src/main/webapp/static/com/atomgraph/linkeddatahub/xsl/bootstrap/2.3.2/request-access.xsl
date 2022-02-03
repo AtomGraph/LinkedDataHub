@@ -247,8 +247,8 @@ exclude-result-prefixes="#all">
         </xsl:apply-templates>
     </xsl:template>
 
-    <!-- suppress ldh:content property -->
-    <xsl:template match="ldh:content[ac:uri() = resolve-uri('request%20access', $ldt:base)]" mode="bs2:FormControl" priority="3"/>
+    <!-- suppress properties -->
+    <xsl:template match="dct:title[ac:uri() = resolve-uri('request%20access', $ldt:base)] | dct:description[ac:uri() = resolve-uri('request%20access', $ldt:base)] | ldh:content[ac:uri() = resolve-uri('request%20access', $ldt:base)]" mode="bs2:FormControl" priority="3"/>
 
     <!-- turn off additional properties - it applies on the constructor document and not the $main-doc -->
     <xsl:template match="*[ac:uri() = resolve-uri('request%20access', $ldt:base)]" mode="bs2:PropertyControl" priority="1"/>
