@@ -87,12 +87,6 @@ exclude-result-prefixes="#all">
                 <span class="caret"></span>
             </button>
 
-<!--            <xsl:call-template name="bs2:ConstructorList">
-                <xsl:with-param name="ontology" select="key('resources', $ldt:ontology, document(ac:document-uri($ldt:ontology)))"/>
-                <xsl:with-param name="classes" select="$classes"/>
-                <xsl:with-param name="visited-classes" select="()"/>
-                <xsl:with-param name="create-graph" select="$create-graph"/>
-            </xsl:call-template>-->
             <ul class="dropdown-menu">
                 <xsl:apply-templates select="$classes" mode="bs2:ConstructorListItem">
                     <xsl:with-param name="create-graph" select="$create-graph"/>
@@ -101,28 +95,6 @@ exclude-result-prefixes="#all">
             </ul>
         </div>
     </xsl:template>
-
-<!--    <xsl:template match="rdf:RDF" mode="ldh:Constructor" as="document-node()">
-        <xsl:param name="forClass" as="xs:anyURI"/>
-        <xsl:param name="createGraph" as="xs:boolean"/>
-
-        <xsl:choose>
-             if $forClass is not a document class, then pair the instance with a document instance 
-            <xsl:when test="$createGraph and not($forClass = ('&dh;Container', '&dh;Item'))">
-                <xsl:document>
-                    <xsl:for-each select="ac:construct($ldt:ontology, ($forClass, xs:anyURI('&dh;Item')), $ldt:base)">
-                        <xsl:apply-templates select="." mode="ldh:SetPrimaryTopic">
-                            <xsl:with-param name="topic-id" select="key('resources-by-type', $forClass)[* except rdf:type]/@rdf:nodeID" tunnel="yes"/>
-                            <xsl:with-param name="doc-id" select="key('resources-by-type', '&dh;Item')/@rdf:nodeID" tunnel="yes"/>
-                        </xsl:apply-templates>
-                    </xsl:for-each>
-                </xsl:document>
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:sequence select="ac:construct($ldt:ontology, $forClass, $ldt:base)"/>
-            </xsl:otherwise>
-        </xsl:choose>
-    </xsl:template>-->
     
     <!-- allow subject editing in admin EditMode -->
     <xsl:template match="*[*][@rdf:about or @rdf:nodeID]" mode="bs2:FormControl">

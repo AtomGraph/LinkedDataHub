@@ -740,6 +740,7 @@ exclude-result-prefixes="#all">
                     </xsl:when>
                     <xsl:otherwise>
                         <xsl:apply-templates select="." mode="bs2:RowBlock">
+                            <xsl:with-param name="template-query" select="$template-query" tunnel="yes"/>
                             <xsl:sort select="ac:label(.)"/>
                         </xsl:apply-templates>
                     </xsl:otherwise>

@@ -468,6 +468,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="id" select="generate-id()" as="xs:string?"/>
         <xsl:param name="content-uri" as="xs:anyURI?"/>
         <xsl:param name="class" select="'row-fluid'" as="xs:string?"/>
+        <xsl:param name="constraint-query" as="xs:string?" tunnel="yes"/>
 
         <div>
             <xsl:if test="$id">
@@ -490,8 +491,13 @@ extension-element-prefixes="ixsl"
             <xsl:apply-templates select="." mode="bs2:Right"/>
         </div>
         
-        <!-- use document() only server-side -->
-        <xsl:apply-templates select="rdf:type/@rdf:resource/key('resources', ., document(ac:document-uri(.)))/ldh:template/@rdf:resource/key('resources', ., document(ac:document-uri(.)))" mode="ldh:ContentList" use-when="system-property('xsl:product-name') = 'SAXON'"/>
+        <!-- render contents attached to the types of this resource using ldh:template -->
+        <xsl:param name="content-uris" select="rdf:type/@rdf:resource[doc-available(resolve-uri('ns?query=ASK%20%7B%7D', $ldt:base))]/ldh:templates(., resolve-uri('ns', $ldt:base), $template-query)//srx:binding[@name = 'content']/srx:uri/xs:anyURI(.)" as="xs:anyURI*" use-when="system-property('xsl:product-name') = 'SAXON'"/>
+        <xsl:for-each select="$content-uris">
+            <xsl:if test="doc-available(ac:document-uri(.))">
+                <xsl:apply-templates select="key('resources', ., document(ac:document-uri(.)))" mode="ldh:ContentList"/>
+            </xsl:if>
+        </xsl:for-each>
     </xsl:template>
     
     <!-- TO-DO: override other modes -->
