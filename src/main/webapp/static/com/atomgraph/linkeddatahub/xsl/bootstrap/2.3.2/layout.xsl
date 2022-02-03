@@ -1035,7 +1035,7 @@ exclude-result-prefixes="#all">
         <xsl:param name="required" select="true()" as="xs:boolean"/>
         
         <xsl:next-match>
-            <xsl:with-param name="required" select="$id"/>
+            <xsl:with-param name="id" select="$id"/>
             <xsl:with-param name="class" select="$class"/>
             <xsl:with-param name="legend" select="$legend"/>
             <xsl:with-param name="show-subject" select="$show-subject"/>
