@@ -1157,9 +1157,9 @@ exclude-result-prefixes="#all">
                             </a>
                         </xsl:for-each>
                     </li>
-                    <li>
+<!--                    <li>
                         <a href="{resolve-uri('admin/model/ontologies/namespace/', $ldt:base)}" target="_blank">Namespace</a>
-                    </li>
+                    </li>-->
                 </xsl:if>
                 <li>
                     <a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/" target="_blank">Documentation</a>

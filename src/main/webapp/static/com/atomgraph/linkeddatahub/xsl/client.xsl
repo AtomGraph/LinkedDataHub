@@ -2414,11 +2414,11 @@ WHERE
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
     </xsl:template>
     
-    <xsl:template name="ixsl:ontypeTypeaheadCallback">
+<!--    <xsl:template name="ixsl:ontypeTypeaheadCallback">
         <xsl:next-match>
             <xsl:with-param name="container-uri" select="resolve-uri('admin/model/ontologies/namespace/', $ldt:base)"/>
         </xsl:next-match>
-    </xsl:template>
+    </xsl:template>-->
 
     <xsl:template name="onBacklinksLoad">
         <xsl:context-item as="map(*)" use="required"/>
