@@ -6,7 +6,6 @@
 @prefix rdf:	<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .
 @prefix owl:	<http://www.w3.org/2002/07/owl#> .
-@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy#> .
 @prefix sd:	<http://www.w3.org/ns/sparql-service-description#> .
 @prefix sp:	<http://spinrdf.org/sp#> .
 @prefix spin:	<http://spinrdf.org/spin#> .
@@ -18,7 +17,7 @@
 : a owl:Ontology ;
     rdfs:label "Default" ;
     rdfs:comment "Default document model" ;
-    owl:imports ldh:, lapp:, sd:, dh:, sp: ;
+    owl:imports ldh:, lapp:, sd:, sp: ;
     owl:versionInfo "1.0-SNAPSHOT" .
 
 :Root a owl:Class ;

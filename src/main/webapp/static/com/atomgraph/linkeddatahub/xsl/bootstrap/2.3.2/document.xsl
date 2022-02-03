@@ -545,7 +545,6 @@ extension-element-prefixes="ixsl"
         <xsl:param name="button-class" select="'btn btn-primary wymupdate'" as="xs:string?"/>
         <xsl:param name="create-resource" select="true()" as="xs:boolean"/>
         <xsl:param name="classes" as="element()*"/>
-        <!--<xsl:param name="default-classes" select="(key('resources-by-type', '&rdfs;Class', document(ac:document-uri('&def;')))[not(@rdf:about = ('&def;Root', '&dh;Container', '&dh;Item'))])" as="element()*"/>-->
 
         <form method="{$method}" action="{$action}">
             <xsl:if test="$id">
