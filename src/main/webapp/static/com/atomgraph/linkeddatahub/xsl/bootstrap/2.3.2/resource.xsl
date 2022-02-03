@@ -493,7 +493,7 @@ extension-element-prefixes="ixsl"
         
         <!-- render contents attached to the types of this resource using ldh:template -->
         <xsl:variable name="content-uris" select="rdf:type/@rdf:resource[doc-available(resolve-uri('ns?query=ASK%20%7B%7D', $ldt:base))]/ldh:templates(., resolve-uri('ns', $ldt:base), $template-query)//srx:binding[@name = 'content']/srx:uri/xs:anyURI(.)" as="xs:anyURI*" use-when="system-property('xsl:product-name') = 'SAXON'"/>
-        <xsl:for-each select="$content-uris">
+        <xsl:for-each select="$content-uris" use-when="system-property('xsl:product-name') = 'SAXON'">
             <xsl:if test="doc-available(ac:document-uri(.))">
                 <xsl:apply-templates select="key('resources', ., document(ac:document-uri(.)))" mode="ldh:ContentList"/>
             </xsl:if>
