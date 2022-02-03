@@ -220,7 +220,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
                 <xsl:call-template name="onAddValue">
-                    <xsl:with-param name="forClass" select="$forClass"/>
+                    <!--<xsl:with-param name="forClass" select="$forClass"/>-->
                     <xsl:with-param name="control-group" select="$control-group"/>
                     <xsl:with-param name="property" select="$property"/>
                 </xsl:call-template>
@@ -832,7 +832,6 @@ exclude-result-prefixes="#all"
     
     <xsl:template name="onAddValue">
         <xsl:context-item as="map(*)" use="required"/>
-        <xsl:param name="forClass" as="xs:anyURI"/>
         <xsl:param name="control-group" as="element()"/>
         <xsl:param name="property" as="xs:anyURI"/>
         
@@ -863,10 +862,10 @@ exclude-result-prefixes="#all"
 <!--                        <xsl:call-template name="add-value-listeners">
                             <xsl:with-param name="id" select="$new-control-group//input[@name = ('ob', 'ou', 'ol')]/@id"/>
                         </xsl:call-template>-->
-                        
-                        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
                     </xsl:for-each>
                 </xsl:for-each>
+                
+                <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
             </xsl:when>
             <xsl:otherwise>
                 <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ ?message ])"/>
@@ -1049,28 +1048,32 @@ exclude-result-prefixes="#all"
                             <xsl:with-param name="doc-id" select="$doc-id" tunnel="yes"/>
                         </xsl:apply-templates>
                     </xsl:variable>
-                    <xsl:variable name="new-control-group" select="$form//div[contains-token(@class, 'control-group')][input[@name = 'pu']/@value = $property]" as="element()"/>
+                    <xsl:variable name="new-fieldset" select="$form//fieldset" as="element()"/>
                     
-                    <xsl:for-each select="$control-group">
+                    <xsl:for-each select="$fieldset">
                         <!-- move property creation control group down, by appending it to the parent fieldset -->
-                        <xsl:for-each select="$control-group/..">
+<!--                        <xsl:for-each select="$fieldset/..">
                             <xsl:result-document href="?." method="ixsl:append-content">
-                                <xsl:copy-of select="$control-group"/>
+                                <xsl:copy-of select="$fieldset"/>
                             </xsl:result-document>
                         </xsl:for-each>
 
                         <xsl:result-document href="?." method="ixsl:replace-content">
-                            <xsl:copy-of select="$new-control-group/*"/>
-                        </xsl:result-document>
+                            <xsl:copy-of select="$new-fieldset/*"/>
+                        </xsl:result-document>-->
                         
                         <!-- apply WYMEditor on textarea if object is XMLLiteral -->
 <!--                        <xsl:call-template name="add-value-listeners">
-                            <xsl:with-param name="id" select="$new-control-group//input[@name = ('ob', 'ou', 'ol')]/@id"/>
+                            <xsl:with-param name="id" select="$new-fieldset//input[@name = ('ob', 'ou', 'ol')]/@id"/>
                         </xsl:call-template>-->
                         
-                        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
+                        <xsl:result-document href="?." method="ixsl:replace-content">
+                            <xsl:copy-of select="$new-fieldset/*"/>
+                        </xsl:result-document>
                     </xsl:for-each>
                 </xsl:for-each>
+                
+                <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
             </xsl:when>
             <xsl:otherwise>
                 <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ ?message ])"/>
