@@ -86,27 +86,6 @@
 
 ### EXTERNAL ASSERTIONS
 
-# https://www.w3.org/ns/ldt/document-hierarchy
-
-dh:Item spin:constructor :TitleConstructor, :DescriptionConstructor, :PrimaryTopicConstructor, :ContentConstructor ;
-    spin:constraint :MissingContainer, :MissingTitle .
-
-:MissingContainer a ldh:MissingPropertyValue ;
-    rdfs:label "Missing container" ;
-    rdfs:comment "Requires items to have a parent container" ;
-    sp:arg1 sioc:has_container ;
-    rdfs:isDefinedBy : .
-
-dh:Container spin:constructor :TitleConstructor, :DescriptionConstructor, :PrimaryTopicConstructor, :ContentConstructor ;
-    spin:constraint :MissingParent, :MissingTitle ;
-    ldh:template ldh:ContainerChildren .
-
-:MissingParent a ldh:MissingPropertyValue ;
-    rdfs:label "Missing parent" ;
-    rdfs:comment "Requires containers to have a parent container" ;
-    sp:arg1 sioc:has_parent ;
-    rdfs:isDefinedBy : .
-
 # http://spinrdf.org/sp
 
 sp:Query spin:constructor :TitleConstructor, :DescriptionConstructor ;
