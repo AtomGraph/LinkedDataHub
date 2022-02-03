@@ -409,7 +409,7 @@ exclude-result-prefixes="#all"
             </xsl:result-document>
         </xsl:for-each>
         
-        <xsl:variable name="fieldset" select="ancestor::fieldset" as="element()"/> <!-- ../../copy-of() -->
+        <xsl:variable name="fieldset" select="../../../../.." as="element()"/> <!-- ancestor::fieldset -->
         <xsl:variable name="forClass" select="$resource/@rdf:about" as="xs:anyURI"/>
         <xsl:variable name="href" select="ac:build-uri(ldh:absolute-path(ldh:href()), map{ 'forClass': string($forClass) })" as="xs:anyURI"/>
         <xsl:message>Form URI: <xsl:value-of select="$href"/></xsl:message>
@@ -419,7 +419,6 @@ exclude-result-prefixes="#all"
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
                 <xsl:call-template name="onAddConstructor">
-                    <xsl:with-param name="forClass" select="$forClass"/>
                     <xsl:with-param name="fieldset" select="$fieldset"/>
                 </xsl:call-template>
             </ixsl:schedule-action>
@@ -1036,7 +1035,6 @@ exclude-result-prefixes="#all"
     
     <xsl:template name="onAddConstructor">
         <xsl:context-item as="map(*)" use="required"/>
-        <xsl:param name="forClass" as="xs:anyURI"/>
         <xsl:param name="fieldset" as="element()"/>
         
         <xsl:choose>
