@@ -18,6 +18,7 @@
     <!ENTITY dct    "http://purl.org/dc/terms/">
     <!ENTITY spin   "http://spinrdf.org/spin#">
     <!ENTITY nfo    "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#">
+    <!ENTITY dct    "http://purl.org/dc/terms/">
 ]>
 <xsl:stylesheet version="2.0"
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
@@ -36,6 +37,7 @@ xmlns:dh="&dh;"
 xmlns:foaf="&foaf;"
 xmlns:sioc="&sioc;"
 xmlns:spin="&spin;"
+xmlns:dct="&dct;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 exclude-result-prefixes="#all">
 
