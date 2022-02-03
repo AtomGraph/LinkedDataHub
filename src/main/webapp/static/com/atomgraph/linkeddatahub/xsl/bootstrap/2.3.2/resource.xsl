@@ -884,7 +884,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="traversed-ids" select="@rdf:*" as="xs:string*" tunnel="yes"/>
         <xsl:param name="show-subject" select="false()" as="xs:boolean" tunnel="yes"/>
         <xsl:param name="required" select="false()" as="xs:boolean"/>
-        <xsl:param name="constraint-query" as="xs:string" tunnel="yes"/>
+        <xsl:param name="constraint-query" as="xs:string?" tunnel="yes"/>
 
         <fieldset>
             <xsl:if test="$id">
@@ -937,7 +937,7 @@ extension-element-prefixes="ixsl"
             <!-- create inputs for both resource description and constructor template properties -->
             <xsl:apply-templates select="* | $template/*[not(concat(namespace-uri(), local-name()) = current()/*/concat(namespace-uri(), local-name()))][not(self::rdf:type)]" mode="#current">
                 <!-- move required properties up -->
-                <xsl:sort select="exists(for $type in $types return spin:constraints($type, resolve-uri('ns', $ldt:base), $constraint-query)//srx:binding[@name = 'property'][srx:uri = current()/concat(namespace-uri(), local-name())])" order="descending"/>
+                <xsl:sort select="if ($constraint-query) then exists(for $type in $types return spin:constraints($type, resolve-uri('ns', $ldt:base), $constraint-query)//srx:binding[@name = 'property'][srx:uri = current()/concat(namespace-uri(), local-name())]) else false()" order="descending"/>
                 <xsl:sort select="ac:property-label(.)"/>
                 <xsl:with-param name="violations" select="$violations"/>
                 <xsl:with-param name="constructor" select="$constructor"/>
