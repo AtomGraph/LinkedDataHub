@@ -662,7 +662,7 @@ exclude-result-prefixes="#all">
 
     <xsl:template match="rdf:RDF" mode="xhtml:Body">
         <xsl:param name="classes" select="for $class-uri in map:keys($default-classes) return key('resources', $class-uri, document(ac:document-uri($class-uri)))" as="element()*"/>
-        <xsl:param name="content-uris" select="key('resources', ac:uri())/rdf:type/@rdf:resource[ . = ('&def;Root', '&dh;Container', '&dh;Item')][doc-available(resolve-uri('ns', $ldt:base))]/ldh:templates(., resolve-uri('ns', $ldt:base), $template-query)//srx:binding[@name = 'content']/srx:uri/xs:anyURI(.)" as="xs:anyURI*"/>
+        <xsl:param name="content-uris" select="key('resources', ac:uri())/rdf:type/@rdf:resource[ . = ('&def;Root', '&dh;Container', '&dh;Item')][doc-available(resolve-uri('ns?query=ASK%20%7B%7D', $ldt:base))]/ldh:templates(., resolve-uri('ns', $ldt:base), $template-query)//srx:binding[@name = 'content']/srx:uri/xs:anyURI(.)" as="xs:anyURI*"/>
         <xsl:param name="has-content" select="key('resources', key('resources', ac:uri())/ldh:content/@rdf:resource) or exists($content-uris)" as="xs:boolean"/>
 
         <body>
