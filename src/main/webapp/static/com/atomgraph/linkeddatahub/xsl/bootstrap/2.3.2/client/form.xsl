@@ -400,6 +400,12 @@ exclude-result-prefixes="#all"
         <xsl:variable name="typeahead-class" select="'btn add-typeahead add-typetypeahead'" as="xs:string"/>
         <xsl:variable name="typeahead-doc" select="ixsl:get(ixsl:window(), 'LinkedDataHub.typeahead.rdfXml')" as="document-node()"/>
         <xsl:variable name="resource" select="key('resources', $resource-id, $typeahead-doc)" as="element()"/>
+        <xsl:variable name="fieldset" select="ancestor::fieldset" as="element()"/>
+        <xsl:variable name="forClass" select="$resource/@rdf:about" as="xs:anyURI"/>
+        <xsl:variable name="href" select="ac:build-uri(ldh:absolute-path(ldh:href()), map{ 'forClass': string($forClass) })" as="xs:anyURI"/>
+        <xsl:message>Form URI: <xsl:value-of select="$href"/></xsl:message>
+        
+        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
         <xsl:for-each select="../..">
             <xsl:result-document href="?." method="ixsl:replace-content">
@@ -408,14 +414,7 @@ exclude-result-prefixes="#all"
                 </xsl:apply-templates>
             </xsl:result-document>
         </xsl:for-each>
-        
-        <xsl:variable name="fieldset" select="../../../../.." as="element()"/> <!-- ancestor::fieldset -->
-        <xsl:variable name="forClass" select="$resource/@rdf:about" as="xs:anyURI"/>
-        <xsl:variable name="href" select="ac:build-uri(ldh:absolute-path(ldh:href()), map{ 'forClass': string($forClass) })" as="xs:anyURI"/>
-        <xsl:message>Form URI: <xsl:value-of select="$href"/></xsl:message>
-        
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
-        
+
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
                 <xsl:call-template name="onAddConstructor">
