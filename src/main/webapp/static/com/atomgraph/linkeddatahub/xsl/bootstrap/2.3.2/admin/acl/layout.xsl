@@ -66,7 +66,7 @@ WHERE
 }
                     ]]>
                 </xsl:variable>
-                <xsl:variable name="notification-query" select="replace($notification-query, '\$type', '&lt;' || $ldt:ontology || 'AuthorizationRequest' || '&gt;')" as="xs:string"/>
+                <xsl:variable name="notification-query" select="replace($notification-query, '\$type', '&lt;&lacl;AuthorizationRequest&gt;')" as="xs:string"/>
                 <xsl:variable name="notification-query" select="replace($notification-query, '\$container', '&lt;' || resolve-uri('acl/authorization-requests/', $ldt:base) || '&gt;')" as="xs:string"/>
 
                 <xsl:if test="doc-available(ac:build-uri($ac:endpoint, map{ 'query': $notification-query }))">
