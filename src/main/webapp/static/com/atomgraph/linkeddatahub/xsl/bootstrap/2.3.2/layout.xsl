@@ -662,7 +662,7 @@ exclude-result-prefixes="#all">
 
     <xsl:template match="rdf:RDF" mode="xhtml:Body">
         <xsl:param name="classes" select="for $class-uri in map:keys($default-classes) return key('resources', $class-uri, document(ac:document-uri($class-uri)))" as="element()*"/>
-        <xsl:param name="content-uris" select="key('resources', ac:uri())/rdf:type/@rdf:resource[ . = ('&def;Root', '&dh;Container', '&dh;Item')]/ldh:templates(., resolve-uri('ns', $ldt:base), $template-query)//srx:binding[@name = 'content']/srx:uri/xs:anyURI(.)" as="xs:anyURI*"/>
+        <xsl:param name="content-uris" select="key('resources', ac:uri())/rdf:type/@rdf:resource[ . = ('&def;Root', '&dh;Container', '&dh;Item')][doc-available(resolve-uri('ns', $ldt:base))]/ldh:templates(., resolve-uri('ns', $ldt:base), $template-query)//srx:binding[@name = 'content']/srx:uri/xs:anyURI(.)" as="xs:anyURI*"/>
         <xsl:param name="has-content" select="key('resources', key('resources', ac:uri())/ldh:content/@rdf:resource) or exists($content-uris)" as="xs:boolean"/>
 
         <body>
@@ -1026,6 +1026,12 @@ exclude-result-prefixes="#all">
     <xsl:template match="*[*][$ldh:ajaxRendering][@rdf:about = '&ldh;SelectChildren']" mode="ldh:ContentHeader"/>
 
     <!-- FORM CONTROL -->
+
+    <xsl:template match="*[rdf:type/@rdf:resource = ('&def;Root', '&dh;Container', '&dh;Item')]" mode="bs2:FormControl">
+        <xsl:next-match>
+            <xsl:with-param name="required" select="true()"/>
+        </xsl:next-match>
+    </xsl:template>
     
     <xsl:template match="*[@rdf:about or @rdf:nodeID][$ac:forClass]/sioc:has_parent/@rdf:nodeID | *[@rdf:about or @rdf:nodeID][$ac:forClass]/sioc:has_container/@rdf:nodeID" mode="bs2:FormControl">
         <xsl:param name="container" select="if (map:contains($default-classes, $ac:forClass)) then map:get($default-classes, $ac:forClass) else ac:uri()" as="xs:anyURI"/>
