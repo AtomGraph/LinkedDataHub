@@ -1287,28 +1287,28 @@ exclude-result-prefixes="#all"
                         <xsl:with-param name="active-class" select="$active-class"/>
                     </xsl:call-template>
 
-                    <!-- only append facets if they are not already present -->
-                    <xsl:if test="not($container/div[contains-token(@class, 'left-nav')]/*)">
-                        <xsl:variable name="facet-container-id" select="$container-id || '-left-nav'" as="xs:string"/>
-                        
-                        <xsl:for-each select="$container/div[contains-token(@class, 'left-nav')]">
-                            <xsl:result-document href="?." method="ixsl:append-content">
-                                <div id="{$facet-container-id}" class="well well-small"/>
-                            </xsl:result-document>
-                        </xsl:for-each>
-                        
-                        <!-- use the initial (not the current, transformed) SELECT query and focus var name for facet rendering -->
-                        <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', [ $select-string ])"/>
-                        <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ ixsl:call($select-builder, 'build', []) ])" as="xs:string"/>
-                        <xsl:variable name="select-xml" select="json-to-xml($select-json-string)" as="document-node()"/>
-                        <xsl:variable name="focus-var-name" select="$select-xml/json:map/json:array[@key = 'variables']/json:string[1]/substring-after(., '?')" as="xs:string"/>
+                    <xsl:for-each select="$container/div[contains-token(@class, 'left-nav')]">
+                        <!-- only append facets if they are not already present. TO-DO: more precise check? -->
+                        <xsl:if test="not(*)">
+                            <xsl:variable name="facet-container-id" select="$container-id || '-left-nav'" as="xs:string"/>
 
-                        <xsl:call-template name="render-facets">
-                            <xsl:with-param name="focus-var-name" select="$focus-var-name"/>
-                            <xsl:with-param name="select-xml" select="$select-xml"/>
-                            <xsl:with-param name="container" select="id($facet-container-id, ixsl:page())"/>
-                        </xsl:call-template>
-                    </xsl:if>
+                                <xsl:result-document href="?." method="ixsl:append-content">
+                                    <div id="{$facet-container-id}" class="well well-small"/>
+                                </xsl:result-document>
+
+                            <!-- use the initial (not the current, transformed) SELECT query and focus var name for facet rendering -->
+                            <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', [ $select-string ])"/>
+                            <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ ixsl:call($select-builder, 'build', []) ])" as="xs:string"/>
+                            <xsl:variable name="select-xml" select="json-to-xml($select-json-string)" as="document-node()"/>
+                            <xsl:variable name="focus-var-name" select="$select-xml/json:map/json:array[@key = 'variables']/json:string[1]/substring-after(., '?')" as="xs:string"/>
+
+                            <xsl:call-template name="render-facets">
+                                <xsl:with-param name="focus-var-name" select="$focus-var-name"/>
+                                <xsl:with-param name="select-xml" select="$select-xml"/>
+                                <xsl:with-param name="container" select="id($facet-container-id, ixsl:page())"/>
+                            </xsl:call-template>
+                        </xsl:if>
+                    </xsl:for-each>
 
                     <!-- result counts -->
                     <!-- <xsl:if test="id('result-counts', ixsl:page())">
