@@ -104,6 +104,14 @@ public class AuthorizationFilter implements ContainerRequestFilter
             String proxiedURI = request.getUriInfo().getQueryParameters().getFirst(AC.uri.getLocalName());
             if (getSystem().getDataManager().isMapped(proxiedURI)) return;
         }
+
+        Resource accessMode = ACCESS_MODES.get(request.getMethod());
+        if (log.isDebugEnabled()) log.debug("Request method: {} ACL access mode: {}", request.getMethod(), accessMode);
+        if (accessMode == null)
+        {
+            if (log.isWarnEnabled()) log.warn("Skipping authentication/authorization, request method not recognized: {}", request.getMethod());
+            return;
+        }
         
         if (getApplication().isReadOnly())
         {
@@ -115,18 +123,10 @@ public class AuthorizationFilter implements ContainerRequestFilter
 
             // throw 403 exception otherwise
             if (log.isTraceEnabled()) log.trace("Write access not authorized (app is read-only) for request URI: {}", request.getUriInfo().getAbsolutePath());
-            throw new AuthorizationException("Write access not authorized (app is read-only)", request.getUriInfo().getAbsolutePath());
+            throw new AuthorizationException("Write access not authorized (app is read-only)", request.getUriInfo().getAbsolutePath(), accessMode);
         }
 
         if (getDataset().isPresent()) return; // skip proxied dataspaces
-        
-        Resource accessMode = ACCESS_MODES.get(request.getMethod());
-        if (log.isDebugEnabled()) log.debug("Request method: {} ACL access mode: {}", request.getMethod(), accessMode);
-        if (accessMode == null)
-        {
-            if (log.isWarnEnabled()) log.warn("Skipping authentication/authorization, request method not recognized: {}", request.getMethod());
-            return;
-        }
 
         final Agent agent;
         if (request.getSecurityContext().getUserPrincipal() instanceof Agent) agent = ((Agent)(request.getSecurityContext().getUserPrincipal()));

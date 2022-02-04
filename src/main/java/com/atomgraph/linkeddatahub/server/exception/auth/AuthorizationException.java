@@ -47,17 +47,7 @@ public class AuthorizationException extends RuntimeException
     {
         this(message, absolutePath, mode, null);
     }
-
-    public AuthorizationException(String message, URI absolutePath, Agent agent)
-    {
-        this(message, absolutePath, null, agent);
-    }
     
-    public AuthorizationException(String message, URI absolutePath)
-    {
-        this(message, absolutePath, null, null);
-    }
-
     public URI getAbsolutePath()
     {
     return absolutePath;
