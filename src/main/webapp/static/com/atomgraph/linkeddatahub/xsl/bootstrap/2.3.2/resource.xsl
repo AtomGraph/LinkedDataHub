@@ -369,6 +369,23 @@ extension-element-prefixes="ixsl"
     
     <!-- RIGHT NAV -->
     
+    <!-- empty right nav for content instances -->
+    <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;Content'][rdf:first/@rdf:resource]" mode="bs2:Right" priority="1">
+        <xsl:param name="id" as="xs:string?"/>
+        <xsl:param name="class" select="'right-nav span3'" as="xs:string?"/>
+        
+        <div>
+            <xsl:if test="$id">
+                <xsl:attribute name="id"><xsl:sequence select="$id"/></xsl:attribute>
+            </xsl:if>
+            <xsl:if test="$class">
+                <xsl:attribute name="class"><xsl:sequence select="$class"/></xsl:attribute>
+            </xsl:if>
+            
+            <!-- will be hydrated by client.xsl -->
+        </div>
+    </xsl:template>
+
     <xsl:template match="*[*][@rdf:about or @rdf:nodeID]" mode="bs2:Right">
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" select="'right-nav span3'" as="xs:string?"/>
@@ -670,7 +687,7 @@ extension-element-prefixes="ixsl"
                 <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
             </xsl:if>
                     
-            <div class="left-nav span2"></div>
+            <xsl:apply-templates select="." mode="bs2:Left"/>
             
             <div class="span7">
                 <xsl:choose>
@@ -687,7 +704,7 @@ extension-element-prefixes="ixsl"
                 </xsl:choose>
             </div>
             
-            <div class="right-nav span3"></div>
+            <xsl:apply-templates select="." mode="bs2:Right"/>
         </div>
         
         <!-- process the next ldh:Content in the list -->
