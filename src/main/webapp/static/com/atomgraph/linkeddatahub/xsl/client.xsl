@@ -91,7 +91,6 @@ extension-element-prefixes="ixsl"
 
     <xsl:param name="ac:contextUri" as="xs:anyURI"/>
     <xsl:param name="ldt:base" as="xs:anyURI"/>
-    <xsl:param name="ldt:ontology" as="xs:anyURI"/>
     <xsl:param name="ldh:absolutePath" as="xs:anyURI"/>
     <xsl:param name="app-request-uri" as="xs:anyURI"/>
     <xsl:param name="ldh:apps" as="document-node()?">
@@ -169,17 +168,10 @@ WHERE
         <xsl:message>$ac:contextUri: <xsl:value-of select="$ac:contextUri"/></xsl:message>
         <xsl:message>$ldt:base: <xsl:value-of select="$ldt:base"/></xsl:message>
         <xsl:message>$ldh:absolutePath: <xsl:value-of select="$ldh:absolutePath"/></xsl:message>
-        <xsl:message>$ldt:ontology: <xsl:value-of select="$ldt:ontology"/></xsl:message>
         <xsl:message>count($ldh:apps//*[rdf:type/@rdf:resource = '&sd;Service']): <xsl:value-of select="count($ldh:apps//*[rdf:type/@rdf:resource = '&sd;Service'])"/></xsl:message>
         <xsl:message>$ac:lang: <xsl:value-of select="$ac:lang"/></xsl:message>
-        <xsl:message>$ac:endpoint: <xsl:value-of select="$ac:endpoint"/></xsl:message>
+        <!--<xsl:message>$ac:endpoint: <xsl:value-of select="$ac:endpoint"/></xsl:message>-->
         <xsl:message>$ac:forClass: <xsl:value-of select="$ac:forClass"/></xsl:message>
-        <xsl:message>$ac:limit: <xsl:value-of select="$ac:limit"/></xsl:message>
-        <xsl:message>$ac:offset: <xsl:value-of select="$ac:offset"/></xsl:message>
-        <xsl:message>$ac:order-by: <xsl:value-of select="$ac:order-by"/></xsl:message>
-        <xsl:message>$ac:desc: <xsl:value-of select="$ac:desc"/></xsl:message>
-        <xsl:message>$ac:mode: <xsl:value-of select="$ac:mode"/></xsl:message>
-        <xsl:message>$ac:container-mode: <xsl:value-of select="$ac:container-mode"/></xsl:message>
         <xsl:message>ixsl:query-params()?uri: <xsl:value-of select="ixsl:query-params()?uri"/></xsl:message>
 
         <!-- create a LinkedDataHub namespace -->

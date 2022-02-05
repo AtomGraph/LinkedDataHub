@@ -416,7 +416,7 @@ exclude-result-prefixes="#all"
         </xsl:choose>
 
         <!-- after we've created the map container element, create the JS objects using it -->
-        <xsl:if test="$active-class = 'map-mode' or (not($active-class) and $ac:container-mode = '&ac;MapMode')">
+        <xsl:if test="$active-class = 'map-mode'">
             <xsl:variable name="canvas-id" select="$container-id || '-map-canvas'" as="xs:string"/>
             <xsl:variable name="initial-load" select="not(ixsl:contains(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $content-uri), 'map'))" as="xs:boolean"/>
             <!-- reuse center and zoom if map object already exists, otherwise set defaults -->
@@ -454,7 +454,7 @@ exclude-result-prefixes="#all"
                 <xsl:with-param name="content-uri" select="$content-uri"/>
             </xsl:call-template>
         </xsl:if>
-        <xsl:if test="$active-class = 'chart-mode' or (not($active-class) and $ac:container-mode = '&ac;ChartMode')">
+        <xsl:if test="$active-class = 'chart-mode'">
             <xsl:variable name="canvas-id" select="$container-id || '-chart-canvas'" as="xs:string"/>
             <xsl:variable name="chart-type" select="xs:anyURI('&ac;Table')" as="xs:anyURI"/>
             <xsl:variable name="category" as="xs:string?"/>
@@ -588,32 +588,32 @@ exclude-result-prefixes="#all"
                 </xsl:document>
             </xsl:variable>
             <xsl:choose>
-                <xsl:when test="$active-class = 'list-mode' or (not($active-class) and $ac:container-mode = '&ac;ListMode')">
+                <xsl:when test="$active-class = 'list-mode' or (not($active-class))">
                     <xsl:apply-templates select="$sorted-results" mode="bs2:BlockList">
                         <xsl:with-param name="select-xml" select="$select-xml"/>
                     </xsl:apply-templates>
                 </xsl:when>
-                <xsl:when test="$active-class = 'table-mode' or (not($active-class) and $ac:container-mode = '&ac;TableMode')">
+                <xsl:when test="$active-class = 'table-mode' or (not($active-class))">
                     <xsl:apply-templates select="$sorted-results" mode="xhtml:Table">
                         <xsl:with-param name="select-xml" select="$select-xml"/>
                     </xsl:apply-templates>
                 </xsl:when>
-                <xsl:when test="$active-class = 'grid-mode' or (not($active-class) and $ac:container-mode = '&ac;GridMode')">
+                <xsl:when test="$active-class = 'grid-mode' or (not($active-class))">
                     <xsl:apply-templates select="$sorted-results" mode="bs2:Grid">
                         <xsl:with-param name="select-xml" select="$select-xml"/>
                     </xsl:apply-templates>
                 </xsl:when>
-                <xsl:when test="$active-class = 'chart-mode' or (not($active-class) and $ac:container-mode = '&ac;ChartMode')">
+                <xsl:when test="$active-class = 'chart-mode' or (not($active-class))">
                     <xsl:apply-templates select="$sorted-results" mode="bs2:Chart">
                         <xsl:with-param name="canvas-id" select="$container-id || '-chart-canvas'"/>
                     </xsl:apply-templates>
                 </xsl:when>
-                <xsl:when test="$active-class = 'map-mode' or (not($active-class) and $ac:container-mode = '&ac;MapMode')">
+                <xsl:when test="$active-class = 'map-mode' or (not($active-class))">
                     <xsl:apply-templates select="$sorted-results" mode="bs2:Map">
                         <xsl:with-param name="canvas-id" select="$container-id || '-map-canvas'"/>
                     </xsl:apply-templates>
                 </xsl:when>
-                <xsl:when test="$active-class = 'graph-mode' or (not($active-class) and $ac:container-mode = '&ac;GraphMode')">
+                <xsl:when test="$active-class = 'graph-mode' or (not($active-class))">
                     <xsl:apply-templates select="$sorted-results" mode="bs2:Graph"/>
                 </xsl:when>
                 <xsl:otherwise>
