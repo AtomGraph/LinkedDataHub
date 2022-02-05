@@ -100,20 +100,9 @@ extension-element-prefixes="ixsl"
         </xsl:document>
     </xsl:param>
     <xsl:param name="ac:lang" select="ixsl:get(ixsl:get(ixsl:page(), 'documentElement'), 'lang')" as="xs:string"/>
-    <xsl:param name="page-size" select="20" as="xs:integer"/>
-    <xsl:param name="acl:agent" as="xs:anyURI?"/>
-    <xsl:param name="acl:mode" as="xs:anyURI*"/>
-    <xsl:param name="ac:method" as="xs:string"/>
-    <xsl:param name="ac:forClass" select="if (ixsl:query-params()?forClass) then xs:anyURI(ixsl:query-params()?forClass) else ()" as="xs:anyURI?"/>
-    <xsl:param name="a:graphStore" select="resolve-uri('service', $ldt:base)" as="xs:anyURI?"/>
-    <xsl:param name="ac:endpoint" select="resolve-uri('sparql', $ldt:base)" as="xs:anyURI"/>
-    <xsl:param name="ac:limit" select="if (ixsl:query-params()?limit) then xs:integer(ixsl:query-params()?limit) else $page-size" as="xs:integer"/>
-    <xsl:param name="ac:offset" select="if (ixsl:query-params()?offset) then xs:integer(ixsl:query-params()?offset) else 0" as="xs:integer"/>
-    <xsl:param name="ac:order-by" select="ixsl:query-params()?order-by" as="xs:string?"/>
-    <xsl:param name="ac:desc" select="map:contains(ixsl:query-params(), 'desc')" as="xs:boolean?"/>
+    <xsl:param name="ac:endpoint" as="xs:anyURI"/>
     <xsl:param name="ac:mode" select="if (ixsl:query-params()?mode) then xs:anyURI(ixsl:query-params()?mode) else xs:anyURI('&ac;ReadMode')" as="xs:anyURI?"/>
     <xsl:param name="ac:query" select="ixsl:query-params()?query" as="xs:string?"/>
-    <xsl:param name="ac:container-mode" select="if (ixsl:query-params()?container-mode) then xs:anyURI(ixsl:query-params()?container-mode) else xs:anyURI('&ac;ListMode')" as="xs:anyURI?"/>
     <xsl:param name="ac:googleMapsKey" select="'AIzaSyCQ4rt3EnNCmGTpBN0qoZM1Z_jXhUnrTpQ'" as="xs:string"/>
     <xsl:param name="select-labelled-string" as="xs:string">
 <![CDATA[
@@ -570,6 +559,7 @@ WHERE
         <!-- replace dots with dashes to avoid Saxon-JS treating them as field separators: https://saxonica.plan.io/issues/5031 -->
         <xsl:param name="content-uri" select="xs:anyURI(translate(@rdf:about, '.', '-'))" as="xs:anyURI"/>
         <!-- set ?this variable value unless getting the query string from state -->
+        <xsl:param name="page-size" select="20" as="xs:integer"/>
         <xsl:variable name="select-string" select="replace(sp:text, '\?this', concat('&lt;', $uri, '&gt;'))" as="xs:string"/>
         <xsl:variable name="select-json" as="item()">
             <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', [ $select-string ])"/>
@@ -604,14 +594,14 @@ WHERE
                 <xsl:variable name="select-xml" as="document-node()">
                     <xsl:document>
                         <xsl:apply-templates select="$select-xml" mode="ldh:replace-limit">
-                            <xsl:with-param name="limit" select="$ac:limit" tunnel="yes"/>
+                            <xsl:with-param name="limit" select="$page-size" tunnel="yes"/>
                         </xsl:apply-templates>
                     </xsl:document>
                 </xsl:variable>
                 <xsl:variable name="select-xml" as="document-node()">
                     <xsl:document>
                         <xsl:apply-templates select="$select-xml" mode="ldh:replace-offset">
-                            <xsl:with-param name="offset" select="$ac:offset" tunnel="yes"/>
+                            <xsl:with-param name="offset" select="0" tunnel="yes"/>
                         </xsl:apply-templates>
                     </xsl:document>
                 </xsl:variable>
