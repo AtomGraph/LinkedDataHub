@@ -137,7 +137,7 @@ exclude-result-prefixes="#all">
               }
           }
     </xsl:variable>
-    <xsl:variable name="app-request-uri" select="ac:build-uri($ac:endpoint, map{ 'query': $app-query })" as="xs:anyURI"/>
+    <xsl:variable name="app-request-uri" select="ac:build-uri(resolve-uri('sparql', $ldt:base), map{ 'query': $app-query })" as="xs:anyURI"/>
     <xsl:variable name="template-query" as="xs:string">
         <![CDATA[
             PREFIX  ldh:  <https://w3id.org/atomgraph/linkeddatahub#>
@@ -286,6 +286,7 @@ exclude-result-prefixes="#all">
                 var baseUri = ]]><xsl:value-of select="'&quot;' || $ldt:base || '&quot;'"/><![CDATA[;
                 var absolutePath = ]]><xsl:value-of select="'&quot;' || $ldh:absolutePath || '&quot;'"/><![CDATA[;
                 var ontologyUri = ]]><xsl:value-of select="'&quot;' || $ldt:ontology || '&quot;'"/><![CDATA[;
+                var endpointUri = ]]><xsl:value-of select="if ($sd:endpoint) then '&quot;' || $sd:endpoint || '&quot;'  else 'null'"/><![CDATA[;
                 var contextUri = ]]><xsl:value-of select="if ($ac:contextUri) then '&quot;' || $ac:contextUri || '&quot;'  else 'null'"/><![CDATA[;
                 var accessModeUri = []]><xsl:value-of select="string-join(for $mode in $acl:mode return '&quot;' || $mode || '&quot;', ', ')"/><![CDATA[];
             ]]>
@@ -333,6 +334,7 @@ exclude-result-prefixes="#all">
                             "Q{https://w3id.org/atomgraph/client#}contextUri": contextUri, // servlet context URI
                             "Q{https://www.w3.org/ns/ldt#}base": baseUri,
                             "Q{https://www.w3.org/ns/ldt#}ontology": ontologyUri,
+                            "Q{http://www.w3.org/ns/sparql-service-description#}endpoint": endpointUri,
                             "Q{https://w3id.org/atomgraph/linkeddatahub#}absolutePath": absolutePath,
                             "Q{http://www.w3.org/ns/auth/acl#}mode": accessModeUri,
                             "Q{}app-request-uri": servicesRequestUri

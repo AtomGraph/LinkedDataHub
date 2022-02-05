@@ -92,6 +92,7 @@ extension-element-prefixes="ixsl"
     <xsl:param name="ac:contextUri" as="xs:anyURI"/>
     <xsl:param name="ldt:base" as="xs:anyURI"/>
     <xsl:param name="ldt:ontology" as="xs:anyURI"/> <!-- used in default.xsl -->
+    <xsl:param name="sd:endpoint" as="xs:anyURI?"/>
     <xsl:param name="ldh:absolutePath" as="xs:anyURI"/>
     <xsl:param name="app-request-uri" as="xs:anyURI"/>
     <xsl:param name="ldh:apps" as="document-node()?">
@@ -100,7 +101,6 @@ extension-element-prefixes="ixsl"
         </xsl:document>
     </xsl:param>
     <xsl:param name="ac:lang" select="ixsl:get(ixsl:get(ixsl:page(), 'documentElement'), 'lang')" as="xs:string"/>
-    <xsl:param name="ac:endpoint" select="resolve-uri('sparql', $ldt:base)" as="xs:anyURI"/>
     <xsl:param name="ac:mode" select="if (ixsl:query-params()?mode) then xs:anyURI(ixsl:query-params()?mode) else xs:anyURI('&ac;ReadMode')" as="xs:anyURI?"/>
     <xsl:param name="ac:query" select="ixsl:query-params()?query" as="xs:string?"/>
     <xsl:param name="ac:googleMapsKey" select="'AIzaSyCQ4rt3EnNCmGTpBN0qoZM1Z_jXhUnrTpQ'" as="xs:string"/>
@@ -172,7 +172,7 @@ WHERE
         <xsl:message>$ldh:absolutePath: <xsl:value-of select="$ldh:absolutePath"/></xsl:message>
         <xsl:message>count($ldh:apps//*[rdf:type/@rdf:resource = '&sd;Service']): <xsl:value-of select="count($ldh:apps//*[rdf:type/@rdf:resource = '&sd;Service'])"/></xsl:message>
         <xsl:message>$ac:lang: <xsl:value-of select="$ac:lang"/></xsl:message>
-        <!--<xsl:message>$ac:endpoint: <xsl:value-of select="$ac:endpoint"/></xsl:message>-->
+        <xsl:message>$sd:endpoint: <xsl:value-of select="$sd:endpoint"/></xsl:message>
         <xsl:message>ixsl:query-params()?uri: <xsl:value-of select="ixsl:query-params()?uri"/></xsl:message>
 
         <!-- create a LinkedDataHub namespace -->
@@ -184,7 +184,7 @@ WHERE
         <xsl:apply-templates select="ixsl:page()" mode="ldh:LoadedHTMLDocument">
             <xsl:with-param name="href" select="ldh:href()"/>
             <xsl:with-param name="fragment" select="encode-for-uri(ldh:href())"/>
-            <xsl:with-param name="endpoint" select="$ac:endpoint"/>
+            <xsl:with-param name="endpoint" select="$sd:endpoint"/>
             <xsl:with-param name="container" select="id('content-body', ixsl:page())"/>
             <xsl:with-param name="replace-content" select="false()"/>
         </xsl:apply-templates>
@@ -240,7 +240,7 @@ WHERE
         </xsl:choose>
     </xsl:function>
 
-    <xsl:function name="ac:endpoint" as="xs:anyURI">
+    <xsl:function name="sd:endpoint" as="xs:anyURI">
         <xsl:sequence select="xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.endpoint'))"/>
     </xsl:function>
 
@@ -563,7 +563,7 @@ WHERE
         <!-- service can be explicitly specified on content using ldh:service -->
         <xsl:variable name="service-uri" select="xs:anyURI(ldh:service/@rdf:resource)" as="xs:anyURI?"/>
         <xsl:variable name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.apps'))" as="element()?"/>
-        <xsl:variable name="endpoint" select="($service/sd:endpoint/@rdf:resource/xs:anyURI(.), ac:endpoint())[1]" as="xs:anyURI"/>
+        <xsl:variable name="endpoint" select="($service/sd:endpoint/@rdf:resource/xs:anyURI(.), sd:endpoint())[1]" as="xs:anyURI"/>
         
         <xsl:message>
             ldh:Content $service-uri: <xsl:value-of select="$service-uri"/> exists($service): <xsl:value-of select="exists($service)"/>
@@ -1157,7 +1157,7 @@ WHERE
                                     <xsl:with-param name="id" select="$id"/>
                                     <xsl:with-param name="this-uri" select="$ldt:base"/>
                                     <xsl:with-param name="select-uri" select="$select-uri"/>
-                                    <xsl:with-param name="endpoint" select="$ac:endpoint"/>
+                                    <xsl:with-param name="endpoint" select="resolve-uri('sparql', $ldt:base)"/>
                                 </xsl:call-template>
                             </ixsl:schedule-action>
                         </xsl:variable>
@@ -1176,7 +1176,7 @@ WHERE
         <xsl:param name="id" as="xs:string"/>
         <xsl:param name="this-uri" as="xs:anyURI"/>
         <xsl:param name="select-uri" as="xs:anyURI"/>
-        <xsl:param name="endpoint" select="$ac:endpoint" as="xs:anyURI"/>
+        <xsl:param name="endpoint" as="xs:anyURI"/>
         
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
@@ -1928,7 +1928,7 @@ WHERE
         <xsl:variable name="query-string" select="ac:build-describe($select-string, $limit, (), (), true())" as="xs:string"/>
         <xsl:variable name="service-uri" select="xs:anyURI(ixsl:get(id('search-service'), 'value'))" as="xs:anyURI?"/>
         <xsl:variable name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.apps'))" as="element()?"/>
-        <xsl:variable name="endpoint" select="($service/sd:endpoint/@rdf:resource/xs:anyURI(.), ac:endpoint())[1]" as="xs:anyURI"/>
+        <xsl:variable name="endpoint" select="($service/sd:endpoint/@rdf:resource/xs:anyURI(.), resolve-uri('sparql', $ldt:base))[1]" as="xs:anyURI"/>
         <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': string($query-string) })" as="xs:anyURI"/>
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, $results-uri)" as="xs:anyURI"/>
         <!-- TO-DO: use <ixsl:schedule-action> instead -->
@@ -2157,7 +2157,11 @@ WHERE
     <xsl:template match="button[contains-token(@class, 'btn-save-as')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick">
         <xsl:variable name="textarea-id" select="'query-string'" as="xs:string"/>
         <xsl:variable name="query" select="if (id($textarea-id, ixsl:page())) then ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe'), $textarea-id), 'getValue', []) else ()" as="xs:string?"/>
-        <xsl:variable name="results-uri" select="if ($query) then ac:build-uri($ac:endpoint, map{ 'query': $query }) else ()" as="xs:anyURI?"/> <!-- TO-DO: get service endpoint from dropdown -->
+        <xsl:variable name="service-uri" select="if (id('query-service', ixsl:page())) then xs:anyURI(ixsl:get(id('query-service'), 'value')) else ()" as="xs:anyURI?"/>
+        <xsl:variable name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.apps'))" as="element()?"/>
+        <xsl:variable name="endpoint" select="($service/sd:endpoint/@rdf:resource/xs:anyURI(.), resolve-uri('sparql', $ldt:base))[1]"/>
+        <xsl:variable name="results-uri" select="if ($query) then ac:build-uri($endpoint, map{ 'query': $query }) else ()" as="xs:anyURI?"/>
+        
         <!-- if SPARQL editor is shown, use the SPARQL protocol URI; otherwise use the Linked Data resource URI -->
         <xsl:variable name="uri" select="if ($results-uri) then $results-uri else ac:uri()" as="xs:anyURI"/>
         <xsl:variable name="local-uri" select="ldh:absolute-path(ldh:href())" as="xs:anyURI"/>
@@ -2211,7 +2215,7 @@ WHERE
         <xsl:variable name="content-uri" select="xs:anyURI(translate($content-uri, '.', '-'))" as="xs:anyURI"/>
         <xsl:variable name="service-uri" select="if (ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $content-uri)) then (if (ixsl:contains(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $content-uri), 'service-uri')) then ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $content-uri), 'service-uri') else ()) else ()" as="xs:anyURI?"/>
         <xsl:variable name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.apps'))" as="element()?"/>
-        <xsl:variable name="endpoint" select="($service/sd:endpoint/@rdf:resource/xs:anyURI(.), ac:endpoint())[1]"/>
+        <xsl:variable name="endpoint" select="($service/sd:endpoint/@rdf:resource/xs:anyURI(.), sd:endpoint())[1]" as="xs:anyURI"/>
         <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': string($query-string) })" as="xs:anyURI"/>
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, $results-uri)" as="xs:anyURI"/>
         

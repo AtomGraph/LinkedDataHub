@@ -29,6 +29,7 @@ import com.atomgraph.linkeddatahub.vocabulary.LDHT;
 import com.atomgraph.linkeddatahub.vocabulary.Google;
 import com.atomgraph.linkeddatahub.vocabulary.LAPP;
 import com.atomgraph.client.vocabulary.LDT;
+import com.atomgraph.core.vocabulary.SD;
 import com.atomgraph.linkeddatahub.vocabulary.FOAF;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -129,7 +130,10 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
             params.put(new QName("ldt", LDT.ontology.getNameSpace(), LDT.ontology.getLocalName()), new XdmAtomicValue(URI.create(app.getOntology().getURI())));
             params.put(new QName("lapp", LAPP.Application.getNameSpace(), LAPP.Application.getLocalName()),
                 getXsltExecutable().getProcessor().newDocumentBuilder().build(getSource(getAppModel(app, true))));
-
+            
+            URI endpointURI = getLinkURI(headerMap, SD.endpoint);
+            if (endpointURI != null) params.put(new QName("sd", SD.endpoint.getNameSpace(), SD.endpoint.getLocalName()), new XdmAtomicValue(endpointURI));
+            ;
             if (getSecurityContext() != null && getSecurityContext().getUserPrincipal() instanceof Agent)
             {
                 Agent agent = (Agent)getSecurityContext().getUserPrincipal();
@@ -241,11 +245,11 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
         return getURIParam(getUriInfo(), AC.uri.getLocalName());
     }
 
-    @Override
-    public URI getEndpointURI() throws URISyntaxException
-    {
-        return getURIParam(getUriInfo(), AC.endpoint.getLocalName());
-    }
+//    @Override
+//    public URI getEndpointURI() throws URISyntaxException
+//    {
+//        return getLinkURI(headerMap, AC.endpoint);
+//    }
 
     @Override
     public String getQuery()
