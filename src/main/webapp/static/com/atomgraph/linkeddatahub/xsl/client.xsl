@@ -104,6 +104,7 @@ extension-element-prefixes="ixsl"
     <xsl:param name="ac:mode" select="if (ixsl:query-params()?mode) then xs:anyURI(ixsl:query-params()?mode) else xs:anyURI('&ac;ReadMode')" as="xs:anyURI?"/>
     <xsl:param name="ac:query" select="ixsl:query-params()?query" as="xs:string?"/>
     <xsl:param name="ac:googleMapsKey" select="'AIzaSyCQ4rt3EnNCmGTpBN0qoZM1Z_jXhUnrTpQ'" as="xs:string"/>
+    <xsl:param name="page-size" select="20" as="xs:integer"/>
     <xsl:param name="select-labelled-string" as="xs:string">
 <![CDATA[
 PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -551,7 +552,6 @@ WHERE
         <!-- replace dots with dashes to avoid Saxon-JS treating them as field separators: https://saxonica.plan.io/issues/5031 -->
         <xsl:param name="content-uri" select="xs:anyURI(translate(@rdf:about, '.', '-'))" as="xs:anyURI"/>
         <!-- set ?this variable value unless getting the query string from state -->
-        <xsl:param name="page-size" select="20" as="xs:integer"/>
         <xsl:variable name="select-string" select="replace(sp:text, '\?this', concat('&lt;', $uri, '&gt;'))" as="xs:string"/>
         <xsl:variable name="select-json" as="item()">
             <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', [ $select-string ])"/>
