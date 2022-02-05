@@ -506,7 +506,7 @@ exclude-result-prefixes="#all"
         
         <ul class="nav nav-tabs">
             <li class="read-mode">
-                <xsl:if test="$active-class = 'read-mode' or (not($active-class))">
+                <xsl:if test="$active-class = 'read-mode'">
                     <xsl:attribute name="class" select="'read-mode active'"/>
                 </xsl:if>
 
@@ -524,7 +524,7 @@ exclude-result-prefixes="#all"
                 </a>
             </li>
             <li class="table-mode">
-                <xsl:if test="$active-class = 'table-mode' or (not($active-class))">
+                <xsl:if test="$active-class = 'table-mode'">
                     <xsl:attribute name="class" select="'table-mode active'"/>
                 </xsl:if>
 
@@ -533,7 +533,7 @@ exclude-result-prefixes="#all"
                 </a>
             </li>
             <li class="grid-mode">
-                <xsl:if test="$active-class = 'grid-mode' or (not($active-class))">
+                <xsl:if test="$active-class = 'grid-mode'">
                     <xsl:attribute name="class" select="'grid-mode active'"/>
                 </xsl:if>
 
@@ -542,7 +542,7 @@ exclude-result-prefixes="#all"
                 </a>
             </li>
             <li class="chart-mode">
-                <xsl:if test="$active-class = 'chart-mode' or (not($active-class))">
+                <xsl:if test="$active-class = 'chart-mode'">
                     <xsl:attribute name="class" select="'chart-mode active'"/>
                 </xsl:if>
 
@@ -551,7 +551,7 @@ exclude-result-prefixes="#all"
                 </a>
             </li>
             <li class="map-mode">
-                <xsl:if test="$active-class = 'map-mode' or (not($active-class))">
+                <xsl:if test="$active-class = 'map-mode'">
                     <xsl:attribute name="class" select="'map-mode active'"/>
                 </xsl:if>
 
@@ -560,7 +560,7 @@ exclude-result-prefixes="#all"
                 </a>
             </li>
             <li class="graph-mode">
-                <xsl:if test="$active-class = 'graph-mode' or (not($active-class))">
+                <xsl:if test="$active-class = 'graph-mode'">
                     <xsl:attribute name="class" select="'graph-mode active'"/>
                 </xsl:if>
 
