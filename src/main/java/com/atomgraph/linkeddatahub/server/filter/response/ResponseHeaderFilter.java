@@ -21,6 +21,7 @@ import com.atomgraph.client.vocabulary.LDT;
 import com.atomgraph.core.util.Link;
 import com.atomgraph.core.vocabulary.SD;
 import com.atomgraph.linkeddatahub.apps.model.Application;
+import com.atomgraph.linkeddatahub.apps.model.Dataset;
 import com.atomgraph.linkeddatahub.model.Agent;
 import com.atomgraph.linkeddatahub.server.filter.request.AuthorizationFilter;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
@@ -29,6 +30,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import javax.annotation.Priority;
 import javax.inject.Inject;
 import javax.ws.rs.Priorities;
@@ -55,6 +57,7 @@ public class ResponseHeaderFilter implements ContainerResponseFilter
     private static final Logger log = LoggerFactory.getLogger(ResponseHeaderFilter.class);
 
     @Inject javax.inject.Provider<Application> app;
+    @Inject javax.inject.Provider<Optional<Dataset>> dataset;
 
     @Override
     public void filter(ContainerRequestContext request, ContainerResponseContext response)throws IOException
@@ -81,8 +84,11 @@ public class ResponseHeaderFilter implements ContainerResponseFilter
             // add Link rel=ldt:base
             response.getHeaders().add(HttpHeaders.LINK, new Link(getApplication().getBaseURI(), LDT.base.getURI(), null));
             // add Link rel=sd:endpoint.
-            // TO-DO: The external SPARQL endpoint URL is different from the internal one currently specified as sd:endpoint in the context dataset
-            response.getHeaders().add(HttpHeaders.LINK, new Link(request.getUriInfo().getBaseUriBuilder().path("sparql").build(), SD.endpoint.getURI(), null));
+            if (getDataset().isPresent())
+                response.getHeaders().add(HttpHeaders.LINK, new Link(URI.create(getDataset().get().getService().getSPARQLEndpoint().getURI()), SD.endpoint.getURI(), null));
+            else
+                // TO-DO: The external SPARQL endpoint URL is different from the internal one currently specified as sd:endpoint in the context dataset
+                response.getHeaders().add(HttpHeaders.LINK, new Link(request.getUriInfo().getBaseUriBuilder().path("sparql").build(), SD.endpoint.getURI(), null));
             // add Link rel=ldt:ontology, if the ontology URI is specified
             if (getApplication().getOntology() != null)
                 response.getHeaders().add(HttpHeaders.LINK, new Link(URI.create(getApplication().getOntology().getURI()), LDT.ontology.getURI(), null));
@@ -133,6 +139,11 @@ public class ResponseHeaderFilter implements ContainerResponseFilter
     public com.atomgraph.linkeddatahub.apps.model.Application getApplication()
     {
         return app.get();
+    }
+    
+    public Optional<Dataset> getDataset()
+    {
+        return dataset.get();
     }
     
 }

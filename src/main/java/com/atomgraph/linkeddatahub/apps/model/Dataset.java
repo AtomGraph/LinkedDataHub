@@ -16,6 +16,7 @@
  */
 package com.atomgraph.linkeddatahub.apps.model;
 
+import com.atomgraph.linkeddatahub.model.Service;
 import java.net.URI;
 import org.apache.jena.rdf.model.Resource;
 
@@ -29,9 +30,9 @@ import org.apache.jena.rdf.model.Resource;
 public interface Dataset extends Resource
 {
     
-    Resource getBase();
-    
-    URI getBaseURI();
+//    Resource getBase();
+//    
+//    URI getBaseURI();
     
     Resource getPrefix();
     
@@ -40,4 +41,7 @@ public interface Dataset extends Resource
     URI getProxyURI();
     
     URI getProxied(URI uri);
+    
+    Service getService();
+
 }

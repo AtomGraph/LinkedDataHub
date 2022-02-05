@@ -17,6 +17,7 @@
 package com.atomgraph.linkeddatahub.apps.model.impl;
 
 import com.atomgraph.linkeddatahub.apps.model.Dataset;
+import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.vocabulary.LAPP;
 import com.atomgraph.processor.vocabulary.LDT;
 import java.net.URI;
@@ -38,19 +39,19 @@ public class DatasetImpl extends ResourceImpl implements Dataset
         super(n, g);
     }
         
-    @Override
-    public Resource getBase()
-    {
-        return getPropertyResourceValue(LDT.base);
-    }
-    
-    @Override
-    public URI getBaseURI()
-    {
-        if (getBase() != null) return URI.create(getBase().getURI());
-        
-        return null;
-    }
+//    @Override
+//    public Resource getBase()
+//    {
+//        return getPropertyResourceValue(LDT.base);
+//    }
+//    
+//    @Override
+//    public URI getBaseURI()
+//    {
+//        if (getBase() != null) return URI.create(getBase().getURI());
+//        
+//        return null;
+//    }
 
     @Override
     public Resource getPrefix()
@@ -64,6 +65,7 @@ public class DatasetImpl extends ResourceImpl implements Dataset
         return getPropertyResourceValue(LAPP.proxy);
     }
 
+    @Override
     public URI getProxyURI()
     {
         if (getProxy() != null) return URI.create(getProxy().getURI());
@@ -79,6 +81,16 @@ public class DatasetImpl extends ResourceImpl implements Dataset
             host(getProxyURI().getHost()).
             port(getProxyURI().getPort()).
             build();
+    }
+    
+    @Override
+    public Service getService()
+    {
+        Resource service = getPropertyResourceValue(LDT.service);
+        
+        if (service != null) return service.as(Service.class);
+        
+        return null;
     }
     
 }
