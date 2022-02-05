@@ -171,7 +171,6 @@ WHERE
         <xsl:message>count($ldh:apps//*[rdf:type/@rdf:resource = '&sd;Service']): <xsl:value-of select="count($ldh:apps//*[rdf:type/@rdf:resource = '&sd;Service'])"/></xsl:message>
         <xsl:message>$ac:lang: <xsl:value-of select="$ac:lang"/></xsl:message>
         <!--<xsl:message>$ac:endpoint: <xsl:value-of select="$ac:endpoint"/></xsl:message>-->
-        <xsl:message>$ac:forClass: <xsl:value-of select="$ac:forClass"/></xsl:message>
         <xsl:message>ixsl:query-params()?uri: <xsl:value-of select="ixsl:query-params()?uri"/></xsl:message>
 
         <!-- create a LinkedDataHub namespace -->
