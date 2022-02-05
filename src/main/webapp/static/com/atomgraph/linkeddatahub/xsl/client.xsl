@@ -91,6 +91,7 @@ extension-element-prefixes="ixsl"
 
     <xsl:param name="ac:contextUri" as="xs:anyURI"/>
     <xsl:param name="ldt:base" as="xs:anyURI"/>
+    <xsl:param name="ldt:ontology" as="xs:anyURI"/>
     <xsl:param name="ldh:absolutePath" as="xs:anyURI"/>
     <xsl:param name="app-request-uri" as="xs:anyURI"/>
     <xsl:param name="ldh:apps" as="document-node()?">
