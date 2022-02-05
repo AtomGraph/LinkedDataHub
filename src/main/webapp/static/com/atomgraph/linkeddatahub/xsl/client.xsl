@@ -99,8 +99,6 @@ extension-element-prefixes="ixsl"
             <rdf:RDF></rdf:RDF>
         </xsl:document>
     </xsl:param>
-    <xsl:param name="ac:method" as="xs:string"/> <!-- used in default.xsl -->
-    <xsl:param name="ac:forClass" as="xs:anyURI?"/> <!-- used in default.xsl -->
     <xsl:param name="ac:lang" select="ixsl:get(ixsl:get(ixsl:page(), 'documentElement'), 'lang')" as="xs:string"/>
     <xsl:param name="ac:endpoint" as="xs:anyURI"/>
     <xsl:param name="ac:mode" select="if (ixsl:query-params()?mode) then xs:anyURI(ixsl:query-params()?mode) else xs:anyURI('&ac;ReadMode')" as="xs:anyURI?"/>
