@@ -334,7 +334,6 @@ exclude-result-prefixes="#all">
                             "Q{https://www.w3.org/ns/ldt#}base": baseUri,
                             "Q{https://www.w3.org/ns/ldt#}ontology": ontologyUri,
                             "Q{https://w3id.org/atomgraph/linkeddatahub#}absolutePath": absolutePath,
-                            "Q{http://www.w3.org/ns/auth/acl#}agent": agentUri,
                             "Q{http://www.w3.org/ns/auth/acl#}mode": accessModeUri,
                             "Q{}app-request-uri": servicesRequestUri
                             };
