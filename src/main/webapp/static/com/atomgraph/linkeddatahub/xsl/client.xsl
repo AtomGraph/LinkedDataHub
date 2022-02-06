@@ -146,10 +146,12 @@ DESCRIBE ?subject
 WHERE
   { SELECT DISTINCT  ?subject
     WHERE
-      { GRAPH ?g
-          { ?subject  ?p  ?this
-            FILTER (isURI(?subject))
+      {   { ?subject  ?p  ?this }
+        UNION
+          { GRAPH ?g
+              { ?subject  ?p  ?this }
           }
+        FILTER isURI(?subject)
       }
     LIMIT   10
   }
