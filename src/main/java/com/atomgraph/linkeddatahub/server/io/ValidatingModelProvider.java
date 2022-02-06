@@ -26,7 +26,6 @@ import org.apache.jena.sparql.vocabulary.FOAF;
 import org.apache.jena.update.UpdateFactory;
 import org.apache.jena.update.UpdateRequest;
 import org.apache.jena.vocabulary.RDF;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -35,7 +34,6 @@ import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.Providers;
 import org.apache.jena.rdfxml.xmloutput.impl.Basic;
 import org.apache.jena.riot.Lang;
-import com.atomgraph.linkeddatahub.server.exception.RDFSyntaxException;
 import com.atomgraph.processor.vocabulary.SIOC;
 import com.atomgraph.server.exception.SPINConstraintViolationException;
 import com.atomgraph.spinrdf.constraints.ConstraintViolation;
@@ -63,23 +61,23 @@ public class ValidatingModelProvider extends com.atomgraph.server.io.ValidatingM
     @Context UriInfo uriInfo;
     @Context Providers providers;
 
-    @Override
-    public Model read(Model model, InputStream is, Lang lang, String baseURI)
-    {
-        if (lang == null) throw new IllegalArgumentException("Lang must be not null");
-
-        CollectingErrorHandler errorHandler = new CollectingErrorHandler(); // collect parse errors. do not throw exceptions
-        //ParserProfile parserProfile = RiotLib.profile(baseURI, true, true, errorHandler);
-        read(model, is, lang, baseURI, errorHandler);
-
-        if (!errorHandler.getViolations().isEmpty())
-        {
-            if (log.isDebugEnabled()) log.debug("RDF syntax errors detected while parsing model: {}", errorHandler.getViolations());
-            throw new RDFSyntaxException(errorHandler.getViolations(), model);
-        }
-
-        return model;
-    }
+//    @Override
+//    public Model read(Model model, InputStream is, Lang lang, String baseURI)
+//    {
+//        if (lang == null) throw new IllegalArgumentException("Lang must be not null");
+//
+//        CollectingErrorHandler errorHandler = new CollectingErrorHandler(); // collect parse errors. do not throw exceptions
+//        //ParserProfile parserProfile = RiotLib.profile(baseURI, true, true, errorHandler);
+//        read(model, is, lang, baseURI, errorHandler);
+//
+//        if (!errorHandler.getViolations().isEmpty())
+//        {
+//            if (log.isDebugEnabled()) log.debug("RDF syntax errors detected while parsing model: {}", errorHandler.getViolations());
+//            throw new RDFSyntaxException(errorHandler.getViolations(), model);
+//        }
+//
+//        return model;
+//    }
     
     @Override
     public Model write(Model model, OutputStream os, Lang lang, String baseURI)
