@@ -32,7 +32,7 @@ jobs:
       - name: Build Docker image & Run Docker containers
         run: docker-compose -f docker-compose.yml -f ./http-tests/docker-compose.http-tests.yml --env-file ./http-tests/.env up --build -d
       - name: Wait for the server to start...
-        run: while true ; do curl -I -k -s "${{env.BASE_URI}}"; sleep 1 ; done # wait for the webapp to start (returns 403 by default)
+        run: while true; curl -w "%{http_code}\n" -k -s "${{env.BASE_URI}}" -o /dev/null ; do sleep 1 ; done # wait for the webapp to start (returns 403 by default)
       - name: Run HTTP test scripts
         run: ./run.sh "$PWD/ssl/owner/cert.pem" "${{env.OWNER_CERT_PWD}}" "$PWD/ssl/secretary/cert.pem" "${{env.SECRETARY_CERT_PWD}}"
         shell: bash
