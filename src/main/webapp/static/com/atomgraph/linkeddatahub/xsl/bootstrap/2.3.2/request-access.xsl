@@ -235,7 +235,10 @@ exclude-result-prefixes="#all">
             <xsl:with-param name="hidden" select="true()"/>
         </xsl:next-match>
     </xsl:template>
-    
+
+    <!-- suppress properties -->
+    <xsl:template match="dct:title[ac:uri() = resolve-uri('request%20access', $ldt:base)] | dct:description[ac:uri() = resolve-uri('request%20access', $ldt:base)] | ldh:content[ac:uri() = resolve-uri('request%20access', $ldt:base)]" mode="bs2:FormControl" priority="4"/>
+
     <!-- hide properties (including all of document resource properties) -->
     <xsl:template match="rdfs:label[ac:uri() = resolve-uri('request%20access', $ldt:base)] | foaf:isPrimaryTopicOf[ac:uri() = resolve-uri('request%20access', $ldt:base)] | *[foaf:primaryTopic][ac:uri() = resolve-uri('request%20access', $ldt:base)]/*" mode="bs2:FormControl" priority="3">
         <xsl:apply-templates select="." mode="xhtml:Input">
@@ -248,9 +251,6 @@ exclude-result-prefixes="#all">
             <xsl:with-param name="type" select="'hidden'"/>
         </xsl:apply-templates>
     </xsl:template>
-
-    <!-- suppress properties -->
-    <xsl:template match="dct:title[ac:uri() = resolve-uri('request%20access', $ldt:base)] | dct:description[ac:uri() = resolve-uri('request%20access', $ldt:base)] | ldh:content[ac:uri() = resolve-uri('request%20access', $ldt:base)]" mode="bs2:FormControl" priority="3"/>
 
     <!-- turn off additional properties - it applies on the constructor document and not the $main-doc -->
     <xsl:template match="*[ac:uri() = resolve-uri('request%20access', $ldt:base)]" mode="bs2:PropertyControl" priority="1"/>
