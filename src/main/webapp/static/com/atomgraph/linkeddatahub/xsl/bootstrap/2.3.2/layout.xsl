@@ -96,6 +96,7 @@ exclude-result-prefixes="#all">
     <xsl:param name="ldh:absolutePath" as="xs:anyURI"/>
     <xsl:param name="ac:endpoint" select="resolve-uri('sparql', $ldt:base)" as="xs:anyURI"/>
     <xsl:param name="a:graphStore" select="resolve-uri('service', $ldt:base)" as="xs:anyURI"/> <!-- TO-DO: rename to ac:graphStore? -->
+    <xsl:param name="sd:endpoint" as="xs:anyURI?"/>
     <xsl:param name="lapp:Application" as="document-node()?"/>
     <xsl:param name="foaf:Agent" as="document-node()?"/>
     <xsl:param name="force-exclude-all-namespaces" select="true()"/>
