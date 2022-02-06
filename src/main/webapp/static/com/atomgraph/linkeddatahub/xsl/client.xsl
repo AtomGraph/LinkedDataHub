@@ -1361,7 +1361,7 @@ WHERE
             <xsl:otherwise>
                 <!-- update @data-content-uri value -->
                 <xsl:for-each select="id($results-container-id, ixsl:page())">
-                    <ixsl:set-property name="value" select="$content-uri" object="."/>
+                    <ixsl:set-property name="dataset.contentUri" select="$content-uri" object="."/>
                 </xsl:for-each>
             </xsl:otherwise>
         </xsl:choose>
