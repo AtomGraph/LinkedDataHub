@@ -17,6 +17,7 @@
 package com.atomgraph.linkeddatahub.resource;
 
 import com.atomgraph.core.MediaTypes;
+import com.atomgraph.core.io.ModelProvider;
 import com.atomgraph.core.vocabulary.SD;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.io.ValidatingModelProvider;
@@ -116,6 +117,7 @@ public class Add extends GraphStoreImpl
             if (file.hasProperty(DCTerms.format)) mediaType = com.atomgraph.linkeddatahub.MediaType.valueOf(file.getPropertyResourceValue(DCTerms.format));
             if (mediaType != null) bodyPart.setMediaType(mediaType);
 
+            bodyPart.getHeaders().putSingle(ModelProvider.REQUEST_URI_HEADER, graph.getURI()); // provide a base URI hint to ModelProvider
             Model partModel = bodyPart.getValueAs(Model.class);
             return post(partModel, false, URI.create(graph.getURI()));
         }

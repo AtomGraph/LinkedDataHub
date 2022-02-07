@@ -18,7 +18,6 @@ package com.atomgraph.linkeddatahub.vocabulary;
 
 import org.apache.jena.ontology.DatatypeProperty;
 import org.apache.jena.ontology.ObjectProperty;
-import org.apache.jena.ontology.OntClass;
 import org.apache.jena.ontology.OntModel;
 import org.apache.jena.ontology.OntModelSpec;
 import org.apache.jena.rdf.model.ModelFactory;
@@ -50,10 +49,6 @@ public class LDHT
     public static final ObjectProperty aclEndpoint = m_model.createObjectProperty( NS + "aclEndpoint" );
 
     // TEMPLATES
-    
-    public static final OntClass File = m_model.createClass(NS + "File");
-    
-    public static final OntClass Document = m_model.createClass(NS + "Document");
     
     public static final ObjectProperty forClass = m_model.createObjectProperty( NS + "forClass" );
 
