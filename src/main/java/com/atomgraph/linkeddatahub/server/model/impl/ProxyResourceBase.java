@@ -19,6 +19,7 @@ package com.atomgraph.linkeddatahub.server.model.impl;
 import com.atomgraph.client.MediaTypes;
 import com.atomgraph.client.util.DataManager;
 import com.atomgraph.client.vocabulary.AC;
+import com.atomgraph.core.io.ModelProvider;
 import com.atomgraph.linkeddatahub.apps.model.Dataset;
 import com.atomgraph.linkeddatahub.client.filter.auth.IDTokenDelegationFilter;
 import com.atomgraph.linkeddatahub.client.filter.auth.WebIDDelegationFilter;
@@ -26,11 +27,13 @@ import com.atomgraph.linkeddatahub.model.Agent;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.server.security.IDTokenSecurityContext;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.BadRequestException;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.POST;
@@ -129,16 +132,20 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
         }
         
         // do not return the whole document if only a single resource (fragment) is requested
-        if (getUriInfo().getQueryParameters().containsKey(AC.mode.getLocalName()) && 
-                getUriInfo().getQueryParameters().getFirst(AC.mode.getLocalName()).equals("fragment")) // used in client.xsl
-        {
+        if (target.getUri().getFragment() != null)
             try (Response cr = target.request(getReadableMediaTypes()).get())
             {
+                URI docURI = new URI(target.getUri().getScheme(), target.getUri().getSchemeSpecificPart(), null);
+                
+                cr.getHeaders().putSingle(ModelProvider.REQUEST_URI_HEADER, docURI.toString()); // provide a base URI hint to ModelProvider
                 Model description = cr.readEntity(Model.class);
                 description = ModelFactory.createDefaultModel().add(description.getResource(target.getUri().toString()).listProperties());
                 return getResponse(description);
             }
-        }
+            catch (URISyntaxException ex)
+            {
+                throw new BadRequestException(ex);
+            }
 
         return super.get(target);
     }
