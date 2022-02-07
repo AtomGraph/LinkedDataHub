@@ -17,12 +17,19 @@
 package com.atomgraph.linkeddatahub.resource;
 
 import com.atomgraph.core.MediaTypes;
-import com.atomgraph.core.io.ModelProvider;
 import com.atomgraph.core.vocabulary.SD;
+import com.atomgraph.linkeddatahub.client.filter.auth.IDTokenDelegationFilter;
+import com.atomgraph.linkeddatahub.client.filter.auth.WebIDDelegationFilter;
+import com.atomgraph.linkeddatahub.model.Agent;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.io.ValidatingModelProvider;
 import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
+import com.atomgraph.linkeddatahub.server.security.AgentContext;
+import com.atomgraph.linkeddatahub.server.security.IDTokenSecurityContext;
 import com.atomgraph.linkeddatahub.vocabulary.NFO;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Map;
@@ -33,10 +40,14 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.POST;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
+import javax.ws.rs.core.StreamingOutput;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.MessageBodyReader;
 import javax.ws.rs.ext.Providers;
@@ -55,17 +66,22 @@ import org.slf4j.LoggerFactory;
  *
  * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
  */
-public class Add extends GraphStoreImpl
+public class Add extends GraphStoreImpl // TO-DO: does not need to extend GraphStore is the multipart/form-data is not RDF/POST
 {
 
     private static final Logger log = LoggerFactory.getLogger(Add.class);
 
+    private final SecurityContext securityContext;
+    private final Optional<AgentContext> agentContext;
+    
     @Inject
     public Add(@Context Request request, @Context UriInfo uriInfo, MediaTypes mediaTypes,
             Optional<Ontology> ontology, Optional<Service> service,
-            @Context Providers providers, com.atomgraph.linkeddatahub.Application system)
+            @Context Providers providers, com.atomgraph.linkeddatahub.Application system, @Context SecurityContext securityContext, Optional<AgentContext> agentContext)
     {
         super(request, uriInfo, mediaTypes, ontology, service, providers, system);
+        this.securityContext = securityContext;
+        this.agentContext = agentContext;
     }
     
     @POST
@@ -117,14 +133,50 @@ public class Add extends GraphStoreImpl
             if (file.hasProperty(DCTerms.format)) mediaType = com.atomgraph.linkeddatahub.MediaType.valueOf(file.getPropertyResourceValue(DCTerms.format));
             if (mediaType != null) bodyPart.setMediaType(mediaType);
 
-            bodyPart.getHeaders().putSingle(ModelProvider.REQUEST_URI_HEADER, graph.getURI()); // provide a base URI hint to ModelProvider
-            Model partModel = bodyPart.getValueAs(Model.class);
-            return post(partModel, false, URI.create(graph.getURI()));
+            try (InputStream is = bodyPart.getValueAs(InputStream.class))
+            {
+                WebTarget webTarget = getSystem().getClient().target(graph.getURI());
+                // delegate authentication
+                if (getSecurityContext().getUserPrincipal() instanceof Agent)
+                {
+                    if (getSecurityContext().getAuthenticationScheme().equals(SecurityContext.CLIENT_CERT_AUTH))
+                        webTarget.register(new WebIDDelegationFilter((Agent)getSecurityContext().getUserPrincipal()));
+
+                    if (getAgentContext().isPresent() && getAgentContext().get() instanceof IDTokenSecurityContext)
+                        webTarget.register(new IDTokenDelegationFilter(((IDTokenSecurityContext)getAgentContext().get()).getJWTToken(), getUriInfo().getBaseUri().getPath(), null));
+                }
+
+                // forward the stream to the named graph document
+                return webTarget.request(getSystem().getMediaTypes().getReadable(Model.class).toArray(new MediaType[0])).
+                    post(Entity.entity(getStreamingOutput(is), mediaType));
+            
+            }
+            catch (IOException ex)
+            {
+                throw new BadRequestException(ex);
+            }
         }
         finally
         {
             resIt.close();
         }
+    }
+    
+    public StreamingOutput getStreamingOutput(InputStream is)
+    {
+        return (OutputStream os) -> {
+            is.transferTo(os);
+        };
+    }
+
+    public SecurityContext getSecurityContext()
+    {
+        return securityContext;
+    }
+    
+    public Optional<AgentContext> getAgentContext()
+    {
+        return agentContext;
     }
     
 }
