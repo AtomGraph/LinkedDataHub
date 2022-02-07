@@ -128,10 +128,10 @@ public class Add extends GraphStoreImpl // TO-DO: does not need to extend GraphS
 
             Resource graph = file.getPropertyResourceValue(SD.name);
             if (graph == null || !graph.isURIResource()) throw new BadRequestException("Graph URI (sd:name) not provided");
-
-            MediaType mediaType = null;
-            if (file.hasProperty(DCTerms.format)) mediaType = com.atomgraph.linkeddatahub.MediaType.valueOf(file.getPropertyResourceValue(DCTerms.format));
-            if (mediaType != null) bodyPart.setMediaType(mediaType);
+            if (!file.hasProperty(DCTerms.format)) throw new BadRequestException("RDF format (dct:format) not provided");
+            
+            MediaType mediaType = com.atomgraph.linkeddatahub.MediaType.valueOf(file.getPropertyResourceValue(DCTerms.format));
+            bodyPart.setMediaType(mediaType);
 
             try (InputStream is = bodyPart.getValueAs(InputStream.class))
             {
