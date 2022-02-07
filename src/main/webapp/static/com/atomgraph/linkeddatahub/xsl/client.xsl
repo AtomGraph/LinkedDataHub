@@ -2264,7 +2264,9 @@ WHERE
                 <xsl:for-each select="$container">
                     <xsl:result-document href="?." method="ixsl:append-content">
                         <ul class="well well-small nav nav-list">
-                            <xsl:apply-templates select="$results/rdf:RDF/rdf:Description[not(@rdf:about = ac:uri())]" mode="bs2:List"/>
+                            <xsl:apply-templates select="$results/rdf:RDF/rdf:Description[not(@rdf:about = ac:uri())]" mode="bs2:List">
+                                <xsl:sort select="ac:label(.)" order="ascending" lang="{$ldt:lang}"/>
+                            </xsl:apply-templates>
                         </ul>
                     </xsl:result-document>
                 </xsl:for-each>
