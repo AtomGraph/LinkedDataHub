@@ -2211,7 +2211,7 @@ WHERE
     
     <xsl:template match="div[contains-token(@class, 'backlinks-nav')]//*[contains-token(@class, 'nav-header')]" mode="ixsl:onclick">
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'backlinks-nav')]" as="element()"/>
-        <xsl:variable name="content-uri" select="xs:anyURI(translate(input[@name = 'uri']/@value, '.', '-'))" as="xs:anyURI"/>
+        <xsl:variable name="content-uri" select="input[@name = 'uri']/@value" as="xs:anyURI"/>
         <xsl:variable name="query-string" select="replace($backlinks-string, '\?this', concat('&lt;', $content-uri, '&gt;'))" as="xs:string"/>
         <!-- replace dots with dashes from this point (not before using in the query string!) -->
         <xsl:variable name="content-uri" select="xs:anyURI(translate($content-uri, '.', '-'))" as="xs:anyURI"/>
