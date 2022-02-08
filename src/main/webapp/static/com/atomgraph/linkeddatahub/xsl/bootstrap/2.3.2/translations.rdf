@@ -166,4 +166,28 @@
     <rdf:Description rdf:nodeID="email">
         <rdfs:label xml:lang="en-US">E-mail</rdfs:label>
     </rdf:Description>
+    <rdf:Description rdf:about="http://www.w3.org/ns/auth/acl#Authorization">
+        <rdfs:label xml:lang="en-US">Authorization</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:about="http://www.w3.org/ns/auth/cert#PublicKey">
+        <rdfs:label xml:lang="en-US">Public key</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:about="http://rdfs.org/sioc/ns#UserAccount">
+        <rdfs:label xml:lang="en-US">User account</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:about="http://spinrdf.org/sp#Ask">
+        <rdfs:label xml:lang="en-US">ASK</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:about="http://spinrdf.org/sp#Select">
+        <rdfs:label xml:lang="en-US">SELECT</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:about="http://spinrdf.org/sp#Describe">
+        <rdfs:label xml:lang="en-US">DESCRIBE</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:about="http://spinrdf.org/sp#Construct">
+        <rdfs:label xml:lang="en-US">CONSTRUCT</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:about="http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#FileDataObject">
+        <rdfs:label xml:lang="en-US">File</rdfs:label>
+    </rdf:Description>
 </rdf:RDF>

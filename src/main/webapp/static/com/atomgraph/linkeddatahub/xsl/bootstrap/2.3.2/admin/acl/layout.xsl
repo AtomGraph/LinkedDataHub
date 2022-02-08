@@ -24,6 +24,7 @@ xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 exclude-result-prefixes="#all">
 
     <xsl:import href="imports/acl.xsl"/>
+    <xsl:import href="imports/cert.xsl"/>
 
     <xsl:template match="rdf:RDF" mode="bs2:NavBarNavList">
         <xsl:if test="$foaf:Agent//@rdf:about">
