@@ -54,6 +54,7 @@ owl:Ontology spin:constructor [
     CONSTRUCT {
         ?this rdfs:label [ a xsd:string ] ;
             rdfs:comment [ a xsd:string ] ;
+            owl:imports [ a rdfs:Resource ] ;
             owl:versionInfo "1.0-SNAPSHOT" .
     }
     WHERE {}"""
