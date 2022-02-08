@@ -112,6 +112,7 @@ import com.atomgraph.linkeddatahub.vocabulary.LDHC;
 import com.atomgraph.linkeddatahub.vocabulary.Google;
 import com.atomgraph.linkeddatahub.vocabulary.LAPP;
 import com.atomgraph.linkeddatahub.writer.Mode;
+import com.atomgraph.linkeddatahub.writer.ModelXSLTWriterBase;
 import com.atomgraph.linkeddatahub.writer.factory.ModeFactory;
 import com.atomgraph.processor.vocabulary.AP;
 import com.atomgraph.processor.vocabulary.LDT;
@@ -179,6 +180,7 @@ import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.ClientRequestFilter;
 import javax.xml.transform.TransformerException;
+import javax.xml.transform.stream.StreamSource;
 import net.jodah.expiringmap.ExpiringMap;
 import net.sf.saxon.om.TreeInfo;
 import net.sf.saxon.s9api.Processor;
@@ -571,6 +573,13 @@ public class Application extends ResourceConfig
                     // register mapped RDF documents in the XSLT processor so that document() returns them cached, throughout multiple transformations
                     TreeInfo doc = xsltProc.getUnderlyingConfiguration().buildDocumentTree(dataManager.resolve("", prefix));
                     xsltProc.getUnderlyingConfiguration().getGlobalDocumentPool().add(doc, prefix);
+                }
+                
+                // register translations.rdf so it doesn't have to be requested repeatedly
+                try (InputStream translations = servletConfig.getServletContext().getResourceAsStream(ModelXSLTWriterBase.TRANSLATIONS_PATH))
+                {
+                    TreeInfo doc = xsltProc.getUnderlyingConfiguration().buildDocumentTree(new StreamSource(translations));
+                    xsltProc.getUnderlyingConfiguration().getGlobalDocumentPool().add(doc, baseURI.resolve(ModelXSLTWriterBase.TRANSLATIONS_PATH).toString());
                 }
             }
             catch (XPathException | TransformerException ex)

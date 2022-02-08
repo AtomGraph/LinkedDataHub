@@ -73,8 +73,8 @@ import org.slf4j.LoggerFactory;
 public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.ModelXSLTWriterBase
 {
     private static final Logger log = LoggerFactory.getLogger(ModelXSLTWriterBase.class);
-    
     private static final Set<String> NAMESPACES;
+    public static final String TRANSLATIONS_PATH = "static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf";
     
     static
     {
