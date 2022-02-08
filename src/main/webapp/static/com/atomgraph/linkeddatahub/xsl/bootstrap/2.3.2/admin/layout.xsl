@@ -50,7 +50,7 @@ exclude-result-prefixes="#all">
         </xsl:map>
     </xsl:param>
         
-    <xsl:template match="rdf:RDF" mode="bs2:ActionBarLeft">
+<!--    <xsl:template match="rdf:RDF" mode="bs2:ActionBarLeft">
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" select="'span2'" as="xs:string?"/>
         <xsl:param name="classes" select="for $class-uri in map:keys($default-classes) return key('resources', $class-uri, document(ac:document-uri($class-uri)))" as="element()*"/>
@@ -69,7 +69,7 @@ exclude-result-prefixes="#all">
                 <xsl:with-param name="create-graph" select="true()"/>
             </xsl:apply-templates>
         </div>
-    </xsl:template>
+    </xsl:template>-->
     
     <xsl:template match="rdf:RDF[$foaf:Agent]" mode="bs2:Create" priority="1">
         <xsl:param name="classes" as="element()*"/>
