@@ -79,12 +79,10 @@ exclude-result-prefixes="#all">
     
     <!-- add sp:Construct to the creatable class list below the form -->
     <xsl:template match="rdf:RDF[$ac:method = 'GET']" mode="bs2:RowForm" use-when="system-property('xsl:product-name') = 'SAXON'">
-        <xsl:param name="action" select="ac:build-uri($a:graphStore, map{ 'forClass': string($ac:forClass), 'mode': '&ac;EditMode' })" as="xs:anyURI"/>
         <!-- TO-DO: generate ontology classes from the OWL vocabulary -->
         <xsl:param name="ontology-classes" select="for $class-uri in ('&sp;Construct', '&owl;Class', '&owl;DatatypeProperty', '&owl;ObjectProperty', '&owl;Restriction') return key('resources', $class-uri, document(ac:document-uri($class-uri)))" as="element()*"/>
 
         <xsl:next-match>
-            <xsl:with-param name="action" select="$action"/>
             <xsl:with-param name="classes" select="$ontology-classes"/>
         </xsl:next-match>
     </xsl:template>
