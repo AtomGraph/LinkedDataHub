@@ -239,11 +239,10 @@ exclude-result-prefixes="#all"
         <xsl:message>Form's last bnode ID: <xsl:value-of select="$max-bnode-id"/></xsl:message>
         <!--- show a modal form if this button is in a <fieldset>, meaning on a resource-level and not form level. Otherwise (e.g. for the "Create" button) show normal form -->
         <xsl:variable name="modal-form" select="exists(ancestor::fieldset)" as="xs:boolean"/>
-        <xsl:variable name="forClass" select="input[@class = 'forClass']/@value" as="xs:anyURI"/>
+<!--        <xsl:variable name="forClass" select="input[@class = 'forClass']/@value" as="xs:anyURI"/>
         <xsl:variable name="create-graph" select="empty($form)" as="xs:boolean"/>
-        <xsl:variable name="query-params" select="map:merge((map{ 'forClass': string($forClass) }, if ($modal-form) then map{ 'mode': '&ac;ModalMode' } else (), if ($create-graph) then map{ 'createGraph': string(true()) } else ()))" as="map(xs:string, xs:string*)"/>
-        <!-- do not use @href from the HTML because it does not update with AJAX document loads -->
-        <xsl:variable name="href" select="ac:build-uri(ldh:absolute-path(ldh:href()), $query-params)" as="xs:anyURI"/>
+        <xsl:variable name="query-params" select="map:merge((map{ 'forClass': string($forClass) }, if ($modal-form) then map{ 'mode': '&ac;ModalMode' } else (), if ($create-graph) then map{ 'createGraph': string(true()) } else ()))" as="map(xs:string, xs:string*)"/>-->
+        <xsl:variable name="href" select="ldh:href($ldt:base, @href)" as="xs:anyURI"/>
         <xsl:message>Form URI: <xsl:value-of select="$href"/></xsl:message>
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
