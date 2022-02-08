@@ -27,28 +27,7 @@
 
 # http://rdfs.org/sioc/ns
 
-dh:Container spin:constructor :DocumentConstructor ;
-    ldh:template ldh:ContainerChildren .
-
-dh:Item spin:constructor :DocumentConstructor .
-
-:DocumentConstructor a sp:Construct ;
-    sp:text """
-        PREFIX rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-        PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
-        PREFIX dct:     <http://purl.org/dc/terms/>
-        PREFIX foaf:    <http://xmlns.com/foaf/0.1/>
-        PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
-
-        CONSTRUCT {
-          ?this dct:title [ a xsd:string ] ;
-              dct:description [ a xsd:string ] ;
-              foaf:primaryTopic [ a rdfs:Resource ] .
-        }
-        WHERE {}
-    """ ;
-    rdfs:label "Document constructor" ;
-    rdfs:isDefinedBy : .
+dh:Container ldh:template ldh:ContainerChildren .
 
 :MissingRDFSLabel a ldh:MissingPropertyValue ;
     rdfs:label "Missing rdfs:label" ;
@@ -95,8 +74,7 @@ owl:Class spin:constructor [
     PREFIX foaf:    <http://xmlns.com/foaf/0.1/>
 
     CONSTRUCT {
-        ?this rdfs:subClassOf [ a owl:Class ] ,
-                [ a owl:Restriction ] ;
+        ?this rdfs:subClassOf [ a owl:Class ] ;
             rdfs:label [ a xsd:string ] ;
             rdfs:comment [ a xsd:string ] ;
             spin:constructor [ a sp:Construct ] ;
