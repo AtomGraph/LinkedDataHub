@@ -15,7 +15,7 @@ xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 exclude-result-prefixes="#all">
     
     <xsl:template match="*[@rdf:about = ('&sp;Ask', '&sp;Select', '&sp;Describe', '&sp;Construct')]" mode="ac:label">
-        <xsl:apply-templates select="key('resources', current()/@rdf:about, document('../translations.rdf'))" mode="#current"/>
+        <xsl:apply-templates select="key('resources', @rdf:about, document('../translations.rdf'))" mode="#current"/>
     </xsl:template>
 
     <xsl:template match="sp:text/text() | *[@rdf:*[local-name() = 'nodeID']]/sp:text/@rdf:*[local-name() = 'nodeID'][key('resources', .)[not(* except rdf:type[@rdf:resource = '&xsd;string'])]]" mode="bs2:FormControl">
