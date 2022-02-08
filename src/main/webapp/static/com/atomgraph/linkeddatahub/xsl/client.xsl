@@ -2171,7 +2171,7 @@ WHERE
 
         <xsl:call-template name="ldh:ShowAddDataForm">
             <xsl:with-param name="source" select="$uri"/>
-            <xsl:with-param name="graph" select="resolve-uri(encode-for-uri($uri) || '/', $local-uri)"/>
+            <xsl:with-param name="graph" select="resolve-uri(encode-for-uri($uri) || '/', ldh:absolute-path(ldh:href()))"/>
             <xsl:with-param name="container" select="ldh:absolute-path(ldh:href())"/>
         </xsl:call-template>
     </xsl:template>
