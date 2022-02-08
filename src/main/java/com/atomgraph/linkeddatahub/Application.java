@@ -575,7 +575,7 @@ public class Application extends ResourceConfig
                     xsltProc.getUnderlyingConfiguration().getGlobalDocumentPool().add(doc, prefix);
                 }
                 
-                // register translations.rdf so it doesn't have to be requested repeatedly
+                // register HTTPS URL of translations.rdf so it doesn't have to be requested repeatedly
                 try (InputStream translations = servletConfig.getServletContext().getResourceAsStream(ModelXSLTWriterBase.TRANSLATIONS_PATH))
                 {
                     TreeInfo doc = xsltProc.getUnderlyingConfiguration().buildDocumentTree(new StreamSource(translations));

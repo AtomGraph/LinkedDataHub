@@ -22,7 +22,7 @@ exclude-result-prefixes="#all">
     <xsl:preserve-space elements="nfo:fileName"/>
     
     <xsl:template match="*[@rdf:about = '&nfo;FileDataObject']" mode="ac:label">
-        <xsl:apply-templates select="key('resources', @rdf:about, document('../translations.rdf'))" mode="#current"/>
+        <xsl:apply-templates select="key('resources', 'file', document('../translations.rdf'))" mode="#current"/>
     </xsl:template>
 
     <xsl:template match="*[@rdf:*[local-name() = 'nodeID']]/nfo:fileName/@rdf:*[local-name() = 'nodeID'][key('resources', .)[not(* except rdf:type[@rdf:resource = '&xsd;string'])]]" mode="bs2:FormControl">

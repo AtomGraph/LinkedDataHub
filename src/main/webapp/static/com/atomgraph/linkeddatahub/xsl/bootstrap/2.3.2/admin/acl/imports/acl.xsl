@@ -36,7 +36,7 @@ xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 exclude-result-prefixes="#all">
 
     <xsl:template match="*[@rdf:about = '&acl;Authorization']" mode="ac:label">
-        <xsl:apply-templates select="key('resources', @rdf:about, document('../../../translations.rdf'))" mode="#current"/>
+        <xsl:apply-templates select="key('resources', 'authorization, document('../../../translations.rdf'))" mode="#current"/>
     </xsl:template>
     
     <xsl:template match="acl:mode/@rdf:resource | acl:mode/@rdf:nodeID" mode="bs2:FormControl" priority="1">

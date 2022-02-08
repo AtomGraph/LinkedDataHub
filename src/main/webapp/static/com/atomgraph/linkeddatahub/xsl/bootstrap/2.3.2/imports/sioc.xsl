@@ -25,6 +25,10 @@ xmlns:foaf="&foaf;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 exclude-result-prefixes="#all">
     
+    <xsl:template match="*[@rdf:about = '&sioc;UserAccount']" mode="ac:label">
+        <xsl:apply-templates select="key('resources', 'user-account', document('../translations.rdf'))" mode="#current"/>
+    </xsl:template>
+    
     <!-- override the value of sioc:has_parent/sioc:has_constructor in constructor with current URI -->
     <xsl:template match="*[@rdf:about or @rdf:nodeID][$ac:forClass]/sioc:has_parent/@rdf:nodeID[key('resources', .)] | *[@rdf:about or @rdf:nodeID][$ac:forClass]/sioc:has_container/@rdf:nodeID[key('resources', .)]" mode="bs2:FormControl">
         <xsl:param name="type" select="'text'" as="xs:string"/>
