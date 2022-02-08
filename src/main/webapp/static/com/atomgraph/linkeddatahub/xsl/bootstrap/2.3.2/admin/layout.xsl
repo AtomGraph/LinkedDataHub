@@ -75,19 +75,22 @@ exclude-result-prefixes="#all">
         </div>
     </xsl:template>
     
+    <!-- add sp:Construct to the creatable class list below the form -->
+    <xsl:template match="rdf:RDF[$ac:forClass][$ac:method = 'GET']" mode="bs2:RowForm" use-when="system-property('xsl:product-name') = 'SAXON'">
+        <xsl:param name="action" select="ac:build-uri($a:graphStore, map{ 'forClass': string($ac:forClass), 'mode': '&ac;EditMode' })" as="xs:anyURI"/>
+        <xsl:param name="classes" select="(key('resources', '&sp;Construct', document(ac:document-uri('&sp;')), for $class-uri in map:keys($default-classes) return key('resources', $class-uri, document(ac:document-uri($class-uri)))" as="element()*"/>
+
+        <xsl:next-match>
+            <xsl:with-param name="action" select="$action"/>
+            <xsl:with-param name="classes" select="$classes"/>
+        </xsl:next-match>
+    </xsl:template>
+    
     <!-- allow subject editing in admin EditMode -->
     <xsl:template match="*[*][@rdf:about or @rdf:nodeID]" mode="bs2:FormControl">
         <xsl:apply-imports>
             <xsl:with-param name="show-subject" select="not(rdf:type/@rdf:resource = ('&dh;Item', '&dh;Container'))" tunnel="yes"/>
         </xsl:apply-imports>
     </xsl:template>
-        
-    <!-- FORM CONTROL -->
-    
-<!--    <xsl:template match="*[@rdf:about or @rdf:nodeID][$ac:forClass]/sioc:has_parent/@rdf:nodeID | *[@rdf:about or @rdf:nodeID][$ac:forClass]/sioc:has_container/@rdf:nodeID" mode="bs2:FormControl">
-        <xsl:next-match>
-            <xsl:with-param name="default-classes" select="$default-classes"/>
-        </xsl:next-match>
-    </xsl:template>-->
     
 </xsl:stylesheet>

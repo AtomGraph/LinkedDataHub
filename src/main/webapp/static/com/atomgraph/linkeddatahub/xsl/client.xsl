@@ -2062,7 +2062,9 @@ WHERE
     </xsl:template>
 
     <xsl:template match="button[contains-token(@class, 'btn-add-data')]" mode="ixsl:onclick">
-        <xsl:call-template name="ldh:ShowAddDataForm"/>
+        <xsl:call-template name="ldh:ShowAddDataForm">
+            <xsl:with-param name="container" select="ldh:absolute-path(ldh:href())"/>
+        </xsl:call-template>
     </xsl:template>
 
     <!-- open editing form (do nothing if the button is disabled) -->
@@ -2166,12 +2168,11 @@ WHERE
         
         <!-- if SPARQL editor is shown, use the SPARQL protocol URI; otherwise use the Linked Data resource URI -->
         <xsl:variable name="uri" select="if ($results-uri) then $results-uri else ac:uri()" as="xs:anyURI"/>
-        <xsl:variable name="local-uri" select="ldh:absolute-path(ldh:href())" as="xs:anyURI"/>
 
         <xsl:call-template name="ldh:ShowAddDataForm">
             <xsl:with-param name="source" select="$uri"/>
             <xsl:with-param name="graph" select="resolve-uri(encode-for-uri($uri) || '/', $local-uri)"/>
-            <xsl:with-param name="container" select="$local-uri"/>
+            <xsl:with-param name="container" select="ldh:absolute-path(ldh:href())"/>
         </xsl:call-template>
     </xsl:template>
 
