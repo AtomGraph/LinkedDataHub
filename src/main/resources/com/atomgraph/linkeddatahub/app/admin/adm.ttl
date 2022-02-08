@@ -56,7 +56,7 @@ dh:Item spin:constructor :DocumentConstructor .
 
 # http://spinrdf.org/sp
 
-sp:Query spin:constraint :MissingRDFSLabel .
+# sp:Query spin:constraint :MissingRDFSLabel .
 
 # http://www.w3.org/2002/07/owl
 
@@ -78,8 +78,8 @@ owl:Ontology spin:constructor [
             owl:versionInfo "1.0-SNAPSHOT" .
     }
     WHERE {}"""
-    ] ;
-    spin:constraint :MissingRDFSLabel .
+    ] .
+#    spin:constraint :MissingRDFSLabel .
 
 # CLASS
 
@@ -103,8 +103,8 @@ owl:Class spin:constructor [
             spin:constraint [ a rdfs:Resource ] .
     }
     WHERE {}"""
-    ] ;
-    spin:constraint :MissingRDFSLabel .
+    ] .
+#    spin:constraint :MissingRDFSLabel .
 
 # object property
 
@@ -124,8 +124,8 @@ owl:ObjectProperty spin:constructor [
             rdfs:range [ a rdfs:Resource ] .
     }
     WHERE {}"""
-    ] ;
-    spin:constraint :MissingRDFSLabel .
+    ] .
+#    spin:constraint :MissingRDFSLabel .
 
 # datatype property
 
@@ -145,8 +145,8 @@ owl:DatatypeProperty spin:constructor [
             rdfs:range [ a rdfs:Resource ] .
     }
     WHERE {}"""
-    ] ;
-    spin:constraint :MissingRDFSLabel .
+    ] .
+#    spin:constraint :MissingRDFSLabel .
 
 # restriction
 
@@ -169,8 +169,8 @@ owl:Restriction spin:constructor [
                   rdfs:isDefinedBy [ a owl:Ontology ] .
             }
             WHERE {}"""
-    ];
-    spin:constraint :MissingRDFSLabel .
+    ] .
+#    spin:constraint :MissingRDFSLabel .
 
 # http://www.w3.org/ns/auth/acl
 
@@ -201,7 +201,8 @@ acl:Authorization spin:constructor [
             }
             WHERE {}"""
     ] ;
-    spin:constraint :MissingRDFSLabel, [
+    spin:constraint # :MissingRDFSLabel,
+    [
         a ldh:MissingPropertyValue ;
         sp:arg1 acl:mode
     ] ;

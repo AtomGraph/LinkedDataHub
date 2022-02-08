@@ -49,27 +49,6 @@ exclude-result-prefixes="#all">
             <xsl:map-entry key="'&foaf;Group'" select="resolve-uri('acl/groups/', $ldt:base)"/>
         </xsl:map>
     </xsl:param>
-        
-<!--    <xsl:template match="rdf:RDF" mode="bs2:ActionBarLeft">
-        <xsl:param name="id" as="xs:string?"/>
-        <xsl:param name="class" select="'span2'" as="xs:string?"/>
-        <xsl:param name="classes" select="for $class-uri in map:keys($default-classes) return key('resources', $class-uri, document(ac:document-uri($class-uri)))" as="element()*"/>
-
-        <div>
-            <xsl:if test="$id">
-                <xsl:attribute name="id"><xsl:sequence select="$id"/></xsl:attribute>
-            </xsl:if>
-            <xsl:if test="$class">
-                <xsl:attribute name="class"><xsl:sequence select="$class"/></xsl:attribute>
-            </xsl:if>
-            
-            <xsl:apply-templates select="." mode="bs2:Create">
-                <xsl:with-param name="class" select="'btn-group pull-left'"/>
-                <xsl:with-param name="classes" select="$classes"/>
-                <xsl:with-param name="create-graph" select="true()"/>
-            </xsl:apply-templates>
-        </div>
-    </xsl:template>-->
     
     <xsl:template match="rdf:RDF[$foaf:Agent]" mode="bs2:Create" priority="1">
         <xsl:param name="classes" as="element()*"/>
