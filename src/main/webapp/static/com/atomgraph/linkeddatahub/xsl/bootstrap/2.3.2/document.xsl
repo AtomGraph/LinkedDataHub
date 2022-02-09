@@ -435,7 +435,7 @@ extension-element-prefixes="ixsl"
             <!-- if $forClass is not a document class or content, then pair the instance with a document instance -->
             <xsl:when test="$createGraph and not($forClass = ('&dh;Container', '&dh;Item', '&ldh;Content'))">
                 <xsl:document>
-                    <xsl:sequence select="ldh:construct(map{ $forClass: spin:constructors($forClass, resolve-uri('ns', $ldt:base), $constructor-query)//srx:binding[@name = 'construct']/srx:literal/text() })"/>
+                    <xsl:sequence select="ldh:construct(map{ $forClass: spin:constructors($forClass, resolve-uri('ns', $ldt:base), $constructor-query)//srx:binding[@name = 'construct']/srx:literal/string(.) })"/>
 <!--                    <xsl:for-each select="ac:construct($ldt:ontology, ($forClass, xs:anyURI('&dh;Item')), $ldt:base)">
                         <xsl:apply-templates select="." mode="ldh:SetPrimaryTopic">
                              avoid selecting object blank nodes which only have rdf:type 
@@ -446,7 +446,7 @@ extension-element-prefixes="ixsl"
                 </xsl:document>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:sequence select="ldh:construct(map{ $forClass: spin:constructors($forClass, resolve-uri('ns', $ldt:base), $constructor-query)//srx:binding[@name = 'construct']/srx:literal/text() })"/>
+                <xsl:sequence select="ldh:construct(map{ $forClass: spin:constructors($forClass, resolve-uri('ns', $ldt:base), $constructor-query)//srx:binding[@name = 'construct']/srx:literal/string(.) })"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
