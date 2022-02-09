@@ -173,6 +173,23 @@ SELECT *
 }
 ]]></param-value>
     </context-param>
+    <context-param>
+        <param-name>https://w3id.org/atomgraph/linkeddatahub/config#ontologyQuery</param-name>
+        <param-value><![CDATA[
+PREFIX  owl:  <http://www.w3.org/2002/07/owl#>
+
+CONSTRUCT
+  {
+    ?s ?p ?o .
+  }
+WHERE
+  { GRAPH ?g
+      { $ontology  a  owl:Ontology .
+        ?s        ?p  ?o
+      }
+  }
+]]></param-value>
+    </context-param>
 <!--    <context-param>
         <param-name>https://w3id.org/atomgraph/linkeddatahub/config#putUpdate</param-name>
         <param-value><![CDATA[

@@ -165,6 +165,19 @@ exclude-result-prefixes="#all">
               }
         ]]>
     </xsl:variable>
+    <xsl:variable name="constructor-query" as="xs:string">
+        <![CDATA[
+            PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+            PREFIX  sp:   <http://spinrdf.org/sp#>
+            PREFIX  spin: <http://spinrdf.org/spin#>
+
+            SELECT  ?construct
+            WHERE
+              { ?Type (rdfs:subClassOf)*/spin:constructor  ?constructor .
+                ?constructor sp:text ?construct .
+              }
+        ]]>
+    </xsl:variable>
     
     <xsl:key name="resources-by-primary-topic" match="*[@rdf:about] | *[@rdf:nodeID]" use="foaf:primaryTopic/@rdf:resource"/>
     <xsl:key name="violations-by-root" match="*" use="spin:violationRoot/@rdf:resource"/>

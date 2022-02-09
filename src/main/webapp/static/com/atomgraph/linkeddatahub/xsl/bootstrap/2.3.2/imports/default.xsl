@@ -93,6 +93,17 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="document($request-uri)"/>
     </xsl:function>
 
+    <xsl:function name="spin:constructors" as="document-node()" cache="yes">
+        <xsl:param name="class" as="xs:anyURI"/>
+        <xsl:param name="endpoint" as="xs:anyURI"/>
+        <xsl:param name="query" as="xs:string"/>
+        
+        <xsl:variable name="query-string" select="replace($query, '\?Type', concat('&lt;', $class, '&gt;'))" as="xs:string"/>
+        <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': string($query-string) })" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="ldh:href($ldt:base, $results-uri)" as="xs:anyURI"/>
+        <xsl:sequence select="document($request-uri)"/>
+    </xsl:function>
+    
     <xsl:function name="spin:constraints" as="document-node()" cache="yes">
         <xsl:param name="class" as="xs:anyURI"/>
         <xsl:param name="endpoint" as="xs:anyURI"/>
