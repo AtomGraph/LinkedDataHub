@@ -429,6 +429,7 @@ extension-element-prefixes="ixsl"
     <xsl:template match="rdf:RDF" mode="ldh:Constructor" as="document-node()">
         <xsl:param name="forClass" as="xs:anyURI"/>
         <xsl:param name="createGraph" as="xs:boolean"/>
+        <xsl:param name="constructor-query" as="xs:string?"/>
         
         <xsl:choose>
             <!-- if $forClass is not a document class or content, then pair the instance with a document instance -->

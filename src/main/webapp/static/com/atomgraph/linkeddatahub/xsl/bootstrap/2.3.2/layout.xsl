@@ -693,6 +693,7 @@ exclude-result-prefixes="#all">
                             <xsl:apply-templates select="." mode="ldh:Constructor">
                                 <xsl:with-param name="forClass" select="$ac:forClass"/>
                                 <xsl:with-param name="createGraph" select="$ldh:createGraph"/>
+                                <xsl:with-param name="constructor-query" select="$constructor-query"/>
                             </xsl:apply-templates>
                         </xsl:variable>
                         

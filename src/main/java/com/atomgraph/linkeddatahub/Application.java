@@ -524,7 +524,7 @@ public class Application extends ResourceConfig
             BuiltinPersonalities.model.add(com.atomgraph.linkeddatahub.apps.model.Application.class, new com.atomgraph.linkeddatahub.apps.model.impl.ApplicationImplementation());
             BuiltinPersonalities.model.add(com.atomgraph.linkeddatahub.apps.model.Dataset.class, new com.atomgraph.linkeddatahub.apps.model.impl.DatasetImplementation());
             BuiltinPersonalities.model.add(Service.class, new com.atomgraph.linkeddatahub.model.generic.ServiceImplementation(noCertClient, mediaTypes, maxGetRequestSize));
-            BuiltinPersonalities.model.add(com.atomgraph.linkeddatahub.model.DydraService.class, new com.atomgraph.linkeddatahub.model.dydra.impl.ServiceImplementation(noCertClient, mediaTypes, maxGetRequestSize));
+//            BuiltinPersonalities.model.add(com.atomgraph.linkeddatahub.model.DydraService.class, new com.atomgraph.linkeddatahub.model.dydra.impl.ServiceImplementation(noCertClient, mediaTypes, maxGetRequestSize));
             BuiltinPersonalities.model.add(Import.class, ImportImpl.factory);
             BuiltinPersonalities.model.add(RDFImport.class, RDFImportImpl.factory);
             BuiltinPersonalities.model.add(CSVImport.class, CSVImportImpl.factory);
@@ -559,8 +559,9 @@ public class Application extends ResourceConfig
             emailProperties.put("mail.smtp.port", Integer.valueOf(smtpPort));
             
             xsltProc.registerExtensionFunction(new UUID());
-            xsltProc.registerExtensionFunction(new Construct(xsltProc));
-            xsltProc.registerExtensionFunction(new ConstructForClass(xsltProc));
+//            xsltProc.registerExtensionFunction(new Construct(xsltProc));
+//            xsltProc.registerExtensionFunction(new ConstructForClass(xsltProc));
+            xsltProc.registerExtensionFunction(new com.atomgraph.linkeddatahub.writer.function.Construct(xsltProc));
             
             Model mappingModel = locationMapper.toModel();
             ResIterator prefixedMappings = mappingModel.listResourcesWithProperty(LocationMappingVocab.prefix);
