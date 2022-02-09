@@ -80,13 +80,14 @@ public class Construct implements ExtensionFunction
         try
         {
             Model model = ModelFactory.createDefaultModel();
-            Resource instance = model.createResource();
-            QuerySolutionMap qsm = new QuerySolutionMap();
-            qsm.add(SPIN.THIS_VAR_NAME, instance);
             
             if (!arguments[0].isEmpty())
                 arguments[0].itemAt(0).asMap().forEach((forClass, constructors) ->
                     {
+                        Resource instance = model.createResource();
+                        QuerySolutionMap qsm = new QuerySolutionMap();
+                        qsm.add(SPIN.THIS_VAR_NAME, instance);
+
                         instance.addProperty(RDF.type, ResourceFactory.createResource(forClass.getStringValue()));
                         constructors.stream().forEach(constructor ->
                         {
