@@ -73,9 +73,10 @@ public class Construct implements ExtensionFunction
         {
             Model model = ModelFactory.createDefaultModel();
 
-            arguments[1].stream().forEach(constructString ->
-                QueryExecution.create(constructString.getStringValue(), model).execConstruct()
-            );
+            if (!arguments[0].isEmpty())
+                arguments[0].stream().forEach(constructString ->
+                    QueryExecution.create(constructString.getStringValue(), model).execConstruct()
+                );
 
             return getProcessor().newDocumentBuilder().build(ModelXSLTWriter.getSource(model));
         }
