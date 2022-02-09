@@ -435,14 +435,15 @@ extension-element-prefixes="ixsl"
             <!-- if $forClass is not a document class or content, then pair the instance with a document instance -->
             <xsl:when test="$createGraph and not($forClass = ('&dh;Container', '&dh;Item', '&ldh;Content'))">
                 <xsl:document>
-                    <xsl:sequence select="ldh:construct(map{ $forClass: spin:constructors($forClass, resolve-uri('ns', $ldt:base), $constructor-query)//srx:binding[@name = 'construct']/srx:literal/string(.) })"/>
-<!--                    <xsl:for-each select="ac:construct($ldt:ontology, ($forClass, xs:anyURI('&dh;Item')), $ldt:base)">
+                    <!-- construct a combined graph of dh:Item and $forClass instances -->
+                    <xsl:for-each select="ldh:construct(map{ xs:anyURI('&dh;Item'): spin:constructors(xs:anyURI('&dh;Item'), resolve-uri('ns', $ldt:base), $constructor-query)//srx:binding[@name = 'construct']/srx:literal/string(.),
+                            $forClass: spin:constructors($forClass, resolve-uri('ns', $ldt:base), $constructor-query)//srx:binding[@name = 'construct']/srx:literal/string(.) })">
                         <xsl:apply-templates select="." mode="ldh:SetPrimaryTopic">
-                             avoid selecting object blank nodes which only have rdf:type 
+                            <!-- avoid selecting object blank nodes which only have rdf:type --> 
                             <xsl:with-param name="topic-id" select="key('resources-by-type', $forClass)[* except rdf:type]/@rdf:nodeID" tunnel="yes"/>
                             <xsl:with-param name="doc-id" select="key('resources-by-type', '&dh;Item')/@rdf:nodeID" tunnel="yes"/>
                         </xsl:apply-templates>
-                    </xsl:for-each>-->
+                    </xsl:for-each>
                 </xsl:document>
             </xsl:when>
             <xsl:otherwise>
