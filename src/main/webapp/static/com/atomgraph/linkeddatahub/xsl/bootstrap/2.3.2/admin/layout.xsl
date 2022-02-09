@@ -79,7 +79,7 @@ exclude-result-prefixes="#all">
     
     <!-- add sp:Construct to the creatable class list below the form. Needs to pass parameters from signup.xsl and request-access.xsl!!! -->
     <xsl:template match="rdf:RDF[$ac:method = 'GET']" mode="bs2:RowForm" use-when="system-property('xsl:product-name') = 'SAXON'">
-        <xsl:param name="action" as="xs:anyURI"/>
+        <xsl:param name="action" select="ac:build-uri(ac:uri(), let $params := map{ '_method': 'PUT', 'mode': for $mode in $ac:mode return string($mode) } return if (not(starts-with(ac:uri(), $ldt:base))) then map:merge(($params, map{ 'uri': string(ac:uri()) })) else $params)" as="xs:anyURI"/>
         <xsl:param name="enctype" as="xs:string?"/>
         <xsl:param name="create-resource" as="xs:boolean"/>
         <!-- TO-DO: generate ontology classes from the OWL vocabulary -->
