@@ -700,6 +700,7 @@ exclude-result-prefixes="#all">
                         <xsl:choose>
                             <xsl:when test="$ac:mode = '&ac;ModalMode'">
                                 <xsl:apply-templates select="$constructor" mode="bs2:ModalForm">
+                                    <xsl:with-param name="constructor-query" select="$constructor-query" tunnel="yes"/>
                                     <xsl:with-param name="constraint-query" select="$constraint-query" tunnel="yes"/>
                                     <xsl:sort select="ac:label(.)"/>
                                 </xsl:apply-templates>
@@ -707,6 +708,7 @@ exclude-result-prefixes="#all">
                             <xsl:otherwise>
                                 <xsl:apply-templates select="$constructor" mode="bs2:RowForm">
                                     <xsl:with-param name="classes" select="$classes"/>
+                                    <xsl:with-param name="constructor-query" select="$constructor-query" tunnel="yes"/>
                                     <xsl:with-param name="constraint-query" select="$constraint-query" tunnel="yes"/>
                                     <xsl:sort select="ac:label(.)"/>
                                 </xsl:apply-templates>
@@ -742,6 +744,7 @@ exclude-result-prefixes="#all">
                     </xsl:when>
                     <xsl:when test="$ac:mode = '&ac;EditMode' and $ac:mode = '&ac;ModalMode'">
                         <xsl:apply-templates select="." mode="bs2:ModalForm">
+                            <xsl:with-param name="constructor-query" select="$constructor-query" tunnel="yes"/>
                             <xsl:with-param name="constraint-query" select="$constraint-query" tunnel="yes"/>
                             <xsl:sort select="ac:label(.)"/>
                         </xsl:apply-templates>
@@ -749,6 +752,7 @@ exclude-result-prefixes="#all">
                     <xsl:when test="$ac:mode = '&ac;EditMode'">
                         <xsl:apply-templates select="." mode="bs2:RowForm">
                             <xsl:with-param name="classes" select="$classes"/>
+                            <xsl:with-param name="constructor-query" select="$constructor-query" tunnel="yes"/>
                             <xsl:with-param name="constraint-query" select="$constraint-query" tunnel="yes"/>
                             <xsl:sort select="ac:label(.)"/>
                         </xsl:apply-templates>
