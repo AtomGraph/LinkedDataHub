@@ -203,10 +203,10 @@ public class OntologyFilter implements ContainerRequestFilter
         if (app == null) throw new IllegalArgumentException("Application string cannot be null");
         if (uri == null) throw new IllegalArgumentException("Ontology URI string cannot be null");
 
+        ModelGetter modelGetter = new ModelGetter(app, ontModelSpec);
         // only create InfModel if ontology is not already cached
         if (!ontModelSpec.getDocumentManager().getFileManager().hasCachedModel(uri))
         {
-            ModelGetter modelGetter = new ModelGetter(app, ontModelSpec);
             Model model = modelGetter.getModel(uri);
 
             final InfModel infModel = ModelFactory.createInfModel(ontModelSpec.getReasoner(), model);
@@ -220,7 +220,9 @@ public class OntologyFilter implements ContainerRequestFilter
             // construct system provider to materialize inferenced model
             OntologyLoader ontologyLoader = new com.atomgraph.server.util.OntologyLoader(ontModelSpec.getDocumentManager(), uri, ontModelSpec, true); //.getOntology();
             // Bypass Processor's getOntology() because it overrides the ModelGetter TO-DO: fix!
-            return ontModelSpec.getDocumentManager().getOntology(uri, OntModelSpec.OWL_MEM).getOntology(uri);
+            OntModelSpec loadSpec = new OntModelSpec(OntModelSpec.OWL_MEM);
+            loadSpec.setImportModelGetter(modelGetter);
+            return ontModelSpec.getDocumentManager().getOntology(uri, loadSpec).getOntology(uri);
         }
         catch (IllegalArgumentException ex)
         {
