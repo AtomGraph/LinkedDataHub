@@ -16,11 +16,13 @@
  */
 package com.atomgraph.linkeddatahub.writer.function;
 
+import com.atomgraph.client.vocabulary.SPIN;
 import com.atomgraph.linkeddatahub.vocabulary.LDH;
 import com.atomgraph.linkeddatahub.writer.ModelXSLTWriter;
 import java.io.IOException;
 import net.sf.saxon.s9api.ExtensionFunction;
 import net.sf.saxon.s9api.ItemType;
+import net.sf.saxon.s9api.ItemTypeFactory;
 import net.sf.saxon.s9api.OccurrenceIndicator;
 import net.sf.saxon.s9api.Processor;
 import net.sf.saxon.s9api.QName;
@@ -28,8 +30,12 @@ import net.sf.saxon.s9api.SaxonApiException;
 import net.sf.saxon.s9api.SequenceType;
 import net.sf.saxon.s9api.XdmValue;
 import org.apache.jena.query.QueryExecution;
+import org.apache.jena.query.QuerySolutionMap;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.rdf.model.ResourceFactory;
+import org.apache.jena.vocabulary.RDF;
 
 /**
  *
@@ -60,10 +66,12 @@ public class Construct implements ExtensionFunction
     @Override
     public SequenceType[] getArgumentTypes()
     {
-        return new SequenceType[]
+        return new SequenceType[] /* map(xs:anyURI, xs:string*) */
         {
-            SequenceType.makeSequenceType(ItemType.STRING, OccurrenceIndicator.ZERO_OR_MORE),
+            SequenceType.makeSequenceType(new ItemTypeFactory(getProcessor()).getMapType(ItemType.ANY_URI,
+                SequenceType.makeSequenceType(ItemType.STRING, OccurrenceIndicator.ZERO_OR_MORE)), OccurrenceIndicator.ONE)
         };
+        
     }
 
     @Override
@@ -72,10 +80,22 @@ public class Construct implements ExtensionFunction
         try
         {
             Model model = ModelFactory.createDefaultModel();
-
+            Resource instance = model.createResource();
+            QuerySolutionMap qsm = new QuerySolutionMap();
+            qsm.add(SPIN.THIS_VAR_NAME, instance);
+            
             if (!arguments[0].isEmpty())
-                arguments[0].stream().forEach(constructString ->
-                    QueryExecution.create(constructString.getStringValue(), model).execConstruct()
+                arguments[0].itemAt(0).asMap().forEach((forClass, constructors) ->
+                    {
+                        instance.addProperty(RDF.type, ResourceFactory.createResource(forClass.getStringValue()));
+                        constructors.stream().forEach(constructor ->
+                        {
+                            try (QueryExecution qex = QueryExecution.model(model).query(constructor.getStringValue()).initialBinding(qsm).build())
+                            {
+                                qex.execConstruct(model);
+                            }
+                        });
+                    }
                 );
 
             return getProcessor().newDocumentBuilder().build(ModelXSLTWriter.getSource(model));
