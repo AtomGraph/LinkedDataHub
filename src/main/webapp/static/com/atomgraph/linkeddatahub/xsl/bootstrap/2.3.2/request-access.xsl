@@ -50,6 +50,8 @@ exclude-result-prefixes="#all">
             <xsl:with-param name="action" select="ac:uri()"/>
             <xsl:with-param name="enctype" select="()"/> <!-- don't use 'multipart/form-data' which is the default -->
             <xsl:with-param name="create-resource" select="false()"/>
+            <xsl:with-param name="constructor-query" select="$constructor-query" tunnel="yes"/>
+            <xsl:with-param name="constraint-query" select="$constraint-query" tunnel="yes"/>
         </xsl:apply-templates>
     </xsl:template>
     
@@ -78,8 +80,8 @@ exclude-result-prefixes="#all">
         <xsl:variable name="constructor" as="document-node()">
             <xsl:document>
                 <!-- construct a combined graph of dh:Item and lacl:AuthorizationRequest instances -->
-                <xsl:for-each select="ldh:construct(map{ xs:anyURI('&dh;Item'): spin:constructors(xs:anyURI('&dh;Item'), resolve-uri('../ns', $ldt:base), $constructor-query)//srx:binding[@name = 'construct']/srx:literal/string(.),
-                        xs:anyURI('&lacl;AuthorizationRequest'): spin:constructors(xs:anyURI('&lacl;AuthorizationRequest'), resolve-uri('../ns', $ldt:base), $constructor-query)//srx:binding[@name = 'construct']/srx:literal/string(.) })">
+                <xsl:for-each select="ldh:construct(map{ xs:anyURI('&dh;Item'): spin:constructors(xs:anyURI('&dh;Item'), resolve-uri('ns', $ldt:base), $constructor-query)//srx:binding[@name = 'construct']/srx:literal/string(.),
+                        xs:anyURI('&lacl;AuthorizationRequest'): spin:constructors(xs:anyURI('&lacl;AuthorizationRequest'), resolve-uri('ns', $ldt:base), $constructor-query)//srx:binding[@name = 'construct']/srx:literal/string(.) })">
                     <xsl:apply-templates select="." mode="ldh:SetPrimaryTopic">
                         <xsl:with-param name="topic-id" select="key('resources-by-type', '&lacl;AuthorizationRequest')/@rdf:nodeID" tunnel="yes"/>
                         <xsl:with-param name="doc-id" select="key('resources-by-type', '&dh;Item')/@rdf:nodeID" tunnel="yes"/>
@@ -92,6 +94,8 @@ exclude-result-prefixes="#all">
             <xsl:with-param name="action" select="ac:uri()"/>
             <xsl:with-param name="enctype" select="()"/> <!-- don't use 'multipart/form-data' which is the default -->
             <xsl:with-param name="create-resource" select="false()"/>
+            <xsl:with-param name="constructor-query" select="$constructor-query" tunnel="yes"/>
+            <xsl:with-param name="constraint-query" select="$constraint-query" tunnel="yes"/>
         </xsl:apply-templates>
     </xsl:template>
 

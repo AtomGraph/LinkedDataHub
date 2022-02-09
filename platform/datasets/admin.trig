@@ -206,7 +206,7 @@
     <acl/authorizations/sign-up/#this> a acl:Authorization ;
         rdfs:label "Signup access" ;
         rdfs:comment "Required to enable public signup" ;
-        acl:accessTo <sign%20up>, <../ns> ;
+        acl:accessTo <sign%20up>, <ns> ;
         acl:mode acl:Read, acl:Append ;
         acl:agentClass foaf:Agent .
 
@@ -225,7 +225,7 @@
     <acl/authorizations/request-access/#this> a acl:Authorization ;
         rdfs:label "Request access" ;
         rdfs:comment "Required to enable authorization requests" ;
-        acl:accessTo <request%20access>, <../ns> ;
+        acl:accessTo <request%20access>, <ns> ;
         acl:mode acl:Read, acl:Append ;
         acl:agentClass acl:AuthenticatedAgent . # not public, Agent must be authenticated
 
