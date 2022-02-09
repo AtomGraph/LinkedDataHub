@@ -22,6 +22,8 @@ import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.vocabulary.LAPP;
 import com.atomgraph.processor.exception.OntologyException;
 import com.atomgraph.client.vocabulary.LDT;
+import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
+import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -35,6 +37,9 @@ import javax.ws.rs.container.PreMatching;
 import javax.ws.rs.core.Response;
 import org.apache.jena.ontology.OntModelSpec;
 import org.apache.jena.ontology.Ontology;
+import org.apache.jena.query.ParameterizedSparqlString;
+import org.apache.jena.query.Query;
+import org.apache.jena.query.QueryFactory;
 import org.apache.jena.rdf.model.InfModel;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
@@ -83,27 +88,47 @@ public class OntologyFilter implements ContainerRequestFilter
                 return fileManager.loadModel(uri, getApplication().getBase().getURI(), null);
             else
             {
-                // TO-DO: use LinkedDataClient
-                if (log.isDebugEnabled()) log.debug("Loading end-user Ontology <{}>", uri);
-                try (Response cr = getClient().target(uri).
-                        request(getAcceptableMediaTypes()).
-                        get())
+                ParameterizedSparqlString ontologyQuery = new ParameterizedSparqlString("PREFIX  owl:  <http://www.w3.org/2002/07/owl#>\n" +
+"\n" +
+"CONSTRUCT\n" +
+"  {\n" +
+"    ?s ?p ?o .\n" +
+"  }\n" +
+"WHERE\n" +
+"  { GRAPH ?g\n" +
+"      { ?ontology  a  owl:Ontology .\n" +
+"        ?s        ?p  ?o\n" +
+"      }\n" +
+"  }");
+                ontologyQuery.setIri(LDT.ontology.getLocalName(), uri);
+                Model model = getAdminApplication().getService().getSPARQLClient().loadModel(ontologyQuery.asQuery());
+                
+                if (model.isEmpty())
                 {
-                    if (!cr.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
+                    // TO-DO: use LinkedDataClient
+                    if (log.isDebugEnabled()) log.debug("Loading end-user Ontology <{}>", uri);
+                    try (Response cr = getClient().target(uri).
+                            request(getAcceptableMediaTypes()).
+                            get())
                     {
-                        if (log.isErrorEnabled()) log.error("Could not load ontology from URI: <{}>", uri);
-                        // TO-DO: replace with Jena's OntologyException
-                        throw new OntologyException("Could not load ontology from URI <" + uri + ">");
+                        if (!cr.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
+                        {
+                            if (log.isErrorEnabled()) log.error("Could not load ontology from URI: <{}>", uri);
+                            // TO-DO: replace with Jena's OntologyException
+                            throw new OntologyException("Could not load ontology from URI <" + uri + ">");
+                        }
+                        cr.getHeaders().putSingle(ModelProvider.REQUEST_URI_HEADER, uri); // provide a base URI hint to ModelProvider
+                        return cr.readEntity(Model.class);
                     }
-                    cr.getHeaders().putSingle(ModelProvider.REQUEST_URI_HEADER, uri); // provide a base URI hint to ModelProvider
-                    return cr.readEntity(Model.class);
+                    catch (Exception ex)
+                    {
+                        if (log.isErrorEnabled()) log.error("Could not load ontology from URI: {}", uri);
+                        // TO-DO: replace with Jena's OntologyException
+                        throw new OntologyException("Could not load ontology from URI '" + uri + "'");
+                    }
                 }
-                catch (Exception ex)
-                {
-                    if (log.isErrorEnabled()) log.error("Could not load ontology from URI: {}", uri);
-                    // TO-DO: replace with Jena's OntologyException
-                    throw new OntologyException("Could not load ontology from URI '" + uri + "'");
-                }
+                
+                return model;
             }
         }
         
@@ -128,6 +153,14 @@ public class OntologyFilter implements ContainerRequestFilter
         public OntModelSpec getOntModelSpec()
         {
             return ontModelSpec;
+        }
+        
+        public AdminApplication getAdminApplication()
+        {
+            if (getApplication().canAs(EndUserApplication.class))
+                return getApplication().as(EndUserApplication.class).getAdminApplication();
+            else
+                return getApplication().as(AdminApplication.class);
         }
         
     }

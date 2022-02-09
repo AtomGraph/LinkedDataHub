@@ -228,7 +228,6 @@ public class Login extends GraphStoreImpl
                         URI authGraphUri = getUriInfo().getBaseUriBuilder().path(AUTHORIZATION_PATH).path("{slug}/").build(UUID.randomUUID().toString());
                         createAuthorization(authModel,
                             authGraphUri,
-                            getOntology().getURI(),
                             accountModel.createResource(getUriInfo().getBaseUri().resolve(AUTHORIZATION_PATH).toString()),
                             agentGraphUri,
                             userAccountGraphUri);
@@ -325,7 +324,7 @@ public class Login extends GraphStoreImpl
         return account;
     }
 
-    public Resource createAuthorization(Model model, URI graphURI, String namespace, Resource container, URI agentGraphURI, URI userAccountGraphURI)
+    public Resource createAuthorization(Model model, URI graphURI, Resource container, URI agentGraphURI, URI userAccountGraphURI)
     {
         Resource item = model.createResource(graphURI.toString()).
             addProperty(RDF.type, DH.Item).
