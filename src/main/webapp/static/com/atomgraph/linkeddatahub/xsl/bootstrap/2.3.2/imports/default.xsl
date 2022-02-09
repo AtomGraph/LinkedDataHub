@@ -115,6 +115,15 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="document($request-uri)"/>
     </xsl:function>
 
+    <!-- function stub so that Saxon-EE doesn't complain when compiling SEF -->
+    <xsl:function name="ldh:construct" as="document-node()" override-extension-function="no" cache="yes">
+        <xsl:param name="construct-string" as="xs:string*"/>
+            
+        <xsl:message use-when="system-property('xsl:product-name') = 'SAXON'" terminate="yes">
+            Not implemented -- com.atomgraph.linkeddatahub.writer.function.Construct needs to be registered as an extension function
+        </xsl:message>
+    </xsl:function>
+    
     <xsl:function name="ldh:listSuperClasses" as="attribute()*" cache="yes">
         <xsl:param name="class" as="xs:anyURI"/>
         
