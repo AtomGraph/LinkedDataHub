@@ -77,15 +77,19 @@ exclude-result-prefixes="#all">
         </div>
     </xsl:template>
     
-    <!-- add sp:Construct to the creatable class list below the form -->
+    <!-- add sp:Construct to the creatable class list below the form. Needs to pass parameters from signup.xsl and request-access.xsl!!! -->
     <xsl:template match="rdf:RDF[$ac:method = 'GET']" mode="bs2:RowForm" use-when="system-property('xsl:product-name') = 'SAXON'">
         <xsl:param name="action" as="xs:anyURI"/>
+        <xsl:param name="enctype" as="xs:string?"/>
+        <xsl:param name="create-resource" as="xs:boolean"/>
         <!-- TO-DO: generate ontology classes from the OWL vocabulary -->
         <xsl:param name="ontology-classes" select="for $class-uri in ('&sp;Construct', '&owl;Class', '&owl;DatatypeProperty', '&owl;ObjectProperty', '&owl;Restriction') return key('resources', $class-uri, document(ac:document-uri($class-uri)))" as="element()*"/>
 
         <xsl:next-match>
             <xsl:with-param name="classes" select="$ontology-classes"/>
             <xsl:with-param name="action" select="$action"/>
+            <xsl:with-param name="enctype" select="$enctype"/>
+            <xsl:with-param name="create-resource" select="$create-resource"/>
         </xsl:next-match>
     </xsl:template>
     
