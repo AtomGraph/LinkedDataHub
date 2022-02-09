@@ -24,6 +24,7 @@ import com.atomgraph.processor.exception.OntologyException;
 import com.atomgraph.client.vocabulary.LDT;
 import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
+import com.atomgraph.server.util.OntologyLoader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -38,8 +39,6 @@ import javax.ws.rs.core.Response;
 import org.apache.jena.ontology.OntModelSpec;
 import org.apache.jena.ontology.Ontology;
 import org.apache.jena.query.ParameterizedSparqlString;
-import org.apache.jena.query.Query;
-import org.apache.jena.query.QueryFactory;
 import org.apache.jena.rdf.model.InfModel;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
@@ -219,7 +218,9 @@ public class OntologyFilter implements ContainerRequestFilter
         try
         {
             // construct system provider to materialize inferenced model
-            return new com.atomgraph.server.util.OntologyLoader(ontModelSpec.getDocumentManager(), uri, ontModelSpec, true).getOntology();
+            OntologyLoader ontologyLoader = new com.atomgraph.server.util.OntologyLoader(ontModelSpec.getDocumentManager(), uri, ontModelSpec, true); //.getOntology();
+            // Bypass Processor's getOntology() because it overrides the ModelGetter TO-DO: fix!
+            return ontModelSpec.getDocumentManager().getOntology(uri, OntModelSpec.OWL_MEM).getOntology(uri);
         }
         catch (IllegalArgumentException ex)
         {
