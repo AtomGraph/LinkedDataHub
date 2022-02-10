@@ -3,7 +3,7 @@
 
     <groupId>com.atomgraph</groupId>
     <artifactId>linkeddatahub</artifactId>
-    <version>2.3.15-SNAPSHOT</version>
+    <version>2.3.16-SNAPSHOT</version>
     <packaging>${packaging.type}</packaging>
 
     <name>AtomGraph LinkedDataHub</name>
@@ -123,7 +123,7 @@
                     <groupId>org.slf4j</groupId>
                     <artifactId>slf4j-simple</artifactId>
                 </exclusion>
-                <!-- exclude jakarta.json as its version clashes wich Jersey's -->
+                <!-- exclude jakarta.json as its version clashes with Jersey's -->
                 <exclusion>
                     <groupId>org.glassfish</groupId>
                     <artifactId>jakarta.json</artifactId>
@@ -136,7 +136,7 @@
             <artifactId>processor</artifactId>
             <version>3.13.8-SNAPSHOT</version>
             <exclusions>
-                <!-- exclude jakarta.json as its version clashes wich Jersey's -->
+                <!-- exclude jakarta.json as its version clashes with Jersey's -->
                 <exclusion>
                     <groupId>org.glassfish</groupId>
                     <artifactId>jakarta.json</artifactId>
@@ -146,10 +146,10 @@
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>client</artifactId>
-            <version>3.1.14-SNAPSHOT</version>
+            <version>3.1.16-SNAPSHOT</version>
             <classifier>classes</classifier>
             <exclusions>
-                <!-- exclude jakarta.json as its version clashes wich Jersey's -->
+                <!-- exclude jakarta.json as its version clashes with Jersey's -->
                 <exclusion>
                     <groupId>org.glassfish</groupId>
                     <artifactId>jakarta.json</artifactId>
@@ -159,10 +159,10 @@
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>client</artifactId>
-            <version>3.1.14-SNAPSHOT</version>
+            <version>3.1.16-SNAPSHOT</version>
             <type>war</type>
             <exclusions>
-                <!-- exclude jakarta.json as its version clashes wich Jersey's -->
+                <!-- exclude jakarta.json as its version clashes with Jersey's -->
                 <exclusion>
                     <groupId>org.glassfish</groupId>
                     <artifactId>jakarta.json</artifactId>
