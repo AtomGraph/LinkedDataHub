@@ -241,7 +241,7 @@ public class Application extends ResourceConfig
     private final DataManager dataManager;
     private final MediaTypes mediaTypes;
     private final Client client, importClient, noCertClient;
-    private final Query authQuery, ownerAuthQuery, webIDQuery, agentQuery, userAccountQuery; // no relative URIs
+    private final Query authQuery, ownerAuthQuery, webIDQuery, agentQuery, userAccountQuery, ontologyQuery; // no relative URIs
     private final Integer maxGetRequestSize;
     private final boolean preemptiveAuth;
     private final Processor xsltProc = new Processor(false);
@@ -289,6 +289,7 @@ public class Application extends ResourceConfig
             servletConfig.getServletContext().getInitParameter(LDHC.webIDQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.webIDQuery.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.agentQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.agentQuery.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.userAccountQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.userAccountQuery.getURI()) : null,
+            servletConfig.getServletContext().getInitParameter(LDHC.ontologyQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.ontologyQuery.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.baseUri.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.baseUri.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.proxyScheme.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.proxyScheme.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.proxyHost.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.proxyHost.getURI()) : null,
@@ -326,7 +327,7 @@ public class Application extends ResourceConfig
             final String clientKeyStoreURIString, final String clientKeyStorePassword,
             final String secretaryCertAlias,
             final String clientTrustStoreURIString, final String clientTrustStorePassword,
-            final String authQueryString, final String ownerAuthQueryString, final String webIDQueryString, final String agentQueryString, final String userAccountQueryString,
+            final String authQueryString, final String ownerAuthQueryString, final String webIDQueryString, final String agentQueryString, final String userAccountQueryString, final String ontologyQueryString,
             final String baseURIString, final String proxyScheme, final String proxyHostname, final Integer proxyPort,
             final String uploadRootString, final boolean invalidateCache,
             final Integer cookieMaxAge, final CacheControl authCacheControl, final Integer maxPostSize,
@@ -386,6 +387,12 @@ public class Application extends ResourceConfig
             throw new ConfigurationException(LDHC.agentQuery);
         }
         this.agentQuery = QueryFactory.create(agentQueryString);
+        if (ontologyQueryString == null)
+        {
+            if (log.isErrorEnabled()) log.error("Ontology SPARQL query is not configured properly");
+            throw new ConfigurationException(LDHC.ontologyQuery);
+        }
+        this.ontologyQuery = QueryFactory.create(ontologyQueryString);
         
         if (baseURIString == null)
         {
@@ -1160,6 +1167,11 @@ public class Application extends ResourceConfig
     public Query getUserAccountQuery()
     {
         return userAccountQuery;
+    }
+    
+    public Query getOntologyQuery()
+    {
+        return ontologyQuery;
     }
     
     public Integer getMaxGetRequestSize()

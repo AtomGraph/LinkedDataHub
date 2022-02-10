@@ -39,6 +39,7 @@ import javax.ws.rs.core.Response;
 import org.apache.jena.ontology.OntModelSpec;
 import org.apache.jena.ontology.Ontology;
 import org.apache.jena.query.ParameterizedSparqlString;
+import org.apache.jena.query.Query;
 import org.apache.jena.rdf.model.InfModel;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
@@ -69,15 +70,16 @@ public class OntologyFilter implements ContainerRequestFilter
         
         private final Application app;
         private final OntModelSpec ontModelSpec;
+        private final Query ontologyQuery;
         
-        public ModelGetter(Application app, OntModelSpec ontModelSpec)
+        public ModelGetter(Application app, OntModelSpec ontModelSpec, Query ontologyQuery)
         {
             this.app = app;
             this.ontModelSpec = ontModelSpec;
+            this.ontologyQuery = ontologyQuery;
         }
 
         @Override
-        // TO-DO: is this class required? Doesn't DataManager do this by default?
         public Model getModel(String uri)
         {
             FileManager fileManager = getOntModelSpec().getDocumentManager().getFileManager();
@@ -87,21 +89,12 @@ public class OntologyFilter implements ContainerRequestFilter
                 return fileManager.loadModel(uri, getApplication().getBase().getURI(), null);
             else
             {
-                ParameterizedSparqlString ontologyQuery = new ParameterizedSparqlString("PREFIX  owl:  <http://www.w3.org/2002/07/owl#>\n" +
-"\n" +
-"CONSTRUCT\n" +
-"  {\n" +
-"    ?s ?p ?o .\n" +
-"  }\n" +
-"WHERE\n" +
-"  { GRAPH ?g\n" +
-"      { ?ontology  a  owl:Ontology .\n" +
-"        ?s        ?p  ?o\n" +
-"      }\n" +
-"  }");
-                ontologyQuery.setIri(LDT.ontology.getLocalName(), uri);
-                Model model = getAdminApplication().getService().getSPARQLClient().loadModel(ontologyQuery.asQuery());
+                // attempt to load ontology graph from the admin endpoint
+                ParameterizedSparqlString ontologyPss = new ParameterizedSparqlString(getOntologyQuery().toString());
+                ontologyPss.setIri(LDT.ontology.getLocalName(), uri);
+                Model model = getAdminApplication().getService().getSPARQLClient().loadModel(ontologyPss.asQuery());
                 
+                // if it's empty, fallback to dereferencing the ontology URI
                 if (model.isEmpty())
                 {
                     // TO-DO: use LinkedDataClient
@@ -162,6 +155,11 @@ public class OntologyFilter implements ContainerRequestFilter
                 return getApplication().as(AdminApplication.class);
         }
         
+        public Query getOntologyQuery()
+        {
+            return ontologyQuery;
+        }
+        
     }
 
     public OntologyFilter()
@@ -203,7 +201,7 @@ public class OntologyFilter implements ContainerRequestFilter
         if (app == null) throw new IllegalArgumentException("Application string cannot be null");
         if (uri == null) throw new IllegalArgumentException("Ontology URI string cannot be null");
 
-        ModelGetter modelGetter = new ModelGetter(app, ontModelSpec);
+        ModelGetter modelGetter = new ModelGetter(app, ontModelSpec, getSystem().getOntologyQuery());
         // only create InfModel if ontology is not already cached
         if (!ontModelSpec.getDocumentManager().getFileManager().hasCachedModel(uri))
         {
@@ -218,11 +216,11 @@ public class OntologyFilter implements ContainerRequestFilter
         try
         {
             // construct system provider to materialize inferenced model
-            OntologyLoader ontologyLoader = new com.atomgraph.server.util.OntologyLoader(ontModelSpec.getDocumentManager(), uri, ontModelSpec, true); //.getOntology();
+            OntologyLoader ontologyLoader = new com.atomgraph.server.util.OntologyLoader(ontModelSpec.getDocumentManager(), uri, ontModelSpec, true);
             // Bypass Processor's getOntology() because it overrides the ModelGetter TO-DO: fix!
             OntModelSpec loadSpec = new OntModelSpec(OntModelSpec.OWL_MEM);
             loadSpec.setImportModelGetter(modelGetter);
-            return ontModelSpec.getDocumentManager().getOntology(uri, loadSpec).getOntology(uri);
+            return ontModelSpec.getDocumentManager().getOntology(uri, loadSpec).getOntology(uri); // reloads the imports using ModelGetter. TO-DO: optimize?
         }
         catch (IllegalArgumentException ex)
         {
