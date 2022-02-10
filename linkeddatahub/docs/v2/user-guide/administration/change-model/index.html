@@ -1,0 +1,675 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml">
+   <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+      <title>LinkedDataHub - Change the model</title>
+      <meta name="description" content="Change the model: create constructors, classes, and restrictions"/>
+      <link rel="up" href="../index.html"/>
+      <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/css/bootstrap.css" rel="stylesheet" type="text/css"/>
+      <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/css/bootstrap-responsive.css" rel="stylesheet" type="text/css"/>
+      <style type="text/css">
+				body { padding-top: 60px; }
+				object { width: 100%; min-height: 640px; }
+			</style><script type="text/javascript" src="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/js/jquery.min.js"></script><script type="text/javascript">
+				$(document).ready(function()
+				{
+
+					$("ul.nav-tabs a").on("click", function()
+					{
+						$(this).closest("ul").children().toggleClass("active", false); // deactivate other tabs
+						$(this).closest("li").toggleClass("active", true); // activate this tab
+						$(this).closest("ul").next().children().toggleClass("active", false); // deactivate other tab panes
+						$(this).closest("ul").next().children().eq($(this).closest("li").index()).toggleClass("active", true); // activate this tab pane
+					});
+
+				});
+			</script><script async="async" src="https://www.googletagmanager.com/gtag/js?id=UA-38402002-6"></script><script>
+				
+					window.dataLayer = window.dataLayer || [];
+					function gtag(){dataLayer.push(arguments);}
+					gtag('js', new Date());
+
+					gtag('config', 'UA-38402002-6');
+				
+			</script></head>
+   <body>
+      <div class="navbar navbar-fixed-top">
+         <div class="navbar-inner">
+            <div class="container-fluid"><a class="brand" href="https://atomgraph.github.io/LinkedDataHub/">LinkedDataHub</a><div class="nav-collapse collapse">
+                  <ul class="nav">
+                     <li class="active"><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/">Documentation</a></li>
+                     <li><a href="https://github.com/AtomGraph/LinkedDataHub" target="_blank">Code</a></li>
+                  </ul>
+               </div>
+            </div>
+         </div>
+      </div>
+      <div class="container-fluid">
+         <div class="row-fluid">
+            <nav class="span2">
+               <ul class="nav nav-list">
+                  <li><a href="../../../about/index.html" title="A UI-based cloud platform for data integration, management, and application building">About LinkedDataHub</a></li>
+                  <li><a href="../../../get-started/index.html" title="All the basics of LinkedDataHub. From installation to extending the model and user interface.">Get started</a><ul class="nav nav-list">
+                        <li><a href="../../../get-started/get-an-account/index.html" title="How to get access">Get an account</a></li>
+                        <li><a href="../../../get-started/setup/index.html" title="Setup LinkedDataHub on your local machine or access it in the cloud">Setup</a></li>
+                     </ul>
+                  </li>
+                  <li><a href="../../../reference/index.html" title="A list of LinkedDataHub's features and their functions, split into general and administration parts">Reference</a><ul class="nav nav-list">
+                        <li><a href="../../../reference/administration/index.html" title="Access control, domain model, and sitemap management">Administration</a><ul class="nav nav-list">
+                              <li><a href="../../../reference/administration/acl/index.html" title="Agents, groups, and authorizations">Access control</a></li>
+                              <li><a href="../../../reference/administration/model/index.html" title="Ontology classes, constraints, properties etc.">Model</a><ul class="nav nav-list">
+                                    <li><a href="../../../reference/administration/model/built-ins/index.html" title="Classes, constraints, properties available to all LinkedDataHub apps">Built-in model terms</a></li>
+                                 </ul>
+                              </li>
+                              <li><a href="../../../reference/administration/sitemap/index.html" title="Linked Data templates, queries, parameters etc.">Sitemap</a><ul class="nav nav-list">
+                                    <li><a href="../../../reference/administration/sitemap/built-ins/index.html" title="Learn to create and manage Linked Data templates, queries, parameters etc.">Built-in sitemap terms</a></li>
+                                    <li><a href="../../../reference/administration/sitemap/ldt-templates/index.html" title="Learn how to use Linked Data Templates">LDT templates</a></li>
+                                 </ul>
+                              </li>
+                           </ul>
+                        </li>
+                        <li><a href="../../../reference/command-line-interface/index.html" title="CLI scripts can be used perform all actions available in the UI">Command line interface</a></li>
+                        <li><a href="../../../reference/dataset-structure/index.html" title="The default RDF dataset structure used by LinkedDataHub">Dataset structure</a></li>
+                        <li><a href="../../../reference/dataspace/index.html" title="LinkedDataHub dataspaces, applications, and services">Dataspace</a></li>
+                        <li><a href="../../../reference/documents/index.html" title="Document hierarchy and the basic data management actions">Document management</a></li>
+                        <li><a href="../../../reference/http-api/index.html" title="Learn how to access and manage RDF data over generic HTTP API">HTTP API</a></li>
+                        <li><a href="../../../reference/imports/index.html" title="Types of data imports supported by LinkedDataHub">Imports</a><ul class="nav nav-list">
+                              <li><a href="../../../reference/imports/csv/index.html" title="CSV imports and mapping to RDF using SPARQL CONSTRUCT">CSV imports</a></li>
+                              <li><a href="../../../reference/imports/rdf/index.html" title="RDF imports and transforming RDF using SPARQL CONSTRUCT">RDF imports</a></li>
+                           </ul>
+                        </li>
+                        <li><a href="../../../reference/stylesheets/index.html" title="Built-in XSLT and CSS stylesheets">Stylesheets</a></li>
+                        <li><a href="../../../reference/user-interface/index.html" title="A walk through the main features of application user interface">User interface</a></li>
+                     </ul>
+                  </li>
+                  <li><a href="../../index.html" title="Step-by-step tutorials for everyday tasks with LinkedDataHub">User guide</a><ul class="nav nav-list">
+                        <li><a href="../index.html" title="Tutorials that apply to the administration application and require owner access to the dataspace">Administration</a><ul class="nav nav-list">
+                              <li class="active"><a href="" title="Change the model: create constructors, classes, and restrictions">Change the model</a></li>
+                              <li><a href="../change-sitemap/index.html" title="Change the sitemap: create queries and LDT templates">Change the sitemap</a></li>
+                           </ul>
+                        </li>
+                        <li><a href="../../browse-data/index.html" title="Use LinkedDataHub's built-in Linked Data browser to explore remote datasources">Browse data</a></li>
+                        <li><a href="../../change-layout/index.html" title="How to customize the layout of an application and the UI of the resources">Change layout</a></li>
+                        <li><a href="../../change-system-base-uri/index.html" title="How to change host, port, or the path LinkedDataHub service runs on">Change system base URI</a></li>
+                        <li><a href="../../create-document/index.html" title="Learn how to create container and item documents">Create document</a></li>
+                        <li><a href="../../import-data/index.html" title="How to import data into LinkedDataHub">Import data</a><ul class="nav nav-list">
+                              <li><a href="../../import-data/import-csv-data/index.html" title="Step by step guide to converting CSV data to RDF and importing into end-user application">Import CSV data</a></li>
+                              <li><a href="../../import-data/import-rdf-data/index.html" title="Step by step guide to importing RDF data">Import RDF data</a></li>
+                           </ul>
+                        </li>
+                        <li><a href="../../manage-dataspaces/index.html" title="Create or change a dataspace, configure SPARQL services and XSLT stylesheets">Manage dataspaces</a></li>
+                        <li><a href="../../query-data/index.html" title="Learn how to query application data with SPARQL and store queries">Query data</a></li>
+                        <li><a href="../../search-data/index.html" title="Search for resources using text keywords">Search data</a></li>
+                        <li><a href="../../upload-file/index.html" title="Learn how to upload files to LinkedDataHub">Upload file</a></li>
+                     </ul>
+                  </li>
+               </ul>
+            </nav>
+            <main class="span7">
+               <header>
+                  <h1>Change the model</h1>
+                  <p class="lead">Change the model: create constructors, classes, and restrictions</p>
+               </header>
+               <nav></nav>
+               <div>
+                  
+                  
+                  <div>
+                     
+                     <h2 id="change-model">Change the model</h2>
+                     
+                     <p>In order to be able to manage SKOS concepts and concept schemes, we need to create
+                        <a href="../../../reference/administration/model/#classes" target="_blank">classes</a> that represent them in the <a href="../../../reference/administration/model/" target="_blank">model</a> of our dataspace. Not only will they serve as RDF types of the instances, but will
+                        have <a href="../../../reference/administration/model/#constructors" target="_blank">constructors</a> attached that define the default properties and their (data)types for that class.</p>
+                     
+                     <p>Since a SKOS concept is an abstract thing which cannot be directly dereferenced over
+                        HTTP, its instance has to be paired with a document instance. In the model, this relationship
+                        is defined
+                        by creating a <a href="../../../reference/administration/model/#restrictions" target="_blank">property restriction</a> between the concept class and its item (document) class. Another restriction will
+                        be used to define the relationship between the item class and its container. We therefore
+                        need to create 2 classes and 2 restrictions. The following examples will assume <samp>https://localhost:4443/</samp> as the base URI of the dataspace.</p>
+                     
+                     <p>Model is managed in the <a href="../../../reference/dataspace/#admin-apps" target="_blank">administration application</a> of a dataspace. Head there by clicking the <span class="btn btn-settings">Settings</span> in the <a href="../../../reference/user-interface/#action-bar" target="_blank">action bar</a> and then choosing <samp>Administration</samp>.</p>
+                     
+                     <div class="alert alert-info">
+                        
+                        <p>In order to edit the <a href="../../../reference/administration/acl/" target="_blank">access control</a>, <a href="../../../reference/administration/model/" target="_blank">model</a>, or <a href="../../../reference/administration/sitemap/" target="_blank">sitemap</a> of a dataspace, you need to be an administrator, i.e. a member of the <a href="../../../reference/administration/acl/#groups" target="_blank">owners group</a>.</p>
+                        </div>
+                     </div>
+                  
+                  <div>
+                     
+                     <h2 id="create-constructor">Create a constructor</h2>
+                     
+                     <p>We will use the following SPARQL <code>CONSTRUCT</code> query as a <a href="../../../reference/administration/model/#constructors" target="_blank">constructor</a> for our <samp>Concept</samp> class and save it in a file under <samp>queries/construct-concept.rq</samp>.</p>
+                     
+                     <pre>PREFIX :     &lt;ns/domain#&gt;
+PREFIX skos: &lt;http://www.w3.org/2004/02/skos/core#&gt;
+PREFIX xsd:  &lt;http://www.w3.org/2001/XMLSchema#&gt;
+
+CONSTRUCT
+{
+?this skos:inScheme [ a :ConceptScheme ] ;
+    skos:topConceptOf [ a :ConceptScheme ] ;
+    skos:prefLabel [ a xsd:string ] ;
+    skos:altLabel [ a xsd:string ] ;
+    skos:hiddenLabel [ a xsd:string ] ;
+    skos:notation [ a xsd:string ] ;
+    skos:note [ a xsd:string ] ;
+    skos:changeNote [ a xsd:string ] ;
+    skos:definition [ a xsd:string ] ;
+    skos:editorialNote [ a xsd:string ] ;
+    skos:example [ a xsd:string ] ;
+    skos:historyNote [ a xsd:string ] ;
+    skos:scopeNote [ a xsd:string ] ;
+    skos:semanticRelation [ a :Concept ] ;
+    skos:broader [ a :Concept ] ;
+    skos:narrower [ a :Concept ] ;
+    skos:related [ a :Concept ] ;
+    skos:broaderTransitive [ a :Concept ] ;
+    skos:narrowerTransitive [ a :Concept ] ;
+    skos:mappingRelation [ a :Concept ] ;
+    skos:broadMatch [ a :Concept ] ;
+    skos:narrowMatch [ a :Concept ] ;
+    skos:relatedMatch [ a :Concept ] ;
+    skos:exactMatch [ a :Concept ] ;
+    skos:closeMatch [ a :Concept ] .
+}
+WHERE {}</pre>
+                     
+                     <div class="tabbable">
+                        
+                        <ul class="nav nav-tabs">
+                           
+                           <li class="active"><a>User interface</a></li>
+                           
+                           <li><a>Command line interface</a></li>
+                           </ul>
+                        
+                        <div class="tab-content">
+                           
+                           <div class="tab-pane active">
+                              
+                              <div>
+                                 
+                                 <p>In the administration application, follow these steps:</p>
+                                 
+                                 <ol>
+                                    
+                                    <li>Click the <span class="btn btn-primary">Create</span> dropdown in the top-left corner</li>
+                                    
+                                    <li>Click on <samp>CONSTRUCT</samp> in the drop-down list that appears</li>
+                                    
+                                    <li>Switch the <samp>Blank node</samp> dropdown to <samp>URI</samp> and enter <samp>https://localhost:4443/ns/domain#ConstructConcept</samp></li>
+                                    
+                                    <li>Fill out the mandatory fields in the form:
+                                       
+                                       <dl>
+                                          
+                                          <dt>Label</dt>
+                                          
+                                          <dd>Enter <samp>Construct concept</samp></dd>
+                                          
+                                          <dt>IsDefinedBy</dt>
+                                          
+                                          <dd>Type <samp>Domain</samp> into the input (which provides autocomplete)</dd>
+                                          
+                                          <dd>Select <samp>Domain</samp> from the list — this is the ontology in which the query is defined</dd>
+                                          
+                                          <dt>Text</dt>
+                                          
+                                          <dd>Enter the SPARQL <code>CONSTRUCT</code> query string</dd>
+                                          </dl>
+                                       </li>
+                                    
+                                    <li>Click <span class="btn btn-primary">Save</span></li>
+                                    </ol>
+                                 </div>
+                              </div>
+                           
+                           <div class="tab-pane">
+                              
+                              <div>
+                                 
+                                 <pre>pwd=$(realpath -s $PWD)
+
+pushd . &amp;&amp; cd "$SCRIPT_ROOT"/admin/model
+
+./create-construct.sh \
+-b "${base}admin/" \
+-f "$cert_pem_file" \
+-p "$cert_password" \
+--uri "${base}ns/domain#ConstructConcept" \
+--label "Construct concept" \
+--slug construct-concept \
+--query-file "$pwd/queries/construct-concept.rq"
+
+popd</pre>
+                                 </div>
+                              </div>
+                           </div>
+                        </div>
+                     
+                     <p>Follow the same steps for <samp>Concept scheme</samp>.</p>
+                     
+                     </div>
+                  
+                  <div>
+                     
+                     <h2 id="create-classes">Create classes</h2>
+                     
+                     <div class="tabbable">
+                        
+                        <ul class="nav nav-tabs">
+                           
+                           <li class="active"><a>User interface</a></li>
+                           
+                           <li><a>Command line interface</a></li>
+                           </ul>
+                        
+                        <div class="tab-content">
+                           
+                           <div class="tab-pane active">
+                              
+                              <div>
+                                 
+                                 <p>In the administration application, follow these steps to create the concept class:</p>
+                                 
+                                 <ol>
+                                    
+                                    <li>Click the <span class="btn btn-primary">Create</span> dropdown in the top-left corner</li>
+                                    
+                                    <li>Click on <samp>Class</samp> in the drop-down list that appears</li>
+                                    
+                                    <li>Switch the <samp>Blank node</samp> dropdown to <samp>URI</samp> and enter <samp>https://localhost:4443/ns/domain#Concept</samp></li>
+                                    
+                                    <li>Fill out the mandatory fields in the form:
+                                       
+                                       <dl>
+                                          
+                                          <dt>Label</dt>
+                                          
+                                          <dd>Enter <samp>Concept</samp></dd>
+                                          
+                                          <dt>IsDefinedBy</dt>
+                                          
+                                          <dd>Type <samp>Domain</samp> into the input (which provides autocomplete)</dd>
+                                          
+                                          <dd>Select <samp>Domain</samp> from the list — this is the ontology in which the class is defined</dd>
+                                          
+                                          <dt>Constructor</dt>
+                                          
+                                          <dd>Type <samp>Construct concept</samp> into the input (which provides autocomplete)</dd>
+                                          
+                                          <dd>Select <samp>Construct concept</samp> from the list — this is the query we created beforehand</dd>
+                                          
+                                          <dt>SubClassOf</dt>
+                                          
+                                          <dd>Enter <samp>https://localhost:4443/ns/domain#TopicOfConceptItem</samp>. We'll create this restriction later on.</dd>
+                                          </dl>
+                                       </li>
+                                    
+                                    <li>Click <span class="btn btn-primary">Save</span></li>
+                                    </ol>
+                                 
+                                 <p>As mentioned, we need to create a second concept-specific document class as well.
+                                    It does not need a constructor as it will extend a built-in class. Follow the steps
+                                    to create an item class:</p>
+                                 
+                                 <ol>
+                                    
+                                    <li>Click the <span class="btn btn-primary">Create</span> dropdown in the top-left corner</li>
+                                    
+                                    <li>Click on <samp>Class</samp> in the drop-down list that appears</li>
+                                    
+                                    <li>Switch the <samp>Blank node</samp> dropdown to <samp>URI</samp> and enter <samp>https://localhost:4443/ns/domain#ConceptItem</samp></li>
+                                    
+                                    <li>Fill out the mandatory fields in the form:
+                                       
+                                       <dl>
+                                          
+                                          <dt>Label</dt>
+                                          
+                                          <dd>Enter <samp>Concept item</samp></dd>
+                                          
+                                          <dt>IsDefinedBy</dt>
+                                          
+                                          <dd>Type <samp>Domain</samp> into the input (which provides autocomplete)</dd>
+                                          
+                                          <dd>Select <samp>Domain</samp> from the list — this is the ontology in which the class is defined</dd>
+                                          
+                                          <dt>SubClassOf</dt>
+                                          
+                                          <dd>Enter <samp>https://localhost:4443/ns/domain#ItemOfConceptContainer</samp>. We'll create this restriction later on.</dd>
+                                          
+                                          <dd>Now add another <samp>SubClassOf</samp> field using the <span class="btn">[+]</span> button at the bottom of the form.</dd>
+                                          
+                                          <dt>SubClassOf</dt>
+                                          
+                                          <dd>Enter <samp>https://localhost:4443/ns/domain/default#Item</samp> — the built-in class this class extends</dd>
+                                          </dl>
+                                       </li>
+                                    
+                                    <li>Click <span class="btn btn-primary">Save</span></li>
+                                    </ol>
+                                 </div>
+                              </div>
+                           
+                           <div class="tab-pane">
+                              
+                              <div>
+                                 
+                                 <pre>pushd . &amp;&amp; cd "$SCRIPT_ROOT"/admin/model
+
+./create-class.sh \
+-b "${base}" \
+-f "${cert_pem_file}" \
+-p "${cert_password}" \
+--uri "${base}ns/domain#Concept" \
+--label "Concept" \
+--slug concept \
+--constructor "${base}ns/domain#ConstructConcept" \
+--sub-class-of "${base}ns/domain#TopicOfConceptItem" \
+--path "{isPrimaryTopicOf.slug}/" \
+--fragment "this"
+
+./create-class.sh \
+-b "${base}" \
+-f "${cert_pem_file}" \
+-p "${cert_password}" \
+--uri "${base}ns/domain#ConceptItem" \
+--label "Concept item" \
+--slug concept-item \
+--sub-class-of "${base}ns/domain/default#Item" \
+--sub-class-of "${base}ns/domain#ItemOfConceptContainer"
+
+popd</pre>
+                                 </div>
+                              </div>
+                           </div>
+                        </div>
+                     
+                     <p>Follow the same steps for <samp>Concept scheme</samp>.</p>
+                     
+                     </div>
+                  
+                  <div>
+                     
+                     <h2 id="create-restrictions">Create restrictions</h2>
+                     
+                     <p>Property restrictions define a meta-relationship between classes based on a property.
+                        Instances of the respective classes are
+                        expected to have the property specified by the restriction in order for instance dataset
+                        to align with the ontology.</p>
+                     
+                     <div class="tabbable">
+                        
+                        <ul class="nav nav-tabs">
+                           
+                           <li class="active"><a>User interface</a></li>
+                           
+                           <li><a>Command line interface</a></li>
+                           </ul>
+                        
+                        <div class="tab-content">
+                           
+                           <div class="tab-pane active">
+                              
+                              <div>
+                                 
+                                 <p>In the administration application, follow these steps to create a restriction connecting
+                                    the concept class and its item class:</p>
+                                 
+                                 <ol>
+                                    
+                                    <li>Click the <span class="btn btn-primary">Create</span> dropdown in the top-left corner</li>
+                                    
+                                    <li>Click on <samp>Missing property value</samp> in the drop-down list that appears</li>
+                                    
+                                    <li>Switch the <samp>Blank node</samp> dropdown to <samp>URI</samp> and enter <samp>https://localhost:4443/ns/domain#TopicOfConceptItem</samp></li>
+                                    
+                                    <li>Fill out the fields in the form:
+                                       
+                                       <dl>
+                                          
+                                          <dt>Label</dt>
+                                          
+                                          <dd>Enter <samp>Topic of concept item</samp></dd>
+                                          
+                                          <dt>IsDefinedBy</dt>
+                                          
+                                          <dd>Type <samp>Domain</samp> into the input (which provides autocomplete)</dd>
+                                          
+                                          <dd>Select <samp>Domain</samp> from the list — this is the ontology in which the query is defined</dd>
+                                          
+                                          <dt>OnProperty</dt>
+                                          
+                                          <dd>Enter <samp>http://xmlns.com/foaf/0.1/isPrimaryTopicOf</samp></dd>
+                                          
+                                          <dt>AllValuesFrom</dt>
+                                          
+                                          <dd>Enter <samp>https://localhost:4443/ns/domain#ConceptItem</samp> — the class we created earlier</dd>
+                                          </dl>
+                                       </li>
+                                    
+                                    <li>Click <span class="btn btn-primary">Save</span></li>
+                                    </ol>
+                                 
+                                 <p>As mentioned, we need to create a second restriction connecting the item class to
+                                    its container <samp>https://localhost:4443/concepts/</samp>:</p>
+                                 
+                                 <ol>
+                                    
+                                    <li>Click the <span class="btn btn-primary">Create</span> dropdown in the top-left corner</li>
+                                    
+                                    <li>Click on <samp>Missing property value</samp> in the drop-down list that appears</li>
+                                    
+                                    <li>Switch the <samp>Blank node</samp> dropdown to <samp>URI</samp> and enter <samp>https://localhost:4443/ns/domain#ItemOfConceptContainer</samp></li>
+                                    
+                                    <li>Fill out the fields in the form:
+                                       
+                                       <dl>
+                                          
+                                          <dt>Label</dt>
+                                          
+                                          <dd>Enter <samp>Item of concept container</samp></dd>
+                                          
+                                          <dt>IsDefinedBy</dt>
+                                          
+                                          <dd>Type <samp>Domain</samp> into the input (which provides autocomplete)</dd>
+                                          
+                                          <dd>Select <samp>Domain</samp> from the list — this is the ontology in which the query is defined</dd>
+                                          
+                                          <dt>OnProperty</dt>
+                                          
+                                          <dd>Enter <samp>http://rdfs.org/sioc/ns#has_container</samp></dd>
+                                          
+                                          <dt>HasValue</dt>
+                                          
+                                          <dd>Enter <samp>https://localhost:4443/concepts/</samp> or URI of another container that will have concept items as children</dd>
+                                          </dl>
+                                       </li>
+                                    
+                                    <li>Click <span class="btn btn-primary">Save</span></li>
+                                    </ol>
+                                 </div>
+                              </div>
+                           
+                           <div class="tab-pane">
+                              
+                              <div>
+                                 
+                                 <pre>pushd . &amp;&amp; cd "$SCRIPT_ROOT"/admin/model
+
+./create-restriction.sh \
+-b "${base}admin/" \
+-f "$cert_pem_file" \
+-p "$cert_password" \
+--uri "${base}ns/domain#TopicOfConceptItem" \
+--label "Topic of concept item" \
+--slug topic-of-concept-item \
+--on-property "http://xmlns.com/foaf/0.1/isPrimaryTopicOf" \
+--all-values-from "${base}ns/domain#ConceptItem"
+
+./create-restriction.sh \
+-b "${base}admin/" \
+-f "$cert_pem_file" \
+-p "$cert_password" \
+--uri "${base}ns/domain#ItemOfConceptContainer" \
+--label "Item of concept container" \
+--slug item-of-concept-container \
+--on-property "http://rdfs.org/sioc/ns#has_container" \
+--has-value "${base}concepts/"
+
+popd</pre>
+                                 </div>
+                              </div>
+                           </div>
+                        </div>
+                     
+                     </div>
+                  
+                  <div>
+                     
+                     <h2 id="create-constraint">Create a constraint</h2>
+                     
+                     <p>To control data quality, we probably want to make some of the instance properties
+                        mandatory. For example, a <samp>Concept</samp> instance should always have a <code>skos:prefLabel</code> value.</p>
+                     
+                     <div class="tabbable">
+                        
+                        <ul class="nav nav-tabs">
+                           
+                           <li class="active"><a>User interface</a></li>
+                           
+                           <li><a>Command line interface</a></li>
+                           </ul>
+                        
+                        <div class="tab-content">
+                           
+                           <div class="tab-pane active">
+                              
+                              <div>
+                                 
+                                 <p>In the administration application, follow these steps:</p>
+                                 
+                                 <ol>
+                                    
+                                    <li>Click the <span class="btn btn-primary">Create</span> dropdown in the top-left corner</li>
+                                    
+                                    <li>Click on <samp>Missing property value</samp> in the drop-down list that appears</li>
+                                    
+                                    <li>Fill out the fields in the form:
+                                       
+                                       <dl>
+                                          
+                                          <dt>Label</dt>
+                                          
+                                          <dd>Enter <samp>Missing skos:prefLabel</samp></dd>
+                                          
+                                          <dt>IsDefinedBy</dt>
+                                          
+                                          <dd>Type <samp>Domain</samp> into the input (which provides autocomplete)</dd>
+                                          
+                                          <dd>Select <samp>Domain</samp> from the list — this is the ontology in which the query is defined</dd>
+                                          
+                                          <dt>Arg1</dt>
+                                          
+                                          <dd>Enter <samp>http://www.w3.org/2004/02/skos/core#prefLabel</samp></dd>
+                                          </dl>
+                                       </li>
+                                    
+                                    <li>Click <span class="btn btn-primary">Save</span></li>
+                                    </ol>
+                                 </div>
+                              </div>
+                           
+                           <div class="tab-pane">
+                              
+                              <div>
+                                 
+                                 <pre>pushd . &amp;&amp; cd "$SCRIPT_ROOT"/admin/model
+
+./create-property-constraint.sh \
+-b "${base}" \
+-f "${cert_pem_file}" \
+-p "${cert_password}" \
+--uri "https://localhost:4443/ns/domain#MissingPrefLabel" \
+--label "Missing skos:prefLabel" \
+--slug missing-pref-label \
+--property "http://www.w3.org/2004/02/skos/core#prefLabel"
+
+popd</pre>
+                                 </div>
+                              </div>
+                           </div>
+                        </div>
+                     
+                     </div>
+                  
+                  <div>
+                     
+                     <h2 id="clear-ontologies">Clear ontologies</h2>
+                     
+                     <p>For changes made to application ontologies (both of the <a href="../../../reference/administration/model/" target="_blank">model</a> and of the <a href="../../../reference/administration/sitemap/" target="_blank">sitemap</a>) to take effect, the ontologies need to be cleared from memory and reloaded from
+                        dataset. Follow these steps:</p>
+                     
+                     <div class="tabbable">
+                        
+                        <ul class="nav nav-tabs">
+                           
+                           <li class="active"><a>User interface</a></li>
+                           
+                           <li><a>Command line interface</a></li>
+                           </ul>
+                        
+                        <div class="tab-content">
+                           
+                           <div class="tab-pane active">
+                              
+                              <div>
+                                 
+                                 <p>Head to the administration application by clicking the <span class="btn btn-settings">Settings</span> in the <a href="../../../reference/user-interface/#action-bar" target="_blank">action bar</a> and then choosing <samp>Administration</samp>.</p>
+                                 
+                                 <ol>
+                                    
+                                    <li>Open <a href="https://localhost:4443/admin/model/ontologies/domain/" target="_blank"><samp>Model / Ontologies / Domain</samp></a></li>
+                                    
+                                    <li>Click <span class="btn btn-primary">Clear</span> in the header of the ontology description</li>
+                                    
+                                    <li>Open <a href="https://localhost:4443/admin/model/ontologies/namespace/" target="_blank"><samp>Model / Ontologies / Namespace</samp></a></li>
+                                    
+                                    <li>Click <span class="btn btn-primary">Clear</span> in the header of the ontology description</li>
+                                    </ol>
+                                 </div>
+                              </div>
+                           
+                           <div class="tab-pane">
+                              
+                              <div>
+                                 
+                                 <p>Replace <code>${OWNER_KEY_PASSWORD}</code> with its value from the <samp>.env</samp> file and execute the following commands:</p>
+                                 
+                                 <pre>pushd . &amp;&amp; cd "$SCRIPT_ROOT"/admin
+
+./clear-ontology.sh \
+-f "${cert_pem_file}" \
+-p "${cert_password}" \
+"https://localhost:4443/admin/model/ontologies/domain/"
+
+./clear-ontology.sh \
+-f "${cert_pem_file}" \
+-p "${cert_password}" \
+"https://localhost:4443/admin/model/ontologies/namespace/"
+
+popd</pre>
+                                 </div>
+                              </div>
+                           </div>
+                        </div>
+                     </div>
+                  </div>
+            </main>
+         </div>
+      </div>
+   </body>
+</html>

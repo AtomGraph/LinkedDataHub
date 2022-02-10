@@ -1,45 +1,42 @@
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml">
    <head>
       <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
-      <title>LinkedDataHub v2 - About LinkedDataHub</title>
-      <meta name="description" content="An RDF-native Knowledge Graph notebook"/>
+      <title>LinkedDataHub - About LinkedDataHub</title>
+      <meta name="description" content="A UI-based cloud platform for data integration, management, and application building"/>
       <link rel="up" href="../index.html"/>
       <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/css/bootstrap.css" rel="stylesheet" type="text/css"/>
       <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/css/bootstrap-responsive.css" rel="stylesheet" type="text/css"/>
       <style type="text/css">
-                body { padding-top: 60px; }
-                object { width: 100%; min-height: 640px; }
-            </style><script type="text/javascript" src="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/js/jquery.min.js"></script><script type="text/javascript" src="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/js/bootstrap.min.js"></script><script type="text/javascript">
-                $(document).ready(function()
-                {
+				body { padding-top: 60px; }
+				object { width: 100%; min-height: 640px; }
+			</style><script type="text/javascript" src="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/js/jquery.min.js"></script><script type="text/javascript">
+				$(document).ready(function()
+				{
 
-                    $("ul.nav-tabs a").on("click", function()
-                    {
-                        $(this).closest("ul").children().toggleClass("active", false); // deactivate other tabs
-                        $(this).closest("li").toggleClass("active", true); // activate this tab
-                        $(this).closest("ul").next().children().toggleClass("active", false); // deactivate other tab panes
-                        $(this).closest("ul").next().children().eq($(this).closest("li").index()).toggleClass("active", true); // activate this tab pane
-                    });
+					$("ul.nav-tabs a").on("click", function()
+					{
+						$(this).closest("ul").children().toggleClass("active", false); // deactivate other tabs
+						$(this).closest("li").toggleClass("active", true); // activate this tab
+						$(this).closest("ul").next().children().toggleClass("active", false); // deactivate other tab panes
+						$(this).closest("ul").next().children().eq($(this).closest("li").index()).toggleClass("active", true); // activate this tab pane
+					});
 
-                });
-            </script><script async="async" src="https://www.googletagmanager.com/gtag/js?id=UA-38402002-6"></script><script>
-                
-                    window.dataLayer = window.dataLayer || [];
-                    function gtag(){dataLayer.push(arguments);}
-                    gtag('js', new Date());
+				});
+			</script><script async="async" src="https://www.googletagmanager.com/gtag/js?id=UA-38402002-6"></script><script>
+				
+					window.dataLayer = window.dataLayer || [];
+					function gtag(){dataLayer.push(arguments);}
+					gtag('js', new Date());
 
-                    gtag('config', 'UA-38402002-6');
-                
-            </script></head>
+					gtag('config', 'UA-38402002-6');
+				
+			</script></head>
    <body>
       <div class="navbar navbar-fixed-top">
          <div class="navbar-inner">
             <div class="container-fluid"><a class="brand" href="https://atomgraph.github.io/LinkedDataHub/">LinkedDataHub</a><div class="nav-collapse collapse">
                   <ul class="nav">
-                     <li class="active">
-                        <div class="btn-group"><a class="btn" href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/">Documentation v3</a><button class="btn dropdown-toggle" data-toggle="dropdown"><span class="caret"></span></button><ul class="dropdown-menu"><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/v2/">Documentation v2</a></ul>
-                        </div>
-                     </li>
+                     <li class="active"><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/">Documentation</a></li>
                      <li><a href="https://github.com/AtomGraph/LinkedDataHub" target="_blank">Code</a></li>
                   </ul>
                </div>
@@ -49,24 +46,28 @@
       <div class="container-fluid">
          <div class="row-fluid">
             <nav class="span2">
-               <h2>LinkedDataHub v2</h2>
-
                <ul class="nav nav-list">
-                  <li class="active"><a href="" title="An RDF-native Knowledge Graph notebook">About LinkedDataHub</a></li>
+                  <li class="active"><a href="" title="A UI-based cloud platform for data integration, management, and application building">About LinkedDataHub</a></li>
                   <li><a href="../get-started/index.html" title="All the basics of LinkedDataHub. From installation to extending the model and user interface.">Get started</a><ul class="nav nav-list">
                         <li><a href="../get-started/get-an-account/index.html" title="How to get access">Get an account</a></li>
                         <li><a href="../get-started/setup/index.html" title="Setup LinkedDataHub on your local machine or access it in the cloud">Setup</a></li>
                      </ul>
                   </li>
-                  <li><a href="../linkeddatahub-cloud/index.html" title="LinkedDataHub Cloud is a managed service for LinkedDataHub applications">LinkedDataHub Cloud</a></li>
                   <li><a href="../reference/index.html" title="A list of LinkedDataHub's features and their functions, split into general and administration parts">Reference</a><ul class="nav nav-list">
-                        <li><a href="../reference/administration/index.html" title="Access control and domain model management">Administration</a><ul class="nav nav-list">
+                        <li><a href="../reference/administration/index.html" title="Access control, domain model, and sitemap management">Administration</a><ul class="nav nav-list">
                               <li><a href="../reference/administration/acl/index.html" title="Agents, groups, and authorizations">Access control</a></li>
-                              <li><a href="../reference/administration/model/index.html" title="Ontology classes, constraints, properties etc.">Model</a></li>
+                              <li><a href="../reference/administration/model/index.html" title="Ontology classes, constraints, properties etc.">Model</a><ul class="nav nav-list">
+                                    <li><a href="../reference/administration/model/built-ins/index.html" title="Classes, constraints, properties available to all LinkedDataHub apps">Built-in model terms</a></li>
+                                 </ul>
+                              </li>
+                              <li><a href="../reference/administration/sitemap/index.html" title="Linked Data templates, queries, parameters etc.">Sitemap</a><ul class="nav nav-list">
+                                    <li><a href="../reference/administration/sitemap/built-ins/index.html" title="Learn to create and manage Linked Data templates, queries, parameters etc.">Built-in sitemap terms</a></li>
+                                    <li><a href="../reference/administration/sitemap/ldt-templates/index.html" title="Learn how to use Linked Data Templates">LDT templates</a></li>
+                                 </ul>
+                              </li>
                            </ul>
                         </li>
                         <li><a href="../reference/command-line-interface/index.html" title="CLI scripts can be used perform all actions available in the UI">Command line interface</a></li>
-                        <li><a href="../reference/contents/index.html" title="Content blocks and the basic data content actions">Content management</a></li>
                         <li><a href="../reference/dataset-structure/index.html" title="The default RDF dataset structure used by LinkedDataHub">Dataset structure</a></li>
                         <li><a href="../reference/dataspace/index.html" title="LinkedDataHub dataspaces, applications, and services">Dataspace</a></li>
                         <li><a href="../reference/documents/index.html" title="Document hierarchy and the basic data management actions">Document management</a></li>
@@ -81,12 +82,14 @@
                      </ul>
                   </li>
                   <li><a href="../user-guide/index.html" title="Step-by-step tutorials for everyday tasks with LinkedDataHub">User guide</a><ul class="nav nav-list">
-                        <li><a href="../user-guide/add-data/index.html" title="Fork RDF data from Linked Data resources and SPARQL results">Add data</a></li>
+                        <li><a href="../user-guide/administration/index.html" title="Tutorials that apply to the administration application and require owner access to the dataspace">Administration</a><ul class="nav nav-list">
+                              <li><a href="../user-guide/administration/change-model/index.html" title="Change the model: create constructors, classes, and restrictions">Change the model</a></li>
+                              <li><a href="../user-guide/administration/change-sitemap/index.html" title="Change the sitemap: create queries and LDT templates">Change the sitemap</a></li>
+                           </ul>
+                        </li>
                         <li><a href="../user-guide/browse-data/index.html" title="Use LinkedDataHub's built-in Linked Data browser to explore remote datasources">Browse data</a></li>
                         <li><a href="../user-guide/change-layout/index.html" title="How to customize the layout of an application and the UI of the resources">Change layout</a></li>
-                        <li><a href="../user-guide/change-model/index.html" title="Change the model: create constructors, classes, and constraints">Change the model</a></li>
                         <li><a href="../user-guide/change-system-base-uri/index.html" title="How to change host, port, or the path LinkedDataHub service runs on">Change system base URI</a></li>
-                        <li><a href="../user-guide/create-content/index.html" title="Learn how to create data-driven content">Create content</a></li>
                         <li><a href="../user-guide/create-document/index.html" title="Learn how to create container and item documents">Create document</a></li>
                         <li><a href="../user-guide/import-data/index.html" title="How to import data into LinkedDataHub">Import data</a><ul class="nav nav-list">
                               <li><a href="../user-guide/import-data/import-csv-data/index.html" title="Step by step guide to converting CSV data to RDF and importing into end-user application">Import CSV data</a></li>
@@ -94,7 +97,7 @@
                            </ul>
                         </li>
                         <li><a href="../user-guide/manage-dataspaces/index.html" title="Create or change a dataspace, configure SPARQL services and XSLT stylesheets">Manage dataspaces</a></li>
-                        <li><a href="../user-guide/query-data/index.html" title="Learn how to query application data with SPARQL, store queries and charts">Query data</a></li>
+                        <li><a href="../user-guide/query-data/index.html" title="Learn how to query application data with SPARQL and store queries">Query data</a></li>
                         <li><a href="../user-guide/search-data/index.html" title="Search for resources using text keywords">Search data</a></li>
                         <li><a href="../user-guide/upload-file/index.html" title="Learn how to upload files to LinkedDataHub">Upload file</a></li>
                      </ul>
@@ -104,9 +107,9 @@
             <main class="span7">
                <header>
                   <h1>About LinkedDataHub</h1>
-                  <p class="lead">LinkedDataHub is a Knowledge Graph notebook by
-                     <a href="https://atomgraph.com" target="_blank">AtomGraph</a> that fully exploits the federated features of RDF and SPARQL.
-                     It can also be used as a low code application development platform.</p>
+                  <p class="lead">LinkedDataHub is next-generation software by
+                     <a href="https://atomgraph.com" target="_blank">AtomGraph</a> that fully exploits semantic technologies to help organizations
+                     overcome data silos and API hell</p>
                </header>
                <nav></nav>
                <div>
@@ -114,99 +117,201 @@
                   
                   <div>
                      
-                     <h2 id="features">Features</h2>
+                     <h2 id="why-kg">Why Knowledge Graphs?</h2>
                      
-                     <p>LinkedDataHub is an open source project that has its roots as a Linked Data publishing
-                        framework. In the 3.x release we are focusing on Linked Data consumption however,
-                        as we consider
-                        publishing a solved problem but continue to see a shortage of user-friendly consumption
-                        tools.</p>
+                     <p>The web and data technologies have changed our world dramatically, but the solutions
+                        are still far
+                        from perfect.</p>
                      
-                     <p>LinkedDataHub provides a number of features for end-users:</p>
+                     <div>
+                        
+                        <h3 id="problems">The problems</h3>
+                        
+                        <p>The are multiple problems with the current technological landscape:</p>
+                        
+                        <dl>
+                           
+                           <dt>Data silos</dt>
+                           
+                           <dd>The relational model, still used in most IT systems, is <em>inflexible</em> as the schema is
+                              mandatory and <em>hard to change</em>. New kinds of NoSQL databases solve some of its problems but
+                              increase the number of <em>incompatible</em> systems. As a result, there is no overview over company
+                              information as the data is <em>scattered</em> across multiple data models and IT systems.</dd>
+                           
+                           <dt>API hell</dt>
+                           
+                           <dd>There are 10,000s of APIs and 100s of file formats. Application integration using
+                              APIs is
+                              inherently point-to-point, and as such it does not scale as the number of connectors
+                              <em>grows
+                                 exponentially</em> with the growing number of APIs (in the worst case scenario). Additionally, most
+                              web
+                              applications are not API-driven, therefore developing a frontend web app as well as
+                              an API requires
+                              <em>double effort</em>.</dd>
+                           
+                           <dt>Vendor lock-in</dt>
+                           
+                           <dd>Most NoSQL databases <em>lack standards</em> such as query languages; domain models are baked into
+                              source code and cannot be easily reused between systems; most APIs define custom vocabularies
+                              and file
+                              formats. All of these factors create dependencies on vendor-specific solutions, which
+                              incur substantial
+                              <em>switching costs</em> for customers.</dd>
+                           </dl>
+                        </div>
                      
-                     <ul>
+                     <div>
                         
-                        <li>creating structured content from Linked Data and SPARQL resources <strong>(new in 3.x)</strong></li>
+                        <h3 id="solutions">The solutions</h3>
                         
-                        <li>browsing Linked Data</li>
+                        <p>The solution is to use semantic technologies to build a uniform Knowledge Graph layer
+                           above various physical
+                           data sources.</p>
                         
-                        <li>forking RDF resources to the local dataspace <strong>(new in 3.x)</strong></li>
+                        <dl>
+                           
+                           <dt>RDF graph</dt>
+                           
+                           <dd>RDF data model offers unprecedented <em>flexibility</em> by turning siloed data records into a global
+                              network of interconnected resources. It makes schema optional and offers no-cost merge
+                              operation as well
+                              as a standard query language (SPARQL). Since RDF resources use URIs as built-in global
+                              identifiers and have
+                              machine-readable resource descriptions, RDF Knowledge Graph can be automatically deployed
+                              as a web API.</dd>
+                           
+                           <dt>Data hub</dt>
+                           
+                           <dd>Instead of point-to-point integration, Knowledge Graph adopts the hub-and-spoke paradigm,
+                              where the RDF 
+                              database serves as the hub with shared identifiers and vocabularies, while the spokes
+                              are RDF connectors
+                              to databases as well as transformers from various data formats to RDF. Using this
+                              approach, integration costs stay
+                              <em>linear</em> even with the growing number of data sources.</dd>
+                           
+                           <dt>Uniform API</dt>
+                           
+                           <dd><a href="http://atomgraph.github.io/Linked-Data-Templates/" target="_blank">Linked Data Templates</a> technology
+                              enables read-write access to RDF Knowledge Graphs based on a single <em>generic</em> API, which ensures API
+                              interoperability and keeps implementation costs fixed. Frontend application development
+                              does not require a
+                              separate effort, as it is simply a UI wrapper that renders the Knowledge Graph API.</dd>
+                           </dl>
                         
-                        <li>searching and querying SPARQL endpoints</li>
-                        
-                        <li>creating collections from SPARQL queries</li>
-                        
-                        <li>editing remote and local RDF documents</li>
-                        
-                        <li>visualizing query results as graphs, charts etc.</li>
-                        </ul>
-                     
-                     <p>In addition to that, LinkedDataHub offers comprehensive administrative features:</p>
-                     
-                     <ul>
-                        
-                        <li>configurable templates for instance editing <strong>(new in 3.x)</strong>)</li>
-                        
-                        <li>authentication using WebID and OpenID Connect</li>
-                        
-                        <li>access control using WAC authorizations</li>
-                        </ul>
+                        <p>This simple yet powerful architecture is <em>non-disruptive</em> and future-proof: it builds on existing data
+                           infrastructure and is based on W3C standards. It enables organizations to ask previously
+                           impossible questions,
+                           get new insights, control data quality across multiple sources, improve SEO and rich
+                           search results etc. It also
+                           keeps data integration costs linear over the long term.</p>
+                        </div>
                      </div>
                   
                   <div>
                      
-                     <h2 id="architecture">Architecture</h2>
+                     <h2 id="why-linkeddatahub">Why LinkedDataHub?</h2>
                      
-                     <p>Architecturally LinkedDataHub is a read-write RDF Graph Store combined with a rich
-                        Linked Data/SPARQL client. LinkedDataHub does not persist RDF data itself but rather
-                        serves it from, and stores it in,
-                        a backing triplestore, which by default is <a href="https://jena.apache.org/documentation/fuseki2/" target="_blank">Apache Jena Fuseki</a>.</p>
+                     <p>LinkedDataHub is a Knowledge Graph management system and application platform. After
+                        data
+                        hub architecture is used to solve data integration, LinkedDataHub can be layered on
+                        top of it to provide a state of the
+                        art Knowledge Graph user experience as well as a uniform Knowledge Graph API for machine
+                        readable access. It comes in both
+                        <em>open-source and cloud versions</em> and offers the
+                        following features:</p>
                      
-                     <p>Every document in LinkedDataHub's dataspace is also a named graph in the Graph Store
-                        and has both RDF and HTML representations. The client is implemented using XSLT 3.0,
-                        a standard, declarative data transformation language. It can connect to any Linked
-                        Data resource or SPARQL 1.1 endpoint.</p>
+                     <h3 id="application-platform">Application platform</h3>
                      
-                     <p>Version 3.x does not use <a href="https://atomgraph.github.io/Linked-Data-Templates/" target="_blank">Linked Data Templates</a> anymore but they can still be used to publish Linked Data from SPARQL endpoints
-                        using <a href="https://github.com/AtomGraph/Processor" target="_blank">Processor</a>.</p>
+                     <dl>
+                        
+                        <dt>Single sign-on</dt>
+                        
+                        <dd>LinkedDataHub uses <a href="http://webid.info" target="_blank">WebID</a>, a universal login and identity protocol for the Web, as the
+                           default authentication method. User agents need to sign up only once to authenticate
+                           with any application on the
+                           platform.</dd>
+                        
+                        <dt>0% code</dt>
+                        
+                        <dd>LinkedDataHub applications are not physical webapps as J2EE ones; they do not need
+                           to be implemented in source code
+                           and then compiled/interpreted. Like everything within the platform, applications are
+                           data resources,
+                           created and configured by managing RDF data. A new application can be set up in a
+                           <em>matter of minutes</em>.</dd>
+                        
+                        <dt>100% configuration</dt>
+                        
+                        <dd>The structure, appearance, and access rights of an application are completely controlled
+                           in the
+                           <a href="../reference/administration/" target="_blank"> administration</a> application by administration users.</dd>
+                        
+                        <dt>Standard-compliance</dt>
+                        
+                        <dd>Applications can use any <a href="https://www.w3.org/TR/sparql11-overview/" target="_blank">SPARQL 1.1</a> compatible
+                           datasource. You can switch datasources at any time and and remain in complete <em>control of your data</em>.</dd>
+                        
+                        <dd>However, LinkedDataHub also provides <a href="../reference/dataspace/#dydra-services" target="_blank">tighter integration</a> with select
+                           triplestores, leading to optimized performance and easier configuration.</dd>
+                        </dl>
+                     
+                     <h3 id="data-management">Data management</h3>
+                     
+                     <dl>
+                        
+                        <dt>Data import</dt>
+                        
+                        <dd>LinkedDataHub supports file uploads and import of CSV data, by mapping it to RDF using
+                           SPARQL
+                           <code>CONSTRUCT</code> queries. Import of XML data is planned.</dd>
+                        
+                        <dt>Data quality control</dt>
+                        
+                        <dd>Consistency of the application's dataset is ensured by validating all incoming RDF
+                           data against SPARQL-based
+                           <a href="../reference/administration/model/#constraints" target="_blank">SPIN constraints</a> (built-in as well as user-defined), which
+                           are a part of the application's sitemap.</dd>
+                        
+                        <dt>Access control</dt>
+                        
+                        <dd>All access to every document on LinkedDataHub is checked against
+                           <a href="../reference/administration/acl/" target="_blank">access control</a> rules (built-in as well as user-defined). Unauthorized
+                           access is denied.</dd>
+                        
+                        <dt>Uniform UX</dt>
+                        
+                        <dd>The <a href="../reference/user-interface/" target="_blank">user experience</a> is consistent throughout the platform; all documents by
+                           default support the same <a href="../reference/documents/#manage" target="_blank">actions</a>.</dd>
+                        
+                        <dt>Extensibility</dt>
+                        
+                        <dd>Administrative users can <a href="../reference/administration/sitemap/" target="_blank">use the sitemap</a> to extend an existing
+                           application structure, and upload new XSLT and CSS stylesheets to customize the user
+                           interface.</dd>
+                        
+                        <dt>Remote datasources</dt>
+                        
+                        <dd>An integrated browser component allows exploring remote Knowledge Graph resources
+                           without leaving the application.
+                           We are constantly improving the software to take advantage of the distributed nature
+                           of RDF data.</dd>
+                        
+                        <dt>HTTP API</dt>
+                        
+                        <dd>Our next-generation Linked Data Templates technology provides read-write <a href="../reference/http-api/" target="_blank">HTTP API</a> for
+                           every document, customizable using <a href="../reference/administration/sitemap/#templates" target="_blank">declarative templates</a>.</dd>
+                        
+                        <dt>SEO support</dt>
+                        
+                        <dd>Customizable JSON-LD output allows a mapping of RDF resources to <a href="https://schema.org" target="_blank">schema.org</a>.
+                           That structured data is <a href="https://developers.google.com/search/docs/guides/intro-structured-data" target="_blank">indexed
+                              by Google</a> and other search engines and leads to improved rankings and rich search results.</dd>
+                        </dl>
                      </div>
                   </div>
             </main>
-         </div>
-      </div>
-      <div class="footer container-fluid">
-         <div class="row-fluid">
-            <div class="offset2 span8">
-               <div class="span3">
-                  <h2 class="nav-header">About</h2>
-                  <ul class="nav nav-list">
-                     <li><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/about/" target="_blank">LinkedDataHub</a></li>
-                     <li><a href="https://atomgraph.com" target="_blank">AtomGraph</a></li>
-                  </ul>
-               </div>
-               <div class="span3">
-                  <h2 class="nav-header">Resources</h2>
-                  <ul class="nav nav-list">
-                     <li><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/" target="_blank">Documentation</a></li>
-                     <li><a href="https://www.youtube.com/channel/UCtrdvnVjM99u9hrjESwfCeg" target="_blank">Screencasts</a></li>
-                  </ul>
-               </div>
-               <div class="span3">
-                  <h2 class="nav-header">Support</h2>
-                  <ul class="nav nav-list">
-                     <li><a href="https://groups.io/g/linkeddatahub" target="_blank">Mailing list</a></li>
-                     <li><a href="https://github.com/AtomGraph/LinkedDataHub/issues" target="_blank">Report issues</a></li>
-                     <li><a href="mailto:support@linkeddatahub.com">Contact support</a></li>
-                  </ul>
-               </div>
-               <div class="span3">
-                  <h2 class="nav-header">Follow us</h2>
-                  <ul class="nav nav-list">
-                     <li><a href="https://twitter.com/atomgraphhq" target="_blank">@atomgraphhq</a></li>
-                     <li><a href="https://github.com/AtomGraph" target="_blank">github.com/AtomGraph</a></li>
-                  </ul>
-               </div>
-            </div>
          </div>
       </div>
    </body>

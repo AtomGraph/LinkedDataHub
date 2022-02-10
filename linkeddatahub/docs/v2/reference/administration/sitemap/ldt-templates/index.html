@@ -1,0 +1,314 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml">
+   <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+      <title>LinkedDataHub - LDT templates</title>
+      <meta name="description" content="Learn how to use Linked Data Templates"/>
+      <link rel="up" href="../index.html"/>
+      <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/css/bootstrap.css" rel="stylesheet" type="text/css"/>
+      <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/css/bootstrap-responsive.css" rel="stylesheet" type="text/css"/>
+      <style type="text/css">
+				body { padding-top: 60px; }
+				object { width: 100%; min-height: 640px; }
+			</style><script type="text/javascript" src="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/js/jquery.min.js"></script><script type="text/javascript">
+				$(document).ready(function()
+				{
+
+					$("ul.nav-tabs a").on("click", function()
+					{
+						$(this).closest("ul").children().toggleClass("active", false); // deactivate other tabs
+						$(this).closest("li").toggleClass("active", true); // activate this tab
+						$(this).closest("ul").next().children().toggleClass("active", false); // deactivate other tab panes
+						$(this).closest("ul").next().children().eq($(this).closest("li").index()).toggleClass("active", true); // activate this tab pane
+					});
+
+				});
+			</script><script async="async" src="https://www.googletagmanager.com/gtag/js?id=UA-38402002-6"></script><script>
+				
+					window.dataLayer = window.dataLayer || [];
+					function gtag(){dataLayer.push(arguments);}
+					gtag('js', new Date());
+
+					gtag('config', 'UA-38402002-6');
+				
+			</script></head>
+   <body>
+      <div class="navbar navbar-fixed-top">
+         <div class="navbar-inner">
+            <div class="container-fluid"><a class="brand" href="https://atomgraph.github.io/LinkedDataHub/">LinkedDataHub</a><div class="nav-collapse collapse">
+                  <ul class="nav">
+                     <li class="active"><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/">Documentation</a></li>
+                     <li><a href="https://github.com/AtomGraph/LinkedDataHub" target="_blank">Code</a></li>
+                  </ul>
+               </div>
+            </div>
+         </div>
+      </div>
+      <div class="container-fluid">
+         <div class="row-fluid">
+            <nav class="span2">
+               <ul class="nav nav-list">
+                  <li><a href="../../../../about/index.html" title="A UI-based cloud platform for data integration, management, and application building">About LinkedDataHub</a></li>
+                  <li><a href="../../../../get-started/index.html" title="All the basics of LinkedDataHub. From installation to extending the model and user interface.">Get started</a><ul class="nav nav-list">
+                        <li><a href="../../../../get-started/get-an-account/index.html" title="How to get access">Get an account</a></li>
+                        <li><a href="../../../../get-started/setup/index.html" title="Setup LinkedDataHub on your local machine or access it in the cloud">Setup</a></li>
+                     </ul>
+                  </li>
+                  <li><a href="../../../index.html" title="A list of LinkedDataHub's features and their functions, split into general and administration parts">Reference</a><ul class="nav nav-list">
+                        <li><a href="../../index.html" title="Access control, domain model, and sitemap management">Administration</a><ul class="nav nav-list">
+                              <li><a href="../../acl/index.html" title="Agents, groups, and authorizations">Access control</a></li>
+                              <li><a href="../../model/index.html" title="Ontology classes, constraints, properties etc.">Model</a><ul class="nav nav-list">
+                                    <li><a href="../../model/built-ins/index.html" title="Classes, constraints, properties available to all LinkedDataHub apps">Built-in model terms</a></li>
+                                 </ul>
+                              </li>
+                              <li><a href="../index.html" title="Linked Data templates, queries, parameters etc.">Sitemap</a><ul class="nav nav-list">
+                                    <li><a href="../built-ins/index.html" title="Learn to create and manage Linked Data templates, queries, parameters etc.">Built-in sitemap terms</a></li>
+                                    <li class="active"><a href="" title="Learn how to use Linked Data Templates">LDT templates</a></li>
+                                 </ul>
+                              </li>
+                           </ul>
+                        </li>
+                        <li><a href="../../../command-line-interface/index.html" title="CLI scripts can be used perform all actions available in the UI">Command line interface</a></li>
+                        <li><a href="../../../dataset-structure/index.html" title="The default RDF dataset structure used by LinkedDataHub">Dataset structure</a></li>
+                        <li><a href="../../../dataspace/index.html" title="LinkedDataHub dataspaces, applications, and services">Dataspace</a></li>
+                        <li><a href="../../../documents/index.html" title="Document hierarchy and the basic data management actions">Document management</a></li>
+                        <li><a href="../../../http-api/index.html" title="Learn how to access and manage RDF data over generic HTTP API">HTTP API</a></li>
+                        <li><a href="../../../imports/index.html" title="Types of data imports supported by LinkedDataHub">Imports</a><ul class="nav nav-list">
+                              <li><a href="../../../imports/csv/index.html" title="CSV imports and mapping to RDF using SPARQL CONSTRUCT">CSV imports</a></li>
+                              <li><a href="../../../imports/rdf/index.html" title="RDF imports and transforming RDF using SPARQL CONSTRUCT">RDF imports</a></li>
+                           </ul>
+                        </li>
+                        <li><a href="../../../stylesheets/index.html" title="Built-in XSLT and CSS stylesheets">Stylesheets</a></li>
+                        <li><a href="../../../user-interface/index.html" title="A walk through the main features of application user interface">User interface</a></li>
+                     </ul>
+                  </li>
+                  <li><a href="../../../../user-guide/index.html" title="Step-by-step tutorials for everyday tasks with LinkedDataHub">User guide</a><ul class="nav nav-list">
+                        <li><a href="../../../../user-guide/administration/index.html" title="Tutorials that apply to the administration application and require owner access to the dataspace">Administration</a><ul class="nav nav-list">
+                              <li><a href="../../../../user-guide/administration/change-model/index.html" title="Change the model: create constructors, classes, and restrictions">Change the model</a></li>
+                              <li><a href="../../../../user-guide/administration/change-sitemap/index.html" title="Change the sitemap: create queries and LDT templates">Change the sitemap</a></li>
+                           </ul>
+                        </li>
+                        <li><a href="../../../../user-guide/browse-data/index.html" title="Use LinkedDataHub's built-in Linked Data browser to explore remote datasources">Browse data</a></li>
+                        <li><a href="../../../../user-guide/change-layout/index.html" title="How to customize the layout of an application and the UI of the resources">Change layout</a></li>
+                        <li><a href="../../../../user-guide/change-system-base-uri/index.html" title="How to change host, port, or the path LinkedDataHub service runs on">Change system base URI</a></li>
+                        <li><a href="../../../../user-guide/create-document/index.html" title="Learn how to create container and item documents">Create document</a></li>
+                        <li><a href="../../../../user-guide/import-data/index.html" title="How to import data into LinkedDataHub">Import data</a><ul class="nav nav-list">
+                              <li><a href="../../../../user-guide/import-data/import-csv-data/index.html" title="Step by step guide to converting CSV data to RDF and importing into end-user application">Import CSV data</a></li>
+                              <li><a href="../../../../user-guide/import-data/import-rdf-data/index.html" title="Step by step guide to importing RDF data">Import RDF data</a></li>
+                           </ul>
+                        </li>
+                        <li><a href="../../../../user-guide/manage-dataspaces/index.html" title="Create or change a dataspace, configure SPARQL services and XSLT stylesheets">Manage dataspaces</a></li>
+                        <li><a href="../../../../user-guide/query-data/index.html" title="Learn how to query application data with SPARQL and store queries">Query data</a></li>
+                        <li><a href="../../../../user-guide/search-data/index.html" title="Search for resources using text keywords">Search data</a></li>
+                        <li><a href="../../../../user-guide/upload-file/index.html" title="Learn how to upload files to LinkedDataHub">Upload file</a></li>
+                     </ul>
+                  </li>
+               </ul>
+            </nav>
+            <main class="span7">
+               <header>
+                  <h1>LDT templates</h1>
+                  <p class="lead">This guide explains how to use LDT templates to change the way your application operates</p>
+               </header>
+               <nav></nav>
+               <div>
+                  
+                  
+                  <p><a href="../#templates">Template</a> is a core concept in an <a href="https://atomgraph.github.io/Linked-Data-Templates/" target="_blank">Linked Data Templates</a>
+                     application ontology. It defines what SPARQL command gets executed when on the application's
+                     <a href="../../../dataspace/#services">service</a> when a certain URI is requested on that
+                     application. The service is usually backed by a triplestore.</p>
+                  
+                  <p>When Linked Data is served from a triplestore, the RDF descriptions returned when
+                     URIs are dereferenced are often results of the same default SPARQL query template.
+                     A common one is
+                     <code>DESCRIBE ?this</code>, which returns all known triples about a resource identified here as <code>?this</code>. The final query is obtained from this template by setting
+                     the requested URI as the value of the <code>?this</code> variable.</p>
+                  
+                  <p>Templates allow you to customize this mechanism by only mapping a certain class of
+                     URIs to a certain SPARQL command. Moreover, they support write mode as well, by allowing
+                     mapping
+                     to SPARQL update. This means that different parts of your application's URI address
+                     space can change the dataset and respond in different ways when a software client
+                     interacts with
+                     them. This is a common requirement for real-world end-user applications backed by
+                     SPARQL services.</p>
+                  
+                  <div>
+                     
+                     <h2>Use case</h2>
+                     
+                     <p>Lets reuse a geospatial RDF dataset from the <a href="../../../../user-guide/import-data/import-csv-data/">CSV import example</a>: any number of countries with coordinates. It could look like this in a Trig
+                        syntax (the base URI is not relevant in this context):</p>
+                     
+                     <pre>@base        &lt;https://linkeddatahub.com/demo/city-graph/&gt;
+@prefix nsdd: &lt;ns/domain/default#&gt;
+@prefix ns:  &lt;ns#&gt;
+
+{
+
+    &lt;countries/AD/&gt; a nsdd:Item ;
+        dct:title "Andorra" ;
+        dh:slug "AD" ;
+        foaf:primaryTopic &lt;countries/AD/#this&gt; .
+
+    &lt;countries/AD/#this&gt; a ns:Country ;
+        foaf:isPrimaryTopicOf &lt;countries/AD/#this&gt; ;
+        dct:identifier "AD" ;
+        geo:lat 42.5 ;
+        geo:long 1.6 ;
+        dct:title "Andorra" .
+
+}</pre>
+                     
+                     <p>By default, the resource URIs will match a default template, which depends on what
+                        <a href="../../model/#ontologies">LDT ontologies</a> your application
+                        imports. But lets say that we want to override it with our own country-specific template,
+                        which:</p>
+                     
+                     <ul>
+                        
+                        <li>matches country document resources</li>
+                        
+                        <li>includes descriptions of nearby countries when dereferenced</li>
+                        
+                        <li>removes document as well as country when deleted</li>
+                        </ul>
+                     </div>
+                  
+                  <div>
+                     
+                     <h2>Template structure</h2>
+                     
+                     <p>Use case requirements above translate directly into main LDT template components:</p>
+                     
+                     <dl>
+                        
+                        <dt>Match</dt>
+                        
+                        <dd>Use <samp>/countries/{id}/</samp> URI template to match only country document URIs and not others</dd>
+                        
+                        <dt>Query</dt>
+                        
+                        <dd>A proper solution would be to use GeoSPARQL here, but for the sake of this example
+                           we can retrieve nearby countries by filtering coordinates that are within a bounding
+                           box:</dd>
+                        
+                        <dd>
+                           <pre><code>PREFIX  geo:  &lt;http://www.w3.org/2003/01/geo/wgs84_pos#&gt;
+PREFIX  dct:  &lt;http://purl.org/dc/terms/&gt;
+PREFIX  foaf: &lt;http://xmlns.com/foaf/0.1/&gt;
+
+DESCRIBE ?this ?country ?nearbyCountry
+WHERE
+  { GRAPH ?g
+      { ?this     foaf:primaryTopic  ?country .
+        ?country  geo:lat            ?lat ;
+                  geo:long           ?long
+        OPTIONAL
+          { GRAPH ?nearbyCountryGraph
+              { ?nearbyCountry
+                          geo:lat   ?nearbyLat ;
+                          geo:long  ?nearbyLong
+                FILTER ( ?country != ?nearbyCountry )
+              }
+          }
+        FILTER ( ( ?nearbyLat &gt; ( ?lat - 10 ) ) &amp;&amp; ( ?nearbyLat &lt; ( ?lat + 10 ) ) )
+        FILTER ( ( ?nearbyLong &gt; ( ?long - 10 ) ) &amp;&amp; ( ?nearbyLong &lt; ( ?long + 10 ) ) )
+      }
+  }</code></pre>
+                        </dd>
+                        
+                        <dt>Update</dt>
+                        
+                        <dd>
+                           <pre><code>PREFIX  foaf: &lt;http://xmlns.com/foaf/0.1/&gt;
+
+DELETE {
+  GRAPH ?graph {
+    ?this ?p ?o .
+    ?country ?countryP ?countryO .
+  }
+}
+WHERE
+  { GRAPH ?graph
+      { ?this ?p ?o
+        OPTIONAL
+          { ?this foaf:primaryTopic ?country .
+            ?country ?countryP ?countryO
+          }
+      }
+  }</code></pre>
+                        </dd>
+                        
+                        <dt>Super-template</dt>
+                        
+                        <dd>Templates inherit properties from super-templates, to which they must be linked using
+                           the subclass relationship. If you know of an existing template that already defines
+                           the URI
+                           pattern, query/update etc. that you need, you may define your template as a sub-template
+                           of it. For example, an update analogous to the one above is defined on
+                           <a href="../built-ins/" target="_blank"><code>thgt:Document</code></a> template in the THGT ontology.</dd>
+                        </dl>
+                     </div>
+                  
+                  <div>
+                     
+                     <h2>Execution</h2>
+                     
+                     <p>Now lets consider <code>GET</code> and <code>DELETE</code> requests to our country document URI <samp>https://linkeddatahub.com/demo/city-graph/countries/AD/</samp>.
+                        The URI will be set as the value of the variable <code>?this</code> before the query or update is executed. In other words, a variable binding <code>(?this,
+                           &lt;https://linkeddatahub.com/demo/city-graph/countries/AD/&gt;)</code> will be applied on the query/update string before execution.</p>
+                     
+                     <p><code>GET</code> request will invoke execution of this query:</p>
+                     
+                     <pre><code>PREFIX  geo:  &lt;http://www.w3.org/2003/01/geo/wgs84_pos#&gt;
+PREFIX  dct:  &lt;http://purl.org/dc/terms/&gt;
+PREFIX  foaf: &lt;http://xmlns.com/foaf/0.1/&gt;
+
+DESCRIBE &lt;https://linkeddatahub.com/demo/city-graph/countries/AD/&gt; ?country ?nearbyCountry
+WHERE
+  { GRAPH ?g
+      { &lt;https://linkeddatahub.com/demo/city-graph/countries/AD/&gt;     foaf:primaryTopic  ?country .
+        ?country  geo:lat            ?lat ;
+                  geo:long           ?long
+        OPTIONAL
+          { GRAPH ?nearbyCountryGraph
+              { ?nearbyCountry
+                          geo:lat   ?nearbyLat ;
+                          geo:long  ?nearbyLong
+                FILTER ( ?country != ?nearbyCountry )
+              }
+          }
+        FILTER ( ( ?nearbyLat &gt; ( ?lat - 10 ) ) &amp;&amp; ( ?nearbyLat &lt; ( ?lat + 10 ) ) )
+        FILTER ( ( ?nearbyLong &gt; ( ?long - 10 ) ) &amp;&amp; ( ?nearbyLong &lt; ( ?long + 10 ) ) )
+      }
+  }</code></pre>
+                     
+                     <p>The RDF result of the query will be returned as the Linked Data response body.</p>
+                     
+                     <p><code>DELETE</code> request will invoke execution of this update:</p>
+                     
+                     <pre><code>PREFIX  foaf: &lt;http://xmlns.com/foaf/0.1/&gt;
+
+DELETE {
+  GRAPH ?graph {
+    &lt;https://linkeddatahub.com/demo/city-graph/countries/AD/&gt; ?p ?o .
+    ?country ?countryP ?countryO .
+  }
+}
+WHERE
+  { GRAPH ?graph
+      { &lt;https://linkeddatahub.com/demo/city-graph/countries/AD/&gt; ?p ?o
+        OPTIONAL
+          { &lt;https://linkeddatahub.com/demo/city-graph/countries/AD/&gt; foaf:primaryTopic ?country .
+            ?country ?countryP ?countryO
+          }
+      }
+  }</code></pre>
+                     </div>
+                  </div>
+            </main>
+         </div>
+      </div>
+   </body>
+</html>

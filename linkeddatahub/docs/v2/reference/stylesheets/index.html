@@ -1,45 +1,42 @@
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml">
    <head>
       <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
-      <title>LinkedDataHub v2 - Stylesheets</title>
+      <title>LinkedDataHub - Stylesheets</title>
       <meta name="description" content="Built-in XSLT and CSS stylesheets"/>
       <link rel="up" href="../index.html"/>
       <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/css/bootstrap.css" rel="stylesheet" type="text/css"/>
       <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/css/bootstrap-responsive.css" rel="stylesheet" type="text/css"/>
       <style type="text/css">
-                body { padding-top: 60px; }
-                object { width: 100%; min-height: 640px; }
-            </style><script type="text/javascript" src="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/js/jquery.min.js"></script><script type="text/javascript" src="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/js/bootstrap.min.js"></script><script type="text/javascript">
-                $(document).ready(function()
-                {
+				body { padding-top: 60px; }
+				object { width: 100%; min-height: 640px; }
+			</style><script type="text/javascript" src="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/js/jquery.min.js"></script><script type="text/javascript">
+				$(document).ready(function()
+				{
 
-                    $("ul.nav-tabs a").on("click", function()
-                    {
-                        $(this).closest("ul").children().toggleClass("active", false); // deactivate other tabs
-                        $(this).closest("li").toggleClass("active", true); // activate this tab
-                        $(this).closest("ul").next().children().toggleClass("active", false); // deactivate other tab panes
-                        $(this).closest("ul").next().children().eq($(this).closest("li").index()).toggleClass("active", true); // activate this tab pane
-                    });
+					$("ul.nav-tabs a").on("click", function()
+					{
+						$(this).closest("ul").children().toggleClass("active", false); // deactivate other tabs
+						$(this).closest("li").toggleClass("active", true); // activate this tab
+						$(this).closest("ul").next().children().toggleClass("active", false); // deactivate other tab panes
+						$(this).closest("ul").next().children().eq($(this).closest("li").index()).toggleClass("active", true); // activate this tab pane
+					});
 
-                });
-            </script><script async="async" src="https://www.googletagmanager.com/gtag/js?id=UA-38402002-6"></script><script>
-                
-                    window.dataLayer = window.dataLayer || [];
-                    function gtag(){dataLayer.push(arguments);}
-                    gtag('js', new Date());
+				});
+			</script><script async="async" src="https://www.googletagmanager.com/gtag/js?id=UA-38402002-6"></script><script>
+				
+					window.dataLayer = window.dataLayer || [];
+					function gtag(){dataLayer.push(arguments);}
+					gtag('js', new Date());
 
-                    gtag('config', 'UA-38402002-6');
-                
-            </script></head>
+					gtag('config', 'UA-38402002-6');
+				
+			</script></head>
    <body>
       <div class="navbar navbar-fixed-top">
          <div class="navbar-inner">
             <div class="container-fluid"><a class="brand" href="https://atomgraph.github.io/LinkedDataHub/">LinkedDataHub</a><div class="nav-collapse collapse">
                   <ul class="nav">
-                     <li class="active">
-                        <div class="btn-group"><a class="btn" href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/">Documentation v3</a><button class="btn dropdown-toggle" data-toggle="dropdown"><span class="caret"></span></button><ul class="dropdown-menu"><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/v2/">Documentation v2</a></ul>
-                        </div>
-                     </li>
+                     <li class="active"><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/">Documentation</a></li>
                      <li><a href="https://github.com/AtomGraph/LinkedDataHub" target="_blank">Code</a></li>
                   </ul>
                </div>
@@ -50,21 +47,27 @@
          <div class="row-fluid">
             <nav class="span2">
                <ul class="nav nav-list">
-                  <li><a href="../../about/index.html" title="An RDF-native Knowledge Graph notebook">About LinkedDataHub</a></li>
+                  <li><a href="../../about/index.html" title="A UI-based cloud platform for data integration, management, and application building">About LinkedDataHub</a></li>
                   <li><a href="../../get-started/index.html" title="All the basics of LinkedDataHub. From installation to extending the model and user interface.">Get started</a><ul class="nav nav-list">
                         <li><a href="../../get-started/get-an-account/index.html" title="How to get access">Get an account</a></li>
                         <li><a href="../../get-started/setup/index.html" title="Setup LinkedDataHub on your local machine or access it in the cloud">Setup</a></li>
                      </ul>
                   </li>
-                  <li><a href="../../linkeddatahub-cloud/index.html" title="LinkedDataHub Cloud is a managed service for LinkedDataHub applications">LinkedDataHub Cloud</a></li>
                   <li><a href="../index.html" title="A list of LinkedDataHub's features and their functions, split into general and administration parts">Reference</a><ul class="nav nav-list">
-                        <li><a href="../administration/index.html" title="Access control and domain model management">Administration</a><ul class="nav nav-list">
+                        <li><a href="../administration/index.html" title="Access control, domain model, and sitemap management">Administration</a><ul class="nav nav-list">
                               <li><a href="../administration/acl/index.html" title="Agents, groups, and authorizations">Access control</a></li>
-                              <li><a href="../administration/model/index.html" title="Ontology classes, constraints, properties etc.">Model</a></li>
+                              <li><a href="../administration/model/index.html" title="Ontology classes, constraints, properties etc.">Model</a><ul class="nav nav-list">
+                                    <li><a href="../administration/model/built-ins/index.html" title="Classes, constraints, properties available to all LinkedDataHub apps">Built-in model terms</a></li>
+                                 </ul>
+                              </li>
+                              <li><a href="../administration/sitemap/index.html" title="Linked Data templates, queries, parameters etc.">Sitemap</a><ul class="nav nav-list">
+                                    <li><a href="../administration/sitemap/built-ins/index.html" title="Learn to create and manage Linked Data templates, queries, parameters etc.">Built-in sitemap terms</a></li>
+                                    <li><a href="../administration/sitemap/ldt-templates/index.html" title="Learn how to use Linked Data Templates">LDT templates</a></li>
+                                 </ul>
+                              </li>
                            </ul>
                         </li>
                         <li><a href="../command-line-interface/index.html" title="CLI scripts can be used perform all actions available in the UI">Command line interface</a></li>
-                        <li><a href="../contents/index.html" title="Content blocks and the basic data content actions">Content management</a></li>
                         <li><a href="../dataset-structure/index.html" title="The default RDF dataset structure used by LinkedDataHub">Dataset structure</a></li>
                         <li><a href="../dataspace/index.html" title="LinkedDataHub dataspaces, applications, and services">Dataspace</a></li>
                         <li><a href="../documents/index.html" title="Document hierarchy and the basic data management actions">Document management</a></li>
@@ -79,12 +82,14 @@
                      </ul>
                   </li>
                   <li><a href="../../user-guide/index.html" title="Step-by-step tutorials for everyday tasks with LinkedDataHub">User guide</a><ul class="nav nav-list">
-                        <li><a href="../../user-guide/add-data/index.html" title="Fork RDF data from Linked Data resources and SPARQL results">Add data</a></li>
+                        <li><a href="../../user-guide/administration/index.html" title="Tutorials that apply to the administration application and require owner access to the dataspace">Administration</a><ul class="nav nav-list">
+                              <li><a href="../../user-guide/administration/change-model/index.html" title="Change the model: create constructors, classes, and restrictions">Change the model</a></li>
+                              <li><a href="../../user-guide/administration/change-sitemap/index.html" title="Change the sitemap: create queries and LDT templates">Change the sitemap</a></li>
+                           </ul>
+                        </li>
                         <li><a href="../../user-guide/browse-data/index.html" title="Use LinkedDataHub's built-in Linked Data browser to explore remote datasources">Browse data</a></li>
                         <li><a href="../../user-guide/change-layout/index.html" title="How to customize the layout of an application and the UI of the resources">Change layout</a></li>
-                        <li><a href="../../user-guide/change-model/index.html" title="Change the model: create constructors, classes, and constraints">Change the model</a></li>
                         <li><a href="../../user-guide/change-system-base-uri/index.html" title="How to change host, port, or the path LinkedDataHub service runs on">Change system base URI</a></li>
-                        <li><a href="../../user-guide/create-content/index.html" title="Learn how to create data-driven content">Create content</a></li>
                         <li><a href="../../user-guide/create-document/index.html" title="Learn how to create container and item documents">Create document</a></li>
                         <li><a href="../../user-guide/import-data/index.html" title="How to import data into LinkedDataHub">Import data</a><ul class="nav nav-list">
                               <li><a href="../../user-guide/import-data/import-csv-data/index.html" title="Step by step guide to converting CSV data to RDF and importing into end-user application">Import CSV data</a></li>
@@ -92,7 +97,7 @@
                            </ul>
                         </li>
                         <li><a href="../../user-guide/manage-dataspaces/index.html" title="Create or change a dataspace, configure SPARQL services and XSLT stylesheets">Manage dataspaces</a></li>
-                        <li><a href="../../user-guide/query-data/index.html" title="Learn how to query application data with SPARQL, store queries and charts">Query data</a></li>
+                        <li><a href="../../user-guide/query-data/index.html" title="Learn how to query application data with SPARQL and store queries">Query data</a></li>
                         <li><a href="../../user-guide/search-data/index.html" title="Search for resources using text keywords">Search data</a></li>
                         <li><a href="../../user-guide/upload-file/index.html" title="Learn how to upload files to LinkedDataHub">Upload file</a></li>
                      </ul>
@@ -309,7 +314,7 @@
                                  
                                  <td><code>lapp:</code></td>
                                  
-                                 <td><code>https://w3id.org/atomgraph/linkeddatahub/apps#</code></td>
+                                 <td><code>https://w3id.org/atomgraph/linkeddatahub/apps/domain#</code></td>
                                  
                                  <td><a href="../administration/model/#apl-ont" target="_blank">AtomGraph Platform</a></td>
                                  
@@ -320,7 +325,7 @@
                                  
                                  <td><code>lacl:</code></td>
                                  
-                                 <td><code>https://w3id.org/atomgraph/linkeddatahub/admin/acl#</code></td>
+                                 <td><code>https://w3id.org/atomgraph/linkeddatahub/admin/acl/domain#</code></td>
                                  
                                  <td>LinkedDataHub ACL ontology</td>
                                  
@@ -366,13 +371,17 @@
                            
                            <dt><code>$ac:forClass</code></dt>
                            
-                           <dd>The URI of the class whose instance is being created.</dd>
+                           <dd>The URI of the class which instance is being created. See also <a href="../administration/sitemap/built-ins/#ForClass-param" target="_blank"><code>aplt:ForClass</code></a>.</dd>
+                           
+                           <dt><code>$ac:sitemap</code></dt>
+                           
+                           <dd>RDF/XML document of the application's ontology, with a transitive closure of imports</dd>
                            
                            <dt><code>$lapp:Application</code></dt>
                            
                            <dd>RDF/XML document with the metadata of the current LDT application</dd>
                            
-                           <dt><code>$foaf:Agent</code></dt>
+                           <dt><code>$lacl:Agent</code></dt>
                            
                            <dd>RDF/XML document with the metadata of the currently authenticated agent (if any)</dd>
                            </dl>
@@ -408,6 +417,18 @@
                            by applying templates on all of the RDF/XML nodes while moving down the XML tree.
                            In other words, it starts at the graph level, moves down to resource description elements,
                            then to property elements, and ends with identifier attributes and literal text nodes.</p>
+                        
+                        <p>The content of the RDF/XML document normally includes the description of the requested
+                           document, and optionally a "thing"/concept paired with it. However, it can be completely
+                           customized
+                           by overriding the <a href="../administration/sitemap/ldt-templates/" target="_blank">LDT template</a> that matches that document and
+                           <a href="../../user-guide/administration/change-sitemap/" target="_blank">specifying a custom query</a>. For example, for a document with a SKOS concept it might make sense to include its
+                           broader and/or narrower concepts in the RDF description as well. XML documents (which
+                           by definition includes RDF/XML) can also be <a href="#loading-data" target="_blank">loaded separately</a>
+                           from the main RDF/XML document, but at a cost of an HTTP request per document. There
+                           is no rule on how to split data between the main RDF/XML document and the additional
+                           ones — it is a
+                           balancing act in terms of query maintainability and stylesheet performance.</p>
                         
                         <p>Templates are applied (invoked) using <code>&lt;xsl:apply-templates&gt;</code>. Mode can be specified, e.g. <code>&lt;xsl:apply-templates mode="bs2:Header"&gt;</code>. To stay in the current mode without explicitly specifying it, use <code>&lt;xsl:apply-templates mode="#current"&gt;</code>. <code>&lt;xsl:with-param&gt;</code> is used to supply parameters.</p>
                         
@@ -468,7 +489,7 @@
     &lt;/div&gt;
 &lt;/xsl:template&gt;</pre>
                         
-                        <p><code>ldh:Content</code> mode embeds XHTML from the <code>sioc:content</code> value of the current document.</p>
+                        <p><code>apl:Content</code> mode embeds XHTML from the <code>sioc:content</code> value of the current document.</p>
                         
                         <p>There are a few special template modes such as <code>ac:label</code> and <code>ac:description</code> and related functions <code>ac:label()</code> and <code>ac:description()</code> which are
                            used not to render layout but to extract metadata from resource descriptions. They
@@ -532,7 +553,7 @@
                         <p>LinkedDataHub's default stylesheets are using this feature extensively. In fact, one
                            HTML page is rendered from a dozen of RDF/XML documents.</p>
                         
-                        <p>Built-in <a href="../administration/model/built-ins/" target="_blank">model ontologies</a> as well as some other system and well-known ontologies, have a local copy in
+                        <p>Built-in <a href="../administration/model/built-ins/" target="_blank">model ontologies</a> and <a href="../administration/sitemap/built-ins/" target="_blank">sitemap ontologies</a>, as well as some other system and well-known ontologies, have a local copy in
                            each LinkedDataHub instance. As a result, retrieving their descriptions by dereferencing
                            their URIs using <code>document()</code> does not incur an HTTP request and is much faster. The URI-to-file mapping
                            is defined as Jena's <a href="https://jena.apache.org/documentation/io/rdf-input.html#configuring-a-locationmapper" target="_blank">location mapping</a> and can be found in
@@ -562,41 +583,6 @@
                      </div>
                   </div>
             </main>
-         </div>
-      </div>
-      <div class="footer container-fluid">
-         <div class="row-fluid">
-            <div class="offset2 span8">
-               <div class="span3">
-                  <h2 class="nav-header">About</h2>
-                  <ul class="nav nav-list">
-                     <li><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/about/" target="_blank">LinkedDataHub</a></li>
-                     <li><a href="https://atomgraph.com" target="_blank">AtomGraph</a></li>
-                  </ul>
-               </div>
-               <div class="span3">
-                  <h2 class="nav-header">Resources</h2>
-                  <ul class="nav nav-list">
-                     <li><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/" target="_blank">Documentation</a></li>
-                     <li><a href="https://www.youtube.com/channel/UCtrdvnVjM99u9hrjESwfCeg" target="_blank">Screencasts</a></li>
-                  </ul>
-               </div>
-               <div class="span3">
-                  <h2 class="nav-header">Support</h2>
-                  <ul class="nav nav-list">
-                     <li><a href="https://groups.io/g/linkeddatahub" target="_blank">Mailing list</a></li>
-                     <li><a href="https://github.com/AtomGraph/LinkedDataHub/issues" target="_blank">Report issues</a></li>
-                     <li><a href="mailto:support@linkeddatahub.com">Contact support</a></li>
-                  </ul>
-               </div>
-               <div class="span3">
-                  <h2 class="nav-header">Follow us</h2>
-                  <ul class="nav nav-list">
-                     <li><a href="https://twitter.com/atomgraphhq" target="_blank">@atomgraphhq</a></li>
-                     <li><a href="https://github.com/AtomGraph" target="_blank">github.com/AtomGraph</a></li>
-                  </ul>
-               </div>
-            </div>
          </div>
       </div>
    </body>
