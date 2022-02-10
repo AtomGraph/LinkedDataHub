@@ -1,0 +1,603 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml">
+   <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+      <title>LinkedDataHub - Stylesheets</title>
+      <meta name="description" content="Built-in XSLT and CSS stylesheets"/>
+      <link rel="up" href="../index.html"/>
+      <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/css/bootstrap.css" rel="stylesheet" type="text/css"/>
+      <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/css/bootstrap-responsive.css" rel="stylesheet" type="text/css"/>
+      <style type="text/css">
+                body { padding-top: 60px; }
+                object { width: 100%; min-height: 640px; }
+            </style><script type="text/javascript" src="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/js/jquery.min.js"></script><script type="text/javascript" src="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/js/bootstrap.min.js"></script><script type="text/javascript">
+                $(document).ready(function()
+                {
+
+                    $("ul.nav-tabs a").on("click", function()
+                    {
+                        $(this).closest("ul").children().toggleClass("active", false); // deactivate other tabs
+                        $(this).closest("li").toggleClass("active", true); // activate this tab
+                        $(this).closest("ul").next().children().toggleClass("active", false); // deactivate other tab panes
+                        $(this).closest("ul").next().children().eq($(this).closest("li").index()).toggleClass("active", true); // activate this tab pane
+                    });
+
+                });
+            </script><script async="async" src="https://www.googletagmanager.com/gtag/js?id=UA-38402002-6"></script><script>
+                
+                    window.dataLayer = window.dataLayer || [];
+                    function gtag(){dataLayer.push(arguments);}
+                    gtag('js', new Date());
+
+                    gtag('config', 'UA-38402002-6');
+                
+            </script></head>
+   <body>
+      <div class="navbar navbar-fixed-top">
+         <div class="navbar-inner">
+            <div class="container-fluid"><a class="brand" href="https://atomgraph.github.io/LinkedDataHub/">LinkedDataHub</a><div class="nav-collapse collapse">
+                  <ul class="nav">
+                     <li class="active">
+                        <div class="btn-group"><a class="btn" href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/">Documentation v3</a><button class="btn dropdown-toggle" data-toggle="dropdown"><span class="caret"></span></button><ul class="dropdown-menu"><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/v2/">Documentation v2</a></ul>
+                        </div>
+                     </li>
+                     <li><a href="https://github.com/AtomGraph/LinkedDataHub" target="_blank">Code</a></li>
+                  </ul>
+               </div>
+            </div>
+         </div>
+      </div>
+      <div class="container-fluid">
+         <div class="row-fluid">
+            <nav class="span2">
+               <ul class="nav nav-list">
+                  <li><a href="../../about/index.html" title="An RDF-native Knowledge Graph notebook">About LinkedDataHub</a></li>
+                  <li><a href="../../get-started/index.html" title="All the basics of LinkedDataHub. From installation to extending the model and user interface.">Get started</a><ul class="nav nav-list">
+                        <li><a href="../../get-started/get-an-account/index.html" title="How to get access">Get an account</a></li>
+                        <li><a href="../../get-started/setup/index.html" title="Setup LinkedDataHub on your local machine or access it in the cloud">Setup</a></li>
+                     </ul>
+                  </li>
+                  <li><a href="../../linkeddatahub-cloud/index.html" title="LinkedDataHub Cloud is a managed service for LinkedDataHub applications">LinkedDataHub Cloud</a></li>
+                  <li><a href="../index.html" title="A list of LinkedDataHub's features and their functions, split into general and administration parts">Reference</a><ul class="nav nav-list">
+                        <li><a href="../administration/index.html" title="Access control and domain model management">Administration</a><ul class="nav nav-list">
+                              <li><a href="../administration/acl/index.html" title="Agents, groups, and authorizations">Access control</a></li>
+                              <li><a href="../administration/model/index.html" title="Ontology classes, constraints, properties etc.">Model</a></li>
+                           </ul>
+                        </li>
+                        <li><a href="../command-line-interface/index.html" title="CLI scripts can be used perform all actions available in the UI">Command line interface</a></li>
+                        <li><a href="../contents/index.html" title="Content blocks and the basic data content actions">Content management</a></li>
+                        <li><a href="../dataset-structure/index.html" title="The default RDF dataset structure used by LinkedDataHub">Dataset structure</a></li>
+                        <li><a href="../dataspace/index.html" title="LinkedDataHub dataspaces, applications, and services">Dataspace</a></li>
+                        <li><a href="../documents/index.html" title="Document hierarchy and the basic data management actions">Document management</a></li>
+                        <li><a href="../http-api/index.html" title="Learn how to access and manage RDF data over generic HTTP API">HTTP API</a></li>
+                        <li><a href="../imports/index.html" title="Types of data imports supported by LinkedDataHub">Imports</a><ul class="nav nav-list">
+                              <li><a href="../imports/csv/index.html" title="CSV imports and mapping to RDF using SPARQL CONSTRUCT">CSV imports</a></li>
+                              <li><a href="../imports/rdf/index.html" title="RDF imports and transforming RDF using SPARQL CONSTRUCT">RDF imports</a></li>
+                           </ul>
+                        </li>
+                        <li class="active"><a href="" title="Built-in XSLT and CSS stylesheets">Stylesheets</a></li>
+                        <li><a href="../user-interface/index.html" title="A walk through the main features of application user interface">User interface</a></li>
+                     </ul>
+                  </li>
+                  <li><a href="../../user-guide/index.html" title="Step-by-step tutorials for everyday tasks with LinkedDataHub">User guide</a><ul class="nav nav-list">
+                        <li><a href="../../user-guide/add-data/index.html" title="Fork RDF data from Linked Data resources and SPARQL results">Add data</a></li>
+                        <li><a href="../../user-guide/browse-data/index.html" title="Use LinkedDataHub's built-in Linked Data browser to explore remote datasources">Browse data</a></li>
+                        <li><a href="../../user-guide/change-layout/index.html" title="How to customize the layout of an application and the UI of the resources">Change layout</a></li>
+                        <li><a href="../../user-guide/change-model/index.html" title="Change the model: create constructors, classes, and constraints">Change the model</a></li>
+                        <li><a href="../../user-guide/change-system-base-uri/index.html" title="How to change host, port, or the path LinkedDataHub service runs on">Change system base URI</a></li>
+                        <li><a href="../../user-guide/create-content/index.html" title="Learn how to create data-driven content">Create content</a></li>
+                        <li><a href="../../user-guide/create-document/index.html" title="Learn how to create container and item documents">Create document</a></li>
+                        <li><a href="../../user-guide/import-data/index.html" title="How to import data into LinkedDataHub">Import data</a><ul class="nav nav-list">
+                              <li><a href="../../user-guide/import-data/import-csv-data/index.html" title="Step by step guide to converting CSV data to RDF and importing into end-user application">Import CSV data</a></li>
+                              <li><a href="../../user-guide/import-data/import-rdf-data/index.html" title="Step by step guide to importing RDF data">Import RDF data</a></li>
+                           </ul>
+                        </li>
+                        <li><a href="../../user-guide/manage-dataspaces/index.html" title="Create or change a dataspace, configure SPARQL services and XSLT stylesheets">Manage dataspaces</a></li>
+                        <li><a href="../../user-guide/query-data/index.html" title="Learn how to query application data with SPARQL, store queries and charts">Query data</a></li>
+                        <li><a href="../../user-guide/search-data/index.html" title="Search for resources using text keywords">Search data</a></li>
+                        <li><a href="../../user-guide/upload-file/index.html" title="Learn how to upload files to LinkedDataHub">Upload file</a></li>
+                     </ul>
+                  </li>
+               </ul>
+            </nav>
+            <main class="span7">
+               <header>
+                  <h1>Stylesheets</h1>
+                  <p class="lead">Built-in XSLT and CSS stylesheets</p>
+               </header>
+               <nav></nav>
+               <div>
+                  
+                  
+                  <div>
+                     
+                     <h2 id="xslt">XSLT</h2>
+                     
+                     <p>XSLT is a functional, Turing-complete XML transformation language.</p>
+                     
+                     <p>LinkedDataHub's <a href="https://www.w3.org/TR/xslt-30/" target="_blank">XSLT 3.0</a> stylesheets work by transforming <a href="https://www.w3.org/TR/rdf-syntax-grammar/" target="_blank">RDF/XML</a> response body from the underlying <a href="../http-api/" target="_blank">HTTP API</a>. Additional metadata from RDF vocabularies is used to improve user experience.</p>
+                     
+                     <div>
+                        
+                        <h3 id="rdf-xml-plain">Plain RDF/XML</h3>
+                        
+                        <p><a href="https://www.w3.org/TR/rdf-syntax-grammar/" target="_blank">RDF/XML</a> is an important RDF syntax which functions as a bridge to the XML technology stack.
+                           The stylesheets use Jena's <a href="https://jena.apache.org/documentation/io/rdfxml_howto.html#rdfxml-rdfxml-abbrev" target="_blank">"plain" RDF/XML</a> output which groups statements by subject and does not nest resource descriptions.
+                           This allows for predictable XPath patterns:</p>
+                        
+                        <ul>
+                           
+                           <li><code>/rdf:RDF</code> — represents the RDF graph</li>
+                           
+                           <li><code>/rdf:RDF/rdf:Description</code> or <code>/rdf:RDF/*[*][@rdf:about] | /rdf:RDF/*[*][@rdf:nodeID]</code>— resource description which contains properties</li>
+                           
+                           <li><code>/rdf:RDF/rdf:Description/@rdf:about</code> — subject resource URI</li>
+                           
+                           <li><code>/rdf:RDF/rdf:Description/@rdf:nodeID</code> — subject blank node ID</li>
+                           
+                           <li><code>/rdf:RDF/rdf:Description/*</code> predicate (e.g. <code>rdf:type</code>) which URI is <code>concat(namespace-uri(), local-name())</code></li>
+                           
+                           <li><code>/rdf:RDF/rdf:Description/*/@rdf:resource</code> — object resource</li>
+                           
+                           <li><code>/rdf:RDF/rdf:Description/*/@rdf:nodeID</code> — object blank node ID</li>
+                           
+                           <li><code>/rdf:RDF/rdf:Description/*/text()</code> — literal value</li>
+                           </ul>
+                        </div>
+                     
+                     <div>
+                        
+                        <h3 id="stylesheets">Stylesheets</h3>
+                        
+                        <p>XSLT stylesheet components used by LinkedDataHub:</p>
+                        
+                        <dl>
+                           
+                           <dt>Includes</dt>
+                           
+                           <dd><code>&lt;xsl:include&gt;</code> is used to inclkude one stylesheet into another. The import mechanism is specified
+                              in <a href="https://www.w3.org/TR/xslt-30/#include" target="_blank">3.10.2 Stylesheet Inclusion</a> the XSLT 3.0 specification. The templates from the included stylesheets have the
+                              same priority as those of the importing stylesheet.</dd>
+                           
+                           <dt>Imports</dt>
+                           
+                           <dd><code>&lt;xsl:import&gt;</code> is used to import one stylesheet into another. The import mechanism is specified
+                              in <a href="https://www.w3.org/TR/xslt-30/#import" target="_blank">3.10.3 Stylesheet Import</a> the XSLT 3.0 specification. The templates from the imported stylesheets have lower
+                              priority than those of the importing stylesheet.</dd>
+                           
+                           <dt>Parameters</dt>
+                           
+                           <dd>XSD-typed <a href="#parameters">global parameters</a> passed to the stylesheet</dd>
+                           
+                           <dt>Keys</dt>
+                           
+                           <dd>Lookup <a href="#keys">keys</a></dd>
+                           
+                           <dt>Templates</dt>
+                           
+                           <dd><a href="#templates">Template rules</a> for XML node processing</dd>
+                           </dl>
+                        
+                        <p>One XSLT stylesheet can be specified per application. In order to reuse LinkedDataHub's
+                           built-in templates, it should import the <a href="https://github.com/AtomGraph/LinkedDataHub/blob/master/src/main/webapp/static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/layout.xsl" target="_blank">system stylesheet <samp>layout.xsl</samp></a> and only override the necessary templates. That is however not a requirement, the
+                           stylesheet could also use its own independent transformation logic.</p>
+                        
+                        <p>If there is no stylesheet specified for the application, the system stylesheet is
+                           used. It defines the overall layout and imports resource-level and container-specific
+                           stylesheets, as well as per-vocabulary stylesheets.</p>
+                        
+                        <p>Note that LinkedDataHub itself imports stylesheets from <a href="https://github.com/AtomGraph/Web-Client" target="_blank">Web-Client</a>, which uses the same template modes but produces a much simpler layout.</p>
+                        
+                        <p>There is also a special <a href="https://github.com/AtomGraph/LinkedDataHub/blob/master/src/main/webapp/static/com/atomgraph/linkeddatahub/xsl/client.xsl" target="_blank">client-side stylesheet</a> which is not used to render a full layout, but only manipulate DOM elements in the
+                           browser in response to user or system events. It is processed using <a href="http://www.saxonica.com/saxon-js/index.xml" target="_blank">Saxon-JS</a> which provides IXSL (<a href="https://www.saxonica.com/saxon-js/documentation/index.html#!ixsl-extension" target="_blank">client-side extensions for XSLT</a>). It imports and reuses some of the same sub-stylesheets as the server-side system
+                           stylesheet does, but avoids loading per-vocabulary stylesheets in order to improve
+                           page load time. Templates of the client-side stylesheet can also be overridden.</p>
+                        </div>
+                     
+                     <div>
+                        
+                        <h3 id="namespaces">Namespaces</h3>
+                        
+                        <table class="table">
+                           
+                           <caption>Main namespaces used in XSLT stylesheets</caption>
+                           
+                           <thead>
+                              
+                              <tr>
+                                 
+                                 <th>Prefix</th>
+                                 
+                                 <th>Namespace</th>
+                                 
+                                 <th>Vocabulary</th>
+                                 
+                                 <th>Description</th>
+                                 </tr>
+                              </thead>
+                           
+                           <tbody>
+                              
+                              <tr>
+                                 
+                                 <td><code>rdf:</code></td>
+                                 
+                                 <td><code>http://www.w3.org/1999/02/22-rdf-syntax-ns#</code></td>
+                                 
+                                 <td><a href="https://www.w3.org/TR/rdf11-concepts/#vocabularies" target="_blank">The RDF Concepts Vocabulary</a></td>
+                                 
+                                 <td>Namespace for the <a href="https://www.w3.org/TR/rdf-syntax-grammar/" target="_blank">RDF/XML</a> elements, mostly used for matching input data</td>
+                                 </tr>
+                              
+                              <tr>
+                                 
+                                 <td><code>srx:</code></td>
+                                 
+                                 <td><code>http://www.w3.org/2005/sparql-results#</code></td>
+                                 
+                                 <td></td>
+                                 
+                                 <td>Namespace for the <a href="https://www.w3.org/TR/rdf-sparql-XMLres/" target="_blank">SPARQL Query Results XML</a> elements, mostly used for matching input data</td>
+                                 </tr>
+                              
+                              <tr>
+                                 
+                                 <td><code>xsl:</code></td>
+                                 
+                                 <td><code>http://www.w3.org/1999/XSL/Transform</code></td>
+                                 
+                                 <td></td>
+                                 
+                                 <td>Namespace for the XSLT stylesheet elements</td>
+                                 </tr>
+                              
+                              <tr>
+                                 
+                                 <td><code>ixsl:</code></td>
+                                 
+                                 <td><code>http://saxonica.com/ns/interactiveXSLT</code></td>
+                                 
+                                 <td></td>
+                                 
+                                 <td>Namespace for the <a href="https://www.saxonica.com/saxon-js/documentation/index.html#!ixsl-extension" target="_blank">Interactive XSL extensions</a></td>
+                                 </tr>
+                              
+                              <tr>
+                                 
+                                 <td><code>bs2:</code></td>
+                                 
+                                 <td><code>http://graphity.org/xsl/bootstrap/2.3.2</code></td>
+                                 
+                                 <td></td>
+                                 
+                                 <td>XSLT-only namespace that is used for <a href="https://getbootstrap.com/2.3.2/" target="_blank">Bootstrap 2.3.2</a>-based layout templates</td>
+                                 </tr>
+                              
+                              <tr>
+                                 
+                                 <td><code>xhtml:</code></td>
+                                 
+                                 <td><code>http://www.w3.org/2011/http#</code></td>
+                                 
+                                 <td></td>
+                                 
+                                 <td>XSLT-only namespace that is used for generic (X)HTML templates</td>
+                                 </tr>
+                              
+                              <tr>
+                                 
+                                 <td><code>ldt:</code></td>
+                                 
+                                 <td><code>https://www.w3.org/ns/ldt#</code></td>
+                                 
+                                 <td><a href="https://atomgraph.github.io/Linked-Data-Templates/#vocabulary" target="_blank">Linked Data Templates</a></td>
+                                 
+                                 <td>LDT processing-related concepts</td>
+                                 </tr>
+                              
+                              <tr>
+                                 
+                                 <td><code>ac:</code></td>
+                                 
+                                 <td><code>https://w3id.org/atomgraph/client#</code></td>
+                                 
+                                 <td><a href="https://github.com/AtomGraph/Web-Client" target="_blank">Web-Client</a> vocabulary</td>
+                                 
+                                 <td>Client-side concepts</td>
+                                 </tr>
+                              
+                              <tr>
+                                 
+                                 <td><code>lapp:</code></td>
+                                 
+                                 <td><code>https://w3id.org/atomgraph/linkeddatahub/apps#</code></td>
+                                 
+                                 <td><a href="../administration/model/#apl-ont" target="_blank">AtomGraph Platform</a></td>
+                                 
+                                 <td>LDT application concepts</td>
+                                 </tr>
+                              
+                              <tr>
+                                 
+                                 <td><code>lacl:</code></td>
+                                 
+                                 <td><code>https://w3id.org/atomgraph/linkeddatahub/admin/acl#</code></td>
+                                 
+                                 <td>LinkedDataHub ACL ontology</td>
+                                 
+                                 <td>ACL concepts</td>
+                                 </tr>
+                              </tbody>
+                           </table>
+                        </div>
+                     
+                     <div>
+                        
+                        <h3 id="parameters">Parameters</h3>
+                        
+                        <p>Both global (i.e. stylesheet-level) and template parameters are declared using <code>&lt;xsl:param&gt;</code>. For example:</p>
+                        
+                        <pre>&lt;xsl:param name="ac:uri" as="xs:anyURI"/&gt;</pre>
+                        
+                        <p>This parameter can be accessed using <code>$ac:uri</code>. For example:</p>
+                        
+                        <pre>&lt;xsl:if test="$ac:uri"&gt;
+    &lt;xsl:value-of select="$ac:uri"/&gt;
+&lt;/xsl:if&gt;</pre>
+                        
+                        <p>LinkedDataHub sets these global parameters by default (the list is not exhaustive):</p>
+                        
+                        <dl>
+                           
+                           <dt><code>$ldt:base</code></dt>
+                           
+                           <dd>Base URI of the current application</dd>
+                           
+                           <dt><code>$ldt:ontology</code></dt>
+                           
+                           <dd>The URI of the ontology of the current application</dd>
+                           
+                           <dt><code>$ac:uri</code></dt>
+                           
+                           <dd>The absolute URI of the current document (without query string)</dd>
+                           
+                           <dt><code>$ac:mode</code></dt>
+                           
+                           <dd>The URI of the current layout mode</dd>
+                           
+                           <dt><code>$ac:forClass</code></dt>
+                           
+                           <dd>The URI of the class whose instance is being created.</dd>
+                           
+                           <dt><code>$lapp:Application</code></dt>
+                           
+                           <dd>RDF/XML document with the metadata of the current LDT application</dd>
+                           
+                           <dt><code>$foaf:Agent</code></dt>
+                           
+                           <dd>RDF/XML document with the metadata of the currently authenticated agent (if any)</dd>
+                           </dl>
+                        </div>
+                     
+                     <div>
+                        
+                        <h3 id="templates">Templates</h3>
+                        
+                        <p>XSLT template components:</p>
+                        
+                        <dl>
+                           
+                           <dt>Match</dt>
+                           
+                           <dd>XPath-based match pattern which either does or does not match an XML node</dd>
+                           
+                           <dt>Mode</dt>
+                           
+                           <dd>Allows to group templates and distinguish them from other groups which have the same
+                              match patterns (e.g. different layout modes)</dd>
+                           
+                           <dt>Parameters</dt>
+                           
+                           <dd>XSD-typed parameters passed to the template invocation</dd>
+                           
+                           <dt>Body</dt>
+                           
+                           <dd>Contains the XML output nodes as well as XSLT processing instructions</dd>
+                           </dl>
+                        
+                        <p>XSLT processing starts at the root of the RDF/XML document and produces HTML elements
+                           by applying templates on all of the RDF/XML nodes while moving down the XML tree.
+                           In other words, it starts at the graph level, moves down to resource description elements,
+                           then to property elements, and ends with identifier attributes and literal text nodes.</p>
+                        
+                        <p>Templates are applied (invoked) using <code>&lt;xsl:apply-templates&gt;</code>. Mode can be specified, e.g. <code>&lt;xsl:apply-templates mode="bs2:Header"&gt;</code>. To stay in the current mode without explicitly specifying it, use <code>&lt;xsl:apply-templates mode="#current"&gt;</code>. <code>&lt;xsl:with-param&gt;</code> is used to supply parameters.</p>
+                        
+                        <p>LinkedDataHub provides the following default template modes, which are used to render
+                           the <a href="../user-interface/#layout-modes" target="_blank">layout modes</a>:</p>
+                        
+                        <ul>
+                           
+                           <li>Graph-level modes that apply to <code>rdf:RDF</code>
+                              
+                              <ul>
+                                 
+                                 <li><code>bs2:Block</code> which renders full resource description with all properties</li>
+                                 
+                                 <li><code>bs2:BlockList</code> renders a list of resources</li>
+                                 
+                                 <li><code>xhtml:Table</code> renders a table with resources as rows and properties as columns</li>
+                                 
+                                 <li><code>bs2:Grid</code> renders a gallery of thumbnails</li>
+                                 
+                                 <li><code>bs2:Form</code> which renders an <a href="https://atomgraph.github.io/RDF-POST/" target="_blank">RDF/POST</a> form for for creation of new resources (when <code>$ac:forClass</code> parameter is set) or editing of existing resource</li>
+                                 </ul>
+                              </li>
+                           
+                           <li>Resource-level templates modes that apply to <code>rdf:Description</code>
+                              
+                              <ul>
+                                 
+                                 <li><code>bs2:Block</code> renders full resource description (by default header and property list)</li>
+                                 
+                                 <li><code>bs2:Header</code> renders resource header (by default with type information)</li>
+                                 
+                                 <li><code>bs2:PropertyList</code> renders definition list with property names and values (by default grouped by resource
+                                    types)</li>
+                                 </ul>
+                              </li>
+                           </ul>
+                        
+                        <p>When adding new user-defined modes, it is recommended to choose a new <a href="#namespaces">namespace</a> for them as well as a user-defined prefix.</p>
+                        
+                        <p>An example of a template that matches <code>rdf:Description</code>:</p>
+                        
+                        <pre>&lt;xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:Block"&gt;
+    &lt;xsl:param name="id" as="xs:string?"/&gt;
+    &lt;xsl:param name="class" as="xs:string?"/&gt;
+
+    &lt;div&gt;
+        &lt;xsl:if test="$id"&gt;
+            &lt;xsl:attribute name="id"&gt;&lt;xsl:value-of select="$id"/&gt;&lt;/xsl:attribute&gt;
+        &lt;/xsl:if&gt;
+        &lt;xsl:if test="$class"&gt;
+            &lt;xsl:attribute name="class"&gt;&lt;xsl:value-of select="$class"/&gt;&lt;/xsl:attribute&gt;
+        &lt;/xsl:if&gt;
+
+        &lt;xsl:apply-templates select="." mode="bs2:Header"/&gt;
+
+        &lt;xsl:apply-templates select="." mode="bs2:PropertyList"/&gt;
+    &lt;/div&gt;
+&lt;/xsl:template&gt;</pre>
+                        
+                        <p><code>ldh:Content</code> mode embeds XHTML from the <code>sioc:content</code> value of the current document.</p>
+                        
+                        <p>There are a few special template modes such as <code>ac:label</code> and <code>ac:description</code> and related functions <code>ac:label()</code> and <code>ac:description()</code> which are
+                           used not to render layout but to extract metadata from resource descriptions. They
+                           can be used to retrieve a resource label and description no matter which RDF
+                           vocabularies are used in the data. They do so by invoking templates of respective
+                           mode from vocabulary-specific stylesheets.</p>
+                        </div>
+                     
+                     <div>
+                        
+                        <h3 id="overriding-templates">Overriding templates</h3>
+                        
+                        <p>Templates are overridden by redefining them in the importing stylesheet and providing
+                           the same or more specific match pattern and the same mode. The XSLT specification
+                           specifies exactly how template priorities are determined in <a href="https://www.w3.org/TR/xslt-30/#conflict" target="_blank">6.4 Conflict Resolution for Template Rules</a>.</p>
+                        
+                        <p>The overriding template can then get the output of the overridden template by invoking
+                           either <code>&lt;xsl:apply-imports&gt;</code> or <code>&lt;xsl:next-match&gt;</code>. Read more about <a href="https://www.w3.org/TR/xslt-30/#apply-imports" target="_blank">6.7 Overriding Template Rules</a>.</p>
+                        
+                        <p>Always override the most specific template, i.e. if you want to change how a property
+                           is rendered, do not override the template for resource description, only the one for
+                           the property.</p>
+                        </div>
+                     
+                     <div>
+                        
+                        <h3 id="keys">Keys</h3>
+                        
+                        <p>Keys are a lookup mechanism. They are defined on the stylesheet level using <a href="https://www.w3.org/TR/xslt-30/#dt-key" target="_blank"><code>&lt;xsl:key&gt;</code></a> and invoked using the 
+                           <a href="https://www.w3.org/TR/xslt-30/#function-key" target="_blank"><code>key()</code></a> function. For example:</p>
+                        
+                        <pre>&lt;xsl:key name="resources" match="*[*][@rdf:about] | *[*][@rdf:nodeID]" use="@rdf:about | @rdf:nodeID"/&gt;
+
+&lt;xsl:template match="*"&gt;
+    &lt;xsl:for-each select="key('resources', $ac:uri)"&gt;
+        &lt;xsl:value-of select="ac:label(.)"/&gt;
+    &lt;/xsl:for-each&gt;
+&lt;/xsl:template&gt;</pre>
+                        </div>
+                     
+                     <p>They key definition matches <code>rdf:Description</code> elements and uses their identifiers (URI or blank node ID). The template then looks
+                        up the RDF description of the <em>current resource</em>, i.e. the resource with URI that equals <code>$ac:uri</code> which is the absolute URI of the current request, and outputs its label.</p>
+                     
+                     <div>
+                        
+                        <h3 id="loading-data">Loading data</h3>
+                        
+                        <p>The stylesheet is processing one main RDF/XML document at a time, which is supplied
+                           by the LinkedDataHub's HTML writer. However it is possible to load additional XML
+                           documents over HTTP 
+                           using the <a href="https://www.w3.org/TR/xslt-30/#function-document" target="_blank"><code>document()</code></a> XSLT function. To avoid XSLT errors on any possible error responses, it is advisable
+                           to do a conditional check using the <a href="https://www.w3.org/TR/xpath-functions/#func-doc-available" target="_blank"><code>doc-available()</code></a> function before doing the actual <code>document()</code> call.</p>
+                        
+                        <p>For example, instead of hardcoding the title of this document as <samp>Stylesheets</samp>, we can use the following code to load it and output it on the fly:</p>
+                        
+                        <pre>&lt;xsl:value-of select="key('resources', 'https://linkeddatahub.com/linkeddatahub/docs/reference/stylesheet/', document('https://linkeddatahub.com/linkeddatahub/docs/reference/stylesheet/'))"/&gt;</pre>
+                        
+                        <p>In case this document changes its title, all such references would automatically render
+                           the updated title. On the other hand, it incurs the overhead of making an HTTP request.</p>
+                        
+                        <p>LinkedDataHub's default stylesheets are using this feature extensively. In fact, one
+                           HTML page is rendered from a dozen of RDF/XML documents.</p>
+                        
+                        <p>Built-in <a href="../administration/model/built-ins/" target="_blank">model ontologies</a> as well as some other system and well-known ontologies, have a local copy in
+                           each LinkedDataHub instance. As a result, retrieving their descriptions by dereferencing
+                           their URIs using <code>document()</code> does not incur an HTTP request and is much faster. The URI-to-file mapping
+                           is defined as Jena's <a href="https://jena.apache.org/documentation/io/rdf-input.html#configuring-a-locationmapper" target="_blank">location mapping</a> and can be found in
+                           <a href="https://github.com/AtomGraph/LinkedDataHub/blob/master/src/main/resources/location-mapping.n3" target="_blank"><samp>location-mapping.n3</samp></a> and <a href="https://github.com/AtomGraph/LinkedDataHub/blob/master/src/main/resources/prefix-mapping.n3" target="_blank"><samp>prefix-mapping.n3</samp></a>.</p>
+                        
+                        <p>Client-side stylesheets use <a href="https://www.saxonica.com/saxon-js/documentation/index.html#!ixsl-extension/instructions/schedule-action" target="_blank"><code>ixsl:schedule-action</code></a> to load XML documents asynchronously.</p>
+                        </div>
+                     </div>
+                  
+                  <div>
+                     
+                     <h2 id="css">CSS</h2>
+                     
+                     <p><a href="https://getbootstrap.com/2.3.2/" target="_blank">Bootstrap 2.3.2</a> theme is used with some customizations.</p>
+                     
+                     <p>The CSS stylesheets is specified in the <code>xhtml:Style</code> XSLT template mode.</p>
+                     </div>
+                  
+                  <div>
+                     
+                     <h2 id="javascript">JavaScript</h2>
+                     
+                     <p>The JavaScript files are specified in the <code>xhtml:Script</code> XSLT template mode.</p>
+                     
+                     <p>LinkedDataHub only uses JavaScript for the functionality that cannot be achieved using
+                        client-side XSLT.</p>
+                     </div>
+                  </div>
+            </main>
+         </div>
+      </div>
+      <div class="footer container-fluid">
+         <div class="row-fluid">
+            <div class="offset2 span8">
+               <div class="span3">
+                  <h2 class="nav-header">About</h2>
+                  <ul class="nav nav-list">
+                     <li><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/about/" target="_blank">LinkedDataHub</a></li>
+                     <li><a href="https://atomgraph.com" target="_blank">AtomGraph</a></li>
+                  </ul>
+               </div>
+               <div class="span3">
+                  <h2 class="nav-header">Resources</h2>
+                  <ul class="nav nav-list">
+                     <li><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/" target="_blank">Documentation</a></li>
+                     <li><a href="https://www.youtube.com/channel/UCtrdvnVjM99u9hrjESwfCeg" target="_blank">Screencasts</a></li>
+                  </ul>
+               </div>
+               <div class="span3">
+                  <h2 class="nav-header">Support</h2>
+                  <ul class="nav nav-list">
+                     <li><a href="https://groups.io/g/linkeddatahub" target="_blank">Mailing list</a></li>
+                     <li><a href="https://github.com/AtomGraph/LinkedDataHub/issues" target="_blank">Report issues</a></li>
+                     <li><a href="mailto:support@linkeddatahub.com">Contact support</a></li>
+                  </ul>
+               </div>
+               <div class="span3">
+                  <h2 class="nav-header">Follow us</h2>
+                  <ul class="nav nav-list">
+                     <li><a href="https://twitter.com/atomgraphhq" target="_blank">@atomgraphhq</a></li>
+                     <li><a href="https://github.com/AtomGraph" target="_blank">github.com/AtomGraph</a></li>
+                  </ul>
+               </div>
+            </div>
+         </div>
+      </div>
+   </body>
+</html>

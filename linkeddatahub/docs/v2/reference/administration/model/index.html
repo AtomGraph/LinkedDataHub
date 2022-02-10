@@ -1,0 +1,353 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml">
+   <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+      <title>LinkedDataHub - Model</title>
+      <meta name="description" content="Ontology classes, constraints, properties etc."/>
+      <link rel="up" href="../index.html"/>
+      <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/css/bootstrap.css" rel="stylesheet" type="text/css"/>
+      <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/css/bootstrap-responsive.css" rel="stylesheet" type="text/css"/>
+      <style type="text/css">
+                body { padding-top: 60px; }
+                object { width: 100%; min-height: 640px; }
+            </style><script type="text/javascript" src="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/js/jquery.min.js"></script><script type="text/javascript" src="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/js/bootstrap.min.js"></script><script type="text/javascript">
+                $(document).ready(function()
+                {
+
+                    $("ul.nav-tabs a").on("click", function()
+                    {
+                        $(this).closest("ul").children().toggleClass("active", false); // deactivate other tabs
+                        $(this).closest("li").toggleClass("active", true); // activate this tab
+                        $(this).closest("ul").next().children().toggleClass("active", false); // deactivate other tab panes
+                        $(this).closest("ul").next().children().eq($(this).closest("li").index()).toggleClass("active", true); // activate this tab pane
+                    });
+
+                });
+            </script><script async="async" src="https://www.googletagmanager.com/gtag/js?id=UA-38402002-6"></script><script>
+                
+                    window.dataLayer = window.dataLayer || [];
+                    function gtag(){dataLayer.push(arguments);}
+                    gtag('js', new Date());
+
+                    gtag('config', 'UA-38402002-6');
+                
+            </script></head>
+   <body>
+      <div class="navbar navbar-fixed-top">
+         <div class="navbar-inner">
+            <div class="container-fluid"><a class="brand" href="https://atomgraph.github.io/LinkedDataHub/">LinkedDataHub</a><div class="nav-collapse collapse">
+                  <ul class="nav">
+                     <li class="active">
+                        <div class="btn-group"><a class="btn" href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/">Documentation v3</a><button class="btn dropdown-toggle" data-toggle="dropdown"><span class="caret"></span></button><ul class="dropdown-menu"><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/v2/">Documentation v2</a></ul>
+                        </div>
+                     </li>
+                     <li><a href="https://github.com/AtomGraph/LinkedDataHub" target="_blank">Code</a></li>
+                  </ul>
+               </div>
+            </div>
+         </div>
+      </div>
+      <div class="container-fluid">
+         <div class="row-fluid">
+            <nav class="span2">
+               <ul class="nav nav-list">
+                  <li><a href="../../../about/index.html" title="An RDF-native Knowledge Graph notebook">About LinkedDataHub</a></li>
+                  <li><a href="../../../get-started/index.html" title="All the basics of LinkedDataHub. From installation to extending the model and user interface.">Get started</a><ul class="nav nav-list">
+                        <li><a href="../../../get-started/get-an-account/index.html" title="How to get access">Get an account</a></li>
+                        <li><a href="../../../get-started/setup/index.html" title="Setup LinkedDataHub on your local machine or access it in the cloud">Setup</a></li>
+                     </ul>
+                  </li>
+                  <li><a href="../../../linkeddatahub-cloud/index.html" title="LinkedDataHub Cloud is a managed service for LinkedDataHub applications">LinkedDataHub Cloud</a></li>
+                  <li><a href="../../index.html" title="A list of LinkedDataHub's features and their functions, split into general and administration parts">Reference</a><ul class="nav nav-list">
+                        <li><a href="../index.html" title="Access control and domain model management">Administration</a><ul class="nav nav-list">
+                              <li><a href="../acl/index.html" title="Agents, groups, and authorizations">Access control</a></li>
+                              <li class="active"><a href="" title="Ontology classes, constraints, properties etc.">Model</a></li>
+                           </ul>
+                        </li>
+                        <li><a href="../../command-line-interface/index.html" title="CLI scripts can be used perform all actions available in the UI">Command line interface</a></li>
+                        <li><a href="../../contents/index.html" title="Content blocks and the basic data content actions">Content management</a></li>
+                        <li><a href="../../dataset-structure/index.html" title="The default RDF dataset structure used by LinkedDataHub">Dataset structure</a></li>
+                        <li><a href="../../dataspace/index.html" title="LinkedDataHub dataspaces, applications, and services">Dataspace</a></li>
+                        <li><a href="../../documents/index.html" title="Document hierarchy and the basic data management actions">Document management</a></li>
+                        <li><a href="../../http-api/index.html" title="Learn how to access and manage RDF data over generic HTTP API">HTTP API</a></li>
+                        <li><a href="../../imports/index.html" title="Types of data imports supported by LinkedDataHub">Imports</a><ul class="nav nav-list">
+                              <li><a href="../../imports/csv/index.html" title="CSV imports and mapping to RDF using SPARQL CONSTRUCT">CSV imports</a></li>
+                              <li><a href="../../imports/rdf/index.html" title="RDF imports and transforming RDF using SPARQL CONSTRUCT">RDF imports</a></li>
+                           </ul>
+                        </li>
+                        <li><a href="../../stylesheets/index.html" title="Built-in XSLT and CSS stylesheets">Stylesheets</a></li>
+                        <li><a href="../../user-interface/index.html" title="A walk through the main features of application user interface">User interface</a></li>
+                     </ul>
+                  </li>
+                  <li><a href="../../../user-guide/index.html" title="Step-by-step tutorials for everyday tasks with LinkedDataHub">User guide</a><ul class="nav nav-list">
+                        <li><a href="../../../user-guide/add-data/index.html" title="Fork RDF data from Linked Data resources and SPARQL results">Add data</a></li>
+                        <li><a href="../../../user-guide/browse-data/index.html" title="Use LinkedDataHub's built-in Linked Data browser to explore remote datasources">Browse data</a></li>
+                        <li><a href="../../../user-guide/change-layout/index.html" title="How to customize the layout of an application and the UI of the resources">Change layout</a></li>
+                        <li><a href="../../../user-guide/change-model/index.html" title="Change the model: create constructors, classes, and constraints">Change the model</a></li>
+                        <li><a href="../../../user-guide/change-system-base-uri/index.html" title="How to change host, port, or the path LinkedDataHub service runs on">Change system base URI</a></li>
+                        <li><a href="../../../user-guide/create-content/index.html" title="Learn how to create data-driven content">Create content</a></li>
+                        <li><a href="../../../user-guide/create-document/index.html" title="Learn how to create container and item documents">Create document</a></li>
+                        <li><a href="../../../user-guide/import-data/index.html" title="How to import data into LinkedDataHub">Import data</a><ul class="nav nav-list">
+                              <li><a href="../../../user-guide/import-data/import-csv-data/index.html" title="Step by step guide to converting CSV data to RDF and importing into end-user application">Import CSV data</a></li>
+                              <li><a href="../../../user-guide/import-data/import-rdf-data/index.html" title="Step by step guide to importing RDF data">Import RDF data</a></li>
+                           </ul>
+                        </li>
+                        <li><a href="../../../user-guide/manage-dataspaces/index.html" title="Create or change a dataspace, configure SPARQL services and XSLT stylesheets">Manage dataspaces</a></li>
+                        <li><a href="../../../user-guide/query-data/index.html" title="Learn how to query application data with SPARQL, store queries and charts">Query data</a></li>
+                        <li><a href="../../../user-guide/search-data/index.html" title="Search for resources using text keywords">Search data</a></li>
+                        <li><a href="../../../user-guide/upload-file/index.html" title="Learn how to upload files to LinkedDataHub">Upload file</a></li>
+                     </ul>
+                  </li>
+               </ul>
+            </nav>
+            <main class="span7">
+               <header>
+                  <h1>Model</h1>
+               </header>
+               <nav></nav>
+               <div>
+                  
+                  <div>
+                     
+                     <h2 id="ontologies">Ontologies</h2>
+                     
+                     <p>Ontologies are sets of domain concepts. The domain can span both documents (information
+                        resources) and abstract/physical things
+                        (non-information resources).</p>
+                     
+                     <p>Ontologies can <a href="https://www.w3.org/TR/owl2-primer/#Ontology_Management" target="_blank">import other ontologies</a>, both user-defined
+                        and system ones provided by LinkedDataHub. The imports are retrieved during application
+                        initialization, and the ontology
+                        becomes a transitive union, i.e. is merged with its imports and imports of the imports
+                        etc.</p>
+                     
+                     <p>Main ontology properties:</p>
+                     
+                     <dl>
+                        
+                        <dt>Imports</dt>
+                        
+                        <dd>Ontology to be imported</dd>
+                        
+                        <dt>Version</dt>
+                        
+                        <dd>Unique version of this ontology</dd>
+                        </dl>
+                     
+                     <div>
+                        
+                        <h3>System ontologies</h3>
+                        
+                        <table class="table">
+                           
+                           <caption>Domain ontologies</caption>
+                           
+                           <thead>
+                              
+                              <tr>
+                                 
+                                 <th>Ontology</th>
+                                 
+                                 <th>Title</th>
+                                 
+                                 <th>Prefix</th>
+                                 </tr>
+                              </thead>
+                           
+                           <tbody>
+                              
+                              <tr>
+                                 
+                                 <td><a href="https://w3id.org/atomgraph/linkeddatahub" id="ldh-ont"><code>https://w3id.org/atomgraph/linkeddatahub#</code></a></td>
+                                 
+                                 <td>LinkedDataHub</td>
+                                 
+                                 <td><code>ldh:</code></td>
+                                 </tr>
+                              
+                              <tr>
+                                 
+                                 <td><a href="https://w3id.org/atomgraph/linkeddatahub/default" id="def-ont"><code>https://w3id.org/atomgraph/linkeddatahub/default#</code></a></td>
+                                 
+                                 <td>Default</td>
+                                 
+                                 <td><code>def:</code></td>
+                                 </tr>
+                              
+                              <tr>
+                                 
+                                 <td><a href="https://www.w3.org/ns/ldt/document-hierarchy" id="dh-ont" target="_blank"><code>https://www.w3.org/ns/ldt/document-hierarchy#</code></a></td>
+                                 
+                                 <td>Document hierarchy</td>
+                                 
+                                 <td><code>dh:</code></td>
+                                 </tr>
+                              
+                              <tr>
+                                 
+                                 <td><a href="https://w3id.org/atomgraph/linkeddatahub/apps" id="lapp-ont" target="_blank"><code>https://w3id.org/atomgraph/linkeddatahub/apps#</code></a></td>
+                                 
+                                 <td>Applications</td>
+                                 
+                                 <td><code>lapp:</code></td>
+                                 </tr>
+                              
+                              <tr>
+                                 
+                                 <td><a href="https://w3id.org/atomgraph/linkeddatahub/acl" id="lapp-ont" target="_blank"><code>https://w3id.org/atomgraph/linkeddatahub/acl#</code></a></td>
+                                 
+                                 <td>Access control</td>
+                                 
+                                 <td><code>lacl:</code></td>
+                                 </tr>
+                              </tbody>
+                           </table>
+                        </div>
+                     </div>
+                  
+                  <div>
+                     
+                     <h2 id="classes">Classes</h2>
+                     
+                     <p>Classes are simply RDFS classes. Usually the <a href="../../dataset-structure/" target="_blank">application dataset</a> contains class instances.</p>
+                     
+                     <p>Main class properties such as constructor and constraint are explained in the sub-sections
+                        below. Additional properties are:</p>
+                     
+                     <dl>
+                        
+                        <dt><a href="#constructors">Constructor</a></dt>
+                        
+                        <dd>Query that constructs new class instance</dd>
+                        
+                        <dt><a href="#constraints">Constraints</a></dt>
+                        
+                        <dd>Command or command template that validates class instance</dd>
+                        
+                        <dt>Path template</dt>
+                        
+                        <dd>Template of the URI that will be generated for a new instance of this class by means
+                           of skolemization. It reuses the JAX-RS URI template
+                           syntax but extends it in several ways.<br/>
+                           If the template starts with a leading <code>/</code>, it is treated as absolute path (relative to the base URI), otherwise as path segment
+                           (relative to the request absolute path, e.g. to the URI of the container under which
+                           the instance resource is stored).<br/>
+                           Template variables are set automatically from resource property values. A simple path
+                           syntax to navigate between connected resources and
+                           their properties: resources are separated by <code>.</code> and only the local names of properties are used.</dd>
+                        
+                        <dd>For example, consider that you are creating an instance of <code>:Person</code> class under <code>https://linkeddatahub.com/people/</code>,
+                           and you want the instance URI to be generated from its <code>foaf:familyName</code> value (lets suppose it is <code>"Berners-Lee"</code>).
+                           In that case you should define a path segment template <code>{familyName}/</code>, and the instance URI will be skolemized as
+                           <code>https://linkeddatahub.com/people/Berners-Lee/</code>.</dd>
+                        
+                        <dd>If, on the other hand, you want the instance to use the title of the document it is
+                           topic of, then you should define the segment
+                           template as <code>{isPrimaryTopicOf.title}</code>.</dd>
+                        
+                        <dt id="fragment">Fragment template</dt>
+                        
+                        <dd>Similarly to the segment template, this template defines the fragment part of URI
+                           for new instances of this class. It is useful for
+                           distinguishing information resources (documents) from non-information resources which
+                           have
+                           <a href="https://www.w3.org/TR/cooluris/#hashuri" target="_blank">hash URIs</a>.</dd>
+                        
+                        <dd>Continuing the example from above, fragment template <code>this</code> defined on the <code>:Person</code> class would generate
+                           <code>https://linkeddatahub.com/people/Berners-Lee/#this</code> as instance URI.</dd>
+                        </dl>
+                     
+                     <div>
+                        
+                        <h3 id="constructors">Constructors</h3>
+                        
+                        <p>Constructors are SPARQL <code>CONSTRUCT</code> queries that serve as templates for class instances.
+                           They specify the properties (both mandatory and optional) that the instance is supposed
+                           to have, as well as expected datatypes of their
+                           values. Constructors are used in create/edit modes. A class can have multiple constructors.</p>
+                        
+                        <p>For example, one of the constructors of the <code>dh:Container</code> and <code>dh:Item</code> <a href="#classes">classes</a>:</p>
+                        
+                        <pre><code>PREFIX rdf:     &lt;http://www.w3.org/1999/02/22-rdf-syntax-ns#&gt;
+PREFIX xsd:     &lt;http://www.w3.org/2001/XMLSchema#&gt;
+PREFIX sioc:    &lt;http://rdfs.org/sioc/ns#&gt;
+PREFIX dct:     &lt;http://purl.org/dc/terms/&gt;
+
+CONSTRUCT {
+  ?this sioc:content "&lt;div xmlns=\"http://www.w3.org/1999/xhtml\"&gt;&lt;/div&gt;"^^rdf:XMLLiteral .
+}
+WHERE {}</code></pre>
+                        
+                        <p>An instance of these classes by default have a content property with XML literal.</p>
+                        
+                        <p>LinkedDataHub reuses <a href="http://spinrdf.org/spin.html#spin-constructors" target="_blank">SPIN constructors</a> for the implementation, but adds a
+                           special syntax convention using blank nodes to indicate the expected resource type
+                           (<code>[ a ex:Person ]</code>) or literal datatype
+                           (<code>[ a xsd:string ]</code>).</p>
+                        
+                        <p>Note that classes inherit constructors from superclasses in runtime. Subclasses do
+                           not have to redefine constructor properties already found
+                           in superclass constructors, only additional properties.</p>
+                        </div>
+                     
+                     <div>
+                        
+                        <h3 id="constraints">Constraints</h3>
+                        
+                        <p>Constraints are SPARQL queries or <a href="https://spinrdf.org/spin.html#spin-templates" target="_blank">SPIN command templates</a> that validate submitted
+                           RDF data during document creation and editing. Constraints are enforced for instances
+                           of model classes on which they are defined and are
+                           used to check class instances for violations (missing mandatory properties, malformed
+                           values etc.). For example, an instance of
+                           <code>dh:Item</code> without <code>dct:title</code> will fail validation because titles are mandatory for LinkedDataHub documents.</p>
+                        
+                        <p>LinkedDataHub reuses <a href="http://spinrdf.org/spin.html#spin-constraints" target="_blank">SPIN constraints</a>. Classes inherit constraints from superclasses.</p>
+                        </div>
+                     </div>
+                  
+                  <div>
+                     
+                     <h2 id="properties">Properties</h2>
+                     
+                     <p>LinkedDataHub allows definition of new properties.</p>
+                     </div>
+                  </div>
+            </main>
+         </div>
+      </div>
+      <div class="footer container-fluid">
+         <div class="row-fluid">
+            <div class="offset2 span8">
+               <div class="span3">
+                  <h2 class="nav-header">About</h2>
+                  <ul class="nav nav-list">
+                     <li><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/about/" target="_blank">LinkedDataHub</a></li>
+                     <li><a href="https://atomgraph.com" target="_blank">AtomGraph</a></li>
+                  </ul>
+               </div>
+               <div class="span3">
+                  <h2 class="nav-header">Resources</h2>
+                  <ul class="nav nav-list">
+                     <li><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/" target="_blank">Documentation</a></li>
+                     <li><a href="https://www.youtube.com/channel/UCtrdvnVjM99u9hrjESwfCeg" target="_blank">Screencasts</a></li>
+                  </ul>
+               </div>
+               <div class="span3">
+                  <h2 class="nav-header">Support</h2>
+                  <ul class="nav nav-list">
+                     <li><a href="https://groups.io/g/linkeddatahub" target="_blank">Mailing list</a></li>
+                     <li><a href="https://github.com/AtomGraph/LinkedDataHub/issues" target="_blank">Report issues</a></li>
+                     <li><a href="mailto:support@linkeddatahub.com">Contact support</a></li>
+                  </ul>
+               </div>
+               <div class="span3">
+                  <h2 class="nav-header">Follow us</h2>
+                  <ul class="nav nav-list">
+                     <li><a href="https://twitter.com/atomgraphhq" target="_blank">@atomgraphhq</a></li>
+                     <li><a href="https://github.com/AtomGraph" target="_blank">github.com/AtomGraph</a></li>
+                  </ul>
+               </div>
+            </div>
+         </div>
+      </div>
+   </body>
+</html>

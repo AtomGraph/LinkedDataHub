@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml">
+   <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+      <title>LinkedDataHub - Manage dataspaces</title>
+      <meta name="description" content="Create or change a dataspace, configure SPARQL services and XSLT stylesheets"/>
+      <link rel="up" href="../index.html"/>
+      <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/css/bootstrap.css" rel="stylesheet" type="text/css"/>
+      <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/css/bootstrap-responsive.css" rel="stylesheet" type="text/css"/>
+      <style type="text/css">
+                body { padding-top: 60px; }
+                object { width: 100%; min-height: 640px; }
+            </style><script type="text/javascript" src="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/js/jquery.min.js"></script><script type="text/javascript" src="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/js/bootstrap.min.js"></script><script type="text/javascript">
+                $(document).ready(function()
+                {
+
+                    $("ul.nav-tabs a").on("click", function()
+                    {
+                        $(this).closest("ul").children().toggleClass("active", false); // deactivate other tabs
+                        $(this).closest("li").toggleClass("active", true); // activate this tab
+                        $(this).closest("ul").next().children().toggleClass("active", false); // deactivate other tab panes
+                        $(this).closest("ul").next().children().eq($(this).closest("li").index()).toggleClass("active", true); // activate this tab pane
+                    });
+
+                });
+            </script><script async="async" src="https://www.googletagmanager.com/gtag/js?id=UA-38402002-6"></script><script>
+                
+                    window.dataLayer = window.dataLayer || [];
+                    function gtag(){dataLayer.push(arguments);}
+                    gtag('js', new Date());
+
+                    gtag('config', 'UA-38402002-6');
+                
+            </script></head>
+   <body>
+      <div class="navbar navbar-fixed-top">
+         <div class="navbar-inner">
+            <div class="container-fluid"><a class="brand" href="https://atomgraph.github.io/LinkedDataHub/">LinkedDataHub</a><div class="nav-collapse collapse">
+                  <ul class="nav">
+                     <li class="active">
+                        <div class="btn-group"><a class="btn" href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/">Documentation v3</a><button class="btn dropdown-toggle" data-toggle="dropdown"><span class="caret"></span></button><ul class="dropdown-menu"><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/v2/">Documentation v2</a></ul>
+                        </div>
+                     </li>
+                     <li><a href="https://github.com/AtomGraph/LinkedDataHub" target="_blank">Code</a></li>
+                  </ul>
+               </div>
+            </div>
+         </div>
+      </div>
+      <div class="container-fluid">
+         <div class="row-fluid">
+            <nav class="span2">
+               <ul class="nav nav-list">
+                  <li><a href="../../about/index.html" title="An RDF-native Knowledge Graph notebook">About LinkedDataHub</a></li>
+                  <li><a href="../../get-started/index.html" title="All the basics of LinkedDataHub. From installation to extending the model and user interface.">Get started</a><ul class="nav nav-list">
+                        <li><a href="../../get-started/get-an-account/index.html" title="How to get access">Get an account</a></li>
+                        <li><a href="../../get-started/setup/index.html" title="Setup LinkedDataHub on your local machine or access it in the cloud">Setup</a></li>
+                     </ul>
+                  </li>
+                  <li><a href="../../linkeddatahub-cloud/index.html" title="LinkedDataHub Cloud is a managed service for LinkedDataHub applications">LinkedDataHub Cloud</a></li>
+                  <li><a href="../../reference/index.html" title="A list of LinkedDataHub's features and their functions, split into general and administration parts">Reference</a><ul class="nav nav-list">
+                        <li><a href="../../reference/administration/index.html" title="Access control and domain model management">Administration</a><ul class="nav nav-list">
+                              <li><a href="../../reference/administration/acl/index.html" title="Agents, groups, and authorizations">Access control</a></li>
+                              <li><a href="../../reference/administration/model/index.html" title="Ontology classes, constraints, properties etc.">Model</a></li>
+                           </ul>
+                        </li>
+                        <li><a href="../../reference/command-line-interface/index.html" title="CLI scripts can be used perform all actions available in the UI">Command line interface</a></li>
+                        <li><a href="../../reference/contents/index.html" title="Content blocks and the basic data content actions">Content management</a></li>
+                        <li><a href="../../reference/dataset-structure/index.html" title="The default RDF dataset structure used by LinkedDataHub">Dataset structure</a></li>
+                        <li><a href="../../reference/dataspace/index.html" title="LinkedDataHub dataspaces, applications, and services">Dataspace</a></li>
+                        <li><a href="../../reference/documents/index.html" title="Document hierarchy and the basic data management actions">Document management</a></li>
+                        <li><a href="../../reference/http-api/index.html" title="Learn how to access and manage RDF data over generic HTTP API">HTTP API</a></li>
+                        <li><a href="../../reference/imports/index.html" title="Types of data imports supported by LinkedDataHub">Imports</a><ul class="nav nav-list">
+                              <li><a href="../../reference/imports/csv/index.html" title="CSV imports and mapping to RDF using SPARQL CONSTRUCT">CSV imports</a></li>
+                              <li><a href="../../reference/imports/rdf/index.html" title="RDF imports and transforming RDF using SPARQL CONSTRUCT">RDF imports</a></li>
+                           </ul>
+                        </li>
+                        <li><a href="../../reference/stylesheets/index.html" title="Built-in XSLT and CSS stylesheets">Stylesheets</a></li>
+                        <li><a href="../../reference/user-interface/index.html" title="A walk through the main features of application user interface">User interface</a></li>
+                     </ul>
+                  </li>
+                  <li><a href="../index.html" title="Step-by-step tutorials for everyday tasks with LinkedDataHub">User guide</a><ul class="nav nav-list">
+                        <li><a href="../add-data/index.html" title="Fork RDF data from Linked Data resources and SPARQL results">Add data</a></li>
+                        <li><a href="../browse-data/index.html" title="Use LinkedDataHub's built-in Linked Data browser to explore remote datasources">Browse data</a></li>
+                        <li><a href="../change-layout/index.html" title="How to customize the layout of an application and the UI of the resources">Change layout</a></li>
+                        <li><a href="../change-model/index.html" title="Change the model: create constructors, classes, and constraints">Change the model</a></li>
+                        <li><a href="../change-system-base-uri/index.html" title="How to change host, port, or the path LinkedDataHub service runs on">Change system base URI</a></li>
+                        <li><a href="../create-content/index.html" title="Learn how to create data-driven content">Create content</a></li>
+                        <li><a href="../create-document/index.html" title="Learn how to create container and item documents">Create document</a></li>
+                        <li><a href="../import-data/index.html" title="How to import data into LinkedDataHub">Import data</a><ul class="nav nav-list">
+                              <li><a href="../import-data/import-csv-data/index.html" title="Step by step guide to converting CSV data to RDF and importing into end-user application">Import CSV data</a></li>
+                              <li><a href="../import-data/import-rdf-data/index.html" title="Step by step guide to importing RDF data">Import RDF data</a></li>
+                           </ul>
+                        </li>
+                        <li class="active"><a href="" title="Create or change a dataspace, configure SPARQL services and XSLT stylesheets">Manage dataspaces</a></li>
+                        <li><a href="../query-data/index.html" title="Learn how to query application data with SPARQL, store queries and charts">Query data</a></li>
+                        <li><a href="../search-data/index.html" title="Search for resources using text keywords">Search data</a></li>
+                        <li><a href="../upload-file/index.html" title="Learn how to upload files to LinkedDataHub">Upload file</a></li>
+                     </ul>
+                  </li>
+               </ul>
+            </nav>
+            <main class="span7">
+               <header>
+                  <h1>Manage dataspaces</h1>
+                  <p class="lead">Step by step guide to creating a new dataspace backed by SPARQL services</p>
+               </header>
+               <nav></nav>
+               <div>
+                  
+                  
+                  <div>
+                     
+                     <h2 id="dataspaces">Manage dataspaces</h2>
+                     
+                     <p><a href="../../reference/dataspace/" target="_blank">Dataspaces</a> are configured in <a href="https://github.com/AtomGraph/LinkedDataHub/blob/master/config/system.trig" target="_blank"><samp>config/system.trig</samp></a>. <a href="https://www.w3.org/TR/trig/" target="_blank">TriG</a> RDF syntax is used.</p>
+                     
+                     <p>The configuration uses the <a href="https://w3id.org/atomgraph/linkeddatahub/apps" target="_blank">Application domain ontology</a>. A dataspace is comprised of an end-user
+                        application and an administrative application, both of them are backed by each own
+                        SPARQL service. Each application can also specify its own <a href="../../reference/stylesheets/" target="_blank">XSLT stylesheet</a>.</p>
+                     
+                     <div class="alert alert-info">
+                        
+                        <p>Application base URIs need to be relative to the <a href="../change-system-base-uri/#base-uri" target="_blank">system base URI</a> configured in the <samp>.env</samp> file. A change of system base URI currently requires a change of application base
+                           URIs, otherwise they will not be reachable.</p>
+                        </div>
+                     
+                     <div>
+                        
+                        <h3 id="change-base-uri">Change base URI(s)</h3>
+                        
+                        <p>Lets say we want to use <samp>https://ec2-54-235-229-141.compute-1.amazonaws.com/linkeddatahub/</samp> as the new base URI of our dataspaces. The easiest way is to simple replace occurences
+                           of the default <samp>https://localhost:4443/</samp> base URI with the new value. It can be done using the following shell command:</p>
+                        
+                        <pre>sed -i 's/https:\/\/localhost:4443\//https:\/\/ec2-54-235-229-141.compute-1.amazonaws.com\/linkeddatahub\//g' config/system.trig</pre>
+                        
+                        <p>Note that <samp>sed</samp> requires to escape forward slashes <samp>/</samp> with backslashes <samp>\</samp>.</p>
+                        </div>
+                     
+                     <div>
+                        
+                        <h3 id="create-dataspace">Create a dataspace</h3>
+                        
+                        <p>Add instances of <code>lapp:EndUserApplication</code>, <code>lapp:AdminApplication</code> and their corresponding <code>ldh:GenericService</code>s following the default dataspace in <samp>config/system.trig</samp>.</p>
+                        
+                        <div class="alert alert-info">
+                           
+                           <p>Make sure the file's syntax is valid <a href="https://www.w3.org/TR/turtle/" target="_blank">Turtle</a>, otherwise the setup will not work. You can use <a href="http://ttl.summerofcode.be/" target="_blank">Turtle Validator</a> to check the syntax.</p>
+                           </div>
+                        </div>
+                     
+                     <div>
+                        
+                        <h3 id="change-stylesheet">Change stylesheet</h3>
+                        
+                        <p>Change the value of <code>ac:stylesheet</code> to the URI of your <a href="../../reference/stylesheets/" target="_blank">XSLT stylesheet</a>. Add the property if it is absent.</p>
+                        
+                        <p>The stylesheet can either be <a href="../upload-file/" target="_blank">uploaded as a file</a> or <a href="https://docs.docker.com/storage/bind-mounts/" target="_blank">mounted</a> in <samp>docker-compose.yml</samp>, in the <samp>volumes</samp> section of the <samp>linkeddatahub</samp> service. Mounting is useful when developing, however if you want to make
+                           sure your dataspace is compatible with <a href="../../linkeddatahub-cloud/" target="_blank">LinkedDataHub Cloud</a>, you should use file uploads as there is no way to mount local
+                           files on to LinkedDataHub Cloud.</p>
+                        
+                        <p>You will need to restart LinkedDataHub's Docker service for the new stylesheet to
+                           take effect.</p>
+                        
+                        <p>It is rarely necessary to change the stylesheet of an admin application.</p>
+                        </div>
+                     </div>
+                  <div>
+                     
+                     <h2 id="manage-services">Manage services</h2>
+                     
+                     <p>LinkedDataHub service as well as the default SPARQL services <samp>fuseki-end-user</samp> and <samp>fuseki-admin</samp> are defined in <a href="https://github.com/AtomGraph/LinkedDataHub/blob/master/docker-compose.yml" target="_blank"><samp>docker-compose.yml</samp></a> and run as Docker containers.</p>
+                     </div>
+                  </div>
+            </main>
+         </div>
+      </div>
+      <div class="footer container-fluid">
+         <div class="row-fluid">
+            <div class="offset2 span8">
+               <div class="span3">
+                  <h2 class="nav-header">About</h2>
+                  <ul class="nav nav-list">
+                     <li><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/about/" target="_blank">LinkedDataHub</a></li>
+                     <li><a href="https://atomgraph.com" target="_blank">AtomGraph</a></li>
+                  </ul>
+               </div>
+               <div class="span3">
+                  <h2 class="nav-header">Resources</h2>
+                  <ul class="nav nav-list">
+                     <li><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/" target="_blank">Documentation</a></li>
+                     <li><a href="https://www.youtube.com/channel/UCtrdvnVjM99u9hrjESwfCeg" target="_blank">Screencasts</a></li>
+                  </ul>
+               </div>
+               <div class="span3">
+                  <h2 class="nav-header">Support</h2>
+                  <ul class="nav nav-list">
+                     <li><a href="https://groups.io/g/linkeddatahub" target="_blank">Mailing list</a></li>
+                     <li><a href="https://github.com/AtomGraph/LinkedDataHub/issues" target="_blank">Report issues</a></li>
+                     <li><a href="mailto:support@linkeddatahub.com">Contact support</a></li>
+                  </ul>
+               </div>
+               <div class="span3">
+                  <h2 class="nav-header">Follow us</h2>
+                  <ul class="nav nav-list">
+                     <li><a href="https://twitter.com/atomgraphhq" target="_blank">@atomgraphhq</a></li>
+                     <li><a href="https://github.com/AtomGraph" target="_blank">github.com/AtomGraph</a></li>
+                  </ul>
+               </div>
+            </div>
+         </div>
+      </div>
+   </body>
+</html>
