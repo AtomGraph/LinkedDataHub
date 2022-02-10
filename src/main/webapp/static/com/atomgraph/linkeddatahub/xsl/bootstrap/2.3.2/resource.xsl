@@ -841,8 +841,8 @@ extension-element-prefixes="ixsl"
     <!-- hide constraint violations and HTTP responses in the form - they are displayed as errors on the edited resources -->
     <xsl:template match="*[rdf:type/@rdf:resource = '&spin;ConstraintViolation'] | *[rdf:type/@rdf:resource = '&http;Response']" mode="bs2:ModalForm" priority="3"/>
 
-    <!-- hide object blank nodes that only have a single rdf:type property from constructed models -->
-    <xsl:template match="*[@rdf:nodeID][$ac:forClass][not(* except rdf:type)]" mode="bs2:ModalForm" priority="2" use-when="system-property('xsl:product-name') = 'SAXON'"/>
+    <!-- hide object blank nodes that only have a single rdf:type property from constructed models, unless the type is owl:NamedIndividual -->
+    <xsl:template match="*[@rdf:nodeID][$ac:forClass][$ac:method = 'GET'][not(rdf:type/@rdf:resource = '&owl;NamedIndividual')][not(* except rdf:type)]" mode="bs2:ModalForm" priority="2" use-when="system-property('xsl:product-name') = 'SAXON'"/>
 
     <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:ModalForm">
         <xsl:apply-templates select="." mode="bs2:Form"/>
@@ -853,7 +853,7 @@ extension-element-prefixes="ixsl"
     <!-- hide constraint violations and HTTP responses in the form - they are displayed as errors on the edited resources -->
     <xsl:template match="*[rdf:type/@rdf:resource = '&spin;ConstraintViolation'] | *[rdf:type/@rdf:resource = '&http;Response']" mode="bs2:RowForm" priority="3"/>
 
-    <!-- hide object blank nodes that only have a single rdf:type property from constructed models, unless the type is rdfs:Resource -->
+    <!-- hide object blank nodes that only have a single rdf:type property from constructed models, unless the type is owl:NamedIndividual -->
     <xsl:template match="*[@rdf:nodeID][$ac:forClass][$ac:method = 'GET'][not(rdf:type/@rdf:resource = '&owl;NamedIndividual')][not(* except rdf:type)]" mode="bs2:RowForm" priority="2" use-when="system-property('xsl:product-name') = 'SAXON'"/>
         
     <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:RowForm">
