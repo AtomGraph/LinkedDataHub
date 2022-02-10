@@ -36,7 +36,10 @@
          <div class="navbar-inner">
             <div class="container-fluid"><a class="brand" href="https://atomgraph.github.io/LinkedDataHub/">LinkedDataHub</a><div class="nav-collapse collapse">
                   <ul class="nav">
-                     <li class="active"><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/">Documentation</a></li>
+                     <li class="active">
+                        <div class="btn-group"><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/">Documentation</a><button class="btn dropdown-toggle" data-toggle="dropdown"><span class="caret"></span></button><ul class="dropdown-menu"><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/v2/">2.x documentation</a></ul>
+                        </div>
+                     </li>
                      <li><a href="https://github.com/AtomGraph/LinkedDataHub" target="_blank">Code</a></li>
                   </ul>
                </div>
@@ -47,27 +50,24 @@
          <div class="row-fluid">
             <nav class="span2">
                <ul class="nav nav-list">
-                  <li><a href="../../../../about/index.html" title="A UI-based cloud platform for data integration, management, and application building">About LinkedDataHub</a></li>
+                  <li><a href="../../../../about/index.html" title="An RDF-native Knowledge Graph notebook">About LinkedDataHub</a></li>
                   <li><a href="../../../../get-started/index.html" title="All the basics of LinkedDataHub. From installation to extending the model and user interface.">Get started</a><ul class="nav nav-list">
                         <li><a href="../../../../get-started/get-an-account/index.html" title="How to get access">Get an account</a></li>
                         <li><a href="../../../../get-started/setup/index.html" title="Setup LinkedDataHub on your local machine or access it in the cloud">Setup</a></li>
                      </ul>
                   </li>
+                  <li><a href="../../../../linkeddatahub-cloud/index.html" title="LinkedDataHub Cloud is a managed service for LinkedDataHub applications">LinkedDataHub Cloud</a></li>
                   <li><a href="../../../index.html" title="A list of LinkedDataHub's features and their functions, split into general and administration parts">Reference</a><ul class="nav nav-list">
-                        <li><a href="../../index.html" title="Access control, domain model, and sitemap management">Administration</a><ul class="nav nav-list">
+                        <li><a href="../../index.html" title="Access control and domain model management">Administration</a><ul class="nav nav-list">
                               <li><a href="../../acl/index.html" title="Agents, groups, and authorizations">Access control</a></li>
                               <li><a href="../index.html" title="Ontology classes, constraints, properties etc.">Model</a><ul class="nav nav-list">
                                     <li class="active"><a href="" title="Classes, constraints, properties available to all LinkedDataHub apps">Built-in model terms</a></li>
                                  </ul>
                               </li>
-                              <li><a href="../../sitemap/index.html" title="Linked Data templates, queries, parameters etc.">Sitemap</a><ul class="nav nav-list">
-                                    <li><a href="../../sitemap/built-ins/index.html" title="Learn to create and manage Linked Data templates, queries, parameters etc.">Built-in sitemap terms</a></li>
-                                    <li><a href="../../sitemap/ldt-templates/index.html" title="Learn how to use Linked Data Templates">LDT templates</a></li>
-                                 </ul>
-                              </li>
                            </ul>
                         </li>
                         <li><a href="../../../command-line-interface/index.html" title="CLI scripts can be used perform all actions available in the UI">Command line interface</a></li>
+                        <li><a href="../../../contents/index.html" title="Content blocks and the basic data content actions">Content management</a></li>
                         <li><a href="../../../dataset-structure/index.html" title="The default RDF dataset structure used by LinkedDataHub">Dataset structure</a></li>
                         <li><a href="../../../dataspace/index.html" title="LinkedDataHub dataspaces, applications, and services">Dataspace</a></li>
                         <li><a href="../../../documents/index.html" title="Document hierarchy and the basic data management actions">Document management</a></li>
@@ -82,14 +82,12 @@
                      </ul>
                   </li>
                   <li><a href="../../../../user-guide/index.html" title="Step-by-step tutorials for everyday tasks with LinkedDataHub">User guide</a><ul class="nav nav-list">
-                        <li><a href="../../../../user-guide/administration/index.html" title="Tutorials that apply to the administration application and require owner access to the dataspace">Administration</a><ul class="nav nav-list">
-                              <li><a href="../../../../user-guide/administration/change-model/index.html" title="Change the model: create constructors, classes, and restrictions">Change the model</a></li>
-                              <li><a href="../../../../user-guide/administration/change-sitemap/index.html" title="Change the sitemap: create queries and LDT templates">Change the sitemap</a></li>
-                           </ul>
-                        </li>
+                        <li><a href="../../../../user-guide/add-data/index.html" title="Fork RDF data from Linked Data resources and SPARQL results">Add data</a></li>
                         <li><a href="../../../../user-guide/browse-data/index.html" title="Use LinkedDataHub's built-in Linked Data browser to explore remote datasources">Browse data</a></li>
                         <li><a href="../../../../user-guide/change-layout/index.html" title="How to customize the layout of an application and the UI of the resources">Change layout</a></li>
+                        <li><a href="../../../../user-guide/change-model/index.html" title="Change the model: create constructors, classes, and constraints">Change the model</a></li>
                         <li><a href="../../../../user-guide/change-system-base-uri/index.html" title="How to change host, port, or the path LinkedDataHub service runs on">Change system base URI</a></li>
+                        <li><a href="../../../../user-guide/create-content/index.html" title="Learn how to create data-driven content">Create content</a></li>
                         <li><a href="../../../../user-guide/create-document/index.html" title="Learn how to create container and item documents">Create document</a></li>
                         <li><a href="../../../../user-guide/import-data/index.html" title="How to import data into LinkedDataHub">Import data</a><ul class="nav nav-list">
                               <li><a href="../../../../user-guide/import-data/import-csv-data/index.html" title="Step by step guide to converting CSV data to RDF and importing into end-user application">Import CSV data</a></li>
@@ -97,7 +95,7 @@
                            </ul>
                         </li>
                         <li><a href="../../../../user-guide/manage-dataspaces/index.html" title="Create or change a dataspace, configure SPARQL services and XSLT stylesheets">Manage dataspaces</a></li>
-                        <li><a href="../../../../user-guide/query-data/index.html" title="Learn how to query application data with SPARQL and store queries">Query data</a></li>
+                        <li><a href="../../../../user-guide/query-data/index.html" title="Learn how to query application data with SPARQL, store queries and charts">Query data</a></li>
                         <li><a href="../../../../user-guide/search-data/index.html" title="Search for resources using text keywords">Search data</a></li>
                         <li><a href="../../../../user-guide/upload-file/index.html" title="Learn how to upload files to LinkedDataHub">Upload file</a></li>
                      </ul>
@@ -146,9 +144,9 @@
                            
                            <tr>
                               
-                              <td rowspan="14"><a href="../#apl-ont"><code>apl:</code></a></td>
+                              <td rowspan="14"><a href="../#apl-ont"><code>ldh:</code></a></td>
                               
-                              <td><code>apl:Dataset</code></td>
+                              <td><code>ldh:Dataset</code></td>
                               
                               <td><code>void:Dataset</code>,<code>sd:Graph</code></td>
                               
@@ -163,7 +161,7 @@
                            
                            <tr>
                               
-                              <td><code>apl:NamedGraph</code></td>
+                              <td><code>ldh:NamedGraph</code></td>
                               
                               <td><code>sd:NamedGraph</code></td>
                               
@@ -178,7 +176,7 @@
                            
                            <tr>
                               
-                              <td><code>apl:Construct</code></td>
+                              <td><code>ldh:Construct</code></td>
                               
                               <td><code>ldt:Query</code>,<code>sp:Construct</code></td>
                               
@@ -186,14 +184,14 @@
                               
                               <td><code>this</code></td>
                               
-                              <td><code>apl:QueryConstructor</code></td>
+                              <td><code>ldh:QueryConstructor</code></td>
                               
                               <td><code>sp:text</code></td>
                               </tr>
                            
                            <tr>
                               
-                              <td><code>apl:File</code></td>
+                              <td><code>ldh:File</code></td>
                               
                               <td><code>dh:Item</code>,<code>nfo:FileDataObject</code></td>
                               
@@ -201,14 +199,14 @@
                               
                               <td></td>
                               
-                              <td><code>apl:FileConstructor</code></td>
+                              <td><code>ldh:FileConstructor</code></td>
                               
                               <td><code>nfo:fileName</code></td>
                               </tr>
                            
                            <tr>
                               
-                              <td><code>apl:Import</code></td>
+                              <td><code>ldh:Import</code></td>
                               
                               <td><code>prov:Activity</code></td>
                               
@@ -216,34 +214,34 @@
                               
                               <td><code>this</code></td>
                               
-                              <td><code>apl:ImportConstructor</code></td>
+                              <td><code>ldh:ImportConstructor</code></td>
                               
-                              <td><code>apl:action</code></td>
+                              <td><code>ldh:action</code></td>
                               </tr>
                            
                            <tr>
                               
-                              <td rowspan="2"><code>apl:CSVImport</code></td>
+                              <td rowspan="2"><code>ldh:CSVImport</code></td>
                               
-                              <td rowspan="2"><code>apl:Import</code></td>
+                              <td rowspan="2"><code>ldh:Import</code></td>
                               
                               <td rowspan="2"><code>{isPrimaryTopicOf.slug}/</code></td>
                               
                               <td rowspan="2"><code>this</code></td>
                               
-                              <td rowspan="2"><code>apl:FileConstructor</code></td>
+                              <td rowspan="2"><code>ldh:FileConstructor</code></td>
                               
                               <td><code>spin:query</code></td>
                               </tr>
                            
                            <tr>
                               
-                              <td><code>apl:delimiter</code></td>
+                              <td><code>ldh:delimiter</code></td>
                               </tr>
                            
                            <tr>
                               
-                              <td rowspan="3"><code>apl:Chart</code></td>
+                              <td rowspan="3"><code>ldh:Chart</code></td>
                               
                               <td rowspan="3"></td>
                               
@@ -251,59 +249,59 @@
                               
                               <td rowspan="3"><code>this</code></td>
                               
-                              <td rowspan="3"><code>apl:ChartConstructor</code></td>
+                              <td rowspan="3"><code>ldh:ChartConstructor</code></td>
                               
                               <td><code>spin:query</code></td>
                               </tr>
                            
                            <tr>
                               
-                              <td><code>apl:endpoint</code></td>
+                              <td><code>ldh:endpoint</code></td>
                               </tr>
                            
                            <tr>
                               
-                              <td><code>apl:chartType</code></td>
+                              <td><code>ldh:chartType</code></td>
                               </tr>
                            
                            <tr>
                               
-                              <td rowspan="2"><code>apl:GraphChart</code></td>
+                              <td rowspan="2"><code>ldh:GraphChart</code></td>
                               
-                              <td rowspan="2"><code>apl:Chart</code></td>
+                              <td rowspan="2"><code>ldh:Chart</code></td>
                               
                               <td rowspan="2"></td>
                               
                               <td rowspan="2"></td>
                               
-                              <td rowspan="2"><code>apl:GraphChartConstructor</code></td>
+                              <td rowspan="2"><code>ldh:GraphChartConstructor</code></td>
                               
-                              <td><code>apl:seriesProperty</code></td>
+                              <td><code>ldh:seriesProperty</code></td>
                               </tr>
                            
                            <tr>
                               
-                              <td><code>apl:categoryProperty</code></td>
+                              <td><code>ldh:categoryProperty</code></td>
                               </tr>
                            
                            <tr>
                               
-                              <td rowspan="2"><code>apl:ResultSetChart</code></td>
+                              <td rowspan="2"><code>ldh:ResultSetChart</code></td>
                               
-                              <td rowspan="2"><code>apl:Chart</code></td>
+                              <td rowspan="2"><code>ldh:Chart</code></td>
                               
                               <td rowspan="2"></td>
                               
                               <td rowspan="2"></td>
                               
-                              <td rowspan="2"><code>apl:ResultSetChartConstructor</code></td>
+                              <td rowspan="2"><code>ldh:ResultSetChartConstructor</code></td>
                               
-                              <td><code>apl:seriesVarName</code></td>
+                              <td><code>ldh:seriesVarName</code></td>
                               </tr>
                            
                            <tr>
                               
-                              <td><code>apl:categoryVarName</code></td>
+                              <td><code>ldh:categoryVarName</code></td>
                               </tr>
                            
                            <tr>
@@ -327,7 +325,7 @@
                               
                               <td><code>dh:Container</code></td>
                               
-                              <td><code>dh:Document</code>,<code>sioc:Container</code></td>
+                              <td><code>dh:Document</code>,<code>dh:Container</code></td>
                               
                               <td></td>
                               
@@ -342,7 +340,7 @@
                               
                               <td><code>dh:Item</code></td>
                               
-                              <td><code>dh:Document</code>,<code>sioc:Item</code></td>
+                              <td><code>dh:Document</code>,<code>dh:Item</code></td>
                               
                               <td></td>
                               
