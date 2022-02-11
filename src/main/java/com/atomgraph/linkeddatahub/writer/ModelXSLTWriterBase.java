@@ -133,7 +133,7 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
             
             URI endpointURI = getLinkURI(headerMap, SD.endpoint);
             if (endpointURI != null) params.put(new QName("sd", SD.endpoint.getNameSpace(), SD.endpoint.getLocalName()), new XdmAtomicValue(endpointURI));
-            ;
+            
             if (getSecurityContext() != null && getSecurityContext().getUserPrincipal() instanceof Agent)
             {
                 Agent agent = (Agent)getSecurityContext().getUserPrincipal();

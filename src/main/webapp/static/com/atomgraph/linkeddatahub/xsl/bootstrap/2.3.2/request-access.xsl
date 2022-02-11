@@ -213,7 +213,7 @@ exclude-result-prefixes="#all">
     </xsl:template>
     
     <xsl:template match="lacl:requestAccessTo/@rdf:*[ac:uri() = resolve-uri('request%20access', $ldt:base)][$ldh:access-to]" mode="bs2:FormControl" priority="2">
-        <select name="ou" id="{generate-id()}" multiple="multiple" size="3">
+        <select name="ou" id="{generate-id()}" multiple="multiple" size="4">
             <option value="{resolve-uri('../add', $ldt:base)}" selected="selected">Add RDF endpoint</option>
             <option value="{resolve-uri('../service', $ldt:base)}" selected="selected">Graph Store endpoint</option>
             <option value="{resolve-uri('../ns', $ldt:base)}" selected="selected">Namespace endpoint</option>
