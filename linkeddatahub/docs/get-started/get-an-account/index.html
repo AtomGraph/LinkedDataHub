@@ -34,7 +34,7 @@
    <body>
       <div class="navbar navbar-fixed-top">
          <div class="navbar-inner">
-            <div class="container-fluid"><a class="brand" href="https://atomgraph.github.io/LinkedDataHub/">LinkedDataHub v3</a><div class="nav-collapse collapse">
+            <div class="container-fluid"><a class="brand" href="https://atomgraph.github.io/LinkedDataHub/">LinkedDataHub</a><div class="nav-collapse collapse">
                   <ul class="nav">
                      <li class="active">
                         <div class="btn-group"><a class="btn" href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/">Documentation v3</a><button class="btn dropdown-toggle" data-toggle="dropdown"><span class="caret"></span></button><ul class="dropdown-menu">
@@ -113,81 +113,137 @@
                   
                   <div>
                      
-                     <div>
+                     <div class="alert alert-info">
                         
-                        <h2 id="get-webid">Get WebID</h2>
-                        
-                        <p>LinkedDataHub uses WebID as the <a href="https://en.wikipedia.org/wiki/Single_sign-on" target="_blank">Single sign-on</a> (SSO)
-                           protocol for distributed applications, which is based on authentication using TLS
-                           client certficates. Using WebID, you will be able to authenticate with every LinkedDataHub
-                           application. 
-                           <a href="http://webid.info" target="_blank">Read more about WebID</a>.</p>
-                        
-                        <div class="alert alert-info">
-                           
-                           <p>Unlike most LinkedDataHub resources, your WebID profile will have <em>public access</em> as required by the protocol. Your email address will be hidden however.</p>
-                           </div>
-                        
-                        <p>If you have completed the <a href="../setup/">setup</a> and own an instance of LinkedDataHub, <samp>ssl/owner/keystore.p12</samp> file is your WebID certificate. Password is the <samp>$owner_cert_pwd</samp> value you supplied <samp>./scripts/setup.sh</samp> file.</p>
-                        
-                        <p><samp>ssl/owner/cert.pem</samp> is the PEM version of the certificate, for use with the <a href="../../reference/command-line-interface/">command line interface</a>.</p>
+                        <p>In order to authenticate as the owner of a LinkedDataHub instance, you need to use
+                           the WebID authentication method.</p>
                         </div>
-                     <div>
+                     <div class="tabbable">
                         
-                        <h2 id="install-cert">Install certificate</h2>
+                        <ul class="nav nav-tabs">
+                           
+                           <li class="active"><a>Get WebID</a></li>
+                           
+                           <li><a>Login with Google</a></li>
+                           </ul>
                         
-                        <p>The final step is to install the client certificate into your web browser. It is done
-                           by importing the <samp>.p12</samp>
-                           file using the browser's certificate manager and providing the password that you supplied
-                           during signup. The
-                           manager dialog can be opened following the steps below, depending on which browser
-                           you use:</p>
-                        
-                        <dl>
+                        <div class="tab-content">
                            
-                           <dt>Google Chrome</dt>
+                           <div class="tab-pane active">
+                              
+                              <div>
+                                 
+                                 <h2 id="get-cert">Get certificate</h2>
+                                 
+                                 <p>LinkedDataHub uses WebID as the <a href="https://en.wikipedia.org/wiki/Single_sign-on" target="_blank">Single sign-on</a> (SSO)
+                                    protocol for distributed applications, which is based on authentication using TLS
+                                    client certficates. Using WebID, you will be able to authenticate with every LinkedDataHub
+                                    application. 
+                                    <a href="http://webid.info" target="_blank">Read more about WebID</a>.</p>
+                                 
+                                 <p>There are two ways to get a LinkedDataHub WebID:</p>
+                                 
+                                 <dl>
+                                    
+                                    <dt>Setup</dt>
+                                    
+                                    <dd>Complete the <a href="../setup/">setup</a> and run own an instance of LinkedDataHub.</dd>
+                                    
+                                    <dd>The <samp>ssl/owner/keystore.p12</samp> file is your WebID certificate. The password is the <samp>$owner_cert_pwd</samp> value you supplied <samp>./scripts/setup.sh</samp> file.</dd>
+                                    
+                                    <dt>Signup</dt>
+                                    
+                                    <dd>Sign up to an existing instance of LinkedDataHub.</dd>
+                                    
+                                    <dd>You get an email with a <samp>.p12</samp> file attached, which is your WebID certificate. The password is the one you entered
+                                       in the signup form.</dd>
+                                    </dl>
+                                 
+                                 <p></p>
+                                 
+                                 <p>You'll need a PEM version of the certificate for use with the <a href="../../reference/command-line-interface/">command line interface</a> scripts. During setup, it is stored under
+                                    <samp>ssl/owner/cert.pem</samp>. If you got the certificate by email, you need to <a href="https://stackoverflow.com/a/15144560/1003113" target="_blank">convert the PKCS12 file to PEM using OpenSSL</a>.</p>
+                                 
+                                 <div class="alert alert-info">
+                                    
+                                    <p>Unlike most LinkedDataHub resources, your WebID profile will have <em>public access</em> as required by the protocol. Your email address will be hidden however.</p>
+                                    </div>
+                                 </div>
+                              
+                              <div>
+                                 
+                                 <h2 id="install-cert">Install certificate</h2>
+                                 
+                                 <p>The final step is to install the client certificate into your web browser. It is done
+                                    by importing the <samp>.p12</samp>
+                                    file using the browser's certificate manager and providing the password that you supplied
+                                    during signup. The
+                                    manager dialog can be opened following the steps below, depending on which browser
+                                    you use:</p>
+                                 
+                                 <dl>
+                                    
+                                    <dt>Google Chrome</dt>
+                                    
+                                    <dd><samp>Settings &gt; Advanced &gt; Manage Certificates &gt; Import...</samp></dd>
+                                    
+                                    <dt>Mozilla Firefox</dt>
+                                    
+                                    <dd><samp>Options &gt; Privacy &amp; Security &gt; View Certificates... &gt; Import...</samp></dd>
+                                    
+                                    <dt>Apple Safari</dt>
+                                    
+                                    <dd>The file is installed directly into the operating system. Open the file and import
+                                       it using the
+                                       <a href="https://support.apple.com/guide/keychain-access/what-is-keychain-access-kyca1083/mac" target="_blank">Keychain Access</a>
+                                       tool.</dd>
+                                    
+                                    <dt>Microsoft Edge</dt>
+                                    
+                                    <dd>Does not support certificate management, you need to install the file into Windows.
+                                       <a href="https://social.technet.microsoft.com/Forums/en-US/18301fff-0467-4e41-8dee-4e44823ed5bf/microsoft-edge-browser-and-ssl-certificates?forum=win10itprogeneral" target="_blank">Read more here</a>.</dd>
+                                    </dl>
+                                 
+                                 <p>You need to install the certificate on all devices/browsers that you are using to
+                                    access LinkedDataHub.</p>
+                                 </div>
+                              
+                              <div>
+                                 
+                                 <h2 id="log-in">Log in</h2>
+                                 
+                                 <p>With the certificate installed, there is no login procedure — you are automatically
+                                    <em>authenticated</em> on all
+                                    LinkedDataHub applications. This is known as Single sign-on (SSO).</p>
+                                 
+                                 <p>Applications can provide public access to some or all documents, meaning you can freely
+                                    browse their public resources
+                                    and perform actions that are allowed for public access. In order to access protected
+                                    (non-public) resources, as well
+                                    as to access administration application, users have to be authenticated as well <em>authorized</em> (authorizations
+                                    can be <a href="../../reference/administration/acl/#auth-requests">requested</a>).</p>
+                                 
+                                 <div class="alert alert-info">
+                                    
+                                    <p>Authenticated agents <em>are not guaranteed to have access</em> to all resources. Different access levels for
+                                       different agents can be specified by the application administrators.</p>
+                                    </div>
+                                 </div>
+                              </div>
                            
-                           <dd><samp>Settings &gt; Advanced &gt; Manage Certificates &gt; Import...</samp></dd>
-                           
-                           <dt>Mozilla Firefox</dt>
-                           
-                           <dd><samp>Options &gt; Privacy &amp; Security &gt; View Certificates... &gt; Import...</samp></dd>
-                           
-                           <dt>Apple Safari</dt>
-                           
-                           <dd>The file is installed directly into the operating system. Open the file and import
-                              it using the
-                              <a href="https://support.apple.com/guide/keychain-access/what-is-keychain-access-kyca1083/mac" target="_blank">Keychain Access</a>
-                              tool.</dd>
-                           
-                           <dt>Microsoft Edge</dt>
-                           
-                           <dd>Does not support certificate management, you need to install the file into Windows.
-                              <a href="https://social.technet.microsoft.com/Forums/en-US/18301fff-0467-4e41-8dee-4e44823ed5bf/microsoft-edge-browser-and-ssl-certificates?forum=win10itprogeneral" target="_blank">Read more here</a>.</dd>
-                           </dl>
-                        
-                        <p>You need to install the certificate on all devices/browsers that you are using to
-                           access LinkedDataHub.</p>
-                        </div>
-                     <div>
-                        
-                        <h2 id="log-in">Log in</h2>
-                        
-                        <p>With the certificate installed, there is no login procedure — you are automatically
-                           <em>authenticated</em> on all
-                           LinkedDataHub applications. This is known as Single sign-on (SSO).</p>
-                        
-                        <p>Applications can provide public access to some or all documents, meaning you can freely
-                           browse their public resources
-                           and perform actions that are allowed for public access. In order to access protected
-                           (non-public) resources, as well
-                           as to access administration application, users have to be authenticated as well <em>authorized</em> (authorizations
-                           can be <a href="../../reference/administration/acl/#auth-requests">requested</a>).</p>
-                        
-                        <div class="alert alert-info">
-                           
-                           <p>Authenticated agents <em>are not guaranteed to have access</em> to all resources. Different access levels for
-                              different agents can be specified by the application administrators.</p>
+                           <div class="tab-pane">
+                              
+                              <p>Click the <span class="btn btn-primary">Login with Google</span> button in the navbar and enable access to the LinkedDataHub instance with your Google
+                                 account.</p>
+                              
+                              <p>If you are also the owner of the instance you are logging into, you can login with
+                                 your WebID and then give your Google user account <a href="../../reference/administration/acl/">full control</a> access rights.</p>
+                              
+                              <div class="alert alert-info">
+                                 
+                                 <p>Login with Google is only enabled if LinkedDataHub was <a href="../../reference/configuration/#social-login">configured with social login</a>.</p>
+                                 </div>
+                              </div>
                            </div>
                         </div>
                      </div>

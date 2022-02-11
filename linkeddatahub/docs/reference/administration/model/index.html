@@ -34,7 +34,7 @@
    <body>
       <div class="navbar navbar-fixed-top">
          <div class="navbar-inner">
-            <div class="container-fluid"><a class="brand" href="https://atomgraph.github.io/LinkedDataHub/">LinkedDataHub v3</a><div class="nav-collapse collapse">
+            <div class="container-fluid"><a class="brand" href="https://atomgraph.github.io/LinkedDataHub/">LinkedDataHub</a><div class="nav-collapse collapse">
                   <ul class="nav">
                      <li class="active">
                         <div class="btn-group"><a class="btn" href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/">Documentation v3</a><button class="btn dropdown-toggle" data-toggle="dropdown"><span class="caret"></span></button><ul class="dropdown-menu">
@@ -141,8 +141,6 @@
                         
                         <table class="table">
                            
-                           <caption>Domain ontologies</caption>
-                           
                            <thead>
                               
                               <tr>
@@ -159,29 +157,11 @@
                               
                               <tr>
                                  
-                                 <td><a href="https://w3id.org/atomgraph/linkeddatahub" id="ldh-ont"><code>https://w3id.org/atomgraph/linkeddatahub#</code></a></td>
-                                 
-                                 <td>LinkedDataHub</td>
-                                 
-                                 <td><code>ldh:</code></td>
-                                 </tr>
-                              
-                              <tr>
-                                 
                                  <td><a href="https://w3id.org/atomgraph/linkeddatahub/default" id="def-ont"><code>https://w3id.org/atomgraph/linkeddatahub/default#</code></a></td>
                                  
                                  <td>Default</td>
                                  
                                  <td><code>def:</code></td>
-                                 </tr>
-                              
-                              <tr>
-                                 
-                                 <td><a href="https://www.w3.org/ns/ldt/document-hierarchy" id="dh-ont" target="_blank"><code>https://www.w3.org/ns/ldt/document-hierarchy#</code></a></td>
-                                 
-                                 <td>Document hierarchy</td>
-                                 
-                                 <td><code>dh:</code></td>
                                  </tr>
                               
                               <tr>
@@ -195,11 +175,38 @@
                               
                               <tr>
                                  
-                                 <td><a href="https://w3id.org/atomgraph/linkeddatahub/acl" id="lapp-ont" target="_blank"><code>https://w3id.org/atomgraph/linkeddatahub/acl#</code></a></td>
+                                 <td><a href="https://w3id.org/atomgraph/linkeddatahub/acl" id="lacl-ont" target="_blank"><code>https://w3id.org/atomgraph/linkeddatahub/acl#</code></a></td>
                                  
                                  <td>Access control</td>
                                  
                                  <td><code>lacl:</code></td>
+                                 </tr>
+                              
+                              <tr>
+                                 
+                                 <td><a href="https://w3id.org/atomgraph/linkeddatahub/admin" id="adm-ont" target="_blank"><code>https://w3id.org/atomgraph/linkeddatahub/admin#</code></a></td>
+                                 
+                                 <td>Admin</td>
+                                 
+                                 <td><code>adm:</code></td>
+                                 </tr>
+                              
+                              <tr>
+                                 
+                                 <td><a href="https://w3id.org/atomgraph/linkeddatahub" id="ldh-ont"><code>https://w3id.org/atomgraph/linkeddatahub#</code></a></td>
+                                 
+                                 <td>LinkedDataHub</td>
+                                 
+                                 <td><code>ldh:</code></td>
+                                 </tr>
+                              
+                              <tr>
+                                 
+                                 <td><a href="https://www.w3.org/ns/ldt/document-hierarchy" id="dh-ont" target="_blank"><code>https://www.w3.org/ns/ldt/document-hierarchy#</code></a></td>
+                                 
+                                 <td>Document hierarchy</td>
+                                 
+                                 <td><code>dh:</code></td>
                                  </tr>
                               </tbody>
                            </table>
@@ -224,38 +231,6 @@
                         <dt><a href="#constraints">Constraints</a></dt>
                         
                         <dd>Command or command template that validates class instance</dd>
-                        
-                        <dt>Path template</dt>
-                        
-                        <dd>Template of the URI that will be generated for a new instance of this class by means
-                           of skolemization. It reuses the JAX-RS URI template
-                           syntax but extends it in several ways.<br/>
-                           If the template starts with a leading <code>/</code>, it is treated as absolute path (relative to the base URI), otherwise as path segment
-                           (relative to the request absolute path, e.g. to the URI of the container under which
-                           the instance resource is stored).<br/>
-                           Template variables are set automatically from resource property values. A simple path
-                           syntax to navigate between connected resources and
-                           their properties: resources are separated by <code>.</code> and only the local names of properties are used.</dd>
-                        
-                        <dd>For example, consider that you are creating an instance of <code>:Person</code> class under <code>https://linkeddatahub.com/people/</code>,
-                           and you want the instance URI to be generated from its <code>foaf:familyName</code> value (lets suppose it is <code>"Berners-Lee"</code>).
-                           In that case you should define a path segment template <code>{familyName}/</code>, and the instance URI will be skolemized as
-                           <code>https://linkeddatahub.com/people/Berners-Lee/</code>.</dd>
-                        
-                        <dd>If, on the other hand, you want the instance to use the title of the document it is
-                           topic of, then you should define the segment
-                           template as <code>{isPrimaryTopicOf.title}</code>.</dd>
-                        
-                        <dt id="fragment">Fragment template</dt>
-                        
-                        <dd>Similarly to the segment template, this template defines the fragment part of URI
-                           for new instances of this class. It is useful for
-                           distinguishing information resources (documents) from non-information resources which
-                           have
-                           <a href="https://www.w3.org/TR/cooluris/#hashuri" target="_blank">hash URIs</a>.</dd>
-                        
-                        <dd>Continuing the example from above, fragment template <code>this</code> defined on the <code>:Person</code> class would generate
-                           <code>https://linkeddatahub.com/people/Berners-Lee/#this</code> as instance URI.</dd>
                         </dl>
                      
                      <div>
@@ -303,6 +278,8 @@ WHERE {}</code></pre>
                            <code>dh:Item</code> without <code>dct:title</code> will fail validation because titles are mandatory for LinkedDataHub documents.</p>
                         
                         <p>LinkedDataHub reuses <a href="http://spinrdf.org/spin.html#spin-constraints" target="_blank">SPIN constraints</a>. Classes inherit constraints from superclasses.</p>
+                        
+                        <p><a href="https://www.w3.org/TR/shacl/" target="_blank">SHACL</a> constraint validation is supported as well.</p>
                         </div>
                      </div>
                   

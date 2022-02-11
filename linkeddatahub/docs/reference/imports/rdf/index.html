@@ -34,7 +34,7 @@
    <body>
       <div class="navbar navbar-fixed-top">
          <div class="navbar-inner">
-            <div class="container-fluid"><a class="brand" href="https://atomgraph.github.io/LinkedDataHub/">LinkedDataHub v3</a><div class="nav-collapse collapse">
+            <div class="container-fluid"><a class="brand" href="https://atomgraph.github.io/LinkedDataHub/">LinkedDataHub</a><div class="nav-collapse collapse">
                   <ul class="nav">
                      <li class="active">
                         <div class="btn-group"><a class="btn" href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/">Documentation v3</a><button class="btn dropdown-toggle" data-toggle="dropdown"><span class="caret"></span></button><ul class="dropdown-menu">
@@ -185,8 +185,7 @@
                         <p>The mapping is a user-defined SPARQL <code>CONSTRUCT</code>. In this case we give each SKOS concept from the imported dataset an additional RDF
                            type and pair the concept with its item (document):</p>
                         
-                        <pre><code>PREFIX dom:   &lt;ns/domain#&gt;
-PREFIX dh:    &lt;https://www.w3.org/ns/ldt/document-hierarchy#&gt;
+                        <pre><code>PREFIX dh:    &lt;https://www.w3.org/ns/ldt/document-hierarchy#&gt;
 PREFIX sioc:  &lt;http://rdfs.org/sioc/ns#&gt;
 PREFIX foaf:  &lt;http://xmlns.com/foaf/0.1/&gt;
 PREFIX skos:  &lt;http://www.w3.org/2004/02/skos/core#&gt;
@@ -198,7 +197,7 @@ CONSTRUCT
         a ?type ;
         foaf:isPrimaryTopicOf ?item ;
         ?p ?o .
-    ?item a ?itemType ;
+    ?item a dh:Item ;
         sioc:has_container ?container ;
         dh:slug ?id ;
         dct:title ?prefLabel ;
@@ -210,15 +209,13 @@ WHERE
     {
         {
             ?thing a skos:Concept
-            BIND (dom:Concept AS ?type)
-            BIND (dom:ConceptItem AS ?itemType)
+            BIND (skos:Concept AS ?type)
             BIND (&lt;concepts/&gt; AS ?container)
         }
         UNION
         {
             ?thing a skos:ConceptScheme
-            BIND (dom:ConceptScheme AS ?type)
-            BIND (dom:ConceptSchemeItem AS ?itemType)
+            BIND (skos:ConceptScheme AS ?type)
             BIND (&lt;concept-schemes/&gt; AS ?container)
         }
         BIND(struuid() AS ?id)
@@ -262,9 +259,8 @@ WHERE
 @prefix foaf: &lt;http://xmlns.com/foaf/0.1/&gt; .
 @prefix sioc: &lt;http://rdfs.org/sioc/ns#&gt; .
 @prefix dh: &lt;https://www.w3.org/ns/ldt/document-hierarchy#&gt; .
-@prefix dom: &lt;ns/domain#&gt; .
 
-:concept10 a skos:Concept, dom:Concept ;
+:concept10 a skos:Concept ;
     dcterms:modified "2006-05-23T00:00:00"^^xsd:dateTime ;
     skos:inScheme &lt;http://vocabularies.unesco.org/thesaurus&gt; ;
     skos:narrower :concept4938 , :concept7597 ;
@@ -273,13 +269,13 @@ WHERE
     skos:topConceptOf &lt;http://vocabularies.unesco.org/thesaurus&gt; ;
     foaf:isPrimaryTopicOf &lt;concepts/c499e66a-8036-4637-929d-0d809177883e/&gt; .
 
-&lt;concepts/c499e66a-8036-4637-929d-0d809177883e/&gt; a dom:ConceptItem ;
+&lt;concepts/c499e66a-8036-4637-929d-0d809177883e/&gt; a dh:Item ;
     sioc:has_container &lt;concepts/&gt; ;
     dh:slug "c499e66a-8036-4637-929d-0d809177883e" ;
     dcterms:title "Right to education"@en ;
     foaf:primaryTopic :concept10 .
 
-:concept1000 a skos:Concept, dom:Concept ;
+:concept1000 a skos:Concept ;
     dcterms:modified "2006-05-23T00:00:00"^^xsd:dateTime ;
     skos:broader :concept389 ;
     skos:inScheme &lt;http://vocabularies.unesco.org/thesaurus&gt; ;
@@ -287,13 +283,13 @@ WHERE
     skos:related :concept993 , :concept996 , :concept3086 ;
     foaf:isPrimaryTopicOf &lt;concepts/f41910fa-9077-4656-8f73-752fd923a79b/&gt; .
 
-&lt;concepts/f41910fa-9077-4656-8f73-752fd923a79b/&gt; a dom:ConceptItem ;
+&lt;concepts/f41910fa-9077-4656-8f73-752fd923a79b/&gt; a dh:Item ;
     sioc:has_container &lt;concepts/&gt; ;
     dh:slug "f41910fa-9077-4656-8f73-752fd923a79b" ;
     dcterms:title "Talent"@en ;
     foaf:primaryTopic :concept1000 .
 
-:concept10003 a skos:Concept, dom:Concept ;
+:concept10003 a skos:Concept ;
     dcterms:modified "2006-05-23T00:00:00"^^xsd:dateTime ;
     skos:altLabel "Entrevue"@fr ;
     skos:broader :concept4725 ;
@@ -301,7 +297,7 @@ WHERE
     skos:prefLabel "Interviews"@en , "Entretien"@fr , "Entrevista"@es , "Интервью"@ru ;
     foaf:isPrimaryTopicOf &lt;concepts/2afb2e06-5081-4db1-9255-660fcd1b3ec8/&gt; .
 
-&lt;concepts/2afb2e06-5081-4db1-9255-660fcd1b3ec8/&gt; a dom:ConceptItem ;
+&lt;concepts/2afb2e06-5081-4db1-9255-660fcd1b3ec8/&gt; a dh:Item ;
     sioc:has_container &lt;concepts/&gt; ;
     dh:slug "2afb2e06-5081-4db1-9255-660fcd1b3ec8" ;
     dcterms:title "Interviews"@en ;
