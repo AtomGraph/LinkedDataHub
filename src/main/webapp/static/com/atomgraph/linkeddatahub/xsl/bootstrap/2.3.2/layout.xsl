@@ -1015,7 +1015,8 @@ exclude-result-prefixes="#all">
             <h2>
                 <xsl:apply-templates select="." mode="ldh:logo"/>
                 
-                <a href="{if (not(starts-with(lacl:requestAccess/@rdf:resource, $ldt:base))) then ac:build-uri($ldt:base, map{ 'uri': string(lacl:requestAccess/@rdf:resource), 'access-to': string(ac:uri()) }) else ac:build-uri(lacl:requestAccess/@rdf:resource, map{ 'access-to': string(ac:uri()) } )}" class="btn btn-primary pull-right">Request access</a>
+                <xsl:variable name="request-access-to" select="ac:build-uri(lacl:requestAccess/@rdf:resource, map{ 'access-to': string(ac:uri()) } )" as="xs:anyURI"/>
+                <a href="{ldh:href($ldt:base, $request-access-to)}" class="btn btn-primary pull-right">Request access</a>
             </h2>
         </div>
     </xsl:template>
