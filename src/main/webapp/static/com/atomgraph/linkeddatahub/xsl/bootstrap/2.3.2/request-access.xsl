@@ -216,6 +216,7 @@ exclude-result-prefixes="#all">
         <select name="ou" id="{generate-id()}" multiple="multiple" size="3">
             <option value="{resolve-uri('../add', $ldt:base)}" selected="selected">Add RDF endpoint</option>
             <option value="{resolve-uri('../service', $ldt:base)}" selected="selected">Graph Store endpoint</option>
+            <option value="{resolve-uri('../ns', $ldt:base)}" selected="selected">Namespace endpoint</option>
             <option value="{resolve-uri('../sparql', $ldt:base)}" selected="selected">SPARQL endpoint</option>
         </select>
     </xsl:template>

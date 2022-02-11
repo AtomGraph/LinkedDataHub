@@ -152,7 +152,7 @@ public class WebIDFilter extends AuthenticationFilter
         }
         catch (ProcessingException ex)
         {
-            if (log.isErrorEnabled()) log.error("Could not load WebID URI: {}", ex);
+            if (log.isErrorEnabled()) log.error("Could not load WebID URI", ex);
 //            throw new WebIDLoadingException(ex, null);
             return null;
         }
