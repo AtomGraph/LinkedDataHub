@@ -76,7 +76,7 @@ exclude-result-prefixes="#all">
 
     <xsl:template match="rdf:RDF[key('resources', ac:uri())/rdf:type/@rdf:resource = '&adm;RequestAccess']" mode="bs2:ModeTabs" priority="2"/>
 
-    <xsl:template match="*[@rdf:about = resolve-uri('request%20access', $ldt:base)][$ac:method = 'GET']" mode="bs2:RowBlock" priority="2">
+    <xsl:template match="*[rdf:type/@rdf:resource = '&adm;RequestAccess'][$ac:method = 'GET']" mode="bs2:RowBlock" priority="2">
         <xsl:variable name="constructor" as="document-node()">
             <xsl:document>
                 <!-- construct a combined graph of dh:Item and lacl:AuthorizationRequest instances -->

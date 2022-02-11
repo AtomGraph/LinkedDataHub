@@ -63,7 +63,7 @@ exclude-result-prefixes="#all">
     
     <xsl:template match="rdf:RDF[key('resources', ac:uri())/rdf:type/@rdf:resource = '&adm;SignUp']" mode="bs2:ModeTabs" priority="2"/>
 
-    <xsl:template match="*[@rdf:about = resolve-uri('sign%20up', $ldt:base)][$ac:method = 'GET']" mode="bs2:RowBlock" priority="2">
+    <xsl:template match="*[rdf:type/@rdf:resource = '&adm;SignUp'][$ac:method = 'GET']" mode="bs2:RowBlock" priority="2">
         <xsl:apply-templates select="ldh:construct(map{ xs:anyURI('&foaf;Person'): spin:constructors(xs:anyURI('&foaf;Person'), resolve-uri('ns', $ldt:base), $constructor-query)//srx:binding[@name = 'construct']/srx:literal/string(.) })" mode="bs2:RowForm">
             <xsl:with-param name="action" select="ac:uri()"/>
             <xsl:with-param name="enctype" select="()"/> <!-- don't use 'multipart/form-data' which is the default -->
