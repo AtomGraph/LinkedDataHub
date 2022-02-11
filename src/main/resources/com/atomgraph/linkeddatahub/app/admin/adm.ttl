@@ -23,6 +23,16 @@
     rdfs:label "Admin ontology" ;
     rdfs:comment "AtomGraph admin application ontology" .
 
+:SignUp a owl:Class ;
+    rdfs:subClassOf dh:Item ;
+    rdfs:label "Sign up" ;
+    rdfs:isDefinedBy : .
+
+:RequestAccess a owl:Class ;
+    rdfs:subClassOf dh:Item ;
+    rdfs:label "Request access" ;
+    rdfs:isDefinedBy : .
+
 ### EXTERNAL ASSERTIONS
 
 # http://rdfs.org/sioc/ns
