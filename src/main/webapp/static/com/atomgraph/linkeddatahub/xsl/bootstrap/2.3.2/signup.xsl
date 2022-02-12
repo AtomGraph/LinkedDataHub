@@ -112,7 +112,7 @@ exclude-result-prefixes="#all">
     <xsl:template match="*[*][@rdf:about or @rdf:nodeID][key('resources', ac:uri())/rdf:type/@rdf:resource = '&adm;SignUp']" mode="bs2:Right"/>
 
     <!-- hide object blank nodes (that only have a single rdf:type property) from constructed models -->
-    <xsl:template match="rdf:Description[$ac:method = 'GET'][@rdf:nodeID][not(rdf:type/@rdf:resource = ('&foaf;Person', '&dh;Item'))][key('resources', ac:uri())/rdf:type/@rdf:resource = '&adm;SignUp']" mode="bs2:RowForm" priority="3"/>
+    <xsl:template match="rdf:Description[$ac:method = 'GET'][@rdf:nodeID][not(rdf:type/@rdf:resource = ('&foaf;Person', '&adm;SignUp'))][key('resources', ac:uri())/rdf:type/@rdf:resource = '&adm;SignUp']" mode="bs2:RowForm" priority="3"/>
 
     <xsl:template match="*[*][@rdf:about or @rdf:nodeID][key('resources', ac:uri())/rdf:type/@rdf:resource = '&adm;SignUp']" mode="bs2:FormControl" priority="1">
         <xsl:next-match>
