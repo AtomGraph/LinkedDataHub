@@ -186,6 +186,7 @@ WHERE
         <xsl:apply-templates select="ixsl:page()" mode="ldh:LoadedHTMLDocument">
             <xsl:with-param name="href" select="ldh:href()"/>
             <xsl:with-param name="fragment" select="encode-for-uri(ldh:href())"/>
+            <xsl:with-param name="uri" select="if (ixsl:query-params()?uri) then xs:anyURI(ixsl:query-params()?uri) else ldh:absolute-path(ldh:href())"/>
             <xsl:with-param name="endpoint" select="$sd:endpoint"/>
             <xsl:with-param name="container" select="id('content-body', ixsl:page())"/>
             <xsl:with-param name="replace-content" select="false()"/>
@@ -232,14 +233,7 @@ WHERE
     </xsl:function>
 
     <xsl:function name="ac:uri" as="xs:anyURI">
-        <xsl:choose>
-            <xsl:when test="ixsl:query-params()?uri">
-                <xsl:sequence select="xs:anyURI(ixsl:query-params()?uri)"/>
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:sequence select="ldh:absolute-path(ldh:href())"/>
-            </xsl:otherwise>
-        </xsl:choose>
+        <xsl:sequence select="xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.uri'))"/>
     </xsl:function>
 
     <xsl:function name="sd:endpoint" as="xs:anyURI">
@@ -1539,6 +1533,7 @@ WHERE
                 <xsl:apply-templates select="?body" mode="ldh:LoadedHTMLDocument">
                     <xsl:with-param name="href" select="$href"/>
                     <xsl:with-param name="fragment" select="$fragment"/>
+                    <xsl:with-param name="uri" select="ac:uri()"/>
                     <xsl:with-param name="endpoint" select="$endpoint"/>
                     <xsl:with-param name="container" select="$container"/>
                     <xsl:with-param name="push-state" select="$push-state"/>
@@ -1575,7 +1570,7 @@ WHERE
     <!-- cannot be a named template because overriding templates need to be able to call xsl:next-match (cannot use xsl:origin with Saxon-JS because of XSLT 3.0 packages) -->
     <xsl:template match="/" mode="ldh:LoadedHTMLDocument">
         <xsl:param name="href" as="xs:anyURI"/>
-        <xsl:param name="uri" select="ldh:absolute-path($href)" as="xs:anyURI?"/>
+        <xsl:param name="uri" as="xs:anyURI"/>
         <xsl:param name="fragment" as="xs:string?"/>
         <xsl:param name="container" as="element()"/>
         <xsl:param name="push-state" select="true()" as="xs:boolean"/>
@@ -1595,51 +1590,50 @@ WHERE
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'disabled', false() ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
 
+        <ixsl:set-property name="uri" select="$uri" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
         <xsl:if test="$endpoint">
             <ixsl:set-property name="endpoint" select="$endpoint" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
         </xsl:if>
         
-        <xsl:if test="$uri">
-            <!-- update the a.btn-edit link if it is visible -->
-            <xsl:for-each select="ixsl:page()//div[contains-token(@class, 'action-bar')]//a[contains-token(@class, 'btn-edit')]">
-                <xsl:variable name="edit-uri" select="ldh:href($ldt:base, $uri, xs:anyURI('&ac;EditMode'))" as="xs:anyURI"/>
-                <ixsl:set-attribute name="href" select="$edit-uri" object="."/>
-            </xsl:for-each>
+        <!-- update the a.btn-edit link if it is visible -->
+        <xsl:for-each select="ixsl:page()//div[contains-token(@class, 'action-bar')]//a[contains-token(@class, 'btn-edit')]">
+            <xsl:variable name="edit-uri" select="ldh:href($ldt:base, $uri, xs:anyURI('&ac;EditMode'))" as="xs:anyURI"/>
+            <ixsl:set-attribute name="href" select="$edit-uri" object="."/>
+        </xsl:for-each>
 
-            <xsl:choose>
-                <!-- local URI -->
-                <xsl:when test="starts-with($uri, $ldt:base)">
-                    <!-- enable .btn-skolemize -->
-                    <xsl:for-each select="ixsl:page()//div[contains-token(@class, 'action-bar')]//button[contains-token(@class, 'btn-skolemize')]">
-                        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'disabled', false() ])[current-date() lt xs:date('2000-01-01')]"/>
-                    </xsl:for-each>
+        <xsl:choose>
+            <!-- local URI -->
+            <xsl:when test="starts-with($uri, $ldt:base)">
+                <!-- enable .btn-skolemize -->
+                <xsl:for-each select="ixsl:page()//div[contains-token(@class, 'action-bar')]//button[contains-token(@class, 'btn-skolemize')]">
+                    <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'disabled', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+                </xsl:for-each>
 
-                    <!-- unset #uri value -->
-                    <xsl:for-each select="id('uri', ixsl:page())">
-                        <ixsl:set-property name="value" select="()" object="."/>
-                    </xsl:for-each>
-                </xsl:when>
-                <!-- external URI -->
-                <xsl:otherwise>
-                    <!-- disable .btn-skolemize -->
-                    <xsl:for-each select="ixsl:page()//div[contains-token(@class, 'action-bar')]//button[contains-token(@class, 'btn-skolemize')]">
-                        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'disabled', true() ])[current-date() lt xs:date('2000-01-01')]"/>
-                    </xsl:for-each>
+                <!-- unset #uri value -->
+                <xsl:for-each select="id('uri', ixsl:page())">
+                    <ixsl:set-property name="value" select="()" object="."/>
+                </xsl:for-each>
+            </xsl:when>
+            <!-- external URI -->
+            <xsl:otherwise>
+                <!-- disable .btn-skolemize -->
+                <xsl:for-each select="ixsl:page()//div[contains-token(@class, 'action-bar')]//button[contains-token(@class, 'btn-skolemize')]">
+                    <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'disabled', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+                </xsl:for-each>
 
-                    <!-- set #uri value -->
-                    <xsl:for-each select="id('uri', ixsl:page())">
-                        <ixsl:set-property name="value" select="$uri" object="."/>
-                    </xsl:for-each>
-                </xsl:otherwise>
-            </xsl:choose>
+                <!-- set #uri value -->
+                <xsl:for-each select="id('uri', ixsl:page())">
+                    <ixsl:set-property name="value" select="$uri" object="."/>
+                </xsl:for-each>
+            </xsl:otherwise>
+        </xsl:choose>
 
-            <xsl:if test="$push-state">
-                <xsl:call-template name="ldh:PushState">
-                    <xsl:with-param name="href" select="ldh:href($ldt:base, $href)"/>
-                    <xsl:with-param name="title" select="/html/head/title"/>
-                    <xsl:with-param name="container" select="$container"/>
-                </xsl:call-template>
-            </xsl:if>
+        <xsl:if test="$push-state">
+            <xsl:call-template name="ldh:PushState">
+                <xsl:with-param name="href" select="ldh:href($ldt:base, $href)"/>
+                <xsl:with-param name="title" select="/html/head/title"/>
+                <xsl:with-param name="container" select="$container"/>
+            </xsl:call-template>
         </xsl:if>
 
         <xsl:if test="$replace-content">

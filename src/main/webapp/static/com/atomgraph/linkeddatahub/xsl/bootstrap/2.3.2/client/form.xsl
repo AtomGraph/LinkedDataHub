@@ -912,6 +912,7 @@ exclude-result-prefixes="#all"
                         <xsl:apply-templates select="?body" mode="ldh:LoadedHTMLDocument">
                             <!-- $href does not change at this point -->
                             <xsl:with-param name="href" select="ldh:href()"/>
+                            <xsl:with-param name="uri" select="ac:uri()"/>
                             <xsl:with-param name="container" select="$container"/>
                         </xsl:apply-templates>
                     </xsl:when>
