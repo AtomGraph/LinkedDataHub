@@ -45,7 +45,9 @@ xmlns:spin="&spin;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 exclude-result-prefixes="#all">
 
-    <xsl:template match="rdf:RDF[key('resources', ac:uri())/rdf:type/@rdf:resource = '&adm;SignUp']" mode="xhtml:Body" priority="2">
+    <xsl:variable name="main-doc" select="/" as="document-node()"/>
+    
+    <xsl:template match="rdf:RDF[key('resources', ac:uri(), $main-doc)/rdf:type/@rdf:resource = '&adm;SignUp']" mode="xhtml:Body" priority="2">
         <body>
             <xsl:apply-templates select="." mode="bs2:NavBar"/>
 
@@ -61,7 +63,7 @@ exclude-result-prefixes="#all">
         </body>
     </xsl:template>
     
-    <xsl:template match="rdf:RDF[key('resources', ac:uri())/rdf:type/@rdf:resource = '&adm;SignUp']" mode="bs2:ModeTabs" priority="2"/>
+    <xsl:template match="rdf:RDF[key('resources', ac:uri(), $main-doc)/rdf:type/@rdf:resource = '&adm;SignUp']" mode="bs2:ModeTabs" priority="2"/>
 
     <xsl:template match="*[rdf:type/@rdf:resource = '&adm;SignUp'][$ac:method = 'GET']" mode="bs2:RowBlock" priority="2">
         <xsl:apply-templates select="ldh:construct(map{ xs:anyURI('&foaf;Person'): spin:constructors(xs:anyURI('&foaf;Person'), resolve-uri('ns', $ldt:base), $constructor-query)//srx:binding[@name = 'construct']/srx:literal/string(.) })" mode="bs2:RowForm">
@@ -73,7 +75,7 @@ exclude-result-prefixes="#all">
         </xsl:apply-templates>
     </xsl:template>
     
-    <xsl:template match="rdf:RDF[key('resources', ac:uri())/rdf:type/@rdf:resource = '&adm;SignUp'][$ac:method = 'POST'][key('resources-by-type', '&spin;ConstraintViolation')]" mode="bs2:RowBlock" priority="3">
+    <xsl:template match="rdf:RDF[key('resources', ac:uri(), $main-doc)/rdf:type/@rdf:resource = '&adm;SignUp'][$ac:method = 'POST'][key('resources-by-type', '&spin;ConstraintViolation')]" mode="bs2:RowBlock" priority="3">
         <xsl:apply-templates select="." mode="bs2:RowForm">
             <xsl:with-param name="action" select="ac:uri()"/>
             <xsl:with-param name="enctype" select="()"/>
@@ -84,7 +86,7 @@ exclude-result-prefixes="#all">
     </xsl:template>
     
     <!-- match the first resource, whatever it is -->
-    <xsl:template match="*[key('resources', ac:uri())/rdf:type/@rdf:resource = '&adm;SignUp'][$ac:method = 'POST'][not(key('resources-by-type', '&http;Response'))][1]" mode="bs2:RowBlock" priority="3">
+    <xsl:template match="*[key('resources', ac:uri(), $main-doc)/rdf:type/@rdf:resource = '&adm;SignUp'][$ac:method = 'POST'][not(key('resources-by-type', '&http;Response'))][1]" mode="bs2:RowBlock" priority="3">
         <div class="row-fluid">
             <div class="offset2 span7">
                 <div class="alert alert-success row-fluid">
@@ -106,15 +108,15 @@ exclude-result-prefixes="#all">
     </xsl:template>
     
     <!-- suppress resources other than foaf:Person and cert:PublicKey -->
-    <xsl:template match="*[key('resources', ac:uri())/rdf:type/@rdf:resource = '&adm;SignUp'][$ac:method = 'POST'][not(key('resources-by-type', '&http;Response'))][not(rdf:type/@rdf:resource = ('&foaf;Person', '&cert;PublicKey'))]" mode="bs2:RowBlock" priority="2"/>
+    <xsl:template match="*[key('resources', ac:uri(), $main-doc)/rdf:type/@rdf:resource = '&adm;SignUp'][$ac:method = 'POST'][not(key('resources-by-type', '&http;Response'))][not(rdf:type/@rdf:resource = ('&foaf;Person', '&cert;PublicKey'))]" mode="bs2:RowBlock" priority="2"/>
 
     <!-- disable the right nav (backlinks etc.) -->
-    <xsl:template match="*[*][@rdf:about or @rdf:nodeID][key('resources', ac:uri())/rdf:type/@rdf:resource = '&adm;SignUp']" mode="bs2:Right"/>
+    <xsl:template match="*[*][@rdf:about or @rdf:nodeID][key('resources', ac:uri(), $main-doc)/rdf:type/@rdf:resource = '&adm;SignUp']" mode="bs2:Right"/>
 
     <!-- hide object blank nodes (that only have a single rdf:type property) from constructed models -->
-    <xsl:template match="rdf:Description[$ac:method = 'GET'][@rdf:nodeID][not(rdf:type/@rdf:resource = ('&foaf;Person', '&adm;SignUp'))][key('resources', ac:uri())/rdf:type/@rdf:resource = '&adm;SignUp']" mode="bs2:RowForm" priority="3"/>
+    <xsl:template match="rdf:Description[$ac:method = 'GET'][@rdf:nodeID][not(rdf:type/@rdf:resource = ('&foaf;Person', '&adm;SignUp'))][key('resources', ac:uri(), $main-doc)/rdf:type/@rdf:resource = '&adm;SignUp']" mode="bs2:RowForm" priority="3"/>
 
-    <xsl:template match="*[*][@rdf:about or @rdf:nodeID][key('resources', ac:uri())/rdf:type/@rdf:resource = '&adm;SignUp']" mode="bs2:FormControl" priority="1">
+    <xsl:template match="*[*][@rdf:about or @rdf:nodeID][key('resources', ac:uri(), $main-doc)/rdf:type/@rdf:resource = '&adm;SignUp']" mode="bs2:FormControl" priority="1">
         <xsl:next-match>
             <xsl:with-param name="show-subject" select="false()" tunnel="yes"/>
             <xsl:with-param name="legend" select="false()"/>
@@ -122,7 +124,7 @@ exclude-result-prefixes="#all">
         </xsl:next-match>
     </xsl:template>
 
-    <xsl:template match="*[@rdf:about or @rdf:nodeID][key('resources', ac:uri())/rdf:type/@rdf:resource = '&adm;SignUp']/sioc:has_parent | *[@rdf:about or @rdf:nodeID][key('resources', ac:uri())/rdf:type/@rdf:resource = '&adm;SignUp']/sioc:has_container" mode="bs2:FormControl">
+    <xsl:template match="*[@rdf:about or @rdf:nodeID][key('resources', ac:uri(), $main-doc)/rdf:type/@rdf:resource = '&adm;SignUp']/sioc:has_parent | *[@rdf:about or @rdf:nodeID][key('resources', ac:uri(), $main-doc)/rdf:type/@rdf:resource = '&adm;SignUp']/sioc:has_container" mode="bs2:FormControl">
         <xsl:apply-templates select="." mode="xhtml:Input">
             <xsl:with-param name="type" select="'hidden'"/>
         </xsl:apply-templates>
@@ -134,7 +136,7 @@ exclude-result-prefixes="#all">
         </xsl:call-template>
     </xsl:template>
     
-    <xsl:template match="foaf:based_near/@rdf:*[key('resources', ac:uri())/rdf:type/@rdf:resource = '&adm;SignUp']" mode="bs2:FormControl" priority="1">
+    <xsl:template match="foaf:based_near/@rdf:*[key('resources', ac:uri(), $main-doc)/rdf:type/@rdf:resource = '&adm;SignUp']" mode="bs2:FormControl" priority="1">
         <xsl:param name="id" select="generate-id()" as="xs:string"/>
         <xsl:param name="class" as="xs:string?"/>
         <xsl:param name="disabled" select="false()" as="xs:boolean"/>
@@ -196,7 +198,7 @@ exclude-result-prefixes="#all">
         </xsl:if>
     </xsl:template>
     
-    <xsl:template match="foaf:member/@rdf:*[key('resources', ac:uri())/rdf:type/@rdf:resource = '&adm;SignUp']" mode="bs2:FormControl" priority="1">
+    <xsl:template match="foaf:member/@rdf:*[key('resources', ac:uri(), $main-doc)/rdf:type/@rdf:resource = '&adm;SignUp']" mode="bs2:FormControl" priority="1">
         <xsl:param name="type" select="'text'" as="xs:string"/>
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" as="xs:string?"/>
@@ -240,7 +242,7 @@ exclude-result-prefixes="#all">
         </xsl:apply-templates>
     </xsl:template>
     
-    <xsl:template match="foaf:member/@rdf:*[key('resources', ac:uri())/rdf:type/@rdf:resource = '&adm;SignUp']" mode="bs2:FormControlTypeLabel">
+    <xsl:template match="foaf:member/@rdf:*[key('resources', ac:uri(), $main-doc)/rdf:type/@rdf:resource = '&adm;SignUp']" mode="bs2:FormControlTypeLabel">
         <xsl:param name="type" as="xs:string?"/>
         <xsl:param name="type-label" select="true()" as="xs:boolean"/>
 
@@ -250,7 +252,7 @@ exclude-result-prefixes="#all">
     </xsl:template>
     
     <!-- make properties required -->
-    <xsl:template match="foaf:givenName[key('resources', ac:uri())/rdf:type/@rdf:resource = '&adm;SignUp'] | foaf:familyName[key('resources', ac:uri())/rdf:type/@rdf:resource = '&adm;SignUp'] | foaf:mbox[key('resources', ac:uri())/rdf:type/@rdf:resource = '&adm;SignUp'] | cert:key[key('resources', ac:uri())/rdf:type/@rdf:resource = '&adm;SignUp']" mode="bs2:FormControl" priority="1">
+    <xsl:template match="foaf:givenName[key('resources', ac:uri(), $main-doc)/rdf:type/@rdf:resource = '&adm;SignUp'] | foaf:familyName[key('resources', ac:uri(), $main-doc)/rdf:type/@rdf:resource = '&adm;SignUp'] | foaf:mbox[key('resources', ac:uri(), $main-doc)/rdf:type/@rdf:resource = '&adm;SignUp'] | cert:key[key('resources', ac:uri(), $main-doc)/rdf:type/@rdf:resource = '&adm;SignUp']" mode="bs2:FormControl" priority="1">
         <xsl:param name="violations" as="element()*"/>
 
         <xsl:next-match>
@@ -259,7 +261,7 @@ exclude-result-prefixes="#all">
         </xsl:next-match>
     </xsl:template>
     
-    <xsl:template match="cert:key/@rdf:*[key('resources', ac:uri())/rdf:type/@rdf:resource = '&adm;SignUp']" mode="bs2:FormControl" priority="1">
+    <xsl:template match="cert:key/@rdf:*[key('resources', ac:uri(), $main-doc)/rdf:type/@rdf:resource = '&adm;SignUp']" mode="bs2:FormControl" priority="1">
         <xsl:param name="type" select="'password'" as="xs:string"/>
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" as="xs:string?"/>
@@ -299,7 +301,7 @@ exclude-result-prefixes="#all">
     </xsl:template>
     
     <!-- do not show secretary URI input -->
-    <xsl:template match="acl:delegates[key('resources', ac:uri())/rdf:type/@rdf:resource = '&adm;SignUp']" mode="bs2:FormControl" priority="1"/>
+    <xsl:template match="acl:delegates[key('resources', ac:uri(), $main-doc)/rdf:type/@rdf:resource = '&adm;SignUp']" mode="bs2:FormControl" priority="1"/>
 
     <xsl:template name="lacl:password">
         <xsl:param name="this" select="xs:anyURI('&lacl;password')" as="xs:anyURI"/>
@@ -341,14 +343,14 @@ exclude-result-prefixes="#all">
     </xsl:template>
     
     <!-- hide type control -->
-    <xsl:template match="*[*][@rdf:about or @rdf:nodeID][key('resources', ac:uri())/rdf:type/@rdf:resource = '&adm;SignUp']" mode="bs2:TypeControl" priority="2">
+    <xsl:template match="*[*][@rdf:about or @rdf:nodeID][key('resources', ac:uri(), $main-doc)/rdf:type/@rdf:resource = '&adm;SignUp']" mode="bs2:TypeControl" priority="2">
         <xsl:next-match>
             <xsl:with-param name="hidden" select="true()"/>
         </xsl:next-match>
     </xsl:template>
 
     <!--  hide properties -->
-    <xsl:template match="dh:slug[key('resources', ac:uri())/rdf:type/@rdf:resource = '&adm;SignUp'] | foaf:primaryTopic[key('resources', ac:uri())/rdf:type/@rdf:resource = '&adm;SignUp'] | foaf:isPrimaryTopicOf[key('resources', ac:uri())/rdf:type/@rdf:resource = '&adm;SignUp'] | cert:modulus[key('resources', ac:uri())/rdf:type/@rdf:resource = '&adm;SignUp'] | cert:exponent[key('resources', ac:uri())/rdf:type/@rdf:resource = '&adm;SignUp']" mode="bs2:FormControl" priority="3">
+    <xsl:template match="dh:slug[key('resources', ac:uri(), $main-doc)/rdf:type/@rdf:resource = '&adm;SignUp'] | foaf:primaryTopic[key('resources', ac:uri(), $main-doc)/rdf:type/@rdf:resource = '&adm;SignUp'] | foaf:isPrimaryTopicOf[key('resources', ac:uri(), $main-doc)/rdf:type/@rdf:resource = '&adm;SignUp'] | cert:modulus[key('resources', ac:uri(), $main-doc)/rdf:type/@rdf:resource = '&adm;SignUp'] | cert:exponent[key('resources', ac:uri(), $main-doc)/rdf:type/@rdf:resource = '&adm;SignUp']" mode="bs2:FormControl" priority="3">
         <xsl:apply-templates select="." mode="xhtml:Input">
             <xsl:with-param name="type" select="'hidden'"/>
         </xsl:apply-templates>
@@ -360,13 +362,13 @@ exclude-result-prefixes="#all">
         </xsl:apply-templates>
     </xsl:template>
 
-    <xsl:template match="*[@rdf:about = '&foaf;mbox'][key('resources', ac:uri())/rdf:type/@rdf:resource = '&adm;SignUp']" mode="ac:label" priority="1">
+    <xsl:template match="*[@rdf:about = '&foaf;mbox'][key('resources', ac:uri(), $main-doc)/rdf:type/@rdf:resource = '&adm;SignUp']" mode="ac:label" priority="1">
         <xsl:value-of>
             <xsl:apply-templates select="key('resources', 'email', document('translations.rdf'))" mode="ac:label"/>
         </xsl:value-of>
     </xsl:template>
 
     <!-- turn off additional properties -->
-    <xsl:template match="*[key('resources', ac:uri())/rdf:type/@rdf:resource = '&adm;SignUp']" mode="bs2:PropertyControl" priority="1"/>
+    <xsl:template match="*[key('resources', ac:uri(), $main-doc)/rdf:type/@rdf:resource = '&adm;SignUp']" mode="bs2:PropertyControl" priority="1"/>
 
 </xsl:stylesheet>
