@@ -104,13 +104,78 @@
             <main class="span7">
                <header>
                   <h1>Add data</h1>
-                  <p class="lead">Use LinkedDataHub's built-in Linked Data browser to explore remote datasources</p>
+                  <p class="lead">Fork RDF data from Linked Data resources and SPARQL results</p>
                </header>
                <nav></nav>
                <div>
                   
                   
-                  <p>???</p>
+                  <p>You can fork (copy the contents of) any RDF document to a namedgraph in your dataspace.
+                     Two sources of RDF are supported: RDF resources on the web (Linked Data), and RDF
+                     file uploads.</p>
+                  
+                  <div class="alert alert-info">
+                     
+                     <p>Adding data this way will cause a blocking request, so use it for small amounts of
+                        data only (e.g. a few thousands of RDF triples).
+                        For larger data, use asynchronous <a href="../../reference/imports/rdf/" target="_blank">RDF imports</a>.</p>
+                     </div>
+                  
+                  <div>
+                     
+                     <h2 id="from-linked-data">From Linked Data</h2>
+                     
+                     <ol>
+                        
+                        <li>Click on the <span class="btn btn-primary">Save</span> button on the right side of the <a href="../../reference/user-interface/#action-bar" target="_blank">action bar</a>.
+                           A form will open with the following fields:
+                           
+                           <dl>
+                              
+                              <dt>Source</dt>
+                              
+                              <dd>URI of the source document</dd>
+                              
+                              <dt>Graph</dt>
+                              
+                              <dd>The target document. Start typing to find it by its label, or paste its URI here.
+                                 You can also create a new document here by clicking the <span>[+]</span> button next to the input.</dd>
+                              </dl>
+                           </li>
+                        
+                        <li>Both fields should be filled in automatically. Just click <span class="btn btn-primary">Save</span> to perform the fork operation.</li>
+                        </ol>
+                     </div>
+                  
+                  <div>
+                     
+                     <h2 id="from-file">From file</h2>
+                     
+                     <ol>
+                        
+                        <li>Click on the <span class="btn btn-primary">Add data</span> button on the left side of the <a href="../../reference/user-interface/#action-bar" target="_blank">action bar</a>. A form will open, asking you
+                           to fill out the following fields:
+                           
+                           <dl>
+                              
+                              <dt>Format</dt>
+                              
+                              <dd>Choose the RDF format of the file</dd>
+                              
+                              <dt>Filename</dt>
+                              
+                              <dd>Select the file on your computer</dd>
+                              
+                              <dt>Graph</dt>
+                              
+                              <dd>The target document. Start typing to find it by its label, or paste its URI here.
+                                 You can also create a new document here by clicking the <span>[+]</span> button next to the input.</dd>
+                              </dl>
+                           </li>
+                        
+                        <li>Click <span class="btn btn-primary">Save</span> to perform the fork operation.</li>
+                        </ol>
+                     </div>
                   </div>
             </main>
          </div>
