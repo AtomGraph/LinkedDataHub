@@ -16,7 +16,7 @@ print_usage()
     printf "  --slug STRING                        String that will be used as URI path segment (optional)\n"
     printf "\n"
     printf "  --file ABS_PATH                      Absolute path to the file\n"
-    printf "  --file-content-type MEDIA_TYPE       Media type of the file\n"
+    printf "  --file-content-type MEDIA_TYPE       Media type of the file (optional)\n"
     printf "  --file-slug STRING                   String that will be used as the file's URI path segment (optional)\n"
 }
 
