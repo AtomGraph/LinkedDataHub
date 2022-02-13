@@ -185,8 +185,6 @@ WHERE
         <ixsl:set-property name="yasqe" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
         <xsl:apply-templates select="ixsl:page()" mode="ldh:LoadedHTMLDocument">
             <xsl:with-param name="href" select="ldh:href()"/>
-            <!--<xsl:with-param name="fragment" select="encode-for-uri(ldh:href())"/>-->
-            <!--<xsl:with-param name="uri" select="if (ixsl:query-params()?uri) then xs:anyURI(ixsl:query-params()?uri) else ldh:absolute-path(ldh:href())"/>-->
             <xsl:with-param name="endpoint" select="$sd:endpoint"/>
             <xsl:with-param name="container" select="id('content-body', ixsl:page())"/>
             <xsl:with-param name="replace-content" select="false()"/>
@@ -1592,7 +1590,7 @@ WHERE
         <xsl:param name="href" as="xs:anyURI"/> <!-- possibly proxied URL -->
         <!-- decode raw URL from the ?uri query param, if it's present -->
         <xsl:param name="uri" select="if (contains($href, '?')) then let $query-params := ldh:parse-query-params(substring-after($href, '?')) return if (exists($query-params?uri)) then ldh:decode-uri($query-params?uri[1]) else ldh:absolute-path(ldh:href()) else ldh:absolute-path(ldh:href())" as="xs:anyURI"/> <!-- raw URL -->
-        <xsl:param name="fragment" select="encode-for-uri($uri)" as="xs:string?"/>
+        <xsl:param name="fragment" select="encode-for-uri(ldh:absolute-path(ldh:href()) || substring-after($href, '#'))" as="xs:string?"/>
         <xsl:param name="container" as="element()"/>
         <xsl:param name="push-state" select="true()" as="xs:boolean"/>
         <xsl:param name="endpoint" as="xs:anyURI?"/>
