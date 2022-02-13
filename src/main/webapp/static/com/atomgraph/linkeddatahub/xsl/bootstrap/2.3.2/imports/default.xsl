@@ -264,10 +264,10 @@ exclude-result-prefixes="#all"
     
     <!-- DEFAULT -->
 
-    <!-- resources with URIs not relative to app base -->
-    <xsl:template match="@rdf:resource[starts-with(., $ldt:base)] | srx:uri[starts-with(., $ldt:base)]" priority="2">
+    <!-- proxy link URIs if they are external -->
+    <xsl:template match="@rdf:resource | srx:uri" priority="2">
         <xsl:next-match>
-            <xsl:with-param name="href" select="."/>
+            <xsl:with-param name="href" select="ldh:href($ldt:base, xs:anyURI(.))"/>
         </xsl:next-match>
     </xsl:template>
     
