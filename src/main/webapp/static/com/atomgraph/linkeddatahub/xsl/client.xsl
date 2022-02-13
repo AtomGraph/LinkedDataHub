@@ -1590,7 +1590,7 @@ WHERE
         <xsl:param name="href" as="xs:anyURI"/> <!-- possibly proxied URL -->
         <!-- decode raw URL from the ?uri query param, if it's present -->
         <xsl:param name="uri" select="if (contains($href, '?')) then let $query-params := ldh:parse-query-params(substring-after($href, '?')) return if (exists($query-params?uri)) then ldh:decode-uri($query-params?uri[1]) else ldh:absolute-path(ldh:href()) else ldh:absolute-path(ldh:href())" as="xs:anyURI"/> <!-- raw URL -->
-        <xsl:param name="fragment" select="encode-for-uri(ldh:absolute-path(ldh:href()) || substring-after($href, '#'))" as="xs:string?"/>
+        <xsl:param name="fragment" select="encode-for-uri(ldh:absolute-path(ldh:href()) || (if (contains($href, '#')) then '#' || substring-after($href, '#') else ()))" as="xs:string?"/>
         <xsl:param name="container" as="element()"/>
         <xsl:param name="push-state" select="true()" as="xs:boolean"/>
         <xsl:param name="endpoint" as="xs:anyURI?"/>
