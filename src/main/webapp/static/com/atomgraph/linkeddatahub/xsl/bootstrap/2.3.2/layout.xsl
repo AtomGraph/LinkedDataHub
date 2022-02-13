@@ -402,6 +402,36 @@ exclude-result-prefixes="#all">
         </xsl:if>
     </xsl:template>
     
+    <!-- LINKS -->
+    
+    <xsl:template match="*[@rdf:about]" mode="xhtml:Anchor">
+        <xsl:param name="href" select="ldh:href($ldt:base, @rdf:about)" as="xs:anyURI"/>
+        <xsl:param name="id" select="encode-for-uri(@rdf:about)" as="xs:string?"/>
+        <xsl:param name="title" select="@rdf:about" as="xs:string?"/>
+        <xsl:param name="class" as="xs:string?"/>
+        
+        <xsl:next-match>
+            <xsl:with-param name="href" select="$href"/>
+            <xsl:with-param name="id" select="$id"/>
+            <xsl:with-param name="title" select="$title"/>
+            <xsl:with-param name="class" select="$class"/>
+        </xsl:next-match>
+    </xsl:template>
+    
+    <xsl:template match="@rdf:resource | srx:uri">
+        <xsl:param name="href" select="ldh:href($ldt:base, @rdf:about)" as="xs:anyURI"/>
+        <xsl:param name="id" as="xs:string?"/>
+        <xsl:param name="title" select="." as="xs:string?"/>
+        <xsl:param name="class" as="xs:string?"/>
+        
+        <xsl:next-match>
+            <xsl:with-param name="href" select="$href"/>
+            <xsl:with-param name="id" select="$id"/>
+            <xsl:with-param name="title" select="$title"/>
+            <xsl:with-param name="class" select="$class"/>
+        </xsl:next-match>
+    </xsl:template>
+    
     <!-- NAVBAR -->
     
     <xsl:template match="rdf:RDF" mode="bs2:NavBar">
