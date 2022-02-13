@@ -244,7 +244,7 @@ WHERE
     <xsl:function name="ldh:parse-query-params" as="map(xs:string, xs:string*)">
         <xsl:param name="query" as="xs:string"/>
 
-        <xsl:sequence select="return map:merge(
+        <xsl:sequence select="map:merge(
             for $query in tokenize($querystring, '&amp;')
             let $param := tokenize($query, '=')
             return map:entry(head($param), tail($param)),
