@@ -242,10 +242,10 @@ WHERE
     </xsl:function>
     
     <xsl:function name="ldh:parse-query-params" as="map(xs:string, xs:string*)">
-        <xsl:param name="query" as="xs:string"/>
+        <xsl:param name="query-string" as="xs:string"/>
 
         <xsl:sequence select="map:merge(
-            for $query in tokenize($querystring, '&amp;')
+            for $query in tokenize($query-string, '&amp;')
             let $param := tokenize($query, '=')
             return map:entry(head($param), tail($param)),
             map { 'duplicates': 'combine' }
