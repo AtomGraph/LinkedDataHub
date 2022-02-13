@@ -254,10 +254,10 @@ WHERE
         )"/>
     </xsl:function>
 
-    <xsl:function name="ldh:decode-uri" as="xs:string">
+    <xsl:function name="ldh:decode-uri" as="xs:anyURI">
         <xsl:param name="encoded-uri" as="xs:string"/>
 
-        <xsl:sequence select="ixsl:call(ixsl:window(), 'decodeURIComponent', [ $encoded-uri ])"/>
+        <xsl:sequence select="xs:anyURI(ixsl:call(ixsl:window(), 'decodeURIComponent', [ $encoded-uri ]))"/>
     </xsl:function>
 
     <!-- finds the app with the longest matching base URI -->
