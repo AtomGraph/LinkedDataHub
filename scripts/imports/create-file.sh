@@ -107,8 +107,8 @@ if [ -z "$file" ] ; then
     exit 1
 fi
 if [ -z "$file_content_type" ] ; then
-    print_usage
-    exit 1
+    # determine content-type if not provided
+    file_content_type=$(file -b --mime-type $file)
 fi
 
 urlencode()
