@@ -246,8 +246,10 @@ WHERE
 
         <xsl:sequence select="map:merge(
             for $query in tokenize($query-string, '&amp;')
-            let $param := tokenize($query, '=')
-            return map:entry(head($param), tail($param)),
+            return
+                let $param := tokenize($query, '=')
+                return map:entry(head($param), tail($param))
+            ,
             map { 'duplicates': 'combine' }
         )"/>
     </xsl:function>
