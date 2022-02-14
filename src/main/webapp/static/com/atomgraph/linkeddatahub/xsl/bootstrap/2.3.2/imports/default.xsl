@@ -51,21 +51,24 @@ exclude-result-prefixes="#all"
 
     <xsl:function name="ldh:href" as="xs:anyURI">
         <xsl:param name="base" as="xs:anyURI"/>
+        <xsl:param name="absolute-path" as="xs:anyURI"/>
         <xsl:param name="uri" as="xs:anyURI"/>
 
-        <xsl:sequence select="ldh:href($base, $uri, ())"/>
+        <xsl:sequence select="ldh:href($base, $absolute-path, $uri, ())"/>
     </xsl:function>
 
     <xsl:function name="ldh:href" as="xs:anyURI">
         <xsl:param name="base" as="xs:anyURI"/>
+        <xsl:param name="absolute-path" as="xs:anyURI"/>
         <xsl:param name="uri" as="xs:anyURI"/>
         <xsl:param name="mode" as="xs:anyURI*"/>
 
-        <xsl:sequence select="ldh:href($base, $uri, $mode, ())"/>
+        <xsl:sequence select="ldh:href($base, $absolute-path, $uri, $mode, ())"/>
     </xsl:function>
 
     <xsl:function name="ldh:href" as="xs:anyURI">
         <xsl:param name="base" as="xs:anyURI"/>
+        <xsl:param name="absolute-path" as="xs:anyURI"/>
         <xsl:param name="uri" as="xs:anyURI"/>
         <xsl:param name="mode" as="xs:anyURI*"/>
         <xsl:param name="forClass" as="xs:anyURI?"/>
@@ -74,10 +77,10 @@ exclude-result-prefixes="#all"
         <xsl:choose>
             <!-- do not proxy $uri via ?uri= if it is relative to the $base -->
             <xsl:when test="starts-with($uri, $base)">
-                <xsl:sequence select="ac:build-uri($uri, $query-params)"/>
+                <xsl:sequence select="ac:build-uri(ldh:absolute-path($uri), $query-params)"/>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:sequence select="ac:build-uri($base, map:merge((map{ 'uri': string($uri) }, $query-params)))"/>
+                <xsl:sequence select="ac:build-uri($absolute-path, map:merge((map{ 'uri': string($uri) }, $query-params)))"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:function>
@@ -95,7 +98,7 @@ exclude-result-prefixes="#all"
         
         <xsl:variable name="query-string" select="replace($query, '\?Type', concat('&lt;', $class, '&gt;'))" as="xs:string"/>
         <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': string($query-string) })" as="xs:anyURI"/>
-        <xsl:variable name="request-uri" select="ldh:href($ldt:base, $results-uri)" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), $results-uri)" as="xs:anyURI"/>
         <xsl:sequence select="document($request-uri)"/>
     </xsl:function>
 
@@ -106,7 +109,7 @@ exclude-result-prefixes="#all"
         
         <xsl:variable name="query-string" select="replace($query, '\?Type', concat('&lt;', $class, '&gt;'))" as="xs:string"/>
         <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': string($query-string) })" as="xs:anyURI"/>
-        <xsl:variable name="request-uri" select="$results-uri" as="xs:anyURI"/> <!-- ldh:href($ldt:base, $results-uri) -->
+        <xsl:variable name="request-uri" select="$results-uri" as="xs:anyURI"/> <!-- ldh:href($ldt:base, ldh:absolute-path(ldh:href()), $results-uri) -->
         <xsl:sequence select="document($request-uri)"/>
     </xsl:function>
     
@@ -117,7 +120,7 @@ exclude-result-prefixes="#all"
         
         <xsl:variable name="query-string" select="replace($query, '\?Type', concat('&lt;', $class, '&gt;'))" as="xs:string"/>
         <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': string($query-string) })" as="xs:anyURI"/>
-        <xsl:variable name="request-uri" select="$results-uri" as="xs:anyURI"/> <!-- ldh:href($ldt:base, $results-uri) -->
+        <xsl:variable name="request-uri" select="$results-uri" as="xs:anyURI"/> <!-- ldh:href($ldt:base, ldh:absolute-path(ldh:href()), $results-uri) -->
         <xsl:sequence select="document($request-uri)"/>
     </xsl:function>
 

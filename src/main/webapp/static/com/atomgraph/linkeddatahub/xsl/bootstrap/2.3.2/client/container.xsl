@@ -174,7 +174,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="service" select="if (ixsl:contains(ixsl:window(), 'LinkedDataHub.service')) then ixsl:get(ixsl:window(), 'LinkedDataHub.service') else ()" as="element()?"/>
         <xsl:variable name="endpoint" select="($service/sd:endpoint/@rdf:resource/xs:anyURI(.), sd:endpoint())[1]" as="xs:anyURI"/>
         <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': $query-string })" as="xs:anyURI"/>
-        <xsl:variable name="request-uri" select="ldh:href($ldt:base, $results-uri)" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), $results-uri)" as="xs:anyURI"/>
 
         <!-- load result count -->
         <xsl:variable name="request" as="item()*">
@@ -293,7 +293,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="query-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $query-json-string ])"/>
         <xsl:variable name="query-string" select="ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromQuery', [ $query-json ]), 'toString', [])" as="xs:string"/>
         <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': $query-string })" as="xs:anyURI"/>
-        <xsl:variable name="request-uri" select="ldh:href($ldt:base, $results-uri)" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), $results-uri)" as="xs:anyURI"/>
 
         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
             <xsl:call-template name="onContainerResultsLoad">
@@ -813,7 +813,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="query-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $query-json-string ])"/>
         <xsl:variable name="query-string" select="ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromQuery', [ $query-json ]), 'toString', [])" as="xs:string"/>
         <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': $query-string })" as="xs:anyURI"/>
-        <xsl:variable name="request-uri" select="ldh:href($ldt:base, $results-uri)" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), $results-uri)" as="xs:anyURI"/>
 
         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml' } }">
             <xsl:call-template name="onParallaxSelectLoad">
@@ -884,7 +884,7 @@ exclude-result-prefixes="#all"
             </xsl:document>
         </xsl:variable>
 <!--        <xsl:call-template name="ldh:PushContentState">
-            <xsl:with-param name="href" select="ldh:href($ldt:base, ac:uri())"/>
+            <xsl:with-param name="href" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ac:uri())"/>
             <xsl:with-param name="content-uri" select="$content-uri"/>
             <xsl:with-param name="select-string" select="$select-string"/>
             <xsl:with-param name="select-xml" select="$select-xml"/>
@@ -931,7 +931,7 @@ exclude-result-prefixes="#all"
             </xsl:document>
         </xsl:variable>
 <!--        <xsl:call-template name="ldh:PushContentState">
-            <xsl:with-param name="href" select="ldh:href($ldt:base, ac:uri())"/>
+            <xsl:with-param name="href" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ac:uri())"/>
             <xsl:with-param name="content-uri" select="$content-uri"/>
             <xsl:with-param name="select-string" select="$select-string"/>
             <xsl:with-param name="select-xml" select="$select-xml"/>
@@ -977,7 +977,7 @@ exclude-result-prefixes="#all"
             </xsl:document>
         </xsl:variable>
 <!--        <xsl:call-template name="ldh:PushContentState">
-            <xsl:with-param name="href" select="ldh:href($ldt:base, ac:uri())"/>
+            <xsl:with-param name="href" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ac:uri())"/>
             <xsl:with-param name="content-uri" select="$content-uri"/>
             <xsl:with-param name="select-string" select="$select-string"/>
             <xsl:with-param name="select-xml" select="$select-xml"/>
@@ -1022,7 +1022,7 @@ exclude-result-prefixes="#all"
             </xsl:document>
         </xsl:variable>
 <!--        <xsl:call-template name="ldh:PushContentState">
-            <xsl:with-param name="href" select="ldh:href($ldt:base, ac:uri())"/>
+            <xsl:with-param name="href" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ac:uri())"/>
             <xsl:with-param name="content-uri" select="$content-uri"/>
             <xsl:with-param name="select-string" select="$select-string"/>
             <xsl:with-param name="select-xml" select="$select-xml"/>
@@ -1100,7 +1100,7 @@ exclude-result-prefixes="#all"
                     <xsl:variable name="select-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $select-json-string ])"/>
                     <xsl:variable name="query-string" select="ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromQuery', [ $select-json ]), 'toString', [])" as="xs:string"/>
                     <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': $query-string })" as="xs:anyURI"/>
-                    <xsl:variable name="request-uri" select="ldh:href($ldt:base, $results-uri)" as="xs:anyURI"/>
+                    <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), $results-uri)" as="xs:anyURI"/>
 
                     <!-- load facet values, their counts and optional labels -->
                     <xsl:variable name="request" as="item()*">
@@ -1167,7 +1167,7 @@ exclude-result-prefixes="#all"
             </xsl:document>
         </xsl:variable>
 <!--        <xsl:call-template name="ldh:PushContentState">
-            <xsl:with-param name="href" select="ldh:href($ldt:base, ac:uri())"/>
+            <xsl:with-param name="href" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ac:uri())"/>
             <xsl:with-param name="content-uri" select="$content-uri"/>
             <xsl:with-param name="select-string" select="$select-string"/>
             <xsl:with-param name="select-xml" select="$select-xml"/>
@@ -1211,7 +1211,7 @@ exclude-result-prefixes="#all"
             </xsl:document>
         </xsl:variable>
 <!--        <xsl:call-template name="ldh:PushContentState">
-            <xsl:with-param name="href" select="ldh:href($ldt:base, ac:uri())"/>
+            <xsl:with-param name="href" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ac:uri())"/>
             <xsl:with-param name="content-uri" select="$content-uri"/>
             <xsl:with-param name="select-string" select="$select-string"/>
             <xsl:with-param name="select-xml" select="$select-xml"/>

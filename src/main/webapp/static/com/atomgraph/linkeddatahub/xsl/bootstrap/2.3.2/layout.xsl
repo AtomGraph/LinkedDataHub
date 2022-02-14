@@ -837,7 +837,7 @@ exclude-result-prefixes="#all">
                 <xsl:attribute name="class"><xsl:sequence select="$class"/></xsl:attribute>
             </xsl:if>
 
-            <a href="{ldh:href($ldt:base, ac:uri(), xs:anyURI(@rdf:about))}">
+            <a href="{ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ac:uri(), xs:anyURI(@rdf:about))}">
                 <xsl:value-of>
                     <xsl:apply-templates select="." mode="ac:label"/>
                 </xsl:value-of>
@@ -1021,7 +1021,7 @@ exclude-result-prefixes="#all">
                 <xsl:apply-templates select="." mode="ldh:logo"/>
                 
                 <xsl:variable name="request-access-to" select="ac:build-uri(lacl:requestAccess/@rdf:resource, map{ 'access-to': string(ac:uri()) } )" as="xs:anyURI"/>
-                <a href="{ldh:href($ldt:base, $request-access-to)}" class="btn btn-primary pull-right">Request access</a>
+                <a href="{ldh:href($ldt:base, ldh:absolute-path(ldh:href()), $request-access-to)}" class="btn btn-primary pull-right">Request access</a>
             </h2>
         </div>
     </xsl:template>
@@ -1090,7 +1090,7 @@ exclude-result-prefixes="#all">
             </div>
 
             <div class="pull-right">
-                <a href="{ldh:href($ldt:base, ac:uri(), xs:anyURI('&ac;EditMode'))}" title="{ac:label(key('resources', 'nav-bar-action-edit-graph-title', document('translations.rdf')))}">
+                <a href="{ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ac:uri(), xs:anyURI('&ac;EditMode'))}" title="{ac:label(key('resources', 'nav-bar-action-edit-graph-title', document('translations.rdf')))}">
                     <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="ldh:logo">
                         <xsl:with-param name="class" select="'btn' || (if ($ac:mode = '&ac;EditMode') then ' active' else ())"/>
                     </xsl:apply-templates>
