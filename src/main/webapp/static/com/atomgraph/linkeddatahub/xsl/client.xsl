@@ -224,12 +224,6 @@ WHERE
         <xsl:sequence select="xs:anyURI(ixsl:get(ixsl:window(), 'location.href'))"/>
     </xsl:function>
 
-    <xsl:function name="ldh:absolute-path" as="xs:anyURI">
-        <xsl:param name="href" as="xs:anyURI"/>
-        
-        <xsl:sequence select="xs:anyURI(if (contains($href, '?')) then substring-before($href, '?') else if (contains($href, '#')) then substring-before($href, '#') else $href)"/>
-    </xsl:function>
-
     <xsl:function name="ac:uri" as="xs:anyURI">
         <xsl:sequence select="xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.uri'))"/>
         <!--<xsl:sequence select="xs:anyURI(if (contains($href, '?')) then let $query-params := ldh:parse-query-params(substring-after($href, '?')) return if (exists($query-params?uri)) then ldh:decode-uri($query-params?uri[1]) else $href else $href)"/>-->
@@ -1760,7 +1754,7 @@ WHERE
         <xsl:if test="$uri-string castable as xs:anyURI and (starts-with($uri-string, 'http://') or starts-with($uri-string, 'https://'))">
             <xsl:variable name="uri" select="xs:anyURI($uri-string)" as="xs:anyURI"/>
             <!-- dereferenced external resources through a proxy -->
-            <xsl:variable name="href" select="ldh:href($ldt:base, $uri)" as="xs:anyURI"/>
+            <xsl:variable name="href" select="ldh:absolute-path(ldh:href())" as="xs:anyURI"/>
             <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
             <!-- abort the previous request, if any -->

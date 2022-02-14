@@ -88,6 +88,8 @@ public class LDH
 
     public static final ObjectProperty absolutePath = m_model.createObjectProperty(NS + "absolutePath");
     
+    public static final ObjectProperty requestUri = m_model.createObjectProperty(NS + "requestUri");
+    
     public static final DatatypeProperty createGraph = m_model.createDatatypeProperty( NS + "createGraph" );
 
 }

@@ -82,6 +82,12 @@ exclude-result-prefixes="#all"
         </xsl:choose>
     </xsl:function>
 
+    <xsl:function name="ldh:absolute-path" as="xs:anyURI">
+        <xsl:param name="href" as="xs:anyURI"/>
+        
+        <xsl:sequence select="xs:anyURI(if (contains($href, '?')) then substring-before($href, '?') else if (contains($href, '#')) then substring-before($href, '#') else $href)"/>
+    </xsl:function>
+    
     <xsl:function name="ldh:templates" as="document-node()" cache="yes">
         <xsl:param name="class" as="xs:anyURI"/>
         <xsl:param name="endpoint" as="xs:anyURI"/>
@@ -267,7 +273,7 @@ exclude-result-prefixes="#all"
     <!-- proxy link URIs if they are external -->
     <xsl:template match="@rdf:resource | srx:uri" priority="2">
         <xsl:next-match>
-            <xsl:with-param name="href" select="ldh:href($ldt:base, xs:anyURI(.))"/>
+            <xsl:with-param name="href" select="ldh:href(ldh:absolute-path(ldh:href()), xs:anyURI(.))"/>
         </xsl:next-match>
     </xsl:template>
     
