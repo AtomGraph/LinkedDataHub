@@ -905,7 +905,7 @@ WHERE
         <!-- if the URI is external, dereference it through the proxy -->
         <!-- add a bogus query parameter to give the RDF/XML document a different URL in the browser cache, otherwise it will clash with the HTML representation -->
         <!-- this is due to broken browser behavior re. Vary and conditional requests: https://stackoverflow.com/questions/60799116/firefox-if-none-match-headers-ignore-content-type-and-vary/60802443 -->
-        <xsl:variable name="request-uri" select="ac:build-uri(ldh:absolute-path(ldh:href()), let $params := map{ 'param': 'dummy' } return if (not(starts-with($uri, $ldt:base))) then map:merge(($params, map{ 'uri': $uri })) else $params)" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:build-uri($uri, map{ 'param': 'dummy' }))" as="xs:anyURI"/>
 
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
@@ -1502,9 +1502,7 @@ WHERE
     <xsl:template name="onDocumentLoad">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="href" as="xs:anyURI?"/>
-        <!--<xsl:param name="fragment" as="xs:string?"/>-->
         <xsl:param name="container" select="id('content-body', ixsl:page())" as="element()"/>
-        <xsl:param name="fallback" select="false()" as="xs:boolean"/>
         <xsl:param name="service-uri" select="if (id('search-service', ixsl:page())) then xs:anyURI(ixsl:get(id('search-service', ixsl:page()), 'value')) else ()" as="xs:anyURI?"/>
         <xsl:param name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.apps'))" as="element()?"/>
         <xsl:param name="push-state" select="true()" as="xs:boolean"/>
@@ -1517,8 +1515,6 @@ WHERE
 
                 <xsl:apply-templates select="?body" mode="ldh:LoadedHTMLDocument">
                     <xsl:with-param name="href" select="$href"/>
-                    <!--<xsl:with-param name="fragment" select="$fragment"/>-->
-                    <!--<xsl:with-param name="uri" select="ac:uri()"/>-->
                     <xsl:with-param name="endpoint" select="$endpoint"/>
                     <xsl:with-param name="container" select="$container"/>
                     <xsl:with-param name="push-state" select="$push-state"/>
@@ -1531,23 +1527,25 @@ WHERE
                 <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
                 
                 <!-- error response - could not load query results -->
-                <xsl:result-document href="#content-body" method="ixsl:replace-content">
-                    <xsl:choose>
-                        <xsl:when test="id('content-body', ?body)">
-                            <xsl:copy-of select="id('content-body', ?body)/*"/>
-                        </xsl:when>
-                        <xsl:otherwise>
-                            <div class="alert alert-block">
-                                <strong>Error loading RDF document</strong>
-                                <xsl:if test="$response?message">
-                                    <pre>
-                                        <xsl:value-of select="$response?message"/>
-                                    </pre>
-                                </xsl:if>
-                            </div>
-                        </xsl:otherwise>
-                    </xsl:choose>
-                </xsl:result-document>
+                <xsl:for-each select="$container">
+                    <xsl:result-document href="?." method="ixsl:replace-content">
+                        <xsl:choose>
+                            <xsl:when test="id('content-body', ?body)">
+                                <xsl:copy-of select="id('content-body', ?body)/*"/>
+                            </xsl:when>
+                            <xsl:otherwise>
+                                <div class="alert alert-block">
+                                    <strong>Error loading RDF document</strong>
+                                    <xsl:if test="$response?message">
+                                        <pre>
+                                            <xsl:value-of select="$response?message"/>
+                                        </pre>
+                                    </xsl:if>
+                                </div>
+                            </xsl:otherwise>
+                        </xsl:choose>
+                    </xsl:result-document>
+                </xsl:for-each>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
@@ -1555,13 +1553,13 @@ WHERE
     <!-- cannot be a named template because overriding templates need to be able to call xsl:next-match (cannot use xsl:origin with Saxon-JS because of XSLT 3.0 packages) -->
     <xsl:template match="/" mode="ldh:LoadedHTMLDocument">
         <xsl:param name="href" as="xs:anyURI"/> <!-- possibly proxied URL -->
-        <!-- decode raw URL from the ?uri query param, if it's present -->
-        <xsl:param name="uri" select="if (contains($href, '?')) then let $query-params := ldh:parse-query-params(substring-after($href, '?')) return if (exists($query-params?uri)) then ldh:decode-uri($query-params?uri[1]) else ldh:absolute-path(ldh:href()) else ldh:absolute-path(ldh:href())" as="xs:anyURI"/> <!-- raw URL -->
-        <xsl:param name="fragment" select="encode-for-uri(ldh:absolute-path(ldh:href()) || (if (contains($href, '#')) then '#' || substring-after($href, '#') else ()))" as="xs:string?"/>
         <xsl:param name="container" as="element()"/>
         <xsl:param name="push-state" select="true()" as="xs:boolean"/>
         <xsl:param name="endpoint" as="xs:anyURI?"/>
         <xsl:param name="replace-content" select="true()" as="xs:boolean"/>
+        <!-- decode raw URL from the ?uri query param, if it's present -->
+        <xsl:variable name="uri" select="if (contains($href, '?')) then let $query-params := ldh:parse-query-params(substring-after($href, '?')) return if (exists($query-params?uri)) then ldh:decode-uri($query-params?uri[1]) else ldh:absolute-path($href) else ldh:absolute-path($href)" as="xs:anyURI"/> <!-- raw URL -->
+        <xsl:variable name="fragment" select="encode-for-uri(ldh:absolute-path(ldh:href()) || (if (contains($href, '#')) then '#' || substring-after($href, '#') else ()))" as="xs:string?"/>
         
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
         <!-- enable .btn-edit if it's present -->
@@ -1711,8 +1709,6 @@ WHERE
                         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
                             <xsl:call-template name="onDocumentLoad">
                                 <xsl:with-param name="href" select="$href"/>
-                                <!--<xsl:with-param name="fragment" select="encode-for-uri($href)"/>-->
-                                <!--<xsl:with-param name="state" select="$state"/>-->
                                 <!-- we don't want to push the same state we just popped back to -->
                                 <xsl:with-param name="push-state" select="false()"/>
                             </xsl:call-template>
@@ -1732,9 +1728,7 @@ WHERE
     <!-- intercept all link HTTP(S) clicks except to /uploads/ and those in the navbar (except breadcrumb bar, .brand and app list) and the footer -->
     <xsl:template match="a[not(@target)][starts-with(@href, 'http://') or starts-with(@href, 'https://')][not(starts-with(@href, resolve-uri('uploads/', $ldt:base)))][ancestor::div[@id = 'breadcrumb-nav'] or not(ancestor::div[tokenize(@class, ' ') = ('navbar', 'footer')])] | a[contains-token(@class, 'brand')] | div[button[contains-token(@class, 'btn-apps')]]/ul//a" mode="ixsl:onclick">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
-        <xsl:variable name="href" select="@href" as="xs:anyURI"/>
-        <!-- $href is already proxied server-side -->
-        <!--<xsl:variable name="request-uri" select="ldh:href($ldt:base, $href)" as="xs:anyURI"/>-->
+        <xsl:variable name="href" select="@href" as="xs:anyURI"/> <!-- already proxied server-side -->
         
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
         
@@ -1748,7 +1742,6 @@ WHERE
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
                 <xsl:call-template name="onDocumentLoad">
                     <xsl:with-param name="href" select="$href"/>
-                    <!--<xsl:with-param name="fragment" select="encode-for-uri($href)"/>-->
                 </xsl:call-template>
             </ixsl:schedule-action>
         </xsl:variable>
@@ -1778,7 +1771,6 @@ WHERE
                 <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
                     <xsl:call-template name="onDocumentLoad">
                         <xsl:with-param name="href" select="ac:document-uri($href)"/>
-                        <!--<xsl:with-param name="fragment" select="encode-for-uri($uri)"/>-->
                     </xsl:call-template>
                 </ixsl:schedule-action>
             </xsl:variable>
@@ -1802,7 +1794,6 @@ WHERE
                     <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
                         <xsl:call-template name="onDocumentLoad">
                             <xsl:with-param name="href" select="$href"/>
-                            <!--<xsl:with-param name="fragment" select="encode-for-uri($href)"/>-->
                         </xsl:call-template>
                     </ixsl:schedule-action>
                 </xsl:variable>
