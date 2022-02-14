@@ -276,7 +276,7 @@ exclude-result-prefixes="#all"
     <!-- proxy link URIs if they are external -->
     <xsl:template match="@rdf:resource | srx:uri" priority="2">
         <xsl:next-match>
-            <xsl:with-param name="href" select="ldh:href(ldh:absolute-path(ldh:href()), xs:anyURI(.))"/>
+            <xsl:with-param name="href" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), xs:anyURI(.))"/>
         </xsl:next-match>
     </xsl:template>
     
