@@ -77,6 +77,28 @@ exclude-result-prefixes="#all">
         </div>
     </xsl:template>
     
+    <!-- ROW FORM - we need the overriding templates as well -->
+
+    <xsl:template match="rdf:RDF[$ac:forClass = ('&ldh;CSVImport', '&ldh;RDFImport')][$ac:method = 'GET']" mode="bs2:RowForm" priority="2" use-when="system-property('xsl:product-name') = 'SAXON'">
+        <xsl:param name="action" select="ac:build-uri(resolve-uri('imports', $ldt:base), map{ 'forClass': string($ac:forClass), 'mode': '&ac;EditMode' })" as="xs:anyURI"/>
+        <xsl:param name="classes" as="element()*"/>
+
+        <xsl:next-match>
+            <xsl:with-param name="action" select="$action"/>
+            <xsl:with-param name="classes" select="$classes"/>
+        </xsl:next-match>
+    </xsl:template>
+    
+    <xsl:template match="rdf:RDF[$ac:forClass][$ac:method = 'GET']" mode="bs2:RowForm" priority="1" use-when="system-property('xsl:product-name') = 'SAXON'">
+        <xsl:param name="action" select="ac:build-uri($a:graphStore, map{ 'forClass': string($ac:forClass), 'mode': '&ac;EditMode' })" as="xs:anyURI"/>
+        <xsl:param name="classes" as="element()*"/>
+
+        <xsl:next-match>
+            <xsl:with-param name="action" select="$action"/>
+            <xsl:with-param name="classes" select="$classes"/>
+        </xsl:next-match>
+    </xsl:template>
+    
     <!-- add sp:Construct to the creatable class list below the form. Needs to pass parameters from signup.xsl and request-access.xsl!!! -->
     <xsl:template match="rdf:RDF[$ac:method = 'GET']" mode="bs2:RowForm" use-when="system-property('xsl:product-name') = 'SAXON'">
         <xsl:param name="action" select="ac:build-uri(ac:uri(), let $params := map{ '_method': 'PUT', 'mode': for $mode in $ac:mode return string($mode) } return if (not(starts-with(ac:uri(), $ldt:base))) then map:merge(($params, map{ 'uri': string(ac:uri()) })) else $params)" as="xs:anyURI"/>

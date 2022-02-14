@@ -685,7 +685,6 @@ extension-element-prefixes="ixsl"
     
     <xsl:template match="rdf:RDF[$acl:mode = '&acl;Append']" mode="bs2:Create" priority="1">
         <xsl:param name="class" select="'btn-group'" as="xs:string?"/>
-        <!--<xsl:param name="default-classes" as="element()*"/>-->
         <xsl:param name="classes" as="element()*"/>
         <xsl:param name="show-document-classes" select="true()" as="xs:boolean"/>
         <xsl:param name="create-graph" select="false()" as="xs:boolean"/>
