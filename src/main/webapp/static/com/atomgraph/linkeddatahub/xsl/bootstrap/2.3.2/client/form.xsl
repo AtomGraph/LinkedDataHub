@@ -214,7 +214,6 @@ exclude-result-prefixes="#all"
         <xsl:variable name="property" select="../preceding-sibling::*/select/option[ixsl:get(., 'selected') = true()]/ixsl:get(., 'value')" as="xs:anyURI"/>
         <xsl:variable name="forClass" select="preceding-sibling::input/@value" as="xs:anyURI*"/>
         <xsl:variable name="href" select="ac:build-uri(ldh:absolute-path(ldh:href()), map{ 'forClass': string($forClass) })" as="xs:anyURI"/>
-        <xsl:message>Form URI: <xsl:value-of select="$href"/></xsl:message>
         
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
         
@@ -236,7 +235,6 @@ exclude-result-prefixes="#all"
         <xsl:variable name="bnode-ids" select="distinct-values($form//input[@name = ('sb', 'ob')]/ixsl:get(., 'value'))" as="xs:string*"/>
          <!-- find the last bnode ID on the form so that we can change this resources ID to +1. Will only work with Jena's ID format A1, A2, ... -->
         <xsl:variable name="max-bnode-id" select="max(for $bnode-id in $bnode-ids return number(substring-after($bnode-id, 'A')))" as="xs:double?"/>
-        <xsl:message>Form's last bnode ID: <xsl:value-of select="$max-bnode-id"/></xsl:message>
         <!--- show a modal form if this button is in a <fieldset>, meaning on a resource-level and not form level. Otherwise (e.g. for the "Create" button) show normal form -->
         <xsl:variable name="modal-form" select="exists(ancestor::fieldset)" as="xs:boolean"/>
         <xsl:variable name="forClass" select="input[@class = 'forClass']/@value" as="xs:anyURI"/>
@@ -244,7 +242,6 @@ exclude-result-prefixes="#all"
         <xsl:variable name="query-params" select="map:merge((map{ 'forClass': string($forClass) }, if ($modal-form) then map{ 'mode': '&ac;ModalMode' } else (), if ($create-graph) then map{ 'createGraph': string(true()) } else ()))" as="map(xs:string, xs:string*)"/>
         <!-- do not use @href from the HTML because it does not update with AJAX document loads -->
         <xsl:variable name="href" select="ac:build-uri(ldh:absolute-path(ldh:href()), $query-params)" as="xs:anyURI"/>
-        <xsl:message>Form URI: <xsl:value-of select="$href"/></xsl:message>
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
         
@@ -266,33 +263,6 @@ exclude-result-prefixes="#all"
             </xsl:call-template>
         </xsl:if>
     </xsl:template>
-    
-<!--    <xsl:template match="button[contains-token(@class, 'add-constructor')]" mode="ixsl:onclick" priority="1">
-        <xsl:variable name="form" select="ancestor::form" as="element()?"/>
-        <xsl:variable name="bnode-ids" select="distinct-values($form//input[@name = ('sb', 'ob')]/ixsl:get(., 'value'))" as="xs:string*"/>
-          find the last bnode ID on the form so that we can change this resources ID to +1. Will only work with Jena's ID format A1, A2, ... 
-        <xsl:variable name="max-bnode-id" select="max(for $bnode-id in $bnode-ids return number(substring-after($bnode-id, 'A')))" as="xs:double?"/>
-        <xsl:message>Form's last bnode ID: <xsl:value-of select="$max-bnode-id"/></xsl:message>
-        - show a modal form if this button is in a <fieldset>, meaning on a resource-level and not form level. Otherwise (e.g. for the "Create" button) show normal form 
-        <xsl:variable name="modal-form" select="exists(ancestor::fieldset)" as="xs:boolean"/>
-        <xsl:variable name="forClass" select="xs:anyURI('&rdfs;Resource')" as="xs:anyURI"/>
-        <xsl:variable name="create-graph" select="empty($form) or $modal-form" as="xs:boolean"/>
-        <xsl:variable name="query-params" select="map:merge((map{ 'forClass': string($forClass) }, if ($modal-form) then map{ 'mode': '&ac;ModalMode' } else (), if ($create-graph) then map{ 'createGraph': string(true()) } else ()))" as="map(xs:string, xs:string*)"/>
-         do not use @href from the HTML because it does not update with AJAX document loads 
-        <xsl:variable name="href" select="ac:build-uri(ldh:absolute-path(ldh:href()), $query-params)" as="xs:anyURI"/>
-        
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
-
-        <xsl:variable name="request" as="item()*">
-            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
-                <xsl:call-template name="onAddForm">
-                    <xsl:with-param name="container" select="id('content-body', ixsl:page())"/>
-                    <xsl:with-param name="max-bnode-id" select="$max-bnode-id"/>
-                </xsl:call-template>
-            </ixsl:schedule-action>
-        </xsl:variable>
-        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
-    </xsl:template>-->
     
     <!-- types (Classes) are looked up in the <ns> endpoint -->
     <xsl:template match="input[contains-token(@class, 'type-typeahead')]" mode="ixsl:onkeyup" priority="1">
@@ -403,7 +373,6 @@ exclude-result-prefixes="#all"
         <xsl:variable name="fieldset" select="ancestor::fieldset" as="element()"/>
         <xsl:variable name="forClass" select="$resource/@rdf:about" as="xs:anyURI"/>
         <xsl:variable name="href" select="ac:build-uri(ldh:absolute-path(ldh:href()), map{ 'forClass': string($forClass) })" as="xs:anyURI"/>
-        <xsl:message>Form URI: <xsl:value-of select="$href"/></xsl:message>
         
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
@@ -881,11 +850,6 @@ exclude-result-prefixes="#all"
         <!-- $target-id is of the "Create" button, need to replace the preceding typeahead input instead -->
         <xsl:param name="typeahead-span" select="if ($target-id) then id($target-id, ixsl:page())/ancestor::div[@class = 'controls']//span[descendant::input[@name = 'ou']] else ()" as="element()?"/>
 
-        <xsl:message>
-            Form loaded with ?action: <xsl:value-of select="$action"/> ?status: <xsl:value-of select="?status"/> ?media-type: <xsl:value-of select="?media-type"/>
-            $target-id: <xsl:value-of select="$target-id"/> exists($typeahead-span): <xsl:value-of select="exists($typeahead-span)"/>
-        </xsl:message>
-        
         <xsl:choose>
             <!-- special case for add/clone data forms: redirect to the container -->
             <xsl:when test="ixsl:get($form, 'id') = ('form-add-data', 'form-clone-data')">
@@ -911,7 +875,6 @@ exclude-result-prefixes="#all"
                         <xsl:apply-templates select="?body" mode="ldh:LoadedHTMLDocument">
                             <!-- $href does not change at this point -->
                             <xsl:with-param name="href" select="ldh:href()"/>
-                            <!--<xsl:with-param name="uri" select="ac:uri()"/>-->
                             <xsl:with-param name="container" select="$container"/>
                         </xsl:apply-templates>
                     </xsl:when>
@@ -1046,22 +1009,6 @@ exclude-result-prefixes="#all"
                     <xsl:variable name="new-fieldset" select="$form//fieldset" as="element()"/>
                     
                     <xsl:for-each select="$fieldset">
-                        <!-- move property creation control group down, by appending it to the parent fieldset -->
-<!--                        <xsl:for-each select="$fieldset/..">
-                            <xsl:result-document href="?." method="ixsl:append-content">
-                                <xsl:copy-of select="$fieldset"/>
-                            </xsl:result-document>
-                        </xsl:for-each>
-
-                        <xsl:result-document href="?." method="ixsl:replace-content">
-                            <xsl:copy-of select="$new-fieldset/*"/>
-                        </xsl:result-document>-->
-                        
-                        <!-- apply WYMEditor on textarea if object is XMLLiteral -->
-<!--                        <xsl:call-template name="add-value-listeners">
-                            <xsl:with-param name="id" select="$new-fieldset//input[@name = ('ob', 'ou', 'ol')]/@id"/>
-                        </xsl:call-template>-->
-                        
                         <xsl:result-document href="?." method="ixsl:replace-content">
                             <xsl:copy-of select="$new-fieldset/*"/>
                         </xsl:result-document>
