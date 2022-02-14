@@ -681,8 +681,6 @@ WHERE
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="uri" as="xs:anyURI"/>
 
-        <xsl:message>ldh:LoadedRDFDocument $uri: <xsl:value-of select="$uri"/></xsl:message>
-
         <!-- load breadcrumbs -->
         <xsl:if test="id('breadcrumb-nav', ixsl:page())">
             <xsl:result-document href="#breadcrumb-nav" method="ixsl:replace-content">
@@ -865,7 +863,6 @@ WHERE
     <xsl:template name="ldh:LoadContents">
         <xsl:param name="uri" as="xs:anyURI"/>
         <xsl:param name="content-ids" as="xs:string*"/> <!-- workaround for Saxon-JS bug: https://saxonica.plan.io/issues/5036 -->
-        <!--<xsl:param name="state" as="item()?"/>-->
 
 <!--        <xsl:for-each select="key('elements-by-class', 'resource-content', ixsl:page())">-->
         <xsl:if test="exists($content-ids)">
@@ -1250,7 +1247,6 @@ WHERE
                 <xsl:result-document href="#{$id}" method="ixsl:replace-content">
                     <div class="alert alert-block">Error loading root children</div>
                 </xsl:result-document>
-                <!--<xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ ?message ])"/>-->
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
