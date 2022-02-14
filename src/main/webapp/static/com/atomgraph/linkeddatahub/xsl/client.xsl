@@ -1122,16 +1122,18 @@ WHERE
                 </xsl:result-document>
                 
                 <xsl:if test="$container">
-                    <!-- fill the container typeahead value, if it's provided -->
-                    <xsl:variable name="request" as="item()*">
-                        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $container, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-                            <xsl:call-template name="onTypeaheadResourceLoad">
-                                <xsl:with-param name="resource-uri" select="$container"/>
-                                <xsl:with-param name="typeahead-span" select="id('remote-rdf-doc', ixsl:page())/.."/>
-                            </xsl:call-template>
-                        </ixsl:schedule-action>
-                    </xsl:variable>
-                    <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+                    <!-- fill the container typeahead values for both #upload-rdf-doc and #remote-rdf-doc -->
+                    <xsl:for-each select="(id('upload-rdf-doc', ixsl:page())/.., id('remote-rdf-doc', ixsl:page())/..)">
+                        <xsl:variable name="request" as="item()*">
+                            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $container, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+                                <xsl:call-template name="onTypeaheadResourceLoad">
+                                    <xsl:with-param name="resource-uri" select="$container"/>
+                                    <xsl:with-param name="typeahead-span" select="."/>
+                                </xsl:call-template>
+                            </ixsl:schedule-action>
+                        </xsl:variable>
+                        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+                    </xsl:for-each>
                 </xsl:if>
 
                 <ixsl:set-style name="cursor" select="'default'"/>
