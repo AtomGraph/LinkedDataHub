@@ -769,11 +769,14 @@ exclude-result-prefixes="#all"
     <!-- map -->
 
     <!-- TO-DO: improve match pattern -->
-    <xsl:template match="rdf:RDF[resolve-uri('geo/', $ldt:base) = ac:uri()]" mode="bs2:Map" priority="1">
+<!--    <xsl:template match="rdf:RDF[resolve-uri('geo/', $ldt:base) = ac:uri()]" mode="bs2:Map" priority="1">
+        <xsl:param name="canvas-id" as="xs:string"/>
+        <xsl:param name="class" select="'map-canvas'" as="xs:string?"/>
+
         <xsl:next-match>
             <xsl:with-param name="container-uri" select="()"/>
         </xsl:next-match>
-    </xsl:template>
+    </xsl:template>-->
 
     <xsl:template match="rdf:RDF" mode="bs2:Map">
         <xsl:param name="canvas-id" as="xs:string"/>
