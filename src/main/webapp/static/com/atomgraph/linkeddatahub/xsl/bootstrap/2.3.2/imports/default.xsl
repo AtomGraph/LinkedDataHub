@@ -77,7 +77,7 @@ exclude-result-prefixes="#all"
         <xsl:choose>
             <!-- do not proxy $uri via ?uri= if it is relative to the $base -->
             <xsl:when test="starts-with($uri, $base)">
-                <xsl:sequence select="ac:build-uri(ldh:absolute-path($uri), $query-params)"/>
+                <xsl:sequence select="ac:build-uri($uri, $query-params)"/>
             </xsl:when>
             <xsl:otherwise>
                 <xsl:sequence select="ac:build-uri($absolute-path, map:merge((map{ 'uri': string($uri) }, $query-params)))"/>
