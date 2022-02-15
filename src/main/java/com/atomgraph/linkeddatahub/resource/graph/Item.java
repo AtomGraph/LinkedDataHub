@@ -29,6 +29,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import javax.inject.Inject;
+import javax.ws.rs.BadRequestException;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
@@ -57,14 +58,17 @@ public class Item extends GraphStoreImpl implements Patchable
 
     private final URI uri;
     private final EndpointAccessor endpointAccessor;
+    private final com.atomgraph.linkeddatahub.apps.model.Application application;
     
     @Inject
     public Item(@Context Request request, @Context UriInfo uriInfo, MediaTypes mediaTypes,
-        Optional<Ontology> ontology, Optional<Service> service, @Context Providers providers, com.atomgraph.linkeddatahub.Application system)
+        Optional<Ontology> ontology, Optional<Service> service, @Context Providers providers, com.atomgraph.linkeddatahub.Application system,
+        com.atomgraph.linkeddatahub.apps.model.Application application)
     {
         super(request, uriInfo, mediaTypes, ontology, service, providers, system);
         this.uri = uriInfo.getAbsolutePath();
         this.endpointAccessor = service.get().getEndpointAccessor();
+        this.application = application;
     }
 
     @Override
@@ -108,6 +112,8 @@ public class Item extends GraphStoreImpl implements Patchable
     @DELETE
     public Response delete(@QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
     {
+        if (getURI().equals(getApplication().getBaseURI())) throw new BadRequestException("Cannot delete Root document at application's base URI");
+        
         return super.delete(false, getURI());
     }
     
@@ -150,6 +156,11 @@ public class Item extends GraphStoreImpl implements Patchable
     public EndpointAccessor getEndpointAccessor()
     {
         return endpointAccessor;
+    }
+    
+    public com.atomgraph.linkeddatahub.apps.model.Application getApplication()
+    {
+        return application;
     }
     
 }

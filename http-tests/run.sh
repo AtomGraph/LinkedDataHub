@@ -144,8 +144,6 @@ run_tests $(find ./admin/ -type f -name '*.sh')
 (( error_count += $? ))
 run_tests $(find ./imports/ -type f -name '*.sh')
 (( error_count += $? ))
-run_tests $(find ./linked-data-templates/ -type f -name '*.sh')
-(( error_count += $? ))
 run_tests $(find ./graph-store-protocol/ -type f -name '*.sh')
 (( error_count += $? ))
 
