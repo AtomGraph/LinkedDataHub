@@ -58,9 +58,10 @@ public class Item extends com.atomgraph.linkeddatahub.resource.graph.Item
     public Item(@Context Request request, @Context UriInfo uriInfo, MediaTypes mediaTypes,
             Optional<Ontology> ontology, Optional<Service> service,
             DataManager dataManager,
-            @Context Providers providers, com.atomgraph.linkeddatahub.Application system)
+            @Context Providers providers, com.atomgraph.linkeddatahub.Application system,
+            com.atomgraph.linkeddatahub.apps.model.Application application)
     {
-        super(request, uriInfo, mediaTypes, ontology, service, providers, system);
+        super(request, uriInfo, mediaTypes, ontology, service, providers, system, application);
         this.resource = ModelFactory.createDefaultModel().createResource(uriInfo.getAbsolutePath().toString());
         if (log.isDebugEnabled()) log.debug("Constructing {}", getClass());
     }
