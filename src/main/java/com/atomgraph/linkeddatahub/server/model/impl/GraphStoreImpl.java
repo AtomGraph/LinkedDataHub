@@ -50,6 +50,7 @@ import java.util.UUID;
 import javax.inject.Inject;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.InternalServerErrorException;
@@ -101,6 +102,7 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
     private static final Logger log = LoggerFactory.getLogger(GraphStoreImpl.class);
 
     private final UriInfo uriInfo;
+    private final com.atomgraph.linkeddatahub.apps.model.Application application;
     private final Ontology ontology;
     private final Service service;
     private final Providers providers;
@@ -111,11 +113,13 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
     @Inject
     public GraphStoreImpl(@Context Request request, @Context UriInfo uriInfo, MediaTypes mediaTypes,
         Optional<Ontology> ontology, Optional<Service> service,
-        @Context Providers providers, com.atomgraph.linkeddatahub.Application system)
+        @Context Providers providers, com.atomgraph.linkeddatahub.Application system,
+        com.atomgraph.linkeddatahub.apps.model.Application application)
     {
         super(request, service.get(), mediaTypes);
         if (ontology.isEmpty()) throw new InternalServerErrorException("Ontology is not specified");
         if (service.isEmpty()) throw new InternalServerErrorException("Service is not specified");
+        this.application = application;
         this.uriInfo = uriInfo;
         this.ontology = ontology.get();
         this.service = service.get();
@@ -318,6 +322,22 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
         }
     }
 
+    /**
+     * Implements DELETE method of SPARQL Graph Store Protocol.
+     * 
+     * @param defaultGraph true if default graph is requested
+     * @param graphUri named graph URI
+     * @return response
+     */
+    @DELETE
+    @Override
+    public Response delete(@QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
+    {
+        if (getApplication().getBaseURI().equals(graphUri)) throw new BadRequestException("Cannot delete Root document at application's base URI");
+        
+        return super.delete(false, graphUri);
+    }
+    
     public int writeFiles(Model model, Map<String, FormDataBodyPart> fileNameBodyPartMap)
     {
         if (model == null) throw new IllegalArgumentException("Model cannot be null");
@@ -661,6 +681,11 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
         return uriInfo;
     }
 
+    public com.atomgraph.linkeddatahub.apps.model.Application getApplication()
+    {
+        return application;
+    }
+    
     public Ontology getOntology()
     {
         return ontology;
