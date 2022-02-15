@@ -22,12 +22,24 @@ pushd . > /dev/null && cd "$SCRIPT_ROOT/admin/acl"
 
 popd > /dev/null
 
-# delete graph (of the Root document)
+# create container
+
+slug="test"
+
+container=$(./create-container.sh \
+ -f "$OWNER_CERT_FILE" \
+  -p "$OWNER_CERT_PWD" \
+  -b "$END_USER_BASE_URL" \
+  --title "Test" \
+  --slug "$slug" \
+  --parent "$END_USER_BASE_URL")
+
+# delete document
 
 curl -k -w "%{http_code}\n" -o /dev/null -f -s -G \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -X DELETE \
-  "$END_USER_BASE_URL" \
+  "$container" \
 | grep -q "$STATUS_NO_CONTENT"
 
 # check that the graph is gone

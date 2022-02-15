@@ -30,11 +30,23 @@ pushd . > /dev/null && cd "$SCRIPT_ROOT/admin/acl"
 
 popd > /dev/null
 
+# create container
+
+slug="test"
+
+container=$(./create-container.sh \
+ -f "$OWNER_CERT_FILE" \
+  -p "$OWNER_CERT_PWD" \
+  -b "$END_USER_BASE_URL" \
+  --title "Test" \
+  --slug "$slug" \
+  --parent "$END_USER_BASE_URL")
+
 # access is allowed after authorization is created
 
 curl -k -w "%{http_code}\n" -o /dev/null -f -s \
   -E "${AGENT_CERT_FILE}":"${AGENT_CERT_PWD}" \
   -H "Accept: application/n-triples" \
   -X DELETE \
-  "${END_USER_BASE_URL}" \
+  "$container" \
 | grep -q "${STATUS_NO_CONTENT}"
