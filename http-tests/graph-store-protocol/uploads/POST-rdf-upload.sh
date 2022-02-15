@@ -27,12 +27,12 @@ pushd . > /dev/null && cd "$SCRIPT_ROOT"
 slug="test"
 
 graph=$(./create-container.sh \
--f "$AGENT_CERT_FILE" \
--p "$AGENT_CERT_PWD" \
--b "$END_USER_BASE_URL" \
---title "Test" \
---slug "$slug" \
---parent "$END_USER_BASE_URL")
+  -f "$AGENT_CERT_FILE" \
+  -p "$AGENT_CERT_PWD" \
+  -b "$END_USER_BASE_URL" \
+  --title "Test" \
+  --slug "$slug" \
+  --parent "$END_USER_BASE_URL")
 
 # upload RDF file
 

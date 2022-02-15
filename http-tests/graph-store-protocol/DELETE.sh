@@ -30,11 +30,11 @@ pushd . > /dev/null && cd "$SCRIPT_ROOT/admin/acl"
 -b "$ADMIN_BASE_URL" \
   -f "$OWNER_CERT_FILE" \
   -p "$OWNER_CERT_PWD" \
---label "Write base" \
---agent "$AGENT_URI" \
---to "$container" \
---read \
---write
+  --label "Write base" \
+  --agent "$AGENT_URI" \
+  --to "$container" \
+  --read \
+  --write
 
 popd > /dev/null
 
@@ -51,5 +51,5 @@ curl -k -w "%{http_code}\n" -o /dev/null -f -s -G \
 curl -k -w "%{http_code}\n" -o /dev/null -s -G \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -H "Accept: application/n-triples" \
-  "$END_USER_BASE_URL" \
+  "$container" \
 | grep -q "$STATUS_NOT_FOUND"
