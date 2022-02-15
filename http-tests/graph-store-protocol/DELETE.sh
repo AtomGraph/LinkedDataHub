@@ -22,6 +22,8 @@ pushd . > /dev/null && cd "$SCRIPT_ROOT/admin/acl"
 
 popd > /dev/null
 
+pushd . > /dev/null && cd "$SCRIPT_ROOT"
+
 # create container
 
 slug="test"
@@ -33,6 +35,8 @@ container=$(./create-container.sh \
   --title "Test" \
   --slug "$slug" \
   --parent "$END_USER_BASE_URL")
+
+popd > /dev/null
 
 # delete document
 
