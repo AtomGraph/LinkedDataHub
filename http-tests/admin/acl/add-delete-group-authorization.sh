@@ -37,17 +37,6 @@ group=$(curl -s -k \
 
 echo "GROUP: $group"
 
-# create authorization
-
-./create-authorization.sh \
-  -f "$OWNER_CERT_FILE" \
-  -p "$OWNER_CERT_PWD" \
-  -b "$ADMIN_BASE_URL" \
-  --label "DELETE authorization" \
-  --agent-group "$group" \
-  --to "$END_USER_BASE_URL" \
-  --write
-
 popd > /dev/null
 
 pushd . > /dev/null && cd "$SCRIPT_ROOT"
@@ -57,12 +46,27 @@ pushd . > /dev/null && cd "$SCRIPT_ROOT"
 slug="test"
 
 container=$(./create-container.sh \
- -f "$OWNER_CERT_FILE" \
+  -f "$OWNER_CERT_FILE" \
   -p "$OWNER_CERT_PWD" \
   -b "$END_USER_BASE_URL" \
   --title "Test" \
   --slug "$slug" \
   --parent "$END_USER_BASE_URL")
+
+popd > /dev/null
+
+pushd . > /dev/null && cd "$SCRIPT_ROOT/admin/acl"
+
+# create authorization
+
+./create-authorization.sh \
+  -f "$OWNER_CERT_FILE" \
+  -p "$OWNER_CERT_PWD" \
+  -b "$ADMIN_BASE_URL" \
+  --label "DELETE authorization" \
+  --agent-group "$group" \
+  --to "$container" \
+  --write
 
 popd > /dev/null
 

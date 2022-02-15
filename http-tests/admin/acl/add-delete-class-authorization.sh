@@ -15,6 +15,22 @@ curl -k -w "%{http_code}\n" -o /dev/null -s \
   "${END_USER_BASE_URL}" \
 | grep -q "${STATUS_FORBIDDEN}"
 
+pushd . > /dev/null && cd "$SCRIPT_ROOT"
+
+# create container
+
+slug="test"
+
+container=$(./create-container.sh \
+  -f "$OWNER_CERT_FILE" \
+  -p "$OWNER_CERT_PWD" \
+  -b "$END_USER_BASE_URL" \
+  --title "Test" \
+  --slug "$slug" \
+  --parent "$END_USER_BASE_URL")
+
+popd > /dev/null
+
 pushd . > /dev/null && cd "$SCRIPT_ROOT/admin/acl"
 
 # create authorization
@@ -25,24 +41,8 @@ pushd . > /dev/null && cd "$SCRIPT_ROOT/admin/acl"
   -b "$ADMIN_BASE_URL" \
   --label "DELETE authorization" \
   --agent "$AGENT_URI" \
-  --to-all-in "https://w3id.org/atomgraph/linkeddatahub/default#Root" \
+  --to-all-in "https://www.w3.org/ns/ldt/document-hierarchy#Container" \
   --write
-
-popd > /dev/null
-
-pushd . > /dev/null && cd "$SCRIPT_ROOT"
-
-# create container
-
-slug="test"
-
-container=$(./create-container.sh \
- -f "$OWNER_CERT_FILE" \
-  -p "$OWNER_CERT_PWD" \
-  -b "$END_USER_BASE_URL" \
-  --title "Test" \
-  --slug "$slug" \
-  --parent "$END_USER_BASE_URL")
 
 popd > /dev/null
 
