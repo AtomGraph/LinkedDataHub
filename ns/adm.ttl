@@ -1,0 +1,359 @@
+@base		<https://w3id.org/atomgraph/linkeddatahub/admin> .
+
+@prefix :	<#> .
+@prefix rdf:	<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:	<http://www.w3.org/2001/XMLSchema#> .
+@prefix owl:	<http://www.w3.org/2002/07/owl#> .
+@prefix acl:	<http://www.w3.org/ns/auth/acl#> .
+@prefix cert:	<http://www.w3.org/ns/auth/cert#> .
+@prefix ldt:	<https://www.w3.org/ns/ldt#> .
+@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy#> .
+@prefix sp:	<http://spinrdf.org/sp#> .
+@prefix spin:	<http://spinrdf.org/spin#> .
+@prefix sioc:	<http://rdfs.org/sioc/ns#> .
+@prefix foaf:	<http://xmlns.com/foaf/0.1/> .
+@prefix lacl:	<https://w3id.org/atomgraph/linkeddatahub/admin/acl#> .
+@prefix ldh:	<https://w3id.org/atomgraph/linkeddatahub#> .
+@prefix dct:	<http://purl.org/dc/terms/> .
+
+: a owl:Ontology ;
+    owl:imports sioc:, ldh:, lacl:, foaf:, <http://www.w3.org/2002/07/owl> ;
+    owl:versionInfo "1.1.4" ;
+    rdfs:label "Admin ontology" ;
+    rdfs:comment "AtomGraph admin application ontology" .
+
+:SignUp a owl:Class ;
+    rdfs:subClassOf dh:Item ;
+    rdfs:label "Sign up" ;
+    rdfs:isDefinedBy : .
+
+:RequestAccess a owl:Class ;
+    rdfs:subClassOf dh:Item ;
+    rdfs:label "Request access" ;
+    rdfs:isDefinedBy : .
+
+### EXTERNAL ASSERTIONS
+
+# http://rdfs.org/sioc/ns
+
+dh:Container ldh:template ldh:ContainerChildren .
+
+:MissingRDFSLabel a ldh:MissingPropertyValue ;
+    rdfs:label "Missing rdfs:label" ;
+    sp:arg1 rdfs:label .
+
+# http://spinrdf.org/sp
+
+# sp:Query spin:constraint :MissingRDFSLabel .
+
+# http://www.w3.org/2002/07/owl
+
+<http://www.w3.org/2002/07/owl> rdfs:label "The OWL 2 Schema vocabulary (OWL 2)" .
+
+# ontology
+
+owl:Ontology spin:constructor [
+        a sp:Construct ;
+        rdfs:label "Ontology constructor" ;
+        sp:text """
+    PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
+    PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
+    PREFIX owl:     <http://www.w3.org/2002/07/owl#>
+
+    CONSTRUCT {
+        ?this rdfs:label [ a xsd:string ] ;
+            rdfs:comment [ a xsd:string ] ;
+            owl:imports [ a rdfs:Resource ] ;
+            owl:versionInfo "1.0-SNAPSHOT" .
+    }
+    WHERE {}"""
+    ] .
+#    spin:constraint :MissingRDFSLabel .
+
+# CLASS
+
+owl:Class spin:constructor [
+        a sp:Construct ;
+        rdfs:label "Class constructor" ;
+        sp:text """
+    PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
+    PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
+    PREFIX owl:     <http://www.w3.org/2002/07/owl#>
+    PREFIX sp:      <http://spinrdf.org/sp#>
+    PREFIX spin:    <http://spinrdf.org/spin#>
+    PREFIX foaf:    <http://xmlns.com/foaf/0.1/>
+
+    CONSTRUCT {
+        ?this rdfs:subClassOf [ a owl:Class ] ;
+            rdfs:label [ a xsd:string ] ;
+            rdfs:comment [ a xsd:string ] ;
+            spin:constructor [ a sp:Construct ] ;
+            spin:constraint [ a rdfs:Resource ] .
+    }
+    WHERE {}"""
+    ] .
+#    spin:constraint :MissingRDFSLabel .
+
+# object property
+
+owl:ObjectProperty spin:constructor [
+        a sp:Construct ;
+        rdfs:label "Object property constructor" ;
+        sp:text """
+    PREFIX rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+    PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
+    PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
+
+    CONSTRUCT {
+        ?this rdfs:subPropertyOf [ a rdf:Property ] ;
+            rdfs:label [ a xsd:string ] ;
+            rdfs:comment [ a xsd:string ] ;
+            rdfs:domain [ a rdfs:Resource ] ;
+            rdfs:range [ a rdfs:Resource ] .
+    }
+    WHERE {}"""
+    ] .
+#    spin:constraint :MissingRDFSLabel .
+
+# datatype property
+
+owl:DatatypeProperty spin:constructor [
+        a sp:Construct ;
+        rdfs:label "Datatype property constructor" ;
+        sp:text """
+    PREFIX rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+    PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
+    PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
+
+    CONSTRUCT {
+        ?this rdfs:subPropertyOf [ a rdf:Property ] ;
+            rdfs:label [ a xsd:string ] ;
+            rdfs:comment [ a xsd:string ] ;
+            rdfs:domain [ a rdfs:Resource ] ;
+            rdfs:range [ a rdfs:Resource ] .
+    }
+    WHERE {}"""
+    ] .
+#    spin:constraint :MissingRDFSLabel .
+
+# restriction
+
+owl:Restriction spin:constructor [
+        a sp:Construct ;
+        rdfs:label "Restriction constructor" ;
+        sp:text """
+            PREFIX rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+            PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
+            PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
+            PREFIX owl:     <http://www.w3.org/2002/07/owl#>
+            PREFIX sp:      <http://spinrdf.org/sp#>
+
+            CONSTRUCT {
+                ?this rdfs:label [ a xsd:string ] ;
+                  rdfs:comment [ a xsd:string ] ;
+                  owl:onProperty [ a rdf:Property ] ;
+                  owl:allValuesFrom [ a rdfs:Resource ] ;
+                  owl:hasValue [ a rdfs:Resource ] ;
+                  rdfs:isDefinedBy [ a owl:Ontology ] .
+            }
+            WHERE {}"""
+    ] .
+#    spin:constraint :MissingRDFSLabel .
+
+# http://www.w3.org/ns/auth/acl
+
+acl: rdfs:label "Basic Access Control ontology" .
+
+# AUTHORIZATION
+
+acl:Authorization spin:constructor [
+        a sp:Construct ;
+        rdfs:label "Authorization constructor" ;
+        sp:text """
+            PREFIX dct:     <http://purl.org/dc/terms/>
+            PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
+            PREFIX owl:     <http://www.w3.org/2002/07/owl#>
+            PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
+            PREFIX acl:     <http://www.w3.org/ns/auth/acl#>
+            PREFIX foaf:    <http://xmlns.com/foaf/0.1/>
+
+            CONSTRUCT {
+                ?this rdfs:label [ a xsd:string ] ;
+                    dct:description [ a xsd:string ] ;
+                    acl:mode [ a acl:Mode ] ;
+                    acl:accessTo [ a rdfs:Resource ] ;
+                    acl:accessToClass [ a owl:Class ] ;
+                    acl:agent [ a foaf:Agent ] ;
+                    acl:agentClass [ a owl:Class ] ;
+                    acl:agentGroup [ a foaf:Group ] .
+            }
+            WHERE {}"""
+    ] ;
+    spin:constraint # :MissingRDFSLabel,
+    [
+        a ldh:MissingPropertyValue ;
+        sp:arg1 acl:mode
+    ] ;
+    ldh:template :AuthorizationAgents .
+
+:AuthorizationAgents a ldh:Content ;
+    rdf:first :SelectAuthorizationAgents ;
+    rdf:rest rdf:nil .
+
+:SelectAuthorizationAgents a sp:Select ;
+    rdfs:label "Select agents" ;
+    sp:text """
+PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
+PREFIX  acl:  <http://www.w3.org/ns/auth/acl#>
+
+SELECT DISTINCT  ?agent
+WHERE
+{ GRAPH ?authGraph
+  { ?this  foaf:primaryTopic  ?auth .
+    ?auth  acl:agent          ?agent
+  }
+}
+""" .
+
+# http://www.w3.org/ns/auth/cert
+
+cert:Key rdfs:label "Key" .
+
+cert:PublicKey spin:constructor [
+        a sp:Construct ;
+        rdfs:label "Public key constructor" ;
+        sp:text """
+            PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
+            PREFIX cert:    <http://www.w3.org/ns/auth/cert#>
+
+            CONSTRUCT {
+                ?this cert:modulus [ a xsd:hexBinary ] ;
+                    cert:exponent 65537 .
+            }
+            WHERE {}"""
+    ] ;
+    spin:constraint [
+        a ldh:MissingPropertyValue ;
+        rdfs:label "Missing cert:modulus" ;
+        sp:arg1 cert:modulus
+    ], [
+        a ldh:MissingPropertyValue ;
+        rdfs:label "Missing cert:exponent" ;
+        sp:arg1 cert:exponent
+    ] .
+
+# http://rdfs.org/sioc/ns
+
+sioc: rdfs:label "SIOC Core Ontology Namespace" .
+
+sioc:UserAccount spin:constructor :UserAccountConstructor ;
+    spin:constraint [
+        a ldh:MissingPropertyValue ;
+        rdfs:label "Missing sioc:name" ;
+        sp:arg1 :name
+    ] , [
+        a ldh:MissingPropertyValue ;
+        rdfs:label "Missing sioc:email" ;
+        sp:arg1 :email
+    ], [
+        a ldh:MissingPropertyValue ;
+        rdfs:label "Missing sioc:account_of" ;
+        sp:arg1 :account_of
+    ] .
+
+:UserAccountConstructor a sp:Construct ;
+    rdfs:label "User account constructor" ;
+    sp:text """
+        PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
+        PREFIX foaf:    <http://xmlns.com/foaf/0.1/>
+        PREFIX sioc:    <http://rdfs.org/sioc/ns#>
+        PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
+
+        CONSTRUCT {
+            ?this sioc:name [ a xsd:string ] ;
+                sioc:email [ a rdfs:Resource ] ;
+                sioc:account_of [ a foaf:Agent ] .
+        }
+        WHERE {}""" .
+
+# http://xmlns.com/foaf/0.1/
+
+foaf: rdfs:label "Friend of a Friend (FOAF) vocabulary" .
+
+foaf:Agent spin:constructor :AgentConstructor .
+#    spin:constraint [
+#        a ldh:MissingPropertyValue ;
+#        rdfs:label "Missing cert:key" ;
+#        sp:arg1 cert:key
+#    ] ; # Agent has either PublicKey or UserAccount
+
+:AgentConstructor a sp:Construct ;
+    rdfs:label "Agent constructor" ;
+    sp:text """
+        PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
+        PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
+        PREFIX acl:     <http://www.w3.org/ns/auth/acl#>
+        PREFIX cert:    <http://www.w3.org/ns/auth/cert#>
+
+        CONSTRUCT {
+            ?this cert:key [ a cert:PublicKey ] ;
+                acl:delegates [ a rdfs:Resource ] .
+        }
+        WHERE {}""" .
+
+foaf:Person spin:constructor :PersonConstructor ;
+    spin:constraint [
+        a ldh:MissingPropertyValue ;
+        rdfs:label "Missing foaf:givenName" ;
+        sp:arg1 foaf:givenName
+    ] , [
+        a ldh:MissingPropertyValue ;
+        rdfs:label "Missing foaf:familyName" ;
+        sp:arg1 foaf:familyName
+    ] , [
+        a ldh:MissingPropertyValue ;
+        rdfs:label "Missing foaf:based_near" ;
+        sp:arg1 foaf:based_near
+    ] , [ 
+        a ldh:MissingPropertyValue ;
+        rdfs:label "Missing foaf:mbox" ;
+        sp:arg1 foaf:mbox
+    ] .
+
+:PersonConstructor a sp:Construct ;
+    rdfs:label "Person constructor" ;
+    sp:text """
+        PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
+        PREFIX foaf:    <http://xmlns.com/foaf/0.1/>
+        PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
+        PREFIX vivo:    <http://vivoweb.org/ontology/core#>
+
+        CONSTRUCT {
+            ?this foaf:givenName [ a xsd:string ] ;
+                foaf:familyName [ a xsd:string ] ;
+                foaf:mbox [ a rdfs:Resource ] ;
+                foaf:based_near [ a rdfs:Resource ] ;
+                vivo:orcidId [ a rdfs:Resource ] .
+        }
+        WHERE {}""" .
+
+foaf:Group spin:constructor :GroupConstructor ;
+    spin:constraint [ a ldh:MissingPropertyValue ;
+        rdfs:label "Missing name" ;
+        sp:arg1 foaf:name
+    ] .
+
+:GroupConstructor a sp:Construct ;
+    rdfs:label "Group constructor" ;
+    sp:text """
+        PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
+        PREFIX foaf:    <http://xmlns.com/foaf/0.1/>
+        PREFIX dct:     <http://purl.org/dc/terms/>
+
+        CONSTRUCT {
+            ?this foaf:name [ a xsd:string ] ;
+                dct:description [ a xsd:string ] ;
+                foaf:member [ a foaf:Agent ] .
+        }
+        WHERE {}""" .

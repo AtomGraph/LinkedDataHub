@@ -1,0 +1,115 @@
+@base		<https://w3id.org/atomgraph/linkeddatahub/admin/acl> .
+
+@prefix :	<#> .
+@prefix ldh:	<https://w3id.org/atomgraph/linkeddatahub#> .
+@prefix rdf:	<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:	<http://www.w3.org/2001/XMLSchema#> .
+@prefix owl:	<http://www.w3.org/2002/07/owl#> .
+@prefix acl:	<http://www.w3.org/ns/auth/acl#> .
+@prefix cert:	<http://www.w3.org/ns/auth/cert#> .
+@prefix c:	<https://www.w3.org/ns/ldt/core/domain#> .
+@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy#> .
+@prefix dct:	<http://purl.org/dc/terms/> .
+@prefix sp:	<http://spinrdf.org/sp#> .
+@prefix spin:	<http://spinrdf.org/spin#> .
+@prefix sioc:	<http://rdfs.org/sioc/ns#> .
+@prefix foaf:	<http://xmlns.com/foaf/0.1/> .
+
+: a owl:Ontology ;
+    owl:imports ldh:, <http://spinrdf.org/sp>, <http://spinrdf.org/spin>, acl:, cert: ;
+    owl:versionInfo "1.1.4" ;
+    rdfs:label "LinkedDataHub ACL ontology" .
+
+:password a owl:DatatypeProperty ;
+    rdfs:range xsd:string ;
+    rdfs:label "Password" ;
+    rdfs:isDefinedBy : .
+
+:issuer a owl:DatatypeProperty ;
+    rdfs:domain sioc:UserAccount ;
+    rdfs:range xsd:string ;
+    rdfs:label "Issuer" ;
+    rdfs:isDefinedBy : .
+
+:requestMode a owl:ObjectProperty ;
+    rdfs:domain :AuthorizationRequest ;
+    rdfs:range acl:Mode ;
+    rdfs:label "Requested mode" ;
+    rdfs:seeAlso acl:mode ;
+    rdfs:isDefinedBy : .
+
+:requestAccessTo a owl:ObjectProperty ;
+    rdfs:domain :AuthorizationRequest ;
+    rdfs:range <http://www.w3.org/2006/gen/ont#InformationResource> ;
+    rdfs:label "Requested access to" ;
+    rdfs:seeAlso acl:accessTo ;
+    rdfs:isDefinedBy : .
+
+:requestAccessToClass a owl:ObjectProperty ;
+    rdfs:domain :AuthorizationRequest ;
+    rdfs:range rdfs:Class ;
+    rdfs:label "Requested access to class" ;
+    rdfs:seeAlso acl:accessToClass ;
+    rdfs:isDefinedBy : .
+
+:requestAgent a owl:ObjectProperty ;
+    rdfs:domain :AuthorizationRequest ;
+    rdfs:range foaf:Agent ;
+    rdfs:label "Requesting agent" ;
+    rdfs:seeAlso acl:agent ;
+    rdfs:isDefinedBy : .
+
+:requestAccess a owl:ObjectProperty ;
+    rdfs:range c:Document ;
+    rdfs:label "Request access" ;
+    rdfs:isDefinedBy : .
+
+# CLASSES
+
+# authorization requests
+
+:AuthorizationRequest a rdfs:Class ;
+    spin:constructor :AuthorizationRequestConstructor ;
+    spin:constraint :MissingRequestMode, :MissingRequestAgent, :MissingRequestAccessTo ;
+    rdfs:label "Authorization request" ;
+    rdfs:isDefinedBy : .
+
+:MissingRequestMode a ldh:MissingPropertyValue ;
+    rdfs:label "Missing request agent" ;
+    sp:arg1 :requestMode ;
+    rdfs:isDefinedBy : .
+
+:MissingRequestAgent a ldh:MissingPropertyValue ;
+    rdfs:label "Missing request agent" ;
+    sp:arg1 :requestAgent ;
+    rdfs:isDefinedBy : .
+
+:MissingRequestAccessTo a ldh:MissingPropertyValue ;
+    rdfs:label "Missing request access to" ;
+    sp:arg1 :requestAccessTo ;
+    rdfs:isDefinedBy : .
+
+:AuthorizationRequestConstructor a sp:Construct ;
+    rdfs:label "Authorization request constructor" ;
+    sp:text """
+        PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
+        PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
+        PREFIX acl:     <http://www.w3.org/ns/auth/acl#>
+        PREFIX foaf:    <http://xmlns.com/foaf/0.1/>
+        PREFIX lacl:    <https://w3id.org/atomgraph/linkeddatahub/admin/acl#>
+
+        CONSTRUCT {
+            ?this lacl:requestMode [ a acl:Mode ] ;
+                lacl:requestAccessTo [ a rdfs:Resource ] ;
+                lacl:requestAccessToClass [ a rdfs:Class ] ;
+                lacl:requestAgent [ a foaf:Agent ] .
+        }
+        WHERE {}""" ;
+    rdfs:isDefinedBy : .
+
+:CreatorAuthorization a rdfs:Class ;
+    rdfs:subClassOf acl:Authorization ;
+    rdfs:label "Creator access" ;
+    rdfs:comment "Creators have full control of their created resources" ;
+    rdfs:isDefinedBy : .
