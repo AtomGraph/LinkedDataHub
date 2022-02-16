@@ -76,10 +76,10 @@ public class Add extends GraphStoreImpl // TO-DO: does not need to extend GraphS
     
     @Inject
     public Add(@Context Request request, @Context UriInfo uriInfo, MediaTypes mediaTypes,
-            Optional<Ontology> ontology, Optional<Service> service,
+            com.atomgraph.linkeddatahub.apps.model.Application application, Optional<Ontology> ontology, Optional<Service> service,
             @Context Providers providers, com.atomgraph.linkeddatahub.Application system, @Context SecurityContext securityContext, Optional<AgentContext> agentContext)
     {
-        super(request, uriInfo, mediaTypes, ontology, service, providers, system);
+        super(request, uriInfo, mediaTypes, application, ontology, service, providers, system);
         this.securityContext = securityContext;
         this.agentContext = agentContext;
     }

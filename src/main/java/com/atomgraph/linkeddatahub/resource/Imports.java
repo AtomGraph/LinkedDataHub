@@ -70,7 +70,7 @@ public class Imports extends GraphStoreImpl
             DataManager dataManager,
             @Context Providers providers, com.atomgraph.linkeddatahub.Application system, @Context ServletConfig servletConfig)
     {
-        super(request, uriInfo, mediaTypes, ontology, service, providers, system);
+        super(request, uriInfo, mediaTypes, application, ontology, service, providers, system);
         this.uri = uriInfo.getAbsolutePath();
         this.application = application;
         this.dataManager = dataManager;

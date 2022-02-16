@@ -108,7 +108,7 @@ public class Login extends GraphStoreImpl
             com.atomgraph.linkeddatahub.apps.model.Application application, Optional<Ontology> ontology, Optional<Service> service,
             @Context Providers providers, com.atomgraph.linkeddatahub.Application system, @Context ServletConfig servletConfig)
     {
-        super(request, uriInfo, mediaTypes, ontology, service, providers, system);
+        super(request, uriInfo, mediaTypes, application, ontology, service, providers, system);
         this.httpHeaders = httpHeaders;
         this.application = application;
         

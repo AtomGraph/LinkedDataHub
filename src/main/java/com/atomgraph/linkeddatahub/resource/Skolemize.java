@@ -48,10 +48,10 @@ public class Skolemize extends GraphStoreImpl
 
     @Inject
     public Skolemize(@Context Request request, @Context UriInfo uriInfo, MediaTypes mediaTypes,
-            Optional<Ontology> ontology, Optional<Service> service,
+            com.atomgraph.linkeddatahub.apps.model.Application application, Optional<Ontology> ontology, Optional<Service> service,
             @Context Providers providers, com.atomgraph.linkeddatahub.Application system)
     {
-        super(request, uriInfo, mediaTypes, ontology, service, providers, system);
+        super(request, uriInfo, mediaTypes, application, ontology, service, providers, system);
     }
     
     @POST
