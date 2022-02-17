@@ -2,9 +2,10 @@
 
 **_LinkedDataHub_ (LDH) is open source software you can use to manage data, create visualizations and build apps on RDF Knowledge Graphs.**
 
+What's new in LinkedDataHub v3? Watch this video for a feature overview:
 [![What's new in LinkedDataHub v3? Feature overview](https://img.youtube.com/vi/phRL6QtVTG0/0.jpg)](https://www.youtube.com/watch?v=phRL6QtVTG0)
 
-Welcome to LinkedDataHub. We started the project with the intention to use it for Linked Data publishing, but gradually realized that we've built a multi-purpose data-driven platform.
+We started the project with the intention to use it for Linked Data publishing, but gradually realized that we've built a multi-purpose data-driven platform.
 
 We are building LinkedDataHub primarily for:
 * researchers who need an RDF-native notebook that can consume and collect Linked Data and SPARQL documents and follows the [FAIR principles](https://www.go-fair.org/fair-principles/)
