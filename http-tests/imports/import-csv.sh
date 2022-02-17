@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 
 initialize_dataset "$END_USER_BASE_URL" "$TMP_END_USER_DATASET" "$END_USER_ENDPOINT_URL"
 initialize_dataset "$ADMIN_BASE_URL" "$TMP_ADMIN_DATASET" "$ADMIN_ENDPOINT_URL"
@@ -9,7 +10,7 @@ pwd=$(realpath -s "$PWD")
 
 pushd . > /dev/null && cd "$SCRIPT_ROOT/admin/acl"
 
-# add agent to the writers group to be able to read/write documents (might already be done by another test)
+# add agent to the writers group
 
 ./add-agent-to-group.sh \
   -f "$OWNER_CERT_FILE" \
@@ -29,8 +30,7 @@ container=$(./create-container.sh \
 -b "$END_USER_BASE_URL" \
 --title "Test" \
 --slug "test" \
---parent "$END_USER_BASE_URL" \
-"$END_USER_BASE_URL")
+--parent "$END_USER_BASE_URL")
 
 # import CSV
 

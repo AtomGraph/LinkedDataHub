@@ -17,7 +17,6 @@
 package com.atomgraph.linkeddatahub.server.mapper.auth;
 
 import com.atomgraph.core.MediaTypes;
-import com.atomgraph.processor.model.TemplateCall;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ResourceFactory;
 import javax.ws.rs.core.Response;
@@ -26,11 +25,8 @@ import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.ext.ExceptionMapper;
 import javax.ws.rs.ext.Provider;
 import com.atomgraph.server.mapper.ExceptionMapperBase;
-import java.util.Optional;
 import javax.inject.Inject;
 import javax.ws.rs.NotAuthorizedException;
-import org.apache.jena.ontology.Ontology;
-import org.apache.jena.query.DatasetFactory;
 
 /**
  * JAX-RS mapper for authentication exceptions.
@@ -42,9 +38,9 @@ public class AuthenticationExceptionMapper extends ExceptionMapperBase implement
 {
 
     @Inject
-    public AuthenticationExceptionMapper(Optional<Ontology> ontology, Optional<TemplateCall> templateCall, MediaTypes mediaTypes)
+    public AuthenticationExceptionMapper(MediaTypes mediaTypes)
     {
-        super(ontology, templateCall, mediaTypes);
+        super(mediaTypes);
     }
 
     @Override
@@ -54,7 +50,7 @@ public class AuthenticationExceptionMapper extends ExceptionMapperBase implement
                 ResourceFactory.createResource("http://www.w3.org/2011/http-statusCodes#Unauthorized")).
             getModel();
         
-        ResponseBuilder builder = getResponseBuilder(DatasetFactory.create(model));
+        ResponseBuilder builder = getResponseBuilder(model);
         // if (ex.getRealm() != null) builder.header(HttpHeaders.WWW_AUTHENTICATE, "Basic realm=\"" + ex.getRealm() + "\""); // TO-DO
 
         return builder.status(Status.UNAUTHORIZED).build();

@@ -14,6 +14,22 @@ xmlns:sp="&sp;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 exclude-result-prefixes="#all">
     
+    <xsl:template match="*[@rdf:about = '&sp;Ask']" mode="ac:label">
+        <xsl:apply-templates select="key('resources', 'ask-query', document('../translations.rdf'))" mode="#current"/>
+    </xsl:template>
+
+    <xsl:template match="*[@rdf:about = '&sp;Select']" mode="ac:label">
+        <xsl:apply-templates select="key('resources', 'select-query', document('../translations.rdf'))" mode="#current"/>
+    </xsl:template>
+
+    <xsl:template match="*[@rdf:about = '&sp;Describe']" mode="ac:label">
+        <xsl:apply-templates select="key('resources', 'describe-query', document('../translations.rdf'))" mode="#current"/>
+    </xsl:template>
+
+    <xsl:template match="*[@rdf:about = '&sp;Construct']" mode="ac:label">
+        <xsl:apply-templates select="key('resources', 'construct-query', document('../translations.rdf'))" mode="#current"/>
+    </xsl:template>
+
     <xsl:template match="sp:text/text() | *[@rdf:*[local-name() = 'nodeID']]/sp:text/@rdf:*[local-name() = 'nodeID'][key('resources', .)[not(* except rdf:type[@rdf:resource = '&xsd;string'])]]" mode="bs2:FormControl">
         <xsl:param name="type-label" select="true()" as="xs:boolean"/>
         
@@ -23,15 +39,17 @@ exclude-result-prefixes="#all">
             </xsl:if>
         </textarea>
 
-        <xsl:if test="$type-label">
-            <xsl:choose>
-                <xsl:when test="../@rdf:datatype">
-                    <xsl:apply-templates select="../@rdf:datatype"/>
-                </xsl:when>
-                <xsl:otherwise>
-                    <span class="help-inline">Literal</span>
-                </xsl:otherwise>
-            </xsl:choose>
+        <xsl:apply-templates select="." mode="bs2:FormControlTypeLabel">
+            <xsl:with-param name="type-label" select="$type-label"/>
+        </xsl:apply-templates>
+    </xsl:template>
+    
+    <xsl:template match="sp:text/text() | *[@rdf:*[local-name() = 'nodeID']]/sp:text/@rdf:*[local-name() = 'nodeID'][key('resources', .)[not(* except rdf:type[@rdf:resource = '&xsd;string'])]]" mode="bs2:FormControlTypeLabel">
+        <xsl:param name="type" as="xs:string?"/>
+        <xsl:param name="type-label" select="true()" as="xs:boolean"/>
+
+        <xsl:if test="not($type = 'hidden') and $type-label">
+            <span class="help-inline">Literal</span>
         </xsl:if>
     </xsl:template>
     

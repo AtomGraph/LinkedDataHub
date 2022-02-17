@@ -4,7 +4,7 @@ set -e
 # set timezone
 
 if [ -n "$TZ" ] ; then
-    export CATALINA_OPTS="$CATALINA_OPTS -Duser.timezone=$TZ"
+    export CATALINA_OPTS="$CATALINA_OPTS -Duser.timezone=$TZ -Dorg.apache.tomcat.util.buf.UDecoder.ALLOW_ENCODED_SLASH=true"
 fi
 
 # ln -snf /usr/share/zoneinfo/$TZ /etc/localtime
@@ -25,7 +25,8 @@ if [ -n "$HTTP_PORT" ] ; then
 fi
 
 if [ -n "$HTTP_PROXY_NAME" ] ; then
-    HTTP_PROXY_NAME_PARAM="--stringparam http.proxyName $HTTP_PROXY_NAME "
+    lc_proxy_name=$(echo "$HTTP_PROXY_NAME" | tr '[:upper:]' '[:lower:]') # make sure it's lower-case
+    HTTP_PROXY_NAME_PARAM="--stringparam http.proxyName $lc_proxy_name "
 fi
 
 if [ -n "$HTTP_PROXY_PORT" ] ; then
@@ -68,11 +69,6 @@ eval "$transform"
 
 # check mandatory environmental variables (which are used in conf/ROOT.xml)
 
-if [ -z "$PROXY_HOST" ] ; then
-    echo '$PROXY_HOST not set'
-    exit 1
-fi
-
 if [ -z "$TIMEOUT" ] ; then
     echo '$TIMEOUT not set'
     exit 1
@@ -100,6 +96,16 @@ fi
 
 if [ -z "$ABS_PATH" ] ; then
     echo '$ABS_PATH not set'
+    exit 1
+fi
+
+if [ -z "$OWNER_MBOX" ] ; then
+    echo '$OWNER_MBOX not set'
+    exit 1
+fi
+
+if [ -z "$OWNER_PUBLIC_KEY" ] ; then
+    echo '$OWNER_PUBLIC_KEY not set'
     exit 1
 fi
 
@@ -133,8 +139,8 @@ if [ -z "$CLIENT_TRUSTSTORE_PASSWORD" ] ; then
     exit 1
 fi
 
-if [ -z "$ATOMGRAPH_UPLOAD_ROOT" ] ; then
-    echo '$ATOMGRAPH_UPLOAD_ROOT not set'
+if [ -z "$UPLOAD_ROOT" ] ; then
+    echo '$UPLOAD_ROOT not set'
     exit 1
 fi
 
@@ -143,8 +149,18 @@ if [ -z "$SIGN_UP_CERT_VALIDITY" ] ; then
     exit 1
 fi
 
-if [ -z "$CONTEXT_DATASET" ] ; then
-    echo '$CONTEXT_DATASET not set'
+if [ -z "$CONTEXT_DATASET_URL" ] ; then
+    echo '$CONTEXT_DATASET_URL not set'
+    exit 1
+fi
+
+if [ -z "$END_USER_DATASET_URL" ] ; then
+    echo '$END_USER_DATASET_URL not set'
+    exit 1
+fi
+
+if [ -z "$ADMIN_DATASET_URL" ] ; then
+    echo '$ADMIN_DATASET_URL not set'
     exit 1
 fi
 
@@ -179,11 +195,9 @@ else
     fi
 fi
 
+BASE_URI=$(echo "$BASE_URI" | tr '[:upper:]' '[:lower:]') # make sure it's lower-case
+
 printf "\n### Base URI: %s\n" "$BASE_URI"
-
-# create AtomGraph upload root
-
-mkdir -p "$ATOMGRAPH_UPLOAD_ROOT"/"$UPLOAD_CONTAINER_PATH"
 
 # functions that wait for other services to start
 
@@ -274,53 +288,6 @@ append_quads()
     fi
 }
 
-# extract the quad store endpoint (and auth credentials) of the root app from the system dataset using SPARQL and XPath queries
-
-envsubst '$BASE_URI' < select-root-services.rq.template > select-root-services.rq
-
-# base the $CONTEXT_DATASET
-
-webapp_context_dataset="/WEB-INF/classes/com/atomgraph/linkeddatahub/system.nq"
-based_context_dataset="${PWD}/webapps/ROOT${webapp_context_dataset}"
-trig --base="$BASE_URI" "$CONTEXT_DATASET" > "$based_context_dataset"
-
-sparql --data="$based_context_dataset" --query="select-root-services.rq" --results=XML > root_service_metadata.xml
-
-root_end_user_app=$(cat root_service_metadata.xml | xmlstarlet sel -B -N srx="http://www.w3.org/2005/sparql-results#" -T -t -v "/srx:sparql/srx:results/srx:result/srx:binding[@name = 'endUserApp']" -n)
-root_end_user_quad_store_url=$(cat root_service_metadata.xml | xmlstarlet sel -B -N srx="http://www.w3.org/2005/sparql-results#" -T -t -v "/srx:sparql/srx:results/srx:result/srx:binding[@name = 'endUserQuadStore']" -n)
-root_end_user_service_auth_user=$(cat root_service_metadata.xml | xmlstarlet sel -B -N srx="http://www.w3.org/2005/sparql-results#" -T -t -v "/srx:sparql/srx:results/srx:result/srx:binding[@name = 'endUserAuthUser']" -n)
-root_end_user_service_auth_pwd=$(cat root_service_metadata.xml | xmlstarlet sel -B -N srx="http://www.w3.org/2005/sparql-results#" -T -t -v "/srx:sparql/srx:results/srx:result/srx:binding[@name = 'endUserAuthPwd']" -n)
-
-root_admin_app=$(cat root_service_metadata.xml | xmlstarlet sel -B -N srx="http://www.w3.org/2005/sparql-results#" -T -t -v "/srx:sparql/srx:results/srx:result/srx:binding[@name = 'adminApp']" -n)
-root_admin_base_uri=$(cat root_service_metadata.xml | xmlstarlet sel -B -N srx="http://www.w3.org/2005/sparql-results#" -T -t -v "/srx:sparql/srx:results/srx:result/srx:binding[@name = 'adminBaseUri']" -n)
-root_admin_quad_store_url=$(cat root_service_metadata.xml | xmlstarlet sel -B -N srx="http://www.w3.org/2005/sparql-results#" -T -t -v "/srx:sparql/srx:results/srx:result/srx:binding[@name = 'adminQuadStore']" -n)
-root_admin_service_auth_user=$(cat root_service_metadata.xml | xmlstarlet sel -B -N srx="http://www.w3.org/2005/sparql-results#" -T -t -v "/srx:sparql/srx:results/srx:result/srx:binding[@name = 'adminAuthUser']" -n)
-root_admin_service_auth_pwd=$(cat root_service_metadata.xml | xmlstarlet sel -B -N srx="http://www.w3.org/2005/sparql-results#" -T -t -v "/srx:sparql/srx:results/srx:result/srx:binding[@name = 'adminAuthPwd']" -n)
-
-rm -f root_service_metadata.xml select-root-services.rq
-
-if [ -z "$root_end_user_quad_store_url" ] ; then
-    printf "\nEnd-user quad store could not be extracted from %s for root app with base URI %s. Exiting...\n" "$CONTEXT_DATASET" "$BASE_URI"
-    exit 1
-fi
-if [ -z "$root_admin_base_uri" ] ; then
-    printf "\nAdmin base URI extracted from %s for root app with base URI %s. Exiting...\n" "$CONTEXT_DATASET" "$BASE_URI"
-    exit 1
-fi
-if [ -z "$root_admin_quad_store_url" ] ; then
-    printf "\nAdmin quad store could not be extracted from %s for root app with base URI %s. Exiting...\n" "$CONTEXT_DATASET" "$BASE_URI"
-    exit 1
-fi
-
-printf "\n### Quad store URL of the root admin service: %s\n" "$root_admin_quad_store_url"
-
-# append root owner's metadata to the root admin dataset
-
-if [ -z "$OWNER_MBOX" ] ; then
-    echo '$OWNER_MBOX not set'
-    exit 1
-fi
-
 get_modulus()
 {
     local key_pem="$1"
@@ -376,6 +343,80 @@ printf "\n### Root owner WebID certificate's modulus: %s\n" "$OWNER_CERT_MODULUS
 OWNER_KEY_UUID=$(uuidgen | tr '[:upper:]' '[:lower:]') # lowercase
 export OWNER_COMMON_NAME OWNER_URI OWNER_DOC_URI OWNER_CERT_MODULUS OWNER_KEY_UUID
 
+# extract the quad store endpoint (and auth credentials) of the root app from the system dataset using SPARQL and XPath queries
+
+envsubst '$BASE_URI' < select-root-services.rq.template > select-root-services.rq
+
+# base the $CONTEXT_DATASET
+
+webapp_context_dataset="/WEB-INF/classes/com/atomgraph/linkeddatahub/system.nq"
+based_context_dataset="${PWD}/webapps/ROOT${webapp_context_dataset}"
+
+case "$CONTEXT_DATASET_URL" in
+    "file://"*)
+        CONTEXT_DATASET=$(echo "$CONTEXT_DATASET_URL" | cut -c 8-) # strip leading file://
+
+        printf "\n### Reading context dataset from a local file: %s\n" "$CONTEXT_DATASET" ;;
+    *)  
+        CONTEXT_DATASET=$(mktemp)
+
+        printf "\n### Downloading context dataset from a URL: %s\n" "$CONTEXT_DATASET_URL"
+
+        curl "$CONTEXT_DATASET_URL" > "$CONTEXT_DATASET" ;;
+esac
+
+trig --base="$BASE_URI" "$CONTEXT_DATASET" > "$based_context_dataset"
+
+sparql --data="$based_context_dataset" --query="select-root-services.rq" --results=XML > root_service_metadata.xml
+
+root_end_user_app=$(cat root_service_metadata.xml | xmlstarlet sel -B -N srx="http://www.w3.org/2005/sparql-results#" -T -t -v "/srx:sparql/srx:results/srx:result/srx:binding[@name = 'endUserApp']" -n)
+root_end_user_quad_store_url=$(cat root_service_metadata.xml | xmlstarlet sel -B -N srx="http://www.w3.org/2005/sparql-results#" -T -t -v "/srx:sparql/srx:results/srx:result/srx:binding[@name = 'endUserQuadStore']" -n)
+root_end_user_service_auth_user=$(cat root_service_metadata.xml | xmlstarlet sel -B -N srx="http://www.w3.org/2005/sparql-results#" -T -t -v "/srx:sparql/srx:results/srx:result/srx:binding[@name = 'endUserAuthUser']" -n)
+root_end_user_service_auth_pwd=$(cat root_service_metadata.xml | xmlstarlet sel -B -N srx="http://www.w3.org/2005/sparql-results#" -T -t -v "/srx:sparql/srx:results/srx:result/srx:binding[@name = 'endUserAuthPwd']" -n)
+root_end_user_owner=$(cat root_service_metadata.xml | xmlstarlet sel -B -N srx="http://www.w3.org/2005/sparql-results#" -T -t -v "/srx:sparql/srx:results/srx:result/srx:binding[@name = 'endUserMaker']" -n)
+
+root_admin_app=$(cat root_service_metadata.xml | xmlstarlet sel -B -N srx="http://www.w3.org/2005/sparql-results#" -T -t -v "/srx:sparql/srx:results/srx:result/srx:binding[@name = 'adminApp']" -n)
+root_admin_base_uri=$(cat root_service_metadata.xml | xmlstarlet sel -B -N srx="http://www.w3.org/2005/sparql-results#" -T -t -v "/srx:sparql/srx:results/srx:result/srx:binding[@name = 'adminBaseUri']" -n)
+root_admin_quad_store_url=$(cat root_service_metadata.xml | xmlstarlet sel -B -N srx="http://www.w3.org/2005/sparql-results#" -T -t -v "/srx:sparql/srx:results/srx:result/srx:binding[@name = 'adminQuadStore']" -n)
+root_admin_service_auth_user=$(cat root_service_metadata.xml | xmlstarlet sel -B -N srx="http://www.w3.org/2005/sparql-results#" -T -t -v "/srx:sparql/srx:results/srx:result/srx:binding[@name = 'adminAuthUser']" -n)
+root_admin_service_auth_pwd=$(cat root_service_metadata.xml | xmlstarlet sel -B -N srx="http://www.w3.org/2005/sparql-results#" -T -t -v "/srx:sparql/srx:results/srx:result/srx:binding[@name = 'adminAuthPwd']" -n)
+root_admin_owner=$(cat root_service_metadata.xml | xmlstarlet sel -B -N srx="http://www.w3.org/2005/sparql-results#" -T -t -v "/srx:sparql/srx:results/srx:result/srx:binding[@name = 'adminMaker']" -n)
+
+rm -f root_service_metadata.xml select-root-services.rq
+
+if [ -z "$root_end_user_app" ] ; then
+    printf "\nEnd-user app URI could not be extracted from %s. Exiting...\n" "$CONTEXT_DATASET"
+    exit 1
+fi
+if [ -z "$root_end_user_quad_store_url" ] ; then
+    printf "\nEnd-user quad store URL could not be extracted from %s for root app with base URI %s. Exiting...\n" "$CONTEXT_DATASET" "$BASE_URI"
+    exit 1
+fi
+if [ -z "$root_admin_app" ] ; then
+    printf "\nAdmin app URI could not be extracted from %s. Exiting...\n" "$CONTEXT_DATASET"
+    exit 1
+fi
+if [ -z "$root_admin_base_uri" ] ; then
+    printf "\nAdmin base URI extracted from %s for root app with base URI %s. Exiting...\n" "$CONTEXT_DATASET" "$BASE_URI"
+    exit 1
+fi
+if [ -z "$root_admin_quad_store_url" ] ; then
+    printf "\nAdmin quad store URL could not be extracted from %s for root app with base URI %s. Exiting...\n" "$CONTEXT_DATASET" "$BASE_URI"
+    exit 1
+fi
+
+# append ownership metadata to apps if it's not present (apps have to be URI resources!)
+
+if [ -z "$root_end_user_owner" ] ; then
+    echo "<${root_end_user_app}> <http://xmlns.com/foaf/0.1/maker> <${OWNER_URI}> ." >> "$based_context_dataset"
+fi
+if [ -z "$root_admin_owner" ] ; then
+    echo "<${root_admin_app}> <http://xmlns.com/foaf/0.1/maker> <${OWNER_URI}> ." >> "$based_context_dataset"
+fi
+
+printf "\n### Quad store URL of the root end-user service: %s\n" "$root_end_user_quad_store_url"
+printf "\n### Quad store URL of the root admin service: %s\n" "$root_admin_quad_store_url"
+
 # copy mounted client keystore to a location where the webapp can access it
 
 mkdir -p "$(dirname "$CLIENT_KEYSTORE")"
@@ -405,10 +446,10 @@ if [ ! -f "$CLIENT_TRUSTSTORE" ]; then
             -trustcacerts
     fi
 
-    printf "\n### Importing default CA certificates into the client truststore\n\n"
- 
     export CACERTS="${JAVA_HOME}/lib/security/cacerts"
 
+    printf "\n### Importing default CA certificates into the client truststore\n\n"
+ 
     keytool -importkeystore \
         -destkeystore "$CLIENT_TRUSTSTORE" \
         -deststorepass "$CLIENT_TRUSTSTORE_PASSWORD" \
@@ -452,72 +493,105 @@ fi
 if [ "$LOAD_DATASETS" = "true" ]; then
     mkdir -p /var/linkeddatahub/based-datasets
 
-    printf "\n### Loading default datasets into the end-user/admin triplestores...\n"
-
-    envsubst < split-default-graph.rq.template > split-default-graph.rq
-
-    trig --base="$BASE_URI" "$END_USER_DATASET" > /var/linkeddatahub/based-datasets/end-user.nq
-    sparql --data /var/linkeddatahub/based-datasets/end-user.nq --base "$BASE_URI" --query split-default-graph.rq | trig --output=nq > /var/linkeddatahub/based-datasets/split.end-user.nq
-
-    trig --base="$root_admin_base_uri" "$ADMIN_DATASET" > /var/linkeddatahub/based-datasets/admin.nq
-    sparql --data /var/linkeddatahub/based-datasets/admin.nq --base "$root_admin_base_uri" --query split-default-graph.rq | trig --output=nq > /var/linkeddatahub/based-datasets/split.admin.nq
-
-    wait_for_url "$root_end_user_quad_store_url" "$root_end_user_service_auth_user" "$root_end_user_service_auth_pwd" "$TIMEOUT" "application/n-quads"
-    append_quads "$root_end_user_quad_store_url" "$root_end_user_service_auth_user" "$root_end_user_service_auth_pwd" /var/linkeddatahub/based-datasets/split.end-user.nq "application/n-quads"
-
-    wait_for_url "$root_admin_quad_store_url" "$root_admin_service_auth_user" "$root_admin_service_auth_pwd" "$TIMEOUT" "application/n-quads"
-    append_quads "$root_admin_quad_store_url" "$root_admin_service_auth_user" "$root_admin_service_auth_pwd" /var/linkeddatahub/based-datasets/split.admin.nq "application/n-quads"
-
     # create query file by injecting environmental variables into the template
 
     envsubst < split-default-graph.rq.template > split-default-graph.rq
+
+    case "$END_USER_DATASET_URL" in
+        "file://"*)
+            END_USER_DATASET=$(echo "$END_USER_DATASET_URL" | cut -c 8-) # strip leading file://
+
+            printf "\n### Reading end-user dataset from a local file: %s\n" "$END_USER_DATASET" ;;
+        *)  
+            END_USER_DATASET=$(mktemp)
+
+            printf "\n### Downloading end-user dataset from a URL: %s\n" "$END_USER_DATASET_URL"
+
+            curl "$END_USER_DATASET_URL" > "$END_USER_DATASET" ;;
+    esac
+
+    trig --base="$BASE_URI" "$END_USER_DATASET" > /var/linkeddatahub/based-datasets/end-user.nq
+    sparql --data /var/linkeddatahub/based-datasets/end-user.nq --base "$BASE_URI" --query split-default-graph.rq --results=nq > /var/linkeddatahub/based-datasets/split.end-user.nq
+
+    case "$ADMIN_DATASET_URL" in
+        "file://"*)
+            ADMIN_DATASET=$(echo "$ADMIN_DATASET_URL" | cut -c 8-) # strip leading file://
+
+            printf "\n### Reading admin dataset from a local file: %s\n" "$ADMIN_DATASET" ;;
+        *)  
+            ADMIN_DATASET=$(mktemp)
+
+            printf "\n### Downloading admin dataset from a URL: %s\n" "$ADMIN_DATASET_URL"
+
+            curl "$ADMIN_DATASET_URL" > "$ADMIN_DATASET" ;;
+    esac
+
+    trig --base="$root_admin_base_uri" "$ADMIN_DATASET" > /var/linkeddatahub/based-datasets/admin.nq
+    sparql --data /var/linkeddatahub/based-datasets/admin.nq --base "$root_admin_base_uri" --query split-default-graph.rq --results=nq > /var/linkeddatahub/based-datasets/split.admin.nq
+
+    printf "\n### Waiting for %s...\n" "$root_end_user_quad_store_url"
+    wait_for_url "$root_end_user_quad_store_url" "$root_end_user_service_auth_user" "$root_end_user_service_auth_pwd" "$TIMEOUT" "application/n-quads"
+
+    printf "\n### Loading end-user dataset into the triplestore...\n"
+    append_quads "$root_end_user_quad_store_url" "$root_end_user_service_auth_user" "$root_end_user_service_auth_pwd" /var/linkeddatahub/based-datasets/split.end-user.nq "application/n-quads"
+
+    printf "\n### Waiting for %s...\n" "$root_admin_quad_store_url"
+    wait_for_url "$root_admin_quad_store_url" "$root_admin_service_auth_user" "$root_admin_service_auth_pwd" "$TIMEOUT" "application/n-quads"
+
+    printf "\n### Loading admin dataset into the triplestore...\n"
+    append_quads "$root_admin_quad_store_url" "$root_admin_service_auth_user" "$root_admin_service_auth_pwd" /var/linkeddatahub/based-datasets/split.admin.nq "application/n-quads"
 
     # append owner metadata to the root admin dataset
 
     envsubst < root-owner.trig.template > root-owner.trig
 
     trig --base="$root_admin_base_uri" --output=nq root-owner.trig > root-owner.nq
-    sparql --data root-owner.nq --base "$root_admin_base_uri" --query split-default-graph.rq | trig --output=nq > split.root-owner.nq
 
     printf "\n### Uploading the metadata of the owner agent...\n\n"
 
-    append_quads "$root_admin_quad_store_url" "$root_admin_service_auth_user" "$root_admin_service_auth_pwd" split.root-owner.nq "application/n-quads"
+    append_quads "$root_admin_quad_store_url" "$root_admin_service_auth_user" "$root_admin_service_auth_pwd" root-owner.nq "application/n-quads"
 
-    rm -f root-owner.trig root-owner.nq split.root-owner.nq
-
-    # append ownership metadata to apps (have to be URI resources!)
-
-    echo "<${root_admin_app}> <http://xmlns.com/foaf/0.1/maker> <${OWNER_URI}> ." >> "$based_context_dataset"
-    echo "<${root_end_user_app}> <http://xmlns.com/foaf/0.1/maker> <${OWNER_URI}> ." >> "$based_context_dataset"
+    rm -f root-owner.trig root-owner.nq
 
     # append secretary metadata to the root admin dataset
 
     envsubst < root-secretary.trig.template > root-secretary.trig
 
     trig --base="$root_admin_base_uri" --output=nq root-secretary.trig > root-secretary.nq
-    sparql --data root-secretary.nq --base "$root_admin_base_uri" --query split-default-graph.rq | trig --output=nq > split.root-secretary.nq
 
     printf "\n### Uploading the metadata of the secretary agent...\n\n"
 
-    append_quads "$root_admin_quad_store_url" "$root_admin_service_auth_user" "$root_admin_service_auth_pwd" split.root-secretary.nq "application/n-quads"
+    append_quads "$root_admin_quad_store_url" "$root_admin_service_auth_user" "$root_admin_service_auth_pwd" root-secretary.nq "application/n-quads"
 
-    rm -f root-secretary.trig root-secretary.nq split.root-secretary.nq
+    rm -f root-secretary.trig root-secretary.nq
 fi
 
 # change context configuration
 
-BASE_URI_PARAM="--stringparam aplc:baseUri '$BASE_URI' "
-CLIENT_KEYSTORE_PARAM="--stringparam aplc:clientKeyStore 'file://$CLIENT_KEYSTORE' "
-SECRETARY_CERT_ALIAS_PARAM="--stringparam aplc:secretaryCertAlias '$SECRETARY_CERT_ALIAS' "
-CLIENT_TRUSTSTORE_PARAM="--stringparam aplc:clientTrustStore 'file://$CLIENT_TRUSTSTORE' "
-CLIENT_KEYSTORE_PASSWORD_PARAM="--stringparam aplc:clientKeyStorePassword '$CLIENT_KEYSTORE_PASSWORD' "
-CLIENT_TRUSTSTORE_PASSWORD_PARAM="--stringparam aplc:clientTrustStorePassword '$CLIENT_TRUSTSTORE_PASSWORD' "
-ATOMGRAPH_UPLOAD_ROOT_PARAM="--stringparam aplc:uploadRoot 'file://$ATOMGRAPH_UPLOAD_ROOT' "
-SIGN_UP_CERT_VALIDITY_PARAM="--stringparam aplc:signUpCertValidity '$SIGN_UP_CERT_VALIDITY' "
-CONTEXT_DATASET_PARAM="--stringparam aplc:contextDataset '$webapp_context_dataset' "
+BASE_URI_PARAM="--stringparam ldhc:baseUri '$BASE_URI' "
+CLIENT_KEYSTORE_PARAM="--stringparam ldhc:clientKeyStore 'file://$CLIENT_KEYSTORE' "
+SECRETARY_CERT_ALIAS_PARAM="--stringparam ldhc:secretaryCertAlias '$SECRETARY_CERT_ALIAS' "
+CLIENT_TRUSTSTORE_PARAM="--stringparam ldhc:clientTrustStore 'file://$CLIENT_TRUSTSTORE' "
+CLIENT_KEYSTORE_PASSWORD_PARAM="--stringparam ldhc:clientKeyStorePassword '$CLIENT_KEYSTORE_PASSWORD' "
+CLIENT_TRUSTSTORE_PASSWORD_PARAM="--stringparam ldhc:clientTrustStorePassword '$CLIENT_TRUSTSTORE_PASSWORD' "
+UPLOAD_ROOT_PARAM="--stringparam ldhc:uploadRoot 'file://$UPLOAD_ROOT' "
+SIGN_UP_CERT_VALIDITY_PARAM="--stringparam ldhc:signUpCertValidity '$SIGN_UP_CERT_VALIDITY' "
+CONTEXT_DATASET_PARAM="--stringparam ldhc:contextDataset '$webapp_context_dataset' "
 MAIL_SMTP_HOST_PARAM="--stringparam mail.smtp.host '$MAIL_SMTP_HOST' "
 MAIL_SMTP_PORT_PARAM="--stringparam mail.smtp.port '$MAIL_SMTP_PORT' "
 MAIL_USER_PARAM="--stringparam mail.user '$MAIL_USER' "
+
+if [ -n "$PROXY_SCHEME" ] ; then
+    PROXY_SCHEME_PARAM="--stringparam ldhc:proxyScheme '$PROXY_SCHEME' "
+fi
+
+if [ -n "$PROXY_HOST" ] ; then
+    PROXY_HOST_PARAM="--stringparam ldhc:proxyHost '$PROXY_HOST' "
+fi
+
+if [ -n "$PROXY_PORT" ] ; then
+    PROXY_PORT_PARAM="--stringparam ldhc:proxyPort '$PROXY_PORT' "
+fi
 
 if [ -n "$CACHE_MODEL_LOADS" ] ; then
     CACHE_MODEL_LOADS_PARAM="--stringparam a:cacheModelLoads '$CACHE_MODEL_LOADS' "
@@ -537,27 +611,31 @@ if [ -n "$RESOLVING_UNCACHED" ] ; then
 fi
 
 if [ -n "$AUTH_QUERY" ] ; then
-    AUTH_QUERY_PARAM="--stringparam aplc:authQuery '$AUTH_QUERY' "
+    AUTH_QUERY_PARAM="--stringparam ldhc:authQuery '$AUTH_QUERY' "
 fi
 
 if [ -n "$OWNER_AUTH_QUERY" ] ; then
-    OWNER_AUTH_QUERY_PARAM="--stringparam aplc:ownerAuthQuery '$OWNER_AUTH_QUERY' "
+    OWNER_AUTH_QUERY_PARAM="--stringparam ldhc:ownerAuthQuery '$OWNER_AUTH_QUERY' "
 fi
 
 if [ -n "$MAX_CONTENT_LENGTH" ] ; then
-    MAX_CONTENT_LENGTH_PARAM="--stringparam aplc:maxContentLength '$MAX_CONTENT_LENGTH' "
+    MAX_CONTENT_LENGTH_PARAM="--stringparam ldhc:maxContentLength '$MAX_CONTENT_LENGTH' "
 fi
 
 if [ -n "$MAX_CONN_PER_ROUTE" ] ; then
-    MAX_CONN_PER_ROUTE_PARAM="--stringparam aplc:maxConnPerRoute '$MAX_CONN_PER_ROUTE' "
+    MAX_CONN_PER_ROUTE_PARAM="--stringparam ldhc:maxConnPerRoute '$MAX_CONN_PER_ROUTE' "
 fi
 
 if [ -n "$MAX_TOTAL_CONN" ] ; then
-    MAX_TOTAL_CONN_PARAM="--stringparam aplc:maxTotalConn '$MAX_TOTAL_CONN' "
+    MAX_TOTAL_CONN_PARAM="--stringparam ldhc:maxTotalConn '$MAX_TOTAL_CONN' "
 fi
 
 if [ -n "$IMPORT_KEEPALIVE" ] ; then
-    IMPORT_KEEPALIVE_PARAM="--stringparam aplc:importKeepAlive '$IMPORT_KEEPALIVE' "
+    IMPORT_KEEPALIVE_PARAM="--stringparam ldhc:importKeepAlive '$IMPORT_KEEPALIVE' "
+fi
+
+if [ -n "$NOTIFICATION_ADDRESS" ] ; then
+    NOTIFICATION_ADDRESS_PARAM="--stringparam ldhc:notificationAddress '$NOTIFICATION_ADDRESS' "
 fi
 
 if [ -n "$MAIL_PASSWORD" ] ; then
@@ -579,12 +657,15 @@ transform="xsltproc \
   $CACHE_STYLESHEET_PARAM \
   $RESOLVING_UNCACHED_PARAM \
   $BASE_URI_PARAM \
+  $PROXY_SCHEME_PARAM \
+  $PROXY_HOST_PARAM \
+  $PROXY_PORT_PARAM \
   $CLIENT_KEYSTORE_PARAM \
   $SECRETARY_CERT_ALIAS_PARAM \
   $CLIENT_TRUSTSTORE_PARAM \
   $CLIENT_KEYSTORE_PASSWORD_PARAM \
   $CLIENT_TRUSTSTORE_PASSWORD_PARAM \
-  $ATOMGRAPH_UPLOAD_ROOT_PARAM \
+  $UPLOAD_ROOT_PARAM \
   $SIGN_UP_CERT_VALIDITY_PARAM \
   $CONTEXT_DATASET_PARAM \
   $AUTH_QUERY_PARAM \
@@ -593,6 +674,7 @@ transform="xsltproc \
   $MAX_CONN_PER_ROUTE_PARAM \
   $MAX_TOTAL_CONN_PARAM \
   $IMPORT_KEEPALIVE_PARAM \
+  $NOTIFICATION_ADDRESS_PARAM \
   $MAIL_SMTP_HOST_PARAM \
   $MAIL_SMTP_PORT_PARAM \
   $MAIL_USER_PARAM \
@@ -619,18 +701,6 @@ wait_for_url "$root_end_user_quad_store_url" "$root_end_user_service_auth_user" 
 printf "\n### Waiting for %s...\n" "$root_admin_quad_store_url"
 
 wait_for_url "$root_admin_quad_store_url" "$root_admin_service_auth_user" "$root_admin_service_auth_pwd" "$TIMEOUT" "application/n-quads"
-
-# wait for the proxy server
-
-printf "\n### Waiting for %s...\n" "$PROXY_HOST"
-
-wait_for_host "$PROXY_HOST" "$TIMEOUT"
-
-# set localhost to the nginx IP address - we want to loopback to it
-
-proxy_ip=$(getent hosts "$PROXY_HOST" | awk '{ print $1 }')
-
-echo "${proxy_ip} localhost" >> /etc/hosts
 
 # run Tomcat (in debug mode if $JPDA_ADDRESS is defined)
 

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xsl:stylesheet [
-    <!ENTITY lapp   "https://w3id.org/atomgraph/linkeddatahub/apps/domain#">
-    <!ENTITY apl    "https://w3id.org/atomgraph/linkeddatahub/domain#">
+    <!ENTITY lapp   "https://w3id.org/atomgraph/linkeddatahub/apps#">
+    <!ENTITY ldh    "https://w3id.org/atomgraph/linkeddatahub#">
     <!ENTITY ac     "https://w3id.org/atomgraph/client#">
     <!ENTITY rdf    "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
     <!ENTITY rdfs   "http://www.w3.org/2000/01/rdf-schema#">
@@ -17,12 +17,12 @@
     <!ENTITY spin   "http://spinrdf.org/spin#">
     <!ENTITY void   "http://rdfs.org/ns/void#">
 ]>
-<xsl:stylesheet version="2.0"
+<xsl:stylesheet version="3.0"
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 xmlns:xhtml="http://www.w3.org/1999/xhtml"
 xmlns:xs="http://www.w3.org/2001/XMLSchema"
 xmlns:lapp="&lapp;"
-xmlns:apl="&apl;"
+xmlns:ldh="&ldh;"
 xmlns:ac="&ac;"
 xmlns:rdf="&rdf;"
 xmlns:rdfs="&rdfs;"
@@ -66,7 +66,7 @@ exclude-result-prefixes="#all">
                     </xsl:call-template>
 
                     <label class="control-label">
-                        <xsl:value-of select="ac:label(key('resources', '&rdf;type', document('&rdf;')))"/>
+                        <xsl:value-of select="ac:label(key('resources', '&rdf;type', document(ac:document-uri('&rdf;'))))"/>
                     </label>
 
                     <div class="controls">
@@ -80,7 +80,7 @@ exclude-result-prefixes="#all">
                         <!--
                         <span>
                             <button type="button" class="btn add-type">
-                                <xsl:apply-templates use-when="system-property('xsl:product-name') = 'SAXON'" select="key('resources', 'add', document('translations.rdf'))" mode="apl:logo"/>
+                                <xsl:apply-templates use-when="system-property('xsl:product-name') = 'SAXON'" select="key('resources', 'add', document('translations.rdf'))" mode="ldh:logo"/>
                                 <xsl:text use-when="system-property('xsl:product-name') eq 'Saxon-JS'">&#x2715;</xsl:text>
                             </button>
                         </span>
@@ -97,16 +97,14 @@ exclude-result-prefixes="#all">
         <xsl:param name="class" select="'subject input-xxlarge'" as="xs:string?"/>
         <xsl:param name="disabled" select="false()" as="xs:boolean"/>
         <xsl:param name="auto" select="local-name() = 'nodeID' or starts-with(., $ldt:base)" as="xs:boolean"/>
-        <xsl:variable name="doc-uri" select="if (starts-with($ldt:base, $ac:contextUri)) then ac:document-uri(.) else resolve-uri(concat('?uri=', encode-for-uri(ac:document-uri(.))), lapp:base($ac:contextUri, $lapp:Application))" as="xs:anyURI"/>
+        <xsl:variable name="doc-uri" select="if (starts-with($ldt:base, $ac:contextUri)) then ac:document-uri(.) else ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(.)) })" as="xs:anyURI"/>
 
         <xsl:choose>
             <xsl:when test="doc-available($doc-uri) and key('resources', ., document($doc-uri))">
                 <span>
-                    <xsl:for-each select="key('resources', ., document($doc-uri))">
-                        <xsl:apply-templates select="." mode="apl:Typeahead">
-                            <xsl:with-param name="class" select="'btn add-typeahead add-typetypeahead'"/>
-                        </xsl:apply-templates>
-                    </xsl:for-each>
+                    <xsl:apply-templates select="key('resources', ., document($doc-uri))" mode="ldh:Typeahead">
+                        <xsl:with-param name="class" select="'btn add-typeahead add-typetypeahead'"/>
+                    </xsl:apply-templates>
                 </span>
             </xsl:when>
             <xsl:otherwise>

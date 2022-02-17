@@ -18,7 +18,7 @@ package com.atomgraph.linkeddatahub.model.impl;
 
 import org.apache.jena.graph.Node;
 import com.atomgraph.linkeddatahub.model.UserAccount;
-import com.atomgraph.linkeddatahub.vocabulary.LACL;
+import com.atomgraph.processor.vocabulary.SIOC;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.enhanced.EnhNode;
 import org.apache.jena.enhanced.Implementation;
@@ -49,7 +49,7 @@ public class UserAccountImpl extends ResourceImpl implements UserAccount
             }
             else
             {
-                throw new ConversionException("Cannot convert node " + node.toString() + " to UserAccount: it does not have rdf:type lacl:UserAccount or equivalent");
+                throw new ConversionException("Cannot convert node " + node.toString() + " to UserAccount: it does not have rdf:type sioc:UserAccount or equivalent");
             }
         }
 
@@ -58,7 +58,7 @@ public class UserAccountImpl extends ResourceImpl implements UserAccount
         {
             if (eg == null) throw new IllegalArgumentException("EnhGraph cannot be null");
             
-            return eg.asGraph().contains(node, RDF.type.asNode(), LACL.UserAccount.asNode());
+            return eg.asGraph().contains(node, RDF.type.asNode(), SIOC.USER_ACCOUNT.asNode());
         }
     };
     

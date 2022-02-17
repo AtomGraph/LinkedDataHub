@@ -16,6 +16,7 @@
  */
 package com.atomgraph.linkeddatahub.vocabulary;
 
+import org.apache.jena.ontology.DatatypeProperty;
 import org.apache.jena.ontology.ObjectProperty;
 import org.apache.jena.ontology.OntClass;
 import org.apache.jena.ontology.OntModel;
@@ -34,7 +35,7 @@ public class LAPP
     private static OntModel m_model = ModelFactory.createOntologyModel(OntModelSpec.OWL_MEM, null);
     
     /** <p>The namespace of the vocabulary as a string</p> */
-    public static final String NS = "https://w3id.org/atomgraph/linkeddatahub/apps/domain#";
+    public static final String NS = "https://w3id.org/atomgraph/linkeddatahub/apps#";
     
     /** <p>The namespace of the vocabulary as a string</p>
      *  @see #NS */
@@ -48,6 +49,8 @@ public class LAPP
 
     // DOMAIN
 
+    public static final OntClass Dataset = m_model.createClass( NS + "Dataset" );
+    
     public static final OntClass Application = m_model.createClass( NS + "Application" );
 
     public static final OntClass AdminApplication = m_model.createClass( NS + "AdminApplication" );
@@ -59,5 +62,9 @@ public class LAPP
     public static final ObjectProperty endUserApplication = m_model.createObjectProperty( NS + "endUserApplication" );
 
     public static final ObjectProperty proxy = m_model.createObjectProperty( NS + "proxy" );
+
+    public static final ObjectProperty prefix = m_model.createObjectProperty( NS + "prefix" );
+    
+    public static final DatatypeProperty readOnly = m_model.createDatatypeProperty( NS + "readOnly" );
 
 }

@@ -38,11 +38,11 @@ extension-element-prefixes="ixsl"
 version="3.0"
 >
         
-    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="ac:TypeaheadOptionMode">
+    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="ac:TypeaheadOption">
         <xsl:param name="class" as="xs:string?"/>
         <xsl:param name="query" as="xs:string"/>
         <xsl:param name="name" as="xs:string"/>
-        <xsl:variable name="label" as="xs:string">
+        <xsl:variable name="label" as="xs:string*">
             <xsl:apply-templates select="." mode="ac:label"/>
         </xsl:variable>
 
@@ -51,30 +51,33 @@ version="3.0"
                 <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
             </xsl:if>
             
-            <input type="hidden" name="{$name}" value="{@rdf:about}"/>
+            <input type="hidden" name="{$name}" value="{(@rdf:about, @rdf:nodeID)[1]}"/>
 
-            <a title="{@rdf:about}">
-                <xsl:choose>
-                    <xsl:when test="contains(lower-case($label), lower-case($query))">
-                        <xsl:variable name="query-start-pos" select="string-length(substring-before(upper-case($label), upper-case($query))) + 1"/>
-                        <xsl:variable name="query-end-pos" select="string-length($label) - string-length(substring-after(upper-case($label), upper-case($query))) + 1"/>
+            <a title="{(@rdf:about, @rdf:nodeID)[1]}">
+                <xsl:for-each select="$label">
+                    <xsl:choose>
+                        <xsl:when test="contains(lower-case(.), lower-case($query))">
+                            <xsl:variable name="query-start-pos" select="string-length(substring-before(upper-case(.), upper-case($query))) + 1"/>
+                            <xsl:variable name="query-end-pos" select="string-length(.) - string-length(substring-after(upper-case(.), upper-case($query))) + 1"/>
 
-                        <xsl:if test="$query-start-pos &gt; 0">
-                            <xsl:value-of select="substring($label, 1, $query-start-pos - 1)"/>
-                        </xsl:if>
-                        <strong>
-                            <xsl:value-of select="substring($label, $query-start-pos, string-length($query))"/>
-                        </strong>
-                        <xsl:value-of select="substring($label, $query-end-pos)"/>
-                        <xsl:text> </xsl:text>
-                    </xsl:when>
-                    <xsl:otherwise>
-                        <xsl:value-of select="$label"/>
-                    </xsl:otherwise>
-                </xsl:choose>
+                            <xsl:if test="$query-start-pos &gt; 0">
+                                <xsl:value-of select="substring(., 1, $query-start-pos - 1)"/>
+                            </xsl:if>
+                            <strong>
+                                <xsl:value-of select="substring(., $query-start-pos, string-length($query))"/>
+                            </strong>
+                            <xsl:value-of select="substring(., $query-end-pos)"/>
+                            <xsl:text> </xsl:text>
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <xsl:value-of select="."/>
+                        </xsl:otherwise>
+                    </xsl:choose>
+                </xsl:for-each>
+                
                 <span class="pull-right" style="font-size: smaller;">
                     <xsl:for-each select="rdf:type/@rdf:resource">
-                        <xsl:apply-templates select="." mode="ac:ObjectLabelMode"/>
+                        <xsl:apply-templates select="." mode="ac:object-label"/>
                         <xsl:if test="position() != last()">
                             <xsl:text> </xsl:text>
                         </xsl:if>
@@ -94,12 +97,9 @@ version="3.0"
         
         <!-- if the value hasn't changed during the delay -->
         <xsl:if test="$query = $element/ixsl:get(., 'value')">
-            <!--<xsl:value-of select="ixsl:call(ixsl:window(), $js-function, [ ixsl:event(), $uri, $callback ])"/>-->
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                 <xsl:call-template name="typeahead:xml-loaded">
-                    <!--<xsl:with-param name="action" select="$callback" as="function(*)" />-->
                     <xsl:with-param name="element" select="$element" as="element()"/>
-                    <xsl:with-param name="container-uri" select="$search-container-uri" as="xs:anyURI"/>
                     <xsl:with-param name="resource-types" select="$resource-types"/>
                 </xsl:call-template>
             </ixsl:schedule-action>
@@ -110,7 +110,6 @@ version="3.0"
         <xsl:context-item as="map(*)" use="required"/>
         
         <xsl:param name="element" as="element()"/>
-        <xsl:param name="container-uri" as="xs:anyURI"/>
         <xsl:param name="resource-types" as="xs:anyURI*"/>
         
         <xsl:variable name="menu" select="$element/following-sibling::ul" as="element()"/>
@@ -118,15 +117,13 @@ version="3.0"
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
                 <xsl:for-each select="?body">
-                    <xsl:if test="not(ixsl:contains(ixsl:window(), 'LinkedDataHub.typeahead'))">
-                        <ixsl:set-property name="LinkedDataHub.typeahead" select="[]"/> <!-- empty array -->
-                    </xsl:if>
+                    <!-- TO-DO: does not belong here -->
                     <ixsl:set-property name="LinkedDataHub.typeahead.rdfXml" select="."/>
 
                     <xsl:call-template name="typeahead:process">
                         <xsl:with-param name="menu" select="$menu"/>
                         <!-- filter out the search container and the hypermedia arguments which are not the real search results -->
-                        <xsl:with-param name="items" select="rdf:RDF/*[@rdf:about[not(. = $container-uri)]][not(c:stateOf)][not(c:viewOf)][not(ldt:paramName)]"/>
+                        <xsl:with-param name="items" select="rdf:RDF/*[@rdf:about]"/>
                         <xsl:with-param name="resource-types" select="$resource-types"/>
                         <xsl:with-param name="element" select="$element"/>
                         <xsl:with-param name="name" select="'ou'"/>
@@ -177,9 +174,10 @@ version="3.0"
         <xsl:param name="name" as="xs:string"/>
         
         <xsl:result-document href="#{$menu/@id}" method="ixsl:replace-content">
-            <xsl:apply-templates select="$items" mode="ac:TypeaheadOptionMode">
+            <xsl:apply-templates select="$items" mode="ac:TypeaheadOption">
                 <xsl:with-param name="query" select="$element/ixsl:get(., 'value')"/>
                 <xsl:with-param name="name" select="$name"/>
+                <!-- TO-DO: replace with ac:label()? -->
                 <xsl:sort select="rdfs:label[1]"/>
                 <xsl:sort select="dct:title[1]"/>
                 <xsl:sort select="foaf:name[1]"/>
@@ -206,6 +204,7 @@ version="3.0"
 
         <xsl:for-each select="$menu">
             <ixsl:set-style name="display" select="'none'"/>
+            <xsl:result-document href="?." method="ixsl:replace-content"/>
         </xsl:for-each>
     </xsl:template>
     

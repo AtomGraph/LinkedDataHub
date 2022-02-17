@@ -1,10 +1,4 @@
-/* global stylesheetUri, baseUri, requestUri, absolutePath, lang, xslt2proc, UriBuilder, SaxonJS, ontologyUri, contextUri */
-
-var onTypeaheadInputBlur = function()
-{
-    // hide and empty the list with typeahead suggestions (otherwise it gets submitted with RDF/POST)
-    $(this).nextAll("ul.typeahead").hide().empty();
-};
+/* global contextUri, baseUri, requestUri, absolutePath, lang, xslt2proc, UriBuilder, SaxonJS, ontologyUri, contextUri */
 
 var fetchDispatchXML = function(url, method, headers, body, target, eventName)
 {
@@ -17,7 +11,7 @@ var fetchDispatchXML = function(url, method, headers, body, target, eventName)
         then(function(xmlString)
         {
             let xml = new DOMParser().parseFromString(xmlString, "text/xml");
-            let event = new CustomEvent(eventName, { "detail": { "response": response, "xml": xml, "target": target } } );
+            let event = new CustomEvent(eventName, { "detail": { "action": url, "response": response, "xml": xml, "target": target } } );
             // no need to add event listeners here, that is done by IXSL
             document.dispatchEvent(event);
         });
@@ -114,20 +108,19 @@ var onSubjectValueChange = function(event)
     oldSubject.val(newValue); // store value in the hidden input
 };
 
-var onPrependedAppendedInputChange = function()
+var addGoogleMapsListener = function(object, type, options, templateName, map, marker, uri)
 {
-    // avoid selecting the tooltip <div> which gets inserted after the <input> (before the second <span>) during mouseover
-    var prepended = $(this).prevAll("span.add-on");
-    var appended = $(this).nextAll("span.add-on");
-    var value = $(this).val();
-    if (prepended.length) value = prepended.text() + value;
-    if (appended.length) value = value + appended.text();
-    $(this).siblings("input[type=hidden]").val(value); // set the concatenated value on the hidden input (which must exist)
-};
-
-var onContentDisplayToggle = function()
-{
-    $('body').find(".ContentMode").toggle();
+    object.addListener(type, 
+        function (event)
+        {
+            SaxonJS.transform({
+                "stylesheetLocation": contextUri + "static/com/atomgraph/linkeddatahub/xsl/client.xsl.sef.json",
+                "initialTemplate": templateName,
+                "stylesheetParams": { "Q{https://www.w3.org/ns/ldt#}base": baseUri },
+                "templateParams": { "event": event, "marker": marker, "map": map, "uri": uri }
+            });
+        },
+        options);
 };
 
 $(document).ready(function()
@@ -149,31 +142,10 @@ $(document).ready(function()
         if (!($(event.target).parent().is(dropdown))) dropdown.toggleClass("open");
     });
     
-    $(".input-prepend.input-append input[type=text]").on("change", onPrependedAppendedInputChange).change();
-    
-    $("input.typeahead").on("blur", onTypeaheadInputBlur);
-    
-    $(".btn.btn-toggle-content").on("click", onContentDisplayToggle);
-
-    // already done in client.xsl?
-    $("form").on("submit", function()
+    // handled by Saxon-JS when it's loaded
+    $(".dropdown-toggle").on("click", function(event)
     {
-        if ($(this).find("input[name=rdf]").length)
-        {
-            // remove names of RDF/POST inputs with empty values
-            $(this).find("input[name=ob]").filter(function() { return $(this).val() === ""; }).removeAttr("name");
-            $(this).find("input[name=ou]").filter(function() { return $(this).val() === ""; }).removeAttr("name");
-            $(this).find("input[name=ol]").filter(function() { return $(this).val() === ""; }).removeAttr("name");
-        }
-    });
-    
-    $(".faceted-nav .nav-header.btn").on("click", function()
-    {
-        $(this).find("span.caret").toggleClass("caret-reversed");
-        $(this).nextAll(".nav").toggle(); // hide the list with options
-        var hidden = $(this).nextAll(".nav").is(":hidden");
-        $(this).parent().find("input").prop("disabled", hidden); // disable all FILTER inputs if facet is hidden
-        if (!hidden) $(this).parent().find("input[type='text']").focus(); // focus on text input if facet is visible
+        $(event.target).dropdown("toggle");
     });
     
 });

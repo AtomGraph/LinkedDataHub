@@ -39,5 +39,7 @@ public interface Application extends Resource, com.atomgraph.processor.model.App
     Service getService();
 
     Resource getStylesheet();
-
+    
+    boolean isReadOnly();
+    
 }

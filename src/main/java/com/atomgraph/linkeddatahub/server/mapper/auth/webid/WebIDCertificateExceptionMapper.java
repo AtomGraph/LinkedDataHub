@@ -18,14 +18,10 @@ package com.atomgraph.linkeddatahub.server.mapper.auth.webid;
 
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.server.exception.auth.webid.WebIDCertificateException;
-import com.atomgraph.processor.model.TemplateCall;
 import com.atomgraph.server.mapper.ExceptionMapperBase;
-import java.util.Optional;
 import javax.inject.Inject;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.ExceptionMapper;
-import org.apache.jena.ontology.Ontology;
-import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.rdf.model.ResourceFactory;
 
 /**
@@ -37,17 +33,17 @@ public class WebIDCertificateExceptionMapper extends ExceptionMapperBase impleme
 {
 
     @Inject
-    public WebIDCertificateExceptionMapper(Optional<Ontology> ontology, Optional<TemplateCall> templateCall, MediaTypes mediaTypes)
+    public WebIDCertificateExceptionMapper(MediaTypes mediaTypes)
     {
-        super(ontology, templateCall, mediaTypes);
+        super(mediaTypes);
     }
 
     @Override
     public Response toResponse(WebIDCertificateException ex)
     {
-        return getResponseBuilder(DatasetFactory.create(toResource(ex, Response.Status.BAD_REQUEST,
+        return getResponseBuilder(toResource(ex, Response.Status.BAD_REQUEST,
                     ResourceFactory.createResource("http://www.w3.org/2011/http-statusCodes#BadRequest")). // not the most accurate code for WebID error
-                getModel())).
+                getModel()).
             status(Response.Status.BAD_REQUEST).
             build();
     }

@@ -1,40 +1,34 @@
 PREFIX ldt:     <https://www.w3.org/ns/ldt#>
 PREFIX sd:      <http://www.w3.org/ns/sparql-service-description#>
 PREFIX a:       <https://w3id.org/atomgraph/core#>
-PREFIX lapp:    <https://w3id.org/atomgraph/linkeddatahub/apps/domain#>
-PREFIX dydra:   <https://w3id.org/atomgraph/linkeddatahub/services/dydra#>
+PREFIX lapp:    <https://w3id.org/atomgraph/linkeddatahub/apps#>
+PREFIX foaf:    <http://xmlns.com/foaf/0.1/>
 
-SELECT ?endUserApp ?endUserQuadStore ?endUserAuthUser ?endUserAuthPwd ?adminApp ?adminBaseUri ?adminQuadStore ?adminAuthUser ?adminAuthPwd
+SELECT ?endUserApp ?endUserQuadStore ?endUserAuthUser ?endUserAuthPwd ?endUserMaker ?adminApp ?adminBaseUri ?adminQuadStore ?adminAuthUser ?adminAuthPwd ?adminMaker
 {
     ?endUserApp ldt:base <$BASE_URI> ;
         ldt:service ?endUserService ;
         lapp:adminApplication ?adminApp .
         ?adminApp ldt:service ?adminService ;
             ldt:base ?adminBaseUri .
-        {
-            ?endUserService a:quadStore ?endUserQuadStore .
-        }
-        UNION
-        {
-            ?endUserService dydra:repository ?endUserRepository .
-            BIND (URI(CONCAT(STR(?endUserRepository), "service")) AS ?endUserQuadStore)
-        }
-        {
-            ?adminService a:quadStore ?adminQuadStore .
-        }
-        UNION
-        {
-            ?adminService dydra:repository ?adminRepository .
-            BIND (URI(CONCAT(STR(?adminRepository), "service")) AS ?adminQuadStore)
-        }
-        OPTIONAL
-        {
-            ?endUserService a:authUser ?endUserAuthUser ;
-                a:authPwd ?endUserAuthPwd .
-        }
-        OPTIONAL
-        {
-            ?adminService a:authUser ?adminAuthUser ;
-                a:authPwd ?adminAuthPwd .
-        }
+    ?endUserService a:quadStore ?endUserQuadStore .
+    ?adminService a:quadStore ?adminQuadStore .
+    OPTIONAL
+    {
+        ?endUserService a:authUser ?endUserAuthUser ;
+            a:authPwd ?endUserAuthPwd .
+    }
+    OPTIONAL
+    {
+        ?adminService a:authUser ?adminAuthUser ;
+            a:authPwd ?adminAuthPwd .
+    }
+    OPTIONAL
+    {
+        ?endUserService foaf:maker ?endUserMaker
+    }
+    OPTIONAL
+    {
+        ?adminService foaf:maker ?adminMaker
+    }
 }

@@ -17,17 +17,13 @@
 package com.atomgraph.linkeddatahub.server.mapper.jena;
 
 import com.atomgraph.core.MediaTypes;
-import com.atomgraph.processor.model.TemplateCall;
 import org.apache.jena.query.QueryExecException;
 import org.apache.jena.rdf.model.ResourceFactory;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.ExceptionMapper;
 import javax.ws.rs.ext.Provider;
 import com.atomgraph.server.mapper.ExceptionMapperBase;
-import java.util.Optional;
 import javax.inject.Inject;
-import org.apache.jena.ontology.Ontology;
-import org.apache.jena.query.DatasetFactory;
 
 /**
  * JAX-RS mapper for query execution exceptions.
@@ -39,17 +35,17 @@ public class QueryExecExceptionMapper extends ExceptionMapperBase implements Exc
 {
 
     @Inject
-    public QueryExecExceptionMapper(Optional<Ontology> ontology, Optional<TemplateCall> templateCall, MediaTypes mediaTypes)
+    public QueryExecExceptionMapper(MediaTypes mediaTypes)
     {
-        super(ontology, templateCall, mediaTypes);
+        super(mediaTypes);
     }
 
     @Override
     public Response toResponse(QueryExecException ex)
     {
-        return getResponseBuilder(DatasetFactory.create(toResource(ex, Response.Status.INTERNAL_SERVER_ERROR,
+        return getResponseBuilder(toResource(ex, Response.Status.INTERNAL_SERVER_ERROR,
                     ResourceFactory.createResource("http://www.w3.org/2011/http-statusCodes#InternalServerError")).
-                getModel())).
+                getModel()).
             status(Response.Status.INTERNAL_SERVER_ERROR).
             build();
     }

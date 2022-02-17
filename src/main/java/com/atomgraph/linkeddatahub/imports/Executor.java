@@ -18,8 +18,11 @@ package com.atomgraph.linkeddatahub.imports;
 
 import com.atomgraph.client.MediaTypes;
 import com.atomgraph.client.util.DataManager;
-import com.atomgraph.linkeddatahub.imports.stream.csv.CSVStreamRDFOutput;
-import com.atomgraph.linkeddatahub.imports.stream.csv.CSVStreamRDFOutputWriter;
+import com.atomgraph.core.client.GraphStoreClient;
+import com.atomgraph.core.model.DatasetAccessor;
+import com.atomgraph.linkeddatahub.imports.stream.RDFGraphStoreOutput;
+import com.atomgraph.linkeddatahub.imports.stream.csv.CSVGraphStoreOutput;
+import com.atomgraph.linkeddatahub.imports.stream.csv.CSVGraphStoreOutputWriter;
 import com.atomgraph.linkeddatahub.imports.stream.csv.ClientResponseSupplier;
 import com.atomgraph.linkeddatahub.imports.stream.StreamRDFOutputWriter;
 import com.atomgraph.linkeddatahub.model.CSVImport;
@@ -27,11 +30,13 @@ import com.atomgraph.linkeddatahub.model.Import;
 import com.atomgraph.linkeddatahub.model.RDFImport;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.exception.ImportException;
+import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
 import com.atomgraph.linkeddatahub.vocabulary.PROV;
 import com.atomgraph.linkeddatahub.vocabulary.VoID;
 import com.atomgraph.server.vocabulary.HTTP;
 import com.atomgraph.spinrdf.vocabulary.SPIN;
 import com.univocity.parsers.common.TextParsingException;
+import java.net.URI;
 import java.util.Calendar;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
@@ -43,8 +48,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriBuilder;
 import org.apache.jena.query.Dataset;
-import org.apache.jena.query.DatasetAccessor;
 import org.apache.jena.query.ParameterizedSparqlString;
 import org.apache.jena.query.Query;
 import org.apache.jena.query.QuerySolutionMap;
@@ -85,7 +90,7 @@ public class Executor
         this.threadPool = threadPool;
     }
     
-    public void start(CSVImport csvImport, com.atomgraph.linkeddatahub.server.model.Resource importRes, Resource provGraph, Service service, Service adminService, String baseURI, DataManager dataManager)
+    public void start(CSVImport csvImport, Service service, Service adminService, String baseURI, DataManager dataManager, GraphStoreClient graphStoreClient)
     {
         if (csvImport == null) throw new IllegalArgumentException("CSVImport cannot be null");
         if (log.isDebugEnabled()) log.debug("Submitting new import to thread pool: {}", csvImport.toString());
@@ -102,12 +107,12 @@ public class Executor
         Supplier<Response> fileSupplier = new ClientResponseSupplier(csvImport.getFile().getURI(), CSV_MEDIA_TYPES, dataManager);
         // skip validation because it will be done during final POST anyway
         CompletableFuture.supplyAsync(fileSupplier, getExecutorService()).thenApplyAsync(getStreamRDFOutputWriter(csvImport,
-                dataManager, baseURI, query), getExecutorService()).
-            thenAcceptAsync(success(csvImport, importRes, provImport, provGraph, service, adminService, dataManager), getExecutorService()).
-            exceptionally(failure(csvImport, importRes, provImport, provGraph, service));
+                graphStoreClient, baseURI, query), getExecutorService()).
+            thenAcceptAsync(success(csvImport, provImport, service, adminService, dataManager), getExecutorService()).
+            exceptionally(failure(csvImport, provImport, service));
     }
 
-    public void start(RDFImport rdfImport, com.atomgraph.linkeddatahub.server.model.Resource importRes, Resource provGraph, Service service, Service adminService, String baseURI, DataManager dataManager)
+    public void start(RDFImport rdfImport, Service service, Service adminService, String baseURI, DataManager dataManager, GraphStoreClient graphStoreClient)
     {
         if (rdfImport == null) throw new IllegalArgumentException("RDFImport cannot be null");
         if (log.isDebugEnabled()) log.debug("Submitting new import to thread pool: {}", rdfImport.toString());
@@ -130,23 +135,23 @@ public class Executor
         Supplier<Response> fileSupplier = new ClientResponseSupplier(rdfImport.getFile().getURI(), RDF_MEDIA_TYPES, dataManager);
         // skip validation because it will be done during final POST anyway
         CompletableFuture.supplyAsync(fileSupplier, getExecutorService()).thenApplyAsync(getStreamRDFOutputWriter(rdfImport,
-                dataManager, baseURI, query), getExecutorService()).
-            thenAcceptAsync(success(rdfImport, importRes, provImport, provGraph, service, adminService, dataManager), getExecutorService()).
-            exceptionally(failure(rdfImport, importRes, provImport, provGraph, service));
+                graphStoreClient, baseURI, query), getExecutorService()).
+            thenAcceptAsync(success(rdfImport, provImport, service, adminService, dataManager), getExecutorService()).
+            exceptionally(failure(rdfImport, provImport, service));
     }
     
-    protected Consumer<CSVStreamRDFOutput> success(final CSVImport csvImport, final com.atomgraph.linkeddatahub.server.model.Resource importRes, final Resource provImport, final Resource provGraph, final Service service, final Service adminService, final DataManager dataManager)
+    protected Consumer<CSVGraphStoreOutput> success(final CSVImport csvImport, final Resource provImport, final Service service, final Service adminService, final DataManager dataManager)
     {
-        return (CSVStreamRDFOutput output) ->
+        return (CSVGraphStoreOutput output) ->
         {
             Resource dataset = provImport.getModel().createResource().
                 addProperty(RDF.type, VoID.Dataset).
-                addLiteral(VoID.distinctSubjects, output.getCSVStreamRDFProcessor().getSubjectCount()).
-                addLiteral(VoID.triples, output.getCSVStreamRDFProcessor().getTripleCount()).
+                addLiteral(VoID.distinctSubjects, output.getCSVGraphStoreRowProcessor().getSubjectCount()).
+                addLiteral(VoID.triples, output.getCSVGraphStoreRowProcessor().getTripleCount()).
                 addProperty(PROV.wasGeneratedBy, provImport); // connect Response to dataset
             provImport.addProperty(PROV.endedAtTime, provImport.getModel().createTypedLiteral(Calendar.getInstance()));
             
-            appendProvGraph(provImport, provGraph, service.getDatasetAccessor());
+            appendProvGraph(provImport, service.getDatasetAccessor());
             
             // purge cache entries that include the target container URL
             if (service.getProxy() != null) ban(dataManager, service.getProxy(), csvImport.getContainer().getURI());
@@ -154,9 +159,9 @@ public class Executor
         };
     }
     
-    protected Consumer<StreamRDFOutput> success(final RDFImport rdfImport, final com.atomgraph.linkeddatahub.server.model.Resource importRes, final Resource provImport, final Resource provGraph, final Service service, final Service adminService, final DataManager dataManager)
+    protected Consumer<RDFGraphStoreOutput> success(final RDFImport rdfImport, final Resource provImport, final Service service, final Service adminService, final DataManager dataManager)
     {
-        return (StreamRDFOutput output) ->
+        return (RDFGraphStoreOutput output) ->
         {
             Resource dataset = provImport.getModel().createResource().
                 addProperty(RDF.type, VoID.Dataset).
@@ -165,15 +170,23 @@ public class Executor
                 addProperty(PROV.wasGeneratedBy, provImport); // connect Response to dataset
             provImport.addProperty(PROV.endedAtTime, provImport.getModel().createTypedLiteral(Calendar.getInstance()));
             
-            appendProvGraph(provImport, provGraph, service.getDatasetAccessor());
+            appendProvGraph(provImport, service.getDatasetAccessor());
             
             // purge cache entries that include the target container URL
-            if (service.getProxy() != null) ban(dataManager, service.getProxy(), rdfImport.getContainer().getURI());
-            if (adminService != null && adminService.getProxy() != null) ban(dataManager, adminService.getProxy(), rdfImport.getContainer().getURI());
+            if (service.getProxy() != null)
+            {
+                if (rdfImport.getContainer() != null) ban(dataManager, service.getProxy(), rdfImport.getContainer().getURI());
+                if (rdfImport.getGraphName() != null) ban(dataManager, service.getProxy(), rdfImport.getGraphName().getURI());
+            }
+            if (adminService != null && adminService.getProxy() != null)
+            {
+                if (rdfImport.getContainer() != null) ban(dataManager, adminService.getProxy(), rdfImport.getContainer().getURI());
+                if (rdfImport.getGraphName() != null) ban(dataManager, adminService.getProxy(), rdfImport.getGraphName().getURI());
+            }
         };
     }
 
-    protected Function<Throwable, Void> failure(final Import importInst, final com.atomgraph.linkeddatahub.server.model.Resource importRes, final Resource provImport, final Resource provGraph, final Service service)
+    protected Function<Throwable, Void> failure(final Import importInst, final Resource provImport, final Service service)
     {
         return new Function<Throwable, Void>()
         {
@@ -193,7 +206,8 @@ public class Executor
                             addLiteral(DCTerms.description, tpe.getMessage()).
                             addProperty(PROV.wasGeneratedBy, provImport); // connect Response to exception
                         provImport.addProperty(PROV.endedAtTime, importInst.getModel().createTypedLiteral(Calendar.getInstance()));
-                        appendProvGraph(provImport, provGraph, service.getDatasetAccessor());
+                        
+                        appendProvGraph(provImport, service.getDatasetAccessor());
                     }
                     
                     if (t.getCause() instanceof ImportException) // could not save RDF
@@ -208,7 +222,8 @@ public class Executor
                             response.addProperty(PROV.wasGeneratedBy, provImport); // connect Response to Import
                         }
                         provImport.addProperty(PROV.endedAtTime, importInst.getModel().createTypedLiteral(Calendar.getInstance()));
-                        appendProvGraph(provImport, provGraph, service.getDatasetAccessor());
+                        
+                        appendProvGraph(provImport, service.getDatasetAccessor());
                     }
                 }
                 
@@ -233,20 +248,23 @@ public class Executor
         };
     }
 
-    protected void appendProvGraph(Resource provImport, Resource provGraph, DatasetAccessor accessor)
+    protected void appendProvGraph(Resource provImport, DatasetAccessor accessor)
     {
-        if (log.isDebugEnabled()) log.debug("Appending import metadata to provenance graph: {}", provGraph);
-        accessor.add(provGraph.getURI(), provImport.getModel());
+        URI graphURI = UriBuilder.fromUri(provImport.getURI()).fragment(null).build(); // skip fragment from the Import URI to get its graph URI
+        if (log.isDebugEnabled()) log.debug("Appending import metadata to graph: {}", graphURI);
+        
+        GraphStoreImpl.skolemize(provImport.getModel(), graphURI); // make sure we don't store blank nodes
+        accessor.add(graphURI.toString(), provImport.getModel());
     }
 
-    protected Function<Response, CSVStreamRDFOutput> getStreamRDFOutputWriter(CSVImport imp, DataManager dataManager, String baseURI, Query query)
+    protected Function<Response, CSVGraphStoreOutput> getStreamRDFOutputWriter(CSVImport imp, GraphStoreClient graphStoreClient, String baseURI, Query query)
     {
-        return new CSVStreamRDFOutputWriter(imp.getContainer().getURI(), dataManager, baseURI, query, imp.getDelimiter());
+        return new CSVGraphStoreOutputWriter(graphStoreClient, baseURI, query, imp.getDelimiter());
     }
 
-    protected Function<Response, StreamRDFOutput> getStreamRDFOutputWriter(RDFImport imp, DataManager dataManager, String baseURI, Query query)
+    protected Function<Response, RDFGraphStoreOutput> getStreamRDFOutputWriter(RDFImport imp, GraphStoreClient graphStoreClient, String baseURI, Query query)
     {
-        return new StreamRDFOutputWriter(imp.getContainer().getURI(), dataManager, baseURI, query);
+        return new StreamRDFOutputWriter(graphStoreClient, baseURI, query, imp.getGraphName() != null ? imp.getGraphName().getURI() : null);
     }
 
     public Response ban(DataManager dataManager, Resource proxy, String url)

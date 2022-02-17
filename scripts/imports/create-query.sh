@@ -93,34 +93,29 @@ fi
 container="${base}queries/"
 query=$(<"$query_file") # read query string from file
 
-# if target URL is not provided, it equals container
-if [ -z "$1" ] ; then
-    args+=("${container}")
+if [ -z "$1" ]; then
+    args+=("${base}service") # default target URL = graph store
 fi
 
 args+=("-f")
 args+=("${cert_pem_file}")
 args+=("-p")
 args+=("${cert_password}")
-args+=("-c")
-args+=("${base}ns/domain/system#Construct") # class
 args+=("-t")
 args+=("text/turtle") # content type
 
-turtle+="@prefix nsds:	<ns/domain/system#> .\n"
+turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
 turtle+="@prefix foaf:	<http://xmlns.com/foaf/0.1/> .\n"
-turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .\n"
 turtle+="@prefix sp:	<http://spinrdf.org/sp#> .\n"
 turtle+="@prefix sioc:	<http://rdfs.org/sioc/ns#> .\n"
-turtle+="_:query a nsds:Construct .\n"
+turtle+="_:query a sp:Construct .\n"
 turtle+="_:query dct:title \"${title}\" .\n"
 turtle+="_:query sp:text \"\"\"${query}\"\"\" .\n"
-turtle+="_:query foaf:isPrimaryTopicOf _:item .\n"
-turtle+="_:item a nsds:QueryItem .\n"
+turtle+="_:item a dh:Item .\n"
+turtle+="_:item foaf:primaryTopic _:query .\n"
 turtle+="_:item sioc:has_container <${container}> .\n"
 turtle+="_:item dct:title \"${title}\" .\n"
-turtle+="_:item foaf:primaryTopic _:query .\n"
 
 if [ -n "$description" ] ; then
     turtle+="_:query dct:description \"${description}\" .\n"
@@ -128,11 +123,6 @@ fi
 if [ -n "$slug" ] ; then
     turtle+="_:item dh:slug \"${slug}\" .\n"
 fi
-
-# set env values in the Turtle doc and sumbit it to the server
-
-# make Jena scripts available
-export PATH=$PATH:$JENA_HOME/bin
 
 # submit Turtle doc to the server
 echo -e "$turtle" | turtle --base="$base" | ../create-document.sh "${args[@]}"

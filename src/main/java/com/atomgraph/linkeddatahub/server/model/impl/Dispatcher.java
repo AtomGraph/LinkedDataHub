@@ -16,14 +16,21 @@
  */
 package com.atomgraph.linkeddatahub.server.model.impl;
 
-import com.atomgraph.linkeddatahub.server.model.ClientUriInfo;
-import com.atomgraph.processor.exception.OntologyException;
-import com.atomgraph.processor.model.TemplateCall;
+import com.atomgraph.client.vocabulary.AC;
+import com.atomgraph.linkeddatahub.apps.model.Dataset;
+import com.atomgraph.linkeddatahub.resource.Add;
+import com.atomgraph.linkeddatahub.resource.Clone;
+import com.atomgraph.linkeddatahub.resource.Imports;
+import com.atomgraph.linkeddatahub.resource.Namespace;
+import com.atomgraph.linkeddatahub.resource.RequestAccess;
+import com.atomgraph.linkeddatahub.resource.SignUp;
+import com.atomgraph.linkeddatahub.resource.Skolemize;
+import com.atomgraph.linkeddatahub.resource.graph.Item;
 import java.util.Optional;
 import javax.inject.Inject;
 import javax.ws.rs.Path;
-import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.sparql.util.ClsLoader;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.UriInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,69 +44,139 @@ public class Dispatcher
     
     private static final Logger log = LoggerFactory.getLogger(Dispatcher.class);
 
-    private final Optional<com.atomgraph.processor.model.Application> application;
-    private final ClientUriInfo clientUriInfo;
-    private final Optional<TemplateCall> templateCall;
+    private final UriInfo uriInfo;
+    private final Optional<Dataset> dataset;
     
     @Inject
-    public Dispatcher(Optional<com.atomgraph.processor.model.Application> application, ClientUriInfo clientUriInfo, Optional<TemplateCall> templateCall)
+    public Dispatcher(@Context UriInfo uriInfo, Optional<Dataset> dataset)
     {
-        this.application = application;
-        this.clientUriInfo = clientUriInfo;
-        this.templateCall = templateCall;
+        this.uriInfo = uriInfo;
+        this.dataset = dataset;
     }
     
+    /**
+     * Returns JAX-RS resource that will handle this request.
+     * The request is proxied in two cases:
+     * - externally (URI specified by the <code>?uri</code> query param)
+     * - internally if it matches a <code>lapp:Dataset</code> specified in the system app config
+     * Otherwise, fall back to SPARQL Graph Store backed by the app's service.
+     * 
+     * @return resource
+     */
     @Path("{path: .*}")
     public Object getSubResource()
     {
-        if (getApplication().isEmpty())
+        if (getUriInfo().getQueryParameters().containsKey(AC.uri.getLocalName()))
         {
-            if (log.isDebugEnabled()) log.debug("No Application matched request URI '{}', dispatching to ProxyResourceBase", getClientUriInfo().getRequestUri());
+            if (log.isDebugEnabled()) log.debug("No Application matched request URI <{}>, dispatching to ProxyResourceBase", getUriInfo().getQueryParameters().getFirst(AC.uri.getLocalName()));
+            return ProxyResourceBase.class;
+        }
+        if (getDataset().isPresent())
+        {
+            if (log.isDebugEnabled()) log.debug("Serving request URI <{}> from Dataset <{}>, dispatching to ProxyResourceBase", getUriInfo().getAbsolutePath(), getDataset().get());
             return ProxyResourceBase.class;
         }
 
-        // resource class loading based on the ldt:loadClass value
-        if (getTemplateCall().isPresent() && getTemplateCall().get().getTemplate().getLoadClass() != null)
-        {
-            Resource javaClass = getTemplateCall().get().getTemplate().getLoadClass();
-            if (!javaClass.isURIResource())
-            {
-                if (log.isErrorEnabled()) log.error("ldt:loadClass value of template '{}' is not a URI resource", getTemplateCall().get().getTemplate());
-                throw new OntologyException("ldt:loadClass value of template '" + getTemplateCall().get().getTemplate() + "' is not a URI resource");
-            }
-
-            Class clazz = ClsLoader.loadClass(javaClass.getURI());
-            if (clazz == null)
-            {
-                if (log.isErrorEnabled()) log.error("Java class with URI '{}' could not be loaded", javaClass.getURI());
-                throw new OntologyException("Java class with URI '" + javaClass.getURI() + "' not found");
-            }
-
-            if (log.isDebugEnabled()) log.debug("Loading Java class with URI: {}", javaClass.getURI());
-            return clazz;
-        }
-        
         return getResourceClass();
+    }
+    
+    @Path("sparql")
+    public Object getSPARQLEndpoint()
+    {
+        return SPARQLEndpointImpl.class;
+    }
+
+    @Path("service")
+    public Object getGraphStore()
+    {
+        return GraphStoreImpl.class;
+    }
+
+    @Path("ns")
+    public Object getOntology()
+    {
+        return Namespace.class;
+    }
+
+    @Path("ns/{slug}/")
+    public Object getSubOntology()
+    {
+        return Namespace.class;
+    }
+
+    @Path("{container}/ontologies/{uuid}/")
+    public Object getOntologyItem()
+    {
+        return com.atomgraph.linkeddatahub.resource.ontology.Item.class;
+    }
+    
+    @Path("sign up")
+    public Object getSignUp()
+    {
+        return SignUp.class;
+    }
+    
+    @Path("request access")
+    public Object getRequestAccess()
+    {
+        return RequestAccess.class;
+    }
+
+    @Path("uploads/{sha1sum}/")
+    public Object getFileItem()
+    {
+        return com.atomgraph.linkeddatahub.resource.upload.sha1.Item.class;
+    }
+    
+    @Path("imports")
+    public Object getImportEndpoint()
+    {
+        return Imports.class;
+    }
+
+    @Path("add")
+    public Object getAddEndpoint()
+    {
+        return Add.class;
+    }
+    
+    @Path("clone")
+    public Object getCloneEndpoint()
+    {
+        return Clone.class;
+    }
+
+    @Path("skolemize")
+    public Object getSkolemizeEndpoint()
+    {
+        return Skolemize.class;
+    }
+    
+    @Path("oauth2/authorize/google")
+    public Object getAuthorizeGoogle()
+    {
+        return com.atomgraph.linkeddatahub.resource.oauth2.google.Authorize.class;
+    }
+
+    @Path("oauth2/login")
+    public Object getOAuth2Login()
+    {
+        return com.atomgraph.linkeddatahub.resource.oauth2.Login.class;
     }
     
     public Class getResourceClass()
     {
-        return ResourceBase.class;
+        return Item.class;
     }
     
-    public Optional<com.atomgraph.processor.model.Application> getApplication()
+    public UriInfo getUriInfo()
     {
-        return application;
+        return uriInfo;
     }
-    
-    public ClientUriInfo getClientUriInfo()
+
+    public Optional<Dataset> getDataset()
     {
-        return clientUriInfo;
-    }
-    
-    public Optional<TemplateCall> getTemplateCall()
-    {
-        return templateCall;
+        return dataset;
     }
     
 }

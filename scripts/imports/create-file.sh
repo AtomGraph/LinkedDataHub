@@ -17,7 +17,7 @@ print_usage()
     printf "\n"
     printf "  --file ABS_PATH                      Absolute path to the file\n"
     printf "  --file-content-type MEDIA_TYPE       Media type of the file\n"
-    printf "  --file-slug STRING                   String that will be used as the file's URI path segment (optional)\n"
+    #printf "  --file-slug STRING                   String that will be used as the file's URI path segment (optional)\n"
 }
 
 hash curl 2>/dev/null || { echo >&2 "curl not on \$PATH. Aborting."; exit 1; }
@@ -111,26 +111,22 @@ if [ -z "$file_content_type" ] ; then
     exit 1
 fi
 
-urlencode()
-{
-    python2 -c 'import urllib, sys; print urllib.quote(sys.argv[1] if len(sys.argv) > 1 else sys.stdin.read()[0:-1])' "$1"
-}
-
-ns="${base}ns/domain/system#"
-class="${ns}File"
-forClass=$(urlencode "$class")
 container="${base}files/"
 
-# if target URL is not provided, it equals container
-if [ -z "$1" ] ; then
-    target="${container}?forClass=${forClass}"
+if [ -z "$1" ]; then
+    target="${base}service" # default target URL = graph store
 else
-    target="${1}?forClass=${forClass}"
+    target="$1"
+fi
+
+# need to create explicit file URI since that is what this script returns (not the graph URI)
+
+if [ -z "$file_slug" ] ; then
+    file_slug=$(uuidgen)
 fi
 
 # https://stackoverflow.com/questions/19116016/what-is-the-right-way-to-post-multipart-form-data-using-curl
 
-# rdf_post+="-s -k -H "Accept: text/turtle" -E ${cert_pem_file}:${cert_password} "
 rdf_post+="-F \"rdf=\"\n"
 rdf_post+="-F \"sb=file\"\n"
 rdf_post+="-F \"pu=http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#fileName\"\n"
@@ -138,38 +134,28 @@ rdf_post+="-F \"ol=@${file};type=${file_content_type}\"\n"
 rdf_post+="-F \"pu=http://purl.org/dc/terms/title\"\n"
 rdf_post+="-F \"ol=${title}\"\n"
 rdf_post+="-F \"pu=http://www.w3.org/1999/02/22-rdf-syntax-ns#type\"\n"
-rdf_post+="-F \"ou=${ns}File\"\n"
-rdf_post+="-F \"pu=https://www.w3.org/ns/ldt/document-hierarchy/domain#slug\"\n"
-rdf_post+="-F \"ol=${file_slug}\"\n"
-rdf_post+="-F \"pu=http://xmlns.com/foaf/0.1/isPrimaryTopicOf\"\n"
-rdf_post+="-F \"ob=item\"\n"
+rdf_post+="-F \"ou=http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#FileDataObject\"\n"
 rdf_post+="-F \"sb=item\"\n"
 rdf_post+="-F \"pu=http://purl.org/dc/terms/title\"\n"
 rdf_post+="-F \"ol=${title}\"\n"
 rdf_post+="-F \"pu=http://www.w3.org/1999/02/22-rdf-syntax-ns#type\"\n"
-rdf_post+="-F \"ou=${ns}FileItem\"\n"
-rdf_post+="-F \"pu=http://rdfs.org/sioc/ns#has_container\"\n"
-rdf_post+="-F \"ou=${container}\"\n"
+rdf_post+="-F \"ou=https://www.w3.org/ns/ldt/document-hierarchy#Item\"\n"
 rdf_post+="-F \"pu=http://xmlns.com/foaf/0.1/primaryTopic\"\n"
 rdf_post+="-F \"ob=file\"\n"
+rdf_post+="-F \"pu=http://rdfs.org/sioc/ns#has_container\"\n"
+rdf_post+="-F \"ou=${container}\"\n"
 
 if [ -n "$description" ] ; then
     rdf_post+="-F \"sb=file\"\n"
     rdf_post+="-F \"pu=http://purl.org/dc/terms/description\"\n"
     rdf_post+="-F \"ol=${description}\"\n"
 fi
-if [ -n "$slug" ] ; then
-    rdf_post+="-F \"sb=item\"\n"
-    rdf_post+="-F \"pu=https://www.w3.org/ns/ldt/document-hierarchy/domain#slug\"\n"
-    rdf_post+="-F \"ol=${slug}\"\n"
-
-fi
 if [ -n "$file_slug" ] ; then
     rdf_post+="-F \"sb=file\"\n"
-    rdf_post+="-F \"pu=https://www.w3.org/ns/ldt/document-hierarchy/domain#slug\"\n"
+    rdf_post+="-F \"pu=https://www.w3.org/ns/ldt/document-hierarchy#slug\"\n"
     rdf_post+="-F \"ol=${file_slug}\"\n"
 
 fi
 
-# POST RDF/POST multipart form from stdin to the server and print Location URL
+# POST RDF/POST multipart form from stdin to the server
 echo -e "$rdf_post" | curl -s -k -H "Accept: text/turtle" -E "$cert_pem_file":"$cert_password" --config - "$target" -v -D - | tr -d '\r' | sed -En 's/^Location: (.*)/\1/p'

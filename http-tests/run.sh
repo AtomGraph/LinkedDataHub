@@ -2,7 +2,7 @@
 
 if [ "$#" -ne 4 ]; then
   echo "Usage:   $0" '$owner_pem_file $owner_cert_password $secretary_pem_file $secretary_cert_password' >&2
-  echo "Example: $0 $PWD/../ssl/owner/cert.pem OwnerPassword $PWD/../ssl/secretary/cert.pem SecretaryPassword" >&2
+  echo "Example: $0 $PWD/ssl/owner/cert.pem OwnerPassword $PWD/ssl/secretary/cert.pem SecretaryPassword" >&2
   echo "Note: special characters such as $ need to be escaped in passwords!" >&2
   exit 1
 fi
@@ -16,14 +16,13 @@ export SCRIPT_ROOT="$PWD/../scripts"
 export STATUS_OK=200
 export STATUS_DELETE_SUCCESS='200|204'
 export STATUS_PATCH_SUCCESS='200|201|204'
-export POST_SUCCESS='20201|204'
 export STATUS_POST_SUCCESS='200|201|204'
-export PUT_SUCCESS='201|204'
 export STATUS_PUT_SUCCESS='200|201|204'
 export STATUS_CREATED=201
 export STATUS_NO_CONTENT=204
 export STATUS_UPDATED='201|204'
-export DELETE_SUCCESS=204
+export STATUS_SEE_OTHER=303
+export STATUS_NOT_MODIFIED=304
 export STATUS_BAD_REQUEST=400
 export STATUS_UNAUTHORIZED=401
 export STATUS_FORBIDDEN=403
@@ -79,7 +78,7 @@ function purge_backend_cache()
     local service_name="$1"
 
     if [ -n "$(docker-compose -f "$HTTP_TEST_ROOT/../docker-compose.yml" -f "$HTTP_TEST_ROOT/docker-compose.http-tests.yml" --env-file "$HTTP_TEST_ROOT/.env" ps -q | grep "$(docker-compose -f "$HTTP_TEST_ROOT/../docker-compose.yml" -f "$HTTP_TEST_ROOT/docker-compose.http-tests.yml" --env-file "$HTTP_TEST_ROOT/.env" ps -q $service_name )" )" ]; then
-        docker-compose -f "$HTTP_TEST_ROOT/../docker-compose.yml" -f "$HTTP_TEST_ROOT/docker-compose.http-tests.yml" --env-file "$HTTP_TEST_ROOT/.env" exec -T "$service_name" varnishadm "ban req.url ~ /" # purge all entries
+        docker-compose -f "$HTTP_TEST_ROOT/../docker-compose.yml" -f "$HTTP_TEST_ROOT/docker-compose.http-tests.yml" --env-file "$HTTP_TEST_ROOT/.env" exec -T "$service_name" varnishadm "ban req.url ~ /" > /dev/null # purge all entries
     fi
 }
 
@@ -123,11 +122,15 @@ download_dataset "$ADMIN_ENDPOINT_URL" > "$TMP_ADMIN_DATASET"
 
 ### Other tests ###
 
+run_tests $(find . -type f -name 'request-access-html.sh')
+(( error_count += $? ))
 run_tests $(find . -type f -name 'request-access.sh')
 (( error_count += $? ))
 run_tests $(find . -type f -name 'webid-delegation.sh')
 (( error_count += $? ))
 run_tests $(find . -type f -name 'HEAD-accept.sh')
+(( error_count += $? ))
+run_tests $(find . -type f -name 'HEAD-proxied-accept.sh')
 (( error_count += $? ))
 run_tests $(find . -type f -name 'GET-proxied.sh')
 (( error_count += $? ))
@@ -140,8 +143,6 @@ run_tests $(find . -type f -name 'POST-transfer-chunked-413.sh')
 run_tests $(find ./admin/ -type f -name '*.sh')
 (( error_count += $? ))
 run_tests $(find ./imports/ -type f -name '*.sh')
-(( error_count += $? ))
-run_tests $(find ./linked-data-templates/ -type f -name '*.sh')
 (( error_count += $? ))
 run_tests $(find ./graph-store-protocol/ -type f -name '*.sh')
 (( error_count += $? ))

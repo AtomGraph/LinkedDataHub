@@ -109,37 +109,32 @@ fi
 
 container="${base}services/"
 
-# if target URL is not provided, it equals container
-if [ -z "$1" ] ; then
-    args+=("${container}")
+if [ -z "$1" ]; then
+    args+=("${base}service") # default target URL = graph store
 fi
 
 args+=("-f")
 args+=("${cert_pem_file}")
 args+=("-p")
 args+=("${cert_password}")
-args+=("-c")
-args+=("${base}ns/domain/system#GenericService") # class
 args+=("-t")
 args+=("text/turtle") # content type
 
-turtle+="@prefix nsds:	<ns/domain/system#> .\n"
+turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy#> .\n"
 turtle+="@prefix a:	<https://w3id.org/atomgraph/core#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
 turtle+="@prefix foaf:	<http://xmlns.com/foaf/0.1/> .\n"
-turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .\n"
 turtle+="@prefix sd:	<http://www.w3.org/ns/sparql-service-description#> .\n"
 turtle+="@prefix sioc:	<http://rdfs.org/sioc/ns#> .\n"
-turtle+="_:service a nsds:GenericService .\n"
+turtle+="_:service a sd:Service .\n"
 turtle+="_:service dct:title \"${title}\" .\n"
 turtle+="_:service sd:endpoint <${endpoint}> .\n"
 turtle+="_:service sd:supportedLanguage sd:SPARQL11Query .\n"
 turtle+="_:service sd:supportedLanguage sd:SPARQL11Update .\n"
-turtle+="_:service foaf:isPrimaryTopicOf _:item .\n"
-turtle+="_:item a nsds:ServiceItem .\n"
+turtle+="_:item a dh:Item .\n"
+turtle+="_:item foaf:primaryTopic _:service .\n"
 turtle+="_:item sioc:has_container <${container}> .\n"
 turtle+="_:item dct:title \"${title}\" .\n"
-turtle+="_:item foaf:primaryTopic _:service .\n"
 
 if [ -n "$graph_store" ] ; then
     turtle+="_:service a:graphStore <${graph_store}> .\n"

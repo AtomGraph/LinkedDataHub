@@ -20,6 +20,9 @@ import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
 import com.atomgraph.linkeddatahub.server.filter.request.AuthenticationFilter;
 import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
+import com.atomgraph.linkeddatahub.model.Agent;
+import com.atomgraph.linkeddatahub.server.security.IDTokenSecurityContext;
+import com.atomgraph.linkeddatahub.vocabulary.FOAF;
 import com.atomgraph.linkeddatahub.vocabulary.LACL;
 import com.atomgraph.processor.vocabulary.SIOC;
 import com.auth0.jwt.JWT;
@@ -34,6 +37,7 @@ import java.util.concurrent.TimeUnit;
 import javax.annotation.PostConstruct;
 import javax.annotation.Priority;
 import javax.json.JsonObject;
+import javax.ws.rs.NotAuthorizedException;
 import javax.ws.rs.Priorities;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.container.ContainerRequestContext;
@@ -42,13 +46,14 @@ import javax.ws.rs.core.Cookie;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
-import org.apache.jena.ext.com.google.common.net.HttpHeaders;
+import javax.ws.rs.core.SecurityContext;
 import org.apache.jena.query.ParameterizedSparqlString;
 import org.apache.jena.query.QuerySolutionMap;
 import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
+import org.apache.jena.vocabulary.RDF;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -83,9 +88,8 @@ public class IDTokenFilter extends AuthenticationFilter
     @Override
     public void filter(ContainerRequestContext request) throws IOException
     {
-        if (getApplication().isEmpty()) return; // skip filter if no application has matched
         if (request.getSecurityContext().getUserPrincipal() != null) return; // skip filter if agent already authorized
-        if (!getApplication().get().canAs(EndUserApplication.class) && !getApplication().get().canAs(AdminApplication.class)) return; // skip "primitive" apps
+        if (!getApplication().canAs(EndUserApplication.class) && !getApplication().canAs(AdminApplication.class)) return; // skip "primitive" apps
 
         // do not verify token for auth endpoints as that will lead to redirect loops
         if (request.getUriInfo().getAbsolutePath().equals(getLoginURL())) return;
@@ -95,13 +99,14 @@ public class IDTokenFilter extends AuthenticationFilter
     }
     
     @Override
-    public Resource authenticate(ContainerRequestContext request)
+    public SecurityContext authenticate(ContainerRequestContext request)
     {
         ParameterizedSparqlString pss = getUserAccountQuery();
         
-        DecodedJWT idToken = getJWTToken(request);
-        if (idToken == null) return null;
-
+        String jwtString = getJWTToken(request);
+        if (jwtString == null) return null;
+        
+        DecodedJWT idToken = JWT.decode(jwtString);
         if (!verify(idToken)) return null;
         
         String cacheKey = idToken.getIssuer() + idToken.getSubject();
@@ -128,15 +133,16 @@ public class IDTokenFilter extends AuthenticationFilter
         long expiration = ChronoUnit.SECONDS.between(Instant.now(), idToken.getExpiresAt().toInstant());
         getSystem().getOIDCModelCache().put(cacheKey, agentModel, expiration, TimeUnit.SECONDS);
         
-        return agent;
+        // imitate type inference, otherwise we'll get Jena's polymorphism exception
+        return new IDTokenSecurityContext(getScheme(), agent.addProperty(RDF.type, FOAF.Agent).as(Agent.class), jwtString);
     }
     
-    protected DecodedJWT getJWTToken(ContainerRequestContext request)
+    protected String getJWTToken(ContainerRequestContext request)
     {
         if (request == null) throw new IllegalArgumentException("ContainerRequest cannot be null");
 
         Cookie jwtCookie = request.getCookies().get(COOKIE_NAME);
-        if (jwtCookie != null) return JWT.decode(jwtCookie.getValue());
+        if (jwtCookie != null) return jwtCookie.getValue();
 
         return null;
     }
@@ -192,13 +198,12 @@ public class IDTokenFilter extends AuthenticationFilter
             // https://stackoverflow.com/questions/7346919/chrome-localhost-cookie-not-being-set
             NewCookie deleteCookie = new NewCookie(cookie.getName(), null,
                 app.getBase().getURI(), null,
-                    NewCookie.DEFAULT_VERSION, null, NewCookie.DEFAULT_MAX_AGE, false);
+                    NewCookie.DEFAULT_VERSION, null, NewCookie.DEFAULT_MAX_AGE, new Date(0), true, true);
             
             Response response = Response.seeOther(request.getUriInfo().getAbsolutePath()).
-                // Jersey 1.x NewCookie does not support Expires, we need to write the header explicitly
-                header(HttpHeaders.SET_COOKIE, deleteCookie.toString() + ";Expires=Thu, 01 Jan 1970 00:00:00 GMT").
+                cookie(deleteCookie).
                 build();
-            throw new WebApplicationException(response);
+            throw new NotAuthorizedException(response);
         }
     }
 
@@ -214,10 +219,10 @@ public class IDTokenFilter extends AuthenticationFilter
     
     public AdminApplication getAdminApplication()
     {
-        if (getApplication().get().canAs(EndUserApplication.class))
-            return getApplication().get().as(EndUserApplication.class).getAdminApplication();
+        if (getApplication().canAs(EndUserApplication.class))
+            return getApplication().as(EndUserApplication.class).getAdminApplication();
         else
-            return getApplication().get().as(AdminApplication.class);
+            return getApplication().as(AdminApplication.class);
     }
     
     public ParameterizedSparqlString getUserAccountQuery()

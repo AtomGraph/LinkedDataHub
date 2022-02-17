@@ -18,8 +18,6 @@ print_usage()
     printf "  --uri URI                            URI of the class (optional)\n"
     printf "  --constructor CONSTRUCT_URI          URI of the constructor CONSTRUCT query (optional)\n"
     printf "  --constraint CONSTRAINT_URI          URI of the SPIN constraint (optional)\n"
-    printf "  --path PATH_TEMPLATE                 URI path template used to build instance URIs (optional)\n"
-    printf "  --fragment FRAGMENT_TEMPLATE         URI fragment template used to build instance URIs (optional)\n"
     printf "  --sub-class-of SUPER_CLASS_URI       URI of the superclass (optional)\n"
 
 }
@@ -120,11 +118,6 @@ fi
 
 container="${base}model/classes/"
 
-# if target URL is not provided, it equals container
-if [ -z "$1" ] ; then
-    args+=("${container}")
-fi
-
 # allow explicit URIs
 if [ -n "$uri" ] ; then
     class="<${uri}>" # URI
@@ -132,31 +125,36 @@ else
     class="_:class" # blank node
 fi
 
+if [ -z "$1" ]; then
+    print_usage
+    exit 1
+fi
+
+#if [ -z "$1" ]; then
+#    args+=("${base}service") # default target URL = graph store
+#fi
+
 args+=("-f")
-args+=("${cert_pem_file}")
+args+=("$cert_pem_file")
 args+=("-p")
-args+=("${cert_password}")
-args+=("-c")
-args+=("${base}ns#Class") # class
+args+=("$cert_password")
 args+=("-t")
 args+=("text/turtle") # content type
 
-turtle+="@prefix ns:	<ns#> .\n"
+turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy#> .\n"
+turtle+="@prefix owl:	<http://www.w3.org/2002/07/owl#> .\n"
 turtle+="@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .\n"
 turtle+="@prefix ldt:	<https://www.w3.org/ns/ldt#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
 turtle+="@prefix foaf:	<http://xmlns.com/foaf/0.1/> .\n"
-turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .\n"
 turtle+="@prefix spin:	<http://spinrdf.org/spin#> .\n"
 turtle+="@prefix sioc:	<http://rdfs.org/sioc/ns#> .\n"
-turtle+="${class} a ns:Class .\n"
+turtle+="${class} a owl:Class .\n"
 turtle+="${class} rdfs:label \"${label}\" .\n"
-turtle+="${class} foaf:isPrimaryTopicOf _:item .\n"
-turtle+="${class} rdfs:isDefinedBy <../ns/domain#> .\n"
-turtle+="_:item a ns:ClassItem .\n"
+turtle+="_:item a dh:Item .\n"
+turtle+="_:item foaf:primaryTopic ${class} .\n"
 turtle+="_:item sioc:has_container <${container}> .\n"
 turtle+="_:item dct:title \"${label}\" .\n"
-turtle+="_:item foaf:primaryTopic ${class} .\n"
 
 if [ -n "$comment" ] ; then
     turtle+="${class} rdfs:comment \"${comment}\" .\n"
@@ -169,12 +167,6 @@ if [ -n "$constructor" ] ; then
 fi
 if [ -n "$constraint" ] ; then
     turtle+="${class} spin:constraint <$constraint> .\n"
-fi
-if [ -n "$path" ] ; then
-    turtle+="${class} ldt:path \"${path}\" .\n"
-fi
-if [ -n "$fragment" ] ; then
-    turtle+="${class} ldt:fragment \"${fragment}\" .\n"
 fi
 
 for sub_class_of in "${super_classes[@]}"

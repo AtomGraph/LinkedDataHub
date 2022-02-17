@@ -16,72 +16,63 @@
         <param-value><![CDATA[
 PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX  acl:  <http://www.w3.org/ns/auth/acl#>
-PREFIX  lacl: <https://w3id.org/atomgraph/linkeddatahub/admin/acl/domain#>
 PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
 PREFIX  sioc: <http://rdfs.org/sioc/ns#>
 
 DESCRIBE ?auth
 FROM <urn:x-arq:UnionGraph>
 WHERE
-  {   { ?auth  acl:mode              ?Mode ;
-               foaf:isPrimaryTopicOf  ?doc .
-          { ?auth  acl:accessTo  ?this }
+  {   { ?auth  acl:mode  $Mode
+          { ?auth  acl:accessTo  $this }
         UNION
-          { SERVICE ?endpoint
-              {   { ?this  a                     ?Type }
-                UNION
-                  { GRAPH ?g
-                      { ?this  a                     ?Type }
-                  }
-              }
-              { ?auth  acl:accessToClass  ?Type }
+          {   { ?auth  acl:accessToClass  ?Type }
             UNION
               { ?auth  acl:accessToClass  ?Class .
                 ?Type (rdfs:subClassOf)* ?Class
               }
+            SERVICE ?endpoint
+              {   { GRAPH $this
+                      { $this  a  ?Type }
+                  }
+                UNION
+                  { { GRAPH ?g
+                        { $this  a  <http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#FileDataObject> ;
+                                 a  ?Type
+                        }
+                    }
+                  }
+              }
           }
-        {   { ?auth  acl:agent  ?agent }
+        {   { ?auth  acl:agent  $agent}
           UNION
-            { ?auth   acl:agentClass  ?Group .
-              ?Group  foaf:member     ?agent
+            { ?auth   acl:agentGroup  ?Group .
+              ?Group  foaf:member     $agent
             }
         }
       }
     UNION
-      { ?auth  acl:mode  ?Mode
+      { ?auth  acl:mode  $Mode
           { ?auth  acl:agentClass  foaf:Agent }
         UNION
-          { ?auth  acl:agentClass  ?AuthenticatedAgentClass } # must be set to acl:AuthenticatedAgent/rdfs:Resource
-          { ?auth  acl:accessTo  ?this }
+          { ?auth  acl:agentClass  $AuthenticatedAgentClass }
+          { ?auth  acl:accessTo  $this }
         UNION
-          { SERVICE ?endpoint
-              {   { ?this  a                     ?Type }
-                UNION
-                  { GRAPH ?g
-                      { ?this  a                     ?Type }
-                  }
-              }
-              { ?auth  acl:accessToClass  ?Type }
+          {   { ?auth  acl:accessToClass  ?Type }
             UNION
               { ?auth  acl:accessToClass  ?Class .
                 ?Type (rdfs:subClassOf)* ?Class
               }
-          }
-      }
-    UNION
-      { ?CreatorAuthorizationSubClass (rdfs:subClassOf)* lacl:CreatorAuthorization . 
-        ?auth  a                     ?CreatorAuthorizationSubClass ;
-               acl:agentClass        ?AuthenticatedAgentClass
-          { ?auth  acl:accessToClass  ?Type }
-        UNION
-          { ?auth  acl:accessToClass  ?Class .
-            ?Type (rdfs:subClassOf)* ?Class
-          }
-        SERVICE ?endpoint
-          { GRAPH ?g
-              { ?this  a                     ?Type
-                GRAPH ?metaG
-                  { ?this  foaf:maker  ?agent }
+            SERVICE ?endpoint
+              {   { GRAPH $this
+                      { $this  a  ?Type }
+                  }
+                UNION
+                  { { GRAPH ?g
+                        { $this  a  <http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#FileDataObject> ;
+                                 a  ?Type
+                        }
+                    }
+                  }
               }
           }
       }
@@ -93,28 +84,29 @@ WHERE
         <param-value><![CDATA[
 PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX  acl:  <http://www.w3.org/ns/auth/acl#>
-PREFIX  lacl: <https://w3id.org/atomgraph/linkeddatahub/admin/acl/domain#>
 PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
 PREFIX  sioc: <http://rdfs.org/sioc/ns#>
 
 DESCRIBE ?auth
 FROM <urn:x-arq:UnionGraph>
 WHERE
-  {   { ?auth  acl:mode              acl:Control ;
-               foaf:isPrimaryTopicOf  ?doc .
-        # ?doc   sioc:has_space        ?base
-          { ?auth  acl:agent  ?agent }
+  {   { ?auth  acl:mode           acl:Control .
+        ?doc   foaf:primaryTopic  ?auth
+          { ?auth  acl:agent  $agent }
         UNION
-          { ?auth   acl:agentClass  ?Group .
-            ?Group  foaf:member     ?agent
+          { ?auth   acl:agentGroup  ?Group .
+            ?Group  foaf:member     $agent
           }
       }
     UNION
-      { ?auth  acl:agentClass  ?AuthenticatedAgentClass ; # must be set to acl:AuthenticatedAgent/rdfs:Resource
-               acl:mode        ?Mode
-          { ?auth  acl:accessTo  ?this }
+      { ?auth  acl:agentClass  $AuthenticatedAgentClass ;
+               acl:mode        $Mode
+          { ?auth  acl:accessTo  $this
+            OPTIONAL
+              { $this  a  ?Type }
+          }
         UNION
-          { ?this  a                     ?Type
+          { $this  a  ?Type
               { ?auth  acl:accessToClass  ?Type }
             UNION
               { ?auth  acl:accessToClass  ?Class .
@@ -125,30 +117,18 @@ WHERE
     UNION
       { ?auth  acl:agentClass  foaf:Agent ;
                acl:mode        acl:Read
-          { ?auth  acl:accessTo  ?this }
+          { ?auth  acl:accessTo  $this
+            OPTIONAL
+              { $this  a  ?Type }
+          }
         UNION
-          { ?this  a                     ?Type
+          { $this  a  ?Type
               { ?auth  acl:accessToClass  ?Type }
             UNION
               { ?auth  acl:accessToClass  ?Class .
                 ?Type (rdfs:subClassOf)* ?Class
               }
           }
-        # only signup, OAuth2 login and WebID profiles can be public in admin app, nothing else
-        FILTER ( ?Type IN (uri(concat(str(?Ontology), "SignUp")), uri(concat(str(?Ontology), "AuthorizeGoogle")), uri(concat(str(?Ontology), "OAuth2Login")), uri(concat(str(?Ontology), "AgentItem"))) )
-      }
-    UNION
-      { ?CreatorAuthorizationSubClass (rdfs:subClassOf)* lacl:CreatorAuthorization .
-        ?auth  a                     ?CreatorAuthorizationSubClass ;
-               acl:agentClass        ?AuthenticatedAgentClass
-          { ?auth  acl:accessToClass  ?Type }
-        UNION
-          { ?auth  acl:accessToClass  ?Class .
-            ?Type (rdfs:subClassOf)* ?Class
-          }
-        { ?this  a                     ?Type ;
-                 foaf:maker            ?agent
-        }
       }
   }
 ]]></param-value>
@@ -156,23 +136,23 @@ WHERE
     <context-param>
         <param-name>https://w3id.org/atomgraph/linkeddatahub/config#agentQuery</param-name>
         <param-value><![CDATA[
-DESCRIBE ?Agent
+DESCRIBE $Agent
 WHERE
   { GRAPH ?g
-      { ?Agent  ?p  ?o }
+      { $Agent  ?p  ?o }
   }
 ]]></param-value>
     </context-param>
     <context-param>
         <param-name>https://w3id.org/atomgraph/linkeddatahub/config#userAccountQuery</param-name>
         <param-value><![CDATA[
-PREFIX  lacl: <https://w3id.org/atomgraph/linkeddatahub/admin/acl/domain#>
+PREFIX  lacl: <https://w3id.org/atomgraph/linkeddatahub/admin/acl#>
 PREFIX  sioc: <http://rdfs.org/sioc/ns#>
 
 DESCRIBE ?account ?agent
 WHERE
   { GRAPH ?g
-      { ?account  sioc:id          ?id ;
+      { ?account  sioc:id          $id ;
                   lacl:issuer      ?issuer ;
                   sioc:account_of  ?agent
       }
@@ -181,7 +161,7 @@ WHERE
     </context-param>
     <context-param>
         <param-name>https://w3id.org/atomgraph/linkeddatahub/config#webIDQuery</param-name>
-<!--        <param-value><![CDATA[
+        <param-value><![CDATA[
 PREFIX cert:    <http://www.w3.org/ns/auth/cert#>
             
 SELECT *
@@ -191,127 +171,26 @@ SELECT *
       cert:exponent ?exp
    ] .
 }
-]]></param-value>-->
-        <!-- we use this query version temporarily due to this Jena bug: https://issues.apache.org/jira/browse/JENA-1936 -->
-        <param-value><![CDATA[
-PREFIX cert:    <http://www.w3.org/ns/auth/cert#>
-            
-SELECT *
-{
-   ?webid cert:key [
-      cert:modulus ?certMod ;
-      cert:exponent ?exp
-   ] .
-   FILTER (?certMod = ?mod)
-}
 ]]></param-value>
     </context-param>
     <context-param>
-        <param-name>https://w3id.org/atomgraph/linkeddatahub/config#appQuery</param-name>
+        <param-name>https://w3id.org/atomgraph/linkeddatahub/config#ontologyQuery</param-name>
         <param-value><![CDATA[
-PREFIX  ldt:  <https://www.w3.org/ns/ldt#>
-PREFIX  lapp: <https://w3id.org/atomgraph/linkeddatahub/apps/domain#>
-
-DESCRIBE ?app ?service ?adminApp ?adminService ?endUserApp ?endUserService
-WHERE
-  { SELECT  *
-    WHERE
-      { ?app  ldt:base     ?base ;
-              ldt:service  ?service
-        OPTIONAL
-          { ?app      lapp:adminApplication  ?adminApp .
-            ?adminApp  ldt:service          ?adminService
-          }
-        OPTIONAL
-          { ?app      lapp:endUserApplication  ?endUserApp .
-            ?endUserApp  ldt:service        ?endUserService
-          }
-        FILTER strstarts(str(?this), str(?base))
-        BIND(strlen(str(?base)) AS ?baseLength)
-      }
-    ORDER BY DESC(?baseLength)
-    LIMIT   1
-  }
-]]></param-value>
-    </context-param>
-    <context-param>
-        <param-name>https://w3id.org/atomgraph/linkeddatahub/config#sitemapQuery</param-name>
-        <param-value><![CDATA[
-PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX  owl:  <http://www.w3.org/2002/07/owl#>
-PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
 
-### ?isDefinedBy value is set from code, so the variable name cannot be changed! ###
-DESCRIBE ?isDefinedBy ?doc ?term
+CONSTRUCT
+  {
+    ?s ?p ?o .
+  }
 WHERE
-  { GRAPH ?ontGraph
-      { ?isDefinedBy  a                 ?type
-        OPTIONAL
-          { ?isDefinedBy  foaf:isPrimaryTopicOf  ?doc }
-      }
-    OPTIONAL
-      { GRAPH ?termGraph
-          { ?term  rdfs:isDefinedBy  ?isDefinedBy }
+  { GRAPH ?g
+      { $ontology  a  owl:Ontology .
+        ?s        ?p  ?o
       }
   }
 ]]></param-value>
     </context-param>
-    <context-param>
-        <param-name>https://w3id.org/atomgraph/linkeddatahub/config#graphDocumentQuery</param-name>
-        <param-value><![CDATA[
-PREFIX  void: <http://rdfs.org/ns/void#>
-PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
-PREFIX  sioc: <http://rdfs.org/sioc/ns#>
-
-SELECT DISTINCT *
-WHERE
-  { GRAPH ?provGraph
-      { ?this     foaf:primaryTopic  ?Dataset .
-        ?Document  void:inDataset    ?Dataset
-        GRAPH ?this
-          { ?Document  ?p  ?o
-            OPTIONAL
-              {   { ?Document  sioc:has_parent  ?Container }
-                UNION
-                  { ?Document  sioc:has_container  ?Container }
-              }
-          }
-      }
-  }
-]]></param-value>
-    </context-param>
-    <context-param>
-        <param-name>https://w3id.org/atomgraph/linkeddatahub/config#restrictionsQuery</param-name>
-        <param-value><![CDATA[
-PREFIX ldt:	<https://www.w3.org/ns/ldt#>
-PREFIX apl:	<https://w3id.org/atomgraph/linkeddatahub/domain#>
-PREFIX rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-PREFIX rdfs:	<http://www.w3.org/2000/01/rdf-schema#>
-PREFIX owl:	<http://www.w3.org/2002/07/owl#>
-PREFIX sioc:	<http://rdfs.org/sioc/ns#>
-
-SELECT DISTINCT *
-{
-    ?Class a rdfs:Class ; # not necessarily a ldt:Template
-        rdfs:subClassOf ?Restriction .
-    ?Restriction a owl:Restriction ;
-        owl:onProperty ?onProperty .
-    # FILTER (?Template != apl:GraphContainer)
-    {
-        ?Restriction owl:allValuesFrom ?allValuesFrom
-    }
-    UNION
-    {
-        ?Restriction owl:allValuesFrom [ a owl:Class ;
-            owl:unionOf [
-                rdf:rest*/rdf:first ?allValuesFrom
-            ]
-        ]
-    }
-}
-]]></param-value>
-    </context-param>
-    <context-param>
+<!--    <context-param>
         <param-name>https://w3id.org/atomgraph/linkeddatahub/config#putUpdate</param-name>
         <param-value><![CDATA[
 PREFIX  dct:  <http://purl.org/dc/terms/>
@@ -319,12 +198,12 @@ PREFIX  void: <http://rdfs.org/ns/void#>
 
 INSERT {
   GRAPH ?graphGraphDoc {
-    ?this dct:modified ?modified .
+    $this dct:modified ?modified .
   }
 }
 WHERE
   { GRAPH ?graphGraphDoc
-      { ?this  void:inDataset  ?graph ;
+      { $this  void:inDataset  ?graph ;
                dct:created     ?created
       }
     BIND(now() AS ?modified)
@@ -339,122 +218,12 @@ PREFIX  void: <http://rdfs.org/ns/void#>
 DELETE WHERE
 {
   GRAPH ?graphGraphDoc {
-    ?this void:inDataset ?graph .
+    $this void:inDataset ?graph .
     ?s ?p ?o .
   }
 }
 ]]></param-value>
-    </context-param>
-    <context-param>
-        <param-name>https://w3id.org/atomgraph/linkeddatahub/config#ontologyImportQuery</param-name>
-        <param-value><![CDATA[
-PREFIX  ns:   <ns#>
-PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-PREFIX  owl:  <http://www.w3.org/2002/07/owl#>
-PREFIX  acl:  <http://www.w3.org/ns/auth/acl#>
-PREFIX  dh:   <https://www.w3.org/ns/ldt/document-hierarchy/domain#>
-PREFIX  sp:   <http://spinrdf.org/sp#>
-PREFIX  spin: <http://spinrdf.org/spin#>
-PREFIX  dc:   <http://purl.org/dc/elements/1.1/>
-PREFIX  dct:  <http://purl.org/dc/terms/>
-PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
-PREFIX  sioc: <http://rdfs.org/sioc/ns#>
-
-CONSTRUCT 
-  { 
-    ?sysOntology a ns:Ontology ;
-        # owl:imports ns: ;
-        owl:imports ?ontology ;
-        rdfs:label ?ontologyLabel ;
-        foaf:isPrimaryTopicOf ?sysOntologyItem .
-    ?sysOntologyItem a ns:OntologyItem ;
-        sioc:has_container <model/ontologies/> ;
-        dct:title ?ontologyLabel ;
-        foaf:primaryTopic ?sysOntology ;
-        dh:slug ?ontologyUuid .
-    ?sysClass a ns:Class ;
-        rdfs:subClassOf ?class ;
-        rdfs:label ?classLabel ;
-        foaf:isPrimaryTopicOf ?sysClassItem ;
-        rdfs:isDefinedBy ?sysOntology ;
-        spin:constructor ?constructor .
-    ?sysClassItem a ns:ClassItem ;
-        sioc:has_container <model/classes/> ;
-        dct:title ?classLabel ;
-        foaf:primaryTopic ?sysClass ;
-        dh:slug ?classUuid .
-    ?constructor a ns:Query ;
-        rdfs:label ?constructorLabel ;
-        foaf:isPrimaryTopicOf ?constructorItem ;
-        rdfs:isDefinedBy ?sysOntology ;
-        sp:text ?constructorString .
-    ?constructorItem a ns:QueryItem ;
-        sioc:has_container <model/queries/> ;
-        foaf:primaryTopic ?constructor ;
-        dh:slug ?constructorUuid .
-    ?auth a ns:Authorization ;
-        rdfs:label ?ontologyLabel ;
-        foaf:isPrimaryTopicOf ?authItem ;
-        acl:accessTo ?nsDoc ;
-        acl:agentClass foaf:Agent ;
-        acl:agentClass acl:AuthenticatedAgent ;
-        acl:mode acl:Read .
-    ?authItem a ns:AuthorizationItem ;
-        sioc:has_container <acl/authorizations/> ;
-        foaf:primaryTopic ?auth ;
-        dct:title ?ontologyLabel ;
-        dh:slug ?authUuid .
-  }
-WHERE
-  { ?ontology  a                    owl:Ontology
-    BIND(struuid() AS ?ontologyUuid)
-    BIND(uri(concat(str(<../ns/>), ?ontologyUuid)) AS ?nsDoc)
-    BIND(uri(concat(str(?nsDoc), "#")) AS ?sysOntology)
-    BIND(bnode() AS ?sysOntologyItem)
-    BIND(bnode() AS ?auth)
-    BIND(bnode() AS ?authItem)
-    BIND(struuid() AS ?authUuid)
-    OPTIONAL
-      { ?ontology (rdfs:label|dc:title)|dct:title ?ontologyLabel }
-    { SELECT  ?class (concat("CONSTRUCT { ", GROUP_CONCAT(?propConstructor ; separator=' . '), " } {}") AS ?constructorString)
-      WHERE
-        { ?class  a                     owl:Class
-            { ?prop  rdfs:domain  ?class }
-          UNION
-            { ?prop  rdfs:domain  rdfs:Resource }
-          UNION
-            { ?prop  rdfs:domain  owl:Thing }
-          UNION
-            {   { ?prop  a                     owl:ObjectProperty }
-              UNION
-                { ?prop  a                     owl:DatatypeProperty }
-              FILTER NOT EXISTS { ?prop  rdfs:domain  ?domain }
-              BIND(rdfs:Resource AS ?domain)
-            }
-          OPTIONAL
-            { ?prop  rdfs:domain  ?domain }
-          BIND(concat("?this <", str(?prop), "> [ a <", str(?domain), "> ]") AS ?propConstructor)
-        }
-      GROUP BY ?class
-    }
-    FILTER strstarts(str(?class), str(?ontology))
-    OPTIONAL
-      { ?class  rdfs:label  ?classLabel
-        BIND(concat(?classLabel, " constructor") AS ?constructorLabel)
-      }
-    BIND(bnode() AS ?constructor)
-    BIND(bnode() AS ?constructorItem)
-    BIND(bnode() AS ?sysClass)
-    BIND(bnode() AS ?sysClassItem)
-    BIND(struuid() AS ?constructorUuid)
-    BIND(struuid() AS ?classUuid)
-  }
-]]></param-value>
-    </context-param>
-    <context-param>
-        <param-name>https://w3id.org/atomgraph/linkeddatahub/config#signUpAddress</param-name>
-        <param-value><![CDATA[LinkedDataHub <signup@linkeddatahub.com>]]></param-value>
-    </context-param>
+    </context-param>-->
     <context-param>
         <param-name>https://w3id.org/atomgraph/linkeddatahub/config#signUpEMailSubject</param-name>
         <param-value>[%s] Signup of "%s" is complete</param-value>
@@ -465,7 +234,7 @@ WHERE
 
 A PKCS12 client certificate for your WebID is attached to this message. Download the file, install it into your web browser and restart the browser afterwards.
 
-Get started with your LinkedDataHub application by following this guide: https://linkeddatahub.com/linkeddatahub/docs/get-started/
+Get started with your LinkedDataHub application by following this guide: https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/get-started/
 
 Application's base URI: %s
 Your WebID profile: %s
@@ -473,24 +242,20 @@ Certificate expires on: %s
 
 
 LinkedDataHub by AtomGraph
-support@linkeddatahub.com]]></param-value>
+support@atomgraph.com]]></param-value>
     </context-param>
     <context-param>
         <param-name>https://w3id.org/atomgraph/linkeddatahub/config#oAuthSignUpEMailText</param-name>
         <param-value><![CDATA[Congratulations! You have successfully completed the signup on LinkedDataHub's "%s" application.
 
-Get started with your LinkedDataHub application by following this guide: https://linkeddatahub.com/linkeddatahub/docs/get-started/
+Get started with your LinkedDataHub application by following this guide: https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/get-started/
 
 Application's base URI: %s
 Your WebID profile: %s
 
 
 LinkedDataHub by AtomGraph
-support@linkeddatahub.com]]></param-value>
-    </context-param>
-    <context-param>
-        <param-name>https://w3id.org/atomgraph/linkeddatahub/config#notificationAddress</param-name>
-        <param-value><![CDATA[LinkedDataHub <notifications@linkeddatahub.com>]]></param-value>
+support@atomgraph.com]]></param-value>
     </context-param>
     <context-param>
         <param-name>https://w3id.org/atomgraph/linkeddatahub/config#requestAccessEMailSubject</param-name>
@@ -504,7 +269,7 @@ Manage it here: %s
 
 
 LinkedDataHub by AtomGraph
-support@linkeddatahub.com]]></param-value>
+support@atomgraph.com]]></param-value>
     </context-param>
     <context-param>
         <param-name>https://w3id.org/atomgraph/client#resolvingUncached</param-name>
@@ -524,7 +289,7 @@ support@linkeddatahub.com]]></param-value>
     </context-param>
     <context-param>
         <param-name>https://w3id.org/atomgraph/client#prefixMapping</param-name>
-        <param-value>prefix-mapping.n3</param-value>
+        <param-value>prefix-mapping.ttl</param-value>
     </context-param>
     <context-param>
         <param-name>https://w3id.org/atomgraph/linkeddatahub/config#cookieMaxAge</param-name>
@@ -534,29 +299,12 @@ support@linkeddatahub.com]]></param-value>
         <param-name>https://w3id.org/atomgraph/linkeddatahub/config#signUpCertValidity</param-name>
         <param-value>90</param-value>
     </context-param>
-    <context-param>
-        <param-name>https://w3id.org/atomgraph/linkeddatahub/config#insertOwnerUpdate</param-name>
-        <param-value><![CDATA[
-PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
-
-INSERT {
-  GRAPH ?g {
-    <acl/groups/owners/#this> foaf:member ?agent .
-  }
-}
-WHERE
-  { GRAPH ?g
-      { <acl/groups/owners/#this> a <ns#Group>
-      }
-  }
-]]></param-value>
-    </context-param>
     <servlet>
         <servlet-name>com.atomgraph.linkeddatahub.Application</servlet-name>
     </servlet>
-    <listener>
+<!--    <listener>
         <listener-class>com.atomgraph.core.util.jena.StartupListener</listener-class>
-    </listener>
+    </listener>-->
     <listener>
         <listener-class>com.atomgraph.linkeddatahub.listener.ImportListener</listener-class>
     </listener>

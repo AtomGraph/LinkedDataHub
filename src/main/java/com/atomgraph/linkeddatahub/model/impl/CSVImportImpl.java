@@ -17,7 +17,7 @@
 package com.atomgraph.linkeddatahub.model.impl;
 
 import com.atomgraph.linkeddatahub.model.CSVImport;
-import com.atomgraph.linkeddatahub.vocabulary.APL;
+import com.atomgraph.linkeddatahub.vocabulary.LDH;
 import com.atomgraph.spinrdf.vocabulary.SPIN;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.enhanced.EnhNode;
@@ -59,7 +59,7 @@ public class CSVImportImpl extends ImportImpl implements CSVImport
         {
             if (eg == null) throw new IllegalArgumentException("EnhGraph cannot be null");
 
-            return eg.asGraph().contains(node, RDF.type.asNode(), APL.CSVImport.asNode());
+            return eg.asGraph().contains(node, RDF.type.asNode(), LDH.CSVImport.asNode());
         }
     };
 
@@ -77,7 +77,7 @@ public class CSVImportImpl extends ImportImpl implements CSVImport
     @Override
     public char getDelimiter()
     {
-        return getRequiredProperty(APL.delimiter).getChar();
+        return getRequiredProperty(LDH.delimiter).getChar();
     }
     
 }

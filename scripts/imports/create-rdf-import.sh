@@ -17,6 +17,7 @@ print_usage()
     printf "\n"
     printf "  --action CONTAINER_URI               URI of the target container\n"
     printf "  --query QUERY_URI                    URI of the CONSTRUCT mapping query (optional)\n"
+    printf "  --graph GRAPH_URI                    URI of the graph (optional)\n"
     printf "  --file FILE_URI                      URI of the RDF file\n"
 }
 
@@ -63,6 +64,11 @@ do
         shift # past argument
         shift # past value
         ;;
+        --graph)
+        graph="$2"
+        shift # past argument
+        shift # past value
+        ;;
         --query)
         query="$2"
         shift # past argument
@@ -97,10 +103,6 @@ if [ -z "$title" ] ; then
     print_usage
     exit 1
 fi
-if [ -z "$action" ] ; then
-    print_usage
-    exit 1
-fi
 if [ -z "$file" ] ; then
     print_usage
     exit 1
@@ -108,38 +110,39 @@ fi
 
 container="${base}imports/"
 
-# if target URL is not provided, it equals container
-if [ -z "$1" ] ; then
-    args+=("${container}")
+if [ -z "$1" ]; then
+    args+=("${base}imports") # default target URL = import endpoint
 fi
 
 args+=("-f")
 args+=("${cert_pem_file}")
 args+=("-p")
 args+=("${cert_password}")
-args+=("-c")
-args+=("${base}ns/domain/system#RDFImport") # class
 args+=("-t")
 args+=("text/turtle") # content type
 
-turtle+="@prefix nsds:	<ns/domain/system#> .\n"
-turtle+="@prefix apl:	<https://w3id.org/atomgraph/linkeddatahub/domain#> .\n"
+turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy#> .\n"
+turtle+="@prefix ldh:	<https://w3id.org/atomgraph/linkeddatahub#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
 turtle+="@prefix foaf:	<http://xmlns.com/foaf/0.1/> .\n"
-turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .\n"
-turtle+="@prefix spin:	<http://spinrdf.org/spin#> .\n"
 turtle+="@prefix sioc:	<http://rdfs.org/sioc/ns#> .\n"
-turtle+="_:import a nsds:RDFImport .\n"
+turtle+="_:import a ldh:RDFImport .\n"
 turtle+="_:import dct:title \"${title}\" .\n"
-turtle+="_:import apl:action <${action}> .\n"
-turtle+="_:import apl:file <${file}> .\n"
-turtle+="_:import foaf:isPrimaryTopicOf _:item .\n"
-turtle+="_:item a nsds:ImportItem .\n"
+turtle+="_:import ldh:file <${file}> .\n"
+turtle+="_:item a dh:Item .\n"
+turtle+="_:item foaf:primaryTopic _:import .\n"
 turtle+="_:item sioc:has_container <${container}> .\n"
 turtle+="_:item dct:title \"${title}\" .\n"
-turtle+="_:item foaf:primaryTopic _:import .\n"
 
+if [ -n "$action" ] ; then
+    turtle+="_:import ldh:action <${action}> .\n"
+fi
+if [ -n "$graph" ] ; then
+    turtle+="@prefix sd:	<http://www.w3.org/ns/sparql-service-description#> .\n"
+    turtle+="_:import sd:name <${graph}> .\n"
+fi
 if [ -n "$query" ] ; then
+    turtle+="@prefix spin:	<http://spinrdf.org/spin#> .\n"
     turtle+="_:import spin:query <${query}> .\n"
 fi
 if [ -n "$description" ] ; then
@@ -148,11 +151,6 @@ fi
 if [ -n "$slug" ] ; then
     turtle+="_:item dh:slug \"${slug}\" .\n"
 fi
-
-# set env values in the Turtle doc and sumbit it to the server
-
-# make Jena scripts available
-export PATH=$PATH:$JENA_HOME/bin
 
 # submit Turtle doc to the server
 echo -e "$turtle" | turtle --base="$base" | ../create-document.sh "${args[@]}"

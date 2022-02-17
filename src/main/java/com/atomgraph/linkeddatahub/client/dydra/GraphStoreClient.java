@@ -87,6 +87,7 @@ public class GraphStoreClient extends com.atomgraph.core.client.GraphStoreClient
         }
     }
     
+    @Override
     public void putModel(String uri, Model model, DatasetAccessorAsync.Mode mode)
     {
         MultivaluedHashMap headers = new MultivaluedHashMap();

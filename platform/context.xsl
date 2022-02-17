@@ -2,14 +2,14 @@
 <!DOCTYPE xsl:stylesheet [
     <!ENTITY a      "https://w3id.org/atomgraph/core#">
     <!ENTITY ac     "https://w3id.org/atomgraph/client#">
-    <!ENTITY aplc   "https://w3id.org/atomgraph/linkeddatahub/config#">
+    <!ENTITY ldhc   "https://w3id.org/atomgraph/linkeddatahub/config#">
     <!ENTITY google "https://w3id.org/atomgraph/linkeddatahub/services/google#">
 ]>
 <xsl:stylesheet version="1.0"
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 xmlns:a="&a;"
 xmlns:ac="&ac;"
-xmlns:aplc="&aplc;"
+xmlns:ldhc="&ldhc;"
 xmlns:google="&google;"
 >
   
@@ -19,21 +19,25 @@ xmlns:google="&google;"
     <xsl:param name="ac:stylesheet"/>
     <xsl:param name="ac:cacheStylesheet"/>
     <xsl:param name="ac:resolvingUncached"/>
-    <xsl:param name="aplc:baseUri"/>
-    <xsl:param name="aplc:clientKeyStore"/>
-    <xsl:param name="aplc:secretaryCertAlias"/>
-    <xsl:param name="aplc:clientTrustStore"/>
-    <xsl:param name="aplc:clientKeyStorePassword"/>
-    <xsl:param name="aplc:clientTrustStorePassword"/>
-    <xsl:param name="aplc:uploadRoot"/>
-    <xsl:param name="aplc:signUpCertValidity"/>
-    <xsl:param name="aplc:contextDataset"/>
-    <xsl:param name="aplc:authQuery"/>
-    <xsl:param name="aplc:ownerAuthQuery"/>
-    <xsl:param name="aplc:maxContentLength"/>
-    <xsl:param name="aplc:maxConnPerRoute"/>
-    <xsl:param name="aplc:maxTotalConn"/>
-    <xsl:param name="aplc:importKeepAlive"/>
+    <xsl:param name="ldhc:baseUri"/>
+    <xsl:param name="ldhc:proxyScheme"/>
+    <xsl:param name="ldhc:proxyHost"/>
+    <xsl:param name="ldhc:proxyPort"/>
+    <xsl:param name="ldhc:clientKeyStore"/>
+    <xsl:param name="ldhc:secretaryCertAlias"/>
+    <xsl:param name="ldhc:clientTrustStore"/>
+    <xsl:param name="ldhc:clientKeyStorePassword"/>
+    <xsl:param name="ldhc:clientTrustStorePassword"/>
+    <xsl:param name="ldhc:uploadRoot"/>
+    <xsl:param name="ldhc:signUpCertValidity"/>
+    <xsl:param name="ldhc:contextDataset"/>
+    <xsl:param name="ldhc:authQuery"/>
+    <xsl:param name="ldhc:ownerAuthQuery"/>
+    <xsl:param name="ldhc:maxContentLength"/>
+    <xsl:param name="ldhc:maxConnPerRoute"/>
+    <xsl:param name="ldhc:maxTotalConn"/>
+    <xsl:param name="ldhc:importKeepAlive"/>
+    <xsl:param name="ldhc:notificationAddress"/>
     <xsl:param name="mail.smtp.host"/>
     <xsl:param name="mail.smtp.port"/>
     <xsl:param name="mail.user"/>
@@ -63,50 +67,62 @@ xmlns:google="&google;"
             <xsl:if test="$ac:resolvingUncached">
                 <Parameter name="&ac;resolvingUncached" value="{$ac:resolvingUncached}" override="false"/>
             </xsl:if>
-            <xsl:if test="$aplc:baseUri">
-                <Parameter name="&aplc;baseUri" value="{$aplc:baseUri}" override="false"/>
+            <xsl:if test="$ldhc:baseUri">
+                <Parameter name="&ldhc;baseUri" value="{$ldhc:baseUri}" override="false"/>
             </xsl:if>
-            <xsl:if test="$aplc:clientKeyStore">
-                <Parameter name="&aplc;clientKeyStore" value="{$aplc:clientKeyStore}" override="false"/>
+            <xsl:if test="$ldhc:proxyScheme">
+                <Parameter name="&ldhc;proxyScheme" value="{$ldhc:proxyScheme}" override="false"/>
             </xsl:if>
-            <xsl:if test="$aplc:secretaryCertAlias">
-                <Parameter name="&aplc;secretaryCertAlias" value="{$aplc:secretaryCertAlias}" override="false"/>
+            <xsl:if test="$ldhc:proxyHost">
+                <Parameter name="&ldhc;proxyHost" value="{$ldhc:proxyHost}" override="false"/>
             </xsl:if>
-            <xsl:if test="$aplc:clientTrustStore">
-                <Parameter name="&aplc;clientTrustStore" value="{$aplc:clientTrustStore}" override="false"/>
+            <xsl:if test="$ldhc:proxyPort">
+                <Parameter name="&ldhc;proxyPort" value="{$ldhc:proxyPort}" override="false"/>
             </xsl:if>
-            <xsl:if test="$aplc:clientKeyStorePassword">
-                <Parameter name="&aplc;clientKeyStorePassword" value="{$aplc:clientKeyStorePassword}" override="false"/>
+            <xsl:if test="$ldhc:clientKeyStore">
+                <Parameter name="&ldhc;clientKeyStore" value="{$ldhc:clientKeyStore}" override="false"/>
             </xsl:if>
-            <xsl:if test="$aplc:clientTrustStorePassword">
-                <Parameter name="&aplc;clientTrustStorePassword" value="{$aplc:clientTrustStorePassword}" override="false"/>
+            <xsl:if test="$ldhc:secretaryCertAlias">
+                <Parameter name="&ldhc;secretaryCertAlias" value="{$ldhc:secretaryCertAlias}" override="false"/>
             </xsl:if>
-            <xsl:if test="$aplc:uploadRoot">
-                <Parameter name="&aplc;uploadRoot" value="{$aplc:uploadRoot}" override="false"/>
+            <xsl:if test="$ldhc:clientTrustStore">
+                <Parameter name="&ldhc;clientTrustStore" value="{$ldhc:clientTrustStore}" override="false"/>
             </xsl:if>
-            <xsl:if test="$aplc:signUpCertValidity">
-                <Parameter name="&aplc;signUpCertValidity" value="{$aplc:signUpCertValidity}" override="false"/>
+            <xsl:if test="$ldhc:clientKeyStorePassword">
+                <Parameter name="&ldhc;clientKeyStorePassword" value="{$ldhc:clientKeyStorePassword}" override="false"/>
             </xsl:if>
-            <xsl:if test="$aplc:contextDataset">
-                <Parameter name="&aplc;contextDataset" value="{$aplc:contextDataset}" override="false"/>
+            <xsl:if test="$ldhc:clientTrustStorePassword">
+                <Parameter name="&ldhc;clientTrustStorePassword" value="{$ldhc:clientTrustStorePassword}" override="false"/>
             </xsl:if>
-            <xsl:if test="$aplc:authQuery">
-                <Parameter name="&aplc;authQuery" value="{$aplc:authQuery}" override="false"/>
+            <xsl:if test="$ldhc:uploadRoot">
+                <Parameter name="&ldhc;uploadRoot" value="{$ldhc:uploadRoot}" override="false"/>
             </xsl:if>
-            <xsl:if test="$aplc:ownerAuthQuery">
-                <Parameter name="&aplc;ownerAuthQuery" value="{$aplc:ownerAuthQuery}" override="false"/>
+            <xsl:if test="$ldhc:signUpCertValidity">
+                <Parameter name="&ldhc;signUpCertValidity" value="{$ldhc:signUpCertValidity}" override="false"/>
             </xsl:if>
-            <xsl:if test="$aplc:maxContentLength">
-                <Parameter name="&aplc;maxContentLength" value="{$aplc:maxContentLength}" override="false"/>
+            <xsl:if test="$ldhc:contextDataset">
+                <Parameter name="&ldhc;contextDataset" value="{$ldhc:contextDataset}" override="false"/>
             </xsl:if>
-            <xsl:if test="$aplc:maxConnPerRoute">
-                <Parameter name="&aplc;maxConnPerRoute" value="{$aplc:maxConnPerRoute}" override="false"/>
+            <xsl:if test="$ldhc:authQuery">
+                <Parameter name="&ldhc;authQuery" value="{$ldhc:authQuery}" override="false"/>
             </xsl:if>
-            <xsl:if test="$aplc:maxTotalConn">
-                <Parameter name="&aplc;maxTotalConn" value="{$aplc:maxTotalConn}" override="false"/>
+            <xsl:if test="$ldhc:ownerAuthQuery">
+                <Parameter name="&ldhc;ownerAuthQuery" value="{$ldhc:ownerAuthQuery}" override="false"/>
             </xsl:if>
-            <xsl:if test="$aplc:importKeepAlive">
-                <Parameter name="&aplc;importKeepAlive" value="{$aplc:importKeepAlive}" override="false"/>
+            <xsl:if test="$ldhc:maxContentLength">
+                <Parameter name="&ldhc;maxContentLength" value="{$ldhc:maxContentLength}" override="false"/>
+            </xsl:if>
+            <xsl:if test="$ldhc:maxConnPerRoute">
+                <Parameter name="&ldhc;maxConnPerRoute" value="{$ldhc:maxConnPerRoute}" override="false"/>
+            </xsl:if>
+            <xsl:if test="$ldhc:maxTotalConn">
+                <Parameter name="&ldhc;maxTotalConn" value="{$ldhc:maxTotalConn}" override="false"/>
+            </xsl:if>
+            <xsl:if test="$ldhc:importKeepAlive">
+                <Parameter name="&ldhc;importKeepAlive" value="{$ldhc:importKeepAlive}" override="false"/>
+            </xsl:if>
+            <xsl:if test="$ldhc:notificationAddress">
+                <Parameter name="&ldhc;notificationAddress" value="{$ldhc:notificationAddress}" override="false"/>
             </xsl:if>
             <xsl:if test="$mail.smtp.host">
                 <Parameter name="mail.smtp.host" value="{$mail.smtp.host}" override="false"/>

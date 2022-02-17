@@ -4,7 +4,7 @@ print_usage()
 {
     printf "Creates an item in a container.\n"
     printf "\n"
-    printf "Usage:  %s options TARGET_URI\n" "$0"
+    printf "Usage:  %s options [TARGET_URI]\n" "$0"
     printf "\n"
     printf "Options:\n"
     printf "  -f, --cert-pem-file CERT_FILE        .pem file with the WebID certificate of the agent\n"
@@ -26,6 +26,16 @@ do
     key="$1"
 
     case $key in
+        -f|--cert-pem-file)
+        cert_pem_file="$2"
+        shift # past argument
+        shift # past value
+        ;;
+        -p|--cert-password)
+        cert_password="$2"
+        shift # past argument
+        shift # past value
+        ;;
         -b|--base)
         base="$2"
         shift # past argument
@@ -59,6 +69,14 @@ do
 done
 set -- "${args[@]}" # restore args parameters
 
+if [ -z "$cert_pem_file" ] ; then
+    print_usage
+    exit 1
+fi
+if [ -z "$cert_password" ] ; then
+    print_usage
+    exit 1
+fi
 if [ -z "$base" ] ; then
     print_usage
     exit 1
@@ -67,17 +85,26 @@ if [ -z "$title" ] ; then
     print_usage
     exit 1
 fi
+if [ -z "$container" ] ; then
+    print_usage
+    exit 1
+fi
 
-args+=("-c")
-args+=("${base}ns/domain/default#Item")
+if [ -z "$1" ]; then
+    args+=("${base}service") # default target URL = graph store
+fi
+
+args+=("-f")
+args+=("${cert_pem_file}")
+args+=("-p")
+args+=("${cert_password}")
 args+=("-t")
 args+=("text/turtle")
 
-turtle+="@prefix nsdd:	<ns/domain/default#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
-turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .\n"
+turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy#> .\n"
 turtle+="@prefix sioc:	<http://rdfs.org/sioc/ns#> .\n"
-turtle+="_:item a nsdd:Item .\n"
+turtle+="_:item a dh:Item .\n"
 turtle+="_:item dct:title \"${title}\" .\n"
 turtle+="_:item sioc:has_container <${container}> .\n"
 

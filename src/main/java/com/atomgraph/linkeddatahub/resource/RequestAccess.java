@@ -16,39 +16,32 @@
  */
 package com.atomgraph.linkeddatahub.resource;
 
-import com.atomgraph.core.MediaType;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.core.exception.ConfigurationException;
 import com.atomgraph.linkeddatahub.model.Service;
-import com.atomgraph.linkeddatahub.server.model.ClientUriInfo;
-import com.atomgraph.client.util.DataManager;
+import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.listener.EMailListener;
 import com.atomgraph.linkeddatahub.model.Agent;
-import com.atomgraph.linkeddatahub.server.model.impl.ResourceBase;
-import com.atomgraph.linkeddatahub.vocabulary.APLC;
-import com.atomgraph.linkeddatahub.vocabulary.APLT;
+import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
+import com.atomgraph.linkeddatahub.server.util.MessageBuilder;
+import com.atomgraph.linkeddatahub.vocabulary.LDHC;
 import com.atomgraph.linkeddatahub.vocabulary.FOAF;
 import com.atomgraph.linkeddatahub.vocabulary.LACL;
-import com.atomgraph.processor.model.TemplateCall;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.util.GregorianCalendar;
 import java.util.Optional;
+import java.util.UUID;
 import javax.inject.Inject;
-import javax.mail.Address;
 import javax.mail.MessagingException;
-import javax.mail.internet.AddressException;
-import javax.mail.internet.InternetAddress;
 import javax.servlet.ServletConfig;
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.BadRequestException;
-import javax.ws.rs.ClientErrorException;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.container.ResourceContext;
+import javax.ws.rs.DefaultValue;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.InternalServerErrorException;
 import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
@@ -58,7 +51,6 @@ import javax.ws.rs.ext.Providers;
 import org.apache.jena.ontology.Ontology;
 import org.apache.jena.query.ParameterizedSparqlString;
 import org.apache.jena.query.Query;
-import org.apache.jena.rdf.model.InfModel;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ResIterator;
 import org.apache.jena.rdf.model.Resource;
@@ -73,71 +65,62 @@ import org.slf4j.LoggerFactory;
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-public class RequestAccess extends ResourceBase
+public class RequestAccess extends GraphStoreImpl
 {
     
     private static final Logger log = LoggerFactory.getLogger(RequestAccess.class);
     
-    private final Address notificationAddress;
+    private final URI uri;
+    private final Application application;
+    private final Agent agent;
     private final String emailSubject;
     private final String emailText;
     private final UriBuilder authRequestContainerUriBuilder;
     private final Query agentQuery;
 
     @Inject
-    public RequestAccess(@Context UriInfo uriInfo, ClientUriInfo clientUriInfo, @Context Request request, MediaTypes mediaTypes,
-            Optional<Service> service, Optional<com.atomgraph.linkeddatahub.apps.model.Application> application,
-            Optional<Ontology> ontology, Optional<TemplateCall> templateCall,
-            @Context HttpHeaders httpHeaders, @Context ResourceContext resourceContext,
-            @Context HttpServletRequest httpServletRequest, @Context SecurityContext securityContext,
-            @Context DataManager dataManager, @Context Providers providers,
-            com.atomgraph.linkeddatahub.Application system, @Context final ServletConfig servletConfig)
+    public RequestAccess(@Context Request request, @Context UriInfo uriInfo, MediaTypes mediaTypes,
+            com.atomgraph.linkeddatahub.apps.model.Application application, Optional<Ontology> ontology, Optional<Service> service,
+            @Context SecurityContext securityContext,
+            @Context Providers providers, com.atomgraph.linkeddatahub.Application system, @Context ServletConfig servletConfig)
     {
-        super(uriInfo, clientUriInfo, request, mediaTypes,
-                service, application,
-                ontology, templateCall,
-                httpHeaders, resourceContext,
-                httpServletRequest, securityContext,
-                dataManager, providers,
-                system);
+        super(request, uriInfo, mediaTypes, application, ontology, service, providers, system);
+        if (log.isDebugEnabled()) log.debug("Constructing {}", getClass());
+        if (securityContext == null || !(securityContext.getUserPrincipal() instanceof Agent)) throw new IllegalStateException("Agent is not authenticated");
+        this.uri = uriInfo.getAbsolutePath();
+        this.application = application;
+        this.agent = (Agent)securityContext.getUserPrincipal();
+
         agentQuery = system.getAgentQuery();
-        
-        // TO-DO: extract AuthorizationRequest container URI from ontology Restrictions
         authRequestContainerUriBuilder = uriInfo.getBaseUriBuilder().path(com.atomgraph.linkeddatahub.Application.AUTHORIZATION_REQUEST_PATH);
         
-        try
-        {
-            String notificationAddressParam = servletConfig.getServletContext().getInitParameter(APLC.notificationAddress.getURI());
-            if (notificationAddressParam == null) throw new WebApplicationException(new ConfigurationException(APLC.notificationAddress));
-            InternetAddress[] notificationAddresses = InternetAddress.parse(notificationAddressParam);
-            // if (notificationAddresses.size() == 0) throw Exception...
-            notificationAddress = notificationAddresses[0];
-        }
-        catch (AddressException ex)
-        {
-            throw new WebApplicationException(ex);
-        }
+        emailSubject = servletConfig.getServletContext().getInitParameter(LDHC.requestAccessEMailSubject.getURI());
+        if (emailSubject == null) throw new InternalServerErrorException(new ConfigurationException(LDHC.requestAccessEMailSubject));
         
-        emailSubject = servletConfig.getServletContext().getInitParameter(APLC.requestAccessEMailSubject.getURI());
-        if (emailSubject == null) throw new WebApplicationException(new ConfigurationException(APLC.requestAccessEMailSubject));
-        
-        emailText = servletConfig.getServletContext().getInitParameter(APLC.requestAccessEMailText.getURI());
-        if (emailText == null) throw new WebApplicationException(new ConfigurationException(APLC.requestAccessEMailText));
+        emailText = servletConfig.getServletContext().getInitParameter(LDHC.requestAccessEMailText.getURI());
+        if (emailText == null) throw new InternalServerErrorException(new ConfigurationException(LDHC.requestAccessEMailText));
     }
     
+    @GET
     @Override
-    public Response construct(InfModel infModel)
+    public Response get(@QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
     {
-        if (!getTemplateCall().get().hasArgument(APLT.forClass)) throw new BadRequestException("aplt:forClass argument is mandatory for aplt:RequestAccess template");
-
-        Resource forClass = getTemplateCall().get().getArgumentProperty(APLT.forClass).getResource();
-        ResIterator it = infModel.getRawModel().listResourcesWithProperty(RDF.type, forClass);
+        return super.get(false, getURI());
+    }
+    
+    @POST
+    @Override
+    public Response post(Model requestModel, @QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
+    {
+        graphUri = getAuthRequestContainerUriBuilder().path(UUID.randomUUID().toString() + "/").build();
+        skolemize(requestModel, graphUri);
+            
+        ResIterator it = requestModel.listResourcesWithProperty(RDF.type, LACL.AuthorizationRequest);
         try
         {
-            Agent agent = (Agent)getSecurityContext().getUserPrincipal();
             Resource accessRequest = it.next();
             Resource requestAgent = accessRequest.getPropertyResourceValue(LACL.requestAgent);
-            if (!requestAgent.equals(agent)) throw new IllegalStateException("Agent requesting access must be authenticated");
+            if (!requestAgent.equals(getAgent())) throw new IllegalStateException("Agent requesting access must be authenticated");
             
             Resource owner = getApplication().getMaker();
             if (owner == null) throw new IllegalStateException("Application <" + getApplication().getURI() + "> does not have a maker (foaf:maker)");
@@ -148,33 +131,24 @@ public class RequestAccess extends ResourceBase
             ParameterizedSparqlString pss = new ParameterizedSparqlString(getAgentQuery().toString());
             pss.setParam(FOAF.Agent.getLocalName(), owner);
             // query agent data with SPARQL because the public laclt:AgentItem description does not expose foaf:mbox (which we need below in order to send an email)
-            Model agentModel = getAgentService().getSPARQLClient().loadModel(pss.asQuery());
+            Model agentModel = getAgentService().getSPARQLClient().loadModel(pss.asQuery()); // TO-DO: replace with getDatasetAccessor().getModel()
             owner = agentModel.getResource(ownerURI);
             if (!agentModel.containsResource(owner)) throw new IllegalStateException("Could not load agent's <" + ownerURI + "> description from admin service");
 
-            URI authRequestContainerURI = getAuthRequestContainerUriBuilder().queryParam(APLT.forClass.getLocalName(), forClass.getURI()).build();
-            try (Response cr1 = getDataManager().getEndpoint(authRequestContainerURI).
-                    request(getMediaTypes().getReadable(Model.class).toArray(new javax.ws.rs.core.MediaType[0])).
-                    post(Entity.entity(infModel.getRawModel(), MediaType.APPLICATION_NTRIPLES_TYPE)))
+            super.post(requestModel, false, graphUri); // don't wrap into try-with-resources because that will close the Response
+
+            try
             {
-                if (!cr1.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
-                {
-                    if (log.isErrorEnabled()) log.error("POST request to AuthorizationRequest container: {} unsuccessful. Reason: {}", cr1.getLocation(), cr1.getStatusInfo().getReasonPhrase());
-                    // throw new ClientErrorException(cr1); // this gives "java.lang.IllegalStateException: Entity input stream has already been closed."
-                    throw new ClientErrorException("POST request to AuthorizationRequest container unsuccesful", cr1.getStatusInfo().getStatusCode());
-                }
-
-                try
-                {
-                    sendEmail(owner, accessRequest);
-                }
-                catch (MessagingException | UnsupportedEncodingException ex)
-                {
-                    if (log.isErrorEnabled()) log.error("Could not send Context creation email to Agent: {}", agent.getURI());
-                }
-
-                return get();
+                sendEmail(owner, accessRequest);
             }
+            catch (MessagingException | UnsupportedEncodingException ex)
+            {
+                if (log.isErrorEnabled()) log.error("Could not send access request email to Agent: {}", agent.getURI());
+            }
+
+            return Response.ok().
+                entity(requestModel).
+                build(); // don't return 201 Created as we don't want a redirect in client.xsl
         }
         finally
         {
@@ -204,13 +178,15 @@ public class RequestAccess extends ResourceBase
         Resource requestAgent = accessRequest.getPropertyResourceValue(LACL.requestAgent);
         Resource accessTo = accessRequest.getPropertyResourceValue(LACL.requestAccessTo);
 
-        EMailListener.submit(getSystem().getMessageBuilder().
+        MessageBuilder builder = getSystem().getMessageBuilder().
             subject(String.format(getEmailSubject(),
                 getApplication().getProperty(DCTerms.title).getString())).
-            from(getNotificationAddress()).
             to(mbox, name).
-            textBodyPart(String.format(getEmailText(), requestAgent.getURI(), accessTo.getURI(), accessRequest.getURI())).
-            build());
+            textBodyPart(String.format(getEmailText(), requestAgent.getURI(), accessTo.getURI(), accessRequest.getURI()));
+        
+        if (getSystem().getNotificationAddress() != null) builder = builder.from(getSystem().getNotificationAddress());
+
+        EMailListener.submit(builder.build());
     }
     
     protected Service getAgentService()
@@ -220,9 +196,19 @@ public class RequestAccess extends ResourceBase
             getApplication().getService();
     }
     
-    private Address getNotificationAddress()
+    public URI getURI()
     {
-        return notificationAddress;
+        return uri;
+    }
+    
+    public Application getApplication()
+    {
+        return application;
+    }
+
+    public Agent getAgent()
+    {
+        return agent;
     }
     
     public String getEmailSubject()
@@ -237,7 +223,7 @@ public class RequestAccess extends ResourceBase
     
     public UriBuilder getAuthRequestContainerUriBuilder()
     {
-        return authRequestContainerUriBuilder;
+        return authRequestContainerUriBuilder.clone();
     }
     
     public Query getAgentQuery()

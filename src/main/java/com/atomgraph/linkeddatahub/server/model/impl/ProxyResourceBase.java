@@ -19,14 +19,28 @@ package com.atomgraph.linkeddatahub.server.model.impl;
 import com.atomgraph.client.MediaTypes;
 import com.atomgraph.client.util.DataManager;
 import com.atomgraph.client.vocabulary.AC;
-import com.atomgraph.linkeddatahub.client.filter.WebIDDelegationFilter;
+import com.atomgraph.core.io.ModelProvider;
+import com.atomgraph.linkeddatahub.apps.model.Dataset;
+import com.atomgraph.linkeddatahub.client.filter.auth.IDTokenDelegationFilter;
+import com.atomgraph.linkeddatahub.client.filter.auth.WebIDDelegationFilter;
 import com.atomgraph.linkeddatahub.model.Agent;
-import com.atomgraph.linkeddatahub.server.model.ClientUriInfo;
+import com.atomgraph.linkeddatahub.server.security.AgentContext;
+import com.atomgraph.linkeddatahub.server.security.IDTokenSecurityContext;
 import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.GET;
+import javax.ws.rs.BadRequestException;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.NotFoundException;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
@@ -34,19 +48,18 @@ import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
-import org.apache.jena.query.DatasetFactory;
+import javax.ws.rs.ext.Providers;
+import org.apache.jena.query.ResultSet;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.util.FileManager;
+import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Linked Data proxy resource.
- * Forwards Linked Data request to a remote location.
- * The location is identified indirectly using a URL parameter.
- * 
- * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
+ *
+ * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
  */
 public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyResourceBase
 {
@@ -55,57 +68,128 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
 
     private final UriInfo uriInfo;
     private final DataManager dataManager;
-    
+    private final MediaType[] readableMediaTypes;
+    private final Providers providers;
+
     @Inject
-    public ProxyResourceBase(@Context UriInfo uriInfo, ClientUriInfo clientUriInfo, @Context Request request, @Context HttpHeaders httpHeaders, MediaTypes mediaTypes, @Context SecurityContext securityContext,
-            @QueryParam("uri") URI uri, @QueryParam("endpoint") URI endpoint, @QueryParam("accept") MediaType accept, @QueryParam("mode") URI mode,
-            com.atomgraph.linkeddatahub.Application system, @Context HttpServletRequest httpServletRequest,
-            DataManager dataManager)
+    public ProxyResourceBase(@Context UriInfo uriInfo, @Context Request request, @Context HttpHeaders httpHeaders, MediaTypes mediaTypes, @Context SecurityContext securityContext,
+            com.atomgraph.linkeddatahub.Application system, @Context HttpServletRequest httpServletRequest, DataManager dataManager, Optional<AgentContext> agentContext,
+            @Context Providers providers, Optional<Dataset> dataset)
     {
-        super(clientUriInfo, request, httpHeaders, mediaTypes,
-                clientUriInfo.getQueryParameters().getFirst(AC.uri.getLocalName()) == null ? null : URI.create(clientUriInfo.getQueryParameters().getFirst(AC.uri.getLocalName())),
-                clientUriInfo.getQueryParameters().getFirst(AC.endpoint.getLocalName()) == null ? null : URI.create(clientUriInfo.getQueryParameters().getFirst(AC.endpoint.getLocalName())),
-                clientUriInfo.getQueryParameters().getFirst(AC.accept.getLocalName()) == null ? null : MediaType.valueOf(clientUriInfo.getQueryParameters().getFirst(AC.accept.getLocalName())),
-                mode, system.getClient(), httpServletRequest);
+        this(uriInfo, request, httpHeaders, mediaTypes, securityContext,
+                uriInfo.getQueryParameters().getFirst(AC.uri.getLocalName()) == null ? 
+                    dataset.isEmpty() ? null : dataset.get().getProxied(uriInfo.getAbsolutePath())
+                    :
+                    URI.create(uriInfo.getQueryParameters().getFirst(AC.uri.getLocalName())),
+                uriInfo.getQueryParameters().getFirst(AC.endpoint.getLocalName()) == null ? null : URI.create(uriInfo.getQueryParameters().getFirst(AC.endpoint.getLocalName())),
+                uriInfo.getQueryParameters().getFirst(AC.accept.getLocalName()) == null ? null : MediaType.valueOf(uriInfo.getQueryParameters().getFirst(AC.accept.getLocalName())),
+                uriInfo.getQueryParameters().getFirst(AC.mode.getLocalName()) == null ? null : URI.create(uriInfo.getQueryParameters().getFirst(AC.mode.getLocalName())),
+                system, httpServletRequest, dataManager, agentContext, providers);
+    }
+    
+    protected ProxyResourceBase(@Context UriInfo uriInfo, @Context Request request, @Context HttpHeaders httpHeaders, MediaTypes mediaTypes, @Context SecurityContext securityContext,
+            @QueryParam("uri") URI uri, @QueryParam("endpoint") URI endpoint, @QueryParam("accept") MediaType accept, @QueryParam("mode") URI mode,
+            com.atomgraph.linkeddatahub.Application system, @Context HttpServletRequest httpServletRequest, DataManager dataManager, Optional<AgentContext> agentContext,
+            @Context Providers providers)
+    {
+        super(uriInfo, request, httpHeaders, mediaTypes, uri, endpoint, accept, mode, system.getClient(), httpServletRequest);
         this.uriInfo = uriInfo;
         this.dataManager = dataManager;
+        this.providers = providers;
         
-        if (securityContext.getUserPrincipal() instanceof Agent &&
-            securityContext.getAuthenticationScheme().equals(SecurityContext.CLIENT_CERT_AUTH))
-            super.getWebTarget().register(new WebIDDelegationFilter((Agent)securityContext.getUserPrincipal()));
+        List<javax.ws.rs.core.MediaType> readableMediaTypesList = new ArrayList<>();
+        readableMediaTypesList.addAll(mediaTypes.getReadable(Model.class));
+        readableMediaTypesList.addAll(mediaTypes.getReadable(ResultSet.class)); // not in the superclass
+        this.readableMediaTypes = readableMediaTypesList.toArray(new MediaType[readableMediaTypesList.size()]);
+        
+        if (securityContext.getUserPrincipal() instanceof Agent)
+        {
+            if (securityContext.getAuthenticationScheme().equals(SecurityContext.CLIENT_CERT_AUTH))
+                super.getWebTarget().register(new WebIDDelegationFilter((Agent)securityContext.getUserPrincipal()));
+            
+            //if (securityContext.getAuthenticationScheme().equals(IDTokenFilter.AUTH_SCHEME))
+            if (agentContext.isPresent() && agentContext.get() instanceof IDTokenSecurityContext)
+                super.getWebTarget().register(new IDTokenDelegationFilter(((IDTokenSecurityContext)agentContext.get()).getJWTToken(), uriInfo.getBaseUri().getPath(), null));
+        }
     }
     
     /**
      * Forwards GET request and returns response from remote resource.
      * 
+     * @param target target URI
      * @return response
      */
-    @GET
     @Override
-    public Response get()
+    public Response get(WebTarget target)
     {
         // check if we have the model in the cache first and if yes, return it from there instead making an HTTP request
-        if (((FileManager)getDataManager()).hasCachedModel(getURI().toString()) ||
-                (getDataManager().isResolvingMapped() && getDataManager().isMapped(getURI().toString()))) // read mapped URIs (such as system ontologies) from a file
+        if (((FileManager)getDataManager()).hasCachedModel(target.getUri().toString()) ||
+                (getDataManager().isResolvingMapped() && getDataManager().isMapped(target.getUri().toString()))) // read mapped URIs (such as system ontologies) from a file
         {
-            if (log.isDebugEnabled()) log.debug("hasCachedModel({}): {}", getURI(), ((FileManager)getDataManager()).hasCachedModel(getURI().toString()));
-            if (log.isDebugEnabled()) log.debug("isMapped({}): {}", getURI(), getDataManager().isMapped(getURI().toString()));
-            return getResponse(DatasetFactory.create(getDataManager().loadModel(getURI().toString())));
+            if (log.isDebugEnabled()) log.debug("hasCachedModel({}): {}", target.getUri(), ((FileManager)getDataManager()).hasCachedModel(target.getUri().toString()));
+            if (log.isDebugEnabled()) log.debug("isMapped({}): {}", target.getUri(), getDataManager().isMapped(target.getUri().toString()));
+            return getResponse(getDataManager().loadModel(target.getUri().toString()));
         }
         
         // do not return the whole document if only a single resource (fragment) is requested
-        if (getUriInfo().getQueryParameters().containsKey(AC.mode.getLocalName()) && 
-                getUriInfo().getQueryParameters().getFirst(AC.mode.getLocalName()).equals("fragment")) // used in client.xsl
-        {
-            try (Response cr = getClientResponse())
+        if (target.getUri().getFragment() != null)
+            try (Response cr = target.request(getReadableMediaTypes()).get())
             {
+                URI docURI = new URI(target.getUri().getScheme(), target.getUri().getSchemeSpecificPart(), null);
+                
+                cr.getHeaders().putSingle(ModelProvider.REQUEST_URI_HEADER, docURI.toString()); // provide a base URI hint to ModelProvider
                 Model description = cr.readEntity(Model.class);
-                description = ModelFactory.createDefaultModel().add(description.getResource(getURI().toString()).listProperties());
-                return getResponse(DatasetFactory.create(description));
+                description = ModelFactory.createDefaultModel().add(description.getResource(target.getUri().toString()).listProperties());
+                return getResponse(description);
             }
-        }
+            catch (URISyntaxException ex)
+            {
+                throw new BadRequestException(ex);
+            }
 
-        return super.get();
+        return super.get(target);
+    }
+    
+    /**
+     * Forwards a multipart POST request returns RDF response from remote resource.
+     * 
+     * @param multiPart form data
+     * @return response
+     */
+    @POST
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    public Response postMultipart(FormDataMultiPart multiPart)
+    {
+        if (getWebTarget() == null) throw new NotFoundException("Resource URI not supplied"); // cannot throw Exception in constructor: https://github.com/eclipse-ee4j/jersey/issues/4436
+        
+        try (Response cr = getWebTarget().request().
+            accept(getMediaTypes().getReadable(Model.class).toArray(new javax.ws.rs.core.MediaType[0])).
+            post(Entity.entity(multiPart, multiPart.getMediaType())))
+        {
+            if (log.isDebugEnabled()) log.debug("POSTing multipart data to URI: {}", getWebTarget().getUri());
+            return getResponse(cr);
+        }
+    }
+    
+    /**
+     * Forwards a multipart PUT request returns RDF response from remote resource.
+     * 
+     * @param multiPart form data
+     * @return response
+     */
+    @PUT
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    public Response putMultipart(FormDataMultiPart multiPart)
+    {
+        if (getWebTarget() == null) throw new NotFoundException("Resource URI not supplied"); // cannot throw Exception in constructor: https://github.com/eclipse-ee4j/jersey/issues/4436
+        
+        try (Response cr = getWebTarget().request().
+                accept(getMediaTypes().getReadable(Model.class).toArray(new javax.ws.rs.core.MediaType[0])).
+                put(Entity.entity(multiPart, multiPart.getMediaType())))
+        {
+            if (log.isDebugEnabled()) log.debug("PUTing multipart data to URI: {}", getWebTarget().getUri());
+            return getResponse(cr);
+        }
     }
     
     public UriInfo getUriInfo()
@@ -116,6 +200,17 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
     public DataManager getDataManager()
     {
         return dataManager;
+    }
+    
+    @Override
+    public MediaType[] getReadableMediaTypes()
+    {
+        return readableMediaTypes;
+    }
+    
+    public Providers getProviders()
+    {
+        return providers;
     }
     
 }

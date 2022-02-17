@@ -1,26 +1,40 @@
+/**
+ *  Copyright 2019 Martynas Jusevičius <martynas@atomgraph.com>
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ */
 package com.atomgraph.linkeddatahub.resource.oauth2;
 
-import com.atomgraph.client.util.DataManager;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.core.exception.ConfigurationException;
 import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
+import com.atomgraph.linkeddatahub.apps.model.Application;
+import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.listener.EMailListener;
-import com.atomgraph.linkeddatahub.model.Agent;
 import com.atomgraph.linkeddatahub.model.Service;
+import static com.atomgraph.linkeddatahub.resource.SignUp.AGENT_PATH;
+import static com.atomgraph.linkeddatahub.resource.SignUp.AUTHORIZATION_PATH;
 import com.atomgraph.linkeddatahub.resource.oauth2.google.Authorize;
 import com.atomgraph.linkeddatahub.server.filter.request.auth.IDTokenFilter;
-import com.atomgraph.linkeddatahub.server.model.ClientUriInfo;
-import com.atomgraph.linkeddatahub.server.model.impl.ClientUriInfoImpl;
-import com.atomgraph.linkeddatahub.server.model.impl.ResourceBase;
-import com.atomgraph.linkeddatahub.server.security.AgentContext;
+import com.atomgraph.linkeddatahub.server.filter.response.BackendInvalidationFilter;
+import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
+import com.atomgraph.linkeddatahub.server.util.MessageBuilder;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
-import com.atomgraph.linkeddatahub.vocabulary.APLC;
-import com.atomgraph.linkeddatahub.vocabulary.APLT;
+import com.atomgraph.linkeddatahub.vocabulary.LDHC;
 import com.atomgraph.linkeddatahub.vocabulary.FOAF;
 import com.atomgraph.linkeddatahub.vocabulary.Google;
 import com.atomgraph.linkeddatahub.vocabulary.LACL;
-import com.atomgraph.processor.model.TemplateCall;
-import com.atomgraph.processor.util.Skolemizer;
 import com.atomgraph.processor.vocabulary.DH;
 import com.atomgraph.processor.vocabulary.SIOC;
 import com.auth0.jwt.JWT;
@@ -34,43 +48,37 @@ import java.util.UUID;
 import java.util.regex.Pattern;
 import javax.inject.Inject;
 import javax.json.JsonObject;
-import javax.mail.Address;
 import javax.mail.MessagingException;
-import javax.mail.internet.AddressException;
-import javax.mail.internet.InternetAddress;
 import javax.servlet.ServletConfig;
-import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.BadRequestException;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
-import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.Path;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.InternalServerErrorException;
 import javax.ws.rs.client.Entity;
-import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Cookie;
 import javax.ws.rs.core.Form;
 import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.Providers;
 import org.apache.jena.ontology.Ontology;
-import org.apache.jena.query.Dataset;
-import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.query.ParameterizedSparqlString;
 import org.apache.jena.query.Query;
-import org.apache.jena.rdf.model.InfModel;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.rdf.model.NodeIterator;
 import org.apache.jena.rdf.model.ResIterator;
 import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.vocabulary.DCTerms;
 import org.apache.jena.vocabulary.RDF;
 import org.glassfish.jersey.server.internal.process.MappableException;
+import org.glassfish.jersey.uri.UriComponent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -78,55 +86,37 @@ import org.slf4j.LoggerFactory;
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-public class Login extends ResourceBase
+@Path("oauth2/login")
+public class Login extends GraphStoreImpl
 {
 
     private static final Logger log = LoggerFactory.getLogger(Login.class);
 
     public static final String TOKEN_ENDPOINT = "https://oauth2.googleapis.com/token";
     public static final String USER_INFO_ENDPOINT = "https://openidconnect.googleapis.com/v1/userinfo";
-    
-    private final Address signUpAddress;
+    public static final String ACCOUNT_PATH = "acl/users/";
+
+    private final HttpHeaders httpHeaders;
+    private final Application application;
     private final String emailSubject;
     private final String emailText;
     private final Query userAccountQuery;
     private final String clientID, clientSecret;
     
     @Inject
-    public Login(@Context UriInfo uriInfo, ClientUriInfo clientUriInfo, @Context Request request, MediaTypes mediaTypes,
-            Optional<Service> service, Optional<com.atomgraph.linkeddatahub.apps.model.Application> application,
-            Optional<Ontology> ontology, Optional<TemplateCall> templateCall,
-            @Context HttpHeaders httpHeaders, @Context ResourceContext resourceContext,
-            @Context HttpServletRequest httpServletRequest, @Context SecurityContext securityContext,
-            DataManager dataManager, @Context Providers providers,
-            com.atomgraph.linkeddatahub.Application system, @Context ServletConfig servletConfig)
+    public Login(@Context Request request, @Context UriInfo uriInfo, MediaTypes mediaTypes, @Context HttpHeaders httpHeaders,
+            com.atomgraph.linkeddatahub.apps.model.Application application, Optional<Ontology> ontology, Optional<Service> service,
+            @Context Providers providers, com.atomgraph.linkeddatahub.Application system, @Context ServletConfig servletConfig)
     {
-        super(uriInfo, clientUriInfo, request, mediaTypes,
-            service, application,
-            ontology, templateCall,
-            httpHeaders, resourceContext,
-            httpServletRequest, securityContext,
-            dataManager, providers,
-            system);
+        super(request, uriInfo, mediaTypes, application, ontology, service, providers, system);
+        this.httpHeaders = httpHeaders;
+        this.application = application;
         
-        try
-        {
-            String signUpAddressParam = servletConfig.getServletContext().getInitParameter(APLC.signUpAddress.getURI());
-            if (signUpAddressParam == null) throw new WebApplicationException(new ConfigurationException(APLC.signUpAddress));
-            InternetAddress[] signUpAddresses = InternetAddress.parse(signUpAddressParam);
-            // if (signUpAddresses.size() == 0) throw Exception...
-            signUpAddress = signUpAddresses[0];
-        }
-        catch (AddressException ex)
-        {
-            throw new WebApplicationException(ex);
-        }
-        
-        emailSubject = servletConfig.getServletContext().getInitParameter(APLC.signUpEMailSubject.getURI());
-        if (emailSubject == null) throw new WebApplicationException(new ConfigurationException(APLC.signUpEMailSubject));
+        emailSubject = servletConfig.getServletContext().getInitParameter(LDHC.signUpEMailSubject.getURI());
+        if (emailSubject == null) throw new InternalServerErrorException(new ConfigurationException(LDHC.signUpEMailSubject));
 
-        emailText = servletConfig.getServletContext().getInitParameter(APLC.oAuthSignUpEMailText.getURI());
-        if (emailText == null) throw new WebApplicationException(new ConfigurationException(APLC.oAuthSignUpEMailText));
+        emailText = servletConfig.getServletContext().getInitParameter(LDHC.oAuthSignUpEMailText.getURI());
+        if (emailText == null) throw new InternalServerErrorException(new ConfigurationException(LDHC.oAuthSignUpEMailText));
         
         userAccountQuery = system.getUserAccountQuery();
         clientID = (String)system.getProperty(Google.clientID.getURI());
@@ -135,17 +125,16 @@ public class Login extends ResourceBase
     
     @GET
     @Override
-    public Response get()
+    public Response get(@QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
     {
         if (getClientID() == null) throw new ConfigurationException(Google.clientID);
         if (getClientSecret() == null) throw new ConfigurationException(Google.clientSecret);
         
         String error = getUriInfo().getQueryParameters().getFirst("error");
-        
         if (error != null)
         {
             if (log.isErrorEnabled()) log.error("OAuth callback error: {}", error);
-            throw new WebApplicationException(error);
+            throw new InternalServerErrorException(error);
         }
 
         String code = getUriInfo().getQueryParameters().getFirst("code");
@@ -167,7 +156,7 @@ public class Login extends ResourceBase
             if (response.containsKey("error"))
             {
                 if (log.isErrorEnabled()) log.error("OAuth error: '{}'", response.getString("error"));
-                throw new WebApplicationException(response.getString("error"));
+                throw new InternalServerErrorException(response.getString("error"));
             }
 
             String idToken = response.getString("id_token");
@@ -176,61 +165,96 @@ public class Login extends ResourceBase
             ParameterizedSparqlString pss = new ParameterizedSparqlString(getUserAccountQuery().toString());
             pss.setLiteral(SIOC.ID.getLocalName(), jwt.getSubject());
             pss.setLiteral(LACL.issuer.getLocalName(), jwt.getIssuer());
-            Model agentModel = getAgentService().getSPARQLClient().loadModel(pss.asQuery());
-            boolean accountExists = !agentModel.isEmpty();
+            boolean accountExists = !getAgentService().getSPARQLClient().loadModel(pss.asQuery()).isEmpty();
 
             if (!accountExists) // UserAccount with this ID does not exist yet
             {
-                Model model = ModelFactory.createDefaultModel();
-                InfModel infModel = ModelFactory.createRDFSModel(getOntology().getOntModel(), model);
+                Model agentModel = ModelFactory.createDefaultModel();
+                URI agentGraphUri = getUriInfo().getBaseUriBuilder().path(AGENT_PATH).path("{slug}/").build(UUID.randomUUID().toString());
+
                 String email = jwt.getClaim("email").asString();
-                //String issuer = jwt.getIssuer();
-                Resource agent = createAgent(model,
-                    getOntology().getURI(),
-                    model.createResource(getUriInfo().getBaseUri().resolve("acl/agents/").toString()),
+                createAgent(agentModel,
+                    agentGraphUri,
+                    agentModel.createResource(getUriInfo().getBaseUri().resolve(AGENT_PATH).toString()),
                     jwt.getClaim("given_name").asString(),
                     jwt.getClaim("family_name").asString(),
                     email,
                     jwt.getClaim("picture") != null ? jwt.getClaim("picture").asString() : null);
-                Resource userAccount = createUserAccount(model,
-                    getOntology().getURI(),
-                    model.createResource(getUriInfo().getBaseUri().resolve("acl/users/").toString()),
-                    jwt.getSubject(),
-                    jwt.getIssuer(),
-                    jwt.getClaim("name").asString(),
-                    email);
-                userAccount.addProperty(SIOC.ACCOUNT_OF, agent);
-                agent.addProperty(FOAF.account, userAccount);
-
-                model.add(model.createResource(getSystem().getSecretaryWebIDURI().toString()), ACL.delegates, agent); // make secretary delegate whis agent
-                
                 // skolemize here because this Model will not go through SkolemizingModelProvider
-                new Skolemizer(getOntology(), getUriInfo().getBaseUriBuilder(), getUriInfo().getBaseUriBuilder().path("acl/users/")).build(model);
-
-                ResIterator it = model.listResourcesWithProperty(RDF.type, model.createResource(getOntology().getURI() + LACL.Agent.getLocalName()));
+                skolemize(agentModel, agentGraphUri);
+                
+                ResIterator it = agentModel.listResourcesWithProperty(FOAF.mbox);
                 try
                 {
                     // we need to retrieve resources again because they've changed from bnodes to URIs
-                    agent = it.next();
+                    Resource agent = it.next();
+                
+                    Model accountModel = ModelFactory.createDefaultModel();
+                    URI userAccountGraphUri = getUriInfo().getBaseUriBuilder().path(ACCOUNT_PATH).path("{slug}/").build(UUID.randomUUID().toString());
+                    Resource userAccount = createUserAccount(accountModel,
+                        userAccountGraphUri,
+                        accountModel.createResource(getUriInfo().getBaseUri().resolve(ACCOUNT_PATH).toString()),
+                        jwt.getSubject(),
+                        jwt.getIssuer(),
+                        jwt.getClaim("name").asString(),
+                        email);
+                    userAccount.addProperty(SIOC.ACCOUNT_OF, agent);
+                    skolemize(accountModel, userAccountGraphUri);
                     
-                    SecurityContext securityContext = new AgentContext("JWT", agent.inModel(infModel).as(Agent.class));
-                    Dataset dataset = DatasetFactory.create(model);
-                    Response resp = createContainer(getUriInfo().getBaseUri().resolve("acl/users/"), LACL.UserAccount, securityContext).
-                        post(dataset);
-
-                    if (resp.getStatus() != Status.OK.getStatusCode())
+                    Response userAccountResponse = super.post(accountModel, false, userAccountGraphUri);
+                    if (userAccountResponse.getStatus() != Response.Status.CREATED.getStatusCode())
                     {
-                        if (log.isErrorEnabled()) log.error("Could not create UserAccount for user ID: {}", jwt.getSubject());
-                        throw new WebApplicationException();
+                        if (log.isErrorEnabled()) log.error("Cannot create UserAccount");
+                        throw new InternalServerErrorException("Cannot create UserAccount");
                     }
-                    
-                    // remove secretary WebID from cache
-                    getSystem().getEventBus().post(new com.atomgraph.linkeddatahub.server.event.SignUp(getSystem().getSecretaryWebIDURI()));
-
                     if (log.isDebugEnabled()) log.debug("Created UserAccount for user ID: {}", jwt.getSubject());
-                    sendEmail(agent);
+
+                    NodeIterator userAccountIt = accountModel.listObjectsOfProperty(ResourceFactory.createResource(userAccountGraphUri.toString()), FOAF.primaryTopic);
+                    try
+                    {
+                        userAccount = userAccountIt.next().asResource();
+
+                        agent.addProperty(FOAF.account, userAccount);
+                        agentModel.add(agentModel.createResource(getSystem().getSecretaryWebIDURI().toString()), ACL.delegates, agent); // make secretary delegate whis agent
+
+                        Response agentResponse = super.post(agentModel, false, agentGraphUri);
+                        if (agentResponse.getStatus() != Response.Status.CREATED.getStatusCode())
+                        {
+                            if (log.isErrorEnabled()) log.error("Cannot create Agent");
+                            throw new InternalServerErrorException("Cannot create Agent");
+                        }
+
+                        Model authModel = ModelFactory.createDefaultModel();
+                        URI authGraphUri = getUriInfo().getBaseUriBuilder().path(AUTHORIZATION_PATH).path("{slug}/").build(UUID.randomUUID().toString());
+                        createAuthorization(authModel,
+                            authGraphUri,
+                            accountModel.createResource(getUriInfo().getBaseUri().resolve(AUTHORIZATION_PATH).toString()),
+                            agentGraphUri,
+                            userAccountGraphUri);
+                        skolemize(authModel, authGraphUri);
+                        
+                        Response authResponse = super.post(authModel, false, authGraphUri);
+                        if (authResponse.getStatus() != Response.Status.CREATED.getStatusCode())
+                        {
+                            if (log.isErrorEnabled()) log.error("Cannot create Authorization");
+                            throw new InternalServerErrorException("Cannot create Authorization");
+                        }
+
+                        // purge agent lookup from proxy cache
+                        if (getApplication().getService().getProxy() != null) ban(getApplication().getService().getProxy(), jwt.getSubject());
+                        
+                        // remove secretary WebID from cache
+                        getSystem().getEventBus().post(new com.atomgraph.linkeddatahub.server.event.SignUp(getSystem().getSecretaryWebIDURI()));
+
+                        if (log.isDebugEnabled()) log.debug("Created Agent for user ID: {}", jwt.getSubject());
+                        sendEmail(agent);
+                    }
+                    finally
+                    {
+                        userAccountIt.close();
+                    }
                 }
-                catch (MessagingException | UnsupportedEncodingException ex)
+                catch (UnsupportedEncodingException | MessagingException | InternalServerErrorException ex)
                 {
                     throw new MappableException(ex);
                 }
@@ -261,54 +285,66 @@ public class Login extends ResourceBase
         //throw new JWTVerificationException();
     }
     
-    public Resource createAgent(Model model, String namespace, Resource container, String givenName, String familyName, String email, String imgUrl)
+    public Resource createAgent(Model model, URI graphURI, Resource container, String givenName, String familyName, String email, String imgUrl)
     {
-        // TO-DO: improve class URI retrieval
-        Resource cls = model.createResource(namespace + LACL.Agent.getLocalName()); // subclassOf LACL.Agent
-        Resource itemCls = model.createResource(namespace + LACL.Agent.getLocalName() + "Item");
-
-        Resource agentDoc =  model.createResource().
-            addProperty(RDF.type, itemCls).
+        Resource item =  model.createResource(graphURI.toString()).
+            addProperty(RDF.type, DH.Item).
             addProperty(SIOC.HAS_CONTAINER, container).
             addLiteral(DH.slug, UUID.randomUUID().toString());
         
         Resource agent = model.createResource().
-            addProperty(RDF.type, cls).
+            addProperty(RDF.type, FOAF.Agent).
             addLiteral(FOAF.givenName, givenName).
             addLiteral(FOAF.familyName, familyName).
-            addProperty(FOAF.mbox, model.createResource("mailto:" + email)).
-            addProperty(FOAF.isPrimaryTopicOf, agentDoc);
+            addProperty(FOAF.mbox, model.createResource("mailto:" + email));
         if (imgUrl != null) agent.addProperty(FOAF.img, model.createResource(imgUrl));
             
-        agentDoc.addProperty(FOAF.primaryTopic, agent);
+        item.addProperty(FOAF.primaryTopic, agent);
         
         return agent;
     }
     
-    public Resource createUserAccount(Model model, String namespace, Resource container, String id, String issuer, String name, String email)
+    public Resource createUserAccount(Model model, URI graphURI, Resource container, String id, String issuer, String name, String email)
     {
-        // TO-DO: improve class URI retrieval
-        Resource cls = model.createResource(namespace + LACL.UserAccount.getLocalName()); // subclassOf LACL.UserAccount
-        Resource itemCls = model.createResource(namespace + LACL.UserAccount.getLocalName() + "Item");
-
-        Resource accountDoc = model.createResource().
-            addProperty(RDF.type, itemCls).
+        Resource item = model.createResource(graphURI.toString()).
+            addProperty(RDF.type, DH.Item).
             addProperty(SIOC.HAS_CONTAINER, container).
             addLiteral(DH.slug, UUID.randomUUID().toString());
         
         Resource account = model.createResource().
             addLiteral(DCTerms.created, GregorianCalendar.getInstance()).
-            addProperty(RDF.type, cls).
+            addProperty(RDF.type, SIOC.USER_ACCOUNT).
             addLiteral(SIOC.ID, id).
             addLiteral(LACL.issuer, issuer).
             addLiteral(SIOC.NAME, name).
-            addProperty(SIOC.EMAIL, model.createResource("mailto:" + email)).
-            addProperty(FOAF.isPrimaryTopicOf, accountDoc);
-        accountDoc.addProperty(FOAF.primaryTopic, account);
-
+            addProperty(SIOC.EMAIL, model.createResource("mailto:" + email));
+        
+        item.addProperty(FOAF.primaryTopic, account);
+        
         return account;
     }
 
+    public Resource createAuthorization(Model model, URI graphURI, Resource container, URI agentGraphURI, URI userAccountGraphURI)
+    {
+        Resource item = model.createResource(graphURI.toString()).
+            addProperty(RDF.type, DH.Item).
+            addProperty(SIOC.HAS_CONTAINER, container).
+            addLiteral(DH.slug, UUID.randomUUID().toString());
+        
+        Resource auth = model.createResource().
+            addProperty(RDF.type, ACL.Authorization).
+            addLiteral(DH.slug, UUID.randomUUID().toString()). // TO-DO: get rid of slug properties!
+            addProperty(ACL.accessTo, ResourceFactory.createResource(agentGraphURI.toString())).
+            addProperty(ACL.accessTo, ResourceFactory.createResource(userAccountGraphURI.toString())).
+            addProperty(ACL.mode, ACL.Read).
+            addProperty(ACL.agentClass, FOAF.Agent).
+            addProperty(ACL.agentClass, ACL.AuthenticatedAgent);
+        
+        item.addProperty(FOAF.primaryTopic, auth);
+        
+        return auth;
+    }
+    
     public void sendEmail(Resource agent) throws MessagingException, UnsupportedEncodingException
     {
         String givenName = agent.getRequiredProperty(FOAF.givenName).getString();
@@ -318,50 +354,51 @@ public class Login extends ResourceBase
         String mbox = agent.getRequiredProperty(FOAF.mbox).getResource().getURI().substring("mailto:".length());
 
         // labels and links need to come from the end-user app
-        EMailListener.submit(getSystem().getMessageBuilder().
+        MessageBuilder builder = getSystem().getMessageBuilder().
             subject(String.format(getEmailSubject(),
-                getApplication().getEndUserApplication().getProperty(DCTerms.title).getString(),
+                getEndUserApplication().getProperty(DCTerms.title).getString(),
                 fullName)).
-            from(getSignUpAddress()).
             to(mbox, fullName).
             textBodyPart(String.format(getEmailText(),
-                getApplication().getEndUserApplication().getProperty(DCTerms.title).getString(),
-                getApplication().getEndUserApplication().getBase(),
-                agent.getURI())).
-            build());
+                getEndUserApplication().getProperty(DCTerms.title).getString(),
+                getEndUserApplication().getBase(),
+                agent.getURI()));
+        
+        if (getSystem().getNotificationAddress() != null) builder = builder.from(getSystem().getNotificationAddress());
+
+        EMailListener.submit(builder.build());
     }
-        
-    public com.atomgraph.linkeddatahub.server.model.Resource createContainer(URI uri, Resource forClass, SecurityContext securityContext)
+
+    public Response ban(Resource proxy, String url)
     {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap();
-        queryParams.add(APLT.forClass.getLocalName(), forClass.getURI());
+        if (url == null) throw new IllegalArgumentException("Resource cannot be null");
         
-        return createResource(uri, queryParams, securityContext);
+        return getSystem().getClient().target(proxy.getURI()).request().
+            header(BackendInvalidationFilter.HEADER_NAME, UriComponent.encode(url, UriComponent.Type.UNRESERVED)). // the value has to be URL-encoded in order to match request URLs in Varnish
+            method("BAN", Response.class);
     }
     
-    public com.atomgraph.linkeddatahub.server.model.Resource createResource(URI requestUri, MultivaluedMap<String, String> queryParams, SecurityContext securityContext)
+    public EndUserApplication getEndUserApplication()
     {
-        return new ResourceBase(
-            new ClientUriInfoImpl(getUriInfo().getBaseUri(), requestUri, queryParams), getClientUriInfo(), getRequest(), getMediaTypes(),
-            Optional.ofNullable(getService()), Optional.ofNullable(getApplication()), Optional.ofNullable(getOntology()), getTemplateCall(), getHttpHeaders(), getResourceContext(),
-            getHttpServletRequest(), securityContext, getDataManager(), getProviders(),
-            getSystem());
+        if (getApplication().canAs(EndUserApplication.class))
+            return getApplication().as(EndUserApplication.class);
+        else
+            return getApplication().as(AdminApplication.class).getEndUserApplication();
+    }
+    
+    public HttpHeaders getHttpHeaders()
+    {
+        return httpHeaders;
+    }
+    
+    public Application getApplication()
+    {
+        return application;
     }
     
     public Service getAgentService()
     {
         return getApplication().getService();
-    }
-    
-    @Override
-    public AdminApplication getApplication()
-    {
-        return super.getApplication().as(AdminApplication.class);
-    }
-    
-    public Address getSignUpAddress()
-    {
-        return signUpAddress;
     }
     
     public String getEmailSubject()

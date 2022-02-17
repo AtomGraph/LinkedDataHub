@@ -122,38 +122,33 @@ fi
 
 container="${base}imports/"
 
-# if target URL is not provided, it equals container
-if [ -z "$1" ] ; then
-    args+=("${container}")
+if [ -z "$1" ]; then
+    args+=("${base}imports") # default target URL = import endpoint
 fi
 
 args+=("-f")
 args+=("${cert_pem_file}")
 args+=("-p")
 args+=("${cert_password}")
-args+=("-c")
-args+=("${base}ns/domain/system#CSVImport") # class
 args+=("-t")
 args+=("text/turtle") # content type
 
-turtle+="@prefix nsds:	<ns/domain/system#> .\n"
-turtle+="@prefix apl:	<https://w3id.org/atomgraph/linkeddatahub/domain#> .\n"
+turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy#> .\n"
+turtle+="@prefix ldh:	<https://w3id.org/atomgraph/linkeddatahub#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
 turtle+="@prefix foaf:	<http://xmlns.com/foaf/0.1/> .\n"
-turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .\n"
 turtle+="@prefix spin:	<http://spinrdf.org/spin#> .\n"
 turtle+="@prefix sioc:	<http://rdfs.org/sioc/ns#> .\n"
-turtle+="_:import a nsds:CSVImport .\n"
+turtle+="_:import a ldh:CSVImport .\n"
 turtle+="_:import dct:title \"${title}\" .\n"
 turtle+="_:import spin:query <${query}> .\n"
-turtle+="_:import apl:action <${action}> .\n"
-turtle+="_:import apl:file <${file}> .\n"
-turtle+="_:import apl:delimiter \"${delimiter}\" .\n"
-turtle+="_:import foaf:isPrimaryTopicOf _:item .\n"
-turtle+="_:item a nsds:ImportItem .\n"
+turtle+="_:import ldh:action <${action}> .\n"
+turtle+="_:import ldh:file <${file}> .\n"
+turtle+="_:import ldh:delimiter \"${delimiter}\" .\n"
+turtle+="_:item a dh:Item .\n"
+turtle+="_:item foaf:primaryTopic _:import .\n"
 turtle+="_:item sioc:has_container <${container}> .\n"
 turtle+="_:item dct:title \"${title}\" .\n"
-turtle+="_:item foaf:primaryTopic _:import .\n"
 
 if [ -n "$description" ] ; then
     turtle+="_:import dct:description \"${description}\" .\n"
@@ -161,11 +156,6 @@ fi
 if [ -n "$slug" ] ; then
     turtle+="_:item dh:slug \"${slug}\" .\n"
 fi
-
-# set env values in the Turtle doc and sumbit it to the server
-
-# make Jena scripts available
-export PATH=$PATH:$JENA_HOME/bin
 
 # submit Turtle doc to the server
 echo -e "$turtle" | turtle --base="$base" | ../create-document.sh "${args[@]}"

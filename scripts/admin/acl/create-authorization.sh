@@ -18,6 +18,7 @@ print_usage()
     printf "  --uri URI                            URI of the authorization (optional)\n"
     printf "  --agent AGENT_URI                    URI of the agent (optional)\n"
     printf "  --agent-class AGENT_CLASS_URI        URI of the agent class (optional)\n"
+    printf "  --agent-group AGENT_GROUP_URI        URI of the agent group (optional)\n"
     printf "  --to RESOURCE_URI                    URI of the controlled resource (optional)\n"
     printf "  --to-all-in RESOURCE_TYPE_URI        URI of the controlled resource type (optional)\n"
     printf "  --append APPEND_MODE                 Append mode (optional)\n"
@@ -79,6 +80,11 @@ do
         shift # past argument
         shift # past value
         ;;
+        --agent-group)
+        agent_groups+=("$2")
+        shift # past argument
+        shift # past value
+        ;;
         --to)
         tos+=("$2")
         shift # past argument
@@ -129,9 +135,9 @@ if [ -z "$label" ] ; then
     print_usage
     exit 1
 fi
-if [ ${#agents[@]} -eq 0 ] && [ ${#agent_classes[@]} -eq 0 ] ; then
+if [ ${#agents[@]} -eq 0 ] && [ ${#agent_classes[@]} -eq 0 ] && [ ${#agent_groups[@]} -eq 0 ] ; then
 
-    #echo '--agent or --agent-class not set'
+    #echo '--agent or --agent-class or --agent-group not set'
     print_usage
     exit 1
 fi
@@ -148,11 +154,6 @@ fi
 
 container="${base}acl/authorizations/"
 
-# if target URL is not provided, it equals container
-if [ -z "$1" ] ; then
-    args+=("${container}")
-fi
-
 # allow explicit URIs
 if [ -n "$uri" ] ; then
     auth="<${uri}>" # URI
@@ -160,29 +161,29 @@ else
     auth="_:auth" # blank node
 fi
 
+if [ -z "$1" ]; then
+    args+=("${base}service") # default target URL = graph store
+fi
+
 args+=("-f")
-args+=("${cert_pem_file}")
+args+=("$cert_pem_file")
 args+=("-p")
-args+=("${cert_password}")
-args+=("-c")
-args+=("${base}ns#Authorization") # class
+args+=("$cert_password")
 args+=("-t")
 args+=("text/turtle") # content type
 
-turtle+="@prefix ns:	<ns#> .\n"
+turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy#> .\n"
 turtle+="@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .\n"
 turtle+="@prefix acl:	<http://www.w3.org/ns/auth/acl#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
 turtle+="@prefix foaf:	<http://xmlns.com/foaf/0.1/> .\n"
-turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .\n"
 turtle+="@prefix sioc:	<http://rdfs.org/sioc/ns#> .\n"
-turtle+="${auth} a ns:Authorization .\n"
+turtle+="${auth} a acl:Authorization .\n"
 turtle+="${auth} rdfs:label \"${label}\" .\n"
-turtle+="${auth} foaf:isPrimaryTopicOf _:item .\n"
-turtle+="_:item a ns:AuthorizationItem .\n"
+turtle+="_:item a dh:Item .\n"
+turtle+="_:item foaf:primaryTopic ${auth} .\n"
 turtle+="_:item sioc:has_container <${container}> .\n"
 turtle+="_:item dct:title \"${label}\" .\n"
-turtle+="_:item foaf:primaryTopic ${auth} .\n"
 
 if [ -n "$comment" ] ; then
     turtle+="${auth} rdfs:comment \"${comment}\" .\n"
@@ -198,6 +199,10 @@ done
 for agent_class in "${agent_classes[@]}"
 do
     turtle+="${auth} acl:agentClass <${agent_class}> .\n"
+done
+for agent_group in "${agent_groups[@]}"
+do
+    turtle+="${auth} acl:agentGroup <${agent_group}> .\n"
 done
 for to in "${tos[@]}"
 do

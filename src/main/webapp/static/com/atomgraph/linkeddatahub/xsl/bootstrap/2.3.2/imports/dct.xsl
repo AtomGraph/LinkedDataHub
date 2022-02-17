@@ -1,10 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xsl:stylesheet [
+    <!ENTITY def    "https://w3id.org/atomgraph/linkeddatahub/default#">
+    <!ENTITY adm    "https://w3id.org/atomgraph/linkeddatahub/admin#">
     <!ENTITY ac     "https://w3id.org/atomgraph/client#">
     <!ENTITY rdf    "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
     <!ENTITY rdfs   "http://www.w3.org/2000/01/rdf-schema#">
     <!ENTITY xsd    "http://www.w3.org/2001/XMLSchema#">
     <!ENTITY ldt    "https://www.w3.org/ns/ldt#">
+    <!ENTITY dh     "https://www.w3.org/ns/ldt/document-hierarchy#">
     <!ENTITY foaf   "http://xmlns.com/foaf/0.1/">
     <!ENTITY dct    "http://purl.org/dc/terms/">
 ]>
@@ -39,13 +42,16 @@ exclude-result-prefixes="#all">
         </xsl:next-match>
     </xsl:template>-->
     
-    <xsl:template match="dct:format/@rdf:*" mode="bs2:FormControl">
+    <!-- hide the dct:created/dct:modified properties of graph resources - those are managed automatically by the Graph Store -->
+    <xsl:template match="*[rdf:type/@rdf:resource = ('&def;Root', '&dh;Container', '&dh;Item')]/dct:created | *[rdf:type/@rdf:resource = ('&def;Root', '&dh;Container', '&dh;Item')]/dct:modified | *[rdf:type/@rdf:resource = ('&adm;Root', '&dh;Container', '&dh;Item')]/dct:created | *[rdf:type/@rdf:resource = ('&adm;Root', '&dh;Container', '&dh;Item')]/dct:modified" mode="bs2:FormControl" priority="1"/>
+
+    <xsl:template match="dct:format/@rdf:nodeID" mode="bs2:FormControl">
         <xsl:param name="id" select="generate-id()" as="xs:string"/>
         <xsl:param name="class" as="xs:string?"/>
         <xsl:param name="disabled" select="false()" as="xs:boolean"/>
         <xsl:param name="type-label" select="true()" as="xs:boolean"/>
         
-        <!-- the form will submit a literal value but the SkolemizingDataset/ModelProvider will convert it to a URI resource -->
+        <!-- the form will submit a literal value but the SkolemizingModelProvider will convert it to a URI resource -->
         <select name="ol">
             <xsl:if test="$id">
                 <xsl:attribute name="id"><xsl:value-of select="$id"/></xsl:attribute>
@@ -108,9 +114,9 @@ exclude-result-prefixes="#all">
             </optgroup>
         </select>
         
-        <xsl:if test="$type-label">
-            <span class="help-inline">Resource</span>
-        </xsl:if>
+        <xsl:apply-templates select="." mode="bs2:FormControlTypeLabel">
+            <xsl:with-param name="type-label" select="$type-label"/>
+        </xsl:apply-templates>
     </xsl:template>
      
 </xsl:stylesheet>

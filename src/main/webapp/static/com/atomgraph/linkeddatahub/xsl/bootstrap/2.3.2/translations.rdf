@@ -43,6 +43,12 @@
     <rdf:Description rdf:nodeID="delete">
         <rdfs:label xml:lang="en-US">Delete</rdfs:label>
     </rdf:Description>
+    <rdf:Description rdf:nodeID="skolemize">
+        <rdfs:label xml:lang="en-US">Skolemize</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="skolemize-title">
+        <rdfs:label xml:lang="en-US">Replace all blank node resource identifiers with URIs</rdfs:label>
+    </rdf:Description>
     <rdf:Description rdf:nodeID="export">
         <rdfs:label xml:lang="en-US">export</rdfs:label>
     </rdf:Description>
@@ -57,6 +63,9 @@
     </rdf:Description>
     <rdf:Description rdf:nodeID="settings">
         <rdfs:label xml:lang="en-US">Settings</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="content">
+        <rdfs:label xml:lang="en-US">Content</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="latest">
         <rdfs:label xml:lang="en-US">Latest</rdfs:label>
@@ -106,6 +115,12 @@
     <rdf:Description rdf:nodeID="create-instance-title">
         <rdfs:label xml:lang="en-US">Create a new resource of selected type</rdfs:label>
     </rdf:Description>
+    <rdf:Description rdf:nodeID="add-data">
+        <rdfs:label xml:lang="en-US">Add data</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="add-data-title">
+        <rdfs:label xml:lang="en-US">Import RDF data</rdfs:label>
+    </rdf:Description>
     <rdf:Description rdf:nodeID="nav-bar-action-delete-title">
         <rdfs:label xml:lang="en-US">Delete the graph of this resource</rdfs:label>
     </rdf:Description>
@@ -129,5 +144,50 @@
     </rdf:Description>
     <rdf:Description rdf:nodeID="copy-uri">
         <rdfs:label xml:lang="en-US">Copy URI</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="save-as-title">
+        <rdfs:label xml:lang="en-US">Copy this RDF graph into the local graph store</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="save-as">
+        <rdfs:label xml:lang="en-US">Save as</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="from-origin">
+        <rdfs:label xml:lang="en-US">From origin</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="local">
+        <rdfs:label xml:lang="en-US">Local</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="common">
+        <rdfs:label xml:lang="en-US">Common</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="backlinks">
+        <rdfs:label xml:lang="en-US">Backlinks</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="email">
+        <rdfs:label xml:lang="en-US">E-mail</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:about="authorization">
+        <rdfs:label xml:lang="en-US">Authorization</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:about="public-key">
+        <rdfs:label xml:lang="en-US">Public key</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:about="user-account">
+        <rdfs:label xml:lang="en-US">User account</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:about="ask-query">
+        <rdfs:label xml:lang="en-US">ASK</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:about="select-query">
+        <rdfs:label xml:lang="en-US">SELECT</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:about="describe-query">
+        <rdfs:label xml:lang="en-US">DESCRIBE</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:about="construct-query">
+        <rdfs:label xml:lang="en-US">CONSTRUCT</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:about="file">
+        <rdfs:label xml:lang="en-US">File</rdfs:label>
     </rdf:Description>
 </rdf:RDF>

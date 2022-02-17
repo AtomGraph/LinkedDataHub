@@ -18,7 +18,6 @@ package com.atomgraph.linkeddatahub.server.interceptor;
 
 import com.atomgraph.core.MediaType;
 import com.atomgraph.core.riot.lang.TokenizerRDFPost;
-import com.atomgraph.processor.vocabulary.SIOC;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -44,11 +43,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Request filter that fixes XHTML content (<code>sioc:content</code> values) in RDF/POST payload.
+ * Request interceptor that fixes XHTML content in RDF/POST payload.
  * <code>rdf:XMLLiteral</code> needs to be canonical XML, therefore we wrap the original XHTML into
  * a <code>&gt;div&gt;</code> element and canonicalize the document.
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
+ * @see com.atomgraph.linkeddatahub.server.filter.request.RDFPostCleanupFilter
  */
 @Priority(Priorities.ENTITY_CODER)
 public class RDFPostCleanupInterceptor implements ReaderInterceptor
@@ -73,7 +73,6 @@ public class RDFPostCleanupInterceptor implements ReaderInterceptor
                 List<String> keys = new ArrayList<>(), values = new ArrayList<>();
 
                 // decode keys/values first
-                int i = 0;
                 for (String param : params)
                 {
                     String[] keyValue = param.split("=");
@@ -128,6 +127,17 @@ public class RDFPostCleanupInterceptor implements ReaderInterceptor
         return context.proceed();
     }
     
+    /**
+     * Wraps <code>XMLLiteral</code> values of <code>rdf:first</code> into <code>&lt;div&gt;</code> and canonicalizes the XML structure.
+     * 
+     * @param keys RDF/POST keys
+     * @param values RDF/POST values
+     * @param charsetName
+     * @return fixed values
+     * 
+     * @throws ParsingException
+     * @throws IOException 
+     */
     public List<String> fixValues(List<String> keys, List<String> values, String charsetName) throws ParsingException, IOException
     {
         if (keys == null) throw new IllegalArgumentException("List<String> cannot be null");
@@ -135,14 +145,14 @@ public class RDFPostCleanupInterceptor implements ReaderInterceptor
 
         for (int i = 0; i < keys.size(); i++)
         {
-            // only fix XMLLiterals that are objects of sioc:content
+            // only fix XMLLiterals that are objects of rdf:first
             // in case of XHTML from WYMEditor, stmt.getLiteral().isWellFormedXML() == false at this point
             // we want to fix 2 cases (URL-decoded):
             
-            // 1. ...pu=http://rdfs.org/sioc/ns#content&ol=value&lt=http://...XMLLiteral...
+            // 1. ...pu=http://www.w3.org/1999/02/22-rdf-syntax-ns#first&ol=value&lt=http://...XMLLiteral...
             if (i >= 1 && i + 1 < keys.size() && // check bounds
                 keys.get(i - 1).equals(TokenizerRDFPost.URI_PRED) &&
-                values.get(i - 1) != null && values.get(i - 1).equals(SIOC.CONTENT.getURI()) &&
+                values.get(i - 1) != null && values.get(i - 1).equals(RDF.first.getURI()) &&
                 keys.get(i).equals(TokenizerRDFPost.LITERAL_OBJ) &&
                 keys.get(i + 1).equals(TokenizerRDFPost.TYPE)&&
                 values.get(i + 1) != null && values.get(i + 1).equals(RDF.xmlLiteral.getURI()) &&
@@ -152,10 +162,10 @@ public class RDFPostCleanupInterceptor implements ReaderInterceptor
                 values.set(i, fixXHTML(xml, charsetName));
             }
 
-            // 2. ...pu=http://rdfs.org/sioc/ns#content&lt=http://...XMLLiteral&ol=value...
+            // 2. ...pu=http://www.w3.org/1999/02/22-rdf-syntax-ns#first&lt=http://...XMLLiteral&ol=value...
             if (i >= 2 &&
                 keys.get(i - 2).equals(TokenizerRDFPost.URI_PRED) &&
-                values.get(i - 2) != null && values.get(i - 2).equals(SIOC.CONTENT.getURI()) &&
+                values.get(i - 2) != null && values.get(i - 2).equals(RDF.first.getURI()) &&
                 keys.get(i - 1).equals(TokenizerRDFPost.TYPE) &&
                 values.get(i - 1) != null && values.get(i - 1).equals(RDF.xmlLiteral.getURI()) &&
                 keys.get(i).equals(TokenizerRDFPost.LITERAL_OBJ) &&

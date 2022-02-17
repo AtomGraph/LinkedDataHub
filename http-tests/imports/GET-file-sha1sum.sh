@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 
 initialize_dataset "$END_USER_BASE_URL" "$TMP_END_USER_DATASET" "$END_USER_ENDPOINT_URL"
 initialize_dataset "$ADMIN_BASE_URL" "$TMP_ADMIN_DATASET" "$ADMIN_ENDPOINT_URL"
@@ -9,7 +10,7 @@ pwd=$(realpath -s "$PWD")
 
 pushd . > /dev/null && cd "$SCRIPT_ROOT/admin/acl"
 
-# add agent to the writers group to be able to read/write documents (might already be done by another test)
+# add agent to the writers group
 
 ./add-agent-to-group.sh \
   -f "$OWNER_CERT_FILE" \
@@ -37,7 +38,7 @@ file_doc=$(./create-file.sh \
 
 pushd . > /dev/null && cd "$SCRIPT_ROOT"
 
-file_ntriples=$(./get-document.sh \
+file_doc_ntriples=$(./get-document.sh \
   -f "$AGENT_CERT_FILE" \
   -p "$AGENT_CERT_PWD" \
   --accept 'application/n-triples' \
@@ -45,11 +46,7 @@ file_ntriples=$(./get-document.sh \
 
 popd > /dev/null
 
-file=$(echo "$file_ntriples" \
-| grep '<http://xmlns.com/foaf/0.1/primaryTopic>' \
-| cut -d " " -f 3 \
-| cut -d "<" -f 2 \
-| cut -d ">" -f 1) # cut < > to get URI
+file=$(echo "$file_doc_ntriples" | sed -rn "s/<${file_doc//\//\\/}> <http:\/\/xmlns.com\/foaf\/0.1\/primaryTopic> <(.*)> \./\1/p")
 
 server_sha1sum=$(echo "$file" | cut -d "/" -f 5) # cut the last URL path segment
 

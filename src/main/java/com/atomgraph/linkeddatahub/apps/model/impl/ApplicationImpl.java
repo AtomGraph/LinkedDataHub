@@ -27,13 +27,9 @@ import org.apache.jena.graph.Node;
 import org.apache.jena.rdf.model.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.net.URI;
-import org.apache.jena.enhanced.EnhNode;
-import org.apache.jena.enhanced.Implementation;
-import org.apache.jena.ontology.ConversionException;
+import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.rdf.model.impl.ResourceImpl;
-import org.apache.jena.vocabulary.RDF;
 
 /**
  * Application implementation.
@@ -44,32 +40,6 @@ import org.apache.jena.vocabulary.RDF;
 public class ApplicationImpl extends ResourceImpl implements Application
 {
     private static final Logger log = LoggerFactory.getLogger(ApplicationImpl.class);
-
-    public static Implementation factory = new Implementation() 
-    {
-        
-        @Override
-        public EnhNode wrap(Node node, EnhGraph enhGraph)
-        {
-            if (canWrap(node, enhGraph))
-            {
-                return new ApplicationImpl(node, enhGraph);
-            }
-            else
-            {
-                throw new ConversionException("Cannot convert node " + node.toString() + " to Application: it does not have rdf:type lapp:Application or equivalent");
-            }
-        }
-
-        @Override
-        public boolean canWrap(Node node, EnhGraph eg)
-        {
-            if (eg == null) throw new IllegalArgumentException("EnhGraph cannot be null");
-            
-            return eg.asGraph().contains(node, RDF.type.asNode(), LAPP.Application.asNode());
-        }
-        
-    };
     
     public ApplicationImpl(Node n, EnhGraph g)
     {
@@ -85,7 +55,9 @@ public class ApplicationImpl extends ResourceImpl implements Application
     @Override
     public URI getBaseURI()
     {
-        return URI.create(getBase().getURI());
+        if (getBase() != null) return URI.create(getBase().getURI());
+        
+        return null;
     }
 
     @Override
@@ -105,9 +77,6 @@ public class ApplicationImpl extends ResourceImpl implements Application
     {
         Resource service = getPropertyResourceValue(LDT.service);
         
-        // cast to specific implementations
-        if (service.canAs(com.atomgraph.linkeddatahub.model.dydra.Service.class)) service = service.as(com.atomgraph.linkeddatahub.model.dydra.Service.class);
-        
         if (service != null) return service.as(Service.class);
         
         return null;
@@ -118,5 +87,15 @@ public class ApplicationImpl extends ResourceImpl implements Application
     {
         return getPropertyResourceValue(AC.stylesheet);
     }
-    
+
+    @Override
+    public boolean isReadOnly()
+    {
+        Statement stmt = getProperty(LAPP.readOnly);
+        
+        if (stmt != null) return stmt.getBoolean();
+        
+        return false;
+    }
+
 }

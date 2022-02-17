@@ -99,11 +99,6 @@ fi
 container="${base}model/queries/"
 query_string=$(<"$query_file") # read query string from file
 
-# if target URL is not provided, it equals container
-if [ -z "$1" ] ; then
-    args+=("${container}")
-fi
-
 # allow explicit URIs
 if [ -n "$uri" ] ; then
     query="<${uri}>" # URI
@@ -111,31 +106,35 @@ else
     query="_:query" # blank node
 fi
 
+if [ -z "$1" ]; then
+    print_usage
+    exit 1
+fi
+
+#if [ -z "$1" ]; then
+#    args+=("${base}service") # default target URL = graph store
+#fi
+
 args+=("-f")
-args+=("${cert_pem_file}")
+args+=("$cert_pem_file")
 args+=("-p")
-args+=("${cert_password}")
-args+=("-c")
-args+=("${base}ns#Construct") # class
+args+=("$cert_password")
 args+=("-t")
 args+=("text/turtle") # content type
 
-turtle+="@prefix ns:	<ns#> .\n"
+turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy#> .\n"
+turtle+="@prefix sp:	<http://spinrdf.org/sp#> .\n"
 turtle+="@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
 turtle+="@prefix foaf:	<http://xmlns.com/foaf/0.1/> .\n"
-turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .\n"
-turtle+="@prefix sp:	<http://spinrdf.org/sp#> .\n"
 turtle+="@prefix sioc:	<http://rdfs.org/sioc/ns#> .\n"
-turtle+="${query} a ns:Construct .\n"
+turtle+="${query} a sp:Construct .\n"
 turtle+="${query} rdfs:label \"${label}\" .\n"
 turtle+="${query} sp:text \"\"\"${query_string}\"\"\" .\n"
-turtle+="${query} foaf:isPrimaryTopicOf _:item .\n"
-turtle+="${query} rdfs:isDefinedBy <../ns/domain#> .\n" # make a parameter?
-turtle+="_:item a ns:QueryItem .\n"
+turtle+="_:item a dh:Item .\n"
+turtle+="_:item foaf:primaryTopic ${query} .\n"
 turtle+="_:item sioc:has_container <${container}> .\n"
 turtle+="_:item dct:title \"${label}\" .\n"
-turtle+="_:item foaf:primaryTopic ${query} .\n"
 
 if [ -n "$comment" ] ; then
     turtle+="${query} rdfs:comment \"${comment}\" .\n"

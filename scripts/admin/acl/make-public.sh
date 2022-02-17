@@ -62,24 +62,24 @@ if [ -z "request_base" ]; then
     request_base="$base"
 fi
 
-graph_sha1=$(echo -n "${base}admin/acl/authorizations/public/" | sha1sum | cut -d " " -f 1)
-
 curl -X PATCH \
     -v -f -k \
     -E "$cert_pem_file":"$cert_password" \
     -H "Content-Type: application/sparql-update" \
-    "${request_base}admin/graphs/${graph_sha1}/" \
+    "${request_base}admin/acl/authorizations/public/" \
      --data-binary @- <<EOF
 BASE <${base}admin/>
 
 PREFIX  acl:  <http://www.w3.org/ns/auth/acl#>
-PREFIX  nsdd: <../ns/domain/default#>
+PREFIX  def: <https://w3id.org/atomgraph/linkeddatahub/default#>
+PREFIX  dh:  <https://www.w3.org/ns/ldt/document-hierarchy#>
+PREFIX  nfo: <http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#>
 
 INSERT DATA
 {
-  GRAPH <graphs/${graph_sha1}/>
+  GRAPH <acl/authorizations/public/>
   {
-    <acl/authorizations/public/#this> acl:accessToClass nsdd:Root, nsdd:Container, nsdd:Item, nsdd:File ;
+    <acl/authorizations/public/#this> acl:accessToClass def:Root, dh:Container, dh:Item, nfo:FileDataObject ;
         acl:accessTo <../sparql> .
   }
 }

@@ -1,38 +1,40 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xsl:stylesheet [
-    <!ENTITY lapp   "https://w3id.org/atomgraph/linkeddatahub/apps/domain#">
-    <!ENTITY lacl   "https://w3id.org/atomgraph/linkeddatahub/admin/acl/domain#">
-    <!ENTITY apl    "https://w3id.org/atomgraph/linkeddatahub/domain#">
+    <!ENTITY lacl   "https://w3id.org/atomgraph/linkeddatahub/admin/acl#">
+    <!ENTITY ldh    "https://w3id.org/atomgraph/linkeddatahub#">
     <!ENTITY ac     "https://w3id.org/atomgraph/client#">
     <!ENTITY rdf    "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+    <!ENTITY acl    "http://www.w3.org/ns/auth/acl#">
     <!ENTITY ldt    "https://www.w3.org/ns/ldt#">
     <!ENTITY dct    "http://purl.org/dc/terms/">
+    <!ENTITY foaf   "http://xmlns.com/foaf/0.1/">
 ]>
 <xsl:stylesheet version="2.0"
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 xmlns:xhtml="http://www.w3.org/1999/xhtml"
 xmlns:xs="http://www.w3.org/2001/XMLSchema"
-xmlns:lapp="&lapp;"
-xmlns:lacl="&lacl;"
-xmlns:apl="&apl;"
+xmlns:ldh="&ldh;"
 xmlns:ac="&ac;"
 xmlns:rdf="&rdf;"
+xmlns:acl="&acl;"
 xmlns:ldt="&ldt;"
 xmlns:dct="&dct;"
+xmlns:foaf="&foaf;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 exclude-result-prefixes="#all">
 
     <xsl:import href="imports/acl.xsl"/>
+    <xsl:import href="imports/cert.xsl"/>
 
     <xsl:template match="rdf:RDF" mode="bs2:NavBarNavList">
-        <xsl:if test="$lacl:Agent//@rdf:about">
+        <xsl:if test="$foaf:Agent//@rdf:about">
             <ul class="nav pull-right">
                 <li>
                     <xsl:if test="$ac:mode = '&ac;QueryEditorMode'">
                         <xsl:attribute name="class" select="'active'"/>
                     </xsl:if>
 
-                    <a href="?mode={encode-for-uri('&ac;QueryEditorMode')}">SPARQL editor</a>
+                    <a href="{ac:build-uri((), map{ 'mode': '&ac;QueryEditorMode' })}">SPARQL editor</a>
                 </li>
 
                 <xsl:variable name="notification-query" as="xs:string">
@@ -45,16 +47,16 @@ PREFIX  sioc: <http://rdfs.org/sioc/ns#>
 
 CONSTRUCT 
 { 
-?authRequest a $type .
-?authRequest rdfs:label ?label .
-?authRequest dct:created ?created .
+    ?authRequest a $type .
+    ?authRequest rdfs:label ?label .
+    ?authRequest dct:created ?created .
 }
 WHERE
 { GRAPH ?authRequestGraph
   { ?authRequest  a                 $type ;
-              foaf:isPrimaryTopicOf  ?authRequestItem ;
               rdfs:label            ?label .
     ?authRequestItem
+              foaf:primaryTopic  ?authRequest ;
               sioc:has_container    $container
     FILTER NOT EXISTS { GRAPH ?authGraph
                           { ?auth  prov:wasDerivedFrom  ?authRequest }
@@ -65,23 +67,23 @@ WHERE
 }
                     ]]>
                 </xsl:variable>
-                <xsl:variable name="notification-query" select="replace($notification-query, '\$type', '&lt;' || $ldt:ontology || 'AuthorizationRequest' || '&gt;')" as="xs:string"/>
+                <xsl:variable name="notification-query" select="replace($notification-query, '\$type', '&lt;&lacl;AuthorizationRequest&gt;')" as="xs:string"/>
                 <xsl:variable name="notification-query" select="replace($notification-query, '\$container', '&lt;' || resolve-uri('acl/authorization-requests/', $ldt:base) || '&gt;')" as="xs:string"/>
 
-                <xsl:if test="doc-available(resolve-uri('sparql?query=' || encode-for-uri($notification-query), $ldt:base))">
-                    <xsl:variable name="notifications" select="document(resolve-uri('sparql?query=' || encode-for-uri($notification-query), $ldt:base))" as="document-node()"/>
+                <xsl:if test="doc-available(ac:build-uri(resolve-uri('sparql', $ldt:base), map{ 'query': $notification-query }))">
+                    <xsl:variable name="notifications" select="document(ac:build-uri(resolve-uri('sparql', $ldt:base), map{ 'query': $notification-query }))" as="document-node()"/>
 
                     <xsl:if test="$notifications/rdf:RDF/*[@rdf:about]">
                         <li>
                             <div class="btn-group">
                                 <button title="{ac:label(key('resources', 'notifications', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri))))}">
-                                    <xsl:apply-templates select="key('resources', 'notifications', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="apl:logo">
+                                    <xsl:apply-templates select="key('resources', 'notifications', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ldh:logo">
                                         <xsl:with-param name="class" select="'btn btn-primary dropdown-toggle'"/>
                                     </xsl:apply-templates>
                                 </button>
                                 <ul class="dropdown-menu pull-right">
                                     <xsl:for-each select="$notifications/rdf:RDF/*[@rdf:about]">
-                                        <xsl:sort select="xs:dateTime(dct:created)" order="descending"/>
+                                        <xsl:sort select="dct:created[1]/xs:dateTime(.)" order="descending"/>
 
                                         <xsl:apply-templates select="." mode="bs2:List"/>
                                     </xsl:for-each>
@@ -93,14 +95,14 @@ WHERE
 
                 <li>
                     <div class="btn-group">
-                        <button type="button" title="{ac:label($lacl:Agent//*[@rdf:about][1])}">
-                            <xsl:apply-templates select="key('resources', '&lacl;Agent', document('&lacl;'))" mode="apl:logo">
+                        <button type="button" title="{ac:label($foaf:Agent//*[@rdf:about][1])}">
+                            <xsl:apply-templates select="key('resources', '&foaf;Agent', document(ac:document-uri('&foaf;')))" mode="ldh:logo">
                                 <xsl:with-param name="class" select="'btn dropdown-toggle'"/>
                             </xsl:apply-templates>
                         </button>
                         <ul class="dropdown-menu pull-right">
                             <li>
-                                <xsl:for-each select="key('resources-by-type', '&lacl;Agent', $lacl:Agent)">
+                                <xsl:for-each select="key('resources-by-type', '&foaf;Agent', $foaf:Agent)">
                                     <xsl:apply-templates select="." mode="xhtml:Anchor"/>
                                 </xsl:for-each>
                             </li>

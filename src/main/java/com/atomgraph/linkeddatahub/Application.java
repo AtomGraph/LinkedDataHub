@@ -39,7 +39,6 @@ import com.atomgraph.client.mapper.ClientErrorExceptionMapper;
 import com.atomgraph.client.util.DataManager;
 import com.atomgraph.client.util.DataManagerImpl;
 import com.atomgraph.client.vocabulary.AC;
-import com.atomgraph.client.writer.function.ConstructDocument;
 import com.atomgraph.client.writer.function.UUID;
 import com.atomgraph.core.exception.ConfigurationException;
 import com.atomgraph.core.io.DatasetProvider;
@@ -47,8 +46,9 @@ import com.atomgraph.core.io.ModelProvider;
 import com.atomgraph.core.io.QueryProvider;
 import com.atomgraph.core.io.ResultSetProvider;
 import com.atomgraph.core.io.UpdateRequestProvider;
+import com.atomgraph.core.mapper.BadGatewayExceptionMapper;
 import com.atomgraph.core.provider.QueryParamProvider;
-import com.atomgraph.linkeddatahub.client.factory.DataManagerFactory;
+import com.atomgraph.linkeddatahub.writer.factory.DataManagerFactory;
 import com.atomgraph.server.mapper.NotFoundExceptionMapper;
 import com.atomgraph.core.riot.RDFLanguages;
 import com.atomgraph.core.riot.lang.RDFPostReaderFactory;
@@ -64,13 +64,15 @@ import com.atomgraph.linkeddatahub.model.CSVImport;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.model.File;
 import com.atomgraph.linkeddatahub.model.Service;
-import com.atomgraph.linkeddatahub.apps.model.impl.AdminApplicationImpl;
-import com.atomgraph.linkeddatahub.apps.model.impl.ApplicationImpl;
-import com.atomgraph.linkeddatahub.apps.model.impl.EndUserApplicationImpl;
-import com.atomgraph.linkeddatahub.client.factory.xslt.XsltExecutableSupplier;
-import com.atomgraph.linkeddatahub.client.factory.XsltExecutableSupplierFactory;
-import com.atomgraph.linkeddatahub.client.writer.DatasetXSLTWriter;
-import com.atomgraph.linkeddatahub.client.writer.ModelXSLTWriter;
+import com.atomgraph.linkeddatahub.writer.factory.xslt.XsltExecutableSupplier;
+import com.atomgraph.linkeddatahub.writer.factory.XsltExecutableSupplierFactory;
+import com.atomgraph.client.util.XsltResolver;
+import com.atomgraph.client.writer.function.Construct;
+import com.atomgraph.client.writer.function.ConstructForClass;
+import com.atomgraph.linkeddatahub.client.filter.ClientUriRewriteFilter;
+import com.atomgraph.linkeddatahub.io.HtmlJsonLDReaderFactory;
+import com.atomgraph.linkeddatahub.io.JsonLDReader;
+import com.atomgraph.linkeddatahub.writer.ModelXSLTWriter;
 import com.atomgraph.linkeddatahub.listener.ImportListener;
 import com.atomgraph.linkeddatahub.model.Import;
 import com.atomgraph.linkeddatahub.model.RDFImport;
@@ -83,39 +85,37 @@ import com.atomgraph.linkeddatahub.model.impl.ImportImpl;
 import com.atomgraph.linkeddatahub.model.impl.RDFImportImpl;
 import com.atomgraph.linkeddatahub.model.impl.UserAccountImpl;
 import com.atomgraph.linkeddatahub.server.event.SignUp;
+import com.atomgraph.linkeddatahub.server.factory.AgentContextFactory;
 import com.atomgraph.linkeddatahub.server.factory.ApplicationFactory;
 import com.atomgraph.linkeddatahub.server.filter.request.ApplicationFilter;
-import com.atomgraph.linkeddatahub.server.filter.request.ClientUriInfoFilter;
-import com.atomgraph.linkeddatahub.server.factory.ClientUriInfoFactory;
-import com.atomgraph.linkeddatahub.server.util.SPARQLClientOntologyLoader;
 import com.atomgraph.linkeddatahub.server.filter.request.auth.WebIDFilter;
-import com.atomgraph.linkeddatahub.server.io.SkolemizingDatasetProvider;
-import com.atomgraph.linkeddatahub.server.io.SkolemizingModelProvider;
-import com.atomgraph.linkeddatahub.server.model.ClientUriInfo;
+import com.atomgraph.linkeddatahub.server.io.ValidatingModelProvider;
 import com.atomgraph.server.mapper.ConfigurationExceptionMapper;
 import com.atomgraph.linkeddatahub.server.factory.OntologyFactory;
 import com.atomgraph.linkeddatahub.server.factory.ServiceFactory;
-import com.atomgraph.linkeddatahub.server.factory.TemplateCallFactory;
 import com.atomgraph.linkeddatahub.server.filter.request.OntologyFilter;
-import com.atomgraph.linkeddatahub.server.interceptor.RDFPostCleanupInterceptor;
-import com.atomgraph.linkeddatahub.server.filter.request.TemplateCallFilter;
+import com.atomgraph.linkeddatahub.server.filter.request.RDFPostCleanupFilter;
 import com.atomgraph.linkeddatahub.server.filter.request.AuthorizationFilter;
 import com.atomgraph.linkeddatahub.server.filter.request.auth.IDTokenFilter;
 import com.atomgraph.linkeddatahub.server.filter.request.ContentLengthLimitFilter;
 import com.atomgraph.linkeddatahub.server.filter.request.auth.ProxiedWebIDFilter;
+import com.atomgraph.linkeddatahub.server.filter.response.ResponseHeaderFilter;
 import com.atomgraph.linkeddatahub.server.filter.response.BackendInvalidationFilter;
+import com.atomgraph.linkeddatahub.server.filter.response.XsltExecutableFilter;
+import com.atomgraph.linkeddatahub.server.interceptor.RDFPostCleanupInterceptor;
 import com.atomgraph.linkeddatahub.server.mapper.auth.oauth2.TokenExpiredExceptionMapper;
 import com.atomgraph.linkeddatahub.server.model.impl.Dispatcher;
+import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.server.util.MessageBuilder;
-import com.atomgraph.linkeddatahub.vocabulary.APL;
-import com.atomgraph.linkeddatahub.vocabulary.APLC;
+import com.atomgraph.linkeddatahub.vocabulary.LDH;
+import com.atomgraph.linkeddatahub.vocabulary.LDHC;
 import com.atomgraph.linkeddatahub.vocabulary.Google;
-import com.atomgraph.processor.model.Parameter;
-import com.atomgraph.processor.model.Template;
-import com.atomgraph.processor.model.TemplateCall;
-import com.atomgraph.processor.model.impl.ParameterImpl;
-import com.atomgraph.processor.model.impl.TemplateImpl;
+import com.atomgraph.linkeddatahub.vocabulary.LAPP;
+import com.atomgraph.linkeddatahub.writer.Mode;
+import com.atomgraph.linkeddatahub.writer.ModelXSLTWriterBase;
+import com.atomgraph.linkeddatahub.writer.factory.ModeFactory;
 import com.atomgraph.processor.vocabulary.AP;
+import com.atomgraph.processor.vocabulary.LDT;
 import com.atomgraph.server.mapper.OntologyExceptionMapper;
 import com.atomgraph.server.mapper.ParameterExceptionMapper;
 import com.atomgraph.server.mapper.jena.DatatypeFormatExceptionMapper;
@@ -151,33 +151,36 @@ import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManagerFactory;
 import javax.servlet.ServletContext;
-import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.CacheControl;
 import javax.xml.transform.Source;
 import org.apache.jena.ontology.Ontology;
 import org.apache.jena.query.Dataset;
-import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryExecution;
-import org.apache.jena.query.QueryExecutionFactory;
 import org.apache.jena.query.QueryFactory;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.riot.RDFDataMgr;
-import org.apache.jena.update.UpdateFactory;
-import org.apache.jena.update.UpdateRequest;
 import org.slf4j.LoggerFactory;
-import com.atomgraph.processor.vocabulary.LDT;
 import com.atomgraph.server.mapper.SHACLConstraintViolationExceptionMapper;
 import com.atomgraph.server.mapper.SPINConstraintViolationExceptionMapper;
 import com.atomgraph.spinrdf.vocabulary.SP;
-import static com.atomgraph.spinrdf.vocabulary.SPIN.THIS_VAR_NAME;
+import com.github.jsonldjava.core.DocumentLoader;
+import com.github.jsonldjava.core.JsonLdOptions;
+import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Optional;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
+import javax.mail.Address;
+import javax.mail.internet.AddressException;
+import javax.mail.internet.InternetAddress;
+import javax.ws.rs.InternalServerErrorException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.ClientRequestFilter;
 import javax.xml.transform.TransformerException;
+import javax.xml.transform.stream.StreamSource;
 import net.jodah.expiringmap.ExpiringMap;
 import net.sf.saxon.om.TreeInfo;
 import net.sf.saxon.s9api.Processor;
@@ -197,14 +200,16 @@ import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.protocol.HttpContext;
-import org.apache.jena.query.QuerySolutionMap;
-import org.apache.jena.rdf.model.RDFNode;
+import org.apache.jena.query.DatasetFactory;
+import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.ResIterator;
 import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.rdf.model.ResourceFactory;
-import org.apache.jena.rdf.model.Statement;
-import org.apache.jena.rdf.model.StmtIterator;
+import org.apache.jena.riot.system.ErrorHandlerFactory;
+import org.apache.jena.riot.system.ParserProfile;
+import org.apache.jena.riot.system.RiotLib;
+import org.apache.jena.sparql.graph.GraphReadOnly;
 import org.apache.jena.vocabulary.LocationMappingVocab;
+import org.apache.jena.vocabulary.RDF;
 import org.glassfish.hk2.api.TypeLiteral;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.glassfish.jersey.client.ClientConfig;
@@ -230,16 +235,15 @@ public class Application extends ResourceConfig
 
     public static final String REQUEST_ACCESS_PATH = "request access";
     public static final String AUTHORIZATION_REQUEST_PATH = "acl/authorization-requests/";
+    public static final String UPLOADS_PATH = "uploads";
     
     private final EventBus eventBus = new EventBus();
     private final DataManager dataManager;
     private final MediaTypes mediaTypes;
     private final Client client, importClient, noCertClient;
-    private final Query authQuery, ownerAuthQuery, webIDQuery, agentQuery, userAccountQuery, sitemapQuery, appQuery, graphDocumentQuery; // no relative URIs
-    private final String putUpdateString, deleteUpdateString;
+    private final Query authQuery, ownerAuthQuery, webIDQuery, agentQuery, userAccountQuery, ontologyQuery; // no relative URIs
     private final Integer maxGetRequestSize;
     private final boolean preemptiveAuth;
-    private final boolean remoteVariableBindings;
     private final Processor xsltProc = new Processor(false);
     private final XsltCompiler xsltComp;
     private final XsltExecutable xsltExec;
@@ -247,24 +251,25 @@ public class Application extends ResourceConfig
     private final Source stylesheet;
     private final boolean cacheStylesheet;
     private final boolean resolvingUncached;
-    private final URI baseURI, uploadRoot;
+    private final URI baseURI, uploadRoot; // TO-DO: replace baseURI with ServletContext URI?
     private final boolean invalidateCache;
     private final Integer cookieMaxAge;
     private final CacheControl authCacheControl;
     private final Integer maxContentLength;
+    private final Address notificationAddress;
     private final Authenticator authenticator;
     private final Properties emailProperties = new Properties();
     private final KeyStore keyStore, trustStore;
     private final URI secretaryWebIDURI;
     private final ExpiringMap<URI, Model> webIDmodelCache = ExpiringMap.builder().expiration(1, TimeUnit.DAYS).build(); // TO-DO: config for the expiration period?
     private final ExpiringMap<String, Model> oidcModelCache = ExpiringMap.builder().variableExpiration().build();
-    private final Map<String, XsltExecutable> xsltExecutableCache = new HashMap<>();
+    private final Map<URI, XsltExecutable> xsltExecutableCache = new HashMap<>();
     
     private Dataset contextDataset;
     
     public Application(@Context ServletConfig servletConfig) throws URISyntaxException, MalformedURLException, IOException
     {
-        this(
+        this(servletConfig,
             new MediaTypes(),
             servletConfig.getServletContext().getInitParameter(A.maxGetRequestSize.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(A.maxGetRequestSize.getURI())) : null,
             servletConfig.getServletContext().getInitParameter(A.cacheModelLoads.getURI()) != null ? Boolean.parseBoolean(servletConfig.getServletContext().getInitParameter(A.cacheModelLoads.getURI())) : true,
@@ -274,32 +279,31 @@ public class Application extends ResourceConfig
             com.atomgraph.client.Application.getSource(servletConfig.getServletContext(), servletConfig.getServletContext().getInitParameter(AC.stylesheet.getURI()) != null ? servletConfig.getServletContext().getInitParameter(AC.stylesheet.getURI()) : null),
             servletConfig.getServletContext().getInitParameter(AC.cacheStylesheet.getURI()) != null ? Boolean.parseBoolean(servletConfig.getServletContext().getInitParameter(AC.cacheStylesheet.getURI())) : false,
             servletConfig.getServletContext().getInitParameter(AC.resolvingUncached.getURI()) != null ? Boolean.parseBoolean(servletConfig.getServletContext().getInitParameter(AC.resolvingUncached.getURI())) : true,
-            servletConfig.getServletContext().getInitParameter(APLC.clientKeyStore.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.clientKeyStore.getURI()) : null,
-            servletConfig.getServletContext().getInitParameter(APLC.clientKeyStorePassword.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.clientKeyStorePassword.getURI()) : null,
-            servletConfig.getServletContext().getInitParameter(APLC.secretaryCertAlias.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.secretaryCertAlias.getURI()) : null,
-            servletConfig.getServletContext().getInitParameter(APLC.clientTrustStore.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.clientTrustStore.getURI()) : null,
-            servletConfig.getServletContext().getInitParameter(APLC.clientTrustStorePassword.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.clientTrustStorePassword.getURI()) : null,
-            servletConfig.getServletContext().getInitParameter(APLC.remoteVariableBindings.getURI()) != null ? Boolean.parseBoolean(servletConfig.getServletContext().getInitParameter(APLC.remoteVariableBindings.getURI())) : false,
-            servletConfig.getServletContext().getInitParameter(APLC.authQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.authQuery.getURI()) : null,
-            servletConfig.getServletContext().getInitParameter(APLC.ownerAuthQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.ownerAuthQuery.getURI()) : null,
-            servletConfig.getServletContext().getInitParameter(APLC.webIDQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.webIDQuery.getURI()) : null,
-            servletConfig.getServletContext().getInitParameter(APLC.agentQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.agentQuery.getURI()) : null,
-            servletConfig.getServletContext().getInitParameter(APLC.userAccountQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.userAccountQuery.getURI()) : null,
-            servletConfig.getServletContext().getInitParameter(APLC.appQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.appQuery.getURI()) : null,
-            servletConfig.getServletContext().getInitParameter(APLC.sitemapQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.sitemapQuery.getURI()) : null,
-            servletConfig.getServletContext().getInitParameter(APLC.graphDocumentQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.graphDocumentQuery.getURI()) : null,
-            servletConfig.getServletContext().getInitParameter(APLC.putUpdate.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.putUpdate.getURI()) : null,
-            servletConfig.getServletContext().getInitParameter(APLC.deleteUpdate.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.deleteUpdate.getURI()) : null,
-            servletConfig.getServletContext().getInitParameter(APLC.baseUri.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.baseUri.getURI()) : null,
-            servletConfig.getServletContext().getInitParameter(APLC.uploadRoot.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.uploadRoot.getURI()) : null,
-            servletConfig.getServletContext().getInitParameter(APLC.invalidateCache.getURI()) != null ? Boolean.parseBoolean(servletConfig.getServletContext().getInitParameter(APLC.invalidateCache.getURI())) : false,
-            servletConfig.getServletContext().getInitParameter(APLC.cookieMaxAge.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(APLC.cookieMaxAge.getURI())) : null,
-            servletConfig.getServletContext().getInitParameter(APLC.authCacheControl.getURI()) != null ? CacheControl.valueOf(servletConfig.getServletContext().getInitParameter(APLC.authCacheControl.getURI())) : null,
-            servletConfig.getServletContext().getInitParameter(APLC.maxContentLength.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(APLC.maxContentLength.getURI())) : null,
-            servletConfig.getServletContext().getInitParameter(APLC.maxConnPerRoute.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(APLC.maxConnPerRoute.getURI())) : null,
-            servletConfig.getServletContext().getInitParameter(APLC.maxTotalConn.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(APLC.maxTotalConn.getURI())) : null,
+            servletConfig.getServletContext().getInitParameter(LDHC.clientKeyStore.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.clientKeyStore.getURI()) : null,
+            servletConfig.getServletContext().getInitParameter(LDHC.clientKeyStorePassword.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.clientKeyStorePassword.getURI()) : null,
+            servletConfig.getServletContext().getInitParameter(LDHC.secretaryCertAlias.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.secretaryCertAlias.getURI()) : null,
+            servletConfig.getServletContext().getInitParameter(LDHC.clientTrustStore.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.clientTrustStore.getURI()) : null,
+            servletConfig.getServletContext().getInitParameter(LDHC.clientTrustStorePassword.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.clientTrustStorePassword.getURI()) : null,
+            servletConfig.getServletContext().getInitParameter(LDHC.authQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.authQuery.getURI()) : null,
+            servletConfig.getServletContext().getInitParameter(LDHC.ownerAuthQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.ownerAuthQuery.getURI()) : null,
+            servletConfig.getServletContext().getInitParameter(LDHC.webIDQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.webIDQuery.getURI()) : null,
+            servletConfig.getServletContext().getInitParameter(LDHC.agentQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.agentQuery.getURI()) : null,
+            servletConfig.getServletContext().getInitParameter(LDHC.userAccountQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.userAccountQuery.getURI()) : null,
+            servletConfig.getServletContext().getInitParameter(LDHC.ontologyQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.ontologyQuery.getURI()) : null,
+            servletConfig.getServletContext().getInitParameter(LDHC.baseUri.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.baseUri.getURI()) : null,
+            servletConfig.getServletContext().getInitParameter(LDHC.proxyScheme.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.proxyScheme.getURI()) : null,
+            servletConfig.getServletContext().getInitParameter(LDHC.proxyHost.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.proxyHost.getURI()) : null,
+            servletConfig.getServletContext().getInitParameter(LDHC.proxyPort.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(LDHC.proxyPort.getURI())) : null,
+            servletConfig.getServletContext().getInitParameter(LDHC.uploadRoot.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.uploadRoot.getURI()) : null,
+            servletConfig.getServletContext().getInitParameter(LDHC.invalidateCache.getURI()) != null ? Boolean.parseBoolean(servletConfig.getServletContext().getInitParameter(LDHC.invalidateCache.getURI())) : false,
+            servletConfig.getServletContext().getInitParameter(LDHC.cookieMaxAge.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(LDHC.cookieMaxAge.getURI())) : null,
+            servletConfig.getServletContext().getInitParameter(LDHC.authCacheControl.getURI()) != null ? CacheControl.valueOf(servletConfig.getServletContext().getInitParameter(LDHC.authCacheControl.getURI())) : null,
+            servletConfig.getServletContext().getInitParameter(LDHC.maxContentLength.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(LDHC.maxContentLength.getURI())) : null,
+            servletConfig.getServletContext().getInitParameter(LDHC.maxConnPerRoute.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(LDHC.maxConnPerRoute.getURI())) : null,
+            servletConfig.getServletContext().getInitParameter(LDHC.maxTotalConn.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(LDHC.maxTotalConn.getURI())) : null,
             // TO-DO: respect "timeout" header param in the ConnectionKeepAliveStrategy?
-            servletConfig.getServletContext().getInitParameter(APLC.importKeepAlive.getURI()) != null ? (HttpResponse response, HttpContext context) -> Integer.valueOf(servletConfig.getServletContext().getInitParameter(APLC.importKeepAlive.getURI())) : null,
+            servletConfig.getServletContext().getInitParameter(LDHC.importKeepAlive.getURI()) != null ? (HttpResponse response, HttpContext context) -> Integer.valueOf(servletConfig.getServletContext().getInitParameter(LDHC.importKeepAlive.getURI())) : null,
+            servletConfig.getServletContext().getInitParameter(LDHC.notificationAddress.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.notificationAddress.getURI()) : null,
             servletConfig.getServletContext().getInitParameter("mail.user") != null ? servletConfig.getServletContext().getInitParameter("mail.user") : null,
             servletConfig.getServletContext().getInitParameter("mail.password") != null ? servletConfig.getServletContext().getInitParameter("mail.password") : null,
             servletConfig.getServletContext().getInitParameter("mail.smtp.host") != null ? servletConfig.getServletContext().getInitParameter("mail.smtp.host") : null,
@@ -308,149 +312,117 @@ public class Application extends ResourceConfig
             servletConfig.getServletContext().getInitParameter(Google.clientSecret.getURI()) != null ? servletConfig.getServletContext().getInitParameter(Google.clientSecret.getURI()) : null
         );
 
-        URI contextDatasetURI = servletConfig.getServletContext().getInitParameter(APLC.contextDataset.getURI()) != null ? new URI(servletConfig.getServletContext().getInitParameter(APLC.contextDataset.getURI())) : null;
+        URI contextDatasetURI = servletConfig.getServletContext().getInitParameter(LDHC.contextDataset.getURI()) != null ? new URI(servletConfig.getServletContext().getInitParameter(LDHC.contextDataset.getURI())) : null;
         if (contextDatasetURI == null)
         {
-            if (log.isErrorEnabled()) log.error("Context dataset URI '{}' not configured", APLC.contextDataset.getURI());
-            throw new ConfigurationException(APLC.contextDataset);
+            if (log.isErrorEnabled()) log.error("Context dataset URI '{}' not configured", LDHC.contextDataset.getURI());
+            throw new ConfigurationException(LDHC.contextDataset);
         }
         this.contextDataset = getDataset(servletConfig.getServletContext(), contextDatasetURI);
     }
     
-    public Application(final MediaTypes mediaTypes,
+    public Application(final ServletConfig servletConfig, final MediaTypes mediaTypes,
             final Integer maxGetRequestSize, final boolean cacheModelLoads, final boolean preemptiveAuth, final boolean cacheSitemap,
             final LocationMapper locationMapper, final Source stylesheet, final boolean cacheStylesheet, final boolean resolvingUncached,
             final String clientKeyStoreURIString, final String clientKeyStorePassword,
             final String secretaryCertAlias,
             final String clientTrustStoreURIString, final String clientTrustStorePassword,
-            final boolean remoteVariableBindings,
-            final String authQueryString, final String ownerAuthQueryString, final String webIDQueryString, final String agentQueryString, final String userAccountQueryString,
-            final String appQueryString, final String sitemapQueryString,
-            final String graphDocumentQueryString, final String putUpdateString, final String deleteUpdateString,
-            final String baseURIString,
+            final String authQueryString, final String ownerAuthQueryString, final String webIDQueryString, final String agentQueryString, final String userAccountQueryString, final String ontologyQueryString,
+            final String baseURIString, final String proxyScheme, final String proxyHostname, final Integer proxyPort,
             final String uploadRootString, final boolean invalidateCache,
             final Integer cookieMaxAge, final CacheControl authCacheControl, final Integer maxPostSize,
             final Integer maxConnPerRoute, final Integer maxTotalConn, final ConnectionKeepAliveStrategy importKeepAliveStrategy,
-            final String mailUser, final String mailPassword, final String smtpHost, final String smtpPort,
+            final String notificationAddressString, final String mailUser, final String mailPassword, final String smtpHost, final String smtpPort,
             final String googleClientID, final String googleClientSecret)
     {
         if (clientKeyStoreURIString == null)
         {
-            if (log.isErrorEnabled()) log.error("Client key store ({}) not configured", APLC.clientKeyStore.getURI());
-            throw new ConfigurationException(APLC.clientKeyStore);
+            if (log.isErrorEnabled()) log.error("Client key store ({}) not configured", LDHC.clientKeyStore.getURI());
+            throw new ConfigurationException(LDHC.clientKeyStore);
         }
 
         if (secretaryCertAlias == null)
         {
-            if (log.isErrorEnabled()) log.error("Secretary client certificate alias ({}) not configured", APLC.secretaryCertAlias.getURI());
-            throw new ConfigurationException(APLC.secretaryCertAlias);
+            if (log.isErrorEnabled()) log.error("Secretary client certificate alias ({}) not configured", LDHC.secretaryCertAlias.getURI());
+            throw new ConfigurationException(LDHC.secretaryCertAlias);
         }
         
         if (clientTrustStoreURIString == null)
         {
-            if (log.isErrorEnabled()) log.error("Client truststore store ({}) not configured", APLC.clientTrustStore.getURI());
-            throw new ConfigurationException(APLC.clientTrustStore);
+            if (log.isErrorEnabled()) log.error("Client truststore store ({}) not configured", LDHC.clientTrustStore.getURI());
+            throw new ConfigurationException(LDHC.clientTrustStore);
         }
         
         if (authQueryString == null)
         {
             if (log.isErrorEnabled()) log.error("Authentication SPARQL query is not configured properly");
-            throw new ConfigurationException(APLC.authQuery);
+            throw new ConfigurationException(LDHC.authQuery);
         }
         this.authQuery = QueryFactory.create(authQueryString);
         
         if (ownerAuthQueryString == null)
         {
             if (log.isErrorEnabled()) log.error("Owner authorization SPARQL query is not configured properly");
-            throw new ConfigurationException(APLC.ownerAuthQuery);
+            throw new ConfigurationException(LDHC.ownerAuthQuery);
         }
         this.ownerAuthQuery = QueryFactory.create(ownerAuthQueryString);
         
         if (webIDQueryString == null)
         {
             if (log.isErrorEnabled()) log.error("WebID SPARQL query is not configured properly");
-            throw new ConfigurationException(APLC.webIDQuery);
+            throw new ConfigurationException(LDHC.webIDQuery);
         }
         this.webIDQuery = QueryFactory.create(webIDQueryString);
         
         if (userAccountQueryString == null)
         {
             if (log.isErrorEnabled()) log.error("UserAccount SPARQL query is not configured properly");
-            throw new ConfigurationException(APLC.userAccountQuery);
+            throw new ConfigurationException(LDHC.userAccountQuery);
         }
         this.userAccountQuery = QueryFactory.create(userAccountQueryString);
         
         if (agentQueryString == null)
         {
             if (log.isErrorEnabled()) log.error("Agent SPARQL query is not configured properly");
-            throw new ConfigurationException(APLC.agentQuery);
+            throw new ConfigurationException(LDHC.agentQuery);
         }
         this.agentQuery = QueryFactory.create(agentQueryString);
+        if (ontologyQueryString == null)
+        {
+            if (log.isErrorEnabled()) log.error("Ontology SPARQL query is not configured properly");
+            throw new ConfigurationException(LDHC.ontologyQuery);
+        }
+        this.ontologyQuery = QueryFactory.create(ontologyQueryString);
         
         if (baseURIString == null)
         {
-            if (log.isErrorEnabled()) log.error("Base URI property '{}' not configured", APLC.baseUri.getURI());
-            throw new ConfigurationException(APLC.baseUri);
+            if (log.isErrorEnabled()) log.error("Base URI property '{}' not configured", LDHC.baseUri.getURI());
+            throw new ConfigurationException(LDHC.baseUri);
         }
         baseURI = URI.create(baseURIString);
-
-        if (appQueryString == null)
-        {
-            if (log.isErrorEnabled()) log.error("Query property '{}' not configured", APLC.appQuery.getURI());
-            throw new ConfigurationException(APLC.appQuery);
-        }
-        appQuery = QueryFactory.create(appQueryString, baseURIString);
-        appQuery.setBaseURI(baseURIString); // for some reason the above is not enough
         
-        if (sitemapQueryString == null)
-        {
-            if (log.isErrorEnabled()) log.error("Query property '{}' not configured", APLC.sitemapQuery.getURI());
-            throw new ConfigurationException(APLC.sitemapQuery);
-        }
-        sitemapQuery = QueryFactory.create(sitemapQueryString);
-        
-        if (graphDocumentQueryString == null)
-        {
-            if (log.isErrorEnabled()) log.error("Query property '{}' not configured", APLC.graphDocumentQuery);
-            throw new ConfigurationException(APLC.graphDocumentQuery);
-        }
-        this.graphDocumentQuery =  QueryFactory.create(graphDocumentQueryString);
-                
         if (uploadRootString == null)
         {
-            if (log.isErrorEnabled()) log.error("Upload root ({}) not configured", APLC.uploadRoot.getURI());
-            throw new ConfigurationException(APLC.uploadRoot);
+            if (log.isErrorEnabled()) log.error("Upload root ({}) not configured", LDHC.uploadRoot.getURI());
+            throw new ConfigurationException(LDHC.uploadRoot);
         }
-        
-        if (putUpdateString == null)
-        {
-            if (log.isErrorEnabled()) log.error("Update property '{}' not configured", APLC.putUpdate);
-            throw new ConfigurationException(APLC.putUpdate);
-        }
-        this.putUpdateString = putUpdateString;
-        
-        if (deleteUpdateString == null)
-        {
-            if (log.isErrorEnabled()) log.error("Update property '{}' not configured", APLC.deleteUpdate);
-            throw new ConfigurationException(APLC.deleteUpdate);
-        }
-        this.deleteUpdateString = deleteUpdateString;
         
         if (cookieMaxAge == null)
         {
-            if (log.isErrorEnabled()) log.error("JWT cookie max age property '{}' not configured", APLC.cookieMaxAge.getURI());
-            throw new ConfigurationException(APLC.cookieMaxAge);
+            if (log.isErrorEnabled()) log.error("JWT cookie max age property '{}' not configured", LDHC.cookieMaxAge.getURI());
+            throw new ConfigurationException(LDHC.cookieMaxAge);
         }
         this.cookieMaxAge = cookieMaxAge;
 
         this.mediaTypes = mediaTypes;
         this.maxGetRequestSize = maxGetRequestSize;
         this.preemptiveAuth = preemptiveAuth;
-        this.remoteVariableBindings = remoteVariableBindings;
         this.stylesheet = stylesheet;
         this.cacheStylesheet = cacheStylesheet;
         this.resolvingUncached = resolvingUncached;
         this.maxContentLength = maxPostSize;
+        this.invalidateCache = invalidateCache;
+        this.authCacheControl = authCacheControl;
         this.property(Google.clientID.getURI(), googleClientID);
         this.property(Google.clientSecret.getURI(), googleClientSecret);
         
@@ -461,15 +433,48 @@ public class Application extends ResourceConfig
         catch (URISyntaxException ex)
         {
             if (log.isErrorEnabled()) log.error("Upload root URI syntax error: {}", ex);
-            throw new WebApplicationException(ex);
+            throw new IllegalStateException(ex);
         }
-        
-        this.invalidateCache = invalidateCache;
-        this.authCacheControl = authCacheControl;
 
-        // add RDF/POST serialization
+        if (notificationAddressString != null)
+        {
+            try
+            {
+                InternetAddress[] notificationAddresses = InternetAddress.parse(notificationAddressString);
+                // if (notificationAddresses.size() == 0) throw Exception...
+                notificationAddress = notificationAddresses[0];
+            }
+            catch (AddressException ex)
+            {
+                throw new IllegalStateException(ex);
+            }
+        }
+        else notificationAddress = null;
+
+        // add RDF/POST reader
         RDFLanguages.register(RDFLanguages.RDFPOST);
         RDFParserRegistry.registerLangTriples(RDFLanguages.RDFPOST, new RDFPostReaderFactory());
+
+        // add HTML/JSON-LD reader
+        DocumentLoader documentLoader = new DocumentLoader();
+        JsonLdOptions jsonLdOptions = new JsonLdOptions();
+        try (InputStream contextStream = servletConfig.getServletContext().getResourceAsStream("/WEB-INF/classes/com/atomgraph/linkeddatahub/schema.org.jsonldcontext.json"))
+        {
+            String jsonContext = new String(contextStream.readAllBytes(), StandardCharsets.UTF_8);
+            documentLoader.addInjectedDoc("http://schema.org", jsonContext);
+            documentLoader.addInjectedDoc("https://schema.org", jsonContext);
+            jsonLdOptions.setDocumentLoader(documentLoader);
+
+            ParserProfile profile = RiotLib.profile(HtmlJsonLDReaderFactory.HTML, null, ErrorHandlerFactory.getDefaultErrorHandler());
+            RDFLanguages.register(HtmlJsonLDReaderFactory.HTML);
+            RDFParserRegistry.registerLangTriples(HtmlJsonLDReaderFactory.HTML,
+                new HtmlJsonLDReaderFactory(new JsonLDReader(Lang.JSONLD, profile, profile.getErrorHandler()), jsonLdOptions));
+        }
+        catch (IOException ex)
+        {
+            if (log.isErrorEnabled()) log.error("schema.org @context not found", ex);
+        }
+
         // register plain RDF/XML writer as default
         RDFWriterRegistry.register(Lang.RDFXML, RDFFormat.RDFXML_PLAIN); 
 
@@ -489,16 +494,25 @@ public class Application extends ResourceConfig
             importClient = getClient(keyStore, clientKeyStorePassword, trustStore, maxConnPerRoute, maxTotalConn, importKeepAliveStrategy);
             noCertClient = getNoCertClient(trustStore, maxConnPerRoute, maxTotalConn);
             
+            if (proxyHostname != null)
+            {
+                ClientRequestFilter rewriteFilter = new ClientUriRewriteFilter(baseURI, proxyScheme, proxyHostname, proxyPort); // proxyPort can be null
+                
+                client.register(rewriteFilter);
+                importClient.register(rewriteFilter);
+                noCertClient.register(rewriteFilter);
+            }
+            
             Certificate secretaryCert = keyStore.getCertificate(secretaryCertAlias);
             if (secretaryCert == null)
             {
                 if (log.isErrorEnabled()) log.error("Secretary certificate with alias {} does not exist in client keystore {}", secretaryCertAlias, clientKeyStoreURIString);
-                throw new WebApplicationException(new CertificateException("Secretary certificate with alias '" + secretaryCertAlias + "' does not exist in client keystore '" + clientKeyStoreURIString + "'"));
+                throw new IllegalStateException(new CertificateException("Secretary certificate with alias '" + secretaryCertAlias + "' does not exist in client keystore '" + clientKeyStoreURIString + "'"));
             }
             if (!(secretaryCert instanceof X509Certificate))
             {
                 if (log.isErrorEnabled()) log.error("Secretary certificate with alias {} is not a X509Certificate", secretaryCertAlias);
-                throw new WebApplicationException(new CertificateException("Secretary certificate with alias " + secretaryCertAlias + " is not a X509Certificate"));
+                throw new IllegalStateException(new CertificateException("Secretary certificate with alias " + secretaryCertAlias + " is not a X509Certificate"));
             }
             X509Certificate secretaryX509Cert = (X509Certificate)secretaryCert;
             secretaryX509Cert.checkValidity();// check if secretary WebID client certificate is valid
@@ -506,19 +520,18 @@ public class Application extends ResourceConfig
             if (secretaryWebIDURI == null)
             {
                 if (log.isErrorEnabled()) log.error("Secretary certificate with alias {} is not a valid WebID sertificate (SNA URI is missing)", secretaryCertAlias);
-                throw new WebApplicationException(new CertificateException("Secretary certificate with alias " + secretaryCertAlias + " not a valid WebID sertificate (SNA URI is missing)"));
+                throw new IllegalStateException(new CertificateException("Secretary certificate with alias " + secretaryCertAlias + " not a valid WebID sertificate (SNA URI is missing)"));
             }
             
             SP.init(BuiltinPersonalities.model);
-            BuiltinPersonalities.model.add(Parameter.class, ParameterImpl.factory);
-            BuiltinPersonalities.model.add(Template.class, TemplateImpl.factory);
             BuiltinPersonalities.model.add(Agent.class, AgentImpl.factory);
             BuiltinPersonalities.model.add(UserAccount.class, UserAccountImpl.factory);
-            BuiltinPersonalities.model.add(AdminApplication.class, AdminApplicationImpl.factory);
-            BuiltinPersonalities.model.add(EndUserApplication.class, EndUserApplicationImpl.factory);
-            BuiltinPersonalities.model.add(com.atomgraph.linkeddatahub.apps.model.Application.class, ApplicationImpl.factory);
+            BuiltinPersonalities.model.add(AdminApplication.class, new com.atomgraph.linkeddatahub.apps.model.admin.impl.ApplicationImplementation());
+            BuiltinPersonalities.model.add(EndUserApplication.class, new com.atomgraph.linkeddatahub.apps.model.end_user.impl.ApplicationImplementation());
+            BuiltinPersonalities.model.add(com.atomgraph.linkeddatahub.apps.model.Application.class, new com.atomgraph.linkeddatahub.apps.model.impl.ApplicationImplementation());
+            BuiltinPersonalities.model.add(com.atomgraph.linkeddatahub.apps.model.Dataset.class, new com.atomgraph.linkeddatahub.apps.model.impl.DatasetImplementation());
             BuiltinPersonalities.model.add(Service.class, new com.atomgraph.linkeddatahub.model.generic.ServiceImplementation(noCertClient, mediaTypes, maxGetRequestSize));
-            BuiltinPersonalities.model.add(com.atomgraph.linkeddatahub.model.dydra.Service.class, new com.atomgraph.linkeddatahub.model.dydra.impl.ServiceImplementation(noCertClient, mediaTypes, maxGetRequestSize));
+//            BuiltinPersonalities.model.add(com.atomgraph.linkeddatahub.model.DydraService.class, new com.atomgraph.linkeddatahub.model.dydra.impl.ServiceImplementation(noCertClient, mediaTypes, maxGetRequestSize));
             BuiltinPersonalities.model.add(Import.class, ImportImpl.factory);
             BuiltinPersonalities.model.add(RDFImport.class, RDFImportImpl.factory);
             BuiltinPersonalities.model.add(CSVImport.class, CSVImportImpl.factory);
@@ -526,8 +539,12 @@ public class Application extends ResourceConfig
         
             // TO-DO: config property for cacheModelLoads
             dataManager = new DataManagerImpl(locationMapper, new HashMap<>(), client, mediaTypes, cacheModelLoads, preemptiveAuth, resolvingUncached);
-            if (log.isDebugEnabled()) log.debug("FileManager.get(): {}", dataManager);
-            
+            ontModelSpec = OntModelSpec.OWL_MEM_RDFS_INF;
+            ontModelSpec.setImportModelGetter(dataManager);
+            OntDocumentManager.getInstance().setFileManager((FileManager)dataManager);
+            OntDocumentManager.getInstance().setCacheModels(cacheSitemap); // need to re-set after changing FileManager
+            ontModelSpec.setDocumentManager(OntDocumentManager.getInstance());
+
             if (mailUser != null && mailPassword !=  null) // enable SMTP authentication
             {
                 emailProperties.put("mail.smtp.auth", "true");
@@ -543,89 +560,91 @@ public class Application extends ResourceConfig
             }
             else authenticator = null;
 
-            if (smtpHost == null) throw new WebApplicationException(new IllegalStateException("Cannot initialize email service: SMTP host not configured"));
-            if (smtpPort == null) throw new WebApplicationException(new IllegalStateException("Cannot initialize email service: SMTP port not configured"));
+            if (smtpHost == null) throw new IllegalStateException(new IllegalStateException("Cannot initialize email service: SMTP host not configured"));
+            if (smtpPort == null) throw new IllegalStateException(new IllegalStateException("Cannot initialize email service: SMTP port not configured"));
             emailProperties.put("mail.smtp.host", smtpHost);
             emailProperties.put("mail.smtp.port", Integer.valueOf(smtpPort));
             
             xsltProc.registerExtensionFunction(new UUID());
-            xsltProc.registerExtensionFunction(new ConstructDocument(xsltProc));
+//            xsltProc.registerExtensionFunction(new Construct(xsltProc));
+//            xsltProc.registerExtensionFunction(new ConstructForClass(xsltProc));
+            xsltProc.registerExtensionFunction(new com.atomgraph.linkeddatahub.writer.function.Construct(xsltProc));
             
             Model mappingModel = locationMapper.toModel();
-            ResIterator altLocationIt = mappingModel.listResourcesWithProperty(LocationMappingVocab.prefix);
+            ResIterator prefixedMappings = mappingModel.listResourcesWithProperty(LocationMappingVocab.prefix);
             try
             {
-                while (altLocationIt.hasNext())
+                while (prefixedMappings.hasNext())
                 {
-                    Resource altLocation = altLocationIt.next();
-                    String prefix = altLocation.getRequiredProperty(LocationMappingVocab.prefix).getString();
+                    Resource prefixMapping = prefixedMappings.next();
+                    String prefix = prefixMapping.getRequiredProperty(LocationMappingVocab.prefix).getString();
+                    // register mapped RDF documents in the XSLT processor so that document() returns them cached, throughout multiple transformations
                     TreeInfo doc = xsltProc.getUnderlyingConfiguration().buildDocumentTree(dataManager.resolve("", prefix));
-                    // registering mapped RDF documents in the XSLT processor so that document() returns them cached, throughout multiple transformations
                     xsltProc.getUnderlyingConfiguration().getGlobalDocumentPool().add(doc, prefix);
+                }
+                
+                // register HTTPS URL of translations.rdf so it doesn't have to be requested repeatedly
+                try (InputStream translations = servletConfig.getServletContext().getResourceAsStream(ModelXSLTWriterBase.TRANSLATIONS_PATH))
+                {
+                    TreeInfo doc = xsltProc.getUnderlyingConfiguration().buildDocumentTree(new StreamSource(translations));
+                    xsltProc.getUnderlyingConfiguration().getGlobalDocumentPool().add(doc, baseURI.resolve(ModelXSLTWriterBase.TRANSLATIONS_PATH).toString());
                 }
             }
             catch (XPathException | TransformerException ex)
             {
                 if (log.isErrorEnabled()) log.error("Error reading mapped RDF document: {}", ex);
-                throw new WebApplicationException(ex);
+                throw new IllegalStateException(ex);
             }
             finally
             {
-                altLocationIt.close();
+                prefixedMappings.close();
             }
             
             xsltComp = xsltProc.newXsltCompiler();
-            xsltComp.setParameter(new QName("apl", APL.baseUri.getNameSpace(), APL.baseUri.getLocalName()), new XdmAtomicValue(baseURI));
-            xsltComp.setURIResolver(dataManager); // default Xerces parser does not support HTTPS
+            xsltComp.setParameter(new QName("ldh", LDH.base.getNameSpace(), LDH.base.getLocalName()), new XdmAtomicValue(baseURI));
+            xsltComp.setURIResolver(new XsltResolver(LocationMapper.get(), new HashMap<>(), client, mediaTypes, false, false, true)); // default Xerces parser does not support HTTPS
             xsltExec = xsltComp.compile(stylesheet);
         }
         catch (FileNotFoundException ex)
         {
             if (log.isErrorEnabled()) log.error("File not found", ex);
-            throw new WebApplicationException(ex);
+            throw new IllegalStateException(ex);
         }
         catch (IOException ex)
         {
             if (log.isErrorEnabled()) log.error("Could not load file", ex);
-            throw new WebApplicationException(ex);
+            throw new IllegalStateException(ex);
         }
         catch (KeyStoreException ex)
         {
             if (log.isErrorEnabled()) log.error("Key store error", ex);
-            throw new WebApplicationException(ex);
+            throw new IllegalStateException(ex);
         }
         catch (NoSuchAlgorithmException ex)
         {
             if (log.isErrorEnabled()) log.error("No such algorithm", ex);
-            throw new WebApplicationException(ex);
+            throw new IllegalStateException(ex);
         }
         catch (CertificateException ex)
         {
             if (log.isErrorEnabled()) log.error("Certificate error", ex);
-            throw new WebApplicationException(ex);
+            throw new IllegalStateException(ex);
         }
         catch (KeyManagementException | UnrecoverableKeyException ex)
         {
             if (log.isErrorEnabled()) log.error("Key management error", ex);
-            throw new WebApplicationException(ex);
+            throw new IllegalStateException(ex);
         }
         catch (URISyntaxException ex)
         {
             if (log.isErrorEnabled()) log.error("URI syntax error", ex);
-            throw new WebApplicationException(ex);
+            throw new IllegalStateException(ex);
         }
         catch (SaxonApiException ex)
         {
             if (log.isErrorEnabled()) log.error("System XSLT stylesheet error", ex);
-            throw new WebApplicationException(ex);
+            throw new IllegalStateException(ex);
         }
-        
-        this.ontModelSpec = OntModelSpec.OWL_MEM_RDFS_INF;
-        this.ontModelSpec.setImportModelGetter(dataManager);
-        OntDocumentManager.getInstance().setFileManager((FileManager)dataManager);
-        OntDocumentManager.getInstance().setCacheModels(cacheSitemap); // need to re-set after changing FileManager
-        if (log.isDebugEnabled()) log.debug("OntDocumentManager.getInstance().getFileManager(): {} Cache ontologies: {}", OntDocumentManager.getInstance().getFileManager(), cacheSitemap);
-        this.ontModelSpec.setDocumentManager(OntDocumentManager.getInstance());
     }
     
     @PostConstruct
@@ -640,15 +659,11 @@ public class Application extends ResourceConfig
         
         eventBus.register(this); // this system application will be receiving events about context changes
         
-        register(new SkolemizingDatasetProvider());
-        register(new SkolemizingModelProvider());
+        register(new ValidatingModelProvider());
         register(new ResultSetProvider());
         register(new QueryParamProvider());
         register(new UpdateRequestProvider());
-
-        if (log.isDebugEnabled()) log.debug("Adding XSLT @Providers");
         register(new ModelXSLTWriter(getXsltExecutable(), getOntModelSpec(), getDataManager())); // writes (X)HTML responses
-        register(new DatasetXSLTWriter(getXsltExecutable(), getOntModelSpec(), getDataManager())); // writes XHTML responses
 
         final com.atomgraph.linkeddatahub.Application system = this;
         register(new AbstractBinder()
@@ -672,6 +687,15 @@ public class Application extends ResourceConfig
             @Override
             protected void configure()
             {
+                bindFactory(AgentContextFactory.class).to(new TypeLiteral<Optional<AgentContext>>() {}).
+                in(RequestScoped.class);
+            }
+        });
+        register(new AbstractBinder()
+        {
+            @Override
+            protected void configure()
+            {
                 bindFactory(ServiceFactory.class).to(new TypeLiteral<Optional<Service>>() {}).
                 in(RequestScoped.class);
             }
@@ -681,7 +705,16 @@ public class Application extends ResourceConfig
             @Override
             protected void configure()
             {
-                bindFactory(ApplicationFactory.class).to(new TypeLiteral<Optional<com.atomgraph.linkeddatahub.apps.model.Application>>() {}).
+                bindFactory(ApplicationFactory.class).to(com.atomgraph.linkeddatahub.apps.model.Application.class).
+                in(RequestScoped.class);
+            }
+        });
+        register(new AbstractBinder()
+        {
+            @Override
+            protected void configure()
+            {
+                bindFactory(com.atomgraph.linkeddatahub.server.factory.DatasetFactory.class).to(new TypeLiteral<Optional<com.atomgraph.linkeddatahub.apps.model.Dataset>>() {}).
                 in(RequestScoped.class);
             }
         });
@@ -691,15 +724,6 @@ public class Application extends ResourceConfig
             protected void configure()
             {
                 bindFactory(OntologyFactory.class).to(new TypeLiteral<Optional<Ontology>>() {}).
-                in(RequestScoped.class);
-            }
-        });
-        register(new AbstractBinder()
-        {
-            @Override
-            protected void configure()
-            {
-                bindFactory(TemplateCallFactory.class).to(new TypeLiteral<Optional<TemplateCall>>() {}).
                 in(RequestScoped.class);
             }
         });
@@ -725,7 +749,7 @@ public class Application extends ResourceConfig
             @Override
             protected void configure()
             {
-                bindFactory(ClientUriInfoFactory.class).to(ClientUriInfo.class).
+                bindFactory(XsltExecutableSupplierFactory.class).to(XsltExecutableSupplier.class).
                 in(RequestScoped.class);
             }
         });
@@ -734,7 +758,7 @@ public class Application extends ResourceConfig
             @Override
             protected void configure()
             {
-                bindFactory(XsltExecutableSupplierFactory.class).to(XsltExecutableSupplier.class).
+                bindFactory(ModeFactory.class).to(new TypeLiteral<List<Mode>>() {}).
                 in(RequestScoped.class);
             }
         });
@@ -744,27 +768,28 @@ public class Application extends ResourceConfig
     
     protected void registerResourceClasses()
     {
-        //register(ResourceBase.class); // handles /
         register(Dispatcher.class);
     }
     
     protected void registerContainerRequestFilters()
     {
         register(new HttpMethodOverrideFilter());
-        register(ClientUriInfoFilter.class);
         register(ApplicationFilter.class);
         register(OntologyFilter.class);
-        register(TemplateCallFilter.class);
         register(ProxiedWebIDFilter.class);
         register(IDTokenFilter.class);
         register(AuthorizationFilter.class);
         register(ContentLengthLimitFilter.class);
-        register(new RDFPostCleanupInterceptor());
+        register(new RDFPostCleanupInterceptor()); // for application/x-www-form-urlencoded
+        register(new RDFPostCleanupFilter()); // for multipart/form-data
     }
 
     protected void registerContainerResponseFilters()
     {
+        register(new ResponseHeaderFilter());
+        register(new XsltExecutableFilter());
         if (isInvalidateCache()) register(new BackendInvalidationFilter());
+//        register(new ProvenanceFilter());
     }
     
     protected void registerExceptionMappers()
@@ -782,6 +807,7 @@ public class Application extends ResourceConfig
         register(RiotParseExceptionMapper.class); // move to Processor?
         register(ClientErrorExceptionMapper.class);
         register(HttpHostConnectExceptionMapper.class);
+        register(BadGatewayExceptionMapper.class);
         register(OntClassNotFoundExceptionMapper.class);
         register(InvalidWebIDPublicKeyExceptionMapper.class);
         register(InvalidWebIDURIExceptionMapper.class);
@@ -800,12 +826,8 @@ public class Application extends ResourceConfig
     {
         String baseURI = servletContext.getResource("/").toString();
 
-        InputStream datasetStream = null;
-        try
+        try (InputStream datasetStream = (uri.isAbsolute() ? new FileInputStream(new java.io.File(uri)) : servletContext.getResourceAsStream(uri.toString())))
         {
-            if (uri.isAbsolute()) datasetStream = new FileInputStream(new java.io.File(uri));
-            else datasetStream = servletContext.getResourceAsStream(uri.toString());
-
             if (datasetStream == null) throw new IOException("Dataset not found at URI: " + uri.toString());
             Lang lang = RDFDataMgr.determineLang(uri.toString(), null, null);
             if (lang == null) throw new IOException("Could not determing RDF format from dataset URI: " + uri.toString());
@@ -815,10 +837,6 @@ public class Application extends ResourceConfig
             RDFDataMgr.read(dataset, datasetStream, baseURI, lang);
             return dataset;
         }
-        finally
-        {
-            if (datasetStream != null) datasetStream.close();
-        }
     }
 
     public final Model getModel(Dataset dataset, Query query)
@@ -826,7 +844,7 @@ public class Application extends ResourceConfig
         if (dataset == null) throw new IllegalArgumentException("Dataset cannot be null");
         if (query == null) throw new IllegalArgumentException("Query cannot be null");
         
-        try (QueryExecution qex = QueryExecutionFactory.create(query, dataset))
+        try (QueryExecution qex = QueryExecution.create(query, dataset))
         {
             if (query.isDescribeType()) return qex.execDescribe();
             if (query.isConstructType()) return qex.execConstruct();
@@ -840,49 +858,47 @@ public class Application extends ResourceConfig
     {
         getWebIDModelCache().remove(event.getSecretaryWebID()); // clear secretary WebID from cache to get new acl:delegates statements after new signup
     }
-    
-    public Ontology getOntology(com.atomgraph.linkeddatahub.apps.model.Application app)
-    {
-        return new SPARQLClientOntologyLoader(getOntModelSpec(), getSitemapQuery()).getOntology(app);
-    }
 
-    public Resource matchApp(URI absolutePath)
+    public Resource matchApp(Resource type, URI absolutePath)
     {
-        return matchApp(getAppModel(ResourceFactory.createResource(absolutePath.toString())), absolutePath);
+        return matchApp(getContextModel(), type, absolutePath); // make sure we return an immutable model
     }
     
-    public Resource matchApp(Model appModel, URI absolutePath)
+    public Resource matchApp(Model appModel, Resource type, URI absolutePath)
     {
-        return getLongestURIApp(getLengthMap(getRelativeBaseApps(appModel, absolutePath)));
+        return getLongestURIResource(getLengthMap(getRelativeBaseApps(appModel, type, absolutePath)));
     }
     
-    public Resource getLongestURIApp(Map<Integer, Resource> lengthMap)
+    public Resource getLongestURIResource(Map<Integer, Resource> lengthMap)
     {
         // select the app with the longest URI match, as the model contains a pair of EndUserApplication/AdminApplication
-        TreeMap<Integer, Resource> appMap = new TreeMap(lengthMap);
-        if (!appMap.isEmpty()) return appMap.lastEntry().getValue();
+        TreeMap<Integer, Resource> apps = new TreeMap(lengthMap);
+        if (!apps.isEmpty()) return apps.lastEntry().getValue();
         
         return null;
     }
     
-    public Map<URI, Resource> getRelativeBaseApps(Model model, URI absolutePath)
+    public Map<URI, Resource> getRelativeBaseApps(Model model, Resource type, URI absolutePath)
     {
         if (model == null) throw new IllegalArgumentException("Model cannot be null");
+        if (type == null) throw new IllegalArgumentException("Resource cannot be null");
         if (absolutePath == null) throw new IllegalArgumentException("URI cannot be null");
 
-        Map<URI, Resource> appMap = new HashMap<>();
+        Map<URI, Resource> apps = new HashMap<>();
         
-        // an app can have multiple base URIs
-        StmtIterator it = model.listStatements(null, LDT.base, (RDFNode)null);
+        ResIterator it = model.listSubjectsWithProperty(RDF.type, type);
         try
         {
             while (it.hasNext())
             {
-                Statement stmt = it.next();
-                Resource app = stmt.getSubject();
-                URI base = URI.create(stmt.getResource().getURI());
+                Resource app = it.next();
+                
+                if (!app.hasProperty(LDT.base))
+                    throw new InternalServerErrorException(new IllegalStateException("Application resource <" + app.getURI() + "> has no ldt:base value"));
+                
+                URI base = URI.create(app.getPropertyResourceValue(LDT.base).getURI());
                 URI relative = base.relativize(absolutePath);
-                if (!relative.isAbsolute()) appMap.put(base, app);
+                if (!relative.isAbsolute()) apps.put(base, app);
             }
         }
         finally
@@ -890,7 +906,48 @@ public class Application extends ResourceConfig
             it.close();
         }
 
-        return appMap;
+        return apps;
+    }
+    
+    public Resource matchDataset(Resource type, URI absolutePath)
+    {
+        return matchDataset(getContextModel(), type, absolutePath); // make sure we return an immutable model
+    }
+    
+    public Resource matchDataset(Model appModel, Resource type, URI absolutePath)
+    {
+        return getLongestURIResource(getLengthMap(getRelativeDatasets(appModel, type, absolutePath)));
+    }
+    
+    public Map<URI, Resource> getRelativeDatasets(Model model, Resource type, URI absolutePath)
+    {
+        if (model == null) throw new IllegalArgumentException("Model cannot be null");
+        if (type == null) throw new IllegalArgumentException("Resource cannot be null");
+        if (absolutePath == null) throw new IllegalArgumentException("URI cannot be null");
+
+        Map<URI, Resource> datasets = new HashMap<>();
+        
+        ResIterator it = model.listSubjectsWithProperty(RDF.type, type);
+        try
+        {
+            while (it.hasNext())
+            {
+                Resource dataset = it.next();
+                
+                if (!dataset.hasProperty(LAPP.prefix))
+                    throw new InternalServerErrorException(new IllegalStateException("Dataset resource <" + dataset.getURI() + "> has no lapp:prefix value"));
+                
+                URI prefix = URI.create(dataset.getPropertyResourceValue(LAPP.prefix).getURI());
+                URI relative = prefix.relativize(absolutePath);
+                if (!relative.isAbsolute() && !relative.toString().equals("")) datasets.put(prefix, dataset);
+            }
+        }
+        finally
+        {
+            it.close();
+        }
+
+        return datasets;
     }
     
     public Map<Integer, Resource> getLengthMap(Map<URI, Resource> apps)
@@ -908,31 +965,15 @@ public class Application extends ResourceConfig
         
         return lengthMap;
     }
-    
-    public Model getAppModel(Resource absolutePath)
-    {
-        if (absolutePath == null) throw new IllegalArgumentException("Absolute path Resource cannot be null");
 
-        QuerySolutionMap qsm = new QuerySolutionMap();
-        qsm.add(THIS_VAR_NAME, absolutePath);
-        
-        try (QueryExecution qex = QueryExecutionFactory.create(getAppQuery(), getContextDataset(), qsm))
-        {
-            if (getAppQuery().isConstructType()) return qex.execConstruct();
-            if (getAppQuery().isDescribeType()) return qex.execDescribe();
-        }
-        
-        throw new WebApplicationException(new IllegalStateException("Query is not a DESCRIBE or CONSTRUCT"));
+    public void submitImport(CSVImport csvImport, Service service, Service adminService, String baseURI, DataManager dataManager)
+    {
+        ImportListener.submit(csvImport, service, adminService, baseURI, dataManager);
     }
     
-    public void submitImport(CSVImport csvImport, com.atomgraph.linkeddatahub.server.model.Resource importRes, Resource provGraph, Service service, Service adminService, String baseURI, DataManager dataManager)
+    public void submitImport(RDFImport rdfImport, Service service, Service adminService, String baseURI, DataManager dataManager)
     {
-        ImportListener.submit(csvImport, importRes, provGraph, service, adminService, baseURI, dataManager);
-    }
-    
-    public void submitImport(RDFImport rdfImport, com.atomgraph.linkeddatahub.server.model.Resource importRes, Resource provGraph, Service service, Service adminService, String baseURI, DataManager dataManager)
-    {
-        ImportListener.submit(rdfImport, importRes, provGraph, service, adminService, baseURI, dataManager);
+        ImportListener.submit(rdfImport, service, adminService, baseURI, dataManager);
     }
     
     public static Client getClient(KeyStore keyStore, String keyStorePassword, KeyStore trustStore, Integer maxConnPerRoute, Integer maxTotalConn, ConnectionKeepAliveStrategy keepAliveStrategy) throws NoSuchAlgorithmException, KeyStoreException, UnrecoverableKeyException, KeyManagementException
@@ -953,7 +994,7 @@ public class Application extends ResourceConfig
         ctx.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
 
         Registry<ConnectionSocketFactory> socketFactoryRegistry = RegistryBuilder.<ConnectionSocketFactory>create().
-            register("https", new SSLConnectionSocketFactory(ctx)).
+            register("https", new SSLConnectionSocketFactory(ctx, NoopHostnameVerifier.INSTANCE)).
             register("http", new PlainConnectionSocketFactory()).
             build();
 
@@ -995,7 +1036,7 @@ public class Application extends ResourceConfig
         return ClientBuilder.newBuilder().
             withConfig(config).
             sslContext(ctx).
-            hostnameVerifier(NoopHostnameVerifier.INSTANCE).
+            hostnameVerifier(NoopHostnameVerifier.INSTANCE). // has no effect due to the custom SSLContext
             build();
     }
     
@@ -1011,7 +1052,7 @@ public class Application extends ResourceConfig
             ctx.init(null, tmf.getTrustManagers(), null);
 
             Registry<ConnectionSocketFactory> socketFactoryRegistry = RegistryBuilder.<ConnectionSocketFactory>create().
-                register("https", new SSLConnectionSocketFactory(ctx)).
+                register("https", new SSLConnectionSocketFactory(ctx, NoopHostnameVerifier.INSTANCE)).
                 register("http", new PlainConnectionSocketFactory()).
                 build();
         
@@ -1051,23 +1092,23 @@ public class Application extends ResourceConfig
             return ClientBuilder.newBuilder().
                 withConfig(config).
                 sslContext(ctx).
-                hostnameVerifier(NoopHostnameVerifier.INSTANCE).
+                hostnameVerifier(NoopHostnameVerifier.INSTANCE). // has no effect due to the custom SSLContext
                 build();
         }
         catch (NoSuchAlgorithmException ex)
         {
             if ( log.isErrorEnabled()) log.error("No such algorithm: {}", ex);
-            throw new WebApplicationException(ex);
+            throw new IllegalStateException(ex);
         }
         catch (KeyStoreException ex)
         {
             if ( log.isErrorEnabled()) log.error("Key store error: {}", ex);
-            throw new WebApplicationException(ex);
+            throw new IllegalStateException(ex);
         }
         catch (KeyManagementException ex)
         {
             if ( log.isErrorEnabled()) log.error("Key management error: {}", ex);
-            throw new WebApplicationException(ex);
+            throw new IllegalStateException(ex);
         }
         
         //if (log.isDebugEnabled()) client.addFilter(new LoggingFilter(System.out));
@@ -1128,29 +1169,9 @@ public class Application extends ResourceConfig
         return userAccountQuery;
     }
     
-    public Query getSitemapQuery()
+    public Query getOntologyQuery()
     {
-        return sitemapQuery;
-    }
-    
-    public Query getAppQuery()
-    {
-        return appQuery;
-    }
-
-    public Query getGraphDocumentQuery()
-    {
-        return graphDocumentQuery;
-    }
-
-    public UpdateRequest getPutUpdate(String baseURI)
-    {
-        return UpdateFactory.create(putUpdateString, baseURI);
-    }
-    
-    public UpdateRequest getDeleteUpdate(String baseURI)
-    {
-        return UpdateFactory.create(deleteUpdateString, baseURI);
+        return ontologyQuery;
     }
     
     public Integer getMaxGetRequestSize()
@@ -1161,11 +1182,6 @@ public class Application extends ResourceConfig
     public boolean isPreemptiveAuth()
     {
         return preemptiveAuth;
-    }
-
-    public boolean isRemoteVariableBindings()
-    {
-        return remoteVariableBindings;
     }
     
     public OntModelSpec getOntModelSpec()
@@ -1203,9 +1219,14 @@ public class Application extends ResourceConfig
         return uploadRoot;
     }
     
-    public Dataset getContextDataset()
+    protected Dataset getContextDataset()
     {
         return contextDataset;
+    }
+
+    public Model getContextModel()
+    {
+        return ModelFactory.createModelForGraph(new GraphReadOnly(getContextDataset().getDefaultModel().getGraph()));
     }
 
     public boolean isInvalidateCache()
@@ -1248,6 +1269,11 @@ public class Application extends ResourceConfig
         return noCertClient;
     }
     
+    public Address getNotificationAddress()
+    {
+        return notificationAddress;
+    }
+    
     public final MessageBuilder getMessageBuilder()
     {
         if (authenticator != null) return MessageBuilder.fromPropertiesAndAuth(emailProperties, authenticator);
@@ -1264,7 +1290,7 @@ public class Application extends ResourceConfig
         return oidcModelCache;
     }
     
-    public Map<String, XsltExecutable> getXsltExecutableCache()
+    public Map<URI, XsltExecutable> getXsltExecutableCache()
     {
         return xsltExecutableCache;
     }

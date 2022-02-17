@@ -25,16 +25,14 @@ jobs:
             JENA_HOME: "${{runner.temp}}/apache-jena-${{env.JENA_VERSION}}"
       - name: Checkout code
         uses: actions/checkout@v2
-      - name: Build Docker image
-        run: docker build -t atomgraph/linkeddatahub .
       - name: Generate owner's and secretary's certificates/public keys
         run: ../scripts/setup.sh .env ssl "${{env.OWNER_CERT_PWD}}" "${{env.SECRETARY_CERT_PWD}}" 3650
         shell: bash
         working-directory: http-tests
-      - name: Run Docker containers
-        run: docker-compose -f docker-compose.yml -f ./http-tests/docker-compose.http-tests.yml --env-file ./http-tests/.env up -d # do not use Varnish cache for tests; run in the background
+      - name: Build Docker image & Run Docker containers
+        run: docker-compose -f docker-compose.yml -f ./http-tests/docker-compose.http-tests.yml --env-file ./http-tests/.env up --build -d
       - name: Wait for the server to start...
-        run: while ! curl -w "%{http_code}\n" -k -v "${{env.BASE_URI}}" | grep "200" ; do sleep 1 ; done # wait for the webapp to start
+        run:  while ! (status=$(curl -k -s -w "%{http_code}\n" https://localhost:4443 -o /dev/null) && echo "$status" && echo "$status" | grep "403") ; do sleep 1 ; done # wait for the webapp to start (returns 403 by default)
       - name: Run HTTP test scripts
         run: ./run.sh "$PWD/ssl/owner/cert.pem" "${{env.OWNER_CERT_PWD}}" "$PWD/ssl/secretary/cert.pem" "${{env.SECRETARY_CERT_PWD}}"
         shell: bash

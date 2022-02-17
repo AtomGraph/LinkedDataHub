@@ -1,5 +1,4 @@
-@prefix apl:	<https://w3id.org/atomgraph/linkeddatahub/domain#> .
-@prefix lapp:	<https://w3id.org/atomgraph/linkeddatahub/apps/domain#> .
+@prefix lapp:	<https://w3id.org/atomgraph/linkeddatahub/apps#> .
 @prefix a:	<https://w3id.org/atomgraph/core#> .
 @prefix ac:	<https://w3id.org/atomgraph/client#> .
 @prefix rdf:	<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
@@ -17,20 +16,20 @@
 
 # root admin
 
-<urn:linkeddatahub:apps/admin> a lapp:AdminApplication ;
+<urn:linkeddatahub:apps/admin> a lapp:Application, lapp:AdminApplication ;
     dct:title "LinkedDataHub admin" ;
     ldt:base <admin/> ;
-    ldt:ontology <admin/ns#> ;
+    ldt:ontology <https://w3id.org/atomgraph/linkeddatahub/admin#> ;
     ldt:service <urn:linkeddatahub:services/admin> ;
-    ac:stylesheet <file:///usr/local/tomcat/webapps/ROOT/static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/admin/layout.xsl> ;
+    ac:stylesheet <static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/admin/layout.xsl> ;
     lapp:endUserApplication <urn:linkeddatahub:apps/end-user> .
 
 # root end-user
 
-<urn:linkeddatahub:apps/end-user> a lapp:EndUserApplication ;
+<urn:linkeddatahub:apps/end-user> a lapp:Application, lapp:EndUserApplication ;
     dct:title "LinkedDataHub" ;
     ldt:base <> ;
-    ldt:ontology <ns#> ;
+    ldt:ontology <admin/model/ontologies/namespace/#> ;
     ldt:service <urn:linkeddatahub:services/end-user> ;
     lapp:adminApplication <urn:linkeddatahub:apps/admin> ;
     lapp:public true .
@@ -39,7 +38,7 @@
 
 # root admin
 
-<urn:linkeddatahub:services/admin> a apl:GenericService ;
+<urn:linkeddatahub:services/admin> a sd:Service ;
     dct:title "LinkedDataHub admin service" ;
     sd:supportedLanguage sd:SPARQL11Query, sd:SPARQL11Update ;
     sd:endpoint <http://fuseki-admin:3030/ds/> ;
@@ -48,7 +47,7 @@
  
 # root end-user
 
-<urn:linkeddatahub:services/end-user> a apl:GenericService ;
+<urn:linkeddatahub:services/end-user> a sd:Service ;
     dct:title "LinkedDataHub service" ;
     sd:supportedLanguage sd:SPARQL11Query, sd:SPARQL11Update ;
     sd:endpoint <http://fuseki-end-user:3030/ds/> ;

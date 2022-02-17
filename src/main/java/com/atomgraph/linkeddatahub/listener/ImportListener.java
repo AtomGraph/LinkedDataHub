@@ -25,7 +25,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
-import org.apache.jena.rdf.model.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,20 +55,20 @@ public class ImportListener implements ServletContextListener
         THREAD_POOL.shutdown();
     }
 
-    public static void submit(CSVImport csvImport, com.atomgraph.linkeddatahub.server.model.Resource importRes, Resource provGraph, Service service, Service adminService, String baseURI, DataManager dataManager)
+    public static void submit(CSVImport csvImport, Service service, Service adminService, String baseURI, DataManager dataManager)
     {
         if (csvImport == null) throw new IllegalArgumentException("CSVImport cannot be null");
         if (log.isDebugEnabled()) log.debug("Submitting new CSVImport to thread pool: {}", csvImport.toString());
         
-        new Executor(THREAD_POOL).start(csvImport, importRes, provGraph, service, adminService, baseURI, dataManager);
+        new Executor(THREAD_POOL).start(csvImport, service, adminService, baseURI, dataManager, service.getGraphStoreClient());
     }
 
-    public static void submit(RDFImport rdfImport, com.atomgraph.linkeddatahub.server.model.Resource importRes, Resource provGraph, Service service, Service adminService, String baseURI, DataManager dataManager)
+    public static void submit(RDFImport rdfImport, Service service, Service adminService, String baseURI, DataManager dataManager)
     {
         if (rdfImport == null) throw new IllegalArgumentException("RDFImport cannot be null");
         if (log.isDebugEnabled()) log.debug("Submitting new RDFImport to thread pool: {}", rdfImport.toString());
         
-        new Executor(THREAD_POOL).start(rdfImport, importRes, provGraph, service, adminService, baseURI, dataManager);
+        new Executor(THREAD_POOL).start(rdfImport, service, adminService, baseURI, dataManager, service.getGraphStoreClient());
     }
     
 }

@@ -1,5 +1,5 @@
 /**
- *  Copyright 2019 Martynas Jusevičius <martynas@atomgraph.com>
+ *  Copyright 2022 Martynas Jusevičius <martynas@atomgraph.com>
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -17,62 +17,14 @@
 package com.atomgraph.linkeddatahub.server.security;
 
 import com.atomgraph.linkeddatahub.model.Agent;
-import javax.ws.rs.core.SecurityContext;
-import java.security.Principal;
-import org.apache.jena.sparql.vocabulary.FOAF;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
- * Security context for an agent identified by URI.
- * 
- * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
- * @see com.atomgraph.linkeddatahub.model.Agent
+ *
+ * @author Martynas Jusevičius <martynas@atomgraph.com>
  */
-public class AgentContext implements SecurityContext
+public interface AgentContext
 {
     
-    private static final Logger log = LoggerFactory.getLogger(AgentContext.class);
-
-    private final Agent agent;
-    private final String authScheme;
-    
-    public AgentContext(String authScheme, Agent account)
-    {
-        this.agent = account;
-        this.authScheme = authScheme;
-    }
-    
-    public Agent getAgent()
-    {
-        return agent;
-    }
-    
-    @Override
-    public Principal getUserPrincipal()
-    {
-        return getAgent();
-    }
-
-    // http://docs.oracle.com/javaee/5/tutorial/doc/bncbe.html
-    // http://docs.oracle.com/javaee/6/tutorial/doc/gijrp.html
-    // http://docs.oracle.com/javaee/6/tutorial/doc/gmmku.html
-    @Override
-    public boolean isUserInRole(String groupURI)
-    {
-        return getAgent().getModel().contains(getAgent().getModel().createResource(groupURI), FOAF.member, getAgent());
-    }
-
-    @Override
-    public boolean isSecure()
-    {
-        return true;
-    }
-
-    @Override
-    public String getAuthenticationScheme()
-    {
-        return authScheme;
-    }
+    Agent getAgent();
     
 }

@@ -17,7 +17,7 @@
 package com.atomgraph.linkeddatahub.model.impl;
 
 import com.atomgraph.linkeddatahub.model.File;
-import com.atomgraph.linkeddatahub.vocabulary.APL;
+import com.atomgraph.linkeddatahub.vocabulary.NFO;
 import javax.ws.rs.core.MediaType;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.enhanced.EnhNode;
@@ -49,7 +49,7 @@ public class FileImpl extends ResourceImpl implements File
             }
             else
             {
-                throw new ConversionException( "Cannot convert node " + node.toString() + " to File: it does not have rdf:type apl:File or equivalent");
+                throw new ConversionException( "Cannot convert node " + node.toString() + " to File: it does not have rdf:type nfo:FileDataObject or equivalent");
             }
         }
 
@@ -58,7 +58,7 @@ public class FileImpl extends ResourceImpl implements File
         {
             if (eg == null) throw new IllegalArgumentException("EnhGraph cannot be null");
 
-            return eg.asGraph().contains(node, RDF.type.asNode(), APL.File.asNode());
+            return eg.asGraph().contains(node, RDF.type.asNode(), NFO.FileDataObject.asNode());
         }
     };
     

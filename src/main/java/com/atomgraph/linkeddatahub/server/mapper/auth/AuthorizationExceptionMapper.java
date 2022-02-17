@@ -16,7 +16,6 @@
  */
 package com.atomgraph.linkeddatahub.server.mapper.auth;
 
-import com.atomgraph.client.vocabulary.AC;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
@@ -26,20 +25,15 @@ import javax.ws.rs.ext.ExceptionMapper;
 import javax.ws.rs.ext.Provider;
 import com.atomgraph.linkeddatahub.server.exception.auth.AuthorizationException;
 import com.atomgraph.linkeddatahub.vocabulary.LACL;
-import com.atomgraph.processor.model.TemplateCall;
 import com.atomgraph.server.mapper.ExceptionMapperBase;
 import com.atomgraph.server.vocabulary.HTTP;
 import java.net.URI;
-import java.util.Optional;
 import javax.inject.Inject;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.EntityTag;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriBuilder;
-import org.apache.jena.ontology.Ontology;
-import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.rdf.model.Resource;
-import org.glassfish.jersey.uri.UriComponent;
 
 /**
  * JAX-RS mapper for authorization exceptions.
@@ -50,15 +44,13 @@ import org.glassfish.jersey.uri.UriComponent;
 public class AuthorizationExceptionMapper extends ExceptionMapperBase implements ExceptionMapper<AuthorizationException>
 {
     
-    private final SecurityContext securityContext;
-    private final Optional<Application> application;
+    @Context SecurityContext securityContext;
+    @Inject javax.inject.Provider<com.atomgraph.linkeddatahub.apps.model.Application> application;
 
     @Inject
-    public AuthorizationExceptionMapper(Optional<Ontology> ontology, Optional<TemplateCall> templateCall, MediaTypes mediaTypes, @Context SecurityContext securityContext, Optional<Application> application)
+    public AuthorizationExceptionMapper(MediaTypes mediaTypes)
     {
-        super(ontology, templateCall, mediaTypes);
-        this.securityContext = securityContext;
-        this.application = application;
+        super(mediaTypes);
     }
     
     @Override
@@ -69,29 +61,21 @@ public class AuthorizationExceptionMapper extends ExceptionMapperBase implements
                 addLiteral(HTTP.absoluteURI, ex.getAbsolutePath().toString());
         
         // add link to the endpoint for access requests. TO-DO: make the URIs configurable or best - retrieve from sitemap/dataset
-        if (getApplication().isPresent() && getSecurityContext().getUserPrincipal() != null)
+        if (getSecurityContext().getUserPrincipal() != null)
         {
-            if (getApplication().get().canAs(EndUserApplication.class))
+            if (getApplication().canAs(EndUserApplication.class))
             {
-                Resource adminBase = getApplication().get().as(EndUserApplication.class).getAdminApplication().getBase();
-
-                URI requestClassURI = UriBuilder.fromUri(adminBase.getURI()).path("ns").fragment(LACL.AuthorizationRequest.getLocalName()).build();
-                // we URI-encode values ourselves because Jersey 1.x UriBuilder fails to do so: https://java.net/jira/browse/JERSEY-1717
-                String encodedRequestClassURI = UriComponent.encode(requestClassURI.toString(), UriComponent.Type.UNRESERVED);
-                //String encodedRequestURI = UriComponent.encode(ex.getAbsolutePath().toString(), UriComponent.Type.UNRESERVED);
+                Resource adminBase = getApplication().as(EndUserApplication.class).getAdminApplication().getBase();
 
                 URI requestAccessURI = UriBuilder.fromUri(adminBase.getURI()).
                     path(com.atomgraph.linkeddatahub.Application.REQUEST_ACCESS_PATH).
-                    queryParam(AC.forClass.getLocalName(), encodedRequestClassURI).
-                    //queryParam(LACL.requestAccessTo.getLocalName(), encodedRequestURI).
                     build();
 
                 exRes.addProperty(LACL.requestAccess, exRes.getModel().createResource(requestAccessURI.toString()));
             }
         }
-        
 
-        return getResponseBuilder(DatasetFactory.create(exRes.getModel())).
+        return getResponseBuilder(exRes.getModel()).
             status(Response.Status.FORBIDDEN).
             tag((EntityTag)null). // unset EntityTag as it leads to caching of the 403 responses?
             build();
@@ -102,9 +86,9 @@ public class AuthorizationExceptionMapper extends ExceptionMapperBase implements
         return securityContext;
     }
     
-    public Optional<Application> getApplication()
+    public Application getApplication()
     {
-        return application;
+        return application.get();
     }
     
 }

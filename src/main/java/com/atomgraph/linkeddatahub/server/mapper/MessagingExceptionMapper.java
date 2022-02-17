@@ -17,15 +17,11 @@
 package com.atomgraph.linkeddatahub.server.mapper;
 
 import com.atomgraph.core.MediaTypes;
-import com.atomgraph.processor.model.TemplateCall;
 import com.atomgraph.server.mapper.ExceptionMapperBase;
-import java.util.Optional;
 import javax.inject.Inject;
 import javax.mail.MessagingException;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.ExceptionMapper;
-import org.apache.jena.ontology.Ontology;
-import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.rdf.model.ResourceFactory;
 
 
@@ -38,17 +34,17 @@ public class MessagingExceptionMapper extends ExceptionMapperBase implements Exc
 {
 
     @Inject
-    public MessagingExceptionMapper(Optional<Ontology> ontology, Optional<TemplateCall> templateCall, MediaTypes mediaTypes)
+    public MessagingExceptionMapper(MediaTypes mediaTypes)
     {
-        super(ontology, templateCall, mediaTypes);
+        super(mediaTypes);
     }
 
     @Override
     public Response toResponse(MessagingException ex)
     {
-        return getResponseBuilder(DatasetFactory.create(toResource(ex, Response.Status.INTERNAL_SERVER_ERROR,
+        return getResponseBuilder(toResource(ex, Response.Status.INTERNAL_SERVER_ERROR,
                     ResourceFactory.createResource("http://www.w3.org/2011/http-statusCodes#InternalServerError")).
-                getModel())).
+                getModel()).
             status(Response.Status.INTERNAL_SERVER_ERROR).
             build();
     }

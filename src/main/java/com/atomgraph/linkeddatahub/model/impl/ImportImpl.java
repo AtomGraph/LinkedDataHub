@@ -16,26 +16,16 @@
  */
 package com.atomgraph.linkeddatahub.model.impl;
 
-import com.atomgraph.client.util.DataManager;
 import com.atomgraph.linkeddatahub.model.Import;
-import com.atomgraph.linkeddatahub.vocabulary.APL;
-import com.atomgraph.processor.util.Validator;
-import com.atomgraph.spinrdf.constraints.ConstraintViolation;
-import com.atomgraph.spinrdf.constraints.ObjectPropertyPath;
-import com.atomgraph.spinrdf.constraints.SimplePropertyPath;
-import com.atomgraph.spinrdf.vocabulary.SP;
-import com.atomgraph.spinrdf.vocabulary.SPIN;
-import java.util.List;
+import com.atomgraph.linkeddatahub.vocabulary.LDH;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.enhanced.EnhNode;
 import org.apache.jena.enhanced.Implementation;
 import org.apache.jena.graph.Node;
 import org.apache.jena.ontology.ConversionException;
-import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.impl.ResourceImpl;
 import org.apache.jena.vocabulary.RDF;
-import org.apache.jena.vocabulary.RDFS;
 
 /**
  *
@@ -65,7 +55,7 @@ public class ImportImpl extends ResourceImpl implements Import
         {
             if (eg == null) throw new IllegalArgumentException("EnhGraph cannot be null");
 
-            return eg.asGraph().contains(node, RDF.type.asNode(), APL.Import.asNode());
+            return eg.asGraph().contains(node, RDF.type.asNode(), LDH.Import.asNode());
         }
     };
     
@@ -77,13 +67,13 @@ public class ImportImpl extends ResourceImpl implements Import
     @Override
     public Resource getFile()
     {
-        return getPropertyResourceValue(APL.file);
+        return getPropertyResourceValue(LDH.file);
     }
     
     @Override
     public Resource getContainer()
     {
-        return getPropertyResourceValue(APL.action);
+        return getPropertyResourceValue(LDH.action);
     }
 
 }

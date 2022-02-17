@@ -17,7 +17,7 @@
 package com.atomgraph.linkeddatahub.model.impl;
 
 import com.atomgraph.linkeddatahub.model.XMLImport;
-import com.atomgraph.linkeddatahub.vocabulary.APL;
+import com.atomgraph.linkeddatahub.vocabulary.LDH;
 import java.net.URI;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.enhanced.EnhNode;
@@ -59,7 +59,7 @@ public class XMLImportImpl extends ImportImpl implements XMLImport
         {
             if (eg == null) throw new IllegalArgumentException("EnhGraph cannot be null");
 
-            return eg.asGraph().contains(node, RDF.type.asNode(), APL.XMLImport.asNode());
+            return eg.asGraph().contains(node, RDF.type.asNode(), LDH.XMLImport.asNode());
         }
     };
     

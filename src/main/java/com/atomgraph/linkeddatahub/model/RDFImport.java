@@ -26,5 +26,7 @@ public interface RDFImport extends Import
 {
 
     Resource getQuery();
+    
+    Resource getGraphName();
 
 }

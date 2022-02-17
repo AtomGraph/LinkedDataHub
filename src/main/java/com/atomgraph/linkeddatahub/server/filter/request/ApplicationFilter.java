@@ -18,18 +18,19 @@ package com.atomgraph.linkeddatahub.server.filter.request;
 
 import com.atomgraph.client.vocabulary.AC;
 import com.atomgraph.linkeddatahub.vocabulary.LAPP;
-import com.atomgraph.processor.vocabulary.LDT;
+import com.atomgraph.linkeddatahub.writer.Mode;
 import java.io.IOException;
-import java.net.URI;
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import javax.annotation.Priority;
 import javax.inject.Inject;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.container.PreMatching;
-import javax.ws.rs.core.UriBuilder;
+import javax.ws.rs.core.HttpHeaders;
 import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.vocabulary.RDF;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,39 +51,50 @@ public class ApplicationFilter implements ContainerRequestFilter
     @Override
     public void filter(ContainerRequestContext request) throws IOException
     {
-        final URI matchURI, requestURI;
-        if (request.getUriInfo().getQueryParameters().containsKey(AC.uri.getLocalName()))
+        // there always have to be an app
+        Resource appResource = getSystem().matchApp(LAPP.Application, request.getUriInfo().getAbsolutePath());
+        if (appResource == null) throw new IllegalStateException("Request URI '" + request.getUriInfo().getAbsolutePath() + "' has not matched any lapp:Application");
+
+        // instead of InfModel, do faster explicit checks for subclasses and add rdf:type
+        if (!appResource.canAs(com.atomgraph.linkeddatahub.apps.model.Application.class) &&
+                !appResource.canAs(com.atomgraph.linkeddatahub.apps.model.EndUserApplication.class) &&
+                !appResource.canAs(com.atomgraph.linkeddatahub.apps.model.AdminApplication.class))
+            throw new IllegalStateException("Resource <" + appResource + "> cannot be cast to lapp:Application");
+
+        com.atomgraph.linkeddatahub.apps.model.Application app = appResource.as(com.atomgraph.linkeddatahub.apps.model.Application.class);
+        request.setProperty(LAPP.Application.getURI(), app); // wrap into a helper class so it doesn't interfere with injection of Application
+        request.setRequestUri(app.getBaseURI(), request.getUriInfo().getRequestUri()); // there's always ldt:base
+
+        // override "Accept" header using then ?accept= param value. TO-DO: move to a separate ContainerRequestFilter?
+        // has to go before ?uri logic because that will change the UriInfo
+        if (request.getUriInfo().getQueryParameters().containsKey(AC.accept.getLocalName()))
+            request.getHeaders().putSingle(HttpHeaders.ACCEPT, request.getUriInfo().getQueryParameters().getFirst(AC.accept.getLocalName()));
+
+        // used by ModeFactory and ModelXSLTWriterBase
+        if (request.getUriInfo().getQueryParameters().containsKey(AC.mode.getLocalName()))
         {
-            // override request URI using ?uri query param
-            requestURI = URI.create(request.getUriInfo().getQueryParameters().getFirst(AC.uri.getLocalName()));
-            matchURI = UriBuilder.fromUri(requestURI).replaceQuery(null).build(); // strip query parameters
+            List<String> modeUris = request.getUriInfo().getQueryParameters().get(AC.mode.getLocalName());
+            List<Mode> modes = modeUris.stream().map(Mode::new).collect(Collectors.toList());
+            request.setProperty(AC.mode.getURI(), modes);
         }
-        else
-        {
-            requestURI = request.getUriInfo().getRequestUri();
-            matchURI = request.getUriInfo().getAbsolutePath();
-        }
-        
-        Resource appResource = getSystem().matchApp(matchURI);
-        if (appResource != null)
+        else request.setProperty(AC.mode.getURI(), Collections.emptyList());
+
+        // TO-DO: move Dataset logic to a separate ContainerRequestFilter?
+        Resource datasetResource = getSystem().matchDataset(LAPP.Dataset, request.getUriInfo().getAbsolutePath());
+        if (datasetResource != null)
         {
             // instead of InfModel, do faster explicit checks for subclasses and add rdf:type
-            if (!appResource.canAs(com.atomgraph.linkeddatahub.apps.model.Application.class) &&
-                    !appResource.canAs(com.atomgraph.linkeddatahub.apps.model.EndUserApplication.class) &&
-                    !appResource.canAs(com.atomgraph.linkeddatahub.apps.model.AdminApplication.class))
-                throw new IllegalStateException("Resource with ldt:base <" + appResource.getPropertyResourceValue(LDT.base) + "> cannot be cast to lapp:Application");
-            
-            appResource.addProperty(RDF.type, LAPP.Application); // without rdf:type, cannot cast to Application
+            if (!datasetResource.canAs(com.atomgraph.linkeddatahub.apps.model.Dataset.class))
+                throw new IllegalStateException("Resource <" + datasetResource + "> cannot be cast to lapp:Dataset");
 
-            com.atomgraph.linkeddatahub.apps.model.Application app = appResource.as(com.atomgraph.linkeddatahub.apps.model.Application.class);
-            request.setProperty(LAPP.Application.getURI(), Optional.of(app));
-
-            request.setRequestUri(app.getBaseURI(), requestURI);
+            com.atomgraph.linkeddatahub.apps.model.Dataset dataset = datasetResource.as(com.atomgraph.linkeddatahub.apps.model.Dataset.class);
+            if (log.isDebugEnabled()) log.debug("Request URI <{}> has matched a lapp:Dataset <{}>", request.getUriInfo().getRequestUri(), dataset.getURI());
+            request.setProperty(LAPP.Dataset.getURI(), Optional.of(dataset));
         }
         else
         {
-            if (log.isDebugEnabled()) log.debug("Request URI {} has not matched any Application", matchURI);
-            request.setProperty(LAPP.Application.getURI(), Optional.empty());
+            if (log.isDebugEnabled()) log.debug("Request URI <{}> has not matched any lapp:Dataset", request.getUriInfo().getRequestUri());
+            request.setProperty(LAPP.Dataset.getURI(), Optional.empty());
         }
     }
 

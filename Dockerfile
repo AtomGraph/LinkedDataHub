@@ -2,7 +2,7 @@ FROM maven:3.6.3-jdk-11 as maven
 
 # download and extract Jena
 
-ARG JENA_VERSION=3.16.0
+ARG JENA_VERSION=4.3.2
 
 ARG JENA_TAR_URL="https://archive.apache.org/dist/jena/binaries/apache-jena-${JENA_VERSION}.tar.gz"
 
@@ -30,6 +30,10 @@ LABEL maintainer="martynas@atomgraph.com"
 
 ARG SOURCE_COMMIT=
 
+ARG UPLOAD_ROOT=/var/www/linkeddatahub/uploads
+
+ARG UPLOAD_CONTAINER_PATH=uploads
+
 ENV SOURCE_COMMIT=$SOURCE_COMMIT
 
 WORKDIR $CATALINA_HOME
@@ -44,9 +48,13 @@ ENV STYLESHEET=static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/layout.xsl
 
 ENV CACHE_STYLESHEET=true
 
-ENV ATOMGRAPH_UPLOAD_ROOT=
+ENV UPLOAD_ROOT=$UPLOAD_ROOT
 
 ENV PROXY_HOST=
+
+ENV PROXY_HTTP_PORT=
+
+ENV PROXY_HTTPS_PORT=
 
 ENV TIMEOUT=20
 
@@ -78,13 +86,13 @@ ENV OWNER_PUBLIC_KEY=/var/linkeddatahub/ssl/owner/public.pem
 
 ENV LOAD_DATASETS=
 
-ENV CONTEXT_DATASET=/var/linkeddatahub/datasets/system.trig
+ENV CONTEXT_DATASET_URL=file:///var/linkeddatahub/datasets/system.trig
 
-ENV ADMIN_DATASET=/var/linkeddatahub/datasets/admin.trig
+ENV ADMIN_DATASET_URL=file:///var/linkeddatahub/datasets/admin.trig
 
-ENV END_USER_DATASET=/var/linkeddatahub/datasets/end-user.trig
+ENV END_USER_DATASET_URL=file:///var/linkeddatahub/datasets/end-user.trig
 
-ENV UPLOAD_CONTAINER_PATH=uploads
+ENV UPLOAD_CONTAINER_PATH=$UPLOAD_CONTAINER_PATH
 
 ENV MAX_CONTENT_LENGTH=
 
@@ -97,6 +105,8 @@ ENV IMPORT_KEEPALIVE=
 ENV GOOGLE_CLIENT_ID=
 
 ENV GOOGLE_CLIENT_SECRET=
+
+# HEALTHCHECK --start-period=80s CMD curl -f http://localhost:$HTTP_PORT || exit 1
 
 # remove default Tomcat webapps and install xmlstarlet (used for XPath queries) and envsubst (for variable substitution)
 
@@ -111,6 +121,10 @@ RUN apt-get update --allow-releaseinfo-change && \
 # copy entrypoint
 
 COPY platform/entrypoint.sh entrypoint.sh
+
+# copy certificate import script
+
+COPY platform/import-letsencrypt-stg-roots.sh import-letsencrypt-stg-roots.sh
 
 # copy SPARQL query used to split the default graph into named graphs
 
@@ -149,5 +163,19 @@ COPY --from=maven /jena/* /jena
 ENV JENA_HOME=/jena
 
 ENV PATH="${PATH}:${JENA_HOME}/bin"
+
+# add non-root user "ldh" and give it access to $CATALINA_HOME
+
+RUN useradd --no-log-init -U ldh && \
+    chown -R ldh:ldh . && \
+    chown -R ldh:ldh /var/linkeddatahub && \
+    mkdir -p "${UPLOAD_ROOT}/${UPLOAD_CONTAINER_PATH}" && \
+    chown -R ldh:ldh "$UPLOAD_ROOT" && \
+    mkdir -p /etc/letsencrypt/staging && \
+    chown -R ldh:ldh /etc/letsencrypt/staging
+
+RUN ./import-letsencrypt-stg-roots.sh
+
+USER ldh
 
 ENTRYPOINT ["/bin/sh", "entrypoint.sh"]

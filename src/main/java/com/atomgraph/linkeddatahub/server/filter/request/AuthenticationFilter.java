@@ -16,21 +16,20 @@
  */
 package com.atomgraph.linkeddatahub.server.filter.request;
 
-import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
-import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.apps.model.Application;
+import com.atomgraph.linkeddatahub.apps.model.Dataset;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.client.SesameProtocolClient;
-import com.atomgraph.linkeddatahub.model.Agent;
 import com.atomgraph.linkeddatahub.model.Service;
-import com.atomgraph.linkeddatahub.vocabulary.APLT;
-import com.atomgraph.linkeddatahub.vocabulary.LACL;
+import com.atomgraph.linkeddatahub.server.security.AgentContext;
+import com.atomgraph.linkeddatahub.vocabulary.LDHT;
 import java.io.IOException;
 import java.util.Optional;
 import javax.inject.Inject;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
 import org.apache.jena.query.ParameterizedSparqlString;
 import org.apache.jena.query.QuerySolutionMap;
 import org.apache.jena.rdf.model.Model;
@@ -38,7 +37,6 @@ import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.ResIterator;
 import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.vocabulary.RDF;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,7 +51,8 @@ public abstract class AuthenticationFilter implements ContainerRequestFilter
     private static final Logger log = LoggerFactory.getLogger(AuthenticationFilter.class);
 
     @Inject com.atomgraph.linkeddatahub.Application system;
-    @Inject javax.inject.Provider<Optional<com.atomgraph.linkeddatahub.apps.model.Application>> app;
+    @Inject javax.inject.Provider<com.atomgraph.linkeddatahub.apps.model.Application> app;
+    @Inject javax.inject.Provider<Optional<com.atomgraph.linkeddatahub.apps.model.Dataset>> dataset;
 
     public abstract String getScheme();
     
@@ -61,7 +60,7 @@ public abstract class AuthenticationFilter implements ContainerRequestFilter
 
     public abstract void logout(com.atomgraph.linkeddatahub.apps.model.Application app, ContainerRequestContext request);
     
-    public abstract Resource authenticate(ContainerRequestContext request);
+    public abstract SecurityContext authenticate(ContainerRequestContext request);
 
     @Override
     public void filter(ContainerRequestContext request) throws IOException
@@ -69,24 +68,23 @@ public abstract class AuthenticationFilter implements ContainerRequestFilter
         if (request == null) throw new IllegalArgumentException("ContainerRequestContext cannot be null");
         if (log.isDebugEnabled()) log.debug("Authenticating request URI: {}", request.getUriInfo().getRequestUri());
 
-        if (getApplication().isEmpty()) return; // skip filter if no application has matched
-        if (!getApplication().get().canAs(EndUserApplication.class) && !getApplication().get().canAs(AdminApplication.class)) return; // skip "primitive" apps
         if (request.getSecurityContext().getUserPrincipal() != null) return; // skip filter if agent already authorized
+        if (getDataset().isPresent()) return; // skip proxied dataspaces
 
         //if (isLogoutForced(request, getScheme())) logout(getApplication(), request);
         
-        final Resource agent = authenticate(request);
-        if (agent == null) return; // skip to the next filter if agent could not be retrieved with this one
+        final SecurityContext securityContext = authenticate(request);
+        if (securityContext == null) return; // skip to the next filter if agent could not be retrieved with this one
 
-        // imitate type inference, otherwise we'll get Jena's polymorphism exception
-        request.setSecurityContext(new AgentContext(getScheme(), agent.addProperty(RDF.type, LACL.Agent).as(Agent.class)));
+        request.setSecurityContext(securityContext);
+        request.setProperty(AgentContext.class.getCanonicalName(), securityContext); // used by AgentContextFactory
     }
     
     protected Service getAgentService()
     {
-        return getApplication().get().canAs(EndUserApplication.class) ?
-            getApplication().get().as(EndUserApplication.class).getAdminApplication().getService() :
-            getApplication().get().getService();
+        return getApplication().canAs(EndUserApplication.class) ?
+            getApplication().as(EndUserApplication.class).getAdminApplication().getService() :
+            getApplication().getService();
     }
     
     /**
@@ -145,8 +143,8 @@ public abstract class AuthenticationFilter implements ContainerRequestFilter
     {
         if (request == null) throw new IllegalArgumentException("ContainerRequestContext cannot be null");
         
-        if (request.getUriInfo().getQueryParameters().getFirst(APLT.login.getLocalName()) != null)
-            return request.getUriInfo().getQueryParameters().getFirst(APLT.login.getLocalName()).equalsIgnoreCase(scheme);
+        if (request.getUriInfo().getQueryParameters().getFirst(LDHT.login.getLocalName()) != null)
+            return request.getUriInfo().getQueryParameters().getFirst(LDHT.login.getLocalName()).equalsIgnoreCase(scheme);
         
         return false;
     }
@@ -155,15 +153,20 @@ public abstract class AuthenticationFilter implements ContainerRequestFilter
     {
         if (request == null) throw new IllegalArgumentException("ContainerRequestContext cannot be null");
 
-        if (request.getUriInfo().getQueryParameters().getFirst(APLT.logout.getLocalName()) != null)
-            return request.getUriInfo().getQueryParameters().getFirst(APLT.logout.getLocalName()).equalsIgnoreCase(scheme);
+        if (request.getUriInfo().getQueryParameters().getFirst(LDHT.logout.getLocalName()) != null)
+            return request.getUriInfo().getQueryParameters().getFirst(LDHT.logout.getLocalName()).equalsIgnoreCase(scheme);
         
         return false;
     }
     
-    public Optional<Application> getApplication()
+    public Application getApplication()
     {
         return app.get();
+    }
+    
+    public Optional<Dataset> getDataset()
+    {
+        return dataset.get();
     }
     
     public com.atomgraph.linkeddatahub.Application getSystem()

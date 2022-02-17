@@ -10,7 +10,6 @@ print_usage()
     printf "  -f, --cert-pem-file CERT_FILE        .pem file with the WebID certificate of the agent\n"
     printf "  -p, --cert-password CERT_PASSWORD    Password of the WebID certificate\n"
     printf "\n"
-    printf "  -c, --class CLASS_URI                URI of the class that is the type of the document being created\n"
     printf "  -t, --content-type MEDIA_TYPE        Media type of the RDF body (e.g. text/turtle)\n"
 }
 
@@ -29,11 +28,6 @@ do
         ;;
         -p|--cert-password)
         cert_password="$2"
-        shift # past argument
-        shift # past value
-        ;;
-        -c|--class)
-        class="$2"
         shift # past argument
         shift # past value
         ;;
@@ -58,10 +52,6 @@ if [ -z "$cert_password" ] ; then
     print_usage
     exit 1
 fi
-if [ -z "$class" ] ; then
-    print_usage
-    exit 1
-fi
 if [ -z "$content_type" ] ; then
     print_usage
     exit 1
@@ -71,14 +61,7 @@ if [ "$#" -ne 1 ]; then
     exit 1
 fi
 
-urlencode()
-{
-    python2 -c 'import urllib, sys; print urllib.quote(sys.argv[1] if len(sys.argv) > 1 else sys.stdin.read()[0:-1])' "$1"
-}
-
-container="$1"
-forClass=$(urlencode "$class")
-target="${container}?forClass=${forClass}"
+target="$1"
 
 # POST RDF document from stdin to the server and print Location URL
-cat - | curl -v -k -E "${cert_pem_file}":"${cert_password}" -d @- -H "Content-Type: ${content_type}" -H "Accept: text/turtle" "${target}" -v -D - | tr -d '\r' | sed -En 's/^Location: (.*)/\1/p'
+cat - | curl -v -k -E "${cert_pem_file}":"${cert_password}" -d @- -H "Content-Type: ${content_type}" -H "Accept: text/turtle" "$target" -v -D - | tr -d '\r' | sed -En 's/^Location: (.*)/\1/p'

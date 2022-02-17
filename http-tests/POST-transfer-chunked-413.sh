@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 
 initialize_dataset "$END_USER_BASE_URL" "$TMP_END_USER_DATASET" "$END_USER_ENDPOINT_URL"
 initialize_dataset "$ADMIN_BASE_URL" "$TMP_ADMIN_DATASET" "$ADMIN_ENDPOINT_URL"
@@ -28,11 +29,11 @@ do
   echo -e "<http://s> <http://p> <http://o> <http://g> ." >> "$file" ;
 done
 
-file_content_type="application/n-quads" # content type doesn't matter -- only Content-Length
+file_content_type="application/n-triples" # content type doesn't matter -- only Content-Length
 
 # stream data - use chunked encoding
 
-curl -w "%{http_code}\n" -k -s \
+curl -w "%{http_code}\n" -o /dev/null -k -s \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -H "Content-Type: ${file_content_type}" \
   -H "Accept: text/turtle" \

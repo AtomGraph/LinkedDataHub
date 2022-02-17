@@ -16,8 +16,9 @@
  */
 package com.atomgraph.linkeddatahub.model.impl;
 
+import com.atomgraph.core.vocabulary.SD;
 import com.atomgraph.linkeddatahub.model.RDFImport;
-import com.atomgraph.linkeddatahub.vocabulary.APL;
+import com.atomgraph.linkeddatahub.vocabulary.LDH;
 import com.atomgraph.spinrdf.vocabulary.SPIN;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.enhanced.EnhNode;
@@ -55,7 +56,7 @@ public class RDFImportImpl extends ImportImpl implements RDFImport
         {
             if (eg == null) throw new IllegalArgumentException("EnhGraph cannot be null");
 
-            return eg.asGraph().contains(node, RDF.type.asNode(), APL.RDFImport.asNode());
+            return eg.asGraph().contains(node, RDF.type.asNode(), LDH.RDFImport.asNode());
         }
     };
     
@@ -70,4 +71,10 @@ public class RDFImportImpl extends ImportImpl implements RDFImport
         return getPropertyResourceValue(SPIN.query);
     }
 
+    @Override
+    public Resource getGraphName()
+    {
+        return getPropertyResourceValue(SD.name);
+    }
+    
 }

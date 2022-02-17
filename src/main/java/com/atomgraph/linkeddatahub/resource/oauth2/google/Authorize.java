@@ -16,18 +16,13 @@
  */
 package com.atomgraph.linkeddatahub.resource.oauth2.google;
 
-import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.model.Service;
-import com.atomgraph.linkeddatahub.server.model.ClientUriInfo;
-import com.atomgraph.client.util.DataManager;
 import com.atomgraph.core.exception.ConfigurationException;
 import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
+import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
-import com.atomgraph.linkeddatahub.server.model.impl.ResourceBase;
+import com.atomgraph.linkeddatahub.resource.oauth2.Login;
 import com.atomgraph.linkeddatahub.vocabulary.Google;
-import com.atomgraph.linkeddatahub.vocabulary.LACLT;
-import com.atomgraph.processor.model.Template;
-import com.atomgraph.processor.model.TemplateCall;
 import java.math.BigInteger;
 import java.net.URI;
 import java.security.SecureRandom;
@@ -35,17 +30,13 @@ import java.util.Base64;
 import java.util.Optional;
 import java.util.UUID;
 import javax.inject.Inject;
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.container.ResourceContext;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
 import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.NewCookie;
-import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
-import javax.ws.rs.ext.Providers;
 import org.apache.jena.ontology.Ontology;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,7 +45,8 @@ import org.slf4j.LoggerFactory;
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-public class Authorize extends ResourceBase
+@Path("oauth2/authorize/google")
+public class Authorize // extends ResourceBase
 {
     private static final Logger log = LoggerFactory.getLogger(Authorize.class);
     
@@ -63,30 +55,24 @@ public class Authorize extends ResourceBase
     public static final String COOKIE_NAME = "LinkedDataHub.state";
     public static final String REFERER_PARAM_NAME = "referer";
 
+    private final UriInfo uriInfo;
+    private final Application application;
+    private final Ontology ontology;
     private final String clientID;
     
     @Inject
-    public Authorize(@Context UriInfo uriInfo, ClientUriInfo clientUriInfo, @Context Request request, MediaTypes mediaTypes,
-            Optional<Service> service, Optional<com.atomgraph.linkeddatahub.apps.model.Application> application,
-            Optional<Ontology> ontology, Optional<TemplateCall> templateCall,
-            @Context HttpHeaders httpHeaders, @Context ResourceContext resourceContext,
-            @Context HttpServletRequest httpServletRequest, @Context SecurityContext securityContext,
-            DataManager dataManager, @Context Providers providers,
-            com.atomgraph.linkeddatahub.Application system)
+    public Authorize(@Context UriInfo uriInfo, 
+            Optional<Service> service, com.atomgraph.linkeddatahub.apps.model.Application application, Optional<Ontology> ontology,
+                com.atomgraph.linkeddatahub.Application system)
     {
-        super(uriInfo, clientUriInfo, request, mediaTypes,
-            service, application,
-            ontology, templateCall,
-            httpHeaders, resourceContext,
-            httpServletRequest, securityContext,
-            dataManager, providers,
-            system);
-        
+        this.uriInfo = uriInfo;
+        this.application = application;
+        this.ontology = ontology.get();
         if (log.isDebugEnabled()) log.debug("Constructing {}", getClass());
         clientID = (String)system.getProperty(Google.clientID.getURI());
     }
     
-    @Override
+    @GET
     public Response get()
     {
         if (getClientID() == null) throw new ConfigurationException(Google.clientID);
@@ -94,16 +80,15 @@ public class Authorize extends ResourceBase
         final String originUri;
         //if (getHttpHeaders().getHeaderString("Referer") != null) originUri = getHttpHeaders().getHeaderString("Referer"); // Referer value missing after redirect
         if (getUriInfo().getQueryParameters().containsKey(REFERER_PARAM_NAME)) originUri = getUriInfo().getQueryParameters().getFirst(REFERER_PARAM_NAME);
-        else originUri = getEndUserBaseURI().toString();
+        else originUri = getEndUserApplication().getBase().getURI();
         
         URI redirectUri = getUriInfo().getBaseUriBuilder().
-            path(getOntology().getOntModel().getOntClass(LACLT.OAuth2Login.getURI()).
-                as(Template.class).getMatch().toString()). // has to be a URI template without parameters
+            path(Login.class).
             build();
 
         String state = new BigInteger(130, new SecureRandom()).toString(32);
         String stateValue = Base64.getEncoder().encodeToString((state + ";" + originUri).getBytes());
-        NewCookie stateCookie = new NewCookie(COOKIE_NAME, stateValue, getEndUserBaseURI().getPath(), null, NewCookie.DEFAULT_VERSION, null, NewCookie.DEFAULT_MAX_AGE, false);
+        NewCookie stateCookie = new NewCookie(COOKIE_NAME, stateValue, getEndUserApplication().getBaseURI().getPath(), null, NewCookie.DEFAULT_VERSION, null, NewCookie.DEFAULT_MAX_AGE, false);
         
         UriBuilder authUriBuilder = UriBuilder.fromUri(ENDPOINT_URI).
             queryParam("response_type", "code").
@@ -118,12 +103,27 @@ public class Authorize extends ResourceBase
             build();
     }
 
-    public URI getEndUserBaseURI()
+    public EndUserApplication getEndUserApplication()
     {
         if (getApplication().canAs(EndUserApplication.class))
-            return getApplication().getBaseURI();
+            return getApplication().as(EndUserApplication.class);
         else
-            return getApplication().as(AdminApplication.class).getEndUserApplication().getBaseURI();
+            return getApplication().as(AdminApplication.class).getEndUserApplication();
+    }
+    
+    public UriInfo getUriInfo()
+    {
+        return uriInfo;
+    }
+    
+    public Application getApplication()
+    {
+        return application;
+    }
+    
+    public Ontology getOntology()
+    {
+        return ontology;
     }
     
     private String getClientID()

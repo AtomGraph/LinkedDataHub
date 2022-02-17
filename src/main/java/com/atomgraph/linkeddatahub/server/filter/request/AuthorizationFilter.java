@@ -16,14 +16,14 @@
  */
 package com.atomgraph.linkeddatahub.server.filter.request;
 
+import com.atomgraph.client.vocabulary.AC;
 import com.atomgraph.core.vocabulary.SD;
-import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.client.SesameProtocolClient;
 import com.atomgraph.linkeddatahub.server.exception.auth.AuthorizationException;
 import com.atomgraph.linkeddatahub.model.Agent;
 import com.atomgraph.linkeddatahub.model.Service;
-import com.atomgraph.linkeddatahub.server.security.AgentContext;
+import com.atomgraph.linkeddatahub.server.security.AgentSecurityContext;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
 import com.atomgraph.linkeddatahub.vocabulary.LACL;
 import com.atomgraph.processor.vocabulary.LDT;
@@ -80,7 +80,8 @@ public class AuthorizationFilter implements ContainerRequestFilter
     }
     
     @Inject com.atomgraph.linkeddatahub.Application system;
-    @Inject javax.inject.Provider<Optional<com.atomgraph.linkeddatahub.apps.model.Application>> app;
+    @Inject javax.inject.Provider<com.atomgraph.linkeddatahub.apps.model.Application> app;
+    @Inject javax.inject.Provider<Optional<com.atomgraph.linkeddatahub.apps.model.Dataset>> dataset;
     
     private ParameterizedSparqlString authQuery, ownerAuthQuery;
 
@@ -97,8 +98,12 @@ public class AuthorizationFilter implements ContainerRequestFilter
         if (request == null) throw new IllegalArgumentException("ContainerRequestContext cannot be null");
         if (log.isDebugEnabled()) log.debug("Authorizing request URI: {}", request.getUriInfo().getRequestUri());
 
-        if (getApplication().isEmpty()) return; // skip filter if no application has matched
-        if (!getApplication().get().canAs(EndUserApplication.class) && !getApplication().get().canAs(AdminApplication.class)) return; // skip "primitive" apps
+        // allow proxied URIs that are mapped to local files
+        if (request.getMethod().equals(HttpMethod.GET) && request.getUriInfo().getQueryParameters().containsKey(AC.uri.getLocalName()))
+        {
+            String proxiedURI = request.getUriInfo().getQueryParameters().getFirst(AC.uri.getLocalName());
+            if (getSystem().getDataManager().isMapped(proxiedURI)) return;
+        }
 
         Resource accessMode = ACCESS_MODES.get(request.getMethod());
         if (log.isDebugEnabled()) log.debug("Request method: {} ACL access mode: {}", request.getMethod(), accessMode);
@@ -107,8 +112,23 @@ public class AuthorizationFilter implements ContainerRequestFilter
             if (log.isWarnEnabled()) log.warn("Skipping authentication/authorization, request method not recognized: {}", request.getMethod());
             return;
         }
+        
+        if (getApplication().isReadOnly())
+        {
+            if (request.getMethod().equals(HttpMethod.GET) || request.getMethod().equals(HttpMethod.GET)) // allow read-only methods
+            {
+                if (log.isTraceEnabled()) log.trace("App is read-only, skipping authorization for request URI: {}", request.getUriInfo().getAbsolutePath());
+                return;
+            }
 
-        final Resource agent;
+            // throw 403 exception otherwise
+            if (log.isTraceEnabled()) log.trace("Write access not authorized (app is read-only) for request URI: {}", request.getUriInfo().getAbsolutePath());
+            throw new AuthorizationException("Write access not authorized (app is read-only)", request.getUriInfo().getAbsolutePath(), accessMode);
+        }
+
+        if (getDataset().isPresent()) return; // skip proxied dataspaces
+
+        final Agent agent;
         if (request.getSecurityContext().getUserPrincipal() instanceof Agent) agent = ((Agent)(request.getSecurityContext().getUserPrincipal()));
         else agent = null; // public access
 
@@ -120,7 +140,7 @@ public class AuthorizationFilter implements ContainerRequestFilter
         }
         else // authorization successful
             if (request.getSecurityContext().getUserPrincipal() instanceof Agent)
-                ((AgentContext)request.getSecurityContext()).getAgent().getModel().add(authorization.getModel()); // append authorization metadata to Agent's model
+                ((AgentSecurityContext)request.getSecurityContext()).getAgent().getModel().add(authorization.getModel()); // append authorization metadata to Agent's model
     }
     
     public QuerySolutionMap getAuthorizationParams(Resource absolutePath, Resource agent, Resource accessMode)
@@ -128,7 +148,7 @@ public class AuthorizationFilter implements ContainerRequestFilter
         QuerySolutionMap qsm = new QuerySolutionMap();
         qsm.add(SPIN.THIS_VAR_NAME, absolutePath);
         qsm.add("Mode", accessMode);
-        qsm.add(LDT.Ontology.getLocalName(), getApplication().get().getOntology());
+        qsm.add(LDT.Ontology.getLocalName(), getApplication().getOntology());
         
         if (agent != null)
         {
@@ -164,10 +184,10 @@ public class AuthorizationFilter implements ContainerRequestFilter
     {
         if (qsm == null) throw new IllegalArgumentException("QuerySolutionMap cannot be null");
 
-        final ParameterizedSparqlString pss = getApplication().get().canAs(EndUserApplication.class) ? getAuthQuery() : getOwnerAuthQuery();
+        final ParameterizedSparqlString pss = getApplication().canAs(EndUserApplication.class) ? getAuthQuery() : getOwnerAuthQuery();
         
-        if (getApplication().get().canAs(EndUserApplication.class))
-            pss.setIri(SD.endpoint.getLocalName(), getApplication().get().getService().getSPARQLEndpoint().toString()); // needed for federation with the end-user endpoint
+        if (getApplication().canAs(EndUserApplication.class))
+            pss.setIri(SD.endpoint.getLocalName(), getApplication().getService().getSPARQLEndpoint().toString()); // needed for federation with the end-user endpoint
 
         return loadModel(getAdminService(), pss, qsm);
     }
@@ -226,14 +246,19 @@ public class AuthorizationFilter implements ContainerRequestFilter
     
     protected Service getAdminService()
     {
-        return getApplication().get().canAs(EndUserApplication.class) ?
-            getApplication().get().as(EndUserApplication.class).getAdminApplication().getService() :
-            getApplication().get().getService();
+        return getApplication().canAs(EndUserApplication.class) ?
+            getApplication().as(EndUserApplication.class).getAdminApplication().getService() :
+            getApplication().getService();
     }
     
-    public Optional<com.atomgraph.linkeddatahub.apps.model.Application> getApplication()
+    public com.atomgraph.linkeddatahub.apps.model.Application getApplication()
     {
         return app.get();
+    }
+
+    public Optional<com.atomgraph.linkeddatahub.apps.model.Dataset> getDataset()
+    {
+        return dataset.get();
     }
 
     public com.atomgraph.linkeddatahub.Application getSystem()

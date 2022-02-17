@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xsl:stylesheet [
-    <!ENTITY lapp   "https://w3id.org/atomgraph/linkeddatahub/apps/domain#">
-    <!ENTITY apl    "https://w3id.org/atomgraph/linkeddatahub/domain#">
+    <!ENTITY lapp   "https://w3id.org/atomgraph/linkeddatahub/apps#">
+    <!ENTITY adm    "https://w3id.org/atomgraph/linkeddatahub/admin#">
+    <!ENTITY def    "https://w3id.org/atomgraph/linkeddatahub/default#">
+    <!ENTITY ldh    "https://w3id.org/atomgraph/linkeddatahub#">
     <!ENTITY ac     "https://w3id.org/atomgraph/client#">
     <!ENTITY a      "https://w3id.org/atomgraph/core#">
     <!ENTITY rdf    "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
@@ -11,16 +13,18 @@
     <!ENTITY srx    "http://www.w3.org/2005/sparql-results#">
     <!ENTITY http   "http://www.w3.org/2011/http#">
     <!ENTITY ldt    "https://www.w3.org/ns/ldt#">
-    <!ENTITY dh     "https://www.w3.org/ns/ldt/document-hierarchy/domain#">
+    <!ENTITY dh     "https://www.w3.org/ns/ldt/document-hierarchy#">
     <!ENTITY sp     "http://spinrdf.org/sp#">
     <!ENTITY spin   "http://spinrdf.org/spin#">
+    <!ENTITY dct    "http://purl.org/dc/terms/">
     <!ENTITY foaf   "http://xmlns.com/foaf/0.1/">
 ]>
 <xsl:stylesheet version="3.0"
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 xmlns:xs="http://www.w3.org/2001/XMLSchema"
+xmlns:map="http://www.w3.org/2005/xpath-functions/map"
 xmlns:lapp="&lapp;"
-xmlns:apl="&apl;"
+xmlns:ldh="&ldh;"
 xmlns:ac="&ac;"
 xmlns:a="&a;"
 xmlns:rdf="&rdf;"
@@ -32,6 +36,7 @@ xmlns:http="&http;"
 xmlns:ldt="&ldt;"
 xmlns:sp="&sp;"
 xmlns:spin="&spin;"
+xmlns:dct="&dct;"
 xmlns:foaf="&foaf;"
 xmlns:xhtml="http://www.w3.org/1999/xhtml"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
@@ -43,16 +48,98 @@ exclude-result-prefixes="#all"
     <xsl:key name="resources-by-type" match="*[*][@rdf:about] | *[*][@rdf:nodeID]" use="rdf:type/@rdf:resource"/>
 
     <xsl:param name="ac:contextUri" as="xs:anyURI?"/>
-    <xsl:param name="uri" as="xs:anyURI"/>
-    <!-- <xsl:param name="lapp:Application" as="document-node()?"/> -->
 
-    <xsl:function name="apl:listSuperClasses" as="attribute()*" cache="yes">
-        <xsl:param name="class" as="xs:anyURI"/>
+    <xsl:function name="ldh:href" as="xs:anyURI">
+        <xsl:param name="base" as="xs:anyURI"/>
+        <xsl:param name="absolute-path" as="xs:anyURI"/>
+        <xsl:param name="uri" as="xs:anyURI"/>
+
+        <xsl:sequence select="ldh:href($base, $absolute-path, $uri, ())"/>
+    </xsl:function>
+
+    <xsl:function name="ldh:href" as="xs:anyURI">
+        <xsl:param name="base" as="xs:anyURI"/>
+        <xsl:param name="absolute-path" as="xs:anyURI"/>
+        <xsl:param name="uri" as="xs:anyURI"/>
+        <xsl:param name="mode" as="xs:anyURI*"/>
+
+        <xsl:sequence select="ldh:href($base, $absolute-path, $uri, $mode, ())"/>
+    </xsl:function>
+
+    <xsl:function name="ldh:href" as="xs:anyURI">
+        <xsl:param name="base" as="xs:anyURI"/>
+        <xsl:param name="absolute-path" as="xs:anyURI"/>
+        <xsl:param name="uri" as="xs:anyURI"/>
+        <xsl:param name="mode" as="xs:anyURI*"/>
+        <xsl:param name="forClass" as="xs:anyURI?"/>
+
+        <xsl:variable name="query-params" select="map:merge((if (exists($mode)) then map{ 'mode': for $m in $mode return string($m) } else (), if ($forClass) then map{ 'forClass': string($forClass) } else ()))" as="map(xs:string, xs:string*)"/>
+        <xsl:choose>
+            <!-- do not proxy $uri via ?uri= if it is relative to the $base -->
+            <xsl:when test="starts-with($uri, $base)">
+                <xsl:sequence select="ac:build-uri($uri, $query-params)"/>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:sequence select="ac:build-uri($absolute-path, map:merge((map{ 'uri': string($uri) }, $query-params)))"/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:function>
+
+    <xsl:function name="ldh:absolute-path" as="xs:anyURI">
+        <xsl:param name="href" as="xs:anyURI"/>
         
-        <xsl:sequence select="apl:listSuperClasses($class, false())"/>
+        <xsl:sequence select="xs:anyURI(if (contains($href, '?')) then substring-before($href, '?') else if (contains($href, '#')) then substring-before($href, '#') else $href)"/>
     </xsl:function>
     
-    <xsl:function name="apl:listSuperClasses" as="attribute()*" cache="yes">
+    <xsl:function name="ldh:templates" as="document-node()" cache="yes">
+        <xsl:param name="class" as="xs:anyURI"/>
+        <xsl:param name="endpoint" as="xs:anyURI"/>
+        <xsl:param name="query" as="xs:string"/>
+        
+        <xsl:variable name="query-string" select="replace($query, '\?Type', concat('&lt;', $class, '&gt;'))" as="xs:string"/>
+        <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': string($query-string) })" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="ldh:href($ldt:base, $ldt:base, $results-uri)" as="xs:anyURI"/>
+        <xsl:sequence select="document($request-uri)"/>
+    </xsl:function>
+
+    <xsl:function name="spin:constructors" as="document-node()" cache="yes">
+        <xsl:param name="class" as="xs:anyURI"/>
+        <xsl:param name="endpoint" as="xs:anyURI"/>
+        <xsl:param name="query" as="xs:string"/>
+        
+        <xsl:variable name="query-string" select="replace($query, '\?Type', concat('&lt;', $class, '&gt;'))" as="xs:string"/>
+        <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': string($query-string) })" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="$results-uri" as="xs:anyURI"/> <!-- ldh:href($ldt:base, ldh:absolute-path(ldh:href()), $results-uri) -->
+        <xsl:sequence select="document($request-uri)"/>
+    </xsl:function>
+    
+    <xsl:function name="spin:constraints" as="document-node()" cache="yes">
+        <xsl:param name="class" as="xs:anyURI"/>
+        <xsl:param name="endpoint" as="xs:anyURI"/>
+        <xsl:param name="query" as="xs:string"/>
+        
+        <xsl:variable name="query-string" select="replace($query, '\?Type', concat('&lt;', $class, '&gt;'))" as="xs:string"/>
+        <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': string($query-string) })" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="$results-uri" as="xs:anyURI"/> <!-- ldh:href($ldt:base, ldh:absolute-path(ldh:href()), $results-uri) -->
+        <xsl:sequence select="document($request-uri)"/>
+    </xsl:function>
+
+    <!-- function stub so that Saxon-EE doesn't complain when compiling SEF -->
+    <xsl:function name="ldh:construct" as="document-node()" override-extension-function="no" cache="yes">
+        <xsl:param name="class-constructors" as="map(xs:anyURI, xs:string*)"/>
+            
+        <xsl:message use-when="system-property('xsl:product-name') = 'SAXON'" terminate="yes">
+            Not implemented -- com.atomgraph.linkeddatahub.writer.function.Construct needs to be registered as an extension function
+        </xsl:message>
+    </xsl:function>
+    
+    <xsl:function name="ldh:listSuperClasses" as="attribute()*" cache="yes">
+        <xsl:param name="class" as="xs:anyURI"/>
+        
+        <xsl:sequence select="ldh:listSuperClasses($class, false())"/>
+    </xsl:function>
+    
+    <xsl:function name="ldh:listSuperClasses" as="attribute()*" cache="yes">
         <xsl:param name="class" as="xs:anyURI"/>
         <xsl:param name="direct" as="xs:boolean"/>
         
@@ -65,64 +152,58 @@ exclude-result-prefixes="#all"
 
                 <xsl:if test="not($direct)">
                     <xsl:for-each select="$superclasses">
-                        <xsl:sequence select="apl:listSuperClasses(., $direct)"/>
+                        <xsl:sequence select="ldh:listSuperClasses(., $direct)"/>
                     </xsl:for-each>
                 </xsl:if>
             </xsl:for-each>
         </xsl:if>
     </xsl:function>
     
-    <xsl:function name="apl:ontologyImports" as="attribute()*" cache="yes">
+    <xsl:function name="ldh:ontologyImports" as="attribute()*" cache="yes">
         <xsl:param name="ontology" as="xs:anyURI"/>
         
-        <xsl:sequence select="apl:ontologyImports($ontology, false())"/>
+        <xsl:sequence select="ldh:ontologyImports($ontology, false())"/>
     </xsl:function>
     
-    <xsl:function name="apl:ontologyImports" as="attribute()*" cache="yes">
+    <xsl:function name="ldh:ontologyImports" as="attribute()*" cache="yes">
         <xsl:param name="ontology" as="xs:anyURI"/>
         <xsl:param name="direct" as="xs:boolean"/>
 
-        <xsl:if test="doc-available($ontology)">
-            <xsl:variable name="document" select="document($ontology)" as="document-node()"/>
+        <xsl:if test="doc-available(ac:document-uri($ontology))">
+            <xsl:variable name="document" select="document(ac:document-uri($ontology))" as="document-node()"/>
             <xsl:for-each select="$document">
                 <xsl:variable name="imports" select="key('resources', $ontology)/owl:imports/@rdf:resource[not(. = $ontology)]" as="attribute()*"/>
                 <xsl:sequence select="$imports"/>
                 
                 <xsl:if test="not($direct)">
                     <xsl:for-each select="$imports">
-                        <xsl:sequence select="apl:ontologyImports(., $direct)"/>
+                        <xsl:sequence select="ldh:ontologyImports(., $direct)"/>
                     </xsl:for-each>
                 </xsl:if>
             </xsl:for-each>
         </xsl:if>
     </xsl:function>
 
-    <xsl:function name="apl:listSubClasses" as="attribute()*" cache="yes">
-        <xsl:param name="class" as="xs:anyURI"/>
-
-        <xsl:sequence select="apl:listSubClasses($class, false(), $ldt:ontology)"/>
-    </xsl:function>
-    
-    <xsl:function name="apl:listSubClasses" as="attribute()*" cache="yes">
+    <xsl:function name="ldh:listSubClasses" as="attribute()*" cache="yes">
         <xsl:param name="class" as="xs:anyURI"/>
         <xsl:param name="direct" as="xs:boolean"/>
         <xsl:param name="ontology" as="xs:anyURI"/>
         
-        <xsl:variable name="ontologies" select="$ontology, apl:ontologyImports($ontology)" as="xs:anyURI*"/>
+        <xsl:variable name="ontologies" select="$ontology, ldh:ontologyImports($ontology)" as="xs:anyURI*"/>
         <xsl:variable name="ontology-docs" as="document-node()*">
             <xsl:for-each select="$ontologies">
-                <xsl:if test="doc-available(.)">
-                    <xsl:sequence select="document(.)"/>
+                <xsl:if test="doc-available(ac:document-uri(.))">
+                    <xsl:sequence select="document(ac:document-uri(.))"/>
                 </xsl:if>
             </xsl:for-each>
         </xsl:variable>
         
-        <xsl:sequence select="apl:listSubClassesInDocuments($class, $direct, $ontology-docs)"/>
+        <xsl:sequence select="ldh:listSubClassesInDocuments($class, $direct, $ontology-docs)"/>
     </xsl:function>
     
-    <!-- this is a different, not follow-your-nose Linked Data search as in apl:listSuperClasses() as we don't know the URIs of the documents containing subclasses -->
+    <!-- this is a different, not follow-your-nose Linked Data search as in ldh:listSuperClasses() as we don't know the URIs of the documents containing subclasses -->
     <!-- start with the $ldt:ontology document and traverse imported RDF ontologies recursively looking for rdfs:subClassOf triples -->
-    <xsl:function name="apl:listSubClassesInDocuments" as="attribute()*" cache="yes">
+    <xsl:function name="ldh:listSubClassesInDocuments" as="attribute()*" cache="yes">
         <xsl:param name="class" as="xs:anyURI"/>
         <xsl:param name="direct" as="xs:boolean"/>
         <xsl:param name="ontology-docs" as="document-node()*"/>
@@ -132,37 +213,25 @@ exclude-result-prefixes="#all"
             <xsl:sequence select="$subclasses"/>
 
             <xsl:for-each select="$subclasses">
-                <xsl:sequence select="apl:listSubClassesInDocuments(., $direct, $ontology-docs)"/>
+                <xsl:sequence select="ldh:listSubClassesInDocuments(., $direct, $ontology-docs)"/>
             </xsl:for-each>
         </xsl:for-each>
     </xsl:function>
     
-    <xsl:function name="apl:listSuperTemplates" as="attribute()*" cache="yes">
-        <xsl:param name="template" as="xs:anyURI"/>
+    <xsl:function name="ac:value-intersect" as="xs:anyAtomicType*">
+        <xsl:param name="arg1" as="xs:anyAtomicType*"/>
+        <xsl:param name="arg2" as="xs:anyAtomicType*"/>
         
-        <xsl:sequence select="apl:listSuperTemplates($template, false())"/>
+        <xsl:sequence select="distinct-values($arg1[.=$arg2])"/>
     </xsl:function>
-    
-    <xsl:function name="apl:listSuperTemplates" as="attribute()*" cache="yes">
-        <xsl:param name="template" as="xs:anyURI"/>
-        <xsl:param name="direct" as="xs:boolean"/>
-        
-        <xsl:if test="doc-available(ac:document-uri($template))">
-            <xsl:variable name="document" select="document(ac:document-uri($template))" as="document-node()"/>
 
-            <xsl:for-each select="$document">
-                <xsl:variable name="supertemplates" select="key('resources', $template)/ldt:extends/@rdf:resource" as="attribute()*"/>
-                <xsl:sequence select="$supertemplates"/>
+    <xsl:function name="ac:value-except" as="xs:anyAtomicType*">
+        <xsl:param name="arg1" as="xs:anyAtomicType*"/>
+        <xsl:param name="arg2" as="xs:anyAtomicType*"/>
 
-                <xsl:if test="not($direct)">
-                    <xsl:for-each select="$supertemplates">
-                        <xsl:sequence select="apl:listSuperTemplates(., $direct)"/>
-                    </xsl:for-each>
-                </xsl:if>
-            </xsl:for-each>
-        </xsl:if>
+        <xsl:sequence select="distinct-values($arg1[not(.=$arg2)])"/>
     </xsl:function>
-    
+
     <!-- SHARED FUNCTIONS -->
 
     <!-- TO-DO: move down to Web-Client -->
@@ -175,86 +244,39 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="$images"/>
     </xsl:function>
     
-    <xsl:function name="lapp:base" as="node()?">
-        <xsl:param name="uri" as="xs:anyURI"/>
-        <xsl:param name="document" as="document-node()"/>
+    <!-- SET PRIMARY TOPIC -->
 
-        <xsl:for-each select="$document">
-            <xsl:sequence select="//*[ldt:base/@rdf:resource = $ldt:base]/ldt:base/@rdf:resource[starts-with(., $uri)]"/>
-        </xsl:for-each>
-    </xsl:function>
-    
-    <xsl:template match="*[@rdf:nodeID = 'add']" mode="apl:logo">
-        <xsl:param name="class" as="xs:string?"/>
-        
-        <xsl:attribute name="class" select="concat($class, ' ', 'btn-add')"/>
-    </xsl:template>
-    
-    <xsl:template match="*[@rdf:nodeID = 'remove']" mode="apl:logo">
-        <xsl:param name="class" as="xs:string?"/>
-        
-        <xsl:attribute name="class" select="concat($class, ' ', 'btn-remove')"/>
+    <xsl:template match="rdf:Description/foaf:primaryTopic[@rdf:nodeID]" mode="ldh:SetPrimaryTopic" priority="1">
+        <xsl:param name="topic-id" as="xs:string?" tunnel="yes"/>
+        <xsl:param name="doc-id" as="xs:string" tunnel="yes"/>
+
+        <xsl:copy>
+            <xsl:choose>
+                <!-- check subject ID of this resource -->
+                <xsl:when test="$topic-id and ../@rdf:nodeID = $doc-id"> <!-- TO-DO: support @rdf:about? -->
+                    <!-- overwrite existing value with $topic-id -->
+                    <xsl:attribute name="rdf:nodeID" select="$topic-id"/>
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:apply-templates select="@* | node()" mode="#current"/>
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:copy>
     </xsl:template>
 
-    <xsl:template match="*[@rdf:about = '&ac;EditMode']" mode="apl:logo">
-        <xsl:param name="class" as="xs:string?"/>
-        
-        <xsl:attribute name="class" select="concat($class, ' ', 'btn-edit')"/>
-        <xsl:sequence select="ac:label(.)"/>
-    </xsl:template>
-    
-    <xsl:template match="*[@rdf:nodeID = 'copy-uri']" mode="apl:logo">
-        <xsl:param name="class" as="xs:string?"/>
-        
-        <xsl:attribute name="class" select="concat($class, ' ', 'btn-copy-uri')"/>
-    </xsl:template>
-    
-    <xsl:template match="*" mode="apl:logo" priority="0">
-        <xsl:param name="class" as="xs:string?"/>
-        
-        <xsl:if test="$class">
-            <xsl:attribute name="class" select="$class"/>
-        </xsl:if>
+    <!-- identity transform -->
+    <xsl:template match="@* | node()" mode="ldh:SetPrimaryTopic">
+        <xsl:copy>
+            <xsl:apply-templates select="@* | node()" mode="#current"/>
+        </xsl:copy>
     </xsl:template>
     
     <!-- DEFAULT -->
 
-    <!-- resources with URIs not relative to app base -->
-    <xsl:template match="@rdf:resource[starts-with(., $ldt:base)] | srx:uri[starts-with(., $ldt:base)]" priority="2">
+    <!-- proxy link URIs if they are external -->
+    <xsl:template match="@rdf:resource | srx:uri" priority="2">
         <xsl:next-match>
-            <xsl:with-param name="href" select="."/>
-        </xsl:next-match>
-    </xsl:template>
-
-    <!-- ANCHOR -->
-    <!-- TO-DO: move to external.xsl -->
-
-    <!-- add ?uri= indirection on external HTTP(S) links -->
-    <xsl:template match="*[starts-with(@rdf:about, 'http://')][not(starts-with(@rdf:about, $ldt:base))] | *[starts-with(@rdf:about, 'https://')][not(starts-with(@rdf:about, $ldt:base))]" mode="xhtml:Anchor">
-        <xsl:param name="href" select="xs:anyURI(concat('?uri=', encode-for-uri(@rdf:about)))" as="xs:anyURI"/>
-        <xsl:param name="id" as="xs:string?"/>
-        <xsl:param name="title" select="@rdf:about" as="xs:string?"/>
-        <xsl:param name="class" as="xs:string?"/>
-        
-        <xsl:next-match>
-            <xsl:with-param name="href" select="$href"/>
-            <xsl:with-param name="id" select="$id"/>
-            <xsl:with-param name="title" select="$title"/>
-            <xsl:with-param name="class" select="$class"/>
-        </xsl:next-match>
-    </xsl:template>
-
-    <xsl:template match="@rdf:resource[starts-with(., 'http://')][not(starts-with(., $ldt:base))] | @rdf:resource[starts-with(., 'https://')][not(starts-with(., $ldt:base))] | srx:uri[starts-with(., 'http://')][not(starts-with(., $ldt:base))] | srx:uri[starts-with(., 'https://')][not(starts-with(., $ldt:base))]">
-        <xsl:param name="href" select="xs:anyURI(concat('?uri=', encode-for-uri(if (contains(., '#')) then substring-before(., '#') else .), if (substring-after(., '#')) then concat('#', substring-after(., '#')) else ()))" as="xs:anyURI"/>
-        <xsl:param name="id" as="xs:string?"/>
-        <xsl:param name="title" select="." as="xs:string?"/>
-        <xsl:param name="class" as="xs:string?"/>
-        
-        <xsl:next-match>
-            <xsl:with-param name="href" select="$href"/>
-            <xsl:with-param name="id" select="$id"/>
-            <xsl:with-param name="title" select="$title"/>
-            <xsl:with-param name="class" select="$class"/>
+            <xsl:with-param name="href" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), xs:anyURI(.))"/>
         </xsl:next-match>
     </xsl:template>
     
@@ -272,6 +294,7 @@ exclude-result-prefixes="#all"
             <xsl:with-param name="type" select="$type"/>
             <xsl:with-param name="id" select="$id"/>
             <xsl:with-param name="class" select="$class"/>
+            <xsl:with-param name="autocomplete" select="false()"/>
         </xsl:call-template>
         
         <ul class="{$list-class}" id="{$list-id}" style="display: none;"></ul>
@@ -284,6 +307,11 @@ exclude-result-prefixes="#all"
 
     <!-- object -->
     <xsl:template match="*[@rdf:about or @rdf:nodeID]/*/@*" mode="bs2:TypeControl"/>
+
+    <!-- PROPERTY LIST -->
+
+    <!-- suppress properties in a language other than $ldt:lang. TO-DO: move to Web-Client? -->
+    <xsl:template match="*[@rdf:about or @rdf:nodeID]/*[@xml:lang and not(lang($ldt:lang))]" mode="bs2:PropertyList"/>
 
     <!-- FORM CONTROL -->
 
@@ -331,7 +359,7 @@ exclude-result-prefixes="#all"
                                                 <xsl:attribute name="value" select="."/>
                                             </xsl:when>
                                             <xsl:otherwise>
-                                                <xsl:value-of select="resolve-uri(concat('/', ac:uuid()), $ac:uri)"/>
+                                                <xsl:value-of select="resolve-uri(concat('/', ac:uuid()), ac:uri())"/>
                                             </xsl:otherwise>
                                         </xsl:choose>
                                     </xsl:attribute>
@@ -356,14 +384,6 @@ exclude-result-prefixes="#all"
                                 </xsl:apply-templates>
                                 <xsl:text> </xsl:text>
                             </span>
-                            <!--
-                            <input type="checkbox" value="auto">
-                                <xsl:if test="$auto">
-                                    <xsl:attribute name="checked">checked</xsl:attribute>
-                                </xsl:if>
-                            </input>
-                            <span class="help-inline">Auto</span>
-                            -->
                         </div>
                     </div>
                 <!-- </fieldset> -->
@@ -380,45 +400,19 @@ exclude-result-prefixes="#all"
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
-    
-    <!-- hide foaf:primaryTopic/foaf:isPrimaryTopicOf if their object resources have properties other than rdf:type -->
-    <!--
-    <xsl:template match="foaf:primaryTopic[key('resources', (@rdf:resource, @rdf:nodeID))[* except rdf:type]] | foaf:isPrimaryTopicOf[key('resources', (@rdf:resource, @rdf:nodeID))[* except rdf:type]]" mode="bs2:FormControl" priority="1">
-        <xsl:apply-templates select="." mode="xhtml:Input">
-            <xsl:with-param name="type" select="'hidden'"/>
-        </xsl:apply-templates>
-        <xsl:apply-templates select="node() | @rdf:resource | @rdf:nodeID" mode="#current">
-            <xsl:with-param name="type" select="'hidden'"/>
-        </xsl:apply-templates>
-        <xsl:apply-templates select="@xml:lang | @rdf:datatype" mode="#current">
-            <xsl:with-param name="type" select="'hidden'"/>
-        </xsl:apply-templates>
-    </xsl:template>
-    -->
-    
+
     <!-- property -->
     <xsl:template match="*[@rdf:about or @rdf:nodeID]/*" mode="bs2:FormControl">
         <xsl:param name="this" select="xs:anyURI(concat(namespace-uri(), local-name()))" as="xs:anyURI"/>
         <xsl:param name="violations" as="element()*"/>
-        <xsl:param name="error" select="@rdf:resource = $violations/apl:violationValue or $violations/spin:violationPath/@rdf:resource = $this" as="xs:boolean"/>
+        <xsl:param name="error" select="@rdf:resource = $violations/ldh:violationValue or $violations/spin:violationPath/@rdf:resource = $this" as="xs:boolean"/>
         <xsl:param name="label" select="true()" as="xs:boolean"/>
         <xsl:param name="template-doc" as="document-node()?"/>
         <xsl:param name="template" as="element()*"/>
         <xsl:param name="cloneable" select="false()" as="xs:boolean"/>
-        <xsl:param name="required" as="xs:boolean">
-            <xsl:variable name="types" select="../rdf:type/@rdf:resource" as="xs:anyURI*"/>
-            <xsl:choose>
-                <xsl:when test="exists($types)">
-                    <!-- constraint (sub)classes are in the admin ontology -->
-                    <xsl:variable name="constraint-classes" select="(xs:anyURI('&apl;MissingPropertyValue'), apl:listSubClasses(xs:anyURI('&apl;MissingPropertyValue'), false(), resolve-uri('admin/ns#', $ldt:base)))" as="xs:anyURI*"/>
-                    <!-- required is true if there are subclasses that have constraints of type that equals constraint classes -->
-                    <xsl:sequence select="exists(for $class in ($types, for $type in $types return apl:listSuperClasses($type)[name() = 'rdf:about'])[doc-available(ac:document-uri(.))] return key('resources', $class, document(ac:document-uri($class)))/spin:constraint/@rdf:resource/(if (doc-available(ac:document-uri(.))) then key('resources', ., document(ac:document-uri(.))) else ())[rdf:type/@rdf:resource = $constraint-classes and sp:arg1/@rdf:resource = $this])"/>
-                </xsl:when>
-                <xsl:otherwise>
-                    <xsl:sequence select="false()"/>
-                </xsl:otherwise>
-            </xsl:choose>
-        </xsl:param>
+        <xsl:param name="types" select="../rdf:type/@rdf:resource" as="xs:anyURI*"/>
+        <xsl:param name="constraint-query" as="xs:string?" tunnel="yes"/>
+        <xsl:param name="required" select="if ($constraint-query) then exists(for $type in $types return spin:constraints($type, resolve-uri('ns', $ldt:base), $constraint-query)//srx:binding[@name = 'property'][srx:uri = $this]) else false()" as="xs:boolean"/>
         <xsl:param name="id" select="generate-id()" as="xs:string"/>
         <xsl:param name="for" select="generate-id((node() | @rdf:resource | @rdf:nodeID)[1])" as="xs:string"/>
         <xsl:param name="class" select="concat('control-group', if ($error) then ' error' else (), if ($required) then ' required' else ())" as="xs:string?"/>
@@ -471,7 +465,7 @@ exclude-result-prefixes="#all"
                 <xsl:if test="not($required)">
                     <div class="btn-group pull-right">
                         <button type="button" title="Remove this statement">
-                            <xsl:apply-templates select="key('resources', 'remove', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="apl:logo">
+                            <xsl:apply-templates select="key('resources', 'remove', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ldh:logo">
                                 <xsl:with-param name="class" select="'btn btn-small pull-right'"/>
                             </xsl:apply-templates>
                         </button>
@@ -504,7 +498,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="type-label" select="true()" as="xs:boolean"/>
         <xsl:param name="template-doc" as="document-node()?"/>
         <xsl:variable name="resource" select="key('resources', .)"/>
-        <xsl:variable name="doc-uri" select="if (starts-with($ldt:base, $ac:contextUri)) then ac:document-uri(.) else resolve-uri(concat('?uri=', encode-for-uri(ac:document-uri(.))), $ldt:base)" as="xs:anyURI"/>
+        <xsl:variable name="doc-uri" select="if (starts-with($ldt:base, .)) then xs:anyURI(.) else ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(.)) })" as="xs:anyURI"/>
 
         <xsl:choose>
             <!-- loop if node not visited already -->
@@ -530,11 +524,9 @@ exclude-result-prefixes="#all"
             </xsl:when>
             <xsl:when test="starts-with(., $ldt:base) and doc-available($doc-uri)">
                 <xsl:choose>
-                    <xsl:when test="key('resources', ., document($doc-uri))">
+                    <xsl:when test="key('resources', ., document(ac:document-uri($doc-uri)))">
                         <span>
-                            <xsl:for-each select="key('resources', ., document($doc-uri))">
-                                <xsl:apply-templates select="." mode="apl:Typeahead"/>
-                            </xsl:for-each>
+                            <xsl:apply-templates select="key('resources', ., document(ac:document-uri($doc-uri)))" mode="ldh:Typeahead"/>
                         </span>
 
                         <xsl:if test="$template-doc">
@@ -543,15 +535,17 @@ exclude-result-prefixes="#all"
                             <xsl:if test="$forClass">
                                 <!-- forClass input is required by typeahead's FILTER (?Type IN ()) in client.xsl -->
                                 <xsl:choose>
-                                    <xsl:when test="doc-available(ac:document-uri($forClass))">
-                                        <xsl:variable name="subclasses" select="apl:listSubClasses($forClass)" as="attribute()*"/>
+                                    <xsl:when test="not($forClass = '&rdfs;Resource') and doc-available(ac:document-uri($forClass))">
+                                        <xsl:variable name="subclasses" select="ldh:listSubClasses($forClass, false(), $ldt:ontology)" as="attribute()*"/>
                                         <!-- add subclasses as forClass -->
-                                        <xsl:for-each select="distinct-values(apl:listSubClasses($forClass))[not(. = $forClass)]">
+                                        <xsl:for-each select="distinct-values(ldh:listSubClasses($forClass, false(), $ldt:ontology))[not(. = $forClass)]">
                                             <input type="hidden" class="forClass" value="{.}"/>
                                         </xsl:for-each>
                                         <!-- bs2:Constructor sets forClass -->
                                         <xsl:apply-templates select="key('resources', $forClass, document(ac:document-uri($forClass)))" mode="bs2:Constructor">
+                                            <xsl:with-param name="modal-form" select="true()"/>
                                             <xsl:with-param name="subclasses" select="$subclasses"/>
+                                            <xsl:with-param name="create-graph" select="true()"/>
                                         </xsl:apply-templates>
                                     </xsl:when>
                                     <xsl:otherwise>
@@ -560,20 +554,11 @@ exclude-result-prefixes="#all"
                                     </xsl:otherwise>
                                 </xsl:choose>
                             
-                                <xsl:if test="not($type = 'hidden') and $type-label">
-                                    <span class="help-inline">
-                                        <xsl:choose>
-                                            <xsl:when test="doc-available(ac:document-uri($forClass)) and key('resources', $forClass, document(ac:document-uri($forClass)))"> <!-- server-side Saxon has access to the sitemap ontology -->
-                                                <xsl:value-of>
-                                                    <xsl:apply-templates select="key('resources', $forClass, document(ac:document-uri($forClass)))" mode="ac:label"/>
-                                                </xsl:value-of>
-                                            </xsl:when>
-                                            <xsl:otherwise> <!-- client-side Saxon-JS does not have access to the sitemap ontology -->
-                                                <xsl:value-of select="$forClass"/>
-                                            </xsl:otherwise>
-                                        </xsl:choose>
-                                    </span>
-                                </xsl:if>
+                                <xsl:apply-templates select="." mode="bs2:FormControlTypeLabel">
+                                    <xsl:with-param name="type" select="$type"/>
+                                    <xsl:with-param name="type-label" select="$type-label"/>
+                                    <xsl:with-param name="forClass" select="$forClass"/>
+                                </xsl:apply-templates>
                             </xsl:if>
                         </xsl:if>
                     </xsl:when>
@@ -590,13 +575,42 @@ exclude-result-prefixes="#all"
                     <xsl:with-param name="disabled" select="$disabled"/>
                 </xsl:apply-templates>
                 
-                <xsl:if test="not($type = 'hidden') and $type-label">
-                    <span class="help-inline">Resource</span>
-                </xsl:if>
+                <xsl:apply-templates select="." mode="bs2:FormControlTypeLabel">
+                    <xsl:with-param name="type" select="$type"/>
+                    <xsl:with-param name="type-label" select="$type-label"/>
+                </xsl:apply-templates>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
 
+    <xsl:template match="@rdf:resource" mode="bs2:FormControlTypeLabel">
+        <xsl:param name="type" as="xs:string?"/>
+        <xsl:param name="type-label" select="true()" as="xs:boolean"/>
+        <xsl:param name="forClass" as="xs:anyURI?"/>
+
+        <xsl:if test="not($type = 'hidden') and $type-label">
+            <xsl:choose>
+                <xsl:when test="$forClass">
+                    <span class="help-inline">
+                        <xsl:choose>
+                            <xsl:when test="doc-available(ac:document-uri($forClass)) and key('resources', $forClass, document(ac:document-uri($forClass)))"> <!-- server-side Saxon has access to the sitemap ontology -->
+                                <xsl:value-of>
+                                    <xsl:apply-templates select="key('resources', $forClass, document(ac:document-uri($forClass)))" mode="ac:label"/>
+                                </xsl:value-of>
+                            </xsl:when>
+                            <xsl:otherwise> <!-- client-side Saxon-JS does not have access to the sitemap ontology -->
+                                <xsl:value-of select="$forClass"/>
+                            </xsl:otherwise>
+                        </xsl:choose>
+                    </span>
+                </xsl:when>
+                <xsl:otherwise>
+                    <span class="help-inline">Resource</span>
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:if>
+    </xsl:template>
+    
     <!-- object blank node -->
     <xsl:template match="*[@rdf:about]/*/@rdf:nodeID | *[@rdf:nodeID]/*/@rdf:nodeID" mode="bs2:FormControl">
         <xsl:param name="type" select="'text'" as="xs:string"/>
@@ -632,15 +646,17 @@ exclude-result-prefixes="#all"
                     <xsl:with-param name="disabled" select="$disabled"/>
                 </xsl:apply-templates>
                 
-                <xsl:if test="not($type = 'hidden') and $type-label">
-                    <span class="help-inline">Resource</span>
-                </xsl:if>
+                <xsl:apply-templates select="." mode="bs2:FormControlTypeLabel">
+                    <xsl:with-param name="type" select="$type"/>
+                    <xsl:with-param name="type-label" select="$type-label"/>
+                </xsl:apply-templates>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
     
     <!-- blank nodes that only have rdf:type xsd:* and no other properties become literal inputs -->
     <!-- TO-DO: expand pattern to handle other XSD datatypes -->
+    <!-- TO-DO: move to Web-Client -->
     <xsl:template match="*[@rdf:nodeID]/*/@rdf:nodeID[key('resources', .)[not(* except rdf:type[starts-with(@rdf:resource, '&xsd;')])]]" mode="bs2:FormControl" priority="2">
         <xsl:param name="type" select="'text'" as="xs:string"/>
         <xsl:param name="id" select="generate-id()" as="xs:string"/>
@@ -663,6 +679,11 @@ exclude-result-prefixes="#all"
             <xsl:with-param name="type" select="'hidden'"/>
             <xsl:with-param name="value" select="key('resources', .)/rdf:type/@rdf:resource"/>
         </xsl:call-template>
+        
+        <xsl:apply-templates select="." mode="bs2:FormControlTypeLabel">
+            <xsl:with-param name="type" select="$type"/>
+            <xsl:with-param name="type-label" select="$type-label"/>
+        </xsl:apply-templates>
     </xsl:template>
     
     <!-- blank nodes that only have non-XSD rdf:type and no other properties become resource typeaheads -->
@@ -687,14 +708,16 @@ exclude-result-prefixes="#all"
         <!-- forClass input is used by typeahead's FILTER (?Type IN ()) in client.xsl -->
         <xsl:choose>
             <xsl:when test="not($forClass = '&rdfs;Resource') and doc-available(ac:document-uri($forClass))">
-                <xsl:variable name="subclasses" select="apl:listSubClasses($forClass)" as="attribute()*"/>
+                <xsl:variable name="subclasses" select="ldh:listSubClasses($forClass, false(), $ldt:ontology)" as="attribute()*"/>
                 <!-- add subclasses as forClass -->
                 <xsl:for-each select="distinct-values($subclasses)[not(. = $forClass)]">
                     <input type="hidden" class="forClass" value="{.}"/>
                 </xsl:for-each>
                 <!-- bs2:Constructor sets forClass -->
                 <xsl:apply-templates select="key('resources', $forClass, document(ac:document-uri($forClass)))" mode="bs2:Constructor">
+                    <xsl:with-param name="modal-form" select="true()"/>
                     <xsl:with-param name="subclasses" select="$subclasses"/>
+                    <xsl:with-param name="create-graph" select="true()"/>
                 </xsl:apply-templates>
             </xsl:when>
             <xsl:otherwise>
@@ -702,27 +725,94 @@ exclude-result-prefixes="#all"
             </xsl:otherwise>
         </xsl:choose>
 
+        <xsl:apply-templates select="." mode="bs2:FormControlTypeLabel">
+            <xsl:with-param name="type" select="$type"/>
+            <xsl:with-param name="type-label" select="$type-label"/>
+            <xsl:with-param name="forClass" select="$forClass"/>
+        </xsl:apply-templates>
+    </xsl:template>
+
+    <!-- typeahead for rdf:nil -->
+    <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;Content']/rdf:rest/@rdf:resource[ . = '&rdf;nil']" mode="bs2:FormControl" priority="1">
+        <xsl:apply-templates select="key('resources', '&rdf;nil', document(ac:document-uri('&rdf;')))" mode="ldh:Typeahead"/>
+    </xsl:template>
+    
+    <!-- WYSIWYG editor for XMLLiteral objects -->
+
+    <xsl:template match="*[@rdf:parseType = 'Literal']/xhtml:*" mode="bs2:FormControl">
+        <xsl:param name="id" select="generate-id()" as="xs:string"/>
+        <xsl:param name="type" select="'textarea'" as="xs:string?"/> <!-- 'textarea' is not a valid <input> type -->
+        <xsl:param name="type-label" select="true()" as="xs:boolean"/>
+
+        <textarea name="ol" id="{$id}" class="wymeditor">
+            <xsl:apply-templates select="xhtml:*" mode="xml-to-string"/>
+        </textarea>
+        <xsl:call-template name="xhtml:Input">
+            <xsl:with-param name="type" select="'hidden'"/>
+            <xsl:with-param name="name" select="'lt'"/>
+            <xsl:with-param name="value" select="'&rdf;XMLLiteral'"/>
+        </xsl:call-template>
+        
+        <xsl:apply-templates select="." mode="bs2:FormControlTypeLabel">
+            <xsl:with-param name="type" select="$type"/>
+            <xsl:with-param name="type-label" select="$type-label"/>
+        </xsl:apply-templates>
+    </xsl:template>
+    
+    <!-- FORM CONTROL TYPE LABEL -->
+
+    <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;Content']/rdf:first/@rdf:* | *[rdf:type/@rdf:resource = '&ldh;Content']/rdf:first/xhtml:*" mode="bs2:FormControlTypeLabel" priority="1">
+        <select class="help-inline content-type">
+            <option value="&rdfs;Resource">
+                <xsl:if test="self::attribute()">
+                    <xsl:attribute name="selected">selected</xsl:attribute>
+                </xsl:if>
+                
+                <xsl:text>Resource</xsl:text>
+            </option>
+            <option value="&rdf;XMLLiteral">
+                <xsl:if test="self::xhtml:*">
+                    <xsl:attribute name="selected">selected</xsl:attribute>
+                </xsl:if>
+                
+                <xsl:text>HTML</xsl:text>
+            </option>
+        </select>
+    </xsl:template>
+    
+    <xsl:template match="*[@rdf:nodeID]/*/@rdf:nodeID[key('resources', .)[not(* except rdf:type[not(starts-with(@rdf:resource, '&xsd;'))])]]" mode="bs2:FormControlTypeLabel">
+        <xsl:param name="type" as="xs:string?"/>
+        <xsl:param name="type-label" select="true()" as="xs:boolean"/>
+        <xsl:param name="forClass" as="xs:anyURI?"/>
+
         <xsl:if test="not($type = 'hidden') and $type-label">
-            <span class="help-inline">
-                <xsl:choose>
-                    <xsl:when test="doc-available(ac:document-uri($forClass))">
+            <xsl:choose>
+                <xsl:when test="$forClass">
+                    <span class="help-inline">
                         <xsl:choose>
-                            <xsl:when test="$forClass = '&rdfs;Resource'">Resource</xsl:when>
-                            <xsl:when test="doc-available(ac:document-uri($forClass)) and key('resources', $forClass, document(ac:document-uri($forClass)))">
-                                <xsl:value-of>
-                                    <xsl:apply-templates select="key('resources', $forClass, document(ac:document-uri($forClass)))" mode="ac:label"/>
-                                </xsl:value-of>
+                            <xsl:when test="doc-available(ac:document-uri($forClass))">
+                                <xsl:choose>
+                                    <xsl:when test="$forClass = '&rdfs;Resource'">Resource</xsl:when>
+                                    <xsl:when test="doc-available(ac:document-uri($forClass)) and key('resources', $forClass, document(ac:document-uri($forClass)))">
+                                        <xsl:value-of>
+                                            <xsl:apply-templates select="key('resources', $forClass, document(ac:document-uri($forClass)))" mode="ac:label"/>
+                                        </xsl:value-of>
+                                    </xsl:when>
+                                    <xsl:otherwise>
+                                        <xsl:value-of select="$forClass"/>
+                                    </xsl:otherwise>
+                                </xsl:choose>
                             </xsl:when>
                             <xsl:otherwise>
                                 <xsl:value-of select="$forClass"/>
                             </xsl:otherwise>
                         </xsl:choose>
-                    </xsl:when>
-                    <xsl:otherwise>
-                        <xsl:value-of select="$forClass"/>
-                    </xsl:otherwise>
-                </xsl:choose>
-            </span>
+                    </span>
+                </xsl:when>
+                <xsl:otherwise>
+                    <span class="help-inline">Resource</span>
+                </xsl:otherwise>
+            </xsl:choose>
         </xsl:if>
     </xsl:template>
     
@@ -767,8 +857,11 @@ exclude-result-prefixes="#all"
 
             <div class="controls">
                 <!-- $forClass value is used in client.xsl -->
-                <button type="button" id="button-{generate-id()}" class="btn add-value" value="{$forClass}">
-                    <xsl:apply-templates select="key('resources', 'add', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="apl:logo">
+                <xsl:for-each select="$forClass">
+                    <input type="hidden" name="forClass" value="{.}"/>
+                </xsl:for-each>
+                <button type="button" id="button-{generate-id()}" class="btn add-value">
+                    <xsl:apply-templates select="key('resources', 'add', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ldh:logo">
                         <xsl:with-param name="class" select="'btn add-value'"/>
                     </xsl:apply-templates>
                 </button>
@@ -776,112 +869,6 @@ exclude-result-prefixes="#all"
         </div>
     </xsl:template>
     
-    <!-- CONSTRUCTOR -->
-    
-    <xsl:template match="*[@rdf:about]" mode="bs2:Constructor">
-        <xsl:param name="id" select="concat('constructor-', generate-id())" as="xs:string?"/>
-        <xsl:param name="subclasses" as="attribute()*"/>
-        <xsl:param name="with-label" select="false()" as="xs:boolean"/>
-        <xsl:variable name="forClass" select="@rdf:about" as="xs:anyURI"/>
-
-        <xsl:if test="doc-available(ac:document-uri($forClass))">
-            <!-- this is used for typeahead's FILTER ?Type -->
-            <input type="hidden" class="forClass" value="{$forClass}"/>
-
-            <!-- if $forClass subclasses are provided, render a dropdown with multiple constructor choices. Otherwise, only render a single constructor button for $forClass -->
-            <xsl:choose>
-                <xsl:when test="exists($subclasses)">
-                    <div class="btn-group">
-                        <button type="button">
-                            <xsl:choose>
-                                <xsl:when test="$with-label">
-                                    <xsl:apply-templates select="." mode="apl:logo">
-                                        <xsl:with-param name="class" select="'btn dropdown-toggle'"/>
-                                    </xsl:apply-templates>
-                                    <xsl:text> </xsl:text>
-                                    <xsl:value-of>
-                                        <xsl:apply-templates select="." mode="ac:label"/>
-                                    </xsl:value-of>
-                                </xsl:when>
-                                <xsl:otherwise>
-                                    <xsl:apply-templates select="key('resources', '&ac;ConstructMode', document('&ac;'))" mode="apl:logo">
-                                        <xsl:with-param name="class" select="'btn dropdown-toggle'"/>
-                                    </xsl:apply-templates>
-                                </xsl:otherwise>
-                            </xsl:choose>
-                        </button>
-                        <ul class="dropdown-menu">
-                            <xsl:variable name="self-and-subclasses" select="key('resources', $forClass, document(ac:document-uri($forClass))), $subclasses/.." as="element()*"/>
-
-                            <!-- apply on the "deepest" subclass of $forClass and its subclasses -->
-                            <xsl:for-each select="$self-and-subclasses[not(@rdf:about = $self-and-subclasses/rdfs:subClassOf/@rdf:resource)]">
-                                <xsl:sort select="ac:label(.)" order="ascending" lang="{$ldt:lang}"/>
-
-                                <xsl:variable name="action" select="$self-and-subclasses/rdfs:subClassOf/@rdf:*/key('resources', ., document(ac:document-uri(.)))/owl:allValuesFrom/@rdf:*/key('resources', ., document(ac:document-uri(.)))/rdfs:subClassOf/@rdf:*/key('resources', ., document(ac:document-uri(.)))/owl:hasValue/@rdf:resource" as="xs:anyURI?"/>
-                                <li>
-                                    <button type="button" class="btn add-constructor" title="{@rdf:about}">
-                                        <xsl:if test="$id">
-                                            <xsl:attribute name="id" select="$id"/>
-                                        </xsl:if>
-                                        <input type="hidden" class="action" value="{concat(if ($action) then $action else $ac:uri, '?forClass=', encode-for-uri(@rdf:about), '&amp;mode=', encode-for-uri('&ac;ModalMode'))}"/>
-
-                                        <xsl:value-of>
-                                            <xsl:apply-templates select="." mode="ac:label"/>
-                                        </xsl:value-of>
-                                    </button>
-                                </li>
-                            </xsl:for-each>
-                        </ul>
-                    </div>
-                </xsl:when>
-                <xsl:otherwise>
-                    <xsl:variable name="self" select="key('resources', $forClass, document(ac:document-uri($forClass)))" as="element()*"/>
-                    <!-- won't traverse blank nodes, only URI resources -->
-                    <xsl:variable name="action" select="$self/rdfs:subClassOf/@rdf:resource/(if (doc-available(ac:document-uri(.))) then key('resources', ., document(ac:document-uri(.))) else ())/owl:allValuesFrom/@rdf:resource/(if (doc-available(ac:document-uri(.))) then key('resources', ., document(ac:document-uri(.))) else ())/rdfs:subClassOf/@rdf:resource/(if (doc-available(ac:document-uri(.))) then key('resources', ., document(ac:document-uri(.))) else ())/owl:hasValue/@rdf:resource" as="xs:anyURI?"/>
-                    <button type="button" title="{@rdf:about}">
-                        <xsl:if test="$id">
-                            <xsl:attribute name="id" select="$id"/>
-                        </xsl:if>
-
-                        <xsl:choose>
-                            <xsl:when test="$with-label">
-                                <xsl:apply-templates select="." mode="apl:logo">
-                                    <xsl:with-param name="class" select="'btn add-constructor'"/>
-                                </xsl:apply-templates>
-
-                                <xsl:value-of>
-                                    <xsl:apply-templates select="." mode="ac:label"/>
-                                </xsl:value-of>
-                            </xsl:when>
-                            <xsl:otherwise>
-                                <xsl:apply-templates select="key('resources', '&ac;ConstructMode', document('&ac;'))" mode="apl:logo">
-                                    <xsl:with-param name="class" select="'btn add-constructor'"/>
-                                </xsl:apply-templates>
-                            </xsl:otherwise>
-                        </xsl:choose>
-
-                        <input type="hidden" class="action" value="{concat(if ($action) then $action else $ac:uri, '?forClass=', encode-for-uri(@rdf:about),'&amp;mode=', encode-for-uri('&ac;ModalMode'))}"/>
-                    </button>
-                </xsl:otherwise>
-            </xsl:choose>
-        </xsl:if>
-    </xsl:template>
-    
-    <!-- WYSIWYG editor for XMLLiteral objects -->
-
-    <xsl:template match="*[@rdf:*[local-name() = 'parseType'] = 'Literal']/xhtml:*" mode="bs2:FormControl">
-        <xsl:param name="id" select="generate-id()" as="xs:string"/>
-
-        <textarea name="ol" id="{$id}" class="wymeditor">
-            <xsl:apply-templates select="xhtml:*" mode="xml-to-string"/>
-        </textarea>
-        <xsl:call-template name="xhtml:Input">
-            <xsl:with-param name="type" select="'hidden'"/>
-            <xsl:with-param name="name" select="'lt'"/>
-            <xsl:with-param name="value" select="'&rdf;XMLLiteral'"/>
-        </xsl:call-template>
-    </xsl:template>
-
     <!-- real numbers -->
     
     <xsl:template match="text()[../@rdf:datatype = '&xsd;float'] | text()[../@rdf:datatype = '&xsd;double']" priority="1" mode="xhtml:Input">
@@ -921,13 +908,13 @@ exclude-result-prefixes="#all"
     
     <!-- XHTML CONTENT IDENTITY TRANSFORM -->
     
-    <xsl:template match="*" mode="apl:XHTMLContent" priority="1">
+    <xsl:template match="*" mode="ldh:XHTMLContent" priority="1">
         <xsl:element name="{name()}">
             <xsl:apply-templates select="@* | node()" mode="#current"/>
         </xsl:element>
     </xsl:template>
 
-    <xsl:template match="@* | node()" mode="apl:XHTMLContent">
+    <xsl:template match="@* | node()" mode="ldh:XHTMLContent">
         <xsl:copy>
             <xsl:apply-templates select="@* | node()" mode="#current"/>
         </xsl:copy>

@@ -17,7 +17,7 @@
 package com.atomgraph.linkeddatahub.model.dydra.impl;
 
 import com.atomgraph.core.MediaTypes;
-import com.atomgraph.linkeddatahub.vocabulary.APL;
+import com.atomgraph.linkeddatahub.vocabulary.LDH;
 import javax.ws.rs.client.Client;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.enhanced.EnhNode;
@@ -62,7 +62,7 @@ public class ServiceImplementation extends Implementation
     {
         if (eg == null) throw new IllegalArgumentException("EnhGraph cannot be null");
 
-        return eg.asGraph().contains(node, RDF.type.asNode(), APL.DydraService.asNode());
+        return eg.asGraph().contains(node, RDF.type.asNode(), LDH.DydraService.asNode());
     }
 
     public Client getClient()

@@ -106,11 +106,6 @@ fi
 
 container="${base}model/restrictions/"
 
-# if target URL is not provided, it equals container
-if [ -z "$1" ] ; then
-    args+=("${container}")
-fi
-
 # allow explicit URIs
 if [ -n "$uri" ] ; then
     restriction="<${uri}>" # URI
@@ -118,32 +113,36 @@ else
     restriction="_:restriction" # blank node
 fi
 
+if [ -z "$1" ]; then
+    print_usage
+    exit 1
+fi
+
+#if [ -z "$1" ]; then
+#    args+=("${base}service") # default target URL = graph store
+#fi
+
 args+=("-f")
 args+=("${cert_pem_file}")
 args+=("-p")
 args+=("${cert_password}")
-args+=("-c")
-args+=("${base}ns#Restriction") # class
 args+=("-t")
 args+=("text/turtle") # content type
 
-turtle+="@prefix ns:	<ns#> .\n"
+turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy#> .\n"
+turtle+="@prefix owl:	<http://www.w3.org/2002/07/owl#> .\n"
 turtle+="@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .\n"
 turtle+="@prefix owl:	<http://www.w3.org/2002/07/owl#> .\n"
-turtle+="@prefix ldt:	<https://www.w3.org/ns/ldt#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
 turtle+="@prefix foaf:	<http://xmlns.com/foaf/0.1/> .\n"
-turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .\n"
 turtle+="@prefix spin:	<http://spinrdf.org/spin#> .\n"
 turtle+="@prefix sioc:	<http://rdfs.org/sioc/ns#> .\n"
-turtle+="${restriction} a ns:Restriction .\n"
+turtle+="${restriction} a owl:Restriction .\n"
 turtle+="${restriction} rdfs:label \"${label}\" .\n"
-turtle+="${restriction} foaf:isPrimaryTopicOf _:item .\n"
-turtle+="${restriction} rdfs:isDefinedBy <../ns/domain#> .\n"
-turtle+="_:item a ns:RestrictionItem .\n"
+turtle+="_:item a dh:Item .\n"
+turtle+="_:item foaf:primaryTopic ${restriction} .\n"
 turtle+="_:item sioc:has_container <${container}> .\n"
 turtle+="_:item dct:title \"${label}\" .\n"
-turtle+="_:item foaf:primaryTopic ${restriction} .\n"
 
 if [ -n "$comment" ] ; then
     turtle+="${restriction} rdfs:comment \"${comment}\" .\n"

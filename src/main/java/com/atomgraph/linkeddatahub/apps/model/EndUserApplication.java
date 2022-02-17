@@ -22,7 +22,7 @@ package com.atomgraph.linkeddatahub.apps.model;
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-public interface EndUserApplication extends Application, com.atomgraph.processor.model.Application
+public interface EndUserApplication extends Application
 {
     
     AdminApplication getAdminApplication();

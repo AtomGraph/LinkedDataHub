@@ -122,38 +122,33 @@ fi
 
 container="${base}charts/"
 
-# if target URL is not provided, it equals container
-if [ -z "$1" ] ; then
-    args+=("${container}")
+if [ -z "$1" ]; then
+    args+=("${base}service") # default target URL = graph store
 fi
 
 args+=("-f")
 args+=("${cert_pem_file}")
 args+=("-p")
 args+=("${cert_password}")
-args+=("-c")
-args+=("${base}ns/domain/system#ResultSetChart") # class
 args+=("-t")
 args+=("text/turtle") # content type
 
-turtle+="@prefix nsds:	<ns/domain/system#> .\n"
+turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
 turtle+="@prefix foaf:	<http://xmlns.com/foaf/0.1/> .\n"
-turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .\n"
 turtle+="@prefix spin:  <http://spinrdf.org/spin#> .\n"
-turtle+="@prefix apl:	<https://w3id.org/atomgraph/linkeddatahub/domain#> .\n"
+turtle+="@prefix ldh:	<https://w3id.org/atomgraph/linkeddatahub#> .\n"
 turtle+="@prefix sioc:	<http://rdfs.org/sioc/ns#> .\n"
-turtle+="_:chart a nsds:ResultSetChart .\n"
+turtle+="_:chart a ldh:ResultSetChart .\n"
 turtle+="_:chart dct:title \"${title}\" .\n"
 turtle+="_:chart spin:query <${query}> .\n"
-turtle+="_:chart apl:chartType <${chart_type}> .\n"
-turtle+="_:chart apl:categoryVarName \"${category_var_name}\" .\n"
-turtle+="_:chart apl:seriesVarName \"${series_var_name}\" .\n"
-turtle+="_:chart foaf:isPrimaryTopicOf _:item .\n"
-turtle+="_:item a nsds:ChartItem .\n"
+turtle+="_:chart ldh:chartType <${chart_type}> .\n"
+turtle+="_:chart ldh:categoryVarName \"${category_var_name}\" .\n"
+turtle+="_:chart ldh:seriesVarName \"${series_var_name}\" .\n"
+turtle+="_:item a dh:Item .\n"
 turtle+="_:item dct:title \"${title}\" .\n"
-turtle+="_:item sioc:has_container <${container}> .\n"
 turtle+="_:item foaf:primaryTopic _:chart .\n"
+turtle+="_:item sioc:has_container <${container}> .\n"
 
 if [ -n "$description" ] ; then
     turtle+="_:chart dct:description \"${description}\" .\n"

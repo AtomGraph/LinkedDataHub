@@ -1,13 +1,12 @@
-@base           <https://w3id.org/atomgraph/linkeddatahub/apps/domain> .
+@base           <https://w3id.org/atomgraph/linkeddatahub/apps> .
 
 @prefix :	<#> .
-@prefix apl:	<https://w3id.org/atomgraph/linkeddatahub/domain#> .
+@prefix ldh:	<https://w3id.org/atomgraph/linkeddatahub#> .
 @prefix a:	<https://w3id.org/atomgraph/core#> .
 @prefix rdf:	<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .
 @prefix xsd:	<http://www.w3.org/2001/XMLSchema#> .
 @prefix owl:	<http://www.w3.org/2002/07/owl#> .
-@prefix sd:	<http://www.w3.org/ns/sparql-service-description#> .
 @prefix ldt:	<https://www.w3.org/ns/ldt#> .
 @prefix sp:	<http://spinrdf.org/sp#> .
 @prefix spin:	<http://spinrdf.org/spin#> .
@@ -17,7 +16,7 @@
 @prefix dct:	<http://purl.org/dc/terms/> .
 
 : a owl:Ontology ;
-    owl:imports apl:, ldt:, sp:, spin: ;
+    owl:imports ldh:, ldt:, sp:, spin: ;
     rdfs:label "AtomGraph Application ontology" ;
     rdfs:comment "Ontology of AtomGraph applications" ;
     owl:versionInfo "1.1.4" .
@@ -41,7 +40,7 @@
     rdfs:isDefinedBy : .
 
 :proxy a owl:ObjectProperty ;
-    rdfs:domain :Application ;
+    rdfs:domain :Dataset ;
     rdfs:range rdfs:Resource ;
     rdfs:label "Proxy" ;
     rdfs:comment "An intermediary server (such as cache) that proxies requests to service" ;
@@ -56,42 +55,43 @@
 
 # CLASSES
 
+# dataset
+
+:Dataset a rdfs:Class, owl:Class ;
+    rdfs:subClassOf void:Dataset ;
+    rdfs:label "Linked Data dataset" ;
+    rdfs:comment "A dataspace that returns RDF Linked Data" ;
+    rdfs:isDefinedBy : .
+
 # application
 
 :Application a rdfs:Class, owl:Class ;
     rdfs:subClassOf ldt:Application ;
     spin:constructor :ApplicationConstructor ;
     spin:constraint :OneBasePerHostName, :StartsWithHTTPS,
-        [ a apl:MissingPropertyValue ;
+        [ a ldh:MissingPropertyValue ;
             rdfs:label "Missing base URI" ;
             sp:arg1 ldt:base
-        ] ,
-        [ a apl:MissingPropertyValue ;
-            rdfs:label "Missing SPARQL service" ;
-            sp:arg1 ldt:service
-        ] ,
-        [ a apl:MissingPropertyValue ;
-            rdfs:label "Missing ontology" ;
-            sp:arg1 ldt:ontology
         ] ;
+        #[ a ldh:MissingPropertyValue ;
+        #    rdfs:label "Missing SPARQL service" ;
+        #    sp:arg1 ldt:service
+        #] ;
     rdfs:label "Application" ;
     rdfs:comment "An application represents a data space identified by its base URI, in which application resource URIs are relative to the base URI. The only application interface (API) is read-write RESTful Linked data, backed by an RDF dataset accessible as a SPARQL 1.1 service. Application structure is defined in an ontology, which can import other ontologies." ;
     rdfs:isDefinedBy : .
 
 :ApplicationConstructor a sp:Construct ;
     sp:text """
-      PREFIX apl:     <https://w3id.org/atomgraph/linkeddatahub/domain#>
+      PREFIX ldh:     <https://w3id.org/atomgraph/linkeddatahub#>
       PREFIX ldt:     <https://www.w3.org/ns/ldt#>
+      PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
 
       CONSTRUCT {
-          ?this ldt:base ?base ;
-            ldt:ontology ?ontology ;
-            ldt:service [ a apl:Service ] .
+          ?this ldt:base [ a rdfs:Resource ] ;
+            ldt:service [ a ldh:Service ] .
       }
       WHERE {
-          BIND (STRUUID() AS ?uuid)
-          BIND (URI(CONCAT(?uuid, "/")) AS ?base)
-          BIND (URI(CONCAT(?uuid, "/ns#")) AS ?ontology)
     }""" ;
     rdfs:label "Application constructor" ;
     rdfs:isDefinedBy : .
@@ -99,14 +99,10 @@
 # end-user
 
 :EndUserApplication a rdfs:Class, owl:Class ;
-    rdfs:subClassOf :Application ;
     spin:constructor :EndUserApplicationConstructor ;
-    spin:constraint [ a apl:MissingPropertyValue ;
+    spin:constraint [ a ldh:MissingPropertyValue ;
             rdfs:label "Missing admin application" ;
             sp:arg1 :adminApplication
-        ] , [ a apl:MissingPropertyValue ;
-            rdfs:label "Missing title" ;
-            sp:arg1 dct:title
         ] ;
     rdfs:label "End-user application" ;
     rdfs:comment "Application with a dynamic access control and sitemap" ;
@@ -114,8 +110,8 @@
 
 :EndUserApplicationConstructor a sp:Construct ;
     sp:text """
-      PREFIX lapp:    <https://w3id.org/atomgraph/linkeddatahub/apps/domain#>
-      PREFIX apl:     <https://w3id.org/atomgraph/linkeddatahub/domain#>
+      PREFIX lapp:    <https://w3id.org/atomgraph/linkeddatahub/apps#>
+      PREFIX ldh:     <https://w3id.org/atomgraph/linkeddatahub#>
       PREFIX ac:      <https://w3id.org/atomgraph/client#>
       PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
       PREFIX ldt:     <https://www.w3.org/ns/ldt#>
@@ -125,7 +121,7 @@
           ?this dct:title [ a xsd:string ] ;
             dct:description [ a xsd:string ] ;
             lapp:adminApplication [ a lapp:AdminApplication ] ;
-            ac:stylesheet [ a apl:File ] ;
+            ac:stylesheet [ a ldh:File ] ;
             lapp:public [ a xsd:boolean ] .
       }
       WHERE {}""" ;
@@ -135,14 +131,10 @@
 # admin
 
 :AdminApplication a rdfs:Class, owl:Class ;
-    rdfs:subClassOf :Application ;
     spin:constructor :AdminApplicationConstructor ;
-    spin:constraint [ a apl:MissingPropertyValue ;
+    spin:constraint [ a ldh:MissingPropertyValue ;
             rdfs:label "Missing end-user application" ;
             sp:arg1 :endUserApplication
-        ] , [ a apl:MissingPropertyValue ;
-            rdfs:label "Missing title" ;
-            sp:arg1 dct:title
         ] ;
     rdfs:label "Admin application" ;
     rdfs:comment "Meta-application that manages the access control and sitemap of the main end-user application" ;
@@ -150,7 +142,7 @@
 
 :AdminApplicationConstructor a sp:Construct ;
     sp:text """
-      PREFIX lapp:    <https://w3id.org/atomgraph/linkeddatahub/apps/domain#>
+      PREFIX lapp:    <https://w3id.org/atomgraph/linkeddatahub/apps#>
       PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
       PREFIX dct:     <http://purl.org/dc/terms/>
 

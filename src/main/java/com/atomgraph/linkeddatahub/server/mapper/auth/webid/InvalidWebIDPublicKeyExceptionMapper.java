@@ -19,17 +19,12 @@ package com.atomgraph.linkeddatahub.server.mapper.auth.webid;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.server.exception.auth.webid.InvalidWebIDPublicKeyException;
 import com.atomgraph.linkeddatahub.vocabulary.Cert;
-import com.atomgraph.linkeddatahub.vocabulary.LACL;
 import com.atomgraph.linkeddatahub.vocabulary.PROV;
-import com.atomgraph.processor.model.TemplateCall;
 import com.atomgraph.server.mapper.ExceptionMapperBase;
-import java.util.Optional;
 import javax.inject.Inject;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.ExceptionMapper;
 import org.apache.jena.datatypes.xsd.XSDDatatype;
-import org.apache.jena.ontology.Ontology;
-import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.vocabulary.RDF;
@@ -43,9 +38,9 @@ public class InvalidWebIDPublicKeyExceptionMapper extends ExceptionMapperBase im
 {
 
     @Inject
-    public InvalidWebIDPublicKeyExceptionMapper(Optional<Ontology> ontology, Optional<TemplateCall> templateCall, MediaTypes mediaTypes)
+    public InvalidWebIDPublicKeyExceptionMapper(MediaTypes mediaTypes)
     {
-        super(ontology, templateCall, mediaTypes);
+        super(mediaTypes);
     }
     
     // TO-DO: use a non-standard SSL-specific status code such as 495 SSL Certificate Error?
@@ -59,11 +54,11 @@ public class InvalidWebIDPublicKeyExceptionMapper extends ExceptionMapperBase im
         // if public key is provided, append its metadata to the error response
         if (ex.getPublicKey() != null)
             resource.addProperty(PROV.wasDerivedFrom, resource.getModel().createResource().
-                addProperty(RDF.type, LACL.PublicKey).
+                addProperty(RDF.type, Cert.PublicKey).
                 addLiteral(Cert.modulus, ResourceFactory.createTypedLiteral(ex.getPublicKey().getModulus().toString(16), XSDDatatype.XSDhexBinary)).
                 addLiteral(Cert.exponent, ResourceFactory.createTypedLiteral(ex.getPublicKey().getPublicExponent())));
                 
-        return getResponseBuilder(DatasetFactory.create(resource.getModel())).
+        return getResponseBuilder(resource.getModel()).
             status(Response.Status.BAD_REQUEST).
             build();
     }

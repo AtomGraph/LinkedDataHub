@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 
 initialize_dataset "$END_USER_BASE_URL" "$TMP_END_USER_DATASET" "$END_USER_ENDPOINT_URL"
 initialize_dataset "$ADMIN_BASE_URL" "$TMP_ADMIN_DATASET" "$ADMIN_ENDPOINT_URL"
@@ -20,7 +21,7 @@ popd
 
 # agent not authorized - delegation should fail
 
-curl --head -k -w "%{http_code}\n" -f -s \
+curl --head -k -w "%{http_code}\n" -o /dev/null -s \
   -E "$SECRETARY_CERT_FILE":"$SECRETARY_CERT_PWD" \
   -H "Accept: text/turtle" \
   -H "On-Behalf-Of: ${AGENT_URI}" \
@@ -41,7 +42,7 @@ popd > /dev/null
 
 # agent authorized - delegation should succeed
 
-curl --head -k -w "%{http_code}\n" -f -s \
+curl --head -k -w "%{http_code}\n" -o /dev/null -f -s \
   -E "$SECRETARY_CERT_FILE":"$SECRETARY_CERT_PWD" \
   -H "Accept: text/turtle" \
   -H "On-Behalf-Of: ${AGENT_URI}" \

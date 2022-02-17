@@ -20,12 +20,14 @@ import com.atomgraph.linkeddatahub.server.filter.request.AuthenticationFilter;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.core.io.ModelProvider;
 import com.atomgraph.linkeddatahub.apps.model.Application;
+import com.atomgraph.linkeddatahub.model.Agent;
 import com.atomgraph.linkeddatahub.server.exception.auth.webid.InvalidWebIDPublicKeyException;
-import com.atomgraph.linkeddatahub.server.exception.auth.webid.InvalidWebIDURIException;
-import com.atomgraph.linkeddatahub.server.exception.auth.webid.WebIDCertificateException;
 import com.atomgraph.linkeddatahub.server.exception.auth.webid.WebIDLoadingException;
 import com.atomgraph.linkeddatahub.server.exception.auth.webid.WebIDDelegationException;
+import com.atomgraph.linkeddatahub.server.security.AgentSecurityContext;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
+import com.atomgraph.linkeddatahub.vocabulary.Cert;
+import com.atomgraph.linkeddatahub.vocabulary.FOAF;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.security.cert.CertificateException;
@@ -38,6 +40,7 @@ import javax.annotation.PostConstruct;
 import javax.annotation.Priority;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Priorities;
+import javax.ws.rs.ProcessingException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.PreMatching;
@@ -47,11 +50,12 @@ import javax.ws.rs.core.SecurityContext;
 import org.apache.jena.datatypes.xsd.XSDDatatype;
 import org.apache.jena.query.ParameterizedSparqlString;
 import org.apache.jena.query.QueryExecution;
-import org.apache.jena.query.QueryExecutionFactory;
 import org.apache.jena.query.ResultSet;
 import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
+import org.apache.jena.vocabulary.RDF;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -99,7 +103,7 @@ public class WebIDFilter extends AuthenticationFilter
     }
     
     @Override
-    public Resource authenticate(ContainerRequestContext request)
+    public SecurityContext authenticate(ContainerRequestContext request)
     {
         try
         {
@@ -131,17 +135,26 @@ public class WebIDFilter extends AuthenticationFilter
                 else throw new WebIDDelegationException(agent, principal);
             }
 
-            return agent;
+            // imitate type inference, otherwise we'll get Jena's polymorphism exception
+            return new AgentSecurityContext(getScheme(), agent.addProperty(RDF.type, FOAF.Agent).as(Agent.class));
         }
         catch (CertificateException ex)
         {
             if (log.isErrorEnabled()) log.error("WebID certificate error (could not parse, expired or not yet valid)", ex);
-            throw new WebIDCertificateException(ex);
+            //throw new WebIDCertificateException(ex);
+            return null;
         }
         catch (URISyntaxException ex)
         {
             if (log.isErrorEnabled()) log.error("Could not parse WebID URI: {}", ex.getInput(), ex);
-            throw new InvalidWebIDURIException(ex.getInput());
+            //throw new InvalidWebIDURIException(ex.getInput());
+            return null;
+        }
+        catch (ProcessingException ex)
+        {
+            if (log.isErrorEnabled()) log.error("Could not load WebID URI", ex);
+//            throw new WebIDLoadingException(ex, null);
+            return null;
         }
     }
 
@@ -181,7 +194,7 @@ public class WebIDFilter extends AuthenticationFilter
         pss.setLiteral("exp", ResourceFactory.createTypedLiteral(publicKey.getPublicExponent()));
         pss.setLiteral("mod", ResourceFactory.createTypedLiteral(publicKey.getModulus().toString(16), XSDDatatype.XSDhexBinary));
 
-        try (QueryExecution qex = QueryExecutionFactory.create(pss.asQuery(), webIDModel))
+        try (QueryExecution qex = QueryExecution.create(pss.asQuery(), webIDModel))
         {
             ResultSet resultSet = qex.execSelect();
             if (resultSet.hasNext())
@@ -208,21 +221,46 @@ public class WebIDFilter extends AuthenticationFilter
     {
         try
         {
+            Model model = ModelFactory.createDefaultModel();
+            
             // remove fragment identifier to get document URI
             URI webIDDoc = new URI(webID.getScheme(), webID.getSchemeSpecificPart(), null).normalize();
             
-            try (Response cr = getNoCertClient().target(webIDDoc).
+            try (Response cr1 = getClient().target(webIDDoc).
                     request(getAcceptableMediaTypes()).
                     get())
             {
-                if (!cr.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
+                if (!cr1.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
                 {
-                    if (log.isErrorEnabled()) log.error("Could not load WebID: {}", webID.toString());
-                    throw new WebIDLoadingException(webID, cr);
+                    if (log.isErrorEnabled()) log.error("Could not load WebID Agent: {}", webID.toString());
+                    throw new WebIDLoadingException(webID, cr1);
                 }
-                cr.getHeaders().putSingle(ModelProvider.REQUEST_URI_HEADER, webIDDoc.toString()); // provide a base URI hint to ModelProvider
+                cr1.getHeaders().putSingle(ModelProvider.REQUEST_URI_HEADER, webIDDoc.toString()); // provide a base URI hint to ModelProvider
+                model.add(cr1.readEntity(Model.class));
+                
+                Resource certKeyRes = model.createResource(webID.toString()).getPropertyResourceValue(Cert.key);
+                // load PublicKey separately - only if it's a URI resource. If it's a blank node, its description should be present in the WebID model
+                if (certKeyRes != null && certKeyRes.isURIResource())
+                {
+                    URI certKey = URI.create(certKeyRes.getURI());
+                    // remove fragment identifier to get document URI
+                    URI certKeyDoc = new URI(certKey.getScheme(), certKey.getSchemeSpecificPart(), null).normalize();
 
-                return cr.readEntity(Model.class);
+                    try (Response cr2 = getClient().target(certKeyDoc).
+                            request(getAcceptableMediaTypes()).
+                            get())
+                    {
+                        if (!cr2.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
+                        {
+                            if (log.isErrorEnabled()) log.error("Could not load WebID Key: {}", certKey.toString());
+                            throw new WebIDLoadingException(webID, cr2);
+                        }
+                        cr2.getHeaders().putSingle(ModelProvider.REQUEST_URI_HEADER, certKey.toString()); // provide a base URI hint to ModelProvider
+                        model.add(cr2.readEntity(Model.class));
+                    }
+                }
+                
+                return model;
             }
         }
         catch (URISyntaxException ex)
@@ -243,7 +281,7 @@ public class WebIDFilter extends AuthenticationFilter
         return webIDQuery.copy();
     }
     
-    public Client getNoCertClient()
+    public Client getClient()
     {
         return getSystem().getNoCertClient();
     }
