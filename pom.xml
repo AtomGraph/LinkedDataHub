@@ -7,7 +7,7 @@
     <packaging>${packaging.type}</packaging>
 
     <name>AtomGraph LinkedDataHub</name>
-    <description>Data-driven Knowledge Graph management system</description>
+    <description>The Knowledge Graph notebook</description>
     <url>https://atomgraph.github.io/LinkedDataHub/</url>
     <inceptionYear>2014</inceptionYear>
 
