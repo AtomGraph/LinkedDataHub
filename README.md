@@ -2,14 +2,13 @@
 
 **_LinkedDataHub_ (LDH) is open source software you can use to manage data, create visualizations and build apps on RDF Knowledge Graphs.**
 
-![AtomGraph LinkedDataHub screenshot](https://raw.github.com/AtomGraph/LinkedDataHub/master/screenshot.png)
+[![What's new in LinkedDataHub v3? Feature overview](https://img.youtube.com/vi/phRL6QtVTG0/0.jpg)](https://www.youtube.com/watch?v=phRL6QtVTG0)
 
 Welcome to LinkedDataHub. We started the project with the intention to use it for Linked Data publishing, but gradually realized that we've built a multi-purpose data-driven platform.
 
-We are building LinkedDataHub for:
-* domain experts who work with RDF data and need an accessible low-code publishing, exploration and management tool
-* developers who are looking for a declarative full stack framework for web application and API development
-* data engineers who need an open-source RDF platform that can be customized for a variety of use cases
+We are building LinkedDataHub primarily for:
+* researchers who need an RDF-native notebook that can consume and collect Linked Data and SPARQL documents and follows the [FAIR principles](https://www.go-fair.org/fair-principles/)
+* developers who are looking for a declarative full stack framework for Knowledge Graph application development, with out-of-the-box UI and API
 
 What makes LinkedDataHub unique is its completely _data-driven architecture_: applications and documents are defined as data, managed using a single generic HTTP API and presented using declarative technologies. The default application structure and user interface are provided, but they can be completely overridden and customized. Unless a custom server-side processing is required, no imperative code such as Java or JavaScript needs to be involved at all.
 
@@ -60,7 +59,7 @@ What makes LinkedDataHub unique is its completely _data-driven architecture_: ap
      ```
      docker-compose up --build
      ```
-     LinkedDataHub will start and mount the following sub-folders:
+     It will build LinkedDataHub's Docker image, start its container and mount the following sub-folders:
      - `data` where the triplestore(s) will persist RDF data
      - `uploads` where LDH stores content-hashed file uploads
      The first should take around half a minute as datasets are being loaded into triplestores. After a successful startup, the last line of the Docker log should read something like:
@@ -111,7 +110,7 @@ What makes LinkedDataHub unique is its completely _data-driven architecture_: ap
 
   ### Dataspaces
 
-  Dataspaces are configured in [`config/system.trig`](https://github.com/AtomGraph/LinkedDataHub/blob/master/config/system.trig). Relative URIs will be resolved against the base URI configured in the `.env` file.
+  Dataspaces are configured in [`config/system-varnish.trig`](https://github.com/AtomGraph/LinkedDataHub/blob/master/config/system-varnish.trig). Relative URIs will be resolved against the base URI configured in the `.env` file.
 
 _:warning: Do not use blank nodes to identify applications or services. We recommend using the `urn:` URI scheme, since LinkedDataHub application resources are not accessible under their own dataspace._
 
