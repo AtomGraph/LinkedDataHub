@@ -95,7 +95,7 @@ public class Add extends GraphStoreImpl // TO-DO: does not need to extend GraphS
         {
             Model model = parseModel(multiPart); // do not skolemize because we don't know the graphUri yet
             MessageBodyReader<Model> reader = getProviders().getMessageBodyReader(Model.class, null, null, com.atomgraph.core.MediaType.APPLICATION_NTRIPLES_TYPE);
-            if (reader instanceof ValidatingModelProvider) model = ((ValidatingModelProvider)reader).process(model);
+            if (reader instanceof ValidatingModelProvider) model = ((ValidatingModelProvider)reader).processRead(model);
             if (log.isDebugEnabled()) log.debug("POSTed Model size: {}", model.size());
 
             return postFileBodyPart(model, getFileNameBodyPartMap(multiPart)); // do not write the uploaded file -- instead append its triples/quads

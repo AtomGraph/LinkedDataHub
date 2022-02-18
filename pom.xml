@@ -3,7 +3,7 @@
 
     <groupId>com.atomgraph</groupId>
     <artifactId>linkeddatahub</artifactId>
-    <version>3.0.4-SNAPSHOT</version>
+    <version>3.0.5-SNAPSHOT</version>
     <packaging>${packaging.type}</packaging>
 
     <name>AtomGraph LinkedDataHub</name>
@@ -134,7 +134,7 @@
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>processor</artifactId>
-            <version>3.13.8</version>
+            <version>3.13.9-SNAPSHOT</version>
             <exclusions>
                 <!-- exclude jakarta.json as its version clashes with Jersey's -->
                 <exclusion>

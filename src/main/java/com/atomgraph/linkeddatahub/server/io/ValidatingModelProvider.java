@@ -40,8 +40,21 @@ import com.atomgraph.spinrdf.constraints.ConstraintViolation;
 import com.atomgraph.spinrdf.constraints.ObjectPropertyPath;
 import com.atomgraph.spinrdf.constraints.SimplePropertyPath;
 import com.atomgraph.spinrdf.vocabulary.SP;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.security.DigestInputStream;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.Objects;
+import java.util.stream.Collectors;
+import javax.ws.rs.InternalServerErrorException;
 import javax.ws.rs.core.MediaType;
+import org.apache.commons.codec.binary.Hex;
 import org.apache.jena.rdf.model.RDFWriterI;
+import org.apache.jena.rdf.model.Statement;
+import org.apache.jena.rdf.model.StmtIterator;
 import org.apache.jena.vocabulary.DCTerms;
 import org.apache.jena.vocabulary.OWL;
 import org.slf4j.Logger;
@@ -61,6 +74,20 @@ public class ValidatingModelProvider extends com.atomgraph.server.io.ValidatingM
     @Context UriInfo uriInfo;
     @Context Providers providers;
 
+    private final MessageDigest messageDigest;
+
+    public ValidatingModelProvider()
+    {
+        try
+        {
+            this.messageDigest = MessageDigest.getInstance("SHA1");
+        }
+        catch (NoSuchAlgorithmException ex)
+        {
+            if (log.isErrorEnabled()) log.error("SHA1 algorithm not found", ex);
+            throw new InternalServerErrorException(ex);
+        }
+    }
 //    @Override
 //    public Model read(Model model, InputStream is, Lang lang, String baseURI)
 //    {
@@ -98,15 +125,15 @@ public class ValidatingModelProvider extends com.atomgraph.server.io.ValidatingM
     }
     
     @Override
-    public Model process(Model model)
-    {   
+    public Model processRead(Model model)
+    {
         ResIterator it = model.listSubjects();
         try
         {
             while (it.hasNext())
             {
                 Resource resource = it.next();
-                process(resource);
+                processRead(resource);
             }
         }
         finally
@@ -114,13 +141,11 @@ public class ValidatingModelProvider extends com.atomgraph.server.io.ValidatingM
             it.close();
         }
 
-        return super.process(model); // apply processing from superclasses
+        return super.processRead(model); // apply processing from superclasses
     }
     
-    public Resource process(Resource resource) // this logic really belongs in a ContainerRequestFilter but we don't want to buffer and re-serialize the Model
+    public Resource processRead(Resource resource) // this logic really belongs in a ContainerRequestFilter but we don't want to buffer and re-serialize the Model
     {
-//        if (!resource.hasProperty(DH.slug)) resource.addLiteral(DH.slug, UUID.randomUUID().toString()); // all resources get slugs
-
         if (resource.hasProperty(DCTerms.format) && resource.getProperty(DCTerms.format).getObject().isLiteral())
         {
             Resource format = resource.getProperty(DCTerms.format).
@@ -149,17 +174,6 @@ public class ValidatingModelProvider extends com.atomgraph.server.io.ValidatingM
             if (log.isDebugEnabled()) log.debug("Resource: {} Email: {}", resource, email);
         }
         
-        // password only used during WebID signup from now on
-        /*
-        if (resource.hasProperty(LACL.password) && resource.getProperty(LACL.password).getObject().isLiteral())
-        {
-            String passwordShaHex = BCrypt.hashpw(resource.getProperty(LACL.password).getString(), BCrypt.gensalt());
-            RDFNode password = resource.removeAll(LACL.password).
-                addProperty(LACL.passwordHash, passwordShaHex);
-            if (log.isDebugEnabled()) log.debug("Resource: {} Password BCrypt hash: {}", resource, password);
-        }
-        */
-
         if (resource.hasProperty(SP.text) && resource.getProperty(SP.text).getObject().isLiteral())
         {
             try
@@ -212,11 +226,48 @@ public class ValidatingModelProvider extends com.atomgraph.server.io.ValidatingM
         
         return resource;
     }
+    
+    @Override
+    public Model processWrite(Model model)
+    {
+        StmtIterator it = model.listStatements(null, FOAF.mbox, (Resource)null);
+        List<Statement> mboxes = it.toList();
+        it.close();
 
+        List<Statement> mboxHashes = mboxes.stream().map(stmt -> mboxHashStmt(stmt)).
+            filter(Objects::nonNull).
+            collect(Collectors.toList());
+
+        model.remove(mboxes);
+        model.add(mboxHashes);
+        
+        return super.processWrite(model); // apply processing from superclasses
+    }
+
+    public Statement mboxHashStmt(Statement stmt)
+    {
+        try (InputStream is = new ByteArrayInputStream(stmt.getResource().getURI().getBytes(StandardCharsets.UTF_8));
+            DigestInputStream dis = new DigestInputStream(is, getMessageDigest()))
+        {
+            String sha1Sum = Hex.encodeHexString(dis.getMessageDigest().digest());
+            return stmt.getModel().createStatement(stmt.getSubject(), FOAF.mbox_sha1sum, sha1Sum);
+        }
+        catch (IOException ex)
+        {
+            // ignore mbox
+            return null;
+        }
+    }
+    
     @Override
     public UriInfo getUriInfo()
     {
         return uriInfo;
+    }
+    
+    public MessageDigest getMessageDigest()
+    {
+        return messageDigest;
     }
     
 }
