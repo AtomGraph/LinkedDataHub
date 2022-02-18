@@ -18,6 +18,7 @@ package com.atomgraph.linkeddatahub.writer;
 import com.atomgraph.client.util.DataManager;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
+import java.security.MessageDigest;
 import javax.inject.Singleton;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
@@ -37,9 +38,9 @@ import org.apache.jena.rdf.model.Model;
 public class ModelXSLTWriter extends ModelXSLTWriterBase implements MessageBodyWriter<Model>
 {
 
-    public ModelXSLTWriter(XsltExecutable xsltExec, OntModelSpec ontModelSpec, DataManager dataManager)
+    public ModelXSLTWriter(XsltExecutable xsltExec, OntModelSpec ontModelSpec, DataManager dataManager, MessageDigest messageDigest)
     {
-        super(xsltExec, ontModelSpec, dataManager);
+        super(xsltExec, ontModelSpec, dataManager, messageDigest);
     }
 
     @Override

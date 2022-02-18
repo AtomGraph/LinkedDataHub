@@ -30,6 +30,7 @@ import com.atomgraph.linkeddatahub.vocabulary.Google;
 import com.atomgraph.linkeddatahub.vocabulary.LAPP;
 import com.atomgraph.client.vocabulary.LDT;
 import com.atomgraph.core.vocabulary.SD;
+import com.atomgraph.linkeddatahub.server.io.ValidatingModelProvider;
 import com.atomgraph.linkeddatahub.vocabulary.FOAF;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -38,6 +39,7 @@ import java.lang.reflect.Type;
 import java.math.BigInteger;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.security.MessageDigest;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -92,9 +94,12 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
     @Inject javax.inject.Provider<XsltExecutableSupplier> xsltExecSupplier;
     @Inject javax.inject.Provider<List<Mode>> modes;
 
-    public ModelXSLTWriterBase(XsltExecutable xsltExec, OntModelSpec ontModelSpec, DataManager dataManager)
+    private final MessageDigest messageDigest;
+    
+    public ModelXSLTWriterBase(XsltExecutable xsltExec, OntModelSpec ontModelSpec, DataManager dataManager, MessageDigest messageDigest)
     {
         super(xsltExec, ontModelSpec, dataManager); // this DataManager will be unused as we override getDataManager() with the injected (subclassed) one
+        this.messageDigest = messageDigest;
     }
     
     @Override
@@ -109,8 +114,7 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
             eTagHash = eTagHash.add(BigInteger.valueOf(agent.hashCode()));
             headerMap.addFirst(HttpHeaders.ETAG, new EntityTag(eTagHash.toString(16)));
         }
-       
-        super.writeTo(model, type, type, annotations, mediaType, headerMap, entityStream);
+        super.writeTo(processWrite(model), type, type, annotations, mediaType, headerMap, entityStream);
     }
     
     @Override
@@ -208,6 +212,15 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
         return model;
     }
     
+    public Model processWrite(Model model)
+    {
+        // show foaf:mbox for authenticated agents
+        if (getSecurityContext() != null && getSecurityContext().getUserPrincipal() instanceof Agent) return model;
+
+        // show foaf:mbox_sha1sum for all other agents
+        return ValidatingModelProvider.hashMboxes(getMessageDigest()).apply(model); // apply processing from superclasses
+    }
+
     public com.atomgraph.linkeddatahub.Application getSystem()
     {
         return system;
@@ -283,11 +296,15 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
     {
         return NAMESPACES;
     }
-    
 
     public javax.inject.Provider<com.atomgraph.linkeddatahub.apps.model.Application> getApplication()
     {
         return application;
     }
 
+    public MessageDigest getMessageDigest()
+    {
+        return messageDigest;
+    }
+    
 }

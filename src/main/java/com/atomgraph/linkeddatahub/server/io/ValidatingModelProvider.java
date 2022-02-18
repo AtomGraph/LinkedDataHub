@@ -16,6 +16,7 @@
  */
 package com.atomgraph.linkeddatahub.server.io;
 
+import com.atomgraph.linkeddatahub.model.Agent;
 import org.apache.jena.ontology.OntDocumentManager;
 import org.apache.jena.query.QueryFactory;
 import org.apache.jena.query.QueryParseException;
@@ -46,11 +47,11 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.Objects;
+import java.util.function.Function;
 import java.util.stream.Collectors;
-import javax.ws.rs.InternalServerErrorException;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.SecurityContext;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.jena.rdf.model.RDFWriterI;
 import org.apache.jena.rdf.model.Statement;
@@ -73,21 +74,15 @@ public class ValidatingModelProvider extends com.atomgraph.server.io.ValidatingM
     
     @Context UriInfo uriInfo;
     @Context Providers providers;
+    @Context SecurityContext securityContext;
 
     private final MessageDigest messageDigest;
 
-    public ValidatingModelProvider()
+    public ValidatingModelProvider(MessageDigest messageDigest)
     {
-        try
-        {
-            this.messageDigest = MessageDigest.getInstance("SHA1");
-        }
-        catch (NoSuchAlgorithmException ex)
-        {
-            if (log.isErrorEnabled()) log.error("SHA1 algorithm not found", ex);
-            throw new InternalServerErrorException(ex);
-        }
+        this.messageDigest = messageDigest;
     }
+    
 //    @Override
 //    public Model read(Model model, InputStream is, Lang lang, String baseURI)
 //    {
@@ -146,6 +141,7 @@ public class ValidatingModelProvider extends com.atomgraph.server.io.ValidatingM
     
     public Resource processRead(Resource resource) // this logic really belongs in a ContainerRequestFilter but we don't want to buffer and re-serialize the Model
     {
+        // TO-DO: convert to lambda functions
         if (resource.hasProperty(DCTerms.format) && resource.getProperty(DCTerms.format).getObject().isLiteral())
         {
             Resource format = resource.getProperty(DCTerms.format).
@@ -230,24 +226,36 @@ public class ValidatingModelProvider extends com.atomgraph.server.io.ValidatingM
     @Override
     public Model processWrite(Model model)
     {
-        StmtIterator it = model.listStatements(null, FOAF.mbox, (Resource)null);
-        List<Statement> mboxes = it.toList();
-        it.close();
+        // show foaf:mbox for authenticated agents
+        if (getSecurityContext() != null && getSecurityContext().getUserPrincipal() instanceof Agent) return model;
 
-        List<Statement> mboxHashes = mboxes.stream().map(stmt -> mboxHashStmt(stmt)).
-            filter(Objects::nonNull).
-            collect(Collectors.toList());
-
-        model.remove(mboxes);
-        model.add(mboxHashes);
-        
-        return super.processWrite(model); // apply processing from superclasses
+        // show foaf:mbox_sha1sum for all other agents
+        return super.processWrite(hashMboxes(getMessageDigest()).apply(model)); // apply processing from superclasses
     }
 
-    public Statement mboxHashStmt(Statement stmt)
+    public static Function<Model, Model> hashMboxes(MessageDigest messageDigest)
+    {
+        return model ->
+        {
+            StmtIterator it = model.listStatements(null, FOAF.mbox, (Resource)null);
+            List<Statement> mboxes = it.toList();
+            it.close();
+
+            List<Statement> mboxHashes = mboxes.stream().map(stmt -> mboxHashStmt(stmt, messageDigest)).
+                filter(Objects::nonNull).
+                collect(Collectors.toList());
+
+            model.remove(mboxes);
+            model.add(mboxHashes);
+            
+            return model;
+        };
+    }
+    
+    public static Statement mboxHashStmt(Statement stmt, MessageDigest messageDigest)
     {
         try (InputStream is = new ByteArrayInputStream(stmt.getResource().getURI().getBytes(StandardCharsets.UTF_8));
-            DigestInputStream dis = new DigestInputStream(is, getMessageDigest()))
+            DigestInputStream dis = new DigestInputStream(is, messageDigest))
         {
             String sha1Sum = Hex.encodeHexString(dis.getMessageDigest().digest());
             return stmt.getModel().createStatement(stmt.getSubject(), FOAF.mbox_sha1sum, sha1Sum);
@@ -263,6 +271,11 @@ public class ValidatingModelProvider extends com.atomgraph.server.io.ValidatingM
     public UriInfo getUriInfo()
     {
         return uriInfo;
+    }
+    
+    public SecurityContext getSecurityContext()
+    {
+        return securityContext;
     }
     
     public MessageDigest getMessageDigest()

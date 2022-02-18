@@ -167,6 +167,7 @@ import com.atomgraph.spinrdf.vocabulary.SP;
 import com.github.jsonldjava.core.DocumentLoader;
 import com.github.jsonldjava.core.JsonLdOptions;
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
@@ -264,6 +265,7 @@ public class Application extends ResourceConfig
     private final ExpiringMap<URI, Model> webIDmodelCache = ExpiringMap.builder().expiration(1, TimeUnit.DAYS).build(); // TO-DO: config for the expiration period?
     private final ExpiringMap<String, Model> oidcModelCache = ExpiringMap.builder().variableExpiration().build();
     private final Map<URI, XsltExecutable> xsltExecutableCache = new HashMap<>();
+    private final MessageDigest messageDigest;
     
     private Dataset contextDataset;
     
@@ -565,6 +567,16 @@ public class Application extends ResourceConfig
             emailProperties.put("mail.smtp.host", smtpHost);
             emailProperties.put("mail.smtp.port", Integer.valueOf(smtpPort));
             
+            try
+            {
+                this.messageDigest = MessageDigest.getInstance("SHA1");
+            }
+            catch (NoSuchAlgorithmException ex)
+            {
+                if (log.isErrorEnabled()) log.error("SHA1 algorithm not found", ex);
+                throw new InternalServerErrorException(ex);
+            }
+
             xsltProc.registerExtensionFunction(new UUID());
 //            xsltProc.registerExtensionFunction(new Construct(xsltProc));
 //            xsltProc.registerExtensionFunction(new ConstructForClass(xsltProc));
@@ -659,11 +671,11 @@ public class Application extends ResourceConfig
         
         eventBus.register(this); // this system application will be receiving events about context changes
         
-        register(new ValidatingModelProvider());
+        register(new ValidatingModelProvider(getMessageDigest()));
         register(new ResultSetProvider());
         register(new QueryParamProvider());
         register(new UpdateRequestProvider());
-        register(new ModelXSLTWriter(getXsltExecutable(), getOntModelSpec(), getDataManager())); // writes (X)HTML responses
+        register(new ModelXSLTWriter(getXsltExecutable(), getOntModelSpec(), getDataManager(), getMessageDigest())); // writes (X)HTML responses
 
         final com.atomgraph.linkeddatahub.Application system = this;
         register(new AbstractBinder()
@@ -1293,6 +1305,11 @@ public class Application extends ResourceConfig
     public Map<URI, XsltExecutable> getXsltExecutableCache()
     {
         return xsltExecutableCache;
+    }
+    
+    public MessageDigest getMessageDigest()
+    {
+        return messageDigest;
     }
     
 }

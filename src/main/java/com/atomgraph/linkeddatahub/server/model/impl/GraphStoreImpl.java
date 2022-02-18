@@ -34,7 +34,6 @@ import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -124,17 +123,8 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
         this.service = service.get();
         this.providers = providers;
         this.system = system;
+        this.messageDigest = system.getMessageDigest();
         uploadsUriBuilder = uriInfo.getBaseUriBuilder().path(com.atomgraph.linkeddatahub.Application.UPLOADS_PATH);
-        
-        try
-        {
-            this.messageDigest = MessageDigest.getInstance("SHA1");
-        }
-        catch (NoSuchAlgorithmException ex)
-        {
-            if (log.isErrorEnabled()) log.error("SHA1 algorithm not found", ex);
-            throw new InternalServerErrorException(ex);
-        }
     }
     
     @POST

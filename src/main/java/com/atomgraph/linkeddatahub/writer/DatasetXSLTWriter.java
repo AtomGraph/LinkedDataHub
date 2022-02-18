@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
+import java.security.MessageDigest;
 import javax.ws.rs.ext.MessageBodyWriter;
 import net.sf.saxon.s9api.XsltExecutable;
 import org.apache.jena.ontology.OntModelSpec;
@@ -37,15 +38,16 @@ import org.slf4j.LoggerFactory;
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
+@Deprecated
 @Provider
 @Produces({MediaType.TEXT_HTML + ";charset=UTF-8", MediaType.APPLICATION_XHTML_XML + ";charset=UTF-8"})
 public class DatasetXSLTWriter extends ModelXSLTWriterBase implements MessageBodyWriter<Dataset>
 {
     private static final Logger log = LoggerFactory.getLogger(DatasetXSLTWriter.class);
 
-    public DatasetXSLTWriter(XsltExecutable xsltExec, OntModelSpec ontModelSpec, DataManager dataManager)
+    public DatasetXSLTWriter(XsltExecutable xsltExec, OntModelSpec ontModelSpec, DataManager dataManager, MessageDigest messageDigest)
     {
-        super(xsltExec, ontModelSpec, dataManager);
+        super(xsltExec, ontModelSpec, dataManager, messageDigest);
     }
     
     @Override
