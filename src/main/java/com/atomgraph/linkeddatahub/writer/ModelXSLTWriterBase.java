@@ -214,10 +214,12 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
     
     public Model processWrite(Model model)
     {
+        // show foaf:mbox in end-user apps
+        if (getApplication().get().canAs(EndUserApplication.class)) return model;
         // show foaf:mbox for authenticated agents
         if (getSecurityContext() != null && getSecurityContext().getUserPrincipal() instanceof Agent) return model;
 
-        // show foaf:mbox_sha1sum for all other agents
+        // show foaf:mbox_sha1sum for all other agents (in admin apps)
         return ValidatingModelProvider.hashMboxes(getMessageDigest()).apply(model); // apply processing from superclasses
     }
 

@@ -8,14 +8,14 @@ purge_backend_cache "$ADMIN_VARNISH_SERVICE"
 
 # request agent's HTML description
 
-ntriples=$(curl -k -f -s -N \
+html=$(curl -k -f -s -N \
     -H 'Accept: text/html' \
   "$AGENT_URI")
 
 # check that the description does *not* include foaf:mbox property
 
-echo "$ntriples" | grep -q -v "http://xmlns.com/foaf/0.1/mbox"
+echo "$html" | grep -q -v "http://xmlns.com/foaf/0.1/mbox"
 
-# check that the description does includes foaf:mbox_sha1sum property
+# check that the description includes foaf:mbox_sha1sum property
 
-echo "$ntriples" | grep -q "http://xmlns.com/foaf/0.1/mbox_sha1sum"
+echo "$html" | grep -q "http://xmlns.com/foaf/0.1/mbox_sha1sum"

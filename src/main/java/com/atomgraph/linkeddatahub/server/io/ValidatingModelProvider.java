@@ -16,6 +16,7 @@
  */
 package com.atomgraph.linkeddatahub.server.io;
 
+import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.model.Agent;
 import org.apache.jena.ontology.OntDocumentManager;
 import org.apache.jena.query.QueryFactory;
@@ -50,6 +51,7 @@ import java.security.MessageDigest;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import javax.inject.Inject;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.SecurityContext;
 import org.apache.commons.codec.binary.Hex;
@@ -75,6 +77,8 @@ public class ValidatingModelProvider extends com.atomgraph.server.io.ValidatingM
     @Context UriInfo uriInfo;
     @Context Providers providers;
     @Context SecurityContext securityContext;
+
+    @Inject javax.inject.Provider<com.atomgraph.linkeddatahub.apps.model.Application> application;
 
     private final MessageDigest messageDigest;
 
@@ -226,10 +230,12 @@ public class ValidatingModelProvider extends com.atomgraph.server.io.ValidatingM
     @Override
     public Model processWrite(Model model)
     {
+        // show foaf:mbox in end-user apps
+        if (getApplication().get().canAs(EndUserApplication.class)) return model;
         // show foaf:mbox for authenticated agents
         if (getSecurityContext() != null && getSecurityContext().getUserPrincipal() instanceof Agent) return model;
 
-        // show foaf:mbox_sha1sum for all other agents
+        // show foaf:mbox_sha1sum for all other agents (in admin apps)
         return super.processWrite(hashMboxes(getMessageDigest()).apply(model)); // apply processing from superclasses
     }
 
@@ -271,6 +277,11 @@ public class ValidatingModelProvider extends com.atomgraph.server.io.ValidatingM
     public UriInfo getUriInfo()
     {
         return uriInfo;
+    }
+    
+    public javax.inject.Provider<com.atomgraph.linkeddatahub.apps.model.Application> getApplication()
+    {
+        return application;
     }
     
     public SecurityContext getSecurityContext()

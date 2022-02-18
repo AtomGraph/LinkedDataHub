@@ -16,6 +16,6 @@ ntriples=$(curl -k -f -s -N \
 
 echo "$ntriples" | grep -q -v "http://xmlns.com/foaf/0.1/mbox"
 
-# check that the description does includes foaf:mbox_sha1sum property
+# check that the description includes foaf:mbox_sha1sum property
 
 echo "$ntriples" | grep -q "http://xmlns.com/foaf/0.1/mbox_sha1sum"
