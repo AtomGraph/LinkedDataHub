@@ -1648,7 +1648,7 @@ WHERE
             <!-- update RDF download links to match the current URI -->
             <xsl:for-each select="id('export-rdf', ixsl:page())/following-sibling::ul/li/a">
                 <!-- use @title attribute for the media type TO-DO: find a better way, a hidden input or smth -->
-                <xsl:variable name="href" select="ac:build-uri(ldh:absolute-path(ldh:href()), let $params := map{ 'accept': string(@title) } return if (not(starts-with(ldh:absolute-path(ldh:href()), $ldt:base))) then map:merge(($params, map{ 'uri': ldh:absolute-path(ldh:href()) })) else $params)" as="xs:anyURI"/>
+                <xsl:variable name="href" select="ac:build-uri(ldh:absolute-path(ldh:href()), let $params := map{ 'accept': string(@title) } return if (not(starts-with($uri, $ldt:base))) then map:merge(($params, map{ 'uri': $uri })) else $params)" as="xs:anyURI"/>
                 <ixsl:set-attribute name="href" select="$href" object="."/>
             </xsl:for-each>
         </xsl:if>
