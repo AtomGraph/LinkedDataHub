@@ -1,3 +1,25 @@
+## [3.0.3] - 2022-02-16
+### Added
+- Ability to copy (fork) RDF data into the local dataspace
+- Block-based content layout (ldh:ContentList mode) and editor
+- Login with Google (OpenID Connect)
+- Ability to load JSON-LD data from <script> elements in HTML
+- Namespace endpoint, which is an in-memory SPARQL endpoint over the app's ontology
+
+### Changed
+- The HTTP CRUD API is now Graph Store Protocol, not Linked Data Templates
+- HTML documents are hydrated HTML fragments over AJAX
+- XSLT stylesheets now load constraints and constructors using SPARQL over the namespace endpoint
+- The URIs of ontology terms are not relative to the app's base URI anymore
+- Additional assertions added to external ontology terms instead of subclassing them
+- Every UI state generates a distinct URL which is loaded consistently on both server- and client-side
+- Upgraded Jena to 4.3.2
+- Upgraded Saxon-JS to 2.3
+- Upgraded Fuseki, Varnish and nginx Docker images
+
+### Removed
+- Linked Data Templates support (still supported by Processor)
+
 ## [2.2.9] - 2021-04-22
 ### Added
 - HTTP smoke tests for SPARQL endpoint and Graph Store
