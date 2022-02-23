@@ -1504,6 +1504,34 @@ WHERE
         <xsl:param name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.apps'))" as="element()?"/>
         <xsl:param name="push-state" select="true()" as="xs:boolean"/>
 
+        <!-- update the URI in the nav bar -->
+        <xsl:choose>
+            <!-- local URI -->
+            <xsl:when test="starts-with($uri, $ldt:base)">
+                <!-- enable .btn-skolemize -->
+                <xsl:for-each select="ixsl:page()//div[contains-token(@class, 'action-bar')]//button[contains-token(@class, 'btn-skolemize')]">
+                    <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'disabled', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+                </xsl:for-each>
+
+                <!-- unset #uri value -->
+                <xsl:for-each select="id('uri', ixsl:page())">
+                    <ixsl:set-property name="value" select="()" object="."/>
+                </xsl:for-each>
+            </xsl:when>
+            <!-- external URI -->
+            <xsl:otherwise>
+                <!-- disable .btn-skolemize -->
+                <xsl:for-each select="ixsl:page()//div[contains-token(@class, 'action-bar')]//button[contains-token(@class, 'btn-skolemize')]">
+                    <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'disabled', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+                </xsl:for-each>
+
+                <!-- set #uri value -->
+                <xsl:for-each select="id('uri', ixsl:page())">
+                    <ixsl:set-property name="value" select="$uri" object="."/>
+                </xsl:for-each>
+            </xsl:otherwise>
+        </xsl:choose>
+        
         <xsl:variable name="response" select="." as="map(*)"/>
         <xsl:choose>
             <xsl:when test="?status = 200 and starts-with(?media-type, 'application/xhtml+xml')">
@@ -1584,33 +1612,6 @@ WHERE
             <xsl:variable name="edit-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), $uri, xs:anyURI('&ac;EditMode'))" as="xs:anyURI"/>
             <ixsl:set-attribute name="href" select="$edit-uri" object="."/>
         </xsl:for-each>
-
-        <xsl:choose>
-            <!-- local URI -->
-            <xsl:when test="starts-with($uri, $ldt:base)">
-                <!-- enable .btn-skolemize -->
-                <xsl:for-each select="ixsl:page()//div[contains-token(@class, 'action-bar')]//button[contains-token(@class, 'btn-skolemize')]">
-                    <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'disabled', false() ])[current-date() lt xs:date('2000-01-01')]"/>
-                </xsl:for-each>
-
-                <!-- unset #uri value -->
-                <xsl:for-each select="id('uri', ixsl:page())">
-                    <ixsl:set-property name="value" select="()" object="."/>
-                </xsl:for-each>
-            </xsl:when>
-            <!-- external URI -->
-            <xsl:otherwise>
-                <!-- disable .btn-skolemize -->
-                <xsl:for-each select="ixsl:page()//div[contains-token(@class, 'action-bar')]//button[contains-token(@class, 'btn-skolemize')]">
-                    <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'disabled', true() ])[current-date() lt xs:date('2000-01-01')]"/>
-                </xsl:for-each>
-
-                <!-- set #uri value -->
-                <xsl:for-each select="id('uri', ixsl:page())">
-                    <ixsl:set-property name="value" select="$uri" object="."/>
-                </xsl:for-each>
-            </xsl:otherwise>
-        </xsl:choose>
 
         <xsl:if test="$push-state">
             <xsl:call-template name="ldh:PushState">
