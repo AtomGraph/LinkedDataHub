@@ -1523,12 +1523,12 @@ WHERE
             <xsl:otherwise>
                 <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
                 
-                <!-- error response - could not load query results -->
+                <!-- error response - could not load document -->
                 <xsl:for-each select="$container">
                     <xsl:result-document href="?." method="ixsl:replace-content">
                         <xsl:choose>
-                            <xsl:when test="id('content-body', ?body)">
-                                <xsl:copy-of select="id('content-body', ?body)/*"/>
+                            <xsl:when test="id('content-body', $response?body)">
+                                <xsl:copy-of select="id('content-body', $response?body)/*"/>
                             </xsl:when>
                             <xsl:otherwise>
                                 <div class="alert alert-block">
