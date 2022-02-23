@@ -314,23 +314,6 @@ extension-element-prefixes="ixsl"
         </xsl:if>
     </xsl:template>
 
-    <!-- ANCHOR -->
-    
-    <!-- subject resource -->
-    <xsl:template match="@rdf:about" mode="xhtml:Anchor">
-        <xsl:param name="href" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), .)" as="xs:anyURI"/>
-        <xsl:param name="id" select="encode-for-uri(.)" as="xs:string?"/>
-        <xsl:param name="title" select="." as="xs:string?"/>
-        <xsl:param name="class" as="xs:string?"/>
-        
-        <xsl:next-match>
-            <xsl:with-param name="href" select="$href"/>
-            <xsl:with-param name="id" select="$id"/>
-            <xsl:with-param name="title" select="$title"/>
-            <xsl:with-param name="class" select="$class"/>
-        </xsl:next-match>
-    </xsl:template>
-    
     <!-- BREADCRUMBS -->
 
     <xsl:template match="*[@rdf:about]" mode="bs2:BreadCrumbListItem">
