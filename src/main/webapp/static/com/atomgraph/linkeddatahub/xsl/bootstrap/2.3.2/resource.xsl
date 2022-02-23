@@ -317,10 +317,10 @@ extension-element-prefixes="ixsl"
     <!-- ANCHOR -->
     
     <!-- subject resource -->
-    <xsl:template match="*[@rdf:about]" mode="xhtml:Anchor">
-        <xsl:param name="href" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), @rdf:about)" as="xs:anyURI"/>
-        <xsl:param name="id" select="encode-for-uri(@rdf:about)" as="xs:string?"/>
-        <xsl:param name="title" select="@rdf:about" as="xs:string?"/>
+    <xsl:template match="*@rdf:about" mode="xhtml:Anchor">
+        <xsl:param name="href" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), .)" as="xs:anyURI"/>
+        <xsl:param name="id" select="encode-for-uri(.)" as="xs:string?"/>
+        <xsl:param name="title" select="." as="xs:string?"/>
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:next-match>
@@ -340,7 +340,7 @@ extension-element-prefixes="ixsl"
             <xsl:variable name="class" as="xs:string?">
                 <xsl:apply-templates select="." mode="ldh:logo"/>
             </xsl:variable>
-            <xsl:apply-templates select="." mode="xhtml:Anchor">
+            <xsl:apply-templates select="@rdf:about" mode="xhtml:Anchor">
                 <xsl:with-param name="id" select="()"/>
                 <xsl:with-param name="class" select="$class"/>
             </xsl:apply-templates>
@@ -540,7 +540,7 @@ extension-element-prefixes="ixsl"
             <xsl:apply-templates select="." mode="bs2:Actions"/>
 
             <h2>
-                <xsl:apply-templates select="." mode="xhtml:Anchor">
+                <xsl:apply-templates select="@rdf:about" mode="xhtml:Anchor">
                     <xsl:with-param name="class" as="xs:string?">
                         <xsl:apply-templates select="." mode="ldh:logo"/>
                     </xsl:with-param>
@@ -715,7 +715,7 @@ extension-element-prefixes="ixsl"
 
     <xsl:template match="*[*][@rdf:about]" mode="ldh:ContentHeader" priority="2">
         <h2>
-            <xsl:apply-templates select="." mode="xhtml:Anchor">
+            <xsl:apply-templates select="@rdf:about" mode="xhtml:Anchor">
                 <xsl:with-param name="class" as="xs:string?">
                     <xsl:apply-templates select="." mode="ldh:logo"/>
                 </xsl:with-param>

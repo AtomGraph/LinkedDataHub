@@ -697,7 +697,7 @@ exclude-result-prefixes="#all"
 
             <xsl:apply-templates select="." mode="bs2:Timestamp"/>
             <xsl:text> </xsl:text>
-            <xsl:apply-templates select="." mode="xhtml:Anchor"/>
+            <xsl:apply-templates select="@rdf:about | @rdf:nodeID" mode="xhtml:Anchor"/>
 
             <xsl:apply-templates select="key('resources', foaf:primaryTopic/@rdf:resource)" mode="bs2:Header">
                 <xsl:with-param name="class" select="'well well-small'"/>

@@ -602,7 +602,7 @@ exclude-result-prefixes="#all">
                         <ul class="dropdown-menu pull-right">
                             <li>
                                 <xsl:for-each select="key('resources-by-type', '&foaf;Agent', $foaf:Agent)">
-                                    <xsl:apply-templates select="." mode="xhtml:Anchor"/>
+                                    <xsl:apply-templates select="@rdf:about" mode="xhtml:Anchor"/>
                                 </xsl:for-each>
                             </li>
                         </ul>

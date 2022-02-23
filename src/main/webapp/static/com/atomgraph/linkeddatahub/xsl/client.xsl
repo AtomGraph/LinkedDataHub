@@ -1291,7 +1291,7 @@ WHERE
             </div>
 
             <xsl:text> </xsl:text>
-            <xsl:apply-templates select="." mode="xhtml:Anchor">
+            <xsl:apply-templates select="@rdf:about" mode="xhtml:Anchor">
                 <xsl:with-param name="id" select="()"/>
             </xsl:apply-templates>
 
