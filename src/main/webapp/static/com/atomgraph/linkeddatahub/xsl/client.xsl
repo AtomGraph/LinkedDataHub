@@ -1503,6 +1503,8 @@ WHERE
         <xsl:param name="service-uri" select="if (id('search-service', ixsl:page())) then xs:anyURI(ixsl:get(id('search-service', ixsl:page()), 'value')) else ()" as="xs:anyURI?"/>
         <xsl:param name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.apps'))" as="element()?"/>
         <xsl:param name="push-state" select="true()" as="xs:boolean"/>
+        <!-- decode raw URL from the ?uri query param, if it's present -->
+        <xsl:variable name="uri" select="if (contains($href, '?')) then let $query-params := ldh:parse-query-params(substring-after($href, '?')) return if (exists($query-params?uri)) then ldh:decode-uri($query-params?uri[1]) else ldh:absolute-path($href) else ldh:absolute-path($href)" as="xs:anyURI"/> <!-- raw URL -->
 
         <!-- update the URI in the nav bar -->
         <xsl:choose>
