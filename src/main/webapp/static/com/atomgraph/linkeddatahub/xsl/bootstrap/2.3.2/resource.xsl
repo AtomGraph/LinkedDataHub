@@ -317,7 +317,7 @@ extension-element-prefixes="ixsl"
     <!-- ANCHOR -->
     
     <!-- subject resource -->
-    <xsl:template match="*@rdf:about" mode="xhtml:Anchor">
+    <xsl:template match="@rdf:about" mode="xhtml:Anchor">
         <xsl:param name="href" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), .)" as="xs:anyURI"/>
         <xsl:param name="id" select="encode-for-uri(.)" as="xs:string?"/>
         <xsl:param name="title" select="." as="xs:string?"/>
