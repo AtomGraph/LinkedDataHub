@@ -693,6 +693,13 @@ exclude-result-prefixes="#all">
                 </xsl:apply-templates>
             
                 <xsl:choose>
+                    <!-- error responses always rendered in bs2:RowBlock mode, no matter what $ac:mode specifies -->
+                    <xsl:when test="key('resources-by-type', '&http;Response') and not(key('resources-by-type', '&spin;ConstraintViolation'))">
+                        <xsl:apply-templates select="." mode="bs2:RowBlock">
+                            <xsl:with-param name="template-query" select="$template-query" tunnel="yes"/>
+                            <xsl:sort select="ac:label(.)"/>
+                        </xsl:apply-templates>
+                    </xsl:when>
                     <xsl:when test="$ac:forClass and $ac:method = 'GET'">
                         <xsl:variable name="constructor" as="document-node()">
                             <xsl:apply-templates select="." mode="ldh:Constructor">
