@@ -55,7 +55,8 @@
                <ul class="nav nav-list">
                   <li class="active"><a href="" title="An RDF-native Knowledge Graph notebook">About LinkedDataHub</a></li>
                   <li><a href="../get-started/index.html" title="All the basics of LinkedDataHub. From installation to extending the model and user interface.">Get started</a><ul class="nav nav-list">
-                        <li><a href="../get-started/get-an-account/index.html" title="How to get access">Get an account</a></li>
+                        <li><a href="../get-started/get-an-account/index.html" title="How to get login to LinkedDataHub">Get an account</a></li>
+                        <li><a href="../get-started/request-access/index.html" title="How to get access to an application">Request access</a></li>
                         <li><a href="../get-started/setup/index.html" title="Setup LinkedDataHub on your local machine or access it in the cloud">Setup</a></li>
                      </ul>
                   </li>
@@ -104,25 +105,25 @@
             <main class="span7">
                <header>
                   <h1>About LinkedDataHub</h1>
-                  <p class="lead">LinkedDataHub is a Knowledge Graph notebook by
-                     <a href="https://atomgraph.com" target="_blank">AtomGraph</a> that fully exploits the federated features of RDF and SPARQL.
-                     It can also be used as a low code application development platform.</p>
                </header>
                <nav></nav>
                <div>
                   
+                  <p class="lead">LinkedDataHub is a Knowledge Graph notebook by
+                     <a href="https://atomgraph.com" target="_blank">AtomGraph</a> that fully exploits the federated features of RDF and SPARQL.
+                     It can also be used as a low code application development platform.</p>
+                  
+                  <p>LinkedDataHub is an open source project that has its roots as a Linked Data publishing
+                     framework. In the 3.x release we are focusing on Linked Data consumption however,
+                     as we consider
+                     publishing a solved problem but continue to see a shortage of user-friendly consumption
+                     tools.</p>
                   
                   <div>
                      
-                     <h2 id="features">Features</h2>
+                     <h2 id="notebook">Knowledge Graph notebook</h2>
                      
-                     <p>LinkedDataHub is an open source project that has its roots as a Linked Data publishing
-                        framework. In the 3.x release we are focusing on Linked Data consumption however,
-                        as we consider
-                        publishing a solved problem but continue to see a shortage of user-friendly consumption
-                        tools.</p>
-                     
-                     <p>LinkedDataHub provides a number of features for end-users:</p>
+                     <p>As an RDF-native noteook, LinkedDataHub provides a number of features for end-users:</p>
                      
                      <ul>
                         
@@ -140,16 +141,24 @@
                         
                         <li>visualizing query results as graphs, charts etc.</li>
                         </ul>
+                     </div>
+                  
+                  <div>
                      
-                     <p>In addition to that, LinkedDataHub offers comprehensive administrative features:</p>
+                     <h2 id="platform">Low code application platorm</h2>
+                     
+                     <p>LinkedDataHub is also a low code RDF Knowledge Graph application platorm. It offers
+                        comprehensive development and management features:</p>
                      
                      <ul>
                         
-                        <li>configurable templates for instance editing <strong>(new in 3.x)</strong>)</li>
+                        <li>rich <a href="../reference/stylesheets/" target="_blank">UI component library</a> that can be customized without writing program code</li>
+                        
+                        <li>configurable templates for instance editing (<strong>new in 3.x</strong>)</li>
                         
                         <li>authentication using WebID and OpenID Connect</li>
                         
-                        <li>access control using WAC authorizations</li>
+                        <li><a href="../reference/administration/acl/" target="_blank">access control</a> using WAC authorizations</li>
                         </ul>
                      </div>
                   

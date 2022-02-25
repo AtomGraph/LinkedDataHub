@@ -55,7 +55,8 @@
                <ul class="nav nav-list">
                   <li><a href="../about/index.html" title="An RDF-native Knowledge Graph notebook">About LinkedDataHub</a></li>
                   <li class="active"><a href="" title="All the basics of LinkedDataHub. From installation to extending the model and user interface.">Get started</a><ul class="nav nav-list">
-                        <li><a href="get-an-account/index.html" title="How to get access">Get an account</a></li>
+                        <li><a href="get-an-account/index.html" title="How to get login to LinkedDataHub">Get an account</a></li>
+                        <li><a href="request-access/index.html" title="How to get access to an application">Request access</a></li>
                         <li><a href="setup/index.html" title="Setup LinkedDataHub on your local machine or access it in the cloud">Setup</a></li>
                      </ul>
                   </li>
@@ -104,12 +105,13 @@
             <main class="span7">
                <header>
                   <h1>Get started</h1>
-                  <p class="lead">All the basics of LinkedDataHub. From installation to customizing the model and user
-                     interface.</p>
                </header>
                <nav>
                   <div class="well">
-                     <h2><a href="get-an-account/index.html" title="How to get access">Get an account</a></h2>
+                     <h2><a href="get-an-account/index.html" title="How to get login to LinkedDataHub">Get an account</a></h2>
+                  </div>
+                  <div class="well">
+                     <h2><a href="request-access/index.html" title="How to get access to an application">Request access</a></h2>
                   </div>
                   <div class="well">
                      <h2><a href="setup/index.html" title="Setup LinkedDataHub on your local machine or access it in the cloud">Setup</a></h2>
@@ -117,43 +119,49 @@
                </nav>
                <div>
                   
+                  <p class="lead">All the basics of LinkedDataHub. From installation to customizing the model and user
+                     interface.</p>
                   
                   <p>This guide will show how a LinkedDataHub application can be used to manage domain-specific
                      RDF classes and instances. As an example, we will us <a href="https://www.w3.org/TR/skos-primer/" target="_blank">SKOS</a> concepts and concept schemes.</p>
                   
-                  <p>On LinkedDataHub, all <a href="../reference/documents/#manage" target="_blank">management actions</a> can also be performed using the <a href="../reference/command-line-interface/" target="_blank">CLI (Command Line Interface)</a>, which consists of shell scripts wrapping <a href="../reference/http-api/" target="_blank">HTTP API</a> calls. Where applicable, the UI and CLI instructions are shown side by side.</p>
-                  
-                  <p>The CLI instructions use the environmental variable <code>$SCRIPT_ROOT</code>, which should point to the <samp>scripts</samp> in your LinkedDataHub fork. Then you can place the scripts and files
-                     from the examples in a folder outside LinkedDataHub — that will be the current directory
-                     for the CLI examples below. Alternatively, you can check out the source code of the
-                     <a href="https://github.com/AtomGraph/LinkedDataHub-Apps/tree/master/demo/skos" target="_blank">SKOS demo app</a> which implements the SKOS example used in this guide.</p>
+                  <p>Note that all <a href="../reference/documents/#manage" target="_blank">management actions</a> can also be performed using the <a href="../reference/command-line-interface/" target="_blank">CLI (Command Line Interface)</a>. Where applicable, the UI and CLI instructions are shown side by side. The <a href="https://github.com/AtomGraph/LinkedDataHub-Apps/tree/master/demo/skos" target="_blank">SKOS demo app</a> which implements the SKOS example which is used in this guide.</p>
                   
                   <div>
                      
                      <h2 id="setup">Setup</h2>
                      
-                     <p>Using LinkedDataHub open-source, you need to launch the application in Docker setup.
-                        In the Cloud version, the platform manages that for you.</p>
+                     <p>Setup is only required if you plan to run your own instance of LinkedDataHub. It consists
+                        of few steps, which involve creating a configuration file and running a
+                        <code>docker-compose</code> command.</p>
                      
+                     <p class="lead"><a href="setup/" target="_blank">Read setup instructions.</a></p>
+                     
+                     <p>If you want to use an existing instance of LinkedDataHub, proceed to the next step.</p>
                      </div>
                   
                   <div>
                      
                      <h2 id="get-an-account">Get an account</h2>
                      
-                     <p>Using LinkedDataHub open-source, you to obtain a WebID and use its client certificate
-                        for authentication. In the Cloud version, you can sign-in and authenticate using your
-                        social login.</p>
+                     <p>With LinkedDataHub, you obtain a WebID and use its client certificate for authentication.
+                        You can obtain the WebID either by setting up your own instance or signing up on
+                        an existing instance. Alternatively, you can authenticate using your social login.</p>
                      
+                     <p class="lead"><a href="get-an-account/" target="_blank">Read instructions on getting an account.</a></p>
                      </div>
                   
                   <div>
                      
-                     <h2 id="open-dataspace">Open your dataspace</h2>
+                     <h2 id="request-access">Request access</h2>
                      
-                     <p>Using LinkedDataHub open-source, the platform runs on <a href="https://localhost:4443/" target="_blank">https://localhost:4443/</a> by default. Open this address in the web browser (that you installed the WebID certificate
-                        to).</p>
+                     <p>After you login to (authenticate with) a LinkedDataHub instance, the next step is
+                        getting an authorization from its owners that allows you to view and possibly append
+                        or edit documents. That is done by issuing an access request.</p>
+                     
+                     <p class="lead"><a href="request-access/" target="_blank">Read instructions on requesting access.</a></p>
                      </div>
+                  
                   
                   <div>
                      
@@ -164,6 +172,7 @@
                      
                      <p>Use <samp>Concepts</samp> as title and <samp>concepts</samp> as URI slug for the former; <samp>Concept schemes</samp> as title and <samp>concept-schemes</samp> as URI slug for the latter.</p>
                      
+                     <p class="lead"><a href="../user-guide/create-document/" target="_blank">Follow a tutorial to create a container.</a></p>
                      </div>
                   
                   <div>
@@ -182,6 +191,7 @@
                            you need to be an administrator, i.e. a member of the <a href="../reference/administration/acl/#groups" target="_blank">owners group</a>.</p>
                         </div>
                      
+                     <p class="lead"><a href="../user-guide/administration/change-model/" target="_blank">Follow a tutorial to change the model: a class and its constructor.</a></p>
                      </div>
                   
                   <div>
@@ -218,6 +228,7 @@
                      
                      <p>Congratulations! You have just created the first concept instance based on your model.</p>
                      
+                     <p class="lead"><a href="../reference/documents/" target="_blank">Read more about document management.</a></p>
                      </div>
                   
                   <div>
@@ -227,6 +238,7 @@
                      <p>A common step at this point would be to populate your dataset with instances by importing
                         data. LinkedDataHub currently supports CSV and RDF <a href="../reference/imports/" target="_blank">data imports</a>.</p>
                      
+                     <p class="lead"><a href="../user-guide/import-data/import-csv-data/" target="_blank">Follow a tutorial to import CSV data and map it to RDF.</a></p>
                      </div>
                   
                   <div>
@@ -235,6 +247,7 @@
                      
                      <p>User interface changes are done by adding and overriding templates in <a href="../reference/stylesheets/" target="_blank">XSLT stylesheets</a>.</p>
                      
+                     <p class="lead"><a href="../user-guide/change-layout/" target="_blank">Follow a tutorial to change the layout: create an XSLT stylesheet and override a template.</a></p>
                      </div>
                   </div>
             </main>

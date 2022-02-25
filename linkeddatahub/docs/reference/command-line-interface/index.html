@@ -55,7 +55,8 @@
                <ul class="nav nav-list">
                   <li><a href="../../about/index.html" title="An RDF-native Knowledge Graph notebook">About LinkedDataHub</a></li>
                   <li><a href="../../get-started/index.html" title="All the basics of LinkedDataHub. From installation to extending the model and user interface.">Get started</a><ul class="nav nav-list">
-                        <li><a href="../../get-started/get-an-account/index.html" title="How to get access">Get an account</a></li>
+                        <li><a href="../../get-started/get-an-account/index.html" title="How to get login to LinkedDataHub">Get an account</a></li>
+                        <li><a href="../../get-started/request-access/index.html" title="How to get access to an application">Request access</a></li>
                         <li><a href="../../get-started/setup/index.html" title="Setup LinkedDataHub on your local machine or access it in the cloud">Setup</a></li>
                      </ul>
                   </li>
@@ -104,23 +105,29 @@
             <main class="span7">
                <header>
                   <h1>Command line interface</h1>
-                  <p class="lead">CLI scripts can be used perform all actions available in the UI</p>
-                  <p class="lead">Find the <a href="https://github.com/AtomGraph/LinkedDataHub/tree/master/scripts" target="_blank">CLI scripts on GitHub</a>.</p>
                </header>
                <nav></nav>
                <div>
                   
+                  <p class="lead">CLI scripts can be used perform all actions available in the UI</p>
                   
-                  <p>LinkedDataHub CLI wraps the <a href="../http-api/">HTTP API</a> into a set of shell scripts with convenient parameters. The scripts can be used for
-                     testing, automation,
-                     scheduled execution and such. It is usually much quicker to perform actions using
-                     CLI rather than the <a href="../user-interface/">user interface</a>, as well as easier to
-                     reproduce.</p>
+                  <p>LinkedDataHub CLI wraps the <a href="../http-api/">HTTP API</a> into a set of shell scripts with convenient parameters. The scripts should run on
+                     any Unix-based system.
+                     They can be used for testing, automation, scheduled execution and such. It is usually
+                     much quicker to perform actions using CLI rather than the
+                     <a href="../user-interface/">user interface</a>, as well as easier to reproduce.</p>
                   
                   <p>Some scripts correspond to a single request to LinkedDataHub, others combine others
                      into tasks with multiple interdependent requests, such as CSV import.</p>
                   
                   <p>You will need to supply a <samp>.pem</samp> file of your <a href="../../get-started/#get-webid">WebID certificate</a> as well as its password as script arguments, among others.</p>
+                  
+                  <div class="alert alert-info">
+                     
+                     <p>The CLI scripts use the environmental variable <code>$SCRIPT_ROOT</code>, which should point to the <samp>scripts</samp> in your LinkedDataHub fork.</p>
+                     
+                     <p>They also use the <a href="https://jena.apache.org/documentation/tools/" target="_blank">Jena's CLI commands</a> internally, so make sure to have them on <code>$PATH</code> before running the scripts.</p>
+                     </div>
                   
                   <div>
                      
@@ -317,16 +324,18 @@
                      <p>Usage example:</p>
                      
                      <pre>./create-file.sh https://linkeddatahub.com/my-context/my-dataspace/ \
--f linkeddatahub.pem \
--p CertPassword \
---title "Friends" \
---file-slug 646af756-a49f-40da-a25e-ea8d81f6d306 \
---file friends.csv \
---file-content-type text/csv</pre>
+  -f linkeddatahub.pem \
+  -p CertPassword \
+  --title "Friends" \
+  --file-slug 646af756-a49f-40da-a25e-ea8d81f6d306 \
+  --file friends.csv \
+  --file-content-type text/csv</pre>
                      
                      <p>See also the <a href="../../user-guide/import-data/import-csv-data/">Import CSV data</a> tutorial.</p>
                      </div>
                   
+                  <p class="lead">Find the <a href="https://github.com/AtomGraph/LinkedDataHub/tree/master/scripts" target="_blank">CLI scripts on GitHub</a> or check out the
+                     <a href="https://github.com/AtomGraph/LinkedDataHub-Apps/tree/master/demo" target="_blank">demo apps</a> that use them.</p>
                   </div>
             </main>
          </div>

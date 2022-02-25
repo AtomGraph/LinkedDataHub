@@ -2,7 +2,7 @@
    <head>
       <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
       <title>LinkedDataHub v3 - Get an account</title>
-      <meta name="description" content="How to get access"/>
+      <meta name="description" content="How to get login to LinkedDataHub"/>
       <link rel="up" href="../index.html"/>
       <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/css/bootstrap.css" rel="stylesheet" type="text/css"/>
       <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/css/bootstrap-responsive.css" rel="stylesheet" type="text/css"/>
@@ -55,7 +55,8 @@
                <ul class="nav nav-list">
                   <li><a href="../../about/index.html" title="An RDF-native Knowledge Graph notebook">About LinkedDataHub</a></li>
                   <li><a href="../index.html" title="All the basics of LinkedDataHub. From installation to extending the model and user interface.">Get started</a><ul class="nav nav-list">
-                        <li class="active"><a href="" title="How to get access">Get an account</a></li>
+                        <li class="active"><a href="" title="How to get login to LinkedDataHub">Get an account</a></li>
+                        <li><a href="../request-access/index.html" title="How to get access to an application">Request access</a></li>
                         <li><a href="../setup/index.html" title="Setup LinkedDataHub on your local machine or access it in the cloud">Setup</a></li>
                      </ul>
                   </li>
@@ -104,19 +105,17 @@
             <main class="span7">
                <header>
                   <h1>Get an account</h1>
-                  <p class="lead">This guide describes how to get access to an application.</p>
-                  <p class="lead">Are you in? Then take a look at the <a href="../../reference/user-interface/">UI overview</a> and the <a href="..">get started guide</a>.</p>
                </header>
                <nav></nav>
                <div>
                   
+                  <p class="lead">This guide describes how to login to LinkedDataHub.</p>
                   
                   <div>
                      
                      <div class="alert alert-info">
                         
-                        <p>In order to authenticate as the owner of a LinkedDataHub instance, you need to use
-                           the WebID authentication method.</p>
+                        <p>In order to authenticate as the <em>owner</em> of a LinkedDataHub instance, you need to use the WebID authentication method.</p>
                         </div>
                      <div class="tabbable">
                         
@@ -141,25 +140,40 @@
                                     application. 
                                     <a href="http://webid.info" target="_blank">Read more about WebID</a>.</p>
                                  
-                                 <p>There are two ways to get a LinkedDataHub WebID:</p>
+                                 <p>There are two ways to get a LinkedDataHub WebID: setup and signup.</p>
                                  
-                                 <dl>
+                                 <div class="tabbable">
                                     
-                                    <dt>Setup</dt>
+                                    <ul class="nav nav-tabs">
+                                       
+                                       <li class="active"><a>Setup</a></li>
+                                       
+                                       <li><a>Signup</a></li>
+                                       </ul>
                                     
-                                    <dd>Complete the <a href="../setup/">setup</a> and run own an instance of LinkedDataHub.</dd>
-                                    
-                                    <dd>The <samp>ssl/owner/keystore.p12</samp> file is your WebID certificate. The password is the <samp>$owner_cert_pwd</samp> value you supplied <samp>./scripts/setup.sh</samp> file.</dd>
-                                    
-                                    <dt>Signup</dt>
-                                    
-                                    <dd>Sign up to an existing instance of LinkedDataHub.</dd>
-                                    
-                                    <dd>You get an email with a <samp>.p12</samp> file attached, which is your WebID certificate. The password is the one you entered
-                                       in the signup form.</dd>
-                                    </dl>
-                                 
-                                 <p></p>
+                                    <div class="tab-content">
+                                       
+                                       <div class="tab-pane active">
+                                          
+                                          <p>Complete the <a href="../setup/">setup</a> and run own an instance of LinkedDataHub.</p>
+                                          
+                                          <p>The <samp>ssl/owner/keystore.p12</samp> file is your WebID certificate. The password is the <samp>$owner_cert_pwd</samp> value you supplied <samp>./scripts/setup.sh</samp> file.</p>
+                                          </div>
+                                       
+                                       <div class="tab-pane">
+                                          
+                                          <p>Sign up to an existing instance of LinkedDataHub. Click the <span class="btn btn-primary">Sign up</span> button and fill out the form with your
+                                             details to get a WebID, as shown below.</p>
+                                          
+                                          <p>
+                                             <img alt="Signup" src="../../uploads/8c17ca6be73aabfab3028d9b06b4878ef6c300e7/"/>
+                                             </p>
+                                          
+                                          <p>You will get an email with a <samp>.p12</samp> file attached, which is your WebID certificate. The certificate's password is the
+                                             one you entered in the signup form.</p>
+                                          </div>
+                                       </div>
+                                    </div>
                                  
                                  <p>You'll need a PEM version of the certificate for use with the <a href="../../reference/command-line-interface/">command line interface</a> scripts. During setup, it is stored under
                                     <samp>ssl/owner/cert.pem</samp>. If you got the certificate by email, you need to <a href="https://stackoverflow.com/a/15144560/1003113" target="_blank">convert the PKCS12 file to PEM using OpenSSL</a>.</p>
@@ -212,6 +226,9 @@
                                  
                                  <h2 id="log-in">Log in</h2>
                                  
+                                 <p>Open the URL of the LinkedDataHub instance in the web browser (that you installed
+                                    the WebID certificate into). Using a local setup, it runs on <a href="https://localhost:4443/" target="_blank">https://localhost:4443/</a> by default. </p>
+                                 
                                  <p>With the certificate installed, there is no login procedure — you are automatically
                                     <em>authenticated</em> on all
                                     LinkedDataHub applications. This is known as Single sign-on (SSO).</p>
@@ -248,6 +265,7 @@
                         </div>
                      </div>
                   
+                  <p class="lead">Are you in? Then continue the <a href="..">get started guide</a> or take a look at the <a href="../../reference/user-interface/">UI overview</a>.</p>
                   </div>
             </main>
          </div>

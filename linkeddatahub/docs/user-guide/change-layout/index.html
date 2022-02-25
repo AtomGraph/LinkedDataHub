@@ -55,7 +55,8 @@
                <ul class="nav nav-list">
                   <li><a href="../../about/index.html" title="An RDF-native Knowledge Graph notebook">About LinkedDataHub</a></li>
                   <li><a href="../../get-started/index.html" title="All the basics of LinkedDataHub. From installation to extending the model and user interface.">Get started</a><ul class="nav nav-list">
-                        <li><a href="../../get-started/get-an-account/index.html" title="How to get access">Get an account</a></li>
+                        <li><a href="../../get-started/get-an-account/index.html" title="How to get login to LinkedDataHub">Get an account</a></li>
+                        <li><a href="../../get-started/request-access/index.html" title="How to get access to an application">Request access</a></li>
                         <li><a href="../../get-started/setup/index.html" title="Setup LinkedDataHub on your local machine or access it in the cloud">Setup</a></li>
                      </ul>
                   </li>
@@ -104,11 +105,11 @@
             <main class="span7">
                <header>
                   <h1>Change layout</h1>
-                  <p class="lead">How to customize the layout of an application and the UI of the resources</p>
                </header>
                <nav></nav>
                <div>
                   
+                  <p class="lead">How to customize the layout of an application and the UI of the resources</p>
                   
                   <p>LinkedDataHub's user interface is simply a rendering of the underlying Linked Data
                      resource descriptions, which are exposed via the <a href="../../reference/http-api/" target="_blank">HTTP API</a>.</p>
@@ -125,6 +126,7 @@
                      
                      <p>First we need to create a new XSLT 3.0 stylesheet and use <code>&lt;xsl:import&gt;</code> to import the system stylesheet <a href="https://github.com/AtomGraph/LinkedDataHub/blob/master/src/main/webapp/static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/layout.xsl" target="_blank"><samp>static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/admin/layout.xsl</samp></a>.</p>
                      
+                     <p class="lead">See an <a href="https://github.com/AtomGraph/LinkedDataHub-Apps/blob/master/demo/skos/files/skos.xsl" target="_blank">example in the SKOS demo app</a>.</p>
                      </div>
                   
                   <div>
