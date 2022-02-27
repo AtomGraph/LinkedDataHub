@@ -14,7 +14,7 @@
  *  limitations under the License.
  *
  */
-package com.atomgraph.linkeddatahub.resource;
+package com.atomgraph.linkeddatahub.resource.admin;
 
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
