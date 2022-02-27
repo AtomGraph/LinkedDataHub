@@ -276,7 +276,7 @@ exclude-result-prefixes="#all"
     
     <!-- subject resource -->
     <xsl:template match="@rdf:about" mode="xhtml:Anchor">
-        <xsl:param name="href" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ., $ac:mode)" as="xs:anyURI"/>
+        <xsl:param name="href" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), .)" as="xs:anyURI"/>
         <xsl:param name="id" select="encode-for-uri(.)" as="xs:string?"/>
         <xsl:param name="title" select="." as="xs:string?"/>
         <xsl:param name="class" as="xs:string?"/>
@@ -313,7 +313,7 @@ exclude-result-prefixes="#all"
 
     <!-- proxy link URIs if they are external -->
     <xsl:template match="@rdf:resource | srx:uri" priority="2">
-        <xsl:param name="href" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), xs:anyURI(.), $ac:mode)" as="xs:anyURI"/>
+        <xsl:param name="href" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), xs:anyURI(.))" as="xs:anyURI"/>
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="title" select="." as="xs:string?"/>
         <xsl:param name="class" as="xs:string?"/>
