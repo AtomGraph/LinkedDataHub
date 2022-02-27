@@ -19,7 +19,6 @@ package com.atomgraph.linkeddatahub.resource.admin;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.core.exception.ConfigurationException;
 import com.atomgraph.linkeddatahub.model.Service;
-import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.listener.EMailListener;
 import com.atomgraph.linkeddatahub.model.Agent;
@@ -71,7 +70,6 @@ public class RequestAccess extends GraphStoreImpl
     private static final Logger log = LoggerFactory.getLogger(RequestAccess.class);
     
     private final URI uri;
-    private final Application application;
     private final Agent agent;
     private final String emailSubject;
     private final String emailText;
@@ -88,7 +86,6 @@ public class RequestAccess extends GraphStoreImpl
         if (log.isDebugEnabled()) log.debug("Constructing {}", getClass());
         if (securityContext == null || !(securityContext.getUserPrincipal() instanceof Agent)) throw new IllegalStateException("Agent is not authenticated");
         this.uri = uriInfo.getAbsolutePath();
-        this.application = application;
         this.agent = (Agent)securityContext.getUserPrincipal();
 
         agentQuery = system.getAgentQuery();
@@ -128,6 +125,7 @@ public class RequestAccess extends GraphStoreImpl
             
             accessRequest.addLiteral(DCTerms.created, GregorianCalendar.getInstance());
             
+            // TO-DO: re-refactor using LinkedDataClient?
             ParameterizedSparqlString pss = new ParameterizedSparqlString(getAgentQuery().toString());
             pss.setParam(FOAF.Agent.getLocalName(), owner);
             // query agent data with SPARQL because the public laclt:AgentItem description does not expose foaf:mbox (which we need below in order to send an email)
@@ -199,11 +197,6 @@ public class RequestAccess extends GraphStoreImpl
     public URI getURI()
     {
         return uri;
-    }
-    
-    public Application getApplication()
-    {
-        return application;
     }
 
     public Agent getAgent()

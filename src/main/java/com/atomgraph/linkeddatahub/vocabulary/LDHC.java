@@ -103,7 +103,11 @@ public class LDHC
     public static final DatatypeProperty requestAccessEMailSubject = m_model.createDatatypeProperty( NS + "requestAccessEMailSubject" );
     
     public static final DatatypeProperty requestAccessEMailText = m_model.createDatatypeProperty( NS + "requestAccessEMailText" );
+
+    public static final DatatypeProperty authorizationEMailSubject = m_model.createDatatypeProperty( NS + "authorizationEMailSubject" );
     
+    public static final DatatypeProperty authorizationEMailText = m_model.createDatatypeProperty( NS + "authorizationEMailText" );
+
     public static final DatatypeProperty signUpCertValidity = m_model.createDatatypeProperty( NS + "signUpCertValidity" );
 
     public static final ObjectProperty contextDataset = m_model.createObjectProperty( NS + "contextDataset" );
