@@ -22,7 +22,6 @@ import javax.ws.rs.core.Request;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.core.exception.ConfigurationException;
 import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
-import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.listener.EMailListener;
@@ -110,7 +109,6 @@ public class SignUp extends GraphStoreImpl
     public static final String AUTHORIZATION_PATH = "acl/authorizations/";
 
     private final URI uri;
-    private final Application application;
     private final Model countryModel;
     private final String emailSubject;
     private final String emailText;
@@ -130,7 +128,6 @@ public class SignUp extends GraphStoreImpl
             throw new IllegalStateException("Application cannot be cast to apl:AdminApplication");
         
         this.uri = uriInfo.getAbsolutePath();
-        this.application = application;
         
         try (InputStream countries = servletConfig.getServletContext().getResourceAsStream(COUNTRY_DATASET_PATH))
         {
@@ -423,11 +420,6 @@ public class SignUp extends GraphStoreImpl
     public URI getURI()
     {
         return uri;
-    }
-    
-    public Application getApplication()
-    {
-        return application;
     }
 
     public int getValidityDays()

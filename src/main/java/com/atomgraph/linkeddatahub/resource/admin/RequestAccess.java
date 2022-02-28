@@ -17,6 +17,7 @@
 package com.atomgraph.linkeddatahub.resource.admin;
 
 import com.atomgraph.core.MediaTypes;
+import com.atomgraph.core.client.LinkedDataClient;
 import com.atomgraph.core.exception.ConfigurationException;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
@@ -48,7 +49,6 @@ import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.Providers;
 import org.apache.jena.ontology.Ontology;
-import org.apache.jena.query.ParameterizedSparqlString;
 import org.apache.jena.query.Query;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ResIterator;
@@ -124,12 +124,9 @@ public class RequestAccess extends GraphStoreImpl
             String ownerURI = owner.getURI();
             
             accessRequest.addLiteral(DCTerms.created, GregorianCalendar.getInstance());
-            
-            // TO-DO: re-refactor using LinkedDataClient?
-            ParameterizedSparqlString pss = new ParameterizedSparqlString(getAgentQuery().toString());
-            pss.setParam(FOAF.Agent.getLocalName(), owner);
-            // query agent data with SPARQL because the public laclt:AgentItem description does not expose foaf:mbox (which we need below in order to send an email)
-            Model agentModel = getAgentService().getSPARQLClient().loadModel(pss.asQuery()); // TO-DO: replace with getDatasetAccessor().getModel()
+
+            LinkedDataClient ldc = LinkedDataClient.create(getSystem().getClient().target(ownerURI), getMediaTypes());
+            Model agentModel = ldc.get();
             owner = agentModel.getResource(ownerURI);
             if (!agentModel.containsResource(owner)) throw new IllegalStateException("Could not load agent's <" + ownerURI + "> description from admin service");
 
