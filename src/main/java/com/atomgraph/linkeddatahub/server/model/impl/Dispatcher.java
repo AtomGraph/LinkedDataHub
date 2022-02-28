@@ -24,7 +24,6 @@ import com.atomgraph.linkeddatahub.resource.Imports;
 import com.atomgraph.linkeddatahub.resource.Namespace;
 import com.atomgraph.linkeddatahub.resource.admin.RequestAccess;
 import com.atomgraph.linkeddatahub.resource.admin.SignUp;
-import com.atomgraph.linkeddatahub.resource.admin.authorization.Container;
 import com.atomgraph.linkeddatahub.resource.graph.Item;
 import java.util.Optional;
 import javax.inject.Inject;
@@ -120,12 +119,6 @@ public class Dispatcher
     public Object getRequestAccess()
     {
         return RequestAccess.class;
-    }
-    
-    @Path("authorizations/")
-    public Object getAuthorizationContainer()
-    {
-        return Container.class; // TO-DO: restrict to the admin app
     }
 
     @Path("uploads/{sha1sum}/")

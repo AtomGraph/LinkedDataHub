@@ -67,11 +67,11 @@ import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.writer.factory.xslt.XsltExecutableSupplier;
 import com.atomgraph.linkeddatahub.writer.factory.XsltExecutableSupplierFactory;
 import com.atomgraph.client.util.XsltResolver;
-import com.atomgraph.client.writer.function.Construct;
-import com.atomgraph.client.writer.function.ConstructForClass;
+import com.atomgraph.core.client.LinkedDataClient;
 import com.atomgraph.linkeddatahub.client.filter.ClientUriRewriteFilter;
 import com.atomgraph.linkeddatahub.io.HtmlJsonLDReaderFactory;
 import com.atomgraph.linkeddatahub.io.JsonLDReader;
+import com.atomgraph.linkeddatahub.listener.EMailListener;
 import com.atomgraph.linkeddatahub.writer.ModelXSLTWriter;
 import com.atomgraph.linkeddatahub.listener.ImportListener;
 import com.atomgraph.linkeddatahub.model.Import;
@@ -84,6 +84,7 @@ import com.atomgraph.linkeddatahub.model.impl.FileImpl;
 import com.atomgraph.linkeddatahub.model.impl.ImportImpl;
 import com.atomgraph.linkeddatahub.model.impl.RDFImportImpl;
 import com.atomgraph.linkeddatahub.model.impl.UserAccountImpl;
+import com.atomgraph.linkeddatahub.server.event.AuthorizationCreated;
 import com.atomgraph.linkeddatahub.server.event.SignUp;
 import com.atomgraph.linkeddatahub.server.factory.AgentContextFactory;
 import com.atomgraph.linkeddatahub.server.factory.ApplicationFactory;
@@ -107,6 +108,8 @@ import com.atomgraph.linkeddatahub.server.mapper.auth.oauth2.TokenExpiredExcepti
 import com.atomgraph.linkeddatahub.server.model.impl.Dispatcher;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.server.util.MessageBuilder;
+import com.atomgraph.linkeddatahub.vocabulary.ACL;
+import com.atomgraph.linkeddatahub.vocabulary.FOAF;
 import com.atomgraph.linkeddatahub.vocabulary.LDH;
 import com.atomgraph.linkeddatahub.vocabulary.LDHC;
 import com.atomgraph.linkeddatahub.vocabulary.Google;
@@ -166,6 +169,7 @@ import com.atomgraph.server.mapper.SPINConstraintViolationExceptionMapper;
 import com.atomgraph.spinrdf.vocabulary.SP;
 import com.github.jsonldjava.core.DocumentLoader;
 import com.github.jsonldjava.core.JsonLdOptions;
+import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.Iterator;
@@ -173,7 +177,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 import javax.mail.Address;
+import javax.mail.MessagingException;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 import javax.ws.rs.InternalServerErrorException;
@@ -209,6 +215,7 @@ import org.apache.jena.riot.system.ErrorHandlerFactory;
 import org.apache.jena.riot.system.ParserProfile;
 import org.apache.jena.riot.system.RiotLib;
 import org.apache.jena.sparql.graph.GraphReadOnly;
+import org.apache.jena.vocabulary.DCTerms;
 import org.apache.jena.vocabulary.LocationMappingVocab;
 import org.apache.jena.vocabulary.RDF;
 import org.glassfish.hk2.api.TypeLiteral;
@@ -238,6 +245,7 @@ public class Application extends ResourceConfig
     public static final String AUTHORIZATION_REQUEST_PATH = "acl/authorization-requests/";
     public static final String UPLOADS_PATH = "uploads";
     
+    private final ServletConfig servletConfig;
     private final EventBus eventBus = new EventBus();
     private final DataManager dataManager;
     private final MediaTypes mediaTypes;
@@ -416,6 +424,7 @@ public class Application extends ResourceConfig
         }
         this.cookieMaxAge = cookieMaxAge;
 
+        this.servletConfig = servletConfig;
         this.mediaTypes = mediaTypes;
         this.maxGetRequestSize = maxGetRequestSize;
         this.preemptiveAuth = preemptiveAuth;
@@ -871,6 +880,56 @@ public class Application extends ResourceConfig
         getWebIDModelCache().remove(event.getSecretaryWebID()); // clear secretary WebID from cache to get new acl:delegates statements after new signup
     }
 
+    @Subscribe
+    public void handleAuthorizationCreated(AuthorizationCreated event) throws MessagingException, UnsupportedEncodingException
+    {
+        String emailSubject = servletConfig.getServletContext().getInitParameter(LDHC.authorizationEMailSubject.getURI());
+        if (emailSubject == null) throw new InternalServerErrorException(new ConfigurationException(LDHC.authorizationEMailSubject));
+        
+        String emailText = servletConfig.getServletContext().getInitParameter(LDHC.authorizationEMailText.getURI());
+        if (emailText == null) throw new InternalServerErrorException(new ConfigurationException(LDHC.authorizationEMailText));
+
+        Resource owner = event.getApplication().getMaker();
+        Resource auth = event.getAuthorization();
+        if (auth.hasProperty(ACL.agent))
+        {
+            Resource agent = auth.getPropertyResourceValue(ACL.agent);
+
+            LinkedDataClient ldc = LinkedDataClient.create(getClient().target(owner.getURI()), getMediaTypes());
+            Model agentModel = ldc.get();
+            agent = agentModel.getResource(agent.getURI());
+            if (!agentModel.containsResource(owner)) throw new IllegalStateException("Could not load agent's <" + agent.getURI() + "> description");
+
+            final String name;
+            if (agent.hasProperty(FOAF.givenName) && agent.hasProperty(FOAF.familyName))
+            {
+                String givenName = agent.getProperty(FOAF.givenName).getString();
+                String familyName = agent.getProperty(FOAF.familyName).getString();
+                name = givenName + " " + familyName;
+            }
+            else
+            {
+                if (agent.hasProperty(FOAF.name)) name = agent.getProperty(FOAF.name).getString();
+                else throw new IllegalStateException("Agent '" + agent + "' does not have either foaf:givenName/foaf:familyName or foaf:name");
+            }
+
+            // we expect foaf:mbox value as mailto: URI (it gets converted from literal in Model provider)
+            String mbox = agent.getRequiredProperty(FOAF.mbox).getResource().getURI().substring("mailto:".length());
+            String accessToList = auth.listProperties(ACL.accessTo).toList().stream().map(stmt -> stmt.getResource().getURI()).collect(Collectors.joining("\n"));
+            String accessToClassList = auth.listProperties(ACL.accessToClass).toList().stream().map(stmt -> stmt.getResource().getURI()).collect(Collectors.joining("\n"));
+
+            MessageBuilder builder = getMessageBuilder().
+                subject(String.format(emailSubject,
+                    event.getApplication().getProperty(DCTerms.title).getString())).
+                to(mbox, name).
+                textBodyPart(String.format(emailText, owner.getURI(), accessToList, accessToClassList));
+
+            if (getNotificationAddress() != null) builder = builder.from(getNotificationAddress());
+
+            EMailListener.submit(builder.build());
+        }
+    }
+    
     public Resource matchApp(Resource type, URI absolutePath)
     {
         return matchApp(getContextModel(), type, absolutePath); // make sure we return an immutable model
@@ -1124,6 +1183,11 @@ public class Application extends ResourceConfig
         }
         
         //if (log.isDebugEnabled()) client.addFilter(new LoggingFilter(System.out));
+    }
+    
+    public ServletConfig getServletConfig()
+    {
+        return servletConfig;
     }
     
     public EventBus getEventBus()

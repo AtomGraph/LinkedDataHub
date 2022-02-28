@@ -18,6 +18,7 @@ package com.atomgraph.linkeddatahub.server.io;
 
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.model.Agent;
+import com.atomgraph.linkeddatahub.vocabulary.ACL;
 import org.apache.jena.ontology.OntDocumentManager;
 import org.apache.jena.query.QueryFactory;
 import org.apache.jena.query.QueryParseException;
@@ -79,6 +80,7 @@ public class ValidatingModelProvider extends com.atomgraph.server.io.ValidatingM
     @Context SecurityContext securityContext;
 
     @Inject javax.inject.Provider<com.atomgraph.linkeddatahub.apps.model.Application> application;
+    @Inject com.atomgraph.linkeddatahub.Application system;
 
     private final MessageDigest messageDigest;
 
@@ -224,6 +226,9 @@ public class ValidatingModelProvider extends com.atomgraph.server.io.ValidatingM
             OntDocumentManager.getInstance().getFileManager().removeCacheModel(resource.getURI());
         }
         
+        if (resource.hasProperty(RDF.type, ACL.Authorization))
+            getSystem().getEventBus().post(new com.atomgraph.linkeddatahub.server.event.AuthorizationCreated(getApplication().get(), resource));
+        
         return resource;
     }
     
@@ -292,6 +297,11 @@ public class ValidatingModelProvider extends com.atomgraph.server.io.ValidatingM
     public MessageDigest getMessageDigest()
     {
         return messageDigest;
+    }
+    
+    public com.atomgraph.linkeddatahub.Application getSystem()
+    {
+        return system;
     }
     
 }
