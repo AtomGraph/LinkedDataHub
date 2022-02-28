@@ -922,7 +922,7 @@ public class Application extends ResourceConfig
                 subject(String.format(emailSubject,
                     event.getApplication().getProperty(DCTerms.title).getString())).
                 to(mbox, name).
-                textBodyPart(String.format(emailText, owner.getURI(), accessToList, accessToClassList));
+                textBodyPart(String.format(emailText, owner.getURI(), accessToList, accessToClassList, event.getApplication().getBaseURI()));
 
             if (getNotificationAddress() != null) builder = builder.from(getNotificationAddress());
 
