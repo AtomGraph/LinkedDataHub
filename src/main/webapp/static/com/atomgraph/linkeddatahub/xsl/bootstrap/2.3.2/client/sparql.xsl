@@ -58,10 +58,10 @@ LIMIT 100</xsl:param>
 
             <div>
                 <xsl:if test="$id">
-                    <xsl:attribute name="id"><xsl:value-of select="$id"/></xsl:attribute>
+                    <xsl:attribute name="id" select="$id"/>
                 </xsl:if>
                 <xsl:if test="$class">
-                    <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
+                    <xsl:attribute name="class" select="$class"/>
                 </xsl:if>
 
                 <!--<legend>SPARQL editor</legend>-->
@@ -93,16 +93,16 @@ LIMIT 100</xsl:param>
         
         <form method="{$method}" action="{$action}">
             <xsl:if test="$id">
-                <xsl:attribute name="id"><xsl:value-of select="$id"/></xsl:attribute>
+                <xsl:attribute name="id" select="$id"/>
             </xsl:if>
             <xsl:if test="$class">
-                <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
+                <xsl:attribute name="class" select="$class"/>
             </xsl:if>
             <xsl:if test="$accept-charset">
-                <xsl:attribute name="accept-charset"><xsl:value-of select="$accept-charset"/></xsl:attribute>
+                <xsl:attribute name="accept-charset" select="$accept-charset"/>
             </xsl:if>
             <xsl:if test="$enctype">
-                <xsl:attribute name="enctype"><xsl:value-of select="$enctype"/></xsl:attribute>
+                <xsl:attribute name="enctype" select="$enctype"/>
             </xsl:if>
 
             <fieldset>

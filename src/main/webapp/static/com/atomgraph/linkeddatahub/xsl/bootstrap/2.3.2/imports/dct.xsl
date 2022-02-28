@@ -54,13 +54,13 @@ exclude-result-prefixes="#all">
         <!-- the form will submit a literal value but the SkolemizingModelProvider will convert it to a URI resource -->
         <select name="ol">
             <xsl:if test="$id">
-                <xsl:attribute name="id"><xsl:value-of select="$id"/></xsl:attribute>
+                <xsl:attribute name="id" select="$id"/>
             </xsl:if>
             <xsl:if test="$class">
-                <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
+                <xsl:attribute name="class" select="$class"/>
             </xsl:if>
             <xsl:if test="$disabled">
-                <xsl:attribute name="disabled">disabled</xsl:attribute>
+                <xsl:attribute name="disabled" select="'disabled'"/>
             </xsl:if>
             
             <option value="">[browser-defined]</option>

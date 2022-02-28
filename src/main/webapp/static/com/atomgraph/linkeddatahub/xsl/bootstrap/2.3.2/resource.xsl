@@ -342,10 +342,10 @@ extension-element-prefixes="ixsl"
         
         <div>
             <xsl:if test="$id">
-                <xsl:attribute name="id"><xsl:value-of select="$id"/></xsl:attribute>
+                <xsl:attribute name="id" select="$id"/>
             </xsl:if>
             <xsl:if test="$class">
-                <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
+                <xsl:attribute name="class" select="$class"/>
             </xsl:if>
         </div>
     </xsl:template>
@@ -359,10 +359,10 @@ extension-element-prefixes="ixsl"
         
         <div>
             <xsl:if test="$id">
-                <xsl:attribute name="id"><xsl:sequence select="$id"/></xsl:attribute>
+                <xsl:attribute name="id" select="$id"/>
             </xsl:if>
             <xsl:if test="$class">
-                <xsl:attribute name="class"><xsl:sequence select="$class"/></xsl:attribute>
+                <xsl:attribute name="class" select="$class"/>
             </xsl:if>
             
             <!-- will be hydrated by client.xsl -->
@@ -375,10 +375,10 @@ extension-element-prefixes="ixsl"
         
         <div>
             <xsl:if test="$id">
-                <xsl:attribute name="id"><xsl:sequence select="$id"/></xsl:attribute>
+                <xsl:attribute name="id" select="$id"/>
             </xsl:if>
             <xsl:if test="$class">
-                <xsl:attribute name="class"><xsl:sequence select="$class"/></xsl:attribute>
+                <xsl:attribute name="class" select="$class"/>
             </xsl:if>
             
             <xsl:if test="@rdf:about">
@@ -425,10 +425,10 @@ extension-element-prefixes="ixsl"
 
         <div>
             <xsl:if test="$id">
-                <xsl:attribute name="id"><xsl:sequence select="$id"/></xsl:attribute>
+                <xsl:attribute name="id" select="$id"/>
             </xsl:if>
             <xsl:if test="$class">
-                <xsl:attribute name="class"><xsl:sequence select="$class"/></xsl:attribute>
+                <xsl:attribute name="class" select="$class"/>
             </xsl:if>
             <xsl:if test="$content-uri">
                 <xsl:attribute name="data-content-uri" select="$content-uri"/>
@@ -472,10 +472,10 @@ extension-element-prefixes="ixsl"
 
         <div>
             <xsl:if test="$id">
-                <xsl:attribute name="id"><xsl:sequence select="$id"/></xsl:attribute>
+                <xsl:attribute name="id" select="$id"/>
             </xsl:if>
             <xsl:if test="$class">
-                <xsl:attribute name="class"><xsl:sequence select="$class"/></xsl:attribute>
+                <xsl:attribute name="class" select="$class"/>
             </xsl:if>
 
             <xsl:apply-templates select="." mode="bs2:Left"/>
@@ -510,10 +510,10 @@ extension-element-prefixes="ixsl"
 
         <div>
             <xsl:if test="$id">
-                <xsl:attribute name="id"><xsl:value-of select="$id"/></xsl:attribute>
+                <xsl:attribute name="id" select="$id"/>
             </xsl:if>
             <xsl:if test="$class">
-                <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
+                <xsl:attribute name="class" select="$class"/>
             </xsl:if>
 
             <xsl:apply-templates select="." mode="bs2:Timestamp"/>
@@ -641,10 +641,10 @@ extension-element-prefixes="ixsl"
         <div class="row-fluid">
             <div>
                 <xsl:if test="$id">
-                    <xsl:attribute name="id"><xsl:value-of select="$id"/></xsl:attribute>
+                    <xsl:attribute name="id" select="$id"/>
                 </xsl:if>
                 <xsl:if test="$class">
-                    <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
+                    <xsl:attribute name="class" select="$class"/>
                 </xsl:if>
 
                 <!--  remove XHTML namespace -->
@@ -664,10 +664,10 @@ extension-element-prefixes="ixsl"
         <!-- @data-content-uri is used to retrieve $content-uri in client.xsl -->
         <div data-content-uri="{rdf:first/@rdf:resource}">
             <xsl:if test="$id">
-                <xsl:attribute name="id"><xsl:value-of select="$id"/></xsl:attribute>
+                <xsl:attribute name="id" select="$id"/>
             </xsl:if>
             <xsl:if test="$class">
-                <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
+                <xsl:attribute name="class" select="$class"/>
             </xsl:if>
                     
             <xsl:apply-templates select="." mode="bs2:Left"/>
@@ -846,10 +846,10 @@ extension-element-prefixes="ixsl"
 
         <div>
             <xsl:if test="$id">
-                <xsl:attribute name="id"><xsl:sequence select="$id"/></xsl:attribute>
+                <xsl:attribute name="id" select="$id"/>
             </xsl:if>
             <xsl:if test="$class">
-                <xsl:attribute name="class"><xsl:sequence select="$class"/></xsl:attribute>
+                <xsl:attribute name="class" select="$class"/>
             </xsl:if>
 
             <!--<xsl:apply-templates select="." mode="bs2:Left"/>-->
@@ -895,10 +895,10 @@ extension-element-prefixes="ixsl"
 
         <fieldset>
             <xsl:if test="$id">
-                <xsl:attribute name="id"><xsl:value-of select="$id"/></xsl:attribute>
+                <xsl:attribute name="id" select="$id"/>
             </xsl:if>
             <xsl:if test="$class">
-                <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
+                <xsl:attribute name="class" select="$class"/>
             </xsl:if>
 
             <xsl:choose>
@@ -994,16 +994,16 @@ extension-element-prefixes="ixsl"
 
         <button type="button">
             <xsl:if test="$id">
-                <xsl:attribute name="id"><xsl:value-of select="$id"/></xsl:attribute>
+                <xsl:attribute name="id" select="$id"/>
             </xsl:if>
             <xsl:if test="$class">
-                <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
+                <xsl:attribute name="class" select="$class"/>
             </xsl:if>
             <xsl:if test="$disabled">
-                <xsl:attribute name="disabled">disabled</xsl:attribute>
+                <xsl:attribute name="disabled" select="'disabled'"/>
             </xsl:if>
             <xsl:if test="$title">
-                <xsl:attribute name="title"><xsl:value-of select="$title"/></xsl:attribute>
+                <xsl:attribute name="title" select="$title"/>
             </xsl:if>
             
             <span class="pull-left">
@@ -1029,7 +1029,7 @@ extension-element-prefixes="ixsl"
 
         <div>
             <xsl:if test="$class">
-                <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
+                <xsl:attribute name="class" select="$class"/>
             </xsl:if>
 
             <xsl:apply-templates select="key('resources', '&ldh;URISyntaxViolation', document(ac:document-uri('&ldh;')))" mode="ldh:logo">
@@ -1046,7 +1046,7 @@ extension-element-prefixes="ixsl"
 
         <div>
             <xsl:if test="$class">
-                <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
+                <xsl:attribute name="class" select="$class"/>
             </xsl:if>
 
             <xsl:apply-templates select="key('resources', '&spin;ConstraintViolation', document(ac:document-uri('&spin;')))" mode="ldh:logo">

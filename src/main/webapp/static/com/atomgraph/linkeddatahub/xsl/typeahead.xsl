@@ -48,7 +48,7 @@ version="3.0"
 
         <li>
             <xsl:if test="$class">
-                <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
+                <xsl:attribute name="class" select="$class"/>
             </xsl:if>
             
             <input type="hidden" name="{$name}" value="{(@rdf:about, @rdf:nodeID)[1]}"/>

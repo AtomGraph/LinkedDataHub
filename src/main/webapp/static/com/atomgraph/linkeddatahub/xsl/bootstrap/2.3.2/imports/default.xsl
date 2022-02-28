@@ -380,13 +380,13 @@ exclude-result-prefixes="#all"
                             <select class="subject-type input-medium">
                                 <option value="su">
                                     <xsl:if test="local-name() = 'about'">
-                                        <xsl:attribute name="selected">selected</xsl:attribute>
+                                        <xsl:attribute name="selected" select="'selected'"/>
                                     </xsl:if>
                                     <xsl:text>URI</xsl:text>
                                 </option>
                                 <option value="sb">
                                     <xsl:if test="local-name() = 'nodeID'">
-                                        <xsl:attribute name="selected">selected</xsl:attribute>
+                                        <xsl:attribute name="selected" select="'selected'"/>
                                     </xsl:if>
                                     <xsl:text>Blank node</xsl:text>
                                 </option>
@@ -396,33 +396,15 @@ exclude-result-prefixes="#all"
                             <span>
                                 <!--
                                 <xsl:if test="$auto">
-                                    <xsl:attribute name="style">display: none;</xsl:attribute>
+                                    <xsl:attribute name="style" select="'display: none;'"/>
                                 </xsl:if>
                                 -->
                                 <!-- hidden inputs in which we store the old values of the visible input -->
                                 <input type="hidden" class="old su">
-                                    <xsl:attribute name="value">
-                                        <xsl:choose>
-                                            <xsl:when test="local-name() = 'about'">
-                                                <xsl:attribute name="value" select="."/>
-                                            </xsl:when>
-                                            <xsl:otherwise>
-                                                <xsl:value-of select="resolve-uri(concat('/', ac:uuid()), ac:uri())"/>
-                                            </xsl:otherwise>
-                                        </xsl:choose>
-                                    </xsl:attribute>
+                                    <xsl:attribute name="value" select="if (local-name() = 'about') then . else resolve-uri(concat('/', ac:uuid()), ac:uri())"/>
                                 </input>
                                 <input type="hidden" class="old sb">
-                                    <xsl:attribute name="value">
-                                        <xsl:choose>
-                                            <xsl:when test="local-name() = 'nodeID'">
-                                                <xsl:attribute name="value" select="."/>
-                                            </xsl:when>
-                                            <xsl:otherwise>
-                                                <xsl:value-of select="generate-id()"/>
-                                            </xsl:otherwise>
-                                        </xsl:choose>
-                                    </xsl:attribute>
+                                    <xsl:attribute name="value" select="if (local-name() = 'nodeID') then . else generate-id()"/>
                                 </input>
                                 <xsl:apply-templates select="." mode="xhtml:Input">
                                     <xsl:with-param name="type" select="$type"/>
@@ -467,7 +449,7 @@ exclude-result-prefixes="#all"
         
         <div>
             <xsl:if test="$class">
-                <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
+                <xsl:attribute name="class" select="$class"/>
             </xsl:if>
 
             <xsl:apply-templates select="." mode="xhtml:Input">
@@ -813,14 +795,14 @@ exclude-result-prefixes="#all"
         <select class="help-inline content-type">
             <option value="&rdfs;Resource">
                 <xsl:if test="self::attribute()">
-                    <xsl:attribute name="selected">selected</xsl:attribute>
+                    <xsl:attribute name="selected" select="'selected'"/>
                 </xsl:if>
                 
                 <xsl:text>Resource</xsl:text>
             </option>
             <option value="&rdf;XMLLiteral">
                 <xsl:if test="self::xhtml:*">
-                    <xsl:attribute name="selected">selected</xsl:attribute>
+                    <xsl:attribute name="selected" select="'selected'"/>
                 </xsl:if>
                 
                 <xsl:text>HTML</xsl:text>

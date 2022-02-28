@@ -930,7 +930,7 @@ WHERE
                 <xsl:result-document href="?." method="ixsl:append-content">
                     <div class="modal modal-constructor fade in">
                         <xsl:if test="$id">
-                            <xsl:attribute name="id"><xsl:value-of select="$id"/></xsl:attribute>
+                            <xsl:attribute name="id" select="$id"/>
                         </xsl:if>
 
                         <div class="modal-header">
@@ -944,14 +944,14 @@ WHERE
                                 <ul class="nav nav-tabs">
                                     <li>
                                         <xsl:if test="not($source)">
-                                            <xsl:attribute name="class">active</xsl:attribute>
+                                            <xsl:attribute name="class" select="'active'"/>
                                         </xsl:if>
 
                                         <a>Upload file</a>
                                     </li>
                                     <li>
                                         <xsl:if test="$source">
-                                            <xsl:attribute name="class">active</xsl:attribute>
+                                            <xsl:attribute name="class" select="'active'"/>
                                         </xsl:if>
 
                                         <a>From URI</a>
@@ -959,7 +959,7 @@ WHERE
                                 </ul>
                                 <div class="tab-content">
                                     <div>
-                                        <xsl:attribute name="class">tab-pane <xsl:if test="not($source)">active</xsl:if></xsl:attribute>
+                                        <xsl:attribute name="class" select="'tab-pane ' || if (not($source)) then 'active' else ()"/>
 
                                         <form id="form-add-data" method="POST" action="{ac:build-uri(resolve-uri('add', $ldt:base), map{ 'forClass': '&nfo;FileDataObject' })}" enctype="multipart/form-data">
                                             <xsl:comment>This form uses RDF/POST encoding: http://www.lsrn.org/semweb/rdfpost.html</xsl:comment>
@@ -1041,7 +1041,7 @@ WHERE
                                         </form>
                                     </div>
                                     <div>
-                                        <xsl:attribute name="class">tab-pane <xsl:if test="$source">active</xsl:if></xsl:attribute>
+                                        <xsl:attribute name="class" select="'tab-pane ' || if ($source) then 'active' else ()"/>
 
                                         <form id="form-clone-data" method="POST" action="{resolve-uri('clone', $ldt:base)}">
                                             <xsl:comment>This form uses RDF/POST encoding: http://www.lsrn.org/semweb/rdfpost.html</xsl:comment>
@@ -1059,9 +1059,7 @@ WHERE
                                                     <div class="controls">
                                                         <input type="text" id="remote-rdf-source" name="ou" class="input-xxlarge">
                                                             <xsl:if test="$source">
-                                                                <xsl:attribute name="value">
-                                                                    <xsl:value-of select="$source"/>
-                                                                </xsl:attribute>
+                                                                <xsl:attribute name="value" select="$source"/>
                                                             </xsl:if>
                                                         </input>
                                                         <span class="help-inline">Resource</span>

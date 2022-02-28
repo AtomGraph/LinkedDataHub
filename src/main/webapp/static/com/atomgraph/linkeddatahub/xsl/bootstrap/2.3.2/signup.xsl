@@ -142,13 +142,13 @@ exclude-result-prefixes="#all">
         
         <select name="ou">
             <xsl:if test="$id">
-                <xsl:attribute name="id"><xsl:value-of select="$id"/></xsl:attribute>
+                <xsl:attribute name="id" select="$id"/>
             </xsl:if>
             <xsl:if test="$class">
-                <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
+                <xsl:attribute name="class" select="$class"/>
             </xsl:if>
             <xsl:if test="$disabled">
-                <xsl:attribute name="disabled">disabled</xsl:attribute>
+                <xsl:attribute name="disabled" select="'disabled'"/>
             </xsl:if>
             
             <xsl:variable name="selected" select="." as="xs:anyURI"/>
@@ -315,7 +315,7 @@ exclude-result-prefixes="#all">
         
         <div>
             <xsl:if test="$class">
-                <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
+                <xsl:attribute name="class" select="$class"/>
             </xsl:if>
             <input type="hidden" name="pu" value="&lacl;password"/>
 

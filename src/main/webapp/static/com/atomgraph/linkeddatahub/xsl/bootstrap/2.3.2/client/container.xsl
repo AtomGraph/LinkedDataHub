@@ -99,10 +99,10 @@ exclude-result-prefixes="#all"
             <xsl:result-document href="?." method="ixsl:append-content">
                 <div>
                     <xsl:if test="$id">
-                        <xsl:attribute name="id"><xsl:value-of select="$id"/></xsl:attribute>
+                        <xsl:attribute name="id" select="$id"/>
                     </xsl:if>
                     <xsl:if test="$class">
-                        <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
+                        <xsl:attribute name="class" select="$class"/>
                     </xsl:if>
 
                     <h2 class="nav-header btn">
@@ -252,7 +252,7 @@ exclude-result-prefixes="#all"
                             </a>
                         </xsl:when>
                         <xsl:otherwise>
-                            <xsl:attribute name="class">previous disabled</xsl:attribute>
+                            <xsl:attribute name="class" select="'previous disabled'"/>
                             <a></a>
                         </xsl:otherwise>
                     </xsl:choose>
@@ -265,7 +265,7 @@ exclude-result-prefixes="#all"
                             </a>
                         </xsl:when>
                         <xsl:otherwise>
-                            <xsl:attribute name="class">next disabled</xsl:attribute>
+                            <xsl:attribute name="class" select="'next disabled'"/>
                             <a></a>
                         </xsl:otherwise>
                     </xsl:choose>
@@ -680,10 +680,10 @@ exclude-result-prefixes="#all"
 
         <div>
             <xsl:if test="$id">
-                <xsl:attribute name="id"><xsl:value-of select="$id"/></xsl:attribute>
+                <xsl:attribute name="id" select="$id"/>
             </xsl:if>
             <xsl:if test="$class">
-                <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
+                <xsl:attribute name="class" select="$class"/>
             </xsl:if>
 
             <xsl:apply-templates select="." mode="ldh:logo">
@@ -774,7 +774,7 @@ exclude-result-prefixes="#all"
 
         <div id="{$canvas-id}">
             <xsl:if test="$class">
-                <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
+                <xsl:attribute name="class" select="$class"/>
             </xsl:if>
         </div>
     </xsl:template>
