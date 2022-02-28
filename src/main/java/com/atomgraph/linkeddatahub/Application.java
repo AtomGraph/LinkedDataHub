@@ -898,7 +898,7 @@ public class Application extends ResourceConfig
             LinkedDataClient ldc = LinkedDataClient.create(getClient().target(owner.getURI()), getMediaTypes());
             Model agentModel = ldc.get();
             agent = agentModel.getResource(agent.getURI());
-            if (!agentModel.containsResource(owner)) throw new IllegalStateException("Could not load agent's <" + agent.getURI() + "> description");
+            if (!agentModel.containsResource(agent)) throw new IllegalStateException("Could not load agent's <" + agent.getURI() + "> description");
 
             final String name;
             if (agent.hasProperty(FOAF.givenName) && agent.hasProperty(FOAF.familyName))
