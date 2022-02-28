@@ -16,6 +16,7 @@
  */
 package com.atomgraph.linkeddatahub.server.io;
 
+import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.model.Agent;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
@@ -227,7 +228,7 @@ public class ValidatingModelProvider extends com.atomgraph.server.io.ValidatingM
         }
         
         if (resource.hasProperty(RDF.type, ACL.Authorization))
-            getSystem().getEventBus().post(new com.atomgraph.linkeddatahub.server.event.AuthorizationCreated(getApplication().get(), resource));
+            getSystem().getEventBus().post(new com.atomgraph.linkeddatahub.server.event.AuthorizationCreated(getEndUserApplication(), resource));
         
         return resource;
     }
@@ -236,7 +237,7 @@ public class ValidatingModelProvider extends com.atomgraph.server.io.ValidatingM
     public Model processWrite(Model model)
     {
         // show foaf:mbox in end-user apps
-        if (getApplication().get().canAs(EndUserApplication.class)) return model;
+        if (getApplication().canAs(EndUserApplication.class)) return model;
         // show foaf:mbox for authenticated agents
         if (getSecurityContext() != null && getSecurityContext().getUserPrincipal() instanceof Agent) return model;
 
@@ -278,15 +279,23 @@ public class ValidatingModelProvider extends com.atomgraph.server.io.ValidatingM
         }
     }
     
+    public EndUserApplication getEndUserApplication()
+    {
+        if (getApplication().canAs(EndUserApplication.class))
+            return getApplication().as(EndUserApplication.class);
+        else
+            return getApplication().as(AdminApplication.class).getEndUserApplication();
+    }
+    
     @Override
     public UriInfo getUriInfo()
     {
         return uriInfo;
     }
     
-    public javax.inject.Provider<com.atomgraph.linkeddatahub.apps.model.Application> getApplication()
+    public com.atomgraph.linkeddatahub.apps.model.Application getApplication()
     {
-        return application;
+        return application.get();
     }
     
     public SecurityContext getSecurityContext()

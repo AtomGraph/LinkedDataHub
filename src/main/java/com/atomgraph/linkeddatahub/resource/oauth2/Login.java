@@ -19,7 +19,6 @@ package com.atomgraph.linkeddatahub.resource.oauth2;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.core.exception.ConfigurationException;
 import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
-import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.listener.EMailListener;
 import com.atomgraph.linkeddatahub.model.Service;
@@ -97,7 +96,6 @@ public class Login extends GraphStoreImpl
     public static final String ACCOUNT_PATH = "acl/users/";
 
     private final HttpHeaders httpHeaders;
-    private final Application application;
     private final String emailSubject;
     private final String emailText;
     private final Query userAccountQuery;
@@ -110,7 +108,6 @@ public class Login extends GraphStoreImpl
     {
         super(request, uriInfo, mediaTypes, application, ontology, service, providers, system);
         this.httpHeaders = httpHeaders;
-        this.application = application;
         
         emailSubject = servletConfig.getServletContext().getInitParameter(LDHC.signUpEMailSubject.getURI());
         if (emailSubject == null) throw new InternalServerErrorException(new ConfigurationException(LDHC.signUpEMailSubject));
@@ -389,11 +386,6 @@ public class Login extends GraphStoreImpl
     public HttpHeaders getHttpHeaders()
     {
         return httpHeaders;
-    }
-    
-    public Application getApplication()
-    {
-        return application;
     }
     
     public Service getAgentService()
