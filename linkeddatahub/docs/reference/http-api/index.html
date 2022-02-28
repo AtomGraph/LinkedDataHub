@@ -277,18 +277,22 @@
                      
                      <p>If RDF data is submitted to the <code>service</code> endpoint using the <code>POST</code> method and the graph name is not specified, then the request RDF body must contain
                         <em>one</em> blank node instance of either <code>dh:Item</code>
-                        with a <code>sioc:has_container</code> URI value or <code>dh:Container</code> with a <code>sioc:has_parent</code> value. They will be used to establish the <a href="../documents/#hierarchy">parent/child relationship</a> of the
+                        with a <code>sioc:has_container</code> URI value or <code>dh:Container</code> with a <code>sioc:has_parent</code> URI value. They will be used to establish the <a href="../documents/#hierarchy">parent/child relationship</a> of the
                         specified parent container and the document being created from the RDF request body.
                         The new document's URI will be relative to its parent's. For example (Turtle syntax):</p>
                      
-                     <pre><code>[ a dh:Item ;
+                     <pre><code>@prefix dh:     &lt;https://www.w3.org/ns/ldt/document-hierarchy#&gt; .
+@prefix dct:    &lt;http://purl.org/dc/terms/&gt; .
+@prefix sioc:   &lt;http://rdfs.org/sioc/ns#&gt; .
+@prefix foaf:   &lt;http://xmlns.com/foaf/0.1/&gt; .
+
+[ a dh:Item ;
     sioc:has_container &lt;https://localhost:4443/files/&gt; ;
     dct:title "New file" ;
     foaf:primaryTopic _:file 
 ] .
 
-# _:file and other resources here
-        </code></pre>
+# _:file and other resources here</code></pre>
                      </div>
                   
                   <div>
