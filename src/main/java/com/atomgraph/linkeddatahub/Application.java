@@ -895,10 +895,10 @@ public class Application extends ResourceConfig
         {
             Resource agent = auth.getPropertyResourceValue(ACL.agent);
 
-            LinkedDataClient ldc = LinkedDataClient.create(getClient().target(owner.getURI()), getMediaTypes());
+            LinkedDataClient ldc = LinkedDataClient.create(getClient().target(agent.getURI()), getMediaTypes());
             Model agentModel = ldc.get();
-            agent = agentModel.getResource(agent.getURI());
             if (!agentModel.containsResource(agent)) throw new IllegalStateException("Could not load agent's <" + agent.getURI() + "> description");
+            agent = agentModel.getResource(agent.getURI());
 
             final String name;
             if (agent.hasProperty(FOAF.givenName) && agent.hasProperty(FOAF.familyName))
