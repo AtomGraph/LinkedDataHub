@@ -136,6 +136,10 @@
                      
                      <h2 id="documents">Managing documents</h2>
                      
+                     <p>LinkedDataHub supports the <a href="https://www.w3.org/TR/sparql11-http-rdf-update/#indirect-graph-identification" target="_blank">indirect graph identification</a> using the <code>service</code> endpoint and the
+                        <code>graph</code> URL parameter as well as the <a href="https://www.w3.org/TR/sparql11-http-rdf-update/#direct-graph-identification" target="_blank">direct identification</a>, since every document is also a
+                        <a href="../dataset-structure/">named graph</a>.</p>
+                     
                      <table class="table">
                         
                         <thead>
@@ -265,6 +269,26 @@
                               </tr>
                            </tbody>
                         </table>
+                     </div>
+                  
+                  <div>
+                     
+                     <h2 id="graph-names">Graph names</h2>
+                     
+                     <p>If RDF data is submitted to the <code>service</code> endpoint using the <code>POST</code> method and the graph name is not specified, then the request RDF body must contain
+                        <em>one</em> blank node instance of either <code>dh:Item</code>
+                        with a <code>sioc:has_container</code> URI value or <code>dh:Container</code> with a <code>sioc:has_parent</code> value. They will be used to establish the <a href="../documents/#hierarchy">parent/child relationship</a> of the
+                        specified parent container and the document being created from the RDF request body.
+                        The new document's URI will be relative to its parent's. For example (Turtle syntax):</p>
+                     
+                     <pre><code>[ a dh:Item ;
+    sioc:has_container &lt;https://localhost:4443/files/&gt; ;
+    dct:title "New file" ;
+    foaf:primaryTopic _:file 
+] .
+
+# _:file and other resources here
+        </code></pre>
                      </div>
                   
                   <div>

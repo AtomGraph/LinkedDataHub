@@ -124,7 +124,7 @@
                         <li>each document's description is stored in an RDF named graph whose name is the same
                            as the document URI. The graph can be managed using the <a href="../http-api/" target="_blank">Graph Store Protocol</a>.</li>
                         
-                        <li>documents form a <a href="../../reference/documents/#hierarchy">parent/child hierarchy</a>. There are 2 types of documents: containers that can have other documents as children,
+                        <li>documents form a <a href="../documents/#hierarchy">parent/child hierarchy</a>. There are 2 types of documents: containers that can have other documents as children,
                            and items that cannot.</li>
                         </ol>
                      
@@ -133,10 +133,26 @@
                   
                   <div>
                      
+                     <h2 id="hierarchical-uris">Hierarchical URIs</h2>
+                     
+                     <p>By default, the URIs of the document resources represent the same <a href="../documents/#hierarchy">parent/child hierarchy</a>. Which means the root container's URI equals the <a href="../dataspace/#applications">base URI</a>
+                        of the application, and descendant document URIs are relative to their parent container
+                        URIs.</p>
+                     
+                     <p>Uploaded binary files are an exception to this rule. They are content-addressed in
+                        the <code>uploads/{sha1sum}/</code> namespace, where <code>sha1sum</code> is the SHA1 hash of the file content.</p>
+                     </div>
+                  
+                  <div>
+                     
                      <h2 id="default-datasets">Default datasets</h2>
                      
                      <p>The default datasets of administration and end-user applications can be found in <a href="https://github.com/AtomGraph/LinkedDataHub/blob/master/platform/datasets/admin.trig" target="_blank"><samp>platform/datasets/admin.trig</samp></a> and
                         <a href="https://github.com/AtomGraph/LinkedDataHub/blob/master/platform/datasets/end-user.trig" target="_blank"><samp>platform/datasets/end-user.trig</samp></a>, respectively.</p>
+                     
+                     <p>RDF terms (classes, properties etc.) used in the default datasets come from well-known
+                        vocabularies FOAF and SIOC (with additional LinkedDataHub-specific assertions) as
+                        well as  <a href="../administration/model/">system ontologies</a>.</p>
                      </div>
                   </div>
             </main>
