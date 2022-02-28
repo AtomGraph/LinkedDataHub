@@ -959,7 +959,7 @@ WHERE
                                 </ul>
                                 <div class="tab-content">
                                     <div>
-                                        <xsl:attribute name="class" select="'tab-pane ' || if (not($source)) then 'active' else ()"/>
+                                        <xsl:attribute name="class" select="'tab-pane ' || (if (not($source)) then 'active' else ())"/>
 
                                         <form id="form-add-data" method="POST" action="{ac:build-uri(resolve-uri('add', $ldt:base), map{ 'forClass': '&nfo;FileDataObject' })}" enctype="multipart/form-data">
                                             <xsl:comment>This form uses RDF/POST encoding: http://www.lsrn.org/semweb/rdfpost.html</xsl:comment>
@@ -1041,7 +1041,7 @@ WHERE
                                         </form>
                                     </div>
                                     <div>
-                                        <xsl:attribute name="class" select="'tab-pane ' || if ($source) then 'active' else ()"/>
+                                        <xsl:attribute name="class" select="'tab-pane ' || (if ($source) then 'active' else ())"/>
 
                                         <form id="form-clone-data" method="POST" action="{resolve-uri('clone', $ldt:base)}">
                                             <xsl:comment>This form uses RDF/POST encoding: http://www.lsrn.org/semweb/rdfpost.html</xsl:comment>
