@@ -34,7 +34,7 @@ exclude-result-prefixes="#all"
     <!-- EVENT HANDLERS -->
     
     <xsl:template match="svg:g[@class = 'subject']" mode="ixsl:onmouseover"> <!-- should be ixsl:onmouseenter but it's not supported by Saxon-JS 2.3 -->
-        <xsl:value-of name="svg" select="ancestor::svg:svg" as="element()"/>
+        <xsl:variable name="svg" select="ancestor::svg:svg" as="element()"/>
         
         <!-- add highlighted <marker> if it doesn't exist yet -->
         <xsl:for-each select="$svg">
