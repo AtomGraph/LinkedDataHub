@@ -25,11 +25,32 @@ extension-element-prefixes="ixsl"
 exclude-result-prefixes="#all"
 >
     
+    <xsl:key name="lines-by-start" match="svg:line" use="@ac:id1"/>
+    <xsl:key name="lines-by-end" match="svg:line" use="@ac:id2"/>
+
     <!-- EVENT HANDLERS -->
     
     <xsl:template match="svg:g[@class = 'subject']" mode="ixsl:onmouseover"> <!-- should be ixsl:onmouseenter but it's not supported by Saxon-JS 2.3 -->
         <!-- move group to the end of the document (visually, move to front) -->
         <xsl:sequence select="ixsl:call(ancestor::svg:svg, 'appendChild', [ . ])[current-date() lt xs:date('2000-01-01')]"/>
+        
+        <!-- highlight the node -->
+        <ixsl:set-attribute name="stroke" select="'yellow'" object="svg:circle"/>
+        
+        <!-- highlight the lines going to/from the node -->
+        <xsl:for-each select="key('lines-by-start', @id) | key('lines-by-end', @id)">
+            <ixsl:set-attribute name="stroke" select="'yellow'"/>
+        </xsl:for-each>
+    </xsl:template>
+    
+    <xsl:template match="svg:g[@class = 'subject']" mode="ixsl:onmouseout">
+        <!-- unhighlight the node -->
+        <ixsl:set-attribute name="stroke" select="'gray'" object="svg:circle"/>
+        
+        <!-- unhighlight the lines going to/from the node -->
+        <xsl:for-each select="key('lines-by-start', @id) | key('lines-by-end', @id)">
+            <ixsl:set-attribute name="stroke" select="'yellow'"/>
+        </xsl:for-each>
     </xsl:template>
     
 </xsl:stylesheet>
