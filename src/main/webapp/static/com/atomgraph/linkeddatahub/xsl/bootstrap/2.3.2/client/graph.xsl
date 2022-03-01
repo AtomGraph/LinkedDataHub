@@ -55,6 +55,7 @@ exclude-result-prefixes="#all"
         
         <!-- move line end nodes to the end of the document (visually, move to front) -->
         <xsl:for-each select="id(key('lines-by-start', @id, ixsl:page())/@data-id2, ixsl:page()) | id(key('lines-by-end', @id, ixsl:page())/@data-id1, ixsl:page())">
+            <ixsl:set-attribute name="stroke" select="$highlight-color"/>
             <xsl:sequence select="ixsl:call($svg, 'appendChild', [ . ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
 
