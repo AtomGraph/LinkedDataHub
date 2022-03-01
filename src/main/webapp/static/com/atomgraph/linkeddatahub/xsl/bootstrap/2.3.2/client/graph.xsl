@@ -27,7 +27,7 @@ exclude-result-prefixes="#all"
     
     <!-- EVENT HANDLERS -->
     
-    <xsl:template match="svg:g[@class = 'subject']" mode="ixsl:onmouseenter">
+    <xsl:template match="svg:g[@class = 'subject']" mode="ixsl:onmouseover"> <!-- should be ixsl:onmouseenter but it's not supported by Saxon-JS 2.3 -->
         <!-- move group to the end of the document (visually, move to front) -->
         <xsl:sequence select="ixsl:call(ancestor::svg:svg, 'appendChild', [ . ])[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
