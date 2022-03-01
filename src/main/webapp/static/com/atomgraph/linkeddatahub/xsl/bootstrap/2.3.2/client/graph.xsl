@@ -25,24 +25,22 @@ extension-element-prefixes="ixsl"
 exclude-result-prefixes="#all"
 >
     
-    <!-- <xsl:key name="lines-by-start" match="svg:line" use="@ac:id1"/> -->
-    <!-- <xsl:key name="lines-by-end" match="svg:line" use="@ac:id2"/> -->
+    <xsl:key name="lines-by-start" match="svg:line" use="@data-id1"/>
+    <xsl:key name="lines-by-end" match="svg:line" use="@data-id2"/>
 
     <!-- EVENT HANDLERS -->
     
     <xsl:template match="svg:g[@class = 'subject']" mode="ixsl:onmouseover"> <!-- should be ixsl:onmouseenter but it's not supported by Saxon-JS 2.3 -->
-        <!-- move group to the end of the document (visually, move to front) -->
-        <xsl:sequence select="ixsl:call(ancestor::svg:svg, 'appendChild', [ . ])[current-date() lt xs:date('2000-01-01')]"/>
-        
         <!-- highlight the node -->
         <ixsl:set-attribute name="stroke" select="'yellow'" object="svg:circle"/>
-        
-        <!-- highlight the lines going to/from the node -->
-        <!-- can't use key() as it gives a circular key error: https://saxonica.plan.io/issues/5364 -->
-        <!-- <xsl:for-each select="key('lines-by-start', @id, ixsl:page()) | key('lines-by-end', @id, ixsl:page())">-->
-        <xsl:variable name="node" select="." as="element()"/>
-        <xsl:for-each select="ixsl:page()//svg:line[$node/@id = (@data-id1, @data-id2)]">
+
+        <!-- move group to the end of the document (visually, move to front) -->
+        <xsl:sequence select="ixsl:call(ancestor::svg:svg, 'appendChild', [ . ])[current-date() lt xs:date('2000-01-01')]"/>
+
+        <!-- highlight the lines going to/from the node and move to the end of the document (visually, move to front) -->
+        <xsl:for-each select="key('lines-by-start', @id, ixsl:page()) | key('lines-by-end', @id, ixsl:page())">
             <ixsl:set-attribute name="stroke" select="'yellow'"/>
+            <xsl:sequence select="ixsl:call(ancestor::svg:svg, 'appendChild', [ . ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
     </xsl:template>
     
@@ -51,10 +49,7 @@ exclude-result-prefixes="#all"
         <ixsl:set-attribute name="stroke" select="'gray'" object="svg:circle"/>
         
         <!-- unhighlight the lines going to/from the node -->
-        <!-- can't use key() as it gives a circular key error: https://saxonica.plan.io/issues/5364 -->
-        <!-- <xsl:for-each select="key('lines-by-start', @id, ixsl:page()) | key('lines-by-end', @id, ixsl:page())"> -->
-        <xsl:variable name="node" select="." as="element()"/>
-        <xsl:for-each select="ixsl:page()//svg:line[$node/@id = (@data-id1, @data-id2)]">
+        <xsl:for-each select="key('lines-by-start', @id, ixsl:page()) | key('lines-by-end', @id, ixsl:page())">
             <ixsl:set-attribute name="stroke" select="'gray'"/>
         </xsl:for-each>
     </xsl:template>
