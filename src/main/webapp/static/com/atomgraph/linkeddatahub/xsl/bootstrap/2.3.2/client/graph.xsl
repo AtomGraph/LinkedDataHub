@@ -41,7 +41,7 @@ exclude-result-prefixes="#all"
         <!-- can't use key() as it gives a circular key error: https://saxonica.plan.io/issues/5364 -->
         <!-- <xsl:for-each select="key('lines-by-start', @id, ixsl:page()) | key('lines-by-end', @id, ixsl:page())">-->
         <xsl:variable name="node" select="." as="element()"/>
-        <xsl:for-each select="ixsl:page()//svg:line[$node/@id = (@ac:id1, @ac:id2)]">
+        <xsl:for-each select="ixsl:page()//svg:line[$node/@id = (@data-id1, @data-id2)]">
             <ixsl:set-attribute name="stroke" select="'yellow'"/>
         </xsl:for-each>
     </xsl:template>
@@ -54,7 +54,7 @@ exclude-result-prefixes="#all"
         <!-- can't use key() as it gives a circular key error: https://saxonica.plan.io/issues/5364 -->
         <!-- <xsl:for-each select="key('lines-by-start', @id, ixsl:page()) | key('lines-by-end', @id, ixsl:page())"> -->
         <xsl:variable name="node" select="." as="element()"/>
-        <xsl:for-each select="ixsl:page()//svg:line[$node/@id = (@ac:id1, @ac:id2)]">
+        <xsl:for-each select="ixsl:page()//svg:line[$node/@id = (@data-id1, @data-id2)]">
             <ixsl:set-attribute name="stroke" select="'gray'"/>
         </xsl:for-each>
     </xsl:template>
