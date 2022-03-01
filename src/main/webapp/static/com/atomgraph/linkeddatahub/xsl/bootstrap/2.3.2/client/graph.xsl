@@ -34,8 +34,10 @@ exclude-result-prefixes="#all"
     <!-- EVENT HANDLERS -->
     
     <xsl:template match="svg:g[@class = 'subject']" mode="ixsl:onmouseover"> <!-- should be ixsl:onmouseenter but it's not supported by Saxon-JS 2.3 -->
+        <xsl:value-of name="svg" select="ancestor::svg:svg" as="element()"/>
+        
         <!-- add highlighted <marker> if it doesn't exist yet -->
-        <xsl:for-each select="ancestor::svg:svg">
+        <xsl:for-each select="$svg">
             <xsl:call-template name="add-highlighted-marker">
                 <xsl:with-param name="id" select="$highlighted-marker-id"/>
             </xsl:call-template>
@@ -51,8 +53,13 @@ exclude-result-prefixes="#all"
             <xsl:sequence select="ixsl:call(ancestor::svg:svg, 'appendChild', [ . ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
         
-        <!-- move group to the end of the document (visually, move to front) -->
-        <xsl:sequence select="ixsl:call(ancestor::svg:svg, 'appendChild', [ . ])[current-date() lt xs:date('2000-01-01')]"/>
+        <!-- move line end nodes to the end of the document (visually, move to front) -->
+        <xsl:for-each select="id(key('lines-by-start', @id, ixsl:page())/@data-id2, ixsl:page()) | id(key('lines-by-end', @id, ixsl:page())/@data-id1, ixsl:page())">
+            <xsl:sequence select="ixsl:call($svg, 'appendChild', [ . ])[current-date() lt xs:date('2000-01-01')]"/>
+        </xsl:for-each>
+
+        <!-- move start node to the end of the document (visually, move to front) -->
+        <xsl:sequence select="ixsl:call($svg, 'appendChild', [ . ])[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
     
     <xsl:template match="svg:g[@class = 'subject']" mode="ixsl:onmouseout">
