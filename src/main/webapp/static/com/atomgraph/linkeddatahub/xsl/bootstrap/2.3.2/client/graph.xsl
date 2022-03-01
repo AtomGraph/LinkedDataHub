@@ -25,8 +25,8 @@ extension-element-prefixes="ixsl"
 exclude-result-prefixes="#all"
 >
     
-    <xsl:key name="lines-by-start" match="svg:line" use="@ac:id1"/>
-    <xsl:key name="lines-by-end" match="svg:line" use="@ac:id2"/>
+    <!-- <xsl:key name="lines-by-start" match="svg:line" use="@ac:id1"/> -->
+    <!-- <xsl:key name="lines-by-end" match="svg:line" use="@ac:id2"/> -->
 
     <!-- EVENT HANDLERS -->
     
