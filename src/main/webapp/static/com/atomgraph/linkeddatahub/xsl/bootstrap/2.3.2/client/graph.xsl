@@ -38,7 +38,7 @@ exclude-result-prefixes="#all"
         <ixsl:set-attribute name="stroke" select="'yellow'" object="svg:circle"/>
         
         <!-- highlight the lines going to/from the node -->
-        <xsl:for-each select="key('lines-by-start', @id) | key('lines-by-end', @id)">
+        <xsl:for-each select="key('lines-by-start', @id, ixsl:page()) | key('lines-by-end', @id, ixsl:page())">
             <ixsl:set-attribute name="stroke" select="'yellow'"/>
         </xsl:for-each>
     </xsl:template>
@@ -48,7 +48,7 @@ exclude-result-prefixes="#all"
         <ixsl:set-attribute name="stroke" select="'gray'" object="svg:circle"/>
         
         <!-- unhighlight the lines going to/from the node -->
-        <xsl:for-each select="key('lines-by-start', @id) | key('lines-by-end', @id)">
+        <xsl:for-each select="key('lines-by-start', @id, ixsl:page()) | key('lines-by-end', @id, ixsl:page())">
             <ixsl:set-attribute name="stroke" select="'yellow'"/>
         </xsl:for-each>
     </xsl:template>
