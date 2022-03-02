@@ -31,6 +31,22 @@ exclude-result-prefixes="#all"
     <xsl:variable name="highlight-color" select="'yellow'" as="xs:string"/>
     <xsl:variable name="highlighted-marker-id" select="'triangle-hl'" as="xs:string"/>
 
+    <!-- TEMPLATES -->
+    
+    <xsl:template name="add-highlighted-marker">
+        <xsl:param name="id" as="xs:string"/>
+        
+        <xsl:if test="not(svg:defs/svg:marker[@id = $id])">
+            <xsl:for-each select="svg:defs">
+                <xsl:result-document href="?." method="ixsl:append-content">
+                    <svg:marker id="{$id}" viewBox="0 0 10 10" refX="10" refY="5" markerUnits="strokeWidth" markerWidth="8" markerHeight="6" orient="auto">
+                        <svg:path d="M 0 0 L 10 5 L 0 10 z" fill="{$highlight-color}"/>
+                    </svg:marker>
+                </xsl:result-document>
+            </xsl:for-each>
+        </xsl:if>
+    </xsl:template>
+    
     <!-- EVENT HANDLERS -->
     
     <xsl:template match="svg:g[@class = 'subject']" mode="ixsl:onmouseover"> <!-- should be ixsl:onmouseenter but it's not supported by Saxon-JS 2.3 -->
@@ -79,18 +95,8 @@ exclude-result-prefixes="#all"
         </xsl:for-each>
     </xsl:template>
     
-    <xsl:template name="add-highlighted-marker">
-        <xsl:param name="id" as="xs:string"/>
-        
-        <xsl:if test="not(svg:defs/svg:marker[@id = $id])">
-            <xsl:for-each select="svg:defs">
-                <xsl:result-document href="?." method="ixsl:append-content">
-                    <svg:marker id="{$id}" viewBox="0 0 10 10" refX="10" refY="5" markerUnits="strokeWidth" markerWidth="8" markerHeight="6" orient="auto">
-                        <svg:path d="M 0 0 L 10 5 L 0 10 z" fill="{$highlight-color}"/>
-                    </svg:marker>
-                </xsl:result-document>
-            </xsl:for-each>
-        </xsl:if>
+    <xsl:template match="svg:g[@class = 'subject']" mode="ixsl:ondrag">
+        <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ ixsl:get(ixsl:event(), 'target.id') ])"/>
     </xsl:template>
     
 </xsl:stylesheet>
