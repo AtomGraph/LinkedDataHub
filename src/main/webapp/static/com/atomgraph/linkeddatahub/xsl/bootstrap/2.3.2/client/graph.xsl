@@ -43,10 +43,10 @@ exclude-result-prefixes="#all"
             </xsl:call-template>
         </xsl:for-each>
         
-        <!-- highlight the node -->
+        <!-- highlight this node -->
         <ixsl:set-attribute name="stroke" select="$highlight-color" object="svg:circle"/>
 
-        <!-- highlight the lines going to/from the node and move to the end of the document (visually, move to front) -->
+        <!-- highlight the lines going to/from this node and move to the end of the document (visually, move to front) -->
         <xsl:for-each select="key('lines-by-start', @id, ixsl:page()) | key('lines-by-end', @id, ixsl:page())">
             <ixsl:set-attribute name="stroke" select="$highlight-color"/>
             <ixsl:set-attribute name="marker-end" select="'url(#' || $highlighted-marker-id || ')'"/>
@@ -64,10 +64,15 @@ exclude-result-prefixes="#all"
     </xsl:template>
     
     <xsl:template match="svg:g[@class = 'subject']" mode="ixsl:onmouseout">
-        <!-- unhighlight the node -->
+        <!-- unhighlight this node -->
         <ixsl:set-attribute name="stroke" select="'gray'" object="svg:circle"/>
 
-        <!-- unhighlight the lines going to/from the node -->
+        <!-- unhighlight end nodes -->
+        <xsl:for-each select="id(key('lines-by-start', @id, ixsl:page())/@data-id2, ixsl:page()) | id(key('lines-by-end', @id, ixsl:page())/@data-id1, ixsl:page())">
+            <ixsl:set-attribute name="stroke" select="'gray'" object="svg:circle"/>
+        </xsl:for-each>
+
+        <!-- unhighlight the lines going to/from this node -->
         <xsl:for-each select="key('lines-by-start', @id, ixsl:page()) | key('lines-by-end', @id, ixsl:page())">
             <ixsl:set-attribute name="stroke" select="'gray'"/>
             <ixsl:set-attribute name="marker-end" select="'url(#triangle)'"/>
