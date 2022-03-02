@@ -18,7 +18,7 @@ package com.atomgraph.linkeddatahub.imports;
 
 import com.atomgraph.client.MediaTypes;
 import com.atomgraph.client.util.DataManager;
-import com.atomgraph.linkeddatahub.client.GraphStoreClient;
+import com.atomgraph.core.client.GraphStoreClient;
 import com.atomgraph.core.model.DatasetAccessor;
 import com.atomgraph.linkeddatahub.imports.stream.RDFGraphStoreOutput;
 import com.atomgraph.linkeddatahub.imports.stream.csv.CSVGraphStoreOutput;

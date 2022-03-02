@@ -16,7 +16,7 @@
  */
 package com.atomgraph.linkeddatahub.imports.stream.csv;
 
-import com.atomgraph.linkeddatahub.client.GraphStoreClient;
+import com.atomgraph.core.client.GraphStoreClient;
 import com.atomgraph.etl.csv.ModelTransformer;
 import com.univocity.parsers.common.ParsingContext;
 import com.univocity.parsers.common.processor.RowProcessor;

@@ -17,7 +17,7 @@
 package com.atomgraph.linkeddatahub.model.generic;
 
 import com.atomgraph.core.MediaTypes;
-import com.atomgraph.linkeddatahub.client.GraphStoreClient;
+import com.atomgraph.core.client.GraphStoreClient;
 import com.atomgraph.core.client.QuadStoreClient;
 import com.atomgraph.core.client.SPARQLClient;
 import com.atomgraph.core.model.DatasetAccessor;
@@ -147,7 +147,7 @@ public class ServiceImpl extends ResourceImpl implements Service
     
     public GraphStoreClient getGraphStoreClient(WebTarget resource)
     {
-        GraphStoreClient graphStoreClient = GraphStoreClient.create(resource);
+        GraphStoreClient graphStoreClient = com.atomgraph.linkeddatahub.client.GraphStoreClient.create(resource);
         
         if (getAuthUser() != null && getAuthPwd() != null)
         {

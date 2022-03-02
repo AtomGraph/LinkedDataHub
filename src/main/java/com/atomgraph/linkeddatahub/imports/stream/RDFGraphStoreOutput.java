@@ -16,7 +16,7 @@
  */
 package com.atomgraph.linkeddatahub.imports.stream;
 
-import com.atomgraph.linkeddatahub.client.GraphStoreClient;
+import com.atomgraph.core.client.GraphStoreClient;
 import java.io.InputStream;
 import java.util.Iterator;
 import org.apache.jena.query.Dataset;
