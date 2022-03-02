@@ -21,6 +21,7 @@ import com.atomgraph.linkeddatahub.imports.Executor;
 import com.atomgraph.linkeddatahub.model.CSVImport;
 import com.atomgraph.linkeddatahub.model.RDFImport;
 import com.atomgraph.linkeddatahub.model.Service;
+import com.atomgraph.linkeddatahub.client.GraphStoreClient;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import javax.servlet.ServletContextEvent;
@@ -55,20 +56,20 @@ public class ImportListener implements ServletContextListener
         THREAD_POOL.shutdown();
     }
 
-    public static void submit(CSVImport csvImport, Service service, Service adminService, String baseURI, DataManager dataManager)
+    public static void submit(CSVImport csvImport, Service service, Service adminService, String baseURI, DataManager dataManager, GraphStoreClient gsc)
     {
         if (csvImport == null) throw new IllegalArgumentException("CSVImport cannot be null");
         if (log.isDebugEnabled()) log.debug("Submitting new CSVImport to thread pool: {}", csvImport.toString());
         
-        new Executor(THREAD_POOL).start(csvImport, service, adminService, baseURI, dataManager, service.getGraphStoreClient());
+        new Executor(THREAD_POOL).start(csvImport, service, adminService, baseURI, dataManager, gsc);
     }
 
-    public static void submit(RDFImport rdfImport, Service service, Service adminService, String baseURI, DataManager dataManager)
+    public static void submit(RDFImport rdfImport, Service service, Service adminService, String baseURI, DataManager dataManager, GraphStoreClient gsc)
     {
         if (rdfImport == null) throw new IllegalArgumentException("RDFImport cannot be null");
         if (log.isDebugEnabled()) log.debug("Submitting new RDFImport to thread pool: {}", rdfImport.toString());
         
-        new Executor(THREAD_POOL).start(rdfImport, service, adminService, baseURI, dataManager, service.getGraphStoreClient());
+        new Executor(THREAD_POOL).start(rdfImport, service, adminService, baseURI, dataManager, gsc);
     }
     
 }

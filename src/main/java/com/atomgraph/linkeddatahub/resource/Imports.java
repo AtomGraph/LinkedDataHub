@@ -61,7 +61,6 @@ public class Imports extends GraphStoreImpl
     private static final Logger log = LoggerFactory.getLogger(Imports.class);
     
     private final URI uri;
-    private final com.atomgraph.linkeddatahub.apps.model.Application application;
     private final DataManager dataManager;
 
     @Inject
@@ -72,7 +71,6 @@ public class Imports extends GraphStoreImpl
     {
         super(request, uriInfo, mediaTypes, application, ontology, service, providers, system);
         this.uri = uriInfo.getAbsolutePath();
-        this.application = application;
         this.dataManager = dataManager;
         if (log.isDebugEnabled()) log.debug("Constructing {}", getClass());
     }
@@ -115,9 +113,9 @@ public class Imports extends GraphStoreImpl
                         Service adminService = getApplication().canAs(EndUserApplication.class) ? getApplication().as(EndUserApplication.class).getAdminApplication().getService() : null;
                         // start the import asynchroniously
                         if (topic.canAs(CSVImport.class))
-                            getSystem().submitImport(topic.as(CSVImport.class), getApplication().getService(), adminService, getUriInfo().getBaseUri().toString(), getDataManager());
+                            getSystem().submitImport(topic.as(CSVImport.class), getApplication(), getApplication().getService(), adminService, getUriInfo().getBaseUri().toString(), getDataManager());
                         if (topic.canAs(RDFImport.class))
-                            getSystem().submitImport(topic.as(RDFImport.class), getApplication().getService(), adminService, getUriInfo().getBaseUri().toString(), getDataManager());
+                            getSystem().submitImport(topic.as(RDFImport.class), getApplication(), getApplication().getService(), adminService, getUriInfo().getBaseUri().toString(), getDataManager());
                     }
                     else
                         if (log.isErrorEnabled()) log.error("Topic '{}' cannot be cast to Import", topic);
@@ -142,11 +140,6 @@ public class Imports extends GraphStoreImpl
         return uri;
     }
  
-    public com.atomgraph.linkeddatahub.apps.model.Application getApplication()
-    {
-        return application;
-    }
-
     public DataManager getDataManager()
     {
         return dataManager;
