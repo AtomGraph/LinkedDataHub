@@ -16,7 +16,7 @@
  */
 package com.atomgraph.linkeddatahub.imports.stream.csv;
 
-import com.atomgraph.core.client.GraphStoreClient;
+import com.atomgraph.linkeddatahub.client.GraphStoreClient;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;

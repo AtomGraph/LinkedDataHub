@@ -95,8 +95,8 @@ exclude-result-prefixes="#all"
         </xsl:for-each>
     </xsl:template>
     
-    <xsl:template match="svg:g[@class = 'subject']" mode="ixsl:ondrag">
+<!--    <xsl:template match="svg:g[@class = 'subject']" mode="ixsl:ondrag">
         <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ ixsl:get(ixsl:event(), 'target.id') ])"/>
-    </xsl:template>
+    </xsl:template>-->
     
 </xsl:stylesheet>

@@ -17,7 +17,7 @@
 package com.atomgraph.linkeddatahub.model.generic;
 
 import com.atomgraph.core.MediaTypes;
-import com.atomgraph.core.client.GraphStoreClient;
+import com.atomgraph.linkeddatahub.client.GraphStoreClient;
 import com.atomgraph.core.client.QuadStoreClient;
 import com.atomgraph.core.client.SPARQLClient;
 import com.atomgraph.core.model.DatasetAccessor;

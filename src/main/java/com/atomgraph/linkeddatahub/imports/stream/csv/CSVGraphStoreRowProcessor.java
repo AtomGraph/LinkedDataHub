@@ -16,15 +16,12 @@
  */
 package com.atomgraph.linkeddatahub.imports.stream.csv;
 
-import com.atomgraph.core.client.GraphStoreClient;
+import com.atomgraph.linkeddatahub.client.GraphStoreClient;
 import com.atomgraph.etl.csv.ModelTransformer;
-import com.atomgraph.linkeddatahub.server.util.ModelSplitter;
 import com.univocity.parsers.common.ParsingContext;
 import com.univocity.parsers.common.processor.RowProcessor;
-import java.util.Iterator;
 import java.util.function.BiFunction;
 import org.apache.jena.atlas.lib.IRILib;
-import org.apache.jena.query.Dataset;
 import org.apache.jena.query.Query;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
@@ -61,14 +58,7 @@ public class CSVGraphStoreRowProcessor implements RowProcessor // extends com.at
     public void rowProcessed(String[] row, ParsingContext context)
     {
         Model rowModel = transformRow(row, context);
-        Dataset rowDataset = ModelSplitter.split(rowModel);
-        
-        Iterator<String> names = rowDataset.listNames();
-        while (names.hasNext())
-        {
-            String graphUri = names.next();
-            getGraphStoreClient().add(graphUri, rowDataset.getNamedModel(graphUri)); // exceptions get swallowed by the client! TO-DO: wait for completion
-        }
+        getGraphStoreClient().add(null, rowModel); // Graph name not specified, will be assigned by the server. Exceptions get swallowed by the client! TO-DO: wait for completion
     }
     
     public Model transformRow(String[] row, ParsingContext context)

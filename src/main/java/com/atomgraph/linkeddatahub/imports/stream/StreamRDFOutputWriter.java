@@ -17,7 +17,7 @@
 package com.atomgraph.linkeddatahub.imports.stream;
 
 import com.atomgraph.core.MediaType;
-import com.atomgraph.core.client.GraphStoreClient;
+import com.atomgraph.linkeddatahub.client.GraphStoreClient;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.function.Function;
