@@ -85,6 +85,10 @@ fi
 #    print_usage
 #    exit 1
 #fi
+if [ -z "$first" ] ; then
+    print_usage
+    exit 1
+fi
 if [ -z "$1" ] ; then
     print_usage
     exit 1
@@ -109,7 +113,11 @@ INSERT
 {
     GRAPH ?g
     {
-        <${this}> ldh:content  [ a ldh:Content; rdf:first rdf:nil ] .
+        <${this}> ldh:content [
+            a ldh:Content ;
+            rdf:first <${first}> ;
+            rdf:rest rdf:nil
+        ] .
     }
 }
 WHERE
