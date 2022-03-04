@@ -126,14 +126,25 @@ WHERE
   };
 
 # List of length = 0
-DELETE { graph ?g { ?x ldh:content rdf:nil . } }
-INSERT { graph ?g { ?x ldh:content [ rdf:first <$first> ; rdf:rest rdf:nil ] } }
+DELETE
+{
+    GRAPH ?g {
+        ?this ldh:content rdf:nil .
+    }
+}
+INSERT {
+    GRAPH ?g {
+        ?this ldh:content ?content .
+        ?content rdf:first <$first> ;
+            rdf:rest rdf:nil .
+    }
+}
 WHERE
 {
-graph ?g {
-   ?x ldh:content rdf:nil .
-
-   }
+    GRAPH ?g {
+       ?this ldh:content rdf:nil .
+       BIND (uri(concat(str(?this), struuid())) as ?content)
+    }
 };
 
 EOF
