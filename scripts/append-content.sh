@@ -113,20 +113,19 @@ INSERT
 {
     GRAPH ?g
     {
-        <${this}> ldh:content [
-            a ldh:Content ;
-            rdf:first <${first}> ;
-            rdf:rest rdf:nil
-        ] .
+        <${this}> ldh:content rdf:nil .
     }
 }
 WHERE
-  { GRAPH ?g
-      { <${this}>
-                  ?p  ?o
-        FILTER NOT EXISTS { <${this}>
-                                      ldh:content  ?content
-                          }
+  { SELECT  ?content
+    WHERE
+      { GRAPH ?g
+          { <${this}>
+                      ?p  ?o
+            FILTER NOT EXISTS { <${this}>
+                                          ldh:content  ?content
+                              }
+          }
       }
   }
 EOF
