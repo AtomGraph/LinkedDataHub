@@ -135,7 +135,8 @@ DELETE
 INSERT {
     GRAPH ?g {
         ?this ldh:content ?content .
-        ?content rdf:first <$first> ;
+        ?content a ldh:Content ;
+            rdf:first <$first> ;
             rdf:rest rdf:nil .
     }
 }
