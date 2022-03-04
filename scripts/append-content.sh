@@ -111,11 +111,11 @@ PREFIX  rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 
 INSERT {
   GRAPH ?g {
-    <${this}> ldh:content rdf:nil .
+    ?this ldh:content rdf:nil .
   }
 }
 WHERE
-  { SELECT  ?this
+  { SELECT  ?g ?this
     WHERE
       { GRAPH ?g
           { ?this  ?p  ?o
@@ -123,5 +123,17 @@ WHERE
           }
         VALUES ?this { <${this}> }
       }
-  }
+  };
+
+# List of length = 0
+DELETE { graph ?g { ?x ldh:content rdf:nil . } }
+INSERT { graph ?g { ?x ldh:content [ rdf:first <$first> ; rdf:rest rdf:nil ] } }
+WHERE
+{
+graph ?g {
+   ?x ldh:content rdf:nil .
+
+   }
+};
+
 EOF
