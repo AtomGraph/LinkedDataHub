@@ -114,8 +114,13 @@ public class WebIDFilter extends AuthenticationFilter
             webIDCert.checkValidity(); // check if certificate is expired or not yet valid
             RSAPublicKey publicKey = (RSAPublicKey)webIDCert.getPublicKey();
             URI webID = getWebIDURI(webIDCert);
+            if (webID == null)
+            {
+                if (log.isTraceEnabled()) log.trace("WebID not found in the client certificate, skipping WebID filter");
+                return null;
+            }
             if (log.isTraceEnabled()) log.trace("Client WebID: {}", webID);
-
+            
             Resource agent = authenticate(loadWebID(webID), webID, publicKey);
             if (agent == null)
             {
