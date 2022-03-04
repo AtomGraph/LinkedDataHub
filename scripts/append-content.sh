@@ -143,9 +143,17 @@ WHERE
 {
     GRAPH ?g {
         <${this}> ldh:content ?list .
-        # List of length >= 1
-        ?list rdf:rest+ ?elt .
-        ?elt rdf:rest rdf:nil .
+        # List of length = 1
+        {
+            ?list rdf:rest rdf:nil .
+            BIND (?list AS ?elt)
+        }
+        UNION
+        # List of length > 1
+        {
+            ?list rdf:rest+ ?elt .
+            ?elt rdf:rest rdf:nil .
+        }
         # ?elt is last cons cell
        BIND (uri(concat(str(<${this}>), '#', struuid())) as ?content)
     }
