@@ -143,7 +143,7 @@ WHERE
 {
     GRAPH ?g {
        ?this ldh:content rdf:nil .
-       BIND (uri(concat(str(?this), struuid())) as ?content)
+       BIND (uri(concat(str(?this), '#', struuid())) as ?content)
     }
 };
 
