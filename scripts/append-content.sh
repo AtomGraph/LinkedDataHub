@@ -147,6 +147,7 @@ WHERE
         ?list rdf:rest+ ?elt .
         ?elt rdf:rest rdf:nil .
         # ?elt is last cons cell
+       BIND (uri(concat(str(<${this}>), '#', struuid())) as ?content)
     }
 };
 
