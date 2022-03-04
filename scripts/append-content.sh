@@ -125,6 +125,31 @@ WHERE
       }
   };
 
+# List of length >= 1
+DELETE {
+    GRAPH ?g {
+        ?elt rdf:rest rdf:nil
+    }
+}
+INSERT {
+    GRAPH ?g {
+        ?elt rdf:rest ?content .
+        ?content a ldh:Content ;
+            rdf:first <$first> ;
+            rdf:rest rdf:nil .
+    }
+}
+WHERE
+{
+    GRAPH ?g {
+        <${this}> ldh:content ?list .
+        # List of length >= 1
+        ?list rdf:rest+ ?elt .
+        ?elt rdf:rest rdf:nil .
+        # ?elt is last cons cell
+    }
+};
+
 # List of length = 0
 DELETE {
     GRAPH ?g {
