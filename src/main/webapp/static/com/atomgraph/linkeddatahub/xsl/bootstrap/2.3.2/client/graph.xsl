@@ -105,8 +105,8 @@ exclude-result-prefixes="#all"
     <xsl:template match="svg:svg" mode="ixsl:onclick">
         <xsl:variable name="bound" select="ixsl:call(., 'getBoundingClientRect', [])"/>
         <!-- TO-DO: the calculations might need to be adjusted for borders and padding: https://stackoverflow.com/a/47822104/1003113 -->
-        <xsl:variable name="html-x" select="ixsl:get(ixsl:event(), 'clientX') - ixsl:get($point, 'left')"/>
-        <xsl:variable name="html-y" select="ixsl:get(ixsl:event(), 'clientY') - ixsl:get($point, 'top')"/>
+        <xsl:variable name="html-x" select="ixsl:get(ixsl:event(), 'clientX') - ixsl:get($bound, 'left')"/>
+        <xsl:variable name="html-y" select="ixsl:get(ixsl:event(), 'clientY') - ixsl:get($bound, 'top')"/>
         <xsl:variable name="ctm" select="ixsl:call(., 'getScreenCTM', [])"/>
         <xsl:variable name="point" select="ldh:new('DOMPoint', [ $html-x, $html-y ])"/>
         <xsl:variable name="point" select="ixsl:call($point, 'matrixTransform', [ ixsl:call($ctm, 'inverse', []) ])"/>
