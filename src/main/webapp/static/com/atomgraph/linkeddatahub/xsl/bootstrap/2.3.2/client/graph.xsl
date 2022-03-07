@@ -157,6 +157,7 @@ exclude-result-prefixes="#all"
                         <xsl:variable name="svg-y" select="ixsl:get($svg-point, 'y')"/>
 <!--                        <xsl:variable name="transform" select="ixsl:get(ixsl:window(), 'LinkedDataHub.graph.transform')"/>
                         <xsl:sequence select="ixsl:call($transform, 'setTranslate', [ $coord-x - $svg-x, $coord-y - $svg-y ])"/>-->
+                        <xsl:variable name="transforms" select="ixsl:get(., 'transform.baseVal')"/>
                         <xsl:variable name="transform" select="ixsl:call($transforms, 'getItem', [ 0 ])"/>
                         <xsl:sequence select="ixsl:call($transform, 'setTranslate', [ $svg-x, $svg-y ])"/>
                         <xsl:message>drag!</xsl:message>
