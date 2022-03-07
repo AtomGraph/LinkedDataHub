@@ -119,6 +119,7 @@ exclude-result-prefixes="#all"
     </xsl:template>
     
     <xsl:template match="svg:g[@class = 'subject']" mode="ixsl:onmousedown">
+        <xsl:variable name="bound" select="ixsl:call(., 'getBoundingClientRect', [])"/>
         <xsl:variable name="dom-x" select="ixsl:get(ixsl:event(), 'clientX') - ixsl:get($bound, 'left')"/>
         <xsl:variable name="dom-y" select="ixsl:get(ixsl:event(), 'clientY') - ixsl:get($bound, 'top')"/>
         <xsl:variable name="dom-point" select="ldh:new('DOMPoint', [ $dom-x, $dom-y ])"/>
@@ -146,7 +147,7 @@ exclude-result-prefixes="#all"
                 <xsl:choose>
                     <xsl:when test=". is ixsl:get(ixsl:window(), 'LinkedDataHub.graph.selected-node')">
                         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
-
+                        <xsl:variable name="bound" select="ixsl:call(., 'getBoundingClientRect', [])"/>
                         <xsl:variable name="dom-x" select="ixsl:get(ixsl:event(), 'clientX') - ixsl:get($bound, 'left')"/>
                         <xsl:variable name="dom-y" select="ixsl:get(ixsl:event(), 'clientY') - ixsl:get($bound, 'top')"/>
                         <xsl:variable name="dom-point" select="ldh:new('DOMPoint', [ $dom-x, $dom-y ])"/>
