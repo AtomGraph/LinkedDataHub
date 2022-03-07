@@ -102,6 +102,17 @@ exclude-result-prefixes="#all"
     
     <!-- SVG drag implementation from https://www.petercollingridge.co.uk/tutorials/svg/interactive/dragging/ -->
 
+    <xsl:template match="svg:svg" mode="ixsl:onclick">
+        <xsl:variable name="ctm" select="ixsl:call(., 'getScreenCTM', [])"/>
+        <xsl:variable name="point" select="ldh:new('DOMPoint', [ ixsl:get(ixsl:event(), 'clientX'), ixsl:get(ixsl:event(), 'clientY') ])"/>
+        <xsl:variable name="point" select="ixsl:call($point, 'matrixTransform', [ ixsl:call($ctm, 'inverse', []) ])"/>
+        <xsl:variable name="offset-x" select="ixsl:get($point, 'x')"/>
+        <xsl:variable name="offset-y" select="ixsl:get($point, 'y')"/>
+        
+        <xsl:message>clientX: <xsl:value-of select="ixsl:get(ixsl:event(), 'clientX')"/> $clientY: <xsl:value-of select="ixsl:get(ixsl:event(), 'clientY')"/></xsl:message>
+        <xsl:message>$offset-x: <xsl:value-of select="$offset-x"/> $offset-y: <xsl:value-of select="$offset-y"/></xsl:message>
+    </xsl:template>
+    
     <xsl:template match="svg:g[@class = 'subject']" mode="ixsl:onmousedown">
         <xsl:variable name="ctm" select="ixsl:call(., 'getScreenCTM', [])"/>
         <xsl:variable name="point" select="ldh:new('DOMPoint', [ ixsl:get(ixsl:event(), 'clientX'), ixsl:get(ixsl:event(), 'clientY') ])"/>
@@ -123,12 +134,12 @@ exclude-result-prefixes="#all"
         <ixsl:set-property name="offset-x" select="$offset-x" object="ixsl:get(ixsl:window(), 'LinkedDataHub.graph')"/>
         <ixsl:set-property name="offset-y" select="$offset-y" object="ixsl:get(ixsl:window(), 'LinkedDataHub.graph')"/>
         <ixsl:set-property name="transform" select="$transform" object="ixsl:get(ixsl:window(), 'LinkedDataHub.graph')"/>
-        
+<!--        
         <xsl:for-each select="ancestor::svg:svg">
             <xsl:result-document href="?." method="ixsl:append-content">
                 <circle xmlns="http://www.w3.org/2000/svg" fill="green" cx="{$offset-x}" cy="{$offset-y}" r="10"/>
             </xsl:result-document>
-        </xsl:for-each>
+        </xsl:for-each>-->
     </xsl:template>
 
     <xsl:template match="svg:g[@class = 'subject']" mode="ixsl:onmousemove">
