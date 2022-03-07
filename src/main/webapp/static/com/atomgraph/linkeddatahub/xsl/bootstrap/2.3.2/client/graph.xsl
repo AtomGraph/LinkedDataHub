@@ -115,6 +115,7 @@ exclude-result-prefixes="#all"
         
         <xsl:message>$html-x: <xsl:value-of select="$html-x"/> $html-y: <xsl:value-of select="$html-y"/></xsl:message>
         <xsl:message>$offset-x: <xsl:value-of select="$offset-x"/> $offset-y: <xsl:value-of select="$offset-y"/></xsl:message>
+        <xsl:message>viewBox.baseVal.x: <xsl:value-of select="ixsl:get(., 'viewBox.baseVal.x')"/> viewBox.baseVal.y: <xsl:value-of select="ixsl:get(., 'viewBox.baseVal.y')"/></xsl:message>
     </xsl:template>
     
     <xsl:template match="svg:g[@class = 'subject']" mode="ixsl:onmousedown">
