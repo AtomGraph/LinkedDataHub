@@ -104,8 +104,6 @@ exclude-result-prefixes="#all"
 
     <xsl:template match="svg:g[@class = 'subject']" mode="ixsl:onmousedown">
         <xsl:variable name="ctm" select="ixsl:call(., 'getScreenCTM', [])"/>
-<!--        <xsl:variable name="offset-x" select="(ixsl:get(ixsl:event(), 'clientX') - ixsl:get($ctm, 'e')) div ixsl:get($ctm, 'a')"/>
-        <xsl:variable name="offset-y" select="(ixsl:get(ixsl:event(), 'clientY') - ixsl:get($ctm, 'f')) div ixsl:get($ctm, 'd')"/>-->
         <xsl:variable name="point" select="ldh:new('DOMPoint', [ ixsl:get(ixsl:event(), 'clientX'), ixsl:get(ixsl:event(), 'clientY') ])"/>
         <xsl:variable name="point" select="ixsl:call($point, 'matrixTransform', [ ixsl:call($ctm, 'inverse', []) ])"/>
         <xsl:variable name="offset-x" select="ixsl:get($point, 'x')"/>
@@ -120,11 +118,17 @@ exclude-result-prefixes="#all"
         <xsl:variable name="transform" select="ixsl:call($transforms, 'getItem', [ 0 ])"/>
         <xsl:variable name="offset-x" select="$offset-x - ixsl:get($transform, 'matrix.e')"/>
         <xsl:variable name="offset-y" select="$offset-y - ixsl:get($transform, 'matrix.f')"/>
-
+<xsl:message>$offset-x: <xsl:value-of select="$offset-x"/> $offset-y: <xsl:value-of select="$offset-y"/></xsl:message>
         <ixsl:set-property name="selected-node" select="." object="ixsl:get(ixsl:window(), 'LinkedDataHub.graph')"/>
         <ixsl:set-property name="offset-x" select="$offset-x" object="ixsl:get(ixsl:window(), 'LinkedDataHub.graph')"/>
         <ixsl:set-property name="offset-y" select="$offset-y" object="ixsl:get(ixsl:window(), 'LinkedDataHub.graph')"/>
         <ixsl:set-property name="transform" select="$transform" object="ixsl:get(ixsl:window(), 'LinkedDataHub.graph')"/>
+        
+        <xsl:for-each select="ancestor::svg:svg">
+            <xsl:result-document href="?." method="ixsl:append-content">
+                <circle xmlns="http://www.w3.org/2000/svg" fill="green" cx="{$offset-x}" cy="{$offset-y}" r="10"/>
+            </xsl:result-document>
+        </xsl:for-each>
     </xsl:template>
 
     <xsl:template match="svg:g[@class = 'subject']" mode="ixsl:onmousemove">
@@ -138,8 +142,6 @@ exclude-result-prefixes="#all"
                         <xsl:variable name="point" select="ixsl:call($point, 'matrixTransform', [ ixsl:call($ctm, 'inverse', []) ])"/>
                         <xsl:variable name="coord-x" select="ixsl:get($point, 'x')"/>
                         <xsl:variable name="coord-y" select="ixsl:get($point, 'y')"/>
-<!--                        <xsl:variable name="coord-x" select="(ixsl:get(ixsl:event(), 'clientX') - ixsl:get($ctm, 'e')) div ixsl:get($ctm, 'a')"/>
-                        <xsl:variable name="coord-y" select="(ixsl:get(ixsl:event(), 'clientY') - ixsl:get($ctm, 'f')) div ixsl:get($ctm, 'd')"/>-->
                         <xsl:variable name="offset-x" select="ixsl:get(ixsl:window(), 'LinkedDataHub.graph.offset-x')"/>
                         <xsl:variable name="offset-y" select="ixsl:get(ixsl:window(), 'LinkedDataHub.graph.offset-y')"/>
                         <xsl:variable name="transform" select="ixsl:get(ixsl:window(), 'LinkedDataHub.graph.transform')"/>
