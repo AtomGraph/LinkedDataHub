@@ -103,13 +103,17 @@ exclude-result-prefixes="#all"
     <!-- SVG drag implementation from https://www.petercollingridge.co.uk/tutorials/svg/interactive/dragging/ -->
 
     <xsl:template match="svg:svg" mode="ixsl:onclick">
+        <xsl:variable name="bound" select="ixsl:call(., 'getBoundingClientRect', [])"/>
+        <!-- TO-DO: the calculations might need to be adjusted for borders and padding: https://stackoverflow.com/a/47822104/1003113 -->
+        <xsl:variable name="html-x" select="ixsl:get(ixsl:event(), 'clientX') - ixsl:get($point, 'left')"/>
+        <xsl:variable name="html-y" select="ixsl:get(ixsl:event(), 'clientY') - ixsl:get($point, 'top')"/>
         <xsl:variable name="ctm" select="ixsl:call(., 'getScreenCTM', [])"/>
-        <xsl:variable name="point" select="ldh:new('DOMPoint', [ ixsl:get(ixsl:event(), 'clientX'), ixsl:get(ixsl:event(), 'clientY') ])"/>
+        <xsl:variable name="point" select="ldh:new('DOMPoint', [ $html-x, $html-y ])"/>
         <xsl:variable name="point" select="ixsl:call($point, 'matrixTransform', [ ixsl:call($ctm, 'inverse', []) ])"/>
         <xsl:variable name="offset-x" select="ixsl:get($point, 'x')"/>
         <xsl:variable name="offset-y" select="ixsl:get($point, 'y')"/>
         
-        <xsl:message>clientX: <xsl:value-of select="ixsl:get(ixsl:event(), 'clientX')"/> $clientY: <xsl:value-of select="ixsl:get(ixsl:event(), 'clientY')"/></xsl:message>
+        <xsl:message>$html-x: <xsl:value-of select="$html-x"/> $html-y: <xsl:value-of select="$html-y"/></xsl:message>
         <xsl:message>$offset-x: <xsl:value-of select="$offset-x"/> $offset-y: <xsl:value-of select="$offset-y"/></xsl:message>
     </xsl:template>
     
