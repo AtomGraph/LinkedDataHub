@@ -104,8 +104,14 @@ exclude-result-prefixes="#all"
 
     <xsl:template match="svg:g[@class = 'subject']" mode="ixsl:onmousedown">
         <xsl:variable name="ctm" select="ixsl:call(., 'getScreenCTM', [])"/>
-        <xsl:variable name="offset-x" select="(ixsl:get(ixsl:event(), 'clientX') - ixsl:get($ctm, 'e')) div ixsl:get($ctm, 'a')"/>
-        <xsl:variable name="offset-y" select="(ixsl:get(ixsl:event(), 'clientY') - ixsl:get($ctm, 'f')) div ixsl:get($ctm, 'd')"/>
+<!--        <xsl:variable name="offset-x" select="(ixsl:get(ixsl:event(), 'clientX') - ixsl:get($ctm, 'e')) div ixsl:get($ctm, 'a')"/>
+        <xsl:variable name="offset-y" select="(ixsl:get(ixsl:event(), 'clientY') - ixsl:get($ctm, 'f')) div ixsl:get($ctm, 'd')"/>-->
+        <xsl:variable name="point" select="ldh:new('DOMPoint')"/>
+        <ixsl:set-property name="x" select="ixsl:get(ixsl:event(), 'clientX')" object="$point"/>
+        <ixsl:set-property name="y" select="ixsl:get(ixsl:event(), 'clientY')" object="$point"/>
+        <xsl:variable name="point" select="ixsl:call($point, 'matrixTransform', [ ixsl:call($ctm, 'inverse', []) ])"/>
+        <xsl:variable name="offset-x" select="ixsl:get($point, 'x')"/>
+        <xsl:variable name="offset-y" select="ixsl:get($point, 'y')"/>
         <xsl:variable name="transforms" select="ixsl:get(., 'transform.baseVal')"/>
         <!-- SVGTransform.SVG_TRANSFORM_TRANSLATE = 2 -->
         <xsl:if test="ixsl:get($transforms, 'numberOfItems') = 0 or not(ixsl:get(ixsl:call($transforms, 'getItem', [ 0 ]), 'type') = 2)">
@@ -130,8 +136,14 @@ exclude-result-prefixes="#all"
                     <xsl:when test=". is ixsl:get(ixsl:window(), 'LinkedDataHub.graph.selected-node')">
                         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
                         <xsl:variable name="ctm" select="ixsl:call(., 'getScreenCTM', [])"/>
-                        <xsl:variable name="coord-x" select="(ixsl:get(ixsl:event(), 'clientX') - ixsl:get($ctm, 'e')) div ixsl:get($ctm, 'a')"/>
-                        <xsl:variable name="coord-y" select="(ixsl:get(ixsl:event(), 'clientY') - ixsl:get($ctm, 'f')) div ixsl:get($ctm, 'd')"/>
+                        <xsl:variable name="point" select="ldh:new('DOMPoint')"/>
+                        <ixsl:set-property name="x" select="ixsl:get(ixsl:event(), 'clientX')" object="$point"/>
+                        <ixsl:set-property name="y" select="ixsl:get(ixsl:event(), 'clientY')" object="$point"/>
+                        <xsl:variable name="point" select="ixsl:call($point, 'matrixTransform', [ ixsl:call($ctm, 'inverse', []) ])"/>
+                        <xsl:variable name="coord-x" select="ixsl:get($point, 'x')"/>
+                        <xsl:variable name="coord-y" select="ixsl:get($point, 'y')"/>
+<!--                        <xsl:variable name="coord-x" select="(ixsl:get(ixsl:event(), 'clientX') - ixsl:get($ctm, 'e')) div ixsl:get($ctm, 'a')"/>
+                        <xsl:variable name="coord-y" select="(ixsl:get(ixsl:event(), 'clientY') - ixsl:get($ctm, 'f')) div ixsl:get($ctm, 'd')"/>-->
                         <xsl:variable name="offset-x" select="ixsl:get(ixsl:window(), 'LinkedDataHub.graph.offset-x')"/>
                         <xsl:variable name="offset-y" select="ixsl:get(ixsl:window(), 'LinkedDataHub.graph.offset-y')"/>
                         <xsl:variable name="transform" select="ixsl:get(ixsl:window(), 'LinkedDataHub.graph.transform')"/>
