@@ -93,10 +93,67 @@ exclude-result-prefixes="#all"
             <ixsl:set-attribute name="stroke" select="'gray'"/>
             <ixsl:set-attribute name="marker-end" select="'url(#triangle)'"/>
         </xsl:for-each>
+        
+        <xsl:if test="ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.graph'), 'selected-node')">
+            <xsl:message>onmouseout remove property</xsl:message>
+            <ixsl:remove-property name="selected-node" object="ixsl:get(ixsl:window(), 'LinkedDataHub.graph')"/>
+        </xsl:if>
     </xsl:template>
     
-<!--    <xsl:template match="svg:g[@class = 'subject']" mode="ixsl:ondrag">
-        <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ ixsl:get(ixsl:event(), 'target.id') ])"/>
-    </xsl:template>-->
+    <!-- SVG drag implementation from https://www.petercollingridge.co.uk/tutorials/svg/interactive/dragging/ -->
+
+    <xsl:template match="svg:g[@class = 'subject']" mode="ixsl:onmousedown">
+        <xsl:variable name="ctm" select="ixsl:call(., 'getScreenCTM', [])"/>
+        <xsl:variable name="offset-x" select="(ixsl:get(ixsl:event(), 'clientX') - ixsl:get($ctm, 'e')) div ixsl:get($ctm, 'a')"/>
+        <xsl:variable name="offset-y" select="(ixsl:get(ixsl:event(), 'clientY') - ixsl:get($ctm, 'f')) div ixsl:get($ctm, 'd')"/>
+        <xsl:variable name="transforms" select="ixsl:get(., 'transform.baseVal')"/>
+        <!-- SVGTransform.SVG_TRANSFORM_TRANSLATE = 2 -->
+        <xsl:if test="ixsl:get($transforms, 'numberOfItems') = 0 or not(ixsl:get(ixsl:call($transforms, 'getItem', [ 0 ]), 'type') = 2)">
+            <xsl:variable name="translate" select="ixsl:call(., 'createSVGTransform', [])"/>
+            <xsl:sequence select="ixsl:call($translate, 'setTranslate', [ 0, 0 ])"/>
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'transform.baseVal'), 'insertItemBefore', [ $translate, 0 ])"/>
+        </xsl:if>
+        <xsl:variable name="transform" select="ixsl:call($transforms, 'getItem', [ 0 ])"/>
+        <xsl:variable name="offset-x" select="$offset-x - ixsl:get($transform, 'matrix.e')"/>
+        <xsl:variable name="offset-y" select="$offset-y - ixsl:get($transform, 'matrix.f')"/>
+
+        <ixsl:set-property name="selected-node" select="." object="ixsl:get(ixsl:window(), 'LinkedDataHub.graph')"/>
+        <ixsl:set-property name="offset-x" select="$offset-x" object="ixsl:get(ixsl:window(), 'LinkedDataHub.graph')"/>
+        <ixsl:set-property name="offset-y" select="$offset-y" object="ixsl:get(ixsl:window(), 'LinkedDataHub.graph')"/>
+        <ixsl:set-property name="transform" select="$transform" object="ixsl:get(ixsl:window(), 'LinkedDataHub.graph')"/>
+    </xsl:template>
+
+    <xsl:template match="svg:g[@class = 'subject']" mode="ixsl:onmousemove">
+        <xsl:choose>
+            <xsl:when test="ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.graph'), 'selected-node')">
+                <xsl:choose>
+                    <xsl:when test=". is ixsl:get(ixsl:window(), 'LinkedDataHub.graph.selected-node')">
+                        <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
+                        <xsl:variable name="ctm" select="ixsl:call(., 'getScreenCTM', [])"/>
+                        <xsl:variable name="coord-x" select="(ixsl:get(ixsl:event(), 'clientX') - ixsl:get($ctm, 'e')) div ixsl:get($ctm, 'a')"/>
+                        <xsl:variable name="coord-y" select="(ixsl:get(ixsl:event(), 'clientY') - ixsl:get($ctm, 'f')) div ixsl:get($ctm, 'd')"/>
+                        <xsl:variable name="offset-x" select="ixsl:get(ixsl:window(), 'LinkedDataHub.graph.offset-x')"/>
+                        <xsl:variable name="offset-y" select="ixsl:get(ixsl:window(), 'LinkedDataHub.graph.offset-y')"/>
+                        <xsl:variable name="transform" select="ixsl:get(ixsl:window(), 'LinkedDataHub.graph.transform')"/>
+                        <xsl:sequence select="ixsl:call($transform, 'setTranslate', [ $coord-x - $offset-x, $coord-y - $offset-y ])"/>
+                        <xsl:message>drag!</xsl:message>
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <xsl:message>LinkedDataHub.graph.selected-node is not the current node</xsl:message>
+                    </xsl:otherwise>
+                </xsl:choose>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:message>LinkedDataHub.graph.selected-node empty</xsl:message>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:template>
+
+    <xsl:template match="svg:g[@class = 'subject']" mode="ixsl:onmouseup">
+        <xsl:if test="ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.graph'), 'selected-node')">
+            <xsl:message>onmouseup remove property</xsl:message>
+            <ixsl:remove-property name="selected-node" object="ixsl:get(ixsl:window(), 'LinkedDataHub.graph')"/>
+        </xsl:if>
+    </xsl:template>
     
 </xsl:stylesheet>
