@@ -105,44 +105,37 @@ exclude-result-prefixes="#all"
     <xsl:template match="svg:svg" mode="ixsl:onclick">
         <xsl:variable name="bound" select="ixsl:call(., 'getBoundingClientRect', [])"/>
         <!-- TO-DO: the calculations might need to be adjusted for borders and padding: https://stackoverflow.com/a/47822104/1003113 -->
-        <xsl:variable name="html-x" select="ixsl:get(ixsl:event(), 'clientX') - ixsl:get($bound, 'left')"/>
-        <xsl:variable name="html-y" select="ixsl:get(ixsl:event(), 'clientY') - ixsl:get($bound, 'top')"/>
+        <xsl:variable name="dom-x" select="ixsl:get(ixsl:event(), 'clientX') - ixsl:get($bound, 'left')"/>
+        <xsl:variable name="dom-y" select="ixsl:get(ixsl:event(), 'clientY') - ixsl:get($bound, 'top')"/>
+        <xsl:variable name="point" select="ldh:new('DOMPoint', [ $dom-x, $dom-y ])"/>
         <xsl:variable name="ctm" select="ixsl:call(., 'getScreenCTM', [])"/>
-        <xsl:variable name="point" select="ldh:new('DOMPoint', [ $html-x, $html-y ])"/>
         <xsl:variable name="point" select="ixsl:call($point, 'matrixTransform', [ ixsl:call($ctm, 'inverse', []) ])"/>
-        <xsl:variable name="offset-x" select="ixsl:get($point, 'x')"/>
-        <xsl:variable name="offset-y" select="ixsl:get($point, 'y')"/>
+        <xsl:variable name="svg-x" select="ixsl:get($point, 'x')"/>
+        <xsl:variable name="svg-y" select="ixsl:get($point, 'y')"/>
         
-        <xsl:message>$html-x: <xsl:value-of select="$html-x"/> $html-y: <xsl:value-of select="$html-y"/></xsl:message>
-        <xsl:message>$offset-x: <xsl:value-of select="$offset-x"/> $offset-y: <xsl:value-of select="$offset-y"/></xsl:message>
+        <xsl:message>$dom-x: <xsl:value-of select="$dom-x"/> $dom-y: <xsl:value-of select="$dom-y"/></xsl:message>
+        <xsl:message>$svg-x: <xsl:value-of select="$svg-x"/> $svg-y: <xsl:value-of select="$svg-y"/></xsl:message>
         <xsl:message>viewBox.baseVal.x: <xsl:value-of select="ixsl:get(., 'viewBox.baseVal.x')"/> viewBox.baseVal.y: <xsl:value-of select="ixsl:get(., 'viewBox.baseVal.y')"/></xsl:message>
     </xsl:template>
     
     <xsl:template match="svg:g[@class = 'subject']" mode="ixsl:onmousedown">
+        <xsl:variable name="dom-x" select="ixsl:get(ixsl:event(), 'clientX') - ixsl:get($bound, 'left')"/>
+        <xsl:variable name="dom-y" select="ixsl:get(ixsl:event(), 'clientY') - ixsl:get($bound, 'top')"/>
+        <xsl:variable name="dom-point" select="ldh:new('DOMPoint', [ $dom-x, $dom-y ])"/>
         <xsl:variable name="ctm" select="ixsl:call(., 'getScreenCTM', [])"/>
-        <xsl:variable name="point" select="ldh:new('DOMPoint', [ ixsl:get(ixsl:event(), 'clientX'), ixsl:get(ixsl:event(), 'clientY') ])"/>
-        <xsl:variable name="point" select="ixsl:call($point, 'matrixTransform', [ ixsl:call($ctm, 'inverse', []) ])"/>
-        <xsl:variable name="offset-x" select="ixsl:get($point, 'x')"/>
-        <xsl:variable name="offset-y" select="ixsl:get($point, 'y')"/>
-        <xsl:variable name="transforms" select="ixsl:get(., 'transform.baseVal')"/>
-        <!-- SVGTransform.SVG_TRANSFORM_TRANSLATE = 2 -->
-        <xsl:if test="ixsl:get($transforms, 'numberOfItems') = 0 or not(ixsl:get(ixsl:call($transforms, 'getItem', [ 0 ]), 'type') = 2)">
-            <xsl:variable name="translate" select="ixsl:call(., 'createSVGTransform', [])"/>
-            <xsl:sequence select="ixsl:call($translate, 'setTranslate', [ 0, 0 ])"/>
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'transform.baseVal'), 'insertItemBefore', [ $translate, 0 ])"/>
-        </xsl:if>
-        <xsl:variable name="transform" select="ixsl:call($transforms, 'getItem', [ 0 ])"/>
-        <xsl:variable name="offset-x" select="$offset-x - ixsl:get($transform, 'matrix.e')"/>
-        <xsl:variable name="offset-y" select="$offset-y - ixsl:get($transform, 'matrix.f')"/>
-<xsl:message>$offset-x: <xsl:value-of select="$offset-x"/> $offset-y: <xsl:value-of select="$offset-y"/></xsl:message>
+        <xsl:variable name="svg-point" select="ixsl:call($dom-point, 'matrixTransform', [ ixsl:call($ctm, 'inverse', []) ])"/>
+        <xsl:variable name="svg-x" select="ixsl:get($svg-point, 'x')"/>
+        <xsl:variable name="svg-y" select="ixsl:get($svg-point, 'y')"/>
+
+<xsl:message>$svg-x: <xsl:value-of select="$svg-x"/> $svg-y: <xsl:value-of select="$svg-y"/></xsl:message>
         <ixsl:set-property name="selected-node" select="." object="ixsl:get(ixsl:window(), 'LinkedDataHub.graph')"/>
-        <ixsl:set-property name="offset-x" select="$offset-x" object="ixsl:get(ixsl:window(), 'LinkedDataHub.graph')"/>
-        <ixsl:set-property name="offset-y" select="$offset-y" object="ixsl:get(ixsl:window(), 'LinkedDataHub.graph')"/>
-        <ixsl:set-property name="transform" select="$transform" object="ixsl:get(ixsl:window(), 'LinkedDataHub.graph')"/>
+        <ixsl:set-property name="svg-x" select="$svg-x" object="ixsl:get(ixsl:window(), 'LinkedDataHub.graph')"/>
+        <ixsl:set-property name="svg-y" select="$svg-y" object="ixsl:get(ixsl:window(), 'LinkedDataHub.graph')"/>
+        <!--<ixsl:set-property name="transform" select="$transform" object="ixsl:get(ixsl:window(), 'LinkedDataHub.graph')"/>-->
 <!--        
         <xsl:for-each select="ancestor::svg:svg">
             <xsl:result-document href="?." method="ixsl:append-content">
-                <circle xmlns="http://www.w3.org/2000/svg" fill="green" cx="{$offset-x}" cy="{$offset-y}" r="10"/>
+                <circle xmlns="http://www.w3.org/2000/svg" fill="green" cx="{$svg-x}" cy="{$svg-y}" r="10"/>
             </xsl:result-document>
         </xsl:for-each>-->
     </xsl:template>
@@ -153,15 +146,17 @@ exclude-result-prefixes="#all"
                 <xsl:choose>
                     <xsl:when test=". is ixsl:get(ixsl:window(), 'LinkedDataHub.graph.selected-node')">
                         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
+
+                        <xsl:variable name="dom-x" select="ixsl:get(ixsl:event(), 'clientX') - ixsl:get($bound, 'left')"/>
+                        <xsl:variable name="dom-y" select="ixsl:get(ixsl:event(), 'clientY') - ixsl:get($bound, 'top')"/>
+                        <xsl:variable name="dom-point" select="ldh:new('DOMPoint', [ $dom-x, $dom-y ])"/>
                         <xsl:variable name="ctm" select="ixsl:call(., 'getScreenCTM', [])"/>
-                        <xsl:variable name="point" select="ldh:new('DOMPoint', [ ixsl:get(ixsl:event(), 'clientX'), ixsl:get(ixsl:event(), 'clientY') ])"/>
-                        <xsl:variable name="point" select="ixsl:call($point, 'matrixTransform', [ ixsl:call($ctm, 'inverse', []) ])"/>
-                        <xsl:variable name="coord-x" select="ixsl:get($point, 'x')"/>
-                        <xsl:variable name="coord-y" select="ixsl:get($point, 'y')"/>
-                        <xsl:variable name="offset-x" select="ixsl:get(ixsl:window(), 'LinkedDataHub.graph.offset-x')"/>
-                        <xsl:variable name="offset-y" select="ixsl:get(ixsl:window(), 'LinkedDataHub.graph.offset-y')"/>
-                        <xsl:variable name="transform" select="ixsl:get(ixsl:window(), 'LinkedDataHub.graph.transform')"/>
-                        <xsl:sequence select="ixsl:call($transform, 'setTranslate', [ $coord-x - $offset-x, $coord-y - $offset-y ])"/>
+                        <xsl:variable name="svg-point" select="ixsl:call($dom-point, 'matrixTransform', [ ixsl:call($ctm, 'inverse', []) ])"/>
+                        <xsl:variable name="svg-x" select="ixsl:get($svg-point, 'x')"/>
+                        <xsl:variable name="svg-y" select="ixsl:get($svg-point, 'y')"/>
+<!--                        <xsl:variable name="transform" select="ixsl:get(ixsl:window(), 'LinkedDataHub.graph.transform')"/>
+                        <xsl:sequence select="ixsl:call($transform, 'setTranslate', [ $coord-x - $svg-x, $coord-y - $svg-y ])"/>-->
+                        <xsl:sequence select="ixsl:call($transform, 'setTranslate', [ $svg-x, $svg-y ])"/>
                         <xsl:message>drag!</xsl:message>
                     </xsl:when>
                     <xsl:otherwise>
