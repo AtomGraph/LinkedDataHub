@@ -157,7 +157,7 @@ exclude-result-prefixes="#all"
                 <xsl:variable name="selected-node" select="ixsl:get(ixsl:window(), 'LinkedDataHub.graph.selected-node')"/>
                 <xsl:message>TARGET: <xsl:value-of select="ixsl:get(ixsl:event(), 'target')/local-name()"/></xsl:message>
                 <xsl:choose>
-                    <xsl:when test="ixsl:get(ixsl:event(), 'target') is $selected-node">
+                    <xsl:when test="ixsl:get(ixsl:event(), 'target')/ancestor-or-self::svg:g[@class = 'subject'] is $selected-node">
                         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
                         <xsl:variable name="dom-x" select="ixsl:get(ixsl:event(), 'clientX')"/>
                         <xsl:variable name="dom-y" select="ixsl:get(ixsl:event(), 'clientY')"/>
