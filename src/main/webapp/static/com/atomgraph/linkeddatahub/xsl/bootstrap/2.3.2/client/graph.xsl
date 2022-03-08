@@ -133,12 +133,12 @@ exclude-result-prefixes="#all"
         <ixsl:set-property name="svg-x" select="$svg-x" object="ixsl:get(ixsl:window(), 'LinkedDataHub.graph')"/>
         <ixsl:set-property name="svg-y" select="$svg-y" object="ixsl:get(ixsl:window(), 'LinkedDataHub.graph')"/>
         <!--<ixsl:set-property name="transform" select="$transform" object="ixsl:get(ixsl:window(), 'LinkedDataHub.graph')"/>-->
-<!--        
+        
         <xsl:for-each select="ancestor::svg:svg">
             <xsl:result-document href="?." method="ixsl:append-content">
                 <circle xmlns="http://www.w3.org/2000/svg" fill="green" cx="{$svg-x}" cy="{$svg-y}" r="10"/>
             </xsl:result-document>
-        </xsl:for-each>-->
+        </xsl:for-each>
     </xsl:template>
 
     <xsl:template match="svg:g[@class = 'subject']" mode="ixsl:onmousemove">
