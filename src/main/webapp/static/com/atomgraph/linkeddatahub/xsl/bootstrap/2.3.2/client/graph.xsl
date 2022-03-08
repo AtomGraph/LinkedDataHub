@@ -105,8 +105,8 @@ exclude-result-prefixes="#all"
     <xsl:template match="svg:svg" mode="ixsl:onclick">
         <xsl:variable name="bound" select="ixsl:call(., 'getBoundingClientRect', [])"/>
         <!-- TO-DO: the calculations might need to be adjusted for borders and padding: https://stackoverflow.com/a/47822104/1003113 -->
-        <xsl:variable name="dom-x" select="ixsl:get(ixsl:event(), 'clientX') - ixsl:get($bound, 'left')"/>
-        <xsl:variable name="dom-y" select="ixsl:get(ixsl:event(), 'clientY') - ixsl:get($bound, 'top')"/>
+        <xsl:variable name="dom-x" select="ixsl:get(ixsl:event(), 'clientX') - (ixsl:get($bound, 'left') + ixsl:get(ixsl:window(), 'scrollX'))"/>
+        <xsl:variable name="dom-y" select="ixsl:get(ixsl:event(), 'clientY') - (ixsl:get($bound, 'top') + ixsl:get(ixsl:window(), 'scrollY'))"/>
 <!--        <xsl:variable name="point" select="ldh:new('DOMPoint', [ $dom-x, $dom-y ])"/>-->
         <xsl:variable name="point" select="ixsl:call(., 'createSVGPoint', [])"/>
         <ixsl:set-property name="x" select="$dom-x" object="$point"/>
@@ -116,6 +116,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="svg-x" select="ixsl:get($point, 'x')"/>
         <xsl:variable name="svg-y" select="ixsl:get($point, 'y')"/>
         
+        <xsl:message>ixsl:get(ixsl:window(), 'scrollX'): <xsl:value-of select="ixsl:get(ixsl:window(), 'scrollX')"/> ixsl:get(ixsl:window(), 'scrollY'): <xsl:value-of select="ixsl:get(ixsl:window(), 'scrollY')"/></xsl:message>
         <xsl:message>ixsl:get($bound, 'left'): <xsl:value-of select="ixsl:get($bound, 'left')"/> ixsl:get($bound, 'top'): <xsl:value-of select="ixsl:get($bound, 'top')"/></xsl:message>
         <xsl:message>$dom-x: <xsl:value-of select="$dom-x"/> $dom-y: <xsl:value-of select="$dom-y"/></xsl:message>
         <xsl:message>$svg-x: <xsl:value-of select="$svg-x"/> $svg-y: <xsl:value-of select="$svg-y"/></xsl:message>
