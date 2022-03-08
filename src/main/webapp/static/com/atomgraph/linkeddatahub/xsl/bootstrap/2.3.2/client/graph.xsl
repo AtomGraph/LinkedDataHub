@@ -155,6 +155,7 @@ exclude-result-prefixes="#all"
         <xsl:choose>
             <xsl:when test="ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.graph'), 'selected-node')">
                 <xsl:variable name="selected-node" select="ixsl:get(ixsl:window(), 'LinkedDataHub.graph.selected-node')"/>
+                <xsl:message>TARGET: <xsl:value-of select="ixsl:get(ixsl:event(), 'target')/local-name()"/></xsl:message>
                 <xsl:choose>
                     <xsl:when test="ixsl:get(ixsl:event(), 'target') is $selected-node">
                         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
