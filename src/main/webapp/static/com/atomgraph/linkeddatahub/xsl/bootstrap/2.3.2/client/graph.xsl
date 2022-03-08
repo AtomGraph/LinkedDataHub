@@ -28,7 +28,7 @@ exclude-result-prefixes="#all"
     <xsl:key name="lines-by-start" match="svg:line" use="@data-id1"/>
     <xsl:key name="lines-by-end" match="svg:line" use="@data-id2"/>
 
-    <xsl:variable name="highlight-color" select="'yellow'" as="xs:string"/>
+    <xsl:variable name="highlight-color" select="'gold'" as="xs:string"/>
     <xsl:variable name="highlighted-marker-id" select="'triangle-hl'" as="xs:string"/>
 
     <!-- TEMPLATES -->
