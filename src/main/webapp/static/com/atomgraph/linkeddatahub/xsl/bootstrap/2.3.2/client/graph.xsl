@@ -109,6 +109,8 @@ exclude-result-prefixes="#all"
         <xsl:variable name="dom-y" select="ixsl:get(ixsl:event(), 'clientY') - ixsl:get($bound, 'top')"/>
 <!--        <xsl:variable name="point" select="ldh:new('DOMPoint', [ $dom-x, $dom-y ])"/>-->
         <xsl:variable name="point" select="ixsl:call(., 'createSVGPoint', [])"/>
+        <ixsl:set-property name="x" select="$dom-x" object="$point"/>
+        <ixsl:set-property name="y" select="$dom-y" object="$point"/>
         <xsl:variable name="ctm" select="ixsl:call(., 'getScreenCTM', [])"/>
         <xsl:variable name="point" select="ixsl:call($point, 'matrixTransform', [ ixsl:call($ctm, 'inverse', []) ])"/>
         <xsl:variable name="svg-x" select="ixsl:get($point, 'x')"/>
