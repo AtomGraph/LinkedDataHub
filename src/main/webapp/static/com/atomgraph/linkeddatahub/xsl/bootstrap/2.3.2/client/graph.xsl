@@ -188,7 +188,7 @@ exclude-result-prefixes="#all"
         </xsl:choose>
     </xsl:template>
 
-    <xsl:template match="svg:g[@class = 'subject']" mode="ixsl:onmouseup">
+    <xsl:template match="svg:svg" mode="ixsl:onmouseup">
         <xsl:if test="ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.graph'), 'selected-node')">
             <xsl:message>onmouseup remove property</xsl:message>
             <ixsl:remove-property name="selected-node" object="ixsl:get(ixsl:window(), 'LinkedDataHub.graph')"/>
