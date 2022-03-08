@@ -94,10 +94,10 @@ exclude-result-prefixes="#all"
             <ixsl:set-attribute name="marker-end" select="'url(#triangle)'"/>
         </xsl:for-each>
         
-        <xsl:if test="ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.graph'), 'selected-node')">
+<!--        <xsl:if test="ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.graph'), 'selected-node')">
             <xsl:message>onmouseout remove property</xsl:message>
             <ixsl:remove-property name="selected-node" object="ixsl:get(ixsl:window(), 'LinkedDataHub.graph')"/>
-        </xsl:if>
+        </xsl:if>-->
     </xsl:template>
     
     <!-- SVG drag implementation from https://www.petercollingridge.co.uk/tutorials/svg/interactive/dragging/ -->
