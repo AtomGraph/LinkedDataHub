@@ -239,6 +239,8 @@
                         <arg>-XDignore.symbol.file</arg>
                         <arg>--add-exports</arg>
                         <arg>java.base/sun.security.tools.keytool=ALL-UNNAMED</arg>
+                        <arg>--add-opens</arg>
+                        <arg>java.base/sun.security.tools.keytool=ALL-UNNAMED</arg>
                     </compilerArgs>
                     <fork>true</fork>
                 </configuration>
