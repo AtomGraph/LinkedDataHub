@@ -143,7 +143,7 @@ exclude-result-prefixes="#all"
 <xsl:message>onmousedown $svg-x: <xsl:value-of select="$svg-x"/> $svg-y: <xsl:value-of select="$svg-y"/></xsl:message>-->
 
         <xsl:if test="ixsl:get(ixsl:event(), 'target')/local-name() = 'circle'">
-            <ixsl:set-property name="selected-node" select="." object="ixsl:get(ixsl:window(), 'LinkedDataHub.graph')"/>
+            <ixsl:set-property name="selected-node" select="ixsl:get(ixsl:event(), 'target')" object="ixsl:get(ixsl:window(), 'LinkedDataHub.graph')"/>
         </xsl:if>
         
         
@@ -156,7 +156,7 @@ exclude-result-prefixes="#all"
             <xsl:when test="ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.graph'), 'selected-node')">
                 <xsl:variable name="selected-node" select="ixsl:get(ixsl:window(), 'LinkedDataHub.graph.selected-node')"/>
                 <xsl:choose>
-                    <xsl:when test=". is $selected-node">
+                    <xsl:when test="ixsl:get(ixsl:event(), 'target') is $selected-node">
                         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
                         <xsl:variable name="dom-x" select="ixsl:get(ixsl:event(), 'clientX')"/>
                         <xsl:variable name="dom-y" select="ixsl:get(ixsl:event(), 'clientY')"/>
