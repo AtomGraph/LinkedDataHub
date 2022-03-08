@@ -150,12 +150,12 @@ exclude-result-prefixes="#all"
                 <xsl:for-each select="key('lines-by-start', $selected-node/@id, ixsl:page())">
                     <ixsl:set-attribute name="x1" select="$svg-x"/>
                     <ixsl:set-attribute name="y1" select="$svg-y"/>
-                    <xsl:sequence select="ixsl:call(ancestor::svg:svg, 'appendChild', [ . ])[current-date() lt xs:date('2000-01-01')]"/>
+                    <!--<xsl:sequence select="ixsl:call(ancestor::svg:svg, 'appendChild', [ . ])[current-date() lt xs:date('2000-01-01')]"/>-->
                 </xsl:for-each>
                 <xsl:for-each select="key('lines-by-end', $selected-node/@id, ixsl:page())">
                     <ixsl:set-attribute name="x2" select="$svg-x"/>
                     <ixsl:set-attribute name="y2" select="$svg-y"/>
-                    <xsl:sequence select="ixsl:call(ancestor::svg:svg, 'appendChild', [ . ])[current-date() lt xs:date('2000-01-01')]"/>
+                    <!--<xsl:sequence select="ixsl:call(ancestor::svg:svg, 'appendChild', [ . ])[current-date() lt xs:date('2000-01-01')]"/>-->
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
