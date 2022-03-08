@@ -170,8 +170,8 @@ exclude-result-prefixes="#all"
 <!--                        <xsl:variable name="transform" select="ixsl:get(ixsl:window(), 'LinkedDataHub.graph.transform')"/>
                         <xsl:sequence select="ixsl:call($transform, 'setTranslate', [ $coord-x - $svg-x, $coord-y - $svg-y ])"/>-->
                         <xsl:variable name="transforms" select="ixsl:get($selected-node, 'transform.baseVal')"/>
-<!--                        <xsl:variable name="transform" select="ixsl:call($transforms, 'getItem', [ 0 ])"/>
-                        <xsl:variable name="translate-x" select="ixsl:get($transform, 'matrix.e')"/>
+                        <xsl:variable name="transform" select="ixsl:call($transforms, 'getItem', [ 0 ])"/>
+                        <!-- <xsl:variable name="translate-x" select="ixsl:get($transform, 'matrix.e')"/>
                         <xsl:variable name="translate-y" select="ixsl:get($transform, 'matrix.f')"/>
                         <xsl:message>onmousemove $translate-x: <xsl:value-of select="$translate-x"/> $translate-y: <xsl:value-of select="$translate-y"/></xsl:message>-->
                         <xsl:sequence select="ixsl:call($transform, 'setTranslate', [ $svg-x, $svg-y ])"/>
