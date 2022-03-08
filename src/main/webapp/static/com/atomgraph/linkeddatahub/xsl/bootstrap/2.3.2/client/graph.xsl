@@ -117,11 +117,9 @@ exclude-result-prefixes="#all"
         <xsl:message>$svg-x: <xsl:value-of select="$svg-x"/> $svg-y: <xsl:value-of select="$svg-y"/></xsl:message>
         <xsl:message>viewBox.baseVal.x: <xsl:value-of select="ixsl:get(., 'viewBox.baseVal.x')"/> viewBox.baseVal.y: <xsl:value-of select="ixsl:get(., 'viewBox.baseVal.y')"/></xsl:message>
         
-        <xsl:for-each select="ancestor::svg:svg">
-            <xsl:result-document href="?." method="ixsl:append-content">
-                <circle xmlns="http://www.w3.org/2000/svg" fill="green" cx="{$svg-x}" cy="{$svg-y}" r="5"/>
-            </xsl:result-document>
-        </xsl:for-each>        
+        <xsl:result-document href="?." method="ixsl:append-content">
+            <circle xmlns="http://www.w3.org/2000/svg" fill="green" cx="{$svg-x}" cy="{$svg-y}" r="5"/>
+        </xsl:result-document>
     </xsl:template>
     
     <xsl:template match="svg:g[@class = 'subject']" mode="ixsl:onmousedown">
