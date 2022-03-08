@@ -118,6 +118,7 @@ exclude-result-prefixes="#all"
         <xsl:message>ixsl:get(ixsl:event(), 'clientX'): <xsl:value-of select="ixsl:get(ixsl:event(), 'clientX')"/> ixsl:get(ixsl:event(), 'clientY'): <xsl:value-of select="ixsl:get(ixsl:event(), 'clientY')"/></xsl:message>
         <xsl:message>ixsl:get(ixsl:window(), 'scrollX'): <xsl:value-of select="ixsl:get(ixsl:window(), 'scrollX')"/> ixsl:get(ixsl:window(), 'scrollY'): <xsl:value-of select="ixsl:get(ixsl:window(), 'scrollY')"/></xsl:message>
         <xsl:message>ixsl:get($bound, 'left'): <xsl:value-of select="ixsl:get($bound, 'left')"/> ixsl:get($bound, 'top'): <xsl:value-of select="ixsl:get($bound, 'top')"/></xsl:message>
+        <xsl:message>$offset-x: <xsl:value-of select="$offset-x"/> $offset-y: <xsl:value-of select="$offset-y"/></xsl:message>
         <xsl:message>$dom-x: <xsl:value-of select="$dom-x"/> $dom-y: <xsl:value-of select="$dom-y"/></xsl:message>
         <xsl:message>$svg-x: <xsl:value-of select="$svg-x"/> $svg-y: <xsl:value-of select="$svg-y"/></xsl:message>
         <xsl:message>viewBox.baseVal.x: <xsl:value-of select="ixsl:get(., 'viewBox.baseVal.x')"/> viewBox.baseVal.y: <xsl:value-of select="ixsl:get(., 'viewBox.baseVal.y')"/></xsl:message>
