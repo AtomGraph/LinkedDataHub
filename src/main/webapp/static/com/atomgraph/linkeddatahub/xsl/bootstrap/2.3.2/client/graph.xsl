@@ -159,10 +159,10 @@ exclude-result-prefixes="#all"
                         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
                         <xsl:variable name="dom-x" select="ixsl:get(ixsl:event(), 'clientX')"/>
                         <xsl:variable name="dom-y" select="ixsl:get(ixsl:event(), 'clientY')"/>
-                        <xsl:variable name="point" select="ixsl:call(ancestor::svg:svg, 'createSVGPoint', [])"/>
+                        <xsl:variable name="point" select="ixsl:call(., 'createSVGPoint', [])"/>
                         <ixsl:set-property name="x" select="$dom-x" object="$point"/>
                         <ixsl:set-property name="y" select="$dom-y" object="$point"/>
-                        <xsl:variable name="ctm" select="ixsl:call(ancestor::svg:svg, 'getScreenCTM', [])"/>
+                        <xsl:variable name="ctm" select="ixsl:call(., 'getScreenCTM', [])"/>
                         <xsl:variable name="svg-point" select="ixsl:call($point, 'matrixTransform', [ ixsl:call($ctm, 'inverse', []) ])"/>
                         <xsl:variable name="svg-x" select="ixsl:get($svg-point, 'x')"/>
                         <xsl:variable name="svg-y" select="ixsl:get($svg-point, 'y')"/>
