@@ -128,7 +128,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="svg-x" select="ixsl:get($svg-point, 'x')"/>
         <xsl:variable name="svg-y" select="ixsl:get($svg-point, 'y')"/>
 
-<xsl:message>$svg-x: <xsl:value-of select="$svg-x"/> $svg-y: <xsl:value-of select="$svg-y"/></xsl:message>
+<xsl:message>onmousedown $svg-x: <xsl:value-of select="$svg-x"/> $svg-y: <xsl:value-of select="$svg-y"/></xsl:message>
         <ixsl:set-property name="selected-node" select="." object="ixsl:get(ixsl:window(), 'LinkedDataHub.graph')"/>
         <ixsl:set-property name="svg-x" select="$svg-x" object="ixsl:get(ixsl:window(), 'LinkedDataHub.graph')"/>
         <ixsl:set-property name="svg-y" select="$svg-y" object="ixsl:get(ixsl:window(), 'LinkedDataHub.graph')"/>
@@ -160,7 +160,7 @@ exclude-result-prefixes="#all"
                         <xsl:variable name="transforms" select="ixsl:get(., 'transform.baseVal')"/>
                         <xsl:variable name="transform" select="ixsl:call($transforms, 'getItem', [ 0 ])"/>
                         <xsl:sequence select="ixsl:call($transform, 'setTranslate', [ $svg-x, $svg-y ])"/>
-                        <xsl:message>$svg-x: <xsl:value-of select="$svg-x"/> $svg-y: <xsl:value-of select="$svg-y"/></xsl:message>
+                        <xsl:message>onmousemove $svg-x: <xsl:value-of select="$svg-x"/> $svg-y: <xsl:value-of select="$svg-y"/></xsl:message>
                     </xsl:when>
                     <xsl:otherwise>
                         <xsl:message>LinkedDataHub.graph.selected-node is not the current node</xsl:message>
