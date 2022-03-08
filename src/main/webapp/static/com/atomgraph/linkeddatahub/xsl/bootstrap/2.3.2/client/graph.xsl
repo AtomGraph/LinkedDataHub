@@ -116,6 +116,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="svg-x" select="ixsl:get($point, 'x')"/>
         <xsl:variable name="svg-y" select="ixsl:get($point, 'y')"/>
         
+        <xsl:message>ixsl:get($bound, 'left'): <xsl:value-of select="ixsl:get($bound, 'left')"/> ixsl:get($bound, 'top'): <xsl:value-of select="ixsl:get($bound, 'top')"/></xsl:message>
         <xsl:message>$dom-x: <xsl:value-of select="$dom-x"/> $dom-y: <xsl:value-of select="$dom-y"/></xsl:message>
         <xsl:message>$svg-x: <xsl:value-of select="$svg-x"/> $svg-y: <xsl:value-of select="$svg-y"/></xsl:message>
         <xsl:message>viewBox.baseVal.x: <xsl:value-of select="ixsl:get(., 'viewBox.baseVal.x')"/> viewBox.baseVal.y: <xsl:value-of select="ixsl:get(., 'viewBox.baseVal.y')"/></xsl:message>
