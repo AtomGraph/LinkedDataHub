@@ -107,7 +107,8 @@ exclude-result-prefixes="#all"
         <!-- TO-DO: the calculations might need to be adjusted for borders and padding: https://stackoverflow.com/a/47822104/1003113 -->
         <xsl:variable name="dom-x" select="ixsl:get(ixsl:event(), 'clientX') - ixsl:get($bound, 'left')"/>
         <xsl:variable name="dom-y" select="ixsl:get(ixsl:event(), 'clientY') - ixsl:get($bound, 'top')"/>
-        <xsl:variable name="point" select="ldh:new('DOMPoint', [ $dom-x, $dom-y ])"/>
+<!--        <xsl:variable name="point" select="ldh:new('DOMPoint', [ $dom-x, $dom-y ])"/>-->
+        <xsl:variable name="point" select="ixsl:call(., 'createSVGPoint', [])"/>
         <xsl:variable name="ctm" select="ixsl:call(., 'getScreenCTM', [])"/>
         <xsl:variable name="point" select="ixsl:call($point, 'matrixTransform', [ ixsl:call($ctm, 'inverse', []) ])"/>
         <xsl:variable name="svg-x" select="ixsl:get($point, 'x')"/>
