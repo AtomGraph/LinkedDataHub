@@ -142,8 +142,8 @@ exclude-result-prefixes="#all"
 
 <xsl:message>onmousedown $svg-x: <xsl:value-of select="$svg-x"/> $svg-y: <xsl:value-of select="$svg-y"/></xsl:message>-->
 
-        <xsl:if test="ixsl:get(ixsl:event(), 'target')/local-name() = 'circle'">
-            <ixsl:set-property name="selected-node" select="ixsl:get(ixsl:event(), 'target')" object="ixsl:get(ixsl:window(), 'LinkedDataHub.graph')"/>
+        <xsl:if test="ixsl:get(ixsl:event(), 'target')/ancestor-or-self::svg:g[@class = 'subject']">
+            <ixsl:set-property name="selected-node" select="ixsl:get(ixsl:event(), 'target')/ancestor-or-self::svg:g[@class = 'subject']" object="ixsl:get(ixsl:window(), 'LinkedDataHub.graph')"/>
         </xsl:if>
         
         
@@ -170,12 +170,13 @@ exclude-result-prefixes="#all"
 <!--                        <xsl:variable name="transform" select="ixsl:get(ixsl:window(), 'LinkedDataHub.graph.transform')"/>
                         <xsl:sequence select="ixsl:call($transform, 'setTranslate', [ $coord-x - $svg-x, $coord-y - $svg-y ])"/>-->
                         <xsl:variable name="transforms" select="ixsl:get($selected-node, 'transform.baseVal')"/>
+                        <!-- the element must have existing @transform, otherwise we'll get DOMException -->
                         <xsl:variable name="transform" select="ixsl:call($transforms, 'getItem', [ 0 ])"/>
-                        <xsl:variable name="translate-x" select="ixsl:get($transform, 'matrix.e')"/>
+<!--                        <xsl:variable name="translate-x" select="ixsl:get($transform, 'matrix.e')"/>
                         <xsl:variable name="translate-y" select="ixsl:get($transform, 'matrix.f')"/>
-                        <xsl:message>onmousemove $translate-x: <xsl:value-of select="$translate-x"/> $translate-y: <xsl:value-of select="$translate-y"/></xsl:message>
+                        <xsl:message>onmousemove $translate-x: <xsl:value-of select="$translate-x"/> $translate-y: <xsl:value-of select="$translate-y"/></xsl:message>-->
                         <xsl:message>onmousemove $svg-x: <xsl:value-of select="$svg-x"/> $svg-y: <xsl:value-of select="$svg-y"/></xsl:message>
-<!--                        <xsl:sequence select="ixsl:call($transform, 'setTranslate', [ $svg-x, $svg-y ])"/>-->
+                        <xsl:sequence select="ixsl:call($transform, 'setTranslate', [ $svg-x, $svg-y ])"/>
                     </xsl:when>
                     <xsl:otherwise>
                         <xsl:message>LinkedDataHub.graph.selected-node is not the current node</xsl:message>
