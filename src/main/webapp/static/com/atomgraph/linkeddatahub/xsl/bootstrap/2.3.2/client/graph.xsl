@@ -113,10 +113,6 @@ exclude-result-prefixes="#all"
         <xsl:message>$dom-x: <xsl:value-of select="$dom-x"/> $dom-y: <xsl:value-of select="$dom-y"/></xsl:message>
         <xsl:message>$svg-x: <xsl:value-of select="$svg-x"/> $svg-y: <xsl:value-of select="$svg-y"/></xsl:message>
         <xsl:message>viewBox.baseVal.x: <xsl:value-of select="ixsl:get(., 'viewBox.baseVal.x')"/> viewBox.baseVal.y: <xsl:value-of select="ixsl:get(., 'viewBox.baseVal.y')"/></xsl:message>
-        
-<!--        <xsl:result-document href="?." method="ixsl:append-content">
-            <circle xmlns="http://www.w3.org/2000/svg" fill="green" cx="{$svg-x}" cy="{$svg-y}" r="5"/>
-        </xsl:result-document>-->
     </xsl:template>
     
     <xsl:template match="svg:svg" mode="ixsl:onmousedown">
@@ -133,9 +129,10 @@ exclude-result-prefixes="#all"
                 <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
                 <xsl:variable name="dom-x" select="ixsl:get(ixsl:event(), 'clientX')"/>
                 <xsl:variable name="dom-y" select="ixsl:get(ixsl:event(), 'clientY')"/>
-                <xsl:variable name="point" select="ixsl:call(., 'createSVGPoint', [])"/>
+<!--                <xsl:variable name="point" select="ixsl:call(., 'createSVGPoint', [])"/>
                 <ixsl:set-property name="x" select="$dom-x" object="$point"/>
-                <ixsl:set-property name="y" select="$dom-y" object="$point"/>
+                <ixsl:set-property name="y" select="$dom-y" object="$point"/>-->
+                <xsl:variable name="point" select="ldh:new('DOMPoint', [ $dom-x, $dom-y ])"/>
                 <xsl:variable name="ctm" select="ixsl:call(., 'getScreenCTM', [])"/>
                 <xsl:variable name="svg-point" select="ixsl:call($point, 'matrixTransform', [ ixsl:call($ctm, 'inverse', []) ])"/>
                 <xsl:variable name="svg-x" select="ixsl:get($svg-point, 'x')"/>
@@ -150,12 +147,10 @@ exclude-result-prefixes="#all"
                 <xsl:for-each select="key('lines-by-start', $selected-node/@id, ixsl:page())">
                     <ixsl:set-attribute name="x1" select="$svg-x"/>
                     <ixsl:set-attribute name="y1" select="$svg-y"/>
-                    <!--<xsl:sequence select="ixsl:call(ancestor::svg:svg, 'appendChild', [ . ])[current-date() lt xs:date('2000-01-01')]"/>-->
                 </xsl:for-each>
                 <xsl:for-each select="key('lines-by-end', $selected-node/@id, ixsl:page())">
                     <ixsl:set-attribute name="x2" select="$svg-x"/>
                     <ixsl:set-attribute name="y2" select="$svg-y"/>
-                    <!--<xsl:sequence select="ixsl:call(ancestor::svg:svg, 'appendChild', [ . ])[current-date() lt xs:date('2000-01-01')]"/>-->
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
