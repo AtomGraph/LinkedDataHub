@@ -126,19 +126,21 @@ exclude-result-prefixes="#all"
             <ixsl:set-property name="offset-x" select="$offset-x" object="ixsl:get(ixsl:window(), 'LinkedDataHub.graph')"/>
             <ixsl:set-property name="offset-y" select="$offset-y" object="ixsl:get(ixsl:window(), 'LinkedDataHub.graph')"/>
 
-            <xsl:message>onmousemove getBoundingClientRect().x: <xsl:value-of select="ixsl:get($bound, 'x')"/> getBoundingClientRect().y: <xsl:value-of select="ixsl:get($bound, 'y')"/></xsl:message>
-            <xsl:message>onmousemove event.clientX: <xsl:value-of select="$dom-x"/> event.clientY: <xsl:value-of select="$dom-y"/></xsl:message>
-            <xsl:message>onmousemove $offset-x: <xsl:value-of select="$offset-x"/> $offset-y: <xsl:value-of select="$offset-y"/></xsl:message>
+            <xsl:message>onmousedown getBoundingClientRect().x: <xsl:value-of select="ixsl:get($bound, 'x')"/> getBoundingClientRect().y: <xsl:value-of select="ixsl:get($bound, 'y')"/></xsl:message>
+            <xsl:message>onmousedown event.clientX: <xsl:value-of select="$dom-x"/> event.clientY: <xsl:value-of select="$dom-y"/></xsl:message>
+            <xsl:message>onmousedown $offset-x: <xsl:value-of select="$offset-x"/> $offset-y: <xsl:value-of select="$offset-y"/></xsl:message>
         </xsl:if>
     </xsl:template>
 
     <xsl:template match="svg:svg" mode="ixsl:onmousemove">
         <xsl:choose>
             <xsl:when test="ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.graph'), 'selected-node')">
+                <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
                 <xsl:variable name="selected-node" select="ixsl:get(ixsl:window(), 'LinkedDataHub.graph.selected-node')" as="element()"/>
                 <xsl:variable name="offset-x" select="ixsl:get(ixsl:window(), 'LinkedDataHub.graph.offset-x')"/>
                 <xsl:variable name="offset-y" select="ixsl:get(ixsl:window(), 'LinkedDataHub.graph.offset-y')"/>
-                <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
+                <xsl:message>onmousemove $offset-x: <xsl:value-of select="$offset-x"/> $offset-y: <xsl:value-of select="$offset-y"/></xsl:message>
+
                 <!-- deduce the mouse offset within the element which was stored in onmousedown -->?
                 <xsl:variable name="dom-x" select="ixsl:get(ixsl:event(), 'clientX') - $offset-x"/>
                 <xsl:variable name="dom-y" select="ixsl:get(ixsl:event(), 'clientY') - $offset-y"/>
