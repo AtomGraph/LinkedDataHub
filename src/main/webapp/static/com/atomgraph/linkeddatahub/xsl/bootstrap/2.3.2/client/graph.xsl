@@ -123,6 +123,8 @@ exclude-result-prefixes="#all"
             <xsl:variable name="bound" select="ixsl:call($selected-node, 'getBoundingClientRect', [])"/>
             <xsl:variable name="offset-x" select="$dom-x - ixsl:get($bound, 'x')"/>
             <xsl:variable name="offset-y" select="$dom-y - ixsl:get($bound, 'y')"/>
+            <ixsl:set-property name="offset-x" select="$offset-x" object="ixsl:get(ixsl:window(), 'LinkedDataHub.graph')"/>
+            <ixsl:set-property name="offset-y" select="$offset-y" object="ixsl:get(ixsl:window(), 'LinkedDataHub.graph')"/>
 
             <xsl:message>onmousemove getBoundingClientRect().x: <xsl:value-of select="ixsl:get($bound, 'x')"/> getBoundingClientRect().y: <xsl:value-of select="ixsl:get($bound, 'y')"/></xsl:message>
             <xsl:message>onmousemove event.clientX: <xsl:value-of select="$dom-x"/> event.clientY: <xsl:value-of select="$dom-y"/></xsl:message>
@@ -134,9 +136,12 @@ exclude-result-prefixes="#all"
         <xsl:choose>
             <xsl:when test="ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.graph'), 'selected-node')">
                 <xsl:variable name="selected-node" select="ixsl:get(ixsl:window(), 'LinkedDataHub.graph.selected-node')" as="element()"/>
+                <xsl:variable name="offset-x" select="ixsl:get(ixsl:window(), 'LinkedDataHub.graph.offset-x')" as="element()"/>
+                <xsl:variable name="offset-y" select="ixsl:get(ixsl:window(), 'LinkedDataHub.graph.offset-y')" as="element()"/>
                 <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
-                <xsl:variable name="dom-x" select="ixsl:get(ixsl:event(), 'clientX')"/>
-                <xsl:variable name="dom-y" select="ixsl:get(ixsl:event(), 'clientY')"/>
+                <!-- deduce the mouse offset within the element which was stored in onmousedown -->?
+                <xsl:variable name="dom-x" select="ixsl:get(ixsl:event(), 'clientX') - $offset-x"/>
+                <xsl:variable name="dom-y" select="ixsl:get(ixsl:event(), 'clientY') - $offset-y"/>
                 <xsl:variable name="point" select="ldh:new('DOMPoint', [ $dom-x, $dom-y ])"/>
                 <xsl:variable name="ctm" select="ixsl:call(., 'getScreenCTM', [])"/>
                 <xsl:variable name="svg-point" select="ixsl:call($point, 'matrixTransform', [ ixsl:call($ctm, 'inverse', []) ])"/>
