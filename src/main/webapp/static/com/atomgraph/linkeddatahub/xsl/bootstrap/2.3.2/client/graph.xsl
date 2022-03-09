@@ -95,84 +95,54 @@ exclude-result-prefixes="#all"
         </xsl:for-each>
     </xsl:template>
     
-    <xsl:template match="svg:svg" mode="ixsl:onclick">
-        <xsl:variable name="bound" select="ixsl:call(., 'getBoundingClientRect', [])"/>
-        <xsl:variable name="dom-x" select="ixsl:get(ixsl:event(), 'clientX')"/>
-        <xsl:variable name="dom-y" select="ixsl:get(ixsl:event(), 'clientY')"/>
-        <xsl:variable name="point" select="ldh:new('DOMPoint', [ $dom-x, $dom-y ])"/>
-        <xsl:variable name="ctm" select="ixsl:call(., 'getScreenCTM', [])"/>
-        <xsl:variable name="svg-point" select="ixsl:call($point, 'matrixTransform', [ ixsl:call($ctm, 'inverse', []) ])"/>
-        <xsl:variable name="svg-x" select="ixsl:get($svg-point, 'x')"/>
-        <xsl:variable name="svg-y" select="ixsl:get($svg-point, 'y')"/>
-        
-<!--        <xsl:message>ixsl:get(ixsl:event(), 'clientX'): <xsl:value-of select="ixsl:get(ixsl:event(), 'clientX')"/> ixsl:get(ixsl:event(), 'clientY'): <xsl:value-of select="ixsl:get(ixsl:event(), 'clientY')"/></xsl:message>
-        <xsl:message>ixsl:get(ixsl:window(), 'scrollX'): <xsl:value-of select="ixsl:get(ixsl:window(), 'scrollX')"/> ixsl:get(ixsl:window(), 'scrollY'): <xsl:value-of select="ixsl:get(ixsl:window(), 'scrollY')"/></xsl:message>
-        <xsl:message>ixsl:get($bound, 'left'): <xsl:value-of select="ixsl:get($bound, 'left')"/> ixsl:get($bound, 'top'): <xsl:value-of select="ixsl:get($bound, 'top')"/></xsl:message>
-        <xsl:message>$dom-x: <xsl:value-of select="$dom-x"/> $dom-y: <xsl:value-of select="$dom-y"/></xsl:message>
-        <xsl:message>$svg-x: <xsl:value-of select="$svg-x"/> $svg-y: <xsl:value-of select="$svg-y"/></xsl:message>
-        <xsl:message>viewBox.baseVal.x: <xsl:value-of select="ixsl:get(., 'viewBox.baseVal.x')"/> viewBox.baseVal.y: <xsl:value-of select="ixsl:get(., 'viewBox.baseVal.y')"/></xsl:message>-->
-    </xsl:template>
-    
     <xsl:template match="svg:svg" mode="ixsl:onmousedown">
         <xsl:if test="ixsl:get(ixsl:event(), 'target')/ancestor-or-self::svg:g[@class = 'subject']">
             <xsl:variable name="selected-node" select="ixsl:get(ixsl:event(), 'target')/ancestor-or-self::svg:g[@class = 'subject']" as="element()"/>
-            <ixsl:set-property name="selected-node" select="$selected-node" object="ixsl:get(ixsl:window(), 'LinkedDataHub.graph')"/>
-
             <xsl:variable name="dom-x" select="ixsl:get(ixsl:event(), 'clientX')"/>
             <xsl:variable name="dom-y" select="ixsl:get(ixsl:event(), 'clientY')"/>
             <xsl:variable name="bound" select="ixsl:call($selected-node, 'getBoundingClientRect', [])"/>
             <xsl:variable name="offset-x" select="ixsl:get($bound, 'width') div 2 - ($dom-x - ixsl:get($bound, 'x'))"/>
             <xsl:variable name="offset-y" select="ixsl:get($bound, 'height') div 2 - ($dom-y - ixsl:get($bound, 'y'))"/>
+            
             <ixsl:set-property name="offset-x" select="$offset-x" object="ixsl:get(ixsl:window(), 'LinkedDataHub.graph')"/>
             <ixsl:set-property name="offset-y" select="$offset-y" object="ixsl:get(ixsl:window(), 'LinkedDataHub.graph')"/>
-
-            <xsl:message>onmousedown getBoundingClientRect().x: <xsl:value-of select="ixsl:get($bound, 'x')"/> getBoundingClientRect().y: <xsl:value-of select="ixsl:get($bound, 'y')"/></xsl:message>
-            <xsl:message>onmousedown event.clientX: <xsl:value-of select="$dom-x"/> event.clientY: <xsl:value-of select="$dom-y"/></xsl:message>
-            <xsl:message>onmousedown $offset-x: <xsl:value-of select="$offset-x"/> $offset-y: <xsl:value-of select="$offset-y"/></xsl:message>
+            <ixsl:set-property name="selected-node" select="$selected-node" object="ixsl:get(ixsl:window(), 'LinkedDataHub.graph')"/>
         </xsl:if>
     </xsl:template>
 
     <xsl:template match="svg:svg" mode="ixsl:onmousemove">
-        <xsl:choose>
-            <xsl:when test="ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.graph'), 'selected-node')">
-                <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
-                <xsl:variable name="selected-node" select="ixsl:get(ixsl:window(), 'LinkedDataHub.graph.selected-node')" as="element()"/>
-                <xsl:variable name="offset-x" select="ixsl:get(ixsl:window(), 'LinkedDataHub.graph.offset-x')"/>
-                <xsl:variable name="offset-y" select="ixsl:get(ixsl:window(), 'LinkedDataHub.graph.offset-y')"/>
-                <xsl:message>onmousemove $offset-x: <xsl:value-of select="$offset-x"/> $offset-y: <xsl:value-of select="$offset-y"/></xsl:message>
-                <!-- add the mouse offset within the element which was stored in onmousedown -->?
-                <xsl:variable name="dom-x" select="ixsl:get(ixsl:event(), 'clientX') + $offset-x"/>
-                <xsl:variable name="dom-y" select="ixsl:get(ixsl:event(), 'clientY') + $offset-y"/>
-                <xsl:variable name="point" select="ldh:new('DOMPoint', [ $dom-x, $dom-y ])"/>
-                <xsl:variable name="ctm" select="ixsl:call(., 'getScreenCTM', [])"/>
-                <xsl:variable name="svg-point" select="ixsl:call($point, 'matrixTransform', [ ixsl:call($ctm, 'inverse', []) ])"/>
-                <xsl:variable name="svg-x" select="ixsl:get($svg-point, 'x')"/>
-                <xsl:variable name="svg-y" select="ixsl:get($svg-point, 'y')"/>
-                <xsl:variable name="transforms" select="ixsl:get($selected-node, 'transform.baseVal')"/>
-                <!-- the element must have existing @transform, otherwise we'll get DOMException -->
-                <xsl:variable name="transform" select="ixsl:call($transforms, 'getItem', [ 0 ])"/>
-                <xsl:message>onmousemove $svg-x: <xsl:value-of select="$svg-x"/> $svg-y: <xsl:value-of select="$svg-y"/></xsl:message>
-                <xsl:sequence select="ixsl:call($transform, 'setTranslate', [ $svg-x, $svg-y ])"/>
-                
-                <!-- move line ends together with the target node -->
-                <xsl:for-each select="key('lines-by-start', $selected-node/@id, ixsl:page())">
-                    <ixsl:set-attribute name="x1" select="$svg-x"/>
-                    <ixsl:set-attribute name="y1" select="$svg-y"/>
-                </xsl:for-each>
-                <xsl:for-each select="key('lines-by-end', $selected-node/@id, ixsl:page())">
-                    <ixsl:set-attribute name="x2" select="$svg-x"/>
-                    <ixsl:set-attribute name="y2" select="$svg-y"/>
-                </xsl:for-each>
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:message>LinkedDataHub.graph.selected-node empty</xsl:message>
-            </xsl:otherwise>
-        </xsl:choose>
+        <xsl:if test="ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.graph'), 'selected-node')">
+            <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
+            <xsl:variable name="selected-node" select="ixsl:get(ixsl:window(), 'LinkedDataHub.graph.selected-node')" as="element()"/>
+            <xsl:variable name="offset-x" select="ixsl:get(ixsl:window(), 'LinkedDataHub.graph.offset-x')"/>
+            <xsl:variable name="offset-y" select="ixsl:get(ixsl:window(), 'LinkedDataHub.graph.offset-y')"/>
+            <!-- add the mouse offset within the element which was stored in onmousedown -->?
+            <xsl:variable name="dom-x" select="ixsl:get(ixsl:event(), 'clientX') + $offset-x"/>
+            <xsl:variable name="dom-y" select="ixsl:get(ixsl:event(), 'clientY') + $offset-y"/>
+            <xsl:variable name="point" select="ldh:new('DOMPoint', [ $dom-x, $dom-y ])"/>
+            <xsl:variable name="ctm" select="ixsl:call(., 'getScreenCTM', [])"/>
+            <xsl:variable name="svg-point" select="ixsl:call($point, 'matrixTransform', [ ixsl:call($ctm, 'inverse', []) ])"/>
+            <xsl:variable name="svg-x" select="ixsl:get($svg-point, 'x')"/>
+            <xsl:variable name="svg-y" select="ixsl:get($svg-point, 'y')"/>
+            <xsl:variable name="transforms" select="ixsl:get($selected-node, 'transform.baseVal')"/>
+            <!-- the element must have existing @transform, otherwise we'll get DOMException -->
+            <xsl:variable name="transform" select="ixsl:call($transforms, 'getItem', [ 0 ])"/>
+            <xsl:sequence select="ixsl:call($transform, 'setTranslate', [ $svg-x, $svg-y ])"/>
+
+            <!-- move line ends together with the target node -->
+            <xsl:for-each select="key('lines-by-start', $selected-node/@id, ixsl:page())">
+                <ixsl:set-attribute name="x1" select="$svg-x"/>
+                <ixsl:set-attribute name="y1" select="$svg-y"/>
+            </xsl:for-each>
+            <xsl:for-each select="key('lines-by-end', $selected-node/@id, ixsl:page())">
+                <ixsl:set-attribute name="x2" select="$svg-x"/>
+                <ixsl:set-attribute name="y2" select="$svg-y"/>
+            </xsl:for-each>
+        </xsl:if>
     </xsl:template>
 
     <xsl:template match="svg:svg" mode="ixsl:onmouseup">
         <xsl:if test="ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.graph'), 'selected-node')">
-            <xsl:message>onmouseup remove property</xsl:message>
             <ixsl:remove-property name="selected-node" object="ixsl:get(ixsl:window(), 'LinkedDataHub.graph')"/>
         </xsl:if>
     </xsl:template>
