@@ -100,22 +100,33 @@ IP_ADDR_MATCH=$(echo "${env['HOST']}" | grep -oE "\b([0-9]{1,3}\.){3}[0-9]{1,3}\
 
 if [ -n "$IP_ADDR_MATCH" ]; then
     if [ -n "$proxy_host" ]; then
-        ext="subjectAltName=IP:${env['HOST']},DNS:${proxy_host}" # IP address - special case for localhost
+        san="subjectAltName=IP:${env['HOST']},DNS:${proxy_host}" # IP address - special case for localhost
     else
-        ext="subjectAltName=IP:${env['HOST']}" # IP address
+        san="subjectAltName=IP:${env['HOST']}" # IP address
     fi
 else
     if [ -n "$proxy_host" ]; then
-        ext="subjectAltName=DNS:${env['HOST']},DNS:${proxy_host}" # hostname - special case for localhost
+        san="subjectAltName=DNS:${env['HOST']},DNS:${proxy_host}" # hostname - special case for localhost
     else
-        ext="subjectAltName=DNS:${env['HOST']}" # hostname
+        san="subjectAltName=DNS:${env['HOST']}" # hostname
     fi
 fi
 
+# openssl <= 1.1.1
 openssl req -x509 -newkey rsa:4096 -sha256 -days 3650 -nodes \
-  -keyout "$server_public_key" -out "$server_cert" \
+  -keyout "$server_public_key" \
+  -out "$server_cert" \
   -subj "/CN=${env['HOST']}/OU=LinkedDataHub/O=AtomGraph/L=Copenhagen/C=DK" \
-  -addext "$ext"
+  -extensions san \
+  -config <(echo '[req]'; echo 'distinguished_name=req';
+            echo '[san]'; echo "$san")
+
+# openssl >= 1.1.1
+#openssl req -x509 -newkey rsa:4096 -sha256 -days 3650 -nodes \
+#  -keyout "$server_public_key" \
+#  -out "$server_cert" \
+#  -subj "/CN=${env['HOST']}/OU=LinkedDataHub/O=AtomGraph/L=Copenhagen/C=DK" \
+#  -addext "$san"
 
 ### OWNER CERT ###
 
