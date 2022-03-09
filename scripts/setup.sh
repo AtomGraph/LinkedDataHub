@@ -1,17 +1,8 @@
 #!/bin/bash
 set -e
 
-verlte() {
-    [  "$1" = $(echo -e "$1\n$2" | sort -V | head -n1) ]
-}
-
-verlt() {
-    [ "$1" = "$2" ] && return 1 || verlte "$1" "$2"
-}
-
-# check required bash and openssl versions? Might do more harm than good
-#[ "${BASH_VERSINFO:-0}" -lt 4 ] && echo "Bash version too old. Bash 4 is required for associative array support." && exit 1
-#verlt "$(openssl version | cut -f 2 -d ' ')" '1.1.1' && echo "openssl version too old. openssl 1.1.1 required for -addext support." && exit 1
+# check required bash version
+[ "${BASH_VERSINFO:-0}" -lt 4 ] && echo "Bash version too old. Bash 4 is required for associative array support." && exit 1
 
 if [ "$#" -ne 5 ]; then
     echo "Usage:   $0" '$env_file $out_folder $owner_cert_pwd $secretary_cert_pwd $validity' >&2
