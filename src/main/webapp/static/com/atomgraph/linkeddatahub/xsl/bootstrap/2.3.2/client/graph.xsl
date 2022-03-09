@@ -121,10 +121,8 @@ exclude-result-prefixes="#all"
             <xsl:variable name="dom-x" select="ixsl:get(ixsl:event(), 'clientX')"/>
             <xsl:variable name="dom-y" select="ixsl:get(ixsl:event(), 'clientY')"/>
             <xsl:variable name="bound" select="ixsl:call($selected-node, 'getBoundingClientRect', [])"/>
-            <xsl:variable name="bound-middle-x" select="(ixsl:get($bound, 'x') + ixsl:get($bound, 'width')) div 2"/>
-            <xsl:variable name="bound-middle-y" select="(ixsl:get($bound, 'y') + ixsl:get($bound, 'height')) div 2"/>
-            <xsl:variable name="offset-x" select="$dom-x - $bound-middle-x"/>
-            <xsl:variable name="offset-y" select="$dom-y - $bound-middle-y"/>
+            <xsl:variable name="offset-x" select="$dom-x - ixsl:get($bound, 'x')"/>
+            <xsl:variable name="offset-y" select="$dom-y - ixsl:get($bound, 'y')"/>
 
             <xsl:message>onmousemove getBoundingClientRect().x: <xsl:value-of select="ixsl:get($bound, 'x')"/> getBoundingClientRect().y: <xsl:value-of select="ixsl:get($bound, 'y')"/></xsl:message>
             <xsl:message>onmousemove event.clientX: <xsl:value-of select="$dom-x"/> event.clientY: <xsl:value-of select="$dom-y"/></xsl:message>
