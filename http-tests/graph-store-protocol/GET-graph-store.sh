@@ -26,4 +26,4 @@ curl -k -w "%{http_code}\n" -o /dev/null -f -s \
   -H 'Accept: text/turtle' \
   --data-urlencode 'default=true' \
   "${END_USER_BASE_URL}service" \
-| grep -q "${STATUS_OK}"
+| grep -q "$STATUS_OK"

@@ -25,7 +25,7 @@ proxied_triple_count=$(curl -k -f -s \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -H 'Accept: application/n-triples' \
   --data-urlencode "uri=http://www.w3.org/1999/02/22-rdf-syntax-ns" \
-  "${END_USER_BASE_URL}" \
+  "$END_USER_BASE_URL" \
 | rapper -q --input ntriples --output ntriples /dev/stdin - \
 | wc -l)
 

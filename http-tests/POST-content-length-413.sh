@@ -29,5 +29,5 @@ curl -w "%{http_code}\n" -o /dev/null -k -s \
   -H "Content-Type: ${file_content_type}" \
   -H "Accept: text/turtle" \
   --data-binary "@${file}" \
-  "${END_USER_BASE_URL}" \
-| grep -q "${STATUS_REQUEST_ENTITY_TOO_LARGE}"
+  "$END_USER_BASE_URL" \
+| grep -q "$STATUS_REQUEST_ENTITY_TOO_LARGE"

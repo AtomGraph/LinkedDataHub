@@ -72,7 +72,7 @@ response=$(echo -e "$turtle" \
 -f "$OWNER_CERT_FILE" \
 -p "$OWNER_CERT_PWD" \
 --content-type "text/turtle" \
-"${END_USER_BASE_URL}" \
+"$END_USER_BASE_URL" \
 2>&1) # redirect output from stderr to stdout
 
 echo "$response" \

@@ -14,4 +14,4 @@ curl -k -w "%{http_code}\n" -o /dev/null -f -s \
   -H 'Accept: text/html' \
   --data-urlencode "access-to=${END_USER_BASE_URL}" \
   "${ADMIN_BASE_URL}request%20access" \
-| grep -q "${STATUS_OK}"
+| grep -q "$STATUS_OK"

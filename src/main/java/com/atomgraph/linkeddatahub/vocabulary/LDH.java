@@ -52,8 +52,6 @@ public class LDH
 
     public static final OntClass GenericService = m_model.createClass(NS + "GenericService");
     
-    public static final OntClass DydraService = m_model.createClass(NS + "DydraService");
-    
     public static final OntClass Import = m_model.createClass(NS + "Import");
 
     public static final OntClass CSVImport = m_model.createClass(NS + "CSVImport");

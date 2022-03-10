@@ -71,7 +71,7 @@ target="$1"
 # GET RDF document
 
 if [ -n "$head" ] ; then
-    curl -v -k -E "${cert_pem_file}":"${cert_password}" -H "Accept: ${accept}" "${target}" --head
+    curl -v -k -E "$cert_pem_file":"$cert_password" -H "Accept: ${accept}" "$target" --head
 else
-    curl -v -k -E "${cert_pem_file}":"${cert_password}" -H "Accept: ${accept}" "${target}"
+    curl -v -k -E "$cert_pem_file":"$cert_password" -H "Accept: ${accept}" "$target"
 fi

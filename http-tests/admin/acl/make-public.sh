@@ -10,8 +10,8 @@ purge_backend_cache "$ADMIN_VARNISH_SERVICE"
 
 curl -k -w "%{http_code}\n" -o /dev/null -v \
   -H "Accept: application/n-triples" \
-  "${END_USER_BASE_URL}" \
-| grep -q "${STATUS_FORBIDDEN}"
+  "$END_USER_BASE_URL" \
+| grep -q "$STATUS_FORBIDDEN"
 
 # create public authorization
 
@@ -32,5 +32,5 @@ popd > /dev/null
 
 curl -k -w "%{http_code}\n" -o /dev/null -f -v \
   -H "Accept: application/n-triples" \
-  "${END_USER_BASE_URL}" \
-| grep -q "${STATUS_OK}"
+  "$END_USER_BASE_URL" \
+| grep -q "$STATUS_OK"
