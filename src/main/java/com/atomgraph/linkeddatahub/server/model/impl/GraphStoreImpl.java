@@ -20,6 +20,7 @@ import com.atomgraph.core.MediaTypes;
 import com.atomgraph.core.riot.lang.RDFPostReader;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.io.ValidatingModelProvider;
+import com.atomgraph.linkeddatahub.vocabulary.Default;
 import com.atomgraph.linkeddatahub.vocabulary.NFO;
 import com.atomgraph.processor.vocabulary.DH;
 import com.atomgraph.processor.vocabulary.SIOC;
@@ -177,15 +178,16 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
     {
         if (graphUri == null) throw new InternalServerErrorException("Named graph not specified");
 
+        if (!model.createResource(graphUri.toString()).hasProperty(RDF.type, Default.Root) &&
+            !model.createResource(graphUri.toString()).hasProperty(RDF.type, DH.Container) &&
+            !model.createResource(graphUri.toString()).hasProperty(RDF.type, DH.Item))
+            throw new BadRequestException("Named graph <" + graphUri + "> must contain a document resource (instance of dh:Container or dh:Item)");
+
         model.createResource(graphUri.toString()).
             removeAll(DCTerms.modified).
             addLiteral(DCTerms.modified, ResourceFactory.createTypedLiteral(GregorianCalendar.getInstance()));
         
         skolemize(model, graphUri);
-        
-        if (!model.createResource(graphUri.toString()).hasProperty(RDF.type, DH.Container) &&
-            !model.createResource(graphUri.toString()).hasProperty(RDF.type, DH.Item))
-            throw new BadRequestException("Named graph <" + graphUri + "> must contain a document resource (instance of dh:Container or dh:Item)");
         
         return super.put(model, defaultGraph, graphUri);
     }
