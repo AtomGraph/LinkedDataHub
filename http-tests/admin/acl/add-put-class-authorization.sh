@@ -44,7 +44,7 @@ root_ntriples=$(./get-document.sh \
 popd > /dev/null
 
 # access is allowed after authorization is created
-# request body with at least dh:Container or dh:Item instance is required
+# request body with document instance is required
 
 echo "$root_ntriples" \
 | curl -k -w "%{http_code}\n" -o /dev/null -f -s \
