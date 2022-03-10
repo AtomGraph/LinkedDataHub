@@ -83,6 +83,7 @@ import org.apache.jena.update.UpdateRequest;
 import org.apache.jena.util.ResourceUtils;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.vocabulary.DCTerms;
+import org.apache.jena.vocabulary.RDF;
 import org.glassfish.jersey.media.multipart.BodyPart;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
@@ -181,6 +182,10 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
             addLiteral(DCTerms.modified, ResourceFactory.createTypedLiteral(GregorianCalendar.getInstance()));
         
         skolemize(model, graphUri);
+        
+        if (!model.createResource(graphUri.toString()).hasProperty(RDF.type, DH.Container) &&
+            !model.createResource(graphUri.toString()).hasProperty(RDF.type, DH.Item))
+            throw new BadRequestException("Named graph <" + graphUri + "> must contain a document resource (instance of dh:Container or dh:Item)");
         
         return super.put(model, defaultGraph, graphUri);
     }
