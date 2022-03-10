@@ -99,7 +99,7 @@ exclude-result-prefixes="#all"
 <!--        <xsl:for-each select="id(key('lines-by-start', @id, ixsl:page())/@data-id2, ixsl:page()) | id(key('lines-by-end', @id, ixsl:page())/@data-id1, ixsl:page())">
             <ixsl:set-attribute name="stroke" select="'gray'" object="svg:circle"/>
         </xsl:for-each>-->
-        <xsl:for-each select="id(ixsl:page()//svg:line[@data-id1 = current()/@id], ixsl:page()) | id(ixsl:page()//svg:line[@data-id2 = current()/@id]/@data-id1, ixsl:page())">
+        <xsl:for-each select="id(ixsl:page()//svg:line[@data-id1 = current()/@id]/@data-id2, ixsl:page()) | id(ixsl:page()//svg:line[@data-id2 = current()/@id]/@data-id1, ixsl:page())">
             <ixsl:set-attribute name="stroke" select="'gray'" object="svg:circle"/>
         </xsl:for-each>
 
