@@ -31,15 +31,22 @@ pushd . > /dev/null && cd "$SCRIPT_ROOT/admin/acl"
 
 popd > /dev/null
 
-# access is allowed after authorization is created
-# request body with at least dh:Container or dh:Item instance is required
+# get the graph content
 
-$(./get-document.sh \
+pushd . && cd "$SCRIPT_ROOT"
+
+root_ntriples=$(./get-document.sh \
   -f "$OWNER_CERT_FILE" \
   -p "$OWNER_CERT_PWD" \
   --accept 'application/n-triples' \
-  "$END_USER_BASE_URL") \
-cat - \
+  "$END_USER_BASE_URL")
+
+popd > /dev/null
+
+# access is allowed after authorization is created
+# request body with at least dh:Container or dh:Item instance is required
+
+echo "$root_ntriples" \
 | curl -k -w "%{http_code}\n" -o /dev/null -f -s \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -H "Content-Type: application/n-triples" \
