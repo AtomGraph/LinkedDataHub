@@ -14,27 +14,27 @@ ontology_doc="${ADMIN_BASE_URL}model/ontologies/namespace/"
 constraint="${ontology_doc}#NewConstraint"
 
 ./create-property-constraint.sh \
--f "$OWNER_CERT_FILE" \
--p "$OWNER_CERT_PWD" \
--b "$ADMIN_BASE_URL" \
---uri "$constraint" \
---label "New constraint" \
---slug new-constraint \
---property "http://rdfs.org/sioc/ns#content" \
-"$ontology_doc"
+  -f "$OWNER_CERT_FILE" \
+  -p "$OWNER_CERT_PWD" \
+  -b "$ADMIN_BASE_URL" \
+  --uri "$constraint" \
+  --label "New constraint" \
+  --slug new-constraint \
+  --property "http://rdfs.org/sioc/ns#content" \
+  "$ontology_doc"
 
 # create a class with the constraint
 
 ./create-class.sh \
--f "$OWNER_CERT_FILE" \
--p "$OWNER_CERT_PWD" \
--b "$ADMIN_BASE_URL" \
---uri "${ontology_doc}#ConstrainedClass" \
---label "Constrained class" \
---slug constrained-class \
---constraint "$constraint" \
---sub-class-of "https://www.w3.org/ns/ldt/document-hierarchy#Item" \
-"$ontology_doc"
+  -f "$OWNER_CERT_FILE" \
+  -p "$OWNER_CERT_PWD" \
+  -b "$ADMIN_BASE_URL" \
+  --uri "${ontology_doc}#ConstrainedClass" \
+  --label "Constrained class" \
+  --slug constrained-class \
+  --constraint "$constraint" \
+  --sub-class-of "https://www.w3.org/ns/ldt/document-hierarchy#Item" \
+  "$ontology_doc"
 
 popd > /dev/null
 
@@ -50,9 +50,9 @@ curl -k -f -s -N \
 pushd . > /dev/null && cd "$SCRIPT_ROOT/admin"
 
 ./clear-ontology.sh \
--f "$OWNER_CERT_FILE" \
--p "$OWNER_CERT_PWD" \
-"${ontology_doc}"
+  -f "$OWNER_CERT_FILE" \
+  -p "$OWNER_CERT_PWD" \
+  "${ontology_doc}"
 
 popd > /dev/null
 
@@ -69,10 +69,10 @@ turtle+="_:item sioc:has_container <${END_USER_BASE_URL}> .\n"
 response=$(echo -e "$turtle" \
 | turtle --base="$END_USER_BASE_URL" \
 | ./create-document.sh \
--f "$OWNER_CERT_FILE" \
--p "$OWNER_CERT_PWD" \
---content-type "text/turtle" \
-"$END_USER_BASE_URL" \
+  -f "$OWNER_CERT_FILE" \
+  -p "$OWNER_CERT_PWD" \
+  --content-type "text/turtle" \
+  "$END_USER_BASE_URL" \
 2>&1) # redirect output from stderr to stdout
 
 echo "$response" \
