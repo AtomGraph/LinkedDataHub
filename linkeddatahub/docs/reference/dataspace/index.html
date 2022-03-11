@@ -119,7 +119,10 @@
                         <a href="#end-user-apps">end-user</a> and <a href="#admin-apps">administration</a>.</p>
                      
                      <p>The end-user app will be available on the given base URI; the admin app will be available
-                        at that base URI with <code>admin/</code> appended. The agent that installed the admin dataset will be the application owner.</p>
+                        at that base URI with <code>admin/</code> appended. The <a href="../administration/acl/#agents">agent</a> that installed the admin dataset will be the application <dfn>owner</dfn>.</p>
+                     
+                     <p>The <dfn>secretary</dfn> is a special agent which represents the software application itself. It is distinct
+                        from the owner agent and is used to delegate the owner's access.</p>
                      </div>
                   
                   <div>
@@ -132,14 +135,10 @@
                         
                         <dt>Base URI</dt>
                         
-                        <dd>Base URI is a URI by which an application can be identified. An application might
-                           have multiple base URIs; all request URIs
-                           processed by an application are relative to one of its base URIs. For example, the
-                           base URI of this Documentation dataspace is
-                           <code>https://linkeddatahub.com/linkeddatahub/docs/</code>.</dd>
+                        <dd>Base URI is a URI by which an application can be identified. All request URIs processed
+                           by an application are relative to one of its base URIs.</dd>
                         
-                        <dd>URIs in the <a href="../dataset-structure/">application dataset</a> are usually (but not necessarily) relative to one or more of
-                           the base URIs.</dd>
+                        <dd>URIs in the <a href="../dataset-structure/">application dataset</a> are usually (but not necessarily) relative to its base URIs.</dd>
                         
                         <dt>Service</dt>
                         

@@ -459,10 +459,10 @@
 
     &lt;div&gt;
         &lt;xsl:if test="$id"&gt;
-            &lt;xsl:attribute name="id"&gt;&lt;xsl:value-of select="$id"/&gt;&lt;/xsl:attribute&gt;
+            &lt;xsl:attribute name="id" select="$id"/&gt;
         &lt;/xsl:if&gt;
         &lt;xsl:if test="$class"&gt;
-            &lt;xsl:attribute name="class"&gt;&lt;xsl:value-of select="$class"/&gt;&lt;/xsl:attribute&gt;
+            &lt;xsl:attribute name="class" select="$class"/&gt;
         &lt;/xsl:if&gt;
 
         &lt;xsl:apply-templates select="." mode="bs2:Header"/&gt;

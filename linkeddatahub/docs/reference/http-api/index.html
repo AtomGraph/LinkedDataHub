@@ -113,7 +113,8 @@
                   
                   <p>LinkedDataHub implements a uniform, generic RESTful Linked Data API as defined by
                      the
-                     <a href="https://www.w3.org/TR/sparql11-http-rdf-update/" target="_blank">SPARQL 1.1 Graph Store Protocol</a>.</p>
+                     <a href="https://www.w3.org/TR/sparql11-http-rdf-update/" target="_blank">SPARQL 1.1 Graph Store Protocol</a>. It adds a few <a href="#graph-names">conventions</a> and <a href="#constraints">constraints</a>
+                     on top of it however.</p>
                   
                   <div>
                      
@@ -223,11 +224,11 @@
                            
                            <tr>
                               
-                              <th rowspan="4"><code id="ld-put">PUT</code></th>
+                              <th rowspan="5"><code id="ld-put">PUT</code></th>
                               
-                              <td rowspan="4">Creates or replaces resource descriptions</td>
+                              <td rowspan="5">Creates or replaces resource descriptions</td>
                               
-                              <td rowspan="4"><code>200 OK</code> <code>201 Created</code></td>
+                              <td rowspan="5"><code>200 OK</code> <code>201 Created</code></td>
                               
                               <td><code>400 Bad Request</code></td>
                               
@@ -239,6 +240,13 @@
                               <td><code>400 Bad Request</code></td>
                               
                               <td><a href="../administration/model/#constraints">Constraint</a> violation</td>
+                              </tr>
+                           
+                           <tr>
+                              
+                              <td><code>400 Bad Request</code></td>
+                              
+                              <td>Request body does not contain a document instance</td>
                               </tr>
                            
                            <tr>
@@ -257,11 +265,18 @@
                            
                            <tr>
                               
-                              <th><code id="ld-delete">DELETE</code></th>
+                              <th rowspan="2"><code id="ld-delete">DELETE</code></th>
                               
-                              <td>Removed the description of the requested resource</td>
+                              <td rowspan="2">Removes the description of the requested resource</td>
                               
-                              <td><code>204 No Content</code></td>
+                              <td rowspan="2"><code>204 No Content</code></td>
+                              
+                              <td><code>400 Bad Request</code></td>
+                              
+                              <td>Deleting the root document is not allowed</td>
+                              </tr>
+                           
+                           <tr>
                               
                               <td><code>404 Not Found</code></td>
                               
@@ -293,6 +308,28 @@
 ] .
 
 # _:file and other resources here</code></pre>
+                     </div>
+                  
+                  <div>
+                     
+                     <h2 id="constraints">Built-in constraints</h2>
+                     
+                     <p>LinkedDataHub has a few built-in constraints that are not found in the standard Graph
+                        Store Protocol:</p>
+                     
+                     <ul>
+                        
+                        <li>It's not possible delete the root resource</li>
+                        
+                        <li>It's not possible to modify or delete the documents of the owner agent and the secretary
+                           agent</li>
+                        
+                        <li>A document (which is also a named graph in the graph store) must always contain an
+                           RDF resource with its URI and type <code>def:Root</code>, <code>dh:Container</code>, or <code>dh:Item</code>
+                           (see <a href="../administration/model/#ontologies">ontologies</a></li>
+                        </ul>
+                     
+                     <p>The built in constraints are similar to, but separate from the <a href="../administration/model/#constraints">ontology constraints</a>.</p>
                      </div>
                   
                   <div>
