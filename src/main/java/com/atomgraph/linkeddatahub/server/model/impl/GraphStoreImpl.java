@@ -110,7 +110,7 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
     private final com.atomgraph.linkeddatahub.Application system;
     private final UriBuilder uploadsUriBuilder;
     private final MessageDigest messageDigest;
-    private final URI ownerDocURI;
+    private final URI ownerDocURI, secretaryDocURI;
 
     @Inject
     public GraphStoreImpl(@Context Request request, @Context UriInfo uriInfo, MediaTypes mediaTypes,
@@ -132,6 +132,7 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
         try
         {
             this.ownerDocURI = new URI(ownerURI.getScheme(), ownerURI.getSchemeSpecificPart(), null).normalize();
+            this.secretaryDocURI = new URI(system.getSecretaryWebIDURI().getScheme(), system.getSecretaryWebIDURI().getSchemeSpecificPart(), null).normalize();
         }
         catch (URISyntaxException ex)
         {
@@ -341,6 +342,7 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
     {
         if (getApplication().getBaseURI().equals(graphUri)) throw new BadRequestException("Cannot delete Root document at application's base URI");
         if (getOwnerDocURI().equals(graphUri)) throw new BadRequestException("Cannot delete application owner's document");
+        if (getSecretaryDocURI().equals(graphUri)) throw new BadRequestException("Cannot delete application secretary's document");
         
         return super.delete(false, graphUri);
     }
@@ -716,6 +718,11 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
     public URI getOwnerDocURI()
     {
         return ownerDocURI;
+    }
+    
+    public URI getSecretaryDocURI()
+    {
+        return secretaryDocURI;
     }
     
 }
