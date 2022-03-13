@@ -110,6 +110,7 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
     private final com.atomgraph.linkeddatahub.Application system;
     private final UriBuilder uploadsUriBuilder;
     private final MessageDigest messageDigest;
+    private final URI ownerDocURI;
 
     @Inject
     public GraphStoreImpl(@Context Request request, @Context UriInfo uriInfo, MediaTypes mediaTypes,
@@ -127,6 +128,15 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
         this.system = system;
         this.messageDigest = system.getMessageDigest();
         uploadsUriBuilder = uriInfo.getBaseUriBuilder().path(com.atomgraph.linkeddatahub.Application.UPLOADS_PATH);
+        URI ownerURI = URI.create(application.getMaker().getURI());
+        try
+        {
+            this.ownerDocURI = new URI(ownerURI.getScheme(), ownerURI.getSchemeSpecificPart(), null).normalize();
+        }
+        catch (URISyntaxException ex)
+        {
+            throw new InternalServerErrorException(ex);
+        }
     }
     
     @POST
@@ -330,6 +340,7 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
     public Response delete(@QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
     {
         if (getApplication().getBaseURI().equals(graphUri)) throw new BadRequestException("Cannot delete Root document at application's base URI");
+        if (getOwnerDocURI().equals(graphUri)) throw new BadRequestException("Cannot delete application owner's document");
         
         return super.delete(false, graphUri);
     }
@@ -700,6 +711,11 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
     public com.atomgraph.linkeddatahub.Application getSystem()
     {
         return system;
+    }
+    
+    public URI getOwnerDocURI()
+    {
+        return ownerDocURI;
     }
     
 }
