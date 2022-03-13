@@ -189,6 +189,8 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
     {
         if (graphUri == null) throw new InternalServerErrorException("Named graph not specified");
 
+        if (getOwnerDocURI().equals(graphUri)) throw new BadRequestException("Cannot update application owner's document");
+        if (getSecretaryDocURI().equals(graphUri)) throw new BadRequestException("Cannot update application secretary's document");
         if (!model.createResource(graphUri.toString()).hasProperty(RDF.type, Default.Root) &&
             !model.createResource(graphUri.toString()).hasProperty(RDF.type, DH.Container) &&
             !model.createResource(graphUri.toString()).hasProperty(RDF.type, DH.Item))
