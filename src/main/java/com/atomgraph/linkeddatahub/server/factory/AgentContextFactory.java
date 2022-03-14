@@ -26,7 +26,7 @@ import org.glassfish.hk2.api.ServiceLocator;
 
 /**
  *
- * @author Martynas Jusevičius <martynas@atomgraph.com>
+ * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
 @Provider
 public class AgentContextFactory implements Factory<Optional<AgentContext>>

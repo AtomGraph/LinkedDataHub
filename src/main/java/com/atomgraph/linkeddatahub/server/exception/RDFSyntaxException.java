@@ -30,7 +30,7 @@ import com.atomgraph.server.exception.ModelException;
  * Thrown when read RDF data contains a syntax error.
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
- * @see com.atomgraph.linkeddatahub.server.io.SkolemizingModelProvider
+ * @see com.atomgraph.server.io.SkolemizingModelProvider
  */
 public class RDFSyntaxException extends ModelException
 {

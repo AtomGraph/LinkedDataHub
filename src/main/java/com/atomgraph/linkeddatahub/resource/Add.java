@@ -84,6 +84,14 @@ public class Add extends GraphStoreImpl // TO-DO: does not need to extend GraphS
         this.agentContext = agentContext;
     }
     
+    /**
+     * Handles multipart requests with RDF files.
+     * 
+     * @param multiPart multipart request object
+     * @param defaultGraph true if default graph was specified
+     * @param graphUri graph name
+     * @return response
+     */
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Override
@@ -112,6 +120,13 @@ public class Add extends GraphStoreImpl // TO-DO: does not need to extend GraphS
         }
     }
     
+    /**
+     * Handles uploaded RDF file.
+     * 
+     * @param model RDF graph
+     * @param fileNameBodyPartMap parts of the multipart request
+     * @return response
+     */
     public Response postFileBodyPart(Model model, Map<String, FormDataBodyPart> fileNameBodyPartMap)
     {
         if (model == null) throw new IllegalArgumentException("Model cannot be null");
@@ -162,6 +177,11 @@ public class Add extends GraphStoreImpl // TO-DO: does not need to extend GraphS
         }
     }
     
+    /**
+     * Converts input stream to streaming output.
+     * @param is input stream
+     * @return streamign output
+     */
     public StreamingOutput getStreamingOutput(InputStream is)
     {
         return (OutputStream os) -> {

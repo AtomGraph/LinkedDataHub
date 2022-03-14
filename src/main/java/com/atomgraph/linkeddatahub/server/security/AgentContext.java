@@ -20,7 +20,7 @@ import com.atomgraph.linkeddatahub.model.Agent;
 
 /**
  *
- * @author Martynas Jusevičius <martynas@atomgraph.com>
+ * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
 public interface AgentContext
 {

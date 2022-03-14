@@ -25,7 +25,7 @@ import org.apache.jena.rdf.model.Resource;
  * Can either have a base or a prefix URI. Does not have a service unlike applications.
  * Used for proxying third party Linked Data services.
  * 
- * @author Martynas Jusevičius <martynas@atomgraph.com>
+ * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
 public interface Dataset extends Resource
 {

@@ -32,6 +32,9 @@ import org.apache.jena.vocabulary.RDF;
 public class AgentImpl extends ResourceImpl implements Agent
 {
 
+    /**
+     * Returns a Jena implementation for this class.
+     */
     public static Implementation factory = new Implementation() 
     {
         
@@ -57,6 +60,12 @@ public class AgentImpl extends ResourceImpl implements Agent
         }
     };
     
+    /**
+     * Constructs agent instance from graph node.
+     * 
+     * @param n node
+     * @param g graph
+     */
     public AgentImpl(Node n, EnhGraph g)
     {
         super(n, g);
@@ -65,7 +74,7 @@ public class AgentImpl extends ResourceImpl implements Agent
     @Override
     public String getName()
     {
-	return getURI();
+        return getURI();
     }
     
 }

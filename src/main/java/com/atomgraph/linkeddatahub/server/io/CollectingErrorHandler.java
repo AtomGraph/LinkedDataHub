@@ -25,7 +25,7 @@ import java.util.List;
  * Collects syntax errors reported by the RDF parser.
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
- * @see com.atomgraph.linkeddatahub.server.io.SkolemizingModelProvider
+ * @see com.atomgraph.server.io.SkolemizingModelProvider
  */
 public class CollectingErrorHandler implements org.apache.jena.riot.system.ErrorHandler
 {
