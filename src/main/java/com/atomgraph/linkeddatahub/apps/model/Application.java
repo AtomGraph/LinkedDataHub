@@ -29,19 +29,53 @@ import org.apache.jena.rdf.model.Resource;
 public interface Application extends Resource, com.atomgraph.processor.model.Application
 {
     
+    /**
+     * The relative path of the content-addressed file container.
+     */
     public static final String UPLOADS_PATH = "uploads";
 
+    /**
+     * Returns the agent who created this application.
+     * 
+     * @return agent resource
+     */
     Resource getMaker();
     
+    /**
+     * Returns the application's base resource.
+     * 
+     * @return base resource
+     */
     Resource getBase();
     
+    /**
+     * Returns the application's base URI.
+     * 
+     * @return URI of the base resource
+     */
     URI getBaseURI();
     
+    /**
+     * Returns applications service.
+     * 
+     * @return service resource
+     */
     @Override
     Service getService();
 
+    /**
+     * Returns applications XSLT stylesheet.
+     * 
+     * @return stylesheet resource
+     */
     Resource getStylesheet();
     
+    /**
+     * Returns true if application is read-only.
+     * Read-only application does not allow changes to its state.
+     * 
+     * @return true if read-only
+     */
     boolean isReadOnly();
     
 }

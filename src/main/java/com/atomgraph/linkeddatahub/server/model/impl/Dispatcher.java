@@ -79,6 +79,8 @@ public class Dispatcher
         return getResourceClass();
     }
     
+    // TO-DO: move @Path annotations onto respective classes?
+    
     @Path("sparql")
     public Object getSPARQLEndpoint()
     {

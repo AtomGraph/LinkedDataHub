@@ -98,6 +98,11 @@ public class ApplicationFilter implements ContainerRequestFilter
         }
     }
 
+    /**
+     * Returns the system application.
+     * 
+     * @return system app
+     */
     public com.atomgraph.linkeddatahub.Application getSystem()
     {
         return system;

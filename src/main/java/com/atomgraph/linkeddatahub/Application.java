@@ -701,6 +701,10 @@ public class Application extends ResourceConfig
         }
     }
     
+    /**
+     * Post-construct initialization.
+     * Additional initialization (e.g. registering JAX-RS providers and factories) that cannot be cleanly done in the class constructor.
+     */
     @PostConstruct
     public void init()
     {
@@ -820,11 +824,17 @@ public class Application extends ResourceConfig
 //        if (log.isTraceEnabled()) log.trace("Application.init() with Classes: {} and Singletons: {}", getClasses(), getSingletons());
     }
     
+    /**
+     * Registers JAX-RS resource classes.
+     */
     protected void registerResourceClasses()
     {
         register(Dispatcher.class);
     }
     
+    /**
+     * Registers JAX-RS container request filters.
+     */
     protected void registerContainerRequestFilters()
     {
         register(new HttpMethodOverrideFilter());
@@ -838,6 +848,9 @@ public class Application extends ResourceConfig
         register(new RDFPostCleanupFilter()); // for multipart/form-data
     }
 
+    /**
+     * Registers JAX-RS container response filters.
+     */
     protected void registerContainerResponseFilters()
     {
         register(new ResponseHeaderFilter());
@@ -846,6 +859,9 @@ public class Application extends ResourceConfig
 //        register(new ProvenanceFilter());
     }
     
+    /**
+     * Registers JAX-RS extension mappers.
+     */
     protected void registerExceptionMappers()
     {
         register(NotFoundExceptionMapper.class);
