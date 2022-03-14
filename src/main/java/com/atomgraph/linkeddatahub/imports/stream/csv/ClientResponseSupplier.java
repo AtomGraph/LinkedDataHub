@@ -38,6 +38,13 @@ public class ClientResponseSupplier implements Supplier<Response>
     private final javax.ws.rs.core.MediaType[] mediaTypes;
     private final DataManager dataManager;
     
+    /**
+     * Constructs supplier from request URL and media types.
+     * 
+     * @param uri request URI
+     * @param mediaTypes registry of media types
+     * @param dataManager RDF data manager
+     */
     public ClientResponseSupplier(String uri, javax.ws.rs.core.MediaType[] mediaTypes, DataManager dataManager)
     {
         this.uri = uri;
@@ -51,16 +58,31 @@ public class ClientResponseSupplier implements Supplier<Response>
         return getDataManager().get(getURI(), getMediaTypes());
     }
 
+    /**
+     * Returns request URI.
+     * 
+     * @return URI
+     */
     public String getURI()
     {
         return uri;
     }
 
+    /**
+     * Returns readable/writable media types.
+     * 
+     * @return 
+     */
     public javax.ws.rs.core.MediaType[] getMediaTypes()
     {
         return mediaTypes;
     }
 
+    /**
+     * Returns RDF data manager instance.
+     * 
+     * @return manager instance
+     */
     public DataManager getDataManager()
     {
         return dataManager;

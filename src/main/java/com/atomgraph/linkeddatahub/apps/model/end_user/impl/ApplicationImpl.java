@@ -35,6 +35,12 @@ public class ApplicationImpl extends com.atomgraph.linkeddatahub.apps.model.impl
 
     private static final Logger log = LoggerFactory.getLogger(ApplicationImpl.class);
 
+    /**
+     * Constructs instance from node and graph.
+     * 
+     * @param n node
+     * @param g graph
+     */
     public ApplicationImpl(Node n, EnhGraph g)
     {
         super(n, g);

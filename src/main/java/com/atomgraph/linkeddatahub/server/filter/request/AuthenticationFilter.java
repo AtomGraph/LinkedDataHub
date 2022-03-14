@@ -24,6 +24,7 @@ import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import java.io.IOException;
 import java.util.Optional;
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
@@ -78,6 +79,13 @@ public abstract class AuthenticationFilter implements ContainerRequestFilter
      */
     public abstract void logout(com.atomgraph.linkeddatahub.apps.model.Application app, ContainerRequestContext request);
     
+    /**
+     * Authenticates the current request and returns the security context for the authenticated agent.
+     * 
+     * @param request request context
+     * @return security context or null
+     */
+    @Nullable
     public abstract SecurityContext authenticate(ContainerRequestContext request);
 
     @Override
@@ -117,7 +125,7 @@ public abstract class AuthenticationFilter implements ContainerRequestFilter
      * @param qsm query solution map (applied to the query string or sent as request params, depending on the protocol)
      * @param service SPARQL service
      * @return authorization graph (can be empty)
-     * @see com.atomgraph.linkeddatahub.vocabulary.APLC#authQuery
+     * @see com.atomgraph.linkeddatahub.vocabulary.LDHC#authQuery
      */
     protected Model loadModel(ParameterizedSparqlString pss, QuerySolutionMap qsm, com.atomgraph.linkeddatahub.model.Service service)
     {
