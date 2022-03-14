@@ -25,9 +25,12 @@ package com.atomgraph.linkeddatahub.apps.model;
 public interface AdminApplication extends Application
 {
     
+    public static final String REQUEST_ACCESS_PATH = "request access";
+    public static final String AUTHORIZATION_REQUEST_PATH = "acl/authorization-requests/";
+    
     /**
      * Gets the end-user application paired with this admin application.
-     * @return 
+     * @return end-user application
      */
     EndUserApplication getEndUserApplication();
     

@@ -29,6 +29,8 @@ import org.apache.jena.rdf.model.Resource;
 public interface Application extends Resource, com.atomgraph.processor.model.Application
 {
     
+    public static final String UPLOADS_PATH = "uploads";
+
     Resource getMaker();
     
     Resource getBase();

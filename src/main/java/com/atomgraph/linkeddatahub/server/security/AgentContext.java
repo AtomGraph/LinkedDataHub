@@ -25,6 +25,10 @@ import com.atomgraph.linkeddatahub.model.Agent;
 public interface AgentContext
 {
     
+    /**
+     * Gets agent associated with this context
+     * @return agent resource
+     */
     Agent getAgent();
     
 }

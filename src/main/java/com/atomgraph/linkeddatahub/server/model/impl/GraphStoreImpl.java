@@ -18,6 +18,7 @@ package com.atomgraph.linkeddatahub.server.model.impl;
 
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.core.riot.lang.RDFPostReader;
+import static com.atomgraph.linkeddatahub.apps.model.Application.UPLOADS_PATH;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.io.ValidatingModelProvider;
 import com.atomgraph.linkeddatahub.vocabulary.Default;
@@ -127,7 +128,7 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
         this.providers = providers;
         this.system = system;
         this.messageDigest = system.getMessageDigest();
-        uploadsUriBuilder = uriInfo.getBaseUriBuilder().path(com.atomgraph.linkeddatahub.Application.UPLOADS_PATH);
+        uploadsUriBuilder = uriInfo.getBaseUriBuilder().path(UPLOADS_PATH);
         URI ownerURI = URI.create(application.getMaker().getURI());
         try
         {

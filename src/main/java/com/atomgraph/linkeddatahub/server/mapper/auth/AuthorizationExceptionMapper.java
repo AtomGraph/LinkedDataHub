@@ -17,6 +17,7 @@
 package com.atomgraph.linkeddatahub.server.mapper.auth;
 
 import com.atomgraph.core.MediaTypes;
+import static com.atomgraph.linkeddatahub.apps.model.AdminApplication.REQUEST_ACCESS_PATH;
 import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import org.apache.jena.rdf.model.ResourceFactory;
@@ -68,7 +69,7 @@ public class AuthorizationExceptionMapper extends ExceptionMapperBase implements
                 Resource adminBase = getApplication().as(EndUserApplication.class).getAdminApplication().getBase();
 
                 URI requestAccessURI = UriBuilder.fromUri(adminBase.getURI()).
-                    path(com.atomgraph.linkeddatahub.Application.REQUEST_ACCESS_PATH).
+                    path(REQUEST_ACCESS_PATH).
                     build();
 
                 exRes.addProperty(LACL.requestAccess, exRes.getModel().createResource(requestAccessURI.toString()));

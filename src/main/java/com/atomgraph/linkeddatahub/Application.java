@@ -155,7 +155,6 @@ import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManagerFactory;
 import javax.servlet.ServletContext;
-import javax.ws.rs.core.CacheControl;
 import javax.xml.transform.Source;
 import org.apache.jena.ontology.Ontology;
 import org.apache.jena.query.Dataset;
@@ -242,16 +241,12 @@ public class Application extends ResourceConfig
     
     private static final Logger log = LoggerFactory.getLogger(Application.class);
 
-    public static final String REQUEST_ACCESS_PATH = "request access";
-    public static final String AUTHORIZATION_REQUEST_PATH = "acl/authorization-requests/";
-    public static final String UPLOADS_PATH = "uploads";
-    
     private final ServletConfig servletConfig;
     private final EventBus eventBus = new EventBus();
     private final DataManager dataManager;
     private final MediaTypes mediaTypes;
     private final Client client, importClient, noCertClient;
-    private final Query authQuery, ownerAuthQuery, webIDQuery, agentQuery, userAccountQuery, ontologyQuery; // no relative URIs
+    private final Query authQuery, ownerAuthQuery, webIDQuery, userAccountQuery, ontologyQuery; // no relative URIs
     private final Integer maxGetRequestSize;
     private final boolean preemptiveAuth;
     private final Processor xsltProc = new Processor(false);
@@ -264,7 +259,6 @@ public class Application extends ResourceConfig
     private final URI baseURI, uploadRoot; // TO-DO: replace baseURI with ServletContext URI?
     private final boolean invalidateCache;
     private final Integer cookieMaxAge;
-    private final CacheControl authCacheControl;
     private final Integer maxContentLength;
     private final Address notificationAddress;
     private final Authenticator authenticator;
@@ -278,6 +272,14 @@ public class Application extends ResourceConfig
     
     private Dataset contextDataset;
     
+    /**
+     * Constructs system application and configures it using sevlet config.
+     * 
+     * @param servletConfig servlet config
+     * @throws URISyntaxException throw on URI syntax errors
+     * @throws MalformedURLException thrown on URL syntax errors
+     * @throws IOException thrown on I/O erros
+     */
     public Application(@Context ServletConfig servletConfig) throws URISyntaxException, MalformedURLException, IOException
     {
         this(servletConfig,
@@ -298,7 +300,6 @@ public class Application extends ResourceConfig
             servletConfig.getServletContext().getInitParameter(LDHC.authQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.authQuery.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.ownerAuthQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.ownerAuthQuery.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.webIDQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.webIDQuery.getURI()) : null,
-            servletConfig.getServletContext().getInitParameter(LDHC.agentQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.agentQuery.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.userAccountQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.userAccountQuery.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.ontologyQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.ontologyQuery.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.baseUri.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.baseUri.getURI()) : null,
@@ -308,7 +309,6 @@ public class Application extends ResourceConfig
             servletConfig.getServletContext().getInitParameter(LDHC.uploadRoot.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.uploadRoot.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.invalidateCache.getURI()) != null ? Boolean.parseBoolean(servletConfig.getServletContext().getInitParameter(LDHC.invalidateCache.getURI())) : false,
             servletConfig.getServletContext().getInitParameter(LDHC.cookieMaxAge.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(LDHC.cookieMaxAge.getURI())) : null,
-            servletConfig.getServletContext().getInitParameter(LDHC.authCacheControl.getURI()) != null ? CacheControl.valueOf(servletConfig.getServletContext().getInitParameter(LDHC.authCacheControl.getURI())) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.maxContentLength.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(LDHC.maxContentLength.getURI())) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.maxConnPerRoute.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(LDHC.maxConnPerRoute.getURI())) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.maxTotalConn.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(LDHC.maxTotalConn.getURI())) : null,
@@ -332,16 +332,58 @@ public class Application extends ResourceConfig
         this.contextDataset = getDataset(servletConfig.getServletContext(), contextDatasetURI);
     }
     
+    /**
+     * Constructs and configures system application.
+     * 
+     * @param servletConfig servlet config
+     * @param mediaTypes supported media types
+     * @param maxGetRequestSize maximum <code>GET</code> request size
+     * @param cacheModelLoads true if model loads should be cached
+     * @param preemptiveAuth true if HTTP Basic auth credentials should be sent preemptively
+     * @param cacheSitemap true if app's ontology should be cached
+     * @param locationMapper Jena's <code>LocationMapper</code> instance
+     * @param stylesheet stylesheet URI
+     * @param cacheStylesheet true if stylesheet should be cached
+     * @param resolvingUncached true if XLST processor should dereference URLs that are not cached
+     * @param clientKeyStoreURIString location of the client's keystore
+     * @param clientKeyStorePassword client keystore's password
+     * @param secretaryCertAlias alias of the secretary's certificate
+     * @param clientTrustStoreURIString location of the client's truststore
+     * @param clientTrustStorePassword client truststore's password
+     * @param authQueryString SPARQL string of the authorization query
+     * @param ownerAuthQueryString SPARQL string of the admin authorization query
+     * @param webIDQueryString SPARQL string of the WebID validation query
+     * @param userAccountQueryString SPARQL string of the <code>UserAccount</code> lookup query
+     * @param ontologyQueryString SPARQL string of the ontology load query
+     * @param baseURIString system base URI
+     * @param proxyScheme client's URI rewrite scheme
+     * @param proxyHostname client's URI rewrite hostname
+     * @param proxyPort client's URI rewrite port
+     * @param uploadRootString location of the root folder for file uploads
+     * @param invalidateCache true if Varnish proxy cache should be invalidated
+     * @param cookieMaxAge max age of auth cookies
+     * @param maxPostSize maximum size of <code>POST</code> request
+     * @param maxConnPerRoute maximum client connections per rout
+     * @param maxTotalConn maximum total client connections
+     * @param importKeepAliveStrategy keep-alive strategy for the HTTP client used for imports
+     * @param notificationAddressString email address used to send notifications
+     * @param mailUser username of the SMTP email server
+     * @param mailPassword password of the SMTP email server
+     * @param smtpHost Hostname of the SMTP email server
+     * @param smtpPort Port of the SMTP email server
+     * @param googleClientID client ID for Google's OAuth
+     * @param googleClientSecret client secret for Google's OAuth
+     */
     public Application(final ServletConfig servletConfig, final MediaTypes mediaTypes,
             final Integer maxGetRequestSize, final boolean cacheModelLoads, final boolean preemptiveAuth, final boolean cacheSitemap,
             final LocationMapper locationMapper, final Source stylesheet, final boolean cacheStylesheet, final boolean resolvingUncached,
             final String clientKeyStoreURIString, final String clientKeyStorePassword,
             final String secretaryCertAlias,
             final String clientTrustStoreURIString, final String clientTrustStorePassword,
-            final String authQueryString, final String ownerAuthQueryString, final String webIDQueryString, final String agentQueryString, final String userAccountQueryString, final String ontologyQueryString,
+            final String authQueryString, final String ownerAuthQueryString, final String webIDQueryString, final String userAccountQueryString, final String ontologyQueryString,
             final String baseURIString, final String proxyScheme, final String proxyHostname, final Integer proxyPort,
             final String uploadRootString, final boolean invalidateCache,
-            final Integer cookieMaxAge, final CacheControl authCacheControl, final Integer maxPostSize,
+            final Integer cookieMaxAge, final Integer maxPostSize,
             final Integer maxConnPerRoute, final Integer maxTotalConn, final ConnectionKeepAliveStrategy importKeepAliveStrategy,
             final String notificationAddressString, final String mailUser, final String mailPassword, final String smtpHost, final String smtpPort,
             final String googleClientID, final String googleClientSecret)
@@ -392,12 +434,6 @@ public class Application extends ResourceConfig
         }
         this.userAccountQuery = QueryFactory.create(userAccountQueryString);
         
-        if (agentQueryString == null)
-        {
-            if (log.isErrorEnabled()) log.error("Agent SPARQL query is not configured properly");
-            throw new ConfigurationException(LDHC.agentQuery);
-        }
-        this.agentQuery = QueryFactory.create(agentQueryString);
         if (ontologyQueryString == null)
         {
             if (log.isErrorEnabled()) log.error("Ontology SPARQL query is not configured properly");
@@ -434,7 +470,6 @@ public class Application extends ResourceConfig
         this.resolvingUncached = resolvingUncached;
         this.maxContentLength = maxPostSize;
         this.invalidateCache = invalidateCache;
-        this.authCacheControl = authCacheControl;
         this.property(Google.clientID.getURI(), googleClientID);
         this.property(Google.clientSecret.getURI(), googleClientSecret);
         
@@ -1238,11 +1273,6 @@ public class Application extends ResourceConfig
         return webIDQuery;
     }
     
-    public Query getAgentQuery()
-    {
-        return agentQuery;
-    }
-    
     public Query getUserAccountQuery()
     {
         return userAccountQuery;
@@ -1322,12 +1352,7 @@ public class Application extends ResourceConfig
     {
         return maxContentLength;
     }
-    
-    public CacheControl getAuthCacheControl()
-    {
-        return authCacheControl;
-    }
-    
+
     public KeyStore getKeyStore()
     {
         return keyStore;

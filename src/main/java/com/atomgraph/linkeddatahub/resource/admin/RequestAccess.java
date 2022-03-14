@@ -19,6 +19,7 @@ package com.atomgraph.linkeddatahub.resource.admin;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.core.client.LinkedDataClient;
 import com.atomgraph.core.exception.ConfigurationException;
+import static com.atomgraph.linkeddatahub.apps.model.AdminApplication.AUTHORIZATION_REQUEST_PATH;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.listener.EMailListener;
@@ -49,7 +50,6 @@ import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.Providers;
 import org.apache.jena.ontology.Ontology;
-import org.apache.jena.query.Query;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ResIterator;
 import org.apache.jena.rdf.model.Resource;
@@ -74,7 +74,6 @@ public class RequestAccess extends GraphStoreImpl
     private final String emailSubject;
     private final String emailText;
     private final UriBuilder authRequestContainerUriBuilder;
-    private final Query agentQuery;
 
     @Inject
     public RequestAccess(@Context Request request, @Context UriInfo uriInfo, MediaTypes mediaTypes,
@@ -88,8 +87,7 @@ public class RequestAccess extends GraphStoreImpl
         this.uri = uriInfo.getAbsolutePath();
         this.agent = (Agent)securityContext.getUserPrincipal();
 
-        agentQuery = system.getAgentQuery();
-        authRequestContainerUriBuilder = uriInfo.getBaseUriBuilder().path(com.atomgraph.linkeddatahub.Application.AUTHORIZATION_REQUEST_PATH);
+        authRequestContainerUriBuilder = uriInfo.getBaseUriBuilder().path(AUTHORIZATION_REQUEST_PATH);
         
         emailSubject = servletConfig.getServletContext().getInitParameter(LDHC.requestAccessEMailSubject.getURI());
         if (emailSubject == null) throw new InternalServerErrorException(new ConfigurationException(LDHC.requestAccessEMailSubject));
@@ -214,11 +212,6 @@ public class RequestAccess extends GraphStoreImpl
     public UriBuilder getAuthRequestContainerUriBuilder()
     {
         return authRequestContainerUriBuilder.clone();
-    }
-    
-    public Query getAgentQuery()
-    {
-        return agentQuery;
     }
     
 }

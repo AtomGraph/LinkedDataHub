@@ -74,6 +74,20 @@ public class Add extends GraphStoreImpl // TO-DO: does not need to extend GraphS
     private final SecurityContext securityContext;
     private final Optional<AgentContext> agentContext;
     
+    /**
+     * Constructs this resource.
+     * 
+     * @param request current request
+     * @param uriInfo current URI info
+     * @param mediaTypes supported media types
+     * @param application matched application
+     * @param ontology matched application's ontology
+     * @param service matched application's service
+     * @param providers JAX-RS providers
+     * @param system system application
+     * @param securityContext JAX-RS security context
+     * @param agentContext authenticated agent's context
+     */
     @Inject
     public Add(@Context Request request, @Context UriInfo uriInfo, MediaTypes mediaTypes,
             com.atomgraph.linkeddatahub.apps.model.Application application, Optional<Ontology> ontology, Optional<Service> service,
@@ -180,7 +194,7 @@ public class Add extends GraphStoreImpl // TO-DO: does not need to extend GraphS
     /**
      * Converts input stream to streaming output.
      * @param is input stream
-     * @return streamign output
+     * @return streaming output
      */
     public StreamingOutput getStreamingOutput(InputStream is)
     {
@@ -189,11 +203,19 @@ public class Add extends GraphStoreImpl // TO-DO: does not need to extend GraphS
         };
     }
 
+    /**
+     * Get JAX-RS security context
+     * @return security context object
+     */
     public SecurityContext getSecurityContext()
     {
         return securityContext;
     }
     
+    /**
+     * Gets authenticated agent's context
+     * @return optional agent's context
+     */
     public Optional<AgentContext> getAgentContext()
     {
         return agentContext;
