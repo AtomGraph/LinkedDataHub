@@ -172,7 +172,6 @@ import com.github.jsonldjava.core.JsonLdOptions;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.TreeMap;
@@ -904,6 +903,13 @@ public class Application extends ResourceConfig
         }
     }
 
+    /**
+     * Queries RDF dataset and returns result.
+     * 
+     * @param dataset RDF dataset
+     * @param query SPARQL query
+     * @return result model
+     */
     public final Model getModel(Dataset dataset, Query query)
     {
         if (dataset == null) throw new IllegalArgumentException("Dataset cannot be null");
@@ -918,12 +924,26 @@ public class Application extends ResourceConfig
         }
     }
 
+    /**
+     * Handles signup event.
+     * Invoked every time a new agent has signed up.
+     * 
+     * @param event signup event
+     * @see com.atomgraph.linkeddatahub.resource.admin.SignUp
+    */
     @Subscribe
     public void handleSignUp(SignUp event)
     {
         getWebIDModelCache().remove(event.getSecretaryWebID()); // clear secretary WebID from cache to get new acl:delegates statements after new signup
     }
 
+    /**
+     * Handles authorization creation event.
+     * 
+     * @param event creation event
+     * @throws MessagingException thrown if email could not be sent
+     * @throws UnsupportedEncodingException email encoding error
+     */
     @Subscribe
     public void handleAuthorizationCreated(AuthorizationCreated event) throws MessagingException, UnsupportedEncodingException
     {
@@ -974,16 +994,38 @@ public class Application extends ResourceConfig
         }
     }
     
+    /**
+     * Matches application by type and request URL.
+     * 
+     * @param type app type
+     * @param absolutePath request URL without the query string
+     * @return app resource or null, if none matched
+     */
     public Resource matchApp(Resource type, URI absolutePath)
     {
         return matchApp(getContextModel(), type, absolutePath); // make sure we return an immutable model
     }
     
+    /**
+     * Matches application by type and request URL in a given application model.
+     * It finds the apps where request URL is relative to the app base URI, and returns the one with the longest match.
+     * 
+     * @param appModel application model
+     * @param type application type
+     * @param absolutePath request URL without the query string
+     * @return app resource or null, if none matched
+     */
     public Resource matchApp(Model appModel, Resource type, URI absolutePath)
     {
         return getLongestURIResource(getLengthMap(getRelativeBaseApps(appModel, type, absolutePath)));
     }
     
+    /**
+     * Returns application with the longest URI key.
+     * 
+     * @param lengthMap length to app map
+     * @return app resource
+     */
     public Resource getLongestURIResource(Map<Integer, Resource> lengthMap)
     {
         // select the app with the longest URI match, as the model contains a pair of EndUserApplication/AdminApplication
@@ -993,6 +1035,15 @@ public class Application extends ResourceConfig
         return null;
     }
     
+    /**
+     * Builds a base URI to application resource map from the application model.
+     * Applications are filtered by type first.
+     * 
+     * @param model application model
+     * @param type application type
+     * @param absolutePath request URL (without the query string)
+     * @return URI to app map
+     */
     public Map<URI, Resource> getRelativeBaseApps(Model model, Resource type, URI absolutePath)
     {
         if (model == null) throw new IllegalArgumentException("Model cannot be null");
@@ -1024,16 +1075,41 @@ public class Application extends ResourceConfig
         return apps;
     }
     
+    /**
+     * Matches dataset resource by type and request URL.
+     * 
+     * @param type dataset type
+     * @param absolutePath request URL without the query string
+     * @return dataset resource, or null if non matched
+     */
     public Resource matchDataset(Resource type, URI absolutePath)
     {
         return matchDataset(getContextModel(), type, absolutePath); // make sure we return an immutable model
     }
     
+    /**
+     * Matches dataset by type and request URL in a given application model.
+     * It finds the apps where request URL is relative to the app base URI, and returns the one with the longest match.
+     * 
+     * @param appModel application model
+     * @param type application type
+     * @param absolutePath request URL without the query string
+     * @return dataset resource or null, if none matched
+     */
     public Resource matchDataset(Model appModel, Resource type, URI absolutePath)
     {
         return getLongestURIResource(getLengthMap(getRelativeDatasets(appModel, type, absolutePath)));
     }
     
+    /**
+     * Builds a base URI to dataset resource map from the application model.
+     * Datasets are filtered by type first.
+     * 
+     * @param model application model
+     * @param type dataset type
+     * @param absolutePath request URL (without the query string)
+     * @return URI to dataset map
+     */
     public Map<URI, Resource> getRelativeDatasets(Model model, Resource type, URI absolutePath)
     {
         if (model == null) throw new IllegalArgumentException("Model cannot be null");
@@ -1065,28 +1141,51 @@ public class Application extends ResourceConfig
         return datasets;
     }
     
+    /**
+     * Returns a map of applications by the length of their base URIs.
+     * 
+     * @param apps base URI to application map
+     * @return base URI length to application map
+     */
     public Map<Integer, Resource> getLengthMap(Map<URI, Resource> apps)
     {
         if (apps == null) throw new IllegalArgumentException("Map cannot be null");
 
         Map<Integer, Resource> lengthMap = new HashMap<>();
         
-        Iterator<Map.Entry<URI, Resource>> it = apps.entrySet().iterator();
-        while (it.hasNext())
-        {
-            Map.Entry<URI, Resource> entry = it.next();
-            lengthMap.put(entry.getKey().toString().length(), entry.getValue());
-        }
+        apps.entrySet().iterator().forEachRemaining(entry ->
+            lengthMap.put(entry.getKey().toString().length(), entry.getValue())
+        );
         
         return lengthMap;
     }
 
+    /**
+     * Submits CSV import for asynchronous execution.
+     * 
+     * @param csvImport import resource
+     * @param app current application
+     * @param service current SPARQL service
+     * @param adminService current admin SPARQL service
+     * @param baseURI application's base URI
+     * @param dataManager data manager
+     */
     public void submitImport(CSVImport csvImport, com.atomgraph.linkeddatahub.apps.model.Application app, Service service, Service adminService, String baseURI, DataManager dataManager)
     {
         // we don't want use service.getGraphStoreClient() here because that's for the backend. Processed import data is looped back to the app's SPARQL endpoint as if from the client.
         ImportListener.submit(csvImport, service, adminService, baseURI, dataManager, GraphStoreClient.create(getClient().target(app.getBaseURI().resolve("service"))));
     }
     
+    /**
+     * Submits RDF import for asynchronous execution.
+     * 
+     * @param rdfImport import resource
+     * @param app current application
+     * @param service current SPARQL service
+     * @param adminService current admin SPARQL service
+     * @param baseURI application's base URI
+     * @param dataManager data manager
+     */
     public void submitImport(RDFImport rdfImport, com.atomgraph.linkeddatahub.apps.model.Application app, Service service, Service adminService, String baseURI, DataManager dataManager)
     {
         // we don't want use service.getGraphStoreClient() here because that's for the backend. Processed import data is looped back to the app's SPARQL endpoint as if from the client.
