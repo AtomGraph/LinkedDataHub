@@ -6,6 +6,7 @@
 - `append-content` CLI script that appends content resources to document
 - `create-file` CLI script automatically recognizes the MIME type of the file being uploaded
 - Linked Data browser functionality in graph layout mode
+- Javadoc comments
 
 ### Changed
 - The setup script requirements relaxed to make it easier to run on MacOS

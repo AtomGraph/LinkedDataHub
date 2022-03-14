@@ -253,7 +253,6 @@ public class Application extends ResourceConfig
     private final XsltCompiler xsltComp;
     private final XsltExecutable xsltExec;
     private final OntModelSpec ontModelSpec;
-    private final Source stylesheet;
     private final boolean cacheStylesheet;
     private final boolean resolvingUncached;
     private final URI baseURI, uploadRoot; // TO-DO: replace baseURI with ServletContext URI?
@@ -465,7 +464,6 @@ public class Application extends ResourceConfig
         this.mediaTypes = mediaTypes;
         this.maxGetRequestSize = maxGetRequestSize;
         this.preemptiveAuth = preemptiveAuth;
-        this.stylesheet = stylesheet;
         this.cacheStylesheet = cacheStylesheet;
         this.resolvingUncached = resolvingUncached;
         this.maxContentLength = maxPostSize;
@@ -879,6 +877,16 @@ public class Application extends ResourceConfig
         register(MessagingExceptionMapper.class);
     }
     
+    /**
+     * Retrieves dataset from file URL.
+     * 
+     * @param servletContext servlet context
+     * @param uri file URL (can be relative)
+     * @return RDF dataset
+     * @throws FileNotFoundException thrown if file not found
+     * @throws MalformedURLException thrown if location URL is malformed
+     * @throws IOException error reading file
+     */
     public static Dataset getDataset(final ServletContext servletContext, final URI uri) throws FileNotFoundException, MalformedURLException, IOException
     {
         String baseURI = servletContext.getResource("/").toString();
@@ -1085,6 +1093,21 @@ public class Application extends ResourceConfig
         ImportListener.submit(rdfImport, service, adminService, baseURI, dataManager, GraphStoreClient.create(getClient().target(app.getBaseURI().resolve("service"))));
     }
     
+    /**
+     * Builds JAX-RS client instance from given configuration.
+     * 
+     * @param keyStore keystore
+     * @param keyStorePassword keystore password
+     * @param trustStore truststore
+     * @param maxConnPerRoute max connections per route
+     * @param maxTotalConn max total connections
+     * @param keepAliveStrategy keep-alive strategy (specific to Apache HTTP client)
+     * @return client instance
+     * @throws NoSuchAlgorithmException SSL algorithm error
+     * @throws KeyStoreException keystore loading error
+     * @throws UnrecoverableKeyException key loading error
+     * @throws KeyManagementException key loading error
+     */
     public static Client getClient(KeyStore keyStore, String keyStorePassword, KeyStore trustStore, Integer maxConnPerRoute, Integer maxTotalConn, ConnectionKeepAliveStrategy keepAliveStrategy) throws NoSuchAlgorithmException, KeyStoreException, UnrecoverableKeyException, KeyManagementException
     {
         if (keyStore == null) throw new IllegalArgumentException("KeyStore cannot be null");
@@ -1149,6 +1172,14 @@ public class Application extends ResourceConfig
             build();
     }
     
+    /**
+     * Builds HTTP client instance without TLS client certificates.
+     * 
+     * @param trustStore client truststore
+     * @param maxConnPerRoute max connections per route
+     * @param maxTotalConn max total connections
+     * @return client instance
+     */
     public static Client getNoCertClient(KeyStore trustStore, Integer maxConnPerRoute, Integer maxTotalConn)
     {
         try
@@ -1223,182 +1254,357 @@ public class Application extends ResourceConfig
         //if (log.isDebugEnabled()) client.addFilter(new LoggingFilter(System.out));
     }
     
+    /**
+     * Returns servlet configuration.
+     * Context parameters can be accessed through it.
+     * 
+     * @return servlet config object
+     */
     public ServletConfig getServletConfig()
     {
         return servletConfig;
     }
     
+    /**
+     * Event bus that can be used for event registration.
+     * 
+     * @return event bus object
+     */
     public EventBus getEventBus()
     {
         return eventBus;
     }
     
+    /**
+     * Gets Jena's <code>DataManager</code> implementation.
+     * 
+     * @return data manager instance
+     */
     public DataManager getDataManager()
     {
         return dataManager;
     }
     
+    /**
+     * Returns a registry of readable and writeable media types.
+     * 
+     * @return registry object
+     */
     public MediaTypes getMediaTypes()
     {
         return mediaTypes;
     }
     
+    /**
+     * Returns the default system HTTP client.
+     * 
+     * @return client object
+     */
     public Client getClient()
     {
         return client;
     }
     
+    /**
+     * Returns the system base URI.
+     * 
+     * @return base URI
+     */
     public URI getBaseURI()
     {
         return baseURI;
     }
     
+    /**
+     * Returns the URI of the secretary agent.
+     * 
+     * @return WebID URI
+     */
     public URI getSecretaryWebIDURI()
     {
         return secretaryWebIDURI;
     }
     
+    /**
+     * Returns the authorization query.
+     * Used to check access to end-user apps.
+     * 
+     * @return query object
+     */
     public Query getAuthQuery()
     {
         return authQuery;
     }
     
+    /**
+     * Returns the owner authorization query.
+     * Used to check access to admin apps.
+     * 
+     * @return query object
+     */
     public Query getOwnerAuthQuery()
     {
         return ownerAuthQuery;
     }
     
+    /**
+     * Returns the WebID validation query.
+     * 
+     * @return query object
+     */
     public Query getWebIDQuery()
     {
         return webIDQuery;
     }
     
+    /**
+     * Returns the user account lookup query.
+     * 
+     * @return query object
+     */
     public Query getUserAccountQuery()
     {
         return userAccountQuery;
     }
     
+    /**
+     * Returns ontology load query.
+     * 
+     * @return query object
+     */
     public Query getOntologyQuery()
     {
         return ontologyQuery;
     }
     
+    /**
+     * Returns maximum <code>GET</code> request size sent by the HTTP client.
+     * Requests over maximum size fall back to the <code>POST</code> method.
+     * 
+     * @return size in bytes
+     */
     public Integer getMaxGetRequestSize()
     {
         return maxGetRequestSize;
     }
-    
+
+    /**
+     * Returns true if HTTP Basic auth credentials should be sent preemptively.
+     * 
+     * @return true if preemptively
+     */
     public boolean isPreemptiveAuth()
     {
         return preemptiveAuth;
     }
     
+    /**
+     * The default specification of ontology models.
+     * 
+     * @return spec object
+     */
     public OntModelSpec getOntModelSpec()
     {
         return ontModelSpec;
     }
     
+    /**
+     * Returns Saxon's XSLT compiler.
+     * 
+     * @return compiler object
+     */
     public XsltCompiler getXsltCompiler()
     {
         return xsltComp;
     }
     
+    
+    /**
+     * Returns Saxon's XSLT executable.
+     * 
+     * @return executable object
+     */
     public XsltExecutable getXsltExecutable()
     {
         return xsltExec;
     }
-    
-    public Source getStylesheet()
-    {
-        return stylesheet;
-    }
 
+    /**
+     * Returns true if XSLT stylesheets are cached.
+     * 
+     * @return true if cached
+     */
     public boolean isCacheStylesheet()
     {
         return cacheStylesheet;
     }
 
+    /**
+     * Returns true if non-cached URI are dereferenced by the HTTP client.
+     * 
+     * @return true if resolving
+     */
     public boolean isResolvingUncached()
     {
         return resolvingUncached;
     }
     
+    /**
+     * Returns URL of the server directory for uploaded files.
+     * 
+     * @return path as URI
+     */
     public URI getUploadRoot()
     {
         return uploadRoot;
     }
     
+    /**
+     * Returns RDF dataset with LinkedDataHub application descriptions.
+     * @return RDF dataset
+     */
     protected Dataset getContextDataset()
     {
         return contextDataset;
     }
 
+    /**
+     * Returns RDF model with LinkedDataHub application descriptions.
+     * @return RDF model
+     */
     public Model getContextModel()
     {
         return ModelFactory.createModelForGraph(new GraphReadOnly(getContextDataset().getDefaultModel().getGraph()));
     }
 
+    /**
+     * Returns true if configured to invalidate HTTP proxy cache of triplestore results.
+     * @return true if invalidated
+     */
     public boolean isInvalidateCache()
     {
         return invalidateCache;
     }
 
+    /**
+     * Returns max age of authentication cookies.
+     * 
+     * @return maximum age in seconds
+     */
     public Integer getCookieMaxAge()
     {
         return cookieMaxAge;
     }
 
+    /**
+     * Maximum allowed request body size.
+     * 
+     * @return size in bytes
+     */
     public Integer getMaxContentLength()
     {
         return maxContentLength;
     }
 
+    /**
+     * Keystore of the HTTP client.
+     * 
+     * @return keystore instance
+     */
     public KeyStore getKeyStore()
     {
         return keyStore;
     }
     
+    /**
+     * Truststore of the HTTP client.
+     * 
+     * @return truststore instance
+     */
     public KeyStore getTrustStore()
     {
         return trustStore;
     }
 
+    /**
+     * HTTP client instance used for CSV/RDF imports only.
+     * 
+     * @return client instance
+     */
     public Client getImportClient()
     {
         return importClient;
     }
 
+    /**
+     * HTTP client instance that does not send the secretary's WebID client certificate.
+     * @return client instance
+     */
     public Client getNoCertClient()
     {
         return noCertClient;
     }
     
+    /**
+     * The email address from which notification emails are sent.
+     * 
+     * @return email address
+     */
     public Address getNotificationAddress()
     {
         return notificationAddress;
     }
     
+    /**
+     * Returns a builder for SMTP email messages.
+     * The builder is pre-configured with SMTP server credentials.
+     * 
+     * @return builder object
+     */
     public final MessageBuilder getMessageBuilder()
     {
         if (authenticator != null) return MessageBuilder.fromPropertiesAndAuth(emailProperties, authenticator);
         else return MessageBuilder.fromProperties(emailProperties);
     }
     
+    /**
+     * A map of cached WebID documents.
+     * WebID URI is the cache key. Entries expire after the configured period of time.
+     * 
+     * @return URI to model map
+     */
     public ExpiringMap<URI, Model> getWebIDModelCache()
     {
         return webIDmodelCache;
     }
-    
+
+    /**
+     * A map of cached OpenID connect agent graphs.
+     * User ID (ID token subject) is the cache key. Entries expire after the configured period of time.
+     * 
+     * @return URI to model map
+     */
     public ExpiringMap<String, Model> getOIDCModelCache()
     {
         return oidcModelCache;
     }
     
+    /**
+     * A map of cached (compiled) XSLT stylesheets.
+     * Stylesheet URI is the cache key.
+     * 
+     * @return URI to stylesheet map
+     */
     public Map<URI, XsltExecutable> getXsltExecutableCache()
     {
         return xsltExecutableCache;
     }
     
+    /**
+     * Message digest used in SHA1 hashing.
+     * 
+     * @return digest object
+     */
     public MessageDigest getMessageDigest()
     {
         return messageDigest;
