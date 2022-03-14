@@ -1,3 +1,47 @@
+## [3.0.6] - 2022-03-14
+### Added
+- Interactivity to the graph SVG layout
+- Notifications to the requesting agent when its access request is granted (requires email server)
+- JSON-LD export option for documents
+- `append-content` CLI script that appends content resources to document
+- `create-file` CLI script automatically recognizes the MIME type of the file being uploaded
+- Linked Data browser functionality in graph layout mode
+
+### Changed
+- The setup script requirements relaxed to make it easier to run on MacOS
+- Fixed CSV imports
+- Linked Data browser now supports relative URIs
+- Upgraded Java from 11 to 17
+- A built-in HTTP API constraint does not allow `PUT` on documents without the document description in request body
+- A built-in HTTP API constraint does not allow to `DELETE` the root document
+- A built-in HTTP API constraint does not allow to `DELETE` or `PUT` the the app owner's and secretary's WebID documents
+- Shell script interpreter line
+
+### Removed
+- Dydra-specific code
+
+## [3.0.3] - 2022-02-16
+### Added
+- Ability to copy (fork) RDF data into the local dataspace
+- Block-based content layout (`ldh:ContentList` mode) and editor
+- Login with Google (OpenID Connect)
+- Ability to load JSON-LD data from `<script>` elements in HTML
+- Namespace endpoint, which is an in-memory SPARQL endpoint over the app's ontology
+
+### Changed
+- The HTTP CRUD API is now Graph Store Protocol, not Linked Data Templates
+- HTML documents are hydrated HTML fragments over AJAX
+- XSLT stylesheets now load constraints and constructors using SPARQL over the namespace endpoint
+- The URIs of ontology terms are not relative to the app's base URI anymore
+- Additional assertions added to external ontology terms instead of subclassing them
+- Every UI state generates a distinct URL which is loaded consistently on both server- and client-side
+- Upgraded Jena to 4.3.2
+- Upgraded Saxon-JS to 2.3
+- Upgraded Fuseki, Varnish and nginx Docker images
+
+### Removed
+- Linked Data Templates support (still supported by Processor)
+
 ## [2.2.9] - 2021-04-22
 ### Added
 - HTTP smoke tests for SPARQL endpoint and Graph Store
