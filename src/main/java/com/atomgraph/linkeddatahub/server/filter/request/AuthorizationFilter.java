@@ -64,6 +64,9 @@ public class AuthorizationFilter implements ContainerRequestFilter
 {
     private static final Logger log = LoggerFactory.getLogger(AuthorizationFilter.class);
 
+    /**
+     * A mapping of HTTP methods to ACL access modes.
+     */
     public static final Map<String, Resource> ACCESS_MODES;
     static
     {
@@ -85,6 +88,9 @@ public class AuthorizationFilter implements ContainerRequestFilter
     
     private ParameterizedSparqlString authQuery, ownerAuthQuery;
 
+    /**
+     * Post-construct initialization.
+     */
     @PostConstruct
     public void init()
     {
@@ -143,6 +149,14 @@ public class AuthorizationFilter implements ContainerRequestFilter
                 ((AgentSecurityContext)request.getSecurityContext()).getAgent().getModel().add(authorization.getModel()); // append authorization metadata to Agent's model
     }
     
+    /**
+     * Builds solution map for the authorization query.
+     * 
+     * @param absolutePath request URL without query string
+     * @param agent agent resource or null
+     * @param accessMode ACL access mode
+     * @return solution map
+     */
     public QuerySolutionMap getAuthorizationParams(Resource absolutePath, Resource agent, Resource accessMode)
     {
         QuerySolutionMap qsm = new QuerySolutionMap();
@@ -164,11 +178,25 @@ public class AuthorizationFilter implements ContainerRequestFilter
         return qsm;
     }
     
+    /**
+     * Returns authorization for the current request.
+     * 
+     * @param request current request
+     * @param agent agent resource or null
+     * @param accessMode ACL access mode
+     * @return authorization resource or null
+     */
     public Resource authorize(ContainerRequestContext request, Resource agent, Resource accessMode)
     {
         return authorize(getAuthorizationParams(ResourceFactory.createResource(request.getUriInfo().getAbsolutePath().toString()), agent, accessMode));
     }
     
+    /**
+     * Authorizes current request by applying solution map on the authorization query and executing it.
+     * 
+     * @param qsm solution map
+     * @return authorization resource or null
+     */
     public Resource authorize(QuerySolutionMap qsm)
     {
         Model authModel = loadAuth(qsm);
@@ -180,6 +208,12 @@ public class AuthorizationFilter implements ContainerRequestFilter
         return authorization;
     }
 
+    /**
+     * Loads authorization model.
+     * 
+     * @param qsm solution map
+     * @return authorization model
+     */
     protected Model loadAuth(QuerySolutionMap qsm)
     {
         if (qsm == null) throw new IllegalArgumentException("QuerySolutionMap cannot be null");
@@ -199,7 +233,7 @@ public class AuthorizationFilter implements ContainerRequestFilter
      * @param pss auth query string
      * @param qsm query solution map (applied to the query string or sent as request params, depending on the protocol)
      * @return authorization graph (can be empty)
-     * @see com.atomgraph.linkeddatahub.vocabulary.APLC#authQuery
+     * @see com.atomgraph.linkeddatahub.vocabulary.LDHC#authQuery
      */
     protected Model loadModel(com.atomgraph.linkeddatahub.model.Service service, ParameterizedSparqlString pss, QuerySolutionMap qsm)
     {
@@ -225,6 +259,15 @@ public class AuthorizationFilter implements ContainerRequestFilter
         }
     }
     
+    /**
+     * Returns resource which has a specified property with a specified value, from the specified model.
+     * If there are multiple matching resources, one is selected in undefined order.
+     * 
+     * @param model model
+     * @param property property
+     * @param value value
+     * @return resource or null, if none matched
+     */
     protected Resource getResourceByPropertyValue(Model model, Property property, RDFNode value)
     {
         if (model == null) throw new IllegalArgumentException("Model cannot be null");
@@ -244,6 +287,11 @@ public class AuthorizationFilter implements ContainerRequestFilter
         return null;
     }
     
+    /**
+     * Returns the SPARQL service for agent data.
+     * 
+     * @return service resource
+     */
     protected Service getAdminService()
     {
         return getApplication().canAs(EndUserApplication.class) ?
@@ -251,26 +299,53 @@ public class AuthorizationFilter implements ContainerRequestFilter
             getApplication().getService();
     }
     
+    /**
+     * Returns currently matched application.
+     * 
+     * @return application resource
+     */
     public com.atomgraph.linkeddatahub.apps.model.Application getApplication()
     {
         return app.get();
     }
 
+    /**
+     * Returns currently matched dataset (optional).
+     * 
+     * @return optional dataset resource
+     */
     public Optional<com.atomgraph.linkeddatahub.apps.model.Dataset> getDataset()
     {
         return dataset.get();
     }
 
+    /**
+     * Returns system application.
+     * 
+     * @return JAX-RS application
+     */
     public com.atomgraph.linkeddatahub.Application getSystem()
     {
         return system;
     }
 
+    /**
+     * Returns authorization query.
+     * Used on end-user applications.
+     * 
+     * @return SPARQL string
+     */
     public ParameterizedSparqlString getAuthQuery()
     {
         return authQuery.copy();
     }
 
+    /**
+     * Returns owner authorization query.
+     * Used on admin applications.
+     * 
+     * @return SPARQL string
+     */
     public ParameterizedSparqlString getOwnerAuthQuery()
     {
         return ownerAuthQuery.copy();

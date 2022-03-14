@@ -29,17 +29,33 @@ public class AuthorizationCreated
     private final Application app;
     private final Resource authorization;
     
+    /**
+     * Constructs the event from application and authorization.
+     * 
+     * @param app associated application
+     * @param authorization associated authorization
+     */
     public AuthorizationCreated(Application app, Resource authorization)
     {
         this.app = app;
         this.authorization = authorization;
     }
     
+    /**
+     * Returns application resource.
+     * 
+     * @return application resource
+     */
     public Application getApplication()
     {
         return app;
     }
     
+    /**
+     * Returns authorization resource
+     * 
+     * @return authorization resource
+     */
     public Resource getAuthorization()
     {
         return authorization;
