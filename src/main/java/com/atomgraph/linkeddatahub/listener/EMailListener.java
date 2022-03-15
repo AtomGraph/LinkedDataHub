@@ -66,6 +66,12 @@ public class EMailListener implements ServletContextListener
             exceptionally(failure(message));
     }
     
+    /**
+     * Invoked when email sending fails to complete.
+     * 
+     * @param message email message
+     * @return void function
+     */
     public static Function<Throwable, Void> failure(final Message message)
     {
         return (Throwable t) ->

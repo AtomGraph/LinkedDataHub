@@ -142,6 +142,12 @@ public class IDTokenFilter extends AuthenticationFilter
         return new IDTokenSecurityContext(getScheme(), agent.addProperty(RDF.type, FOAF.Agent).as(Agent.class), jwtString);
     }
     
+    /**
+     * Retrieves JWT token from the request context.
+     * 
+     * @param request request context
+     * @return token content
+     */
     protected String getJWTToken(ContainerRequestContext request)
     {
         if (request == null) throw new IllegalArgumentException("ContainerRequest cannot be null");

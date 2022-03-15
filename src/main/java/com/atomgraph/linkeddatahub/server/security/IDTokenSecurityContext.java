@@ -19,7 +19,8 @@ package com.atomgraph.linkeddatahub.server.security;
 import com.atomgraph.linkeddatahub.model.Agent;
 
 /**
- *
+ * Security context that carries the OAuth ID token.
+ * 
  * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
  */
 public class IDTokenSecurityContext extends AgentSecurityContext
@@ -27,12 +28,24 @@ public class IDTokenSecurityContext extends AgentSecurityContext
 
     private final String jwtToken;
     
+    /**
+     * Constructs security context from user account and ID token.
+     * 
+     * @param authScheme authentication scheme ID
+     * @param account user account resource
+     * @param jwtToken JWT token content
+     */
     public IDTokenSecurityContext(String authScheme, Agent account, String jwtToken)
     {
         super(authScheme, account);
         this.jwtToken = jwtToken;
     }
     
+    /**
+     * Returns JWT ID token content.
+     * 
+     * @return ID token content
+     */
     public String getJWTToken()
     {
         return jwtToken;

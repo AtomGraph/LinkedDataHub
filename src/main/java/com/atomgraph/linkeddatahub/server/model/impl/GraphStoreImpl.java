@@ -113,6 +113,18 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
     private final MessageDigest messageDigest;
     private final URI ownerDocURI, secretaryDocURI;
 
+    /**
+     * Constructs Graph Store.
+     * 
+     * @param request current request
+     * @param uriInfo URI info of the current request
+     * @param mediaTypes a registry of readable/writable media types
+     * @param application current application
+     * @param ontology ontology of the current application
+     * @param service SPARQL service of the current application
+     * @param providers registry of JAX-RS providers
+     * @param system system application
+     */
     @Inject
     public GraphStoreImpl(@Context Request request, @Context UriInfo uriInfo, MediaTypes mediaTypes,
         com.atomgraph.linkeddatahub.apps.model.Application application, Optional<Ontology> ontology, Optional<Service> service,

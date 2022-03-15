@@ -24,14 +24,12 @@ import java.io.StringReader;
 import org.apache.jena.atlas.web.ContentType;
 import org.apache.jena.riot.Lang;
 import static org.apache.jena.riot.Lang.JSONLD;
-import org.apache.jena.riot.RDFLanguages;
 import org.apache.jena.riot.ReaderRIOTBase;
 import org.apache.jena.riot.RiotParseException;
 import org.apache.jena.riot.system.StreamRDF;
 import org.apache.jena.sparql.util.Context;
 import org.apache.jena.util.FileUtils;
 import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
 import org.jsoup.parser.Parser;
 import org.jsoup.select.Elements;
 
@@ -47,11 +45,22 @@ public class HtmlJsonLDReader extends ReaderRIOTBase
     private final JsonLDReader jsonLDReader;
     private final JsonLdOptions options;
     
+    /**
+     * Constructs JSON-LD-in-HTML reader.
+     * 
+     * @param jsonLDReader JSON-LD reader
+     */
     public HtmlJsonLDReader(JsonLDReader jsonLDReader)
     {
         this(jsonLDReader, null);
     }
     
+    /**
+     * Constructs JSON-LD-in-HTML reader.
+     * 
+     * @param jsonLDReader JSON-LD reader
+     * @param options JSON-LD reader options
+     */
     public HtmlJsonLDReader(JsonLDReader jsonLDReader, JsonLdOptions options)
     {
         this.jsonLDReader = jsonLDReader;
@@ -61,16 +70,24 @@ public class HtmlJsonLDReader extends ReaderRIOTBase
     @Override
     public void read(InputStream in, String baseURI, Lang lang, StreamRDF output, Context context)
     {
-        read(FileUtils.asBufferedUTF8(in), baseURI, lang, output, context);
+        read(FileUtils.asBufferedUTF8(in), baseURI, output, context);
     }
     
     @Override
     public void read(Reader in, String baseURI, ContentType ct, StreamRDF output, Context context)
     {
-        read(in, baseURI, RDFLanguages.contentTypeToLang(ct), output, context);
+        read(in, baseURI, output, context);
     }
     
-    public void read(Reader in, String baseURI, Lang lang, StreamRDF output, Context context)
+    /**
+     * Reads JSON-LD data from the HTML <code>&lt;script&gt;</code> element.
+     * 
+     * @param in HTML input stream
+     * @param baseURI base URI
+     * @param output RDF output stream
+     * @param context JSON-LD reader context
+     */
+    public void read(Reader in, String baseURI, StreamRDF output, Context context)
     {
         Document html = Parser.htmlParser().parseInput(in, baseURI);
         Elements jsonLdElements = html.selectXpath("/html//script[@type = 'application/ld+json']");
@@ -80,18 +97,26 @@ public class HtmlJsonLDReader extends ReaderRIOTBase
         context.set(JSONLD_OPTIONS, getJsonLdOptions());
         
         // read from all <script type="application/ld+json"> elements
-        for (Element element : jsonLdElements)
-        {
-            String jsonLd = element.data();
+        jsonLdElements.stream().map(element -> element.data()).forEach(jsonLd -> {
             getJsonLDReader().read(new StringReader(jsonLd), baseURI, JSONLD.getContentType(), output, context);
-        }
+        });
     }
 
+    /**
+     * Returns JSON-LD reader.
+     * 
+     * @return reader
+     */
     public JsonLDReader getJsonLDReader()
     {
         return jsonLDReader;
     }
     
+    /**
+     * Returns JSON-LD reader options.
+     * 
+     * @return reader options
+     */
     public JsonLdOptions getJsonLdOptions()
     {
         return options;

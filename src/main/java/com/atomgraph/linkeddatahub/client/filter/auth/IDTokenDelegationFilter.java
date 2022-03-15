@@ -24,7 +24,8 @@ import javax.ws.rs.core.HttpHeaders;
 import com.atomgraph.linkeddatahub.server.filter.request.auth.IDTokenFilter;
 
 /**
- *
+ * A client request filter that delegates JWT ID token using a cookie.
+ * 
  * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
  */
 public class IDTokenDelegationFilter implements ClientRequestFilter
@@ -34,6 +35,13 @@ public class IDTokenDelegationFilter implements ClientRequestFilter
     private final String path;
     private final String domain;
     
+    /**
+     * Constructs JWT ID token delegation filter.
+     * 
+     * @param jwtToken JWT ID token
+     * @param path cookie path
+     * @param domain cookie domain
+     */
     public IDTokenDelegationFilter(String jwtToken, String path, String domain)
     {
         this.jwtToken = jwtToken;
@@ -48,16 +56,31 @@ public class IDTokenDelegationFilter implements ClientRequestFilter
         cr.getHeaders().add(HttpHeaders.COOKIE, jwtCookie.toString());
     }
     
+    /**
+     * Returns JWT ID token content.
+     * 
+     * @return token as string
+     */
     public String getJwtToken()
     {
         return jwtToken;
     }
 
+    /**
+     * Path of the cookied.
+     * 
+     * @return URL path string
+     */
     public String getPath()
     {
         return path;
     }
 
+    /**
+     * Domain of the cookie.
+     * 
+     * @return domain as string
+     */
     public String getDomain()
     {
         return domain;

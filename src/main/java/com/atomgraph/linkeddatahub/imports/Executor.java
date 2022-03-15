@@ -369,6 +369,11 @@ public class Executor
             method("BAN", Response.class);
     }
     
+    /**
+     * Returns executor service that contains a thread pool.
+     * 
+     * @return service
+     */
     protected ExecutorService getExecutorService()
     {
         return execService;

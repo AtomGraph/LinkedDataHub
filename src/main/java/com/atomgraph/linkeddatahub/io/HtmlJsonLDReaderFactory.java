@@ -35,16 +35,28 @@ public class HtmlJsonLDReaderFactory implements ReaderRIOTFactory
     private final JsonLDReader jsonLDReader;
     private final JsonLdOptions options;
 
+    /** HTML as RDF language */
     // TO-DO: move to RDFLanguages
     public static final Lang HTML = LangBuilder.create("HTML", MediaType.TEXT_HTML).
             addFileExtensions("html").
             build();
     
+    /**
+     * Constructs JSON-LD-in-RDF reader.
+     * 
+     * @param jsonLDReader JSON-LD reader
+     */
     public HtmlJsonLDReaderFactory(JsonLDReader jsonLDReader)
     {
         this(jsonLDReader, null);
     }
     
+    /**
+     * Constructs JSON-LD-in-RDF reader with options.
+     * 
+     * @param jsonLDReader JSON-LD reader
+     * @param options JSON-LD reader options
+     */
     public HtmlJsonLDReaderFactory(JsonLDReader jsonLDReader, JsonLdOptions options)
     {
         this.jsonLDReader = jsonLDReader;
@@ -60,11 +72,21 @@ public class HtmlJsonLDReaderFactory implements ReaderRIOTFactory
         return new HtmlJsonLDReader(getJsonLDReader(), getJsonLdOptions());
     }
 
+    /**
+     * Returns JSON-LD reader.
+     * 
+     * @return reader
+     */
     public JsonLDReader getJsonLDReader()
     {
         return jsonLDReader;
     }
     
+    /**
+     * Returns JSON-LD reader options.
+     * 
+     * @return reader options
+     */
     public JsonLdOptions getJsonLdOptions()
     {
         return options;

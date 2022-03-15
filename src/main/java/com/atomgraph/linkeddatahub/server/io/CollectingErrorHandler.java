@@ -75,6 +75,14 @@ public class CollectingErrorHandler implements org.apache.jena.riot.system.Error
         private final String message;
         private final long line, col;
         
+        /**
+         * Constructs violation.
+         * 
+         * @param level severity level
+         * @param message message
+         * @param line line number
+         * @param col column number
+         */
         public Violation(int level, String message, long line, long col)
         {
             this.level = level;
