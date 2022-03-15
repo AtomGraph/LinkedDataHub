@@ -26,10 +26,9 @@ import javax.ws.rs.core.Response;
 import org.apache.jena.rdf.model.Model;
 
 /**
- * This client queues GSP requests so that we can avoid "Graph import failed" error on concurrent updates.
+ * SPARQL Graph Store Protocol client.
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
- * @see <a href="https://api.dydra.com/graphstore/asynchronous.html">Asynchronous Processing</a>
  */
 public class GraphStoreClient extends com.atomgraph.core.client.GraphStoreClient
 {
@@ -44,11 +43,24 @@ public class GraphStoreClient extends com.atomgraph.core.client.GraphStoreClient
         this(endpoint, new MediaTypes());
     }
 
+    /**
+     * Creates client from the specified endpoint URI and media types.
+     * 
+     * @param endpoint target endpoint URI
+     * @param mediaTypes registry of readable/writable media types
+     * @return client
+     */
     public static GraphStoreClient create(WebTarget endpoint, MediaTypes mediaTypes)
     {
         return new GraphStoreClient(endpoint, mediaTypes);
     }
 
+    /**
+     * Creates client from the specified endpoint.
+     * 
+     * @param endpoint target endpoint URI
+     * @return client
+     */
     public static GraphStoreClient create(WebTarget endpoint)
     {
         return new GraphStoreClient(endpoint);

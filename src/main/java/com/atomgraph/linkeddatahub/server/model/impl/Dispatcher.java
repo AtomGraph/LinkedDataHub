@@ -46,6 +46,12 @@ public class Dispatcher
     private final UriInfo uriInfo;
     private final Optional<Dataset> dataset;
     
+    /**
+     * Constructs resource which dispatches requests to sub-resources.
+     * 
+     * @param uriInfo URI info
+     * @param dataset optional dataset
+     */
     @Inject
     public Dispatcher(@Context UriInfo uriInfo, Optional<Dataset> dataset)
     {

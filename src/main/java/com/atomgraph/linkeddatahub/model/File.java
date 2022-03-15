@@ -27,11 +27,26 @@ import org.apache.jena.rdf.model.Resource;
  */
 public interface File extends Resource
 {
-    
+    /**
+     * Returns MIME type of the file as URI resource.
+     * 
+     * @return MIME type resource
+     * @see com.atomgraph.linkeddatahub.MediaType#toResource
+     */
     Resource getFormat();
 
+    /**
+     * Returns JAX-RS media type.
+     * 
+     * @return media type
+     */
     MediaType getMediaType();
 
+    /**
+     * Returns SHA1 hash of the file content.
+     * 
+     * @return hash string
+     */
     String getSHA1Hash();
     
 }

@@ -37,6 +37,9 @@ import org.apache.jena.vocabulary.RDF;
 public class FileImpl extends ResourceImpl implements File
 {
     
+    /**
+     * Returns a Jena implementation for this class.
+     */
     public static Implementation factory = new Implementation() 
     {
         
@@ -62,6 +65,12 @@ public class FileImpl extends ResourceImpl implements File
         }
     };
     
+    /**
+     * Constructs agent instance from graph node.
+     * 
+     * @param n node
+     * @param g graph
+     */
     public FileImpl(Node n, EnhGraph g)
     {
         super(n, g);

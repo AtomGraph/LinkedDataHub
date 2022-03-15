@@ -75,21 +75,41 @@ public class Executor
 
     private static final Logger log = LoggerFactory.getLogger(Executor.class);
 
+    /** CSV media type */
     public static final javax.ws.rs.core.MediaType TEXT_CSV_TYPE = MediaType.valueOf("text/csv");
+    /** MS Excel media type */
     public static final javax.ws.rs.core.MediaType VNDMS_EXCEL_TYPE = MediaType.valueOf("application/vnd.ms-excel; q=0.4");
+    /** Fallback media type */
     public static final javax.ws.rs.core.MediaType OCTET_STREAM_TYPE = MediaType.valueOf("application/octet-stream; q=0.1");
+    /** An array of supported CSV media types */
     public static final javax.ws.rs.core.MediaType[] CSV_MEDIA_TYPES = { TEXT_CSV_TYPE, VNDMS_EXCEL_TYPE, OCTET_STREAM_TYPE };
+    /** An array of supported RDF media types */
     public static final javax.ws.rs.core.MediaType[] RDF_MEDIA_TYPES = Stream.concat(MediaTypes.READABLE.get(Model.class).stream(), MediaTypes.READABLE.get(Dataset.class).stream()).
         collect(Collectors.toList()).
         toArray(new javax.ws.rs.core.MediaType[0]);
 
-    private final ExecutorService threadPool;
+    private final ExecutorService execService;
 
-    public Executor(ExecutorService threadPool)
+    /**
+     * Construct executor from thread pool.
+     * 
+     * @param execService thread pool service
+     */
+    public Executor(ExecutorService execService)
     {
-        this.threadPool = threadPool;
+        this.execService = execService;
     }
     
+    /**
+     * Executes CSV import.
+     * 
+     * @param csvImport CSV import resource
+     * @param service application's SPARQL service
+     * @param adminService admin application's SPARQL service
+     * @param baseURI application's base URI
+     * @param dataManager RDF data manager
+     * @param graphStoreClient GSP client
+     */
     public void start(CSVImport csvImport, Service service, Service adminService, String baseURI, DataManager dataManager, GraphStoreClient graphStoreClient)
     {
         if (csvImport == null) throw new IllegalArgumentException("CSVImport cannot be null");
@@ -111,6 +131,17 @@ public class Executor
             thenAcceptAsync(success(csvImport, provImport, service, adminService, dataManager), getExecutorService()).
             exceptionally(failure(csvImport, provImport, service));
     }
+
+    /**
+     * Executes RDF import.
+     * 
+     * @param rdfImport RDF import resource
+     * @param service application's SPARQL service
+     * @param adminService admin application's SPARQL service
+     * @param baseURI application's base URI
+     * @param dataManager RDF data manager
+     * @param graphStoreClient GSP client
+     */
 
     public void start(RDFImport rdfImport, Service service, Service adminService, String baseURI, DataManager dataManager, GraphStoreClient graphStoreClient)
     {
@@ -279,7 +310,7 @@ public class Executor
     
     protected ExecutorService getExecutorService()
     {
-        return threadPool;
+        return execService;
     }
     
 }
