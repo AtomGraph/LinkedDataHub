@@ -57,9 +57,6 @@ public class ServiceFactory implements Factory<Optional<Service>>
         Application app = (Application)crc.getProperty(LAPP.Application.getURI());
         Service service = app.getService();
 
-        // cast to specific implementations
-        if (service.canAs(com.atomgraph.linkeddatahub.model.DydraService.class)) service = service.as(com.atomgraph.linkeddatahub.model.DydraService.class);
-
         return Optional.of(service);
     }
     

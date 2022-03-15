@@ -48,10 +48,10 @@ public class CSVGraphStoreOutputWriter implements Function<Response, CSVGraphSto
     /**
      * Constructs output writer.
      * 
-     * @param graphStoreClient
-     * @param baseURI
-     * @param query
-     * @param delimiter 
+     * @param graphStoreClient GSP client
+     * @param baseURI base URI
+     * @param query transformation query
+     * @param delimiter CSV delimiter
      */
     public CSVGraphStoreOutputWriter(GraphStoreClient graphStoreClient, String baseURI, Query query, char delimiter)
     {

@@ -34,24 +34,16 @@ import org.apache.jena.rdf.model.impl.ResourceImpl;
 public class DatasetImpl extends ResourceImpl implements Dataset
 {
 
+    /**
+     * Constructs agent instance from graph node.
+     * 
+     * @param n node
+     * @param g graph
+     */
     public DatasetImpl(Node n, EnhGraph g)
     {
         super(n, g);
     }
-        
-//    @Override
-//    public Resource getBase()
-//    {
-//        return getPropertyResourceValue(LDT.base);
-//    }
-//    
-//    @Override
-//    public URI getBaseURI()
-//    {
-//        if (getBase() != null) return URI.create(getBase().getURI());
-//        
-//        return null;
-//    }
 
     @Override
     public Resource getPrefix()

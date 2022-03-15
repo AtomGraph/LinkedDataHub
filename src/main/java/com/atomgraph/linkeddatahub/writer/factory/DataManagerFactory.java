@@ -68,6 +68,11 @@ public class DataManagerFactory implements Factory<DataManager>
     {
     }
     
+    /**
+     * Returns RDF data manager.
+     * 
+     * @return data manager
+     */
     public DataManager getDataManager()
     {
         return getDataManager(LocationMapper.get(), getClient(), getMediaTypes(),
@@ -75,6 +80,18 @@ public class DataManagerFactory implements Factory<DataManager>
                 URI.create(getHttpServletRequest().getRequestURL().toString()).resolve(getHttpServletRequest().getContextPath() + "/"));
     }
     
+    /**
+     * Constructs and returns an RDF data manager instance.
+     * 
+     * @param mapper location mapper
+     * @param client HTTP client
+     * @param mediaTypes media type registry
+     * @param preemptiveAuth true if HTTP basic auth is sent preemptively
+     * @param resolvingUncached true if uncached URLs are resolved
+     * @param securityContext JAX-RS security context
+     * @param rootContextURI root URI of the JAX-RS application
+     * @return data manager
+     */
     public DataManager getDataManager(LocationMapper mapper, Client client, MediaTypes mediaTypes,
             boolean preemptiveAuth, boolean resolvingUncached,
             SecurityContext securityContext,

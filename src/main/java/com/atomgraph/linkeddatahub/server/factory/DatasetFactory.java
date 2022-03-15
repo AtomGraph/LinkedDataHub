@@ -52,11 +52,22 @@ public class DatasetFactory implements Factory<Optional<Dataset>>
     {
     }
     
+    /**
+     * Retrieves dataset from the request context.
+     * 
+     * @param crc request context
+     * @return dataset resource
+     */
     public Optional<Dataset> getApplication(ContainerRequestContext crc)
     {
         return (Optional<Dataset>)crc.getProperty(LAPP.Dataset.getURI());
     }
     
+    /**
+     * Returns request context.
+     * 
+     * @return request context
+     */
     public ContainerRequestContext getContainerRequestContext()
     {
         return serviceLocator.getService(ContainerRequestContext.class);

@@ -66,6 +66,9 @@ public class CollectingErrorHandler implements org.apache.jena.riot.system.Error
         return Collections.unmodifiableList(violations);
     }
 
+    /**
+     * A class that represents an RDF syntax violation.
+     */
     public class Violation
     {
         private final int level;

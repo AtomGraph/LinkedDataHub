@@ -56,8 +56,10 @@ public class Dispatcher
     /**
      * Returns JAX-RS resource that will handle this request.
      * The request is proxied in two cases:
-     * - externally (URI specified by the <code>?uri</code> query param)
-     * - internally if it matches a <code>lapp:Dataset</code> specified in the system app config
+     * <ul>
+     *   <li>externally (URI specified by the <code>?uri</code> query param)</li>
+     *   <li>internally if it matches a <code>lapp:Dataset</code> specified in the system app config</li>
+     * </ul>
      * Otherwise, fall back to SPARQL Graph Store backed by the app's service.
      * 
      * @return resource
@@ -81,66 +83,116 @@ public class Dispatcher
     
     // TO-DO: move @Path annotations onto respective classes?
     
+    /**
+     * Returns SPARQL protocol endpoint.
+     * 
+     * @return endpoint resource
+     */
     @Path("sparql")
     public Object getSPARQLEndpoint()
     {
         return SPARQLEndpointImpl.class;
     }
 
+    /**
+     * Returns Graph Store Protocol endpoint.
+     * 
+     * @return endpoint resource
+     */
     @Path("service")
     public Object getGraphStore()
     {
         return GraphStoreImpl.class;
     }
 
+    /**
+     * Returns SPARQL endpoint for the in-memory ontology model.
+     * 
+     * @return endpoint resource
+     */
     @Path("ns")
     public Object getOntology()
     {
         return Namespace.class;
     }
 
-    @Path("ns/{slug}/")
-    public Object getSubOntology()
-    {
-        return Namespace.class;
-    }
+//    @Path("ns/{slug}/")
+//    public Object getSubOntology()
+//    {
+//        return Namespace.class;
+//    }
 
+    /**
+     * Returns ontology item resource.
+     * 
+     * @return item resource
+     */
     @Path("{container}/ontologies/{uuid}/")
     public Object getOntologyItem()
     {
         return com.atomgraph.linkeddatahub.resource.ontology.Item.class;
     }
     
+    /**
+     * Returns signup endpoint.
+     * 
+     * @return endpoint resource
+     */
     @Path("sign up")
     public Object getSignUp()
     {
         return SignUp.class;
     }
     
+    /**
+     * Returns the ACL access request endpoint.
+     * 
+     * @return endpoint resource
+     */
     @Path("request access")
     public Object getRequestAccess()
     {
         return RequestAccess.class;
     }
 
+    /**
+     * Returns content-addressed file item resource.
+     * 
+     * @return resource
+     */
     @Path("uploads/{sha1sum}/")
     public Object getFileItem()
     {
         return com.atomgraph.linkeddatahub.resource.upload.sha1.Item.class;
     }
     
+    /**
+     * Returns the endpoint for asynchronous CSV and RDF imports.
+     * 
+     * @return endpoint resource
+     */
     @Path("imports")
     public Object getImportEndpoint()
     {
         return Imports.class;
     }
 
+    /**
+     * Returns the endpoint for synchronous RDF imports.
+     * 
+     * @return endpoint resource
+     */
     @Path("add")
     public Object getAddEndpoint()
     {
         return Add.class;
     }
     
+    /**
+     * Returns the endpoint for cloning (copying) of external RDF documents.
+     * 
+     * @return endpoint resource
+     */
     @Path("clone")
     public Object getCloneEndpoint()
     {
@@ -153,28 +205,53 @@ public class Dispatcher
 //        return Skolemize.class;
 //    }
     
+    /**
+     * Returns Google OAuth endpoint.
+     * 
+     * @return endpoint resource
+     */
     @Path("oauth2/authorize/google")
     public Object getAuthorizeGoogle()
     {
         return com.atomgraph.linkeddatahub.resource.oauth2.google.Authorize.class;
     }
 
+    /**
+     * Returns OAuth login endpoint.
+     * 
+     * @return endpoint resource
+     */
     @Path("oauth2/login")
     public Object getOAuth2Login()
     {
         return com.atomgraph.linkeddatahub.resource.oauth2.Login.class;
     }
     
+    /**
+     * Returns the default JAX-RS resource class.
+     * 
+     * @return resource class
+     */
     public Class getResourceClass()
     {
         return Item.class;
     }
     
+    /**
+     * Returns request URI information.
+     * 
+     * @return URI info
+     */
     public UriInfo getUriInfo()
     {
         return uriInfo;
     }
 
+    /**
+     * Returns the matched dataset (optional).
+     * 
+     * @return optional dataset
+     */
     public Optional<Dataset> getDataset()
     {
         return dataset;
