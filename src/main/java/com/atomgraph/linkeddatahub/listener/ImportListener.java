@@ -56,6 +56,16 @@ public class ImportListener implements ServletContextListener
         THREAD_POOL.shutdown();
     }
 
+    /**
+     * Submits CSV import for asynchronous execution.
+     * 
+     * @param csvImport import resource
+     * @param service current SPARQL service
+     * @param adminService current admin SPARQL service
+     * @param baseURI application's base URI
+     * @param dataManager data manager
+     * @param gsc GSP client
+     */
     public static void submit(CSVImport csvImport, Service service, Service adminService, String baseURI, DataManager dataManager, GraphStoreClient gsc)
     {
         if (csvImport == null) throw new IllegalArgumentException("CSVImport cannot be null");
@@ -64,6 +74,16 @@ public class ImportListener implements ServletContextListener
         new Executor(THREAD_POOL).start(csvImport, service, adminService, baseURI, dataManager, gsc);
     }
 
+    /**
+     * Submits RDF import for asynchronous execution.
+     * 
+     * @param rdfImport import resource
+     * @param service current SPARQL service
+     * @param adminService current admin SPARQL service
+     * @param baseURI application's base URI
+     * @param dataManager data manager
+     * @param gsc GSP client
+     */
     public static void submit(RDFImport rdfImport, Service service, Service adminService, String baseURI, DataManager dataManager, GraphStoreClient gsc)
     {
         if (rdfImport == null) throw new IllegalArgumentException("RDFImport cannot be null");

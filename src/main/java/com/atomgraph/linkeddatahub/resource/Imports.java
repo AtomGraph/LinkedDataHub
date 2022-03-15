@@ -63,6 +63,20 @@ public class Imports extends GraphStoreImpl
     private final URI uri;
     private final DataManager dataManager;
 
+    /**
+     * Constructs endpoint for asynchronous CSV and RDF data imports.
+     * 
+     * @param request current request
+     * @param uriInfo current URI info
+     * @param mediaTypes supported media types
+     * @param application matched application
+     * @param ontology matched application's ontology
+     * @param service matched application's service
+     * @param dataManager RDF data manager
+     * @param providers JAX-RS providers
+     * @param system system application 
+     * @param servletConfig servlet config
+     */
     @Inject
     public Imports(@Context Request request, @Context UriInfo uriInfo, MediaTypes mediaTypes,
             com.atomgraph.linkeddatahub.apps.model.Application application, Optional<Ontology> ontology, Optional<Service> service,
@@ -75,6 +89,11 @@ public class Imports extends GraphStoreImpl
         if (log.isDebugEnabled()) log.debug("Constructing {}", getClass());
     }
 
+    /**
+     * Returns item as JAX-RS sub-resource.
+     * 
+     * @return item class
+     */
     @Path("{path: .*}")
     public Object getSubResource()
     {
@@ -135,11 +154,21 @@ public class Imports extends GraphStoreImpl
         return constructor;
     }
     
+    /**
+     * Returns URI of this resource.
+     * 
+     * @return URI
+     */
     public URI getURI()
     {
         return uri;
     }
  
+    /**
+     * Returns RDF data manager.
+     * 
+     * @return data manager
+     */
     public DataManager getDataManager()
     {
         return dataManager;

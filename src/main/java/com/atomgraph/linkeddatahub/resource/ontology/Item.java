@@ -24,7 +24,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.Providers;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.model.Service;
-import com.atomgraph.client.util.DataManager;
 import com.atomgraph.linkeddatahub.vocabulary.LSMT;
 import java.util.Optional;
 import javax.annotation.PostConstruct;
@@ -54,10 +53,21 @@ public class Item extends com.atomgraph.linkeddatahub.resource.graph.Item
 
     private final Resource resource;
     
+    /**
+     * Constructs endpoint.
+     * 
+     * @param request current request
+     * @param uriInfo URI information of the current request
+     * @param mediaTypes a registry of readable/writable media types
+     * @param application current application
+     * @param ontology ontology of the current application
+     * @param service SPARQL service of the current application
+     * @param providers JAX-RS provider registry
+     * @param system system application
+     */
     @Inject
     public Item(@Context Request request, @Context UriInfo uriInfo, MediaTypes mediaTypes,
             com.atomgraph.linkeddatahub.apps.model.Application application, Optional<Ontology> ontology, Optional<Service> service,
-            DataManager dataManager,
             @Context Providers providers, com.atomgraph.linkeddatahub.Application system)
     {
         super(request, uriInfo, mediaTypes, application, ontology, service, providers, system);
@@ -65,6 +75,9 @@ public class Item extends com.atomgraph.linkeddatahub.resource.graph.Item
         if (log.isDebugEnabled()) log.debug("Constructing {}", getClass());
     }
     
+    /**
+     * Post-construct initialization of resource.
+     */
     @PostConstruct
     public void init()
     {
@@ -101,6 +114,11 @@ public class Item extends com.atomgraph.linkeddatahub.resource.graph.Item
         return super.post(model, false, getURI());
     }
 
+    /**
+     * Returns RDF resource for this ontology document.
+     * 
+     * @return RDF resource
+     */
     public Resource getResource()
     {
         return resource;

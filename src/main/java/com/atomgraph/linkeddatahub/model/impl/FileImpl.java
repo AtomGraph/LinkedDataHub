@@ -31,7 +31,8 @@ import org.apache.jena.vocabulary.DCTerms;
 import org.apache.jena.vocabulary.RDF;
 
 /**
- *
+ * File implementation.
+ * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
 public class FileImpl extends ResourceImpl implements File

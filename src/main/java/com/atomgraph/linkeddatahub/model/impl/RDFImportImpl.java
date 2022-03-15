@@ -29,12 +29,16 @@ import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.RDF;
 
 /**
- *
+ * RDF import implementation.
+ * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
 public class RDFImportImpl extends ImportImpl implements RDFImport
 {
     
+    /**
+     * The implementation factory.
+     */
     public static Implementation factory = new Implementation() 
     {
         
@@ -60,6 +64,12 @@ public class RDFImportImpl extends ImportImpl implements RDFImport
         }
     };
     
+    /**
+     * Constructs agent instance from graph node.
+     * 
+     * @param n node
+     * @param g graph
+     */
     public RDFImportImpl(Node n, EnhGraph g)
     {
         super(n, g);

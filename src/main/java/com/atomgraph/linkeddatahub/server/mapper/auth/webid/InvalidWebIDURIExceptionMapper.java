@@ -33,6 +33,11 @@ import org.apache.jena.rdf.model.ResourceFactory;
 public class InvalidWebIDURIExceptionMapper extends ExceptionMapperBase implements ExceptionMapper<InvalidWebIDURIException>
 {
 
+    /**
+     * Constructs exception from media type registry.
+     * 
+     * @param mediaTypes registry of readable/writable media types
+     */
     @Inject
     public InvalidWebIDURIExceptionMapper(MediaTypes mediaTypes)
     {

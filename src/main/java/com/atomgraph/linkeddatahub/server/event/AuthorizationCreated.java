@@ -20,7 +20,8 @@ import com.atomgraph.linkeddatahub.apps.model.Application;
 import org.apache.jena.rdf.model.Resource;
 
 /**
- *
+ * Event that signals that a new ACL authorization is created.
+ * 
  * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
  */
 public class AuthorizationCreated

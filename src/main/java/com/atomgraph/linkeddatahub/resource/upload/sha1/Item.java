@@ -21,7 +21,6 @@ import javax.ws.rs.core.Request;
 import javax.ws.rs.ext.Providers;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.model.Service;
-import com.atomgraph.client.util.DataManager;
 import java.util.Optional;
 import javax.inject.Inject;
 import javax.ws.rs.core.EntityTag;
@@ -45,10 +44,9 @@ public class Item extends com.atomgraph.linkeddatahub.resource.upload.Item
     @Inject
     public Item(@Context Request request, @Context UriInfo uriInfo, MediaTypes mediaTypes,
             com.atomgraph.linkeddatahub.apps.model.Application application, Optional<Ontology> ontology, Optional<Service> service, 
-            DataManager dataManager,
             @Context Providers providers, com.atomgraph.linkeddatahub.Application system)
     {
-        super(request, uriInfo, mediaTypes, application, ontology, service, dataManager, providers, system);
+        super(request, uriInfo, mediaTypes, application, ontology, service, providers, system);
         if (log.isDebugEnabled()) log.debug("Constructing {}", getClass());
     }
     

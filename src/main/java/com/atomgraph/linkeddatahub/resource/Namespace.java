@@ -45,7 +45,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * JAX-RS resource that handles namespace item requests.
+ * JAX-RS resource that serves in-memory ontology as a SPARQL endpoint.
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
@@ -56,6 +56,15 @@ public class Namespace extends SPARQLEndpointImpl
 
     private final Ontology ontology;
     
+    /**
+     * Constructs endpoint.
+     * 
+     * @param request current request
+     * @param service SPARQL service
+     * @param ontology ontology of the current application
+     * @param mediaTypes registry of readable/writable media types
+     * @param system system application
+     */
     @Inject
     public Namespace(@Context Request request, Optional<Service> service, Optional<Ontology> ontology, MediaTypes mediaTypes, com.atomgraph.linkeddatahub.Application system)
     {

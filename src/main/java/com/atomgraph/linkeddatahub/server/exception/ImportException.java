@@ -28,12 +28,23 @@ public class ImportException extends RuntimeException
     
     private final Model model;
     
+    /**
+     * Constructs exception.
+     * 
+     * @param message error message
+     * @param model import model
+     */
     public ImportException(String message, Model model)
     {
         super(message);
         this.model = model;
     }
     
+    /**
+     * Returns the import model.
+     * 
+     * @return RDF model
+     */
     public Model getModel()
     {
         return model;

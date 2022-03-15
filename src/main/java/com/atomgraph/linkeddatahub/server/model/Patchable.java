@@ -28,6 +28,13 @@ import org.apache.jena.update.UpdateRequest;
 public interface Patchable
 {
     
+    /**
+     * Handles <code>PATCH</code> request.
+     * SPARQL update is used as the patch format.
+     * 
+     * @param updateRequest SPARQL update
+     * @return response
+     */
     @PATCH Response patch(UpdateRequest updateRequest);
     
 }

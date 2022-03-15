@@ -75,7 +75,7 @@ public class Add extends GraphStoreImpl // TO-DO: does not need to extend GraphS
     private final Optional<AgentContext> agentContext;
     
     /**
-     * Constructs this resource.
+     * Constructs endpoint for synchronous RDF data imports.
      * 
      * @param request current request
      * @param uriInfo current URI info

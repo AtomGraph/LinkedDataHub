@@ -42,7 +42,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- *
+ * JAX-RS resource that handles Google authorization requests.
+ * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
 @Path("oauth2/authorize/google")
@@ -50,21 +51,13 @@ public class Authorize // extends ResourceBase
 {
     private static final Logger log = LoggerFactory.getLogger(Authorize.class);
     
-    /**
-     * Google's OAuth endpoint URL
-     */
+    /** Google's OAuth endpoint URL */
     public static final String ENDPOINT_URI = "https://accounts.google.com/o/oauth2/v2/auth";
-    /**
-     * OAuth authorization scope
-     */
+    /** OAuth authorization scope */
     public static final String SCOPE = "openid email profile";
-    /**
-     * JWT cookie name
-     */
+    /** JWT cookie name */
     public static final String COOKIE_NAME = "LinkedDataHub.state";
-    /**
-     * URL parameter name
-     */
+    /** URL parameter name */
     public static final String REFERER_PARAM_NAME = "referer";
 
     private final UriInfo uriInfo;

@@ -49,7 +49,9 @@ import org.apache.jena.update.UpdateRequest;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 
 /**
- *
+ * JAX-RS resource that handles requests to directly-identified named graphs.
+ * Direct identification is specified in the Graph Store Protocol.
+ * 
  * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
  */
 public class Item extends GraphStoreImpl implements Patchable
@@ -58,6 +60,18 @@ public class Item extends GraphStoreImpl implements Patchable
     private final URI uri;
     private final EndpointAccessor endpointAccessor;
     
+    /**
+     * Constructs resource.
+     * 
+     * @param request current request
+     * @param uriInfo URI information of the current request
+     * @param mediaTypes a registry of readable/writable media types
+     * @param application current application
+     * @param ontology ontology of the current application
+     * @param service SPARQL service of the current application
+     * @param providers JAX-RS provider registry
+     * @param system system application
+     */
     @Inject
     public Item(@Context Request request, @Context UriInfo uriInfo, MediaTypes mediaTypes,
         com.atomgraph.linkeddatahub.apps.model.Application application, Optional<Ontology> ontology, Optional<Service> service,
@@ -143,11 +157,21 @@ public class Item extends GraphStoreImpl implements Patchable
         return super.getWritableMediaTypes(clazz);
     }
     
+    /**
+     * Returns the named graph URI.
+     * 
+     * @return graph URI
+     */
     public URI getURI()
     {
         return uri;
     }
     
+    /**
+     * Returns SPARQL endpoint accessor.
+     * 
+     * @return endpoint accessor
+     */
     public EndpointAccessor getEndpointAccessor()
     {
         return endpointAccessor;

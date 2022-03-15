@@ -32,6 +32,11 @@ import org.apache.jena.rdf.model.ResourceFactory;
 public class HttpHostConnectExceptionMapper extends ExceptionMapperBase implements ExceptionMapper<HttpHostConnectException>
 {
 
+    /**
+     * Constructs mapper from media type registry.
+     * 
+     * @param mediaTypes registry of readable/writable media types
+     */
     @Inject
     public HttpHostConnectExceptionMapper(MediaTypes mediaTypes)
     {

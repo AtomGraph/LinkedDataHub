@@ -82,7 +82,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- *
+ * JAX-RS resource that handles OAuth login.
+ * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
 @Path("oauth2/login")
@@ -91,8 +92,11 @@ public class Login extends GraphStoreImpl
 
     private static final Logger log = LoggerFactory.getLogger(Login.class);
 
+    /** OAuth token endpoint URL */
     public static final String TOKEN_ENDPOINT = "https://oauth2.googleapis.com/token";
+    /** User info endpoint URL */
     public static final String USER_INFO_ENDPOINT = "https://openidconnect.googleapis.com/v1/userinfo";
+    /** Relative path to the user container */
     public static final String ACCOUNT_PATH = "acl/users/";
 
     private final HttpHeaders httpHeaders;
@@ -101,6 +105,20 @@ public class Login extends GraphStoreImpl
     private final Query userAccountQuery;
     private final String clientID, clientSecret;
     
+    /**
+     * Constructs endpoint.
+     * 
+     * @param request current request
+     * @param uriInfo URI information of the current request
+     * @param mediaTypes a registry of readable/writable media types
+     * @param httpHeaders HTTP headers
+     * @param application current application
+     * @param ontology ontology of the current application
+     * @param service SPARQL service of the current application
+     * @param providers JAX-RS provider registry
+     * @param system system application
+     * @param servletConfig servlet config
+     */
     @Inject
     public Login(@Context Request request, @Context UriInfo uriInfo, MediaTypes mediaTypes, @Context HttpHeaders httpHeaders,
             com.atomgraph.linkeddatahub.apps.model.Application application, Optional<Ontology> ontology, Optional<Service> service,

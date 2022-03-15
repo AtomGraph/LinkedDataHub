@@ -234,8 +234,11 @@ public class JsonLDReader implements ReaderRIOT
         return ctx;
     }
 
+    /** Constant for literal values */
     public static String LITERAL    = "literal" ;
+    /** Constant for blank node values */
     public static String BLANK_NODE = "blank node" ;
+    /** Constant for IRI values */
     public static String IRI        = "IRI" ;
 
     private Node createNode(Map<String, Object> tripleMap, String key) {

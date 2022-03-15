@@ -19,7 +19,8 @@ package com.atomgraph.linkeddatahub.model;
 import org.apache.jena.rdf.model.Resource;
 
 /**
- *
+ * RDF data import.
+ * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
 public interface RDFImport extends Import

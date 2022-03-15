@@ -37,6 +37,11 @@ import org.apache.jena.vocabulary.RDF;
 public class InvalidWebIDPublicKeyExceptionMapper extends ExceptionMapperBase implements ExceptionMapper<InvalidWebIDPublicKeyException>
 {
 
+    /**
+     * Constructs mapper from media types.
+     * 
+     * @param mediaTypes registry of readable/writable media types
+     */
     @Inject
     public InvalidWebIDPublicKeyExceptionMapper(MediaTypes mediaTypes)
     {

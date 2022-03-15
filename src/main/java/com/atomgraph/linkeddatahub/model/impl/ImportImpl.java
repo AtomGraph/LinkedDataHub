@@ -28,12 +28,16 @@ import org.apache.jena.rdf.model.impl.ResourceImpl;
 import org.apache.jena.vocabulary.RDF;
 
 /**
- *
+ * Import implementation.
+ * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
 public class ImportImpl extends ResourceImpl implements Import
 {
     
+    /**
+     * The implementation factory.
+     */
     public static Implementation factory = new Implementation() 
     {
         
@@ -59,17 +63,33 @@ public class ImportImpl extends ResourceImpl implements Import
         }
     };
     
+    /**
+     * Constructs agent instance from graph node.
+     * 
+     * @param n node
+     * @param g graph
+     */
     public ImportImpl(Node n, EnhGraph g)
     {
         super(n, g);
     }
     
+    /**
+     * Returns the associate file.
+     * 
+     * @return file resource
+     */
     @Override
     public Resource getFile()
     {
         return getPropertyResourceValue(LDH.file);
     }
     
+    /**
+     * Returns the target container.
+     * 
+     * @return container resource
+     */
     @Override
     public Resource getContainer()
     {
