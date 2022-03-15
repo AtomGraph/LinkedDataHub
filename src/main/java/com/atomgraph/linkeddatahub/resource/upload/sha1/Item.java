@@ -41,6 +41,18 @@ public class Item extends com.atomgraph.linkeddatahub.resource.upload.Item
 {
     private static final Logger log = LoggerFactory.getLogger(Item.class);
 
+    /**
+     * Constructs resource.
+     * 
+     * @param request current request
+     * @param uriInfo URI information of the current request
+     * @param mediaTypes a registry of readable/writable media types
+     * @param application current application
+     * @param ontology ontology of the current application
+     * @param service SPARQL service of the current application
+     * @param providers JAX-RS provider registry
+     * @param system system application
+     */
     @Inject
     public Item(@Context Request request, @Context UriInfo uriInfo, MediaTypes mediaTypes,
             com.atomgraph.linkeddatahub.apps.model.Application application, Optional<Ontology> ontology, Optional<Service> service, 
@@ -56,6 +68,12 @@ public class Item extends com.atomgraph.linkeddatahub.resource.upload.Item
         return new EntityTag(getSHA1Hash(getResource()));
     }
     
+    /**
+     * Returns SHA1 property value of the specified resource.
+     * 
+     * @param resource RDF resource
+     * @return SHA1 hash string
+     */
     public String getSHA1Hash(Resource resource)
     {
         return resource.getRequiredProperty(FOAF.sha1).getString();

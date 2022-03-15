@@ -112,7 +112,7 @@ public class Item extends GraphStoreImpl
         }
         
         // respond with file content if Variant is compatible with the File's MediaType. otherwise, send RDF
-        if (getFormat().isCompatible(variant.getMediaType()))
+        if (getMediaType().isCompatible(variant.getMediaType()))
         {
             URI fileURI = getSystem().getUploadRoot().resolve(getUriInfo().getPath());
             File file = new File(fileURI);
@@ -127,7 +127,12 @@ public class Item extends GraphStoreImpl
         return super.getResponseBuilder(model, graphUri);
     }
     
-    public javax.ws.rs.core.MediaType getFormat()
+    /**
+     * Returns the media type of this file.
+     * 
+     * @return media type
+     */
+    public javax.ws.rs.core.MediaType getMediaType()
     {
         Resource format = getResource().getPropertyResourceValue(DCTerms.format);
         if (format == null)
@@ -143,7 +148,7 @@ public class Item extends GraphStoreImpl
     public List<javax.ws.rs.core.MediaType> getWritableMediaTypes(Class clazz)
     {
         List<javax.ws.rs.core.MediaType> list = new ArrayList<>();
-        list.add(getFormat());
+        list.add(getMediaType());
 
         return list;
     }

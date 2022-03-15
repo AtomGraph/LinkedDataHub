@@ -289,6 +289,12 @@ public class Login extends GraphStoreImpl
         }
     }
     
+    /**
+     * Verifies decoded JWT token.
+     * 
+     * @param jwt decoded JWT token
+     * @return true if verified
+     */
     public boolean verify(DecodedJWT jwt)
     {
 //            Algorithm algorithm = Algorithm.RSA256(null);
@@ -296,10 +302,22 @@ public class Login extends GraphStoreImpl
 //                withIssuer("auth0").
 //                build();
 //            DecodedJWT jwt = verifier.verify(idToken);
-        return true;
+        return true; // TO-DO: complete
         //throw new JWTVerificationException();
     }
     
+    /**
+     * Creates new agent resource.
+     * 
+     * @param model RDF model
+     * @param graphURI graph URI
+     * @param container container URI
+     * @param givenName given name
+     * @param familyName family name
+     * @param email email address
+     * @param imgUrl image URL
+     * @return agent resource
+     */
     public Resource createAgent(Model model, URI graphURI, Resource container, String givenName, String familyName, String email, String imgUrl)
     {
         Resource item =  model.createResource(graphURI.toString()).
@@ -319,6 +337,18 @@ public class Login extends GraphStoreImpl
         return agent;
     }
     
+    /**
+     * Creates new user account resource.
+     * 
+     * @param model RDF model
+     * @param graphURI graph URI
+     * @param container container URI
+     * @param id user ID
+     * @param issuer OIDC issuer
+     * @param name username
+     * @param email email address
+     * @return user account resource
+     */
     public Resource createUserAccount(Model model, URI graphURI, Resource container, String id, String issuer, String name, String email)
     {
         Resource item = model.createResource(graphURI.toString()).
@@ -339,6 +369,16 @@ public class Login extends GraphStoreImpl
         return account;
     }
 
+    /**
+     * Creates new authorization resource.
+     * 
+     * @param model RDF model
+     * @param graphURI graph URI
+     * @param container container URI
+     * @param agentGraphURI agent's graph URI
+     * @param userAccountGraphURI user account's graph URI
+     * @return authorization resource
+     */
     public Resource createAuthorization(Model model, URI graphURI, Resource container, URI agentGraphURI, URI userAccountGraphURI)
     {
         Resource item = model.createResource(graphURI.toString()).
@@ -360,6 +400,13 @@ public class Login extends GraphStoreImpl
         return auth;
     }
     
+    /**
+     * Sends email message to agent.
+     * 
+     * @param agent agent resource
+     * @throws MessagingException thrown if message sending failed
+     * @throws UnsupportedEncodingException encoding error
+     */
     public void sendEmail(Resource agent) throws MessagingException, UnsupportedEncodingException
     {
         String givenName = agent.getRequiredProperty(FOAF.givenName).getString();
@@ -384,6 +431,13 @@ public class Login extends GraphStoreImpl
         EMailListener.submit(builder.build());
     }
 
+    /** 
+     * Bans URL from the backend proxy cache.
+     * 
+     * @param proxy proxy server URL
+     * @param url banned URL
+     * @return proxy server response
+     */
     public Response ban(Resource proxy, String url)
     {
         if (url == null) throw new IllegalArgumentException("Resource cannot be null");
@@ -393,6 +447,11 @@ public class Login extends GraphStoreImpl
             method("BAN", Response.class);
     }
     
+    /**
+     * Returns the end-user application of the current dataspace.
+     * 
+     * @return end-user application resource
+     */
     public EndUserApplication getEndUserApplication()
     {
         if (getApplication().canAs(EndUserApplication.class))
@@ -401,36 +460,71 @@ public class Login extends GraphStoreImpl
             return getApplication().as(AdminApplication.class).getEndUserApplication();
     }
     
+    /**
+     * Returns HTTP headers of the current request.
+     * 
+     * @return header info
+     */
     public HttpHeaders getHttpHeaders()
     {
         return httpHeaders;
     }
     
+    /**
+     * Returns the SPARQL service from which agent data is retrieved.
+     * 
+     * @return SPARQL service
+     */
     public Service getAgentService()
     {
         return getApplication().getService();
     }
     
+    /**
+     * Returns login email subject.
+     * 
+     * @return subject string
+     */
     public String getEmailSubject()
     {
         return emailSubject;
     }
     
+    /**
+     * Returns login email text.
+     * 
+     * @return text string
+     */
     public String getEmailText()
     {
         return emailText;
     }
 
+    /**
+     * Returns SPARQL query used to load user account by ID.
+     * 
+     * @return SPARQL query
+     */
     public Query getUserAccountQuery()
     {
         return userAccountQuery;
     }
     
+    /**
+     * Returns the configured Google client ID for this application.
+     * 
+     * @return client ID
+     */
     private String getClientID()
     {
         return clientID;
     }
     
+    /**
+     * Returns the configured Google client secret for this application.
+     * 
+     * @return client secret
+     */
     private String getClientSecret()
     {
         return clientSecret;

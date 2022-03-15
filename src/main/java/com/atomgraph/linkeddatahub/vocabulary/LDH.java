@@ -30,64 +30,80 @@ import org.apache.jena.rdf.model.Resource;
  */
 public class LDH
 {
-    /** <p>The RDF model that holds the vocabulary terms</p> */
+    /** The RDF model that holds the vocabulary terms */
     private static OntModel m_model = ModelFactory.createOntologyModel(OntModelSpec.OWL_MEM, null);
     
-    /** <p>The namespace of the vocabulary as a string</p> */
+    /** The namespace of the vocabulary as a string */
     public static final String NS = "https://w3id.org/atomgraph/linkeddatahub#";
     
-    /** <p>The namespace of the vocabulary as a string</p>
-     *  @see #NS */
+    /**
+     * The namespace of the vocabulary as a string
+     * 
+     * @return namespace URI
+     * @see #NS */
     public static String getURI()
     {
         return NS;
     }
     
-    /** <p>The namespace of the vocabulary as a resource</p> */
+    /** The namespace of the vocabulary as a resource */
     public static final Resource NAMESPACE = m_model.createResource( NS );
 
-    // DOMAIN
-
+    /** Dataset class */
     public static final OntClass Dataset = m_model.createClass(NS + "Dataset");
 
+    /** Generic service class */
     public static final OntClass GenericService = m_model.createClass(NS + "GenericService");
     
+    /** Import class */
     public static final OntClass Import = m_model.createClass(NS + "Import");
 
+    /** CSV import class */
     public static final OntClass CSVImport = m_model.createClass(NS + "CSVImport");
 
-    public static final OntClass XMLImport = m_model.createClass(NS + "XMLImport");
-    
+    /* RDF import class */
     public static final OntClass RDFImport = m_model.createClass(NS + "RDFImport");
 
+    /** File class */
     public static final OntClass File = m_model.createClass(NS + "File");
     
+    /** Content class */
     public static final OntClass Content = m_model.createClass(NS + "Content");
 
-    public static final OntClass ConstructorMode = m_model.createClass(NS + "ConstructorMode");
-
+    /** URI syntax violation class */
     public static final OntClass URISyntaxViolation = m_model.createClass(NS + "URISyntaxViolation");
     
+    /** Base property */
     public static final ObjectProperty base = m_model.createObjectProperty( NS + "base" );
     
+    /** Violation property */
     public static final ObjectProperty violation = m_model.createObjectProperty( NS + "violation" );
     
+    /** File property */
     public static final ObjectProperty file = m_model.createObjectProperty( NS + "file" );
     
+    /** Action property */
     public static final ObjectProperty action = m_model.createObjectProperty( NS + "action" );
 
+    /** Delimiter property */
     public static final DatatypeProperty delimiter = m_model.createDatatypeProperty( NS + "delimiter" );
 
+    /** Resource type property */
     public static final ObjectProperty resourceType = m_model.createObjectProperty( NS + "resourceType" );
 
+    /** Violation value property */
     public static final DatatypeProperty violationValue = m_model.createDatatypeProperty( NS + "violationValue" );
     
+    /** Access to property */
     public static final ObjectProperty access_to = m_model.createObjectProperty(NS + "access-to"); // TO-DO: move to client-side?
 
+    /** Absolute path property */
     public static final ObjectProperty absolutePath = m_model.createObjectProperty(NS + "absolutePath");
     
+    /** Request URI property */
     public static final ObjectProperty requestUri = m_model.createObjectProperty(NS + "requestUri");
     
+    /** Create graph property */
     public static final DatatypeProperty createGraph = m_model.createDatatypeProperty( NS + "createGraph" );
 
 }
