@@ -61,7 +61,7 @@ public class LDH
     /** CSV import class */
     public static final OntClass CSVImport = m_model.createClass(NS + "CSVImport");
 
-    /* RDF import class */
+    /** RDF import class */
     public static final OntClass RDFImport = m_model.createClass(NS + "RDFImport");
 
     /** File class */

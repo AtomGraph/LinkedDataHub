@@ -33,6 +33,11 @@ import org.apache.jena.rdf.model.ResourceFactory;
 public class MessagingExceptionMapper extends ExceptionMapperBase implements ExceptionMapper<MessagingException>
 {
 
+    /**
+     * Constructs exception from media types.
+     * 
+     * @param mediaTypes registry of readable/writable media types
+     */
     @Inject
     public MessagingExceptionMapper(MediaTypes mediaTypes)
     {

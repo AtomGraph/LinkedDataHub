@@ -89,6 +89,13 @@ public class JsonLDReader implements ReaderRIOT
     private /*final*/ ErrorHandler errorHandler = ErrorHandlerFactory.getDefaultErrorHandler() ;
     private /*final*/ ParserProfile profile;
     
+    /**
+     * Constructs reader.
+     * 
+     * @param lang RDF language
+     * @param profile parser profile
+     * @param errorHandler error handler
+     */
     public JsonLDReader(Lang lang, ParserProfile profile, ErrorHandler errorHandler) {
         this.profile = profile;
         this.errorHandler = errorHandler;

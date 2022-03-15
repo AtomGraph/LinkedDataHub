@@ -33,7 +33,12 @@ public class ModelExceptionMapper extends com.atomgraph.server.mapper.ModelExcep
 {
 
     @Context ResourceContext resourceContext;
-            
+    
+    /**
+     * Constructs mapper from media types.
+     * 
+     * @param mediaTypes registry of readable/writable media types
+     */
     @Inject
     public ModelExceptionMapper(MediaTypes mediaTypes)
     {
@@ -48,11 +53,21 @@ public class ModelExceptionMapper extends com.atomgraph.server.mapper.ModelExcep
         return super.toResponse(ex);
     }
     
+    /**
+     * Returns the current RDF resource.
+     * 
+     * @return RDF resource
+     */
     public QueriedResource getQueriedResource()
     {
         return getResourceContext().getResource(QueriedResource.class);
     }
     
+    /**
+     * Returns JAX-RS resource context.
+     * 
+     * @return resource context
+     */
     public ResourceContext getResourceContext()
     {
         return resourceContext;
