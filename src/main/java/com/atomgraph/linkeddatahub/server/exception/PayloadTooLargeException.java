@@ -20,12 +20,19 @@ import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.core.Response;
 
 /**
- *
+ * Exception thrown when the request body is larger than the configured maximum limit.
+ * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
 public class PayloadTooLargeException extends ClientErrorException
 {
 
+    /**
+     * Constructs exception.
+     * 
+     * @param maxPayloadSize maximum payload size in bytes
+     * @param payloadSize actual payload size in bytes
+     */
     public PayloadTooLargeException(long maxPayloadSize, long payloadSize) // TO-DO: use sizes to generate a message?
     {
         super(Response.Status.REQUEST_ENTITY_TOO_LARGE);

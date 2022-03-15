@@ -16,16 +16,15 @@
  */
 package com.atomgraph.linkeddatahub.vocabulary;
 
-import com.atomgraph.processor.vocabulary.LDT;
 import org.apache.jena.ontology.DatatypeProperty;
-import org.apache.jena.ontology.Individual;
 import org.apache.jena.ontology.OntModel;
 import org.apache.jena.ontology.OntModelSpec;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Resource;
 
 /**
- *
+ * LSMT vocabulary.
+ * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
 @Deprecated

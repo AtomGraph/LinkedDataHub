@@ -29,7 +29,8 @@ import org.apache.jena.ontology.OntModelSpec;
 import org.apache.jena.rdf.model.Model;
 
 /**
- *
+ * JAX-RS writer that renders RDF as HTML using XSLT stylesheet.
+ * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
 @Provider
@@ -38,6 +39,14 @@ import org.apache.jena.rdf.model.Model;
 public class ModelXSLTWriter extends ModelXSLTWriterBase implements MessageBodyWriter<Model>
 {
 
+    /**
+     * Constructs XSLT writer.
+     * 
+     * @param xsltExec compiled XSLT stylesheet
+     * @param ontModelSpec ontology specification
+     * @param dataManager RDF data manager
+     * @param messageDigest message digest
+     */
     public ModelXSLTWriter(XsltExecutable xsltExec, OntModelSpec ontModelSpec, DataManager dataManager, MessageDigest messageDigest)
     {
         super(xsltExec, ontModelSpec, dataManager, messageDigest);

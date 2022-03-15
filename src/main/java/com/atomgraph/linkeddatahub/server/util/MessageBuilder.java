@@ -398,7 +398,7 @@ public class MessageBuilder
      * Builds message from the current builder state.
      * 
      * @return message builder
-     * @throws MessagingException 
+     * @throws MessagingException failed to set
      */
     public Message build() throws MessagingException
     {

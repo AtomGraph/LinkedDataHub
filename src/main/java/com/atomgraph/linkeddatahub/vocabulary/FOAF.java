@@ -25,7 +25,9 @@ import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Resource;
 
 /**
- * Created by Martynas on 10/15/2017.
+ * FOAF vocabulary.
+ * 
+ * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
 public class FOAF
 {

@@ -24,7 +24,8 @@ import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Resource;
 
 /**
- *
+ * LDHT vocabulary.
+ * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
 @Deprecated
@@ -39,7 +40,7 @@ public class LDHT
     /**
      * The namespace of the vocabulary as a string
      * 
-     * @return 
+     * @return namespace URI
      * @see #NS
      */
     public static String getURI()
