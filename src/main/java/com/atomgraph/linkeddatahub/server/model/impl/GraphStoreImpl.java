@@ -164,6 +164,12 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
         return super.post(model, false, graphUri);
     }
 
+    /**
+     * Creates a new graph URI from the document resource in the request body.
+     * 
+     * @param model input RDF graph
+     * @return graph resource or null
+     */
     public Resource createGraph(Model model)
     {
         if (model == null) throw new IllegalArgumentException("Model cannot be null");
@@ -206,6 +212,13 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
         return super.put(model, defaultGraph, graphUri);
     }
 
+    /**
+     * Implements <code>PATCH</code> method of SPARQL Graph Store Protocol.
+     * Accepts SPARQL update as the request body.
+     * 
+     * @param updateRequest SPARQL update
+     * @return response
+     */
     @PATCH
     public Response patch(UpdateRequest updateRequest)
     {

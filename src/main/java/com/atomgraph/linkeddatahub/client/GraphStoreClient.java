@@ -33,11 +33,22 @@ import org.apache.jena.rdf.model.Model;
 public class GraphStoreClient extends com.atomgraph.core.client.GraphStoreClient
 {
     
+    /**
+     * Constructs Graph Store Client from the specified endpoint URI and media types.
+     * 
+     * @param endpoint target endpoint URI
+     * @param mediaTypes registry of readable/writable media types
+     */
     protected GraphStoreClient(WebTarget endpoint, MediaTypes mediaTypes)
     {
         super(endpoint, mediaTypes);
     }
 
+    /**
+     * Constructs Graph Store Client from the specified endpoint URI.
+     * 
+     * @param endpoint target endpoint URI
+     */
     protected GraphStoreClient(WebTarget endpoint)
     {
         this(endpoint, new MediaTypes());

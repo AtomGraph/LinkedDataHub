@@ -80,7 +80,8 @@ public class BackendInvalidationFilter implements ContainerResponseFilter
     }
     
     /**
-     * Bans URL from Varnish proxy cache
+     * Bans URL from Varnish proxy cache.
+     * 
      * @param proxy Varnish proxy resource
      * @param url URL to be banned
      * @return response from Varnish

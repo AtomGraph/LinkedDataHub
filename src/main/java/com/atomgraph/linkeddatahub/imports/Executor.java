@@ -30,6 +30,7 @@ import com.atomgraph.linkeddatahub.model.Import;
 import com.atomgraph.linkeddatahub.model.RDFImport;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.exception.ImportException;
+import com.atomgraph.linkeddatahub.server.filter.response.BackendInvalidationFilter;
 import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
 import com.atomgraph.linkeddatahub.vocabulary.PROV;
 import com.atomgraph.linkeddatahub.vocabulary.VoID;
@@ -171,6 +172,16 @@ public class Executor
             exceptionally(failure(rdfImport, provImport, service));
     }
     
+    /**
+     * Invoked when CSV import completes successfully.
+     * 
+     * @param csvImport import resource
+     * @param provImport provenance resource
+     * @param service application's SPARQL service
+     * @param adminService admin application's SPARQL service
+     * @param dataManager RDF data manager
+     * @return consumer of the RDF output
+     */
     protected Consumer<CSVGraphStoreOutput> success(final CSVImport csvImport, final Resource provImport, final Service service, final Service adminService, final DataManager dataManager)
     {
         return (CSVGraphStoreOutput output) ->
@@ -190,6 +201,16 @@ public class Executor
         };
     }
     
+    /**
+     * Invoked when RDF import completes successfully.
+     * 
+     * @param rdfImport import resource
+     * @param provImport provenance resource
+     * @param service application's SPARQL service
+     * @param adminService admin application's SPARQL service
+     * @param dataManager RDF data manager
+     * @return consumer of the RDF output
+     */
     protected Consumer<RDFGraphStoreOutput> success(final RDFImport rdfImport, final Resource provImport, final Service service, final Service adminService, final DataManager dataManager)
     {
         return (RDFGraphStoreOutput output) ->
@@ -217,6 +238,14 @@ public class Executor
         };
     }
 
+    /**
+     * Invoked when RDF import failes to complete.
+     * 
+     * @param importInst import resource
+     * @param provImport provenance resource
+     * @param service application's SPARQL service
+     * @return void function
+     */
     protected Function<Throwable, Void> failure(final Import importInst, final Resource provImport, final Service service)
     {
         return new Function<Throwable, Void>()
@@ -279,6 +308,12 @@ public class Executor
         };
     }
 
+    /**
+     * Appends provenance metadata to the graph of the import.
+     * 
+     * @param provImport import resource
+     * @param accessor GSP graph accessor
+     */
     protected void appendProvGraph(Resource provImport, DatasetAccessor accessor)
     {
         URI graphURI = UriBuilder.fromUri(provImport.getURI()).fragment(null).build(); // skip fragment from the Import URI to get its graph URI
@@ -288,23 +323,49 @@ public class Executor
         accessor.add(graphURI.toString(), provImport.getModel());
     }
 
+    /**
+     * Returns output writer for CSV imports.
+     * 
+     * @param imp import resource
+     * @param graphStoreClient GSP client
+     * @param baseURI base URI
+     * @param query transformation query
+     * @return function
+     */
     protected Function<Response, CSVGraphStoreOutput> getStreamRDFOutputWriter(CSVImport imp, GraphStoreClient graphStoreClient, String baseURI, Query query)
     {
         return new CSVGraphStoreOutputWriter(graphStoreClient, baseURI, query, imp.getDelimiter());
     }
 
+    /**
+     * Returns output writer for RDF imports.
+     * 
+     * @param imp import resource
+     * @param graphStoreClient GSP client
+     * @param baseURI base URI
+     * @param query transformation query
+     * @return function
+     */
     protected Function<Response, RDFGraphStoreOutput> getStreamRDFOutputWriter(RDFImport imp, GraphStoreClient graphStoreClient, String baseURI, Query query)
     {
         return new StreamRDFOutputWriter(graphStoreClient, baseURI, query, imp.getGraphName() != null ? imp.getGraphName().getURI() : null);
     }
 
+    /**
+     * Bans URL from Varnish proxy cache.
+     * 
+     * @param dataManager RDF data manager
+     * @param proxy URI resource of the proxy cache
+     * @param url URL to be banned
+     * @return response from Varnish
+     */
     public Response ban(DataManager dataManager, Resource proxy, String url)
     {
         if (url == null) throw new IllegalArgumentException("Resource cannot be null");
         
         // create new Client instance, otherwise ApacheHttpClient reuses connection and Varnish ignores BAN request
         return dataManager.getClient().target(proxy.getURI()).request().
-            header("X-Escaped-Request-URI", UriComponent.encode(url, UriComponent.Type.UNRESERVED)).
+            header(BackendInvalidationFilter.HEADER_NAME, UriComponent.encode(url, UriComponent.Type.UNRESERVED)).
             method("BAN", Response.class);
     }
     

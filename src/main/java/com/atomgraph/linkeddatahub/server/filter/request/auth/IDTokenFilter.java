@@ -68,11 +68,16 @@ public class IDTokenFilter extends AuthenticationFilter
 
     private static final Logger log = LoggerFactory.getLogger(IDTokenFilter.class);
 
+    /** ID of the JWT authentication scheme */
     public static final String AUTH_SCHEME = "JWT";
+    /** Name of the cookie that stores the ID token */
     public static final String COOKIE_NAME = "LinkedDataHub.id_token";
     
     private ParameterizedSparqlString userAccountQuery;
 
+    /**
+     * Post-construct initialization of resources.
+     */
     @PostConstruct
     public void init()
     {
@@ -147,6 +152,12 @@ public class IDTokenFilter extends AuthenticationFilter
         return null;
     }
     
+    /**
+     * Verifies the validity of the specified JWT ID token.
+     * 
+     * @param idToken ID token
+     * @return true if valid
+     */
     protected boolean verify(DecodedJWT idToken)
     {
         Date now = new Date();
@@ -207,16 +218,33 @@ public class IDTokenFilter extends AuthenticationFilter
         }
     }
 
+    /**
+     * Returns the URL of the OAuth login endpoint.
+     * 
+     * @return endpoint URI
+     * @see com.atomgraph.linkeddatahub.resource.oauth2.Login
+     */
     public URI getLoginURL()
     {
-        return getAdminApplication().getBaseURI().resolve("oauth2/login"); // TO-DO: extract from ontology Template
+        return getAdminApplication().getBaseURI().resolve("oauth2/login"); // TO-DO: extract from Login class
     }
     
+    /**
+     * Returns the URL of the Google authorization endpoint.
+     * 
+     * @return endpoint URI
+     * @see com.atomgraph.linkeddatahub.resource.oauth2.google.Authorize
+     */
     public URI getAuthorizeGoogleURL()
     {
         return getAdminApplication().getBaseURI().resolve("oauth2/authorize/google"); // TO-DO: extract from ontology Template
     }
     
+    /**
+     * Returns the admin application of the current dataspace.
+     * 
+     * @return admin application resource
+     */
     public AdminApplication getAdminApplication()
     {
         if (getApplication().canAs(EndUserApplication.class))
@@ -225,6 +253,11 @@ public class IDTokenFilter extends AuthenticationFilter
             return getApplication().as(AdminApplication.class);
     }
     
+    /**
+     * Returns the user account lookup query.
+     * 
+     * @return SPARQL string
+     */
     public ParameterizedSparqlString getUserAccountQuery()
     {
         return userAccountQuery.copy();
