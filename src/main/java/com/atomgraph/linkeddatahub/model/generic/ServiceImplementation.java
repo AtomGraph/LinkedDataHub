@@ -27,7 +27,8 @@ import org.apache.jena.ontology.ConversionException;
 import org.apache.jena.vocabulary.RDF;
 
 /**
- *
+ * Jena's implementation factory.
+ * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
 public class ServiceImplementation extends Implementation

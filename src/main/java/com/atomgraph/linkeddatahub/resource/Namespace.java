@@ -117,6 +117,11 @@ public class Namespace extends SPARQLEndpointImpl
         throw new BadRequestException("Unknown query type");
     }
     
+    /**
+     * Returns application ontology.
+     * 
+     * @return ontology resource
+     */
     public Ontology getOntology()
     {
         return ontology;

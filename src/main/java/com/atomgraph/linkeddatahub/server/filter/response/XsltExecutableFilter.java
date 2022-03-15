@@ -46,7 +46,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- *
+ * Response filter that loads and compiles the XSLT stylesheet of the application.
+ * 
  * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
  */
 @Priority(Priorities.USER + 200)

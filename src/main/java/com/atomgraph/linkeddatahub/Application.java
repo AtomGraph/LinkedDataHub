@@ -229,7 +229,7 @@ import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.server.filter.HttpMethodOverrideFilter;
 
 /**
- * JAX-RS 1.x application subclass.
+ * JAX-RS application subclass.
  * Used to configure the JAX-RS web application in <code>web.xml</code>.
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}

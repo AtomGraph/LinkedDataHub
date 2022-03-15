@@ -47,7 +47,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- *
+ * Response filter that sets <code>Link</code> response headers with hypermedia links.
+ * 
  * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
  */
 @Priority(Priorities.USER + 300)

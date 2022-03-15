@@ -29,7 +29,9 @@ import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
 
 /**
- *
+ * Reads RDF from input stream and writes it into a named graph.
+ * If a transformation query is provided, the input is transformed before writing.
+ * 
  * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
  */
 public class RDFGraphStoreOutput
@@ -59,7 +61,7 @@ public class RDFGraphStoreOutput
 
         if (getQuery() != null)
         {
-            // use extended SPARQL syntax to allow CONSTRUCT GRAPH form
+            // use extended SPARQL syntax to allow the CONSTRUCT GRAPH form
             try (QueryExecution qex = QueryExecution.create().query(getQuery().toString(), Syntax.syntaxARQ).model(model).build())
             {
                 Dataset dataset = qex.execConstructDataset();

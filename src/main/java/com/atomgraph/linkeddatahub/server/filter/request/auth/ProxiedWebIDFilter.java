@@ -31,7 +31,8 @@ import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.PreMatching;
 
 /**
- *
+ * WebID authentication filter subclass that receives the client certificate as HTTP request header value.
+ * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
 @PreMatching

@@ -52,6 +52,7 @@ public class LSMT
     /** The namespace of the vocabulary as a resource */
     public static final Resource NAMESPACE = m_model.createResource( NS );
     
+    /** Clear property */
     public static final DatatypeProperty clear = m_model.createDatatypeProperty( NS + "clear");
 
 }

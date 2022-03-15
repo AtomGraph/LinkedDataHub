@@ -26,7 +26,7 @@ import org.glassfish.hk2.api.Factory;
 import org.glassfish.hk2.api.ServiceLocator;
 
 /**
- * JAX-RS provider of application ontology .
+ * JAX-RS factory for application ontology.
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
@@ -47,11 +47,22 @@ public class OntologyFactory implements Factory<Optional<Ontology>>
     {
     }
     
+    /**
+     * Retrieves ontology from the request context.
+     * 
+     * @param crc request context
+     * @return ontology
+     */
     public Optional<Ontology> getOntology(ContainerRequestContext crc)
     {
         return (Optional<Ontology>)crc.getProperty(OWL.Ontology.getURI());
     }
     
+    /**
+     * Returns the container request context.
+     * 
+     * @return request context
+     */
     public ContainerRequestContext getContainerRequestContext()
     {
         return serviceLocator.getService(ContainerRequestContext.class);

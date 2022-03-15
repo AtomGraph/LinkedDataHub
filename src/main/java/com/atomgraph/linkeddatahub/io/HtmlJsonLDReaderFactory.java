@@ -26,7 +26,8 @@ import org.apache.jena.riot.ReaderRIOTFactory;
 import org.apache.jena.riot.system.ParserProfile;
 
 /**
- *
+ * JAX-RS factoy for the JSON-LD-in-HTML reader.
+ * 
  * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
  */
 public class HtmlJsonLDReaderFactory implements ReaderRIOTFactory

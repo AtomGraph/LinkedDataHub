@@ -26,7 +26,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- *
+ * JAX-RS factory for applications.
+ * 
  * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
  * @see com.atomgraph.linkeddatahub.server.model.impl.Dispatcher
  */

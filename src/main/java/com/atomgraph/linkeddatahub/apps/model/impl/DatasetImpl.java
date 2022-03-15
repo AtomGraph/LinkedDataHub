@@ -28,7 +28,9 @@ import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.impl.ResourceImpl;
 
 /**
- *
+ * Dataset (Linked Data dataspace) implementation.
+ * Extends RDF resource implementation.
+ * 
  * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
  */
 public class DatasetImpl extends ResourceImpl implements Dataset

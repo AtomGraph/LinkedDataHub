@@ -29,7 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * JAX-RS provider of application's service.
+ * JAX-RS factory of application's service.
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */

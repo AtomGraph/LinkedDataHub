@@ -17,7 +17,7 @@
 package com.atomgraph.linkeddatahub.listener;
 
 import com.atomgraph.client.util.DataManager;
-import com.atomgraph.linkeddatahub.imports.Executor;
+import com.atomgraph.linkeddatahub.imports.ImportExecutor;
 import com.atomgraph.linkeddatahub.model.CSVImport;
 import com.atomgraph.linkeddatahub.model.RDFImport;
 import com.atomgraph.linkeddatahub.model.Service;
@@ -71,7 +71,7 @@ public class ImportListener implements ServletContextListener
         if (csvImport == null) throw new IllegalArgumentException("CSVImport cannot be null");
         if (log.isDebugEnabled()) log.debug("Submitting new CSVImport to thread pool: {}", csvImport.toString());
         
-        new Executor(THREAD_POOL).start(csvImport, service, adminService, baseURI, dataManager, gsc);
+        new ImportExecutor(THREAD_POOL).start(csvImport, service, adminService, baseURI, dataManager, gsc);
     }
 
     /**
@@ -89,7 +89,7 @@ public class ImportListener implements ServletContextListener
         if (rdfImport == null) throw new IllegalArgumentException("RDFImport cannot be null");
         if (log.isDebugEnabled()) log.debug("Submitting new RDFImport to thread pool: {}", rdfImport.toString());
         
-        new Executor(THREAD_POOL).start(rdfImport, service, adminService, baseURI, dataManager, gsc);
+        new ImportExecutor(THREAD_POOL).start(rdfImport, service, adminService, baseURI, dataManager, gsc);
     }
     
 }

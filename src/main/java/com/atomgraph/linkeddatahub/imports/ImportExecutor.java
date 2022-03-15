@@ -68,13 +68,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- *
+ * Executor class for CSV and RDF imports.
+ * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-public class Executor
+public class ImportExecutor
 {
 
-    private static final Logger log = LoggerFactory.getLogger(Executor.class);
+    private static final Logger log = LoggerFactory.getLogger(ImportExecutor.class);
 
     /** CSV media type */
     public static final javax.ws.rs.core.MediaType TEXT_CSV_TYPE = MediaType.valueOf("text/csv");
@@ -96,7 +97,7 @@ public class Executor
      * 
      * @param execService thread pool service
      */
-    public Executor(ExecutorService execService)
+    public ImportExecutor(ExecutorService execService)
     {
         this.execService = execService;
     }

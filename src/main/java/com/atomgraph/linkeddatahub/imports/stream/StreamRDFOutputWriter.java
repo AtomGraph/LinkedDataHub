@@ -31,7 +31,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- *
+ * RDF stream writer.
+ * A function that converts client response with RDF data to a stream of (optionally transformed) RDF data.
+ * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
 public class StreamRDFOutputWriter implements Function<Response, RDFGraphStoreOutput>

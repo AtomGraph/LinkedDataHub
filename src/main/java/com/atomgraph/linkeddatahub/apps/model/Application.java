@@ -21,7 +21,7 @@ import java.net.URI;
 import org.apache.jena.rdf.model.Resource;
 
 /**
- * A dataspace with a base URI, LDT ontology, SPARQL backend, and XSLT frontend.
+ * An application with a base URI, RDF ontology, SPARQL backend, and XSLT frontend.
  * This is a "logical" LinkedDataHub application which should be confused with the JAX-RS application implementation.
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
