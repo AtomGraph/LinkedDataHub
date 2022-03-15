@@ -66,6 +66,11 @@ public class ContentLengthLimitFilter implements ContainerRequestFilter
         crc.setEntityStream(new RejectTooLargeInputStream(crc.getEntityStream(), getSystem().getMaxContentLength()));
     }
 
+    /**
+     * Returns system application.
+     * 
+     * @return JAX-RS application
+     */
     public com.atomgraph.linkeddatahub.Application getSystem()
     {
         return system;

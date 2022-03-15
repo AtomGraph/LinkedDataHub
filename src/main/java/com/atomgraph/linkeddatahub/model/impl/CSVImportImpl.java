@@ -38,6 +38,9 @@ public class CSVImportImpl extends ImportImpl implements CSVImport
 
     private static final Logger log = LoggerFactory.getLogger(CSVImportImpl.class);
 
+    /**
+     * The implementation factory.
+     */
     public static Implementation factory = new Implementation() 
     {
         
@@ -63,6 +66,12 @@ public class CSVImportImpl extends ImportImpl implements CSVImport
         }
     };
 
+    /**
+     * Constructs instance from node and graph.
+     * 
+     * @param n node
+     * @param g graph
+     */
     public CSVImportImpl(Node n, EnhGraph g)
     {
         super(n, g);

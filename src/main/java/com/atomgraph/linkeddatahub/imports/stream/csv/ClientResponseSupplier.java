@@ -71,7 +71,7 @@ public class ClientResponseSupplier implements Supplier<Response>
     /**
      * Returns readable/writable media types.
      * 
-     * @return 
+     * @return media type array
      */
     public javax.ws.rs.core.MediaType[] getMediaTypes()
     {

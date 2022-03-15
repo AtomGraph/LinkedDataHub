@@ -118,6 +118,11 @@ public class BackendInvalidationFilter implements ContainerResponseFilter
         return app.get();
     }
     
+    /**
+     * Returns system application.
+     * 
+     * @return JAX-RS application
+     */
     public com.atomgraph.linkeddatahub.Application getSystem()
     {
         return system;

@@ -45,6 +45,14 @@ public class CSVGraphStoreOutputWriter implements Function<Response, CSVGraphSto
     private final Query query;
     private final char delimiter;
     
+    /**
+     * Constructs output writer.
+     * 
+     * @param graphStoreClient
+     * @param baseURI
+     * @param query
+     * @param delimiter 
+     */
     public CSVGraphStoreOutputWriter(GraphStoreClient graphStoreClient, String baseURI, Query query, char delimiter)
     {
         this.graphStoreClient = graphStoreClient;
@@ -70,27 +78,42 @@ public class CSVGraphStoreOutputWriter implements Function<Response, CSVGraphSto
             throw new WebApplicationException(ex);
         }
     }
-    
-//    public Invocation.Builder getInvocationBuilder()
-//    {
-//        return getGraphStoreClient().request(MediaType.APPLICATION_NTRIPLES); // could be all RDF formats - we just want to avoid XHTML response
-//    }
-    
+
+    /**
+     * Returns the Graph Store Protocol client.
+     * 
+     * @return client
+     */
     public GraphStoreClient getGraphStoreClient()
     {
         return graphStoreClient;
     }
     
+    /**
+     * Returns base URI.
+     * 
+     * @return URI string
+     */
     public String getBaseURI()
     {
         return baseURI;
     }
-       
+    
+    /**
+     * Returns the transformation query.
+     * 
+     * @return SPARQL query
+     */
     public Query getQuery()
     {
         return query;
     }
     
+    /**
+     * Returns the CSV delimiter.
+     * 
+     * @return the delimiting character
+     */
     public char getDelimiter()
     {
         return delimiter;

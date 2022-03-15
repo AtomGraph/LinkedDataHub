@@ -46,6 +46,11 @@ public class Construct implements ExtensionFunction
 
     private final Processor processor;
 
+    /**
+     * Constructs function from the specified XSLT processor.
+     * 
+     * @param processor processor
+     */
     public Construct(Processor processor)
     {
         this.processor = processor;
@@ -107,6 +112,11 @@ public class Construct implements ExtensionFunction
         }
     }
     
+    /**
+     * Returns the associated XSLT processor.
+     * 
+     * @return processor
+     */
     public Processor getProcessor()
     {
         return processor;

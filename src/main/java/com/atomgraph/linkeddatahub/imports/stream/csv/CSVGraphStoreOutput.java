@@ -40,6 +40,16 @@ public class CSVGraphStoreOutput // extends com.atomgraph.etl.csv.stream.CSVStre
     private final CSVGraphStoreRowProcessor processor;
     private final CsvParser parser;
     
+    /**
+     * Constructs output instance.
+     * 
+     * @param graphStoreClient the GSP client for RDF results
+     * @param reader CSV reader
+     * @param base application base URI
+     * @param query transformation query
+     * @param delimiter CSV delimiter
+     * @param maxCharsPerColumn max number of characters per column
+     */
     public CSVGraphStoreOutput(GraphStoreClient graphStoreClient, Reader reader, String base, Query query, char delimiter, Integer maxCharsPerColumn)
     {
         this.base = base;
@@ -59,41 +69,81 @@ public class CSVGraphStoreOutput // extends com.atomgraph.etl.csv.stream.CSVStre
         parser = new CsvParser(parserSettings);
     }
     
+    /**
+     * Reads CSV and writes RDF.
+     * First a generic CSV/RDF representation is constructed for each row. Then the row is transformed using the SPARQL query.
+     */
     public void write()
     {
         getCsvParser().parse(getReader());
     }
     
+    /**
+     * Returns the CSV parser.
+     * 
+     * @return parser
+     */
     public CsvParser getCsvParser()
     {
         return parser;
     }
     
+    /**
+     * Returns the CSV reader.
+     * 
+     * @return reader
+     */
     public Reader getReader()
     {
         return reader;
     }
     
+    /**
+     * Returns the base URI.
+     * 
+     * @return base URI
+     */
     public String getBase()
     {
         return base;
     }
-       
+    
+    /**
+     * Returns the transformation query.
+     * 
+     * @return SPARQL query
+     */
     public Query getQuery()
     {
         return query;
     }
     
+    /**
+     * Returns the CSV delimiter.
+     * 
+     * @return delimiter character
+     */
     public char getDelimiter()
     {
         return delimiter;
     }
     
+    /**
+     * Returns the maximum number of characters per CSV column.
+     * 
+     * @return maximum number of characters
+     */
     public Integer getMaxCharsPerColumn()
     {
         return maxCharsPerColumn;
     }
     
+    /**
+     * Returns the row processor.
+     * The processor performs the transformation on each CSV row.
+     * 
+     * @return processor
+     */
     public CSVGraphStoreRowProcessor getCSVGraphStoreRowProcessor()
     {
         return processor;

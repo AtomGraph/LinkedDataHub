@@ -16,7 +16,6 @@
  */
 package com.atomgraph.linkeddatahub.resource;
 
-import com.atomgraph.client.util.DataManager;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.core.client.LinkedDataClient;
 import com.atomgraph.core.vocabulary.SD;
@@ -25,7 +24,6 @@ import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
 import java.net.URI;
 import java.util.Optional;
 import javax.inject.Inject;
-import javax.servlet.ServletConfig;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
@@ -54,17 +52,26 @@ public class Clone extends GraphStoreImpl
     private static final Logger log = LoggerFactory.getLogger(Clone.class);
 
     private final URI uri;
-    private final DataManager dataManager;
     
+    /**
+     * Constructs resource.
+     * 
+     * @param request current request
+     * @param uriInfo URI info for the current request
+     * @param mediaTypes registry of readable/writable media types
+     * @param application current application
+     * @param ontology ontology of the current application
+     * @param service service of the current application
+     * @param providers JAX-RS provider registry
+     * @param system JAX-RS application
+     */
     @Inject
     public Clone(@Context Request request, @Context UriInfo uriInfo, MediaTypes mediaTypes,
             com.atomgraph.linkeddatahub.apps.model.Application application, Optional<Ontology> ontology, Optional<Service> service,
-            DataManager dataManager,
-            @Context Providers providers, com.atomgraph.linkeddatahub.Application system, @Context ServletConfig servletConfig)
+            @Context Providers providers, com.atomgraph.linkeddatahub.Application system)
     {
         super(request, uriInfo, mediaTypes, application, ontology, service, providers, system);
         this.uri = uriInfo.getAbsolutePath();
-        this.dataManager = dataManager;
         if (log.isDebugEnabled()) log.debug("Constructing {}", getClass());
     }
 
@@ -101,14 +108,14 @@ public class Clone extends GraphStoreImpl
         }
     }
     
+    /**
+     * Returns URI of this resource.
+     * 
+     * @return URI
+     */
     public URI getURI()
     {
         return uri;
     }
- 
-    public DataManager getDataManager()
-    {
-        return dataManager;
-    }
-    
+
 }

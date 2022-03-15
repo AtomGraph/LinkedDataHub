@@ -29,7 +29,13 @@ import java.util.List;
  */
 public class CollectingErrorHandler implements org.apache.jena.riot.system.ErrorHandler
 {
-    public final int WARNING = 0, ERROR = 1, FATAL = 2;
+    /** Warning level constant */
+    public final int WARNING = 0;
+    /** Error level constant */
+    public final int ERROR = 1;
+    /** Fatal error level constant */
+    public final int FATAL = 2;
+    
     private final List<Violation> violations = new ArrayList<>();
     
     @Override
@@ -50,6 +56,11 @@ public class CollectingErrorHandler implements org.apache.jena.riot.system.Error
         violations.add(new Violation(FATAL, message, line, col));
     }
     
+    /**
+     * Returns violations collected by this error handler.
+     * 
+     * @return list of violations
+     */
     public List<Violation> getViolations()
     {
         return Collections.unmodifiableList(violations);
@@ -69,21 +80,41 @@ public class CollectingErrorHandler implements org.apache.jena.riot.system.Error
             this.col = col;
         }
 
+        /**
+         * Returns the severity of the violation.
+         * 
+         * @return severity level
+         */
         public int getLevel()
         {
             return level;
         }
         
+        /**
+         * Returns the message of the violation.
+         * 
+         * @return message string
+         */
         public String getMessage()
         {
             return message;
         }
         
+        /**
+         * Returns the line number of the violation.
+         * 
+         * @return line number
+         */
         public long getLine()
         {
             return line;
         }
         
+        /**
+         * Returns the column number of the violation.
+         * 
+         * @return column number
+         */
         public long getCol()
         {
             return col;

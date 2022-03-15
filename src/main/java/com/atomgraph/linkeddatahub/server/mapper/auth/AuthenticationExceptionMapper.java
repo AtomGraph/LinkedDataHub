@@ -40,7 +40,7 @@ public class AuthenticationExceptionMapper extends ExceptionMapperBase implement
     /**
      * Constructs mapper from media types.
      * 
-     * @param mediaTypes 
+     * @param mediaTypes registry of readable/writable media types
      */
     @Inject
     public AuthenticationExceptionMapper(MediaTypes mediaTypes)
