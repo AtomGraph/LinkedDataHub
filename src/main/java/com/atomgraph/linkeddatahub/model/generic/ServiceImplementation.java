@@ -38,6 +38,13 @@ public class ServiceImplementation extends Implementation
     private final MediaTypes mediaTypes;
     private final Integer maxGetRequestSize;
 
+    /**
+     * Constructs factory from HTTP configuration.
+     * 
+     * @param client HTTP client
+     * @param mediaTypes registry of readable/writable media types
+     * @param maxGetRequestSize the maximum size of SPARQL <code>GET</code> requests
+     */
     public ServiceImplementation(Client client, MediaTypes mediaTypes, Integer maxGetRequestSize)
     {
         this.client = client;
@@ -66,16 +73,31 @@ public class ServiceImplementation extends Implementation
         return eg.asGraph().contains(node, RDF.type.asNode(), SD.Service.asNode());
     }
  
+    /**
+     * Returns HTTP client.
+     * 
+     * @return HTTP client
+     */
     public Client getClient()
     {
         return client;
     }
     
+    /**
+     * Returns a registry of readable/writable media types.
+     * 
+     * @return media type registry
+     */
     public MediaTypes getMediaTypes()
     {
         return mediaTypes;
     }
     
+    /**
+     * Returns the maximum size of SPARQL <code>GET</code> requests.
+     * 
+     * @return request size in bytes
+     */
     public Integer getMaxGetRequestSize()
     {
         return maxGetRequestSize;

@@ -32,12 +32,32 @@ public interface Service extends com.atomgraph.core.model.RemoteService, Resourc
     @Override
     EndpointAccessor getEndpointAccessor();
 
+    /**
+     * Returns backend's proxy cache URI resource.
+     * 
+     * @return RDF resource
+     */
     Resource getProxy();
     
+    /**
+     * Returns HTTP client.
+     * 
+     * @return HTTP client
+     */
     Client getClient();
 
+    /**
+     * Returns a registry of readable/writable media types.
+     * 
+     * @return media type registry
+     */
     MediaTypes getMediaTypes();
 
+    /**
+     * Returns the maximum size of SPARQL <code>GET</code> requests.
+     * 
+     * @return request size in bytes
+     */
     Integer getMaxGetRequestSize();
     
 }

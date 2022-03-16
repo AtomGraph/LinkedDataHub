@@ -41,12 +41,12 @@ public class CSVGraphStoreOutput // extends com.atomgraph.etl.csv.stream.CSVStre
     private final CsvParser parser;
     
     /**
-     * Constructs output instance.
+     * Constructs output writer.
      * 
-     * @param graphStoreClient the GSP client for RDF results
+     * @param graphStoreClient GSP client for RDF results
      * @param reader CSV reader
      * @param base application base URI
-     * @param query transformation query
+     * @param query <code>CONSTRUCT</code> transformation query
      * @param delimiter CSV delimiter
      * @param maxCharsPerColumn max number of characters per column
      */
@@ -109,7 +109,7 @@ public class CSVGraphStoreOutput // extends com.atomgraph.etl.csv.stream.CSVStre
     }
     
     /**
-     * Returns the transformation query.
+     * Returns the <code>CONSTRUCT</code> transformation query.
      * 
      * @return SPARQL query
      */

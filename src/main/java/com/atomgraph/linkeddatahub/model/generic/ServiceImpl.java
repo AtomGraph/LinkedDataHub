@@ -57,6 +57,15 @@ public class ServiceImpl extends ResourceImpl implements Service
     private final MediaTypes mediaTypes;
     private final Integer maxGetRequestSize;
     
+    /**
+     * Constructs instance from node, graph, and HTTP config.
+     * 
+     * @param n node
+     * @param g graph
+     * @param client HTTP client
+     * @param mediaTypes registry of readable/writable media types
+     * @param maxGetRequestSize the maximum size of SPARQL <code>GET</code> requests
+     */
     public ServiceImpl(Node n, EnhGraph g, Client client, MediaTypes mediaTypes, Integer maxGetRequestSize)
     {
         super(n, g);
@@ -176,6 +185,12 @@ public class ServiceImpl extends ResourceImpl implements Service
         return null;
     }
     
+    /**
+     * Creates Graph Store Protocol client for a given URI target.
+     * 
+     * @param resource URI web target
+     * @return GSP client
+     */
     public QuadStoreClient getQuadStoreClient(WebTarget resource)
     {
         QuadStoreClient quadStoreClient = QuadStoreClient.create(resource);
@@ -198,6 +213,12 @@ public class ServiceImpl extends ResourceImpl implements Service
         return new DatasetQuadAccessorImpl(getQuadStoreClient());
     }
     
+    /**
+     * Rewrites the given URI using the proxy URI.
+     * 
+     * @param uri input URI
+     * @return proxied URI
+     */
     protected URI getProxiedURI(final URI uri)
     {
         // if service proxyURI is set, change the URI host/port to proxyURI host/port

@@ -44,6 +44,16 @@ public class RDFGraphStoreOutput
     private final Lang lang;
     private final String graphURI;
     
+    /**
+     * Constructs output writer.
+     * 
+     * @param graphStoreClient GSP client for RDF results
+     * @param is RDF input stream
+     * @param base base URI
+     * @param query <code>CONSTRUCT</code> transformation query or null
+     * @param lang RDF language
+     * @param graphURI named graph URI
+     */
     public RDFGraphStoreOutput(GraphStoreClient graphStoreClient, InputStream is, String base, Query query, Lang lang, String graphURI)
     {
         this.graphStoreClient = graphStoreClient;
@@ -54,6 +64,10 @@ public class RDFGraphStoreOutput
         this.graphURI = graphURI;
     }
     
+    /**
+     * Reads RDF and writes (possibly transformed) RDF into a named graph.
+     * The input is transformed if a SPARQL transformation query was provided.
+     */
     public void write()
     {
         Model model = ModelFactory.createDefaultModel();
@@ -82,31 +96,61 @@ public class RDFGraphStoreOutput
         }
     }
     
+    /**
+     * Returns Graph Store Protocol client.
+     * 
+     * @return GSP client
+     */
     public GraphStoreClient getGraphStoreClient()
     {
         return graphStoreClient;
     }
     
+    /**
+     * Returns RDF input stream.
+     * 
+     * @return input stream
+     */
     public InputStream getInputStream()
     {
         return is;
     }
     
+    /**
+     * Returns base URI.
+     * 
+     * @return base URI string
+     */
     public String getBase()
     {
         return base;
     }
-       
+    
+    /**
+     * Returns the <code>CONSTRUCT</code> transformation query.
+     * 
+     * @return SPARQL query or null
+     */
     public Query getQuery()
     {
         return query;
     }
     
+    /**
+     * Returns RDF language.
+     * 
+     * @return RDF lang
+     */
     public Lang getLang()
     {
         return lang;
     }
     
+    /**
+     * Returns named graph URI.
+     * 
+     * @return graph URI string
+     */
     public String getGraphURI()
     {
         return graphURI;

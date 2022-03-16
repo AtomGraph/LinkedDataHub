@@ -37,6 +37,12 @@ public class RDFSyntaxException extends ModelException
     
     private final List<Violation> violations;
     
+    /**
+     * Constructs exception.
+     * 
+     * @param violations list of violations
+     * @param model violation RDF model
+     */
     public RDFSyntaxException(List<Violation> violations, Model model)
     {
         super(model);
@@ -57,6 +63,11 @@ public class RDFSyntaxException extends ModelException
         }
     }
     
+    /**
+     * Returns he violation list.
+     * 
+     * @return violation list
+     */
     public List<Violation> getViolations()
     {
         return violations;

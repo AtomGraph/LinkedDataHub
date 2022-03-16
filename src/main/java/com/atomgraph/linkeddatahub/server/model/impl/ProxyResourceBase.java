@@ -168,7 +168,7 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
     }
     
     /**
-     * Forwards a multipart POST request returns RDF response from remote resource.
+     * Forwards a multipart <code>POST</code> request returns RDF response from remote resource.
      * 
      * @param multiPart form data
      * @return response
@@ -189,7 +189,7 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
     }
     
     /**
-     * Forwards a multipart PUT request returns RDF response from remote resource.
+     * Forwards a multipart <code>PUT</code> request returns RDF response from remote resource.
      * 
      * @param multiPart form data
      * @return response

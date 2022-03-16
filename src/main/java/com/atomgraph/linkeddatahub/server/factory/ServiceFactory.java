@@ -52,6 +52,12 @@ public class ServiceFactory implements Factory<Optional<Service>>
     {
     }
     
+    /**
+     * Retrieves (optional) service from container request context.
+     * 
+     * @param crc request context
+     * @return optional service
+     */
     public Optional<Service> getService(ContainerRequestContext crc)
     {
         Application app = (Application)crc.getProperty(LAPP.Application.getURI());
@@ -60,6 +66,11 @@ public class ServiceFactory implements Factory<Optional<Service>>
         return Optional.of(service);
     }
     
+    /**
+     * Returns the container request context.
+     * 
+     * @return request context
+     */
     public ContainerRequestContext getContainerRequestContext()
     {
         return serviceLocator.getService(ContainerRequestContext.class);

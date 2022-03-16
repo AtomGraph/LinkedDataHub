@@ -32,7 +32,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * RDF4J REST API ("Sesame HTTP protocol") client. Supports query variable binding passing as request parameters.
+ * RDF4J REST API ("Sesame HTTP protocol") client.
+ * Supports query variable binding passing as request parameters.
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  * @see <a href="https://rdf4j.eclipse.org/documentation/rest-api/#repository-queries">The rdf4j server REST API</a>
@@ -42,14 +43,27 @@ public class SesameProtocolClient extends SPARQLClient
     
     private static final Logger log = LoggerFactory.getLogger(SesameProtocolClient.class);
 
-    public SesameProtocolClient(WebTarget webResource, MediaTypes mediaTypes, int maxGetRequestSize)
+    /**
+     * Constructs client for a given URI target and HTTP config.
+     * 
+     * @param webTarget URI web target
+     * @param mediaTypes registry of readable/writable media types
+     * @param maxGetRequestSize the maximum size of SPARQL <code>GET</code> requests
+     */
+    public SesameProtocolClient(WebTarget webTarget, MediaTypes mediaTypes, int maxGetRequestSize)
     {
-        super(webResource, mediaTypes, maxGetRequestSize);
+        super(webTarget, mediaTypes, maxGetRequestSize);
     }
-    
-    public SesameProtocolClient(WebTarget webResource, MediaTypes mediaTypes)
+
+    /**
+     * Constructs client for a given URI target.
+     * 
+     * @param webTarget URI web target
+     * @param mediaTypes registry of readable/writable media types
+     */
+    public SesameProtocolClient(WebTarget webTarget, MediaTypes mediaTypes)
     {
-        super(webResource, mediaTypes);
+        super(webTarget, mediaTypes);
     }
     
     @Override
@@ -62,11 +76,28 @@ public class SesameProtocolClient extends SPARQLClient
         return this;
     }
 
+    /**
+     * Executes the specified SPARQL query. Sends initial solution bindings separately.
+     * 
+     * @param query SPARQL query
+     * @param clazz result class (<code>Model</code> or <code>ResultSet</code>)
+     * @param qsm query solution map
+     * @return endpoint response
+     */
     public Response query(final Query query, final Class clazz, final QuerySolutionMap qsm)
     {
         return query(query, clazz, qsm, new MultivaluedHashMap());
     }
-    
+
+    /**
+     * Executes the specified SPARQL query.Sends initial solution bindings separately. Additional URL parameters can be specified.
+     * 
+     * @param query SPARQL query
+     * @param clazz result class (<code>Model</code> or <code>ResultSet</code>)
+     * @param qsm query solution map
+     * @param params additional URL parameters
+     * @return endpoint response
+     */
     public Response query(final Query query, final Class clazz, final QuerySolutionMap qsm, final MultivaluedMap<String, String> params)
     {
         MultivaluedMap<String, String> mergedParams = new MultivaluedHashMap();
@@ -76,6 +107,12 @@ public class SesameProtocolClient extends SPARQLClient
         return super.query(query, clazz, mergedParams);
     }
 
+    /**
+     * Converts Jena's query solution map to endcoded URL parameter map.
+     * 
+     * @param qsm query solution map
+     * @return URL parameter map
+     */
     public static MultivaluedMap<String, String> solutionMapToMultivaluedMap(QuerySolutionMap qsm)
     {
         if (qsm == null) throw new IllegalArgumentException("QuerySolutionMap cannot be null");

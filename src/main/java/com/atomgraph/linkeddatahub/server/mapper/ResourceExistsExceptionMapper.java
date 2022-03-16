@@ -35,6 +35,11 @@ import org.apache.jena.rdf.model.Resource;
 public class ResourceExistsExceptionMapper extends ExceptionMapperBase implements ExceptionMapper<ResourceExistsException>
 {
     
+    /**
+     * Constructs mapper from media types.
+     * 
+     * @param mediaTypes registry of readable/writeable media types
+     */
     @Inject
     public ResourceExistsExceptionMapper(MediaTypes mediaTypes)
     {

@@ -44,7 +44,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Request filter that fixes XHTML content in RDF/POST payload.
  * <code>rdf:XMLLiteral</code> needs to be canonical XML, therefore we wrap the original XHTML into
- * a <code>&gt;div&gt;</code> element and canonicalize the document.
+ * a <code>&lt;div&gt;</code> element and canonicalize the document.
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  * @see com.atomgraph.linkeddatahub.server.interceptor.RDFPostCleanupInterceptor
@@ -84,6 +84,15 @@ public class RDFPostCleanupFilter extends RDFPostCleanupInterceptor implements C
         }
     }
     
+    /**
+     * Canonicalizes XHTML literals within multipart RDF/POST body.
+     * 
+     * @param multiPart multipart RDF/POST form data
+     * @param charset charset name
+     * @return fixed mutipart form data
+     * @throws IOException I/O error
+     * @throws ParsingException XML parsing error
+     */
     public FormDataMultiPart fixRDFPostMultiPart(FormDataMultiPart multiPart, Charset charset) throws IOException, ParsingException
     {
         String charsetName = charset.name();
@@ -121,7 +130,7 @@ public class RDFPostCleanupFilter extends RDFPostCleanupInterceptor implements C
                         ((FormDataBodyPart)multiPart.getBodyParts().get(i + 1)).getValue().equals(RDF.xmlLiteral.getURI()))
                     {
                         String xml = bodyPart.getValue();
-                        bodyPart.setValue(fixXHTML(xml, charsetName));
+                        bodyPart.setValue(canonicalizeXML(wrapXHTML(xml), charsetName));
                     }
 
                     // 2. ...pu=http://www.w3.org/1999/02/22-rdf-syntax-ns#first&lt=http://...XMLLiteral&ol=value...
@@ -136,7 +145,7 @@ public class RDFPostCleanupFilter extends RDFPostCleanupInterceptor implements C
                         bodyPart.getValue() != null)
                     {
                         String xml = bodyPart.getValue();
-                        bodyPart.setValue(fixXHTML(xml, charsetName));
+                        bodyPart.setValue(canonicalizeXML(wrapXHTML(xml), charsetName));
                     }
                 }
             }
@@ -145,6 +154,11 @@ public class RDFPostCleanupFilter extends RDFPostCleanupInterceptor implements C
         return multiPart;
     }
     
+    /**
+     * Returns registry of JAX-RS providers.
+     * 
+     * @return JAX-RS provider registry
+     */
     public Providers getProviders()
     {
         return providers;

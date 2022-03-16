@@ -26,8 +26,19 @@ import org.apache.jena.rdf.model.Resource;
 public interface RDFImport extends Import
 {
 
+    /**
+     * Returns <code>CONSTRUCT</code> transformation query.
+     * 
+     * @return query or null
+     */
     Resource getQuery();
     
+    /**
+     * Returns the named graph resource.
+     * Its URI is the URI of the graph.
+     * 
+     * @return graph resource
+     */
     Resource getGraphName();
 
 }
