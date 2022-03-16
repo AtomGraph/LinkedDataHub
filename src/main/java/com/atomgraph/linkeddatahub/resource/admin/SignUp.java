@@ -207,7 +207,6 @@ public class SignUp extends GraphStoreImpl
                     getRequiredProperty(DCTerms.title).getString();
             agent = appendItem(agentModel,
                 agentGraphUri,
-                FOAF.Person.getNameSpace(),
                 agentModel.createResource(getUriInfo().getBaseUri().resolve(AGENT_PATH).toString()),
                 agent); // append Item data
             
@@ -372,17 +371,14 @@ public class SignUp extends GraphStoreImpl
      * 
      * @param model agent model
      * @param graphURI graph URI
-     * @param namespace item namespace
      * @param container agent container resource
      * @param agent agent resource
      * @return item resource
      */
-    public Resource appendItem(Model model, URI graphURI, String namespace, Resource container, Resource agent)
+    public Resource appendItem(Model model, URI graphURI, Resource container, Resource agent)
     {
-        Resource itemCls = model.createResource(namespace + "Item"); // TO-DO: get rid of base-relative class URIs
-
         Resource item = model.createResource(graphURI.toString()).
-            addProperty(RDF.type, itemCls).
+            addProperty(RDF.type, DH.Item).
             addProperty(SIOC.HAS_CONTAINER, container).
             addLiteral(DH.slug, UUID.randomUUID().toString()); // TO-DO: does not match the URI
 
