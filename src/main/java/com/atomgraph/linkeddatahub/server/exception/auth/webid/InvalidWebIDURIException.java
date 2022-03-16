@@ -25,6 +25,7 @@ package com.atomgraph.linkeddatahub.server.exception.auth.webid;
 public class InvalidWebIDURIException extends RuntimeException
 {
     
+    /** WebID URI */
     private final String uri;
     
     /**

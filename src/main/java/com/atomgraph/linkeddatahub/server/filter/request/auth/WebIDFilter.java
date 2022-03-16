@@ -95,6 +95,9 @@ public class WebIDFilter extends AuthenticationFilter
         acceptedTypes = acceptedTypeList.toArray(new javax.ws.rs.core.MediaType[acceptedTypeList.size()]); 
     }
     
+    /**
+     * Post-construct initialization of resource.
+     */
     @PostConstruct
     public void init()
     {

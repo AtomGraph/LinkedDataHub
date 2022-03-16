@@ -29,7 +29,9 @@ import org.apache.jena.rdf.model.Resource;
 public class ResourceExistsException extends ModelException
 {
 
+    /** URI of the existing resource */
     private final URI uri;
+    /** RDF resource */
     private final Resource resource;
 
     /**

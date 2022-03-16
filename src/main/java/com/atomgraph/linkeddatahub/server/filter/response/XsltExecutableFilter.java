@@ -122,6 +122,13 @@ public class XsltExecutableFilter implements ContainerResponseFilter
         return getXsltExecutable(getSource(stylesheet.toString()));
     }
     
+    /**
+     * Compiles XSLT document source into an XSLT executable.
+     * 
+     * @param source XSLT document source
+     * @return XSLT executable
+     * @throws SaxonApiException Saxon error
+     */
     public XsltExecutable getXsltExecutable(Source source) throws SaxonApiException
     {
         return getXsltCompiler().compile(source);

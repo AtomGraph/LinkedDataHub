@@ -29,8 +29,12 @@ import java.net.URI;
 public class AuthorizationException extends RuntimeException
 {
     
+    /** URL of the current request (without the query string) */
     private final URI absolutePath;
-    private final Resource mode, agent;
+    /** Access mode resource */
+    private final Resource mode;
+    /** Authenticated agent resource */
+    private final Resource agent;
 
     /**
      * Constructs exception with agent.

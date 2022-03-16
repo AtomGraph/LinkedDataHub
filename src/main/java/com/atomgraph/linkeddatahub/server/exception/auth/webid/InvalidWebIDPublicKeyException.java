@@ -28,7 +28,9 @@ import javax.ws.rs.NotAuthorizedException;
 public class InvalidWebIDPublicKeyException extends NotAuthorizedException
 {
     
+    /** RSA public key */
     private final RSAPublicKey publicKey;
+    /** WebID URI */
     private final String webID;
     
     /**

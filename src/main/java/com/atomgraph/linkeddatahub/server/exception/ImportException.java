@@ -26,6 +26,7 @@ import org.apache.jena.rdf.model.Model;
 public class ImportException extends RuntimeException
 {
     
+    /** Import model */
     private final Model model;
     
     /**

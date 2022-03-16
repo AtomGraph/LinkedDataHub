@@ -35,6 +35,7 @@ import com.atomgraph.server.exception.ModelException;
 public class RDFSyntaxException extends ModelException
 {
     
+    /** List of syntax violations */
     private final List<Violation> violations;
     
     /**
