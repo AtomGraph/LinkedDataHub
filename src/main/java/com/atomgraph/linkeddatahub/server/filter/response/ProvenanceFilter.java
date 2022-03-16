@@ -82,6 +82,11 @@ public class ProvenanceFilter implements ContainerResponseFilter
         }
     }
     
+    /**
+     * Returns (optional) SPARQL service of the current application.
+     * 
+     * @return optional service
+     */
     public Optional<Service> getService()
     {
         return service.get();

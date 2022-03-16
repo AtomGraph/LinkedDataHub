@@ -89,7 +89,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * JAX-RS resource that handles signups.
+ * JAX-RS endpoint that handles signups.
  * Creates a new agent with a public key and sends a notification email with an attached WebID certificate.
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
@@ -115,6 +115,19 @@ public class SignUp extends GraphStoreImpl
     private final int validityDays;
     private final boolean download;
 
+    /**
+     * Constructs signup resource.
+     * 
+     * @param request current request
+     * @param uriInfo request URI information
+     * @param mediaTypes registry of readable/writable media types
+     * @param application current application
+     * @param ontology current application's ontology
+     * @param service current application's service
+     * @param providers registry of JAX-RS providers
+     * @param system system application
+     * @param servletConfig servlet config
+     */
     // TO-DO: move to AuthenticationExceptionMapper and handle as state instead of URI resource?
     @Inject
     public SignUp(@Context Request request, @Context UriInfo uriInfo, MediaTypes mediaTypes,
@@ -298,6 +311,13 @@ public class SignUp extends GraphStoreImpl
         }
     }
 
+    /**
+     * Validates agent metadata and removes plain-text password value.
+     * 
+     * @param agent wannabe agent resource
+     * @return password string
+     * @throws SPINConstraintViolationException 
+     */
     public String validateAndRemovePassword(Resource agent) throws SPINConstraintViolationException
     {
         Statement certStmt = agent.getProperty(Cert.key);
@@ -321,6 +341,15 @@ public class SignUp extends GraphStoreImpl
         return password;
     }
     
+    /**
+     * Creates constraint violation exception.
+     * This is done to emulate SPIN validation so the same UI logic can still apply.
+     * 
+     * @param resource violating RDF resource
+     * @param property violating property
+     * @param message violation message
+     * @return violation exception
+     */
     public SPINConstraintViolationException createSPINConstraintViolationException(Resource resource, Property property, String message)
     {
         List<ConstraintViolation> cvs = new ArrayList<>();
@@ -344,6 +373,15 @@ public class SignUp extends GraphStoreImpl
         return agent;
     }
     
+    /**
+     * Creates new public key resource.
+     * 
+     * @param model RDF model
+     * @param graphURI graph URI
+     * @param container container resource
+     * @param publicKey RSA public key
+     * @return public key resource
+     */
     public Resource createPublicKey(Model model, URI graphURI, Resource container, RSAPublicKey publicKey)
     {
         Resource item = model.createResource(graphURI.toString()).
@@ -361,7 +399,17 @@ public class SignUp extends GraphStoreImpl
         return publicKeyRes;
     }
     
-    public Resource createAuthorization(Model model, URI graphURI, Resource container, URI agentGraphURI, URI publicKeyURI)
+    /**
+     * Creates new authorization resource.
+     * 
+     * @param model RDF model
+     * @param graphURI graph URI
+     * @param container container resource
+     * @param agentGraphURI agent's graph URI
+     * @param publicKeyGraphURI public key's graph URI
+     * @return authorization resource
+     */
+    public Resource createAuthorization(Model model, URI graphURI, Resource container, URI agentGraphURI, URI publicKeyGraphURI)
     {
         Resource item = model.createResource(graphURI.toString()).
             addProperty(RDF.type, DH.Item).
@@ -372,7 +420,7 @@ public class SignUp extends GraphStoreImpl
             addProperty(RDF.type, ACL.Authorization).
             addLiteral(DH.slug, UUID.randomUUID().toString()). // TO-DO: get rid of slug properties!
             addProperty(ACL.accessTo, ResourceFactory.createResource(agentGraphURI.toString())).
-            addProperty(ACL.accessTo, ResourceFactory.createResource(publicKeyURI.toString())).
+            addProperty(ACL.accessTo, ResourceFactory.createResource(publicKeyGraphURI.toString())).
             addProperty(ACL.mode, ACL.Read).
             addProperty(ACL.agentClass, FOAF.Agent).
             addProperty(ACL.agentClass, ACL.AuthenticatedAgent);
@@ -381,6 +429,17 @@ public class SignUp extends GraphStoreImpl
         
         return auth;
     }
+    
+    /**
+     * Sends signup notification email to agent.
+     * 
+     * @param agent agent resource
+     * @param certExpires WebID client certificate's expiration date
+     * @param keyStoreBytes binary key store
+     * @param keyStoreFileName keystore filename
+     * @throws MessagingException error sending email
+     * @throws UnsupportedEncodingException encoding error
+     */
     
     public void sendEmail(Resource agent, LocalDate certExpires, byte[] keyStoreBytes, String keyStoreFileName) throws MessagingException, UnsupportedEncodingException
     {
@@ -409,6 +468,11 @@ public class SignUp extends GraphStoreImpl
         EMailListener.submit(builder.build());
     }
     
+    /**
+     * Returns the end-user application of the current dataspace.
+     * 
+     * @return end-user application
+     */
     public EndUserApplication getEndUserApplication()
     {
         if (getApplication().canAs(EndUserApplication.class))
@@ -417,26 +481,51 @@ public class SignUp extends GraphStoreImpl
             return getApplication().as(AdminApplication.class).getEndUserApplication();
     }
 
+    /**
+     * Returns URI of this resource.
+     * 
+     * @return resource URI
+     */
     public URI getURI()
     {
         return uri;
     }
 
+    /**
+     * Returns the number of days until the WebID certificate expires.
+     * 
+     * @return number of days
+     */
     public int getValidityDays()
     {
         return validityDays;
     }
 
+    /**
+     * Returns RDF model with country metadata.
+     * 
+     * @return RDF model
+     */
     public Model getCountryModel()
     {
         return countryModel;
     }
 
+    /**
+     * Returns the subject of the notification email.
+     * 
+     * @return email subject
+     */
     public String getEmailSubject()
     {
         return emailSubject;
     }
     
+    /**
+     * Returns the text of the notification email.
+     * 
+     * @return email text
+     */
     public String getEmailText()
     {
         return emailText;

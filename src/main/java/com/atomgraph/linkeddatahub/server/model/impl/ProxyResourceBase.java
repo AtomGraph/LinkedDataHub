@@ -58,7 +58,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- *
+ * JAX-RS resource that proxies Linked Data documents.
+ * It uses an HTTP client to dereference URIs and sends back the client response.
+ * 
  * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
  */
 public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyResourceBase
@@ -71,6 +73,21 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
     private final MediaType[] readableMediaTypes;
     private final Providers providers;
 
+    /**
+     * Constructs the resource.
+     * 
+     * @param uriInfo current request URI info
+     * @param request current request
+     * @param httpHeaders HTTP header info
+     * @param mediaTypes registry of readable/writable media types
+     * @param securityContext JAX-RS security context
+     * @param system system application
+     * @param httpServletRequest servlet request
+     * @param dataManager RDFdata manager
+     * @param agentContext authenticated agent's context
+     * @param providers registry of JAX-RS providers
+     * @param dataset optional dataset
+     */
     @Inject
     public ProxyResourceBase(@Context UriInfo uriInfo, @Context Request request, @Context HttpHeaders httpHeaders, MediaTypes mediaTypes, @Context SecurityContext securityContext,
             com.atomgraph.linkeddatahub.Application system, @Context HttpServletRequest httpServletRequest, DataManager dataManager, Optional<AgentContext> agentContext,
@@ -114,7 +131,7 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
     }
     
     /**
-     * Forwards GET request and returns response from remote resource.
+     * Forwards <code>GET</code> request and returns response from remote resource.
      * 
      * @param target target URI
      * @return response
@@ -192,22 +209,42 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
         }
     }
     
+    /**
+     * Returns request URI information.
+     * 
+     * @return URI info
+     */
     public UriInfo getUriInfo()
     {
         return uriInfo;
     }
     
+    /**
+     * Returns RDF data manager.
+     * 
+     * @return RDF data manager
+     */
     public DataManager getDataManager()
     {
         return dataManager;
     }
     
+    /**
+     * Returns readable media types.
+     * 
+     * @return media types
+     */
     @Override
     public MediaType[] getReadableMediaTypes()
     {
         return readableMediaTypes;
     }
     
+    /**
+     * Returns a registry of JAX-RS providers.
+     * 
+     * @return provider registry
+     */
     public Providers getProviders()
     {
         return providers;

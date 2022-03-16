@@ -66,6 +66,9 @@ public class OntologyFilter implements ContainerRequestFilter
 
     @Inject com.atomgraph.linkeddatahub.Application system;
 
+    /**
+     * Application's ontology model getter.
+     */
     protected class ModelGetter implements org.apache.jena.rdf.model.ModelGetter
     {
         
@@ -74,7 +77,7 @@ public class OntologyFilter implements ContainerRequestFilter
         private final Query ontologyQuery;
         
         /**
-         * Applications ontology model getter.
+         * Constructs ontology getter for application.
          * 
          * @param app application resource
          * @param ontModelSpec ontology specification

@@ -245,6 +245,11 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
         return ValidatingModelProvider.hashMboxes(getMessageDigest()).apply(model); // apply processing from superclasses
     }
 
+    /**
+     * Returns system application.
+     * 
+     * @return JAX-RS application
+     */
     public com.atomgraph.linkeddatahub.Application getSystem()
     {
         return system;

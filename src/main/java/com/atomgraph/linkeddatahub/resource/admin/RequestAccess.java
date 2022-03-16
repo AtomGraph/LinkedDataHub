@@ -21,7 +21,6 @@ import com.atomgraph.core.client.LinkedDataClient;
 import com.atomgraph.core.exception.ConfigurationException;
 import static com.atomgraph.linkeddatahub.apps.model.AdminApplication.AUTHORIZATION_REQUEST_PATH;
 import com.atomgraph.linkeddatahub.model.Service;
-import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.listener.EMailListener;
 import com.atomgraph.linkeddatahub.model.Agent;
 import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
@@ -59,7 +58,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * JAX-RS resource that handles requests for access.
+ * JAX-RS endpoint that handles requests for access.
  * Creates an authorization request and sends a notification email to the maker of the application.
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
@@ -75,6 +74,20 @@ public class RequestAccess extends GraphStoreImpl
     private final String emailText;
     private final UriBuilder authRequestContainerUriBuilder;
 
+    /**
+     * Constructs access request resource.
+     * 
+     * @param request current request
+     * @param uriInfo request URI information
+     * @param mediaTypes registry of readable/writable media types
+     * @param application current application
+     * @param ontology current application's ontology
+     * @param service current application's service
+     * @param securityContext JAX-RS security service
+     * @param providers registry of JAX-RS providers
+     * @param system system application
+     * @param servletConfig servlet config
+     */
     @Inject
     public RequestAccess(@Context Request request, @Context UriInfo uriInfo, MediaTypes mediaTypes,
             com.atomgraph.linkeddatahub.apps.model.Application application, Optional<Ontology> ontology, Optional<Service> service,
@@ -149,6 +162,14 @@ public class RequestAccess extends GraphStoreImpl
         }
     }
     
+    /**
+     * Sends access request notification email to applications owner.
+     * 
+     * @param owner application's owner
+     * @param accessRequest access request resource
+     * @throws MessagingException error sending email
+     * @throws UnsupportedEncodingException encoding error
+     */
     public void sendEmail(Resource owner, Resource accessRequest) throws MessagingException, UnsupportedEncodingException
     {
         // TO-DO: trim values?
@@ -182,33 +203,61 @@ public class RequestAccess extends GraphStoreImpl
         EMailListener.submit(builder.build());
     }
     
+    /**
+     * Returns the SPARQL service from which agent data is retrieved.
+     * 
+     * @return SPARQL service
+     */
     protected Service getAgentService()
     {
-        return getApplication().canAs(EndUserApplication.class) ?
-            getApplication().as(EndUserApplication.class).getAdminApplication().getService() :
-            getApplication().getService();
+        return getApplication().getService();
     }
     
+    /**
+     * Returns URI of this resource.
+     * 
+     * @return resource URI
+     */
     public URI getURI()
     {
         return uri;
     }
 
+    /**
+     * Returns authenticated agent or null.
+     * 
+     * @return agent resource or null
+     */
     public Agent getAgent()
     {
         return agent;
     }
     
+    /**
+     * Returns the subject of the notification email.
+     * 
+     * @return subject
+     */
     public String getEmailSubject()
     {
         return emailSubject;
     }
     
+    /**
+     * Returns the text of the notification email.
+     * 
+     * @return text
+     */
     public String getEmailText()
     {
         return emailText;
     }
     
+    /**
+     * Returns the URI builder for authorization requests.
+     * 
+     * @return URI builder
+     */
     public UriBuilder getAuthRequestContainerUriBuilder()
     {
         return authRequestContainerUriBuilder.clone();

@@ -163,6 +163,15 @@ public class WebIDFilter extends AuthenticationFilter
         }
     }
 
+    /**
+     * Retrieves WebID certificate from the container request context.
+     * 
+     * @param request request context
+     * @return X509 certificate
+     * @throws URISyntaxException WebID URI is malformed
+     * @throws CertificateException certificate error
+     * @throws CertificateParsingException certificate parsing error
+     */
     public X509Certificate getWebIDCertificate(ContainerRequestContext request) throws URISyntaxException, CertificateException, CertificateParsingException
     {
         X509Certificate[] certs = (X509Certificate[])getHttpServletRequest().getAttribute("javax.servlet.request.X509Certificate");

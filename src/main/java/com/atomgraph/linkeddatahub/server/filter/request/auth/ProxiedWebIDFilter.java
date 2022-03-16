@@ -43,6 +43,9 @@ public class ProxiedWebIDFilter extends WebIDFilter
             
     private final CertificateFactory certFactory;
 
+    /**
+     * Constructs filter.
+     */
     public ProxiedWebIDFilter()
     {
         super();
@@ -69,6 +72,11 @@ public class ProxiedWebIDFilter extends WebIDFilter
         return null;
     }
     
+    /**
+     * Returns certificate factory.
+     * 
+     * @return certificate factory
+     */
     public CertificateFactory getCertificateFactory()
     {
         return certFactory;

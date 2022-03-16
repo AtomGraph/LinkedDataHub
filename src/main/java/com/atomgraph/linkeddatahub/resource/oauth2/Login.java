@@ -311,7 +311,7 @@ public class Login extends GraphStoreImpl
      * 
      * @param model RDF model
      * @param graphURI graph URI
-     * @param container container URI
+     * @param container container resource
      * @param givenName given name
      * @param familyName family name
      * @param email email address
@@ -342,7 +342,7 @@ public class Login extends GraphStoreImpl
      * 
      * @param model RDF model
      * @param graphURI graph URI
-     * @param container container URI
+     * @param container container resource
      * @param id user ID
      * @param issuer OIDC issuer
      * @param name username
@@ -374,7 +374,7 @@ public class Login extends GraphStoreImpl
      * 
      * @param model RDF model
      * @param graphURI graph URI
-     * @param container container URI
+     * @param container container resource
      * @param agentGraphURI agent's graph URI
      * @param userAccountGraphURI user account's graph URI
      * @return authorization resource
@@ -401,7 +401,7 @@ public class Login extends GraphStoreImpl
     }
     
     /**
-     * Sends email message to agent.
+     * Sends signup notification email message to agent.
      * 
      * @param agent agent resource
      * @throws MessagingException thrown if message sending failed
@@ -483,7 +483,7 @@ public class Login extends GraphStoreImpl
     /**
      * Returns login email subject.
      * 
-     * @return subject string
+     * @return email subject
      */
     public String getEmailSubject()
     {
@@ -493,7 +493,7 @@ public class Login extends GraphStoreImpl
     /**
      * Returns login email text.
      * 
-     * @return text string
+     * @return email text
      */
     public String getEmailText()
     {
