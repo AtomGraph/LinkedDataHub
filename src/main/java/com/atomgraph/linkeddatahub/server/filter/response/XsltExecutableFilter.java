@@ -74,7 +74,13 @@ public class XsltExecutableFilter implements ContainerResponseFilter
             else req.setProperty(AC.stylesheet.getURI(), getSystem().getXsltExecutable());
         }
     }
-        
+    
+    /**
+     * Returns XSLT executable for the given stylesheet URI.
+     * 
+     * @param stylesheet stylesheet URI
+     * @return XSLT executable
+     */
     public XsltExecutable getXsltExecutable(URI stylesheet)
     {
         try
@@ -94,13 +100,13 @@ public class XsltExecutableFilter implements ContainerResponseFilter
     }
     
     /**
-     * Get compiled XSLT stylesheet. First look in the cache, if it's enabled; otherwise read from URL.
+     * Returns compiled XSLT stylesheet. First looks in the cache, if it's enabled; otherwise read from URL.
      * 
-     * @param stylesheet
-     * @param xsltExecCache
-     * @return XsltExecutable
-     * @throws java.io.IOException
-     * @throws SaxonApiException
+     * @param stylesheet stylesheet URI
+     * @param xsltExecCache executable cache
+     * @return XsltExecutable XSLT executable
+     * @throws java.io.IOException I/O error
+     * @throws SaxonApiException Saxon error
      */
     public XsltExecutable getXsltExecutable(URI stylesheet, Map<URI, XsltExecutable> xsltExecCache) throws IOException, SaxonApiException
     {
@@ -122,11 +128,12 @@ public class XsltExecutableFilter implements ContainerResponseFilter
     }
     
     /**
+     * Loads XML document source from URL.
      * Supports JNDI and HTTP(S) schemes.
      * 
-     * @param url
-     * @return
-     * @throws IOException 
+     * @param url document URL
+     * @return document source
+     * @throws IOException I/O error
      */
     public Source getSource(String url) throws IOException
     {
@@ -164,36 +171,71 @@ public class XsltExecutableFilter implements ContainerResponseFilter
         return null;
     }
 
+    /**
+     * Returns HTTP client.
+     * 
+     * @return HTTP client
+     */
     public Client getClient()
     {
         return getSystem().getClient();
     }
 
+    /**
+     * Returns XSLT compiler.
+     * 
+     * @return XSLT compiler
+     */
     public XsltCompiler getXsltCompiler()
     {
         return getSystem().getXsltCompiler();
     }
 
+    /**
+     * Returns true if XSLT stylesheets are cached.
+     * 
+     * @return true if cached
+     */
     public boolean isCacheStylesheet()
     {
         return getSystem().isCacheStylesheet();
     }
     
+    /**
+     * Returns the cache map for XSLT executables.
+     * 
+     * @return stylesheet URI to executable map
+     */
     public Map<URI, XsltExecutable> getXsltExecutableCache()
     {
         return getSystem().getXsltExecutableCache();
     }
     
+    /**
+     * Returns system application.
+     * 
+     * @return JAX-RS application
+     */
     public com.atomgraph.linkeddatahub.Application getSystem()
     {
         return system;
     }
     
+    /**
+     * Returns current application.
+     * 
+     * @return application resource
+     */
     public com.atomgraph.linkeddatahub.apps.model.Application getApplication()
     {
         return application.get();
     }
 
+    /**
+     * Returns URI info of the current request.
+     * 
+     * @return URI info
+     */
     public UriInfo getUriInfo()
     {
         return uriInfo;

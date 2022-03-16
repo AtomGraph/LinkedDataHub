@@ -27,6 +27,12 @@ import org.apache.jena.rdf.model.Resource;
 public class WebIDDelegationException extends RuntimeException
 {
     
+    /**
+     * Constructs exception.
+     * 
+     * @param agent delegating agent resource
+     * @param principal delegated agent resource
+     */
     public WebIDDelegationException(Resource agent, Resource principal)
     {
         super("Agent '" + agent.getURI() + "' does not delegate (acl:delegates) the agent '" + principal.getURI() + "'");

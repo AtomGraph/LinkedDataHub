@@ -26,6 +26,11 @@ import org.apache.jena.rdf.model.Resource;
 public interface XMLImport extends Import
 {
     
+    /**
+     * Returns the XSLT stylesheet used to transform XML to RDF.
+     * 
+     * @return stylesheet resource
+     */
     Resource getStylesheet();
     
 }

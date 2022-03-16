@@ -72,7 +72,9 @@ public class WebIDFilter extends AuthenticationFilter
     
     private static final Logger log = LoggerFactory.getLogger(WebIDFilter.class);
 
+    /** Constant for <code>subjectAlternativeName</code> entry URI type */
     public static final int SAN_URI_NAME = 6;
+    /** HTTP request header name that indicates WebID delegation */
     public static final String ON_BEHALF_OF = "On-Behalf-Of";
     
     private final MediaTypes mediaTypes = new MediaTypes();
@@ -82,6 +84,9 @@ public class WebIDFilter extends AuthenticationFilter
 
     private ParameterizedSparqlString webIDQuery;
 
+    /**
+     * Constructs filter.
+     */
     public WebIDFilter()
     {
         super();
@@ -182,6 +187,14 @@ public class WebIDFilter extends AuthenticationFilter
         return null;
     }
     
+    /**
+     * Retrieves WebID URI from the given certificate's <code>subjectAlternativeName</code>.
+     * 
+     * @param cert X509 certificate
+     * @return WebID URI
+     * @throws URISyntaxException URI syntax error
+     * @throws CertificateParsingException certificate parsing exception
+     */
     public static URI getWebIDURI(X509Certificate cert) throws URISyntaxException, CertificateParsingException
     {
         if (cert.getSubjectAlternativeNames() != null)
@@ -202,6 +215,14 @@ public class WebIDFilter extends AuthenticationFilter
         return null;
     }
     
+    /**
+     * Verifies the given public key against the given WebID profile document.
+     * 
+     * @param webIDModel WebID document model
+     * @param webID WebID URI
+     * @param publicKey RSA public key
+     * @return agent resource
+     */
     public Resource authenticate(Model webIDModel, URI webID, RSAPublicKey publicKey)
     {
         ParameterizedSparqlString pss = getWebIDQuery();
@@ -222,6 +243,13 @@ public class WebIDFilter extends AuthenticationFilter
         return null;
     }
   
+    /**
+     * Loads WebID document model for the given WebID URI.
+     * Checks WebID cache first, falls back to dereferencing the WebID URI.
+     * 
+     * @param webID webID URI
+     * @return WebID document model
+     */
     public Model loadWebID(URI webID)
     {
         if (getSystem().getWebIDModelCache().containsKey(webID)) return getSystem().getWebIDModelCache().get(webID);
@@ -231,6 +259,12 @@ public class WebIDFilter extends AuthenticationFilter
         return model;
     }
     
+    /**
+     * Loads WebID document model by dereferencing the given WebID URI.
+     * 
+     * @param webID WebID URI
+     * @return document model
+     */
     public Model loadWebIDFromURI(URI webID)
     {
         try
@@ -285,21 +319,42 @@ public class WebIDFilter extends AuthenticationFilter
         return null;
     }
     
+    /**
+     * Returns HTTP servlet request
+     * 
+     * @return servlet request
+     */
     public HttpServletRequest getHttpServletRequest()
     {
         return httpServletRequest;
     }
     
+    /**
+     * Returns WebID verification query.
+     * 
+     * @return SPARQL query
+     */
     public ParameterizedSparqlString getWebIDQuery()
     {
         return webIDQuery.copy();
     }
     
+    /**
+     * Returns HTTP client.
+     * This client instance does not send the WebID client certificate.
+     * 
+     * @return HTTP client
+     */
     public Client getClient()
     {
         return getSystem().getNoCertClient();
     }
     
+    /**
+     * Returns readable media types.
+     * 
+     * @return readable media types
+     */
     public javax.ws.rs.core.MediaType[] getAcceptableMediaTypes()
     {
         return acceptedTypes;

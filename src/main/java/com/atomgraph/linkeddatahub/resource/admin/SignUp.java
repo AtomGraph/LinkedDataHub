@@ -205,7 +205,7 @@ public class SignUp extends GraphStoreImpl
             Resource country = agent.getRequiredProperty(FOAF.based_near).getResource();
             String countryName = getCountryModel().createResource(country.getURI()).
                     getRequiredProperty(DCTerms.title).getString();
-            agent = appendAgent(agentModel,
+            agent = appendItem(agentModel,
                 agentGraphUri,
                 FOAF.Person.getNameSpace(),
                 agentModel.createResource(getUriInfo().getBaseUri().resolve(AGENT_PATH).toString()),
@@ -367,7 +367,17 @@ public class SignUp extends GraphStoreImpl
         return new SPINConstraintViolationException(cvs, resource.getModel());
     }
 
-    public Resource appendAgent(Model model, URI graphURI, String namespace, Resource container, Resource agent)
+    /**
+     * Appends Item document resource to the RDF model.
+     * 
+     * @param model agent model
+     * @param graphURI graph URI
+     * @param namespace item namespace
+     * @param container agent container resource
+     * @param agent agent resource
+     * @return item resource
+     */
+    public Resource appendItem(Model model, URI graphURI, String namespace, Resource container, Resource agent)
     {
         Resource itemCls = model.createResource(namespace + "Item"); // TO-DO: get rid of base-relative class URIs
 

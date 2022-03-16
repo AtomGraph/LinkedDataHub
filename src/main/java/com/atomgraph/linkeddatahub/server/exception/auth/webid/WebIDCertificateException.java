@@ -27,6 +27,11 @@ import java.security.cert.CertificateException;
 public class WebIDCertificateException extends RuntimeException
 {
     
+    /**
+     * Constructs exception.
+     * 
+     * @param ex certificate exception
+     */
     public WebIDCertificateException(CertificateException ex)
     {
         super(ex);

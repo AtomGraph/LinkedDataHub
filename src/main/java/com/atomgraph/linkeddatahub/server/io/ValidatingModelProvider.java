@@ -155,7 +155,7 @@ public class ValidatingModelProvider extends com.atomgraph.server.io.ValidatingM
      * Post-processes read RDF resources.
      * 
      * @param resource RDF resource
-     * @return 
+     * @return processed RDF resource
      */
     public Resource processRead(Resource resource) // this logic really belongs in a ContainerRequestFilter but we don't want to buffer and re-serialize the Model
     {

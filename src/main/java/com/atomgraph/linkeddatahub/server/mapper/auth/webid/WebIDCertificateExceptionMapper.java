@@ -32,6 +32,11 @@ import org.apache.jena.rdf.model.ResourceFactory;
 public class WebIDCertificateExceptionMapper extends ExceptionMapperBase implements ExceptionMapper<WebIDCertificateException>
 {
 
+    /**
+     * Constructs mapper from media types.
+     * 
+     * @param mediaTypes registry of readable/writable media types
+     */
     @Inject
     public WebIDCertificateExceptionMapper(MediaTypes mediaTypes)
     {
