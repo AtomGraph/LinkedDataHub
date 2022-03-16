@@ -27,17 +27,45 @@ public class WebIDCertGen
     private final String keyAlg;
     private final String storeType;
     
+    /**
+     * Constructs certificate generator.
+     * 
+     */
     public WebIDCertGen()
     {
         this("RSA", "PKCS12");
     }
     
+    /**
+     * Constructs certificate generator.
+     * 
+     * @param keyAlg key algorithm ID
+     * @param storeType keystore type
+     */
     public WebIDCertGen(String keyAlg, String storeType)
     {
         this.keyAlg = keyAlg;
         this.storeType = storeType;
     }
     
+    /**
+     * Generates keystore with a WebID client certificate.
+     * This method accesses internal Sun APIs in order to replicate what Java's <code>keytool</code> CLI command does.
+     * 
+     * @param keyStorePath path to the keystore
+     * @param storePass keystore password
+     * @param keyPass key password
+     * @param alias certificate alias
+     * @param commonName subject's common name
+     * @param orgUnit subject's organizational unit
+     * @param organization subject's organization
+     * @param locality subject's locality
+     * @param stateOrProvinceName subject's state or province name
+     * @param countryName subject's country name
+     * @param webIDURI subject's WebID URI
+     * @param validity certificate's validity period
+     * @throws Exception certificate generation error
+     */
     public void generate(Path keyStorePath, String storePass, String keyPass, String alias,
             String commonName, String orgUnit, String organization, String locality, String stateOrProvinceName, String countryName,
             String webIDURI, int validity) throws Exception
@@ -67,8 +95,14 @@ public class WebIDCertGen
         sun.security.tools.keytool.Main.main(args);
     }
 
-    // escape characters with backslash: DQUOTE / PLUS / COMMA / SEMI / LANGLE / RANGLE
-    // https://www.ietf.org/rfc/rfc4514.txt
+    /**
+     * Escapes "Distinguished Name" value.
+     * Escape the following characters with a backslash: <code>DQUOTE</code>/<code>PLUS</code>/<code>COMMA</code>/<code>SEMI</code>/<code>LANGLE</code>/<code>RANGLE</code>.
+     * 
+     * @param string raw DName value
+     * @return escaped DName value
+     * @see <a href="https://www.ietf.org/rfc/rfc4514.txt">String Representation of Distinguished Names</a>
+     */
     public static String escapeDName(String string)
     {
         return string.replace("\"", "\\\"").
@@ -79,11 +113,21 @@ public class WebIDCertGen
                 replace(">", "\\>");
     }
     
+    /**
+     * Returns key algorithm.
+     * 
+     * @return algorithm ID
+     */
     public String getKeyAlg()
     {
         return keyAlg;
     }
     
+    /**
+     * Returns keystore type.
+     * 
+     * @return keystore type
+     */
     public String getStoreType()
     {
         return storeType;

@@ -200,7 +200,7 @@ public class RDFPostCleanupInterceptor implements ReaderInterceptor
      * @return canonicalized XML string
      * @throws IOException I/O exception
      * @throws ParsingException XML parsing error
-     * @see https://www.w3.org/TR/xml-c14n11/
+     * @see <a href="https://www.w3.org/TR/xml-c14n11/">Canonical XML Version 1.1</a>
      */
     public String canonicalizeXML(String xml, String charsetName) throws IOException, ParsingException
     {

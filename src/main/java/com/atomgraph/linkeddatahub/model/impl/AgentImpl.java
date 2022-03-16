@@ -35,7 +35,7 @@ public class AgentImpl extends ResourceImpl implements Agent
 {
 
     /**
-     * Returns a Jena implementation for this class.
+     * Jena's implementation for this class.
      */
     public static Implementation factory = new Implementation() 
     {
@@ -63,7 +63,7 @@ public class AgentImpl extends ResourceImpl implements Agent
     };
     
     /**
-     * Constructs agent instance from graph node.
+     * Constructs instance from graph node.
      * 
      * @param n node
      * @param g graph

@@ -85,6 +85,11 @@ public class ValidatingModelProvider extends com.atomgraph.server.io.ValidatingM
 
     private final MessageDigest messageDigest;
 
+    /**
+     * Constructs provider.
+     * 
+     * @param messageDigest message digest
+     */
     public ValidatingModelProvider(MessageDigest messageDigest)
     {
         this.messageDigest = messageDigest;
@@ -146,6 +151,12 @@ public class ValidatingModelProvider extends com.atomgraph.server.io.ValidatingM
         return super.processRead(model); // apply processing from superclasses
     }
     
+    /**
+     * Post-processes read RDF resources.
+     * 
+     * @param resource RDF resource
+     * @return 
+     */
     public Resource processRead(Resource resource) // this logic really belongs in a ContainerRequestFilter but we don't want to buffer and re-serialize the Model
     {
         // TO-DO: convert to lambda functions
@@ -245,6 +256,12 @@ public class ValidatingModelProvider extends com.atomgraph.server.io.ValidatingM
         return super.processWrite(hashMboxes(getMessageDigest()).apply(model)); // apply processing from superclasses
     }
 
+    /**
+     * Replaces <code>foaf:mbox</code> values in an RDF model with hashed <code>foaf:mbox_sha1sum</code> values.
+     * 
+     * @param messageDigest digest used for SHA1 hashing
+     * @return fixed up RDF model
+     */
     public static Function<Model, Model> hashMboxes(MessageDigest messageDigest)
     {
         return model ->
@@ -264,6 +281,13 @@ public class ValidatingModelProvider extends com.atomgraph.server.io.ValidatingM
         };
     }
     
+    /**
+     * Replaces <code>foaf:mbox</code> value in an RDF statement with a hashed <code>foaf:mbox_sha1sum</code> value.
+     * 
+     * @param stmt RDF statement
+     * @param messageDigest digest used for SHA1 hashing
+     * @return fixed up statement
+     */
     public static Statement mboxHashStmt(Statement stmt, MessageDigest messageDigest)
     {
         try (InputStream is = new ByteArrayInputStream(stmt.getResource().getURI().getBytes(StandardCharsets.UTF_8));
@@ -279,6 +303,11 @@ public class ValidatingModelProvider extends com.atomgraph.server.io.ValidatingM
         }
     }
     
+    /**
+     * Returns the end-user application of the current dataspace.
+     * 
+     * @return end-user application resource
+     */
     public EndUserApplication getEndUserApplication()
     {
         if (getApplication().canAs(EndUserApplication.class))
@@ -293,21 +322,41 @@ public class ValidatingModelProvider extends com.atomgraph.server.io.ValidatingM
         return uriInfo;
     }
     
+    /**
+     * Returns current application.
+     * 
+     * @return application resource
+     */
     public com.atomgraph.linkeddatahub.apps.model.Application getApplication()
     {
         return application.get();
     }
     
+    /**
+     * Returns JAX-RS security context.
+     * 
+     * @return security context
+     */
     public SecurityContext getSecurityContext()
     {
         return securityContext;
     }
     
+    /**
+     * Returns cryptographic digest using for SHA1 hashing.
+     * 
+     * @return message digest
+     */
     public MessageDigest getMessageDigest()
     {
         return messageDigest;
     }
     
+    /**
+     * Returns system application.
+     * 
+     * @return JAX-RS application
+     */
     public com.atomgraph.linkeddatahub.Application getSystem()
     {
         return system;

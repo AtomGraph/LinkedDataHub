@@ -17,6 +17,7 @@
 package com.atomgraph.linkeddatahub.server.mapper.auth.oauth2;
 
 import com.atomgraph.core.MediaTypes;
+import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import static com.atomgraph.linkeddatahub.resource.oauth2.google.Authorize.REFERER_PARAM_NAME;
 import com.atomgraph.linkeddatahub.server.filter.request.auth.IDTokenFilter;
@@ -35,7 +36,8 @@ import javax.ws.rs.ext.ExceptionMapper;
 import org.apache.jena.rdf.model.ResourceFactory;
 
 /**
- *
+ * Token expiration exception mapper
+ * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
 public class TokenExpiredExceptionMapper extends ExceptionMapperBase implements ExceptionMapper<TokenExpiredException>
@@ -44,6 +46,11 @@ public class TokenExpiredExceptionMapper extends ExceptionMapperBase implements 
     @Context UriInfo uriInfo;
     @Inject javax.inject.Provider<com.atomgraph.linkeddatahub.apps.model.Application> application;
 
+    /**
+     * Constructs mapper from media types.
+     * 
+     * @param mediaTypes registry of readable/writable media types
+     */
     @Inject
     public TokenExpiredExceptionMapper(MediaTypes mediaTypes)
     {
@@ -61,7 +68,7 @@ public class TokenExpiredExceptionMapper extends ExceptionMapperBase implements 
                 getModel()).
             cookie(expiredCookie);
         
-        URI redirectUri = UriBuilder.fromUri(getAdminBaseURI()).
+        URI redirectUri = UriBuilder.fromUri(getAdminApplication().getBaseURI()).
             path("/oauth2/authorize/google"). // TO-DO: move to config?
             queryParam(REFERER_PARAM_NAME, getUriInfo().getRequestUri()). // we need to retain URL query parameters
             build();
@@ -73,14 +80,24 @@ public class TokenExpiredExceptionMapper extends ExceptionMapperBase implements 
         return builder.build();
     }
     
-    public URI getAdminBaseURI()
+    /**
+     * Returns admin application of the current dataspace.
+     * 
+     * @return admin application resource
+     */
+    public AdminApplication getAdminApplication()
     {
         if (getApplication().canAs(EndUserApplication.class))
-            return getApplication().as(EndUserApplication.class).getAdminApplication().getBaseURI();
+            return getApplication().as(EndUserApplication.class).getAdminApplication();
         else
-            return getApplication().getBaseURI();
+            return getApplication().as(AdminApplication.class);
     }
     
+    /**
+     * Returns current application.
+     * 
+     * @return application resource
+     */
     public com.atomgraph.linkeddatahub.apps.model.Application getApplication()
     {
         return application.get();

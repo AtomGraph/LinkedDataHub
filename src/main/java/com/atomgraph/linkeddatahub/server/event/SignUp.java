@@ -29,11 +29,21 @@ public class SignUp
     
     private final URI secretaryWebID;
     
+    /**
+     * Constructs signup event.
+     * 
+     * @param secretaryWebID URI of the secretary agent
+     */
     public SignUp(URI secretaryWebID)
     {
         this.secretaryWebID = secretaryWebID;
     }
     
+    /**
+     * Returns the application's secretary agent's URI.
+     * 
+     * @return secretary URI
+     */
     public URI getSecretaryWebID()
     {
         return secretaryWebID;

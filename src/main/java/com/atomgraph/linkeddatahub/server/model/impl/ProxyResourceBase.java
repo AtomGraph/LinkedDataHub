@@ -104,6 +104,24 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
                 system, httpServletRequest, dataManager, agentContext, providers);
     }
     
+    /**
+     * Constructs the resource.
+     * 
+     * @param uriInfo current request URI info
+     * @param request current request
+     * @param httpHeaders HTTP header info
+     * @param mediaTypes registry of readable/writable media types
+     * @param securityContext JAX-RS security context
+     * @param uri <code>uri</code> URL param
+     * @param endpoint <code>endpoint</code> URL param
+     * @param accept <code>accept</code> URL param
+     * @param mode <code>mode</code> URL param
+     * @param system system application
+     * @param httpServletRequest servlet request
+     * @param dataManager RDFdata manager
+     * @param agentContext authenticated agent's context
+     * @param providers registry of JAX-RS providers
+     */
     protected ProxyResourceBase(@Context UriInfo uriInfo, @Context Request request, @Context HttpHeaders httpHeaders, MediaTypes mediaTypes, @Context SecurityContext securityContext,
             @QueryParam("uri") URI uri, @QueryParam("endpoint") URI endpoint, @QueryParam("accept") MediaType accept, @QueryParam("mode") URI mode,
             com.atomgraph.linkeddatahub.Application system, @Context HttpServletRequest httpServletRequest, DataManager dataManager, Optional<AgentContext> agentContext,

@@ -122,14 +122,20 @@ public class ServiceImpl extends ResourceImpl implements Service
         return getSPARQLClient(getClient().target(getProxiedURI(URI.create(getSPARQLEndpoint().getURI()))));
     }
     
-    public SPARQLClient getSPARQLClient(WebTarget resource)
+    /**
+     * Creates SPARQL Protocol client for the specified URI web target.
+     * 
+     * @param webTarget URI web target
+     * @return SPARQL client
+     */
+    public SPARQLClient getSPARQLClient(WebTarget webTarget)
     {
         SPARQLClient sparqlClient;
         
         if (getMaxGetRequestSize() != null)
-            sparqlClient = SPARQLClient.create(resource, getMediaTypes(), getMaxGetRequestSize());
+            sparqlClient = SPARQLClient.create(webTarget, getMediaTypes(), getMaxGetRequestSize());
         else
-            sparqlClient = SPARQLClient.create(resource, getMediaTypes());
+            sparqlClient = SPARQLClient.create(webTarget, getMediaTypes());
         
         if (getAuthUser() != null && getAuthPwd() != null)
         {
@@ -155,9 +161,15 @@ public class ServiceImpl extends ResourceImpl implements Service
         return getGraphStoreClient(getClient().target(getProxiedURI(URI.create(getGraphStore().getURI()))));
     }
     
-    public GraphStoreClient getGraphStoreClient(WebTarget resource)
+    /**
+     * Creates Graph Store Protocol client for the specified URI web target.
+     * 
+     * @param webTarget URI web target
+     * @return GSP client
+     */
+    public GraphStoreClient getGraphStoreClient(WebTarget webTarget)
     {
-        GraphStoreClient graphStoreClient = com.atomgraph.linkeddatahub.client.GraphStoreClient.create(resource);
+        GraphStoreClient graphStoreClient = com.atomgraph.linkeddatahub.client.GraphStoreClient.create(webTarget);
         
         if (getAuthUser() != null && getAuthPwd() != null)
         {
@@ -188,12 +200,12 @@ public class ServiceImpl extends ResourceImpl implements Service
     /**
      * Creates Graph Store Protocol client for a given URI target.
      * 
-     * @param resource URI web target
+     * @param webTarget URI web target
      * @return GSP client
      */
-    public QuadStoreClient getQuadStoreClient(WebTarget resource)
+    public QuadStoreClient getQuadStoreClient(WebTarget webTarget)
     {
-        QuadStoreClient quadStoreClient = QuadStoreClient.create(resource);
+        QuadStoreClient quadStoreClient = QuadStoreClient.create(webTarget);
         
         if (getAuthUser() != null && getAuthPwd() != null)
         {

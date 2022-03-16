@@ -25,13 +25,20 @@ import javax.ws.rs.core.Request;
 
 /**
  * LinkedDataHub SPARQL endpoint implementation.
- * We need to subclass the Core class because we're injecting a subclass of Service.
+ * We need to subclass the Core class because we're injecting an optional <code>Service</code>.
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
 public class SPARQLEndpointImpl extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
 {
     
+    /**
+     * Constructs endpoint.
+     * 
+     * @param request current request
+     * @param service SPARQL service
+     * @param mediaTypes registry of readable/writable media types
+     */
     @Inject
     public SPARQLEndpointImpl(@Context Request request, Optional<Service> service, MediaTypes mediaTypes)
     {

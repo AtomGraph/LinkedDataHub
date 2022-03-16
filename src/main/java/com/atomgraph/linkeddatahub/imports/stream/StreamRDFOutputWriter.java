@@ -45,6 +45,14 @@ public class StreamRDFOutputWriter implements Function<Response, RDFGraphStoreOu
     private final String baseURI, graphURI;
     private final Query query;
 
+    /**
+     * Constructs output writer.
+     * 
+     * @param graphStoreClient GSP client
+     * @param baseURI base URI
+     * @param query transformation query or null
+     * @param graphURI target graph URI
+     */
     public StreamRDFOutputWriter(GraphStoreClient graphStoreClient, String baseURI, Query query, String graphURI)
     {
         this.graphStoreClient = graphStoreClient;
@@ -75,21 +83,41 @@ public class StreamRDFOutputWriter implements Function<Response, RDFGraphStoreOu
         }
     }
     
+    /**
+     * Returns the Graph Store Protocol client.
+     * 
+     * @return GSP client
+     */
     public GraphStoreClient getGraphStoreClient()
     {
         return graphStoreClient;
     }
     
+    /**
+     * Returns the base URI.
+     * 
+     * @return base URI string
+     */
     public String getBaseURI()
     {
         return baseURI;
     }
-       
+    
+    /**
+     * Returns the transformation query.
+     * 
+     * @return SPARQL query or null
+     */
     public Query getQuery()
     {
         return query;
     }
     
+    /**
+     * Returns the target graph URI.
+     * 
+     * @return named graph URI
+     */
     public String getGraphURI()
     {
         return graphURI;

@@ -99,13 +99,21 @@ public class SignUp extends GraphStoreImpl
     
     private static final Logger log = LoggerFactory.getLogger(SignUp.class);
     
+    /** Keystore type */
     public static final String STORE_TYPE = "PKCS12";
+    /** WebID client certificate alias */
     public static final String KEY_ALIAS = "linkeddatahub-client";
+    /** Minimum length of the WebID client certificate password */
     public static final int MIN_PASSWORD_LENGTH = 6;
+    /** Media type of the WebID client certificate */
     public static final MediaType PKCS12_MEDIA_TYPE = MediaType.valueOf("application/x-pkcs12");
+    /** Relative URL to the RDF file with country metadata */
     public static final String COUNTRY_DATASET_PATH = "/static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/countries.rdf";
+    /** Relative URL of the agent container */
     public static final String AGENT_PATH = "acl/agents/";
+    /** Relative URL of the public key container */
     public static final String PUBLIC_KEY_PATH = "acl/public-keys/";
+    /** Relative URL of the authorization container */
     public static final String AUTHORIZATION_PATH = "acl/authorizations/";
 
     private final URI uri;
@@ -316,7 +324,7 @@ public class SignUp extends GraphStoreImpl
      * 
      * @param agent wannabe agent resource
      * @return password string
-     * @throws SPINConstraintViolationException 
+     * @throws SPINConstraintViolationException thrown if password is invalid
      */
     public String validateAndRemovePassword(Resource agent) throws SPINConstraintViolationException
     {

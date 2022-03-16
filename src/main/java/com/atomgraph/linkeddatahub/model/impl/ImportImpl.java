@@ -64,7 +64,7 @@ public class ImportImpl extends ResourceImpl implements Import
     };
     
     /**
-     * Constructs agent instance from graph node.
+     * Constructs instance from graph node.
      * 
      * @param n node
      * @param g graph

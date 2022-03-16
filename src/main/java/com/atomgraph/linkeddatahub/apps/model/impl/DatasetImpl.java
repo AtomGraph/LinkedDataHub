@@ -37,7 +37,7 @@ public class DatasetImpl extends ResourceImpl implements Dataset
 {
 
     /**
-     * Constructs agent instance from graph node.
+     * Constructs instance from graph node.
      * 
      * @param n node
      * @param g graph

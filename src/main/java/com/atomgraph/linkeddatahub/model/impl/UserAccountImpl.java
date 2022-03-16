@@ -38,6 +38,9 @@ public class UserAccountImpl extends ResourceImpl implements UserAccount
     
     private static final Logger log = LoggerFactory.getLogger(UserAccount.class);
 
+    /**
+     * Jena's implementation for this class.
+     */
     public static Implementation factory = new Implementation() 
     {
         
@@ -63,6 +66,12 @@ public class UserAccountImpl extends ResourceImpl implements UserAccount
         }
     };
     
+    /**
+     * Constructs instance from graph node.
+     * 
+     * @param n node
+     * @param g graph
+     */
     public UserAccountImpl(Node n, EnhGraph g)
     {
         super(n, g);
