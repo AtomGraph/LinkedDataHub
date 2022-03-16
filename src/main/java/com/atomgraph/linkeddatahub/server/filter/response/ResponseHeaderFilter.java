@@ -47,7 +47,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- *
+ * Response filter that sets <code>Link</code> response headers with hypermedia links.
+ * 
  * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
  */
 @Priority(Priorities.USER + 300)
@@ -101,6 +102,13 @@ public class ResponseHeaderFilter implements ContainerResponseFilter
         }
     }
 
+    /**
+     * Filters <code>Link</code> headers by their <code>rel</code> attribute.
+     * 
+     * @param linkValues header list
+     * @param rel <code>rel</code> value
+     * @return filtered header list
+     */
     protected List<Link> getLinksByRel(List<Object> linkValues, String rel)
     {
         List relLinks = new ArrayList<>();
@@ -120,6 +128,15 @@ public class ResponseHeaderFilter implements ContainerResponseFilter
         return relLinks;
     }
     
+    /**
+     * Returns RDF resource from a model that has the specified property and value.
+     * If there are no such resources, null is returned.
+     * 
+     * @param model RDF model
+     * @param property property
+     * @param value value
+     * @return RDF resource or null
+     */
     protected Resource getResourceByPropertyValue(Model model, Property property, RDFNode value)
     {
         if (model == null) throw new IllegalArgumentException("Model cannot be null");
@@ -139,11 +156,21 @@ public class ResponseHeaderFilter implements ContainerResponseFilter
         return null;
     }
     
+    /**
+     * Returns the current application.
+     * 
+     * @return application resource.
+     */
     public com.atomgraph.linkeddatahub.apps.model.Application getApplication()
     {
         return app.get();
     }
     
+    /**
+     * Returns the current (optional) dataset resource.
+     * 
+     * @return optional dataset
+     */
     public Optional<Dataset> getDataset()
     {
         return dataset.get();

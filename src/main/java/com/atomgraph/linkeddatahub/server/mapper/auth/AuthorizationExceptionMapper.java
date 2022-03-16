@@ -17,6 +17,7 @@
 package com.atomgraph.linkeddatahub.server.mapper.auth;
 
 import com.atomgraph.core.MediaTypes;
+import static com.atomgraph.linkeddatahub.apps.model.AdminApplication.REQUEST_ACCESS_PATH;
 import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import org.apache.jena.rdf.model.ResourceFactory;
@@ -47,6 +48,11 @@ public class AuthorizationExceptionMapper extends ExceptionMapperBase implements
     @Context SecurityContext securityContext;
     @Inject javax.inject.Provider<com.atomgraph.linkeddatahub.apps.model.Application> application;
 
+    /**
+     * Constructs mapper from media types.
+     * 
+     * @param mediaTypes registry of readable/writable media types
+     */
     @Inject
     public AuthorizationExceptionMapper(MediaTypes mediaTypes)
     {
@@ -68,7 +74,7 @@ public class AuthorizationExceptionMapper extends ExceptionMapperBase implements
                 Resource adminBase = getApplication().as(EndUserApplication.class).getAdminApplication().getBase();
 
                 URI requestAccessURI = UriBuilder.fromUri(adminBase.getURI()).
-                    path(com.atomgraph.linkeddatahub.Application.REQUEST_ACCESS_PATH).
+                    path(REQUEST_ACCESS_PATH).
                     build();
 
                 exRes.addProperty(LACL.requestAccess, exRes.getModel().createResource(requestAccessURI.toString()));
@@ -81,11 +87,21 @@ public class AuthorizationExceptionMapper extends ExceptionMapperBase implements
             build();
     }
 
+    /**
+     * Returns current security context.
+     * 
+     * @return security context object
+     */
     public SecurityContext getSecurityContext()
     {
         return securityContext;
     }
     
+    /**
+     * Returns associated application.
+     * 
+     * @return application resource
+     */
     public Application getApplication()
     {
         return application.get();

@@ -19,14 +19,26 @@ package com.atomgraph.linkeddatahub.model;
 import org.apache.jena.rdf.model.Resource;
 
 /**
- *
+ * RDF data import.
+ * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
 public interface RDFImport extends Import
 {
 
+    /**
+     * Returns <code>CONSTRUCT</code> transformation query.
+     * 
+     * @return query or null
+     */
     Resource getQuery();
     
+    /**
+     * Returns the named graph resource.
+     * Its URI is the URI of the graph.
+     * 
+     * @return graph resource
+     */
     Resource getGraphName();
 
 }

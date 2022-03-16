@@ -28,9 +28,17 @@ import javax.ws.rs.NotAuthorizedException;
 public class InvalidWebIDPublicKeyException extends NotAuthorizedException
 {
     
+    /** RSA public key */
     private final RSAPublicKey publicKey;
+    /** WebID URI */
     private final String webID;
     
+    /**
+     * Constructs exception from public key and WebID URI.
+     * 
+     * @param publicKey RSA public key
+     * @param webID WebID URI
+     */
     public InvalidWebIDPublicKeyException(RSAPublicKey publicKey, String webID)
     {
         super("Client certificate public key did not match public key of WebID '" + webID + "'");
@@ -38,11 +46,21 @@ public class InvalidWebIDPublicKeyException extends NotAuthorizedException
         this.webID = webID;
     }
     
+    /**
+     * Returns RSA public key.
+     * 
+     * @return public key
+     */
     public RSAPublicKey getPublicKey()
     {
         return publicKey;
     }
     
+    /**
+     * Returns Web ID URI.
+     * 
+     * @return WebID URI
+     */
     public String getWebID()
     {
         return webID;

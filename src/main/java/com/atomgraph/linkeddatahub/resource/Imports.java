@@ -52,7 +52,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * JAX-RS resource that handles CSV data imports.
+ * JAX-RS endpoint that handles CSV data imports.
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
@@ -61,9 +61,22 @@ public class Imports extends GraphStoreImpl
     private static final Logger log = LoggerFactory.getLogger(Imports.class);
     
     private final URI uri;
-    private final com.atomgraph.linkeddatahub.apps.model.Application application;
     private final DataManager dataManager;
 
+    /**
+     * Constructs endpoint for asynchronous CSV and RDF data imports.
+     * 
+     * @param request current request
+     * @param uriInfo current URI info
+     * @param mediaTypes supported media types
+     * @param application matched application
+     * @param ontology matched application's ontology
+     * @param service matched application's service
+     * @param dataManager RDF data manager
+     * @param providers JAX-RS providers
+     * @param system system application 
+     * @param servletConfig servlet config
+     */
     @Inject
     public Imports(@Context Request request, @Context UriInfo uriInfo, MediaTypes mediaTypes,
             com.atomgraph.linkeddatahub.apps.model.Application application, Optional<Ontology> ontology, Optional<Service> service,
@@ -72,11 +85,15 @@ public class Imports extends GraphStoreImpl
     {
         super(request, uriInfo, mediaTypes, application, ontology, service, providers, system);
         this.uri = uriInfo.getAbsolutePath();
-        this.application = application;
         this.dataManager = dataManager;
         if (log.isDebugEnabled()) log.debug("Constructing {}", getClass());
     }
 
+    /**
+     * Returns item as JAX-RS sub-resource.
+     * 
+     * @return item class
+     */
     @Path("{path: .*}")
     public Object getSubResource()
     {
@@ -115,9 +132,9 @@ public class Imports extends GraphStoreImpl
                         Service adminService = getApplication().canAs(EndUserApplication.class) ? getApplication().as(EndUserApplication.class).getAdminApplication().getService() : null;
                         // start the import asynchroniously
                         if (topic.canAs(CSVImport.class))
-                            getSystem().submitImport(topic.as(CSVImport.class), getApplication().getService(), adminService, getUriInfo().getBaseUri().toString(), getDataManager());
+                            getSystem().submitImport(topic.as(CSVImport.class), getApplication(), getApplication().getService(), adminService, getUriInfo().getBaseUri().toString(), getDataManager());
                         if (topic.canAs(RDFImport.class))
-                            getSystem().submitImport(topic.as(RDFImport.class), getApplication().getService(), adminService, getUriInfo().getBaseUri().toString(), getDataManager());
+                            getSystem().submitImport(topic.as(RDFImport.class), getApplication(), getApplication().getService(), adminService, getUriInfo().getBaseUri().toString(), getDataManager());
                     }
                     else
                         if (log.isErrorEnabled()) log.error("Topic '{}' cannot be cast to Import", topic);
@@ -137,16 +154,21 @@ public class Imports extends GraphStoreImpl
         return constructor;
     }
     
+    /**
+     * Returns URI of this resource.
+     * 
+     * @return URI
+     */
     public URI getURI()
     {
         return uri;
     }
  
-    public com.atomgraph.linkeddatahub.apps.model.Application getApplication()
-    {
-        return application;
-    }
-
+    /**
+     * Returns RDF data manager.
+     * 
+     * @return data manager
+     */
     public DataManager getDataManager()
     {
         return dataManager;

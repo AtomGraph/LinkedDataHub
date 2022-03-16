@@ -14,9 +14,8 @@
  *  limitations under the License.
  *
  */
-package com.atomgraph.linkeddatahub.vocabulary.dydra;
+package com.atomgraph.linkeddatahub.vocabulary;
 
-import org.apache.jena.ontology.DatatypeProperty;
 import org.apache.jena.ontology.OntClass;
 import org.apache.jena.ontology.OntModel;
 import org.apache.jena.ontology.OntModelSpec;
@@ -24,31 +23,33 @@ import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Resource;
 
 /**
- *
+ * Default vocabulary.
+ * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-public class URN
+public class Default
 {
-
-    /** <p>The RDF model that holds the vocabulary terms</p> */
+    /** The RDF model that holds the vocabulary terms */
     private static OntModel m_model = ModelFactory.createOntologyModel(OntModelSpec.OWL_MEM, null);
     
-    /** <p>The namespace of the vocabulary as a string</p> */
-    public static final String NS = "urn:dydra:";
+    /** The namespace of the vocabulary as a string */
+    public static final String NS = "https://w3id.org/atomgraph/linkeddatahub/default#";
     
-    /** <p>The namespace of the vocabulary as a string</p>
-     *  @see #NS */
+    /**The namespace of the vocabulary as a string.
+     * @return URI string
+     *  @see #NS
+     */
     public static String getURI()
     {
         return NS;
     }
     
-    /** <p>The namespace of the vocabulary as a resource</p> */
+    /** The namespace of the vocabulary as a resource */
     public static final Resource NAMESPACE = m_model.createResource( NS );
- 
-    public static final OntClass User = m_model.createClass( NS + "User" );
-    
-    public static final DatatypeProperty accessToken = m_model.createDatatypeProperty( NS + "accessToken" );
 
+    // DOMAIN
+
+    /** Root document class */
+    public static final OntClass Root = m_model.createClass(NS + "Root");
 
 }

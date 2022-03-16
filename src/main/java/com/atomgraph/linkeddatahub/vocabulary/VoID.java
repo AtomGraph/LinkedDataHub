@@ -25,33 +25,42 @@ import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Resource;
 
 /**
- *
+ * VoID vocabulary.
+ * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
 public class VoID {
     
-    /** <p>The RDF model that holds the vocabulary terms</p> */
+    /** The RDF model that holds the vocabulary terms */
     private static OntModel m_model = ModelFactory.createOntologyModel(OntModelSpec.OWL_MEM, null);
     
-    /** <p>The namespace of the vocabulary as a string</p> */
+    /** The namespace of the vocabulary as a string */
     public static final String NS = "http://rdfs.org/ns/void#";
     
-    /** <p>The namespace of the vocabulary as a string</p>
-     *  @see #NS */
+    /**
+     * The namespace of the vocabulary as a string
+     * 
+     * @return namespace URI
+     * @see #NS
+     */
     public static String getURI()
     {
         return NS;
     }
     
-    /** <p>The namespace of the vocabulary as a resource</p> */
+    /** The namespace of the vocabulary as a resource */
     public static final Resource NAMESPACE = m_model.createResource( NS );
-        
+    
+    /** Dataset class */
     public static final OntClass Dataset = m_model.createClass( NS + "Dataset" );
 
+    /** Triples property */
     public static final DatatypeProperty triples = m_model.createDatatypeProperty( NS + "triples" );    
     
+    /** Distinct subject property */
     public static final DatatypeProperty distinctSubjects = m_model.createDatatypeProperty( NS + "distinctSubjects" );    
 
+    /** In dataset property */
     public static final ObjectProperty inDataset = m_model.createObjectProperty( NS + "inDataset" );    
 
 }

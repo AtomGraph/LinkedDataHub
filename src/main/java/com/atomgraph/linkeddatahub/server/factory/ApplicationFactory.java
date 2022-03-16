@@ -26,7 +26,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- *
+ * JAX-RS factory for applications.
+ * 
  * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
  * @see com.atomgraph.linkeddatahub.server.model.impl.Dispatcher
  */
@@ -49,11 +50,22 @@ public class ApplicationFactory implements Factory<com.atomgraph.linkeddatahub.a
     {
     }
     
+    /**
+     * Retrieves application from the request context.
+     * 
+     * @param crc request context
+     * @return application resource
+     */
     public com.atomgraph.linkeddatahub.apps.model.Application getApplication(ContainerRequestContext crc)
     {
         return (com.atomgraph.linkeddatahub.apps.model.Application)crc.getProperty(LAPP.Application.getURI());
     }
     
+    /**
+     * Returns request context.
+     * 
+     * @return request context
+     */
     public ContainerRequestContext getContainerRequestContext()
     {
         return serviceLocator.getService(ContainerRequestContext.class);

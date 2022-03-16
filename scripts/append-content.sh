@@ -1,8 +1,8 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 print_usage()
 {
-    printf "Creates a content instance.\n"
+    printf "Appends content instance to document.\n"
     printf "\n"
     printf "Usage:  %s options [TARGET_URI]\n" "$0"
     printf "\n"
@@ -81,47 +81,96 @@ if [ -z "$cert_password" ] ; then
     print_usage
     exit 1
 fi
-if [ -z "$base" ] ; then
-    print_usage
-    exit 1
-fi
+#if [ -z "$base" ] ; then
+#    print_usage
+#    exit 1
+#fi
 if [ -z "$first" ] ; then
     print_usage
     exit 1
 fi
-
-# allow explicit URIs
-if [ -n "$uri" ] ; then
-    content="<${uri}>" # URI
-else
-    content="_:content" # blank node
+if [ -z "$1" ] ; then
+    print_usage
+    exit 1
 fi
 
-args+=("-f")
-args+=("${cert_pem_file}")
-args+=("-p")
-args+=("${cert_password}")
-args+=("-t")
-args+=("text/turtle") # content type
-
-turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy#> .\n"
-turtle+="@prefix rdf:	<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n"
-turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
-turtle+="@prefix ldh:	<https://w3id.org/atomgraph/linkeddatahub#> .\n"
-turtle+="${content} a ldh:Content .\n"
-turtle+="${content} rdf:first <${first}> .\n"
-
-if [ -n "$rest" ] ; then
-    turtle+="${content} rdf:rest <${rest}> .\n"
-else
-    turtle+="${content} rdf:rest rdf:nil .\n"
-fi
-if [ -n "$title" ] ; then
-    turtle+="${content} dct:title \"${title}\" .\n"
-fi
-if [ -n "$slug" ] ; then
-    turtle+="${content} dh:slug \"${slug}\" .\n"
+if [ -z "request_base" ]; then
+    request_base="$base"
 fi
 
-# submit Turtle doc to the server
-echo -e "$turtle" | turtle --base="$base" | ./create-document.sh "${args[@]}"
+this="$1"
+
+curl -X PATCH \
+    -v -f -k \
+    -E "$cert_pem_file":"$cert_password" \
+    -H "Content-Type: application/sparql-update" \
+    "$this" \
+     --data-binary @- <<EOF
+PREFIX  ldh:  <https://w3id.org/atomgraph/linkeddatahub#>
+PREFIX  rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+
+INSERT {
+  GRAPH ?g {
+    ?this ldh:content rdf:nil .
+  }
+}
+WHERE
+  { SELECT  ?g ?this
+    WHERE
+      { GRAPH ?g
+          { ?this  ?p  ?o
+            FILTER NOT EXISTS { ?this  ldh:content  ?content }
+          }
+        VALUES ?this { <${this}> }
+      }
+  };
+
+# List of length >= 1
+DELETE {
+    GRAPH ?g {
+        ?elt rdf:rest rdf:nil
+    }
+}
+INSERT {
+    GRAPH ?g {
+        ?elt rdf:rest ?content .
+        ?content a ldh:Content ;
+            rdf:first <$first> ;
+            rdf:rest rdf:nil .
+    }
+}
+WHERE
+{
+    GRAPH ?g {
+        <${this}> ldh:content ?list .
+        # List of length >= 1
+        ?list rdf:rest* ?elt .
+        ?elt rdf:rest rdf:nil .
+        # ?elt is last cons cell
+       BIND (uri(concat(str(<${this}>), '#', struuid())) as ?content)
+    }
+};
+
+# List of length = 0
+DELETE {
+    GRAPH ?g {
+        <${this}> ldh:content rdf:nil .
+    }
+}
+INSERT {
+    GRAPH ?g {
+        <${this}> ldh:content ?content .
+        ?content a ldh:Content ;
+            rdf:first <$first> ;
+            rdf:rest rdf:nil .
+    }
+}
+WHERE
+{
+    GRAPH ?g {
+       <${this}> ldh:content rdf:nil .
+       BIND (uri(concat(str(<${this}>), '#', struuid())) as ?content)
+    }
+};
+
+EOF

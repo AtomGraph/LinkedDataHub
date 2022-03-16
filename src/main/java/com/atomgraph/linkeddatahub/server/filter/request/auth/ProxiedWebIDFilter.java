@@ -31,7 +31,8 @@ import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.PreMatching;
 
 /**
- *
+ * WebID authentication filter subclass that receives the client certificate as HTTP request header value.
+ * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
 @PreMatching
@@ -42,6 +43,9 @@ public class ProxiedWebIDFilter extends WebIDFilter
             
     private final CertificateFactory certFactory;
 
+    /**
+     * Constructs filter.
+     */
     public ProxiedWebIDFilter()
     {
         super();
@@ -68,6 +72,11 @@ public class ProxiedWebIDFilter extends WebIDFilter
         return null;
     }
     
+    /**
+     * Returns certificate factory.
+     * 
+     * @return certificate factory
+     */
     public CertificateFactory getCertificateFactory()
     {
         return certFactory;

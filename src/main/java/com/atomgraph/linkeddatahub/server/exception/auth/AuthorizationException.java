@@ -29,9 +29,21 @@ import java.net.URI;
 public class AuthorizationException extends RuntimeException
 {
     
+    /** URL of the current request (without the query string) */
     private final URI absolutePath;
-    private final Resource mode, agent;
+    /** Access mode resource */
+    private final Resource mode;
+    /** Authenticated agent resource */
+    private final Resource agent;
 
+    /**
+     * Constructs exception with agent.
+     * 
+     * @param message exception message
+     * @param absolutePath request URL without query string
+     * @param mode ACL access mode
+     * @param agent authenticated agent
+     */
     public AuthorizationException(String message, URI absolutePath, Resource mode, Agent agent)
     {
         super(message);
@@ -43,21 +55,43 @@ public class AuthorizationException extends RuntimeException
         this.agent = agent;
     }
 
+    /**
+     * Constructs exception without agent.
+     *
+     * @param message exception message
+     * @param absolutePath request URL without query string
+     * @param mode ACL access mode
+     */
     public AuthorizationException(String message, URI absolutePath, Resource mode)
     {
         this(message, absolutePath, mode, null);
     }
     
+    /**
+     * Returns request URL without query string.
+     * 
+     * @return absolute path
+     */
     public URI getAbsolutePath()
     {
-    return absolutePath;
+        return absolutePath;
     }
 
+    /**
+     * Returns ACL access mode.
+     * 
+     * @return access mode resource
+     */
     public Resource getMode()
     {
         return mode;
     }
 
+    /**
+     * Returns authenticated agent.
+     * 
+     * @return agent resource or null
+     */
     public Resource getAgent()
     {
         return agent;

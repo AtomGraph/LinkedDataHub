@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # LetsEncrypt staging certs from https://github.com/letsencrypt/website/tree/master/static/certs/staging TO-DO: put into an extending image
 

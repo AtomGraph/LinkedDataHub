@@ -1,9 +1,32 @@
+## [3.0.11] - 2022-03-16
+### Added
+- Interactivity to the graph SVG layout
+- Notifications to the requesting agent when its access request is granted (requires email server)
+- JSON-LD export option for documents
+- `append-content` CLI script that appends content resources to document
+- `create-file` CLI script automatically recognizes the MIME type of the file being uploaded
+- Linked Data browser functionality in graph layout mode
+- Javadoc comments
+
+### Changed
+- The setup script requirements relaxed to make it easier to run on MacOS
+- Fixed CSV imports
+- Linked Data browser now supports relative URIs
+- Upgraded Java from 11 to 17
+- A built-in HTTP API constraint does not allow `PUT` on documents without the document description in request body
+- A built-in HTTP API constraint does not allow to `DELETE` the root document
+- A built-in HTTP API constraint does not allow to `DELETE` or `PUT` the the app owner's and secretary's WebID documents
+- Shell script interpreter line
+
+### Removed
+- Dydra-specific code
+
 ## [3.0.3] - 2022-02-16
 ### Added
 - Ability to copy (fork) RDF data into the local dataspace
-- Block-based content layout (ldh:ContentList mode) and editor
+- Block-based content layout (`ldh:ContentList` mode) and editor
 - Login with Google (OpenID Connect)
-- Ability to load JSON-LD data from <script> elements in HTML
+- Ability to load JSON-LD data from `<script>` elements in HTML
 - Namespace endpoint, which is an in-memory SPARQL endpoint over the app's ontology
 
 ### Changed

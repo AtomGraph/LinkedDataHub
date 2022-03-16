@@ -44,7 +44,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- *
+ * SPARQL service implementation.
+ * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
 public class ServiceImpl extends ResourceImpl implements Service
@@ -56,6 +57,15 @@ public class ServiceImpl extends ResourceImpl implements Service
     private final MediaTypes mediaTypes;
     private final Integer maxGetRequestSize;
     
+    /**
+     * Constructs instance from node, graph, and HTTP config.
+     * 
+     * @param n node
+     * @param g graph
+     * @param client HTTP client
+     * @param mediaTypes registry of readable/writable media types
+     * @param maxGetRequestSize the maximum size of SPARQL <code>GET</code> requests
+     */
     public ServiceImpl(Node n, EnhGraph g, Client client, MediaTypes mediaTypes, Integer maxGetRequestSize)
     {
         super(n, g);
@@ -112,14 +122,20 @@ public class ServiceImpl extends ResourceImpl implements Service
         return getSPARQLClient(getClient().target(getProxiedURI(URI.create(getSPARQLEndpoint().getURI()))));
     }
     
-    public SPARQLClient getSPARQLClient(WebTarget resource)
+    /**
+     * Creates SPARQL Protocol client for the specified URI web target.
+     * 
+     * @param webTarget URI web target
+     * @return SPARQL client
+     */
+    public SPARQLClient getSPARQLClient(WebTarget webTarget)
     {
         SPARQLClient sparqlClient;
         
         if (getMaxGetRequestSize() != null)
-            sparqlClient = SPARQLClient.create(resource, getMediaTypes(), getMaxGetRequestSize());
+            sparqlClient = SPARQLClient.create(webTarget, getMediaTypes(), getMaxGetRequestSize());
         else
-            sparqlClient = SPARQLClient.create(resource, getMediaTypes());
+            sparqlClient = SPARQLClient.create(webTarget, getMediaTypes());
         
         if (getAuthUser() != null && getAuthPwd() != null)
         {
@@ -145,9 +161,15 @@ public class ServiceImpl extends ResourceImpl implements Service
         return getGraphStoreClient(getClient().target(getProxiedURI(URI.create(getGraphStore().getURI()))));
     }
     
-    public GraphStoreClient getGraphStoreClient(WebTarget resource)
+    /**
+     * Creates Graph Store Protocol client for the specified URI web target.
+     * 
+     * @param webTarget URI web target
+     * @return GSP client
+     */
+    public GraphStoreClient getGraphStoreClient(WebTarget webTarget)
     {
-        GraphStoreClient graphStoreClient = GraphStoreClient.create(resource);
+        GraphStoreClient graphStoreClient = com.atomgraph.linkeddatahub.client.GraphStoreClient.create(webTarget);
         
         if (getAuthUser() != null && getAuthPwd() != null)
         {
@@ -175,9 +197,15 @@ public class ServiceImpl extends ResourceImpl implements Service
         return null;
     }
     
-    public QuadStoreClient getQuadStoreClient(WebTarget resource)
+    /**
+     * Creates Graph Store Protocol client for a given URI target.
+     * 
+     * @param webTarget URI web target
+     * @return GSP client
+     */
+    public QuadStoreClient getQuadStoreClient(WebTarget webTarget)
     {
-        QuadStoreClient quadStoreClient = QuadStoreClient.create(resource);
+        QuadStoreClient quadStoreClient = QuadStoreClient.create(webTarget);
         
         if (getAuthUser() != null && getAuthPwd() != null)
         {
@@ -197,6 +225,12 @@ public class ServiceImpl extends ResourceImpl implements Service
         return new DatasetQuadAccessorImpl(getQuadStoreClient());
     }
     
+    /**
+     * Rewrites the given URI using the proxy URI.
+     * 
+     * @param uri input URI
+     * @return proxied URI
+     */
     protected URI getProxiedURI(final URI uri)
     {
         // if service proxyURI is set, change the URI host/port to proxyURI host/port

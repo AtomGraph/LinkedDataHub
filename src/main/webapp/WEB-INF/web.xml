@@ -263,7 +263,7 @@ support@atomgraph.com]]></param-value>
     </context-param>
     <context-param>
         <param-name>https://w3id.org/atomgraph/linkeddatahub/config#requestAccessEMailText</param-name>
-        <param-value><![CDATA[Agent %s has requested access to the resource: %s
+        <param-value><![CDATA[Agent <%s> has requested access to the resource <%s>
 
 Manage it here: %s
 
@@ -271,6 +271,25 @@ Manage it here: %s
 LinkedDataHub by AtomGraph
 support@atomgraph.com]]></param-value>
     </context-param>
+    
+    <context-param>
+        <param-name>https://w3id.org/atomgraph/linkeddatahub/config#authorizationEMailSubject</param-name>
+        <param-value>[%s] Authorization granted</param-value>
+    </context-param>
+    <context-param>
+        <param-name>https://w3id.org/atomgraph/linkeddatahub/config#authorizationEMailText</param-name>
+        <param-value><![CDATA[Dataspace owner <%s> granted you authorization to the following resources:
+%s
+            
+and the following document classes:
+%s
+
+Application's base URI: %s
+
+LinkedDataHub by AtomGraph
+support@atomgraph.com]]></param-value>
+    </context-param>
+    
     <context-param>
         <param-name>https://w3id.org/atomgraph/client#resolvingUncached</param-name>
         <param-value>true</param-value>

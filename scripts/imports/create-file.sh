@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 print_usage()
 {
@@ -16,7 +16,7 @@ print_usage()
     printf "  --slug STRING                        String that will be used as URI path segment (optional)\n"
     printf "\n"
     printf "  --file ABS_PATH                      Absolute path to the file\n"
-    printf "  --file-content-type MEDIA_TYPE       Media type of the file\n"
+    printf "  --file-content-type MEDIA_TYPE       Media type of the file (optional)\n"
     #printf "  --file-slug STRING                   String that will be used as the file's URI path segment (optional)\n"
 }
 
@@ -107,8 +107,8 @@ if [ -z "$file" ] ; then
     exit 1
 fi
 if [ -z "$file_content_type" ] ; then
-    print_usage
-    exit 1
+    # determine content-type if not provided
+    file_content_type=$(file -b --mime-type "$file")
 fi
 
 container="${base}files/"

@@ -67,11 +67,12 @@ import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.writer.factory.xslt.XsltExecutableSupplier;
 import com.atomgraph.linkeddatahub.writer.factory.XsltExecutableSupplierFactory;
 import com.atomgraph.client.util.XsltResolver;
-import com.atomgraph.client.writer.function.Construct;
-import com.atomgraph.client.writer.function.ConstructForClass;
+import com.atomgraph.core.client.LinkedDataClient;
+import com.atomgraph.linkeddatahub.client.GraphStoreClient;
 import com.atomgraph.linkeddatahub.client.filter.ClientUriRewriteFilter;
 import com.atomgraph.linkeddatahub.io.HtmlJsonLDReaderFactory;
 import com.atomgraph.linkeddatahub.io.JsonLDReader;
+import com.atomgraph.linkeddatahub.listener.EMailListener;
 import com.atomgraph.linkeddatahub.writer.ModelXSLTWriter;
 import com.atomgraph.linkeddatahub.listener.ImportListener;
 import com.atomgraph.linkeddatahub.model.Import;
@@ -84,6 +85,7 @@ import com.atomgraph.linkeddatahub.model.impl.FileImpl;
 import com.atomgraph.linkeddatahub.model.impl.ImportImpl;
 import com.atomgraph.linkeddatahub.model.impl.RDFImportImpl;
 import com.atomgraph.linkeddatahub.model.impl.UserAccountImpl;
+import com.atomgraph.linkeddatahub.server.event.AuthorizationCreated;
 import com.atomgraph.linkeddatahub.server.event.SignUp;
 import com.atomgraph.linkeddatahub.server.factory.AgentContextFactory;
 import com.atomgraph.linkeddatahub.server.factory.ApplicationFactory;
@@ -107,6 +109,8 @@ import com.atomgraph.linkeddatahub.server.mapper.auth.oauth2.TokenExpiredExcepti
 import com.atomgraph.linkeddatahub.server.model.impl.Dispatcher;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.server.util.MessageBuilder;
+import com.atomgraph.linkeddatahub.vocabulary.ACL;
+import com.atomgraph.linkeddatahub.vocabulary.FOAF;
 import com.atomgraph.linkeddatahub.vocabulary.LDH;
 import com.atomgraph.linkeddatahub.vocabulary.LDHC;
 import com.atomgraph.linkeddatahub.vocabulary.Google;
@@ -151,7 +155,6 @@ import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManagerFactory;
 import javax.servlet.ServletContext;
-import javax.ws.rs.core.CacheControl;
 import javax.xml.transform.Source;
 import org.apache.jena.ontology.Ontology;
 import org.apache.jena.query.Dataset;
@@ -166,14 +169,16 @@ import com.atomgraph.server.mapper.SPINConstraintViolationExceptionMapper;
 import com.atomgraph.spinrdf.vocabulary.SP;
 import com.github.jsonldjava.core.DocumentLoader;
 import com.github.jsonldjava.core.JsonLdOptions;
+import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 import javax.mail.Address;
+import javax.mail.MessagingException;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 import javax.ws.rs.InternalServerErrorException;
@@ -209,6 +214,7 @@ import org.apache.jena.riot.system.ErrorHandlerFactory;
 import org.apache.jena.riot.system.ParserProfile;
 import org.apache.jena.riot.system.RiotLib;
 import org.apache.jena.sparql.graph.GraphReadOnly;
+import org.apache.jena.vocabulary.DCTerms;
 import org.apache.jena.vocabulary.LocationMappingVocab;
 import org.apache.jena.vocabulary.RDF;
 import org.glassfish.hk2.api.TypeLiteral;
@@ -223,7 +229,7 @@ import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.server.filter.HttpMethodOverrideFilter;
 
 /**
- * JAX-RS 1.x application subclass.
+ * JAX-RS application subclass.
  * Used to configure the JAX-RS web application in <code>web.xml</code>.
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
@@ -234,28 +240,23 @@ public class Application extends ResourceConfig
     
     private static final Logger log = LoggerFactory.getLogger(Application.class);
 
-    public static final String REQUEST_ACCESS_PATH = "request access";
-    public static final String AUTHORIZATION_REQUEST_PATH = "acl/authorization-requests/";
-    public static final String UPLOADS_PATH = "uploads";
-    
+    private final ServletConfig servletConfig;
     private final EventBus eventBus = new EventBus();
     private final DataManager dataManager;
     private final MediaTypes mediaTypes;
     private final Client client, importClient, noCertClient;
-    private final Query authQuery, ownerAuthQuery, webIDQuery, agentQuery, userAccountQuery, ontologyQuery; // no relative URIs
+    private final Query authQuery, ownerAuthQuery, webIDQuery, userAccountQuery, ontologyQuery; // no relative URIs
     private final Integer maxGetRequestSize;
     private final boolean preemptiveAuth;
     private final Processor xsltProc = new Processor(false);
     private final XsltCompiler xsltComp;
     private final XsltExecutable xsltExec;
     private final OntModelSpec ontModelSpec;
-    private final Source stylesheet;
     private final boolean cacheStylesheet;
     private final boolean resolvingUncached;
     private final URI baseURI, uploadRoot; // TO-DO: replace baseURI with ServletContext URI?
     private final boolean invalidateCache;
     private final Integer cookieMaxAge;
-    private final CacheControl authCacheControl;
     private final Integer maxContentLength;
     private final Address notificationAddress;
     private final Authenticator authenticator;
@@ -269,6 +270,14 @@ public class Application extends ResourceConfig
     
     private Dataset contextDataset;
     
+    /**
+     * Constructs system application and configures it using sevlet config.
+     * 
+     * @param servletConfig servlet config
+     * @throws URISyntaxException throw on URI syntax errors
+     * @throws MalformedURLException thrown on URL syntax errors
+     * @throws IOException thrown on I/O erros
+     */
     public Application(@Context ServletConfig servletConfig) throws URISyntaxException, MalformedURLException, IOException
     {
         this(servletConfig,
@@ -289,7 +298,6 @@ public class Application extends ResourceConfig
             servletConfig.getServletContext().getInitParameter(LDHC.authQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.authQuery.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.ownerAuthQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.ownerAuthQuery.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.webIDQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.webIDQuery.getURI()) : null,
-            servletConfig.getServletContext().getInitParameter(LDHC.agentQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.agentQuery.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.userAccountQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.userAccountQuery.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.ontologyQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.ontologyQuery.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.baseUri.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.baseUri.getURI()) : null,
@@ -299,7 +307,6 @@ public class Application extends ResourceConfig
             servletConfig.getServletContext().getInitParameter(LDHC.uploadRoot.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.uploadRoot.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.invalidateCache.getURI()) != null ? Boolean.parseBoolean(servletConfig.getServletContext().getInitParameter(LDHC.invalidateCache.getURI())) : false,
             servletConfig.getServletContext().getInitParameter(LDHC.cookieMaxAge.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(LDHC.cookieMaxAge.getURI())) : null,
-            servletConfig.getServletContext().getInitParameter(LDHC.authCacheControl.getURI()) != null ? CacheControl.valueOf(servletConfig.getServletContext().getInitParameter(LDHC.authCacheControl.getURI())) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.maxContentLength.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(LDHC.maxContentLength.getURI())) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.maxConnPerRoute.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(LDHC.maxConnPerRoute.getURI())) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.maxTotalConn.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(LDHC.maxTotalConn.getURI())) : null,
@@ -323,16 +330,58 @@ public class Application extends ResourceConfig
         this.contextDataset = getDataset(servletConfig.getServletContext(), contextDatasetURI);
     }
     
+    /**
+     * Constructs and configures system application.
+     * 
+     * @param servletConfig servlet config
+     * @param mediaTypes supported media types
+     * @param maxGetRequestSize maximum <code>GET</code> request size
+     * @param cacheModelLoads true if model loads should be cached
+     * @param preemptiveAuth true if HTTP Basic auth credentials should be sent preemptively
+     * @param cacheSitemap true if app's ontology should be cached
+     * @param locationMapper Jena's <code>LocationMapper</code> instance
+     * @param stylesheet stylesheet URI
+     * @param cacheStylesheet true if stylesheet should be cached
+     * @param resolvingUncached true if XLST processor should dereference URLs that are not cached
+     * @param clientKeyStoreURIString location of the client's keystore
+     * @param clientKeyStorePassword client keystore's password
+     * @param secretaryCertAlias alias of the secretary's certificate
+     * @param clientTrustStoreURIString location of the client's truststore
+     * @param clientTrustStorePassword client truststore's password
+     * @param authQueryString SPARQL string of the authorization query
+     * @param ownerAuthQueryString SPARQL string of the admin authorization query
+     * @param webIDQueryString SPARQL string of the WebID validation query
+     * @param userAccountQueryString SPARQL string of the <code>UserAccount</code> lookup query
+     * @param ontologyQueryString SPARQL string of the ontology load query
+     * @param baseURIString system base URI
+     * @param proxyScheme client's URI rewrite scheme
+     * @param proxyHostname client's URI rewrite hostname
+     * @param proxyPort client's URI rewrite port
+     * @param uploadRootString location of the root folder for file uploads
+     * @param invalidateCache true if Varnish proxy cache should be invalidated
+     * @param cookieMaxAge max age of auth cookies
+     * @param maxPostSize maximum size of <code>POST</code> request
+     * @param maxConnPerRoute maximum client connections per rout
+     * @param maxTotalConn maximum total client connections
+     * @param importKeepAliveStrategy keep-alive strategy for the HTTP client used for imports
+     * @param notificationAddressString email address used to send notifications
+     * @param mailUser username of the SMTP email server
+     * @param mailPassword password of the SMTP email server
+     * @param smtpHost Hostname of the SMTP email server
+     * @param smtpPort Port of the SMTP email server
+     * @param googleClientID client ID for Google's OAuth
+     * @param googleClientSecret client secret for Google's OAuth
+     */
     public Application(final ServletConfig servletConfig, final MediaTypes mediaTypes,
             final Integer maxGetRequestSize, final boolean cacheModelLoads, final boolean preemptiveAuth, final boolean cacheSitemap,
             final LocationMapper locationMapper, final Source stylesheet, final boolean cacheStylesheet, final boolean resolvingUncached,
             final String clientKeyStoreURIString, final String clientKeyStorePassword,
             final String secretaryCertAlias,
             final String clientTrustStoreURIString, final String clientTrustStorePassword,
-            final String authQueryString, final String ownerAuthQueryString, final String webIDQueryString, final String agentQueryString, final String userAccountQueryString, final String ontologyQueryString,
+            final String authQueryString, final String ownerAuthQueryString, final String webIDQueryString, final String userAccountQueryString, final String ontologyQueryString,
             final String baseURIString, final String proxyScheme, final String proxyHostname, final Integer proxyPort,
             final String uploadRootString, final boolean invalidateCache,
-            final Integer cookieMaxAge, final CacheControl authCacheControl, final Integer maxPostSize,
+            final Integer cookieMaxAge, final Integer maxPostSize,
             final Integer maxConnPerRoute, final Integer maxTotalConn, final ConnectionKeepAliveStrategy importKeepAliveStrategy,
             final String notificationAddressString, final String mailUser, final String mailPassword, final String smtpHost, final String smtpPort,
             final String googleClientID, final String googleClientSecret)
@@ -383,12 +432,6 @@ public class Application extends ResourceConfig
         }
         this.userAccountQuery = QueryFactory.create(userAccountQueryString);
         
-        if (agentQueryString == null)
-        {
-            if (log.isErrorEnabled()) log.error("Agent SPARQL query is not configured properly");
-            throw new ConfigurationException(LDHC.agentQuery);
-        }
-        this.agentQuery = QueryFactory.create(agentQueryString);
         if (ontologyQueryString == null)
         {
             if (log.isErrorEnabled()) log.error("Ontology SPARQL query is not configured properly");
@@ -416,15 +459,14 @@ public class Application extends ResourceConfig
         }
         this.cookieMaxAge = cookieMaxAge;
 
+        this.servletConfig = servletConfig;
         this.mediaTypes = mediaTypes;
         this.maxGetRequestSize = maxGetRequestSize;
         this.preemptiveAuth = preemptiveAuth;
-        this.stylesheet = stylesheet;
         this.cacheStylesheet = cacheStylesheet;
         this.resolvingUncached = resolvingUncached;
         this.maxContentLength = maxPostSize;
         this.invalidateCache = invalidateCache;
-        this.authCacheControl = authCacheControl;
         this.property(Google.clientID.getURI(), googleClientID);
         this.property(Google.clientSecret.getURI(), googleClientSecret);
         
@@ -659,6 +701,10 @@ public class Application extends ResourceConfig
         }
     }
     
+    /**
+     * Post-construct initialization.
+     * Additional initialization (e.g. registering JAX-RS providers and factories) that cannot be cleanly done in the class constructor.
+     */
     @PostConstruct
     public void init()
     {
@@ -778,11 +824,17 @@ public class Application extends ResourceConfig
 //        if (log.isTraceEnabled()) log.trace("Application.init() with Classes: {} and Singletons: {}", getClasses(), getSingletons());
     }
     
+    /**
+     * Registers JAX-RS resource classes.
+     */
     protected void registerResourceClasses()
     {
         register(Dispatcher.class);
     }
     
+    /**
+     * Registers JAX-RS container request filters.
+     */
     protected void registerContainerRequestFilters()
     {
         register(new HttpMethodOverrideFilter());
@@ -796,6 +848,9 @@ public class Application extends ResourceConfig
         register(new RDFPostCleanupFilter()); // for multipart/form-data
     }
 
+    /**
+     * Registers JAX-RS container response filters.
+     */
     protected void registerContainerResponseFilters()
     {
         register(new ResponseHeaderFilter());
@@ -804,6 +859,9 @@ public class Application extends ResourceConfig
 //        register(new ProvenanceFilter());
     }
     
+    /**
+     * Registers JAX-RS extension mappers.
+     */
     protected void registerExceptionMappers()
     {
         register(NotFoundExceptionMapper.class);
@@ -834,6 +892,16 @@ public class Application extends ResourceConfig
         register(MessagingExceptionMapper.class);
     }
     
+    /**
+     * Retrieves dataset from file URL.
+     * 
+     * @param servletContext servlet context
+     * @param uri file URL (can be relative)
+     * @return RDF dataset
+     * @throws FileNotFoundException thrown if file not found
+     * @throws MalformedURLException thrown if location URL is malformed
+     * @throws IOException error reading file
+     */
     public static Dataset getDataset(final ServletContext servletContext, final URI uri) throws FileNotFoundException, MalformedURLException, IOException
     {
         String baseURI = servletContext.getResource("/").toString();
@@ -851,6 +919,13 @@ public class Application extends ResourceConfig
         }
     }
 
+    /**
+     * Queries RDF dataset and returns result.
+     * 
+     * @param dataset RDF dataset
+     * @param query SPARQL query
+     * @return result model
+     */
     public final Model getModel(Dataset dataset, Query query)
     {
         if (dataset == null) throw new IllegalArgumentException("Dataset cannot be null");
@@ -865,22 +940,108 @@ public class Application extends ResourceConfig
         }
     }
 
+    /**
+     * Handles signup event.
+     * Invoked every time a new agent has signed up.
+     * 
+     * @param event signup event
+     * @see com.atomgraph.linkeddatahub.resource.admin.SignUp
+    */
     @Subscribe
     public void handleSignUp(SignUp event)
     {
         getWebIDModelCache().remove(event.getSecretaryWebID()); // clear secretary WebID from cache to get new acl:delegates statements after new signup
     }
 
+    /**
+     * Handles authorization creation event.
+     * 
+     * @param event creation event
+     * @throws MessagingException thrown if email could not be sent
+     * @throws UnsupportedEncodingException email encoding error
+     */
+    @Subscribe
+    public void handleAuthorizationCreated(AuthorizationCreated event) throws MessagingException, UnsupportedEncodingException
+    {
+        String emailSubject = servletConfig.getServletContext().getInitParameter(LDHC.authorizationEMailSubject.getURI());
+        if (emailSubject == null) throw new InternalServerErrorException(new ConfigurationException(LDHC.authorizationEMailSubject));
+        
+        String emailText = servletConfig.getServletContext().getInitParameter(LDHC.authorizationEMailText.getURI());
+        if (emailText == null) throw new InternalServerErrorException(new ConfigurationException(LDHC.authorizationEMailText));
+
+        Resource owner = event.getApplication().getMaker();
+        Resource auth = event.getAuthorization();
+        if (auth.hasProperty(ACL.agent))
+        {
+            Resource agent = auth.getPropertyResourceValue(ACL.agent);
+
+            LinkedDataClient ldc = LinkedDataClient.create(getClient().target(agent.getURI()), getMediaTypes());
+            Model agentModel = ldc.get();
+            if (!agentModel.containsResource(agent)) throw new IllegalStateException("Could not load agent's <" + agent.getURI() + "> description");
+            agent = agentModel.getResource(agent.getURI());
+
+            final String name;
+            if (agent.hasProperty(FOAF.givenName) && agent.hasProperty(FOAF.familyName))
+            {
+                String givenName = agent.getProperty(FOAF.givenName).getString();
+                String familyName = agent.getProperty(FOAF.familyName).getString();
+                name = givenName + " " + familyName;
+            }
+            else
+            {
+                if (agent.hasProperty(FOAF.name)) name = agent.getProperty(FOAF.name).getString();
+                else throw new IllegalStateException("Agent '" + agent + "' does not have either foaf:givenName/foaf:familyName or foaf:name");
+            }
+
+            // we expect foaf:mbox value as mailto: URI (it gets converted from literal in Model provider)
+            String mbox = agent.getRequiredProperty(FOAF.mbox).getResource().getURI().substring("mailto:".length());
+            String accessToList = auth.listProperties(ACL.accessTo).toList().stream().map(stmt -> stmt.getResource().getURI()).collect(Collectors.joining("\n"));
+            String accessToClassList = auth.listProperties(ACL.accessToClass).toList().stream().map(stmt -> stmt.getResource().getURI()).collect(Collectors.joining("\n"));
+
+            MessageBuilder builder = getMessageBuilder().
+                subject(String.format(emailSubject,
+                    event.getApplication().getProperty(DCTerms.title).getString())).
+                to(mbox, name).
+                textBodyPart(String.format(emailText, owner.getURI(), accessToList, accessToClassList, event.getApplication().getBaseURI()));
+
+            if (getNotificationAddress() != null) builder = builder.from(getNotificationAddress());
+
+            EMailListener.submit(builder.build());
+        }
+    }
+    
+    /**
+     * Matches application by type and request URL.
+     * 
+     * @param type app type
+     * @param absolutePath request URL without the query string
+     * @return app resource or null, if none matched
+     */
     public Resource matchApp(Resource type, URI absolutePath)
     {
         return matchApp(getContextModel(), type, absolutePath); // make sure we return an immutable model
     }
     
+    /**
+     * Matches application by type and request URL in a given application model.
+     * It finds the apps where request URL is relative to the app base URI, and returns the one with the longest match.
+     * 
+     * @param appModel application model
+     * @param type application type
+     * @param absolutePath request URL without the query string
+     * @return app resource or null, if none matched
+     */
     public Resource matchApp(Model appModel, Resource type, URI absolutePath)
     {
         return getLongestURIResource(getLengthMap(getRelativeBaseApps(appModel, type, absolutePath)));
     }
     
+    /**
+     * Returns application with the longest URI key.
+     * 
+     * @param lengthMap length to app map
+     * @return app resource
+     */
     public Resource getLongestURIResource(Map<Integer, Resource> lengthMap)
     {
         // select the app with the longest URI match, as the model contains a pair of EndUserApplication/AdminApplication
@@ -890,6 +1051,15 @@ public class Application extends ResourceConfig
         return null;
     }
     
+    /**
+     * Builds a base URI to application resource map from the application model.
+     * Applications are filtered by type first.
+     * 
+     * @param model application model
+     * @param type application type
+     * @param absolutePath request URL (without the query string)
+     * @return URI to app map
+     */
     public Map<URI, Resource> getRelativeBaseApps(Model model, Resource type, URI absolutePath)
     {
         if (model == null) throw new IllegalArgumentException("Model cannot be null");
@@ -921,16 +1091,41 @@ public class Application extends ResourceConfig
         return apps;
     }
     
+    /**
+     * Matches dataset resource by type and request URL.
+     * 
+     * @param type dataset type
+     * @param absolutePath request URL without the query string
+     * @return dataset resource, or null if non matched
+     */
     public Resource matchDataset(Resource type, URI absolutePath)
     {
         return matchDataset(getContextModel(), type, absolutePath); // make sure we return an immutable model
     }
     
+    /**
+     * Matches dataset by type and request URL in a given application model.
+     * It finds the apps where request URL is relative to the app base URI, and returns the one with the longest match.
+     * 
+     * @param appModel application model
+     * @param type application type
+     * @param absolutePath request URL without the query string
+     * @return dataset resource or null, if none matched
+     */
     public Resource matchDataset(Model appModel, Resource type, URI absolutePath)
     {
         return getLongestURIResource(getLengthMap(getRelativeDatasets(appModel, type, absolutePath)));
     }
     
+    /**
+     * Builds a base URI to dataset resource map from the application model.
+     * Datasets are filtered by type first.
+     * 
+     * @param model application model
+     * @param type dataset type
+     * @param absolutePath request URL (without the query string)
+     * @return URI to dataset map
+     */
     public Map<URI, Resource> getRelativeDatasets(Model model, Resource type, URI absolutePath)
     {
         if (model == null) throw new IllegalArgumentException("Model cannot be null");
@@ -962,32 +1157,72 @@ public class Application extends ResourceConfig
         return datasets;
     }
     
+    /**
+     * Returns a map of applications by the length of their base URIs.
+     * 
+     * @param apps base URI to application map
+     * @return base URI length to application map
+     */
     public Map<Integer, Resource> getLengthMap(Map<URI, Resource> apps)
     {
         if (apps == null) throw new IllegalArgumentException("Map cannot be null");
 
         Map<Integer, Resource> lengthMap = new HashMap<>();
         
-        Iterator<Map.Entry<URI, Resource>> it = apps.entrySet().iterator();
-        while (it.hasNext())
-        {
-            Map.Entry<URI, Resource> entry = it.next();
-            lengthMap.put(entry.getKey().toString().length(), entry.getValue());
-        }
+        apps.entrySet().iterator().forEachRemaining(entry ->
+            lengthMap.put(entry.getKey().toString().length(), entry.getValue())
+        );
         
         return lengthMap;
     }
 
-    public void submitImport(CSVImport csvImport, Service service, Service adminService, String baseURI, DataManager dataManager)
+    /**
+     * Submits CSV import for asynchronous execution.
+     * 
+     * @param csvImport import resource
+     * @param app current application
+     * @param service current SPARQL service
+     * @param adminService current admin SPARQL service
+     * @param baseURI application's base URI
+     * @param dataManager data manager
+     */
+    public void submitImport(CSVImport csvImport, com.atomgraph.linkeddatahub.apps.model.Application app, Service service, Service adminService, String baseURI, DataManager dataManager)
     {
-        ImportListener.submit(csvImport, service, adminService, baseURI, dataManager);
+        // we don't want use service.getGraphStoreClient() here because that's for the backend. Processed import data is looped back to the app's SPARQL endpoint as if from the client.
+        ImportListener.submit(csvImport, service, adminService, baseURI, dataManager, GraphStoreClient.create(getClient().target(app.getBaseURI().resolve("service"))));
     }
     
-    public void submitImport(RDFImport rdfImport, Service service, Service adminService, String baseURI, DataManager dataManager)
+    /**
+     * Submits RDF import for asynchronous execution.
+     * 
+     * @param rdfImport import resource
+     * @param app current application
+     * @param service current SPARQL service
+     * @param adminService current admin SPARQL service
+     * @param baseURI application's base URI
+     * @param dataManager data manager
+     */
+    public void submitImport(RDFImport rdfImport, com.atomgraph.linkeddatahub.apps.model.Application app, Service service, Service adminService, String baseURI, DataManager dataManager)
     {
-        ImportListener.submit(rdfImport, service, adminService, baseURI, dataManager);
+        // we don't want use service.getGraphStoreClient() here because that's for the backend. Processed import data is looped back to the app's SPARQL endpoint as if from the client.
+        ImportListener.submit(rdfImport, service, adminService, baseURI, dataManager, GraphStoreClient.create(getClient().target(app.getBaseURI().resolve("service"))));
     }
     
+    /**
+     * Builds JAX-RS client instance from given configuration.
+     * 
+     * @param keyStore keystore
+     * @param keyStorePassword keystore password
+     * @param trustStore truststore
+     * @param maxConnPerRoute max connections per route
+     * @param maxTotalConn max total connections
+     * @param keepAliveStrategy keep-alive strategy (specific to Apache HTTP client)
+     * @return client instance
+     * @throws NoSuchAlgorithmException SSL algorithm error
+     * @throws KeyStoreException keystore loading error
+     * @throws UnrecoverableKeyException key loading error
+     * @throws KeyManagementException key loading error
+     */
     public static Client getClient(KeyStore keyStore, String keyStorePassword, KeyStore trustStore, Integer maxConnPerRoute, Integer maxTotalConn, ConnectionKeepAliveStrategy keepAliveStrategy) throws NoSuchAlgorithmException, KeyStoreException, UnrecoverableKeyException, KeyManagementException
     {
         if (keyStore == null) throw new IllegalArgumentException("KeyStore cannot be null");
@@ -1052,6 +1287,14 @@ public class Application extends ResourceConfig
             build();
     }
     
+    /**
+     * Builds HTTP client instance without TLS client certificates.
+     * 
+     * @param trustStore client truststore
+     * @param maxConnPerRoute max connections per route
+     * @param maxTotalConn max total connections
+     * @return client instance
+     */
     public static Client getNoCertClient(KeyStore trustStore, Integer maxConnPerRoute, Integer maxTotalConn)
     {
         try
@@ -1126,187 +1369,357 @@ public class Application extends ResourceConfig
         //if (log.isDebugEnabled()) client.addFilter(new LoggingFilter(System.out));
     }
     
+    /**
+     * Returns servlet configuration.
+     * Context parameters can be accessed through it.
+     * 
+     * @return servlet config object
+     */
+    public ServletConfig getServletConfig()
+    {
+        return servletConfig;
+    }
+    
+    /**
+     * Event bus that can be used for event registration.
+     * 
+     * @return event bus object
+     */
     public EventBus getEventBus()
     {
         return eventBus;
     }
     
+    /**
+     * Gets Jena's <code>DataManager</code> implementation.
+     * 
+     * @return data manager instance
+     */
     public DataManager getDataManager()
     {
         return dataManager;
     }
     
+    /**
+     * Returns a registry of readable and writeable media types.
+     * 
+     * @return registry object
+     */
     public MediaTypes getMediaTypes()
     {
         return mediaTypes;
     }
     
+    /**
+     * Returns the default system HTTP client.
+     * 
+     * @return client object
+     */
     public Client getClient()
     {
         return client;
     }
     
+    /**
+     * Returns the system base URI.
+     * 
+     * @return base URI
+     */
     public URI getBaseURI()
     {
         return baseURI;
     }
     
+    /**
+     * Returns the URI of the secretary agent.
+     * 
+     * @return WebID URI
+     */
     public URI getSecretaryWebIDURI()
     {
         return secretaryWebIDURI;
     }
     
+    /**
+     * Returns the authorization query.
+     * Used to check access to end-user apps.
+     * 
+     * @return query object
+     */
     public Query getAuthQuery()
     {
         return authQuery;
     }
     
+    /**
+     * Returns the owner authorization query.
+     * Used to check access to admin apps.
+     * 
+     * @return query object
+     */
     public Query getOwnerAuthQuery()
     {
         return ownerAuthQuery;
     }
     
+    /**
+     * Returns the WebID validation query.
+     * 
+     * @return query object
+     */
     public Query getWebIDQuery()
     {
         return webIDQuery;
     }
     
-    public Query getAgentQuery()
-    {
-        return agentQuery;
-    }
-    
+    /**
+     * Returns the user account lookup query.
+     * 
+     * @return query object
+     */
     public Query getUserAccountQuery()
     {
         return userAccountQuery;
     }
     
+    /**
+     * Returns ontology load query.
+     * 
+     * @return query object
+     */
     public Query getOntologyQuery()
     {
         return ontologyQuery;
     }
     
+    /**
+     * Returns maximum <code>GET</code> request size sent by the HTTP client.
+     * Requests over maximum size fall back to the <code>POST</code> method.
+     * 
+     * @return size in bytes
+     */
     public Integer getMaxGetRequestSize()
     {
         return maxGetRequestSize;
     }
-    
+
+    /**
+     * Returns true if HTTP Basic auth credentials should be sent preemptively.
+     * 
+     * @return true if preemptively
+     */
     public boolean isPreemptiveAuth()
     {
         return preemptiveAuth;
     }
     
+    /**
+     * The default specification of ontology models.
+     * 
+     * @return spec object
+     */
     public OntModelSpec getOntModelSpec()
     {
         return ontModelSpec;
     }
     
+    /**
+     * Returns Saxon's XSLT compiler.
+     * 
+     * @return compiler object
+     */
     public XsltCompiler getXsltCompiler()
     {
         return xsltComp;
     }
     
+    
+    /**
+     * Returns Saxon's XSLT executable.
+     * 
+     * @return executable object
+     */
     public XsltExecutable getXsltExecutable()
     {
         return xsltExec;
     }
-    
-    public Source getStylesheet()
-    {
-        return stylesheet;
-    }
 
+    /**
+     * Returns true if XSLT stylesheets are cached.
+     * 
+     * @return true if cached
+     */
     public boolean isCacheStylesheet()
     {
         return cacheStylesheet;
     }
 
+    /**
+     * Returns true if non-cached URI are dereferenced by the HTTP client.
+     * 
+     * @return true if resolving
+     */
     public boolean isResolvingUncached()
     {
         return resolvingUncached;
     }
     
+    /**
+     * Returns URL of the server directory for uploaded files.
+     * 
+     * @return path as URI
+     */
     public URI getUploadRoot()
     {
         return uploadRoot;
     }
     
+    /**
+     * Returns RDF dataset with LinkedDataHub application descriptions.
+     * @return RDF dataset
+     */
     protected Dataset getContextDataset()
     {
         return contextDataset;
     }
 
+    /**
+     * Returns RDF model with LinkedDataHub application descriptions.
+     * @return RDF model
+     */
     public Model getContextModel()
     {
         return ModelFactory.createModelForGraph(new GraphReadOnly(getContextDataset().getDefaultModel().getGraph()));
     }
 
+    /**
+     * Returns true if configured to invalidate HTTP proxy cache of triplestore results.
+     * @return true if invalidated
+     */
     public boolean isInvalidateCache()
     {
         return invalidateCache;
     }
 
+    /**
+     * Returns max age of authentication cookies.
+     * 
+     * @return maximum age in seconds
+     */
     public Integer getCookieMaxAge()
     {
         return cookieMaxAge;
     }
 
+    /**
+     * Maximum allowed request body size.
+     * 
+     * @return size in bytes
+     */
     public Integer getMaxContentLength()
     {
         return maxContentLength;
     }
-    
-    public CacheControl getAuthCacheControl()
-    {
-        return authCacheControl;
-    }
-    
+
+    /**
+     * Keystore of the HTTP client.
+     * 
+     * @return keystore instance
+     */
     public KeyStore getKeyStore()
     {
         return keyStore;
     }
     
+    /**
+     * Truststore of the HTTP client.
+     * 
+     * @return truststore instance
+     */
     public KeyStore getTrustStore()
     {
         return trustStore;
     }
 
+    /**
+     * HTTP client instance used for CSV/RDF imports only.
+     * 
+     * @return client instance
+     */
     public Client getImportClient()
     {
         return importClient;
     }
 
+    /**
+     * HTTP client instance that does not send the secretary's WebID client certificate.
+     * @return client instance
+     */
     public Client getNoCertClient()
     {
         return noCertClient;
     }
     
+    /**
+     * The email address from which notification emails are sent.
+     * 
+     * @return email address
+     */
     public Address getNotificationAddress()
     {
         return notificationAddress;
     }
     
+    /**
+     * Returns a builder for SMTP email messages.
+     * The builder is pre-configured with SMTP server credentials.
+     * 
+     * @return builder object
+     */
     public final MessageBuilder getMessageBuilder()
     {
         if (authenticator != null) return MessageBuilder.fromPropertiesAndAuth(emailProperties, authenticator);
         else return MessageBuilder.fromProperties(emailProperties);
     }
     
+    /**
+     * A map of cached WebID documents.
+     * WebID URI is the cache key. Entries expire after the configured period of time.
+     * 
+     * @return URI to model map
+     */
     public ExpiringMap<URI, Model> getWebIDModelCache()
     {
         return webIDmodelCache;
     }
-    
+
+    /**
+     * A map of cached OpenID connect agent graphs.
+     * User ID (ID token subject) is the cache key. Entries expire after the configured period of time.
+     * 
+     * @return URI to model map
+     */
     public ExpiringMap<String, Model> getOIDCModelCache()
     {
         return oidcModelCache;
     }
     
+    /**
+     * A map of cached (compiled) XSLT stylesheets.
+     * Stylesheet URI is the cache key.
+     * 
+     * @return URI to stylesheet map
+     */
     public Map<URI, XsltExecutable> getXsltExecutableCache()
     {
         return xsltExecutableCache;
     }
     
+    /**
+     * Message digest used in SHA1 hashing.
+     * 
+     * @return digest object
+     */
     public MessageDigest getMessageDigest()
     {
         return messageDigest;

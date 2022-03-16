@@ -42,6 +42,13 @@ public class QueryLoader implements Supplier<Query>
     private final String baseURI;
     private final DataManager dataManager;
     
+    /**
+     * Constructs loader from query URI.
+     * 
+     * @param uri query URI
+     * @param baseURI base URI
+     * @param dataManager RDF data manager
+     */
     public QueryLoader(String uri, String baseURI, DataManager dataManager)
     {
         this.uri = uri;
@@ -59,16 +66,31 @@ public class QueryLoader implements Supplier<Query>
         }
     }
 
+    /**
+     * Returns query URI.
+     * 
+     * @return query URI
+     */
     public String getURI()
     {
         return uri;
     }
 
+    /**
+     * Returns base URI.
+     * 
+     * @return base URI
+     */
     public String getBaseURI()
     {
         return baseURI;
     }
 
+    /**
+     * Returns RDF data manager.
+     * 
+     * @return data manager
+     */
     public DataManager getDataManager()
     {
         return dataManager;

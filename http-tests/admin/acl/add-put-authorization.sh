@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -euo pipefail
 
 initialize_dataset "$END_USER_BASE_URL" "$TMP_END_USER_DATASET" "$END_USER_ENDPOINT_URL"
@@ -9,12 +9,12 @@ purge_backend_cache "$ADMIN_VARNISH_SERVICE"
 # access is unauthorized
 
 curl -k -w "%{http_code}\n" -o /dev/null -s \
-  -E "${AGENT_CERT_FILE}":"${AGENT_CERT_PWD}" \
+  -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -H "Content-Type: application/n-triples" \
   -H "Accept: application/n-triples" \
   -X PUT \
-  "${END_USER_BASE_URL}" \
-| grep -q "${STATUS_FORBIDDEN}"
+  "$END_USER_BASE_URL" \
+| grep -q "$STATUS_FORBIDDEN"
 
 pushd . > /dev/null && cd "$SCRIPT_ROOT/admin/acl"
 
@@ -31,13 +31,27 @@ pushd . > /dev/null && cd "$SCRIPT_ROOT/admin/acl"
 
 popd > /dev/null
 
-# access is allowed after authorization is created
+# get the graph content
 
-curl -k -w "%{http_code}\n" -o /dev/null -f -s \
-  -E "${AGENT_CERT_FILE}":"${AGENT_CERT_PWD}" \
+pushd . && cd "$SCRIPT_ROOT"
+
+root_ntriples=$(./get-document.sh \
+  -f "$OWNER_CERT_FILE" \
+  -p "$OWNER_CERT_PWD" \
+  --accept 'application/n-triples' \
+  "$END_USER_BASE_URL")
+
+popd > /dev/null
+
+# access is allowed after authorization is created
+# request body with document instance is required
+
+echo "$root_ntriples" \
+| curl -k -w "%{http_code}\n" -o /dev/null -f -s \
+  -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -H "Content-Type: application/n-triples" \
   -H "Accept: application/n-triples" \
-  -H "Content-Length: 0" \
   -X PUT \
-  "${END_USER_BASE_URL}" \
-| grep -q "${STATUS_OK}"
+  -d @- \
+  "$END_USER_BASE_URL" \
+| grep -q "$STATUS_OK"

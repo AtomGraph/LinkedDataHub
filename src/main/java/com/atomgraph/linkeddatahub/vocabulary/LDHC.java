@@ -30,90 +30,117 @@ import org.apache.jena.rdf.model.Resource;
  */
 public class LDHC
 {
-    /** <p>The RDF model that holds the vocabulary terms</p> */
+    /** The RDF model that holds the vocabulary terms */
     private static OntModel m_model = ModelFactory.createOntologyModel(OntModelSpec.OWL_MEM, null);
     
-    /** <p>The namespace of the vocabulary as a string</p> */
+    /** The namespace of the vocabulary as a string */
     public static final String NS = "https://w3id.org/atomgraph/linkeddatahub/config#";
     
-    /** <p>The namespace of the vocabulary as a string</p>
-     *  @see #NS */
+    /**
+     * The namespace of the vocabulary as a string
+     * 
+     * @return namespace URI
+     * @see #NS
+     */
     public static String getURI()
     {
         return NS;
     }
     
-    /** <p>The namespace of the vocabulary as a resource</p> */
+    /** The namespace of the vocabulary as a resource */
     public static final Resource NAMESPACE = m_model.createResource( NS );
 
-    // CONFIG
-
+    /** Base URI property */
     public static final ObjectProperty baseUri = m_model.createObjectProperty( NS + "baseUri" );
     
+    /** Proxy scheme property */
     public static final DatatypeProperty proxyScheme = m_model.createDatatypeProperty( NS + "proxyScheme" );
     
+    /** Proxy host property */
     public static final DatatypeProperty proxyHost = m_model.createDatatypeProperty( NS + "proxyHost" );
 
+    /** Proxy port property */
     public static final DatatypeProperty proxyPort = m_model.createDatatypeProperty( NS + "proxyPort" );
 
+    /** Auth query property */
     public static final DatatypeProperty authQuery = m_model.createDatatypeProperty( NS + "authQuery" );
 
+    /** Owner auth property */
     public static final DatatypeProperty ownerAuthQuery = m_model.createDatatypeProperty( NS + "ownerAuthQuery" );
 
+    /** WebID query property */
     public static final DatatypeProperty webIDQuery = m_model.createDatatypeProperty( NS + "webIDQuery" );
     
-    public static final DatatypeProperty agentQuery = m_model.createDatatypeProperty( NS + "agentQuery" );
-
+    /** User account query property */
     public static final DatatypeProperty userAccountQuery = m_model.createDatatypeProperty( NS + "userAccountQuery" );
     
+    /** Ontology query property */
     public static final DatatypeProperty ontologyQuery = m_model.createDatatypeProperty( NS + "ontologyQuery" );
 
-    public static final DatatypeProperty authCacheControl = m_model.createDatatypeProperty( NS + "authCacheControl" );
-
-//    public static final DatatypeProperty putUpdate = m_model.createDatatypeProperty( NS + "putUpdate" );
-//    
-//    public static final DatatypeProperty deleteUpdate = m_model.createDatatypeProperty( NS + "deleteUpdate" );
-    
+    /** Upload root property */
     public static final ObjectProperty uploadRoot = m_model.createObjectProperty( NS + "uploadRoot" );
 
+    /** Invalidate cache property */
     public static final DatatypeProperty invalidateCache = m_model.createDatatypeProperty( NS + "invalidateCache" );
 
+    /** Cookie max age property */
     public static final DatatypeProperty cookieMaxAge = m_model.createDatatypeProperty( NS + "cookieMaxAge" );
     
+    /** Client keystore property */
     public static final ObjectProperty clientKeyStore = m_model.createObjectProperty( NS + "clientKeyStore" );
     
+    /** Client keystore password property */
     public static final DatatypeProperty clientKeyStorePassword = m_model.createDatatypeProperty( NS + "clientKeyStorePassword" );
 
+    /** Secretary cert alias property */
     public static final DatatypeProperty secretaryCertAlias = m_model.createDatatypeProperty( NS + "secretaryCertAlias" );
         
+    /** Client truststore property */
     public static final ObjectProperty clientTrustStore = m_model.createObjectProperty( NS + "clientTrustStore" );
     
+    /** Client truststore password property */
     public static final DatatypeProperty clientTrustStorePassword = m_model.createDatatypeProperty( NS + "clientTrustStorePassword" );
 
-//    public static final DatatypeProperty signUpAddress = m_model.createDatatypeProperty( NS + "signUpAddress" );
-
+    /** Signup email subject property */
     public static final DatatypeProperty signUpEMailSubject = m_model.createDatatypeProperty( NS + "signUpEMailSubject" );
     
+    /** WebID signup email text property */
     public static final DatatypeProperty webIDSignUpEMailText = m_model.createDatatypeProperty( NS + "webIDSignUpEMailText" );
 
+    /** OAuth signup email text property */
     public static final DatatypeProperty oAuthSignUpEMailText = m_model.createDatatypeProperty( NS + "oAuthSignUpEMailText" );
 
+    /** Notification address property */
     public static final DatatypeProperty notificationAddress = m_model.createDatatypeProperty( NS + "notificationAddress" );
 
+    /** Request access email subject property */
     public static final DatatypeProperty requestAccessEMailSubject = m_model.createDatatypeProperty( NS + "requestAccessEMailSubject" );
     
+    /** Request access email text property */
     public static final DatatypeProperty requestAccessEMailText = m_model.createDatatypeProperty( NS + "requestAccessEMailText" );
+
+    /** Authorization email subject property */
+    public static final DatatypeProperty authorizationEMailSubject = m_model.createDatatypeProperty( NS + "authorizationEMailSubject" );
     
+    /** Authorization email text property */
+    public static final DatatypeProperty authorizationEMailText = m_model.createDatatypeProperty( NS + "authorizationEMailText" );
+
+    /** Signup cert validity property */
     public static final DatatypeProperty signUpCertValidity = m_model.createDatatypeProperty( NS + "signUpCertValidity" );
 
+    /** Context dataset property */
     public static final ObjectProperty contextDataset = m_model.createObjectProperty( NS + "contextDataset" );
 
+    /** Max connections per route property */
     public static final DatatypeProperty maxConnPerRoute = m_model.createDatatypeProperty( NS + "maxConnPerRoute" );
     
+    /** Max total connections property */
     public static final DatatypeProperty maxTotalConn = m_model.createDatatypeProperty( NS + "maxTotalConn" );
 
+    /** Import keep-alive property */
     public static final DatatypeProperty importKeepAlive = m_model.createDatatypeProperty( NS + "importKeepAlive" );
     
+    /** Max content length property */
     public static final DatatypeProperty maxContentLength = m_model.createDatatypeProperty( NS + "maxContentLength" );
 
 }

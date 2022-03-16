@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 [ -z "$JAVA_HOME" ] && echo "Need to set JAVA_HOME" && exit 1;
 

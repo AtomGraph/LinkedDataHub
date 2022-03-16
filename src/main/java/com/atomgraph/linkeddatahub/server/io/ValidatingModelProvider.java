@@ -16,8 +16,10 @@
  */
 package com.atomgraph.linkeddatahub.server.io;
 
+import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.model.Agent;
+import com.atomgraph.linkeddatahub.vocabulary.ACL;
 import org.apache.jena.ontology.OntDocumentManager;
 import org.apache.jena.query.QueryFactory;
 import org.apache.jena.query.QueryParseException;
@@ -79,9 +81,15 @@ public class ValidatingModelProvider extends com.atomgraph.server.io.ValidatingM
     @Context SecurityContext securityContext;
 
     @Inject javax.inject.Provider<com.atomgraph.linkeddatahub.apps.model.Application> application;
+    @Inject com.atomgraph.linkeddatahub.Application system;
 
     private final MessageDigest messageDigest;
 
+    /**
+     * Constructs provider.
+     * 
+     * @param messageDigest message digest
+     */
     public ValidatingModelProvider(MessageDigest messageDigest)
     {
         this.messageDigest = messageDigest;
@@ -143,6 +151,12 @@ public class ValidatingModelProvider extends com.atomgraph.server.io.ValidatingM
         return super.processRead(model); // apply processing from superclasses
     }
     
+    /**
+     * Post-processes read RDF resources.
+     * 
+     * @param resource RDF resource
+     * @return processed RDF resource
+     */
     public Resource processRead(Resource resource) // this logic really belongs in a ContainerRequestFilter but we don't want to buffer and re-serialize the Model
     {
         // TO-DO: convert to lambda functions
@@ -224,6 +238,9 @@ public class ValidatingModelProvider extends com.atomgraph.server.io.ValidatingM
             OntDocumentManager.getInstance().getFileManager().removeCacheModel(resource.getURI());
         }
         
+        if (resource.hasProperty(RDF.type, ACL.Authorization))
+            getSystem().getEventBus().post(new com.atomgraph.linkeddatahub.server.event.AuthorizationCreated(getEndUserApplication(), resource));
+        
         return resource;
     }
     
@@ -231,7 +248,7 @@ public class ValidatingModelProvider extends com.atomgraph.server.io.ValidatingM
     public Model processWrite(Model model)
     {
         // show foaf:mbox in end-user apps
-        if (getApplication().get().canAs(EndUserApplication.class)) return model;
+        if (getApplication().canAs(EndUserApplication.class)) return model;
         // show foaf:mbox for authenticated agents
         if (getSecurityContext() != null && getSecurityContext().getUserPrincipal() instanceof Agent) return model;
 
@@ -239,6 +256,12 @@ public class ValidatingModelProvider extends com.atomgraph.server.io.ValidatingM
         return super.processWrite(hashMboxes(getMessageDigest()).apply(model)); // apply processing from superclasses
     }
 
+    /**
+     * Replaces <code>foaf:mbox</code> values in an RDF model with hashed <code>foaf:mbox_sha1sum</code> values.
+     * 
+     * @param messageDigest digest used for SHA1 hashing
+     * @return fixed up RDF model
+     */
     public static Function<Model, Model> hashMboxes(MessageDigest messageDigest)
     {
         return model ->
@@ -258,6 +281,13 @@ public class ValidatingModelProvider extends com.atomgraph.server.io.ValidatingM
         };
     }
     
+    /**
+     * Replaces <code>foaf:mbox</code> value in an RDF statement with a hashed <code>foaf:mbox_sha1sum</code> value.
+     * 
+     * @param stmt RDF statement
+     * @param messageDigest digest used for SHA1 hashing
+     * @return fixed up statement
+     */
     public static Statement mboxHashStmt(Statement stmt, MessageDigest messageDigest)
     {
         try (InputStream is = new ByteArrayInputStream(stmt.getResource().getURI().getBytes(StandardCharsets.UTF_8));
@@ -273,25 +303,63 @@ public class ValidatingModelProvider extends com.atomgraph.server.io.ValidatingM
         }
     }
     
+    /**
+     * Returns the end-user application of the current dataspace.
+     * 
+     * @return end-user application resource
+     */
+    public EndUserApplication getEndUserApplication()
+    {
+        if (getApplication().canAs(EndUserApplication.class))
+            return getApplication().as(EndUserApplication.class);
+        else
+            return getApplication().as(AdminApplication.class).getEndUserApplication();
+    }
+    
     @Override
     public UriInfo getUriInfo()
     {
         return uriInfo;
     }
     
-    public javax.inject.Provider<com.atomgraph.linkeddatahub.apps.model.Application> getApplication()
+    /**
+     * Returns current application.
+     * 
+     * @return application resource
+     */
+    public com.atomgraph.linkeddatahub.apps.model.Application getApplication()
     {
-        return application;
+        return application.get();
     }
     
+    /**
+     * Returns JAX-RS security context.
+     * 
+     * @return security context
+     */
     public SecurityContext getSecurityContext()
     {
         return securityContext;
     }
     
+    /**
+     * Returns cryptographic digest using for SHA1 hashing.
+     * 
+     * @return message digest
+     */
     public MessageDigest getMessageDigest()
     {
         return messageDigest;
+    }
+    
+    /**
+     * Returns system application.
+     * 
+     * @return JAX-RS application
+     */
+    public com.atomgraph.linkeddatahub.Application getSystem()
+    {
+        return system;
     }
     
 }

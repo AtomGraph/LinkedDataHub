@@ -1,4 +1,4 @@
-FROM maven:3.6.3-jdk-11 as maven
+FROM maven:3.8.4-openjdk-17 as maven
 
 # download and extract Jena
 
@@ -22,7 +22,7 @@ RUN mvn -Pstandalone clean install
 
 # ==============================
 
-FROM atomgraph/letsencrypt-tomcat:9202d2963c6cc8e0bd5152c3fe6e2e40f63c1dfa
+FROM atomgraph/letsencrypt-tomcat:00336f862d03d41a83a9077a98aa39955876c999
 
 LABEL maintainer="martynas@atomgraph.com"
 

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -euo pipefail
 
 initialize_dataset "$END_USER_BASE_URL" "$TMP_END_USER_DATASET" "$END_USER_ENDPOINT_URL"
@@ -24,4 +24,4 @@ curl --head -k -w "%{http_code}\n" -o /dev/null -f -s \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -H 'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9' \
   "${ADMIN_BASE_URL}"  \
-| grep -q "${STATUS_OK}"
+| grep -q "$STATUS_OK"

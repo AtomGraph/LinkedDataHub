@@ -39,6 +39,7 @@ xmlns:spin="&spin;"
 xmlns:dct="&dct;"
 xmlns:foaf="&foaf;"
 xmlns:xhtml="http://www.w3.org/1999/xhtml"
+xmlns:svg="http://www.w3.org/2000/svg"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 exclude-result-prefixes="#all"
 >
@@ -271,12 +272,59 @@ exclude-result-prefixes="#all"
         </xsl:copy>
     </xsl:template>
     
+    <!-- ANCHOR -->
+    
+    <!-- subject resource -->
+    <xsl:template match="@rdf:about" mode="xhtml:Anchor">
+        <xsl:param name="href" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), .)" as="xs:anyURI"/>
+        <xsl:param name="id" select="encode-for-uri(.)" as="xs:string?"/>
+        <xsl:param name="title" select="." as="xs:string?"/>
+        <xsl:param name="class" as="xs:string?"/>
+        <xsl:param name="target" as="xs:string?"/>
+
+        <xsl:next-match>
+            <xsl:with-param name="href" select="$href"/>
+            <xsl:with-param name="id" select="$id"/>
+            <xsl:with-param name="title" select="$title"/>
+            <xsl:with-param name="class" select="$class"/>
+            <xsl:with-param name="target" select="$target"/>
+        </xsl:next-match>
+    </xsl:template>
+    
+    <xsl:template match="@rdf:about | @rdf:resource" mode="svg:Anchor">
+        <xsl:param name="href" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ., $ac:mode)" as="xs:anyURI"/>
+        <xsl:param name="id" select="encode-for-uri(.)" as="xs:string?"/>
+        <xsl:param name="label" select="if (parent::rdf:Description) then ac:svg-label(..) else ac:svg-object-label(.)" as="xs:string"/>
+        <xsl:param name="title" select="$label" as="xs:string"/>
+        <xsl:param name="class" as="xs:string?"/>
+        <xsl:param name="target" as="xs:string?"/>
+
+        <xsl:next-match>
+            <xsl:with-param name="href" select="$href"/>
+            <xsl:with-param name="id" select="$id"/>
+            <xsl:with-param name="label" select="$label"/>
+            <xsl:with-param name="title" select="$title"/>
+            <xsl:with-param name="class" select="$class"/>
+            <xsl:with-param name="target" select="$target"/>
+        </xsl:next-match>
+    </xsl:template>
+    
     <!-- DEFAULT -->
 
     <!-- proxy link URIs if they are external -->
     <xsl:template match="@rdf:resource | srx:uri" priority="2">
+        <xsl:param name="href" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), xs:anyURI(.))" as="xs:anyURI"/>
+        <xsl:param name="id" as="xs:string?"/>
+        <xsl:param name="title" select="." as="xs:string?"/>
+        <xsl:param name="class" as="xs:string?"/>
+        <xsl:param name="target" as="xs:string?"/>
+        
         <xsl:next-match>
-            <xsl:with-param name="href" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), xs:anyURI(.))"/>
+            <xsl:with-param name="href" select="$href"/>
+            <xsl:with-param name="id" select="$id"/>
+            <xsl:with-param name="title" select="$title"/>
+            <xsl:with-param name="class" select="$class"/>
+            <xsl:with-param name="target" select="$target"/>
         </xsl:next-match>
     </xsl:template>
     
@@ -332,13 +380,13 @@ exclude-result-prefixes="#all"
                             <select class="subject-type input-medium">
                                 <option value="su">
                                     <xsl:if test="local-name() = 'about'">
-                                        <xsl:attribute name="selected">selected</xsl:attribute>
+                                        <xsl:attribute name="selected" select="'selected'"/>
                                     </xsl:if>
                                     <xsl:text>URI</xsl:text>
                                 </option>
                                 <option value="sb">
                                     <xsl:if test="local-name() = 'nodeID'">
-                                        <xsl:attribute name="selected">selected</xsl:attribute>
+                                        <xsl:attribute name="selected" select="'selected'"/>
                                     </xsl:if>
                                     <xsl:text>Blank node</xsl:text>
                                 </option>
@@ -348,33 +396,15 @@ exclude-result-prefixes="#all"
                             <span>
                                 <!--
                                 <xsl:if test="$auto">
-                                    <xsl:attribute name="style">display: none;</xsl:attribute>
+                                    <xsl:attribute name="style" select="'display: none;'"/>
                                 </xsl:if>
                                 -->
                                 <!-- hidden inputs in which we store the old values of the visible input -->
                                 <input type="hidden" class="old su">
-                                    <xsl:attribute name="value">
-                                        <xsl:choose>
-                                            <xsl:when test="local-name() = 'about'">
-                                                <xsl:attribute name="value" select="."/>
-                                            </xsl:when>
-                                            <xsl:otherwise>
-                                                <xsl:value-of select="resolve-uri(concat('/', ac:uuid()), ac:uri())"/>
-                                            </xsl:otherwise>
-                                        </xsl:choose>
-                                    </xsl:attribute>
+                                    <xsl:attribute name="value" select="if (local-name() = 'about') then . else resolve-uri(concat('/', ac:uuid()), ac:uri())"/>
                                 </input>
                                 <input type="hidden" class="old sb">
-                                    <xsl:attribute name="value">
-                                        <xsl:choose>
-                                            <xsl:when test="local-name() = 'nodeID'">
-                                                <xsl:attribute name="value" select="."/>
-                                            </xsl:when>
-                                            <xsl:otherwise>
-                                                <xsl:value-of select="generate-id()"/>
-                                            </xsl:otherwise>
-                                        </xsl:choose>
-                                    </xsl:attribute>
+                                    <xsl:attribute name="value" select="if (local-name() = 'nodeID') then . else generate-id()"/>
                                 </input>
                                 <xsl:apply-templates select="." mode="xhtml:Input">
                                     <xsl:with-param name="type" select="$type"/>
@@ -419,7 +449,7 @@ exclude-result-prefixes="#all"
         
         <div>
             <xsl:if test="$class">
-                <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
+                <xsl:attribute name="class" select="$class"/>
             </xsl:if>
 
             <xsl:apply-templates select="." mode="xhtml:Input">
@@ -765,14 +795,14 @@ exclude-result-prefixes="#all"
         <select class="help-inline content-type">
             <option value="&rdfs;Resource">
                 <xsl:if test="self::attribute()">
-                    <xsl:attribute name="selected">selected</xsl:attribute>
+                    <xsl:attribute name="selected" select="'selected'"/>
                 </xsl:if>
                 
                 <xsl:text>Resource</xsl:text>
             </option>
             <option value="&rdf;XMLLiteral">
                 <xsl:if test="self::xhtml:*">
-                    <xsl:attribute name="selected">selected</xsl:attribute>
+                    <xsl:attribute name="selected" select="'selected'"/>
                 </xsl:if>
                 
                 <xsl:text>HTML</xsl:text>

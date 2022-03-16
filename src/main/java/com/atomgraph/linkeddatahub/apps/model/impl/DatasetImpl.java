@@ -28,30 +28,24 @@ import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.impl.ResourceImpl;
 
 /**
- *
+ * Dataset (Linked Data dataspace) implementation.
+ * Extends RDF resource implementation.
+ * 
  * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
  */
 public class DatasetImpl extends ResourceImpl implements Dataset
 {
 
+    /**
+     * Constructs instance from graph node.
+     * 
+     * @param n node
+     * @param g graph
+     */
     public DatasetImpl(Node n, EnhGraph g)
     {
         super(n, g);
     }
-        
-//    @Override
-//    public Resource getBase()
-//    {
-//        return getPropertyResourceValue(LDT.base);
-//    }
-//    
-//    @Override
-//    public URI getBaseURI()
-//    {
-//        if (getBase() != null) return URI.create(getBase().getURI());
-//        
-//        return null;
-//    }
 
     @Override
     public Resource getPrefix()

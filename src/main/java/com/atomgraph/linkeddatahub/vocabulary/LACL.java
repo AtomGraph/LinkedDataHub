@@ -25,37 +25,48 @@ import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Resource;
 
 /**
- *
+ * LACL vocabulary.
+ * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
 public class LACL
 {
-    /** <p>The RDF model that holds the vocabulary terms</p> */
+    /** The RDF model that holds the vocabulary terms */
     private static OntModel m_model = ModelFactory.createOntologyModel(OntModelSpec.OWL_MEM, null);
     
-    /** <p>The namespace of the vocabulary as a string</p> */
+    /** The namespace of the vocabulary as a string */
     public static final String NS = "https://w3id.org/atomgraph/linkeddatahub/admin/acl#";
     
-    /** <p>The namespace of the vocabulary as a string</p>
-     *  @see #NS */
+    /**
+     * The namespace of the vocabulary as a string
+     * 
+     * @return namespace URI
+     * @see #NS
+     */
     public static String getURI()
     {
         return NS;
     }
     
-    /** <p>The namespace of the vocabulary as a resource</p> */
+    /** The namespace of the vocabulary as a resource */
     public static final Resource NAMESPACE = m_model.createResource( NS );
 
+    /** Authorization request class */
     public static final OntClass AuthorizationRequest = m_model.createClass( NS + "AuthorizationRequest" );
 
+    /** Password property */
     public static final DatatypeProperty password = m_model.createDatatypeProperty( NS + "password" );
     
+    /** Issuer property */
     public static final DatatypeProperty issuer = m_model.createDatatypeProperty( NS + "issuer" );
 
+    /** Request agent property **/
     public static final ObjectProperty requestAgent = m_model.createObjectProperty( NS + "requestAgent" );
 
+    /** Request access to property */
     public static final ObjectProperty requestAccessTo = m_model.createObjectProperty( NS + "requestAccessTo" );
 
+    /** Request access property */
     public static final ObjectProperty requestAccess = m_model.createObjectProperty( NS + "requestAccess" );
 
 }

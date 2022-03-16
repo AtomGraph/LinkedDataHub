@@ -29,7 +29,13 @@ import javax.ws.rs.core.Response;
 public class WebIDLoadingException extends RuntimeException
 {
     
-    public WebIDLoadingException(URI webID, Response cr)
+    /**
+     * Constructs exception.
+     * 
+     * @param webID WebID URI
+     * @param response client response
+     */
+    public WebIDLoadingException(URI webID, Response response)
     {
         super("WebID profile could not be loaded: " + webID);
     }

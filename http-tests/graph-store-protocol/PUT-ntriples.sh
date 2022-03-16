@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -euo pipefail
 
 initialize_dataset "$END_USER_BASE_URL" "$TMP_END_USER_DATASET" "$END_USER_ENDPOINT_URL"
@@ -32,6 +32,8 @@ curl -k -w "%{http_code}\n" -o /dev/null -f -s \
   -H "Content-Type: application/n-triples" \
   --data-binary @- \
   "$END_USER_BASE_URL" <<EOF
+<${END_USER_BASE_URL}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/atomgraph/linkeddatahub/default#Root> .
+<${END_USER_BASE_URL}> <http://purl.org/dc/terms/title> "Root" .
 <${END_USER_BASE_URL}named-subject-put> <http://example.com/default-predicate> "named object PUT" .
 <${END_USER_BASE_URL}named-subject-put> <http://example.com/another-predicate> "another named object PUT" .
 EOF

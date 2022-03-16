@@ -24,42 +24,37 @@ import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Resource;
 
 /**
- *
+ * LDHT vocabulary.
+ * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
 @Deprecated
 public class LDHT
 {
-    /** <p>The RDF model that holds the vocabulary terms</p> */
+    /** The RDF model that holds the vocabulary terms */
     private static OntModel m_model = ModelFactory.createOntologyModel(OntModelSpec.OWL_MEM, null);
     
-    /** <p>The namespace of the vocabulary as a string</p> */
+    /** The namespace of the vocabulary as a string */
     public static final String NS = "https://w3id.org/atomgraph/linkeddatahub/templates#";
     
-    /** <p>The namespace of the vocabulary as a string</p>
-     *  @see #NS */
+    /**
+     * The namespace of the vocabulary as a string
+     * 
+     * @return namespace URI
+     * @see #NS
+     */
     public static String getURI()
     {
         return NS;
     }
     
-    /** <p>The namespace of the vocabulary as a resource</p> */
+    /** The namespace of the vocabulary as a resource */
     public static final Resource NAMESPACE = m_model.createResource( NS );
 
-    public static final ObjectProperty aclEndpoint = m_model.createObjectProperty( NS + "aclEndpoint" );
-
-    // TEMPLATES
-    
+    /** For class property */
     public static final ObjectProperty forClass = m_model.createObjectProperty( NS + "forClass" );
 
-    public static final DatatypeProperty import_ = m_model.createDatatypeProperty( NS + "import" );
-
-    public static final DatatypeProperty login = m_model.createDatatypeProperty( NS + "login" );
-
-    public static final DatatypeProperty logout = m_model.createDatatypeProperty( NS + "logout" );
-
+    /** Ban property */
     public static final DatatypeProperty ban = m_model.createDatatypeProperty( NS + "ban" );
-
-    public static final ObjectProperty debug = m_model.createObjectProperty( NS + "debug" );
 
 }

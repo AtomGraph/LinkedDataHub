@@ -55,12 +55,23 @@ public class EMailListener implements ServletContextListener
         THREAD_POOL.shutdown();
     }
     
+    /**
+     * Submits email message for asynchronous sending.
+     * 
+     * @param message email message
+     */
     public static void submit(Message message)
     {
         CompletableFuture.runAsync(new MessageSender(message)).
             exceptionally(failure(message));
     }
     
+    /**
+     * Invoked when email sending fails to complete.
+     * 
+     * @param message email message
+     * @return void function
+     */
     public static Function<Throwable, Void> failure(final Message message)
     {
         return (Throwable t) ->
@@ -87,11 +98,19 @@ public class EMailListener implements ServletContextListener
 
     }
     
+    /**
+     * A thread-based class for asynchronous email sending.
+     */
     public static final class MessageSender implements Runnable
     {
         
         private final Message message;
         
+        /**
+         * Constructs sender from email message.
+         * 
+         * @param message email message
+         */
         public MessageSender(Message message)
         {
             this.message = message;
@@ -111,6 +130,11 @@ public class EMailListener implements ServletContextListener
             }
         }
         
+        /**
+         * Returns email message.
+         * 
+         * @return message
+         */
         public Message getMessage()
         {
             return message;

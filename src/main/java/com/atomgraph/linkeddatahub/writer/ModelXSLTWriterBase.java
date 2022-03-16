@@ -69,13 +69,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- *
+ * XSLT writer subclass with LinkedDataHub specific parameters.
+ * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
 public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.ModelXSLTWriterBase
 {
     private static final Logger log = LoggerFactory.getLogger(ModelXSLTWriterBase.class);
     private static final Set<String> NAMESPACES;
+    /** The relative URL of the RDF file with localized labels */
     public static final String TRANSLATIONS_PATH = "static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf";
     
     static
@@ -96,6 +98,14 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
 
     private final MessageDigest messageDigest;
     
+    /**
+     * Constructs XSLT writer.
+     * 
+     * @param xsltExec compiled XSLT stylesheet
+     * @param ontModelSpec ontology specification
+     * @param dataManager RDF data manager
+     * @param messageDigest message digest
+     */
     public ModelXSLTWriterBase(XsltExecutable xsltExec, OntModelSpec ontModelSpec, DataManager dataManager, MessageDigest messageDigest)
     {
         super(xsltExec, ontModelSpec, dataManager); // this DataManager will be unused as we override getDataManager() with the injected (subclassed) one
@@ -182,7 +192,13 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
             throw new TransformerException(ex);
         }
     }
-    
+    /**
+     * Returns RDF model of the specified application.
+     * 
+     * @param app application resource
+     * @param includeEndUserAdmin true if paired app's description should be included as well
+     * @return RDF model
+     */
     public Model getAppModel(Application app, boolean includeEndUserAdmin)
     {
         StmtIterator appStmts = app.listProperties();
@@ -212,6 +228,12 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
         return model;
     }
     
+    /**
+     * Hook for RDF model processing before write.
+     * 
+     * @param model RDF model
+     * @return RDF model
+     */
     public Model processWrite(Model model)
     {
         // show foaf:mbox in end-user apps
@@ -223,6 +245,11 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
         return ValidatingModelProvider.hashMboxes(getMessageDigest()).apply(model); // apply processing from superclasses
     }
 
+    /**
+     * Returns system application.
+     * 
+     * @return JAX-RS application
+     */
     public com.atomgraph.linkeddatahub.Application getSystem()
     {
         return system;
@@ -234,11 +261,21 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
         return getSystem().getOntModelSpec();
     }
     
+    /**
+     * Returns JAX-RS security context.
+     * 
+     * @return security context
+     */
     public SecurityContext getSecurityContext()
     {
         return securityContext;
     }
     
+    /**
+     * Returns provider of (optional) ontology of the current application.
+     * 
+     * @return provider
+     */
     public javax.inject.Provider<Optional<Ontology>> getOntology()
     {
         return ontology;
@@ -250,6 +287,11 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
         return getDataManagerProvider().get();
     }
 
+    /**
+     * Returns a JAX-RS provider for the RDF data manager.
+     * 
+     * @return provider
+     */
     public javax.inject.Provider<DataManager> getDataManagerProvider()
     {
         return dataManager;
@@ -288,6 +330,11 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
         return getModes().stream().map(Mode::get).collect(Collectors.toList());
     }
 
+    /**
+     * Returns a list of enabled layout modes.
+     * 
+     * @return list of modes
+     */
     public List<Mode> getModes()
     {
         return modes.get();
@@ -299,11 +346,21 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
         return NAMESPACES;
     }
 
+    /**
+     * Returns a JAX-RS provider for the current application.
+     * 
+     * @return provider
+     */
     public javax.inject.Provider<com.atomgraph.linkeddatahub.apps.model.Application> getApplication()
     {
         return application;
     }
 
+    /**
+     * Returns message digest.
+     * 
+     * @return digest
+     */
     public MessageDigest getMessageDigest()
     {
         return messageDigest;

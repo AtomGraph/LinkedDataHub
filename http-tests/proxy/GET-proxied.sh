@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -euo pipefail
 
 initialize_dataset "$END_USER_BASE_URL" "$TMP_END_USER_DATASET" "$END_USER_ENDPOINT_URL"
@@ -25,7 +25,7 @@ proxied_triple_count=$(curl -k -f -s \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -H 'Accept: application/n-triples' \
   --data-urlencode "uri=${END_USER_BASE_URL}" \
-  "${END_USER_BASE_URL}" \
+  "$END_USER_BASE_URL" \
 | rapper -q --input ntriples --output ntriples /dev/stdin - \
 | wc -l)
 
@@ -34,7 +34,7 @@ proxied_triple_count=$(curl -k -f -s \
 direct_triple_count=$(curl -k -f -s \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -H "Accept: text/turtle" \
-  "${END_USER_BASE_URL}" \
+  "$END_USER_BASE_URL" \
 | rapper -q --input turtle --output ntriples /dev/stdin -\
 | wc -l)
 

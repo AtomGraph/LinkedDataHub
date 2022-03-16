@@ -42,7 +42,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- *
+ * JAX-RS resource that handles Google authorization requests.
+ * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
 @Path("oauth2/authorize/google")
@@ -50,9 +51,13 @@ public class Authorize // extends ResourceBase
 {
     private static final Logger log = LoggerFactory.getLogger(Authorize.class);
     
+    /** Google's OAuth endpoint URL */
     public static final String ENDPOINT_URI = "https://accounts.google.com/o/oauth2/v2/auth";
+    /** OAuth authorization scope */
     public static final String SCOPE = "openid email profile";
+    /** JWT cookie name */
     public static final String COOKIE_NAME = "LinkedDataHub.state";
+    /** URL parameter name */
     public static final String REFERER_PARAM_NAME = "referer";
 
     private final UriInfo uriInfo;
@@ -60,6 +65,15 @@ public class Authorize // extends ResourceBase
     private final Ontology ontology;
     private final String clientID;
     
+    /**
+     * Constructs resource from current request info.
+     * 
+     * @param uriInfo URI info
+     * @param application application
+     * @param ontology application's ontology
+     * @param service application's SPARQL service
+     * @param system JAX-RS application
+     */
     @Inject
     public Authorize(@Context UriInfo uriInfo, 
             Optional<Service> service, com.atomgraph.linkeddatahub.apps.model.Application application, Optional<Ontology> ontology,
@@ -72,6 +86,11 @@ public class Authorize // extends ResourceBase
         clientID = (String)system.getProperty(Google.clientID.getURI());
     }
     
+    /**
+     * Implements the HTTP <code>GET</code> method.
+     * 
+     * @return response object
+     */
     @GET
     public Response get()
     {
@@ -103,6 +122,11 @@ public class Authorize // extends ResourceBase
             build();
     }
 
+    /**
+     * Returns the end-user application of the current dataspace.
+     * 
+     * @return application resource
+     */
     public EndUserApplication getEndUserApplication()
     {
         if (getApplication().canAs(EndUserApplication.class))
@@ -111,21 +135,41 @@ public class Authorize // extends ResourceBase
             return getApplication().as(AdminApplication.class).getEndUserApplication();
     }
     
+    /**
+     * Returns URI information for the current request.
+     * 
+     * @return URI info
+     */
     public UriInfo getUriInfo()
     {
         return uriInfo;
     }
     
+    /**
+     * Returns matched application.
+     * 
+     * @return application resource
+     */
     public Application getApplication()
     {
         return application;
     }
     
+    /**
+     * Returns application's ontology.
+     * 
+     * @return ontology resource
+     */
     public Ontology getOntology()
     {
         return ontology;
     }
     
+    /**
+     * Returns Google OAuth client ID.
+     * 
+     * @return client ID
+     */
     private String getClientID()
     {
         return clientID;

@@ -25,6 +25,10 @@ package com.atomgraph.linkeddatahub.apps.model;
 public interface EndUserApplication extends Application
 {
     
+    /**
+     * Returns the admin application paired with this end-user application.
+     * @return admin application
+     */
     AdminApplication getAdminApplication();
 
 }

@@ -29,10 +29,16 @@ import org.apache.jena.rdf.model.Resource;
 public class WebIDDelegationFilter implements ClientRequestFilter
 {
 
+    /** HTTP request header name that indicates WebID delegation */
     public static final String ON_BEHALF_OF = "On-Behalf-Of";
     
     private final Resource agent;
     
+    /**
+     * Constructs filter from delegated agent.
+     * 
+     * @param agent agent resource
+     */
     public WebIDDelegationFilter(Resource agent)
     {
         this.agent = agent;
@@ -44,6 +50,11 @@ public class WebIDDelegationFilter implements ClientRequestFilter
         cr.getHeaders().add(ON_BEHALF_OF, getAgent().getURI());
     }
 
+    /**
+     * Returns delegated agent.
+     * 
+     * @return agent resource
+     */
     public Resource getAgent()
     {
         return agent;

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -euo pipefail
 
 initialize_dataset "$END_USER_BASE_URL" "$TMP_END_USER_DATASET" "$END_USER_ENDPOINT_URL"
@@ -9,11 +9,11 @@ purge_backend_cache "$ADMIN_VARNISH_SERVICE"
 # access is unauthorized
 
 curl -k -w "%{http_code}\n" -o /dev/null -s \
-  -E "${AGENT_CERT_FILE}":"${AGENT_CERT_PWD}" \
+  -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -H "Accept: application/n-triples" \
   -X DELETE \
-  "${END_USER_BASE_URL}" \
-| grep -q "${STATUS_FORBIDDEN}"
+  "$END_USER_BASE_URL" \
+| grep -q "$STATUS_FORBIDDEN"
 
 pushd . > /dev/null && cd "$SCRIPT_ROOT/admin/acl"
 
@@ -29,7 +29,7 @@ group_doc=$(./create-group.sh \
 echo "GROUP_DOC: $group_doc"
 
 group=$(curl -s -k \
-  -E "${OWNER_CERT_FILE}":"${OWNER_CERT_PWD}" \
+  -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
   "$group_doc" \
   -H "Accept: application/n-triples" \
   | cat \
@@ -73,8 +73,8 @@ popd > /dev/null
 # access is allowed after authorization is created
 
 curl -k -w "%{http_code}\n" -o /dev/null -f -s \
-  -E "${AGENT_CERT_FILE}":"${AGENT_CERT_PWD}" \
+  -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -H "Accept: application/n-triples" \
   -X DELETE \
   "$container" \
-| grep -q "${STATUS_NO_CONTENT}"
+| grep -q "$STATUS_NO_CONTENT"

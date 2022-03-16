@@ -25,7 +25,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- *
+ * Client request filter that rewrites the target URL using a proxy URL.
+ * 
  * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
  */
 public class ClientUriRewriteFilter implements ClientRequestFilter
@@ -37,6 +38,14 @@ public class ClientUriRewriteFilter implements ClientRequestFilter
     private final String scheme, hostname;
     private final Integer port;
 
+    /**
+     * Constructs filter from URI components.
+     * 
+     * @param baseURI base URI
+     * @param scheme new scheme
+     * @param hostname new hostname
+     * @param port new port number
+     */
     public ClientUriRewriteFilter(URI baseURI, String scheme, String hostname, Integer port)
     {
         this.baseURI = baseURI;
@@ -67,21 +76,41 @@ public class ClientUriRewriteFilter implements ClientRequestFilter
         }
     }
     
+    /**
+     * Base URI of the application
+     * 
+     * @return base URI
+     */
     public URI getBaseURI()
     {
         return baseURI;
     }
     
+    /**
+     * Scheme component of the new (rewritten) URI.
+     * 
+     * @return scheme string or null
+     */
     public String getScheme()
     {
         return scheme;
     }
     
+    /**
+     * Hostname component of the new (rewritten) URI.
+     * 
+     * @return hostname string
+     */
     public String getHostname()
     {
         return hostname;
     }
 
+    /**
+     * Port component of the new (rewritten) URI.
+     * 
+     * @return port number
+     */
     public Integer getPort()
     {
         return port;

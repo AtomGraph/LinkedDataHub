@@ -22,9 +22,9 @@ import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.client.SesameProtocolClient;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
-import com.atomgraph.linkeddatahub.vocabulary.LDHT;
 import java.io.IOException;
 import java.util.Optional;
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
@@ -54,12 +54,38 @@ public abstract class AuthenticationFilter implements ContainerRequestFilter
     @Inject javax.inject.Provider<com.atomgraph.linkeddatahub.apps.model.Application> app;
     @Inject javax.inject.Provider<Optional<com.atomgraph.linkeddatahub.apps.model.Dataset>> dataset;
 
+    /**
+     * Returns authentication scheme ID.
+     * 
+     * @return scheme ID
+     */
     public abstract String getScheme();
     
+    /**
+     * Abstract method for login logic.
+     * To be overridden by subclasses of this filter.
+     * 
+     * @param app currently matched application
+     * @param request current request context
+     */
     public abstract void login(com.atomgraph.linkeddatahub.apps.model.Application app, ContainerRequestContext request);
 
+    /**
+     * Abstract method for logout logic.
+     * To be overridden by subclasses of this filter.
+     * 
+     * @param app currently matched application
+     * @param request current request context
+     */
     public abstract void logout(com.atomgraph.linkeddatahub.apps.model.Application app, ContainerRequestContext request);
     
+    /**
+     * Authenticates the current request and returns the security context for the authenticated agent.
+     * 
+     * @param request request context
+     * @return security context or null
+     */
+    @Nullable
     public abstract SecurityContext authenticate(ContainerRequestContext request);
 
     @Override
@@ -80,6 +106,11 @@ public abstract class AuthenticationFilter implements ContainerRequestFilter
         request.setProperty(AgentContext.class.getCanonicalName(), securityContext); // used by AgentContextFactory
     }
     
+    /**
+     * Returns the SPARQL service for agent data.
+     * 
+     * @return service resource
+     */
     protected Service getAgentService()
     {
         return getApplication().canAs(EndUserApplication.class) ?
@@ -94,7 +125,7 @@ public abstract class AuthenticationFilter implements ContainerRequestFilter
      * @param qsm query solution map (applied to the query string or sent as request params, depending on the protocol)
      * @param service SPARQL service
      * @return authorization graph (can be empty)
-     * @see com.atomgraph.linkeddatahub.vocabulary.APLC#authQuery
+     * @see com.atomgraph.linkeddatahub.vocabulary.LDHC#authQuery
      */
     protected Model loadModel(ParameterizedSparqlString pss, QuerySolutionMap qsm, com.atomgraph.linkeddatahub.model.Service service)
     {
@@ -120,6 +151,15 @@ public abstract class AuthenticationFilter implements ContainerRequestFilter
         }
     }
     
+    /**
+     * Returns resource which has a specified property with a specified value, from the specified model.
+     * If there are multiple matching resources, one is selected in undefined order.
+     * 
+     * @param model model
+     * @param property property
+     * @param value value
+     * @return resource or null, if none matched
+     */
     protected Resource getResourceByPropertyValue(Model model, Property property, RDFNode value)
     {
         if (model == null) throw new IllegalArgumentException("Model cannot be null");
@@ -138,37 +178,32 @@ public abstract class AuthenticationFilter implements ContainerRequestFilter
 
         return null;
     }
-     
-    public boolean isLoginForced(ContainerRequestContext request, String scheme)
-    {
-        if (request == null) throw new IllegalArgumentException("ContainerRequestContext cannot be null");
-        
-        if (request.getUriInfo().getQueryParameters().getFirst(LDHT.login.getLocalName()) != null)
-            return request.getUriInfo().getQueryParameters().getFirst(LDHT.login.getLocalName()).equalsIgnoreCase(scheme);
-        
-        return false;
-    }
     
-    public boolean isLogoutForced(ContainerRequestContext request, String scheme)
-    {
-        if (request == null) throw new IllegalArgumentException("ContainerRequestContext cannot be null");
-
-        if (request.getUriInfo().getQueryParameters().getFirst(LDHT.logout.getLocalName()) != null)
-            return request.getUriInfo().getQueryParameters().getFirst(LDHT.logout.getLocalName()).equalsIgnoreCase(scheme);
-        
-        return false;
-    }
-    
+    /**
+     * Returns currently matched application.
+     * 
+     * @return application resource
+     */
     public Application getApplication()
     {
         return app.get();
     }
-    
+
+    /**
+     * Currently matched dataset (optional).
+     * 
+     * @return optional dataset
+     */
     public Optional<Dataset> getDataset()
     {
         return dataset.get();
     }
     
+    /**
+     * Returns system application.
+     * 
+     * @return JAX-RS application
+     */
     public com.atomgraph.linkeddatahub.Application getSystem()
     {
         return system;

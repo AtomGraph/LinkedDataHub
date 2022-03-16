@@ -27,8 +27,18 @@ import org.apache.jena.rdf.model.Resource;
 public interface CSVImport extends Import
 {
     
+    /**
+     * Returns the transformation query.
+     * 
+     * @return SPARQL query
+     */
     Resource getQuery();
     
+    /**
+     * Returns the CSV value delimiter.
+     * 
+     * @return the delimiting character
+     */
     char getDelimiter();
     
 }

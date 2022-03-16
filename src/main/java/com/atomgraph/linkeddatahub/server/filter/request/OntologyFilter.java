@@ -50,7 +50,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- *
+ * Request filter that retrieves the application ontology.
+ * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
 @PreMatching
@@ -65,6 +66,9 @@ public class OntologyFilter implements ContainerRequestFilter
 
     @Inject com.atomgraph.linkeddatahub.Application system;
 
+    /**
+     * Application's ontology model getter.
+     */
     protected class ModelGetter implements org.apache.jena.rdf.model.ModelGetter
     {
         
@@ -72,6 +76,13 @@ public class OntologyFilter implements ContainerRequestFilter
         private final OntModelSpec ontModelSpec;
         private final Query ontologyQuery;
         
+        /**
+         * Constructs ontology getter for application.
+         * 
+         * @param app application resource
+         * @param ontModelSpec ontology specification
+         * @param ontologyQuery SPARQL query that loads ontology terms
+         */
         public ModelGetter(Application app, OntModelSpec ontModelSpec, Query ontologyQuery)
         {
             this.app = app;
@@ -89,7 +100,7 @@ public class OntologyFilter implements ContainerRequestFilter
                 return fileManager.loadModel(uri, getApplication().getBase().getURI(), null);
             else
             {
-                // attempt to load ontology graph from the admin endpoint
+                // attempt to load ontology graph from the admin endpoint. TO-DO: is that necessary if ontologies terms are now stored in a single graph?
                 ParameterizedSparqlString ontologyPss = new ParameterizedSparqlString(getOntologyQuery().toString());
                 ontologyPss.setIri(LDT.ontology.getLocalName(), uri);
                 Model model = getAdminApplication().getService().getSPARQLClient().loadModel(ontologyPss.asQuery());
@@ -137,16 +148,31 @@ public class OntologyFilter implements ContainerRequestFilter
             }
         }
 
+        /**
+         * Returns the application.
+         * 
+         * @return application resource
+         */
         public Application getApplication()
         {
             return app;
         }
         
+        /**
+         * Returns ontology specification.
+         * 
+         * @return ontology specification
+         */
         public OntModelSpec getOntModelSpec()
         {
             return ontModelSpec;
         }
         
+        /**
+         * Returns admin application.
+         * 
+         * @return admin application resource
+         */
         public AdminApplication getAdminApplication()
         {
             if (getApplication().canAs(EndUserApplication.class))
@@ -155,6 +181,12 @@ public class OntologyFilter implements ContainerRequestFilter
                 return getApplication().as(AdminApplication.class);
         }
         
+        /**
+         * Returns the SPARQL query used to load ontology terms.
+         * 
+         * @return SPARQL query
+         */
+        @Deprecated
         public Query getOntologyQuery()
         {
             return ontologyQuery;
@@ -162,6 +194,9 @@ public class OntologyFilter implements ContainerRequestFilter
         
     }
 
+    /**
+     * Constructs filter.
+     */
     public OntologyFilter()
     {
         List<javax.ws.rs.core.MediaType> acceptedTypeList = new ArrayList();
@@ -175,6 +210,12 @@ public class OntologyFilter implements ContainerRequestFilter
         crc.setProperty(OWL.Ontology.getURI(), getOntology(crc));
     }
     
+    /**
+     * Retrieves (optional) ontology from the container request context.
+     * 
+     * @param crc request context
+     * @return optional ontology
+     */
     public Optional<Ontology> getOntology(ContainerRequestContext crc)
     {
         Application app = getApplication(crc);
@@ -189,6 +230,12 @@ public class OntologyFilter implements ContainerRequestFilter
         }
     }
     
+    /**
+     * Gets ontology of the specified application.
+     * 
+     * @param app application resource
+     * @return ontology resource
+     */
     public Ontology getOntology(Application app)
     {
         if (app.getPropertyResourceValue(LDT.ontology) == null) return null;
@@ -196,6 +243,14 @@ public class OntologyFilter implements ContainerRequestFilter
         return getOntology(app, app.getPropertyResourceValue(LDT.ontology).getURI(), getSystem().getOntModelSpec());
     }
     
+    /**
+     * Loads ontology using the specified ontology URI.
+     * 
+     * @param app application resource
+     * @param uri ontology URI
+     * @param ontModelSpec ontology specification
+     * @return ontology resource
+     */
     public Ontology getOntology(Application app, String uri, OntModelSpec ontModelSpec)
     {
         if (app == null) throw new IllegalArgumentException("Application string cannot be null");
@@ -232,21 +287,42 @@ public class OntologyFilter implements ContainerRequestFilter
         throw new OntologyException("Ontology resource '" + uri + "' not found");
     }
 
+    /**
+     * Retrieves application from the container request context.
+     * 
+     * @param crc request context
+     * @return application resource
+     */
     public Application getApplication(ContainerRequestContext crc)
     {
         return ((Application)crc.getProperty(LAPP.Application.getURI()));
     }
     
+    /**
+     * Returns HTTP client.
+     * 
+     * @return client
+     */
     public Client getClient()
     {
         return getSystem().getNoCertClient();
     }
     
+    /**
+     * Returns readable media types.
+     * 
+     * @return media types
+     */
     public javax.ws.rs.core.MediaType[] getAcceptableMediaTypes()
     {
         return acceptedTypes;
     }
 
+    /**
+     * Returns system application.
+     * 
+     * @return JAX-RS application.
+     */
     public com.atomgraph.linkeddatahub.Application getSystem()
     {
         return system;

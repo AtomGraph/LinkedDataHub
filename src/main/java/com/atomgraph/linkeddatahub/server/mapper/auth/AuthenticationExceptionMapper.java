@@ -37,6 +37,11 @@ import javax.ws.rs.NotAuthorizedException;
 public class AuthenticationExceptionMapper extends ExceptionMapperBase implements ExceptionMapper<NotAuthorizedException>
 {
 
+    /**
+     * Constructs mapper from media types.
+     * 
+     * @param mediaTypes registry of readable/writable media types
+     */
     @Inject
     public AuthenticationExceptionMapper(MediaTypes mediaTypes)
     {

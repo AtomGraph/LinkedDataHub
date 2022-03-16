@@ -28,7 +28,6 @@ import javax.ws.rs.core.Variant;
 import javax.ws.rs.ext.Providers;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.model.Service;
-import com.atomgraph.client.util.DataManager;
 import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
 import java.util.ArrayList;
 import java.util.Optional;
@@ -61,10 +60,21 @@ public class Item extends GraphStoreImpl
     private final URI uri;
     private final Resource resource;
     
+    /**
+     * Constructs resource.
+     * 
+     * @param request current request
+     * @param uriInfo URI information of the current request
+     * @param mediaTypes a registry of readable/writable media types
+     * @param application current application
+     * @param ontology ontology of the current application
+     * @param service SPARQL service of the current application
+     * @param providers JAX-RS provider registry
+     * @param system system application
+     */
     @Inject
     public Item(@Context Request request, @Context UriInfo uriInfo, MediaTypes mediaTypes,
             com.atomgraph.linkeddatahub.apps.model.Application application, Optional<Ontology> ontology, Optional<Service> service,
-            DataManager dataManager,
             @Context Providers providers, com.atomgraph.linkeddatahub.Application system)
     {
         super(request, uriInfo, mediaTypes, application, ontology, service, providers, system);
@@ -73,6 +83,9 @@ public class Item extends GraphStoreImpl
         if (log.isDebugEnabled()) log.debug("Constructing {}", getClass());
     }
 
+    /**
+     * Post-construct resource initialization.
+     */
     @PostConstruct
     public void init()
     {
@@ -99,7 +112,7 @@ public class Item extends GraphStoreImpl
         }
         
         // respond with file content if Variant is compatible with the File's MediaType. otherwise, send RDF
-        if (getFormat().isCompatible(variant.getMediaType()))
+        if (getMediaType().isCompatible(variant.getMediaType()))
         {
             URI fileURI = getSystem().getUploadRoot().resolve(getUriInfo().getPath());
             File file = new File(fileURI);
@@ -114,7 +127,12 @@ public class Item extends GraphStoreImpl
         return super.getResponseBuilder(model, graphUri);
     }
     
-    public javax.ws.rs.core.MediaType getFormat()
+    /**
+     * Returns the media type of this file.
+     * 
+     * @return media type
+     */
+    public javax.ws.rs.core.MediaType getMediaType()
     {
         Resource format = getResource().getPropertyResourceValue(DCTerms.format);
         if (format == null)
@@ -130,22 +148,37 @@ public class Item extends GraphStoreImpl
     public List<javax.ws.rs.core.MediaType> getWritableMediaTypes(Class clazz)
     {
         List<javax.ws.rs.core.MediaType> list = new ArrayList<>();
-        list.add(getFormat());
+        list.add(getMediaType());
 
         return list;
     }
     
+    /**
+     * Returns file's RDF description using SPARQL query.
+     * 
+     * @return file's RDF model
+     */
     public Model describe()
     {
         // TO-DO: can we avoid hardcoding the query string here?
         return getService().getSPARQLClient().loadModel(QueryFactory.create("DESCRIBE <" + getURI() + ">"));
     }
     
+    /**
+     * Returns URI of this file.
+     * 
+     * @return file URI
+     */
     public URI getURI()
     {
         return uri;
     }
     
+    /**
+     * Returns RDF resource of this file.
+     * 
+     * @return RDF resource
+     */
     public Resource getResource()
     {
         return resource;

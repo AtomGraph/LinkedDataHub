@@ -64,10 +64,10 @@ extension-element-prefixes="ixsl"
         
         <div>
             <xsl:if test="$id">
-                <xsl:attribute name="id"><xsl:value-of select="$id"/></xsl:attribute>
+                <xsl:attribute name="id" select="$id"/>
             </xsl:if>
             <xsl:if test="$class">
-                <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
+                <xsl:attribute name="class" select="$class"/>
             </xsl:if>
         
             <xsl:apply-templates mode="bs2:Block"/>
@@ -141,16 +141,16 @@ extension-element-prefixes="ixsl"
         <xsl:if test="$show-controls">
             <form method="{$method}" action="{$action}">
                 <xsl:if test="$id">
-                    <xsl:attribute name="id"><xsl:value-of select="$id"/></xsl:attribute>
+                    <xsl:attribute name="id" select="$id"/>
                 </xsl:if>
                 <xsl:if test="$class">
-                    <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
+                    <xsl:attribute name="class" select="$class"/>
                 </xsl:if>
                 <xsl:if test="$accept-charset">
-                    <xsl:attribute name="accept-charset"><xsl:value-of select="$accept-charset"/></xsl:attribute>
+                    <xsl:attribute name="accept-charset" select="$accept-charset"/>
                 </xsl:if>
                 <xsl:if test="$enctype">
-                    <xsl:attribute name="enctype"><xsl:value-of select="$enctype"/></xsl:attribute>
+                    <xsl:attribute name="enctype" select="$enctype"/>
                 </xsl:if>
 
                 <fieldset>
@@ -166,35 +166,35 @@ extension-element-prefixes="ixsl"
                             <select id="{$chart-type-id}" name="ou" class="input-medium chart-type">
                                 <option value="&ac;Table">
                                     <xsl:if test="$chart-type = '&ac;Table'">
-                                        <xsl:attribute name="selected">selected</xsl:attribute>
+                                        <xsl:attribute name="selected" select="'selected'"/>
                                     </xsl:if>
 
                                     <xsl:text>Table</xsl:text>
                                 </option>
                                 <option value="&ac;ScatterChart">
                                     <xsl:if test="$chart-type = '&ac;ScatterChart'">
-                                        <xsl:attribute name="selected">selected</xsl:attribute>
+                                        <xsl:attribute name="selected" select="'selected'"/>
                                     </xsl:if>
 
                                     <xsl:text>Scatter chart</xsl:text>
                                 </option>
                                 <option value="&ac;LineChart">
                                     <xsl:if test="$chart-type = '&ac;LineChart'">
-                                        <xsl:attribute name="selected">selected</xsl:attribute>
+                                        <xsl:attribute name="selected" select="'selected'"/>
                                     </xsl:if>
 
                                     <xsl:text>Line chart</xsl:text>
                                 </option>
                                 <option value="&ac;BarChart">
                                     <xsl:if test="$chart-type = '&ac;BarChart'">
-                                        <xsl:attribute name="selected">selected</xsl:attribute>
+                                        <xsl:attribute name="selected" select="'selected'"/>
                                     </xsl:if>
 
                                     <xsl:text>Bar chart</xsl:text>
                                 </option>
                                 <option value="&ac;Timeline">
                                     <xsl:if test="$chart-type = '&ac;Timeline'">
-                                        <xsl:attribute name="selected">selected</xsl:attribute>
+                                        <xsl:attribute name="selected" select="'selected'"/>
                                     </xsl:if>
 
                                     <xsl:text>Timeline</xsl:text>
@@ -208,7 +208,7 @@ extension-element-prefixes="ixsl"
                                 <option value="">
                                     <!-- URI is the default category -->
                                     <xsl:if test="not($category)">
-                                        <xsl:attribute name="selected">selected</xsl:attribute>
+                                        <xsl:attribute name="selected" select="'selected'"/>
                                     </xsl:if>
 
                                     <xsl:text>[URI/ID]</xsl:text>
@@ -220,7 +220,7 @@ extension-element-prefixes="ixsl"
 
                                     <option value="{current-grouping-key()}">
                                         <xsl:if test="$category = current-grouping-key()">
-                                            <xsl:attribute name="selected">selected</xsl:attribute>
+                                            <xsl:attribute name="selected" select="'selected'"/>
                                         </xsl:if>
 
                                         <xsl:value-of>
@@ -240,7 +240,7 @@ extension-element-prefixes="ixsl"
 
                                     <option value="{current-grouping-key()}">
                                         <xsl:if test="$series = current-grouping-key()">
-                                            <xsl:attribute name="selected">selected</xsl:attribute>
+                                            <xsl:attribute name="selected" select="'selected'"/>
                                         </xsl:if>
 
                                         <xsl:value-of>
@@ -309,16 +309,16 @@ extension-element-prefixes="ixsl"
         <xsl:if test="$show-controls">
             <form method="{$method}" action="{$action}">
                 <xsl:if test="$id">
-                    <xsl:attribute name="id"><xsl:value-of select="$id"/></xsl:attribute>
+                    <xsl:attribute name="id" select="$id"/>
                 </xsl:if>
                 <xsl:if test="$class">
-                    <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
+                    <xsl:attribute name="class" select="$class"/>
                 </xsl:if>
                 <xsl:if test="$accept-charset">
-                    <xsl:attribute name="accept-charset"><xsl:value-of select="$accept-charset"/></xsl:attribute>
+                    <xsl:attribute name="accept-charset" select="$accept-charset"/>
                 </xsl:if>
                 <xsl:if test="$enctype">
-                    <xsl:attribute name="enctype"><xsl:value-of select="$enctype"/></xsl:attribute>
+                    <xsl:attribute name="enctype" select="$enctype"/>
                 </xsl:if>
 
                 <fieldset>
@@ -333,35 +333,35 @@ extension-element-prefixes="ixsl"
                             <select id="{$chart-type-id}" name="ou" class="input-medium chart-type">
                                 <option value="&ac;Table">
                                     <xsl:if test="$chart-type = '&ac;Table'">
-                                        <xsl:attribute name="selected">selected</xsl:attribute>
+                                        <xsl:attribute name="selected" select="'selected'"/>
                                     </xsl:if>
 
                                     <xsl:text>Table</xsl:text>
                                 </option>
                                 <option value="&ac;ScatterChart">
                                     <xsl:if test="$chart-type = '&ac;ScatterChart'">
-                                        <xsl:attribute name="selected">selected</xsl:attribute>
+                                        <xsl:attribute name="selected" select="'selected'"/>
                                     </xsl:if>
 
                                     <xsl:text>Scatter chart</xsl:text>
                                 </option>
                                 <option value="&ac;LineChart">
                                     <xsl:if test="$chart-type = '&ac;LineChart'">
-                                        <xsl:attribute name="selected">selected</xsl:attribute>
+                                        <xsl:attribute name="selected" select="'selected'"/>
                                     </xsl:if>
 
                                     <xsl:text>Line chart</xsl:text>
                                 </option>
                                 <option value="&ac;BarChart">
                                     <xsl:if test="$chart-type = '&ac;BarChart'">
-                                        <xsl:attribute name="selected">selected</xsl:attribute>
+                                        <xsl:attribute name="selected" select="'selected'"/>
                                     </xsl:if>
 
                                     <xsl:text>Bar chart</xsl:text>
                                 </option>
                                 <option value="&ac;Timeline">
                                     <xsl:if test="$chart-type = '&ac;Timeline'">
-                                        <xsl:attribute name="selected">selected</xsl:attribute>
+                                        <xsl:attribute name="selected" select="'selected'"/>
                                     </xsl:if>
 
                                     <xsl:text>Timeline</xsl:text>
@@ -383,7 +383,7 @@ extension-element-prefixes="ixsl"
 
                                     <option value="{@name}">
                                         <xsl:if test="$category = @name">
-                                            <xsl:attribute name="selected">selected</xsl:attribute>
+                                            <xsl:attribute name="selected" select="'selected'"/>
                                         </xsl:if>
 
                                         <xsl:value-of select="@name"/>
@@ -400,7 +400,7 @@ extension-element-prefixes="ixsl"
 
                                     <option value="{@name}">
                                         <xsl:if test="$series = @name">
-                                            <xsl:attribute name="selected">selected</xsl:attribute>
+                                            <xsl:attribute name="selected" select="'selected'"/>
                                         </xsl:if>
 
                                         <xsl:value-of select="@name"/>
@@ -474,16 +474,16 @@ extension-element-prefixes="ixsl"
         <div class="modal modal-constructor fade in">
             <form method="{$method}" action="{$action}">
                 <xsl:if test="$id">
-                    <xsl:attribute name="id"><xsl:value-of select="$id"/></xsl:attribute>
+                    <xsl:attribute name="id" select="$id"/>
                 </xsl:if>
                 <xsl:if test="$class">
-                    <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
+                    <xsl:attribute name="class" select="$class"/>
                 </xsl:if>
                 <xsl:if test="$accept-charset">
-                    <xsl:attribute name="accept-charset"><xsl:value-of select="$accept-charset"/></xsl:attribute>
+                    <xsl:attribute name="accept-charset" select="$accept-charset"/>
                 </xsl:if>
                 <xsl:if test="$enctype">
-                    <xsl:attribute name="enctype"><xsl:value-of select="$enctype"/></xsl:attribute>
+                    <xsl:attribute name="enctype" select="$enctype"/>
                 </xsl:if>
 
                 <xsl:comment>This form uses RDF/POST encoding: http://www.lsrn.org/semweb/rdfpost.html</xsl:comment>
@@ -551,16 +551,16 @@ extension-element-prefixes="ixsl"
 
         <form method="{$method}" action="{$action}">
             <xsl:if test="$id">
-                <xsl:attribute name="id"><xsl:value-of select="$id"/></xsl:attribute>
+                <xsl:attribute name="id" select="$id"/>
             </xsl:if>
             <xsl:if test="$class">
-                <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
+                <xsl:attribute name="class" select="$class"/>
             </xsl:if>
             <xsl:if test="$accept-charset">
-                <xsl:attribute name="accept-charset"><xsl:value-of select="$accept-charset"/></xsl:attribute>
+                <xsl:attribute name="accept-charset" select="$accept-charset"/>
             </xsl:if>
             <xsl:if test="$enctype">
-                <xsl:attribute name="enctype"><xsl:value-of select="$enctype"/></xsl:attribute>
+                <xsl:attribute name="enctype" select="$enctype"/>
             </xsl:if>
 
             <xsl:comment>This form uses RDF/POST encoding: http://www.lsrn.org/semweb/rdfpost.html</xsl:comment>
@@ -611,7 +611,7 @@ extension-element-prefixes="ixsl"
         
         <div>
             <xsl:if test="$class">
-                <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
+                <xsl:attribute name="class" select="$class"/>
             </xsl:if>
             
             <button type="submit" class="{$button-class}">
@@ -642,7 +642,7 @@ extension-element-prefixes="ixsl"
         
         <div>
             <xsl:if test="$class">
-                <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
+                <xsl:attribute name="class" select="$class"/>
             </xsl:if>
             
             <div class="form-actions offset2 span7">
@@ -668,7 +668,7 @@ extension-element-prefixes="ixsl"
 
         <div>
             <xsl:if test="$class">
-                <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
+                <xsl:attribute name="class" select="$class"/>
             </xsl:if>
 
             <xsl:apply-templates select="key('resources', '&ldh;ResourceExistsException', document(ac:document-uri('&ldh;')))" mode="ldh:logo">
@@ -691,7 +691,7 @@ extension-element-prefixes="ixsl"
 
         <div>
             <xsl:if test="$class">
-                <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
+                <xsl:attribute name="class" select="$class"/>
             </xsl:if>
             
             <button type="button" title="{ac:label(key('resources', 'create-instance-title', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri))))}">

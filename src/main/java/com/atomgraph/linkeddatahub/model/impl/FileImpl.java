@@ -31,12 +31,16 @@ import org.apache.jena.vocabulary.DCTerms;
 import org.apache.jena.vocabulary.RDF;
 
 /**
- *
+ * File implementation.
+ * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
 public class FileImpl extends ResourceImpl implements File
 {
     
+    /**
+     * Returns a Jena implementation for this class.
+     */
     public static Implementation factory = new Implementation() 
     {
         
@@ -62,6 +66,12 @@ public class FileImpl extends ResourceImpl implements File
         }
     };
     
+    /**
+     * Constructs instance from graph node.
+     * 
+     * @param n node
+     * @param g graph
+     */
     public FileImpl(Node n, EnhGraph g)
     {
         super(n, g);

@@ -68,6 +68,11 @@ public class DataManagerFactory implements Factory<DataManager>
     {
     }
     
+    /**
+     * Returns RDF data manager.
+     * 
+     * @return data manager
+     */
     public DataManager getDataManager()
     {
         return getDataManager(LocationMapper.get(), getClient(), getMediaTypes(),
@@ -75,6 +80,18 @@ public class DataManagerFactory implements Factory<DataManager>
                 URI.create(getHttpServletRequest().getRequestURL().toString()).resolve(getHttpServletRequest().getContextPath() + "/"));
     }
     
+    /**
+     * Constructs and returns an RDF data manager instance.
+     * 
+     * @param mapper location mapper
+     * @param client HTTP client
+     * @param mediaTypes media type registry
+     * @param preemptiveAuth true if HTTP basic auth is sent preemptively
+     * @param resolvingUncached true if uncached URLs are resolved
+     * @param securityContext JAX-RS security context
+     * @param rootContextURI root URI of the JAX-RS application
+     * @return data manager
+     */
     public DataManager getDataManager(LocationMapper mapper, Client client, MediaTypes mediaTypes,
             boolean preemptiveAuth, boolean resolvingUncached,
             SecurityContext securityContext,
@@ -90,41 +107,82 @@ public class DataManagerFactory implements Factory<DataManager>
         return dataManager;
     }
     
+    /**
+     * Returns the registry of readable/writable media types.
+     * 
+     * @return media type registry
+     */
     public MediaTypes getMediaTypes()
     {
         return mediaTypes;
     }
     
+    /**
+     * Returns the HTTP client.
+     * 
+     * @return client
+     */
     public Client getClient()
     {
         return system.getClient();
     }
     
+    /**
+     * Returns the request URI information.
+     * 
+     * @return URI info
+     */
     public UriInfo getUriInfo()
     {
         return uriInfo;
     }
     
+    /**
+     * Returns the JAX-RS security context.
+     * 
+     * @return security context
+     */
     public SecurityContext getSecurityContext()
     {
         return securityContext;
     }
     
+    /**
+     * Returns the servlet request.
+     * <code>HttpServletRequest</code> is not part of the JAX-RS API.
+     * 
+     * @return request
+     */
     public HttpServletRequest getHttpServletRequest()
     {
         return httpServletRequest;
     }
     
+    /**
+     * Returns JAX-RS providers.
+     * 
+     * @return provider registry
+     */
     public Providers getProviders()
     {
         return providers;
     }
     
+    /**
+     * Returns true if HTTP Basic auth credentials are sent preemptively.
+     * 
+     * @return true if preemptively
+     */
     public boolean isPreemptiveAuth()
     {
         return system.isPreemptiveAuth();
     }
 
+    /**
+     * Returns true if uncached URLs should be dereferenced by the HTTP client.
+     * 
+     * @return true if resolved
+     */
     public boolean isResolvingUncached()
     {
         return system.isResolvingUncached();

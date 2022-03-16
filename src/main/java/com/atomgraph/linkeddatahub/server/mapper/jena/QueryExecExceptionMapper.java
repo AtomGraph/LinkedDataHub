@@ -34,6 +34,11 @@ import javax.inject.Inject;
 public class QueryExecExceptionMapper extends ExceptionMapperBase implements ExceptionMapper<QueryExecException>
 {
 
+    /**
+     * Constructs mapper from media types.
+     * 
+     * @param mediaTypes registry of readable/writable media types
+     */
     @Inject
     public QueryExecExceptionMapper(MediaTypes mediaTypes)
     {

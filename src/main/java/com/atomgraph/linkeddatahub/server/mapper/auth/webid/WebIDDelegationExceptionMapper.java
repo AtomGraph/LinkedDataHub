@@ -32,6 +32,11 @@ import org.apache.jena.rdf.model.ResourceFactory;
 public class WebIDDelegationExceptionMapper  extends ExceptionMapperBase implements ExceptionMapper<WebIDDelegationException>
 {
 
+    /**
+     * Constructs mapper from media types.
+     * 
+     * @param mediaTypes registry of readable/writable media types
+     */
     @Inject
     public WebIDDelegationExceptionMapper(MediaTypes mediaTypes)
     {

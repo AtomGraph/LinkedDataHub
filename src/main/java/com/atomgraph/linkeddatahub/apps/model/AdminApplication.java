@@ -25,6 +25,26 @@ package com.atomgraph.linkeddatahub.apps.model;
 public interface AdminApplication extends Application
 {
     
+    /**
+     * The relative path at which the request access endpoint is located.
+     * TO-DO: extract from JAX-RS <code>@Path</code> annotation?
+     * 
+     * @see com.atomgraph.linkeddatahub.resource.admin.RequestAccess
+     */
+    public static final String REQUEST_ACCESS_PATH = "request access";
+    
+    /**
+     * The relative path of the authorization request container.
+     * 
+     * @see com.atomgraph.linkeddatahub.resource.admin.RequestAccess
+     */
+    public static final String AUTHORIZATION_REQUEST_PATH = "acl/authorization-requests/";
+    
+    /**
+     * Returns the end-user application paired with this admin application.
+     * 
+     * @return end-user application
+     */
     EndUserApplication getEndUserApplication();
     
 }

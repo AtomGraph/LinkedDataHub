@@ -29,9 +29,18 @@ import org.apache.jena.rdf.model.Resource;
 public class ResourceExistsException extends ModelException
 {
 
+    /** URI of the existing resource */
     private final URI uri;
+    /** RDF resource */
     private final Resource resource;
 
+    /**
+     * Constructs exception from URI.
+     * 
+     * @param uri URI of existing resource
+     * @param resource RDF resource
+     * @param model RDF model
+     */
     public ResourceExistsException(URI uri, Resource resource, Model model)
     {
         super(model);
@@ -39,11 +48,21 @@ public class ResourceExistsException extends ModelException
         this.resource = resource;
     }
 
+    /**
+     * Returns URI of existing resource.
+     * 
+     * @return resource URI
+     */
     public URI getURI()
     {
         return uri;
     }
     
+    /**
+     * Returns RDF resource.
+     * 
+     * @return RDF resource
+     */
     public Resource getResource()
     {
         return resource;

@@ -27,11 +27,16 @@ import org.apache.jena.rdf.model.impl.ResourceImpl;
 import org.apache.jena.vocabulary.RDF;
 
 /**
+ * Agent implementation.
+ * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
 public class AgentImpl extends ResourceImpl implements Agent
 {
 
+    /**
+     * Jena's implementation for this class.
+     */
     public static Implementation factory = new Implementation() 
     {
         
@@ -57,6 +62,12 @@ public class AgentImpl extends ResourceImpl implements Agent
         }
     };
     
+    /**
+     * Constructs instance from graph node.
+     * 
+     * @param n node
+     * @param g graph
+     */
     public AgentImpl(Node n, EnhGraph g)
     {
         super(n, g);
@@ -65,7 +76,7 @@ public class AgentImpl extends ResourceImpl implements Agent
     @Override
     public String getName()
     {
-	return getURI();
+        return getURI();
     }
     
 }

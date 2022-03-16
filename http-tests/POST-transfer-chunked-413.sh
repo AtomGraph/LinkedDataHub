@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -euo pipefail
 
 initialize_dataset "$END_USER_BASE_URL" "$TMP_END_USER_DATASET" "$END_USER_ENDPOINT_URL"
@@ -40,5 +40,5 @@ curl -w "%{http_code}\n" -o /dev/null -k -s \
   -H "Transfer-Encoding: chunked" \
   -H "Expect:" \
   --data-binary "@${file}" \
-  "${END_USER_BASE_URL}" \
-| grep -q "${STATUS_REQUEST_ENTITY_TOO_LARGE}"
+  "$END_USER_BASE_URL" \
+| grep -q "$STATUS_REQUEST_ENTITY_TOO_LARGE"

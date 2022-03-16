@@ -14,7 +14,7 @@
  *  limitations under the License.
  *
  */
-package com.atomgraph.linkeddatahub.resource;
+package com.atomgraph.linkeddatahub.resource.admin;
 
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
@@ -22,7 +22,6 @@ import javax.ws.rs.core.Request;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.core.exception.ConfigurationException;
 import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
-import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.listener.EMailListener;
@@ -90,7 +89,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * JAX-RS resource that handles signups.
+ * JAX-RS endpoint that handles signups.
  * Creates a new agent with a public key and sends a notification email with an attached WebID certificate.
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
@@ -100,23 +99,43 @@ public class SignUp extends GraphStoreImpl
     
     private static final Logger log = LoggerFactory.getLogger(SignUp.class);
     
+    /** Keystore type */
     public static final String STORE_TYPE = "PKCS12";
+    /** WebID client certificate alias */
     public static final String KEY_ALIAS = "linkeddatahub-client";
+    /** Minimum length of the WebID client certificate password */
     public static final int MIN_PASSWORD_LENGTH = 6;
+    /** Media type of the WebID client certificate */
     public static final MediaType PKCS12_MEDIA_TYPE = MediaType.valueOf("application/x-pkcs12");
+    /** Relative URL to the RDF file with country metadata */
     public static final String COUNTRY_DATASET_PATH = "/static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/countries.rdf";
+    /** Relative URL of the agent container */
     public static final String AGENT_PATH = "acl/agents/";
+    /** Relative URL of the public key container */
     public static final String PUBLIC_KEY_PATH = "acl/public-keys/";
+    /** Relative URL of the authorization container */
     public static final String AUTHORIZATION_PATH = "acl/authorizations/";
 
     private final URI uri;
-    private final Application application;
     private final Model countryModel;
     private final String emailSubject;
     private final String emailText;
     private final int validityDays;
     private final boolean download;
 
+    /**
+     * Constructs signup resource.
+     * 
+     * @param request current request
+     * @param uriInfo request URI information
+     * @param mediaTypes registry of readable/writable media types
+     * @param application current application
+     * @param ontology current application's ontology
+     * @param service current application's service
+     * @param providers registry of JAX-RS providers
+     * @param system system application
+     * @param servletConfig servlet config
+     */
     // TO-DO: move to AuthenticationExceptionMapper and handle as state instead of URI resource?
     @Inject
     public SignUp(@Context Request request, @Context UriInfo uriInfo, MediaTypes mediaTypes,
@@ -130,7 +149,6 @@ public class SignUp extends GraphStoreImpl
             throw new IllegalStateException("Application cannot be cast to apl:AdminApplication");
         
         this.uri = uriInfo.getAbsolutePath();
-        this.application = application;
         
         try (InputStream countries = servletConfig.getServletContext().getResourceAsStream(COUNTRY_DATASET_PATH))
         {
@@ -187,9 +205,8 @@ public class SignUp extends GraphStoreImpl
             Resource country = agent.getRequiredProperty(FOAF.based_near).getResource();
             String countryName = getCountryModel().createResource(country.getURI()).
                     getRequiredProperty(DCTerms.title).getString();
-            agent = appendAgent(agentModel,
+            agent = appendItem(agentModel,
                 agentGraphUri,
-                FOAF.Person.getNameSpace(),
                 agentModel.createResource(getUriInfo().getBaseUri().resolve(AGENT_PATH).toString()),
                 agent); // append Item data
             
@@ -301,6 +318,13 @@ public class SignUp extends GraphStoreImpl
         }
     }
 
+    /**
+     * Validates agent metadata and removes plain-text password value.
+     * 
+     * @param agent wannabe agent resource
+     * @return password string
+     * @throws SPINConstraintViolationException thrown if password is invalid
+     */
     public String validateAndRemovePassword(Resource agent) throws SPINConstraintViolationException
     {
         Statement certStmt = agent.getProperty(Cert.key);
@@ -324,6 +348,15 @@ public class SignUp extends GraphStoreImpl
         return password;
     }
     
+    /**
+     * Creates constraint violation exception.
+     * This is done to emulate SPIN validation so the same UI logic can still apply.
+     * 
+     * @param resource violating RDF resource
+     * @param property violating property
+     * @param message violation message
+     * @return violation exception
+     */
     public SPINConstraintViolationException createSPINConstraintViolationException(Resource resource, Property property, String message)
     {
         List<ConstraintViolation> cvs = new ArrayList<>();
@@ -333,12 +366,19 @@ public class SignUp extends GraphStoreImpl
         return new SPINConstraintViolationException(cvs, resource.getModel());
     }
 
-    public Resource appendAgent(Model model, URI graphURI, String namespace, Resource container, Resource agent)
+    /**
+     * Appends Item document resource to the RDF model.
+     * 
+     * @param model agent model
+     * @param graphURI graph URI
+     * @param container agent container resource
+     * @param agent agent resource
+     * @return item resource
+     */
+    public Resource appendItem(Model model, URI graphURI, Resource container, Resource agent)
     {
-        Resource itemCls = model.createResource(namespace + "Item"); // TO-DO: get rid of base-relative class URIs
-
         Resource item = model.createResource(graphURI.toString()).
-            addProperty(RDF.type, itemCls).
+            addProperty(RDF.type, DH.Item).
             addProperty(SIOC.HAS_CONTAINER, container).
             addLiteral(DH.slug, UUID.randomUUID().toString()); // TO-DO: does not match the URI
 
@@ -347,6 +387,15 @@ public class SignUp extends GraphStoreImpl
         return agent;
     }
     
+    /**
+     * Creates new public key resource.
+     * 
+     * @param model RDF model
+     * @param graphURI graph URI
+     * @param container container resource
+     * @param publicKey RSA public key
+     * @return public key resource
+     */
     public Resource createPublicKey(Model model, URI graphURI, Resource container, RSAPublicKey publicKey)
     {
         Resource item = model.createResource(graphURI.toString()).
@@ -364,7 +413,17 @@ public class SignUp extends GraphStoreImpl
         return publicKeyRes;
     }
     
-    public Resource createAuthorization(Model model, URI graphURI, Resource container, URI agentGraphURI, URI publicKeyURI)
+    /**
+     * Creates new authorization resource.
+     * 
+     * @param model RDF model
+     * @param graphURI graph URI
+     * @param container container resource
+     * @param agentGraphURI agent's graph URI
+     * @param publicKeyGraphURI public key's graph URI
+     * @return authorization resource
+     */
+    public Resource createAuthorization(Model model, URI graphURI, Resource container, URI agentGraphURI, URI publicKeyGraphURI)
     {
         Resource item = model.createResource(graphURI.toString()).
             addProperty(RDF.type, DH.Item).
@@ -375,7 +434,7 @@ public class SignUp extends GraphStoreImpl
             addProperty(RDF.type, ACL.Authorization).
             addLiteral(DH.slug, UUID.randomUUID().toString()). // TO-DO: get rid of slug properties!
             addProperty(ACL.accessTo, ResourceFactory.createResource(agentGraphURI.toString())).
-            addProperty(ACL.accessTo, ResourceFactory.createResource(publicKeyURI.toString())).
+            addProperty(ACL.accessTo, ResourceFactory.createResource(publicKeyGraphURI.toString())).
             addProperty(ACL.mode, ACL.Read).
             addProperty(ACL.agentClass, FOAF.Agent).
             addProperty(ACL.agentClass, ACL.AuthenticatedAgent);
@@ -384,6 +443,17 @@ public class SignUp extends GraphStoreImpl
         
         return auth;
     }
+    
+    /**
+     * Sends signup notification email to agent.
+     * 
+     * @param agent agent resource
+     * @param certExpires WebID client certificate's expiration date
+     * @param keyStoreBytes binary key store
+     * @param keyStoreFileName keystore filename
+     * @throws MessagingException error sending email
+     * @throws UnsupportedEncodingException encoding error
+     */
     
     public void sendEmail(Resource agent, LocalDate certExpires, byte[] keyStoreBytes, String keyStoreFileName) throws MessagingException, UnsupportedEncodingException
     {
@@ -412,6 +482,11 @@ public class SignUp extends GraphStoreImpl
         EMailListener.submit(builder.build());
     }
     
+    /**
+     * Returns the end-user application of the current dataspace.
+     * 
+     * @return end-user application
+     */
     public EndUserApplication getEndUserApplication()
     {
         if (getApplication().canAs(EndUserApplication.class))
@@ -420,31 +495,51 @@ public class SignUp extends GraphStoreImpl
             return getApplication().as(AdminApplication.class).getEndUserApplication();
     }
 
+    /**
+     * Returns URI of this resource.
+     * 
+     * @return resource URI
+     */
     public URI getURI()
     {
         return uri;
     }
-    
-    public Application getApplication()
-    {
-        return application;
-    }
 
+    /**
+     * Returns the number of days until the WebID certificate expires.
+     * 
+     * @return number of days
+     */
     public int getValidityDays()
     {
         return validityDays;
     }
 
+    /**
+     * Returns RDF model with country metadata.
+     * 
+     * @return RDF model
+     */
     public Model getCountryModel()
     {
         return countryModel;
     }
 
+    /**
+     * Returns the subject of the notification email.
+     * 
+     * @return email subject
+     */
     public String getEmailSubject()
     {
         return emailSubject;
     }
     
+    /**
+     * Returns the text of the notification email.
+     * 
+     * @return email text
+     */
     public String getEmailText()
     {
         return emailText;

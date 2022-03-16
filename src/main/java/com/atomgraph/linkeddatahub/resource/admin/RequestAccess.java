@@ -14,13 +14,13 @@
  *  limitations under the License.
  *
  */
-package com.atomgraph.linkeddatahub.resource;
+package com.atomgraph.linkeddatahub.resource.admin;
 
 import com.atomgraph.core.MediaTypes;
+import com.atomgraph.core.client.LinkedDataClient;
 import com.atomgraph.core.exception.ConfigurationException;
+import static com.atomgraph.linkeddatahub.apps.model.AdminApplication.AUTHORIZATION_REQUEST_PATH;
 import com.atomgraph.linkeddatahub.model.Service;
-import com.atomgraph.linkeddatahub.apps.model.Application;
-import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.listener.EMailListener;
 import com.atomgraph.linkeddatahub.model.Agent;
 import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
@@ -49,8 +49,6 @@ import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.Providers;
 import org.apache.jena.ontology.Ontology;
-import org.apache.jena.query.ParameterizedSparqlString;
-import org.apache.jena.query.Query;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ResIterator;
 import org.apache.jena.rdf.model.Resource;
@@ -60,7 +58,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * JAX-RS resource that handles requests for access.
+ * JAX-RS endpoint that handles requests for access.
  * Creates an authorization request and sends a notification email to the maker of the application.
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
@@ -71,13 +69,25 @@ public class RequestAccess extends GraphStoreImpl
     private static final Logger log = LoggerFactory.getLogger(RequestAccess.class);
     
     private final URI uri;
-    private final Application application;
     private final Agent agent;
     private final String emailSubject;
     private final String emailText;
     private final UriBuilder authRequestContainerUriBuilder;
-    private final Query agentQuery;
 
+    /**
+     * Constructs access request resource.
+     * 
+     * @param request current request
+     * @param uriInfo request URI information
+     * @param mediaTypes registry of readable/writable media types
+     * @param application current application
+     * @param ontology current application's ontology
+     * @param service current application's service
+     * @param securityContext JAX-RS security service
+     * @param providers registry of JAX-RS providers
+     * @param system system application
+     * @param servletConfig servlet config
+     */
     @Inject
     public RequestAccess(@Context Request request, @Context UriInfo uriInfo, MediaTypes mediaTypes,
             com.atomgraph.linkeddatahub.apps.model.Application application, Optional<Ontology> ontology, Optional<Service> service,
@@ -88,11 +98,9 @@ public class RequestAccess extends GraphStoreImpl
         if (log.isDebugEnabled()) log.debug("Constructing {}", getClass());
         if (securityContext == null || !(securityContext.getUserPrincipal() instanceof Agent)) throw new IllegalStateException("Agent is not authenticated");
         this.uri = uriInfo.getAbsolutePath();
-        this.application = application;
         this.agent = (Agent)securityContext.getUserPrincipal();
 
-        agentQuery = system.getAgentQuery();
-        authRequestContainerUriBuilder = uriInfo.getBaseUriBuilder().path(com.atomgraph.linkeddatahub.Application.AUTHORIZATION_REQUEST_PATH);
+        authRequestContainerUriBuilder = uriInfo.getBaseUriBuilder().path(AUTHORIZATION_REQUEST_PATH);
         
         emailSubject = servletConfig.getServletContext().getInitParameter(LDHC.requestAccessEMailSubject.getURI());
         if (emailSubject == null) throw new InternalServerErrorException(new ConfigurationException(LDHC.requestAccessEMailSubject));
@@ -127,11 +135,9 @@ public class RequestAccess extends GraphStoreImpl
             String ownerURI = owner.getURI();
             
             accessRequest.addLiteral(DCTerms.created, GregorianCalendar.getInstance());
-            
-            ParameterizedSparqlString pss = new ParameterizedSparqlString(getAgentQuery().toString());
-            pss.setParam(FOAF.Agent.getLocalName(), owner);
-            // query agent data with SPARQL because the public laclt:AgentItem description does not expose foaf:mbox (which we need below in order to send an email)
-            Model agentModel = getAgentService().getSPARQLClient().loadModel(pss.asQuery()); // TO-DO: replace with getDatasetAccessor().getModel()
+
+            LinkedDataClient ldc = LinkedDataClient.create(getSystem().getClient().target(ownerURI), getMediaTypes());
+            Model agentModel = ldc.get();
             owner = agentModel.getResource(ownerURI);
             if (!agentModel.containsResource(owner)) throw new IllegalStateException("Could not load agent's <" + ownerURI + "> description from admin service");
 
@@ -156,6 +162,14 @@ public class RequestAccess extends GraphStoreImpl
         }
     }
     
+    /**
+     * Sends access request notification email to applications owner.
+     * 
+     * @param owner application's owner
+     * @param accessRequest access request resource
+     * @throws MessagingException error sending email
+     * @throws UnsupportedEncodingException encoding error
+     */
     public void sendEmail(Resource owner, Resource accessRequest) throws MessagingException, UnsupportedEncodingException
     {
         // TO-DO: trim values?
@@ -189,46 +203,64 @@ public class RequestAccess extends GraphStoreImpl
         EMailListener.submit(builder.build());
     }
     
+    /**
+     * Returns the SPARQL service from which agent data is retrieved.
+     * 
+     * @return SPARQL service
+     */
     protected Service getAgentService()
     {
-        return getApplication().canAs(EndUserApplication.class) ?
-            getApplication().as(EndUserApplication.class).getAdminApplication().getService() :
-            getApplication().getService();
+        return getApplication().getService();
     }
     
+    /**
+     * Returns URI of this resource.
+     * 
+     * @return resource URI
+     */
     public URI getURI()
     {
         return uri;
     }
-    
-    public Application getApplication()
-    {
-        return application;
-    }
 
+    /**
+     * Returns authenticated agent or null.
+     * 
+     * @return agent resource or null
+     */
     public Agent getAgent()
     {
         return agent;
     }
     
+    /**
+     * Returns the subject of the notification email.
+     * 
+     * @return subject
+     */
     public String getEmailSubject()
     {
         return emailSubject;
     }
     
+    /**
+     * Returns the text of the notification email.
+     * 
+     * @return text
+     */
     public String getEmailText()
     {
         return emailText;
     }
     
+    /**
+     * Returns the URI builder for authorization requests.
+     * 
+     * @return URI builder
+     */
     public UriBuilder getAuthRequestContainerUriBuilder()
     {
         return authRequestContainerUriBuilder.clone();
-    }
-    
-    public Query getAgentQuery()
-    {
-        return agentQuery;
     }
     
 }

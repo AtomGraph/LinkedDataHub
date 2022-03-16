@@ -27,6 +27,11 @@ public class XsltExecutableSupplierImpl implements XsltExecutableSupplier
     
     private final XsltExecutable xsltExec;
     
+    /**
+     * Constructs supplier.
+     * 
+     * @param xsltExec XSLT executable
+     */
     public XsltExecutableSupplierImpl(XsltExecutable xsltExec)
     {
         this.xsltExec = xsltExec;

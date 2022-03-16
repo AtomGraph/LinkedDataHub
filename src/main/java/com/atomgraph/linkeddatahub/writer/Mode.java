@@ -20,7 +20,9 @@ import java.net.URI;
 import java.util.function.Supplier;
 
 /**
- *
+ * Class representing layout mode.
+ * Each mode is identified with a URI.
+ * 
  * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
  */
 public class Mode implements Supplier<URI>
@@ -28,11 +30,21 @@ public class Mode implements Supplier<URI>
 
     private final URI uri;
 
+    /**
+     * Constructs mode from URI string.
+     * 
+     * @param uri URI string
+     */
     public Mode(String uri)
     {
         this.uri = URI.create(uri);
     }
     
+    /**
+     * Constructs mode from URI.
+     * 
+     * @param uri URI
+     */
     public Mode(URI uri)
     {
         this.uri = uri;

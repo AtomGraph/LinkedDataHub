@@ -16,40 +16,42 @@
  */
 package com.atomgraph.linkeddatahub.vocabulary;
 
-import com.atomgraph.processor.vocabulary.LDT;
 import org.apache.jena.ontology.DatatypeProperty;
-import org.apache.jena.ontology.Individual;
 import org.apache.jena.ontology.OntModel;
 import org.apache.jena.ontology.OntModelSpec;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Resource;
 
 /**
- *
+ * LSMT vocabulary.
+ * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
 @Deprecated
 public class LSMT
 {
 
-    /** <p>The RDF model that holds the vocabulary terms</p> */
+    /** The RDF model that holds the vocabulary terms */
     private static OntModel m_model = ModelFactory.createOntologyModel(OntModelSpec.OWL_MEM, null);
     
-    /** <p>The namespace of the vocabulary as a string</p> */
+    /** The namespace of the vocabulary as a string */
     public static final String NS = "https://w3id.org/atomgraph/linkeddatahub/admin/sitemap/templates#";
     
-    /** <p>The namespace of the vocabulary as a string</p>
-     *  @see #NS */
+    /**
+     * The namespace of the vocabulary as a string
+     * 
+     * @return namespace URI
+     * @see #NS
+     */
     public static String getURI()
     {
         return NS;
     }
     
-    /** <p>The namespace of the vocabulary as a resource</p> */
+    /** The namespace of the vocabulary as a resource */
     public static final Resource NAMESPACE = m_model.createResource( NS );
     
-    public static final Individual Source = m_model.createIndividual( NS + "Source", LDT.Parameter);
-
+    /** Clear property */
     public static final DatatypeProperty clear = m_model.createDatatypeProperty( NS + "clear");
 
 }

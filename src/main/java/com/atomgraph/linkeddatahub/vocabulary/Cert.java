@@ -25,35 +25,43 @@ import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Resource;
 
 /**
+ * Cert vocabulary.
+ * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
 
 public class Cert
 {
-    /** <p>The RDF model that holds the vocabulary terms</p> */
+    /** The RDF model that holds the vocabulary terms */
     private static OntModel m_model = ModelFactory.createOntologyModel(OntModelSpec.OWL_MEM, null);
     
-    /** <p>The namespace of the vocabulary as a string</p> */
+    /** The namespace of the vocabulary as a string */
     public static final String NS = "http://www.w3.org/ns/auth/cert#";
     
-    /** <p>The namespace of the vocabulary as a string</p>
+    /** The namespace of the vocabulary as a string
+     * @return namespace URI
      *  @see #NS */
     public static String getURI()
     {
         return NS;
     }
     
-    /** <p>The namespace of the vocabulary as a resource</p> */
+    /** The namespace of the vocabulary as a resource */
     public static final Resource NAMESPACE = m_model.createResource( NS );
 
+    /** Public key class */
     public static final OntClass PublicKey = m_model.createClass(NS + "PublicKey");
 
+    /** RSA public key class */
     public static final OntClass RSAPublicKey = m_model.createClass(NS + "RSAPublicKey");
 
+    /** Key property */
     public static final ObjectProperty key = m_model.createObjectProperty( NS + "key" );
 
+    /** Modulus property */
     public static final DatatypeProperty modulus = m_model.createDatatypeProperty( NS + "modulus" );
     
+    /** Exponent property */
     public static final DatatypeProperty exponent = m_model.createDatatypeProperty( NS + "exponent" );
 
 }

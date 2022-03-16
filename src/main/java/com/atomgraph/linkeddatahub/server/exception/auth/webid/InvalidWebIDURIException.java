@@ -25,14 +25,25 @@ package com.atomgraph.linkeddatahub.server.exception.auth.webid;
 public class InvalidWebIDURIException extends RuntimeException
 {
     
+    /** WebID URI */
     private final String uri;
     
+    /**
+     * Constructs exception from WebID URI.
+     * 
+     * @param uri WebID URI
+     */
     public InvalidWebIDURIException(String uri)
     {
         super("Could not parse WebID URI: '" + uri + "'");
         this.uri = uri;
     }
     
+    /**
+     * Returns WebID URI.
+     * 
+     * @return WebID URI
+     */
     public String getURI()
     {
         return uri;

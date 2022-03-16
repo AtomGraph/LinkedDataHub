@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 print_usage()
 {
@@ -64,4 +64,4 @@ fi
 target="$1"
 
 # POST RDF document from stdin to the server and print Location URL
-cat - | curl -v -k -E "${cert_pem_file}":"${cert_password}" -d @- -H "Content-Type: ${content_type}" -H "Accept: text/turtle" "$target" -v -D - | tr -d '\r' | sed -En 's/^Location: (.*)/\1/p'
+cat - | curl -v -k -E "$cert_pem_file":"$cert_password" -d @- -H "Content-Type: ${content_type}" -H "Accept: text/turtle" "$target" -v -D - | tr -d '\r' | sed -En 's/^Location: (.*)/\1/p'

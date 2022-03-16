@@ -32,6 +32,11 @@ import org.apache.jena.rdf.model.ResourceFactory;
 public class WebIDLoadingExceptionMapper extends ExceptionMapperBase implements ExceptionMapper<WebIDLoadingException>
 {
 
+    /**
+     * Constructs mapper from media types.
+     * 
+     * @param mediaTypes registry of readable/writable media types
+     */
     @Inject
     public WebIDLoadingExceptionMapper(MediaTypes mediaTypes)
     {

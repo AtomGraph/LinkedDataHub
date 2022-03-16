@@ -37,10 +37,16 @@ public class AgentSecurityContext implements SecurityContext, AgentContext
     private final Agent agent;
     private final String authScheme;
     
+    /**
+     * Constructs JAX-RS security context for a given agent.
+     * 
+     * @param authScheme authentication scheme
+     * @param agent agent resource
+     */
     public AgentSecurityContext(String authScheme, Agent agent)
     {
-        this.agent = agent;
         this.authScheme = authScheme;
+        this.agent = agent;
     }
     
     @Override

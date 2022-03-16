@@ -45,7 +45,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Request interceptor that fixes XHTML content in RDF/POST payload.
  * <code>rdf:XMLLiteral</code> needs to be canonical XML, therefore we wrap the original XHTML into
- * a <code>&gt;div&gt;</code> element and canonicalize the document.
+ * a <code>&lt;div&gt;</code> element and canonicalize the document.
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  * @see com.atomgraph.linkeddatahub.server.filter.request.RDFPostCleanupFilter
@@ -132,11 +132,11 @@ public class RDFPostCleanupInterceptor implements ReaderInterceptor
      * 
      * @param keys RDF/POST keys
      * @param values RDF/POST values
-     * @param charsetName
+     * @param charsetName charset name
      * @return fixed values
      * 
-     * @throws ParsingException
-     * @throws IOException 
+     * @throws ParsingException parsing error
+     * @throws IOException I/O error
      */
     public List<String> fixValues(List<String> keys, List<String> values, String charsetName) throws ParsingException, IOException
     {
@@ -159,7 +159,7 @@ public class RDFPostCleanupInterceptor implements ReaderInterceptor
                 values.get(i) != null)
             {
                 String xml = values.get(i);
-                values.set(i, fixXHTML(xml, charsetName));
+                values.set(i, canonicalizeXML(wrapXHTML(xml), charsetName));
             }
 
             // 2. ...pu=http://www.w3.org/1999/02/22-rdf-syntax-ns#first&lt=http://...XMLLiteral&ol=value...
@@ -172,20 +172,36 @@ public class RDFPostCleanupInterceptor implements ReaderInterceptor
                 values.get(i) != null)
             {
                 String xml = values.get(i);
-                values.set(i, fixXHTML(xml, charsetName));
+                values.set(i, canonicalizeXML(wrapXHTML(xml), charsetName));
             }
         }
         
         return values;
     }
     
-    public String fixXHTML(String xhtml, String charsetName) throws IOException, ParsingException
+    /**
+     * Wraps XHTML content string into a <code>&lt;div&gt;</code> element.
+     * 
+     * @param xhtml XHTML string
+     * @return wrapped XHTML string
+     */
+    public String wrapXHTML(String xhtml)
     {
         if (xhtml == null) throw new IllegalArgumentException("XHTML String cannot be null");
         
-        return canonicalizeXML("<div xmlns='http://www.w3.org/1999/xhtml'>" + xhtml + "</div>", charsetName);
+        return "<div xmlns='http://www.w3.org/1999/xhtml'>" + xhtml + "</div>";
     }
     
+    /**
+     * Canonicalizes XML string.
+     * 
+     * @param xml XML string
+     * @param charsetName charset name
+     * @return canonicalized XML string
+     * @throws IOException I/O exception
+     * @throws ParsingException XML parsing error
+     * @see <a href="https://www.w3.org/TR/xml-c14n11/">Canonical XML Version 1.1</a>
+     */
     public String canonicalizeXML(String xml, String charsetName) throws IOException, ParsingException
     {
         if (xml == null) throw new IllegalArgumentException("XML String cannot be null");

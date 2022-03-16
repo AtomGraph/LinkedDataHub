@@ -63,7 +63,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- *
+ * JAX-RS endpoint for adding RDF data.
+ * 
  * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
  */
 public class Add extends GraphStoreImpl // TO-DO: does not need to extend GraphStore is the multipart/form-data is not RDF/POST. Replace with ProxyResourceBase?
@@ -74,6 +75,20 @@ public class Add extends GraphStoreImpl // TO-DO: does not need to extend GraphS
     private final SecurityContext securityContext;
     private final Optional<AgentContext> agentContext;
     
+    /**
+     * Constructs endpoint for synchronous RDF data imports.
+     * 
+     * @param request current request
+     * @param uriInfo current URI info
+     * @param mediaTypes supported media types
+     * @param application matched application
+     * @param ontology matched application's ontology
+     * @param service matched application's service
+     * @param providers JAX-RS providers
+     * @param system system application
+     * @param securityContext JAX-RS security context
+     * @param agentContext authenticated agent's context
+     */
     @Inject
     public Add(@Context Request request, @Context UriInfo uriInfo, MediaTypes mediaTypes,
             com.atomgraph.linkeddatahub.apps.model.Application application, Optional<Ontology> ontology, Optional<Service> service,
@@ -84,6 +99,14 @@ public class Add extends GraphStoreImpl // TO-DO: does not need to extend GraphS
         this.agentContext = agentContext;
     }
     
+    /**
+     * Handles multipart requests with RDF files.
+     * 
+     * @param multiPart multipart request object
+     * @param defaultGraph true if default graph was specified
+     * @param graphUri graph name
+     * @return response
+     */
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Override
@@ -112,6 +135,13 @@ public class Add extends GraphStoreImpl // TO-DO: does not need to extend GraphS
         }
     }
     
+    /**
+     * Handles uploaded RDF file.
+     * 
+     * @param model RDF graph
+     * @param fileNameBodyPartMap parts of the multipart request
+     * @return response
+     */
     public Response postFileBodyPart(Model model, Map<String, FormDataBodyPart> fileNameBodyPartMap)
     {
         if (model == null) throw new IllegalArgumentException("Model cannot be null");
@@ -162,6 +192,11 @@ public class Add extends GraphStoreImpl // TO-DO: does not need to extend GraphS
         }
     }
     
+    /**
+     * Converts input stream to streaming output.
+     * @param is input stream
+     * @return streaming output
+     */
     public StreamingOutput getStreamingOutput(InputStream is)
     {
         return (OutputStream os) -> {
@@ -169,11 +204,19 @@ public class Add extends GraphStoreImpl // TO-DO: does not need to extend GraphS
         };
     }
 
+    /**
+     * Get JAX-RS security context
+     * @return security context object
+     */
     public SecurityContext getSecurityContext()
     {
         return securityContext;
     }
     
+    /**
+     * Gets authenticated agent's context
+     * @return optional agent's context
+     */
     public Optional<AgentContext> getAgentContext()
     {
         return agentContext;

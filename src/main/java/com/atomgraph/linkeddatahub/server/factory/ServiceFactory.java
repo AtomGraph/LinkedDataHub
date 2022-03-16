@@ -29,7 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * JAX-RS provider of application's service.
+ * JAX-RS factory of application's service.
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
@@ -52,17 +52,25 @@ public class ServiceFactory implements Factory<Optional<Service>>
     {
     }
     
+    /**
+     * Retrieves (optional) service from container request context.
+     * 
+     * @param crc request context
+     * @return optional service
+     */
     public Optional<Service> getService(ContainerRequestContext crc)
     {
         Application app = (Application)crc.getProperty(LAPP.Application.getURI());
         Service service = app.getService();
 
-        // cast to specific implementations
-        if (service.canAs(com.atomgraph.linkeddatahub.model.DydraService.class)) service = service.as(com.atomgraph.linkeddatahub.model.DydraService.class);
-
         return Optional.of(service);
     }
     
+    /**
+     * Returns the container request context.
+     * 
+     * @return request context
+     */
     public ContainerRequestContext getContainerRequestContext()
     {
         return serviceLocator.getService(ContainerRequestContext.class);

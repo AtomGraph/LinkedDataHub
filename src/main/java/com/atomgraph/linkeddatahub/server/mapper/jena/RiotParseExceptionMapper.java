@@ -33,6 +33,11 @@ public class RiotParseExceptionMapper extends ExceptionMapperBase implements Exc
 {
     // TO-DO: remove or move to Processor?
 
+    /**
+     * Constructs exception from media types.
+     * 
+     * @param mediaTypes registry of readable/writable media types
+     */
     @Inject
     public RiotParseExceptionMapper(MediaTypes mediaTypes)
     {

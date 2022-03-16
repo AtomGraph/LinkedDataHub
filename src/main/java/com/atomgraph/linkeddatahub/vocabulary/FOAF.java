@@ -25,52 +25,72 @@ import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Resource;
 
 /**
- * Created by Martynas on 10/15/2017.
+ * FOAF vocabulary.
+ * 
+ * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
 public class FOAF
 {
-    /** <p>The RDF model that holds the vocabulary terms</p> */
+    /** The RDF model that holds the vocabulary terms */
     private static OntModel m_model = ModelFactory.createOntologyModel(OntModelSpec.OWL_MEM, null);
     
-    /** <p>The namespace of the vocabulary as a string</p> */
+    /** The namespace of the vocabulary as a string */
     public static final String NS = "http://xmlns.com/foaf/0.1/";
     
-    /** <p>The namespace of the vocabulary as a string</p>
-     *  @see #NS */
+    /**
+     * The namespace of the vocabulary as a string.
+     * 
+     * @return URI string
+     * @see #NS
+     */
     public static String getURI()
     {
         return NS;
     }
     
-    /** <p>The namespace of the vocabulary as a resource</p> */
+    /** The namespace of the vocabulary as a resource */
     public static final Resource NAMESPACE = m_model.createResource( NS );
 
+    /** Agent class */
     public static final OntClass Agent = m_model.createClass( NS + "Agent" );
     
+    /** Person class */
     public static final OntClass Person = m_model.createClass( NS + "Person" );
     
+    /** Document class */
     public static final OntClass Document = m_model.createClass( NS + "Document" );
 
+    /** Name property */
     public static final DatatypeProperty name = m_model.createDatatypeProperty( NS + "name" );
 
+    /** Given name property */
     public static final DatatypeProperty givenName = m_model.createDatatypeProperty( NS + "givenName" );
 
+    /** Family name property */
     public static final DatatypeProperty familyName = m_model.createDatatypeProperty( NS + "familyName" );
     
+    /** Mailbox property */
     public static final ObjectProperty mbox = m_model.createObjectProperty( NS + "mbox" );
 
+    /** Based near property */
     public static final ObjectProperty based_near = m_model.createObjectProperty( NS + "based_near" );
     
+    /** Member property */
     public static final ObjectProperty member = m_model.createObjectProperty( NS + "member" );
 
+    /** Primary topic property */
     public static final ObjectProperty primaryTopic = m_model.createObjectProperty( NS + "primaryTopic" );
     
+    /** Is primary topic of property */
     public static final ObjectProperty isPrimaryTopicOf = m_model.createObjectProperty( NS + "isPrimaryTopicOf" );
     
+    /** Maker property */
     public static final ObjectProperty maker = m_model.createObjectProperty( NS + "maker" );
 
+    /** Account property */
     public static final ObjectProperty account = m_model.createObjectProperty( NS + "account" );
 
+    /** Image property */
     public static final ObjectProperty img = m_model.createObjectProperty( NS + "img" );
     
 }

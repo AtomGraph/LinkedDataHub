@@ -20,15 +20,25 @@ import org.apache.jena.rdf.model.Resource;
 
 /**
  * Data import.
- * Represents source file, target container, validator and constraint violations.
+ * Represents source file and target container.
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
 public interface Import extends Resource
 {
     
+    /**
+     * Returns the input file resource.
+     * 
+     * @return file resource
+     */
     Resource getFile();
     
+    /**
+     * Returns the target container.
+     * 
+     * @return container resource
+     */
     Resource getContainer();
     
 }

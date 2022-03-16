@@ -19,12 +19,11 @@ package com.atomgraph.linkeddatahub.resource.oauth2;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.core.exception.ConfigurationException;
 import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
-import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.listener.EMailListener;
 import com.atomgraph.linkeddatahub.model.Service;
-import static com.atomgraph.linkeddatahub.resource.SignUp.AGENT_PATH;
-import static com.atomgraph.linkeddatahub.resource.SignUp.AUTHORIZATION_PATH;
+import static com.atomgraph.linkeddatahub.resource.admin.SignUp.AGENT_PATH;
+import static com.atomgraph.linkeddatahub.resource.admin.SignUp.AUTHORIZATION_PATH;
 import com.atomgraph.linkeddatahub.resource.oauth2.google.Authorize;
 import com.atomgraph.linkeddatahub.server.filter.request.auth.IDTokenFilter;
 import com.atomgraph.linkeddatahub.server.filter.response.BackendInvalidationFilter;
@@ -83,7 +82,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- *
+ * JAX-RS resource that handles OAuth login.
+ * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
 @Path("oauth2/login")
@@ -92,17 +92,33 @@ public class Login extends GraphStoreImpl
 
     private static final Logger log = LoggerFactory.getLogger(Login.class);
 
+    /** OAuth token endpoint URL */
     public static final String TOKEN_ENDPOINT = "https://oauth2.googleapis.com/token";
+    /** User info endpoint URL */
     public static final String USER_INFO_ENDPOINT = "https://openidconnect.googleapis.com/v1/userinfo";
+    /** Relative path to the user container */
     public static final String ACCOUNT_PATH = "acl/users/";
 
     private final HttpHeaders httpHeaders;
-    private final Application application;
     private final String emailSubject;
     private final String emailText;
     private final Query userAccountQuery;
     private final String clientID, clientSecret;
     
+    /**
+     * Constructs endpoint.
+     * 
+     * @param request current request
+     * @param uriInfo URI information of the current request
+     * @param mediaTypes a registry of readable/writable media types
+     * @param httpHeaders HTTP headers
+     * @param application current application
+     * @param ontology ontology of the current application
+     * @param service SPARQL service of the current application
+     * @param providers JAX-RS provider registry
+     * @param system system application
+     * @param servletConfig servlet config
+     */
     @Inject
     public Login(@Context Request request, @Context UriInfo uriInfo, MediaTypes mediaTypes, @Context HttpHeaders httpHeaders,
             com.atomgraph.linkeddatahub.apps.model.Application application, Optional<Ontology> ontology, Optional<Service> service,
@@ -110,7 +126,6 @@ public class Login extends GraphStoreImpl
     {
         super(request, uriInfo, mediaTypes, application, ontology, service, providers, system);
         this.httpHeaders = httpHeaders;
-        this.application = application;
         
         emailSubject = servletConfig.getServletContext().getInitParameter(LDHC.signUpEMailSubject.getURI());
         if (emailSubject == null) throw new InternalServerErrorException(new ConfigurationException(LDHC.signUpEMailSubject));
@@ -274,6 +289,12 @@ public class Login extends GraphStoreImpl
         }
     }
     
+    /**
+     * Verifies decoded JWT token.
+     * 
+     * @param jwt decoded JWT token
+     * @return true if verified
+     */
     public boolean verify(DecodedJWT jwt)
     {
 //            Algorithm algorithm = Algorithm.RSA256(null);
@@ -281,10 +302,22 @@ public class Login extends GraphStoreImpl
 //                withIssuer("auth0").
 //                build();
 //            DecodedJWT jwt = verifier.verify(idToken);
-        return true;
+        return true; // TO-DO: complete
         //throw new JWTVerificationException();
     }
     
+    /**
+     * Creates new agent resource.
+     * 
+     * @param model RDF model
+     * @param graphURI graph URI
+     * @param container container resource
+     * @param givenName given name
+     * @param familyName family name
+     * @param email email address
+     * @param imgUrl image URL
+     * @return agent resource
+     */
     public Resource createAgent(Model model, URI graphURI, Resource container, String givenName, String familyName, String email, String imgUrl)
     {
         Resource item =  model.createResource(graphURI.toString()).
@@ -304,6 +337,18 @@ public class Login extends GraphStoreImpl
         return agent;
     }
     
+    /**
+     * Creates new user account resource.
+     * 
+     * @param model RDF model
+     * @param graphURI graph URI
+     * @param container container resource
+     * @param id user ID
+     * @param issuer OIDC issuer
+     * @param name username
+     * @param email email address
+     * @return user account resource
+     */
     public Resource createUserAccount(Model model, URI graphURI, Resource container, String id, String issuer, String name, String email)
     {
         Resource item = model.createResource(graphURI.toString()).
@@ -324,6 +369,16 @@ public class Login extends GraphStoreImpl
         return account;
     }
 
+    /**
+     * Creates new authorization resource.
+     * 
+     * @param model RDF model
+     * @param graphURI graph URI
+     * @param container container resource
+     * @param agentGraphURI agent's graph URI
+     * @param userAccountGraphURI user account's graph URI
+     * @return authorization resource
+     */
     public Resource createAuthorization(Model model, URI graphURI, Resource container, URI agentGraphURI, URI userAccountGraphURI)
     {
         Resource item = model.createResource(graphURI.toString()).
@@ -345,6 +400,13 @@ public class Login extends GraphStoreImpl
         return auth;
     }
     
+    /**
+     * Sends signup notification email message to agent.
+     * 
+     * @param agent agent resource
+     * @throws MessagingException thrown if message sending failed
+     * @throws UnsupportedEncodingException encoding error
+     */
     public void sendEmail(Resource agent) throws MessagingException, UnsupportedEncodingException
     {
         String givenName = agent.getRequiredProperty(FOAF.givenName).getString();
@@ -369,6 +431,13 @@ public class Login extends GraphStoreImpl
         EMailListener.submit(builder.build());
     }
 
+    /** 
+     * Bans URL from the backend proxy cache.
+     * 
+     * @param proxy proxy server URL
+     * @param url banned URL
+     * @return proxy server response
+     */
     public Response ban(Resource proxy, String url)
     {
         if (url == null) throw new IllegalArgumentException("Resource cannot be null");
@@ -378,6 +447,11 @@ public class Login extends GraphStoreImpl
             method("BAN", Response.class);
     }
     
+    /**
+     * Returns the end-user application of the current dataspace.
+     * 
+     * @return end-user application resource
+     */
     public EndUserApplication getEndUserApplication()
     {
         if (getApplication().canAs(EndUserApplication.class))
@@ -386,41 +460,71 @@ public class Login extends GraphStoreImpl
             return getApplication().as(AdminApplication.class).getEndUserApplication();
     }
     
+    /**
+     * Returns HTTP headers of the current request.
+     * 
+     * @return header info
+     */
     public HttpHeaders getHttpHeaders()
     {
         return httpHeaders;
     }
     
-    public Application getApplication()
-    {
-        return application;
-    }
-    
+    /**
+     * Returns the SPARQL service from which agent data is retrieved.
+     * 
+     * @return SPARQL service
+     */
     public Service getAgentService()
     {
         return getApplication().getService();
     }
     
+    /**
+     * Returns login email subject.
+     * 
+     * @return email subject
+     */
     public String getEmailSubject()
     {
         return emailSubject;
     }
     
+    /**
+     * Returns login email text.
+     * 
+     * @return email text
+     */
     public String getEmailText()
     {
         return emailText;
     }
 
+    /**
+     * Returns SPARQL query used to load user account by ID.
+     * 
+     * @return SPARQL query
+     */
     public Query getUserAccountQuery()
     {
         return userAccountQuery;
     }
     
+    /**
+     * Returns the configured Google client ID for this application.
+     * 
+     * @return client ID
+     */
     private String getClientID()
     {
         return clientID;
     }
     
+    /**
+     * Returns the configured Google client secret for this application.
+     * 
+     * @return client secret
+     */
     private String getClientSecret()
     {
         return clientSecret;

@@ -89,6 +89,13 @@ public class JsonLDReader implements ReaderRIOT
     private /*final*/ ErrorHandler errorHandler = ErrorHandlerFactory.getDefaultErrorHandler() ;
     private /*final*/ ParserProfile profile;
     
+    /**
+     * Constructs reader.
+     * 
+     * @param lang RDF language
+     * @param profile parser profile
+     * @param errorHandler error handler
+     */
     public JsonLDReader(Lang lang, ParserProfile profile, ErrorHandler errorHandler) {
         this.profile = profile;
         this.errorHandler = errorHandler;
@@ -234,8 +241,11 @@ public class JsonLDReader implements ReaderRIOT
         return ctx;
     }
 
+    /** Constant for literal values */
     public static String LITERAL    = "literal" ;
+    /** Constant for blank node values */
     public static String BLANK_NODE = "blank node" ;
+    /** Constant for IRI values */
     public static String IRI        = "IRI" ;
 
     private Node createNode(Map<String, Object> tripleMap, String key) {

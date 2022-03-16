@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -euo pipefail
 
 initialize_dataset "$END_USER_BASE_URL" "$TMP_END_USER_DATASET" "$END_USER_ENDPOINT_URL"
@@ -26,4 +26,4 @@ curl -k -w "%{http_code}\n" -o /dev/null -f -s \
   -H 'Accept: text/turtle' \
   --data-urlencode 'default=true' \
   "${END_USER_BASE_URL}service" \
-| grep -q "${STATUS_OK}"
+| grep -q "$STATUS_OK"

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -euo pipefail
 
 initialize_dataset "$END_USER_BASE_URL" "$TMP_END_USER_DATASET" "$END_USER_ENDPOINT_URL"
@@ -36,4 +36,4 @@ curl -w "%{http_code}\n" -o /dev/null -k -s \
   --data-urlencode "pu=http://xmlns.com/foaf/0.1/primaryTopic" \
   --data-urlencode "ob=request" \
   "${ADMIN_BASE_URL}request%20access" \
-| grep -q "${STATUS_OK}"
+| grep -q "$STATUS_OK"

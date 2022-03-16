@@ -463,9 +463,7 @@ exclude-result-prefixes="#all">
                 
                 <input type="text" id="uri" name="uri" class="input-xxlarge typeahead">
                     <xsl:if test="not(starts-with(ac:uri(), $ldt:base))">
-                        <xsl:attribute name="value">
-                            <xsl:value-of select="ac:uri()"/>
-                        </xsl:attribute>
+                        <xsl:attribute name="value" select="ac:uri()"/>
                     </xsl:if>
                 </input>
 
@@ -487,10 +485,10 @@ exclude-result-prefixes="#all">
         
         <div>
             <xsl:if test="$id">
-                <xsl:attribute name="id"><xsl:sequence select="$id"/></xsl:attribute>
+                <xsl:attribute name="id" select="$id"/>
             </xsl:if>
             <xsl:if test="$class">
-                <xsl:attribute name="class"><xsl:sequence select="$class"/></xsl:attribute>
+                <xsl:attribute name="class" select="$class"/>
             </xsl:if>
             
             <xsl:apply-templates select="." mode="bs2:Create">
@@ -511,10 +509,10 @@ exclude-result-prefixes="#all">
 
         <div>
             <xsl:if test="$id">
-                <xsl:attribute name="id"><xsl:value-of select="$id"/></xsl:attribute>
+                <xsl:attribute name="id" select="$id"/>
             </xsl:if>
             <xsl:if test="$class">
-                <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
+                <xsl:attribute name="class" select="$class"/>
             </xsl:if>
             
             <div id="result-counts">
@@ -540,10 +538,10 @@ exclude-result-prefixes="#all">
 
         <div>
             <xsl:if test="$id">
-                <xsl:attribute name="id"><xsl:value-of select="$id"/></xsl:attribute>
+                <xsl:attribute name="id" select="$id"/>
             </xsl:if>
             <xsl:if test="$class">
-                <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
+                <xsl:attribute name="class" select="$class"/>
             </xsl:if>
             
             <xsl:apply-templates select="." mode="bs2:MediaTypeList"/>
@@ -576,7 +574,7 @@ exclude-result-prefixes="#all">
                                     <xsl:sort select="ac:label(.)" order="ascending" lang="{$ldt:lang}"/>
                                     <li>
 <!--                                        <xsl:if test="$active">
-                                            <xsl:attribute name="class">active</xsl:attribute>
+                                            <xsl:attribute name="class" select="'active'"/>
                                         </xsl:if>-->
 
                                         <a href="{ldt:base/@rdf:resource}" title="{ldt:base/@rdf:resource}">
@@ -602,7 +600,7 @@ exclude-result-prefixes="#all">
                         <ul class="dropdown-menu pull-right">
                             <li>
                                 <xsl:for-each select="key('resources-by-type', '&foaf;Agent', $foaf:Agent)">
-                                    <xsl:apply-templates select="." mode="xhtml:Anchor"/>
+                                    <xsl:apply-templates select="@rdf:about" mode="xhtml:Anchor"/>
                                 </xsl:for-each>
                             </li>
                         </ul>
@@ -646,7 +644,7 @@ exclude-result-prefixes="#all">
         
         <li>
             <xsl:if test="$active">
-                <xsl:attribute name="class">active</xsl:attribute>
+                <xsl:attribute name="class" select="'active'"/>
             </xsl:if>
 
             <a href="{ldt:base/@rdf:resource[starts-with(., $ac:contextUri)]}" title="{ldt:base/@rdf:resource[starts-with(., $ac:contextUri)]}">
@@ -693,6 +691,13 @@ exclude-result-prefixes="#all">
                 </xsl:apply-templates>
             
                 <xsl:choose>
+                    <!-- error responses always rendered in bs2:RowBlock mode, no matter what $ac:mode specifies -->
+                    <xsl:when test="key('resources-by-type', '&http;Response') and not(key('resources-by-type', '&spin;ConstraintViolation'))">
+                        <xsl:apply-templates select="." mode="bs2:RowBlock">
+                            <xsl:with-param name="template-query" select="$template-query" tunnel="yes"/>
+                            <xsl:sort select="ac:label(.)"/>
+                        </xsl:apply-templates>
+                    </xsl:when>
                     <xsl:when test="$ac:forClass and $ac:method = 'GET'">
                         <xsl:variable name="constructor" as="document-node()">
                             <xsl:apply-templates select="." mode="ldh:Constructor">
@@ -834,7 +839,7 @@ exclude-result-prefixes="#all">
 
         <li>
             <xsl:if test="$class">
-                <xsl:attribute name="class"><xsl:sequence select="$class"/></xsl:attribute>
+                <xsl:attribute name="class" select="$class"/>
             </xsl:if>
 
             <a href="{ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ac:uri(), xs:anyURI(@rdf:about))}">
@@ -998,6 +1003,10 @@ exclude-result-prefixes="#all">
                     <xsl:variable name="href" select="ac:build-uri($ldh:absolutePath, let $params := map{ 'accept': 'text/turtle' } return if (not(starts-with(ac:uri(), $ldt:base))) then map:merge(($params, map{ 'uri': string(ac:uri()) })) else $params)" as="xs:anyURI"/>
                     <a href="{$href}" title="text/turtle" target="_blank">Turtle</a>
                 </li>
+                <li>
+                    <xsl:variable name="href" select="ac:build-uri($ldh:absolutePath, let $params := map{ 'accept': 'application/ld+json' } return if (not(starts-with(ac:uri(), $ldt:base))) then map:merge(($params, map{ 'uri': string(ac:uri()) })) else $params)" as="xs:anyURI"/>
+                    <a href="{$href}" title="application/ld+json" target="_blank">JSON-LD</a>
+                </li>
             </ul>
         </div>
     </xsl:template>
@@ -1011,10 +1020,10 @@ exclude-result-prefixes="#all">
 
         <div>
             <xsl:if test="$id">
-                <xsl:attribute name="id"><xsl:value-of select="$id"/></xsl:attribute>
+                <xsl:attribute name="id" select="$id"/>
             </xsl:if>
             <xsl:if test="$class">
-                <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
+                <xsl:attribute name="class" select="$class"/>
             </xsl:if>
 
             <h2>
@@ -1032,10 +1041,10 @@ exclude-result-prefixes="#all">
 
         <div>
             <xsl:if test="$id">
-                <xsl:attribute name="id"><xsl:value-of select="$id"/></xsl:attribute>
+                <xsl:attribute name="id" select="$id"/>
             </xsl:if>
             <xsl:if test="$class">
-                <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
+                <xsl:attribute name="class" select="$class"/>
             </xsl:if>
 
             <h2>
@@ -1218,16 +1227,16 @@ exclude-result-prefixes="#all">
         <div class="pull-right">
             <form method="{$method}" action="{$action}" class="form-open-query">
                 <xsl:if test="$id">
-                    <xsl:attribute name="id"><xsl:value-of select="$id"/></xsl:attribute>
+                    <xsl:attribute name="id" select="$id"/>
                 </xsl:if>
                 <xsl:if test="$class">
-                    <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
+                    <xsl:attribute name="class" select="$class"/>
                 </xsl:if>
                 <xsl:if test="$accept-charset">
-                    <xsl:attribute name="accept-charset"><xsl:value-of select="$accept-charset"/></xsl:attribute>
+                    <xsl:attribute name="accept-charset" select="$accept-charset"/>
                 </xsl:if>
                 <xsl:if test="$enctype">
-                    <xsl:attribute name="enctype"><xsl:value-of select="$enctype"/></xsl:attribute>
+                    <xsl:attribute name="enctype" select="$enctype"/>
                 </xsl:if>
 
                 <xsl:for-each select="ldh:service/@rdf:resource">

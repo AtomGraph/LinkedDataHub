@@ -52,6 +52,11 @@ public class XsltExecutableSupplierFactory implements Factory<XsltExecutableSupp
 
     }
     
+    /**
+     * Returns container request context.
+     * 
+     * @return request context
+     */
     public ContainerRequestContext getContainerRequestContext()
     {
         return serviceLocator.getService(ContainerRequestContext.class);

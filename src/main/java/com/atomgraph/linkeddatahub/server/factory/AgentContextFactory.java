@@ -25,8 +25,9 @@ import org.glassfish.hk2.api.Factory;
 import org.glassfish.hk2.api.ServiceLocator;
 
 /**
- *
- * @author Martynas Jusevičius <martynas@atomgraph.com>
+ * JAX-RS factory for agent context.
+ * 
+ * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
 @Provider
 public class AgentContextFactory implements Factory<Optional<AgentContext>>
@@ -45,11 +46,22 @@ public class AgentContextFactory implements Factory<Optional<AgentContext>>
     {
     }
     
+    /**
+     * Retrieves ontology from the request context.
+     * 
+     * @param crc context of the current request
+     * @return optional ontology resource
+     */
     public Optional<AgentContext> getOntology(ContainerRequestContext crc)
     {
         return Optional.ofNullable((AgentContext)crc.getProperty(AgentContext.class.getCanonicalName()));
     }
     
+    /**
+     * Gets the context of the current request.
+     * 
+     * @return context of the current request
+     */
     public ContainerRequestContext getContainerRequestContext()
     {
         return serviceLocator.getService(ContainerRequestContext.class);

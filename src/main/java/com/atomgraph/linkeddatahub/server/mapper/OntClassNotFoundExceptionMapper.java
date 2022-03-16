@@ -32,6 +32,11 @@ import javax.inject.Inject;
 public class OntClassNotFoundExceptionMapper extends ExceptionMapperBase implements ExceptionMapper<OntClassNotFoundException>
 {
 
+    /**
+     * Constructs mapper from media type registry.
+     * 
+     * @param mediaTypes registry of readable/writable media types
+     */
     @Inject
     public OntClassNotFoundExceptionMapper(MediaTypes mediaTypes)
     {

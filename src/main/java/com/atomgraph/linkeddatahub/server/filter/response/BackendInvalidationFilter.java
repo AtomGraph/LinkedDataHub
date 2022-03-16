@@ -42,6 +42,9 @@ import org.glassfish.jersey.uri.UriComponent;
 public class BackendInvalidationFilter implements ContainerResponseFilter
 {
     
+    /**
+     * Name of the HTTP request header that is used to pass values of URLs for invalidation.
+     */
     public static final String HEADER_NAME = "X-Escaped-Request-URI";
     
     @Inject com.atomgraph.linkeddatahub.Application system;
@@ -76,8 +79,16 @@ public class BackendInvalidationFilter implements ContainerResponseFilter
         }
     }
     
+    /**
+     * Bans URL from Varnish proxy cache.
+     * 
+     * @param proxy Varnish proxy resource
+     * @param url URL to be banned
+     * @return response from Varnish
+     */
     public Response ban(Resource proxy, String url)
     {
+        if (proxy == null) throw new IllegalArgumentException("Proxy resource cannot be null");
         if (url == null) throw new IllegalArgumentException("Resource cannot be null");
         
         return getClient().target(proxy.getURI()).request().
@@ -85,6 +96,11 @@ public class BackendInvalidationFilter implements ContainerResponseFilter
             method("BAN", Response.class);
     }
 
+    /**
+     * Returns admin application of the current dataspace.
+     * 
+     * @return admin application resource
+     */
     public AdminApplication getAdminApplication()
     {
         if (getApplication().canAs(EndUserApplication.class))
@@ -93,16 +109,31 @@ public class BackendInvalidationFilter implements ContainerResponseFilter
             return getApplication().as(AdminApplication.class);
     }
     
+    /**
+     * Returns the current application.
+     * 
+     * @return application resource
+     */
     public com.atomgraph.linkeddatahub.apps.model.Application getApplication()
     {
         return app.get();
     }
     
+    /**
+     * Returns system application.
+     * 
+     * @return JAX-RS application
+     */
     public com.atomgraph.linkeddatahub.Application getSystem()
     {
         return system;
     }
  
+    /**
+     * Returns HTTP client instance.
+     * 
+     * @return HTTP client
+     */
     public Client getClient()
     {
         return getSystem().getClient();

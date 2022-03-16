@@ -27,6 +27,12 @@ import java.io.InputStream;
 public class RejectTooLargeInputStream extends LimitedInputStream
 {
 
+    /**
+     * Constructs input stream.
+     * 
+     * @param inputStream original input stream
+     * @param pSizeMax maximum payload size in bytes
+     */
     public RejectTooLargeInputStream(InputStream inputStream, long pSizeMax)
     {
         super(inputStream, pSizeMax);

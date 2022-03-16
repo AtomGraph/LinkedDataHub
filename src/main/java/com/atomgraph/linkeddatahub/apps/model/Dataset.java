@@ -25,23 +25,47 @@ import org.apache.jena.rdf.model.Resource;
  * Can either have a base or a prefix URI. Does not have a service unlike applications.
  * Used for proxying third party Linked Data services.
  * 
- * @author Martynas Jusevičius <martynas@atomgraph.com>
+ * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
 public interface Dataset extends Resource
 {
-    
-//    Resource getBase();
-//    
-//    URI getBaseURI();
-    
+
+    /**
+     * Returns the URI that is the prefix of this dataset.
+     * All URIs in the dataset should be relative to the prefix URI.
+     * 
+     * @return prefix URI
+     */
     Resource getPrefix();
     
+    /**
+     * Returns the proxy URI resource.
+     * URI of the service that URIs in this dataset are proxied through.
+     * 
+     * @return proxy resource
+     */
     Resource getProxy();
     
+    /**
+     * Returns the proxy URI.URI of the service that URIs in this dataset are proxied through.
+     *
+     * @return proxy URI
+     */
     URI getProxyURI();
     
+    /**
+     * Returns URI rewritten using the proxy URI.
+     * 
+     * @param uri dataset resource URI
+     * @return proxied URI
+     */
     URI getProxied(URI uri);
     
+    /**
+     * Returns SPARQL service for this dataset.
+     * 
+     * @return service resource
+     */
     Service getService();
 
 }

@@ -18,8 +18,10 @@ package com.atomgraph.linkeddatahub.server.model.impl;
 
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.core.riot.lang.RDFPostReader;
+import static com.atomgraph.linkeddatahub.apps.model.Application.UPLOADS_PATH;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.io.ValidatingModelProvider;
+import com.atomgraph.linkeddatahub.vocabulary.Default;
 import com.atomgraph.linkeddatahub.vocabulary.NFO;
 import com.atomgraph.processor.vocabulary.DH;
 import com.atomgraph.processor.vocabulary.SIOC;
@@ -83,6 +85,7 @@ import org.apache.jena.update.UpdateRequest;
 import org.apache.jena.util.ResourceUtils;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.vocabulary.DCTerms;
+import org.apache.jena.vocabulary.RDF;
 import org.glassfish.jersey.media.multipart.BodyPart;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
@@ -108,7 +111,20 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
     private final com.atomgraph.linkeddatahub.Application system;
     private final UriBuilder uploadsUriBuilder;
     private final MessageDigest messageDigest;
+    private final URI ownerDocURI, secretaryDocURI;
 
+    /**
+     * Constructs Graph Store.
+     * 
+     * @param request current request
+     * @param uriInfo URI info of the current request
+     * @param mediaTypes a registry of readable/writable media types
+     * @param application current application
+     * @param ontology ontology of the current application
+     * @param service SPARQL service of the current application
+     * @param providers registry of JAX-RS providers
+     * @param system system application
+     */
     @Inject
     public GraphStoreImpl(@Context Request request, @Context UriInfo uriInfo, MediaTypes mediaTypes,
         com.atomgraph.linkeddatahub.apps.model.Application application, Optional<Ontology> ontology, Optional<Service> service,
@@ -124,7 +140,17 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
         this.providers = providers;
         this.system = system;
         this.messageDigest = system.getMessageDigest();
-        uploadsUriBuilder = uriInfo.getBaseUriBuilder().path(com.atomgraph.linkeddatahub.Application.UPLOADS_PATH);
+        uploadsUriBuilder = uriInfo.getBaseUriBuilder().path(UPLOADS_PATH);
+        URI ownerURI = URI.create(application.getMaker().getURI());
+        try
+        {
+            this.ownerDocURI = new URI(ownerURI.getScheme(), ownerURI.getSchemeSpecificPart(), null).normalize();
+            this.secretaryDocURI = new URI(system.getSecretaryWebIDURI().getScheme(), system.getSecretaryWebIDURI().getSchemeSpecificPart(), null).normalize();
+        }
+        catch (URISyntaxException ex)
+        {
+            throw new InternalServerErrorException(ex);
+        }
     }
     
     @POST
@@ -150,6 +176,12 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
         return super.post(model, false, graphUri);
     }
 
+    /**
+     * Creates a new graph URI from the document resource in the request body.
+     * 
+     * @param model input RDF graph
+     * @return graph resource or null
+     */
     public Resource createGraph(Model model)
     {
         if (model == null) throw new IllegalArgumentException("Model cannot be null");
@@ -176,6 +208,13 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
     {
         if (graphUri == null) throw new InternalServerErrorException("Named graph not specified");
 
+        if (getOwnerDocURI().equals(graphUri)) throw new BadRequestException("Cannot update application owner's document");
+        if (getSecretaryDocURI().equals(graphUri)) throw new BadRequestException("Cannot update application secretary's document");
+        if (!model.createResource(graphUri.toString()).hasProperty(RDF.type, Default.Root) &&
+            !model.createResource(graphUri.toString()).hasProperty(RDF.type, DH.Container) &&
+            !model.createResource(graphUri.toString()).hasProperty(RDF.type, DH.Item))
+            throw new BadRequestException("Named graph <" + graphUri + "> must contain a document resource (instance of dh:Container or dh:Item)");
+
         model.createResource(graphUri.toString()).
             removeAll(DCTerms.modified).
             addLiteral(DCTerms.modified, ResourceFactory.createTypedLiteral(GregorianCalendar.getInstance()));
@@ -185,6 +224,13 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
         return super.put(model, defaultGraph, graphUri);
     }
 
+    /**
+     * Implements <code>PATCH</code> method of SPARQL Graph Store Protocol.
+     * Accepts SPARQL update as the request body.
+     * 
+     * @param updateRequest SPARQL update
+     * @return response
+     */
     @PATCH
     public Response patch(UpdateRequest updateRequest)
     {
@@ -323,10 +369,19 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
     public Response delete(@QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
     {
         if (getApplication().getBaseURI().equals(graphUri)) throw new BadRequestException("Cannot delete Root document at application's base URI");
+        if (getOwnerDocURI().equals(graphUri)) throw new BadRequestException("Cannot delete application owner's document");
+        if (getSecretaryDocURI().equals(graphUri)) throw new BadRequestException("Cannot delete application secretary's document");
         
         return super.delete(false, graphUri);
     }
     
+    /**
+     * Writes all files from the multipart RDF/POST request body.
+     * 
+     * @param model model with RDF resources
+     * @param fileNameBodyPartMap a mapping of request part names and objects
+     * @return number of written files
+     */
     public int writeFiles(Model model, Map<String, FormDataBodyPart> fileNameBodyPartMap)
     {
         if (model == null) throw new IllegalArgumentException("Model cannot be null");
@@ -490,34 +545,39 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
         }
     }
     
+    /**
+     * Writes the specified part of the multipart request body as file and returns the file.
+     * File's RDF resource is used to attached metadata about the file, such as format and SHA1 hash sum.
+     * 
+     * @param resource file's RDF resource
+     * @param bodyPart file's body part
+     * @return written file
+     */
     public File writeFile(Resource resource, FormDataBodyPart bodyPart)
     {
         if (resource == null) throw new IllegalArgumentException("File Resource cannot be null");
         if (!resource.isURIResource()) throw new IllegalArgumentException("File Resource must have a URI");
         if (bodyPart == null) throw new IllegalArgumentException("FormDataBodyPart cannot be null");
 
-        try
+        try (InputStream is = bodyPart.getEntityAs(InputStream.class);
+            DigestInputStream dis = new DigestInputStream(is, getMessageDigest()))
         {
-            try (InputStream is = bodyPart.getEntityAs(InputStream.class);
-                DigestInputStream dis = new DigestInputStream(is, getMessageDigest()))
-            {
-                dis.getMessageDigest().reset();
-                File tempFile = File.createTempFile("tmp", null);
-                FileChannel destination = new FileOutputStream(tempFile).getChannel();
-                destination.transferFrom(Channels.newChannel(dis), 0, 104857600);
-                String sha1Hash = Hex.encodeHexString(dis.getMessageDigest().digest()); // BigInteger seems to have an issue when the leading hex digit is 0
-                if (log.isDebugEnabled()) log.debug("Wrote file: {} with SHA1 hash: {}", tempFile, sha1Hash);
+            dis.getMessageDigest().reset();
+            File tempFile = File.createTempFile("tmp", null);
+            FileChannel destination = new FileOutputStream(tempFile).getChannel();
+            destination.transferFrom(Channels.newChannel(dis), 0, 104857600);
+            String sha1Hash = Hex.encodeHexString(dis.getMessageDigest().digest()); // BigInteger seems to have an issue when the leading hex digit is 0
+            if (log.isDebugEnabled()) log.debug("Wrote file: {} with SHA1 hash: {}", tempFile, sha1Hash);
 
-                resource.addLiteral(FOAF.sha1, sha1Hash);
-                // user could have specified an explicit media type; otherwise - use the media type that the browser has sent
-                if (!resource.hasProperty(DCTerms.format)) resource.addProperty(DCTerms.format, com.atomgraph.linkeddatahub.MediaType.toResource(bodyPart.getMediaType()));
-                
-                URI sha1Uri = getUploadsUriBuilder().path("{sha1}").build(sha1Hash);
-                if (log.isDebugEnabled()) log.debug("Renaming resource: {} to SHA1 based URI: {}", resource, sha1Uri);
-                ResourceUtils.renameResource(resource, sha1Uri.toString());
+            resource.addLiteral(FOAF.sha1, sha1Hash);
+            // user could have specified an explicit media type; otherwise - use the media type that the browser has sent
+            if (!resource.hasProperty(DCTerms.format)) resource.addProperty(DCTerms.format, com.atomgraph.linkeddatahub.MediaType.toResource(bodyPart.getMediaType()));
 
-                return writeFile(sha1Uri, getUriInfo().getBaseUri(), new FileInputStream(tempFile));
-            }
+            URI sha1Uri = getUploadsUriBuilder().path("{sha1}").build(sha1Hash);
+            if (log.isDebugEnabled()) log.debug("Renaming resource: {} to SHA1 based URI: {}", resource, sha1Uri);
+            ResourceUtils.renameResource(resource, sha1Uri.toString());
+
+            return writeFile(sha1Uri, getUriInfo().getBaseUri(), new FileInputStream(tempFile));
         }
         catch (IOException ex)
         {
@@ -526,6 +586,13 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
         }
     }
     
+    /**
+     * Skolemizes RDF graph by replacing blank node resources with fragment URI resources.
+     * 
+     * @param model input model
+     * @param graphUri document URI that fragment URIs are built from
+     * @return skolemized model
+     */
     public static Model skolemize(Model model, URI graphUri)
     {
         Set<Resource> bnodes = new HashSet<>();
@@ -598,6 +665,12 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
         return null;
     }
     
+    /**
+     * Returns the parent container of the specified document.
+     * 
+     * @param doc document resource
+     * @return parent resource
+     */
     public Resource getParent(Resource doc)
     {
         Resource parent = doc.getPropertyResourceValue(SIOC.HAS_PARENT);
@@ -606,6 +679,13 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
         return parent;
     }
 
+    /**
+     * Returns the date of last modification of the specified URI resource.
+     * 
+     * @param model resource model
+     * @param graphUri resource URI
+     * @return modification date
+     */
     @Override
     public Date getLastModified(Model model, URI graphUri)
     {
@@ -613,7 +693,13 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
         
         return getLastModified(model.createResource(graphUri.toString()));
     }
-        
+    
+    /**
+     * Returns the date of last modification of the specified resource.
+     * 
+     * @param resource resource
+     * @return modification date
+     */
     public Date getLastModified(Resource resource)
     {
         if (resource == null) throw new IllegalArgumentException("Resource cannot be null");
@@ -655,44 +741,104 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
         return null;
     }
     
+    /**
+     * Returns URI builder for uploaded file resources.
+     * 
+     * @return URI builder
+     */
     public UriBuilder getUploadsUriBuilder()
     {
         return uploadsUriBuilder.clone();
     }
     
+    /**
+     * Returns message digest used in SHA1 hashing.
+     * 
+     * @return message digest
+     */
     public MessageDigest getMessageDigest()
     {
         return messageDigest;
     }
     
+    /**
+     * Returns the request URI information.
+     * 
+     * @return URI info
+     */
     public UriInfo getUriInfo()
     {
         return uriInfo;
     }
 
+    /**
+     * Returns the current application.
+     * 
+     * @return application resource
+     */
     public com.atomgraph.linkeddatahub.apps.model.Application getApplication()
     {
         return application;
     }
     
+    /**
+     * Returns the ontology of the current application.
+     * 
+     * @return ontology resource
+     */
     public Ontology getOntology()
     {
         return ontology;
     }
 
+    /**
+     * Returns the SPARQL service of the current application.
+     * 
+     * @return service resource
+     */
     public Service getService()
     {
         return service;
     }
     
+    /**
+     * Returns a registry of JAX-RS providers.
+     * 
+     * @return provider registry
+     */
     public Providers getProviders()
     {
         return providers;
     }
     
+    /**
+     * Returns the system application.
+     * 
+     * @return JAX-RS application
+     */
     public com.atomgraph.linkeddatahub.Application getSystem()
     {
         return system;
+    }
+    
+    /**
+     * Returns URI of the WebID document of the applications owner.
+     * 
+     * @return document URI
+     */
+    public URI getOwnerDocURI()
+    {
+        return ownerDocURI;
+    }
+    
+    /**
+     * Returns URI of the WebID document of the applications secretary.
+     * 
+     * @return document URI
+     */
+    public URI getSecretaryDocURI()
+    {
+        return secretaryDocURI;
     }
     
 }

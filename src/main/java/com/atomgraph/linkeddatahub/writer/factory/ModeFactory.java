@@ -48,6 +48,11 @@ public class ModeFactory implements Factory<List<Mode>>
     {
     }
 
+    /**
+     * Returns request context
+     * 
+     * @return request context
+     */
     public ContainerRequestContext getContainerRequestContext()
     {
         return serviceLocator.getService(ContainerRequestContext.class);

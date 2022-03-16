@@ -30,6 +30,7 @@ import com.atomgraph.linkeddatahub.model.Import;
 import com.atomgraph.linkeddatahub.model.RDFImport;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.exception.ImportException;
+import com.atomgraph.linkeddatahub.server.filter.response.BackendInvalidationFilter;
 import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
 import com.atomgraph.linkeddatahub.vocabulary.PROV;
 import com.atomgraph.linkeddatahub.vocabulary.VoID;
@@ -67,29 +68,50 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- *
+ * Executor class for CSV and RDF imports.
+ * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-public class Executor
+public class ImportExecutor
 {
 
-    private static final Logger log = LoggerFactory.getLogger(Executor.class);
+    private static final Logger log = LoggerFactory.getLogger(ImportExecutor.class);
 
+    /** CSV media type */
     public static final javax.ws.rs.core.MediaType TEXT_CSV_TYPE = MediaType.valueOf("text/csv");
+    /** MS Excel media type */
     public static final javax.ws.rs.core.MediaType VNDMS_EXCEL_TYPE = MediaType.valueOf("application/vnd.ms-excel; q=0.4");
+    /** Fallback media type */
     public static final javax.ws.rs.core.MediaType OCTET_STREAM_TYPE = MediaType.valueOf("application/octet-stream; q=0.1");
+    /** An array of supported CSV media types */
     public static final javax.ws.rs.core.MediaType[] CSV_MEDIA_TYPES = { TEXT_CSV_TYPE, VNDMS_EXCEL_TYPE, OCTET_STREAM_TYPE };
+    /** An array of supported RDF media types */
     public static final javax.ws.rs.core.MediaType[] RDF_MEDIA_TYPES = Stream.concat(MediaTypes.READABLE.get(Model.class).stream(), MediaTypes.READABLE.get(Dataset.class).stream()).
         collect(Collectors.toList()).
         toArray(new javax.ws.rs.core.MediaType[0]);
 
-    private final ExecutorService threadPool;
+    private final ExecutorService execService;
 
-    public Executor(ExecutorService threadPool)
+    /**
+     * Construct executor from thread pool.
+     * 
+     * @param execService thread pool service
+     */
+    public ImportExecutor(ExecutorService execService)
     {
-        this.threadPool = threadPool;
+        this.execService = execService;
     }
     
+    /**
+     * Executes CSV import.
+     * 
+     * @param csvImport CSV import resource
+     * @param service application's SPARQL service
+     * @param adminService admin application's SPARQL service
+     * @param baseURI application's base URI
+     * @param dataManager RDF data manager
+     * @param graphStoreClient GSP client
+     */
     public void start(CSVImport csvImport, Service service, Service adminService, String baseURI, DataManager dataManager, GraphStoreClient graphStoreClient)
     {
         if (csvImport == null) throw new IllegalArgumentException("CSVImport cannot be null");
@@ -111,6 +133,17 @@ public class Executor
             thenAcceptAsync(success(csvImport, provImport, service, adminService, dataManager), getExecutorService()).
             exceptionally(failure(csvImport, provImport, service));
     }
+
+    /**
+     * Executes RDF import.
+     * 
+     * @param rdfImport RDF import resource
+     * @param service application's SPARQL service
+     * @param adminService admin application's SPARQL service
+     * @param baseURI application's base URI
+     * @param dataManager RDF data manager
+     * @param graphStoreClient GSP client
+     */
 
     public void start(RDFImport rdfImport, Service service, Service adminService, String baseURI, DataManager dataManager, GraphStoreClient graphStoreClient)
     {
@@ -140,6 +173,16 @@ public class Executor
             exceptionally(failure(rdfImport, provImport, service));
     }
     
+    /**
+     * Invoked when CSV import completes successfully.
+     * 
+     * @param csvImport import resource
+     * @param provImport provenance resource
+     * @param service application's SPARQL service
+     * @param adminService admin application's SPARQL service
+     * @param dataManager RDF data manager
+     * @return consumer of the RDF output
+     */
     protected Consumer<CSVGraphStoreOutput> success(final CSVImport csvImport, final Resource provImport, final Service service, final Service adminService, final DataManager dataManager)
     {
         return (CSVGraphStoreOutput output) ->
@@ -159,6 +202,16 @@ public class Executor
         };
     }
     
+    /**
+     * Invoked when RDF import completes successfully.
+     * 
+     * @param rdfImport import resource
+     * @param provImport provenance resource
+     * @param service application's SPARQL service
+     * @param adminService admin application's SPARQL service
+     * @param dataManager RDF data manager
+     * @return consumer of the RDF output
+     */
     protected Consumer<RDFGraphStoreOutput> success(final RDFImport rdfImport, final Resource provImport, final Service service, final Service adminService, final DataManager dataManager)
     {
         return (RDFGraphStoreOutput output) ->
@@ -186,6 +239,14 @@ public class Executor
         };
     }
 
+    /**
+     * Invoked when RDF import failes to complete.
+     * 
+     * @param importInst import resource
+     * @param provImport provenance resource
+     * @param service application's SPARQL service
+     * @return void function
+     */
     protected Function<Throwable, Void> failure(final Import importInst, final Resource provImport, final Service service)
     {
         return new Function<Throwable, Void>()
@@ -248,6 +309,12 @@ public class Executor
         };
     }
 
+    /**
+     * Appends provenance metadata to the graph of the import.
+     * 
+     * @param provImport import resource
+     * @param accessor GSP graph accessor
+     */
     protected void appendProvGraph(Resource provImport, DatasetAccessor accessor)
     {
         URI graphURI = UriBuilder.fromUri(provImport.getURI()).fragment(null).build(); // skip fragment from the Import URI to get its graph URI
@@ -257,29 +324,60 @@ public class Executor
         accessor.add(graphURI.toString(), provImport.getModel());
     }
 
+    /**
+     * Returns output writer for CSV imports.
+     * 
+     * @param imp import resource
+     * @param graphStoreClient GSP client
+     * @param baseURI base URI
+     * @param query transformation query
+     * @return function
+     */
     protected Function<Response, CSVGraphStoreOutput> getStreamRDFOutputWriter(CSVImport imp, GraphStoreClient graphStoreClient, String baseURI, Query query)
     {
         return new CSVGraphStoreOutputWriter(graphStoreClient, baseURI, query, imp.getDelimiter());
     }
 
+    /**
+     * Returns output writer for RDF imports.
+     * 
+     * @param imp import resource
+     * @param graphStoreClient GSP client
+     * @param baseURI base URI
+     * @param query transformation query
+     * @return function
+     */
     protected Function<Response, RDFGraphStoreOutput> getStreamRDFOutputWriter(RDFImport imp, GraphStoreClient graphStoreClient, String baseURI, Query query)
     {
         return new StreamRDFOutputWriter(graphStoreClient, baseURI, query, imp.getGraphName() != null ? imp.getGraphName().getURI() : null);
     }
 
+    /**
+     * Bans URL from Varnish proxy cache.
+     * 
+     * @param dataManager RDF data manager
+     * @param proxy URI resource of the proxy cache
+     * @param url URL to be banned
+     * @return response from Varnish
+     */
     public Response ban(DataManager dataManager, Resource proxy, String url)
     {
         if (url == null) throw new IllegalArgumentException("Resource cannot be null");
         
         // create new Client instance, otherwise ApacheHttpClient reuses connection and Varnish ignores BAN request
         return dataManager.getClient().target(proxy.getURI()).request().
-            header("X-Escaped-Request-URI", UriComponent.encode(url, UriComponent.Type.UNRESERVED)).
+            header(BackendInvalidationFilter.HEADER_NAME, UriComponent.encode(url, UriComponent.Type.UNRESERVED)).
             method("BAN", Response.class);
     }
     
+    /**
+     * Returns executor service that contains a thread pool.
+     * 
+     * @return service
+     */
     protected ExecutorService getExecutorService()
     {
-        return threadPool;
+        return execService;
     }
     
 }
