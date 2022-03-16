@@ -134,14 +134,13 @@
                      
                      <p>We will use the following SPARQL <code>CONSTRUCT</code> query as a <a href="../../reference/administration/model/#constructors" target="_blank">constructor</a> for our <samp>Concept</samp> class and save it in a file under <samp>queries/construct-concept.rq</samp>.</p>
                      
-                     <pre>PREFIX :     &lt;ns/domain#&gt;
-PREFIX skos: &lt;http://www.w3.org/2004/02/skos/core#&gt;
+                     <pre>PREFIX skos: &lt;http://www.w3.org/2004/02/skos/core#&gt;
 PREFIX xsd:  &lt;http://www.w3.org/2001/XMLSchema#&gt;
 
 CONSTRUCT
 {
-?this skos:inScheme [ a :ConceptScheme ] ;
-    skos:topConceptOf [ a :ConceptScheme ] ;
+  ?this skos:inScheme [ a skos:ConceptScheme ] ;
+    skos:topConceptOf [ a skos:ConceptScheme ] ;
     skos:prefLabel [ a xsd:string ] ;
     skos:altLabel [ a xsd:string ] ;
     skos:hiddenLabel [ a xsd:string ] ;
@@ -153,18 +152,18 @@ CONSTRUCT
     skos:example [ a xsd:string ] ;
     skos:historyNote [ a xsd:string ] ;
     skos:scopeNote [ a xsd:string ] ;
-    skos:semanticRelation [ a :Concept ] ;
-    skos:broader [ a :Concept ] ;
-    skos:narrower [ a :Concept ] ;
-    skos:related [ a :Concept ] ;
-    skos:broaderTransitive [ a :Concept ] ;
-    skos:narrowerTransitive [ a :Concept ] ;
-    skos:mappingRelation [ a :Concept ] ;
-    skos:broadMatch [ a :Concept ] ;
-    skos:narrowMatch [ a :Concept ] ;
-    skos:relatedMatch [ a :Concept ] ;
-    skos:exactMatch [ a :Concept ] ;
-    skos:closeMatch [ a :Concept ] .
+    skos:semanticRelation [ a skos:Concept ] ;
+    skos:broader [ a skos:Concept ] ;
+    skos:narrower [ a skos:Concept ] ;
+    skos:related [ a skos:Concept ] ;
+    skos:broaderTransitive [ a skos:Concept ] ;
+    skos:narrowerTransitive [ a skos:Concept ] ;
+    skos:mappingRelation [ a skos:Concept ] ;
+    skos:broadMatch [ a skos:Concept ] ;
+    skos:narrowMatch [ a skos:Concept ] ;
+    skos:relatedMatch [ a skos:Concept ] ;
+    skos:exactMatch [ a skos:Concept ] ;
+    skos:closeMatch [ a skos:Concept ] .
 }
 WHERE {}</pre>
                      
@@ -191,7 +190,7 @@ WHERE {}</pre>
                                     
                                     <li>Click on <samp>CONSTRUCT</samp> in the drop-down list that appears</li>
                                     
-                                    <li>Switch the <samp>Blank node</samp> dropdown to <samp>URI</samp> and enter <samp>https://localhost:4443/ns/domain#ConstructConcept</samp></li>
+                                    <li>Switch the <samp>Blank node</samp> dropdown to <samp>URI</samp> and enter <samp>https://localhost:4443/admin/model/ontologies/namespace/#ConstructConcept</samp></li>
                                     
                                     <li>Fill out the mandatory fields in the form:
                                        
@@ -223,13 +222,14 @@ WHERE {}</pre>
 pushd . &amp;&amp; cd "$SCRIPT_ROOT"/admin/model
 
 ./create-construct.sh \
--b "${base}admin/" \
--f "$cert_pem_file" \
--p "$cert_password" \
---uri "${base}ns/domain#ConstructConcept" \
---label "Construct concept" \
---slug construct-concept \
---query-file "$pwd/queries/construct-concept.rq"
+  -b "${base}admin/" \
+  -f "$cert_pem_file" \
+  -p "$cert_password" \
+  --uri "${base}admin/model/ontologies/namespace/#ConstructConcept" \
+  --label "Construct concept" \
+  --slug construct-concept \
+  --query-file "$pwd/queries/construct-concept.rq" \
+  "${base}admin/model/ontologies/namespace/"
 
 popd</pre>
                                  </div>
@@ -240,97 +240,6 @@ popd</pre>
                      <p>Follow the same steps for <samp>Concept scheme</samp>.</p>
                      
                      <p class="lead"><a href="../../reference/administration/model/#constructors" target="_blank">Read more about constructors.</a></p>
-                     </div>
-                  
-                  <div>
-                     
-                     <h2 id="create-classes">Create classes</h2>
-                     
-                     <div class="tabbable">
-                        
-                        <ul class="nav nav-tabs">
-                           
-                           <li class="active"><a>User interface</a></li>
-                           
-                           <li><a>Command line interface</a></li>
-                           </ul>
-                        
-                        <div class="tab-content">
-                           
-                           <div class="tab-pane active">
-                              
-                              <div>
-                                 
-                                 <p>In the administration application, follow these steps to create the concept class:</p>
-                                 
-                                 <ol>
-                                    
-                                    <li>Click the <span class="btn btn-primary">Create</span> dropdown in the top-left corner</li>
-                                    
-                                    <li>Click on <samp>Class</samp> in the drop-down list that appears</li>
-                                    
-                                    <li>Switch the <samp>Blank node</samp> dropdown to <samp>URI</samp> and enter <samp>https://localhost:4443/ns/domain#Concept</samp></li>
-                                    
-                                    <li>Fill out the mandatory fields in the form:
-                                       
-                                       <dl>
-                                          
-                                          <dt>Label</dt>
-                                          
-                                          <dd>Enter <samp>Concept</samp></dd>
-                                          
-                                          <dd>Select <samp>Domain</samp> from the list — this is the ontology in which the class is defined</dd>
-                                          
-                                          <dt>Constructor</dt>
-                                          
-                                          <dd>Type <samp>Construct concept</samp> into the input (which provides autocomplete)</dd>
-                                          
-                                          <dd>Select <samp>Construct concept</samp> from the list — this is the query we created beforehand</dd>
-                                          </dl>
-                                       </li>
-                                    
-                                    <li>Click <span class="btn btn-primary">Save</span></li>
-                                    </ol>
-                                 </div>
-                              </div>
-                           
-                           <div class="tab-pane">
-                              
-                              <div>
-                                 
-                                 <pre>pushd . &amp;&amp; cd "$SCRIPT_ROOT"/admin/model
-
-./create-class.sh \
--b "${base}" \
--f "${cert_pem_file}" \
--p "${cert_password}" \
---uri "${base}ns/domain#Concept" \
---label "Concept" \
---slug concept \
---constructor "${base}ns/domain#ConstructConcept" \
---sub-class-of "${base}ns/domain#TopicOfConceptItem" \
---path "{isPrimaryTopicOf.slug}/" \
---fragment "this"
-
-./create-class.sh \
--b "${base}" \
--f "${cert_pem_file}" \
--p "${cert_password}" \
---uri "${base}ns/domain#ConceptItem" \
---label "Concept item" \
---slug concept-item \
---sub-class-of "${base}ns/domain/default#Item" \
---sub-class-of "${base}ns/domain#ItemOfConceptContainer"
-
-popd</pre>
-                                 </div>
-                              </div>
-                           </div>
-                        </div>
-                     
-                     <p>Follow the same steps for <samp>Concept scheme</samp>.</p>
-                     
-                     <p class="lead"><a href="../../reference/administration/model/#classes" target="_blank">Read more about classes.</a></p>
                      </div>
                   
                   <div>
@@ -395,13 +304,14 @@ popd</pre>
                                  <pre>pushd . &amp;&amp; cd "$SCRIPT_ROOT"/admin/model
 
 ./create-property-constraint.sh \
--b "${base}" \
--f "${cert_pem_file}" \
--p "${cert_password}" \
---uri "https://localhost:4443/ns/domain#MissingPrefLabel" \
---label "Missing skos:prefLabel" \
---slug missing-pref-label \
---property "http://www.w3.org/2004/02/skos/core#prefLabel"
+  -b "${base}" \
+  -f "${cert_pem_file}" \
+  -p "${cert_password}" \
+  --uri "https://localhost:4443/admin/model/ontologies/namespace/#MissingPrefLabel" \
+  --label "Missing skos:prefLabel" \
+  --slug missing-pref-label \
+  --property "http://www.w3.org/2004/02/skos/core#prefLabel" \
+  "${base}admin/model/ontologies/namespace/"
 
 popd</pre>
                                  </div>
@@ -410,6 +320,86 @@ popd</pre>
                         </div>
                      
                      <p class="lead"><a href="../../reference/administration/model/#constraints" target="_blank">Read more about constraints.</a></p>
+                     </div>
+                  
+                  <div>
+                     
+                     <h2 id="create-classes">Create classes</h2>
+                     
+                     <div class="tabbable">
+                        
+                        <ul class="nav nav-tabs">
+                           
+                           <li class="active"><a>User interface</a></li>
+                           
+                           <li><a>Command line interface</a></li>
+                           </ul>
+                        
+                        <div class="tab-content">
+                           
+                           <div class="tab-pane active">
+                              
+                              <div>
+                                 
+                                 <p>In the administration application, follow these steps to create the concept class:</p>
+                                 
+                                 <ol>
+                                    
+                                    <li>Click the <span class="btn btn-primary">Create</span> dropdown in the top-left corner</li>
+                                    
+                                    <li>Click on <samp>Class</samp> in the drop-down list that appears</li>
+                                    
+                                    <li>Switch the <samp>Blank node</samp> dropdown to <samp>URI</samp> and enter <samp>https://localhost:4443/admin/model/ontologies/namespace/#Concept</samp></li>
+                                    
+                                    <li>Fill out the mandatory fields in the form:
+                                       
+                                       <dl>
+                                          
+                                          <dt>Label</dt>
+                                          
+                                          <dd>Enter <samp>Concept</samp></dd>
+                                          
+                                          <dd>Select <samp>Domain</samp> from the list — this is the ontology in which the class is defined</dd>
+                                          
+                                          <dt>Constructor</dt>
+                                          
+                                          <dd>Type <samp>Construct concept</samp> into the input (which provides autocomplete)</dd>
+                                          
+                                          <dd>Select <samp>Construct concept</samp> from the list — this is the query we created beforehand</dd>
+                                          </dl>
+                                       </li>
+                                    
+                                    <li>Click <span class="btn btn-primary">Save</span></li>
+                                    </ol>
+                                 </div>
+                              </div>
+                           
+                           <div class="tab-pane">
+                              
+                              <div>
+                                 
+                                 <pre>pushd . &amp;&amp; cd "$SCRIPT_ROOT"/admin/model
+
+./create-class.sh \
+  -b "${base}" \
+  -f "${cert_pem_file}" \
+  -p "${cert_password}" \
+  --uri "${base}admin/model/ontologies/namespace/#Concept" \
+  --label "Concept" \
+  --slug concept \
+  --constructor "${base}admin/model/ontologies/namespace/#ConstructConcept" \
+  --constraint "${base}admin/model/ontologies/namespace/#MissingPrefLabel" \
+  "${base}admin/model/ontologies/namespace/"
+
+popd</pre>
+                                 </div>
+                              </div>
+                           </div>
+                        </div>
+                     
+                     <p>Follow the same steps for <samp>Concept scheme</samp>.</p>
+                     
+                     <p class="lead"><a href="../../reference/administration/model/#classes" target="_blank">Read more about classes.</a></p>
                      </div>
                   </div>
             </main>
