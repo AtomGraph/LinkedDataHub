@@ -51,6 +51,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.query.Query;
+import org.apache.jena.query.Syntax;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Property;
@@ -117,7 +118,7 @@ public class ImportExecutor
         Resource provImport = ModelFactory.createDefaultModel().createResource(csvImport.getURI()).
                 addProperty(PROV.startedAtTime, csvImport.getModel().createTypedLiteral(Calendar.getInstance()));
         
-        QueryLoader queryLoader = new QueryLoader(csvImport.getQuery().getURI(), baseURI, dataManager);
+        QueryLoader queryLoader = new QueryLoader(csvImport.getQuery().getURI(), baseURI, Syntax.syntaxARQ, dataManager);
         final Query query = queryLoader.get();
         
         Supplier<Response> fileSupplier = new ClientResponseSupplier(csvImport.getFile().getURI(), CSV_MEDIA_TYPES, dataManager);
@@ -149,7 +150,7 @@ public class ImportExecutor
         
         final Query query;
         if (rdfImport.getQuery() != null) // query is optional on RDFImport
-            query = new QueryLoader(rdfImport.getQuery().getURI(), baseURI, dataManager).get();
+            query = new QueryLoader(rdfImport.getQuery().getURI(), baseURI, Syntax.syntaxARQ, dataManager).get();
         else
             query = null;
         

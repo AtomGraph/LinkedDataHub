@@ -22,6 +22,7 @@ import java.util.function.Supplier;
 import javax.ws.rs.core.Response;
 import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryFactory;
+import org.apache.jena.query.Syntax;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
 import org.slf4j.Logger;
@@ -40,6 +41,7 @@ public class QueryLoader implements Supplier<Query>
 
     private final String uri;
     private final String baseURI;
+    private final Syntax syntax;
     private final DataManager dataManager;
     
     /**
@@ -47,12 +49,14 @@ public class QueryLoader implements Supplier<Query>
      * 
      * @param uri query URI
      * @param baseURI base URI
+     * @param syntax query syntax
      * @param dataManager RDF data manager
      */
-    public QueryLoader(String uri, String baseURI, DataManager dataManager)
+    public QueryLoader(String uri, String baseURI, Syntax syntax, DataManager dataManager)
     {
         this.uri = uri;
         this.baseURI = baseURI;
+        this.syntax = syntax;
         this.dataManager = dataManager;
     }
     
@@ -62,7 +66,7 @@ public class QueryLoader implements Supplier<Query>
         try (Response cr = getDataManager().load(getURI()))
         {
             Resource queryRes = cr.readEntity(Model.class).getResource(getURI());
-            return QueryFactory.create(queryRes.getRequiredProperty(SP.text).getString(), getBaseURI());
+            return QueryFactory.create(queryRes.getRequiredProperty(SP.text).getString(), getBaseURI(), getSyntax());
         }
     }
 
@@ -77,7 +81,7 @@ public class QueryLoader implements Supplier<Query>
     }
 
     /**
-     * Returns base URI.
+     * Returns query base URI.
      * 
      * @return base URI
      */
@@ -86,6 +90,16 @@ public class QueryLoader implements Supplier<Query>
         return baseURI;
     }
 
+    /**
+     * Returns SPARQL syntax.
+     * 
+     * @return syntax
+     */
+    public Syntax getSyntax()
+    {
+        return syntax;
+    }
+    
     /**
      * Returns RDF data manager.
      * 
