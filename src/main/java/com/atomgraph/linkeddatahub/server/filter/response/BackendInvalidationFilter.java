@@ -83,6 +83,7 @@ public class BackendInvalidationFilter implements ContainerResponseFilter
             
             if (req.getUriInfo().getAbsolutePath().toString().endsWith("/"))
             {
+                ban(getApplication().getService().getProxy(), req.getUriInfo().getAbsolutePath().toString()).close();
                 // ban URI from authorization query results
                 ban(getAdminApplication().getService().getProxy(), req.getUriInfo().getAbsolutePath().toString()).close();
                 

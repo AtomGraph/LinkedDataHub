@@ -18,6 +18,7 @@ package com.atomgraph.linkeddatahub.imports;
 
 import com.atomgraph.client.MediaTypes;
 import com.atomgraph.client.util.DataManager;
+import com.atomgraph.client.vocabulary.LDT;
 import com.atomgraph.core.client.GraphStoreClient;
 import com.atomgraph.core.model.DatasetAccessor;
 import com.atomgraph.linkeddatahub.imports.stream.RDFGraphStoreOutput;
@@ -50,6 +51,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import org.apache.jena.query.Dataset;
+import org.apache.jena.query.ParameterizedSparqlString;
 import org.apache.jena.query.Query;
 import org.apache.jena.query.Syntax;
 import org.apache.jena.rdf.model.Model;
@@ -106,11 +108,11 @@ public class ImportExecutor
      * @param csvImport CSV import resource
      * @param service application's SPARQL service
      * @param adminService admin application's SPARQL service
-     * @param baseURI application's base URI
+     * @param appBaseURI application's base URI
      * @param dataManager RDF data manager
      * @param graphStoreClient GSP client
      */
-    public void start(CSVImport csvImport, Service service, Service adminService, String baseURI, DataManager dataManager, GraphStoreClient graphStoreClient)
+    public void start(CSVImport csvImport, Service service, Service adminService, String appBaseURI, DataManager dataManager, GraphStoreClient graphStoreClient)
     {
         if (csvImport == null) throw new IllegalArgumentException("CSVImport cannot be null");
         if (log.isDebugEnabled()) log.debug("Submitting new import to thread pool: {}", csvImport.toString());
@@ -118,13 +120,16 @@ public class ImportExecutor
         Resource provImport = ModelFactory.createDefaultModel().createResource(csvImport.getURI()).
                 addProperty(PROV.startedAtTime, csvImport.getModel().createTypedLiteral(Calendar.getInstance()));
         
-        QueryLoader queryLoader = new QueryLoader(csvImport.getQuery().getURI(), baseURI, Syntax.syntaxARQ, dataManager);
-        final Query query = queryLoader.get();
+        String queryBaseURI = csvImport.getFile().getURI(); // file URI becomes the query base URI
+        QueryLoader queryLoader = new QueryLoader(csvImport.getQuery().getURI(), queryBaseURI, Syntax.syntaxARQ, dataManager);
+        ParameterizedSparqlString pss = new ParameterizedSparqlString(queryLoader.get().toString());
+        pss.setIri(LDT.base.getLocalName(), appBaseURI); // app's base URI becomes $base
+        final Query query = pss.asQuery();
         
         Supplier<Response> fileSupplier = new ClientResponseSupplier(csvImport.getFile().getURI(), CSV_MEDIA_TYPES, dataManager);
         // skip validation because it will be done during final POST anyway
         CompletableFuture.supplyAsync(fileSupplier, getExecutorService()).thenApplyAsync(getStreamRDFOutputWriter(csvImport,
-                graphStoreClient, baseURI, query), getExecutorService()).
+                graphStoreClient, appBaseURI, query), getExecutorService()).
             thenAcceptAsync(success(csvImport, provImport, service, adminService, dataManager), getExecutorService()).
             exceptionally(failure(csvImport, provImport, service));
     }
@@ -135,29 +140,35 @@ public class ImportExecutor
      * @param rdfImport RDF import resource
      * @param service application's SPARQL service
      * @param adminService admin application's SPARQL service
-     * @param baseURI application's base URI
+     * @param appBaseURI application's base URI
      * @param dataManager RDF data manager
      * @param graphStoreClient GSP client
      */
 
-    public void start(RDFImport rdfImport, Service service, Service adminService, String baseURI, DataManager dataManager, GraphStoreClient graphStoreClient)
+    public void start(RDFImport rdfImport, Service service, Service adminService, String appBaseURI, DataManager dataManager, GraphStoreClient graphStoreClient)
     {
         if (rdfImport == null) throw new IllegalArgumentException("RDFImport cannot be null");
         if (log.isDebugEnabled()) log.debug("Submitting new import to thread pool: {}", rdfImport.toString());
         
         Resource provImport = ModelFactory.createDefaultModel().createResource(rdfImport.getURI()).
                 addProperty(PROV.startedAtTime, rdfImport.getModel().createTypedLiteral(Calendar.getInstance()));
-        
+
+        String queryBaseURI = rdfImport.getFile().getURI(); // file URI becomes the query base URI
+        QueryLoader queryLoader = new QueryLoader(rdfImport.getQuery().getURI(), queryBaseURI, Syntax.syntaxARQ, dataManager);
         final Query query;
         if (rdfImport.getQuery() != null) // query is optional on RDFImport
-            query = new QueryLoader(rdfImport.getQuery().getURI(), baseURI, Syntax.syntaxARQ, dataManager).get();
+        {
+            ParameterizedSparqlString pss = new ParameterizedSparqlString(queryLoader.get().toString());
+            pss.setIri(LDT.base.getLocalName(), appBaseURI); // app's base URI becomes $base
+            query = pss.asQuery();
+        }
         else
             query = null;
         
         Supplier<Response> fileSupplier = new ClientResponseSupplier(rdfImport.getFile().getURI(), RDF_MEDIA_TYPES, dataManager);
         // skip validation because it will be done during final POST anyway
         CompletableFuture.supplyAsync(fileSupplier, getExecutorService()).thenApplyAsync(getStreamRDFOutputWriter(rdfImport,
-                graphStoreClient, baseURI, query), getExecutorService()).
+                graphStoreClient, appBaseURI, query), getExecutorService()).
             thenAcceptAsync(success(rdfImport, provImport, service, adminService, dataManager), getExecutorService()).
             exceptionally(failure(rdfImport, provImport, service));
     }
