@@ -60,6 +60,8 @@ public class BackendInvalidationFilter implements ContainerResponseFilter
         {
             URI location = (URI)resp.getHeaders().get(HttpHeaders.LOCATION).get(0);
             URI parentURI = location.relativize(URI.create(".."));
+            
+            ban(getApplication().getService().getProxy(), location.toString()).close();
             // ban parent resource URI in order to avoid stale children data in containers
             ban(getApplication().getService().getProxy(), getApplication().getBaseURI().relativize(parentURI).toString()).close(); // URIs can be relative in queries
         }
@@ -85,6 +87,7 @@ public class BackendInvalidationFilter implements ContainerResponseFilter
             if (!req.getUriInfo().getAbsolutePath().equals(getApplication().getBaseURI()))
             {
                 URI parentURI = req.getUriInfo().getAbsolutePath().relativize(URI.create(".."));
+                
                 ban(getApplication().getService().getProxy(), parentURI.toString()).close();
                 ban(getApplication().getService().getProxy(), getApplication().getBaseURI().relativize(parentURI).toString()).close(); // URIs can be relative in queries
             }
