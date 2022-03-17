@@ -28,6 +28,7 @@ import javax.ws.rs.client.Client;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerResponseContext;
 import javax.ws.rs.container.ContainerResponseFilter;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import org.apache.jena.rdf.model.Resource;
 import org.glassfish.jersey.uri.UriComponent;
@@ -55,7 +56,13 @@ public class BackendInvalidationFilter implements ContainerResponseFilter
     {
         if (getAdminApplication().getService().getProxy() == null) return;
         
-        if (req.getMethod().equals(HttpMethod.POST) || req.getMethod().equals(HttpMethod.PUT) || req.getMethod().equals(HttpMethod.DELETE) || req.getMethod().equals(HttpMethod.PATCH))
+        if (req.getMethod().equals(HttpMethod.POST) && resp.getHeaderString(HttpHeaders.LOCATION) != null)
+        {
+            URI location = (URI)resp.getHeaders().get(HttpHeaders.LOCATION).get(0);
+            ban(getApplication().getService().getProxy(), location.toString()).close();
+        }
+        
+        if (req.getMethod().equals(HttpMethod.PUT) || req.getMethod().equals(HttpMethod.DELETE) || req.getMethod().equals(HttpMethod.PATCH))
         {
             // ban all admin/ entries when the admin dataset is changed - not perfect, but works
             if (!getAdminApplication().getBaseURI().relativize(req.getUriInfo().getAbsolutePath()).isAbsolute()) // URL is relative to the admin app's base URI
