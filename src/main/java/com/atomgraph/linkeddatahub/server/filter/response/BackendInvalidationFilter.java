@@ -59,7 +59,9 @@ public class BackendInvalidationFilter implements ContainerResponseFilter
         if (req.getMethod().equals(HttpMethod.POST) && resp.getHeaderString(HttpHeaders.LOCATION) != null)
         {
             URI location = (URI)resp.getHeaders().get(HttpHeaders.LOCATION).get(0);
-            ban(getApplication().getService().getProxy(), location.toString()).close();
+            URI parentURI = location.relativize(URI.create(".."));
+            // ban parent resource URI in order to avoid stale children data in containers
+            ban(getApplication().getService().getProxy(), getApplication().getBaseURI().relativize(parentURI).toString()).close(); // URIs can be relative in queries
         }
         
         if (req.getMethod().equals(HttpMethod.PUT) || req.getMethod().equals(HttpMethod.DELETE) || req.getMethod().equals(HttpMethod.PATCH))
@@ -73,7 +75,10 @@ public class BackendInvalidationFilter implements ContainerResponseFilter
 //                ban(getAdminApplication().getService().getProxy(), ACL.AuthenticatedAgent.getURI()).close();
                 ban(getAdminApplication().getService().getProxy(), "acl:AuthenticatedAgent").close();
             }
+        }
             
+        if (req.getMethod().equals(HttpMethod.POST) || req.getMethod().equals(HttpMethod.PUT) || req.getMethod().equals(HttpMethod.DELETE) || req.getMethod().equals(HttpMethod.PATCH))
+        {
             // Varnish VCL BANs req.url after 200/201/204 responses
             
             // ban parent resource URIs in order to avoid stale children data in containers
