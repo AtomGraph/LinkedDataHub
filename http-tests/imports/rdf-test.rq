@@ -11,7 +11,7 @@ CONSTRUCT
         ?concept ?p ?o .
         ?item a dh:Item ;
             foaf:primaryTopic ?concept ;
-            sioc:has_container ?this ;
+            sioc:has_container <concepts/> ;
             dh:slug ?id ;
             dct:title ?prefLabel .
     }
@@ -22,7 +22,7 @@ WHERE
     {
         ?concept a skos:Concept .
         BIND (STRAFTER(STR(?concept), "http://vocabularies.unesco.org/thesaurus/") AS ?id)
-        BIND (uri(concat(str(?this), encode_for_uri(?id), "/")) AS ?item)
+        BIND (uri(concat(str(<concepts/>), encode_for_uri(?id), "/")) AS ?item)
 
         ?concept ?p ?o
         OPTIONAL
