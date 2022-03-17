@@ -20,9 +20,21 @@ pushd . > /dev/null && cd "$SCRIPT_ROOT/admin/acl"
 
 popd > /dev/null
 
+pushd . > /dev/null && cd "$SCRIPT_ROOT"
+
+# create container
+
+container=$(./create-container.sh \
+  -f "$AGENT_CERT_FILE" \
+  -p "$AGENT_CERT_PWD" \
+  -b "$END_USER_BASE_URL" \
+  --title "Concepts" \
+  --slug "concepts" \
+  --parent "$END_USER_BASE_URL")
+
 # import RDF
 
-pushd . > /dev/null && cd "$SCRIPT_ROOT/imports"
+cd imports
 
 ./import-rdf.sh \
   -f "$AGENT_CERT_FILE" \

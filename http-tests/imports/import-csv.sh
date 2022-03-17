@@ -25,25 +25,24 @@ pushd . > /dev/null && cd "$SCRIPT_ROOT"
 # create container
 
 container=$(./create-container.sh \
--f "$AGENT_CERT_FILE" \
--p "$AGENT_CERT_PWD" \
--b "$END_USER_BASE_URL" \
---title "Test" \
---slug "test" \
---parent "$END_USER_BASE_URL")
+  -f "$AGENT_CERT_FILE" \
+  -p "$AGENT_CERT_PWD" \
+  -b "$END_USER_BASE_URL" \
+  --title "Test" \
+  --slug "test" \
+  --parent "$END_USER_BASE_URL")
 
 # import CSV
 
 cd imports
 
 ./import-csv.sh \
--f "$AGENT_CERT_FILE" \
--p "$AGENT_CERT_PWD" \
--b "$END_USER_BASE_URL" \
---title "Test" \
---query-file "$pwd/csv-test.rq" \
---file "$pwd/test.csv" \
---action "$container"
+  -f "$AGENT_CERT_FILE" \
+  -p "$AGENT_CERT_PWD" \
+  -b "$END_USER_BASE_URL" \
+  --title "Test" \
+  --query-file "$pwd/csv-test.rq" \
+  --file "$pwd/test.csv"
 
 popd > /dev/null
 
