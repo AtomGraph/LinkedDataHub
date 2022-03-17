@@ -34,11 +34,4 @@ public interface Import extends Resource
      */
     Resource getFile();
     
-    /**
-     * Returns the target container.
-     * 
-     * @return container resource
-     */
-    Resource getContainer();
-    
 }

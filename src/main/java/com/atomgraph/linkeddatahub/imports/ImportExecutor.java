@@ -35,7 +35,6 @@ import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
 import com.atomgraph.linkeddatahub.vocabulary.PROV;
 import com.atomgraph.linkeddatahub.vocabulary.VoID;
 import com.atomgraph.server.vocabulary.HTTP;
-import com.atomgraph.spinrdf.vocabulary.SPIN;
 import com.univocity.parsers.common.TextParsingException;
 import java.net.URI;
 import java.util.Calendar;
@@ -51,9 +50,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import org.apache.jena.query.Dataset;
-import org.apache.jena.query.ParameterizedSparqlString;
 import org.apache.jena.query.Query;
-import org.apache.jena.query.QuerySolutionMap;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Property;
@@ -121,10 +118,7 @@ public class ImportExecutor
                 addProperty(PROV.startedAtTime, csvImport.getModel().createTypedLiteral(Calendar.getInstance()));
         
         QueryLoader queryLoader = new QueryLoader(csvImport.getQuery().getURI(), baseURI, dataManager);
-        QuerySolutionMap qsm = new QuerySolutionMap();
-        qsm.add(SPIN.THIS_VAR_NAME, csvImport.getContainer()); // target container becomes ?this
-        ParameterizedSparqlString pss = new ParameterizedSparqlString(queryLoader.get().toString(), qsm, baseURI);
-        final Query query = pss.asQuery();
+        final Query query = queryLoader.get();
         
         Supplier<Response> fileSupplier = new ClientResponseSupplier(csvImport.getFile().getURI(), CSV_MEDIA_TYPES, dataManager);
         // skip validation because it will be done during final POST anyway
@@ -155,13 +149,7 @@ public class ImportExecutor
         
         final Query query;
         if (rdfImport.getQuery() != null) // query is optional on RDFImport
-        {
-            QueryLoader queryLoader = new QueryLoader(rdfImport.getQuery().getURI(), baseURI, dataManager);
-            QuerySolutionMap qsm = new QuerySolutionMap();
-            qsm.add(SPIN.THIS_VAR_NAME, rdfImport.getContainer()); // target container becomes ?this
-            ParameterizedSparqlString pss = new ParameterizedSparqlString(queryLoader.get().toString(), qsm, baseURI);
-            query = pss.asQuery();
-        }
+            query = new QueryLoader(rdfImport.getQuery().getURI(), baseURI, dataManager).get();
         else
             query = null;
         
@@ -195,10 +183,6 @@ public class ImportExecutor
             provImport.addProperty(PROV.endedAtTime, provImport.getModel().createTypedLiteral(Calendar.getInstance()));
             
             appendProvGraph(provImport, service.getDatasetAccessor());
-            
-            // purge cache entries that include the target container URL
-            if (service.getProxy() != null) ban(dataManager, service.getProxy(), csvImport.getContainer().getURI());
-            if (adminService != null && adminService.getProxy() != null) ban(dataManager, adminService.getProxy(), csvImport.getContainer().getURI());
         };
     }
     
@@ -225,17 +209,11 @@ public class ImportExecutor
             
             appendProvGraph(provImport, service.getDatasetAccessor());
             
-            // purge cache entries that include the target container URL
-            if (service.getProxy() != null)
-            {
-                if (rdfImport.getContainer() != null) ban(dataManager, service.getProxy(), rdfImport.getContainer().getURI());
-                if (rdfImport.getGraphName() != null) ban(dataManager, service.getProxy(), rdfImport.getGraphName().getURI());
-            }
-            if (adminService != null && adminService.getProxy() != null)
-            {
-                if (rdfImport.getContainer() != null) ban(dataManager, adminService.getProxy(), rdfImport.getContainer().getURI());
-                if (rdfImport.getGraphName() != null) ban(dataManager, adminService.getProxy(), rdfImport.getGraphName().getURI());
-            }
+            // purge cache entries that include the named graph URI
+            if (service.getProxy() != null && rdfImport.getGraphName() != null)
+                ban(dataManager, service.getProxy(), rdfImport.getGraphName().getURI());
+            if (adminService != null && adminService.getProxy() != null && rdfImport.getGraphName() != null)
+                ban(dataManager, adminService.getProxy(), rdfImport.getGraphName().getURI());
         };
     }
 

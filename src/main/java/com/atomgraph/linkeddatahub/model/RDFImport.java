@@ -27,7 +27,7 @@ public interface RDFImport extends Import
 {
 
     /**
-     * Returns <code>CONSTRUCT</code> transformation query.
+     * Returns optional <code>CONSTRUCT</code> transformation query.
      * 
      * @return query or null
      */

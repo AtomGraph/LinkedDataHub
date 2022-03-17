@@ -178,6 +178,7 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
 
     /**
      * Creates a new graph URI from the document resource in the request body.
+     * The new graph URI will be relative to the parent container's URI.
      * 
      * @param model input RDF graph
      * @return graph resource or null

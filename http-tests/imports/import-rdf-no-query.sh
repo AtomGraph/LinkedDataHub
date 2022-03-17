@@ -25,25 +25,25 @@ pushd . > /dev/null && cd "$SCRIPT_ROOT"
 # create container
 
 container=$(./create-container.sh \
--f "$AGENT_CERT_FILE" \
--p "$AGENT_CERT_PWD" \
--b "$END_USER_BASE_URL" \
---title "Concepts" \
---slug "concepts" \
---parent "$END_USER_BASE_URL")
+  -f "$AGENT_CERT_FILE" \
+  -p "$AGENT_CERT_PWD" \
+  -b "$END_USER_BASE_URL" \
+  --title "Concepts" \
+  --slug "concepts" \
+  --parent "$END_USER_BASE_URL")
 
 # import RDF
 
 cd imports
 
 ./import-rdf.sh \
--f "$AGENT_CERT_FILE" \
--p "$AGENT_CERT_PWD" \
--b "$END_USER_BASE_URL" \
---title "Test" \
---file "$pwd/test.ttl" \
---file-content-type "text/turtle" \
---graph "$container"
+  -f "$AGENT_CERT_FILE" \
+  -p "$AGENT_CERT_PWD" \
+  -b "$END_USER_BASE_URL" \
+  --title "Test" \
+  --file "$pwd/test.ttl" \
+  --file-content-type "text/turtle" \
+  --graph "$container"
 
 popd > /dev/null
 

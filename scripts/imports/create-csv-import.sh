@@ -15,7 +15,6 @@ print_usage()
     printf "  --description DESCRIPTION            Description of the container (optional)\n"
     printf "  --slug STRING                        String that will be used as URI path segment (optional)\n"
     printf "\n"
-    printf "  --action CONTAINER_URI               URI of the target container\n"
     printf "  --query QUERY_URI                    URI of the CONSTRUCT mapping query\n"
     printf "  --file FILE_URI                      URI of the CSV file\n"
     printf "  --delimiter CHAR                     Delimiter char (default: ',')\n"
@@ -59,11 +58,6 @@ do
         shift # past argument
         shift # past value
         ;;
-        --action)
-        action="$2"
-        shift # past argument
-        shift # past value
-        ;;
         --query)
         query="$2"
         shift # past argument
@@ -103,10 +97,6 @@ if [ -z "$title" ] ; then
     print_usage
     exit 1
 fi
-if [ -z "$action" ] ; then
-    print_usage
-    exit 1
-fi
 if [ -z "$query" ] ; then
     print_usage
     exit 1
@@ -142,7 +132,6 @@ turtle+="@prefix sioc:	<http://rdfs.org/sioc/ns#> .\n"
 turtle+="_:import a ldh:CSVImport .\n"
 turtle+="_:import dct:title \"${title}\" .\n"
 turtle+="_:import spin:query <${query}> .\n"
-turtle+="_:import ldh:action <${action}> .\n"
 turtle+="_:import ldh:file <${file}> .\n"
 turtle+="_:import ldh:delimiter \"${delimiter}\" .\n"
 turtle+="_:item a dh:Item .\n"

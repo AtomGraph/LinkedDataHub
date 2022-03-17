@@ -84,16 +84,5 @@ public class ImportImpl extends ResourceImpl implements Import
     {
         return getPropertyResourceValue(LDH.file);
     }
-    
-    /**
-     * Returns the target container.
-     * 
-     * @return container resource
-     */
-    @Override
-    public Resource getContainer()
-    {
-        return getPropertyResourceValue(LDH.action);
-    }
 
 }

@@ -24,7 +24,6 @@ print_usage()
     printf "  --description DESCRIPTION            Description of the container (optional)\n"
     printf "  --slug STRING                        String that will be used as URI path segment (optional)\n"
     printf "\n"
-    printf "  --action CONTAINER_URI               URI of the target container\n"
     printf "  --query-file ABS_PATH                Absolute path to the text file with the SPARQL query string (optional)\n"
     printf "  --query-doc-slug STRING              String that will be used as the query's URI path segment (optional)\n"
     printf "  --graph GRAPH_URI                    URI of the graph (optional)\n"
@@ -63,11 +62,6 @@ do
         ;;
         --title)
         title="$2"
-        shift # past argument
-        shift # past value
-        ;;
-        --action)
-        action="$2"
         shift # past argument
         shift # past value
         ;;
@@ -173,7 +167,7 @@ popd > /dev/null
 file=$(echo "$file_ntriples" | sed -rn "s/<${file_doc//\//\\/}> <http:\/\/xmlns.com\/foaf\/0.1\/primaryTopic> <(.*)> \./\1/p")
 
 if [ -n "$query" ] ; then
-    ./create-rdf-import.sh -b "$base" -f "$cert_pem_file" -p "$cert_password" --title "$title" --slug "$import_slug" --action "$action" --query "$query" --file "$file" # TO-DO: "${request_base}imports"
+    ./create-rdf-import.sh -b "$base" -f "$cert_pem_file" -p "$cert_password" --title "$title" --slug "$import_slug" --query "$query" --file "$file" # TO-DO: "${request_base}imports"
 else
     ./create-rdf-import.sh -b "$base" -f "$cert_pem_file" -p "$cert_password" --title "$title" --slug "$import_slug" --graph "$graph" --file "$file" # TO-DO: "${request_base}imports"
 fi
