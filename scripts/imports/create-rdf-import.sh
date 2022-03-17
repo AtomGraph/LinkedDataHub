@@ -15,7 +15,6 @@ print_usage()
     printf "  --description DESCRIPTION            Description of the container (optional)\n"
     printf "  --slug STRING                        String that will be used as URI path segment (optional)\n"
     printf "\n"
-    printf "  --action CONTAINER_URI               URI of the target container\n"
     printf "  --query QUERY_URI                    URI of the CONSTRUCT mapping query (optional)\n"
     printf "  --graph GRAPH_URI                    URI of the graph (optional)\n"
     printf "  --file FILE_URI                      URI of the RDF file\n"
@@ -56,11 +55,6 @@ do
         ;;
         --slug)
         slug="$2"
-        shift # past argument
-        shift # past value
-        ;;
-        --action)
-        action="$2"
         shift # past argument
         shift # past value
         ;;
@@ -134,9 +128,6 @@ turtle+="_:item foaf:primaryTopic _:import .\n"
 turtle+="_:item sioc:has_container <${container}> .\n"
 turtle+="_:item dct:title \"${title}\" .\n"
 
-if [ -n "$action" ] ; then
-    turtle+="_:import ldh:action <${action}> .\n"
-fi
 if [ -n "$graph" ] ; then
     turtle+="@prefix sd:	<http://www.w3.org/ns/sparql-service-description#> .\n"
     turtle+="_:import sd:name <${graph}> .\n"

@@ -24,7 +24,6 @@ print_usage()
     printf "  --description DESCRIPTION            Description of the container (optional)\n"
     printf "  --slug STRING                        String that will be used as URI path segment (optional)\n"
     printf "\n"
-    printf "  --action CONTAINER_URI               URI of the target container\n"
     printf "  --query-file ABS_PATH                Absolute path to the text file with the SPARQL query string\n"
     printf "  --query-doc-slug STRING              String that will be used as the query's URI path segment (optional)\n"
     printf "  --file ABS_PATH                      Absolute path to the CSV file\n"
@@ -62,11 +61,6 @@ do
         ;;
         --title)
         title="$2"
-        shift # past argument
-        shift # past value
-        ;;
-        --action)
-        action="$2"
         shift # past argument
         shift # past value
         ;;
@@ -129,10 +123,6 @@ if [ -z "$title" ] ; then
     print_usage
     exit 1
 fi
-if [ -z "$action" ] ; then
-    print_usage
-    exit 1
-fi
 if [ -z "$query_file" ] ; then
     print_usage
     exit 1
@@ -168,4 +158,4 @@ popd > /dev/null
 
 file=$(echo "$file_ntriples" | sed -rn "s/<${file_doc//\//\\/}> <http:\/\/xmlns.com\/foaf\/0.1\/primaryTopic> <(.*)> \./\1/p")
 
-./create-csv-import.sh -b "$base" -f "$cert_pem_file" -p "$cert_password" --title "$title" --slug "$import_slug" --action "$action" --query "$query" --file "$file" --delimiter "," # TO-DO: "${request_base}imports"
+./create-csv-import.sh -b "$base" -f "$cert_pem_file" -p "$cert_password" --title "$title" --slug "$import_slug" --query "$query" --file "$file" --delimiter "," # TO-DO: "${request_base}imports"
