@@ -122,7 +122,7 @@ public class ImportExecutor
         
         String queryBaseURI = csvImport.getFile().getURI(); // file URI becomes the query base URI
         QueryLoader queryLoader = new QueryLoader(csvImport.getQuery().getURI(), queryBaseURI, Syntax.syntaxARQ, dataManager);
-        ParameterizedSparqlString pss = new ParameterizedSparqlString(queryLoader.get().toString());
+        ParameterizedSparqlString pss = new ParameterizedSparqlString(queryLoader.get().toString(), queryBaseURI);
         pss.setIri(LDT.base.getLocalName(), appBaseURI); // app's base URI becomes $base
         final Query query = pss.asQuery();
         
@@ -158,7 +158,7 @@ public class ImportExecutor
         final Query query;
         if (rdfImport.getQuery() != null) // query is optional on RDFImport
         {
-            ParameterizedSparqlString pss = new ParameterizedSparqlString(queryLoader.get().toString());
+            ParameterizedSparqlString pss = new ParameterizedSparqlString(queryLoader.get().toString(), queryBaseURI);
             pss.setIri(LDT.base.getLocalName(), appBaseURI); // app's base URI becomes $base
             query = pss.asQuery();
         }
