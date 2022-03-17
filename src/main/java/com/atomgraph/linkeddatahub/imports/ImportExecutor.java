@@ -129,7 +129,7 @@ public class ImportExecutor
         Supplier<Response> fileSupplier = new ClientResponseSupplier(csvImport.getFile().getURI(), CSV_MEDIA_TYPES, dataManager);
         // skip validation because it will be done during final POST anyway
         CompletableFuture.supplyAsync(fileSupplier, getExecutorService()).thenApplyAsync(getStreamRDFOutputWriter(csvImport,
-                graphStoreClient, appBaseURI, query), getExecutorService()).
+                graphStoreClient, queryBaseURI, query), getExecutorService()).
             thenAcceptAsync(success(csvImport, provImport, service, adminService, dataManager), getExecutorService()).
             exceptionally(failure(csvImport, provImport, service));
     }
@@ -168,7 +168,7 @@ public class ImportExecutor
         Supplier<Response> fileSupplier = new ClientResponseSupplier(rdfImport.getFile().getURI(), RDF_MEDIA_TYPES, dataManager);
         // skip validation because it will be done during final POST anyway
         CompletableFuture.supplyAsync(fileSupplier, getExecutorService()).thenApplyAsync(getStreamRDFOutputWriter(rdfImport,
-                graphStoreClient, appBaseURI, query), getExecutorService()).
+                graphStoreClient, queryBaseURI, query), getExecutorService()).
             thenAcceptAsync(success(rdfImport, provImport, service, adminService, dataManager), getExecutorService()).
             exceptionally(failure(rdfImport, provImport, service));
     }
