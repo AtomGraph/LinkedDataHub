@@ -154,10 +154,10 @@ public class ImportExecutor
                 addProperty(PROV.startedAtTime, rdfImport.getModel().createTypedLiteral(Calendar.getInstance()));
 
         String queryBaseURI = rdfImport.getFile().getURI(); // file URI becomes the query base URI
-        QueryLoader queryLoader = new QueryLoader(rdfImport.getQuery().getURI(), queryBaseURI, Syntax.syntaxARQ, dataManager);
         final Query query;
         if (rdfImport.getQuery() != null) // query is optional on RDFImport
         {
+            QueryLoader queryLoader = new QueryLoader(rdfImport.getQuery().getURI(), queryBaseURI, Syntax.syntaxARQ, dataManager);
             ParameterizedSparqlString pss = new ParameterizedSparqlString(queryLoader.get().toString(), queryBaseURI);
             pss.setIri(LDT.base.getLocalName(), appBaseURI); // app's base URI becomes $base
             query = pss.asQuery();
