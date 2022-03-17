@@ -21,7 +21,6 @@ services:
       - ./platform/nginx.conf.template:/etc/nginx/nginx.conf.template:ro
       - ./ssl/server:/etc/nginx/ssl:ro
   linkeddatahub:
-    # image: atomgraph/linkeddatahub:latest
     user: root # otherwise the ldh user does not have permissions to the mounted folder which is owner by root
     build: .
     environment:

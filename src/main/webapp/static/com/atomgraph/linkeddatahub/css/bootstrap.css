@@ -118,5 +118,7 @@ object { display: block; margin: auto; max-height: 400px; overflow: hidden; }
 .row { display: table-row ; }
 .cell { display: table-cell ; }
 .footer { background-color: rgba(0, 0, 0, 0.03); font-size: smaller; padding-bottom: 2em; height: 14em; }
-/* Google Maps specific*/
+/* Google Maps specific */
 .gm-style-iw img { max-width: 100%; }
+/* SVG graph specific */
+circle { cursor: move; }

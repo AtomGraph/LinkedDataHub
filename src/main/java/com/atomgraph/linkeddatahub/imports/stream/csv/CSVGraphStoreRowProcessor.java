@@ -17,12 +17,14 @@
 package com.atomgraph.linkeddatahub.imports.stream.csv;
 
 import com.atomgraph.core.client.GraphStoreClient;
-import com.atomgraph.etl.csv.ModelTransformer;
 import com.univocity.parsers.common.ParsingContext;
 import com.univocity.parsers.common.processor.RowProcessor;
-import java.util.function.BiFunction;
+import java.util.Iterator;
 import org.apache.jena.atlas.lib.IRILib;
+import org.apache.jena.query.Dataset;
 import org.apache.jena.query.Query;
+import org.apache.jena.query.QueryExecution;
+import org.apache.jena.query.Syntax;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Property;
@@ -37,7 +39,6 @@ public class CSVGraphStoreRowProcessor implements RowProcessor // extends com.at
 
     private final GraphStoreClient graphStoreClient;
     private final String base;
-    private final BiFunction<Query, Model, Model> function = new ModelTransformer();
     private final Query query;
     private int subjectCount, tripleCount;
 
@@ -64,19 +65,25 @@ public class CSVGraphStoreRowProcessor implements RowProcessor // extends com.at
     @Override
     public void rowProcessed(String[] row, ParsingContext context)
     {
-        Model rowModel = transformRow(row, context);
-        getGraphStoreClient().add(null, rowModel); // Graph name not specified, will be assigned by the server. Exceptions get swallowed by the client! TO-DO: wait for completion
+        Dataset rowDataset = transformRow(row, context);
+        
+        getGraphStoreClient().add(null, rowDataset.getDefaultModel()); // graph name not specified, will be assigned by the server. Exceptions get swallowed by the client! TO-DO: wait for completion
+        
+        rowDataset.listNames().forEachRemaining(
+            graphUri -> getGraphStoreClient().add(graphUri, rowDataset.getNamedModel(graphUri)) // exceptions get swallowed by the client! TO-DO: wait for completion
+        );
     }
     
     /**
      * Transforms CSV row into an an RDF graph.
      * First a generic CSV/RDF graph is constructed. Then the transformation query is applied on it.
+     * Extended SPARQL syntax is used to allow the <code>CONSTRUCT GRAPH</code> query form.
      * 
      * @param row CSV row
      * @param context parsing context
      * @return RDF result
      */
-    public Model transformRow(String[] row, ParsingContext context)
+    public Dataset transformRow(String[] row, ParsingContext context)
     {
         Model rowModel = ModelFactory.createDefaultModel();
         Resource subject = rowModel.createResource();
@@ -95,7 +102,10 @@ public class CSVGraphStoreRowProcessor implements RowProcessor // extends com.at
             cellNo++;
         }
 
-        return getFunction().apply(getQuery(), rowModel); // transform row
+        try (QueryExecution qex = QueryExecution.create().query(getQuery().toString(), Syntax.syntaxARQ).model(rowModel).build())
+        {
+            return qex.execConstructDataset();
+        }
     }
     
     @Override
@@ -121,17 +131,7 @@ public class CSVGraphStoreRowProcessor implements RowProcessor // extends com.at
     {
         return base;
     }
-    
-    /**
-     * Returns transformation function.
-     * It transforms an RDF model to another model.
-     * 
-     * @return function
-     */
-    public BiFunction<Query, Model, Model> getFunction()
-    {
-        return function;
-    }
+
     
     /**
      * Returns the transformation query.

@@ -18,7 +18,6 @@ package com.atomgraph.linkeddatahub.imports.stream;
 
 import com.atomgraph.core.client.GraphStoreClient;
 import java.io.InputStream;
-import java.util.Iterator;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryExecution;
@@ -66,7 +65,8 @@ public class RDFGraphStoreOutput
     
     /**
      * Reads RDF and writes (possibly transformed) RDF into a named graph.
-     * The input is transformed if a SPARQL transformation query was provided.
+     * The input is transformed if the SPARQL transformation query was provided.
+     * Extended SPARQL syntax is used to allow the <code>CONSTRUCT GRAPH</code> query form.
      */
     public void write()
     {
@@ -75,17 +75,13 @@ public class RDFGraphStoreOutput
 
         if (getQuery() != null)
         {
-            // use extended SPARQL syntax to allow the CONSTRUCT GRAPH form
             try (QueryExecution qex = QueryExecution.create().query(getQuery().toString(), Syntax.syntaxARQ).model(model).build())
             {
                 Dataset dataset = qex.execConstructDataset();
 
-                Iterator<String> names = dataset.listNames();
-                while (names.hasNext())
-                {
-                    String graphUri = names.next();
-                    getGraphStoreClient().add(graphUri, dataset.getNamedModel(graphUri)); // exceptions get swallowed by the client! TO-DO: wait for completion
-                }
+                dataset.listNames().forEachRemaining(
+                    graphUri -> getGraphStoreClient().add(graphUri, dataset.getNamedModel(graphUri)) // exceptions get swallowed by the client! TO-DO: wait for completion
+                );
             }
         }
         else
