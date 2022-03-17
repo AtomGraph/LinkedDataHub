@@ -281,7 +281,7 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
         {
             Model model = parseModel(multiPart);
             MessageBodyReader<Model> reader = getProviders().getMessageBodyReader(Model.class, null, null, com.atomgraph.core.MediaType.APPLICATION_NTRIPLES_TYPE);
-            if (reader instanceof ValidatingModelProvider) model = ((ValidatingModelProvider)reader).processRead(model);
+            if (reader instanceof ValidatingModelProvider validatingModelProvider) model = validatingModelProvider.processRead(model);
             
             // neither default graph nor named graph specified -- obtain named graph URI from the document
             if (!defaultGraph && graphUri == null)
@@ -335,7 +335,7 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
         {
             Model model = parseModel(multiPart);
             MessageBodyReader<Model> reader = getProviders().getMessageBodyReader(Model.class, null, null, com.atomgraph.core.MediaType.APPLICATION_NTRIPLES_TYPE);
-            if (reader instanceof ValidatingModelProvider) model = ((ValidatingModelProvider)reader).processRead(model);
+            if (reader instanceof ValidatingModelProvider validatingModelProvider) model = validatingModelProvider.processRead(model);
             if (log.isDebugEnabled()) log.debug("POSTed Model size: {}", model.size());
 
             int fileCount = writeFiles(model, getFileNameBodyPartMap(multiPart));

@@ -67,10 +67,14 @@ public class CSVGraphStoreRowProcessor implements RowProcessor // extends com.at
     {
         Dataset rowDataset = transformRow(row, context);
         
-        getGraphStoreClient().add(null, rowDataset.getDefaultModel()); // graph name not specified, will be assigned by the server. Exceptions get swallowed by the client! TO-DO: wait for completion
+        // graph name not specified, will be assigned by the server. Exceptions get swallowed by the client! TO-DO: wait for completion
+        if (!rowDataset.getDefaultModel().isEmpty()) getGraphStoreClient().add(null, rowDataset.getDefaultModel());
         
-        rowDataset.listNames().forEachRemaining(
-            graphUri -> getGraphStoreClient().add(graphUri, rowDataset.getNamedModel(graphUri)) // exceptions get swallowed by the client! TO-DO: wait for completion
+        rowDataset.listNames().forEachRemaining(graphUri -> 
+            {
+                // exceptions get swallowed by the client! TO-DO: wait for completion
+                if (!rowDataset.getNamedModel(graphUri).isEmpty()) getGraphStoreClient().add(graphUri, rowDataset.getNamedModel(graphUri));
+            }
         );
     }
     

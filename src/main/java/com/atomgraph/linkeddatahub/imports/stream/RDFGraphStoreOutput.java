@@ -79,8 +79,11 @@ public class RDFGraphStoreOutput
             {
                 Dataset dataset = qex.execConstructDataset();
 
-                dataset.listNames().forEachRemaining(
-                    graphUri -> getGraphStoreClient().add(graphUri, dataset.getNamedModel(graphUri)) // exceptions get swallowed by the client! TO-DO: wait for completion
+                dataset.listNames().forEachRemaining(graphUri ->
+                    {
+                         // exceptions get swallowed by the client! TO-DO: wait for completion
+                        if (!dataset.getNamedModel(graphUri).isEmpty()) getGraphStoreClient().add(graphUri, dataset.getNamedModel(graphUri));
+                    }
                 );
             }
         }
