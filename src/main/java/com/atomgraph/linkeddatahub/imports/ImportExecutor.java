@@ -208,17 +208,11 @@ public class ImportExecutor
             provImport.addProperty(PROV.endedAtTime, provImport.getModel().createTypedLiteral(Calendar.getInstance()));
             
             appendProvGraph(provImport, service.getDatasetAccessor());
-            
-            // purge cache entries that include the named graph URI
-            if (service.getProxy() != null && rdfImport.getGraphName() != null)
-                ban(dataManager, service.getProxy(), rdfImport.getGraphName().getURI());
-            if (adminService != null && adminService.getProxy() != null && rdfImport.getGraphName() != null)
-                ban(dataManager, adminService.getProxy(), rdfImport.getGraphName().getURI());
         };
     }
 
     /**
-     * Invoked when RDF import failes to complete.
+     * Invoked when RDF import fails to complete.
      * 
      * @param importInst import resource
      * @param provImport provenance resource

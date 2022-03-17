@@ -31,11 +31,6 @@
     rdfs:label "Children count" ;
     rdfs:isDefinedBy : .
 
-:action a owl:ObjectProperty ;
-    rdfs:range dh:Container ;
-    rdfs:label "Target container" ;
-    rdfs:isDefinedBy : .
-
 :file a owl:ObjectProperty ;
     rdfs:domain :Import ;
     rdfs:range nfo:FileDataObject ;
@@ -116,7 +111,7 @@
     rdfs:subClassOf :Import ; # restriction on media type?
     rdfs:label "CSV import" ;
     spin:constructor :CSVImportConstructor ;
-    spin:constraint :MissingAction, :MissingQuery, :MissingDelimiter ;
+    spin:constraint :MissingQuery, :MissingDelimiter ;
     rdfs:isDefinedBy : .
 
 :RDFImport a rdfs:Class, owl:Class ;
@@ -140,8 +135,7 @@
         PREFIX dh:      <https://www.w3.org/ns/ldt/document-hierarchy#>
 
         CONSTRUCT {
-            ?this ldh:action [ a dh:Container ] ;
-                sd:name [ a rdfs:Resource ] ;
+            ?this sd:name [ a rdfs:Resource ] ;
                 ldh:file [ a nfo:FileDataObject ] .
         }
         WHERE {}""" ;
@@ -337,12 +331,6 @@ WHERE
 :MissingIsDefinedBy a :MissingPropertyValue ;
     rdfs:label "Missing rdfs:isDefinedBy" ;
     sp:arg1 rdfs:isDefinedBy ;
-    rdfs:isDefinedBy : .
-
-:MissingAction a :MissingPropertyValue ;
-    rdfs:label "Missing action" ;
-    rdfs:comment "Requires resources to have a target resource" ;
-    sp:arg1 :action ;
     rdfs:isDefinedBy : .
 
 :MissingFile a :MissingPropertyValue ;
