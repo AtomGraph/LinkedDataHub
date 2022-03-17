@@ -57,7 +57,7 @@ public class QueryLoader implements Supplier<Query>
         this.uri = uri;
         this.baseURI = baseURI;
         this.syntax = syntax;
-        this.dataManager = dataManager;
+        this.dataManager = dataManager; // TO-DO: replace with LinkedDataClient
     }
     
     @Override

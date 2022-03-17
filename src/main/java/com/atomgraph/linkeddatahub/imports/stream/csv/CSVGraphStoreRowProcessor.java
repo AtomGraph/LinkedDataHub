@@ -19,12 +19,10 @@ package com.atomgraph.linkeddatahub.imports.stream.csv;
 import com.atomgraph.core.client.GraphStoreClient;
 import com.univocity.parsers.common.ParsingContext;
 import com.univocity.parsers.common.processor.RowProcessor;
-import java.util.Iterator;
 import org.apache.jena.atlas.lib.IRILib;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryExecution;
-import org.apache.jena.query.Syntax;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Property;
@@ -106,7 +104,7 @@ public class CSVGraphStoreRowProcessor implements RowProcessor // extends com.at
             cellNo++;
         }
 
-        try (QueryExecution qex = QueryExecution.create().query(getQuery().toString(), Syntax.syntaxARQ).model(rowModel).build())
+        try (QueryExecution qex = QueryExecution.create(getQuery(), rowModel))
         {
             return qex.execConstructDataset();
         }

@@ -21,7 +21,6 @@ import java.io.InputStream;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryExecution;
-import org.apache.jena.query.Syntax;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.riot.Lang;
@@ -75,7 +74,7 @@ public class RDFGraphStoreOutput
 
         if (getQuery() != null)
         {
-            try (QueryExecution qex = QueryExecution.create().query(getQuery().toString(), Syntax.syntaxARQ).model(model).build())
+            try (QueryExecution qex = QueryExecution.create(getQuery(), model))
             {
                 Dataset dataset = qex.execConstructDataset();
 
