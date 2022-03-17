@@ -59,11 +59,11 @@ public class BackendInvalidationFilter implements ContainerResponseFilter
         if (req.getMethod().equals(HttpMethod.POST) && resp.getHeaderString(HttpHeaders.LOCATION) != null)
         {
             URI location = (URI)resp.getHeaders().get(HttpHeaders.LOCATION).get(0);
-            URI parentURI = location.relativize(URI.create(".."));
+            URI parentURI = location.resolve("..").normalize();
             
             ban(getApplication().getService().getProxy(), location.toString()).close();
             // ban parent resource URI in order to avoid stale children data in containers
-            ban(getApplication().getService().getProxy(), getApplication().getBaseURI().relativize(parentURI).toString()).close(); // URIs can be relative in queries
+            ban(getApplication().getService().getProxy(), parentURI.toString()).close(); // URIs can be relative in queries
         }
         
         if (req.getMethod().equals(HttpMethod.PUT) || req.getMethod().equals(HttpMethod.DELETE) || req.getMethod().equals(HttpMethod.PATCH))
@@ -83,10 +83,10 @@ public class BackendInvalidationFilter implements ContainerResponseFilter
         {
             // Varnish VCL BANs req.url after 200/201/204 responses
             
-            // ban parent resource URIs in order to avoid stale children data in containers
-            if (!req.getUriInfo().getAbsolutePath().equals(getApplication().getBaseURI()))
+            // ban parent document URIs (those that have a trailing slash) in order to avoid stale children data in containers
+            if (req.getUriInfo().getAbsolutePath().toString().endsWith("/") && !req.getUriInfo().getAbsolutePath().equals(getApplication().getBaseURI()))
             {
-                URI parentURI = req.getUriInfo().getAbsolutePath().relativize(URI.create(".."));
+                URI parentURI = req.getUriInfo().getAbsolutePath().resolve("..").normalize();
                 
                 ban(getApplication().getService().getProxy(), parentURI.toString()).close();
                 ban(getApplication().getService().getProxy(), getApplication().getBaseURI().relativize(parentURI).toString()).close(); // URIs can be relative in queries
