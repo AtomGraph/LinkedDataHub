@@ -62,8 +62,11 @@ public class BackendInvalidationFilter implements ContainerResponseFilter
             URI parentURI = location.resolve("..").normalize();
             
             ban(getApplication().getService().getProxy(), location.toString()).close();
+            // ban URI from authorization query results
+            ban(getAdminApplication().getService().getProxy(), location.toString()).close();
             // ban parent resource URI in order to avoid stale children data in containers
-            ban(getApplication().getService().getProxy(), parentURI.toString()).close(); // URIs can be relative in queries
+            ban(getApplication().getService().getProxy(), parentURI.toString()).close();
+            ban(getApplication().getService().getProxy(), getApplication().getBaseURI().relativize(parentURI).toString()).close(); // URIs can be relative in queries
         }
         
         if (req.getMethod().equals(HttpMethod.POST) || req.getMethod().equals(HttpMethod.PUT) || req.getMethod().equals(HttpMethod.DELETE) || req.getMethod().equals(HttpMethod.PATCH))
