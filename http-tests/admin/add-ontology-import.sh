@@ -32,4 +32,4 @@ popd > /dev/null
 curl -k -f -s -N \
   -H "Accept: application/n-triples" \
   "${END_USER_BASE_URL}ns" \
-| grep -q "<${END_USER_BASE_URL}ns#> <http://www.w3.org/2002/07/owl#imports> <https://schema.org>"
+| grep "<${END_USER_BASE_URL}ns#> <http://www.w3.org/2002/07/owl#imports> <https://schema.org>" > /dev/null
