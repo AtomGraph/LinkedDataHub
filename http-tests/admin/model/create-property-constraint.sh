@@ -12,7 +12,7 @@ pushd . > /dev/null && cd "$SCRIPT_ROOT/admin/model"
 
 namespace_doc="${END_USER_BASE_URL}ns"
 ontology_doc="${ADMIN_BASE_URL}model/ontologies/namespace/"
-constraint="${ontology_doc}#NewConstraint"
+constraint="${namespace_doc}#NewConstraint"
 
 ./create-property-constraint.sh \
   -f "$OWNER_CERT_FILE" \
@@ -43,8 +43,8 @@ popd > /dev/null
 
 curl -k -f -s -N \
   -H "Accept: application/n-triples" \
-  "${namespace_doc}" \
-| grep "${namespace_doc}#NewConstraint" > /dev/null
+  "$namespace_doc" \
+| grep "$constraint" > /dev/null
 
 # clear ontology from memory
 
@@ -53,7 +53,7 @@ pushd . > /dev/null && cd "$SCRIPT_ROOT/admin"
 ./clear-ontology.sh \
   -f "$OWNER_CERT_FILE" \
   -p "$OWNER_CERT_PWD" \
-  "${ontology_doc}"
+  "$ontology_doc"
 
 popd > /dev/null
 

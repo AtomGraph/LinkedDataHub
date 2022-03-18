@@ -33,7 +33,7 @@ pushd . > /dev/null && cd "$SCRIPT_ROOT/admin"
 ./clear-ontology.sh \
   -f "$OWNER_CERT_FILE" \
   -p "$OWNER_CERT_PWD" \
-  "${ontology_doc}"
+  "$ontology_doc"
 
 popd > /dev/null
 

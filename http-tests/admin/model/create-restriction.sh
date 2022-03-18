@@ -12,18 +12,18 @@ pushd . > /dev/null && cd "$SCRIPT_ROOT/admin/model"
 
 namespace_doc="${END_USER_BASE_URL}ns"
 ontology_doc="${ADMIN_BASE_URL}model/ontologies/namespace/"
-restriction="${ontology_doc}#Restriction"
+restriction="${namespace_doc}#Restriction"
 
 ./create-restriction.sh \
   -f "$OWNER_CERT_FILE" \
   -p "$OWNER_CERT_PWD" \
   -b "$ADMIN_BASE_URL" \
-  --uri "${namespace_doc}#Restriction" \
+  --uri "$restriction" \
   --label "Topic of document" \
   --slug topic-of-document \
   --on-property "http://xmlns.com/foaf/0.1/primaryTopic" \
   --all-values-from "http://www.w3.org/2000/01/rdf-schema#Resource" \
-  "${ontology_doc}"
+  "$ontology_doc"
 
 popd > /dev/null
 
@@ -34,7 +34,7 @@ pushd . > /dev/null && cd "$SCRIPT_ROOT/admin"
 ./clear-ontology.sh \
   -f "$OWNER_CERT_FILE" \
   -p "$OWNER_CERT_PWD" \
-  "${ontology_doc}"
+  "$ontology_doc"
 
 popd > /dev/null
 
@@ -42,5 +42,5 @@ popd > /dev/null
 
 curl -k -f -s -N \
   -H "Accept: application/n-triples" \
-  "${ontology_doc}" \
-| grep "${namespace_doc}#Restriction" > /dev/null
+  "$namespace_doc" \
+| grep "$restriction" > /dev/null
