@@ -105,7 +105,7 @@ public class Namespace extends SPARQLEndpointImpl
             String ontologyURI = getURI().toString() + "#"; // TO-DO: hard-coding "#" is not great. Replace with RDF property lookup.
             if (log.isDebugEnabled()) log.debug("Returning namespace ontology from OntDocumentManager: {}", ontologyURI);
             OntologyModelGetter modelGetter = new OntologyModelGetter(getApplication(), getSystem().getOntModelSpec(), getSystem().getOntologyQuery(), getSystem().getClient(), getSystem().getMediaTypes());
-            getResponseBuilder(modelGetter.getModel(ontologyURI));
+            return getResponseBuilder(modelGetter.loadSPARQLModel(ontologyURI));
         }
 
        

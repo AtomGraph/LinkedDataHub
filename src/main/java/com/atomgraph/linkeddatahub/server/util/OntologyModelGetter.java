@@ -92,42 +92,46 @@ public class OntologyModelGetter implements org.apache.jena.rdf.model.ModelGette
         if (fileManager.hasCachedModel(uri) || !(mappedURI.startsWith("http") || mappedURI.startsWith("https"))) // ontology URI mapped to a local file resource
             return fileManager.loadModel(uri, getApplication().getBase().getURI(), null);
         else
-        {
-            // attempt to load ontology graph from the admin endpoint. TO-DO: is that necessary if ontologies terms are now stored in a single graph?
-            ParameterizedSparqlString ontologyPss = new ParameterizedSparqlString(getOntologyQuery().toString());
-            ontologyPss.setIri(LDT.ontology.getLocalName(), uri);
-            Model model = getAdminApplication().getService().getSPARQLClient().loadModel(ontologyPss.asQuery());
-
-            // if it's empty, fallback to dereferencing the ontology URI
-            if (model.isEmpty())
-            {
-                // TO-DO: use LinkedDataClient
-                if (log.isDebugEnabled()) log.debug("Loading end-user Ontology <{}>", uri);
-                try (Response cr = getClient().target(uri).
-                        request(getAcceptableMediaTypes()).
-                        get())
-                {
-                    if (!cr.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
-                    {
-                        if (log.isErrorEnabled()) log.error("Could not load ontology from URI: <{}>", uri);
-                        // TO-DO: replace with Jena's OntologyException
-                        throw new OntologyException("Could not load ontology from URI <" + uri + ">");
-                    }
-                    cr.getHeaders().putSingle(ModelProvider.REQUEST_URI_HEADER, uri); // provide a base URI hint to ModelProvider
-                    return cr.readEntity(Model.class);
-                }
-                catch (Exception ex)
-                {
-                    if (log.isErrorEnabled()) log.error("Could not load ontology from URI: {}", uri);
-                    // TO-DO: replace with Jena's OntologyException
-                    throw new OntologyException("Could not load ontology from URI '" + uri + "'");
-                }
-            }
-
-            return model;
-        }
+            return loadSPARQLModel(uri);
     }
 
+    public Model loadSPARQLModel(String uri)
+    {
+        // attempt to load ontology graph from the admin endpoint. TO-DO: is that necessary if ontologies terms are now stored in a single graph?
+        ParameterizedSparqlString ontologyPss = new ParameterizedSparqlString(getOntologyQuery().toString());
+        ontologyPss.setIri(LDT.ontology.getLocalName(), uri);
+        Model model = getAdminApplication().getService().getSPARQLClient().loadModel(ontologyPss.asQuery());
+
+        // if it's empty, fallback to dereferencing the ontology URI
+        if (model.isEmpty())
+        {
+            // TO-DO: use LinkedDataClient
+            if (log.isDebugEnabled()) log.debug("Loading end-user Ontology <{}>", uri);
+            try (Response cr = getClient().target(uri).
+                    request(getAcceptableMediaTypes()).
+                    get())
+            {
+                if (!cr.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
+                {
+                    if (log.isErrorEnabled()) log.error("Could not load ontology from URI: <{}>", uri);
+                    // TO-DO: replace with Jena's OntologyException
+                    throw new OntologyException("Could not load ontology from URI <" + uri + ">");
+                }
+                
+                cr.getHeaders().putSingle(ModelProvider.REQUEST_URI_HEADER, uri); // provide a base URI hint to ModelProvider
+                return cr.readEntity(Model.class);
+            }
+            catch (Exception ex)
+            {
+                if (log.isErrorEnabled()) log.error("Could not load ontology from URI: <{}>", uri);
+                // TO-DO: replace with Jena's OntologyException
+                throw new OntologyException("Could not load ontology from URI <" + uri + ">");
+            }
+        }
+
+        return model;
+    }
+    
     @Override
     public Model getModel(String uri, ModelReader loadIfAbsent) 
     {
