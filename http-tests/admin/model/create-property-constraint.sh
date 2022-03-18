@@ -39,13 +39,6 @@ constraint="${namespace_doc}#NewConstraint"
 
 popd > /dev/null
 
-# check that the constraint is present in the ontology
-
-curl -k -f -s -N \
-  -H "Accept: application/n-triples" \
-  "$namespace_doc" #\
-#| grep "$constraint" > /dev/null
-
 # clear ontology from memory
 
 pushd . > /dev/null && cd "$SCRIPT_ROOT/admin"
@@ -54,6 +47,13 @@ pushd . > /dev/null && cd "$SCRIPT_ROOT/admin"
   -f "$OWNER_CERT_FILE" \
   -p "$OWNER_CERT_PWD" \
   "$ontology_doc"
+
+# check that the constraint is present in the ontology
+
+curl -k -f -s -N \
+  -H "Accept: application/n-triples" \
+  "$namespace_doc" \
+| grep "$constraint" > /dev/null
 
 popd > /dev/null
 
