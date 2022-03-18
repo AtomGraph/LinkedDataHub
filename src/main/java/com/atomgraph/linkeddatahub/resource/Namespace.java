@@ -25,7 +25,6 @@ import static com.atomgraph.core.model.SPARQLEndpoint.DEFAULT_GRAPH_URI;
 import static com.atomgraph.core.model.SPARQLEndpoint.NAMED_GRAPH_URI;
 import static com.atomgraph.core.model.SPARQLEndpoint.QUERY;
 import com.atomgraph.linkeddatahub.server.model.impl.SPARQLEndpointImpl;
-import com.atomgraph.spinrdf.vocabulary.SPIN;
 import java.net.URI;
 import java.util.List;
 import java.util.Optional;
@@ -35,7 +34,6 @@ import javax.ws.rs.GET;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.UriInfo;
 import org.apache.jena.ontology.Ontology;
-import org.apache.jena.query.ParameterizedSparqlString;
 import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryExecution;
 import org.apache.jena.query.ResultSetFactory;
@@ -96,12 +94,12 @@ public class Namespace extends SPARQLEndpointImpl
     @Override
     public Response.ResponseBuilder getResponseBuilder(Query query, List<URI> defaultGraphUris, List<URI> namedGraphUris)
     {
-        // if query param is not provided, use the configured ontology query
+        // if query param is not provided, return the namespace ontology associated with this document
         if (query == null)
         {
-            ParameterizedSparqlString pss = new ParameterizedSparqlString(getSystem().getOntologyQuery().toString(), getApplication().getBase().getURI());
-            pss.setIri(SPIN.THIS_VAR_NAME, getURI().toString()); // sets $this
-            query = pss.asQuery();
+            String ontologyURI = getURI().toString() + "#"; // TO-DO: hard-coding "#" is not great
+            if (log.isDebugEnabled()) log.debug("Returning namespace ontology from OntDocumentManager: {}", ontologyURI);
+            return getResponseBuilder(getSystem().getOntModelSpec().getDocumentManager().getModel(ontologyURI));
         }
 
         if (query.isSelectType())
