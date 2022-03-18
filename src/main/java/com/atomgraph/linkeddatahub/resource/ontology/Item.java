@@ -24,6 +24,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.Providers;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.model.Service;
+import com.atomgraph.linkeddatahub.server.util.OntologyModelGetter;
 import com.atomgraph.linkeddatahub.vocabulary.LSMT;
 import java.util.Optional;
 import javax.annotation.PostConstruct;
@@ -33,6 +34,7 @@ import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.UriInfo;
+import org.apache.jena.ontology.OntModelSpec;
 import org.apache.jena.ontology.Ontology;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
@@ -101,7 +103,19 @@ public class Item extends com.atomgraph.linkeddatahub.resource.graph.Item
             String ontologyURI = topic.getURI();
             
             if (OntDocumentManager.getInstance().getFileManager().hasCachedModel(ontologyURI))
+            {
                 OntDocumentManager.getInstance().getFileManager().removeCacheModel(ontologyURI);
+
+                // !!! we need to reload the ontology model before returning a response, to make sure the next request already gets the new version !!!
+                // same logic as in OntologyFilter. TO-DO: encapsulate?
+                OntologyModelGetter modelGetter = new OntologyModelGetter(getApplication(), getSystem().getOntModelSpec(), getSystem().getOntologyQuery(), getSystem().getClient(), getSystem().getMediaTypes());
+                // construct system provider to materialize inferenced model
+                new com.atomgraph.server.util.OntologyLoader(getSystem().getOntModelSpec().getDocumentManager(), ontologyURI, getSystem().getOntModelSpec(), true);
+                // Bypass Processor's getOntology() because it overrides the ModelGetter TO-DO: fix!
+                OntModelSpec loadSpec = new OntModelSpec(OntModelSpec.OWL_MEM);
+                loadSpec.setImportModelGetter(modelGetter);
+                getSystem().getOntModelSpec().getDocumentManager().getOntology(ontologyURI, loadSpec).getOntology(ontologyURI); // reloads the imports using ModelGetter. TO-DO: optimize?
+            }
         }
         
         return super.get(defaultGraph, getURI());
