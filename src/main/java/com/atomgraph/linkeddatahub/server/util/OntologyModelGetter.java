@@ -72,6 +72,7 @@ public class OntologyModelGetter implements org.apache.jena.rdf.model.ModelGette
      * @param ontModelSpec ontology specification
      * @param ontologyQuery SPARQL query that loads ontology terms
      * @param client HTTP client
+     * @param acceptedTypes accepted media types
      */
     public OntologyModelGetter(Application app, OntModelSpec ontModelSpec, Query ontologyQuery, Client client, javax.ws.rs.core.MediaType[] acceptedTypes)
     {

@@ -16,7 +16,6 @@
  */
 package com.atomgraph.linkeddatahub.server.filter.request;
 
-import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.vocabulary.LAPP;
 import com.atomgraph.processor.exception.OntologyException;
@@ -51,18 +50,8 @@ public class OntologyFilter implements ContainerRequestFilter
     
     private static final Logger log = LoggerFactory.getLogger(OntologyFilter.class);
 
-    private final MediaTypes mediaTypes = new MediaTypes();
-    private final javax.ws.rs.core.MediaType[] acceptedTypes;
-
     @Inject com.atomgraph.linkeddatahub.Application system;
 
-    /**
-     * Constructs filter.
-     */
-    public OntologyFilter()
-    {
-        acceptedTypes = mediaTypes.getReadable(Model.class).toArray(new javax.ws.rs.core.MediaType[0]); 
-    }
     
     @Override
     public void filter(ContainerRequestContext crc) throws IOException
@@ -100,7 +89,7 @@ public class OntologyFilter implements ContainerRequestFilter
     {
         if (app.getPropertyResourceValue(LDT.ontology) == null) return null;
 
-        return getOntology(app, app.getPropertyResourceValue(LDT.ontology).getURI(), getSystem().getOntModelSpec());
+        return getOntology(app, app.getPropertyResourceValue(LDT.ontology).getURI(), new OntModelSpec(getSystem().getOntModelSpec()));
     }
     
     /**
@@ -116,7 +105,7 @@ public class OntologyFilter implements ContainerRequestFilter
         if (app == null) throw new IllegalArgumentException("Application string cannot be null");
         if (uri == null) throw new IllegalArgumentException("Ontology URI string cannot be null");
 
-        OntologyModelGetter modelGetter = new OntologyModelGetter(app, ontModelSpec, getSystem().getOntologyQuery(), getSystem().getNoCertClient(), getAcceptableMediaTypes());
+        OntologyModelGetter modelGetter = new OntologyModelGetter(app, ontModelSpec, getSystem().getOntologyQuery(), getSystem().getNoCertClient(), getSystem().getMediaTypes());
         // only create InfModel if ontology is not already cached
         if (!ontModelSpec.getDocumentManager().getFileManager().hasCachedModel(uri))
         {
@@ -156,16 +145,6 @@ public class OntologyFilter implements ContainerRequestFilter
     public Application getApplication(ContainerRequestContext crc)
     {
         return ((Application)crc.getProperty(LAPP.Application.getURI()));
-    }
-    
-    /**
-     * Returns readable media types.
-     * 
-     * @return media types
-     */
-    public javax.ws.rs.core.MediaType[] getAcceptableMediaTypes()
-    {
-        return acceptedTypes;
     }
 
     /**
