@@ -16,6 +16,13 @@ pushd . > /dev/null && cd "$SCRIPT_ROOT/admin"
   --import "https://schema.org" \
   "${ADMIN_BASE_URL}model/ontologies/namespace/"
 
+# clear ontology from memory
+
+./clear-ontology.sh \
+  -f "$OWNER_CERT_FILE" \
+  -p "$OWNER_CERT_PWD" \
+  "$ontology_doc"
+
 popd > /dev/null
 
 # check that the import is present in the ontology
