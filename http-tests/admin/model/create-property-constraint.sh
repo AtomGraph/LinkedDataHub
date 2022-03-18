@@ -44,7 +44,7 @@ popd > /dev/null
 curl -k -f -s -N \
   -H "Accept: application/n-triples" \
   "${namespace_doc}" \
-| grep -q "${namespace_doc}#NewConstraint"
+| grep "${namespace_doc}#NewConstraint" > /dev/null
 
 # clear ontology from memory
 

@@ -43,4 +43,4 @@ popd > /dev/null
 curl -k -f -s -N \
   -H "Accept: application/n-triples" \
   "${ontology_doc}" \
-| grep -"${namespace_doc}#Restriction" > /dev/null
+| grep "${namespace_doc}#Restriction" > /dev/null
