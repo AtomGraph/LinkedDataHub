@@ -99,7 +99,7 @@ public class Namespace extends SPARQLEndpointImpl
         {
             String ontologyURI = getURI().toString() + "#"; // TO-DO: hard-coding "#" is not great
             if (log.isDebugEnabled()) log.debug("Returning namespace ontology from OntDocumentManager: {}", ontologyURI);
-            return getResponseBuilder(getSystem().getOntModelSpec().getDocumentManager().getModel(ontologyURI));
+            return getResponseBuilder(getSystem().getDataManager().getModel(ontologyURI));
         }
 
         if (query.isSelectType())

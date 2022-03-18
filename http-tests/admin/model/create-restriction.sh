@@ -26,6 +26,17 @@ restriction="${ontology_doc}#Restriction"
 
 popd > /dev/null
 
+# clear ontology from memory
+
+pushd . > /dev/null && cd "$SCRIPT_ROOT/admin"
+
+./clear-ontology.sh \
+  -f "$OWNER_CERT_FILE" \
+  -p "$OWNER_CERT_PWD" \
+  "${ontology_doc}"
+
+popd > /dev/null
+
 # check that the restriction is present in the ontology
 
 curl -k -f -s -N \
