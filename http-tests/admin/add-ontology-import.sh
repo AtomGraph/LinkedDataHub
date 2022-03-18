@@ -8,13 +8,15 @@ purge_backend_cache "$ADMIN_VARNISH_SERVICE"
 
 pushd . > /dev/null && cd "$SCRIPT_ROOT/admin"
 
+ontology_doc="${ADMIN_BASE_URL}model/ontologies/namespace/"
+
 # add ontology import
 
 ./add-ontology-import.sh \
   -f "$OWNER_CERT_FILE" \
   -p "$OWNER_CERT_PWD" \
   --import "https://schema.org" \
-  "${ADMIN_BASE_URL}model/ontologies/namespace/"
+  "$ontology_doc"
 
 # clear ontology from memory
 
