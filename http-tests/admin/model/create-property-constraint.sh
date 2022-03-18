@@ -77,6 +77,6 @@ response=$(echo -e "$turtle" \
 2>&1) # redirect output from stderr to stdout
 
 echo "$response" \
-| grep -q "HTTP/1.1 400"
+| grep "HTTP/1.1 400" > /dev/null
 
 popd > /dev/null

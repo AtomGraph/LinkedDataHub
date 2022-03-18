@@ -42,4 +42,4 @@ popd > /dev/null
 curl -k -f -s -N \
   -H "Accept: application/n-triples" \
   "$namespace_doc" \
-| grep -q "$class"
+| grep "$class" > /dev/null

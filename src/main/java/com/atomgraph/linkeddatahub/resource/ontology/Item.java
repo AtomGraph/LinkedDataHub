@@ -124,7 +124,6 @@ public class Item extends com.atomgraph.linkeddatahub.resource.graph.Item
                 OntModelSpec loadSpec = new OntModelSpec(OntModelSpec.OWL_MEM);
                 loadSpec.setImportModelGetter(modelGetter);
                 ontModelSpec.getDocumentManager().getOntology(ontologyURI, loadSpec).getOntology(ontologyURI); // reloads the imports using ModelGetter. TO-DO: optimize?
-
             }
         }
         
