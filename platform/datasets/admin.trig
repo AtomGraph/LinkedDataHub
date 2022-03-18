@@ -187,7 +187,7 @@
     <acl/authorizations/public/#this> a acl:Authorization ;
         rdfs:label "Public access" ;
         rdfs:comment "Allows non-authenticated access" ;
-        # acl:accessTo <model/ontologies/namespace/> ; # end-user ontologies are public
+        acl:accessTo <../ns> ; # end-user ontologies are public
         acl:mode acl:Read ;
         acl:agentClass foaf:Agent, acl:AuthenticatedAgent .
 
