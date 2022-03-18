@@ -190,4 +190,13 @@
     <rdf:Description rdf:about="file">
         <rdfs:label xml:lang="en-US">File</rdfs:label>
     </rdf:Description>
+    <rdf:Description rdf:about="administration">
+        <rdfs:label xml:lang="en-US">Administration</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:about="namespace-ontology">
+        <rdfs:label xml:lang="en-US">Namespace ontology</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:about="documentation">
+        <rdfs:label xml:lang="en-US">Documentation</rdfs:label>
+    </rdf:Description>
 </rdf:RDF>

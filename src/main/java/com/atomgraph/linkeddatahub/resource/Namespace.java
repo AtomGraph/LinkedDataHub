@@ -25,6 +25,7 @@ import static com.atomgraph.core.model.SPARQLEndpoint.DEFAULT_GRAPH_URI;
 import static com.atomgraph.core.model.SPARQLEndpoint.NAMED_GRAPH_URI;
 import static com.atomgraph.core.model.SPARQLEndpoint.QUERY;
 import com.atomgraph.linkeddatahub.server.model.impl.SPARQLEndpointImpl;
+import com.atomgraph.linkeddatahub.server.util.OntologyModelGetter;
 import java.net.URI;
 import java.util.List;
 import java.util.Optional;
@@ -32,6 +33,7 @@ import javax.inject.Inject;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.GET;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 import org.apache.jena.ontology.Ontology;
 import org.apache.jena.query.Query;
@@ -58,6 +60,7 @@ public class Namespace extends SPARQLEndpointImpl
     private final URI uri;
     private final com.atomgraph.linkeddatahub.apps.model.Application application;
     private final Ontology ontology;
+    private final SecurityContext securityContext;
     private final com.atomgraph.linkeddatahub.Application system;
 
     /**
@@ -69,17 +72,19 @@ public class Namespace extends SPARQLEndpointImpl
      * @param service application's SPARQL service
      * @param ontology application's ontology
      * @param mediaTypes registry of readable/writable media types
+     * @param securityContext JAX-RS security context
      * @param system system application
      */
     @Inject
     public Namespace(@Context Request request, @Context UriInfo uriInfo, 
             com.atomgraph.linkeddatahub.apps.model.Application application, Optional<Service> service, Optional<Ontology> ontology, MediaTypes mediaTypes,
-            com.atomgraph.linkeddatahub.Application system)
+            @Context SecurityContext securityContext, com.atomgraph.linkeddatahub.Application system)
     {
         super(request, service, mediaTypes);
         this.uri = uriInfo.getAbsolutePath();
         this.application = application;
         this.ontology = ontology.get();
+        this.securityContext = securityContext;
         this.system = system;
     }
 
@@ -97,11 +102,13 @@ public class Namespace extends SPARQLEndpointImpl
         // if query param is not provided, return the namespace ontology associated with this document
         if (query == null)
         {
-            String ontologyURI = getURI().toString() + "#"; // TO-DO: hard-coding "#" is not great
+            String ontologyURI = getURI().toString() + "#"; // TO-DO: hard-coding "#" is not great. Replace with RDF property lookup.
             if (log.isDebugEnabled()) log.debug("Returning namespace ontology from OntDocumentManager: {}", ontologyURI);
-            return getResponseBuilder(getSystem().getDataManager().getModel(ontologyURI));
+            OntologyModelGetter modelGetter = new OntologyModelGetter(getApplication(), getSystem().getOntModelSpec(), getSystem().getOntologyQuery(), getSystem().getClient(), getSystem().getMediaTypes());
+            getResponseBuilder(modelGetter.getModel(ontologyURI));
         }
 
+       
         if (query.isSelectType())
         {
             if (log.isDebugEnabled()) log.debug("Loading ResultSet using SELECT/ASK query: {}", query);
@@ -162,6 +169,16 @@ public class Namespace extends SPARQLEndpointImpl
     public Ontology getOntology()
     {
         return ontology;
+    }
+    
+    /**
+     * Returns JAX-RS security context.
+     * 
+     * @return security context
+     */
+    public SecurityContext getSecurityContext()
+    {
+        return securityContext;
     }
     
     /**

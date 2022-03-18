@@ -1198,16 +1198,26 @@ exclude-result-prefixes="#all">
                     <li>
                         <xsl:for-each select="$lapp:Application">
                             <a href="{key('resources', //*[ldt:base/@rdf:resource = $ldt:base]/lapp:adminApplication/(@rdf:resource, @rdf:nodeID))/ldt:base/@rdf:resource[starts-with(., $ac:contextUri)]}" target="_blank">
-                                Administration
+                                <xsl:value-of>
+                                    <xsl:apply-templates select="key('resources', 'administration', document('translations.rdf'))" mode="ac:label"/>
+                                </xsl:value-of>
                             </a>
                         </xsl:for-each>
                     </li>
-<!--                    <li>
-                        <a href="{resolve-uri('ns', $ldt:base)}" target="_blank">Namespace</a>
-                    </li>-->
+                    <li>
+                        <a href="{resolve-uri('ns', $ldt:base)}">
+                            <xsl:value-of>
+                                <xsl:apply-templates select="key('resources', 'namespace-ontology', document('translations.rdf'))" mode="ac:label"/>
+                            </xsl:value-of>
+                        </a>
+                    </li>
                 </xsl:if>
                 <li>
-                    <a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/" target="_blank">Documentation</a>
+                    <a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/" target="_blank">
+                        <xsl:value-of>
+                            <xsl:apply-templates select="key('resources', 'documentation', document('translations.rdf'))" mode="ac:label"/>
+                        </xsl:value-of>
+                    </a>
                 </li>
             </ul>
         </div>
