@@ -100,7 +100,7 @@ public class Namespace extends SPARQLEndpointImpl
         if (query == null)
         {
             ParameterizedSparqlString pss = new ParameterizedSparqlString(getSystem().getOntologyQuery().toString(), getApplication().getBase().getURI());
-            pss.setIri(SPIN._this.getLocalName(), getURI().toString()); // sets $this
+            pss.setIri(SPIN.THIS_VAR_NAME, getURI().toString()); // sets $this
             query = pss.asQuery();
         }
 

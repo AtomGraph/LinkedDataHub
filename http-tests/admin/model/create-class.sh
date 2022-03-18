@@ -12,7 +12,7 @@ pushd . > /dev/null && cd "$SCRIPT_ROOT/admin/model"
 
 namespace_doc="${END_USER_BASE_URL}ns"
 ontology_doc="${ADMIN_BASE_URL}model/ontologies/namespace/"
-class="${ontology_doc}#NewClass"
+class="${namespace_doc}#NewClass"
 
 ./create-class.sh \
   -f "$OWNER_CERT_FILE" \
