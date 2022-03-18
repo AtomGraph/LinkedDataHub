@@ -11,10 +11,10 @@ pushd . > /dev/null && cd "$SCRIPT_ROOT/admin"
 # create template
 
 ./add-ontology-import.sh \
--f "$OWNER_CERT_FILE" \
--p "$OWNER_CERT_PWD" \
---import "https://schema.org" \
-"${ADMIN_BASE_URL}model/ontologies/namespace/"
+  -f "$OWNER_CERT_FILE" \
+  -p "$OWNER_CERT_PWD" \
+  --import "https://schema.org" \
+  "${ADMIN_BASE_URL}model/ontologies/namespace/"
 
 popd > /dev/null
 
@@ -22,5 +22,5 @@ popd > /dev/null
 
 curl -k -f -s -N \
   -H "Accept: application/n-triples" \
-  "${ADMIN_BASE_URL}model/ontologies/namespace/" \
-| grep -q "<${ADMIN_BASE_URL}model/ontologies/namespace/#> <http://www.w3.org/2002/07/owl#imports> <https://schema.org>"
+  "${END_USER_BASE_URL}ns" \
+| grep -q "<${END_USER_BASE_URL}ns#> <http://www.w3.org/2002/07/owl#imports> <https://schema.org>"

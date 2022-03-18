@@ -29,7 +29,7 @@
 <urn:linkeddatahub:apps/end-user> a lapp:Application, lapp:EndUserApplication ;
     dct:title "LinkedDataHub" ;
     ldt:base <> ;
-    ldt:ontology <admin/model/ontologies/namespace/#> ;
+    ldt:ontology <ns#> ;
     ldt:service <urn:linkeddatahub:services/end-user>;
     lapp:adminApplication <urn:linkeddatahub:apps/admin> ;
     lapp:public true .

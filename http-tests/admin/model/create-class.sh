@@ -10,18 +10,19 @@ pushd . > /dev/null && cd "$SCRIPT_ROOT/admin/model"
 
 # create class
 
+namespace_doc="${END_USER_BASE_URL}ns"
 ontology_doc="${ADMIN_BASE_URL}model/ontologies/namespace/"
 class="${ontology_doc}#NewClass"
 
 ./create-class.sh \
--f "$OWNER_CERT_FILE" \
--p "$OWNER_CERT_PWD" \
--b "$ADMIN_BASE_URL" \
---uri "$class" \
---label "New class" \
---slug new-class \
---sub-class-of "https://www.w3.org/ns/ldt/document-hierarchy#Item" \
-"$ontology_doc"
+  -f "$OWNER_CERT_FILE" \
+  -p "$OWNER_CERT_PWD" \
+  -b "$ADMIN_BASE_URL" \
+  --uri "$class" \
+  --label "New class" \
+  --slug new-class \
+  --sub-class-of "https://www.w3.org/ns/ldt/document-hierarchy#Item" \
+  "$ontology_doc"
 
 popd > /dev/null
 
@@ -29,5 +30,5 @@ popd > /dev/null
 
 curl -k -f -s -N \
   -H "Accept: application/n-triples" \
-  "$ontology_doc" \
+  "$namespace_doc" \
 | grep -q "$class"

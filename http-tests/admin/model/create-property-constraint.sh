@@ -10,6 +10,7 @@ pushd . > /dev/null && cd "$SCRIPT_ROOT/admin/model"
 
 # create a constraint making the sioc:content property mandatory
 
+namespace_doc="${END_USER_BASE_URL}ns"
 ontology_doc="${ADMIN_BASE_URL}model/ontologies/namespace/"
 constraint="${ontology_doc}#NewConstraint"
 
@@ -29,7 +30,7 @@ constraint="${ontology_doc}#NewConstraint"
   -f "$OWNER_CERT_FILE" \
   -p "$OWNER_CERT_PWD" \
   -b "$ADMIN_BASE_URL" \
-  --uri "${ontology_doc}#ConstrainedClass" \
+  --uri "${namespace_doc}#ConstrainedClass" \
   --label "Constrained class" \
   --slug constrained-class \
   --constraint "$constraint" \
@@ -42,8 +43,8 @@ popd > /dev/null
 
 curl -k -f -s -N \
   -H "Accept: application/n-triples" \
-  "${ontology_doc}" \
-| grep -q "${ontology_doc}#NewConstraint"
+  "${namespace_doc}" \
+| grep -q "${namespace_doc}#NewConstraint"
 
 # clear ontology from memory
 
@@ -62,7 +63,7 @@ pushd . > /dev/null && cd "$SCRIPT_ROOT"
 
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
 turtle+="@prefix sioc:	<http://rdfs.org/sioc/ns#> .\n"
-turtle+="_:item a <${ontology_doc}#ConstrainedClass> .\n"
+turtle+="_:item a <${namespace_doc}#ConstrainedClass> .\n"
 turtle+="_:item dct:title \"Failure\" .\n"
 turtle+="_:item sioc:has_container <${END_USER_BASE_URL}> .\n"
 

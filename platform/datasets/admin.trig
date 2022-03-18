@@ -1,4 +1,4 @@
-@prefix ns:	<model/ontologies/namespace/#> .
+@prefix ns:	<../ns#> .
 @prefix lacl:	<https://w3id.org/atomgraph/linkeddatahub/admin/acl#> .
 @prefix adm:	<https://w3id.org/atomgraph/linkeddatahub/admin#> .
 @prefix def:	<https://w3id.org/atomgraph/linkeddatahub/default#> .
@@ -459,6 +459,7 @@
     ns: a owl:Ontology ;
         rdfs:label "Namespace" ;
         rdfs:comment "Namespace of the application" ;
+        foaf:isPrimaryTopicOf <../ns> .
         owl:imports <https://w3id.org/atomgraph/linkeddatahub/default#> ;
         owl:versionInfo "1.0-SNAPSHOT" .
 

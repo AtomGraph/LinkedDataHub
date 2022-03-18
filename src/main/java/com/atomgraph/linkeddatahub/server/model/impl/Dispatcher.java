@@ -122,11 +122,11 @@ public class Dispatcher
         return Namespace.class;
     }
 
-//    @Path("ns/{slug}/")
-//    public Object getSubOntology()
-//    {
-//        return Namespace.class;
-//    }
+    @Path("ns/{slug}/")
+    public Object getSubOntology()
+    {
+        return Namespace.class;
+    }
 
     /**
      * Returns ontology item resource.

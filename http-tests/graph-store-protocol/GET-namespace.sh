@@ -11,7 +11,7 @@ purge_backend_cache "$ADMIN_VARNISH_SERVICE"
 curl --head -k -w "%{http_code}\n" -o /dev/null -f -s \
   -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
   -H "Accept: text/turtle" \
-  "${ADMIN_BASE_URL}model/ontologies/namespace/" \
+  "${END_USER_BASE_URL}ns" \
 | grep -q "$STATUS_OK"
 
 # authenticated agent access
@@ -19,12 +19,12 @@ curl --head -k -w "%{http_code}\n" -o /dev/null -f -s \
 curl --head -k -w "%{http_code}\n" -o /dev/null -f -s \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -H "Accept: text/turtle" \
-  "${ADMIN_BASE_URL}model/ontologies/namespace/" \
+  "${END_USER_BASE_URL}ns" \
 | grep -q "$STATUS_OK"
 
 # public access
 
 curl --head -k -w "%{http_code}\n" -o /dev/null -f -s \
   -H "Accept: text/turtle" \
-  "${ADMIN_BASE_URL}model/ontologies/namespace/" \
+  "${END_USER_BASE_URL}ns" \
 | grep -q "$STATUS_OK"

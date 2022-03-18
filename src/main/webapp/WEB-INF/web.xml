@@ -177,6 +177,7 @@ SELECT *
         <param-name>https://w3id.org/atomgraph/linkeddatahub/config#ontologyQuery</param-name>
         <param-value><![CDATA[
 PREFIX  owl:  <http://www.w3.org/2002/07/owl#>
+PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
 
 CONSTRUCT
   {
@@ -184,7 +185,8 @@ CONSTRUCT
   }
 WHERE
   { GRAPH ?g
-      { $ontology  a  owl:Ontology .
+      { ?ontology  a  owl:Ontology ;
+            foaf:isPrimaryTopicOf $this .
         ?s        ?p  ?o
       }
   }

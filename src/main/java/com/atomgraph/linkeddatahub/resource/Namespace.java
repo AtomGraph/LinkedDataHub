@@ -25,6 +25,7 @@ import static com.atomgraph.core.model.SPARQLEndpoint.DEFAULT_GRAPH_URI;
 import static com.atomgraph.core.model.SPARQLEndpoint.NAMED_GRAPH_URI;
 import static com.atomgraph.core.model.SPARQLEndpoint.QUERY;
 import com.atomgraph.linkeddatahub.server.model.impl.SPARQLEndpointImpl;
+import com.atomgraph.spinrdf.vocabulary.SPIN;
 import java.net.URI;
 import java.util.List;
 import java.util.Optional;
@@ -32,7 +33,9 @@ import javax.inject.Inject;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.GET;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.UriInfo;
 import org.apache.jena.ontology.Ontology;
+import org.apache.jena.query.ParameterizedSparqlString;
 import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryExecution;
 import org.apache.jena.query.ResultSetFactory;
@@ -54,22 +57,32 @@ public class Namespace extends SPARQLEndpointImpl
 
     private static final Logger log = LoggerFactory.getLogger(Namespace.class);
 
+    private final URI uri;
+    private final com.atomgraph.linkeddatahub.apps.model.Application application;
     private final Ontology ontology;
-    
+    private final com.atomgraph.linkeddatahub.Application system;
+
     /**
      * Constructs endpoint.
      * 
      * @param request current request
-     * @param service SPARQL service
-     * @param ontology ontology of the current application
+     * @param uriInfo current request's URI info
+     * @param application current application
+     * @param service application's SPARQL service
+     * @param ontology application's ontology
      * @param mediaTypes registry of readable/writable media types
      * @param system system application
      */
     @Inject
-    public Namespace(@Context Request request, Optional<Service> service, Optional<Ontology> ontology, MediaTypes mediaTypes, com.atomgraph.linkeddatahub.Application system)
+    public Namespace(@Context Request request, @Context UriInfo uriInfo, 
+            com.atomgraph.linkeddatahub.apps.model.Application application, Optional<Service> service, Optional<Ontology> ontology, MediaTypes mediaTypes,
+            com.atomgraph.linkeddatahub.Application system)
     {
         super(request, service, mediaTypes);
+        this.uri = uriInfo.getAbsolutePath();
+        this.application = application;
         this.ontology = ontology.get();
+        this.system = system;
     }
 
     @Override
@@ -83,7 +96,13 @@ public class Namespace extends SPARQLEndpointImpl
     @Override
     public Response.ResponseBuilder getResponseBuilder(Query query, List<URI> defaultGraphUris, List<URI> namedGraphUris)
     {
-        if (query == null) throw new BadRequestException("Query string not provided");
+        // if query param is not provided, use the configured ontology query
+        if (query == null)
+        {
+            ParameterizedSparqlString pss = new ParameterizedSparqlString(getSystem().getOntologyQuery().toString(), getApplication().getBase().getURI());
+            pss.setIri(SPIN._this.getLocalName(), getURI().toString()); // sets $this
+            query = pss.asQuery();
+        }
 
         if (query.isSelectType())
         {
@@ -118,6 +137,26 @@ public class Namespace extends SPARQLEndpointImpl
     }
     
     /**
+     * Returns URI of this resource.
+     * 
+     * @return resource URI
+     */
+    public URI getURI()
+    {
+        return uri;
+    }
+    
+    /**
+     * Returns the current application.
+     * 
+     * @return application resource
+     */
+    public com.atomgraph.linkeddatahub.apps.model.Application getApplication()
+    {
+        return application;
+    }
+    
+    /**
      * Returns application ontology.
      * 
      * @return ontology resource
@@ -125,6 +164,16 @@ public class Namespace extends SPARQLEndpointImpl
     public Ontology getOntology()
     {
         return ontology;
+    }
+    
+    /**
+     * Returns the system application.
+     * 
+     * @return JAX-RS application
+     */
+    public com.atomgraph.linkeddatahub.Application getSystem()
+    {
+        return system;
     }
     
 }
