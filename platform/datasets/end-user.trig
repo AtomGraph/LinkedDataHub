@@ -28,16 +28,6 @@
 
 }
 
-<queries/default/>
-{
-
-    <queries/default/> a dh:Container ;
-        sioc:has_parent <queries/> ;
-        dct:title "Default" ;
-        dct:description "Default queries" .
-
-}
-
 <files/>
 {
 

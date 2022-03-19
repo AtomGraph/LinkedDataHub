@@ -20,7 +20,7 @@ import com.atomgraph.client.vocabulary.AC;
 import com.atomgraph.linkeddatahub.apps.model.Dataset;
 import com.atomgraph.linkeddatahub.resource.Add;
 import com.atomgraph.linkeddatahub.resource.Clone;
-import com.atomgraph.linkeddatahub.resource.Imports;
+import com.atomgraph.linkeddatahub.resource.Importer;
 import com.atomgraph.linkeddatahub.resource.Namespace;
 import com.atomgraph.linkeddatahub.resource.admin.RequestAccess;
 import com.atomgraph.linkeddatahub.resource.admin.SignUp;
@@ -165,8 +165,9 @@ public class Dispatcher
      * Returns content-addressed file item resource.
      * 
      * @return resource
+     * @see com.atomgraph.linkeddatahub.apps.model.Application.UPLOADS_PATH
      */
-    @Path("uploads/{sha1sum}/")
+    @Path("uploads/{sha1sum}")
     public Object getFileItem()
     {
         return com.atomgraph.linkeddatahub.resource.upload.sha1.Item.class;
@@ -177,10 +178,10 @@ public class Dispatcher
      * 
      * @return endpoint resource
      */
-    @Path("imports")
+    @Path("importer")
     public Object getImportEndpoint()
     {
-        return Imports.class;
+        return Importer.class;
     }
 
     /**

@@ -158,4 +158,4 @@ popd > /dev/null
 
 file=$(echo "$file_ntriples" | sed -rn "s/<${file_doc//\//\\/}> <http:\/\/xmlns.com\/foaf\/0.1\/primaryTopic> <(.*)> \./\1/p")
 
-./create-csv-import.sh -b "$base" -f "$cert_pem_file" -p "$cert_password" --title "$title" --slug "$import_slug" --query "$query" --file "$file" --delimiter "," # TO-DO: "${request_base}imports"
+./create-csv-import.sh -b "$base" -f "$cert_pem_file" -p "$cert_password" --title "$title" --slug "$import_slug" --query "$query" --file "$file" --delimiter "," # TO-DO: "${request_base}importer"

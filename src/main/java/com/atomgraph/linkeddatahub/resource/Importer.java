@@ -56,9 +56,9 @@ import org.slf4j.LoggerFactory;
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-public class Imports extends GraphStoreImpl
+public class Importer extends GraphStoreImpl
 {
-    private static final Logger log = LoggerFactory.getLogger(Imports.class);
+    private static final Logger log = LoggerFactory.getLogger(Importer.class);
     
     private final URI uri;
     private final DataManager dataManager;
@@ -78,7 +78,7 @@ public class Imports extends GraphStoreImpl
      * @param servletConfig servlet config
      */
     @Inject
-    public Imports(@Context Request request, @Context UriInfo uriInfo, MediaTypes mediaTypes,
+    public Importer(@Context Request request, @Context UriInfo uriInfo, MediaTypes mediaTypes,
             com.atomgraph.linkeddatahub.apps.model.Application application, Optional<Ontology> ontology, Optional<Service> service,
             DataManager dataManager,
             @Context Providers providers, com.atomgraph.linkeddatahub.Application system, @Context ServletConfig servletConfig)

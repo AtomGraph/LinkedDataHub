@@ -167,7 +167,7 @@ popd > /dev/null
 file=$(echo "$file_ntriples" | sed -rn "s/<${file_doc//\//\\/}> <http:\/\/xmlns.com\/foaf\/0.1\/primaryTopic> <(.*)> \./\1/p")
 
 if [ -n "$query" ] ; then
-    ./create-rdf-import.sh -b "$base" -f "$cert_pem_file" -p "$cert_password" --title "$title" --slug "$import_slug" --query "$query" --file "$file" # TO-DO: "${request_base}imports"
+    ./create-rdf-import.sh -b "$base" -f "$cert_pem_file" -p "$cert_password" --title "$title" --slug "$import_slug" --query "$query" --file "$file" # TO-DO: "${request_base}importer"
 else
-    ./create-rdf-import.sh -b "$base" -f "$cert_pem_file" -p "$cert_password" --title "$title" --slug "$import_slug" --graph "$graph" --file "$file" # TO-DO: "${request_base}imports"
+    ./create-rdf-import.sh -b "$base" -f "$cert_pem_file" -p "$cert_password" --title "$title" --slug "$import_slug" --graph "$graph" --file "$file" # TO-DO: "${request_base}importer"
 fi
