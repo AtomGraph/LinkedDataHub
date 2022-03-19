@@ -13,7 +13,13 @@
 
     <> a def:Root ;
         dct:title "Root" ;
-        dct:description "Root container" .
+        dct:description "Root container" ;
+        ldh:content <#ce326f5c-1d48-4fd5-84fe-889bac2a090f> .
+
+
+    <#ce326f5c-1d48-4fd5-84fe-889bac2a090f> a ldh:Content ;
+        rdf:first ldh:SelectChildren ;
+        rdf:rest rdf:nil .
 
 }
 
