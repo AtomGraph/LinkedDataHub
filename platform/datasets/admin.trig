@@ -23,7 +23,12 @@
 
     <> a dh:Container ;
         dct:title "Root" ;
-        dct:description "Root container" .
+        dct:description "Root container" ;
+        ldh:content <#select-children> .
+
+    <#select-children> a ldh:Content ;
+        rdf:first ldh:SelectChildren ;
+        rdf:rest rdf:nil .
 
 }
 
@@ -32,17 +37,12 @@
 
     <queries/> a dh:Container ;
         dct:title "Queries" ;
-        dct:description "SPARQL queries" .
+        dct:description "SPARQL queries" ;
+        ldh:content <queries/#select-children> .
 
-}
-
-<queries/default/>
-{
-
-    <queries/default/> a dh:Container ;
-        sioc:has_parent <queries/> ;
-        dct:title "Default" ;
-        dct:description "Default queries" .
+    <queries/#select-children> a ldh:Content ;
+        rdf:first ldh:SelectChildren ;
+        rdf:rest rdf:nil .
 
 }
 
@@ -108,7 +108,12 @@
     <acl/> a dh:Container ;
         sioc:has_parent <> ;
         dct:title "Access control" ;
-        dct:description "Manage agents, user accounts and authorizations" .
+        dct:description "Manage agents, user accounts and authorizations" ;
+        ldh:content <acl/#select-children> .
+
+    <acl/#select-children> a ldh:Content ;
+        rdf:first ldh:SelectChildren ;
+        rdf:rest rdf:nil .
 
 }
 
@@ -118,7 +123,12 @@
     <acl/authorizations/> a dh:Container ;
         sioc:has_parent <acl/> ;
         dct:title "Authorizations" ;
-        dct:description "Manage who has access to which resources" .
+        dct:description "Manage who has access to which resources" ;
+        ldh:content <acl/authorizations/#select-children> .
+
+    <acl/authorizations/#select-children> a ldh:Content ;
+        rdf:first ldh:SelectChildren ;
+        rdf:rest rdf:nil .
 
 }
 
@@ -128,7 +138,12 @@
     <acl/authorization-requests/> a dh:Container ;
         sioc:has_parent <acl/> ;
         dct:title "Authorization requests" ;
-        dct:description "Manage who has access to which resources" .
+        dct:description "Manage who has access to which resources" '
+        ldh:content <acl/authorization-requests/#select-children> .
+
+    <acl/authorization-requests/#select-children> a ldh:Content ;
+        rdf:first ldh:SelectChildren ;
+        rdf:rest rdf:nil .
 
 }
 
@@ -138,7 +153,12 @@
     <acl/agents/> a dh:Container ;
         sioc:has_parent <acl/> ;
         dct:title "Agents" ;
-        dct:description "Manage people and software agents that have access" .
+        dct:description "Manage people and software agents that have access" ;
+        ldh:content <acl/agents/#select-children> .
+
+    <acl/agents/#select-children> a ldh:Content ;
+        rdf:first ldh:SelectChildren ;
+        rdf:rest rdf:nil .
 
 }
 
@@ -148,7 +168,12 @@
     <acl/public-keys/> a dh:Container ;
         sioc:has_parent <acl/> ;
         dct:title "Public keys" ;
-        dct:description "Manage RSA public keys" .
+        dct:description "Manage RSA public keys" ;
+        ldh:content <acl/public-keys/#select-children> .
+
+    <acl/public-keys/#select-children> a ldh:Content ;
+        rdf:first ldh:SelectChildren ;
+        rdf:rest rdf:nil .
 
 }
 
@@ -158,7 +183,12 @@
     <acl/users/> a dh:Container ;
         sioc:has_parent <acl/> ;
         dct:title "Users" ;
-        dct:description "Manage agent user accounts and credentials" .
+        dct:description "Manage agent user accounts and credentials" ;
+        ldh:content <acl/users/#select-children> .
+
+    <acl/users/#select-children> a ldh:Content ;
+        rdf:first ldh:SelectChildren ;
+        rdf:rest rdf:nil .
 
 }
 
@@ -168,7 +198,12 @@
     <acl/groups/> a dh:Container ;
         sioc:has_parent <acl/> ;
         dct:title "Groups" ;
-        dct:description "Manage agent groups that have access" .
+        dct:description "Manage agent groups that have access" ;
+        ldh:content <acl/groups/#select-children> .
+
+    <acl/groups/#select-children> a ldh:Content ;
+        rdf:first ldh:SelectChildren ;
+        rdf:rest rdf:nil .
 
 }
 
@@ -430,7 +465,12 @@
     <model/> a dh:Container ;
         sioc:has_parent <> ;
         dct:title "Model" ;
-        dct:description "Manage application model: classes, properties, constraints etc." .
+        dct:description "Manage application model: classes, properties, constraints etc." ;
+        ldh:content <model/#select-children> .
+
+    <model/#select-children> a ldh:Content ;
+        rdf:first ldh:SelectChildren ;
+        rdf:rest rdf:nil .
 
 }
 
@@ -440,7 +480,12 @@
     <model/ontologies/> a dh:Container ;
         sioc:has_parent <model/> ;
         dct:title "Ontologies" ;
-        dct:description "Manage ontologies that define application domain" .
+        dct:description "Manage ontologies that define application domain" ;
+        ldh:content <model/ontologies/#select-children> .
+
+    <model/ontologies/#select-children> a ldh:Content ;
+        rdf:first ldh:SelectChildren ;
+        rdf:rest rdf:nil .
 
 }
 

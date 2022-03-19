@@ -108,14 +108,19 @@ args+=("-t")
 args+=("text/turtle")
 
 turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy#> .\n"
+turtle+="@prefix ldh:	<https://w3id.org/atomgraph/linkeddatahub#> .\n"
+turtle+="@prefix rdf:	<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
 turtle+="@prefix sioc:	<http://rdfs.org/sioc/ns#> .\n"
 turtle+="_:container a dh:Container .\n"
 turtle+="_:container dct:title \"${title}\" .\n"
 turtle+="_:container sioc:has_parent <${parent}> .\n"
 if [ -n "$content" ] ; then
-    turtle+="@prefix ldh:	<https://w3id.org/atomgraph/linkeddatahub#> .\n"
     turtle+="_:container ldh:content <${content}> .\n"
+else
+    turtle+="_:container ldh:content [ a ldh:Content ; rdf:first ldh:SelectChildren ; rdf:rest rdf:nil ] .\n"
+
+ldh:SelectChildren
 fi
 if [ -n "$description" ] ; then
     turtle+="_:container dct:description \"${description}\" .\n"
