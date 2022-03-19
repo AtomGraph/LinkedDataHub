@@ -69,4 +69,4 @@ curl -k -f -s -N \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -H "Accept: application/n-triples" \
   "${container}${rdf_id}/" \
-| grep -q "<${container}${rdf_id}/> <http://xmlns.com/foaf/0.1/primaryTopic> <${rdf_value}>"
+| grep "<${container}${rdf_id}/> <http://xmlns.com/foaf/0.1/primaryTopic> <${rdf_value}>" > /dev/null
