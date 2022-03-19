@@ -138,7 +138,7 @@
     <acl/authorization-requests/> a dh:Container ;
         sioc:has_parent <acl/> ;
         dct:title "Authorization requests" ;
-        dct:description "Manage who has access to which resources" '
+        dct:description "Manage who has access to which resources" ;
         ldh:content <acl/authorization-requests/#select-children> .
 
     <acl/authorization-requests/#select-children> a ldh:Content ;
