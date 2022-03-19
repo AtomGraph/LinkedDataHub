@@ -564,7 +564,11 @@ exclude-result-prefixes="#all">
                         <xsl:attribute name="class" select="'active'"/>
                     </xsl:if>
 
-                    <a href="{ac:build-uri((), map{ 'mode': '&ac;QueryEditorMode' })}" class="query-editor">SPARQL editor</a>
+                    <a href="{ac:build-uri((), map{ 'mode': '&ac;QueryEditorMode' })}" class="query-editor">
+                        <xsl:value-of>
+                            <xsl:apply-templates select="key('resources', 'sparql-editor', document('translations.rdf'))" mode="ac:label"/>
+                        </xsl:value-of>
+                    </a>
                 </li>
                 <xsl:if test="doc-available($app-request-uri)">
                     <li>

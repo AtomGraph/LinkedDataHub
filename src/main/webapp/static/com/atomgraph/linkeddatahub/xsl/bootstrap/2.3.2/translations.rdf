@@ -202,4 +202,7 @@
     <rdf:Description rdf:about="sparql-service">
         <rdfs:label xml:lang="en-US">SPARQL service</rdfs:label>
     </rdf:Description>
+    <rdf:Description rdf:about="sparql-editor">
+        <rdfs:label xml:lang="en-US">SPARQL editor</rdfs:label>
+    </rdf:Description>
 </rdf:RDF>

@@ -26,6 +26,7 @@ exclude-result-prefixes="#all">
     <xsl:import href="imports/acl.xsl"/>
     <xsl:import href="imports/cert.xsl"/>
 
+    <!-- TO-DO: refactor into component templates -->
     <xsl:template match="rdf:RDF" mode="bs2:NavBarNavList">
         <xsl:if test="$foaf:Agent//@rdf:about">
             <ul class="nav pull-right">
@@ -34,7 +35,11 @@ exclude-result-prefixes="#all">
                         <xsl:attribute name="class" select="'active'"/>
                     </xsl:if>
 
-                    <a href="{ac:build-uri((), map{ 'mode': '&ac;QueryEditorMode' })}">SPARQL editor</a>
+                    <a href="{ac:build-uri((), map{ 'mode': '&ac;QueryEditorMode' })}" class="query-editor">
+                        <xsl:value-of>
+                            <xsl:apply-templates select="key('resources', 'sparql-editor', document('translations.rdf'))" mode="ac:label"/>
+                        </xsl:value-of>
+                    </a>
                 </li>
 
                 <xsl:variable name="notification-query" as="xs:string">
