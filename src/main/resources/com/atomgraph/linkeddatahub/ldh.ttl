@@ -386,12 +386,6 @@ WHERE
 
 # CONTENTS
 
-:ContainerChildren a :Content ;
-    rdf:first :SelectChildren ;
-    rdf:rest rdf:nil ;
-    rdfs:label "Container children" ;
-    rdfs:isDefinedBy : .
-
 :SelectChildren a sp:Select ;
     rdfs:label "Select children" ;
     sp:text """
@@ -530,8 +524,7 @@ dh:Item spin:constructor :TitleConstructor, :DescriptionConstructor, :PrimaryTop
     rdfs:isDefinedBy : .
 
 dh:Container spin:constructor :TitleConstructor, :DescriptionConstructor, :PrimaryTopicConstructor, :ContainerContentConstructor ;
-    spin:constraint :MissingParent ;
-    :template :ContainerChildren .
+    spin:constraint :MissingParent .
 
 :MissingParent a :MissingPropertyValue ;
     rdfs:label "Missing parent" ;

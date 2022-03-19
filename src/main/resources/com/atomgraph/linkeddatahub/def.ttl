@@ -25,7 +25,6 @@
     rdfs:subClassOf sioc:Space, sioc:Container ;
     spin:constructor ldh:TitleConstructor, ldh:DescriptionConstructor, ldh:PrimaryTopicConstructor, ldh:ContentConstructor ;
     spin:constraint :MissingTitle ; # roots do not have parents, therefore no ldh:MissingParent
-    # ldh:template ldh:ContainerChildren ;
     rdfs:label "Root" ;
     rdfs:isDefinedBy : .
 
