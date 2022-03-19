@@ -37,7 +37,7 @@ exclude-result-prefixes="#all">
 
                     <a href="{ac:build-uri((), map{ 'mode': '&ac;QueryEditorMode' })}" class="query-editor">
                         <xsl:value-of>
-                            <xsl:apply-templates select="key('resources', 'sparql-editor', document('translations.rdf'))" mode="ac:label"/>
+                            <xsl:apply-templates select="key('resources', 'sparql-editor', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
                         </xsl:value-of>
                     </a>
                 </li>
