@@ -20,7 +20,7 @@ pushd . > /dev/null && cd "$SCRIPT_ROOT/admin/acl"
 
 popd > /dev/null
 
-pushd . > /dev/null && cd "$SCRIPT_ROOT/importer"
+pushd . > /dev/null && cd "$SCRIPT_ROOT/imports"
 
 # create file
 
