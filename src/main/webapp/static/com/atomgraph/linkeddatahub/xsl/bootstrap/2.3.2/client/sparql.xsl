@@ -143,6 +143,8 @@ LIMIT 100</xsl:param>
                         <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ldh:logo">
                             <xsl:with-param name="class" select="'btn btn-save-query'"/>
                         </xsl:apply-templates>
+                        
+                        <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
                     </button>
                 </div>
             </fieldset>

@@ -1002,6 +1002,8 @@ exclude-result-prefixes="#all">
                     <xsl:with-param name="class" select="'btn dropdown-toggle'"/>
                 </xsl:apply-templates>
                 
+                <xsl:apply-templates select="key('resources', '&ac;Export', document(ac:document-uri('&ac;')))" mode="ac:label"/>
+                
                 <span class="caret"></span>
             </button>
             <ul class="dropdown-menu">
@@ -1039,8 +1041,14 @@ exclude-result-prefixes="#all">
             <h2>
                 <xsl:apply-templates select="." mode="ldh:logo"/>
                 
+                <xsl:apply-templates select="." mode="ac:label"/>
+                
                 <xsl:variable name="request-access-to" select="ac:build-uri(lacl:requestAccess/@rdf:resource, map{ 'access-to': string(ac:uri()) } )" as="xs:anyURI"/>
-                <a href="{ldh:href($ldt:base, ldh:absolute-path(ldh:href()), $request-access-to)}" class="btn btn-primary pull-right">Request access</a>
+                <a href="{ldh:href($ldt:base, ldh:absolute-path(ldh:href()), $request-access-to)}" class="btn btn-primary pull-right">
+                    <xsl:value-of>
+                        <xsl:apply-templates select="key('resources', 'request-access', document('translations.rdf'))" mode="ac:label"/>
+                    </xsl:value-of>
+                </a>
             </h2>
         </div>
     </xsl:template>
@@ -1105,6 +1113,8 @@ exclude-result-prefixes="#all">
                     <xsl:apply-templates select="key('resources', '&ac;Delete', document(ac:document-uri('&ac;')))" mode="ldh:logo">
                         <xsl:with-param name="class" select="'btn'"/>
                     </xsl:apply-templates>
+                    
+                    <xsl:apply-templates select="key('resources', '&ac;Delete', document(ac:document-uri('&ac;')))" mode="ac:label"/>
                 </button>
             </div>
 
@@ -1113,6 +1123,8 @@ exclude-result-prefixes="#all">
                     <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="ldh:logo">
                         <xsl:with-param name="class" select="'btn' || (if ($ac:mode = '&ac;EditMode') then ' active' else ())"/>
                     </xsl:apply-templates>
+                    
+                    <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
                 </a>
             </div>
             
@@ -1146,6 +1158,8 @@ exclude-result-prefixes="#all">
                         <xsl:apply-templates select="key('resources', '&ldht;Ban', document(ac:document-uri('&ldht;')))" mode="ldh:logo">
                             <xsl:with-param name="class" select="'btn'"/>
                         </xsl:apply-templates>
+                        
+                        <xsl:apply-templates select="key('resources', '&ldht;Ban', document(ac:document-uri('&ldht;')))" mode="ac:label"/>
                     </button>
                 </form>
             </div>-->
@@ -1155,6 +1169,7 @@ exclude-result-prefixes="#all">
                     <xsl:apply-templates select="key('resources', '&acl;Access', document(ac:document-uri('&acl;')))" mode="ldh:logo">
                         <xsl:with-param name="class" select="'btn dropdown-toggle'"/>
                     </xsl:apply-templates>
+                    <xsl:apply-templates select="key('resources', '&acl;Access', document(ac:document-uri('&acl;')))" mode="ac:label"/>
                     <xsl:text> </xsl:text>
                     <span class="caret"></span>
                 </button>

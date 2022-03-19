@@ -59,18 +59,18 @@ function download_dataset()
 {
     curl -s -f \
       -H "Accept: application/trig" \
-      "${1}"
+      "$1"
 }
 
 function initialize_dataset()
 {
-    echo "@base <${1}> ." \
-    | cat - "${2}" \
+    echo "@base <$1> ." \
+    | cat - "$2" \
     | curl -f -s \
       -X PUT \
       --data-binary @- \
       -H "Content-Type: application/trig" \
-      "${3}" > /dev/null
+      "$3" > /dev/null
 }
 
 function purge_backend_cache()

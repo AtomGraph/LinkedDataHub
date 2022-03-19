@@ -495,7 +495,8 @@ WHERE
             </img>
         </a>
     </xsl:template>
-    
+
+<!--        
     <xsl:template match="*[@rdf:about = '&ac;ReadMode']" mode="ldh:logo">
         <xsl:param name="class" as="xs:string?"/>
         
@@ -543,7 +544,7 @@ WHERE
         
         <xsl:attribute name="class" select="concat($class, ' ', 'graph-mode')"/>
         <xsl:sequence select="ac:label(.)"/>
-    </xsl:template>
+    </xsl:template>-->
     
     <!-- copied from rdf.xsl which is not imported -->
     <xsl:template match="rdf:type/@rdf:resource" priority="1">

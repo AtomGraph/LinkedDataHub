@@ -83,7 +83,6 @@ extension-element-prefixes="ixsl"
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'create-action')"/>
-        <!-- <xsl:sequence select="ac:label(.)"/> -->
     </xsl:template>
 
     <xsl:template match="*[@rdf:about = '&dh;Container']" mode="ldh:logo" priority="1">
@@ -146,39 +145,34 @@ extension-element-prefixes="ixsl"
         <xsl:attribute name="class" select="concat($class, ' ', @rdf:nodeID)"/>
     </xsl:template>
 
-    <xsl:template match="*[@rdf:nodeID = 'toggle-content']" mode="ldh:logo">
+<!--    <xsl:template match="*[@rdf:nodeID = 'toggle-content']" mode="ldh:logo">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'btn-toggle-content')"/>
-        <xsl:sequence select="ac:label(.)"/>
-    </xsl:template>
+    </xsl:template>-->
     
     <xsl:template match="*[@rdf:about = '&ldht;Ban']" mode="ldh:logo">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'btn-ban')"/>
-        <xsl:sequence select="ac:label(.)"/>
     </xsl:template>
         
     <xsl:template match="*[@rdf:about = '&ac;Delete']" mode="ldh:logo">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'btn-delete')"/>
-        <xsl:sequence select="ac:label(.)"/>
     </xsl:template>
 
-    <xsl:template match="*[@rdf:nodeID = 'skolemize']" mode="ldh:logo">
+<!--    <xsl:template match="*[@rdf:nodeID = 'skolemize']" mode="ldh:logo">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'btn-skolemize')"/>
-        <xsl:sequence select="ac:label(.)"/>
-    </xsl:template>
+    </xsl:template>-->
     
     <xsl:template match="*[@rdf:about = '&ac;Export']" mode="ldh:logo">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'btn-export')"/>
-        <xsl:sequence select="ac:label(.)"/>
     </xsl:template>
 
     <xsl:template match="*[@rdf:nodeID = 'settings']" mode="ldh:logo">
@@ -191,21 +185,18 @@ extension-element-prefixes="ixsl"
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'btn-save')"/>
-        <xsl:sequence select="ac:label(.)"/>
     </xsl:template>
 
     <xsl:template match="*[@rdf:nodeID = 'close']" mode="ldh:logo">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'btn-close')"/>
-        <xsl:sequence select="ac:label(.)"/>
     </xsl:template>
 
     <xsl:template match="*[@rdf:nodeID = 'reset']" mode="ldh:logo">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'btn-reset')"/>
-        <xsl:sequence select="ac:label(.)"/>
     </xsl:template>
 
     <xsl:template match="*[@rdf:nodeID = 'search']" mode="ldh:logo">
@@ -242,7 +233,6 @@ extension-element-prefixes="ixsl"
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'btn-edit')"/>
-        <xsl:sequence select="ac:label(.)"/>
     </xsl:template>
     
     <xsl:template match="*[@rdf:nodeID = 'copy-uri']" mode="ldh:logo">
@@ -267,43 +257,36 @@ extension-element-prefixes="ixsl"
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'btn-read')"/>
-        <xsl:sequence select="ac:label(.)"/>
     </xsl:template>
 
     <xsl:template match="*[@rdf:about = '&ac;MapMode']" mode="ldh:logo">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'btn-map')"/>
-        <xsl:sequence select="ac:label(.)"/>
     </xsl:template>
 
     <xsl:template match="*[@rdf:about = '&ac;GraphMode']" mode="ldh:logo">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'btn-graph')"/>
-        <xsl:sequence select="ac:label(.)"/>
     </xsl:template>
 
     <xsl:template match="*[@rdf:about = '&ac;QueryEditorMode']" mode="ldh:logo">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'btn-query')"/>
-        <text>Query editor</text>
-<!--        <xsl:sequence select="ac:label(.)"/>-->
     </xsl:template>
 
     <xsl:template match="*[@rdf:about = '&acl;Access']" mode="ldh:logo">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'btn-acl')"/>
-        <xsl:sequence select="ac:label(.)"/>
     </xsl:template>
 
     <xsl:template match="*[rdf:type/@rdf:resource = '&http;Response'][lacl:requestAccess/@rdf:resource]" mode="ldh:logo">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'access-required')"/>
-        <xsl:sequence select="ac:label(.)"/>
     </xsl:template>
 
     <xsl:template match="*" mode="ldh:logo" priority="0">
