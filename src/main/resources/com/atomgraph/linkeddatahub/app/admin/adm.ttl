@@ -33,15 +33,11 @@
     rdfs:label "Request access" ;
     rdfs:isDefinedBy : .
 
-### EXTERNAL ASSERTIONS
-
-# http://rdfs.org/sioc/ns
-
-dh:Container ldh:template ldh:ContainerChildren .
-
 :MissingRDFSLabel a ldh:MissingPropertyValue ;
     rdfs:label "Missing rdfs:label" ;
     sp:arg1 rdfs:label .
+
+### EXTERNAL ASSERTIONS
 
 # http://spinrdf.org/sp
 
