@@ -199,4 +199,7 @@
     <rdf:Description rdf:about="documentation">
         <rdfs:label xml:lang="en-US">Documentation</rdfs:label>
     </rdf:Description>
+    <rdf:Description rdf:about="sparql-service">
+        <rdfs:label xml:lang="en-US">SPARQL service</rdfs:label>
+    </rdf:Description>
 </rdf:RDF>

@@ -458,7 +458,13 @@ exclude-result-prefixes="#all">
         <form action="" method="get" class="navbar-form pull-left" accept-charset="UTF-8" title="{ac:label(key('resources', 'search-title', document('translations.rdf')))}">
             <div class="input-append">
                 <select id="search-service" name="service">
-                    <option value="">[SPARQL service]</option>
+                    <option value="">
+                        <xsl:value-of>
+                            <xsl:text>[</xsl:text>
+                            <xsl:apply-templates select="key('resources', 'sparql-service', document('translations.rdf'))" mode="ac:label"/>
+                            <xsl:text>]</xsl:text>
+                        </xsl:value-of>
+                    </option>
                 </select>
                 
                 <input type="text" id="uri" name="uri" class="input-xxlarge typeahead">
@@ -852,7 +858,7 @@ exclude-result-prefixes="#all">
     
     <xsl:template match="*[*][@rdf:about = ac:uri()]" mode="bs2:PropertyList">
         <xsl:variable name="query-string" select="'DESCRIBE &lt;' || ac:uri() || '&gt;'" as="xs:string"/>
-        <xsl:variable name="local-doc" select="document(ac:build-uri(xs:anyURI('https://localhost:4443/sparql'), map{ 'query': $query-string }))"/>
+        <xsl:variable name="local-doc" select="document(ac:build-uri($ac:endpoint, map{ 'query': $query-string }))"/>
 
         <xsl:variable name="triples-original" as="map(xs:string, element())">
             <xsl:map>
