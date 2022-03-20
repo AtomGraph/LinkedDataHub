@@ -40,11 +40,6 @@ do
         shift # past argument
         shift # past value
         ;;
-        --uri)
-        uri="$2"
-        shift # past argument
-        shift # past value
-        ;;
         --title)
         title="$2"
         shift # past argument
@@ -81,10 +76,6 @@ if [ -z "$cert_password" ] ; then
     print_usage
     exit 1
 fi
-#if [ -z "$base" ] ; then
-#    print_usage
-#    exit 1
-#fi
 if [ -z "$first" ] ; then
     print_usage
     exit 1
@@ -94,11 +85,13 @@ if [ -z "$1" ] ; then
     exit 1
 fi
 
-if [ -z "request_base" ]; then
+if [ -z "$request_base" ]; then
     request_base="$base"
 fi
 
 this="$1"
+
+# SPARQL update logic from https://afs.github.io/rdf-lists-sparql#a-nameadd-lastaadd-an-element-to-the-end-of-a-list
 
 curl -X PATCH \
     -v -f -k \
@@ -147,7 +140,7 @@ WHERE
         ?list rdf:rest* ?elt .
         ?elt rdf:rest rdf:nil .
         # ?elt is last cons cell
-       BIND (uri(concat(str(<${this}>), '#', struuid())) as ?content)
+        BIND (uri(concat(str(<${this}>), '#', struuid())) as ?content)
     }
 };
 
@@ -168,8 +161,8 @@ INSERT {
 WHERE
 {
     GRAPH ?g {
-       <${this}> ldh:content rdf:nil .
-       BIND (uri(concat(str(<${this}>), '#', struuid())) as ?content)
+        <${this}> ldh:content rdf:nil .
+        BIND (uri(concat(str(<${this}>), '#', struuid())) as ?content)
     }
 };
 

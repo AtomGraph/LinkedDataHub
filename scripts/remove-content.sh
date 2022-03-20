@@ -2,15 +2,14 @@
 
 print_usage()
 {
-    printf "Makes all documents of the end-user application publicly readable.\n"
+    printf "Appends content instance to document.\n"
     printf "\n"
-    printf "Usage:  %s options\n" "$0"
+    printf "Usage:  %s options [TARGET_URI]\n" "$0"
     printf "\n"
     printf "Options:\n"
     printf "  -f, --cert-pem-file CERT_FILE        .pem file with the WebID certificate of the agent\n"
     printf "  -p, --cert-password CERT_PASSWORD    Password of the WebID certificate\n"
-    printf "  -b, --base BASE_URI                  Base URI of the admin application\n"
-    printf "  --request-base BASE_URI              Request base URI (if different from --base)\n"
+    printf "  -b, --base BASE_URI                  Base URI of the application\n"
 }
 
 hash turtle 2>/dev/null || { echo >&2 "turtle not on \$PATH. Need to set \$JENA_HOME. Aborting."; exit 1; }
@@ -36,10 +35,9 @@ do
         shift # past argument
         shift # past value
         ;;
-        --request-base)
-        request_base="$2"
+        *)    # unknown arguments
+        args+=("$1") # save it in an array for later
         shift # past argument
-        shift # past value
         ;;
     esac
 done
@@ -53,7 +51,15 @@ if [ -z "$cert_password" ] ; then
     print_usage
     exit 1
 fi
-if [ -z "$base" ] ; then
+#if [ -z "$base" ] ; then
+#    print_usage
+#    exit 1
+#fi
+if [ -z "$first" ] ; then
+    print_usage
+    exit 1
+fi
+if [ -z "$1" ] ; then
     print_usage
     exit 1
 fi
@@ -62,25 +68,36 @@ if [ -z "$request_base" ]; then
     request_base="$base"
 fi
 
+this="$1"
+
+# SPARQL update logic from https://afs.github.io/rdf-lists-sparql#a-namedel-all-1adelete-the-whole-list-common-case
+
 curl -X PATCH \
     -v -f -k \
     -E "$cert_pem_file":"$cert_password" \
     -H "Content-Type: application/sparql-update" \
-    "${request_base}admin/acl/authorizations/public/" \
+    "$this" \
      --data-binary @- <<EOF
-BASE <${base}admin/>
+PREFIX  ldh:  <https://w3id.org/atomgraph/linkeddatahub#>
+PREFIX  rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 
-PREFIX  acl:  <http://www.w3.org/ns/auth/acl#>
-PREFIX  def: <https://w3id.org/atomgraph/linkeddatahub/default#>
-PREFIX  dh:  <https://www.w3.org/ns/ldt/document-hierarchy#>
-PREFIX  nfo: <http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#>
-
-INSERT DATA
-{
-  GRAPH <acl/authorizations/public/>
-  {
-    <acl/authorizations/public/#this> acl:accessToClass def:Root, dh:Container, dh:Item, nfo:FileDataObject ;
-        acl:accessTo <../sparql> .
-  }
+DELETE {
+  ?z rdf:first ?head .
+  ?z rdf:rest ?tail .
 }
+WHERE
+  { GRAPH ?g
+      { <${this}> ldh:content  ?content .
+        ?content (rdf:rest)* ?z .
+        ?z  rdf:first  ?head ;
+            rdf:rest   ?tail
+      }
+  };
+
+DELETE WHERE {
+  GRAPH ?g {
+    <${this}> ldh:content  ?content .
+  }
+};
+
 EOF
