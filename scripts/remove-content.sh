@@ -45,10 +45,6 @@ if [ -z "$cert_password" ] ; then
     print_usage
     exit 1
 fi
-if [ -z "$first" ] ; then
-    print_usage
-    exit 1
-fi
 if [ -z "$1" ] ; then
     print_usage
     exit 1
