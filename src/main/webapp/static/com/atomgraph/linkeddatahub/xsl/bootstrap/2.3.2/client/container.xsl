@@ -521,6 +521,8 @@ exclude-result-prefixes="#all"
 
                 <a>
                     <xsl:apply-templates select="key('resources', '&ac;ListMode', document(ac:document-uri('&ac;')))" mode="ldh:logo"/>
+                    
+                    <xsl:apply-templates select="key('resources', '&ac;ListMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
                 </a>
             </li>
             <li class="table-mode">
@@ -530,6 +532,8 @@ exclude-result-prefixes="#all"
 
                 <a>
                     <xsl:apply-templates select="key('resources', '&ac;TableMode', document(ac:document-uri('&ac;')))" mode="ldh:logo"/>
+                    
+                    <xsl:apply-templates select="key('resources', '&ac;TableMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
                 </a>
             </li>
             <li class="grid-mode">
@@ -539,6 +543,8 @@ exclude-result-prefixes="#all"
 
                 <a>
                     <xsl:apply-templates select="key('resources', '&ac;GridMode', document(ac:document-uri('&ac;')))" mode="ldh:logo"/>
+                    
+                    <xsl:apply-templates select="key('resources', '&ac;GridMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
                 </a>
             </li>
             <li class="chart-mode">
@@ -548,6 +554,8 @@ exclude-result-prefixes="#all"
 
                 <a>
                     <xsl:apply-templates select="key('resources', '&ac;ChartMode', document(ac:document-uri('&ac;')))" mode="ldh:logo"/>
+                    
+                    <xsl:apply-templates select="key('resources', '&ac;ChartMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
                 </a>
             </li>
             <li class="map-mode">
