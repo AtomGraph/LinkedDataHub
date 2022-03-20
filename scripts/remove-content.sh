@@ -9,7 +9,6 @@ print_usage()
     printf "Options:\n"
     printf "  -f, --cert-pem-file CERT_FILE        .pem file with the WebID certificate of the agent\n"
     printf "  -p, --cert-password CERT_PASSWORD    Password of the WebID certificate\n"
-    printf "  -b, --base BASE_URI                  Base URI of the application\n"
 }
 
 hash turtle 2>/dev/null || { echo >&2 "turtle not on \$PATH. Need to set \$JENA_HOME. Aborting."; exit 1; }
@@ -30,11 +29,6 @@ do
         shift # past argument
         shift # past value
         ;;
-        -b|--base)
-        base="$2"
-        shift # past argument
-        shift # past value
-        ;;
         *)    # unknown arguments
         args+=("$1") # save it in an array for later
         shift # past argument
@@ -51,10 +45,6 @@ if [ -z "$cert_password" ] ; then
     print_usage
     exit 1
 fi
-#if [ -z "$base" ] ; then
-#    print_usage
-#    exit 1
-#fi
 if [ -z "$first" ] ; then
     print_usage
     exit 1
@@ -62,10 +52,6 @@ fi
 if [ -z "$1" ] ; then
     print_usage
     exit 1
-fi
-
-if [ -z "$request_base" ]; then
-    request_base="$base"
 fi
 
 this="$1"

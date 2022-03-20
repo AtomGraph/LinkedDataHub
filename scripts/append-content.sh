@@ -9,12 +9,8 @@ print_usage()
     printf "Options:\n"
     printf "  -f, --cert-pem-file CERT_FILE        .pem file with the WebID certificate of the agent\n"
     printf "  -p, --cert-password CERT_PASSWORD    Password of the WebID certificate\n"
-    printf "  -b, --base BASE_URI                  Base URI of the application\n"
     printf "\n"
     printf "  --first RESOURCE_URI                 URI of the content element (query, chart etc.)\n"
-    printf "  --rest RESOURCE_URI                  URI of the following content (optional)\n"
-    printf "  --title TITLE                        Title of the content (optional)\n"
-    printf "  --slug STRING                        String that will be used as URI path segment (optional)\n"
 }
 
 hash turtle 2>/dev/null || { echo >&2 "turtle not on \$PATH. Need to set \$JENA_HOME. Aborting."; exit 1; }
@@ -35,28 +31,8 @@ do
         shift # past argument
         shift # past value
         ;;
-        -b|--base)
-        base="$2"
-        shift # past argument
-        shift # past value
-        ;;
-        --title)
-        title="$2"
-        shift # past argument
-        shift # past value
-        ;;
         --first)
         first="$2"
-        shift # past argument
-        shift # past value
-        ;;
-        --rest)
-        rest="$2"
-        shift # past argument
-        shift # past value
-        ;;
-        --slug)
-        slug="$2"
         shift # past argument
         shift # past value
         ;;
@@ -83,10 +59,6 @@ fi
 if [ -z "$1" ] ; then
     print_usage
     exit 1
-fi
-
-if [ -z "$request_base" ]; then
-    request_base="$base"
 fi
 
 this="$1"
