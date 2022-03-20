@@ -65,6 +65,7 @@ PREFIX  rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 
 DELETE {
   GRAPH ?g {
+    ?z a ?type .
     ?z rdf:first ?head .
     ?z rdf:rest ?tail .
   }
@@ -75,6 +76,8 @@ WHERE
         ?content (rdf:rest)* ?z .
         ?z  rdf:first  ?head ;
             rdf:rest   ?tail
+        OPTIONAL
+          { ?z  a  ?type }
       }
   };
 
