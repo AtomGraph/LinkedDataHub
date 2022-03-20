@@ -64,8 +64,10 @@ PREFIX  ldh:  <https://w3id.org/atomgraph/linkeddatahub#>
 PREFIX  rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 
 DELETE {
-  ?z rdf:first ?head .
-  ?z rdf:rest ?tail .
+  GRAPH ?g {
+    ?z rdf:first ?head .
+    ?z rdf:rest ?tail .
+  }
 }
 WHERE
   { GRAPH ?g
