@@ -1330,7 +1330,7 @@ WHERE
                 <option value="">
                     <xsl:value-of>
                         <xsl:text>[</xsl:text>
-                        <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                        <xsl:apply-templates select="key('resources', 'sparql-service', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
                         <xsl:text>]</xsl:text>
                     </xsl:value-of>
                 </option>
