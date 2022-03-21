@@ -495,56 +495,6 @@ WHERE
             </img>
         </a>
     </xsl:template>
-
-<!--        
-    <xsl:template match="*[@rdf:about = '&ac;ReadMode']" mode="ldh:logo">
-        <xsl:param name="class" as="xs:string?"/>
-        
-        <xsl:attribute name="class" select="concat($class, ' ', 'read-mode')"/>
-        <xsl:sequence select="ac:label(.)"/>
-    </xsl:template>
-    
-    <xsl:template match="*[@rdf:about = '&ac;ListMode']" mode="ldh:logo">
-        <xsl:param name="class" as="xs:string?"/>
-        
-        <xsl:attribute name="class" select="concat($class, ' ', 'list-mode')"/>
-        <xsl:sequence select="ac:label(.)"/>
-    </xsl:template>
-
-    <xsl:template match="*[@rdf:about = '&ac;TableMode']" mode="ldh:logo">
-        <xsl:param name="class" as="xs:string?"/>
-        
-        <xsl:attribute name="class" select="concat($class, ' ', 'table-mode')"/>
-        <xsl:sequence select="ac:label(.)"/>
-    </xsl:template>
-    
-    <xsl:template match="*[@rdf:about = '&ac;GridMode']" mode="ldh:logo">
-        <xsl:param name="class" as="xs:string?"/>
-        
-        <xsl:attribute name="class" select="concat($class, ' ', 'grid-mode')"/>
-        <xsl:sequence select="ac:label(.)"/>
-    </xsl:template>
-
-    <xsl:template match="*[@rdf:about = '&ac;ChartMode']" mode="ldh:logo">
-        <xsl:param name="class" as="xs:string?"/>
-        
-        <xsl:attribute name="class" select="concat($class, ' ', 'chart-mode')"/>
-        <xsl:sequence select="ac:label(.)"/>
-    </xsl:template>
-
-    <xsl:template match="*[@rdf:about = '&ac;MapMode']" mode="ldh:logo">
-        <xsl:param name="class" as="xs:string?"/>
-        
-        <xsl:attribute name="class" select="concat($class, ' ', 'map-mode')"/>
-        <xsl:sequence select="ac:label(.)"/>
-    </xsl:template>
-    
-    <xsl:template match="*[@rdf:about = '&ac;GraphMode']" mode="ldh:logo">
-        <xsl:param name="class" as="xs:string?"/>
-        
-        <xsl:attribute name="class" select="concat($class, ' ', 'graph-mode')"/>
-        <xsl:sequence select="ac:label(.)"/>
-    </xsl:template>-->
     
     <!-- copied from rdf.xsl which is not imported -->
     <xsl:template match="rdf:type/@rdf:resource" priority="1">
@@ -939,7 +889,11 @@ WHERE
                         <div class="modal-header">
                             <button type="button" class="close">&#215;</button>
 
-                            <legend title="Add RDF data">Add RDF data</legend>
+                            <legend title="Add RDF data">
+                                <xsl:value-of>
+                                    <xsl:apply-templates select="key('resources', 'add-rdf-data', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                                </xsl:value-of>
+                            </legend>
                         </div>
 
                         <div class="modal-body">
@@ -950,14 +904,22 @@ WHERE
                                             <xsl:attribute name="class" select="'active'"/>
                                         </xsl:if>
 
-                                        <a>Upload file</a>
+                                        <a>
+                                            <xsl:value-of>
+                                                <xsl:apply-templates select="key('resources', 'upload-file', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                                            </xsl:value-of>
+                                        </a>
                                     </li>
                                     <li>
                                         <xsl:if test="$source">
                                             <xsl:attribute name="class" select="'active'"/>
                                         </xsl:if>
 
-                                        <a>From URI</a>
+                                        <a>
+                                            <xsl:value-of>
+                                                <xsl:apply-templates select="key('resources', 'from-uri', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                                            </xsl:value-of>
+                                        </a>
                                     </li>
                                 </ul>
                                 <div class="tab-content">
@@ -982,6 +944,7 @@ WHERE
 
                                                 <div class="control-group required">
                                                     <input type="hidden" name="pu" value="&dct;format"/>
+                                                    <!-- TO-DO: localize label -->
                                                     <label class="control-label" for="upload-rdf-format">Format</label>
                                                     <div class="controls">
                                                         <select id="upload-rdf-format" name="ol">
@@ -1000,6 +963,7 @@ WHERE
                                                 </div>
                                                 <div class="control-group required">
                                                     <input type="hidden" name="pu" value="&nfo;fileName"/>
+                                                    <!-- TO-DO: localize label -->
                                                     <label class="control-label" for="upload-rdf-filename">FileName</label>
                                                     <div class="controls">
                                                         <input id="upload-rdf-filename" type="file" name="ol"/>
@@ -1021,25 +985,47 @@ WHERE
                                                             <ul class="dropdown-menu">
                                                                 <li>
                                                                     <a href="{ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ldh:absolute-path(ldh:href()), xs:anyURI('&ac;ModalMode'), xs:anyURI('&dh;Container'))}" class="btn add-constructor" title="&dh;Container" id="{generate-id()}-upload-rdf-container">
-                                                                        <xsl:text>Container</xsl:text>
+                                                                        <xsl:value-of>
+                                                                            <xsl:apply-templates select="key('resources', '&dh;Container', document(ac:document-uri('&dh;')))" mode="ac:label"/>
+                                                                        </xsl:value-of>
+                                                                        
                                                                         <input type="hidden" class="forClass" value="&dh;Container"/>
                                                                     </a>
                                                                     <a href="{ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ldh:absolute-path(ldh:href()), xs:anyURI('&ac;ModalMode'), xs:anyURI('&dh;Item'))}" class="btn add-constructor" title="&dh;Item" id="{generate-id()}-upload-rdf-item">
-                                                                        <xsl:text>Item</xsl:text>
+                                                                        <xsl:value-of>
+                                                                            <xsl:apply-templates select="key('resources', '&dh;Item', document(ac:document-uri('&dh;')))" mode="ac:label"/>
+                                                                        </xsl:value-of>
+
                                                                         <input type="hidden" class="forClass" value="&dh;Item"/>
                                                                     </a>
                                                                 </li>
                                                             </ul>
                                                         </div>
-                                                        <span class="help-inline">Document</span>
+                                                        <span class="help-inline">
+                                                            <xsl:value-of>
+                                                                <xsl:apply-templates select="key('resources', '&dh;Document', document(ac:document-uri('&dh;')))" mode="ac:label"/>
+                                                            </xsl:value-of>
+                                                        </span>
                                                     </div>
                                                 </div>
                                             </fieldset>
 
                                             <div class="form-actions modal-footer">
-                                                <button type="submit" class="{$button-class}">Save</button>
-                                                <button type="button" class="btn btn-close">Close</button>
-                                                <button type="reset" class="btn btn-reset">Reset</button>
+                                                <button type="submit" class="{$button-class}">
+                                                    <xsl:value-of>
+                                                        <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                                                    </xsl:value-of>
+                                                </button>
+                                                <button type="button" class="btn btn-close">
+                                                    <xsl:value-of>
+                                                        <xsl:apply-templates select="key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                                                    </xsl:value-of>
+                                                </button>
+                                                <button type="reset" class="btn btn-reset">
+                                                    <xsl:value-of>
+                                                        <xsl:apply-templates select="key('resources', 'reset', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                                                    </xsl:value-of>
+                                                </button>
                                             </div>
                                         </form>
                                     </div>
@@ -1058,6 +1044,7 @@ WHERE
 
                                                 <div class="control-group required">
                                                     <input type="hidden" name="pu" value="&dct;source"/>
+                                                    <!-- TO-DO: localize label -->
                                                     <label class="control-label" for="remote-rdf-source">Source</label>
                                                     <div class="controls">
                                                         <input type="text" id="remote-rdf-source" name="ou" class="input-xxlarge">
@@ -1065,7 +1052,12 @@ WHERE
                                                                 <xsl:attribute name="value" select="$source"/>
                                                             </xsl:if>
                                                         </input>
-                                                        <span class="help-inline">Resource</span>
+                                                        <span class="help-inline">
+                                                            <xsl:value-of>
+                                                                <xsl:apply-templates select="key('resources', '&rdf;Resource', document(ac:document-uri('&rdf;')))" mode="ac:label"/>
+                                                            </xsl:value-of>
+                                                            
+                                                        </span>
                                                     </div>
                                                 </div>
                                                 <div class="control-group required">
@@ -1084,27 +1076,49 @@ WHERE
                                                             <ul class="dropdown-menu">
                                                                 <li>
                                                                     <a href="{ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ldh:absolute-path(ldh:href()), xs:anyURI('&ac;ModalMode'), xs:anyURI('&dh;Container'))}" class="btn add-constructor" title="&dh;Container" id="{generate-id()}-remote-rdf-container">
-                                                                        <xsl:text>Container</xsl:text>
+                                                                        <xsl:value-of>
+                                                                            <xsl:apply-templates select="key('resources', '&dh;Container', document(ac:document-uri('&dh;')))" mode="ac:label"/>
+                                                                        </xsl:value-of>
+
                                                                         <input type="hidden" class="forClass" value="&dh;Container"/>
                                                                     </a>
                                                                 </li>
                                                                 <li>
                                                                     <a href="{ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ldh:absolute-path(ldh:href()), xs:anyURI('&ac;ModalMode'), xs:anyURI('&dh;Item'))}" type="button" class="btn add-constructor" title="&dh;Item" id="{generate-id()}-remote-rdf-item">
-                                                                        <xsl:text>Item</xsl:text>
+                                                                        <xsl:value-of>
+                                                                            <xsl:apply-templates select="key('resources', '&dh;Item', document(ac:document-uri('&dh;')))" mode="ac:label"/>
+                                                                        </xsl:value-of>
+
                                                                         <input type="hidden" class="forClass" value="&dh;Item"/>
                                                                     </a>
                                                                 </li>
                                                             </ul>
                                                         </div>
-                                                        <span class="help-inline">Document</span>
+                                                        <span class="help-inline">
+                                                            <xsl:value-of>
+                                                                <xsl:apply-templates select="key('resources', '&dh;Document', document(ac:document-uri('&dh;')))" mode="ac:label"/>
+                                                            </xsl:value-of>
+                                                        </span>
                                                     </div>
                                                 </div>
                                             </fieldset>
 
                                             <div class="form-actions modal-footer">
-                                                <button type="submit" class="{$button-class}">Save</button>
-                                                <button type="button" class="btn btn-close">Close</button>
-                                                <button type="reset" class="btn btn-reset">Reset</button>
+                                                <button type="submit" class="{$button-class}">
+                                                    <xsl:value-of>
+                                                        <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                                                    </xsl:value-of>
+                                                </button>
+                                                <button type="button" class="btn btn-close">
+                                                    <xsl:value-of>
+                                                        <xsl:apply-templates select="key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                                                    </xsl:value-of>
+                                                </button>
+                                                <button type="reset" class="btn btn-reset">
+                                                    <xsl:value-of>
+                                                        <xsl:apply-templates select="key('resources', 'reset', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                                                    </xsl:value-of>
+                                                </button>
                                             </div>
                                         </form>
                                     </div>
@@ -1313,7 +1327,13 @@ WHERE
         
         <xsl:for-each select="$select">
             <xsl:result-document href="?." method="ixsl:replace-content">
-                <option value="">[SPARQL service]</option>
+                <option value="">
+                    <xsl:value-of>
+                        <xsl:text>[</xsl:text>
+                        <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                        <xsl:text>]</xsl:text>
+                    </xsl:value-of>
+                </option>
                 
                 <xsl:for-each select="$apps//*[rdf:type/@rdf:resource = '&sd;Service']">
                     <xsl:sort select="ac:label(.)"/>

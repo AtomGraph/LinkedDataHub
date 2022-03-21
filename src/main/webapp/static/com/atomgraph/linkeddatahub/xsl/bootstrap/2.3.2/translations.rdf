@@ -88,6 +88,9 @@
     <rdf:Description rdf:nodeID="services">
         <rdfs:label xml:lang="en-US">Services</rdfs:label>
     </rdf:Description>
+    <rdf:Description rdf:nodeID="apps">
+        <rdfs:label xml:lang="en-US">Applications</rdfs:label>
+    </rdf:Description>
     <rdf:Description rdf:nodeID="layout">
         <rdfs:label xml:lang="en-US">Layout</rdfs:label>
     </rdf:Description>
@@ -207,5 +210,23 @@
     </rdf:Description>
     <rdf:Description rdf:about="request-access">
         <rdfs:label xml:lang="en-US">Request access</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:about="upload-file">
+        <rdfs:label xml:lang="en-US">Upload file</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:about="from-uri">
+        <rdfs:label xml:lang="en-US">From URI</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:about="add-rdf-data">
+        <rdfs:label xml:lang="en-US">Add RDF data</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:about="none">
+        <rdfs:label xml:lang="en-US">None</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:about="ascending">
+        <rdfs:label xml:lang="en-US">Ascending</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:about="descending">
+        <rdfs:label xml:lang="en-US">Descending</rdfs:label>
     </rdf:Description>
 </rdf:RDF>

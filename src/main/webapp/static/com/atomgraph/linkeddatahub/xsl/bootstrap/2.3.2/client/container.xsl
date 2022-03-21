@@ -361,16 +361,30 @@ exclude-result-prefixes="#all"
                                     <select id="{$order-by-container-id}" name="order-by" class="input-medium container-order">
                                         <!-- show the default option if the container query does not have an ORDER BY -->
                                         <xsl:if test="not($select-xml/json:map/json:array[@key = 'order'])">
-                                            <option>[None]</option>
+                                            <option>
+                                                <xsl:value-of>
+                                                    <xsl:text>[</xsl:text>
+                                                    <xsl:apply-templates select="key('resources', 'none', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                                                    <xsl:text>]</xsl:text>
+                                                </xsl:value-of>
+                                            </option>
                                         </xsl:if>
                                     </select>
 
                                     <xsl:choose>
                                         <xsl:when test="not($desc)">
-                                            <button type="button" class="btn btn-order-by">Ascending</button>
+                                            <button type="button" class="btn btn-order-by">
+                                                <xsl:value-of>
+                                                    <xsl:apply-templates select="key('resources', 'ascending', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                                                </xsl:value-of>
+                                            </button>
                                         </xsl:when>
                                         <xsl:otherwise>
-                                            <button type="button" class="btn btn-order-by btn-order-by-desc">Descending</button>
+                                            <button type="button" class="btn btn-order-by btn-order-by-desc">
+                                                <xsl:value-of>
+                                                    <xsl:apply-templates select="key('resources', 'descending', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                                                </xsl:value-of>
+                                            </button>
                                         </xsl:otherwise>
                                     </xsl:choose>
                                 </label>
