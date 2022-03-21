@@ -119,8 +119,6 @@ if [ -n "$content" ] ; then
     turtle+="_:container ldh:content <${content}> .\n"
 else
     turtle+="_:container ldh:content [ a ldh:Content ; rdf:first ldh:SelectChildren ; rdf:rest rdf:nil ] .\n"
-
-ldh:SelectChildren
 fi
 if [ -n "$description" ] ; then
     turtle+="_:container dct:description \"${description}\" .\n"

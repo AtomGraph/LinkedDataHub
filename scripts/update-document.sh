@@ -67,10 +67,4 @@ fi
 target="$1"
 
 # PUT RDF document from stdin to the server and print Location URL
-location=$(cat - | curl -v -k -E "$cert_pem_file":"$cert_password" -X PUT -d @- -H "Content-Type: ${content_type}" -H "Accept: text/turtle" "$target" -s -D - | tr -d '\r' | sed -En 's/^Location: (.*)/\1/p')
-
-if [ -n "$location" ]; then
-    echo "$location"
-else
-    echo "$target"
-fi
+cat - | curl -v -k -E "$cert_pem_file":"$cert_password" -X PUT -d @- -H "Content-Type: ${content_type}" -H "Accept: text/turtle" "$target" -s -D - | tr -d '\r' | sed -En 's/^Location: (.*)/\1/p'
