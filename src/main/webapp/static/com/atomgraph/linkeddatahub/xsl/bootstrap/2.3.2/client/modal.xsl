@@ -9,6 +9,8 @@
     <!ENTITY dh     "https://www.w3.org/ns/ldt/document-hierarchy#">
     <!ENTITY sd     "http://www.w3.org/ns/sparql-service-description#">
     <!ENTITY sioc   "http://rdfs.org/sioc/ns#">
+    <!ENTITY sp     "http://spinrdf.org/sp#">
+    <!ENTITY spin   "http://spinrdf.org/spin#">
     <!ENTITY dct    "http://purl.org/dc/terms/">
     <!ENTITY nfo    "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#">
 ]>
@@ -41,6 +43,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
         <xsl:param name="source" as="xs:anyURI?"/>
         <xsl:param name="graph" as="xs:anyURI?"/>
+        <xsl:param name="query" as="xs:anyURI?"/>
         
         <!-- don't append the div if it's already there -->
         <xsl:if test="not(id($id, ixsl:page()))">
@@ -178,6 +181,36 @@ exclude-result-prefixes="#all"
                                                         </span>
                                                     </div>
                                                 </div>
+                                                <xsl:if test="$query">
+                                                    <div class="control-group required">
+                                                        <input type="hidden" name="pu" value="&spin;query"/>
+                                                        <label class="control-label" for="spin-query">
+                                                            <xsl:value-of>
+                                                                <xsl:apply-templates select="key('resources', 'query', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                                                            </xsl:value-of>
+                                                        </label>
+                                                        <div class="controls">
+                                                            <span>
+                                                                <input type="text" name="ou" id="spin-query" class="resource-typeahead typeahead"/>
+                                                                <ul class="resource-typeahead typeahead dropdown-menu" id="ul-spin-query" style="display: none;"></ul>
+                                                            </span>
+
+                                                            <input type="hidden" class="forClass" value="&sp;Construct" autocomplete="off"/>
+                                                            <a href="{ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ldh:absolute-path(ldh:href()), xs:anyURI('&ac;ModalMode'), xs:anyURI('&sp;Construct'))}" class="btn add-constructor" title="&sp;Construct" id="{generate-id()}-spin-query">
+                                                                <xsl:value-of>
+                                                                    <xsl:apply-templates select="key('resources', 'construct-query', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                                                                </xsl:value-of>
+
+                                                                <input type="hidden" class="forClass" value="&sp;Construct"/>
+                                                            </a>
+                                                            <span class="help-inline">
+                                                                <xsl:value-of>
+                                                                    <xsl:apply-templates select="key('resources', 'construct-query', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                                                                </xsl:value-of>
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </xsl:if>
                                             </fieldset>
 
                                             <div class="form-actions modal-footer">
@@ -202,7 +235,7 @@ exclude-result-prefixes="#all"
                                     <div>
                                         <xsl:attribute name="class" select="'tab-pane ' || (if ($source) then 'active' else ())"/>
 
-                                        <form id="form-clone-data" method="POST" action="{resolve-uri('clone', $ldt:base)}">
+                                        <form id="form-clone-data" method="POST" action="{resolve-uri('add', $ldt:base)}">
                                             <xsl:comment>This form uses RDF/POST encoding: http://www.lsrn.org/semweb/rdfpost.html</xsl:comment>
                                             <xsl:call-template name="xhtml:Input">
                                                 <xsl:with-param name="name" select="'rdf'"/>

@@ -17,6 +17,7 @@
 package com.atomgraph.linkeddatahub.resource;
 
 import com.atomgraph.core.MediaTypes;
+import com.atomgraph.core.client.LinkedDataClient;
 import com.atomgraph.core.vocabulary.SD;
 import com.atomgraph.linkeddatahub.client.filter.auth.IDTokenDelegationFilter;
 import com.atomgraph.linkeddatahub.client.filter.auth.WebIDDelegationFilter;
@@ -38,6 +39,7 @@ import javax.inject.Inject;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DefaultValue;
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.client.Entity;
@@ -97,6 +99,50 @@ public class Add extends GraphStoreImpl // TO-DO: does not need to extend GraphS
         super(request, uriInfo, mediaTypes, application, ontology, service, providers, system);
         this.securityContext = securityContext;
         this.agentContext = agentContext;
+    }
+    
+
+    @GET
+    @Override
+    public Response get(@QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
+    {
+        return super.get(false, getURI());
+    }
+    
+    @POST
+    @Override
+    public Response post(Model model, @QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
+    {
+        ResIterator it = model.listSubjectsWithProperty(DCTerms.source);
+        try
+        {
+            if (!it.hasNext()) throw new BadRequestException("Argument resource not provided");
+            
+            Resource arg = it.next();
+            Resource source = arg.getPropertyResourceValue(DCTerms.source);
+            if (source == null) throw new BadRequestException("RDF source URI (dct:source) not provided");
+            
+            Resource graph = arg.getPropertyResourceValue(SD.name);
+            if (graph == null || !graph.isURIResource()) throw new BadRequestException("Graph URI (sd:name) not provided");
+
+            LinkedDataClient ldc = LinkedDataClient.create(getSystem().getClient().target(source.getURI()), getMediaTypes());
+            
+            return super.post(ldc.get(), false, URI.create(graph.getURI()));
+        }
+        finally
+        {
+            it.close();
+        }
+    }
+    
+    /**
+     * Returns URI of this resource.
+     * 
+     * @return URI
+     */
+    public URI getURI()
+    {
+        return getUriInfo().getAbsolutePath();
     }
     
     /**

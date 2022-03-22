@@ -1762,6 +1762,13 @@ WHERE
         </xsl:call-template>
     </xsl:template>
 
+    <xsl:template match="button[contains-token(@class, 'btn-add-ontology')]" mode="ixsl:onclick">
+        <xsl:call-template name="ldh:ShowAddDataForm">
+            <xsl:with-param name="graph" select="ldh:absolute-path(ldh:href())"/>
+            <xsl:with-param name="query" select="resolve-uri('queries/construct-constructors/#this', $ldt:base)"/>
+        </xsl:call-template>
+    </xsl:template>
+    
     <!-- open editing form (do nothing if the button is disabled) -->
     <xsl:template match="a[contains-token(@class, 'btn-edit')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>

@@ -213,11 +213,11 @@ public class Dispatcher
      * 
      * @return endpoint resource
      */
-    @Path("clone")
-    public Object getCloneEndpoint()
-    {
-        return Clone.class;
-    }
+//    @Path("clone")
+//    public Object getCloneEndpoint()
+//    {
+//        return Clone.class;
+//    }
 
 //    @Path("skolemize")
 //    public Object getSkolemizeEndpoint()

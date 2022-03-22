@@ -235,4 +235,7 @@
     <rdf:Description rdf:about="graph">
         <rdfs:label xml:lang="en-US">Graph</rdfs:label>
     </rdf:Description>
+    <rdf:Description rdf:about="query">
+        <rdfs:label xml:lang="en-US">Query</rdfs:label>
+    </rdf:Description>
 </rdf:RDF>

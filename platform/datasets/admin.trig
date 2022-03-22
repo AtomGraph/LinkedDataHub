@@ -55,8 +55,8 @@
         foaf:primaryTopic <queries/construct-constructors/#this> .
 
     <queries/construct-constructors/#this> a sp:Construct ;
-        dct:title "Construct constructors" ;
-        dct:description "Infers class constructors from the ontology properties" ;
+        rdfs:label "Construct constructors" ;
+        rdfs:comment "Infers class constructors from the ontology properties" ;
         sp:text """
 PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX  owl:  <http://www.w3.org/2002/07/owl#>
@@ -71,12 +71,13 @@ CONSTRUCT
 WHERE
   { { SELECT  ?class (concat("CONSTRUCT { ", GROUP_CONCAT(?propConstructor ; separator=' . '), " } {}") AS ?constructorString)
       WHERE
-        { { ?class  a  owl:Class } UNION { ?class a rdfs:Class }
+        {   { ?class  a  owl:Class }
+          UNION
+            { ?class  a  rdfs:Class }
           { ?class (rdfs:subClassOf)* ?domainClass .
-          ?prop  rdfs:domain  ?domainClass .
-            
+            ?prop  rdfs:domain  ?domainClass
           }
-            { FILTER NOT EXISTS { ?prop  rdfs:domain  ?domain }
+            { FILTER NOT EXISTS { ?prop  rdfs:range  ?range }
               BIND(rdfs:Resource AS ?range)
             }
           UNION
