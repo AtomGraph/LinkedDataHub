@@ -333,7 +333,7 @@ public class ImportExecutor
      */
     protected Function<Response, RDFGraphStoreOutput> getStreamRDFOutputWriter(RDFImport imp, GraphStoreClient graphStoreClient, String baseURI, Query query)
     {
-        return new StreamRDFOutputWriter(graphStoreClient, baseURI, query, imp.getGraph() != null ? imp.getGraph().getURI() : null);
+        return new StreamRDFOutputWriter(graphStoreClient, baseURI, query, imp.getGraphName() != null ? imp.getGraphName().getURI() : null);
     }
 
     /**

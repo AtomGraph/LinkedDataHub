@@ -82,7 +82,7 @@ public class RDFImportImpl extends ImportImpl implements RDFImport
     }
 
     @Override
-    public Resource getGraph()
+    public Resource getGraphName()
     {
         return getPropertyResourceValue(SD.name);
     }
