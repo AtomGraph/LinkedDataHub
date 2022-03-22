@@ -41,6 +41,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="id" select="'add-data'" as="xs:string?"/>
         <xsl:param name="button-class" select="'btn btn-primary btn-save'" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
+        <xsl:param name="action" select="resolve-uri('add', $ldt:base)" as="xs:anyURI"/>
         <xsl:param name="source" as="xs:anyURI?"/>
         <xsl:param name="graph" as="xs:anyURI?"/>
         <xsl:param name="query" as="xs:anyURI?"/>
@@ -95,7 +96,7 @@ exclude-result-prefixes="#all"
                                     <div>
                                         <xsl:attribute name="class" select="'tab-pane ' || (if (not($source)) then 'active' else ())"/>
 
-                                        <form id="form-add-data" method="POST" action="{ac:build-uri(resolve-uri('add', $ldt:base), map{ 'forClass': '&nfo;FileDataObject' })}" enctype="multipart/form-data">
+                                        <form id="form-add-data" method="POST" action="{$action}" enctype="multipart/form-data">
                                             <xsl:comment>This form uses RDF/POST encoding: http://www.lsrn.org/semweb/rdfpost.html</xsl:comment>
                                             <xsl:call-template name="xhtml:Input">
                                                 <xsl:with-param name="name" select="'rdf'"/>
@@ -235,7 +236,7 @@ exclude-result-prefixes="#all"
                                     <div>
                                         <xsl:attribute name="class" select="'tab-pane ' || (if ($source) then 'active' else ())"/>
 
-                                        <form id="form-clone-data" method="POST" action="{resolve-uri('add', $ldt:base)}">
+                                        <form id="form-clone-data" method="POST" action="{$action}">
                                             <xsl:comment>This form uses RDF/POST encoding: http://www.lsrn.org/semweb/rdfpost.html</xsl:comment>
                                             <xsl:call-template name="xhtml:Input">
                                                 <xsl:with-param name="name" select="'rdf'"/>

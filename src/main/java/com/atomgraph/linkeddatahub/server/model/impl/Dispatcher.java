@@ -19,7 +19,6 @@ package com.atomgraph.linkeddatahub.server.model.impl;
 import com.atomgraph.client.vocabulary.AC;
 import com.atomgraph.linkeddatahub.apps.model.Dataset;
 import com.atomgraph.linkeddatahub.resource.Add;
-import com.atomgraph.linkeddatahub.resource.Clone;
 import com.atomgraph.linkeddatahub.resource.Importer;
 import com.atomgraph.linkeddatahub.resource.Namespace;
 import com.atomgraph.linkeddatahub.resource.Transform;
@@ -206,24 +205,6 @@ public class Dispatcher
     {
         return Transform.class;
     }
-    
-    
-    /**
-     * Returns the endpoint for cloning (copying) of external RDF documents.
-     * 
-     * @return endpoint resource
-     */
-//    @Path("clone")
-//    public Object getCloneEndpoint()
-//    {
-//        return Clone.class;
-//    }
-
-//    @Path("skolemize")
-//    public Object getSkolemizeEndpoint()
-//    {
-//        return Skolemize.class;
-//    }
     
     /**
      * Returns Google OAuth endpoint.

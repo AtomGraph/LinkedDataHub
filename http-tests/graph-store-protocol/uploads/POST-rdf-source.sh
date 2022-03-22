@@ -48,7 +48,7 @@ curl -w "%{http_code}\n" -o /dev/null -v -k \
   --data-urlencode "ou=${source}" \
   --data-urlencode "pu=http://www.w3.org/ns/sparql-service-description#name" \
   --data-urlencode "ou=${graph}" \
-  "${END_USER_BASE_URL}clone" \
+  "${END_USER_BASE_URL}add" \
 | grep -q "$STATUS_OK"
 
 pushd . > /dev/null && cd "$SCRIPT_ROOT"

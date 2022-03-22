@@ -1764,6 +1764,7 @@ WHERE
 
     <xsl:template match="button[contains-token(@class, 'btn-add-ontology')]" mode="ixsl:onclick">
         <xsl:call-template name="ldh:ShowAddDataForm">
+            <xsl:with-param name="action" select="resolve-uri('transform', $ldt:base)"/>
             <xsl:with-param name="graph" select="ldh:absolute-path(ldh:href())"/>
             <xsl:with-param name="query" select="resolve-uri('queries/construct-constructors/#this', $ldt:base)"/>
         </xsl:call-template>
