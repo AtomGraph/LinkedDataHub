@@ -169,7 +169,8 @@ public class Transform extends Add
 
             try (QueryExecution qex = QueryExecution.create(query, bodyPartModel))
             {
-                bodyPartModel = qex.execConstruct(); // transform model
+                Model transformModel = qex.execConstruct();
+                bodyPartModel.add(transformModel); // append transform results
                 // forward the model to the named graph document
                 return forwardPost(Entity.entity(bodyPartModel, com.atomgraph.core.MediaType.APPLICATION_NTRIPLES_TYPE), graph.getURI());
             }
