@@ -135,12 +135,12 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
         List<javax.ws.rs.core.MediaType> readableMediaTypesList = new ArrayList<>();
         readableMediaTypesList.addAll(mediaTypes.getReadable(Model.class));
         readableMediaTypesList.addAll(mediaTypes.getReadable(ResultSet.class)); // not in the superclass
-        this.readableMediaTypes = readableMediaTypesList.toArray(new MediaType[readableMediaTypesList.size()]);
+        this.readableMediaTypes = readableMediaTypesList.toArray(MediaType[]::new);
         
-        if (securityContext.getUserPrincipal() instanceof Agent)
+        if (securityContext.getUserPrincipal() instanceof Agent agent)
         {
             if (securityContext.getAuthenticationScheme().equals(SecurityContext.CLIENT_CERT_AUTH))
-                super.getWebTarget().register(new WebIDDelegationFilter((Agent)securityContext.getUserPrincipal()));
+                super.getWebTarget().register(new WebIDDelegationFilter(agent));
             
             //if (securityContext.getAuthenticationScheme().equals(IDTokenFilter.AUTH_SCHEME))
             if (agentContext.isPresent() && agentContext.get() instanceof IDTokenSecurityContext)

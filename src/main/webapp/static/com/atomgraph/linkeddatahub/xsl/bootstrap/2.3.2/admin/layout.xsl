@@ -39,7 +39,6 @@ exclude-result-prefixes="#all">
 
     <xsl:import href="../layout.xsl"/>
     <xsl:include href="acl/layout.xsl"/>
-    <xsl:include href="sitemap/layout.xsl"/>
 
     <xsl:param name="default-classes" as="map(xs:string, xs:anyURI)">
         <xsl:map>
@@ -120,6 +119,16 @@ exclude-result-prefixes="#all">
         <xsl:apply-imports>
             <xsl:with-param name="show-subject" select="not(rdf:type/@rdf:resource = ('&dh;Item', '&dh;Container'))" tunnel="yes"/>
         </xsl:apply-imports>
+    </xsl:template>
+    
+    <!-- show "Clear" button for ontologies -->
+    <xsl:template match="*[@rdf:about][key('resources', foaf:primaryTopic/@rdf:resource)/rdf:type/@rdf:resource = '&owl;Ontology'][$foaf:Agent//@rdf:about]" mode="bs2:Actions">
+        <form class="pull-right" action="{@rdf:about}" method="get">
+            <input type="hidden" name="clear"/>
+            <button class="btn btn-primary" type="submit">Clear</button>
+        </form>
+
+        <xsl:next-match/>
     </xsl:template>
     
 </xsl:stylesheet>

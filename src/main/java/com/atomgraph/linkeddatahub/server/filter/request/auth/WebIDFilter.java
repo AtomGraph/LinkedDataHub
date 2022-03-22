@@ -92,7 +92,7 @@ public class WebIDFilter extends AuthenticationFilter
         super();
         List<javax.ws.rs.core.MediaType> acceptedTypeList = new ArrayList();
         acceptedTypeList.addAll(mediaTypes.getReadable(Model.class));
-        acceptedTypes = acceptedTypeList.toArray(new javax.ws.rs.core.MediaType[acceptedTypeList.size()]); 
+        acceptedTypes = acceptedTypeList.toArray(javax.ws.rs.core.MediaType[]::new); 
     }
     
     /**
@@ -202,7 +202,7 @@ public class WebIDFilter extends AuthenticationFilter
     {
         if (cert.getSubjectAlternativeNames() != null)
         {
-            List<?>[] sans = cert.getSubjectAlternativeNames().toArray(new List<?>[0]);
+            List<?>[] sans = cert.getSubjectAlternativeNames().toArray(List<?>[]::new);
             if (sans.length > 0 && cert.getPublicKey() instanceof RSAPublicKey)
                 for (List<?> san : sans)
                 {

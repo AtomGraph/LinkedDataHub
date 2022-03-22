@@ -718,7 +718,7 @@ exclude-result-prefixes="#all"
                 <xsl:with-param name="class" select="'well'"/>
             </xsl:apply-templates>
             
-            <!-- don't show actions on the document that wraps a thing -->
+            <!-- don't show actions on a document that wraps a thing -->
             <!--<xsl:apply-templates select="." mode="bs2:Actions"/>-->
 
             <xsl:apply-templates select="." mode="bs2:TypeList"/>
