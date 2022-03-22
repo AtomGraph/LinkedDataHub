@@ -46,6 +46,55 @@
 
 }
 
+<queries/construct-constructors/>
+{
+
+    <queries/construct-constructors/> a dh:Container ;
+        sioc:has_container <queries/> ;
+        dct:title "Construct constructors" ;
+        foaf:primaryTopic <queries/construct-constructors/#this> .
+
+    <queries/construct-constructors/#this> a sp:Construct ;
+        dct:title "Construct constructors" ;
+        dct:description "Infers class constructors from the ontology properties" ;
+        sp:text """
+PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX  owl:  <http://www.w3.org/2002/07/owl#>
+PREFIX  sp:   <http://spinrdf.org/sp#>
+
+CONSTRUCT 
+  { 
+    ?constructor a sp:Construct .
+    ?constructor rdfs:label ?constructorLabel .
+    ?constructor sp:text ?constructorString .
+  }
+WHERE
+  { { SELECT  ?class (concat("CONSTRUCT { ", GROUP_CONCAT(?propConstructor ; separator=' . '), " } {}") AS ?constructorString)
+      WHERE
+        { { ?class  a  owl:Class } UNION { ?class a rdfs:Class }
+          { ?class (rdfs:subClassOf)* ?domainClass .
+          ?prop  rdfs:domain  ?domainClass .
+            
+          }
+            { FILTER NOT EXISTS { ?prop  rdfs:domain  ?domain }
+              BIND(rdfs:Resource AS ?range)
+            }
+          UNION
+            { ?prop  rdfs:range  ?range }
+          BIND(concat("?this <", str(?prop), "> [ a <", str(?range), "> ]") AS ?propConstructor)
+        }
+      GROUP BY ?class
+    }
+    OPTIONAL
+      { ?class  rdfs:label  ?classLabel
+        BIND(concat(?classLabel, " constructor") AS ?constructorLabel)
+      }
+    BIND(bnode() AS ?constructor)
+  }
+    """ .
+
+}
+
 <sign%20up>
 {
 

@@ -22,6 +22,7 @@ import com.atomgraph.linkeddatahub.resource.Add;
 import com.atomgraph.linkeddatahub.resource.Clone;
 import com.atomgraph.linkeddatahub.resource.Importer;
 import com.atomgraph.linkeddatahub.resource.Namespace;
+import com.atomgraph.linkeddatahub.resource.Transform;
 import com.atomgraph.linkeddatahub.resource.admin.RequestAccess;
 import com.atomgraph.linkeddatahub.resource.admin.SignUp;
 import com.atomgraph.linkeddatahub.resource.graph.Item;
@@ -136,7 +137,7 @@ public class Dispatcher
     @Path("{container}/ontologies/{uuid}/")
     public Object getOntologyItem()
     {
-        return com.atomgraph.linkeddatahub.resource.ontology.Item.class;
+        return com.atomgraph.linkeddatahub.resource.admin.ontology.Item.class;
     }
     
     /**
@@ -196,6 +197,18 @@ public class Dispatcher
     }
     
     /**
+     * Returns the endpoint for synchronous RDF imports with a <code>CONSTRUCT</code> query transformation.
+     * 
+     * @return endpoint resource
+     */
+    @Path("transform")
+    public Object getTransformEndpoint()
+    {
+        return Transform.class;
+    }
+    
+    
+    /**
      * Returns the endpoint for cloning (copying) of external RDF documents.
      * 
      * @return endpoint resource
@@ -220,7 +233,7 @@ public class Dispatcher
     @Path("oauth2/authorize/google")
     public Object getAuthorizeGoogle()
     {
-        return com.atomgraph.linkeddatahub.resource.oauth2.google.Authorize.class;
+        return com.atomgraph.linkeddatahub.resource.admin.oauth2.google.Authorize.class;
     }
 
     /**
@@ -231,7 +244,7 @@ public class Dispatcher
     @Path("oauth2/login")
     public Object getOAuth2Login()
     {
-        return com.atomgraph.linkeddatahub.resource.oauth2.Login.class;
+        return com.atomgraph.linkeddatahub.resource.admin.oauth2.Login.class;
     }
     
     /**

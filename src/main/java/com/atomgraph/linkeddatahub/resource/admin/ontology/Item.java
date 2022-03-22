@@ -14,7 +14,7 @@
  *  limitations under the License.
  *
  */
-package com.atomgraph.linkeddatahub.resource.ontology;
+package com.atomgraph.linkeddatahub.resource.admin.ontology;
 
 import org.apache.jena.ontology.OntDocumentManager;
 import java.net.URI;

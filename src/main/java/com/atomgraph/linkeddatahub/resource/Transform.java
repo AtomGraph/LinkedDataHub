@@ -1,5 +1,5 @@
 /**
- *  Copyright 2021 Martynas Jusevičius <martynas@atomgraph.com>
+ *  Copyright 2022 Martynas Jusevičius <martynas@atomgraph.com>
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -16,20 +16,15 @@
  */
 package com.atomgraph.linkeddatahub.resource;
 
+import com.atomgraph.client.util.DataManager;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.core.vocabulary.SD;
-import com.atomgraph.linkeddatahub.client.filter.auth.IDTokenDelegationFilter;
-import com.atomgraph.linkeddatahub.client.filter.auth.WebIDDelegationFilter;
-import com.atomgraph.linkeddatahub.model.Agent;
+import com.atomgraph.linkeddatahub.imports.QueryLoader;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.io.ValidatingModelProvider;
-import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
-import com.atomgraph.linkeddatahub.server.security.IDTokenSecurityContext;
 import com.atomgraph.linkeddatahub.vocabulary.NFO;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import com.atomgraph.spinrdf.vocabulary.SPIN;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Map;
@@ -41,18 +36,19 @@ import javax.ws.rs.DefaultValue;
 import javax.ws.rs.POST;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.core.StreamingOutput;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.MessageBodyReader;
 import javax.ws.rs.ext.Providers;
 import org.apache.jena.atlas.RuntimeIOException;
 import org.apache.jena.ontology.Ontology;
+import org.apache.jena.query.Query;
+import org.apache.jena.query.QueryExecution;
+import org.apache.jena.query.Syntax;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ResIterator;
 import org.apache.jena.rdf.model.Resource;
@@ -63,18 +59,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * JAX-RS endpoint for adding RDF data.
- * 
+ *
  * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
  */
-public class Add extends GraphStoreImpl // TO-DO: does not need to extend GraphStore is the multipart/form-data is not RDF/POST. Replace with ProxyResourceBase?
+public class Transform extends Add
 {
 
-    private static final Logger log = LoggerFactory.getLogger(Add.class);
+    private static final Logger log = LoggerFactory.getLogger(Transform.class);
 
-    private final SecurityContext securityContext;
-    private final Optional<AgentContext> agentContext;
-    
+    private final DataManager dataManager;
+
     /**
      * Constructs endpoint for synchronous RDF data imports.
      * 
@@ -88,15 +82,16 @@ public class Add extends GraphStoreImpl // TO-DO: does not need to extend GraphS
      * @param system system application
      * @param securityContext JAX-RS security context
      * @param agentContext authenticated agent's context
+     * @param dataManager RDF data manager
      */
     @Inject
-    public Add(@Context Request request, @Context UriInfo uriInfo, MediaTypes mediaTypes,
+    public Transform(@Context Request request, @Context UriInfo uriInfo, MediaTypes mediaTypes,
             com.atomgraph.linkeddatahub.apps.model.Application application, Optional<Ontology> ontology, Optional<Service> service,
-            @Context Providers providers, com.atomgraph.linkeddatahub.Application system, @Context SecurityContext securityContext, Optional<AgentContext> agentContext)
+            @Context Providers providers, com.atomgraph.linkeddatahub.Application system, @Context SecurityContext securityContext, Optional<AgentContext> agentContext,
+            DataManager dataManager)
     {
-        super(request, uriInfo, mediaTypes, application, ontology, service, providers, system);
-        this.securityContext = securityContext;
-        this.agentContext = agentContext;
+        super(request, uriInfo, mediaTypes, application, ontology, service, providers, system, securityContext, agentContext);
+        this.dataManager = dataManager;
     }
     
     /**
@@ -142,6 +137,7 @@ public class Add extends GraphStoreImpl // TO-DO: does not need to extend GraphS
      * @param fileNameBodyPartMap parts of the multipart request
      * @return response response
      */
+    @Override
     public Response postFileBodyPart(Model model, Map<String, FormDataBodyPart> fileNameBodyPartMap)
     {
         if (model == null) throw new IllegalArgumentException("Model cannot be null");
@@ -162,16 +158,20 @@ public class Add extends GraphStoreImpl // TO-DO: does not need to extend GraphS
             
             MediaType mediaType = com.atomgraph.linkeddatahub.MediaType.valueOf(file.getPropertyResourceValue(DCTerms.format));
             bodyPart.setMediaType(mediaType);
+            Model bodyPartModel =  bodyPart.getValueAs(Model.class);
 
-            try (InputStream is = bodyPart.getValueAs(InputStream.class))
+            Resource queryRes = file.getPropertyResourceValue(SPIN.query);
+            if (queryRes == null) throw new BadRequestException("Transformation query string (spin:query) not provided");
+            QueryLoader queryLoader = new QueryLoader(queryRes.getURI(), getApplication().getBase().getURI(), Syntax.syntaxARQ, getDataManager());
+
+            Query query = queryLoader.get();
+            if (!query.isConstructType()) throw new BadRequestException("Transformation query is not of CONSTRUCT type");
+
+            try (QueryExecution qex = QueryExecution.create(query, bodyPartModel))
             {
-                // forward the stream to the named graph document
-                return forwardPost(Entity.entity(getStreamingOutput(is), mediaType), graph.getURI());
-            
-            }
-            catch (IOException ex)
-            {
-                throw new BadRequestException(ex);
+                bodyPartModel = qex.execConstruct(); // transform model
+                // forward the model to the named graph document
+                return forwardPost(Entity.entity(bodyPartModel, com.atomgraph.core.MediaType.APPLICATION_NTRIPLES_TYPE), graph.getURI());
             }
         }
         finally
@@ -180,52 +180,14 @@ public class Add extends GraphStoreImpl // TO-DO: does not need to extend GraphS
         }
     }
     
-    protected Response forwardPost(Entity entity, String graphURI)
-    {
-        WebTarget webTarget = getSystem().getClient().target(graphURI);
-        // delegate authentication
-        if (getSecurityContext().getUserPrincipal() instanceof Agent agent)
-        {
-            if (getSecurityContext().getAuthenticationScheme().equals(SecurityContext.CLIENT_CERT_AUTH))
-                webTarget.register(new WebIDDelegationFilter(agent));
-
-            if (getAgentContext().isPresent() && getAgentContext().get() instanceof IDTokenSecurityContext)
-                webTarget.register(new IDTokenDelegationFilter(((IDTokenSecurityContext)getAgentContext().get()).getJWTToken(), getUriInfo().getBaseUri().getPath(), null));
-        }
-
-        // forward the stream to the named graph document
-        return webTarget.request(getSystem().getMediaTypes().getReadable(Model.class).toArray(MediaType[]::new)).
-            post(entity);
-    }
-    
     /**
-     * Converts input stream to streaming output.
-     * @param is input stream
-     * @return streaming output
+     * Returns RDF data manager.
+     * 
+     * @return RDF data manager
      */
-    public StreamingOutput getStreamingOutput(InputStream is)
+    public DataManager getDataManager()
     {
-        return (OutputStream os) -> {
-            is.transferTo(os);
-        };
-    }
-
-    /**
-     * Get JAX-RS security context
-     * @return security context object
-     */
-    public SecurityContext getSecurityContext()
-    {
-        return securityContext;
-    }
-    
-    /**
-     * Gets authenticated agent's context
-     * @return optional agent's context
-     */
-    public Optional<AgentContext> getAgentContext()
-    {
-        return agentContext;
+        return dataManager;
     }
     
 }

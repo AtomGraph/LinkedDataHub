@@ -62,7 +62,7 @@ public class OntologyModelGetter implements org.apache.jena.rdf.model.ModelGette
      */
     public OntologyModelGetter(Application app, OntModelSpec ontModelSpec, Query ontologyQuery, Client client, MediaTypes mediaTypes)
     {
-        this(app, ontModelSpec, ontologyQuery, client, mediaTypes.getReadable(Model.class).toArray(new javax.ws.rs.core.MediaType[0]));
+        this(app, ontModelSpec, ontologyQuery, client, mediaTypes.getReadable(Model.class).toArray(javax.ws.rs.core.MediaType[]::new));
     }
     
     /**

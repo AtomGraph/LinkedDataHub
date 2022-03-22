@@ -229,4 +229,10 @@
     <rdf:Description rdf:about="descending">
         <rdfs:label xml:lang="en-US">Descending</rdfs:label>
     </rdf:Description>
+    <rdf:Description rdf:about="source">
+        <rdfs:label xml:lang="en-US">Source</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:about="graph">
+        <rdfs:label xml:lang="en-US">Graph</rdfs:label>
+    </rdf:Description>
 </rdf:RDF>

@@ -14,14 +14,14 @@
  *  limitations under the License.
  *
  */
-package com.atomgraph.linkeddatahub.resource.oauth2.google;
+package com.atomgraph.linkeddatahub.resource.admin.oauth2.google;
 
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.core.exception.ConfigurationException;
 import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
 import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
-import com.atomgraph.linkeddatahub.resource.oauth2.Login;
+import com.atomgraph.linkeddatahub.resource.admin.oauth2.Login;
 import com.atomgraph.linkeddatahub.vocabulary.Google;
 import java.math.BigInteger;
 import java.net.URI;

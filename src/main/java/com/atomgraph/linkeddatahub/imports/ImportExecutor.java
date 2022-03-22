@@ -88,7 +88,7 @@ public class ImportExecutor
     /** An array of supported RDF media types */
     public static final javax.ws.rs.core.MediaType[] RDF_MEDIA_TYPES = Stream.concat(MediaTypes.READABLE.get(Model.class).stream(), MediaTypes.READABLE.get(Dataset.class).stream()).
         collect(Collectors.toList()).
-        toArray(new javax.ws.rs.core.MediaType[0]);
+        toArray(javax.ws.rs.core.MediaType[]::new);
 
     private final ExecutorService execService;
 
@@ -333,7 +333,7 @@ public class ImportExecutor
      */
     protected Function<Response, RDFGraphStoreOutput> getStreamRDFOutputWriter(RDFImport imp, GraphStoreClient graphStoreClient, String baseURI, Query query)
     {
-        return new StreamRDFOutputWriter(graphStoreClient, baseURI, query, imp.getGraphName() != null ? imp.getGraphName().getURI() : null);
+        return new StreamRDFOutputWriter(graphStoreClient, baseURI, query, imp.getGraph() != null ? imp.getGraph().getURI() : null);
     }
 
     /**

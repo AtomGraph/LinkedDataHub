@@ -39,6 +39,6 @@ public interface RDFImport extends Import
      * 
      * @return graph resource
      */
-    Resource getGraphName();
+    Resource getGraph();
 
 }

@@ -14,7 +14,7 @@
  *  limitations under the License.
  *
  */
-package com.atomgraph.linkeddatahub.resource.oauth2;
+package com.atomgraph.linkeddatahub.resource.admin.oauth2;
 
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.core.exception.ConfigurationException;
@@ -24,7 +24,7 @@ import com.atomgraph.linkeddatahub.listener.EMailListener;
 import com.atomgraph.linkeddatahub.model.Service;
 import static com.atomgraph.linkeddatahub.resource.admin.SignUp.AGENT_PATH;
 import static com.atomgraph.linkeddatahub.resource.admin.SignUp.AUTHORIZATION_PATH;
-import com.atomgraph.linkeddatahub.resource.oauth2.google.Authorize;
+import com.atomgraph.linkeddatahub.resource.admin.oauth2.google.Authorize;
 import com.atomgraph.linkeddatahub.server.filter.request.auth.IDTokenFilter;
 import com.atomgraph.linkeddatahub.server.filter.response.BackendInvalidationFilter;
 import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;

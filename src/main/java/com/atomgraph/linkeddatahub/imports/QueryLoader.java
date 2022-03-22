@@ -25,8 +25,6 @@ import org.apache.jena.query.QueryFactory;
 import org.apache.jena.query.Syntax;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * SPIN query loader.
@@ -37,12 +35,22 @@ import org.slf4j.LoggerFactory;
 public class QueryLoader implements Supplier<Query>
 {
 
-    private static final Logger log = LoggerFactory.getLogger(QueryLoader.class);
-
     private final String uri;
     private final String baseURI;
     private final Syntax syntax;
     private final DataManager dataManager;
+    
+    /**
+     * Constructs loader from query URI.
+     * 
+     * @param uri query URI
+     * @param baseURI base URI
+     * @param dataManager RDF data manager
+     */
+    public QueryLoader(String uri, String baseURI, DataManager dataManager)
+    {
+        this(uri, baseURI, Syntax.syntaxSPARQL_11, dataManager);
+    }
     
     /**
      * Constructs loader from query URI.
