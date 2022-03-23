@@ -18,17 +18,16 @@ package com.atomgraph.linkeddatahub.server.util;
 
 import com.atomgraph.client.vocabulary.LDT;
 import com.atomgraph.core.MediaTypes;
-import com.atomgraph.core.io.ModelProvider;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.processor.exception.OntologyException;
 import javax.ws.rs.client.Client;
-import javax.ws.rs.core.Response;
 import org.apache.jena.ontology.OntModelSpec;
 import org.apache.jena.query.ParameterizedSparqlString;
 import org.apache.jena.query.Query;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.ModelReader;
+import org.apache.jena.util.FileManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -83,39 +82,16 @@ public class OntologyModelGetter implements org.apache.jena.rdf.model.ModelGette
     @Override
     public Model getModel(String uri)
     {
-        // attempt to load ontology graph from the admin endpoint. TO-DO: is that necessary if ontologies terms are now stored in a single graph?
+        // attempt to load ontology model from the admin endpoint. TO-DO: is that necessary if ontologies terms are now stored in a single graph?
         ParameterizedSparqlString ontologyPss = new ParameterizedSparqlString(getOntologyQuery().toString());
         ontologyPss.setIri(LDT.ontology.getLocalName(), uri);
         Model model = getApplication().getAdminApplication().getService().getSPARQLClient().loadModel(ontologyPss.asQuery());
+        
+        if (!model.isEmpty()) return model;
 
-        // if it's empty, fallback to dereferencing the ontology URI
-        if (model.isEmpty())
-        {
-            // TO-DO: use LinkedDataClient
-            if (log.isDebugEnabled()) log.debug("Loading Ontology <{}>", uri);
-            try (Response cr = getClient().target(uri).
-                    request(getAcceptableMediaTypes()).
-                    get())
-            {
-                if (!cr.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
-                {
-                    if (log.isErrorEnabled()) log.error("Could not load ontology from URI: <{}>", uri);
-                    // TO-DO: replace with Jena's OntologyException
-                    throw new OntologyException("Could not load ontology from URI <" + uri + ">");
-                }
-                
-                cr.getHeaders().putSingle(ModelProvider.REQUEST_URI_HEADER, uri); // provide a base URI hint to ModelProvider
-                return cr.readEntity(Model.class);
-            }
-            catch (Exception ex)
-            {
-                if (log.isErrorEnabled()) log.error("Could not load ontology from URI: <{}>", uri);
-                // TO-DO: replace with Jena's OntologyException
-                throw new OntologyException("Could not load ontology from URI <" + uri + ">");
-            }
-        }
-
-        return model;
+        // if SPARQL result model is empty, fallback to FileManager
+        FileManager fileManager = getOntModelSpec().getDocumentManager().getFileManager();
+        return fileManager.loadModel(uri, getApplication().getBase().getURI(), null);
     }
 
     @Override
