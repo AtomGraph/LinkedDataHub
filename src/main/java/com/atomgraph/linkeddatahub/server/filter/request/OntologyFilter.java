@@ -21,7 +21,6 @@ import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.vocabulary.LAPP;
 import com.atomgraph.processor.exception.OntologyException;
 import com.atomgraph.linkeddatahub.server.util.OntologyModelGetter;
-import com.atomgraph.server.util.OntologyLoader;
 import java.io.IOException;
 import java.util.Optional;
 import javax.annotation.Priority;
@@ -29,9 +28,9 @@ import javax.inject.Inject;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.container.PreMatching;
+import org.apache.jena.ontology.OntModel;
 import org.apache.jena.ontology.OntModelSpec;
 import org.apache.jena.ontology.Ontology;
-import org.apache.jena.rdf.model.InfModel;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.shared.NotFoundException;
@@ -115,12 +114,11 @@ public class OntologyFilter implements ContainerRequestFilter
             {
                 OntologyModelGetter modelGetter = new OntologyModelGetter(app.as(EndUserApplication.class),
                         ontModelSpec, getSystem().getOntologyQuery(), getSystem().getNoCertClient(), getSystem().getMediaTypes());
-                Model model = modelGetter.getModel(uri);
-
-                final InfModel infModel = ModelFactory.createInfModel(ontModelSpec.getReasoner(), model);
-
-                ontModelSpec.getDocumentManager().addModel(uri, infModel);
-                ontModelSpec.setImportModelGetter(modelGetter);
+                Model baseModel = modelGetter.getModel(uri);
+                //final InfModel infModel = ModelFactory.createInfModel(ontModelSpec.getReasoner(), model);
+                OntModel ontModel = ModelFactory.createOntologyModel(ontModelSpec, baseModel);
+                ontModel.getDocumentManager().addModel(uri, ontModel);
+                ontModel.getSpecification().setImportModelGetter(modelGetter);
             }
         }
         else
@@ -129,16 +127,17 @@ public class OntologyFilter implements ContainerRequestFilter
             FileManager fileManager = ontModelSpec.getDocumentManager().getFileManager();
             if (!fileManager.hasCachedModel(uri))
             {
-                Model model = fileManager.loadModel(uri, app.getBase().getURI(), null);
-                final InfModel infModel = ModelFactory.createInfModel(ontModelSpec.getReasoner(), model);
-                ontModelSpec.getDocumentManager().addModel(uri, infModel);
+                Model baseModel = fileManager.loadModel(uri, app.getBase().getURI(), null);
+                //final InfModel infModel = ModelFactory.createInfModel(ontModelSpec.getReasoner(), model);
+                OntModel ontModel = ModelFactory.createOntologyModel(ontModelSpec, baseModel);
+                ontModel.getDocumentManager().addModel(uri, ontModel);
             }
         }
         
         try
         {
             // construct system provider to materialize inferenced model
-            OntologyLoader ontologyLoader = new com.atomgraph.server.util.OntologyLoader(ontModelSpec.getDocumentManager(), uri, ontModelSpec, true);
+            //OntologyLoader ontologyLoader = new com.atomgraph.server.util.OntologyLoader(ontModelSpec.getDocumentManager(), uri, ontModelSpec, true);
             // bypass Processor's getOntology() because it overrides the ModelGetter TO-DO: fix!
             return ontModelSpec.getDocumentManager().getOntology(uri, ontModelSpec).getOntology(uri); // reloads the imports using ModelGetter. TO-DO: optimize?
         }
