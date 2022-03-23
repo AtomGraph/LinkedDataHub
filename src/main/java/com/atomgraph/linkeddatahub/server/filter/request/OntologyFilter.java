@@ -33,7 +33,6 @@ import org.apache.jena.ontology.OntModelSpec;
 import org.apache.jena.ontology.Ontology;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
-import org.apache.jena.shared.NotFoundException;
 import org.apache.jena.util.FileManager;
 import org.apache.jena.vocabulary.OWL;
 import org.slf4j.Logger;
@@ -114,11 +113,10 @@ public class OntologyFilter implements ContainerRequestFilter
             {
                 OntologyModelGetter modelGetter = new OntologyModelGetter(app.as(EndUserApplication.class),
                         ontModelSpec, getSystem().getOntologyQuery(), getSystem().getNoCertClient(), getSystem().getMediaTypes());
+                ontModelSpec.setImportModelGetter(modelGetter);
                 Model baseModel = modelGetter.getModel(uri);
-                //final InfModel infModel = ModelFactory.createInfModel(ontModelSpec.getReasoner(), model);
                 OntModel ontModel = ModelFactory.createOntologyModel(ontModelSpec, baseModel);
-                ontModel.getDocumentManager().addModel(uri, ontModel);
-                ontModel.getSpecification().setImportModelGetter(modelGetter);
+                ontModel.getDocumentManager().addModel(uri, ontModel, true);
             }
         }
         else
@@ -128,27 +126,11 @@ public class OntologyFilter implements ContainerRequestFilter
             if (!fileManager.hasCachedModel(uri))
             {
                 Model baseModel = fileManager.loadModel(uri, app.getBase().getURI(), null);
-                //final InfModel infModel = ModelFactory.createInfModel(ontModelSpec.getReasoner(), model);
                 OntModel ontModel = ModelFactory.createOntologyModel(ontModelSpec, baseModel);
-                ontModel.getDocumentManager().addModel(uri, ontModel);
+                ontModel.getDocumentManager().addModel(uri, ontModel, true);
             }
         }
-        
-        try
-        {
-            // construct system provider to materialize inferenced model
-            //OntologyLoader ontologyLoader = new com.atomgraph.server.util.OntologyLoader(ontModelSpec.getDocumentManager(), uri, ontModelSpec, true);
-            // bypass Processor's getOntology() because it overrides the ModelGetter TO-DO: fix!
-            return ontModelSpec.getDocumentManager().getOntology(uri, ontModelSpec).getOntology(uri); // reloads the imports using ModelGetter. TO-DO: optimize?
-        }
-        catch (IllegalArgumentException ex)
-        {
-            // ontology resource was not found
-        }
-            
-        if (log.isErrorEnabled()) log.error("Ontology resource '{}' not found", uri);
-        // TO-DO: replace with Jena's OntologyException
-        throw new NotFoundException("Ontology resource '" + uri + "' not found");
+        return ontModelSpec.getDocumentManager().getOntology(uri, ontModelSpec).getOntology(uri); // reloads the imports using ModelGetter. TO-DO: optimize?
     }
 
     /**

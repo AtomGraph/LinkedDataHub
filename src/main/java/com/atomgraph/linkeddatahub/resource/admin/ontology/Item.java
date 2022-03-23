@@ -113,16 +113,10 @@ public class Item extends com.atomgraph.linkeddatahub.resource.graph.Item
                 // same logic as in OntologyFilter. TO-DO: encapsulate?
                 OntologyModelGetter modelGetter = new OntologyModelGetter(app,
                         ontModelSpec, getSystem().getOntologyQuery(), getSystem().getNoCertClient(), getSystem().getMediaTypes());
+                ontModelSpec.setImportModelGetter(modelGetter);
                 Model baseModel = modelGetter.getModel(ontologyURI);
-                //final InfModel infModel = ModelFactory.createInfModel(ontModelSpec.getReasoner(), model);
                 OntModel ontModel = ModelFactory.createOntologyModel(ontModelSpec, baseModel);
-                ontModel.getDocumentManager().addModel(ontologyURI, ontModel);
-                ontModel.getSpecification().setImportModelGetter(modelGetter);
-                
-                // construct system provider to materialize inferenced model
-//                new com.atomgraph.server.util.OntologyLoader(ontModelSpec.getDocumentManager(), ontologyURI, ontModelSpec, true);
-                // bypass Processor's getOntology() because it overrides the ModelGetter TO-DO: fix!
-                ontModelSpec.getDocumentManager().getOntology(ontologyURI, ontModelSpec).getOntology(ontologyURI); // reloads the imports using ModelGetter. TO-DO: optimize?
+                ontModel.getDocumentManager().addModel(ontologyURI, ontModel, true);
             }
         }
         
