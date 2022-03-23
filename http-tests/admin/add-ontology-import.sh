@@ -35,3 +35,13 @@ curl -k -f -s -N \
   -H "Accept: application/n-triples" \
   "${END_USER_BASE_URL}ns" \
 | grep "<${END_USER_BASE_URL}ns#> <http://www.w3.org/2002/07/owl#imports> <${import_uri}>" > /dev/null
+
+# check that the imported ontology is present in the ontology model
+
+curl -k -w "%{http_code}\n" -o /dev/null -f -s \
+  -G \
+  -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
+  -H 'Accept: text/turtle' \
+  --data-urlencode "query=select * { <${import_uri}> ?p ?o }" \
+  "${END_USER_BASE_URL}ns" \
+| grep '<literal>Basic Access Control ontology</literal>' > /dev/null
