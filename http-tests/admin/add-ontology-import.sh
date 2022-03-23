@@ -12,7 +12,7 @@ ontology_doc="${ADMIN_BASE_URL}model/ontologies/namespace/"
 
 # add ontology import
 
-import_uri="http://www.w3.org/ns/auth/acl#"
+import_uri="http://www.w3.org/ns/auth/acl"
 
 ./add-ontology-import.sh \
   -f "$OWNER_CERT_FILE" \
@@ -36,12 +36,12 @@ curl -k -f -s -N \
   "${END_USER_BASE_URL}ns" \
 | grep "<${END_USER_BASE_URL}ns#> <http://www.w3.org/2002/07/owl#imports> <${import_uri}>" > /dev/null
 
-# check that the imported ontology is present in the ontology model
+# check that the imported ontology is present in the ontology model TO-DO: replace with an ASK query when #118 is fixed
 
-curl -k -w "%{http_code}\n" -o /dev/null -f -s \
+curl -k -f -s \
   -G \
   -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
-  -H 'Accept: text/turtle' \
+  -H 'Accept: application/sparql-results+xml' \
   --data-urlencode "query=select * { <${import_uri}> ?p ?o }" \
   "${END_USER_BASE_URL}ns" \
 | grep '<literal>Basic Access Control ontology</literal>' > /dev/null

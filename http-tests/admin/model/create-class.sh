@@ -43,3 +43,5 @@ curl -k -f -s -N \
   -H "Accept: application/n-triples" \
   "$namespace_doc" \
 | grep "$class" > /dev/null
+
+# TO-DO: test constructor of the created class?
