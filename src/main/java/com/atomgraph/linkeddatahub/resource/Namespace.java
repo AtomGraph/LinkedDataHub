@@ -24,6 +24,7 @@ import com.atomgraph.linkeddatahub.model.Service;
 import static com.atomgraph.core.model.SPARQLEndpoint.DEFAULT_GRAPH_URI;
 import static com.atomgraph.core.model.SPARQLEndpoint.NAMED_GRAPH_URI;
 import static com.atomgraph.core.model.SPARQLEndpoint.QUERY;
+import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.server.model.impl.SPARQLEndpointImpl;
 import com.atomgraph.linkeddatahub.server.util.OntologyModelGetter;
 import java.net.URI;
@@ -58,7 +59,7 @@ public class Namespace extends SPARQLEndpointImpl
     private static final Logger log = LoggerFactory.getLogger(Namespace.class);
 
     private final URI uri;
-    private final com.atomgraph.linkeddatahub.apps.model.Application application;
+    private final EndUserApplication application;
     private final Ontology ontology;
     private final SecurityContext securityContext;
     private final com.atomgraph.linkeddatahub.Application system;
@@ -68,7 +69,7 @@ public class Namespace extends SPARQLEndpointImpl
      * 
      * @param request current request
      * @param uriInfo current request's URI info
-     * @param application current application
+     * @param application current end-use rapplication
      * @param service application's SPARQL service
      * @param ontology application's ontology
      * @param mediaTypes registry of readable/writable media types
@@ -77,7 +78,7 @@ public class Namespace extends SPARQLEndpointImpl
      */
     @Inject
     public Namespace(@Context Request request, @Context UriInfo uriInfo, 
-            com.atomgraph.linkeddatahub.apps.model.Application application, Optional<Service> service, Optional<Ontology> ontology, MediaTypes mediaTypes,
+            EndUserApplication application, Optional<Service> service, Optional<Ontology> ontology, MediaTypes mediaTypes,
             @Context SecurityContext securityContext, com.atomgraph.linkeddatahub.Application system)
     {
         super(request, service, mediaTypes);
@@ -105,7 +106,7 @@ public class Namespace extends SPARQLEndpointImpl
             String ontologyURI = getURI().toString() + "#"; // TO-DO: hard-coding "#" is not great. Replace with RDF property lookup.
             if (log.isDebugEnabled()) log.debug("Returning namespace ontology from OntDocumentManager: {}", ontologyURI);
             OntologyModelGetter modelGetter = new OntologyModelGetter(getApplication(), getSystem().getOntModelSpec(), getSystem().getOntologyQuery(), getSystem().getClient(), getSystem().getMediaTypes());
-            return getResponseBuilder(modelGetter.loadSPARQLModel(ontologyURI));
+            return getResponseBuilder(modelGetter.getModel(ontologyURI));
         }
 
        
@@ -152,11 +153,11 @@ public class Namespace extends SPARQLEndpointImpl
     }
     
     /**
-     * Returns the current application.
+     * Returns the current end-user application.
      * 
-     * @return application resource
+     * @return end-user application resource
      */
-    public com.atomgraph.linkeddatahub.apps.model.Application getApplication()
+    public EndUserApplication getApplication()
     {
         return application;
     }

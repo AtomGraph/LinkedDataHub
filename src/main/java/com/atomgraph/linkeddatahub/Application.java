@@ -243,6 +243,7 @@ public class Application extends ResourceConfig
     private final ServletConfig servletConfig;
     private final EventBus eventBus = new EventBus();
     private final DataManager dataManager;
+    private final Map<String, OntModelSpec> endUserOntModelSpecs;
     private final MediaTypes mediaTypes;
     private final Client client, importClient, noCertClient;
     private final Query authQuery, ownerAuthQuery, webIDQuery, userAccountQuery, ontologyQuery; // no relative URIs
@@ -582,6 +583,7 @@ public class Application extends ResourceConfig
             BuiltinPersonalities.model.add(File.class, FileImpl.factory);
         
             // TO-DO: config property for cacheModelLoads
+            endUserOntModelSpecs = new HashMap<>();
             dataManager = new DataManagerImpl(locationMapper, new HashMap<>(), client, mediaTypes, cacheModelLoads, preemptiveAuth, resolvingUncached);
             ontModelSpec = OntModelSpec.OWL_MEM_RDFS_INF;
             ontModelSpec.setImportModelGetter(dataManager);
@@ -1398,6 +1400,35 @@ public class Application extends ResourceConfig
     public DataManager getDataManager()
     {
         return dataManager;
+    }
+ 
+    /**
+     * Returns a map of application URIs to ontology specifications.
+     * 
+     * @return URI to ontology specification map
+     */
+    protected Map<String, OntModelSpec> getEndUserOntModelSpecs()
+    {
+        return endUserOntModelSpecs;
+    }
+
+    /**
+     * Returns ontology specification for the specified application URI.
+     * 
+     * @param appURI app URI
+     * @return ontology specification 
+     */
+    public OntModelSpec getEndUserOntModelSpec(String appURI)
+    {
+        if (!getEndUserOntModelSpecs().containsKey(appURI))
+        {
+            OntModelSpec appOntModelSpec = new OntModelSpec(OntModelSpec.OWL_MEM_RDFS_INF);
+            appOntModelSpec.setDocumentManager(new OntDocumentManager());
+            //appOntModelSpec.getDocumentManager().setFileManager(new DataManagerImpl());
+            getEndUserOntModelSpecs().put(appURI, appOntModelSpec);
+        }
+        
+        return getEndUserOntModelSpecs().get(appURI);
     }
     
     /**

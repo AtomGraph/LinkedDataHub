@@ -19,8 +19,6 @@ package com.atomgraph.linkeddatahub.server.util;
 import com.atomgraph.client.vocabulary.LDT;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.core.io.ModelProvider;
-import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
-import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.processor.exception.OntologyException;
 import javax.ws.rs.client.Client;
@@ -31,7 +29,6 @@ import org.apache.jena.query.Query;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.ModelReader;
-import org.apache.jena.util.FileManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,7 +42,7 @@ public class OntologyModelGetter implements org.apache.jena.rdf.model.ModelGette
 
     private static final Logger log = LoggerFactory.getLogger(OntologyModelGetter.class);
 
-    private final Application app;
+    private final EndUserApplication app;
     private final OntModelSpec ontModelSpec;
     private final Query ontologyQuery;
     private final Client client;
@@ -54,13 +51,13 @@ public class OntologyModelGetter implements org.apache.jena.rdf.model.ModelGette
     /**
      * Constructs ontology getter for application.
      * 
-     * @param app application resource
+     * @param app end-user application resource
      * @param ontModelSpec ontology specification
      * @param ontologyQuery SPARQL query that loads ontology terms
      * @param client HTTP client
      * @param mediaTypes registry of readable/writable media types
      */
-    public OntologyModelGetter(Application app, OntModelSpec ontModelSpec, Query ontologyQuery, Client client, MediaTypes mediaTypes)
+    public OntologyModelGetter(EndUserApplication app, OntModelSpec ontModelSpec, Query ontologyQuery, Client client, MediaTypes mediaTypes)
     {
         this(app, ontModelSpec, ontologyQuery, client, mediaTypes.getReadable(Model.class).toArray(javax.ws.rs.core.MediaType[]::new));
     }
@@ -68,13 +65,13 @@ public class OntologyModelGetter implements org.apache.jena.rdf.model.ModelGette
     /**
      * Constructs ontology getter for application.
      * 
-     * @param app application resource
+     * @param app end-user application resource
      * @param ontModelSpec ontology specification
      * @param ontologyQuery SPARQL query that loads ontology terms
      * @param client HTTP client
      * @param acceptedTypes accepted media types
      */
-    public OntologyModelGetter(Application app, OntModelSpec ontModelSpec, Query ontologyQuery, Client client, javax.ws.rs.core.MediaType[] acceptedTypes)
+    public OntologyModelGetter(EndUserApplication app, OntModelSpec ontModelSpec, Query ontologyQuery, Client client, javax.ws.rs.core.MediaType[] acceptedTypes)
     {
         this.app = app;
         this.ontModelSpec = ontModelSpec;
@@ -86,27 +83,16 @@ public class OntologyModelGetter implements org.apache.jena.rdf.model.ModelGette
     @Override
     public Model getModel(String uri)
     {
-        FileManager fileManager = getOntModelSpec().getDocumentManager().getFileManager();
-        // read cached ontology or mapped ontology from file
-        String mappedURI = getOntModelSpec().getDocumentManager().getFileManager().mapURI(uri);
-        if (fileManager.hasCachedModel(uri) || !(mappedURI.startsWith("http") || mappedURI.startsWith("https"))) // ontology URI mapped to a local file resource
-            return fileManager.loadModel(uri, getApplication().getBase().getURI(), null);
-        else
-            return loadSPARQLModel(uri);
-    }
-
-    public Model loadSPARQLModel(String uri)
-    {
         // attempt to load ontology graph from the admin endpoint. TO-DO: is that necessary if ontologies terms are now stored in a single graph?
         ParameterizedSparqlString ontologyPss = new ParameterizedSparqlString(getOntologyQuery().toString());
         ontologyPss.setIri(LDT.ontology.getLocalName(), uri);
-        Model model = getAdminApplication().getService().getSPARQLClient().loadModel(ontologyPss.asQuery());
+        Model model = getApplication().getAdminApplication().getService().getSPARQLClient().loadModel(ontologyPss.asQuery());
 
         // if it's empty, fallback to dereferencing the ontology URI
         if (model.isEmpty())
         {
             // TO-DO: use LinkedDataClient
-            if (log.isDebugEnabled()) log.debug("Loading end-user Ontology <{}>", uri);
+            if (log.isDebugEnabled()) log.debug("Loading Ontology <{}>", uri);
             try (Response cr = getClient().target(uri).
                     request(getAcceptableMediaTypes()).
                     get())
@@ -131,7 +117,7 @@ public class OntologyModelGetter implements org.apache.jena.rdf.model.ModelGette
 
         return model;
     }
-    
+
     @Override
     public Model getModel(String uri, ModelReader loadIfAbsent) 
     {
@@ -150,7 +136,7 @@ public class OntologyModelGetter implements org.apache.jena.rdf.model.ModelGette
      * 
      * @return application resource
      */
-    public Application getApplication()
+    public EndUserApplication getApplication()
     {
         return app;
     }
@@ -163,19 +149,6 @@ public class OntologyModelGetter implements org.apache.jena.rdf.model.ModelGette
     public OntModelSpec getOntModelSpec()
     {
         return ontModelSpec;
-    }
-
-    /**
-     * Returns admin application.
-     * 
-     * @return admin application resource
-     */
-    public AdminApplication getAdminApplication()
-    {
-        if (getApplication().canAs(EndUserApplication.class))
-            return getApplication().as(EndUserApplication.class).getAdminApplication();
-        else
-            return getApplication().as(AdminApplication.class);
     }
 
     /**

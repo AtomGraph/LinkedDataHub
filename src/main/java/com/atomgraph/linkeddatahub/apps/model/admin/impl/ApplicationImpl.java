@@ -18,6 +18,7 @@ package com.atomgraph.linkeddatahub.apps.model.admin.impl;
 
 import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
+import com.atomgraph.linkeddatahub.vocabulary.Admin;
 import com.atomgraph.linkeddatahub.vocabulary.LAPP;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.graph.Node;
@@ -53,6 +54,12 @@ public class ApplicationImpl extends com.atomgraph.linkeddatahub.apps.model.impl
         if (app != null) return app.as(EndUserApplication.class);
         
         return null;
+    }
+    
+    @Override
+    public Resource getOntology()
+    {
+        return Admin.NAMESPACE;
     }
     
 }

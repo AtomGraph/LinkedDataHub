@@ -23,6 +23,8 @@ import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.Providers;
 import com.atomgraph.core.MediaTypes;
+import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
+import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.util.OntologyModelGetter;
 import com.atomgraph.linkeddatahub.vocabulary.LSMT;
@@ -107,12 +109,14 @@ public class Item extends com.atomgraph.linkeddatahub.resource.graph.Item
             {
                 OntDocumentManager.getInstance().getFileManager().removeCacheModel(ontologyURI);
 
+                EndUserApplication app = getApplication().as(AdminApplication.class).getEndUserApplication();
+                OntModelSpec ontModelSpec = new OntModelSpec(getSystem().getEndUserOntModelSpec(app.getURI()));
                 // !!! we need to reload the ontology model before returning a response, to make sure the next request already gets the new version !!!
                 // same logic as in OntologyFilter. TO-DO: encapsulate?
-                OntologyModelGetter modelGetter = new OntologyModelGetter(getApplication(), getSystem().getOntModelSpec(), getSystem().getOntologyQuery(), getSystem().getClient(), getSystem().getMediaTypes());
+                OntologyModelGetter modelGetter = new OntologyModelGetter(app,
+                        ontModelSpec, getSystem().getOntologyQuery(), getSystem().getNoCertClient(), getSystem().getMediaTypes());
                 Model model = modelGetter.getModel(ontologyURI);
-                
-                OntModelSpec ontModelSpec = new OntModelSpec(getSystem().getOntModelSpec());
+
                 final InfModel infModel = ModelFactory.createInfModel(ontModelSpec.getReasoner(), model);
 
                 ontModelSpec.getDocumentManager().addModel(ontologyURI, infModel);
@@ -120,7 +124,7 @@ public class Item extends com.atomgraph.linkeddatahub.resource.graph.Item
                 
                 // construct system provider to materialize inferenced model
                 new com.atomgraph.server.util.OntologyLoader(ontModelSpec.getDocumentManager(), ontologyURI, ontModelSpec, true);
-                // Bypass Processor's getOntology() because it overrides the ModelGetter TO-DO: fix!
+                // bypass Processor's getOntology() because it overrides the ModelGetter TO-DO: fix!
                 OntModelSpec loadSpec = new OntModelSpec(OntModelSpec.OWL_MEM);
                 loadSpec.setImportModelGetter(modelGetter);
                 ontModelSpec.getDocumentManager().getOntology(ontologyURI, loadSpec).getOntology(ontologyURI); // reloads the imports using ModelGetter. TO-DO: optimize?

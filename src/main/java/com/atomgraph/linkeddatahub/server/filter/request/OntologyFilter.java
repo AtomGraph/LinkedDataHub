@@ -17,9 +17,9 @@
 package com.atomgraph.linkeddatahub.server.filter.request;
 
 import com.atomgraph.linkeddatahub.apps.model.Application;
+import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.vocabulary.LAPP;
 import com.atomgraph.processor.exception.OntologyException;
-import com.atomgraph.client.vocabulary.LDT;
 import com.atomgraph.linkeddatahub.server.util.OntologyModelGetter;
 import com.atomgraph.server.util.OntologyLoader;
 import java.io.IOException;
@@ -34,6 +34,8 @@ import org.apache.jena.ontology.Ontology;
 import org.apache.jena.rdf.model.InfModel;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.shared.NotFoundException;
+import org.apache.jena.util.FileManager;
 import org.apache.jena.vocabulary.OWL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -87,9 +89,9 @@ public class OntologyFilter implements ContainerRequestFilter
      */
     public Ontology getOntology(Application app)
     {
-        if (app.getPropertyResourceValue(LDT.ontology) == null) return null;
+        if (app.getOntology() == null) return null;
 
-        return getOntology(app, app.getPropertyResourceValue(LDT.ontology).getURI(), new OntModelSpec(getSystem().getOntModelSpec()));
+        return getOntology(app, app.getOntology().getURI());
     }
     
     /**
@@ -97,43 +99,59 @@ public class OntologyFilter implements ContainerRequestFilter
      * 
      * @param app application resource
      * @param uri ontology URI
-     * @param ontModelSpec ontology specification
      * @return ontology resource
      */
-    public Ontology getOntology(Application app, String uri, OntModelSpec ontModelSpec)
+    public Ontology getOntology(Application app, String uri)
     {
         if (app == null) throw new IllegalArgumentException("Application string cannot be null");
         if (uri == null) throw new IllegalArgumentException("Ontology URI string cannot be null");
 
-        OntologyModelGetter modelGetter = new OntologyModelGetter(app, ontModelSpec, getSystem().getOntologyQuery(), getSystem().getNoCertClient(), getSystem().getMediaTypes());
-        // only create InfModel if ontology is not already cached
-        if (!ontModelSpec.getDocumentManager().getFileManager().hasCachedModel(uri))
+        final OntModelSpec ontModelSpec;
+        final OntModelSpec loadSpec = new OntModelSpec(OntModelSpec.OWL_MEM);
+        if (app.canAs(EndUserApplication.class))
         {
-            Model model = modelGetter.getModel(uri);
+            ontModelSpec = new OntModelSpec(getSystem().getEndUserOntModelSpec(app.getURI()));
+            // only create InfModel if ontology is not already cached
+            if (!ontModelSpec.getDocumentManager().getFileManager().hasCachedModel(uri))
+            {
+                OntologyModelGetter modelGetter = new OntologyModelGetter(app.as(EndUserApplication.class),
+                        ontModelSpec, getSystem().getOntologyQuery(), getSystem().getNoCertClient(), getSystem().getMediaTypes());
+                Model model = modelGetter.getModel(uri);
 
-            final InfModel infModel = ModelFactory.createInfModel(ontModelSpec.getReasoner(), model);
+                final InfModel infModel = ModelFactory.createInfModel(ontModelSpec.getReasoner(), model);
 
-            ontModelSpec.getDocumentManager().addModel(uri, infModel);
-            ontModelSpec.setImportModelGetter(modelGetter);
+                ontModelSpec.getDocumentManager().addModel(uri, infModel);
+                ontModelSpec.setImportModelGetter(modelGetter);
+                loadSpec.setImportModelGetter(modelGetter);
+            }
+        }
+        else
+        {
+            ontModelSpec = new OntModelSpec(getSystem().getOntModelSpec());
+            FileManager fileManager = ontModelSpec.getDocumentManager().getFileManager();
+            if (!fileManager.hasCachedModel(uri))
+            {
+                Model model = fileManager.loadModel(uri, app.getBase().getURI(), null);
+                final InfModel infModel = ModelFactory.createInfModel(ontModelSpec.getReasoner(), model);
+                ontModelSpec.getDocumentManager().addModel(uri, infModel);
+            }
         }
         
         try
         {
             // construct system provider to materialize inferenced model
             OntologyLoader ontologyLoader = new com.atomgraph.server.util.OntologyLoader(ontModelSpec.getDocumentManager(), uri, ontModelSpec, true);
-            // Bypass Processor's getOntology() because it overrides the ModelGetter TO-DO: fix!
-            OntModelSpec loadSpec = new OntModelSpec(OntModelSpec.OWL_MEM);
-            loadSpec.setImportModelGetter(modelGetter);
+            // bypass Processor's getOntology() because it overrides the ModelGetter TO-DO: fix!
             return ontModelSpec.getDocumentManager().getOntology(uri, loadSpec).getOntology(uri); // reloads the imports using ModelGetter. TO-DO: optimize?
         }
         catch (IllegalArgumentException ex)
         {
             // ontology resource was not found
         }
-        
+            
         if (log.isErrorEnabled()) log.error("Ontology resource '{}' not found", uri);
         // TO-DO: replace with Jena's OntologyException
-        throw new OntologyException("Ontology resource '" + uri + "' not found");
+        throw new NotFoundException("Ontology resource '" + uri + "' not found");
     }
 
     /**
