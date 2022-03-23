@@ -44,8 +44,7 @@ public class OntologyModelGetter implements org.apache.jena.rdf.model.ModelGette
     private final EndUserApplication app;
     private final OntModelSpec ontModelSpec;
     private final Query ontologyQuery;
-    private final Client client;
-    private final javax.ws.rs.core.MediaType[] acceptedTypes;
+
     
     /**
      * Constructs ontology getter for application.
@@ -58,7 +57,7 @@ public class OntologyModelGetter implements org.apache.jena.rdf.model.ModelGette
      */
     public OntologyModelGetter(EndUserApplication app, OntModelSpec ontModelSpec, Query ontologyQuery, Client client, MediaTypes mediaTypes)
     {
-        this(app, ontModelSpec, ontologyQuery, client, mediaTypes.getReadable(Model.class).toArray(javax.ws.rs.core.MediaType[]::new));
+        this(app, ontModelSpec, ontologyQuery);
     }
     
     /**
@@ -67,16 +66,12 @@ public class OntologyModelGetter implements org.apache.jena.rdf.model.ModelGette
      * @param app end-user application resource
      * @param ontModelSpec ontology specification
      * @param ontologyQuery SPARQL query that loads ontology terms
-     * @param client HTTP client
-     * @param acceptedTypes accepted media types
      */
-    public OntologyModelGetter(EndUserApplication app, OntModelSpec ontModelSpec, Query ontologyQuery, Client client, javax.ws.rs.core.MediaType[] acceptedTypes)
+    public OntologyModelGetter(EndUserApplication app, OntModelSpec ontModelSpec, Query ontologyQuery)
     {
         this.app = app;
         this.ontModelSpec = ontModelSpec;
         this.ontologyQuery = ontologyQuery;
-        this.client = client;
-        this.acceptedTypes = acceptedTypes;
     }
 
     @Override
@@ -135,26 +130,6 @@ public class OntologyModelGetter implements org.apache.jena.rdf.model.ModelGette
     public Query getOntologyQuery()
     {
         return ontologyQuery;
-    }
-
-    /**
-     * Returns HTTP client.
-     * 
-     * @return client
-     */
-    public Client getClient()
-    {
-        return client;
-    }
-    
-    /**
-     * Returns readable media types.
-     * 
-     * @return media types
-     */
-    public javax.ws.rs.core.MediaType[] getAcceptableMediaTypes()
-    {
-        return acceptedTypes;
     }
     
 }
