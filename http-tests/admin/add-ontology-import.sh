@@ -15,7 +15,7 @@ ontology_doc="${ADMIN_BASE_URL}model/ontologies/namespace/"
 ./add-ontology-import.sh \
   -f "$OWNER_CERT_FILE" \
   -p "$OWNER_CERT_PWD" \
-  --import "https://schema.org" \
+  --import "http://xmlns.com/foaf/0.1/" \
   "$ontology_doc"
 
 # clear ontology from memory
@@ -32,4 +32,4 @@ popd > /dev/null
 curl -k -f -s -N \
   -H "Accept: application/n-triples" \
   "${END_USER_BASE_URL}ns" \
-| grep "<${END_USER_BASE_URL}ns#> <http://www.w3.org/2002/07/owl#imports> <https://schema.org>" > /dev/null
+| grep "<${END_USER_BASE_URL}ns#> <http://www.w3.org/2002/07/owl#imports> <http://xmlns.com/foaf/0.1/>" > /dev/null
