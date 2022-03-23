@@ -24,6 +24,7 @@ import com.atomgraph.linkeddatahub.model.Service;
 import static com.atomgraph.core.model.SPARQLEndpoint.DEFAULT_GRAPH_URI;
 import static com.atomgraph.core.model.SPARQLEndpoint.NAMED_GRAPH_URI;
 import static com.atomgraph.core.model.SPARQLEndpoint.QUERY;
+import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.server.model.impl.SPARQLEndpointImpl;
 import com.atomgraph.linkeddatahub.server.util.OntologyModelGetter;
@@ -33,6 +34,7 @@ import java.util.Optional;
 import javax.inject.Inject;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.GET;
+import javax.ws.rs.InternalServerErrorException;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
@@ -78,12 +80,13 @@ public class Namespace extends SPARQLEndpointImpl
      */
     @Inject
     public Namespace(@Context Request request, @Context UriInfo uriInfo, 
-            EndUserApplication application, Optional<Service> service, Optional<Ontology> ontology, MediaTypes mediaTypes,
+            Application application, Optional<Service> service, Optional<Ontology> ontology, MediaTypes mediaTypes,
             @Context SecurityContext securityContext, com.atomgraph.linkeddatahub.Application system)
     {
         super(request, service, mediaTypes);
         this.uri = uriInfo.getAbsolutePath();
-        this.application = application;
+        if (!application.canAs(EndUserApplication.class)) throw new InternalServerErrorException("The Namespace endpoint if for end-user applications only");
+        this.application = application.as(EndUserApplication.class);
         this.ontology = ontology.get();
         this.securityContext = securityContext;
         this.system = system;
