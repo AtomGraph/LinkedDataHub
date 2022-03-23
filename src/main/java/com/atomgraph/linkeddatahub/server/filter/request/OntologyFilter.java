@@ -107,7 +107,7 @@ public class OntologyFilter implements ContainerRequestFilter
         if (uri == null) throw new IllegalArgumentException("Ontology URI string cannot be null");
 
         final OntModelSpec ontModelSpec;
-        final OntModelSpec loadSpec = new OntModelSpec(OntModelSpec.OWL_MEM);
+//        final OntModelSpec loadSpec = new OntModelSpec(OntModelSpec.OWL_MEM);
         if (app.canAs(EndUserApplication.class))
         {
             ontModelSpec = new OntModelSpec(getSystem().getEndUserOntModelSpec(app.getURI()));
@@ -122,7 +122,8 @@ public class OntologyFilter implements ContainerRequestFilter
 
                 ontModelSpec.getDocumentManager().addModel(uri, infModel);
                 ontModelSpec.setImportModelGetter(modelGetter);
-                loadSpec.setImportModelGetter(modelGetter);
+//                loadSpec.getDocumentManager().addModel(uri, infModel);
+//                loadSpec.setImportModelGetter(modelGetter);
             }
         }
         else
@@ -142,7 +143,7 @@ public class OntologyFilter implements ContainerRequestFilter
             // construct system provider to materialize inferenced model
             OntologyLoader ontologyLoader = new com.atomgraph.server.util.OntologyLoader(ontModelSpec.getDocumentManager(), uri, ontModelSpec, true);
             // bypass Processor's getOntology() because it overrides the ModelGetter TO-DO: fix!
-            return ontModelSpec.getDocumentManager().getOntology(uri, loadSpec).getOntology(uri); // reloads the imports using ModelGetter. TO-DO: optimize?
+            return ontModelSpec.getDocumentManager().getOntology(uri, ontModelSpec).getOntology(uri); // reloads the imports using ModelGetter. TO-DO: optimize?
         }
         catch (IllegalArgumentException ex)
         {

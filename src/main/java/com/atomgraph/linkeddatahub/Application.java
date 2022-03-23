@@ -1424,7 +1424,9 @@ public class Application extends ResourceConfig
         {
             OntModelSpec appOntModelSpec = new OntModelSpec(OntModelSpec.OWL_MEM_RDFS_INF);
             appOntModelSpec.setDocumentManager(new OntDocumentManager());
-            //appOntModelSpec.getDocumentManager().setFileManager(new DataManagerImpl());
+            appOntModelSpec.getDocumentManager().setFileManager(
+                    new DataManagerImpl(LocationMapper.get(), new HashMap<>(), getClient(), getMediaTypes(), true, isPreemptiveAuth(), isResolvingUncached()));
+            
             getEndUserOntModelSpecs().put(appURI, appOntModelSpec);
         }
         
