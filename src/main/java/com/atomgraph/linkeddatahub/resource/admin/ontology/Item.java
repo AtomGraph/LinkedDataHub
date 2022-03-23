@@ -16,7 +16,6 @@
  */
 package com.atomgraph.linkeddatahub.resource.admin.ontology;
 
-import org.apache.jena.ontology.OntDocumentManager;
 import java.net.URI;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Request;
@@ -104,13 +103,12 @@ public class Item extends com.atomgraph.linkeddatahub.resource.graph.Item
             }
             
             String ontologyURI = topic.getURI();
-            
-            if (OntDocumentManager.getInstance().getFileManager().hasCachedModel(ontologyURI))
+            EndUserApplication app = getApplication().as(AdminApplication.class).getEndUserApplication(); // we're assuming the current app is admin
+            OntModelSpec ontModelSpec = new OntModelSpec(getSystem().getEndUserOntModelSpec(app.getURI()));
+            if (ontModelSpec.getDocumentManager().getFileManager().hasCachedModel(ontologyURI))
             {
-                OntDocumentManager.getInstance().getFileManager().removeCacheModel(ontologyURI);
+                ontModelSpec.getDocumentManager().getFileManager().removeCacheModel(ontologyURI);
 
-                EndUserApplication app = getApplication().as(AdminApplication.class).getEndUserApplication();
-                OntModelSpec ontModelSpec = new OntModelSpec(getSystem().getEndUserOntModelSpec(app.getURI()));
                 // !!! we need to reload the ontology model before returning a response, to make sure the next request already gets the new version !!!
                 // same logic as in OntologyFilter. TO-DO: encapsulate?
                 OntologyModelGetter modelGetter = new OntologyModelGetter(app,
