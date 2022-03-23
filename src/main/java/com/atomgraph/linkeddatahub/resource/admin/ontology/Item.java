@@ -113,10 +113,10 @@ public class Item extends com.atomgraph.linkeddatahub.resource.graph.Item
                 // same logic as in OntologyFilter. TO-DO: encapsulate?
                 OntologyModelGetter modelGetter = new OntologyModelGetter(app,
                         ontModelSpec, getSystem().getOntologyQuery(), getSystem().getNoCertClient(), getSystem().getMediaTypes());
-                
                 Model baseModel = modelGetter.getModel(ontologyURI);
                 //final InfModel infModel = ModelFactory.createInfModel(ontModelSpec.getReasoner(), model);
                 OntModel ontModel = ModelFactory.createOntologyModel(ontModelSpec, baseModel);
+                ontModel.getDocumentManager().addModel(ontologyURI, ontModel);
                 ontModel.getSpecification().setImportModelGetter(modelGetter);
                 
                 // construct system provider to materialize inferenced model
