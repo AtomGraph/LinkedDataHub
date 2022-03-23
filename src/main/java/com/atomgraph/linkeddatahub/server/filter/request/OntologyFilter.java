@@ -107,7 +107,6 @@ public class OntologyFilter implements ContainerRequestFilter
         if (uri == null) throw new IllegalArgumentException("Ontology URI string cannot be null");
 
         final OntModelSpec ontModelSpec;
-//        final OntModelSpec loadSpec = new OntModelSpec(OntModelSpec.OWL_MEM);
         if (app.canAs(EndUserApplication.class))
         {
             ontModelSpec = new OntModelSpec(getSystem().getEndUserOntModelSpec(app.getURI()));
@@ -122,8 +121,6 @@ public class OntologyFilter implements ContainerRequestFilter
 
                 ontModelSpec.getDocumentManager().addModel(uri, infModel);
                 ontModelSpec.setImportModelGetter(modelGetter);
-//                loadSpec.getDocumentManager().addModel(uri, infModel);
-//                loadSpec.setImportModelGetter(modelGetter);
             }
         }
         else

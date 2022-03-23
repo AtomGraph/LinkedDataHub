@@ -125,9 +125,7 @@ public class Item extends com.atomgraph.linkeddatahub.resource.graph.Item
                 // construct system provider to materialize inferenced model
                 new com.atomgraph.server.util.OntologyLoader(ontModelSpec.getDocumentManager(), ontologyURI, ontModelSpec, true);
                 // bypass Processor's getOntology() because it overrides the ModelGetter TO-DO: fix!
-                OntModelSpec loadSpec = new OntModelSpec(OntModelSpec.OWL_MEM);
-                loadSpec.setImportModelGetter(modelGetter);
-                ontModelSpec.getDocumentManager().getOntology(ontologyURI, loadSpec).getOntology(ontologyURI); // reloads the imports using ModelGetter. TO-DO: optimize?
+                ontModelSpec.getDocumentManager().getOntology(ontologyURI, ontModelSpec).getOntology(ontologyURI); // reloads the imports using ModelGetter. TO-DO: optimize?
             }
         }
         
