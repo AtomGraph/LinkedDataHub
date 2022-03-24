@@ -64,7 +64,7 @@ PREFIX  sp:   <http://spinrdf.org/sp#>
 PREFIX  spin: <http://spinrdf.org/spin#>
 
 CONSTRUCT 
-  {
+  { 
     ?class spin:constructor ?constructor .
     ?constructor a sp:Construct .
     ?constructor rdfs:label ?constructorLabel .
@@ -73,16 +73,15 @@ CONSTRUCT
 WHERE
   { { SELECT  ?class (concat("CONSTRUCT { ", GROUP_CONCAT(?propConstructor ; separator=' .\\n    '), " } {}") AS ?constructorString)
       WHERE
-        {   { ?class  a  owl:Class }
-          UNION
-            { ?class  a  rdfs:Class }
-          { SELECT DISTINCT  ?class ?prop ?range
+        { { SELECT DISTINCT  ?class ?prop ?range
             WHERE
-              { { ?class (rdfs:subClassOf)* ?domainClass .
-                  ?prop  rdfs:domain  ?domainClass
-                }
+              {   { ?class  a  owl:Class }
+                UNION
+                  { ?class  a  rdfs:Class }
+                { ?prop  rdfs:domain  ?class }
                 { ?prop  rdfs:range  ?range }
               }
+            ORDER BY ?class ?prop ?range
           }
           BIND(concat("?this <", str(?prop), "> [ a <", str(?range), "> ]") AS ?propConstructor)
         }
