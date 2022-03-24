@@ -34,7 +34,6 @@ import java.util.Optional;
 import javax.inject.Inject;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.GET;
-import javax.ws.rs.InternalServerErrorException;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
@@ -85,8 +84,7 @@ public class Namespace extends SPARQLEndpointImpl
     {
         super(request, service, mediaTypes);
         this.uri = uriInfo.getAbsolutePath();
-        if (!application.canAs(EndUserApplication.class)) throw new InternalServerErrorException("The Namespace endpoint if for end-user applications only");
-        this.application = application.as(EndUserApplication.class);
+        this.application = application;
         this.ontology = ontology.get();
         this.securityContext = securityContext;
         this.system = system;
