@@ -71,7 +71,7 @@ CONSTRUCT
     ?constructor sp:text ?constructorString .
   }
 WHERE
-  { { SELECT  ?class (concat("CONSTRUCT { ", GROUP_CONCAT(?propConstructor ; separator=' .\\n    '), " } {}") AS ?constructorString)
+  { { SELECT  ?class (concat("CONSTRUCT {\\n", GROUP_CONCAT(?propConstructor ; separator=' .\\n    '), " } {}") AS ?constructorString)
       WHERE
         { { SELECT DISTINCT  ?class ?prop ?range
             WHERE
