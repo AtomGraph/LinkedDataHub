@@ -962,12 +962,6 @@ exclude-result-prefixes="#all">
                     <xsl:apply-templates select="key('resources', 'add-data', document('translations.rdf'))" mode="ac:label"/>
                 </xsl:value-of>
             </button>
-            <button type="button" title="{ac:label(key('resources', 'add-data-title', document('translations.rdf')))}" class="btn btn-primary btn-add-ontology">
-                <xsl:value-of>
-<!--                    <xsl:apply-templates select="key('resources', 'add-data', document('translations.rdf'))" mode="ac:label"/>-->
-                    Add ontology
-                </xsl:value-of>
-            </button>
         </div>
     </xsl:template>
     

@@ -1575,23 +1575,6 @@ WHERE
         </xsl:choose>
     </xsl:template>
     
-    <!-- validate form before submitting it and show errors on control-groups where input values are missing -->
-    <xsl:template match="form[@id = 'form-add-data'] | form[@id = 'form-clone-data']" mode="ixsl:onsubmit" priority="1">
-        <xsl:variable name="control-groups" select="descendant::div[contains-token(@class, 'control-group')][input[@name = 'pu'][@value = ('&nfo;fileName', '&dct;source', '&sd;name')]]" as="element()*"/>
-        <xsl:choose>
-            <!-- values missing, throw an error -->
-            <xsl:when test="some $input in $control-groups/descendant::input[@name = ('ol', 'ou')] satisfies not(ixsl:get($input, 'value'))">
-                <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
-                <xsl:sequence select="$control-groups/ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'error', true() ])[current-date() lt xs:date('2000-01-01')]"/>
-            </xsl:when>
-            <!-- all required values present, apply the default form onsubmit -->
-            <xsl:otherwise>
-                <xsl:sequence select="$control-groups/ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'error', false() ])[current-date() lt xs:date('2000-01-01')]"/>
-                <xsl:next-match/>
-            </xsl:otherwise>
-        </xsl:choose>
-    </xsl:template>
-
     <!-- open drop-down by toggling its CSS class -->
 
     <xsl:template match="*[contains-token(@class, 'btn-group')][*[contains-token(@class, 'dropdown-toggle')]]" mode="ixsl:onclick">
@@ -1754,20 +1737,6 @@ WHERE
             <root statement="YASQE.fromTextArea(document.getElementById('{$textarea-id}'), {{ persistent: null }})"/>
         </xsl:variable>
         <ixsl:set-property name="{$textarea-id}" select="ixsl:eval(string($js-statement/@statement))" object="ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe')"/>
-    </xsl:template>
-
-    <xsl:template match="button[contains-token(@class, 'btn-add-data')]" mode="ixsl:onclick">
-        <xsl:call-template name="ldh:ShowAddDataForm">
-            <xsl:with-param name="graph" select="ldh:absolute-path(ldh:href())"/>
-        </xsl:call-template>
-    </xsl:template>
-
-    <xsl:template match="button[contains-token(@class, 'btn-add-ontology')]" mode="ixsl:onclick">
-        <xsl:call-template name="ldh:ShowAddDataForm">
-            <xsl:with-param name="action" select="resolve-uri('transform', $ldt:base)"/>
-            <xsl:with-param name="graph" select="ldh:absolute-path(ldh:href())"/>
-            <xsl:with-param name="query" select="resolve-uri('queries/construct-constructors/#this', $ldt:base)"/>
-        </xsl:call-template>
     </xsl:template>
     
     <!-- open editing form (do nothing if the button is disabled) -->

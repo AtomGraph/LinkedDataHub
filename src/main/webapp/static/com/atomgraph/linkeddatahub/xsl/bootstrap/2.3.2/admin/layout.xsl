@@ -76,6 +76,39 @@ exclude-result-prefixes="#all">
         </div>
     </xsl:template>
     
+    <!-- ADD DATA -->
+    
+    <xsl:template match="rdf:RDF[$acl:mode = '&acl;Append']" mode="bs2:AddData" priority="1">
+        <div class="btn-group pull-left">
+            <button type="button" title="{ac:label(key('resources', 'add', document('../translations.rdf')))}">
+                <xsl:value-of>
+                    <xsl:apply-templates select="key('resources', 'add', document('../translations.rdf'))" mode="ac:label"/>
+                </xsl:value-of>
+                <xsl:text> </xsl:text>
+                <span class="caret"></span>
+            </button>
+            
+            <ul class="dropdown-menu">
+                <li>
+                    <button type="button" title="{ac:label(key('resources', 'add-data-title', document('../translations.rdf')))}" class="btn btn-primary btn-add-data">
+                        <xsl:value-of>
+                            <xsl:apply-templates select="key('resources', 'add-data', document('../translations.rdf'))" mode="ac:label"/>
+                        </xsl:value-of>
+                    </button>
+                </li>
+                <li>
+                    <button type="button" title="{ac:label(key('resources', 'import-ontology-title', document('../translations.rdf')))}" class="btn btn-primary btn-add-ontology">
+                        <xsl:value-of>
+                            <xsl:apply-templates select="key('resources', 'import-ontology', document('../translations.rdf'))" mode="ac:label"/>
+                        </xsl:value-of>
+                    </button>
+                </li>
+            </ul>
+        </div>
+    </xsl:template>
+    
+    <xsl:template match="*" mode="bs2:AddData"/>
+    
     <!-- ROW FORM - we need the overriding templates as well -->
 
     <xsl:template match="rdf:RDF[$ac:forClass = ('&ldh;CSVImport', '&ldh;RDFImport')][$ac:method = 'GET']" mode="bs2:RowForm" priority="2" use-when="system-property('xsl:product-name') = 'SAXON'">
@@ -125,7 +158,11 @@ exclude-result-prefixes="#all">
     <xsl:template match="*[@rdf:about][key('resources', foaf:primaryTopic/@rdf:resource)/rdf:type/@rdf:resource = '&owl;Ontology'][$foaf:Agent//@rdf:about]" mode="bs2:Actions">
         <form class="pull-right" action="{@rdf:about}" method="get">
             <input type="hidden" name="clear"/>
-            <button class="btn btn-primary" type="submit">Clear</button>
+            <button class="btn btn-primary" type="submit">
+                <xsl:value-of>
+                    <xsl:apply-templates select="key('resources', 'clear', document('../translations.rdf'))" mode="ac:label"/>
+                </xsl:value-of>
+            </button>
         </form>
 
         <xsl:next-match/>

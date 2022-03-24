@@ -124,6 +124,12 @@
     <rdf:Description rdf:nodeID="add-data-title">
         <rdfs:label xml:lang="en-US">Import RDF data</rdfs:label>
     </rdf:Description>
+    <rdf:Description rdf:nodeID="import-ontology">
+        <rdfs:label xml:lang="en-US">Import ontology</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="import-ontology-title">
+        <rdfs:label xml:lang="en-US">Import RDF ontology and create constructors</rdfs:label>
+    </rdf:Description>
     <rdf:Description rdf:nodeID="nav-bar-action-delete-title">
         <rdfs:label xml:lang="en-US">Delete the graph of this resource</rdfs:label>
     </rdf:Description>
@@ -237,5 +243,8 @@
     </rdf:Description>
     <rdf:Description rdf:about="query">
         <rdfs:label xml:lang="en-US">Query</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:about="clear">
+        <rdfs:label xml:lang="en-US">Clear</rdfs:label>
     </rdf:Description>
 </rdf:RDF>

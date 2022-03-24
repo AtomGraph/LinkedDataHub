@@ -33,6 +33,40 @@ extension-element-prefixes="ixsl"
 exclude-result-prefixes="#all"
 >
 
+    <!-- EVENT HANDLERS -->
+
+    <xsl:template match="button[contains-token(@class, 'btn-add-data')]" mode="ixsl:onclick">
+        <xsl:call-template name="ldh:ShowAddDataForm">
+            <xsl:with-param name="graph" select="ldh:absolute-path(ldh:href())"/>
+        </xsl:call-template>
+    </xsl:template>
+    
+    <xsl:template match="button[contains-token(@class, 'btn-add-ontology')]" mode="ixsl:onclick">
+        <xsl:call-template name="ldh:ShowAddDataForm">
+            <xsl:with-param name="action" select="resolve-uri('transform', $ldt:base)"/>
+            <xsl:with-param name="graph" select="ldh:absolute-path(ldh:href())"/>
+            <xsl:with-param name="query" select="resolve-uri('queries/construct-constructors/#this', $ldt:base)"/>
+            <xsl:with-param name="legend-label" select="ac:label(key('resources', 'import-ontology', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri))))"/>
+        </xsl:call-template>
+    </xsl:template>
+
+    <!-- validate form before submitting it and show errors on control-groups where input values are missing -->
+    <xsl:template match="form[@id = 'form-add-data'] | form[@id = 'form-clone-data']" mode="ixsl:onsubmit" priority="1">
+        <xsl:variable name="control-groups" select="descendant::div[contains-token(@class, 'control-group')][input[@name = 'pu'][@value = ('&nfo;fileName', '&dct;source', '&sd;name')]]" as="element()*"/>
+        <xsl:choose>
+            <!-- values missing, throw an error -->
+            <xsl:when test="some $input in $control-groups/descendant::input[@name = ('ol', 'ou')] satisfies not(ixsl:get($input, 'value'))">
+                <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
+                <xsl:sequence select="$control-groups/ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'error', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+            </xsl:when>
+            <!-- all required values present, apply the default form onsubmit -->
+            <xsl:otherwise>
+                <xsl:sequence select="$control-groups/ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'error', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+                <xsl:next-match/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:template>
+
     <!-- CALLBACKS -->
     
     <!-- show "Add data"/"Save as" form -->
@@ -45,6 +79,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="source" as="xs:anyURI?"/>
         <xsl:param name="graph" as="xs:anyURI?"/>
         <xsl:param name="query" as="xs:anyURI?"/>
+        <xsl:param name="legend-label" select="ac:label(key('resources', 'add-rdf-data', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri))))" as="xs:string"/>
         
         <!-- don't append the div if it's already there -->
         <xsl:if test="not(id($id, ixsl:page()))">
@@ -60,9 +95,7 @@ exclude-result-prefixes="#all"
                             <button type="button" class="close">&#215;</button>
 
                             <legend>
-                                <xsl:value-of>
-                                    <xsl:apply-templates select="key('resources', 'add-rdf-data', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                                </xsl:value-of>
+                                <xsl:value-of select="$legend-label"/>
                             </legend>
                         </div>
 
@@ -182,35 +215,10 @@ exclude-result-prefixes="#all"
                                                         </span>
                                                     </div>
                                                 </div>
+                                                
                                                 <xsl:if test="$query">
-                                                    <div class="control-group required">
-                                                        <input type="hidden" name="pu" value="&spin;query"/>
-                                                        <label class="control-label" for="spin-query">
-                                                            <xsl:value-of>
-                                                                <xsl:apply-templates select="key('resources', 'query', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                                                            </xsl:value-of>
-                                                        </label>
-                                                        <div class="controls">
-                                                            <span>
-                                                                <input type="text" name="ou" id="spin-query" class="resource-typeahead typeahead"/>
-                                                                <ul class="resource-typeahead typeahead dropdown-menu" id="ul-spin-query" style="display: none;"></ul>
-                                                            </span>
-
-                                                            <input type="hidden" class="forClass" value="&sp;Construct" autocomplete="off"/>
-                                                            <a href="{ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ldh:absolute-path(ldh:href()), xs:anyURI('&ac;ModalMode'), xs:anyURI('&sp;Construct'))}" class="btn add-constructor" title="&sp;Construct" id="{generate-id()}-spin-query">
-                                                                <xsl:value-of>
-                                                                    <xsl:apply-templates select="key('resources', 'construct-query', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                                                                </xsl:value-of>
-
-                                                                <input type="hidden" class="forClass" value="&sp;Construct"/>
-                                                            </a>
-                                                            <span class="help-inline">
-                                                                <xsl:value-of>
-                                                                    <xsl:apply-templates select="key('resources', 'construct-query', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                                                                </xsl:value-of>
-                                                            </span>
-                                                        </div>
-                                                    </div>
+                                                    <input type="hidden" name="pu" value="&spin;query"/>
+                                                    <input type="hidden" name="ou" value="{$query}"/>
                                                 </xsl:if>
                                             </fieldset>
 
@@ -313,6 +321,11 @@ exclude-result-prefixes="#all"
                                                         </span>
                                                     </div>
                                                 </div>
+                                                
+                                                <xsl:if test="$query">
+                                                    <input type="hidden" name="pu" value="&spin;query"/>
+                                                    <input type="hidden" name="ou" value="{$query}"/>
+                                                </xsl:if>
                                             </fieldset>
 
                                             <div class="form-actions modal-footer">
