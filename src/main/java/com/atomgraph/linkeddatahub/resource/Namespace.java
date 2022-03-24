@@ -102,13 +102,17 @@ public class Namespace extends SPARQLEndpointImpl
     public Response.ResponseBuilder getResponseBuilder(Query query, List<URI> defaultGraphUris, List<URI> namedGraphUris)
     {
         // if query param is not provided and the app is end-user, return the namespace ontology associated with this document
-        if (query == null && getApplication().canAs(EndUserApplication.class))
+        if (query == null)
         {
-            String ontologyURI = getURI().toString() + "#"; // TO-DO: hard-coding "#" is not great. Replace with RDF property lookup.
-            if (log.isDebugEnabled()) log.debug("Returning namespace ontology from OntDocumentManager: {}", ontologyURI);
-            OntologyModelGetter modelGetter = new OntologyModelGetter(getApplication().as(EndUserApplication.class),
-                    getSystem().getOntModelSpec(), getSystem().getOntologyQuery(), getSystem().getClient(), getSystem().getMediaTypes());
-            return getResponseBuilder(modelGetter.getModel(ontologyURI));
+            if (getApplication().canAs(EndUserApplication.class))
+            {
+                String ontologyURI = getURI().toString() + "#"; // TO-DO: hard-coding "#" is not great. Replace with RDF property lookup.
+                if (log.isDebugEnabled()) log.debug("Returning namespace ontology from OntDocumentManager: {}", ontologyURI);
+                OntologyModelGetter modelGetter = new OntologyModelGetter(getApplication().as(EndUserApplication.class),
+                        getSystem().getOntModelSpec(), getSystem().getOntologyQuery(), getSystem().getClient(), getSystem().getMediaTypes());
+                return getResponseBuilder(modelGetter.getModel(ontologyURI));
+            }
+            else throw new BadRequestException("SPARQL query string not provided");
         }
 
        

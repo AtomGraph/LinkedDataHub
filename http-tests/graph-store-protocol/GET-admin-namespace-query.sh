@@ -33,4 +33,4 @@ curl -k -w "%{http_code}\n" -o /dev/null -f -s \
   -H 'Accept: application/sparql-results+xml' \
   --data-urlencode "query=SELECT * { ?s ?p ?o } LIMIT 1" \
   "${ADMIN_BASE_URL}ns" \
-| grep -q "$STATUS_FORBIDDEN"
+| grep -q "$STATUS_OK"

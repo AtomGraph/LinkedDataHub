@@ -61,9 +61,11 @@
 PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX  owl:  <http://www.w3.org/2002/07/owl#>
 PREFIX  sp:   <http://spinrdf.org/sp#>
+PREFIX  spin: <http://spinrdf.org/spin#>
 
 CONSTRUCT 
-  { 
+  {
+    ?class spin:constructor ?constructor .
     ?constructor a sp:Construct .
     ?constructor rdfs:label ?constructorLabel .
     ?constructor sp:text ?constructorString .
@@ -77,11 +79,7 @@ WHERE
           { ?class (rdfs:subClassOf)* ?domainClass .
             ?prop  rdfs:domain  ?domainClass
           }
-            { FILTER NOT EXISTS { ?prop  rdfs:range  ?range }
-              BIND(rdfs:Resource AS ?range)
-            }
-          UNION
-            { ?prop  rdfs:range  ?range }
+          { ?prop  rdfs:range  ?range }
           BIND(concat("?this <", str(?prop), "> [ a <", str(?range), "> ]") AS ?propConstructor)
         }
       GROUP BY ?class
