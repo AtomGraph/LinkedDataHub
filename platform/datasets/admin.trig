@@ -76,10 +76,14 @@ WHERE
         {   { ?class  a  owl:Class }
           UNION
             { ?class  a  rdfs:Class }
-          { ?class (rdfs:subClassOf)* ?domainClass .
-            ?prop  rdfs:domain  ?domainClass
+          { SELECT DISTINCT  ?class ?prop ?range
+            WHERE
+              { { ?class (rdfs:subClassOf)* ?domainClass .
+                  ?prop  rdfs:domain  ?domainClass
+                }
+                { ?prop  rdfs:range  ?range }
+              }
           }
-          { ?prop  rdfs:range  ?range }
           BIND(concat("?this <", str(?prop), "> [ a <", str(?range), "> ]") AS ?propConstructor)
         }
       GROUP BY ?class
