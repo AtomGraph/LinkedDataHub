@@ -9,10 +9,9 @@ purge_backend_cache "$ADMIN_VARNISH_SERVICE"
 pushd . > /dev/null && cd "$SCRIPT_ROOT/admin"
 
 ontology_doc="${ADMIN_BASE_URL}model/ontologies/namespace/"
+import_uri="http://www.w3.org/ns/auth/acl"
 
 # add ontology import
-
-import_uri="http://www.w3.org/ns/auth/acl"
 
 ./add-ontology-import.sh \
   -f "$OWNER_CERT_FILE" \

@@ -22,9 +22,12 @@ import com.atomgraph.linkeddatahub.vocabulary.LAPP;
 import com.atomgraph.processor.exception.OntologyException;
 import com.atomgraph.linkeddatahub.server.util.OntologyModelGetter;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Optional;
 import javax.annotation.Priority;
 import javax.inject.Inject;
+import javax.ws.rs.InternalServerErrorException;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.container.PreMatching;
@@ -125,9 +128,20 @@ public class OntologyFilter implements ContainerRequestFilter
             FileManager fileManager = ontModelSpec.getDocumentManager().getFileManager();
             if (!fileManager.hasCachedModel(uri))
             {
-                Model baseModel = fileManager.loadModel(uri, app.getBase().getURI(), null);
-                OntModel ontModel = ModelFactory.createOntologyModel(ontModelSpec, baseModel);
-                ontModel.getDocumentManager().addModel(uri, ontModel, true);
+                try
+                {
+                    URI ontologyURI = URI.create(uri);
+                    // remove fragment and normalize
+                    URI ontDocURI = new URI(ontologyURI.getScheme(), ontologyURI.getSchemeSpecificPart(), null).normalize();
+                    Model baseModel = fileManager.loadModel(uri, ontDocURI.toString(), null);
+                    OntModel ontModel = ModelFactory.createOntologyModel(ontModelSpec, baseModel);
+                    ontModel.getDocumentManager().addModel(uri, ontModel, true);
+                }
+                catch (URISyntaxException ex)
+                {
+                    if (log.isErrorEnabled()) log.error("Ontology URI syntax error: {}", ex.getInput());
+                    throw new InternalServerErrorException(ex);
+                }
             }
         }
         return ontModelSpec.getDocumentManager().getOntology(uri, ontModelSpec).getOntology(uri); // reloads the imports using ModelGetter. TO-DO: optimize?
