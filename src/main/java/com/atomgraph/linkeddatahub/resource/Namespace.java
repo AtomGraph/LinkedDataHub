@@ -61,7 +61,7 @@ public class Namespace extends SPARQLEndpointImpl
     private static final Logger log = LoggerFactory.getLogger(Namespace.class);
 
     private final URI uri;
-    private final EndUserApplication application;
+    private final Application application;
     private final Ontology ontology;
     private final SecurityContext securityContext;
     private final com.atomgraph.linkeddatahub.Application system;
@@ -103,12 +103,13 @@ public class Namespace extends SPARQLEndpointImpl
     @Override
     public Response.ResponseBuilder getResponseBuilder(Query query, List<URI> defaultGraphUris, List<URI> namedGraphUris)
     {
-        // if query param is not provided, return the namespace ontology associated with this document
-        if (query == null)
+        // if query param is not provided and the app is end-user, return the namespace ontology associated with this document
+        if (query == null && getApplication().canAs(EndUserApplication.class))
         {
             String ontologyURI = getURI().toString() + "#"; // TO-DO: hard-coding "#" is not great. Replace with RDF property lookup.
             if (log.isDebugEnabled()) log.debug("Returning namespace ontology from OntDocumentManager: {}", ontologyURI);
-            OntologyModelGetter modelGetter = new OntologyModelGetter(getApplication(), getSystem().getOntModelSpec(), getSystem().getOntologyQuery(), getSystem().getClient(), getSystem().getMediaTypes());
+            OntologyModelGetter modelGetter = new OntologyModelGetter(getApplication().as(EndUserApplication.class),
+                    getSystem().getOntModelSpec(), getSystem().getOntologyQuery(), getSystem().getClient(), getSystem().getMediaTypes());
             return getResponseBuilder(modelGetter.getModel(ontologyURI));
         }
 
@@ -156,11 +157,11 @@ public class Namespace extends SPARQLEndpointImpl
     }
     
     /**
-     * Returns the current end-user application.
+     * Returns the current application.
      * 
-     * @return end-user application resource
+     * @return application resource
      */
-    public EndUserApplication getApplication()
+    public Application getApplication()
     {
         return application;
     }
