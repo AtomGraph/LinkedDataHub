@@ -41,6 +41,6 @@ curl -k -f -s \
   -G \
   -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
   -H 'Accept: application/sparql-results+xml' \
-  --data-urlencode "query=select * { <${import_uri}> ?p ?o }" \
+  --data-urlencode "query=SELECT * { <${import_uri}> ?p ?o }" \
   "${END_USER_BASE_URL}ns" \
 | grep '<literal>Basic Access Control ontology</literal>' > /dev/null

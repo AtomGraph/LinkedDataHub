@@ -80,7 +80,7 @@ exclude-result-prefixes="#all">
     
     <xsl:template match="rdf:RDF[$acl:mode = '&acl;Append']" mode="bs2:AddData" priority="1">
         <div class="btn-group pull-left">
-            <button type="button" title="{ac:label(key('resources', 'add', document('../translations.rdf')))}">
+            <button type="button" class="btn btn-primary dropdown-toggle create-action" title="{ac:label(key('resources', 'add', document('../translations.rdf')))}">
                 <xsl:value-of>
                     <xsl:apply-templates select="key('resources', 'add', document('../translations.rdf'))" mode="ac:label"/>
                 </xsl:value-of>
@@ -90,14 +90,14 @@ exclude-result-prefixes="#all">
             
             <ul class="dropdown-menu">
                 <li>
-                    <button type="button" title="{ac:label(key('resources', 'add-data-title', document('../translations.rdf')))}" class="btn btn-primary btn-add-data">
+                    <button type="button" title="{ac:label(key('resources', 'add-data-title', document('../translations.rdf')))}" class="btn btn-add-data">
                         <xsl:value-of>
                             <xsl:apply-templates select="key('resources', 'add-data', document('../translations.rdf'))" mode="ac:label"/>
                         </xsl:value-of>
                     </button>
                 </li>
                 <li>
-                    <button type="button" title="{ac:label(key('resources', 'import-ontology-title', document('../translations.rdf')))}" class="btn btn-primary btn-add-ontology">
+                    <button type="button" title="{ac:label(key('resources', 'import-ontology-title', document('../translations.rdf')))}" class="btn btn-add-ontology">
                         <xsl:value-of>
                             <xsl:apply-templates select="key('resources', 'import-ontology', document('../translations.rdf'))" mode="ac:label"/>
                         </xsl:value-of>
