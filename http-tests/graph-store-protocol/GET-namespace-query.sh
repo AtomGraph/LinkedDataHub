@@ -8,12 +8,6 @@ purge_backend_cache "$ADMIN_VARNISH_SERVICE"
 
 # owner access
 
-curl --head -k -w "%{http_code}\n" -o /dev/null -f -s \
-  -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
-  -H "Accept: text/turtle" \
-  "${END_USER_BASE_URL}ns" \
-| grep -q "$STATUS_OK"
-
 curl -k -w "%{http_code}\n" -o /dev/null -f -s \
   -G \
   -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
