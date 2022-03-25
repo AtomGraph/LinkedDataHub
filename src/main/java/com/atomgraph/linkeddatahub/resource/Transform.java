@@ -18,6 +18,7 @@ package com.atomgraph.linkeddatahub.resource;
 
 import com.atomgraph.client.util.DataManager;
 import com.atomgraph.core.MediaTypes;
+import com.atomgraph.core.client.LinkedDataClient;
 import com.atomgraph.core.vocabulary.SD;
 import com.atomgraph.linkeddatahub.imports.QueryLoader;
 import com.atomgraph.linkeddatahub.model.Service;
@@ -92,6 +93,45 @@ public class Transform extends Add
     {
         super(request, uriInfo, mediaTypes, application, ontology, service, providers, system, securityContext, agentContext);
         this.dataManager = dataManager;
+    }
+    
+    @POST
+    @Override
+    public Response post(Model model, @QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
+    {
+        ResIterator it = model.listSubjectsWithProperty(DCTerms.source);
+        try
+        {
+            if (!it.hasNext()) throw new BadRequestException("Argument resource not provided");
+            
+            Resource arg = it.next();
+            Resource source = arg.getPropertyResourceValue(DCTerms.source);
+            if (source == null) throw new BadRequestException("RDF source URI (dct:source) not provided");
+            
+            Resource graph = arg.getPropertyResourceValue(SD.name);
+            if (graph == null || !graph.isURIResource()) throw new BadRequestException("Graph URI (sd:name) not provided");
+
+            Resource queryRes = arg.getPropertyResourceValue(SPIN.query);
+            if (queryRes == null) throw new BadRequestException("Transformation query string (spin:query) not provided");
+            QueryLoader queryLoader = new QueryLoader(queryRes.getURI(), getApplication().getBase().getURI(), Syntax.syntaxARQ, getDataManager());
+
+            Query query = queryLoader.get();
+            if (!query.isConstructType()) throw new BadRequestException("Transformation query is not of CONSTRUCT type");
+
+            LinkedDataClient ldc = LinkedDataClient.create(getSystem().getClient().target(source.getURI()), getMediaTypes());
+            Model importModel = ldc.get();
+            try (QueryExecution qex = QueryExecution.create(query, importModel))
+            {
+                Model transformModel = qex.execConstruct();
+                importModel.add(transformModel); // append transform results
+                // forward the stream to the named graph document -- do not directly append triples to graph because the agent might not have access to it
+                return forwardPost(Entity.entity(importModel, com.atomgraph.core.MediaType.APPLICATION_NTRIPLES_TYPE), graph.getURI());
+            }
+        }
+        finally
+        {
+            it.close();
+        }
     }
     
     /**

@@ -126,23 +126,14 @@ public class Add extends GraphStoreImpl // TO-DO: does not need to extend GraphS
             if (graph == null || !graph.isURIResource()) throw new BadRequestException("Graph URI (sd:name) not provided");
 
             LinkedDataClient ldc = LinkedDataClient.create(getSystem().getClient().target(source.getURI()), getMediaTypes());
-            
-            return super.post(ldc.get(), false, URI.create(graph.getURI()));
+            Model importModel = ldc.get();
+            // forward the stream to the named graph document -- do not directly append triples to graph because the agent might not have access to it
+            return forwardPost(Entity.entity(importModel, com.atomgraph.client.MediaType.APPLICATION_NTRIPLES_TYPE), graph.getURI());
         }
         finally
         {
             it.close();
         }
-    }
-    
-    /**
-     * Returns URI of this resource.
-     * 
-     * @return URI
-     */
-    public URI getURI()
-    {
-        return getUriInfo().getAbsolutePath();
     }
     
     /**
@@ -211,7 +202,7 @@ public class Add extends GraphStoreImpl // TO-DO: does not need to extend GraphS
 
             try (InputStream is = bodyPart.getValueAs(InputStream.class))
             {
-                // forward the stream to the named graph document
+                // forward the stream to the named graph document -- do not directly append triples to graph because the agent might not have access to it
                 return forwardPost(Entity.entity(getStreamingOutput(is), mediaType), graph.getURI());
             
             }
@@ -255,7 +246,17 @@ public class Add extends GraphStoreImpl // TO-DO: does not need to extend GraphS
             is.transferTo(os);
         };
     }
-
+    
+    /**
+     * Returns URI of this resource.
+     * 
+     * @return URI
+     */
+    public URI getURI()
+    {
+        return getUriInfo().getAbsolutePath();
+    }
+    
     /**
      * Get JAX-RS security context
      * @return security context object
