@@ -101,6 +101,7 @@ WHERE
     }
     OPTIONAL
       { ?class  rdfs:label  ?classLabel
+        FILTER (langMatches(?classLabel, 'en'))
         BIND(concat(?classLabel, " constructor") AS ?constructorLabel)
       }
     BIND(bnode() AS ?constructor)
