@@ -31,6 +31,7 @@ ul.dropdown-menu ul { margin: 0; }
 button.btn.create-action { height: 30px; }
 a.btn.create-action { height: 20px; }
 .btn-group.open .btn.dropdown-toggle.create-action { background-image: url('../icons/ic_note_add_black_24px.svg'); }
+button.btn-add-data, button.btn-add-ontology { text-align: left; width: 100%; background-color: inherit; }
 .btn-container { background-image: url('../icons/folder.svg'); }
 .btn-item { background-image: url('../icons/file.svg'); }
 .btn-app { background-image: url('../icons/apps_black_24dp.svg'); }
