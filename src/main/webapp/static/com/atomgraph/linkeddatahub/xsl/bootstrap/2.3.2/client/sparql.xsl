@@ -42,7 +42,6 @@ LIMIT 100</xsl:param>
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'btn-run-query')"/>
-        <xsl:sequence select="ac:label(.)"/>
     </xsl:template>
 
     <xsl:template name="bs2:QueryEditor" >

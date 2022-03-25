@@ -59,6 +59,7 @@
         rdfs:comment "Infers class constructors from the ontology properties" ;
         sp:text """
 PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX  rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX  owl:  <http://www.w3.org/2002/07/owl#>
 PREFIX  sp:   <http://spinrdf.org/sp#>
 PREFIX  spin: <http://spinrdf.org/spin#>
@@ -78,7 +79,18 @@ WHERE
               {   { ?class  a  owl:Class }
                 UNION
                   { ?class  a  rdfs:Class }
-                { ?prop  rdfs:domain  ?class }
+                {   { ?prop  rdfs:domain  ?class }
+                  UNION
+                    {   { ?prop  a  rdf:Property }
+                      UNION
+                        { ?prop  a  owl:ObjectProperty }
+                      UNION
+                        { ?prop  a  owl:DatatypeProperty }
+                      FILTER NOT EXISTS { ?prop  rdfs:domain  ?domain }
+                    }
+                  UNION
+                    { ?prop  rdfs:domain  owl:Thing }
+                }
                 { ?prop  rdfs:range  ?range }
               }
             ORDER BY ?class ?prop ?range
