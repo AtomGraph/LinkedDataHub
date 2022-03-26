@@ -119,7 +119,21 @@ public class OntologyFilter implements ContainerRequestFilter
                 ontModelSpec.setImportModelGetter(modelGetter);
                 Model baseModel = modelGetter.getModel(uri);
                 OntModel ontModel = ModelFactory.createOntologyModel(ontModelSpec, baseModel);
-                ontModel.getDocumentManager().addModel(uri, ontModel, true);
+                ontModel.getDocumentManager().addModel(uri, ontModel, true); // add as OntModel so that imports do not need to be reloaded during retrieval
+                // make sure to cache imported models not only by ontology URI but also by document URI
+                ontModel.listImportedOntologyURIs(true).forEach((String importURI) -> {
+                    try
+                    {
+                        URI ontologyURI = URI.create(importURI);
+                        // remove fragment and normalize
+                        URI docURI = new URI(ontologyURI.getScheme(), ontologyURI.getSchemeSpecificPart(), null).normalize();
+                        if (!docURI.equals(ontologyURI)) ontModel.getDocumentManager().addModel(docURI.toString(), ontModel.getDocumentManager().getModel(docURI.toString()), true);
+                    }
+                    catch (URISyntaxException ex)
+                    {
+                        throw new RuntimeException(ex);
+                    }
+                });
             }
         }
         else
