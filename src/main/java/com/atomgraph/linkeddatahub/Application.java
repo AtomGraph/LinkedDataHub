@@ -109,6 +109,7 @@ import com.atomgraph.linkeddatahub.server.mapper.auth.oauth2.TokenExpiredExcepti
 import com.atomgraph.linkeddatahub.server.model.impl.Dispatcher;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.server.util.MessageBuilder;
+import com.atomgraph.linkeddatahub.server.util.OntologyImportHook;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
 import com.atomgraph.linkeddatahub.vocabulary.FOAF;
 import com.atomgraph.linkeddatahub.vocabulary.LDH;
@@ -1426,6 +1427,7 @@ public class Application extends ResourceConfig
             appOntModelSpec.setDocumentManager(new OntDocumentManager());
             appOntModelSpec.getDocumentManager().setFileManager(
                     new DataManagerImpl(LocationMapper.get(), new HashMap<>(), getClient(), getMediaTypes(), true, isPreemptiveAuth(), isResolvingUncached()));
+            appOntModelSpec.getDocumentManager().setReadHook(new OntologyImportHook());
             
             getEndUserOntModelSpecs().put(appURI, appOntModelSpec);
         }
