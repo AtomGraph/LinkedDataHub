@@ -129,7 +129,7 @@ public class OntologyFilter implements ContainerRequestFilter
                         URI docURI = new URI(ontologyURI.getScheme(), ontologyURI.getSchemeSpecificPart(), null).normalize();
                         String mappedURI = ontModelSpec.getDocumentManager().getFileManager().mapURI(docURI.toString());
                          // only cache import document URI if it's not already cached or mapped
-                        if (!ontModelSpec.getDocumentManager().getFileManager().hasCachedModel(docURI.toString()) && !mappedURI.equals(docURI.toString()))
+                        if (!ontModelSpec.getDocumentManager().getFileManager().hasCachedModel(docURI.toString()) && mappedURI.equals(docURI.toString()))
                         {
                             Model importModel = ontModel.getDocumentManager().getModel(importURI);
                             if (importModel == null) throw new IllegalArgumentException("Import model is not cached");
