@@ -110,7 +110,7 @@ public class OntologyFilter implements ContainerRequestFilter
         final OntModelSpec ontModelSpec;
         if (app.canAs(EndUserApplication.class))
         {
-            ontModelSpec = new OntModelSpec(getSystem().getEndUserOntModelSpec(app.getURI()));
+            ontModelSpec = new OntModelSpec(getSystem().getOntModelSpec(app.as(EndUserApplication.class)));
             // only create InfModel if ontology is not already cached
             if (!ontModelSpec.getDocumentManager().getFileManager().hasCachedModel(uri))
             {
@@ -127,7 +127,10 @@ public class OntologyFilter implements ContainerRequestFilter
                         URI ontologyURI = URI.create(importURI);
                         // remove fragment and normalize
                         URI docURI = new URI(ontologyURI.getScheme(), ontologyURI.getSchemeSpecificPart(), null).normalize();
-                        if (!docURI.equals(ontologyURI)) ontModel.getDocumentManager().addModel(docURI.toString(), ontModel.getDocumentManager().getModel(docURI.toString()), true);
+                        String mappedURI = ontModelSpec.getDocumentManager().getFileManager().mapURI(docURI.toString());
+                         // only cache import document URI if it's not already cached or mapped
+                        if (!ontModelSpec.getDocumentManager().getFileManager().hasCachedModel(docURI.toString()) && !mappedURI.equals(docURI.toString()))
+                            ontModel.getDocumentManager().addModel(docURI.toString(), ontModel.getDocumentManager().getModel(docURI.toString()), true);
                     }
                     catch (URISyntaxException ex)
                     {

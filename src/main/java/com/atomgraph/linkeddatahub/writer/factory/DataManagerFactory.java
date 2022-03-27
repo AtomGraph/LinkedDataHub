@@ -22,6 +22,7 @@ import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.ext.Provider;
 import com.atomgraph.client.util.DataManager;
 import com.atomgraph.linkeddatahub.apps.model.Application;
+import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.vocabulary.LAPP;
 import com.atomgraph.linkeddatahub.writer.impl.DataManagerImpl;
 import java.net.URI;
@@ -76,15 +77,20 @@ public class DataManagerFactory implements Factory<DataManager>
      */
     public DataManager getDataManager(Application app)
     {
-        com.atomgraph.core.util.jena.DataManager appDataManager = (com.atomgraph.core.util.jena.DataManager)getSystem().getEndUserOntModelSpec(app.getURI()).
-                getDocumentManager().getFileManager();
-        
-        // copy cached models over from the app's FileManager
-        return new DataManagerImpl(LocationMapper.get(), new HashMap<>(appDataManager.getModelCache()),
-            getSystem().getClient(), getSystem().getMediaTypes(),
-            true, getSystem().isPreemptiveAuth(), getSystem().isResolvingUncached(),
-            URI.create(getHttpServletRequest().getRequestURL().toString()).resolve(getHttpServletRequest().getContextPath() + "/"),
-                getSecurityContext());
+        if (app.canAs(EndUserApplication.class))
+        {
+            com.atomgraph.core.util.jena.DataManager appDataManager = (com.atomgraph.core.util.jena.DataManager)getSystem().getOntModelSpec(app.as(EndUserApplication.class)).
+                    getDocumentManager().getFileManager();
+
+            // copy cached models over from the app's FileManager
+            return new DataManagerImpl(LocationMapper.get(), new HashMap<>(appDataManager.getModelCache()),
+                getSystem().getClient(), getSystem().getMediaTypes(),
+                true, getSystem().isPreemptiveAuth(), getSystem().isResolvingUncached(),
+                URI.create(getHttpServletRequest().getRequestURL().toString()).resolve(getHttpServletRequest().getContextPath() + "/"),
+                    getSecurityContext());
+        }
+        else
+            return getSystem().getDataManager();
     }
     
     /**

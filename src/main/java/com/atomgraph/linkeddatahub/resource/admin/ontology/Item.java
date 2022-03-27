@@ -104,7 +104,7 @@ public class Item extends com.atomgraph.linkeddatahub.resource.graph.Item
             
             String ontologyURI = topic.getURI();
             EndUserApplication app = getApplication().as(AdminApplication.class).getEndUserApplication(); // we're assuming the current app is admin
-            OntModelSpec ontModelSpec = new OntModelSpec(getSystem().getEndUserOntModelSpec(app.getURI()));
+            OntModelSpec ontModelSpec = new OntModelSpec(getSystem().getOntModelSpec(app));
             if (ontModelSpec.getDocumentManager().getFileManager().hasCachedModel(ontologyURI))
             {
                 ontModelSpec.getDocumentManager().getFileManager().removeCacheModel(ontologyURI);

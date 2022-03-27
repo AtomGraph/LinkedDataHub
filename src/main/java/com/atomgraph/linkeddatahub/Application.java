@@ -109,7 +109,6 @@ import com.atomgraph.linkeddatahub.server.mapper.auth.oauth2.TokenExpiredExcepti
 import com.atomgraph.linkeddatahub.server.model.impl.Dispatcher;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.server.util.MessageBuilder;
-import com.atomgraph.linkeddatahub.server.util.OntologyImportHook;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
 import com.atomgraph.linkeddatahub.vocabulary.FOAF;
 import com.atomgraph.linkeddatahub.vocabulary.LDH;
@@ -1414,25 +1413,24 @@ public class Application extends ResourceConfig
     }
 
     /**
-     * Returns ontology specification for the specified application URI.
+     * Returns ontology specification for the specified end-user application.
      * 
-     * @param appURI app URI
+     * @param app end-user application resource
      * @return ontology specification 
      */
-    public OntModelSpec getEndUserOntModelSpec(String appURI)
+    public OntModelSpec getOntModelSpec(EndUserApplication app)
     {
-        if (!getEndUserOntModelSpecs().containsKey(appURI))
+        if (!getEndUserOntModelSpecs().containsKey(app.getURI()))
         {
             OntModelSpec appOntModelSpec = new OntModelSpec(OntModelSpec.OWL_MEM_RDFS_INF);
             appOntModelSpec.setDocumentManager(new OntDocumentManager());
             appOntModelSpec.getDocumentManager().setFileManager(
                     new DataManagerImpl(LocationMapper.get(), new HashMap<>(), getClient(), getMediaTypes(), true, isPreemptiveAuth(), isResolvingUncached()));
-            appOntModelSpec.getDocumentManager().setReadHook(new OntologyImportHook());
             
-            getEndUserOntModelSpecs().put(appURI, appOntModelSpec);
+            getEndUserOntModelSpecs().put(app.getURI(), appOntModelSpec);
         }
         
-        return getEndUserOntModelSpecs().get(appURI);
+        return getEndUserOntModelSpecs().get(app.getURI());
     }
     
     /**
