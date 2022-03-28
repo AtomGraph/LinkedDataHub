@@ -18,6 +18,7 @@ package com.atomgraph.linkeddatahub.resource;
 
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.core.client.LinkedDataClient;
+import com.atomgraph.core.exception.BadGatewayException;
 import com.atomgraph.core.vocabulary.SD;
 import com.atomgraph.linkeddatahub.client.filter.auth.IDTokenDelegationFilter;
 import com.atomgraph.linkeddatahub.client.filter.auth.WebIDDelegationFilter;
@@ -128,9 +129,7 @@ public class Add extends GraphStoreImpl // TO-DO: does not need to extend GraphS
             LinkedDataClient ldc = LinkedDataClient.create(getSystem().getClient().target(source.getURI()), getMediaTypes());
             Model importModel = ldc.get();
             // forward the stream to the named graph document -- do not directly append triples to graph because the agent might not have access to it
-            Response response = forwardPost(Entity.entity(importModel, com.atomgraph.client.MediaType.APPLICATION_NTRIPLES_TYPE), graph.getURI());
-            response.bufferEntity();
-            return response;
+            return forwardPost(Entity.entity(importModel, com.atomgraph.client.MediaType.APPLICATION_NTRIPLES_TYPE), graph.getURI());
         }
         finally
         {
@@ -205,9 +204,7 @@ public class Add extends GraphStoreImpl // TO-DO: does not need to extend GraphS
             try (InputStream is = bodyPart.getValueAs(InputStream.class))
             {
                 // forward the stream to the named graph document -- do not directly append triples to graph because the agent might not have access to it
-                Response response = forwardPost(Entity.entity(getStreamingOutput(is), mediaType), graph.getURI());
-                response.bufferEntity();
-                return response;
+                return forwardPost(Entity.entity(getStreamingOutput(is), mediaType), graph.getURI());
             
             }
             catch (IOException ex)
@@ -235,8 +232,19 @@ public class Add extends GraphStoreImpl // TO-DO: does not need to extend GraphS
         }
 
         // forward the stream to the named graph document
-        return webTarget.request(getSystem().getMediaTypes().getReadable(Model.class).toArray(MediaType[]::new)).
-            post(entity);
+        try (Response response = webTarget.request(getSystem().getMediaTypes().getReadable(Model.class).toArray(MediaType[]::new)).post(entity))
+        {
+            InputStream is = response.readEntity(InputStream.class);
+            return Response.status(response.getStatus()).
+                replaceAll(response.getHeaders()).
+                entity(is.readAllBytes()).
+                build();
+        }
+        catch (IOException ex)
+        {
+            if (log.isDebugEnabled()) log.debug("Error reading client response: {}", ex);
+            throw new BadGatewayException(ex);
+        }
     }
     
     /**
