@@ -289,7 +289,7 @@ exclude-result-prefixes="#all"
                     <!-- hide progress bar -->
                     <ixsl:set-style name="display" select="'none'" object="$container//div[@class = 'progress-bar']"/>
 
-                    <xsl:variable name="row-block" as="element()?">
+                    <xsl:variable name="row-block" as="element()*">
                         <xsl:apply-templates select="." mode="bs2:RowBlock"/>
                     </xsl:variable>
 
