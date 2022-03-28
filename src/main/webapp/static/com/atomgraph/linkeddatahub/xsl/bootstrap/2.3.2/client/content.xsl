@@ -295,7 +295,7 @@ exclude-result-prefixes="#all"
 
                     <xsl:for-each select="$container">
                         <xsl:result-document href="?." method="ixsl:replace-content">
-                            <xsl:copy-of select="$row-block/*"/>
+                            <xsl:copy-of select="$row-block"/>
                         </xsl:result-document>
                     </xsl:for-each>
                 </xsl:for-each>
