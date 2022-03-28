@@ -451,7 +451,18 @@ extension-element-prefixes="ixsl"
         <xsl:param name="id" select="generate-id()" as="xs:string?"/>
         <xsl:param name="content-uri" as="xs:anyURI?"/>
         <xsl:param name="class" select="'row-fluid'" as="xs:string?"/>
-        <xsl:param name="constraint-query" as="xs:string?" tunnel="yes"/>
+
+        <xsl:apply-templates select="." mode="bs2:RowBlockContent">
+            <xsl:with-param name="id" select="$id"/>
+            <xsl:with-param name="content-uri" select="$content-uri"/>
+            <xsl:with-param name="class" select="$class"/>
+        </xsl:apply-templates>
+    </xsl:template>
+
+    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:RowBlockContent">
+        <xsl:param name="id" select="generate-id()" as="xs:string?"/>
+        <xsl:param name="content-uri" as="xs:anyURI?"/>
+        <xsl:param name="class" select="'row-fluid'" as="xs:string?"/>
 
         <div>
             <xsl:if test="$id">
@@ -482,7 +493,7 @@ extension-element-prefixes="ixsl"
             </xsl:if>
         </xsl:for-each>
     </xsl:template>
-    
+
     <!-- TO-DO: override other modes -->
     
     <!-- HEADER -->

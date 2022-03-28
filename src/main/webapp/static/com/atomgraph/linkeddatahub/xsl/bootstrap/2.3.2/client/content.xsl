@@ -176,7 +176,7 @@ exclude-result-prefixes="#all"
         <ixsl:set-style name="display" select="'none'" object="$container//div[@class = 'progress-bar']"/>
         
         <xsl:variable name="row-block" as="element()?">
-            <xsl:apply-templates select="." mode="bs2:RowBlock"/>
+            <xsl:apply-templates select="." mode="bs2:RowBlockContent"/>
         </xsl:variable>
 
         <xsl:for-each select="$container">
@@ -290,7 +290,7 @@ exclude-result-prefixes="#all"
                     <ixsl:set-style name="display" select="'none'" object="$container//div[@class = 'progress-bar']"/>
 
                     <xsl:variable name="row-block" as="element()*">
-                        <xsl:apply-templates select="." mode="bs2:RowBlock"/>
+                        <xsl:apply-templates select="." mode="bs2:RowBlockContent"/>
                     </xsl:variable>
 
                     <xsl:for-each select="$container">
