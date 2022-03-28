@@ -45,7 +45,6 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
@@ -129,7 +128,10 @@ public class Add extends GraphStoreImpl // TO-DO: does not need to extend GraphS
             LinkedDataClient ldc = LinkedDataClient.create(getSystem().getClient().target(source.getURI()), getMediaTypes());
             Model importModel = ldc.get();
             // forward the stream to the named graph document -- do not directly append triples to graph because the agent might not have access to it
-            return forwardPost(Entity.entity(importModel, com.atomgraph.client.MediaType.APPLICATION_NTRIPLES_TYPE), graph.getURI());
+            try (Response response = forwardPost(Entity.entity(importModel, com.atomgraph.client.MediaType.APPLICATION_NTRIPLES_TYPE), graph.getURI()))
+            {
+                return response;
+            }
         }
         finally
         {
@@ -201,10 +203,10 @@ public class Add extends GraphStoreImpl // TO-DO: does not need to extend GraphS
             MediaType mediaType = com.atomgraph.linkeddatahub.MediaType.valueOf(file.getPropertyResourceValue(DCTerms.format));
             bodyPart.setMediaType(mediaType);
 
-            try (InputStream is = bodyPart.getValueAs(InputStream.class))
+            try (InputStream is = bodyPart.getValueAs(InputStream.class); Response response = forwardPost(Entity.entity(getStreamingOutput(is), mediaType), graph.getURI()))
             {
                 // forward the stream to the named graph document -- do not directly append triples to graph because the agent might not have access to it
-                return forwardPost(Entity.entity(getStreamingOutput(is), mediaType), graph.getURI());
+                return response;
             
             }
             catch (IOException ex)
@@ -232,10 +234,8 @@ public class Add extends GraphStoreImpl // TO-DO: does not need to extend GraphS
         }
 
         // forward the stream to the named graph document
-        Response response = webTarget.request(getSystem().getMediaTypes().getReadable(Model.class).toArray(MediaType[]::new)).
+        return webTarget.request(getSystem().getMediaTypes().getReadable(Model.class).toArray(MediaType[]::new)).
             post(entity);
-        if (!response.hasEntity()) response.getHeaders().remove(HttpHeaders.CONTENT_TYPE); // Jersey sends Content-Type despite Content-Length: 0, which Saxon-JS chokes on
-        return response;
     }
     
     /**
