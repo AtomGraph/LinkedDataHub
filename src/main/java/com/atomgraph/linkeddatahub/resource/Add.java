@@ -18,7 +18,6 @@ package com.atomgraph.linkeddatahub.resource;
 
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.core.client.LinkedDataClient;
-import com.atomgraph.core.exception.BadGatewayException;
 import com.atomgraph.core.vocabulary.SD;
 import com.atomgraph.linkeddatahub.client.filter.auth.IDTokenDelegationFilter;
 import com.atomgraph.linkeddatahub.client.filter.auth.WebIDDelegationFilter;
@@ -231,19 +230,13 @@ public class Add extends GraphStoreImpl // TO-DO: does not need to extend GraphS
                 webTarget.register(new IDTokenDelegationFilter(((IDTokenSecurityContext)getAgentContext().get()).getJWTToken(), getUriInfo().getBaseUri().getPath(), null));
         }
 
-        // forward the stream to the named graph document
+        // forward the stream to the named graph document. Buffer the entity first so that the server response is not returned before the client response completes
         try (Response response = webTarget.request(getSystem().getMediaTypes().getReadable(Model.class).toArray(MediaType[]::new)).post(entity))
         {
-            InputStream is = response.readEntity(InputStream.class);
             return Response.status(response.getStatus()).
-                replaceAll(response.getHeaders()).
-                entity(is.readAllBytes()).
+                //replaceAll(response.getHeaders()).
+                entity(response.readEntity(Model.class)).
                 build();
-        }
-        catch (IOException ex)
-        {
-            if (log.isDebugEnabled()) log.debug("Error reading client response: {}", ex);
-            throw new BadGatewayException(ex);
         }
     }
     
