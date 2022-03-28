@@ -38,6 +38,7 @@ exclude-result-prefixes="#all"
     <!-- TEMPLATES -->
     
     <!-- SELECT query -->
+    
     <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&sp;Select'][sp:text]" mode="ldh:Content" priority="1">
         <xsl:param name="uri" as="xs:anyURI"/>
         <xsl:param name="container" as="element()"/>
@@ -115,6 +116,59 @@ exclude-result-prefixes="#all"
         </xsl:choose>
     </xsl:template>
 
+    <!-- DESCRIBE/CONSTRUCT queries -->
+    
+    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = ('&sp;Describe', '&sp;Construct')][sp:text]" mode="ldh:Content" priority="1">
+        <xsl:param name="uri" as="xs:anyURI"/>
+        <xsl:param name="container" as="element()"/>
+        <!-- replace dots with dashes to avoid Saxon-JS treating them as field separators: https://saxonica.plan.io/issues/5031 -->
+        <xsl:param name="content-uri" select="xs:anyURI(translate(@rdf:about, '.', '-'))" as="xs:anyURI"/>
+        <!-- set $this variable value unless getting the query string from state -->
+        <xsl:variable name="query-string" select="replace(sp:text, '\$this', concat('&lt;', $uri, '&gt;'))" as="xs:string"/>
+        <!-- service can be explicitly specified on content using ldh:service -->
+        <xsl:variable name="service-uri" select="xs:anyURI(ldh:service/@rdf:resource)" as="xs:anyURI?"/>
+        <xsl:variable name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.apps'))" as="element()?"/>
+        <xsl:variable name="endpoint" select="($service/sd:endpoint/@rdf:resource/xs:anyURI(.), sd:endpoint())[1]" as="xs:anyURI"/>
+
+        <xsl:choose>
+            <!-- service URI is not specified or specified and can be loaded -->
+            <xsl:when test="not($service-uri) or ($service-uri and exists($service))">
+                <!-- window.LinkedDataHub.contents[{$content-uri}] object is already created -->
+                <xsl:if test="$service-uri">
+                    <!-- store (the URI of) the service -->
+                    <ixsl:set-property name="service-uri" select="$service-uri" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $content-uri)"/>
+                    <ixsl:set-property name="service" select="$service" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $content-uri)"/>
+                </xsl:if>
+
+                <!-- update progress bar -->
+                <xsl:for-each select="$container//div[@class = 'bar']">
+                    <ixsl:set-style name="width" select="'75%'" object="."/>
+                </xsl:for-each>
+
+                <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': $query-string })" as="xs:anyURI"/>
+                <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), $results-uri)" as="xs:anyURI"/>
+                
+                <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+                    <xsl:call-template name="onQueryContentLoad">
+                        <xsl:with-param name="container" select="$container"/>
+                        <xsl:with-param name="content-uri" select="$content-uri"/>
+                    </xsl:call-template>
+                </ixsl:schedule-action>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:for-each select="$container">
+                    <xsl:result-document href="?." method="ixsl:replace-content">
+                        <div class="alert alert-block">
+                            <strong>Could not load service resource: <a href="{$service-uri}"><xsl:value-of select="$service-uri"/></a></strong>
+                        </div>
+                    </xsl:result-document>
+                </xsl:for-each>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:template>
+    
+    <!-- default content (RDF resource) -->
+    
     <xsl:template match="*[*][@rdf:about]" mode="ldh:Content">
         <xsl:param name="container" as="element()"/>
 
@@ -174,7 +228,6 @@ exclude-result-prefixes="#all"
         </xsl:if>
     </xsl:template>
     
-    
     <!-- embed content -->
     
     <xsl:template name="onContentLoad">
@@ -224,4 +277,39 @@ exclude-result-prefixes="#all"
         </xsl:choose>
     </xsl:template>
 
+    <!-- embed DESCRIBE/CONSTRUCT result -->
+    
+    <xsl:template name="onQueryContentLoad">
+        <xsl:param name="container" as="element()"/>
+        <xsl:param name="content-uri" as="xs:anyURI"/>
+
+        <xsl:choose>
+            <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
+                <xsl:for-each select="?body">
+                    <!-- hide progress bar -->
+                    <ixsl:set-style name="display" select="'none'" object="$container//div[@class = 'progress-bar']"/>
+
+                    <xsl:variable name="row-block" as="element()?">
+                        <xsl:apply-templates select="." mode="bs2:RowBlock"/>
+                    </xsl:variable>
+
+                    <xsl:for-each select="$container">
+                        <xsl:result-document href="?." method="ixsl:replace-content">
+                            <xsl:copy-of select="$row-block/*"/>
+                        </xsl:result-document>
+                    </xsl:for-each>
+                </xsl:for-each>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:for-each select="$container">
+                    <xsl:result-document href="?." method="ixsl:replace-content">
+                        <div class="alert alert-block">
+                            <strong>Could not load content resource: <a href="{$content-uri}"><xsl:value-of select="$content-uri"/></a></strong>
+                        </div>
+                    </xsl:result-document>
+                </xsl:for-each>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:template>
+    
 </xsl:stylesheet>
