@@ -84,6 +84,7 @@ extension-element-prefixes="ixsl"
     <xsl:import href="typeahead.xsl"/>
 
     <xsl:include href="bootstrap/2.3.2/client/breadcrumb.xsl"/>
+    <xsl:include href="bootstrap/2.3.2/client/content.xsl"/>
     <xsl:include href="bootstrap/2.3.2/client/modal.xsl"/>
     <xsl:include href="bootstrap/2.3.2/client/chart.xsl"/>
     <xsl:include href="bootstrap/2.3.2/client/container.xsl"/>
