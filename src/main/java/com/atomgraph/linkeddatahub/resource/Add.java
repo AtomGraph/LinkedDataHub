@@ -45,6 +45,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
@@ -231,8 +232,10 @@ public class Add extends GraphStoreImpl // TO-DO: does not need to extend GraphS
         }
 
         // forward the stream to the named graph document
-        return webTarget.request(getSystem().getMediaTypes().getReadable(Model.class).toArray(MediaType[]::new)).
+        Response response = webTarget.request(getSystem().getMediaTypes().getReadable(Model.class).toArray(MediaType[]::new)).
             post(entity);
+        if (!response.hasEntity()) response.getHeaders().remove(HttpHeaders.CONTENT_TYPE); // Jersey sends Content-Type despite Content-Length: 0, which Saxon-JS chokes on
+        return response;
     }
     
     /**
