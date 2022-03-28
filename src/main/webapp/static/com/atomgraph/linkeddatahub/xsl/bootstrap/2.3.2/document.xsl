@@ -83,6 +83,13 @@ extension-element-prefixes="ixsl"
         </xsl:apply-templates>
     </xsl:template>
         
+    <xsl:template match="rdf:RDF" mode="bs2:RowBlockContent">
+        <!-- select elements explicitly, because Saxon-JS chokes on text nodes here -->
+        <xsl:apply-templates select="*" mode="#current">
+            <xsl:sort select="ac:label(.)"/>
+        </xsl:apply-templates>
+    </xsl:template>
+    
     <!-- CONTENT -->
     
     <xsl:template match="rdf:RDF" mode="ldh:Content">
