@@ -95,7 +95,7 @@ WHERE
               }
             ORDER BY ?class ?prop ?range
           }
-          BIND(concat("?this <", str(?prop), "> [ a <", str(?range), "> ]") AS ?propConstructor)
+          BIND(concat("$this <", str(?prop), "> [ a <", str(?range), "> ]") AS ?propConstructor)
         }
       GROUP BY ?class
     }

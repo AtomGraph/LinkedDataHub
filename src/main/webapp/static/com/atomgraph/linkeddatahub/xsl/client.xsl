@@ -150,10 +150,10 @@ DESCRIBE ?subject
 WHERE
   { SELECT DISTINCT  ?subject
     WHERE
-      {   { ?subject  ?p  ?this }
+      {   { ?subject  ?p  $this }
         UNION
           { GRAPH ?g
-              { ?subject  ?p  ?this }
+              { ?subject  ?p  $this }
           }
         FILTER isURI(?subject)
       }
@@ -287,7 +287,7 @@ WHERE
     </xsl:function>
     
     <xsl:function name="ac:build-describe" as="xs:string">
-        <xsl:param name="select-string" as="xs:string"/> <!-- already with ?this value set -->
+        <xsl:param name="select-string" as="xs:string"/> <!-- already with $this value set -->
         <xsl:param name="limit" as="xs:integer?"/>
         <xsl:param name="offset" as="xs:integer?"/>
         <xsl:param name="order-by" as="xs:string?"/>
@@ -781,8 +781,8 @@ WHERE
                         <!--TO-DO: use CONSTRUCT to only pull dct:titles?--> 
                         <xsl:variable name="query-string" select="replace($select-string, 'DISTINCT', '')" as="xs:string"/>
                         <xsl:variable name="query-string" select="replace($query-string, 'SELECT', 'DESCRIBE')" as="xs:string"/>
-                         <!--set ?this variable value--> 
-                        <xsl:variable name="query-string" select="replace($query-string, '\?this', concat('&lt;', $this-uri, '&gt;'))" as="xs:string"/>
+                         <!--set $this variable value--> 
+                        <xsl:variable name="query-string" select="replace($query-string, '\$this', concat('&lt;', $this-uri, '&gt;'))" as="xs:string"/>
                         <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': string($query-string) })" as="xs:anyURI"/>
 
                         <xsl:variable name="request" as="item()*">
@@ -1698,7 +1698,7 @@ WHERE
     <xsl:template match="div[contains-token(@class, 'backlinks-nav')]//*[contains-token(@class, 'nav-header')]" mode="ixsl:onclick">
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'backlinks-nav')]" as="element()"/>
         <xsl:variable name="content-uri" select="input[@name = 'uri']/@value" as="xs:anyURI"/>
-        <xsl:variable name="query-string" select="replace($backlinks-string, '\?this', concat('&lt;', $content-uri, '&gt;'))" as="xs:string"/>
+        <xsl:variable name="query-string" select="replace($backlinks-string, '\$this', concat('&lt;', $content-uri, '&gt;'))" as="xs:string"/>
         <!-- replace dots with dashes from this point (not before using in the query string!) -->
         <xsl:variable name="content-uri" select="xs:anyURI(translate($content-uri, '.', '-'))" as="xs:anyURI"/>
         <xsl:variable name="service-uri" select="if (ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $content-uri)) then (if (ixsl:contains(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $content-uri), 'service-uri')) then ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $content-uri), 'service-uri') else ()) else ()" as="xs:anyURI?"/>

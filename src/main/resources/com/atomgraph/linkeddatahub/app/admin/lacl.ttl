@@ -100,7 +100,7 @@
         PREFIX lacl:    <https://w3id.org/atomgraph/linkeddatahub/admin/acl#>
 
         CONSTRUCT {
-            ?this lacl:requestMode [ a acl:Mode ] ;
+            $this lacl:requestMode [ a acl:Mode ] ;
                 lacl:requestAccessTo [ a rdfs:Resource ] ;
                 lacl:requestAccessToClass [ a rdfs:Class ] ;
                 lacl:requestAgent [ a foaf:Agent ] .

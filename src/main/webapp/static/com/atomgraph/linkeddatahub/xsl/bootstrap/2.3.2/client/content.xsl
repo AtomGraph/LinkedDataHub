@@ -37,14 +37,14 @@ exclude-result-prefixes="#all"
 
     <!-- TEMPLATES -->
     
-    <!-- assuming SELECT query here. what do we do about DESCRIBE/CONSTRUCT? -->
+    <!-- SELECT query -->
     <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&sp;Select'][sp:text]" mode="ldh:Content" priority="1">
         <xsl:param name="uri" as="xs:anyURI"/>
         <xsl:param name="container" as="element()"/>
         <!-- replace dots with dashes to avoid Saxon-JS treating them as field separators: https://saxonica.plan.io/issues/5031 -->
         <xsl:param name="content-uri" select="xs:anyURI(translate(@rdf:about, '.', '-'))" as="xs:anyURI"/>
-        <!-- set ?this variable value unless getting the query string from state -->
-        <xsl:variable name="select-string" select="replace(sp:text, '\?this', concat('&lt;', $uri, '&gt;'))" as="xs:string"/>
+        <!-- set $this variable value unless getting the query string from state -->
+        <xsl:variable name="select-string" select="replace(sp:text, '\$this', concat('&lt;', $uri, '&gt;'))" as="xs:string"/>
         <xsl:variable name="select-json" as="item()">
             <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', [ $select-string ])"/>
             <xsl:sequence select="ixsl:call($select-builder, 'build', [])"/>

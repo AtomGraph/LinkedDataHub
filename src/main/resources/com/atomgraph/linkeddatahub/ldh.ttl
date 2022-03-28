@@ -135,7 +135,7 @@
         PREFIX dh:      <https://www.w3.org/ns/ldt/document-hierarchy#>
 
         CONSTRUCT {
-            ?this sd:name [ a rdfs:Resource ] ;
+            $this sd:name [ a rdfs:Resource ] ;
                 ldh:file [ a nfo:FileDataObject ] .
         }
         WHERE {}""" ;
@@ -148,7 +148,7 @@
         PREFIX spin:    <http://spinrdf.org/spin#>
 
         CONSTRUCT {
-            ?this spin:query [ a sp:Construct ] ;
+            $this spin:query [ a sp:Construct ] ;
                 ldh:delimiter "," .
         }
         WHERE {}""" ;
@@ -160,7 +160,7 @@
         PREFIX spin:    <http://spinrdf.org/spin#>
 
         CONSTRUCT {
-            ?this spin:query [ a sp:Construct ] .
+            $this spin:query [ a sp:Construct ] .
         }
         WHERE {}""" ;
     rdfs:label "RDF import constructor" ;
@@ -180,7 +180,7 @@
       PREFIX rdfs:  <http://www.w3.org/2000/01/rdf-schema#>
 
       CONSTRUCT {
-          ?this ldh:chartType [ a rdfs:Resource ] .
+          $this ldh:chartType [ a rdfs:Resource ] .
       }
       WHERE {}""" ;
     rdfs:label "Chart constructor" ;
@@ -201,7 +201,7 @@
       PREFIX sp:    <http://spinrdf.org/sp#>
 
       CONSTRUCT {
-          ?this spin:query [ a sp:Query ] ; # really a union of :Describe and :Construct
+          $this spin:query [ a sp:Query ] ; # really a union of :Describe and :Construct
             ldh:categoryProperty [ a rdf:Property ] ;
             ldh:seriesProperty [ a rdf:Property ] .
       }
@@ -224,7 +224,7 @@
       PREFIX sp:    <http://spinrdf.org/sp#>
 
       CONSTRUCT {
-          ?this spin:query [ a sp:Select ] ;
+          $this spin:query [ a sp:Select ] ;
             ldh:categoryVarName [ a xsd:string ] ;
             ldh:seriesVarName [ a xsd:string ] .
       }
@@ -245,7 +245,7 @@
       PREFIX rdfs:  <http://www.w3.org/2000/01/rdf-schema#>
 
       CONSTRUCT {
-          ?this rdf:first [ a rdfs:Resource ] ;
+          $this rdf:first [ a rdfs:Resource ] ;
             rdf:rest rdf:nil .
       }
       WHERE {}""" ;
@@ -396,9 +396,9 @@ PREFIX  sioc: <http://rdfs.org/sioc/ns#>
 SELECT DISTINCT  ?child ?thing
 WHERE
 { GRAPH ?childGraph
-  {   { ?child  sioc:has_parent  ?this }
+  {   { ?child  sioc:has_parent  $this }
     UNION
-      { ?child  sioc:has_container  ?this }
+      { ?child  sioc:has_container  $this }
     ?child  a                     ?Type
     OPTIONAL
       { ?child  dct:title  ?title }
@@ -460,7 +460,7 @@ dh:Item spin:constructor :TitleConstructor, :DescriptionConstructor, :PrimaryTop
         PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
 
         CONSTRUCT {
-          ?this foaf:primaryTopic [ a rdfs:Resource ] .
+          $this foaf:primaryTopic [ a rdfs:Resource ] .
         }
         WHERE {}""" ;
     rdfs:isDefinedBy : .
@@ -473,7 +473,7 @@ dh:Item spin:constructor :TitleConstructor, :DescriptionConstructor, :PrimaryTop
         PREFIX dct:     <http://purl.org/dc/terms/>
 
         CONSTRUCT {
-          ?this dct:title [ a xsd:string ] .
+          $this dct:title [ a xsd:string ] .
         }
         WHERE {}""" ;
     rdfs:isDefinedBy : .
@@ -486,7 +486,7 @@ dh:Item spin:constructor :TitleConstructor, :DescriptionConstructor, :PrimaryTop
         PREFIX dct:     <http://purl.org/dc/terms/>
 
         CONSTRUCT {
-          ?this dct:description [ a xsd:string ] .
+          $this dct:description [ a xsd:string ] .
         }
         WHERE {}""" ;
     rdfs:isDefinedBy : .
@@ -497,7 +497,7 @@ dh:Item spin:constructor :TitleConstructor, :DescriptionConstructor, :PrimaryTop
         PREFIX ldh:     <https://w3id.org/atomgraph/linkeddatahub#>
 
         CONSTRUCT {
-          ?this ldh:content [ a ldh:Content ] .
+          $this ldh:content [ a ldh:Content ] .
         }
         WHERE {}""" ;
     rdfs:isDefinedBy : .
@@ -509,7 +509,7 @@ dh:Item spin:constructor :TitleConstructor, :DescriptionConstructor, :PrimaryTop
         PREFIX rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 
         CONSTRUCT {
-            ?this ldh:content [ a ldh:Content ;
+            $this ldh:content [ a ldh:Content ;
                 rdf:first ldh:SelectChildren ;
                 rdf:rest rdf:nil
             ] .
@@ -545,7 +545,7 @@ sp:Query spin:constructor [
           PREFIX :     <https://w3id.org/atomgraph/linkeddatahub#>
 
           CONSTRUCT {
-              ?this rdfs:label [ a xsd:string ] ;
+              $this rdfs:label [ a xsd:string ] ;
                   rdfs:comment [ a xsd:string ] ;
                   sp:text [ a xsd:string ] ;
                   :service [ a sd:Service ] .
@@ -576,7 +576,7 @@ nfo:FileDataObject spin:constructor :FileConstructor ;
     PREFIX dct:     <http://purl.org/dc/terms/>
 
     CONSTRUCT {
-        ?this nfo:fileName [ a xsd:string ] ;
+        $this nfo:fileName [ a xsd:string ] ;
             dct:format [ a rdfs:Resource ] .
     }
     WHERE {}""" ;
@@ -609,7 +609,7 @@ sd:Service spin:constructor :ServiceConstructor ;
       PREFIX sd:      <http://www.w3.org/ns/sparql-service-description#>
 
       CONSTRUCT {
-          ?this sd:supportedLanguage sd:SPARQL11Query, sd:SPARQL11Update ;
+          $this sd:supportedLanguage sd:SPARQL11Query, sd:SPARQL11Update ;
               sd:endpoint [ a rdfs:Resource ] ;
               a:graphStore [ a rdfs:Resource ] ;
               a:authUser [ a xsd:string ] ;
