@@ -130,6 +130,7 @@ public class Add extends GraphStoreImpl // TO-DO: does not need to extend GraphS
             // forward the stream to the named graph document -- do not directly append triples to graph because the agent might not have access to it
             try (Response response = forwardPost(Entity.entity(importModel, com.atomgraph.client.MediaType.APPLICATION_NTRIPLES_TYPE), graph.getURI()))
             {
+                response.bufferEntity(); // buffer entity to make sure response completed
                 return response;
             }
         }
@@ -206,6 +207,7 @@ public class Add extends GraphStoreImpl // TO-DO: does not need to extend GraphS
             try (InputStream is = bodyPart.getValueAs(InputStream.class); Response response = forwardPost(Entity.entity(getStreamingOutput(is), mediaType), graph.getURI()))
             {
                 // forward the stream to the named graph document -- do not directly append triples to graph because the agent might not have access to it
+                response.bufferEntity(); // buffer entity to make sure response completed
                 return response;
             
             }
