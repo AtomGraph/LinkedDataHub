@@ -105,7 +105,7 @@ extension-element-prefixes="ixsl"
         </xsl:document>
     </xsl:param>
     <xsl:param name="ac:lang" select="ixsl:get(ixsl:get(ixsl:page(), 'documentElement'), 'lang')" as="xs:string"/>
-    <xsl:param name="ac:mode" select="if (ixsl:query-params()?mode) then xs:anyURI(ixsl:query-params()?mode) else xs:anyURI('&ac;ReadMode')" as="xs:anyURI?"/>
+    <xsl:param name="ac:mode" select="if (ixsl:query-params()?mode) then xs:anyURI(ixsl:query-params()?mode) else xs:anyURI('&ac;ReadMode')" as="xs:anyURI*"/>
     <xsl:param name="ac:query" select="ixsl:query-params()?query" as="xs:string?"/>
     <xsl:param name="ac:googleMapsKey" select="'AIzaSyCQ4rt3EnNCmGTpBN0qoZM1Z_jXhUnrTpQ'" as="xs:string"/>
     <xsl:param name="page-size" select="20" as="xs:integer"/>
@@ -232,7 +232,12 @@ WHERE
 
     <xsl:function name="ac:uri" as="xs:anyURI">
         <xsl:sequence select="xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.uri'))"/>
-        <!--<xsl:sequence select="xs:anyURI(if (contains($href, '?')) then let $query-params := ldh:parse-query-params(substring-after($href, '?')) return if (exists($query-params?uri)) then ldh:decode-uri($query-params?uri[1]) else $href else $href)"/>-->
+    </xsl:function>
+
+    <xsl:function name="ac:mode" as="xs:anyURI*">
+        <xsl:variable name="uri" select="ac:uri()" as="xs:anyURI"/>
+        <!-- decode mode URI from the ?mode query param, if it's present -->
+        <xsl:sequence select="if (contains($uri, '?')) then let $query-params := ldh:parse-query-params(substring-after($uri, '?')) return ldh:decode-uri($query-params?mode) else ()" as="xs:anyURI"/> <!-- raw URL -->
     </xsl:function>
 
     <xsl:function name="sd:endpoint" as="xs:anyURI">
@@ -1752,6 +1757,7 @@ WHERE
                         <ul class="well well-small nav nav-list">
                             <xsl:apply-templates select="$results/rdf:RDF/rdf:Description[not(@rdf:about = ac:uri())]" mode="bs2:List">
                                 <xsl:sort select="ac:label(.)" order="ascending" lang="{$ldt:lang}"/>
+                                <xsl:with-param name="mode" select="ac:mode()[1]"/> <!-- TO-DO: support multiple modes -->
                             </xsl:apply-templates>
                         </ul>
                     </xsl:result-document>
