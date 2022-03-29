@@ -237,7 +237,7 @@ WHERE
     <xsl:function name="ac:mode" as="xs:anyURI*">
         <xsl:variable name="uri" select="ac:uri()" as="xs:anyURI"/>
         <!-- decode mode URI from the ?mode query param, if it's present -->
-        <xsl:sequence select="if (contains($uri, '?')) then let $query-params := ldh:parse-query-params(substring-after($uri, '?')) return ldh:decode-uri($query-params?mode) else ()" as="xs:anyURI"/> <!-- raw URL -->
+        <xsl:sequence select="if (contains($uri, '?')) then let $query-params := ldh:parse-query-params(substring-after($uri, '?')) return ldh:decode-uri($query-params?mode) else ()"/> <!-- raw URL -->
     </xsl:function>
 
     <xsl:function name="sd:endpoint" as="xs:anyURI">
