@@ -234,7 +234,6 @@ public class Add extends GraphStoreImpl // TO-DO: does not need to extend GraphS
         try (Response response = webTarget.request(getSystem().getMediaTypes().getReadable(Model.class).toArray(MediaType[]::new)).post(entity))
         {
             return Response.status(response.getStatus()).
-                //replaceAll(response.getHeaders()).
                 entity(response.readEntity(Model.class)).
                 build();
         }

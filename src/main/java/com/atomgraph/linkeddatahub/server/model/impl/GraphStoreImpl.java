@@ -61,7 +61,6 @@ import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
@@ -251,10 +250,10 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
     public Response options()
     {
         Response.ResponseBuilder rb = Response.ok().
-            header(HttpHeaders.ALLOW, HttpMethod.GET).
-            header(HttpHeaders.ALLOW, HttpMethod.POST).
-            header(HttpHeaders.ALLOW, HttpMethod.PUT).
-            header(HttpHeaders.ALLOW, HttpMethod.DELETE);
+            allow(HttpMethod.GET).
+            allow(HttpMethod.POST).
+            allow(HttpMethod.PUT).
+            allow(HttpMethod.DELETE);
         
         String acceptWritable = StringUtils.join(getWritableMediaTypes(Model.class), ",");
         rb.header("Accept-Post", acceptWritable);
