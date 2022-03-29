@@ -281,6 +281,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="title" select="." as="xs:string?"/>
         <xsl:param name="class" as="xs:string?"/>
         <xsl:param name="target" as="xs:string?"/>
+        <xsl:param name="mode" as="xs:anyURI?"/>
 
         <xsl:next-match>
             <xsl:with-param name="href" select="$href"/>
@@ -288,6 +289,7 @@ exclude-result-prefixes="#all"
             <xsl:with-param name="title" select="$title"/>
             <xsl:with-param name="class" select="$class"/>
             <xsl:with-param name="target" select="$target"/>
+            <xsl:with-param name="mode" select="$mode"/>
         </xsl:next-match>
     </xsl:template>
     
