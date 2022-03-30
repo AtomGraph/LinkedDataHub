@@ -23,7 +23,7 @@ exclude-result-prefixes="#all">
 
         <xsl:variable name="modes" select="key('resources-by-type', '&ac;Mode', document(ac:document-uri('&ac;')))" as="element()*"/>
         <select name="ou" id="{generate-id()}">
-            <xsl:for-each select="$chart-types">
+            <xsl:for-each select="$modes">
                 <xsl:sort select="ac:label(.)" lang="{$ldt:lang}"/>
                 <xsl:apply-templates select="." mode="xhtml:Option">
                     <xsl:with-param name="selected" select="@rdf:about = $value"/>
