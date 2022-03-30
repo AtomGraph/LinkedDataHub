@@ -23,6 +23,10 @@ exclude-result-prefixes="#all">
 
         <xsl:variable name="modes" select="key('resources-by-type', '&ac;Mode', document(ac:document-uri('&ac;')))" as="element()*"/>
         <select name="ou" id="{generate-id()}">
+            <option>
+                <!-- an empty option in case on ac:mode is specified -->
+            </option>
+            
             <xsl:for-each select="$modes">
                 <xsl:sort select="ac:label(.)" lang="{$ldt:lang}"/>
                 <xsl:apply-templates select="." mode="xhtml:Option">
