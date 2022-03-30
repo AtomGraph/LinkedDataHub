@@ -74,6 +74,7 @@ exclude-result-prefixes="#all">
     <xsl:import href="../../../../client/xsl/converters/RDFXML2JSON-LD.xsl"/>
     <xsl:import href="../../../../client/xsl/bootstrap/2.3.2/internal-layout.xsl"/>
     <xsl:import href="imports/default.xsl"/>
+    <xsl:import href="imports/ac.xsl"/>
     <xsl:import href="imports/ldh.xsl"/>
     <xsl:import href="imports/dct.xsl"/>
     <xsl:import href="imports/nfo.xsl"/>
