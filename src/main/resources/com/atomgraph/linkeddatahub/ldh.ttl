@@ -243,10 +243,12 @@
   sp:text """
       PREFIX rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
       PREFIX rdfs:  <http://www.w3.org/2000/01/rdf-schema#>
+      PREFIX ac:    <https://w3id.org/atomgraph/client#>
 
       CONSTRUCT {
           $this rdf:first [ a rdfs:Resource ] ;
-            rdf:rest rdf:nil .
+            rdf:rest rdf:nil ;
+            ac:mode [ a rdfs:Resource ] .
       }
       WHERE {}""" ;
     rdfs:label "Content constructor" ;
