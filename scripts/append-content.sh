@@ -68,7 +68,7 @@ if [ -z "$1" ] ; then
 fi
 
 this="$1"
-if [ -n "$mode" ]
+if [ -n "$mode" ] ; then
     mode_bgp="?content ac:mode <${mode}> ."
 fi
 
