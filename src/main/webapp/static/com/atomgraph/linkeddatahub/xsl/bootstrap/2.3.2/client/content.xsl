@@ -244,9 +244,10 @@ exclude-result-prefixes="#all"
         <xsl:param name="container-id" select="ixsl:get($container, 'id')" as="xs:string"/>
         <xsl:param name="mode" as="xs:anyURI?"/>
         
+        <!-- for some reason Saxon-JS 2.3 does not see this variable if it's inside <xsl:when> -->
+        <xsl:variable name="content" select="key('resources', $content-uri, ?body)" as="element()?"/>
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml' and $content">
-                <xsl:variable name="content" select="key('resources', $content-uri, ?body)" as="element()?"/>
                 <!-- replace dots which have a special meaning in Saxon-JS -->
                 <xsl:variable name="escaped-content-uri" select="xs:anyURI(translate($content-uri, '.', '-'))" as="xs:anyURI"/>
                 <!-- create new cache entry using content URI as key -->
