@@ -78,7 +78,7 @@ extension-element-prefixes="ixsl"
     
     <xsl:template match="rdf:RDF" mode="bs2:ModeTabs">
         <xsl:param name="has-content" as="xs:boolean"/>
-        <xsl:param name="active-mode" as="xs:anyURI"/>
+        <xsl:param name="active-mode" as="xs:anyURI?"/>
         <xsl:param name="forClass" as="xs:anyURI?"/>
         <xsl:param name="ajax-rendering" select="true()" as="xs:boolean"/>
 
