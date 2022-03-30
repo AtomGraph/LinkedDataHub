@@ -700,6 +700,9 @@ exclude-result-prefixes="#all">
             <div id="content-body" class="container-fluid">
                 <xsl:apply-templates select="." mode="bs2:ModeTabs">
                     <xsl:with-param name="has-content" select="$has-content"/>
+                    <xsl:with-param name="active-mode" select="$ac:mode"/>
+                    <xsl:with-param name="forClass" select="$ac:forClass"/>
+                    <xsl:with-param name="$ldh:ajaxRendering" select="$has-content"/>
                 </xsl:apply-templates>
             
                 <xsl:choose>

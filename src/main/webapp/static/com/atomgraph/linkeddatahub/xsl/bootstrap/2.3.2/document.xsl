@@ -78,11 +78,14 @@ extension-element-prefixes="ixsl"
     
     <xsl:template match="rdf:RDF" mode="bs2:ModeTabs">
         <xsl:param name="has-content" as="xs:boolean"/>
+        <xsl:param name="active-mode" as="xs:anyURI"/>
+        <xsl:param name="forClass" as="xs:anyURI?"/>
+        <xsl:param name="ajax-rendering" select="true()" as="xs:boolean"/>
 
         <div class="row-fluid">
             <ul class="nav nav-tabs offset2 span7">
                 <xsl:if test="$has-content">
-                    <li class="content-mode{if ((empty($ac:mode) and not($ac:forClass)) or $ac:mode = '&ldh;ContentMode') then ' active' else() }">
+                    <li class="content-mode{if ((empty($active-mode) and not($forClass)) or $active-mode = '&ldh;ContentMode') then ' active' else() }">
                         <a href="{ac:build-uri(ac:uri(), map{ 'mode': '&ldh;ContentMode' })}">
                             <xsl:value-of>
                                 <xsl:apply-templates select="key('resources', 'content', document('translations.rdf'))" mode="ac:label"/>
@@ -93,24 +96,24 @@ extension-element-prefixes="ixsl"
 
                 <xsl:for-each select="key('resources', '&ac;ReadMode', document(ac:document-uri('&ac;')))">
                     <xsl:apply-templates select="." mode="bs2:ModeTabsItem">
-                        <xsl:with-param name="active" select="@rdf:about = $ac:mode or (empty($ac:mode) and not($has-content))"/>
+                        <xsl:with-param name="active" select="@rdf:about = $active-mode or (empty($active-mode) and not($has-content))"/>
                     </xsl:apply-templates>
                 </xsl:for-each>
                 <xsl:for-each select="key('resources', '&ac;MapMode', document(ac:document-uri('&ac;')))">
                     <xsl:apply-templates select="." mode="bs2:ModeTabsItem">
-                        <xsl:with-param name="active" select="@rdf:about = $ac:mode"/>
+                        <xsl:with-param name="active" select="@rdf:about = $active-mode"/>
                     </xsl:apply-templates>
                 </xsl:for-each>
-                <xsl:if test="$ldh:ajaxRendering">
+                <xsl:if test="$ajax-rendering">
                     <xsl:for-each select="key('resources', '&ac;ChartMode', document(ac:document-uri('&ac;')))">
                         <xsl:apply-templates select="." mode="bs2:ModeTabsItem">
-                            <xsl:with-param name="active" select="@rdf:about = $ac:mode"/>
+                            <xsl:with-param name="active" select="@rdf:about = $active-mode"/>
                         </xsl:apply-templates>
                     </xsl:for-each>
                 </xsl:if>
                 <xsl:for-each select="key('resources', '&ac;GraphMode', document(ac:document-uri('&ac;')))">
                     <xsl:apply-templates select="." mode="bs2:ModeTabsItem">
-                        <xsl:with-param name="active" select="@rdf:about = $ac:mode"/>
+                        <xsl:with-param name="active" select="@rdf:about = $active-mode"/>
                     </xsl:apply-templates>
                 </xsl:for-each>
             </ul>
