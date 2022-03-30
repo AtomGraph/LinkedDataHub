@@ -202,7 +202,7 @@ exclude-result-prefixes="#all"
         <xsl:if test="exists($content-ids)">
             <xsl:for-each select="id($content-ids, ixsl:page())">
                 <xsl:variable name="content-uri" select="ixsl:get(., 'dataset.contentUri')" as="xs:anyURI"/> <!-- get the value of the @data-content-uri attribute -->
-                <xsl:variable name="mode" select="ixsl:get(., 'dataset.contentMode')" as="xs:anyURI?"/> <!-- get the value of the @data-content-mode attribute -->
+                <xsl:variable name="mode" select="if (ixsl:contains(., 'dataset.contentMode')) then xs:anyURI(ixsl:get(., 'dataset.contentMode')) else ()" as="xs:anyURI?"/> <!-- get the value of the @data-content-mode attribute -->
                 <xsl:variable name="container" select="." as="element()"/>
                 <xsl:variable name="progress-container" select="if (contains-token(@class, 'row-fluid')) then ./div[contains-token(@class, 'span7')] else ." as="element()"/>
 
