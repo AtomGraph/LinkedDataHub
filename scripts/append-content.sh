@@ -11,6 +11,7 @@ print_usage()
     printf "  -p, --cert-password CERT_PASSWORD    Password of the WebID certificate\n"
     printf "\n"
     printf "  --first RESOURCE_URI                 URI of the content element (query, chart etc.)\n"
+    printf "  --mode MODE_URI                      URI of the content mode (list, grid etc.) (optional)\n"
 }
 
 hash turtle 2>/dev/null || { echo >&2 "turtle not on \$PATH. Need to set \$JENA_HOME. Aborting."; exit 1; }
@@ -33,6 +34,11 @@ do
         ;;
         --first)
         first="$2"
+        shift # past argument
+        shift # past value
+        ;;
+        --mode)
+        mode="$2"
         shift # past argument
         shift # past value
         ;;
@@ -62,6 +68,9 @@ if [ -z "$1" ] ; then
 fi
 
 this="$1"
+if [ -n "$mode" ]
+    mode_bgp="?content ac:mode <${mode}> ."
+fi
 
 # SPARQL update logic from https://afs.github.io/rdf-lists-sparql#a-nameadd-lastaadd-an-element-to-the-end-of-a-list
 
@@ -72,6 +81,7 @@ curl -X PATCH \
     "$this" \
      --data-binary @- <<EOF
 PREFIX  ldh:  <https://w3id.org/atomgraph/linkeddatahub#>
+PREFIX  ac:   <https://w3id.org/atomgraph/client#>
 PREFIX  rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 
 INSERT {
@@ -102,6 +112,7 @@ INSERT {
         ?content a ldh:Content ;
             rdf:first <$first> ;
             rdf:rest rdf:nil .
+        ${mode_bgp}
     }
 }
 WHERE
@@ -128,6 +139,7 @@ INSERT {
         ?content a ldh:Content ;
             rdf:first <$first> ;
             rdf:rest rdf:nil .
+        ${mode_bgp}
     }
 }
 WHERE

@@ -61,6 +61,7 @@ curl -X PATCH \
     "$this" \
      --data-binary @- <<EOF
 PREFIX  ldh:  <https://w3id.org/atomgraph/linkeddatahub#>
+PREFIX  ac:   <https://w3id.org/atomgraph/client#>
 PREFIX  rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 
 DELETE {
@@ -68,6 +69,7 @@ DELETE {
     ?z a ?type .
     ?z rdf:first ?head .
     ?z rdf:rest ?tail .
+    ?z ac:mode ?mode .
   }
 }
 WHERE
@@ -78,6 +80,8 @@ WHERE
             rdf:rest   ?tail
         OPTIONAL
           { ?z  a  ?type }
+        OPTIONAL
+          { ?z  ac:mode  ?mode }
       }
   };
 
