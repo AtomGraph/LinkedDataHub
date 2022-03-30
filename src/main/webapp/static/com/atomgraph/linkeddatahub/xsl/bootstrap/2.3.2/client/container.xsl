@@ -33,6 +33,18 @@ exclude-result-prefixes="#all"
 
     <xsl:key name="resources-by-primary-topic" match="*[@rdf:about] | *[@rdf:nodeID]" use="foaf:primaryTopic/@rdf:resource"/>
     
+    <xsl:param name="class-modes" as="map(xs:string, xs:anyURI)">
+        <xsl:map>
+            <xsl:map-entry key="'read-mode'" select="xs:anyURI('&ac;ReadMode')"/>
+            <xsl:map-entry key="'list-mode'" select="xs:anyURI('&ac;ListMode')"/>
+            <xsl:map-entry key="'table-mode'" select="xs:anyURI('&ac;TableMode')"/>
+            <xsl:map-entry key="'grid-mode'" select="xs:anyURI('&ac;GridMode')"/>
+            <xsl:map-entry key="'chart-mode'" select="xs:anyURI('&ac;ChartMode')"/>
+            <xsl:map-entry key="'map-mode'" select="xs:anyURI('&ac;MapMode')"/>
+            <xsl:map-entry key="'graph-mode'" select="xs:anyURI('&ac;GraphMode')"/>
+        </xsl:map>
+    </xsl:param>
+    
     <!-- TEMPLATES -->
 
     <xsl:template match="srx:result" mode="bs2:FacetValueItem">
@@ -284,7 +296,8 @@ exclude-result-prefixes="#all"
         <xsl:param name="select-xml" as="document-node()"/>
         <xsl:param name="endpoint" select="xs:anyURI"/>
         <xsl:param name="focus-var-name" as="xs:string"/>
-        
+        <xsl:param name="active-mode" as="xs:anyURI"/>
+
         <!-- wrap SELECT into a DESCRIBE -->
         <xsl:variable name="query-xml" as="element()">
             <xsl:apply-templates select="$select-xml" mode="ldh:wrap-describe"/>
@@ -300,6 +313,7 @@ exclude-result-prefixes="#all"
                 <xsl:with-param name="container" select="$container"/>
                 <xsl:with-param name="content-uri" select="$content-uri"/>
                 <xsl:with-param name="content" select="$content"/>
+                <xsl:with-param name="active-mode" select="$active-mode"/>
                 <xsl:with-param name="select-string" select="$select-string"/>
                 <xsl:with-param name="select-xml" select="$select-xml"/>
                 <xsl:with-param name="focus-var-name" select="$focus-var-name"/>
@@ -321,7 +335,8 @@ exclude-result-prefixes="#all"
         <xsl:param name="default-order-by-predicate" as="xs:anyURI?"/>
         <xsl:param name="default-order-by-var-name" as="xs:string?"/>
         <xsl:param name="default-desc" as="xs:boolean?"/>
-        <xsl:param name="active-class" select="'list-mode'" as="xs:string?"/>
+        <!--<xsl:param name="active-class" select="'list-mode'" as="xs:string"/>-->
+        <xsl:param name="active-mode" as="xs:anyURI"/>
         <xsl:param name="select-xml" as="document-node()"/>
         <xsl:param name="order-by-container-id" select="$container-id || '-container-order'" as="xs:string?"/>
 
@@ -343,7 +358,8 @@ exclude-result-prefixes="#all"
                             <xsl:with-param name="desc" select="$desc"/>
                             <xsl:with-param name="default-order-by-predicate" select="$default-order-by-predicate"/>
                             <xsl:with-param name="default-desc" select="$default-desc"/>
-                            <xsl:with-param name="active-class" select="$active-class"/>
+                            <!-- <xsl:with-param name="active-class" select="$active-class"/> -->
+                            <xsl:with-param name="active-mode" select="$active-mode"/>
                         </xsl:call-template>
                     </xsl:result-document>
                 </xsl:for-each>
@@ -400,7 +416,8 @@ exclude-result-prefixes="#all"
                                 <xsl:with-param name="desc" select="$desc"/>
                                 <xsl:with-param name="default-order-by-predicate" select="$default-order-by-predicate"/>
                                 <xsl:with-param name="default-desc" select="$default-desc"/>
-                                <xsl:with-param name="active-class" select="$active-class"/>
+                                <!-- <xsl:with-param name="active-class" select="$active-class"/> -->
+                                <xsl:with-param name="active-mode" select="$active-mode"/>
                             </xsl:call-template>
                         </div>
                     </xsl:result-document>
@@ -430,7 +447,7 @@ exclude-result-prefixes="#all"
         </xsl:choose>
 
         <!-- after we've created the map container element, create the JS objects using it -->
-        <xsl:if test="$active-class = 'map-mode'">
+        <xsl:if test="$active-mode = '&ac;MapMode'">
             <xsl:variable name="canvas-id" select="$container-id || '-map-canvas'" as="xs:string"/>
             <xsl:variable name="initial-load" select="not(ixsl:contains(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $content-uri), 'map'))" as="xs:boolean"/>
             <!-- reuse center and zoom if map object already exists, otherwise set defaults -->
@@ -466,7 +483,7 @@ exclude-result-prefixes="#all"
                 <xsl:with-param name="content-uri" select="$content-uri"/>
             </xsl:call-template>
         </xsl:if>
-        <xsl:if test="$active-class = 'chart-mode'">
+        <xsl:if test="$active-mode = '&ac;ChartMode'">
             <xsl:variable name="canvas-id" select="$container-id || '-chart-canvas'" as="xs:string"/>
             <xsl:variable name="chart-type" select="xs:anyURI('&ac;Table')" as="xs:anyURI"/>
             <xsl:variable name="category" as="xs:string?"/>
@@ -514,84 +531,85 @@ exclude-result-prefixes="#all"
         <xsl:param name="desc" as="xs:boolean?"/>
         <xsl:param name="default-order-by-predicate" as="xs:anyURI?"/>
         <xsl:param name="default-desc" as="xs:boolean?"/>
-        <xsl:param name="active-class" as="xs:string?"/>
+        <!-- <xsl:param name="active-class" as="xs:string?"/> -->
+        <xsl:param name="active-mode" select="xs:anyURI('&ac;ListMode')" as="xs:anyURI"/>
         
         <ul class="nav nav-tabs">
             <li class="read-mode">
-                <xsl:if test="$active-class = 'read-mode'">
+                <xsl:if test="$active-mode = '&ac;ReadMode'">
                     <xsl:attribute name="class" select="'read-mode active'"/>
                 </xsl:if>
 
                 <a>
-                    <xsl:apply-templates select="key('resources', '&ac;ReadMode', document(ac:document-uri('&ac;')))" mode="ldh:logo"/>
+                    <xsl:apply-templates select="key('resources', $active-mode, document(ac:document-uri('&ac;')))" mode="ldh:logo"/>
                     
-                    <xsl:apply-templates select="key('resources', '&ac;ReadMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
+                    <xsl:apply-templates select="key('resources', $active-mode, document(ac:document-uri('&ac;')))" mode="ac:label"/>
                 </a>
             </li>
             <li class="list-mode">
-                <xsl:if test="$active-class = 'list-mode' or (not($active-class))">
+                <xsl:if test="$active-mode = '&ac;ListMode'">
                     <xsl:attribute name="class" select="'list-mode active'"/>
                 </xsl:if>
 
                 <a>
-                    <xsl:apply-templates select="key('resources', '&ac;ListMode', document(ac:document-uri('&ac;')))" mode="ldh:logo"/>
+                    <xsl:apply-templates select="key('resources', $active-mode, document(ac:document-uri('&ac;')))" mode="ldh:logo"/>
                     
-                    <xsl:apply-templates select="key('resources', '&ac;ListMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
+                    <xsl:apply-templates select="key('resources', $active-mode, document(ac:document-uri('&ac;')))" mode="ac:label"/>
                 </a>
             </li>
             <li class="table-mode">
-                <xsl:if test="$active-class = 'table-mode'">
+                <xsl:if test="$active-mode = '&ac;TableMode'">
                     <xsl:attribute name="class" select="'table-mode active'"/>
                 </xsl:if>
 
                 <a>
-                    <xsl:apply-templates select="key('resources', '&ac;TableMode', document(ac:document-uri('&ac;')))" mode="ldh:logo"/>
+                    <xsl:apply-templates select="key('resources', $active-mode, document(ac:document-uri('&ac;')))" mode="ldh:logo"/>
                     
-                    <xsl:apply-templates select="key('resources', '&ac;TableMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
+                    <xsl:apply-templates select="key('resources', $active-mode, document(ac:document-uri('&ac;')))" mode="ac:label"/>
                 </a>
             </li>
             <li class="grid-mode">
-                <xsl:if test="$active-class = 'grid-mode'">
+                <xsl:if test="$active-mode = '&ac;GridMode'">
                     <xsl:attribute name="class" select="'grid-mode active'"/>
                 </xsl:if>
 
                 <a>
-                    <xsl:apply-templates select="key('resources', '&ac;GridMode', document(ac:document-uri('&ac;')))" mode="ldh:logo"/>
+                    <xsl:apply-templates select="key('resources', $active-mode, document(ac:document-uri('&ac;')))" mode="ldh:logo"/>
                     
-                    <xsl:apply-templates select="key('resources', '&ac;GridMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
+                    <xsl:apply-templates select="key('resources', $active-mode, document(ac:document-uri('&ac;')))" mode="ac:label"/>
                 </a>
             </li>
             <li class="chart-mode">
-                <xsl:if test="$active-class = 'chart-mode'">
+                <xsl:if test="$active-mode = '&ac;ChartMode'">
                     <xsl:attribute name="class" select="'chart-mode active'"/>
                 </xsl:if>
 
                 <a>
-                    <xsl:apply-templates select="key('resources', '&ac;ChartMode', document(ac:document-uri('&ac;')))" mode="ldh:logo"/>
+                    <xsl:apply-templates select="key('resources', $active-mode, document(ac:document-uri('&ac;')))" mode="ldh:logo"/>
                     
-                    <xsl:apply-templates select="key('resources', '&ac;ChartMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
+                    <xsl:apply-templates select="key('resources', $active-mode, document(ac:document-uri('&ac;')))" mode="ac:label"/>
                 </a>
             </li>
             <li class="map-mode">
-                <xsl:if test="$active-class = 'map-mode'">
+                <xsl:if test="$active-mode = '&ac;MapMode'">
                     <xsl:attribute name="class" select="'map-mode active'"/>
                 </xsl:if>
 
                 <a>
-                    <xsl:apply-templates select="key('resources', '&ac;MapMode', document(ac:document-uri('&ac;')))" mode="ldh:logo"/>
+                    <xsl:apply-templates select="key('resources', $active-mode, document(ac:document-uri('&ac;')))" mode="ldh:logo"/>
                     
-                    <xsl:apply-templates select="key('resources', '&ac;MapMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
+                    <xsl:apply-templates select="key('resources', $active-mode, document(ac:document-uri('&ac;')))" mode="ac:label"/>
                 </a>
             </li>
             <li class="graph-mode">
-                <xsl:if test="$active-class = 'graph-mode'">
+                <xsl:if test="$active-mode = '&ac;GraphMode'">
                     <xsl:attribute name="class" select="'graph-mode active'"/>
                 </xsl:if>
 
                 <a>
-                    <xsl:apply-templates select="key('resources', '&ac;GraphMode', document(ac:document-uri('&ac;')))" mode="ldh:logo"/>
+                    <xsl:apply-templates select="key('resources', $active-mode, document(ac:document-uri('&ac;')))" mode="ldh:logo"/>
                     
-                    <xsl:apply-templates select="key('resources', '&ac;GraphMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
+                    <xsl:apply-templates select="key('resources', $active-mode, document(ac:document-uri('&ac;')))" mode="ac:label"/>
                 </a>
             </li>
         </ul>
@@ -614,32 +632,32 @@ exclude-result-prefixes="#all"
                 </xsl:document>
             </xsl:variable>
             <xsl:choose>
-                <xsl:when test="$active-class = 'list-mode' or (not($active-class))">
+                <xsl:when test="$active-mode = '&ac;ListMode'">
                     <xsl:apply-templates select="$sorted-results" mode="bs2:BlockList">
                         <xsl:with-param name="select-xml" select="$select-xml"/>
                     </xsl:apply-templates>
                 </xsl:when>
-                <xsl:when test="$active-class = 'table-mode' or (not($active-class))">
+                <xsl:when test="$active-mode = '&ac;TableMode'">
                     <xsl:apply-templates select="$sorted-results" mode="xhtml:Table">
                         <xsl:with-param name="select-xml" select="$select-xml"/>
                     </xsl:apply-templates>
                 </xsl:when>
-                <xsl:when test="$active-class = 'grid-mode' or (not($active-class))">
+                <xsl:when test="$active-mode = '&ac;GridMode'">
                     <xsl:apply-templates select="$sorted-results" mode="bs2:Grid">
                         <xsl:with-param name="select-xml" select="$select-xml"/>
                     </xsl:apply-templates>
                 </xsl:when>
-                <xsl:when test="$active-class = 'chart-mode' or (not($active-class))">
+                <xsl:when test="$active-mode = '&ac;ChartMode'">
                     <xsl:apply-templates select="$sorted-results" mode="bs2:Chart">
                         <xsl:with-param name="canvas-id" select="$container-id || '-chart-canvas'"/>
                     </xsl:apply-templates>
                 </xsl:when>
-                <xsl:when test="$active-class = 'map-mode' or (not($active-class))">
+                <xsl:when test="$active-mode = '&ac;MapMode'">
                     <xsl:apply-templates select="$sorted-results" mode="bs2:Map">
                         <xsl:with-param name="canvas-id" select="$container-id || '-map-canvas'"/>
                     </xsl:apply-templates>
                 </xsl:when>
-                <xsl:when test="$active-class = 'graph-mode' or (not($active-class))">
+                <xsl:when test="$active-mode = '&ac;GraphMode'">
                     <xsl:apply-templates select="$sorted-results" mode="bs2:Graph"/>
                 </xsl:when>
                 <xsl:otherwise>
@@ -875,7 +893,8 @@ exclude-result-prefixes="#all"
             <xsl:with-param name="results" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $content-uri), 'results')"/>
             <xsl:with-param name="select-xml" select="$select-xml"/>
             <xsl:with-param name="focus-var-name" select="$focus-var-name"/>
-            <xsl:with-param name="active-class" select="$active-class"/>
+            <!-- <xsl:with-param name="active-class" select="$active-class"/> -->
+            <xsl:with-param name="active-mode" select="map:get($class-modes, $active-class)"/>
             <xsl:with-param name="endpoint" select="$endpoint"/>
         </xsl:call-template>
     </xsl:template>
@@ -1263,6 +1282,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="container-id" select="ixsl:get($container, 'id')" as="xs:string"/>
         <xsl:param name="content-uri" as="xs:anyURI"/>
         <xsl:param name="content" as="element()?"/>
+        <xsl:param name="active-mode" as="xs:anyURI"/>
         <xsl:param name="select-xml" as="document-node()"/>
         <xsl:param name="focus-var-name" as="xs:string"/>
         <xsl:param name="select-string" as="xs:string"/>
@@ -1290,7 +1310,7 @@ exclude-result-prefixes="#all"
                     <xsl:variable name="default-order-by-var-name" select="$select-xml/json:map/json:array[@key = 'order']/json:map[2]/json:string[@key = 'expression']/substring-after(., '?')" as="xs:string?"/>
                     <xsl:variable name="default-order-by-predicate" select="$bgp-triples-map[json:string[@key = 'object'] = '?' || $default-order-by-var-name][1]/json:string[@key = 'predicate']" as="xs:anyURI?"/>
                     <xsl:variable name="default-desc" select="$select-xml/json:map/json:array[@key = 'order']/json:map[2]/json:boolean[@key = 'descending']" as="xs:boolean?"/>
-                    <xsl:variable name="active-class" select="$container//ul[@class = 'nav nav-tabs']/li[contains-token(@class, 'active')]/tokenize(@class, ' ')[not(. = 'active')][1]" as="xs:string?"/>
+                    <!-- <xsl:variable name="active-class" select="$container//ul[@class = 'nav nav-tabs']/li[contains-token(@class, 'active')]/tokenize(@class, ' ')[not(. = 'active')][1]" as="xs:string?"/> -->
 
                     <xsl:call-template name="render-container">
                         <!-- if  the container is full-width row (.row-fluid), render results in the middle column (.span7) -->
@@ -1306,7 +1326,8 @@ exclude-result-prefixes="#all"
                         <xsl:with-param name="default-order-by-predicate" select="$default-order-by-predicate"/>
                         <xsl:with-param name="default-desc" select="$default-desc"/>
                         <xsl:with-param name="select-xml" select="$select-xml"/>
-                        <xsl:with-param name="active-class" select="$active-class"/>
+                        <!-- <xsl:with-param name="active-class" select="$active-class"/> -->
+                        <xsl:with-param name="active-mode" select="$active-mode"/>
                     </xsl:call-template>
 
                     <xsl:for-each select="$container/div[contains-token(@class, 'left-nav')]">

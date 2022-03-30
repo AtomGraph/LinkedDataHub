@@ -42,6 +42,7 @@ exclude-result-prefixes="#all"
     <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&sp;Select'][sp:text]" mode="ldh:Content" priority="1">
         <xsl:param name="uri" as="xs:anyURI"/>
         <xsl:param name="container" as="element()"/>
+        <xsl:param name="mode" as="xs:anyURI?"/>
         <!-- replace dots with dashes to avoid Saxon-JS treating them as field separators: https://saxonica.plan.io/issues/5031 -->
         <xsl:param name="content-uri" select="xs:anyURI(translate(@rdf:about, '.', '-'))" as="xs:anyURI"/>
         <!-- set $this variable value unless getting the query string from state -->
@@ -102,6 +103,7 @@ exclude-result-prefixes="#all"
                     <xsl:with-param name="select-xml" select="$select-xml"/>
                     <xsl:with-param name="endpoint" select="$endpoint"/>
                     <xsl:with-param name="focus-var-name" select="$focus-var-name"/>
+                    <xsl:with-param name="active-mode" select="$mode"/>
                 </xsl:call-template>
             </xsl:when>
             <xsl:otherwise>
@@ -121,6 +123,7 @@ exclude-result-prefixes="#all"
     <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = ('&sp;Describe', '&sp;Construct')][sp:text]" mode="ldh:Content" priority="1">
         <xsl:param name="uri" as="xs:anyURI"/>
         <xsl:param name="container" as="element()"/>
+        <xsl:param name="mode" as="xs:anyURI?"/>
         <!-- replace dots with dashes to avoid Saxon-JS treating them as field separators: https://saxonica.plan.io/issues/5031 -->
         <xsl:param name="content-uri" select="xs:anyURI(translate(@rdf:about, '.', '-'))" as="xs:anyURI"/>
         <!-- set $this variable value unless getting the query string from state -->
@@ -152,6 +155,7 @@ exclude-result-prefixes="#all"
                     <xsl:call-template name="onQueryContentLoad">
                         <xsl:with-param name="container" select="$container"/>
                         <xsl:with-param name="content-uri" select="$content-uri"/>
+                        <xsl:with-param name="mode" select="$mode"/>
                     </xsl:call-template>
                 </ixsl:schedule-action>
             </xsl:when>
@@ -198,6 +202,7 @@ exclude-result-prefixes="#all"
         <xsl:if test="exists($content-ids)">
             <xsl:for-each select="id($content-ids, ixsl:page())">
                 <xsl:variable name="content-uri" select="ixsl:get(., 'dataset.contentUri')" as="xs:anyURI"/> <!-- get the value of the @data-content-uri attribute -->
+                <xsl:variable name="mode" select="ixsl:get(., 'dataset.contentMode')" as="xs:anyURI?"/> <!-- get the value of the @data-content-mode attribute -->
                 <xsl:variable name="container" select="." as="element()"/>
                 <xsl:variable name="progress-container" select="if (contains-token(@class, 'row-fluid')) then ./div[contains-token(@class, 'span7')] else ." as="element()"/>
 
@@ -219,6 +224,7 @@ exclude-result-prefixes="#all"
                             <xsl:with-param name="uri" select="$uri"/>
                             <xsl:with-param name="content-uri" select="$content-uri"/>
                             <xsl:with-param name="container" select="$container"/>
+                            <xsl:with-param name="mode" select="$mode"/>
                             <!--<xsl:with-param name="state" select="$state"/>-->
                         </xsl:call-template>
                     </ixsl:schedule-action>
@@ -236,10 +242,11 @@ exclude-result-prefixes="#all"
         <xsl:param name="content-uri" as="xs:anyURI"/>
         <xsl:param name="container" as="element()"/>
         <xsl:param name="container-id" select="ixsl:get($container, 'id')" as="xs:string"/>
+        <xsl:param name="mode" as="xs:anyURI?"/>
         
-        <xsl:variable name="content" select="key('resources', $content-uri, ?body)" as="element()?"/>
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml' and $content">
+                <xsl:variable name="content" select="key('resources', $content-uri, ?body)" as="element()?"/>
                 <!-- replace dots which have a special meaning in Saxon-JS -->
                 <xsl:variable name="escaped-content-uri" select="xs:anyURI(translate($content-uri, '.', '-'))" as="xs:anyURI"/>
                 <!-- create new cache entry using content URI as key -->
@@ -255,6 +262,7 @@ exclude-result-prefixes="#all"
                 <xsl:apply-templates select="$content" mode="ldh:Content">
                     <xsl:with-param name="uri" select="$uri"/>
                     <xsl:with-param name="container" select="$container"/>
+                    <xsl:with-param name="mode" select="$mode"/>
                 </xsl:apply-templates>
             </xsl:when>
             <!-- content could not be loaded as RDF -->
@@ -282,6 +290,7 @@ exclude-result-prefixes="#all"
     <xsl:template name="onQueryContentLoad">
         <xsl:param name="container" as="element()"/>
         <xsl:param name="content-uri" as="xs:anyURI"/>
+        <xsl:param name="mode" as="xs:anyURI?"/>
 
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">

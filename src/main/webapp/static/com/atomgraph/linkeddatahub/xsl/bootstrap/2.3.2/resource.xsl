@@ -665,7 +665,10 @@ extension-element-prefixes="ixsl"
             <xsl:if test="$class">
                 <xsl:attribute name="class" select="$class"/>
             </xsl:if>
-                    
+            <xsl:if test="ac:mode/@rdf:resource">
+                <xsl:attribute name="data-content-mode" select="ac:mode/@rdf:resource"/>
+            </xsl:if>
+            
             <xsl:apply-templates select="." mode="bs2:Left"/>
             
             <div class="span7">
