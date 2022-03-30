@@ -296,7 +296,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="select-xml" as="document-node()"/>
         <xsl:param name="endpoint" select="xs:anyURI"/>
         <xsl:param name="focus-var-name" as="xs:string"/>
-        <xsl:param name="active-mode" as="xs:anyURI"/>
+        <xsl:param name="active-mode" select="xs:anyURI('&ac;ListMode')" as="xs:anyURI"/>
 
         <!-- wrap SELECT into a DESCRIBE -->
         <xsl:variable name="query-xml" as="element()">

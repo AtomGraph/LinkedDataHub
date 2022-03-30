@@ -380,6 +380,34 @@ extension-element-prefixes="ixsl"
         </div>
     </xsl:template>
 
+    <!-- MODE TABS -->
+    
+    <xsl:template match="*[@rdf:about]" mode="bs2:ModeTabsItem">
+        <xsl:param name="active" as="xs:boolean"/>
+        <xsl:param name="mode-classes" as="map(xs:string, xs:string)">
+            <xsl:map>
+                <xsl:map-entry key="'&ldh;ContentMode'" select="'content-mode'"/>
+                <xsl:map-entry key="'&ac;ReadMode'" select="'read-mode'"/>
+                <xsl:map-entry key="'&ac;MapMode'" select="'map-mode'"/>
+                <xsl:map-entry key="'&ac;ChartMode'" select="'chart-mode'"/>
+                <xsl:map-entry key="'&ac;GraphMode'" select="'graph-mode'"/>
+            </xsl:map>
+        </xsl:param>
+        <xsl:param name="class" select="map:get($mode-classes, @rdf:about) || (if ($active) then ' active' else ())" as="xs:string?"/>
+
+        <li>
+            <xsl:if test="$class">
+                <xsl:attribute name="class" select="$class"/>
+            </xsl:if>
+
+            <a href="{ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ac:uri(), xs:anyURI(@rdf:about))}">
+                <xsl:value-of>
+                    <xsl:apply-templates select="." mode="ac:label"/>
+                </xsl:value-of>
+            </a>
+        </li>
+    </xsl:template>
+    
     <!-- BLOCK ROW -->
     
     <!-- mark query instances as .resource-content which is then rendered by client.xsl -->
