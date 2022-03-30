@@ -702,7 +702,7 @@ exclude-result-prefixes="#all">
                     <xsl:with-param name="has-content" select="$has-content"/>
                     <xsl:with-param name="active-mode" select="$ac:mode"/>
                     <xsl:with-param name="forClass" select="$ac:forClass"/>
-                    <xsl:with-param name="$ldh:ajaxRendering" select="$has-content"/>
+                    <xsl:with-param name="ajax-rendering" select="$ldh:ajaxRendering"/>
                 </xsl:apply-templates>
             
                 <xsl:choose>
