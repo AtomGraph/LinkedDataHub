@@ -830,7 +830,9 @@ exclude-result-prefixes="#all"
         
         <xsl:for-each select="$container">
             <xsl:result-document href="?." method="ixsl:replace-content">
-                <h2 class="nav-header btn">Related results</h2>
+                <h2 class="nav-header btn">
+                    <xsl:apply-templates select="key('resources', 'related-results', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                </h2>
 
                 <ul id="{$properties-container-id}" class="well well-small nav nav-list">
                     <!-- <li> with properties will go here -->

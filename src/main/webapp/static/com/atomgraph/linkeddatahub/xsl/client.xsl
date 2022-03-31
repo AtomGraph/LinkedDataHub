@@ -704,28 +704,44 @@ WHERE
                 <ul class="dropdown-menu">
                     <!-- TO-DO: replace with an RDF/XML document and ldh:logo/xhtml:Anchor calls -->
                     <li>
-                        <a href="{$ldt:base}" class="btn-logo btn-container">Root</a>
+                        <a href="{$ldt:base}" class="btn-logo btn-container">
+                            <xsl:apply-templates select="key('resources', 'root', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                        </a>
                     </li>
                     <li>
-                        <a href="{$ldt:base}apps/" class="btn-logo btn-app">Applications</a>
+                        <a href="{$ldt:base}apps/" class="btn-logo btn-app">
+                            <xsl:apply-templates select="key('resources', 'applications', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                        </a>
                     </li>
                     <li>
-                        <a href="{$ldt:base}charts/" class="btn-logo btn-chart">Charts</a>
+                        <a href="{$ldt:base}charts/" class="btn-logo btn-chart">
+                            <xsl:apply-templates select="key('resources', 'charts', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                        </a>
                     </li>
                     <li>
-                        <a href="{$ldt:base}files/" class="btn-logo btn-file">Files</a>
+                        <a href="{$ldt:base}files/" class="btn-logo btn-file">
+                            <xsl:apply-templates select="key('resources', 'files', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                        </a>
                     </li>
                     <li>
-                        <a href="{$ldt:base}geo/" class="btn-logo btn-geo">Geo</a>
+                        <a href="{$ldt:base}geo/" class="btn-logo btn-geo">
+                            <xsl:apply-templates select="key('resources', 'geo', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                        </a>
                     </li>
                     <li>
-                        <a href="{$ldt:base}imports/" class="btn-logo btn-import">Imports</a>
+                        <a href="{$ldt:base}imports/" class="btn-logo btn-import">
+                            <xsl:apply-templates select="key('resources', 'imports', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                        </a>
                     </li>
                     <li>
-                        <a href="{$ldt:base}latest/" class="btn-logo btn-latest">Latest</a>
+                        <a href="{$ldt:base}latest/" class="btn-logo btn-latest">
+                            <xsl:apply-templates select="key('resources', 'latest', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                        </a>
                     </li>
                     <li>
-                        <a href="{$ldt:base}queries/" class="btn-logo btn-query">Queries</a>
+                        <a href="{$ldt:base}queries/" class="btn-logo btn-query">
+                            <xsl:apply-templates select="key('resources', 'queries', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                        </a>
                     </li>
                 </ul>
             </div>

@@ -116,9 +116,6 @@
         <rdfs:label xml:lang="en-US">Services</rdfs:label>
         <rdfs:label xml:lang="es-ES">Servicios</rdfs:label>
     </rdf:Description>
-    <rdf:Description rdf:nodeID="apps">
-        <rdfs:label xml:lang="en-US">Applications</rdfs:label>
-    </rdf:Description>
     <rdf:Description rdf:nodeID="layout">
         <rdfs:label xml:lang="en-US">Layout</rdfs:label>
         <rdfs:label xml:lang="es-ES">Diseño</rdfs:label>
@@ -324,5 +321,8 @@
     <rdf:Description rdf:about="clear">
         <rdfs:label xml:lang="en-US">Clear</rdfs:label>
         <rdfs:label xml:lang="es-ES">Limpiar</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:about="related-results">
+        <rdfs:label xml:lang="en-US">Related results</rdfs:label>
     </rdf:Description>
 </rdf:RDF>
