@@ -172,7 +172,9 @@ import com.github.jsonldjava.core.JsonLdOptions;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
@@ -264,6 +266,7 @@ public class Application extends ResourceConfig
     private final Properties emailProperties = new Properties();
     private final KeyStore keyStore, trustStore;
     private final URI secretaryWebIDURI;
+    private final List<Locale> supportedLanguages;
     private final ExpiringMap<URI, Model> webIDmodelCache = ExpiringMap.builder().expiration(1, TimeUnit.DAYS).build(); // TO-DO: config for the expiration period?
     private final ExpiringMap<String, Model> oidcModelCache = ExpiringMap.builder().variableExpiration().build();
     private final Map<URI, XsltExecutable> xsltExecutableCache = new HashMap<>();
@@ -318,6 +321,7 @@ public class Application extends ResourceConfig
             servletConfig.getServletContext().getInitParameter("mail.password") != null ? servletConfig.getServletContext().getInitParameter("mail.password") : null,
             servletConfig.getServletContext().getInitParameter("mail.smtp.host") != null ? servletConfig.getServletContext().getInitParameter("mail.smtp.host") : null,
             servletConfig.getServletContext().getInitParameter("mail.smtp.port") != null ? servletConfig.getServletContext().getInitParameter("mail.smtp.port") : null,
+            "en-US,es-ES",
             servletConfig.getServletContext().getInitParameter(Google.clientID.getURI()) != null ? servletConfig.getServletContext().getInitParameter(Google.clientID.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(Google.clientSecret.getURI()) != null ? servletConfig.getServletContext().getInitParameter(Google.clientSecret.getURI()) : null
         );
@@ -370,6 +374,7 @@ public class Application extends ResourceConfig
      * @param mailPassword password of the SMTP email server
      * @param smtpHost Hostname of the SMTP email server
      * @param smtpPort Port of the SMTP email server
+     * @param supportedLanguageCodes Comma-separated codes of supported languages
      * @param googleClientID client ID for Google's OAuth
      * @param googleClientSecret client secret for Google's OAuth
      */
@@ -385,6 +390,7 @@ public class Application extends ResourceConfig
             final Integer cookieMaxAge, final Integer maxPostSize,
             final Integer maxConnPerRoute, final Integer maxTotalConn, final ConnectionKeepAliveStrategy importKeepAliveStrategy,
             final String notificationAddressString, final String mailUser, final String mailPassword, final String smtpHost, final String smtpPort,
+            final String supportedLanguageCodes,
             final String googleClientID, final String googleClientSecret)
     {
         if (clientKeyStoreURIString == null)
@@ -460,6 +466,13 @@ public class Application extends ResourceConfig
         }
         this.cookieMaxAge = cookieMaxAge;
 
+        if (supportedLanguageCodes == null)
+        {
+            if (log.isErrorEnabled()) log.error("Supported languages ({}) not configured", LDHC.supportedLanguages.getURI());
+            throw new ConfigurationException(LDHC.supportedLanguages);
+        }
+        this.supportedLanguages = Arrays.asList(supportedLanguageCodes.split(",")).stream().map(code -> Locale.forLanguageTag(code)).collect(Collectors.toList());
+        
         this.servletConfig = servletConfig;
         this.mediaTypes = mediaTypes;
         this.maxGetRequestSize = maxGetRequestSize;
@@ -1756,6 +1769,16 @@ public class Application extends ResourceConfig
     public MessageDigest getMessageDigest()
     {
         return messageDigest;
+    }
+    
+    /**
+     * Returns list of locales for languages supported by the UI.
+     * 
+     * @return locale list
+     */
+    public List<Locale> getSupportedLanguages()
+    {
+        return supportedLanguages;
     }
     
 }

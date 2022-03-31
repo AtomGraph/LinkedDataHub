@@ -44,6 +44,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -739,6 +740,17 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
         if (!dates.isEmpty()) return Collections.max(dates);
         
         return null;
+    }
+    
+    /**
+     * Returns a list of supported languages.
+     * 
+     * @return list of languages
+     */
+    @Override
+    public List<Locale> getLanguages()
+    {
+        return getSystem().getSupportedLanguages();
     }
     
     /**

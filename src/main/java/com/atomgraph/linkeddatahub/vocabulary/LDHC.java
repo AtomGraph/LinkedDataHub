@@ -143,4 +143,6 @@ public class LDHC
     /** Max content length property */
     public static final DatatypeProperty maxContentLength = m_model.createDatatypeProperty( NS + "maxContentLength" );
 
+    public static final DatatypeProperty supportedLanguages = m_model.createDatatypeProperty( NS + "supportedLanguages" );
+
 }

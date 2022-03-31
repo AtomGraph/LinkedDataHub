@@ -3,7 +3,7 @@
 
     <groupId>com.atomgraph</groupId>
     <artifactId>linkeddatahub</artifactId>
-    <version>3.1.1-SNAPSHOT</version>
+    <version>3.1.2-SNAPSHOT</version>
     <packaging>${packaging.type}</packaging>
 
     <name>AtomGraph LinkedDataHub</name>
@@ -134,7 +134,7 @@
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>processor</artifactId>
-            <version>3.13.11-SNAPSHOT</version>
+            <version>3.13.12-SNAPSHOT</version>
             <exclusions>
                 <!-- exclude jakarta.json as its version clashes with Jersey's -->
                 <exclusion>
@@ -146,7 +146,7 @@
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>client</artifactId>
-            <version>3.1.30-SNAPSHOT</version>
+            <version>3.1.31-SNAPSHOT</version>
             <classifier>classes</classifier>
             <exclusions>
                 <!-- exclude jakarta.json as its version clashes with Jersey's -->
@@ -159,7 +159,7 @@
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>client</artifactId>
-            <version>3.1.30-SNAPSHOT</version>
+            <version>3.1.31-SNAPSHOT</version>
             <type>war</type>
             <exclusions>
                 <!-- exclude jakarta.json as its version clashes with Jersey's -->
@@ -434,7 +434,7 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-source-plugin</artifactId>
-                        <version>3.1.0</version>
+                        <version>3.2.1</version>
                         <executions>
                             <execution>
                                 <id>attach-sources</id>
