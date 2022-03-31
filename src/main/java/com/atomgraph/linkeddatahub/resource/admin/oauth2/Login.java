@@ -102,7 +102,6 @@ public class Login extends GraphStoreImpl
     private final HttpHeaders httpHeaders;
     private final String emailSubject;
     private final String emailText;
-    private final Query userAccountQuery;
     private final String clientID, clientSecret;
     
     /**
@@ -133,7 +132,6 @@ public class Login extends GraphStoreImpl
         emailText = servletConfig.getServletContext().getInitParameter(LDHC.oAuthSignUpEMailText.getURI());
         if (emailText == null) throw new InternalServerErrorException(new ConfigurationException(LDHC.oAuthSignUpEMailText));
         
-        userAccountQuery = system.getUserAccountQuery();
         clientID = (String)system.getProperty(Google.clientID.getURI());
         clientSecret = (String)system.getProperty(Google.clientSecret.getURI());
     }
@@ -507,7 +505,7 @@ public class Login extends GraphStoreImpl
      */
     public Query getUserAccountQuery()
     {
-        return userAccountQuery;
+        return getSystem().getUserAccountQuery();
     }
     
     /**

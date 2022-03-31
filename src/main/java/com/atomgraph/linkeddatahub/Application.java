@@ -248,7 +248,7 @@ public class Application extends ResourceConfig
     private final Map<String, OntModelSpec> endUserOntModelSpecs;
     private final MediaTypes mediaTypes;
     private final Client client, importClient, noCertClient;
-    private final Query authQuery, ownerAuthQuery, webIDQuery, userAccountQuery, ontologyQuery; // no relative URIs
+    private final Query authQuery, ownerAuthQuery, webIDQuery, agentQuery, userAccountQuery, ontologyQuery; // no relative URIs
     private final Integer maxGetRequestSize;
     private final boolean preemptiveAuth;
     private final Processor xsltProc = new Processor(false);
@@ -302,6 +302,7 @@ public class Application extends ResourceConfig
             servletConfig.getServletContext().getInitParameter(LDHC.authQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.authQuery.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.ownerAuthQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.ownerAuthQuery.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.webIDQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.webIDQuery.getURI()) : null,
+            servletConfig.getServletContext().getInitParameter(LDHC.agentQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.agentQuery.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.userAccountQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.userAccountQuery.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.ontologyQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.ontologyQuery.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.baseUri.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.baseUri.getURI()) : null,
@@ -356,6 +357,7 @@ public class Application extends ResourceConfig
      * @param authQueryString SPARQL string of the authorization query
      * @param ownerAuthQueryString SPARQL string of the admin authorization query
      * @param webIDQueryString SPARQL string of the WebID validation query
+     * @param agentQueryString SPARQL string of the <code>Agent</code> lookup query
      * @param userAccountQueryString SPARQL string of the <code>UserAccount</code> lookup query
      * @param ontologyQueryString SPARQL string of the ontology load query
      * @param baseURIString system base URI
@@ -384,7 +386,7 @@ public class Application extends ResourceConfig
             final String clientKeyStoreURIString, final String clientKeyStorePassword,
             final String secretaryCertAlias,
             final String clientTrustStoreURIString, final String clientTrustStorePassword,
-            final String authQueryString, final String ownerAuthQueryString, final String webIDQueryString, final String userAccountQueryString, final String ontologyQueryString,
+            final String authQueryString, final String ownerAuthQueryString, final String webIDQueryString, final String agentQueryString, final String userAccountQueryString, final String ontologyQueryString,
             final String baseURIString, final String proxyScheme, final String proxyHostname, final Integer proxyPort,
             final String uploadRootString, final boolean invalidateCache,
             final Integer cookieMaxAge, final Integer maxPostSize,
@@ -431,6 +433,13 @@ public class Application extends ResourceConfig
             throw new ConfigurationException(LDHC.webIDQuery);
         }
         this.webIDQuery = QueryFactory.create(webIDQueryString);
+        
+        if (agentQueryString == null)
+        {
+            if (log.isErrorEnabled()) log.error("Agent SPARQL query is not configured properly");
+            throw new ConfigurationException(LDHC.agentQuery);
+        }
+        this.agentQuery = QueryFactory.create(agentQueryString);
         
         if (userAccountQueryString == null)
         {
@@ -1494,7 +1503,7 @@ public class Application extends ResourceConfig
      */
     public Query getAuthQuery()
     {
-        return authQuery;
+        return authQuery.cloneQuery();
     }
     
     /**
@@ -1505,7 +1514,7 @@ public class Application extends ResourceConfig
      */
     public Query getOwnerAuthQuery()
     {
-        return ownerAuthQuery;
+        return ownerAuthQuery.cloneQuery();
     }
     
     /**
@@ -1515,7 +1524,17 @@ public class Application extends ResourceConfig
      */
     public Query getWebIDQuery()
     {
-        return webIDQuery;
+        return webIDQuery.cloneQuery();
+    }
+    
+    /**
+     * Returns the agent lookup query.
+     * 
+     * @return query object
+     */
+    public Query getAgentQuery()
+    {
+        return agentQuery.cloneQuery();
     }
     
     /**
@@ -1525,7 +1544,7 @@ public class Application extends ResourceConfig
      */
     public Query getUserAccountQuery()
     {
-        return userAccountQuery;
+        return userAccountQuery.cloneQuery();
     }
     
     /**
@@ -1535,7 +1554,7 @@ public class Application extends ResourceConfig
      */
     public Query getOntologyQuery()
     {
-        return ontologyQuery;
+        return ontologyQuery.cloneQuery();
     }
     
     /**

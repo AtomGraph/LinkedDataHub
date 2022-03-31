@@ -136,10 +136,13 @@ WHERE
     <context-param>
         <param-name>https://w3id.org/atomgraph/linkeddatahub/config#agentQuery</param-name>
         <param-value><![CDATA[
-DESCRIBE $Agent
+PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
+
+DESCRIBE ?Agent
 WHERE
   { GRAPH ?g
-      { $Agent  ?p  ?o }
+      { ?Agent  foaf:mbox  $mbox
+      }
   }
 ]]></param-value>
     </context-param>

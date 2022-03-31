@@ -72,6 +72,8 @@ import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.Providers;
 import static org.apache.jena.datatypes.xsd.XSDDatatype.XSDhexBinary;
 import org.apache.jena.ontology.Ontology;
+import org.apache.jena.query.ParameterizedSparqlString;
+import org.apache.jena.query.Query;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.NodeIterator;
@@ -193,6 +195,13 @@ public class SignUp extends GraphStoreImpl
             Resource agent = it.next();
             String password = validateAndRemovePassword(agent);
             // TO-DO: trim values
+            String mbox = agent.getRequiredProperty(FOAF.mbox).getResource().getURI().substring("mailto:".length());
+
+            ParameterizedSparqlString pss = new ParameterizedSparqlString(getAgentQuery().toString());
+            pss.setIri(FOAF.mbox.getLocalName(), mbox);
+            boolean agentExists = !getAgentService().getSPARQLClient().loadModel(pss.asQuery()).isEmpty();
+            if (agentExists) throw createSPINConstraintViolationException(agent, FOAF.mbox, "Agent with this mailbox already exists");
+            
             String givenName = agent.getRequiredProperty(FOAF.givenName).getString();
             String familyName = agent.getRequiredProperty(FOAF.familyName).getString();
             String fullName = givenName + " " + familyName;
@@ -494,7 +503,17 @@ public class SignUp extends GraphStoreImpl
         else
             return getApplication().as(AdminApplication.class).getEndUserApplication();
     }
-
+    
+    /**
+     * Returns the SPARQL service from which agent data is retrieved.
+     * 
+     * @return SPARQL service
+     */
+    public Service getAgentService()
+    {
+        return getApplication().getService();
+    }
+    
     /**
      * Returns URI of this resource.
      * 
@@ -543,6 +562,16 @@ public class SignUp extends GraphStoreImpl
     public String getEmailText()
     {
         return emailText;
+    }
+    
+    /**
+     * Returns SPARQL query used to load agent by mailbox.
+     * 
+     * @return SPARQL query
+     */
+    public Query getAgentQuery()
+    {
+        return getSystem().getAgentQuery();
     }
     
 }

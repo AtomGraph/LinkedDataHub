@@ -70,7 +70,10 @@ public class LDHC
 
     /** WebID query property */
     public static final DatatypeProperty webIDQuery = m_model.createDatatypeProperty( NS + "webIDQuery" );
-    
+
+    /** Agent query property */
+    public static final DatatypeProperty agentQuery = m_model.createDatatypeProperty( NS + "agentQuery" );
+
     /** User account query property */
     public static final DatatypeProperty userAccountQuery = m_model.createDatatypeProperty( NS + "userAccountQuery" );
     
