@@ -40,6 +40,7 @@ import com.auth0.jwt.JWT;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Base64;
 import java.util.GregorianCalendar;
 import java.util.Optional;
@@ -70,7 +71,6 @@ import org.apache.jena.query.ParameterizedSparqlString;
 import org.apache.jena.query.Query;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
-import org.apache.jena.rdf.model.NodeIterator;
 import org.apache.jena.rdf.model.ResIterator;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
@@ -175,32 +175,47 @@ public class Login extends GraphStoreImpl
             String idToken = response.getString("id_token");
             DecodedJWT jwt = JWT.decode(idToken);
 
-            ParameterizedSparqlString pss = new ParameterizedSparqlString(getUserAccountQuery().toString());
-            pss.setLiteral(SIOC.ID.getLocalName(), jwt.getSubject());
-            pss.setLiteral(LACL.issuer.getLocalName(), jwt.getIssuer());
-            boolean accountExists = !getAgentService().getSPARQLClient().loadModel(pss.asQuery()).isEmpty();
+            ParameterizedSparqlString accountPss = new ParameterizedSparqlString(getUserAccountQuery().toString());
+            accountPss.setLiteral(SIOC.ID.getLocalName(), jwt.getSubject());
+            accountPss.setLiteral(LACL.issuer.getLocalName(), jwt.getIssuer());
+            final boolean accountExists = !getAgentService().getSPARQLClient().loadModel(accountPss.asQuery()).isEmpty();
 
             if (!accountExists) // UserAccount with this ID does not exist yet
             {
-                Model agentModel = ModelFactory.createDefaultModel();
-                URI agentGraphUri = getUriInfo().getBaseUriBuilder().path(AGENT_PATH).path("{slug}/").build(UUID.randomUUID().toString());
-
                 String email = jwt.getClaim("email").asString();
-                createAgent(agentModel,
-                    agentGraphUri,
-                    agentModel.createResource(getUriInfo().getBaseUri().resolve(AGENT_PATH).toString()),
-                    jwt.getClaim("given_name").asString(),
-                    jwt.getClaim("family_name").asString(),
-                    email,
-                    jwt.getClaim("picture") != null ? jwt.getClaim("picture").asString() : null);
-                // skolemize here because this Model will not go through SkolemizingModelProvider
-                skolemize(agentModel, agentGraphUri);
+                Resource mbox = ResourceFactory.createResource("mailto:" + email);
                 
+                ParameterizedSparqlString agentPss = new ParameterizedSparqlString(getAgentQuery().toString());
+                agentPss.setParam(FOAF.mbox.getLocalName(), mbox);
+                final Model agentModel = getAgentService().getSPARQLClient().loadModel(agentPss.asQuery());
+                
+                final boolean agentExists;
+                // if Agent with this foaf:mbox does not exist (lookup model is empty), create it; otherwise, reuse it
+                if (agentModel.isEmpty()) 
+                {
+                    agentExists = false;
+                    URI agentGraphUri = getUriInfo().getBaseUriBuilder().path(AGENT_PATH).path("{slug}/").build(UUID.randomUUID().toString());
+
+                    createAgent(agentModel,
+                        agentGraphUri,
+                        agentModel.createResource(getUriInfo().getBaseUri().resolve(AGENT_PATH).toString()),
+                        jwt.getClaim("given_name").asString(),
+                        jwt.getClaim("family_name").asString(),
+                        email,
+                        jwt.getClaim("picture") != null ? jwt.getClaim("picture").asString() : null);
+                    
+                    // skolemize here because this Model will not go through SkolemizingModelProvider
+                    skolemize(agentModel, agentGraphUri);
+                }
+                else
+                    agentExists = true;
+                
+                // lookup Agent resource after its URI has been skolemized
                 ResIterator it = agentModel.listResourcesWithProperty(FOAF.mbox);
                 try
                 {
                     // we need to retrieve resources again because they've changed from bnodes to URIs
-                    Resource agent = it.next();
+                    final Resource agent = it.next();
                 
                     Model accountModel = ModelFactory.createDefaultModel();
                     URI userAccountGraphUri = getUriInfo().getBaseUriBuilder().path(ACCOUNT_PATH).path("{slug}/").build(UUID.randomUUID().toString());
@@ -222,52 +237,48 @@ public class Login extends GraphStoreImpl
                     }
                     if (log.isDebugEnabled()) log.debug("Created UserAccount for user ID: {}", jwt.getSubject());
 
-                    NodeIterator userAccountIt = accountModel.listObjectsOfProperty(ResourceFactory.createResource(userAccountGraphUri.toString()), FOAF.primaryTopic);
-                    try
+                    // lookup UserAccount resource after its URI has been skolemized
+                    userAccount = accountModel.createResource(userAccountGraphUri.toString()).getPropertyResourceValue(FOAF.primaryTopic);
+                    agent.addProperty(FOAF.account, userAccount);
+                    agentModel.add(agentModel.createResource(getSystem().getSecretaryWebIDURI().toString()), ACL.delegates, agent); // make secretary delegate whis agent
+
+                    URI agentUri = URI.create(agent.getURI());
+                    // get Agent's document URI by stripping the fragment identifier from the Agent's URI
+                    URI agentGraphUri = new URI(agentUri.getScheme(), agentUri.getSchemeSpecificPart(), null).normalize();
+                    Response agentResponse = super.post(agentModel, false, agentGraphUri);
+                    if ((!agentExists && agentResponse.getStatus() != Response.Status.CREATED.getStatusCode()) ||
+                        (agentExists && agentResponse.getStatus() != Response.Status.OK.getStatusCode()))
                     {
-                        userAccount = userAccountIt.next().asResource();
-
-                        agent.addProperty(FOAF.account, userAccount);
-                        agentModel.add(agentModel.createResource(getSystem().getSecretaryWebIDURI().toString()), ACL.delegates, agent); // make secretary delegate whis agent
-
-                        Response agentResponse = super.post(agentModel, false, agentGraphUri);
-                        if (agentResponse.getStatus() != Response.Status.CREATED.getStatusCode())
-                        {
-                            if (log.isErrorEnabled()) log.error("Cannot create Agent");
-                            throw new InternalServerErrorException("Cannot create Agent");
-                        }
-
-                        Model authModel = ModelFactory.createDefaultModel();
-                        URI authGraphUri = getUriInfo().getBaseUriBuilder().path(AUTHORIZATION_PATH).path("{slug}/").build(UUID.randomUUID().toString());
-                        createAuthorization(authModel,
-                            authGraphUri,
-                            accountModel.createResource(getUriInfo().getBaseUri().resolve(AUTHORIZATION_PATH).toString()),
-                            agentGraphUri,
-                            userAccountGraphUri);
-                        skolemize(authModel, authGraphUri);
-                        
-                        Response authResponse = super.post(authModel, false, authGraphUri);
-                        if (authResponse.getStatus() != Response.Status.CREATED.getStatusCode())
-                        {
-                            if (log.isErrorEnabled()) log.error("Cannot create Authorization");
-                            throw new InternalServerErrorException("Cannot create Authorization");
-                        }
-
-                        // purge agent lookup from proxy cache
-                        if (getApplication().getService().getProxy() != null) ban(getApplication().getService().getProxy(), jwt.getSubject());
-                        
-                        // remove secretary WebID from cache
-                        getSystem().getEventBus().post(new com.atomgraph.linkeddatahub.server.event.SignUp(getSystem().getSecretaryWebIDURI()));
-
-                        if (log.isDebugEnabled()) log.debug("Created Agent for user ID: {}", jwt.getSubject());
-                        sendEmail(agent);
+                        if (log.isErrorEnabled()) log.error("Cannot create Agent or append metadata to it");
+                        throw new InternalServerErrorException("Cannot create Agent or append metadata to it");
                     }
-                    finally
+
+                    Model authModel = ModelFactory.createDefaultModel();
+                    URI authGraphUri = getUriInfo().getBaseUriBuilder().path(AUTHORIZATION_PATH).path("{slug}/").build(UUID.randomUUID().toString());
+                    createAuthorization(authModel,
+                        authGraphUri,
+                        accountModel.createResource(getUriInfo().getBaseUri().resolve(AUTHORIZATION_PATH).toString()),
+                        agentGraphUri,
+                        userAccountGraphUri);
+                    skolemize(authModel, authGraphUri);
+
+                    Response authResponse = super.post(authModel, false, authGraphUri);
+                    if (authResponse.getStatus() != Response.Status.CREATED.getStatusCode())
                     {
-                        userAccountIt.close();
+                        if (log.isErrorEnabled()) log.error("Cannot create Authorization");
+                        throw new InternalServerErrorException("Cannot create Authorization");
                     }
+
+                    // purge agent lookup from proxy cache
+                    if (getApplication().getService().getProxy() != null) ban(getApplication().getService().getProxy(), jwt.getSubject());
+
+                    // remove secretary WebID from cache
+                    getSystem().getEventBus().post(new com.atomgraph.linkeddatahub.server.event.SignUp(getSystem().getSecretaryWebIDURI()));
+
+                    if (log.isDebugEnabled()) log.debug("Created Agent for user ID: {}", jwt.getSubject());
+                    sendEmail(agent);
                 }
-                catch (UnsupportedEncodingException | MessagingException | InternalServerErrorException ex)
+                catch (UnsupportedEncodingException | MessagingException | URISyntaxException | InternalServerErrorException ex)
                 {
                     throw new MappableException(ex);
                 }
@@ -506,6 +517,16 @@ public class Login extends GraphStoreImpl
     public Query getUserAccountQuery()
     {
         return getSystem().getUserAccountQuery();
+    }
+    
+    /**
+     * Returns SPARQL query used to load agent by mailbox.
+     * 
+     * @return SPARQL query
+     */
+    public Query getAgentQuery()
+    {
+        return getSystem().getAgentQuery();
     }
     
     /**

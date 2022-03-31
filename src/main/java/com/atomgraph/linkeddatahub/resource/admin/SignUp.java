@@ -76,7 +76,6 @@ import org.apache.jena.query.ParameterizedSparqlString;
 import org.apache.jena.query.Query;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
-import org.apache.jena.rdf.model.NodeIterator;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.ResIterator;
 import org.apache.jena.rdf.model.Resource;
@@ -252,60 +251,51 @@ public class SignUp extends GraphStoreImpl
                     throw new InternalServerErrorException("Cannot create PublicKey");
                 }
 
-                NodeIterator publicKeyIt = publicKeyModel.listObjectsOfProperty(ResourceFactory.createResource(publicKeyGraphUri.toString()), FOAF.primaryTopic);
-                try
+                Resource publicKey = publicKeyModel.createResource(publicKeyGraphUri.toString()).getPropertyResourceValue(FOAF.primaryTopic);
+                agent.addProperty(Cert.key, publicKey); // add public key
+                agentModel.add(agentModel.createResource(getSystem().getSecretaryWebIDURI().toString()), ACL.delegates, agent); // make secretary delegate whis agent
+
+                Response agentResponse = super.post(agentModel, false, agentGraphUri);
+                if (agentResponse.getStatus() != Response.Status.CREATED.getStatusCode())
                 {
-                    Resource publicKey = publicKeyIt.next().asResource();
-
-                    agent.addProperty(Cert.key, publicKey); // add public key
-                    agentModel.add(agentModel.createResource(getSystem().getSecretaryWebIDURI().toString()), ACL.delegates, agent); // make secretary delegate whis agent
-
-                    Response agentResponse = super.post(agentModel, false, agentGraphUri);
-                    if (agentResponse.getStatus() != Response.Status.CREATED.getStatusCode())
-                    {
-                        if (log.isErrorEnabled()) log.error("Cannot create Agent");
-                        throw new InternalServerErrorException("Cannot create Agent");
-                    }
-
-                    URI authGraphUri = getUriInfo().getBaseUriBuilder().path(AUTHORIZATION_PATH).path("{slug}/").build(UUID.randomUUID().toString());
-                    Model authModel = ModelFactory.createDefaultModel();
-                    createAuthorization(authModel,
-                        authGraphUri,
-                        authModel.createResource(getUriInfo().getBaseUri().resolve(AUTHORIZATION_PATH).toString()),
-                        agentGraphUri,
-                        publicKeyGraphUri);
-                    skolemize(authModel, authGraphUri);
-                    
-                    Response authResponse = super.post(authModel, false, authGraphUri);
-                    if (authResponse.getStatus() != Response.Status.CREATED.getStatusCode())
-                    {
-                        if (log.isErrorEnabled()) log.error("Cannot create Authorization");
-                        throw new InternalServerErrorException("Cannot create Authorization");
-                    }
-
-                    // remove secretary WebID from cache
-                    getSystem().getEventBus().post(new com.atomgraph.linkeddatahub.server.event.SignUp(getSystem().getSecretaryWebIDURI()));
-
-                    if (download)
-                    {
-                        return Response.ok(keyStoreBytes).
-                            type(PKCS12_MEDIA_TYPE).
-                            header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=cert.p12").
-                            build();
-                    }
-                    else
-                    {
-                        LocalDate certExpires = LocalDate.now().plusDays(getValidityDays()); // ((X509Certificate)cert).getNotAfter(); 
-                        sendEmail(agent, certExpires, keyStoreBytes, keyStoreFileName);
-
-                        return Response.ok().
-                            entity(agentModel.add(publicKeyModel)).
-                            build(); // don't return 201 Created as we don't want a redirect in client.xsl
-                    }
+                    if (log.isErrorEnabled()) log.error("Cannot create Agent");
+                    throw new InternalServerErrorException("Cannot create Agent");
                 }
-                finally
+
+                URI authGraphUri = getUriInfo().getBaseUriBuilder().path(AUTHORIZATION_PATH).path("{slug}/").build(UUID.randomUUID().toString());
+                Model authModel = ModelFactory.createDefaultModel();
+                createAuthorization(authModel,
+                    authGraphUri,
+                    authModel.createResource(getUriInfo().getBaseUri().resolve(AUTHORIZATION_PATH).toString()),
+                    agentGraphUri,
+                    publicKeyGraphUri);
+                skolemize(authModel, authGraphUri);
+
+                Response authResponse = super.post(authModel, false, authGraphUri);
+                if (authResponse.getStatus() != Response.Status.CREATED.getStatusCode())
                 {
-                    publicKeyIt.close();
+                    if (log.isErrorEnabled()) log.error("Cannot create Authorization");
+                    throw new InternalServerErrorException("Cannot create Authorization");
+                }
+
+                // remove secretary WebID from cache
+                getSystem().getEventBus().post(new com.atomgraph.linkeddatahub.server.event.SignUp(getSystem().getSecretaryWebIDURI()));
+
+                if (download)
+                {
+                    return Response.ok(keyStoreBytes).
+                        type(PKCS12_MEDIA_TYPE).
+                        header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=cert.p12").
+                        build();
+                }
+                else
+                {
+                    LocalDate certExpires = LocalDate.now().plusDays(getValidityDays()); // ((X509Certificate)cert).getNotAfter(); 
+                    sendEmail(agent, certExpires, keyStoreBytes, keyStoreFileName);
+
+                    return Response.ok().
+                        entity(agentModel.add(publicKeyModel)).
+                        build(); // don't return 201 Created as we don't want a redirect in client.xsl
                 }
             }
         }
