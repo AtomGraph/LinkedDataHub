@@ -195,10 +195,10 @@ public class SignUp extends GraphStoreImpl
             Resource agent = it.next();
             String password = validateAndRemovePassword(agent);
             // TO-DO: trim values
-            String mbox = agent.getRequiredProperty(FOAF.mbox).getResource().getURI().substring("mailto:".length());
-
+            Resource mbox = agent.getRequiredProperty(FOAF.mbox).getResource();
+            
             ParameterizedSparqlString pss = new ParameterizedSparqlString(getAgentQuery().toString());
-            pss.setIri(FOAF.mbox.getLocalName(), mbox);
+            pss.setParam(FOAF.mbox.getLocalName(), mbox);
             boolean agentExists = !getAgentService().getSPARQLClient().loadModel(pss.asQuery()).isEmpty();
             if (agentExists) throw createSPINConstraintViolationException(agent, FOAF.mbox, "Agent with this mailbox already exists");
             
