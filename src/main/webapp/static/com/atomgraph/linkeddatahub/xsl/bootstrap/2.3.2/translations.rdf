@@ -263,50 +263,66 @@
     </rdf:Description>
     <rdf:Description rdf:about="administration">
         <rdfs:label xml:lang="en-US">Administration</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Administración</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:about="namespace-ontology">
         <rdfs:label xml:lang="en-US">Namespace ontology</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Espacio de nombres de ontología</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:about="documentation">
         <rdfs:label xml:lang="en-US">Documentation</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Documentación</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:about="sparql-service">
         <rdfs:label xml:lang="en-US">SPARQL service</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Servicio SPARQL</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:about="sparql-editor">
         <rdfs:label xml:lang="en-US">SPARQL editor</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Editor SPARQL</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:about="request-access">
         <rdfs:label xml:lang="en-US">Request access</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Solicitar acceso</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:about="upload-file">
         <rdfs:label xml:lang="en-US">Upload file</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Subir fichero</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:about="from-uri">
         <rdfs:label xml:lang="en-US">From URI</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Desde URI</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:about="add-rdf-data">
         <rdfs:label xml:lang="en-US">Add RDF data</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Añadir datos RDF</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:about="none">
         <rdfs:label xml:lang="en-US">None</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Nada</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:about="ascending">
         <rdfs:label xml:lang="en-US">Ascending</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Ascendente</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:about="descending">
         <rdfs:label xml:lang="en-US">Descending</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Descendente</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:about="source">
         <rdfs:label xml:lang="en-US">Source</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Fuente</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:about="graph">
         <rdfs:label xml:lang="en-US">Graph</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Grafo</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:about="query">
         <rdfs:label xml:lang="en-US">Query</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Consulta</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:about="clear">
         <rdfs:label xml:lang="en-US">Clear</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Limpiar</rdfs:label>
     </rdf:Description>
 </rdf:RDF>
