@@ -77,20 +77,19 @@ public class DataManagerFactory implements Factory<DataManager>
      */
     public DataManager getDataManager(Application app)
     {
+        final com.atomgraph.core.util.jena.DataManager baseManager;
+        
         if (app.canAs(EndUserApplication.class))
-        {
-            com.atomgraph.core.util.jena.DataManager appDataManager = (com.atomgraph.core.util.jena.DataManager)getSystem().getOntModelSpec(app.as(EndUserApplication.class)).
-                    getDocumentManager().getFileManager();
-
-            // copy cached models over from the app's FileManager
-            return new DataManagerImpl(LocationMapper.get(), new HashMap<>(appDataManager.getModelCache()),
-                getSystem().getClient(), getSystem().getMediaTypes(),
-                true, getSystem().isPreemptiveAuth(), getSystem().isResolvingUncached(),
-                URI.create(getHttpServletRequest().getRequestURL().toString()).resolve(getHttpServletRequest().getContextPath() + "/"),
-                    getSecurityContext());
-        }
+            baseManager = (com.atomgraph.core.util.jena.DataManager)getSystem().getOntModelSpec(app.as(EndUserApplication.class)).getDocumentManager().getFileManager();
         else
-            return getSystem().getDataManager();
+            baseManager = getSystem().getDataManager();
+            
+        // copy cached models over from the app's FileManager
+        return new DataManagerImpl(LocationMapper.get(), new HashMap<>(baseManager.getModelCache()),
+            getSystem().getClient(), getSystem().getMediaTypes(),
+            true, getSystem().isPreemptiveAuth(), getSystem().isResolvingUncached(),
+            URI.create(getHttpServletRequest().getRequestURL().toString()).resolve(getHttpServletRequest().getContextPath() + "/"),
+                getSecurityContext());
     }
     
     /**
