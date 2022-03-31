@@ -124,6 +124,8 @@ download_dataset "$ADMIN_ENDPOINT_URL" > "$TMP_ADMIN_DATASET"
 
 run_tests $(find . -type f -name 'webid-delegation.sh')
 (( error_count += $? ))
+run_tests $(find . -type f -name 'admin-webid-delegation.sh')
+(( error_count += $? ))
 run_tests $(find . -type f -name 'HEAD-accept.sh')
 (( error_count += $? ))
 run_tests $(find . -type f -name 'POST-content-length-413.sh')
