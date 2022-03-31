@@ -30,6 +30,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
@@ -72,6 +73,7 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
     private final DataManager dataManager;
     private final MediaType[] readableMediaTypes;
     private final Providers providers;
+    private final com.atomgraph.linkeddatahub.Application system;
 
     /**
      * Constructs the resource.
@@ -131,7 +133,8 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
         this.uriInfo = uriInfo;
         this.dataManager = dataManager;
         this.providers = providers;
-        
+        this.system = system;
+
         List<javax.ws.rs.core.MediaType> readableMediaTypesList = new ArrayList<>();
         readableMediaTypesList.addAll(mediaTypes.getReadable(Model.class));
         readableMediaTypesList.addAll(mediaTypes.getReadable(ResultSet.class)); // not in the superclass
@@ -228,6 +231,17 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
     }
     
     /**
+     * Returns a list of supported languages.
+     * 
+     * @return list of languages
+     */
+    @Override
+    public List<Locale> getLanguages()
+    {
+        return getSystem().getSupportedLanguages();
+    }
+    
+    /**
      * Returns request URI information.
      * 
      * @return URI info
@@ -266,6 +280,16 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
     public Providers getProviders()
     {
         return providers;
+    }
+    
+    /**
+     * Returns the system application.
+     * 
+     * @return JAX-RS application
+     */
+    public com.atomgraph.linkeddatahub.Application getSystem()
+    {
+        return system;
     }
     
 }
