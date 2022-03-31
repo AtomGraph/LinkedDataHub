@@ -42,7 +42,7 @@ exclude-result-prefixes="#all"
     <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&sp;Select'][sp:text]" mode="ldh:Content" priority="1">
         <xsl:param name="uri" as="xs:anyURI"/>
         <xsl:param name="container" as="element()"/>
-        <xsl:param name="mode" select="xs:anyURI('&ac;ListMode')" as="xs:anyURI"/>
+        <xsl:param name="mode" as="xs:anyURI?"/>
         <!-- replace dots with dashes to avoid Saxon-JS treating them as field separators: https://saxonica.plan.io/issues/5031 -->
         <xsl:param name="content-uri" select="xs:anyURI(translate(@rdf:about, '.', '-'))" as="xs:anyURI"/>
         <!-- set $this variable value unless getting the query string from state -->
@@ -103,7 +103,7 @@ exclude-result-prefixes="#all"
                     <xsl:with-param name="select-xml" select="$select-xml"/>
                     <xsl:with-param name="endpoint" select="$endpoint"/>
                     <xsl:with-param name="focus-var-name" select="$focus-var-name"/>
-                    <xsl:with-param name="active-mode" select="$mode"/>
+                    <xsl:with-param name="active-mode" select="if ($mode) then $mode else xs:anyURI('&ac;ListMode')"/>
                 </xsl:call-template>
             </xsl:when>
             <xsl:otherwise>
@@ -123,7 +123,7 @@ exclude-result-prefixes="#all"
     <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = ('&sp;Describe', '&sp;Construct')][sp:text]" mode="ldh:Content" priority="1">
         <xsl:param name="uri" as="xs:anyURI"/>
         <xsl:param name="container" as="element()"/>
-        <xsl:param name="mode" select="xs:anyURI('&ac;ReadMode')" as="xs:anyURI"/>
+        <xsl:param name="mode" as="xs:anyURI?"/>
         <!-- replace dots with dashes to avoid Saxon-JS treating them as field separators: https://saxonica.plan.io/issues/5031 -->
         <xsl:param name="content-uri" select="xs:anyURI(translate(@rdf:about, '.', '-'))" as="xs:anyURI"/>
         <!-- set $this variable value unless getting the query string from state -->
