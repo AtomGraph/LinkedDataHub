@@ -324,5 +324,6 @@
     </rdf:Description>
     <rdf:Description rdf:about="related-results">
         <rdfs:label xml:lang="en-US">Related results</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Resultados relacionados</rdfs:label>
     </rdf:Description>
 </rdf:RDF>
