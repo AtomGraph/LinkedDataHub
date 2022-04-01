@@ -419,9 +419,16 @@ public class Login extends GraphStoreImpl
      */
     public void sendEmail(Resource agent) throws MessagingException, UnsupportedEncodingException
     {
-        String givenName = agent.getRequiredProperty(FOAF.givenName).getString();
-        String familyName = agent.getRequiredProperty(FOAF.familyName).getString();
-        String fullName = givenName + " " + familyName;
+        final String fullName;
+        if (agent.hasProperty(FOAF.givenName) && agent.hasProperty(FOAF.familyName))
+        {
+            String givenName = agent.getRequiredProperty(FOAF.givenName).getString();
+            String familyName = agent.getRequiredProperty(FOAF.familyName).getString();
+            fullName = givenName + " " + familyName;
+        }
+        else
+            fullName = agent.getProperty(FOAF.name).getString();
+                    
         // we expect foaf:mbox value as mailto: URI (it gets converted from literal in Model provider)
         String mbox = agent.getRequiredProperty(FOAF.mbox).getResource().getURI().substring("mailto:".length());
 
