@@ -22,7 +22,7 @@ http {
         ssl_certificate_key $SERVER_KEY_FILE;
         ssl_session_cache shared:SSL:1m;  
         ssl_prefer_server_ciphers on;
-        ssl_verify_client optional_no_ca;
+        ssl_verify_client $SSL_VERIFY_CLIENT;
 
         location / {
             proxy_pass http://linkeddatahub;
