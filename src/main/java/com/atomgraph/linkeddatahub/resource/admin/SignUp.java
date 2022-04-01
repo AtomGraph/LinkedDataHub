@@ -264,6 +264,7 @@ public class SignUp extends GraphStoreImpl
 
                 URI authGraphUri = getUriInfo().getBaseUriBuilder().path(AUTHORIZATION_PATH).path("{slug}/").build(UUID.randomUUID().toString());
                 Model authModel = ModelFactory.createDefaultModel();
+                // creating authorizations for the Agent and PublicKey documents
                 createAuthorization(authModel,
                     authGraphUri,
                     authModel.createResource(getUriInfo().getBaseUri().resolve(AUTHORIZATION_PATH).toString()),

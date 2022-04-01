@@ -255,6 +255,7 @@ public class Login extends GraphStoreImpl
 
                     Model authModel = ModelFactory.createDefaultModel();
                     URI authGraphUri = getUriInfo().getBaseUriBuilder().path(AUTHORIZATION_PATH).path("{slug}/").build(UUID.randomUUID().toString());
+                    // creating authorization for the Agent documents
                     createAuthorization(authModel,
                         authGraphUri,
                         accountModel.createResource(getUriInfo().getBaseUri().resolve(AUTHORIZATION_PATH).toString()),
@@ -399,7 +400,7 @@ public class Login extends GraphStoreImpl
             addProperty(RDF.type, ACL.Authorization).
             addLiteral(DH.slug, UUID.randomUUID().toString()). // TO-DO: get rid of slug properties!
             addProperty(ACL.accessTo, ResourceFactory.createResource(agentGraphURI.toString())).
-            addProperty(ACL.accessTo, ResourceFactory.createResource(userAccountGraphURI.toString())).
+            //addProperty(ACL.accessTo, ResourceFactory.createResource(userAccountGraphURI.toString())).
             addProperty(ACL.mode, ACL.Read).
             addProperty(ACL.agentClass, FOAF.Agent).
             addProperty(ACL.agentClass, ACL.AuthenticatedAgent);
