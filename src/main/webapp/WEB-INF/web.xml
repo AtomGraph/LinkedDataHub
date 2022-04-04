@@ -6,7 +6,11 @@
     id="linkeddatahub" version="3.0">
     <display-name>AtomGraph Platform</display-name>
     <description>Multi-tenant Linked Data platform</description>
-    <!-- context-params are set in docker-compose via conf/ROOT.xml -->
+    <!-- most of the following context-params can be set in docker-compose.yml (via conf/ROOT.xml) -->
+    <context-param>
+        <param-name>https://w3id.org/atomgraph/linkeddatahub/config#supportedLanguages</param-name>
+        <param-value>en,es</param-value>
+    </context-param>
     <context-param>
         <param-name>https://w3id.org/atomgraph/linkeddatahub/config#authCacheControl</param-name>
         <param-value>max-age=69</param-value>

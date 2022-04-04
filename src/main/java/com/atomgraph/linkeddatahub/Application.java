@@ -318,11 +318,11 @@ public class Application extends ResourceConfig
             // TO-DO: respect "timeout" header param in the ConnectionKeepAliveStrategy?
             servletConfig.getServletContext().getInitParameter(LDHC.importKeepAlive.getURI()) != null ? (HttpResponse response, HttpContext context) -> Integer.valueOf(servletConfig.getServletContext().getInitParameter(LDHC.importKeepAlive.getURI())) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.notificationAddress.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.notificationAddress.getURI()) : null,
+            servletConfig.getServletContext().getInitParameter(LDHC.supportedLanguages.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.supportedLanguages.getURI()) : null,
             servletConfig.getServletContext().getInitParameter("mail.user") != null ? servletConfig.getServletContext().getInitParameter("mail.user") : null,
             servletConfig.getServletContext().getInitParameter("mail.password") != null ? servletConfig.getServletContext().getInitParameter("mail.password") : null,
             servletConfig.getServletContext().getInitParameter("mail.smtp.host") != null ? servletConfig.getServletContext().getInitParameter("mail.smtp.host") : null,
             servletConfig.getServletContext().getInitParameter("mail.smtp.port") != null ? servletConfig.getServletContext().getInitParameter("mail.smtp.port") : null,
-            "en,es",
             servletConfig.getServletContext().getInitParameter(Google.clientID.getURI()) != null ? servletConfig.getServletContext().getInitParameter(Google.clientID.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(Google.clientSecret.getURI()) != null ? servletConfig.getServletContext().getInitParameter(Google.clientSecret.getURI()) : null
         );
@@ -372,11 +372,11 @@ public class Application extends ResourceConfig
      * @param maxTotalConn maximum total client connections
      * @param importKeepAliveStrategy keep-alive strategy for the HTTP client used for imports
      * @param notificationAddressString email address used to send notifications
+     * @param supportedLanguageCodes Comma-separated codes of supported languages
      * @param mailUser username of the SMTP email server
      * @param mailPassword password of the SMTP email server
      * @param smtpHost Hostname of the SMTP email server
      * @param smtpPort Port of the SMTP email server
-     * @param supportedLanguageCodes Comma-separated codes of supported languages
      * @param googleClientID client ID for Google's OAuth
      * @param googleClientSecret client secret for Google's OAuth
      */
@@ -391,8 +391,8 @@ public class Application extends ResourceConfig
             final String uploadRootString, final boolean invalidateCache,
             final Integer cookieMaxAge, final Integer maxPostSize,
             final Integer maxConnPerRoute, final Integer maxTotalConn, final ConnectionKeepAliveStrategy importKeepAliveStrategy,
-            final String notificationAddressString, final String mailUser, final String mailPassword, final String smtpHost, final String smtpPort,
-            final String supportedLanguageCodes,
+            final String notificationAddressString, final String supportedLanguageCodes,
+            final String mailUser, final String mailPassword, final String smtpHost, final String smtpPort,
             final String googleClientID, final String googleClientSecret)
     {
         if (clientKeyStoreURIString == null)
@@ -1597,7 +1597,6 @@ public class Application extends ResourceConfig
     {
         return xsltComp;
     }
-    
     
     /**
      * Returns Saxon's XSLT executable.
