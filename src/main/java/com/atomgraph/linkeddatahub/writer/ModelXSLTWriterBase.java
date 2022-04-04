@@ -40,6 +40,7 @@ import java.math.BigInteger;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.security.MessageDigest;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -122,7 +123,7 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
             BigInteger eTagHash = new BigInteger(eTag.getValue(), 16);
             Agent agent = (Agent)getSecurityContext().getUserPrincipal();
             eTagHash = eTagHash.add(BigInteger.valueOf(agent.hashCode()));
-            headerMap.addFirst(HttpHeaders.ETAG, new EntityTag(eTagHash.toString(16)));
+            headerMap.replace(HttpHeaders.ETAG, Arrays.asList(new EntityTag(eTagHash.toString(16))));
         }
         super.writeTo(processWrite(model), type, type, annotations, mediaType, headerMap, entityStream);
     }
