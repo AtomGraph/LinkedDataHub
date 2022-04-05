@@ -8,7 +8,6 @@
     <!ENTITY a      "https://w3id.org/atomgraph/core#">
     <!ENTITY rdf    "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
     <!ENTITY rdfs   "http://www.w3.org/2000/01/rdf-schema#">
-    <!ENTITY xsd    "http://www.w3.org/2001/XMLSchema#">
     <!ENTITY owl    "http://www.w3.org/2002/07/owl#">
     <!ENTITY acl    "http://www.w3.org/ns/auth/acl#">
     <!ENTITY cert   "http://www.w3.org/ns/auth/cert#">
@@ -156,14 +155,9 @@ exclude-result-prefixes="#all">
     </xsl:template>
     
     <!-- show "Clear" button for ontologies -->
-    <xsl:template match="*[rdf:type/@rdf:resource = '&owl;Ontology'][key('resources-by-primary-topic', @rdf:about)][$foaf:Agent//@rdf:about]" mode="bs2:Actions">
-        <!-- form action is the document URI rather than the ontology URI -->
-        <form class="pull-right" action="{key('resources-by-primary-topic', @rdf:about)/@rdf:about}" method="post" enctype="application/rdf+x-www-form-urlencoded">
-            <input type="hidden" name="rdf"/>
-            <input type="hidden" name="sb" value="arg"/>
-            <input type="hidden" name="pu" value="https://w3id.org/atomgraph/linkeddatahub/admin/sitemap/templates#clear"/>
-            <input type="hidden" name="ol" value="true"/>
-            <input type="hidden" name="lt" value="&xsd;boolean"/>
+    <xsl:template match="*[rdf:type/@rdf:resource = '&owl;Ontology'][$foaf:Agent//@rdf:about]" mode="bs2:Actions">
+        <form class="pull-right" action="{resolve-uri('clear', $ldt:base)}" method="post">
+            <input type="hidden" name="uri" value="{@rdf:about}"/>
             
             <button class="btn btn-primary" type="submit">
                 <xsl:value-of>

@@ -11,6 +11,7 @@ pushd . > /dev/null && cd "$SCRIPT_ROOT/admin/model"
 # create restriction
 
 namespace_doc="${END_USER_BASE_URL}ns"
+namespace="${namespace_doc}#"
 ontology_doc="${ADMIN_BASE_URL}model/ontologies/namespace/"
 restriction="${namespace_doc}#Restriction"
 
@@ -34,7 +35,7 @@ pushd . > /dev/null && cd "$SCRIPT_ROOT/admin"
 ./clear-ontology.sh \
   -f "$OWNER_CERT_FILE" \
   -p "$OWNER_CERT_PWD" \
-  "$ontology_doc"
+  --ontology "$namespace"
 
 popd > /dev/null
 

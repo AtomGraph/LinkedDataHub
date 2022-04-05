@@ -24,7 +24,7 @@ import_uri="http://www.w3.org/ns/auth/acl"
 ./clear-ontology.sh \
   -f "$OWNER_CERT_FILE" \
   -p "$OWNER_CERT_PWD" \
-  "$ontology_doc"
+  --ontology "$import_uri"
 
 popd > /dev/null
 

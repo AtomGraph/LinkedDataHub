@@ -22,6 +22,7 @@ import com.atomgraph.linkeddatahub.resource.Add;
 import com.atomgraph.linkeddatahub.resource.Importer;
 import com.atomgraph.linkeddatahub.resource.Namespace;
 import com.atomgraph.linkeddatahub.resource.Transform;
+import com.atomgraph.linkeddatahub.resource.admin.Clear;
 import com.atomgraph.linkeddatahub.resource.admin.RequestAccess;
 import com.atomgraph.linkeddatahub.resource.admin.SignUp;
 import com.atomgraph.linkeddatahub.resource.graph.Item;
@@ -117,7 +118,7 @@ public class Dispatcher
      * @return endpoint resource
      */
     @Path("ns")
-    public Object getOntology()
+    public Object getNamespace()
     {
         return Namespace.class;
     }
@@ -126,17 +127,6 @@ public class Dispatcher
     public Object getSubOntology()
     {
         return Namespace.class;
-    }
-
-    /**
-     * Returns ontology item resource.
-     * 
-     * @return item resource
-     */
-    @Path("{container}/ontologies/{uuid}/")
-    public Object getOntologyItem()
-    {
-        return com.atomgraph.linkeddatahub.resource.admin.ontology.Item.class;
     }
     
     /**
@@ -204,6 +194,17 @@ public class Dispatcher
     public Object getTransformEndpoint()
     {
         return Transform.class;
+    }
+    
+    /**
+     * Returns the endpoint that allows clearing ontologies from cache by URI.
+     * 
+     * @return endpoint resource
+     */
+    @Path("clear")
+    public Object getClearEndpoint()
+    {
+        return Clear.class;
     }
     
     /**
