@@ -7,9 +7,9 @@ print_usage()
     printf "Usage:  %s options\n" "$0"
     printf "\n"
     printf "Options:\n"
-    printf "  -b, --base BASE_URI                  Base URI of the admin application\n"
     printf "  -f, --cert-pem-file CERT_FILE        .pem file with the WebID certificate of the agent\n"
     printf "  -p, --cert-password CERT_PASSWORD    Password of the WebID certificate\n"
+    printf "  -b, --base BASE_URI                  Base URI of the admin application\n"
     printf "\n"
     printf "  --ontology ONTOLOGY_URI              URI of the imported ontology\n"
 }
@@ -58,12 +58,14 @@ if [ -z "$cert_password" ] ; then
     print_usage
     exit 1
 fi
-if [ "$#" -ne 1 ]; then
+if [ -z "$base" ] ; then
     print_usage
     exit 1
 fi
-
-ontology="$1"
+if [ -z "$ontology" ] ; then
+    print_usage
+    exit 1
+fi
 
 curl -s -k \
   -E "$cert_pem_file":"$cert_password" \
