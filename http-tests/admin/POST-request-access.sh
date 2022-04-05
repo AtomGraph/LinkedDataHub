@@ -9,7 +9,7 @@ purge_backend_cache "$ADMIN_VARNISH_SERVICE"
 curl -w "%{http_code}\n" -o /dev/null -k -s \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -H "Accept: text/turtle" \
-  -H "Content-Type: application/x-www-form-urlencoded" \
+  -H "Content-Type: application/rdf+x-www-form-urlencoded" \
   --data-urlencode "rdf=" \
   --data-urlencode "sb=request" \
   --data-urlencode "pu=http://www.w3.org/1999/02/22-rdf-syntax-ns#type" \
