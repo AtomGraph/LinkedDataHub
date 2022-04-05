@@ -2,7 +2,7 @@
 
 print_usage()
 {
-    printf "Clears ontology from memory (it will be reloaded on subsequent access).\n"
+    printf "Clears ontology from memory and reloads it.\n"
     printf "\n"
     printf "Usage:  %s options\n" "$0"
     printf "\n"
@@ -11,7 +11,7 @@ print_usage()
     printf "  -p, --cert-password CERT_PASSWORD    Password of the WebID certificate\n"
     printf "  -b, --base BASE_URI                  Base URI of the admin application\n"
     printf "\n"
-    printf "  --ontology ONTOLOGY_URI              URI of the imported ontology\n"
+    printf "  --ontology ONTOLOGY_URI              URI of the ontology to be cleared\n"
 }
 
 hash curl 2>/dev/null || { echo >&2 "curl not on \$PATH. Aborting."; exit 1; }
