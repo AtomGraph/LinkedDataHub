@@ -155,8 +155,9 @@ exclude-result-prefixes="#all">
     </xsl:template>
     
     <!-- show "Clear" button for ontologies -->
-    <xsl:template match="*[@rdf:about][key('resources', foaf:primaryTopic/@rdf:resource)/rdf:type/@rdf:resource = '&owl;Ontology'][$foaf:Agent//@rdf:about]" mode="bs2:Actions">
-        <form class="pull-right" action="{@rdf:about}" method="get">
+    <xsl:template match="*[rdf:type/@rdf:resource = '&owl;Ontology'][key('resources-by-primary-topic', @rdf:about)][$foaf:Agent//@rdf:about]" mode="bs2:Actions">
+        <!-- form action is the document URI rather than the ontology URI -->
+        <form class="pull-right" action="{key('resources-by-primary-topic', @rdf:about)/@rdf:about}" method="post">
             <input type="hidden" name="clear"/>
             <button class="btn btn-primary" type="submit">
                 <xsl:value-of>

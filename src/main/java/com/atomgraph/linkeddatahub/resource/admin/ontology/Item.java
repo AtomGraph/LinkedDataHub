@@ -32,7 +32,6 @@ import java.util.Optional;
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import javax.ws.rs.DefaultValue;
-import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.UriInfo;
@@ -89,9 +88,9 @@ public class Item extends com.atomgraph.linkeddatahub.resource.graph.Item
         getResource().getModel().add(getDatasetAccessor().getModel(getURI().toString()));
     }
     
-    @GET
     @Override
-    public Response get(@QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
+    @POST
+    public Response post(Model model, @QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
     {
         Resource topic = getResource().getPropertyResourceValue(FOAF.primaryTopic); // ontology is the topic
         
@@ -124,13 +123,6 @@ public class Item extends com.atomgraph.linkeddatahub.resource.graph.Item
         }
         
         return super.get(defaultGraph, getURI());
-    }
- 
-    @POST
-    @Override
-    public Response post(Model model, @QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
-    {
-        return super.post(model, false, getURI());
     }
 
     /**
