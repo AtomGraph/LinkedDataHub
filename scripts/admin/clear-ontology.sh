@@ -69,5 +69,6 @@ fi
 
 curl -s -k \
   -E "$cert_pem_file":"$cert_password" \
+  -H "Content-Type: application/x-www-form-urlencoded" \
   --data-urlencode "uri=${ontology}" \
   "${base}clear"
