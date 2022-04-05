@@ -22,6 +22,7 @@ import static com.atomgraph.linkeddatahub.server.filter.request.OntologyFilter.a
 import com.atomgraph.linkeddatahub.server.util.OntologyModelGetter;
 import java.net.URI;
 import javax.inject.Inject;
+import javax.ws.rs.BadRequestException;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
