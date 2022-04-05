@@ -40,6 +40,7 @@ import org.apache.jena.ontology.OntModelSpec;
 import org.apache.jena.ontology.Ontology;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.rdf.model.ResIterator;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.sparql.vocabulary.FOAF;
 import org.slf4j.Logger;
@@ -92,10 +93,10 @@ public class Item extends com.atomgraph.linkeddatahub.resource.graph.Item
     @POST
     public Response post(Model model, @QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
     {
-        Resource topic = getResource().getPropertyResourceValue(FOAF.primaryTopic); // ontology is the topic
-        
-        if (getUriInfo().getQueryParameters().containsKey(LSMT.clear.getLocalName())) // this is just a flag, we don't need the argument value. TO-DO: change to post()!
+        ResIterator it = model.listSubjectsWithProperty(LSMT.clear); // this is just a flag, we don't need the argument value
+        try
         {
+            Resource topic = getResource().getPropertyResourceValue(FOAF.primaryTopic); // ontology is the topic
             if (topic == null)
             {
                 if (log.isErrorEnabled()) log.error("Cannot clear ontology - no ontology is foaf:primaryTopic of this document: {}", getURI());
@@ -120,6 +121,10 @@ public class Item extends com.atomgraph.linkeddatahub.resource.graph.Item
                 // make sure to cache imported models not only by ontology URI but also by document URI
                 ontModel.listImportedOntologyURIs(true).forEach((String importURI) -> addDocumentModel(ontModel.getDocumentManager(), importURI));
             }
+        }
+        finally
+        {
+            it.close();
         }
         
         return super.get(defaultGraph, getURI());

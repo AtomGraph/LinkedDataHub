@@ -52,4 +52,13 @@ fi
 
 ontology_doc="$1"
 
-curl -s -k -E "$cert_pem_file":"$cert_password" -X POST "${ontology_doc}?clear=" -H "Accept: text/turtle"
+curl -s -k \
+  -E "$cert_pem_file":"$cert_password" \
+  -H "Content-Type: application/rdf+x-www-form-urlencoded" \
+  -H "Accept: text/turtle" \
+  --data-urlencode "rdf=" \
+  --data-urlencode "sb=arg" \
+  --data-urlencode "pu=https://w3id.org/atomgraph/linkeddatahub/admin/sitemap/templates#clear" \
+  --data-urlencode "ol=true" \
+  --data-urlencode "lt=http://www.w3.org/2001/XMLSchema#boolean" \
+  "$ontology_doc"

@@ -1466,18 +1466,6 @@ WHERE
         </xsl:if>
     </xsl:template>
 
-    <xsl:template match="button[contains-token(@class, 'btn-skolemize')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick">
-        <xsl:variable name="uri" select="ac:build-uri(resolve-uri('skolemize', $ldt:base), map{ 'graph': string(ac:uri()) })" as="xs:anyURI"/>
-        <xsl:variable name="request-uri" select="$uri" as="xs:anyURI"/>
-
-        <xsl:variable name="request" as="item()*">
-            <ixsl:schedule-action http-request="map{ 'method': 'POST', 'href': $request-uri, 'headers': map{ 'Content-Type': 'application/rdf+x-www-form-urlencoded' } }">
-                <xsl:call-template name="onSkolemize"/>
-            </ixsl:schedule-action>
-        </xsl:variable>
-        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
-    </xsl:template>
-
     <!-- content tabs (markup from Bootstrap) -->
     <xsl:template match="div[contains-token(@class, 'tabbable')]/ul[contains-token(@class, 'nav-tabs')]/li/a" mode="ixsl:onclick">
         <!-- deactivate other tabs -->
