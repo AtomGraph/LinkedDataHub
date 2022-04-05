@@ -21,6 +21,7 @@ import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import static com.atomgraph.linkeddatahub.server.filter.request.OntologyFilter.addDocumentModel;
 import com.atomgraph.linkeddatahub.server.util.OntologyModelGetter;
 import java.net.URI;
+import javax.inject.Inject;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
@@ -34,7 +35,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- *
+ * JAX-RS resource that clears ontology from memory and reloads it.
+ * 
  * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
  */
 public class Clear
@@ -45,6 +47,13 @@ public class Clear
     private final com.atomgraph.linkeddatahub.apps.model.Application application;
     private final com.atomgraph.linkeddatahub.Application system;
 
+    /**
+     * Constructs endpoint.
+     * 
+     * @param application matched application
+     * @param system system application
+     */
+    @Inject
     public Clear(com.atomgraph.linkeddatahub.apps.model.Application application, com.atomgraph.linkeddatahub.Application system)
     {
         this.application = application;
