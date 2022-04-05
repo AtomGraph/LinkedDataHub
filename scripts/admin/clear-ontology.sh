@@ -69,5 +69,5 @@ fi
 
 curl -s -k \
   -E "$cert_pem_file":"$cert_password" \
-  --data-urlencode "clear=${ontology}" \
+  --data-urlencode "uri=${ontology}" \
   "${base}clear"

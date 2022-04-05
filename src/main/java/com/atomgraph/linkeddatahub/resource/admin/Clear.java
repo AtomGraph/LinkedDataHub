@@ -22,6 +22,7 @@ import static com.atomgraph.linkeddatahub.server.filter.request.OntologyFilter.a
 import com.atomgraph.linkeddatahub.server.util.OntologyModelGetter;
 import java.net.URI;
 import javax.inject.Inject;
+import javax.ws.rs.BadRequestException;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
@@ -63,6 +64,8 @@ public class Clear
     @POST
     public Response post(@FormParam("uri") URI clearURI, @HeaderParam("Referer") URI referer)
     {
+        if (clearURI == null) throw new BadRequestException("Ontology URI not specified");
+        
         String ontologyURI = clearURI.toString();
         EndUserApplication app = getApplication().as(AdminApplication.class).getEndUserApplication(); // we're assuming the current app is admin
         OntModelSpec ontModelSpec = new OntModelSpec(getSystem().getOntModelSpec(app));
