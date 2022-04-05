@@ -23,9 +23,11 @@ import com.atomgraph.linkeddatahub.server.util.OntologyModelGetter;
 import java.net.URI;
 import javax.inject.Inject;
 import javax.ws.rs.BadRequestException;
+import javax.ws.rs.Consumes;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import org.apache.jena.ontology.OntModel;
@@ -62,6 +64,7 @@ public class Clear
     }
     
     @POST
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     public Response post(@FormParam("uri") String ontologyURI, @HeaderParam("Referer") URI referer)
     {
         if (ontologyURI == null) throw new BadRequestException("Ontology URI not specified");
