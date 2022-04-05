@@ -9,7 +9,7 @@ title="whatever"
 uuid=$(uuidgen | tr '[:upper:]' '[:lower:]')
 agent_p12_cert=$(mktemp)
 
-curl -k -s \
+curl -k -s -f \
   -H "Content-Type: application/rdf+x-www-form-urlencoded" \
   --data-urlencode "rdf=" \
   --data-urlencode "sb=agent" \

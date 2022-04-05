@@ -67,8 +67,9 @@ if [ -z "$ontology" ] ; then
     exit 1
 fi
 
-curl -s -k \
+curl -s -k -f \
   -E "$cert_pem_file":"$cert_password" \
+  -H "Accept: text/turtle" \
   -H "Content-Type: application/x-www-form-urlencoded" \
   --data-urlencode "uri=${ontology}" \
   "${base}clear"

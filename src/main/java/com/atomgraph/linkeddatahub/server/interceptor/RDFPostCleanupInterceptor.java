@@ -115,9 +115,6 @@ public class RDFPostCleanupInterceptor implements ReaderInterceptor
 
                 // set re-serialized RDF/POST as request entity stream
                 context.setInputStream(new ByteArrayInputStream(rdfPost.getBytes(charsetName)));
-
-                // replace generic Form URL-encoded media type with RDF/POST
-                context.setMediaType(MediaType.APPLICATION_RDF_URLENCODED_TYPE);
             }
             catch (ParsingException | IOException ex)
             {
