@@ -25,6 +25,7 @@ import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.model.Service;
+import static com.atomgraph.linkeddatahub.server.filter.request.OntologyFilter.addDocumentModel;
 import com.atomgraph.linkeddatahub.server.util.OntologyModelGetter;
 import com.atomgraph.linkeddatahub.vocabulary.LSMT;
 import java.util.Optional;
@@ -117,6 +118,8 @@ public class Item extends com.atomgraph.linkeddatahub.resource.graph.Item
                 Model baseModel = modelGetter.getModel(ontologyURI);
                 OntModel ontModel = ModelFactory.createOntologyModel(ontModelSpec, baseModel);
                 ontModel.getDocumentManager().addModel(ontologyURI, ontModel, true);
+                // make sure to cache imported models not only by ontology URI but also by document URI
+                ontModel.listImportedOntologyURIs(true).forEach((String importURI) -> addDocumentModel(ontModel.getDocumentManager(), importURI));
             }
         }
         
