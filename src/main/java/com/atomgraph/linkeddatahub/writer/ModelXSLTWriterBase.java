@@ -125,6 +125,7 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
             eTagHash = eTagHash.add(BigInteger.valueOf(agent.hashCode()));
             headerMap.replace(HttpHeaders.ETAG, Arrays.asList(new EntityTag(eTagHash.toString(16))));
         }
+        
         super.writeTo(processWrite(model), type, type, annotations, mediaType, headerMap, entityStream);
     }
     
@@ -303,12 +304,6 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
     {
         return getURIParam(getUriInfo(), AC.uri.getLocalName());
     }
-
-//    @Override
-//    public URI getEndpointURI() throws URISyntaxException
-//    {
-//        return getLinkURI(headerMap, AC.endpoint);
-//    }
 
     @Override
     public String getQuery()

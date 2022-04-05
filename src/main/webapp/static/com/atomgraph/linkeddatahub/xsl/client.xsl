@@ -743,6 +743,11 @@ WHERE
                             <xsl:apply-templates select="key('resources', 'queries', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
                         </a>
                     </li>
+                    <li>
+                        <a href="{$ldt:base}services/" class="btn-logo btn-query">
+                            <xsl:apply-templates select="key('resources', 'services', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                        </a>
+                    </li>
                 </ul>
             </div>
 

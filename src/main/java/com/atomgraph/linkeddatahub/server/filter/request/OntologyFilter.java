@@ -31,6 +31,7 @@ import javax.ws.rs.InternalServerErrorException;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.container.PreMatching;
+import org.apache.jena.ontology.OntDocumentManager;
 import org.apache.jena.ontology.OntModel;
 import org.apache.jena.ontology.OntModelSpec;
 import org.apache.jena.ontology.Ontology;
@@ -121,26 +122,7 @@ public class OntologyFilter implements ContainerRequestFilter
                 OntModel ontModel = ModelFactory.createOntologyModel(ontModelSpec, baseModel);
                 ontModel.getDocumentManager().addModel(uri, ontModel, true); // add as OntModel so that imports do not need to be reloaded during retrieval
                 // make sure to cache imported models not only by ontology URI but also by document URI
-                ontModel.listImportedOntologyURIs(true).forEach((String importURI) -> {
-                    try
-                    {
-                        URI ontologyURI = URI.create(importURI);
-                        // remove fragment and normalize
-                        URI docURI = new URI(ontologyURI.getScheme(), ontologyURI.getSchemeSpecificPart(), null).normalize();
-                        String mappedURI = ontModelSpec.getDocumentManager().getFileManager().mapURI(docURI.toString());
-                         // only cache import document URI if it's not already cached or mapped
-                        if (!ontModelSpec.getDocumentManager().getFileManager().hasCachedModel(docURI.toString()) && mappedURI.equals(docURI.toString()))
-                        {
-                            Model importModel = ontModel.getDocumentManager().getModel(importURI);
-                            if (importModel == null) throw new IllegalArgumentException("Import model is not cached");
-                            ontModel.getDocumentManager().addModel(docURI.toString(), importModel, true);
-                        }
-                    }
-                    catch (URISyntaxException ex)
-                    {
-                        throw new RuntimeException(ex);
-                    }
-                });
+                ontModel.listImportedOntologyURIs(true).forEach((String importURI) -> addDocumentModel(ontModel.getDocumentManager(), importURI));
             }
         }
         else
@@ -168,6 +150,34 @@ public class OntologyFilter implements ContainerRequestFilter
         return ontModelSpec.getDocumentManager().getOntology(uri, ontModelSpec).getOntology(uri); // reloads the imports using ModelGetter. TO-DO: optimize?
     }
 
+    /**
+     * Extracts document URI from ontology import URI and uses it as a secondary cache key.
+     * 
+     * @param odm document manager
+     * @param importURI ontology URI
+     */
+    public static void addDocumentModel(OntDocumentManager odm, String importURI)
+    {
+        try
+        {
+            URI ontologyURI = URI.create(importURI);
+            // remove fragment and normalize
+            URI docURI = new URI(ontologyURI.getScheme(), ontologyURI.getSchemeSpecificPart(), null).normalize();
+            String mappedURI = odm.getFileManager().mapURI(docURI.toString());
+             // only cache import document URI if it's not already cached or mapped
+            if (!odm.getFileManager().hasCachedModel(docURI.toString()) && mappedURI.equals(docURI.toString()))
+            {
+                Model importModel = odm.getModel(importURI);
+                if (importModel == null) throw new IllegalArgumentException("Import model is not cached");
+                odm.addModel(docURI.toString(), importModel, true);
+            }
+        }
+        catch (URISyntaxException ex)
+        {
+            throw new RuntimeException(ex);
+        }
+    }
+    
     /**
      * Retrieves application from the container request context.
      * 

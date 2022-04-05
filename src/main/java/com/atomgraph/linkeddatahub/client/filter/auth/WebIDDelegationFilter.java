@@ -35,7 +35,7 @@ public class WebIDDelegationFilter implements ClientRequestFilter
     private final Resource agent;
     
     /**
-     * Constructs filter from delegated agent.
+     * Constructs filter from a delegated agent.
      * 
      * @param agent agent resource
      */
