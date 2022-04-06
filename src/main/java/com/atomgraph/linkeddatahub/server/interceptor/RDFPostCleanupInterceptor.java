@@ -60,66 +60,72 @@ public class RDFPostCleanupInterceptor implements ReaderInterceptor
     @Override
     public Object aroundReadFrom(ReaderInterceptorContext context) throws IOException, WebApplicationException
     {
-        if (context.getMediaType() != null && context.getMediaType().isCompatible(MediaType.APPLICATION_RDF_URLENCODED_TYPE))
+        // cannot use the RDF/POST-specific MediaType.APPLICATION_RDF_URLENCODED_TYPE because browsers do not support it as form/@enctype: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/form#attr-enctype -->
+        if (context.getMediaType() != null && context.getMediaType().isCompatible(MediaType.APPLICATION_FORM_URLENCODED_TYPE))
         {
             StringWriter writer = new StringWriter();
             IOUtils.copy(context.getInputStream(), writer, StandardCharsets.UTF_8);
             
             String formData = writer.toString();
             
-            if (!formData.startsWith(TokenizerRDFPost.RDF)) throw new RiotException("Could not parse RDF/POST");
-
-            String charsetName = "UTF-8";
-            String[] params = formData.split("&");
-            List<String> keys = new ArrayList<>(), values = new ArrayList<>();
-
-            // decode keys/values first
-            for (String param : params)
+            if (formData.startsWith(TokenizerRDFPost.RDF))
             {
-                String[] keyValue = param.split("=");
+                String charsetName = StandardCharsets.UTF_8.name();
+                String[] params = formData.split("&");
+                List<String> keys = new ArrayList<>(), values = new ArrayList<>();
 
+                // decode keys/values first
+                for (String param : params)
+                {
+                    String[] keyValue = param.split("=");
+
+                    try
+                    {
+                        String key = URLDecoder.decode(keyValue[0], charsetName);
+                        keys.add(key);
+
+                        if (keyValue.length > 1) // value is present
+                        {
+                            String value = URLDecoder.decode(keyValue[1], charsetName);
+                            values.add(value);
+                        }
+                        else values.add(null);
+                    }
+                    catch (UnsupportedEncodingException ex)
+                    {
+                        if (log.isWarnEnabled()) log.warn("Unsupported encoding", ex);
+                        throw new RiotException(ex);
+                    }
+                }
+
+                // encode again with fixed values
                 try
                 {
-                    String key = URLDecoder.decode(keyValue[0], charsetName);
-                    keys.add(key);
+                    String rdfPost = "";
+                    values = fixValues(keys, values, charsetName);
 
-                    if (keyValue.length > 1) // value is present
+                    for (int j = 0; j < keys.size(); j++)
                     {
-                        String value = URLDecoder.decode(keyValue[1], charsetName);
-                        values.add(value);
+                        String key = keys.get(j);
+                        String value = values.get(j);
+
+                        rdfPost += URLEncoder.encode(key, charsetName) + "=";
+                        if (value != null) rdfPost += URLEncoder.encode(value, charsetName);
+                        if (j + 1 < keys.size()) rdfPost += "&";
                     }
-                    else values.add(null);
+
+                    // set re-serialized RDF/POST as request entity stream
+                    context.setInputStream(new ByteArrayInputStream(rdfPost.getBytes(charsetName)));
+                    // replace generic Form URL-encoded media type with RDF/POST
+                    context.setMediaType(MediaType.APPLICATION_RDF_URLENCODED_TYPE);
                 }
-                catch (UnsupportedEncodingException ex)
+                catch (ParsingException | IOException ex)
                 {
-                    if (log.isWarnEnabled()) log.warn("Unsupported encoding", ex);
+                    if (log.isWarnEnabled()) log.warn("Error parsing RDF/POST token", ex);
                     throw new RiotException(ex);
                 }
             }
-
-            // encode again with fixed values
-            try
-            {
-                String rdfPost = "";
-                values = fixValues(keys, values, charsetName);
-
-                for (int j = 0; j < keys.size(); j++)
-                {
-                    String key = keys.get(j);
-                    String value = values.get(j);
-
-                    rdfPost += URLEncoder.encode(key, charsetName) + "=";
-                    if (value != null) rdfPost += URLEncoder.encode(value, charsetName);
-                    if (j + 1 < keys.size()) rdfPost += "&";
-                }
-
-                // set re-serialized RDF/POST as request entity stream
-                context.setInputStream(new ByteArrayInputStream(rdfPost.getBytes(charsetName)));
-            }
-            catch (ParsingException | IOException ex)
-            {
-                throw new RiotException(ex);
-            }
+            else context.setInputStream(new ByteArrayInputStream(formData.getBytes(StandardCharsets.UTF_8))); // restore the request entity
         }
         
         return context.proceed();
