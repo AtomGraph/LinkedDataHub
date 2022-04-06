@@ -20,6 +20,7 @@ import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import static com.atomgraph.linkeddatahub.server.filter.request.OntologyFilter.addDocumentModel;
 import com.atomgraph.linkeddatahub.server.util.OntologyModelGetter;
+import com.atomgraph.processor.util.OntModelReadOnly;
 import java.net.URI;
 import javax.inject.Inject;
 import javax.ws.rs.BadRequestException;
@@ -38,8 +39,10 @@ import org.slf4j.LoggerFactory;
 
 /**
  * JAX-RS resource that clears ontology from memory and reloads it.
+ * Contains the same ontology loading query as <code>OntologyFilter</code>.
  * 
  * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
+ * @see com.atomgraph.linkeddatahub.server.filter.request.OntologyFilter
  */
 public class Clear
 {
@@ -81,7 +84,10 @@ public class Clear
             ontModelSpec.setImportModelGetter(modelGetter);
             Model baseModel = modelGetter.getModel(ontologyURI);
             OntModel ontModel = ModelFactory.createOntologyModel(ontModelSpec, baseModel);
-            ontModel.getDocumentManager().addModel(ontologyURI, ontModel, true);
+            // materialize OntModel inferences to avoid invoking rules engine on every request
+            OntModel materializedModel = ModelFactory.createOntologyModel(OntModelSpec.OWL_MEM); // no inference
+            materializedModel.add(ontModel);
+            ontModel.getDocumentManager().addModel(ontologyURI, new OntModelReadOnly(materializedModel), true); // make immutable and add as OntModel so that imports do not need to be reloaded during retrieval
             // make sure to cache imported models not only by ontology URI but also by document URI
             ontModel.listImportedOntologyURIs(true).forEach((String importURI) -> addDocumentModel(ontModel.getDocumentManager(), importURI));
         }

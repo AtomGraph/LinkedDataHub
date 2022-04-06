@@ -21,6 +21,7 @@ import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.vocabulary.LAPP;
 import com.atomgraph.processor.exception.OntologyException;
 import com.atomgraph.linkeddatahub.server.util.OntologyModelGetter;
+import com.atomgraph.processor.util.OntModelReadOnly;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -120,7 +121,10 @@ public class OntologyFilter implements ContainerRequestFilter
                 ontModelSpec.setImportModelGetter(modelGetter);
                 Model baseModel = modelGetter.getModel(uri);
                 OntModel ontModel = ModelFactory.createOntologyModel(ontModelSpec, baseModel);
-                ontModel.getDocumentManager().addModel(uri, ontModel, true); // add as OntModel so that imports do not need to be reloaded during retrieval
+                // materialize OntModel inferences to avoid invoking rules engine on every request
+                OntModel materializedModel = ModelFactory.createOntologyModel(OntModelSpec.OWL_MEM); // no inference
+                materializedModel.add(ontModel);
+                ontModel.getDocumentManager().addModel(uri, new OntModelReadOnly(materializedModel), true); // make immutable and add as OntModel so that imports do not need to be reloaded during retrieval
                 // make sure to cache imported models not only by ontology URI but also by document URI
                 ontModel.listImportedOntologyURIs(true).forEach((String importURI) -> addDocumentModel(ontModel.getDocumentManager(), importURI));
             }
