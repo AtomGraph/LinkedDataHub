@@ -59,7 +59,6 @@
         rdfs:comment "Infers class constructors from the ontology properties" ;
         sp:text """
 PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-PREFIX  rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX  owl:  <http://www.w3.org/2002/07/owl#>
 PREFIX  sp:   <http://spinrdf.org/sp#>
 PREFIX  spin: <http://spinrdf.org/spin#>
@@ -67,7 +66,7 @@ PREFIX  spin: <http://spinrdf.org/spin#>
 CONSTRUCT 
   { 
     ?class spin:constructor ?constructor .
-    ?constructor a sp:Construct .
+    ?constructor <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> sp:Construct .
     ?constructor rdfs:label ?constructorLabel .
     ?constructor sp:text ?constructorString .
   }
@@ -79,18 +78,10 @@ WHERE
               {   { ?class  a  owl:Class }
                 UNION
                   { ?class  a  rdfs:Class }
-                {   { ?prop  rdfs:domain  ?class }
-                  UNION
-                    {   { ?prop  a  rdf:Property }
-                      UNION
-                        { ?prop  a  owl:ObjectProperty }
-                      UNION
-                        { ?prop  a  owl:DatatypeProperty }
-                      FILTER NOT EXISTS { ?prop  rdfs:domain  ?domain }
-                    }
-                  UNION
-                    { ?prop  rdfs:domain  owl:Thing }
-                }
+                { ?prop  rdfs:domain  ?domain }
+                FILTER ( ( ?domain = ?class ) || ( ( ?domain = owl:Thing ) && NOT EXISTS { ?class (rdfs:subClassOf)* ?superClass
+                                                                                           FILTER ( ?class != ?superClass )
+                                                                                         } ) )
                 { ?prop  rdfs:range  ?range }
               }
             ORDER BY ?class ?prop ?range
@@ -101,7 +92,7 @@ WHERE
     }
     OPTIONAL
       { ?class  rdfs:label  ?classLabel
-        FILTER (langMatches(lang(?classLabel), 'en'))
+        FILTER langMatches(lang(?classLabel), "en")
         BIND(concat(?classLabel, " constructor") AS ?constructorLabel)
       }
     BIND(bnode() AS ?constructor)
