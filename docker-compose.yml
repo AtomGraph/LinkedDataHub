@@ -7,6 +7,7 @@ services:
     ports:
       - ${HTTP_PORT}:8080 # allow Tomcat to do HTTP to HTTPS redirect
       - ${HTTPS_PORT}:8443 # HTTPS
+      - 5443:9443 # HTTPS client cert
     environment:
       - HTTPS_PORT=${HTTPS_PORT}
       - UPSTREAM_SERVER=linkeddatahub

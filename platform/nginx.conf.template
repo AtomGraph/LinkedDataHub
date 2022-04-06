@@ -40,6 +40,30 @@ http {
     }
 
     server {
+        listen 9443 ssl;
+        server_name $SERVER_NAME;
+        ssl_certificate $SERVER_CERT_FILE;
+        ssl_certificate_key $SERVER_KEY_FILE;
+        ssl_session_cache shared:SSL:1m;  
+        ssl_prefer_server_ciphers on;
+        ssl_verify_client optional_no_ca;
+
+        location / {
+            proxy_pass http://linkeddatahub;
+            #proxy_cache backcache;
+            limit_req zone=linked_data burst=20 nodelay;
+
+            proxy_set_header Client-Cert '';
+            proxy_set_header Client-Cert $ssl_client_escaped_cert;
+        }
+
+        location ^~ /static/ {
+            proxy_pass http://linkeddatahub;
+            limit_req zone=static_files burst=20 nodelay;
+        }
+    }
+
+    server {
         listen $SERVER_HTTP_PORT;
         server_name $SERVER_NAME;
     
