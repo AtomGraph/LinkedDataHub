@@ -1213,7 +1213,7 @@ public class Application extends ResourceConfig
     public void submitImport(CSVImport csvImport, com.atomgraph.linkeddatahub.apps.model.Application app, Service service, Service adminService, String baseURI, DataManager dataManager)
     {
         // we don't want use service.getGraphStoreClient() here because that's for the backend. Processed import data is looped back to the app's SPARQL endpoint as if from the client.
-        ImportListener.submit(csvImport, service, adminService, baseURI, dataManager, GraphStoreClient.create(getClient().target(app.getBaseURI().resolve("service"))));
+        ImportListener.submit(csvImport, service, adminService, baseURI, dataManager, GraphStoreClient.create(getImportClient().target(app.getBaseURI().resolve("service"))));
     }
     
     /**
@@ -1229,7 +1229,7 @@ public class Application extends ResourceConfig
     public void submitImport(RDFImport rdfImport, com.atomgraph.linkeddatahub.apps.model.Application app, Service service, Service adminService, String baseURI, DataManager dataManager)
     {
         // we don't want use service.getGraphStoreClient() here because that's for the backend. Processed import data is looped back to the app's SPARQL endpoint as if from the client.
-        ImportListener.submit(rdfImport, service, adminService, baseURI, dataManager, GraphStoreClient.create(getClient().target(app.getBaseURI().resolve("service"))));
+        ImportListener.submit(rdfImport, service, adminService, baseURI, dataManager, GraphStoreClient.create(getImportClient().target(app.getBaseURI().resolve("service"))));
     }
     
     /**
