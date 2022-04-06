@@ -3,11 +3,11 @@ services:
   nginx:
     image: atomgraph/nginx:d329ba2207773d849c41894408fc073dbe27e3b8
     mem_limit: 128m
-    command: /bin/bash -c "envsubst '$$HTTPS_PORT $$UPSTREAM_SERVER $$UPSTREAM_HTTP_PORT $$SERVER_NAME $$SERVER_HTTPS_PORT $$SERVER_HTTP_PORT $$SERVER_CERT_FILE $$SERVER_KEY_FILE $$SSL_VERIFY_CLIENT $$MAX_BODY_SIZE' < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf && nginx -g 'daemon off;'"
+    command: /bin/bash -c "envsubst '$$HTTPS_PORT $$UPSTREAM_SERVER $$UPSTREAM_HTTP_PORT $$SERVER_NAME $$SERVER_HTTPS_PORT $$SERVER_HTTP_PORT $$SERVER_CERT_FILE $$SERVER_KEY_FILE $$SSL_VERIFY_CLIENT $$MAX_BODY_SIZE $$SERVER_CLIENT_CERT_HTTPS_PORT' < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf && nginx -g 'daemon off;'"
     ports:
       - ${HTTP_PORT}:8080 # allow Tomcat to do HTTP to HTTPS redirect
       - ${HTTPS_PORT}:8443 # HTTPS
-      - 5443:9443 # HTTPS client cert
+      - ${HTTPS_CLIENT_CERT_PORT:-5443}:9443 # HTTPS client cert
     environment:
       - HTTPS_PORT=${HTTPS_PORT}
       - UPSTREAM_SERVER=linkeddatahub
@@ -15,6 +15,7 @@ services:
       - SERVER_NAME=${HOST}
       - SERVER_HTTPS_PORT=8443 # because of nginx-unprivileged
       - SERVER_HTTP_PORT=8080 # because of nginx-unprivileged
+      - SERVER_CLIENT_CERT_HTTPS_PORT=9443 # 
       - SERVER_CERT_FILE=/etc/nginx/ssl/server.crt
       - SERVER_KEY_FILE=/etc/nginx/ssl/server.key
       - SSL_VERIFY_CLIENT=optional_no_ca

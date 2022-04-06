@@ -15,6 +15,7 @@ http {
 
     client_max_body_size $MAX_BODY_SIZE;
 
+    # server with optional client cert authentication (depends on the $SSL_VERIFY_CLIENT value)
     server {
         listen $SERVER_HTTPS_PORT ssl;
         server_name $SERVER_NAME;
@@ -39,8 +40,9 @@ http {
         }
     }
 
+    # server with client cert authentication on
     server {
-        listen 9443 ssl;
+        listen $SERVER_CLIENT_CERT_HTTPS_PORT ssl;
         server_name $SERVER_NAME;
         ssl_certificate $SERVER_CERT_FILE;
         ssl_certificate_key $SERVER_KEY_FILE;
