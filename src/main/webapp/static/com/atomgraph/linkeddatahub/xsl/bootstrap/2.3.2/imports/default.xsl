@@ -567,7 +567,7 @@ exclude-result-prefixes="#all"
                             <xsl:if test="$forClass">
                                 <!-- forClass input is required by typeahead's FILTER (?Type IN ()) in client.xsl -->
                                 <xsl:choose>
-                                    <xsl:when test="not($forClass = '&rdfs;Resource') and doc-available(ac:document-uri($forClass))">
+                                    <xsl:when test="not($forClass = ('&rdfs;Resource', '&rdfs;Literal')) and doc-available(ac:document-uri($forClass))">
                                         <xsl:variable name="subclasses" select="ldh:listSubClasses($forClass, false(), $ldt:ontology)" as="attribute()*"/>
                                         <!-- add subclasses as forClass -->
                                         <xsl:for-each select="distinct-values(ldh:listSubClasses($forClass, false(), $ldt:ontology))[not(. = $forClass)]">
