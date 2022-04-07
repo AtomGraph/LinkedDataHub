@@ -12,6 +12,10 @@
         <param-value>en,es</param-value>
     </context-param>
     <context-param>
+        <param-name>https://w3id.org/atomgraph/linkeddatahub/config#maxImportThreads</param-name>
+        <param-value>3</param-value>
+    </context-param>
+    <context-param>
         <param-name>https://w3id.org/atomgraph/linkeddatahub/config#authCacheControl</param-name>
         <param-value>max-age=69</param-value>
     </context-param>

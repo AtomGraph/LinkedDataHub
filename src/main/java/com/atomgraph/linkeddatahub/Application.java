@@ -70,11 +70,11 @@ import com.atomgraph.client.util.XsltResolver;
 import com.atomgraph.core.client.LinkedDataClient;
 import com.atomgraph.linkeddatahub.client.GraphStoreClient;
 import com.atomgraph.linkeddatahub.client.filter.ClientUriRewriteFilter;
+import com.atomgraph.linkeddatahub.imports.ImportExecutor;
 import com.atomgraph.linkeddatahub.io.HtmlJsonLDReaderFactory;
 import com.atomgraph.linkeddatahub.io.JsonLDReader;
 import com.atomgraph.linkeddatahub.listener.EMailListener;
 import com.atomgraph.linkeddatahub.writer.ModelXSLTWriter;
-import com.atomgraph.linkeddatahub.listener.ImportListener;
 import com.atomgraph.linkeddatahub.model.Import;
 import com.atomgraph.linkeddatahub.model.RDFImport;
 import com.atomgraph.linkeddatahub.model.UserAccount;
@@ -177,6 +177,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.TreeMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import javax.mail.Address;
@@ -242,6 +244,7 @@ public class Application extends ResourceConfig
     
     private static final Logger log = LoggerFactory.getLogger(Application.class);
 
+    private final ExecutorService importThreadPool;
     private final ServletConfig servletConfig;
     private final EventBus eventBus = new EventBus();
     private final DataManager dataManager;
@@ -317,6 +320,7 @@ public class Application extends ResourceConfig
             servletConfig.getServletContext().getInitParameter(LDHC.maxTotalConn.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(LDHC.maxTotalConn.getURI())) : null,
             // TO-DO: respect "timeout" header param in the ConnectionKeepAliveStrategy?
             servletConfig.getServletContext().getInitParameter(LDHC.importKeepAlive.getURI()) != null ? (HttpResponse response, HttpContext context) -> Integer.valueOf(servletConfig.getServletContext().getInitParameter(LDHC.importKeepAlive.getURI())) : null,
+            servletConfig.getServletContext().getInitParameter(LDHC.maxImportThreads.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(LDHC.maxImportThreads.getURI())) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.notificationAddress.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.notificationAddress.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.supportedLanguages.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.supportedLanguages.getURI()) : null,
             servletConfig.getServletContext().getInitParameter("mail.user") != null ? servletConfig.getServletContext().getInitParameter("mail.user") : null,
@@ -371,12 +375,13 @@ public class Application extends ResourceConfig
      * @param maxConnPerRoute maximum client connections per rout
      * @param maxTotalConn maximum total client connections
      * @param importKeepAliveStrategy keep-alive strategy for the HTTP client used for imports
+     * @param maxImportThreads maximum number of threads used for asynchronous imports
      * @param notificationAddressString email address used to send notifications
-     * @param supportedLanguageCodes Comma-separated codes of supported languages
+     * @param supportedLanguageCodes comma-separated codes of supported languages
      * @param mailUser username of the SMTP email server
      * @param mailPassword password of the SMTP email server
-     * @param smtpHost Hostname of the SMTP email server
-     * @param smtpPort Port of the SMTP email server
+     * @param smtpHost hostname of the SMTP email server
+     * @param smtpPort port of the SMTP email server
      * @param googleClientID client ID for Google's OAuth
      * @param googleClientSecret client secret for Google's OAuth
      */
@@ -390,7 +395,7 @@ public class Application extends ResourceConfig
             final String baseURIString, final String proxyScheme, final String proxyHostname, final Integer proxyPort,
             final String uploadRootString, final boolean invalidateCache,
             final Integer cookieMaxAge, final Integer maxPostSize,
-            final Integer maxConnPerRoute, final Integer maxTotalConn, final ConnectionKeepAliveStrategy importKeepAliveStrategy,
+            final Integer maxConnPerRoute, final Integer maxTotalConn, final ConnectionKeepAliveStrategy importKeepAliveStrategy, final Integer maxImportThreads,
             final String notificationAddressString, final String supportedLanguageCodes,
             final String mailUser, final String mailPassword, final String smtpHost, final String smtpPort,
             final String googleClientID, final String googleClientSecret)
@@ -475,6 +480,14 @@ public class Application extends ResourceConfig
         }
         this.cookieMaxAge = cookieMaxAge;
 
+        if (maxImportThreads == null)
+        {
+            if (log.isErrorEnabled()) log.error("Max import thread count property '{}' not configured", LDHC.maxImportThreads.getURI());
+            throw new ConfigurationException(LDHC.maxImportThreads);
+        }
+        this.importThreadPool = Executors.newFixedThreadPool(maxImportThreads);
+        servletConfig.getServletContext().setAttribute(LDHC.maxImportThreads.getURI(), importThreadPool);
+        
         if (supportedLanguageCodes == null)
         {
             if (log.isErrorEnabled()) log.error("Supported languages ({}) not configured", LDHC.supportedLanguages.getURI());
@@ -598,7 +611,6 @@ public class Application extends ResourceConfig
             BuiltinPersonalities.model.add(com.atomgraph.linkeddatahub.apps.model.Application.class, new com.atomgraph.linkeddatahub.apps.model.impl.ApplicationImplementation());
             BuiltinPersonalities.model.add(com.atomgraph.linkeddatahub.apps.model.Dataset.class, new com.atomgraph.linkeddatahub.apps.model.impl.DatasetImplementation());
             BuiltinPersonalities.model.add(Service.class, new com.atomgraph.linkeddatahub.model.generic.ServiceImplementation(noCertClient, mediaTypes, maxGetRequestSize));
-//            BuiltinPersonalities.model.add(com.atomgraph.linkeddatahub.model.DydraService.class, new com.atomgraph.linkeddatahub.model.dydra.impl.ServiceImplementation(noCertClient, mediaTypes, maxGetRequestSize));
             BuiltinPersonalities.model.add(Import.class, ImportImpl.factory);
             BuiltinPersonalities.model.add(RDFImport.class, RDFImportImpl.factory);
             BuiltinPersonalities.model.add(CSVImport.class, CSVImportImpl.factory);
@@ -1213,7 +1225,8 @@ public class Application extends ResourceConfig
     public void submitImport(CSVImport csvImport, com.atomgraph.linkeddatahub.apps.model.Application app, Service service, Service adminService, String baseURI, DataManager dataManager)
     {
         // we don't want use service.getGraphStoreClient() here because that's for the backend. Processed import data is looped back to the app's SPARQL endpoint as if from the client.
-        ImportListener.submit(csvImport, service, adminService, baseURI, dataManager, GraphStoreClient.create(getImportClient().target(app.getBaseURI().resolve("service"))));
+        new ImportExecutor(importThreadPool).start(csvImport, service, adminService, baseURI, dataManager, GraphStoreClient.create(getImportClient().target(app.getBaseURI().resolve("service"))));
+
     }
     
     /**
@@ -1229,7 +1242,7 @@ public class Application extends ResourceConfig
     public void submitImport(RDFImport rdfImport, com.atomgraph.linkeddatahub.apps.model.Application app, Service service, Service adminService, String baseURI, DataManager dataManager)
     {
         // we don't want use service.getGraphStoreClient() here because that's for the backend. Processed import data is looped back to the app's SPARQL endpoint as if from the client.
-        ImportListener.submit(rdfImport, service, adminService, baseURI, dataManager, GraphStoreClient.create(getImportClient().target(app.getBaseURI().resolve("service"))));
+        new ImportExecutor(importThreadPool).start(rdfImport, service, adminService, baseURI, dataManager, GraphStoreClient.create(getImportClient().target(app.getBaseURI().resolve("service"))));
     }
     
     /**
