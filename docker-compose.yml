@@ -47,7 +47,7 @@ services:
       - CLIENT_TRUSTSTORE_PASSWORD=LinkedDataHub
       - SELF_SIGNED_CERT=true # only on localhost
       - SIGN_UP_CERT_VALIDITY=180
-      - IMPORT_KEEPALIVE=600000
+      - IMPORT_KEEPALIVE=1200000
       - MAX_CONTENT_LENGTH=2097152
       - NOTIFICATION_ADDRESS=LinkedDataHub <notifications@localhost>
       - MAIL_SMTP_HOST=email-server
