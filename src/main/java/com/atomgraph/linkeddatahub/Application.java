@@ -200,6 +200,7 @@ import net.sf.saxon.s9api.XdmAtomicValue;
 import net.sf.saxon.s9api.XsltCompiler;
 import net.sf.saxon.s9api.XsltExecutable;
 import nu.xom.XPathException;
+import org.apache.http.HttpClientConnection;
 import org.apache.http.HttpResponse;
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
@@ -1282,9 +1283,10 @@ public class Application extends ResourceConfig
             register("http", new PlainConnectionSocketFactory()).
             build();
 
-        // https://github.com/eclipse-ee4j/jersey/issues/4449
         PoolingHttpClientConnectionManager conman = new PoolingHttpClientConnectionManager(socketFactoryRegistry)
         {
+
+            // https://github.com/eclipse-ee4j/jersey/issues/4449
 
             @Override
             public void close()
@@ -1299,6 +1301,15 @@ public class Application extends ResourceConfig
                 // This is a workaround for finalize method on jerseys ClientRuntime which
                 // closes the client and shuts down the connection pool when it is garbage collected
             };
+            
+            // https://github.com/eclipse-ee4j/jersey/issues/2855
+            
+            @Override
+            public void releaseConnection(final HttpClientConnection managedConn, final Object state, final long keepalive, final TimeUnit timeUnit)
+            {
+                // set state to null to allow reuse of connections
+                super.releaseConnection(managedConn, null, keepalive, timeUnit);
+            }
 
         };
         if (maxConnPerRoute != null) conman.setDefaultMaxPerRoute(maxConnPerRoute);
@@ -1348,10 +1359,11 @@ public class Application extends ResourceConfig
                 register("http", new PlainConnectionSocketFactory()).
                 build();
         
-            // https://github.com/eclipse-ee4j/jersey/issues/4449
             PoolingHttpClientConnectionManager conman = new PoolingHttpClientConnectionManager(socketFactoryRegistry)
             {
 
+                // https://github.com/eclipse-ee4j/jersey/issues/4449
+                
                 @Override
                 public void close()
                 {
@@ -1365,6 +1377,15 @@ public class Application extends ResourceConfig
                     // This is a workaround for finalize method on jerseys ClientRuntime which
                     // closes the client and shuts down the connection pool when it is garbage collected
                 };
+                
+                // https://github.com/eclipse-ee4j/jersey/issues/2855
+
+                @Override
+                public void releaseConnection(final HttpClientConnection managedConn, final Object state, final long keepalive, final TimeUnit timeUnit)
+                {
+                    // set state to null to allow reuse of connections
+                    super.releaseConnection(managedConn, null, keepalive, timeUnit);
+                }
                 
             };
             if (maxConnPerRoute != null) conman.setDefaultMaxPerRoute(maxConnPerRoute);

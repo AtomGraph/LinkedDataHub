@@ -169,7 +169,7 @@
                 </exclusion>
             </exclusions>
         </dependency>
-        <!-- required by jsonld-java -->
+        <!-- required by jsonld-java - version same as Jersey's HTTP Client -->
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpclient-cache</artifactId>
