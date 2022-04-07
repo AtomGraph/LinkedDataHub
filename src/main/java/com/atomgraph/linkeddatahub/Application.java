@@ -486,7 +486,7 @@ public class Application extends ResourceConfig
             throw new ConfigurationException(LDHC.maxImportThreads);
         }
         this.importThreadPool = Executors.newFixedThreadPool(maxImportThreads);
-        servletConfig.getServletContext().setAttribute(LDHC.maxImportThreads.getURI(), importThreadPool);
+        servletConfig.getServletContext().setAttribute(LDHC.maxImportThreads.getURI(), importThreadPool); // used in ImportListener to shutdown the thread pool
         
         if (supportedLanguageCodes == null)
         {

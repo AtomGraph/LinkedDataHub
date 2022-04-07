@@ -62,11 +62,11 @@ public class CSVGraphStoreOutputWriter implements Function<Response, CSVGraphSto
     }
     
     @Override
-    public CSVGraphStoreOutput apply(Response input)
+    public CSVGraphStoreOutput apply(Response csvInput)
     {
-        if (input == null) throw new IllegalArgumentException("Response cannot be null");
+        if (csvInput == null) throw new IllegalArgumentException("Response cannot be null");
         
-        try (input; InputStream is = input.readEntity(InputStream.class))
+        try (csvInput; InputStream is = csvInput.readEntity(InputStream.class))
         {
             CSVGraphStoreOutput output = new CSVGraphStoreOutput(getGraphStoreClient(), new InputStreamReader(is, StandardCharsets.UTF_8), getBaseURI(), getQuery(), getDelimiter(), null);
             output.write();
