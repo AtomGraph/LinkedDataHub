@@ -26,6 +26,8 @@ import java.util.function.Function;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 import org.apache.jena.query.Query;
+import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,6 +46,7 @@ public class CSVGraphStoreOutputWriter implements Function<Response, CSVGraphSto
     private final GraphStoreClient graphStoreClient;
     private final String baseURI;
     private final Query query;
+    private final Function<Model, Resource> createGraph;
     private final char delimiter;
     
     /**
@@ -52,13 +55,15 @@ public class CSVGraphStoreOutputWriter implements Function<Response, CSVGraphSto
      * @param graphStoreClient GSP client
      * @param baseURI base URI
      * @param query transformation query
+     * @param createGraph function that derives graph URI from a document model
      * @param delimiter CSV delimiter
      */
-    public CSVGraphStoreOutputWriter(GraphStoreClient graphStoreClient, String baseURI, Query query, char delimiter)
+    public CSVGraphStoreOutputWriter(GraphStoreClient graphStoreClient, String baseURI, Query query, Function<Model, Resource> createGraph, char delimiter)
     {
         this.graphStoreClient = graphStoreClient;
         this.baseURI = baseURI;
         this.query = query;
+        this.createGraph = createGraph;
         this.delimiter = delimiter;
     }
     
@@ -69,7 +74,7 @@ public class CSVGraphStoreOutputWriter implements Function<Response, CSVGraphSto
         
         try (csvInput; InputStream is = csvInput.readEntity(InputStream.class); Reader reader = new InputStreamReader(is, StandardCharsets.UTF_8))
         {
-            CSVGraphStoreOutput output = new CSVGraphStoreOutput(getGraphStoreClient(), reader, getBaseURI(), getQuery(), getDelimiter(), null);
+            CSVGraphStoreOutput output = new CSVGraphStoreOutput(getGraphStoreClient(), reader, getBaseURI(), getQuery(), getCreateGraph(), getDelimiter(), null);
             output.write();
             return output;
         }
@@ -118,6 +123,16 @@ public class CSVGraphStoreOutputWriter implements Function<Response, CSVGraphSto
     public char getDelimiter()
     {
         return delimiter;
+    }
+    
+    /**
+     * Returns function that is used to create graph names (URIs).
+     * 
+     * @return function
+     */
+    public Function<Model, Resource> getCreateGraph()
+    {
+        return createGraph;
     }
     
 }

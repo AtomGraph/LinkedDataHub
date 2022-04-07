@@ -27,6 +27,7 @@ import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.listener.EMailListener;
 import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
 import com.atomgraph.linkeddatahub.server.util.MessageBuilder;
+import com.atomgraph.linkeddatahub.server.util.Skolemizer;
 import com.atomgraph.linkeddatahub.server.util.WebIDCertGen;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
 import com.atomgraph.linkeddatahub.vocabulary.LDHC;
@@ -186,7 +187,7 @@ public class SignUp extends GraphStoreImpl
     public Response post(Model agentModel, @QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
     {
         URI agentGraphUri = getUriInfo().getBaseUriBuilder().path(AGENT_PATH).path("{slug}/").build(UUID.randomUUID().toString());
-        skolemize(agentModel, agentGraphUri);
+        new Skolemizer(agentGraphUri.toString()).apply(agentModel);
         
         ResIterator it = agentModel.listResourcesWithProperty(RDF.type, FOAF.Person);
         try
@@ -242,7 +243,7 @@ public class SignUp extends GraphStoreImpl
                     publicKeyGraphUri,
                     publicKeyModel.createResource(getUriInfo().getBaseUri().resolve(PUBLIC_KEY_PATH).toString()),
                     certPublicKey);
-                skolemize(publicKeyModel, publicKeyGraphUri);
+                new Skolemizer(publicKeyGraphUri.toString()).apply(publicKeyModel);
                 
                 Response publicKeyResponse = super.post(publicKeyModel, false, publicKeyGraphUri);
                 if (publicKeyResponse.getStatus() != Response.Status.CREATED.getStatusCode())
@@ -270,7 +271,7 @@ public class SignUp extends GraphStoreImpl
                     authModel.createResource(getUriInfo().getBaseUri().resolve(AUTHORIZATION_PATH).toString()),
                     agentGraphUri,
                     publicKeyGraphUri);
-                skolemize(authModel, authGraphUri);
+                new Skolemizer(authGraphUri.toString()).apply(authModel);
 
                 Response authResponse = super.post(authModel, false, authGraphUri);
                 if (authResponse.getStatus() != Response.Status.CREATED.getStatusCode())

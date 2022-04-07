@@ -29,6 +29,7 @@ import com.atomgraph.linkeddatahub.server.filter.request.auth.IDTokenFilter;
 import com.atomgraph.linkeddatahub.server.filter.response.BackendInvalidationFilter;
 import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
 import com.atomgraph.linkeddatahub.server.util.MessageBuilder;
+import com.atomgraph.linkeddatahub.server.util.Skolemizer;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
 import com.atomgraph.linkeddatahub.vocabulary.LDHC;
 import com.atomgraph.linkeddatahub.vocabulary.FOAF;
@@ -205,7 +206,7 @@ public class Login extends GraphStoreImpl
                         jwt.getClaim("picture") != null ? jwt.getClaim("picture").asString() : null);
                     
                     // skolemize here because this Model will not go through SkolemizingModelProvider
-                    skolemize(agentModel, agentGraphUri);
+                    new Skolemizer(agentGraphUri.toString()).apply(agentModel);
                 }
                 else
                     agentExists = true;
@@ -227,7 +228,7 @@ public class Login extends GraphStoreImpl
                         jwt.getClaim("name").asString(),
                         email);
                     userAccount.addProperty(SIOC.ACCOUNT_OF, agent);
-                    skolemize(accountModel, userAccountGraphUri);
+                    new Skolemizer(userAccountGraphUri.toString()).apply(accountModel);
                     
                     Response userAccountResponse = super.post(accountModel, false, userAccountGraphUri);
                     if (userAccountResponse.getStatus() != Response.Status.CREATED.getStatusCode())
@@ -261,7 +262,7 @@ public class Login extends GraphStoreImpl
                         accountModel.createResource(getUriInfo().getBaseUri().resolve(AUTHORIZATION_PATH).toString()),
                         agentGraphUri,
                         userAccountGraphUri);
-                    skolemize(authModel, authGraphUri);
+                    new Skolemizer(authGraphUri.toString()).apply(authModel);
 
                     Response authResponse = super.post(authModel, false, authGraphUri);
                     if (authResponse.getStatus() != Response.Status.CREATED.getStatusCode())

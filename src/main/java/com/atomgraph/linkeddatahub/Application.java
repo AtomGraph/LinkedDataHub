@@ -68,7 +68,6 @@ import com.atomgraph.linkeddatahub.writer.factory.xslt.XsltExecutableSupplier;
 import com.atomgraph.linkeddatahub.writer.factory.XsltExecutableSupplierFactory;
 import com.atomgraph.client.util.XsltResolver;
 import com.atomgraph.core.client.LinkedDataClient;
-import com.atomgraph.linkeddatahub.client.GraphStoreClient;
 import com.atomgraph.linkeddatahub.client.filter.ClientUriRewriteFilter;
 import com.atomgraph.linkeddatahub.imports.ImportExecutor;
 import com.atomgraph.linkeddatahub.io.HtmlJsonLDReaderFactory;
@@ -107,6 +106,7 @@ import com.atomgraph.linkeddatahub.server.filter.response.XsltExecutableFilter;
 import com.atomgraph.linkeddatahub.server.interceptor.RDFPostCleanupInterceptor;
 import com.atomgraph.linkeddatahub.server.mapper.auth.oauth2.TokenExpiredExceptionMapper;
 import com.atomgraph.linkeddatahub.server.model.impl.Dispatcher;
+import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.server.util.MessageBuilder;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
@@ -1225,9 +1225,7 @@ public class Application extends ResourceConfig
      */
     public void submitImport(CSVImport csvImport, com.atomgraph.linkeddatahub.apps.model.Application app, Service service, Service adminService, String baseURI, DataManager dataManager)
     {
-        // we don't want use service.getGraphStoreClient() here because that's for the backend. Processed import data is looped back to the app's SPARQL endpoint as if from the client.
-        new ImportExecutor(importThreadPool).start(csvImport, service, adminService, baseURI, dataManager, GraphStoreClient.create(getImportClient().target(app.getBaseURI().resolve("service"))));
-
+        new ImportExecutor(importThreadPool).start(csvImport, service, adminService, baseURI, dataManager, service.getGraphStoreClient(), GraphStoreImpl.CREATE_GRAPH);
     }
     
     /**
@@ -1243,7 +1241,7 @@ public class Application extends ResourceConfig
     public void submitImport(RDFImport rdfImport, com.atomgraph.linkeddatahub.apps.model.Application app, Service service, Service adminService, String baseURI, DataManager dataManager)
     {
         // we don't want use service.getGraphStoreClient() here because that's for the backend. Processed import data is looped back to the app's SPARQL endpoint as if from the client.
-        new ImportExecutor(importThreadPool).start(rdfImport, service, adminService, baseURI, dataManager, GraphStoreClient.create(getImportClient().target(app.getBaseURI().resolve("service"))));
+        new ImportExecutor(importThreadPool).start(rdfImport, service, adminService, baseURI, dataManager, service.getGraphStoreClient());
     }
     
     /**

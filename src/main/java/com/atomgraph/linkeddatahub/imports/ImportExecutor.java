@@ -32,7 +32,7 @@ import com.atomgraph.linkeddatahub.model.RDFImport;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.exception.ImportException;
 import com.atomgraph.linkeddatahub.server.filter.response.BackendInvalidationFilter;
-import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
+import com.atomgraph.linkeddatahub.server.util.Skolemizer;
 import com.atomgraph.linkeddatahub.vocabulary.PROV;
 import com.atomgraph.linkeddatahub.vocabulary.VoID;
 import com.atomgraph.server.vocabulary.HTTP;
@@ -111,8 +111,9 @@ public class ImportExecutor
      * @param appBaseURI application's base URI
      * @param dataManager RDF data manager
      * @param graphStoreClient GSP client
+     * @param createGraph function that derives graph URI from a document model
      */
-    public void start(CSVImport csvImport, Service service, Service adminService, String appBaseURI, DataManager dataManager, GraphStoreClient graphStoreClient)
+    public void start(CSVImport csvImport, Service service, Service adminService, String appBaseURI, DataManager dataManager, GraphStoreClient graphStoreClient, Function<Model, Resource> createGraph)
     {
         if (csvImport == null) throw new IllegalArgumentException("CSVImport cannot be null");
         if (log.isDebugEnabled()) log.debug("Submitting new import to thread pool: {}", csvImport.toString());
@@ -129,7 +130,7 @@ public class ImportExecutor
         Supplier<Response> fileSupplier = new ClientResponseSupplier(csvImport.getFile().getURI(), CSV_MEDIA_TYPES, dataManager);
         // skip validation because it will be done during final POST anyway
         CompletableFuture.supplyAsync(fileSupplier, getExecutorService()).thenApplyAsync(getStreamRDFOutputWriter(csvImport,
-                graphStoreClient, queryBaseURI, query), getExecutorService()).
+                graphStoreClient, queryBaseURI, query, createGraph), getExecutorService()).
             thenAcceptAsync(success(csvImport, provImport, service, adminService, dataManager), getExecutorService()).
             exceptionally(failure(csvImport, provImport, service));
     }
@@ -243,9 +244,8 @@ public class ImportExecutor
                 
                 if (t instanceof CompletionException)
                 {
-                    if (t.getCause() instanceof TextParsingException) // could not parse CSV
+                    if (t.getCause() instanceof TextParsingException tpe) 
                     {
-                        TextParsingException tpe = (TextParsingException)t.getCause();
                         Resource exception = provImport.getModel().createResource().
                             addProperty(RDF.type, PROV.Entity).
                             addLiteral(DCTerms.description, tpe.getMessage()).
@@ -254,10 +254,10 @@ public class ImportExecutor
                         
                         appendProvGraph(provImport, service.getDatasetAccessor());
                     }
+                    // could not parse CSV
                     
-                    if (t.getCause() instanceof ImportException) // could not save RDF
+                    if (t.getCause() instanceof ImportException ie) 
                     {
-                        ImportException ie = (ImportException)t.getCause();
                         Model excModel = ie.getModel();
                         if (excModel != null)
                         {
@@ -270,6 +270,7 @@ public class ImportExecutor
                         
                         appendProvGraph(provImport, service.getDatasetAccessor());
                     }
+                    // could not save RDF
                 }
                 
                 return null;
@@ -303,8 +304,8 @@ public class ImportExecutor
     {
         URI graphURI = UriBuilder.fromUri(provImport.getURI()).fragment(null).build(); // skip fragment from the Import URI to get its graph URI
         if (log.isDebugEnabled()) log.debug("Appending import metadata to graph: {}", graphURI);
-        
-        GraphStoreImpl.skolemize(provImport.getModel(), graphURI); // make sure we don't store blank nodes
+                    
+        new Skolemizer(graphURI.toString()).apply(provImport.getModel()); // make sure we don't store blank nodes
         accessor.add(graphURI.toString(), provImport.getModel());
     }
 
@@ -315,11 +316,12 @@ public class ImportExecutor
      * @param graphStoreClient GSP client
      * @param baseURI base URI
      * @param query transformation query
+     * @param createGraph function that derives graph URI from a document model
      * @return function
      */
-    protected Function<Response, CSVGraphStoreOutput> getStreamRDFOutputWriter(CSVImport imp, GraphStoreClient graphStoreClient, String baseURI, Query query)
+    protected Function<Response, CSVGraphStoreOutput> getStreamRDFOutputWriter(CSVImport imp, GraphStoreClient graphStoreClient, String baseURI, Query query, Function<Model, Resource> createGraph)
     {
-        return new CSVGraphStoreOutputWriter(graphStoreClient, baseURI, query, imp.getDelimiter());
+        return new CSVGraphStoreOutputWriter(graphStoreClient, baseURI, query, createGraph, imp.getDelimiter());
     }
 
     /**

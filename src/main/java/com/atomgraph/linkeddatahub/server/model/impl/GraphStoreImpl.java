@@ -21,6 +21,7 @@ import com.atomgraph.core.riot.lang.RDFPostReader;
 import static com.atomgraph.linkeddatahub.apps.model.Application.UPLOADS_PATH;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.io.ValidatingModelProvider;
+import com.atomgraph.linkeddatahub.server.util.Skolemizer;
 import com.atomgraph.linkeddatahub.vocabulary.Default;
 import com.atomgraph.linkeddatahub.vocabulary.NFO;
 import com.atomgraph.processor.vocabulary.DH;
@@ -41,14 +42,13 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
+import java.util.function.Function;
 import javax.inject.Inject;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.Consumes;
@@ -83,7 +83,6 @@ import org.apache.jena.rdf.model.StmtIterator;
 import org.apache.jena.sparql.vocabulary.FOAF;
 import org.apache.jena.update.UpdateRequest;
 import org.apache.jena.util.ResourceUtils;
-import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.vocabulary.DCTerms;
 import org.apache.jena.vocabulary.RDF;
 import org.glassfish.jersey.media.multipart.BodyPart;
@@ -102,7 +101,97 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
 {
     
     private static final Logger log = LoggerFactory.getLogger(GraphStoreImpl.class);
+            
+    public static Function<Model, Resource> CREATE_GRAPH = new Function<Model, Resource>()
+    {
+        
+        /**
+         * Creates a new graph URI from the document resource in the request body.
+         * The new graph URI will be relative to the parent container's URI.
+         * 
+         * @param model input RDF graph
+         * @return graph resource or null
+         */
+        @Override
+        public Resource apply(Model model)
+        {
+            if (model == null) throw new IllegalArgumentException("Model cannot be null");
 
+            Resource doc = getDocument(model);
+            if (doc == null) throw new BadRequestException("Cannot create a new named graph, no Container or Item instance found in request body");
+
+            Resource parent = getParent(doc);
+            if (parent == null) throw new BadRequestException("Graph URI is not specified and no document (with sioc:has_parent or sioc:has_container) found in request body");
+
+            // hardcoded hierarchical URL building logic
+            final String slug;
+            if (doc.hasProperty(DH.slug)) slug = doc.getProperty(DH.slug).getString();
+            else slug = UUID.randomUUID().toString();
+            URI graphUri = URI.create(parent.getURI()).resolve(slug + "/");
+
+            if (graphUri != null) return ResourceUtils.renameResource(doc, graphUri.toString());
+            else return null;
+        }
+
+        /**
+         * Extracts the document that is being created from the input RDF graph.
+         * 
+         * @param model RDF input graph
+         * @return RDF resource
+         */
+        public Resource getDocument(Model model)
+        {
+            if (model == null) throw new IllegalArgumentException("Model cannot be null");
+
+            ResIterator it = model.listSubjectsWithProperty(SIOC.HAS_PARENT);
+            try
+            {
+                if (it.hasNext())
+                {
+                    Resource doc = it.next();
+
+                    return doc;
+                }
+            }
+            finally
+            {
+                it.close();
+            }
+
+            it = model.listSubjectsWithProperty(SIOC.HAS_CONTAINER);
+            try
+            {
+                if (it.hasNext())
+                {
+                    Resource doc = it.next();
+
+                    return doc;
+                }
+            }
+            finally
+            {
+                it.close();
+            }
+
+            return null;
+        }
+
+        /**
+         * Returns the parent container of the specified document.
+         * 
+         * @param doc document resource
+         * @return parent resource
+         */
+        public Resource getParent(Resource doc)
+        {
+            Resource parent = doc.getPropertyResourceValue(SIOC.HAS_PARENT);
+            if (parent != null) return parent;
+            parent = doc.getPropertyResourceValue(SIOC.HAS_CONTAINER);
+            return parent;
+        }
+        
+    };
+    
     private final UriInfo uriInfo;
     private final com.atomgraph.linkeddatahub.apps.model.Application application;
     private final Ontology ontology;
@@ -162,7 +251,7 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
         // neither default graph nor named graph specified -- obtain named graph URI from the document
         if (!defaultGraph && graphUri == null)
         {
-            Resource graph = createGraph(model);
+            Resource graph = CREATE_GRAPH.apply(model);
             if (graph == null) throw new InternalServerErrorException("Named graph skolemization failed");
             graphUri = URI.create(graph.getURI());
             
@@ -171,37 +260,11 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
         }
         
         // container/item (graph) resource is already skolemized, skolemize the rest of the model
-        skolemize(model, graphUri);
+        new Skolemizer(graphUri.toString()).apply(model);
         
         return super.post(model, false, graphUri);
     }
 
-    /**
-     * Creates a new graph URI from the document resource in the request body.
-     * The new graph URI will be relative to the parent container's URI.
-     * 
-     * @param model input RDF graph
-     * @return graph resource or null
-     */
-    public Resource createGraph(Model model)
-    {
-        if (model == null) throw new IllegalArgumentException("Model cannot be null");
-
-        Resource doc = getDocument(model);
-        if (doc == null) throw new BadRequestException("Cannot create a new named graph, no Container or Item instance found in request body");
-        
-        Resource parent = getParent(doc);
-        if (parent == null) throw new BadRequestException("Graph URI is not specified and no document (with sioc:has_parent or sioc:has_container) found in request body");
-
-        // hardcoded hierarchical URL building logic
-        final String slug;
-        if (doc.hasProperty(DH.slug)) slug = doc.getProperty(DH.slug).getString();
-        else slug = UUID.randomUUID().toString();
-        URI graphUri = URI.create(parent.getURI()).resolve(slug + "/");
-        
-        if (graphUri != null) return ResourceUtils.renameResource(doc, graphUri.toString());
-        else return null;
-    }
     
     @PUT
     @Override
@@ -220,7 +283,7 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
             removeAll(DCTerms.modified).
             addLiteral(DCTerms.modified, ResourceFactory.createTypedLiteral(GregorianCalendar.getInstance()));
         
-        skolemize(model, graphUri);
+        new Skolemizer(graphUri.toString()).apply(model);
         
         return super.put(model, defaultGraph, graphUri);
     }
@@ -287,7 +350,7 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
             // neither default graph nor named graph specified -- obtain named graph URI from the document
             if (!defaultGraph && graphUri == null)
             {
-                Resource graph = createGraph(model);
+                Resource graph = CREATE_GRAPH.apply(model);
                 if (graph == null) throw new InternalServerErrorException("Named graph skolemization failed");
                 graphUri = URI.create(graph.getURI());
                 
@@ -296,8 +359,8 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
             }
 
             // container/item (graph) resource is already skolemized, skolemize the rest of the model
-            skolemize(model, graphUri);
-            
+            new Skolemizer(graphUri.toString()).apply(model);
+        
             int fileCount = writeFiles(model, getFileNameBodyPartMap(multiPart));
             if (log.isDebugEnabled()) log.debug("# of files uploaded: {} ", fileCount);
 
@@ -342,7 +405,7 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
             int fileCount = writeFiles(model, getFileNameBodyPartMap(multiPart));
             if (log.isDebugEnabled()) log.debug("# of files uploaded: {} ", fileCount);
             
-            skolemize(model, graphUri);
+            new Skolemizer(graphUri.toString()).apply(model);
         
             return put(model, defaultGraph, graphUri);
         }
@@ -585,99 +648,6 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
             if (log.isErrorEnabled()) log.error("File I/O error", ex);
             throw new InternalServerErrorException(ex);
         }
-    }
-    
-    /**
-     * Skolemizes RDF graph by replacing blank node resources with fragment URI resources.
-     * 
-     * @param model input model
-     * @param graphUri document URI that fragment URIs are built from
-     * @return skolemized model
-     */
-    public static Model skolemize(Model model, URI graphUri)
-    {
-        Set<Resource> bnodes = new HashSet<>();
-        
-        ExtendedIterator<Statement> it = model.listStatements().
-            filterKeep((Statement stmt) -> (stmt.getSubject().isAnon() || stmt.getObject().isAnon()));
-        try
-        {
-            while (it.hasNext())
-            {
-                Statement stmt = it.next();
-                
-                if (stmt.getSubject().isAnon()) bnodes.add(stmt.getSubject());
-                if (stmt.getObject().isAnon()) bnodes.add(stmt.getObject().asResource());
-            }
-        }
-        finally
-        {
-            it.close();
-        }
-
-        bnodes.stream().forEach(bnode ->
-            ResourceUtils.renameResource(bnode, UriBuilder.fromUri(graphUri).
-                fragment("id{uuid}").
-                build(UUID.randomUUID().toString()).toString()));
-        
-        return model;
-    }
-    
-    /**
-     * Extracts the document that is being created from the input RDF graph.
-     * 
-     * @param model RDF input graph
-     * @return RDF resource
-     */
-    public Resource getDocument(Model model)
-    {
-        if (model == null) throw new IllegalArgumentException("Model cannot be null");
-        
-        ResIterator it = model.listSubjectsWithProperty(SIOC.HAS_PARENT);
-        try
-        {
-            if (it.hasNext())
-            {
-                Resource doc = it.next();
-
-                return doc;
-            }
-        }
-        finally
-        {
-            it.close();
-        }
-
-        it = model.listSubjectsWithProperty(SIOC.HAS_CONTAINER);
-        try
-        {
-            if (it.hasNext())
-            {
-                Resource doc = it.next();
-
-                return doc;
-            }
-        }
-        finally
-        {
-            it.close();
-        }
-
-        return null;
-    }
-    
-    /**
-     * Returns the parent container of the specified document.
-     * 
-     * @param doc document resource
-     * @return parent resource
-     */
-    public Resource getParent(Resource doc)
-    {
-        Resource parent = doc.getPropertyResourceValue(SIOC.HAS_PARENT);
-        if (parent != null) return parent;
-        parent = doc.getPropertyResourceValue(SIOC.HAS_CONTAINER);
-        return parent;
     }
 
     /**
