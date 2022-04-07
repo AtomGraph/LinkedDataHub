@@ -169,6 +169,12 @@
                 </exclusion>
             </exclusions>
         </dependency>
+        <!-- required by jsonld-java -->
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient-cache</artifactId>
+            <version>4.5.9</version>
+        </dependency>
         <dependency>
             <groupId>com.auth0</groupId>
             <artifactId>java-jwt</artifactId>
