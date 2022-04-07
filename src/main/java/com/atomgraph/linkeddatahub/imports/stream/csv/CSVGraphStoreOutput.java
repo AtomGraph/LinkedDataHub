@@ -71,6 +71,7 @@ public class CSVGraphStoreOutput // extends com.atomgraph.etl.csv.stream.CSVStre
     
     /**
      * Reads CSV and writes RDF.
+     * 
      * First a generic CSV/RDF representation is constructed for each row. Then the row is transformed using the SPARQL query.
      */
     public void write()

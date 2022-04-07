@@ -20,6 +20,7 @@ import com.atomgraph.core.client.GraphStoreClient;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.util.function.Function;
 import javax.ws.rs.WebApplicationException;
@@ -66,9 +67,9 @@ public class CSVGraphStoreOutputWriter implements Function<Response, CSVGraphSto
     {
         if (csvInput == null) throw new IllegalArgumentException("Response cannot be null");
         
-        try (csvInput; InputStream is = csvInput.readEntity(InputStream.class))
+        try (csvInput; InputStream is = csvInput.readEntity(InputStream.class); Reader reader = new InputStreamReader(is, StandardCharsets.UTF_8))
         {
-            CSVGraphStoreOutput output = new CSVGraphStoreOutput(getGraphStoreClient(), new InputStreamReader(is, StandardCharsets.UTF_8), getBaseURI(), getQuery(), getDelimiter(), null);
+            CSVGraphStoreOutput output = new CSVGraphStoreOutput(getGraphStoreClient(), reader, getBaseURI(), getQuery(), getDelimiter(), null);
             output.write();
             return output;
         }
