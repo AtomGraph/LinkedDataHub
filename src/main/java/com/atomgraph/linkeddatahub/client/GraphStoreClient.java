@@ -30,6 +30,7 @@ import org.apache.jena.rdf.model.Model;
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
+@Deprecated
 public class GraphStoreClient extends com.atomgraph.core.client.GraphStoreClient
 {
     
