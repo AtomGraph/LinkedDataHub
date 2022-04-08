@@ -1622,8 +1622,8 @@ WHERE
         </xsl:if>
     </xsl:template>
     
-    <xsl:template match="div[@id = 'doc-tree']" mode="ixsl:onmouseout">
-        <ixsl:set-style name="display" select="'none'"/>
+    <xsl:template match="*[ancestor-or-self::div[@id = 'doc-tree']]" mode="ixsl:onmouseout">
+        <ixsl:set-style name="display" select="'none'" object="ancestor-or-self::div[@id = 'doc-tree']"/>
     </xsl:template>
     
     <!-- CALLBACKS -->
