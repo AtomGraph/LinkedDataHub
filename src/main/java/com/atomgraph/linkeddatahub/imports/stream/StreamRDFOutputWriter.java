@@ -18,8 +18,13 @@ package com.atomgraph.linkeddatahub.imports.stream;
 
 import com.atomgraph.core.MediaType;
 import com.atomgraph.core.client.GraphStoreClient;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.UUID;
 import java.util.function.Function;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.WebApplicationException;
@@ -62,19 +67,33 @@ public class StreamRDFOutputWriter implements Function<Response, RDFGraphStoreOu
     }
 
     @Override
-    public RDFGraphStoreOutput apply(Response input)
+    public RDFGraphStoreOutput apply(Response rdfInput)
     {
-        if (input == null) throw new IllegalArgumentException("Response cannot be null");
+        if (rdfInput == null) throw new IllegalArgumentException("Response cannot be null");
         
-        try (input; InputStream is = input.readEntity(InputStream.class))
+        try
         {
-            MediaType mediaType = new MediaType(input.getMediaType().getType(), input.getMediaType().getSubtype()); // discard charset param
-            Lang lang = RDFLanguages.contentTypeToLang(mediaType.toString()); // convert media type to RDF language
-            if (lang == null) throw new BadRequestException("Content type '" + mediaType + "' is not an RDF media type");
+            // buffer the RDF in a temp file before transforming it
+            File tempFile = File.createTempFile(UUID.randomUUID().toString(), "tmp");
+            try (rdfInput; InputStream rdfIs = rdfInput.readEntity(InputStream.class); OutputStream output = new FileOutputStream(tempFile))
+            {
+                rdfIs.transferTo(output);
+            }
 
-            RDFGraphStoreOutput output = new RDFGraphStoreOutput(getGraphStoreClient(), is, getBaseURI(), getQuery(), lang, getGraphURI());
-            output.write();
-            return output;
+            try (InputStream fis = new FileInputStream(tempFile))
+            {
+                MediaType mediaType = new MediaType(rdfInput.getMediaType().getType(), rdfInput.getMediaType().getSubtype()); // discard charset param
+                Lang lang = RDFLanguages.contentTypeToLang(mediaType.toString()); // convert media type to RDF language
+                if (lang == null) throw new BadRequestException("Content type '" + mediaType + "' is not an RDF media type");
+
+                RDFGraphStoreOutput output = new RDFGraphStoreOutput(getGraphStoreClient(), fis, getBaseURI(), getQuery(), lang, getGraphURI());
+                output.write();
+                return output;
+            }
+            finally
+            {
+                tempFile.delete();
+            }
         }
         catch (IOException ex)
         {

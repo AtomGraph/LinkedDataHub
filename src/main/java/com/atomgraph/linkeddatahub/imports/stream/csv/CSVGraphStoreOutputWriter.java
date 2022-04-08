@@ -80,7 +80,7 @@ public class CSVGraphStoreOutputWriter implements Function<Response, CSVGraphSto
         try
         {
             // buffer the CSV in a temp file before transforming it
-            File tempFile = File.createTempFile(UUID.randomUUID().toString(), "csv");
+            File tempFile = File.createTempFile(UUID.randomUUID().toString(), "tmp");
             try (csvInput; InputStream csvIs = csvInput.readEntity(InputStream.class); OutputStream output = new FileOutputStream(tempFile))
             {
                 csvIs.transferTo(output);
