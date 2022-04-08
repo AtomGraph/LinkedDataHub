@@ -43,6 +43,9 @@ exclude-result-prefixes="#all"
             <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $select-json ])" as="xs:string"/>
             <xsl:sequence select="json-to-xml($select-json-string)"/>
         </xsl:param>
+
+        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+        
         <!-- wrap SELECT into a DESCRIBE -->
         <xsl:variable name="query-xml" as="element()">
             <xsl:apply-templates select="$select-xml" mode="ldh:wrap-describe"/>
@@ -82,7 +85,7 @@ exclude-result-prefixes="#all"
                         <xsl:variable name="request" as="item()*">
                             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                                 <xsl:call-template name="ldh:BreadCrumbResourceLoaded">
-                                    <xsl:with-param name="container" select="$container"/>"
+                                    <xsl:with-param name="container" select="$container"/>
                                     <xsl:with-param name="uri" select="$parent-uri"/>
                                     <xsl:with-param name="leaf" select="false()"/> <!-- parent resources cannot be leaves -->
                                 </xsl:call-template>
@@ -128,7 +131,7 @@ exclude-result-prefixes="#all"
                         <xsl:variable name="request" as="item()*">
                             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                                 <xsl:call-template name="ldh:DocTreeResourceLoad">
-                                    <xsl:with-param name="container" select="$container"/>"
+                                    <xsl:with-param name="container" select="$container"/>
                                     <xsl:with-param name="uri" select="$parent-uri"/>
                                 </xsl:call-template>
                             </ixsl:schedule-action>
@@ -144,6 +147,8 @@ exclude-result-prefixes="#all"
                             </xsl:apply-templates>
                         </xsl:result-document>
                     </xsl:for-each>
+                    
+                    <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
