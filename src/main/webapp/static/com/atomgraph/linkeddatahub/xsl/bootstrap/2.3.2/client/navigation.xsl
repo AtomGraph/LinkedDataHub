@@ -45,6 +45,7 @@ exclude-result-prefixes="#all"
             <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $select-json ])" as="xs:string"/>
             <xsl:sequence select="json-to-xml($select-json-string)"/>
         </xsl:param>
+        <xsl:param name="endpoint" select="resolve-uri('sparql', $ldt:base)" as="xs:anyURI"/>
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
         
