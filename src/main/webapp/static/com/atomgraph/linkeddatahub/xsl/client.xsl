@@ -1593,9 +1593,28 @@ WHERE
     <xsl:template match="body" mode="ixsl:onmousemove">
         <xsl:variable name="x" select="ixsl:get(ixsl:event(), 'clientX')"/>
         
-        <xsl:if test="$x = 0"> <!-- mouse is on the left edge -->
-            <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ 'Left edge!' ])"/>
+        <!-- check that the mouse is on the left edge -->
+        <xsl:if test="$x = 0">
+            <xsl:variable name="container" select="id('doc-tree', ixsl:page())" as="element()?"/>
+            <xsl:choose>
+                <!-- insert document tree element if it doesn't exist -->
+                <xsl:when test="not($container)">
+                    <xsl:result-document href="?." method="ixsl:append-content">
+                        <div id="doc-tree" class="well well-small sidebar-nav" style="width: 15%;position: fixed;left: 0;height: 30em;top: 106px;">
+                            <ul class="nav nav-list"></ul>
+                        </div>
+                    </xsl:result-document>
+                </xsl:when>
+                <!-- display document tree element if it exists -->
+                <xsl:otherwise>
+                    <ixsl:set-style name="display" select="'block'" object="$container"/>
+                </xsl:otherwise>
+            </xsl:choose>
         </xsl:if>
+    </xsl:template>
+    
+    <xsl:template match="div[@id = 'doc-tree']" mode="ixsl:onmouseout">
+        <ixsl:set-style name="display" select="'none'"/>
     </xsl:template>
     
     <!-- CALLBACKS -->
