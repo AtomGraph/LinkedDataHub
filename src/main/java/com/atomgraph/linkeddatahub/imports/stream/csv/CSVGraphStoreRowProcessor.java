@@ -87,8 +87,8 @@ public class CSVGraphStoreRowProcessor implements RowProcessor // extends com.at
             getGraphStoreClient().add(graphUri, rowDataset.getDefaultModel());
             
             // purge cache entries that include the graph URI
-            if (getService().getProxy() != null) ban(getService().getClient(), getService().getProxy(), graphUri);
-            if (getAdminService() != null && getAdminService().getProxy() != null) ban(getAdminService().getClient(), getAdminService().getProxy(), graphUri);
+            if (getService().getProxy() != null) ban(getService().getClient(), getService().getProxy(), graphUri).close();
+            if (getAdminService() != null && getAdminService().getProxy() != null) ban(getAdminService().getClient(), getAdminService().getProxy(), graphUri).close();
         }
         
         rowDataset.listNames().forEachRemaining(graphUri -> 
@@ -97,8 +97,8 @@ public class CSVGraphStoreRowProcessor implements RowProcessor // extends com.at
                 if (!rowDataset.getNamedModel(graphUri).isEmpty()) getGraphStoreClient().add(graphUri, rowDataset.getNamedModel(graphUri));
                 
                 // purge cache entries that include the graph URI
-                if (getService().getProxy() != null) ban(getService().getClient(), getService().getProxy(), graphUri);
-                if (getAdminService() != null && getAdminService().getProxy() != null) ban(getAdminService().getClient(), getAdminService().getProxy(), graphUri);
+                if (getService().getProxy() != null) ban(getService().getClient(), getService().getProxy(), graphUri).close();
+                if (getAdminService() != null && getAdminService().getProxy() != null) ban(getAdminService().getClient(), getAdminService().getProxy(), graphUri).close();
             }
         );
     }
