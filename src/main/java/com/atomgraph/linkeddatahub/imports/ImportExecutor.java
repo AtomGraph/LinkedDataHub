@@ -113,7 +113,7 @@ public class ImportExecutor
      * @param graphStoreClient GSP client
      * @param createGraph function that derives graph URI from a document model
      */
-    public void start(CSVImport csvImport, Service service, Service adminService, String appBaseURI, DataManager dataManager, GraphStoreClient graphStoreClient, Function<Model, Resource> createGraph)
+    public void start(Service service, Service adminService, String appBaseURI, DataManager dataManager, GraphStoreClient graphStoreClient, Function<Model, Resource> createGraph, CSVImport csvImport)
     {
         if (csvImport == null) throw new IllegalArgumentException("CSVImport cannot be null");
         if (log.isDebugEnabled()) log.debug("Submitting new import to thread pool: {}", csvImport.toString());
@@ -129,10 +129,10 @@ public class ImportExecutor
         
         Supplier<Response> fileSupplier = new ClientResponseSupplier(csvImport.getFile().getURI(), CSV_MEDIA_TYPES, dataManager);
         // skip validation because it will be done during final POST anyway
-        CompletableFuture.supplyAsync(fileSupplier, getExecutorService()).thenApplyAsync(getStreamRDFOutputWriter(csvImport,
+        CompletableFuture.supplyAsync(fileSupplier, getExecutorService()).thenApplyAsync(getStreamRDFOutputWriter(service, adminService, csvImport,
                 graphStoreClient, queryBaseURI, query, createGraph), getExecutorService()).
-            thenAcceptAsync(success(csvImport, provImport, service, adminService, dataManager), getExecutorService()).
-            exceptionally(failure(csvImport, provImport, service));
+            thenAcceptAsync(success(service, dataManager, csvImport, provImport), getExecutorService()).
+            exceptionally(failure(service, csvImport, provImport));
     }
 
     /**
@@ -146,7 +146,7 @@ public class ImportExecutor
      * @param graphStoreClient GSP client
      */
 
-    public void start(RDFImport rdfImport, Service service, Service adminService, String appBaseURI, DataManager dataManager, GraphStoreClient graphStoreClient)
+    public void start(Service service, Service adminService, String appBaseURI, DataManager dataManager, GraphStoreClient graphStoreClient, RDFImport rdfImport)
     {
         if (rdfImport == null) throw new IllegalArgumentException("RDFImport cannot be null");
         if (log.isDebugEnabled()) log.debug("Submitting new import to thread pool: {}", rdfImport.toString());
@@ -170,8 +170,8 @@ public class ImportExecutor
         // skip validation because it will be done during final POST anyway
         CompletableFuture.supplyAsync(fileSupplier, getExecutorService()).thenApplyAsync(getStreamRDFOutputWriter(rdfImport,
                 graphStoreClient, queryBaseURI, query), getExecutorService()).
-            thenAcceptAsync(success(rdfImport, provImport, service, adminService, dataManager), getExecutorService()).
-            exceptionally(failure(rdfImport, provImport, service));
+            thenAcceptAsync(success(service, dataManager, rdfImport, provImport), getExecutorService()).
+            exceptionally(failure(service, rdfImport, provImport));
     }
     
     /**
@@ -180,11 +180,10 @@ public class ImportExecutor
      * @param csvImport import resource
      * @param provImport provenance resource
      * @param service application's SPARQL service
-     * @param adminService admin application's SPARQL service
      * @param dataManager RDF data manager
      * @return consumer of the RDF output
      */
-    protected Consumer<CSVGraphStoreOutput> success(final CSVImport csvImport, final Resource provImport, final Service service, final Service adminService, final DataManager dataManager)
+    protected Consumer<CSVGraphStoreOutput> success(final Service service, final DataManager dataManager, final CSVImport csvImport, final Resource provImport)
     {
         return (CSVGraphStoreOutput output) ->
         {
@@ -205,11 +204,10 @@ public class ImportExecutor
      * @param rdfImport import resource
      * @param provImport provenance resource
      * @param service application's SPARQL service
-     * @param adminService admin application's SPARQL service
      * @param dataManager RDF data manager
      * @return consumer of the RDF output
      */
-    protected Consumer<RDFGraphStoreOutput> success(final RDFImport rdfImport, final Resource provImport, final Service service, final Service adminService, final DataManager dataManager)
+    protected Consumer<RDFGraphStoreOutput> success(final Service service, final DataManager dataManager, final RDFImport rdfImport, final Resource provImport)
     {
         return (RDFGraphStoreOutput output) ->
         {
@@ -232,7 +230,7 @@ public class ImportExecutor
      * @param service application's SPARQL service
      * @return void function
      */
-    protected Function<Throwable, Void> failure(final Import importInst, final Resource provImport, final Service service)
+    protected Function<Throwable, Void> failure(final Service service, final Import importInst, final Resource provImport)
     {
         return new Function<Throwable, Void>()
         {
@@ -319,9 +317,9 @@ public class ImportExecutor
      * @param createGraph function that derives graph URI from a document model
      * @return function
      */
-    protected Function<Response, CSVGraphStoreOutput> getStreamRDFOutputWriter(CSVImport imp, GraphStoreClient graphStoreClient, String baseURI, Query query, Function<Model, Resource> createGraph)
+    protected Function<Response, CSVGraphStoreOutput> getStreamRDFOutputWriter(Service service, Service adminService, CSVImport imp, GraphStoreClient graphStoreClient, String baseURI, Query query, Function<Model, Resource> createGraph)
     {
-        return new CSVGraphStoreOutputWriter(graphStoreClient, baseURI, query, createGraph, imp.getDelimiter());
+        return new CSVGraphStoreOutputWriter(service, adminService, graphStoreClient, baseURI, query, createGraph, imp.getDelimiter());
     }
 
     /**

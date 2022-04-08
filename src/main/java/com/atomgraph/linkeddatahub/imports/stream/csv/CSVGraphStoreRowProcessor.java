@@ -17,10 +17,13 @@
 package com.atomgraph.linkeddatahub.imports.stream.csv;
 
 import com.atomgraph.core.client.GraphStoreClient;
+import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.util.Skolemizer;
 import com.univocity.parsers.common.ParsingContext;
 import com.univocity.parsers.common.processor.RowProcessor;
 import java.util.function.Function;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.core.Response;
 import org.apache.jena.atlas.lib.IRILib;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.query.Query;
@@ -29,6 +32,7 @@ import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
+import org.glassfish.jersey.uri.UriComponent;
 
 /**
  *
@@ -37,6 +41,7 @@ import org.apache.jena.rdf.model.Resource;
 public class CSVGraphStoreRowProcessor implements RowProcessor // extends com.atomgraph.etl.csv.stream.CSVStreamRDFProcessor
 {
 
+    private final Service service, adminService;
     private final GraphStoreClient graphStoreClient;
     private final String base;
     private final Query query;
@@ -46,13 +51,17 @@ public class CSVGraphStoreRowProcessor implements RowProcessor // extends com.at
     /**
      * Constructs row processor.
      * 
+     * @param service SPARQL service of the application
+     * @param adminService SPARQL service of the admin application
      * @param graphStoreClient the GSP client
      * @param base base URI
      * @param query transformation query
      * @param createGraph function that derives graph URI from a document model
      */
-    public CSVGraphStoreRowProcessor(GraphStoreClient graphStoreClient, String base, Query query, Function<Model, Resource> createGraph)
+    public CSVGraphStoreRowProcessor(Service service, Service adminService, GraphStoreClient graphStoreClient, String base, Query query, Function<Model, Resource> createGraph)
     {
+        this.service = service;
+        this.adminService = adminService;
         this.graphStoreClient = graphStoreClient;
         this.base = base;
         this.query = query;
@@ -76,6 +85,10 @@ public class CSVGraphStoreRowProcessor implements RowProcessor // extends com.at
             String graphUri = getCreateGraph().apply(rowDataset.getDefaultModel()).getURI();
             new Skolemizer(graphUri).apply(rowDataset.getDefaultModel());
             getGraphStoreClient().add(graphUri, rowDataset.getDefaultModel());
+            
+            // purge cache entries that include the graph URI
+            if (getService().getProxy() != null) ban(getService().getClient(), getService().getProxy(), graphUri);
+            if (getAdminService() != null && getAdminService().getProxy() != null) ban(getAdminService().getClient(), getAdminService().getProxy(), graphUri);
         }
         
         rowDataset.listNames().forEachRemaining(graphUri -> 
@@ -125,6 +138,26 @@ public class CSVGraphStoreRowProcessor implements RowProcessor // extends com.at
     {
     }
 
+    /**
+     * Return application's SPARQL service.
+     * 
+     * @return SPARQL service
+     */
+    public Service getService()
+    {
+        return service;
+    }
+    
+    /**
+     * Return admin application's SPARQL service.
+     * 
+     * @return SPARQL service
+     */
+    public Service getAdminService()
+    {
+        return adminService;
+    }
+    
     /**
      * Returns the Graph Store Protocol client.
      * 
@@ -184,5 +217,25 @@ public class CSVGraphStoreRowProcessor implements RowProcessor // extends com.at
     {
         return createGraph;
     }
-
+    
+    /**
+     * Bans a URL from proxy cache.
+     * 
+     * @param client HTTP client
+     * @param proxy proxy cache endpoint
+     * @param url request URL
+     * @return response from cache
+     */
+    public Response ban(Client client, Resource proxy, String url)
+    {
+        if (url == null) throw new IllegalArgumentException("Resource cannot be null");
+        
+        // create new Client instance, otherwise ApacheHttpClient reuses connection and Varnish ignores BAN request
+        return client.
+            target(proxy.getURI()).
+            request().
+            header("X-Escaped-Request-URI", UriComponent.encode(url, UriComponent.Type.UNRESERVED)).
+            method("BAN", Response.class);
+    }
+    
 }
