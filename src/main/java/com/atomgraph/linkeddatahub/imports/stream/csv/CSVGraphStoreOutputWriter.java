@@ -17,11 +17,16 @@
 package com.atomgraph.linkeddatahub.imports.stream.csv;
 
 import com.atomgraph.core.client.GraphStoreClient;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
+import java.util.UUID;
 import java.util.function.Function;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
@@ -72,11 +77,25 @@ public class CSVGraphStoreOutputWriter implements Function<Response, CSVGraphSto
     {
         if (csvInput == null) throw new IllegalArgumentException("Response cannot be null");
         
-        try (csvInput; InputStream is = csvInput.readEntity(InputStream.class); Reader reader = new InputStreamReader(is, StandardCharsets.UTF_8))
+        try (csvInput)
         {
-            CSVGraphStoreOutput output = new CSVGraphStoreOutput(getGraphStoreClient(), reader, getBaseURI(), getQuery(), getCreateGraph(), getDelimiter(), null);
-            output.write();
-            return output;
+            // buffer the CSV in a temp file before transforming it
+            File tempFile = File.createTempFile(UUID.randomUUID().toString(), "csv");
+            try (OutputStream output = new FileOutputStream(tempFile); InputStream csvIs = csvInput.readEntity(InputStream.class))
+            {
+                csvIs.transferTo(output);
+            }
+            
+            try (InputStream fis = new FileInputStream(tempFile); Reader reader = new InputStreamReader(fis, StandardCharsets.UTF_8))
+            {
+                CSVGraphStoreOutput output = new CSVGraphStoreOutput(getGraphStoreClient(), reader, getBaseURI(), getQuery(), getCreateGraph(), getDelimiter(), null);
+                output.write();
+                return output;
+            }
+            finally
+            {
+                tempFile.delete();
+            }
         }
         catch (IOException ex)
         {
