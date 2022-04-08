@@ -32,7 +32,6 @@ exclude-result-prefixes="#all"
     <!-- TEMPLATES -->
     
     <xsl:template name="ldh:DocTreeResourceLoad">
-        <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="container" as="element()"/>
         <xsl:param name="uri" as="xs:anyURI"/>
         <xsl:param name="select-xml" as="document-node()"> <!-- using the ldh:SelectChildren query -->
