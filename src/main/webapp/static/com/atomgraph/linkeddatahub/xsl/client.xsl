@@ -1588,6 +1588,16 @@ WHERE
         </xsl:choose>
     </xsl:template>
     
+    <!-- left-side document tree -->
+    
+    <xsl:template match="body" mode="ixsl:onmousemove">
+        <xsl:variable name="x" select="ixsl:get(ixsl:event(), 'clientX')"/>
+        
+        <xsl:if test="$x = 0"> <!-- mouse is on the left edge -->
+            <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ 'Left edge!' ])"/>
+        </xsl:if>
+    </xsl:template>
+    
     <!-- CALLBACKS -->
 
     <xsl:template name="onBacklinksLoad">
