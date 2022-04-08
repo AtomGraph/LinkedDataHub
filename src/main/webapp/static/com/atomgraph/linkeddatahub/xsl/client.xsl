@@ -84,7 +84,7 @@ extension-element-prefixes="ixsl"
     <xsl:import href="typeahead.xsl"/>
 
     <xsl:include href="bootstrap/2.3.2/client/functions.xsl"/>
-    <xsl:include href="bootstrap/2.3.2/client/breadcrumb.xsl"/>
+    <xsl:include href="bootstrap/2.3.2/client/navigation.xsl"/>
     <xsl:include href="bootstrap/2.3.2/client/content.xsl"/>
     <xsl:include href="bootstrap/2.3.2/client/modal.xsl"/>
     <xsl:include href="bootstrap/2.3.2/client/chart.xsl"/>
@@ -375,7 +375,7 @@ WHERE
         </xsl:for-each>
     </xsl:template>-->
         
-    <xsl:template name="ldh:LoadedRDFDocument">
+    <xsl:template name="ldh:RDFDocumentLoaded">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="uri" as="xs:anyURI"/>
 
@@ -403,12 +403,12 @@ WHERE
                 </xsl:if>
 
                 <ul class="breadcrumb pull-left">
-                    <!-- list items will be injected by ldh:BreadCrumbResourceLoad -->
+                    <!-- list items will be injected by ldh:BreadCrumbResourceLoaded -->
                 </ul>
             </xsl:result-document>
 
-            <xsl:call-template name="ldh:BreadCrumbResourceLoad">
-                <xsl:with-param name="id" select="'breadcrumb-nav'"/>
+            <xsl:call-template name="ldh:BreadCrumbResourceLoaded">
+                <xsl:with-param name="container" select="id('breadcrumb-nav', ixsl:page())"/>
                 <!-- strip the query string if it's present -->
                 <xsl:with-param name="uri" select="xs:anyURI(if (contains($uri, '?')) then substring-before($uri, '?') else $uri)"/>
             </xsl:call-template>
@@ -558,7 +558,7 @@ WHERE
     
     <!-- load RDF document -->
     
-    <xsl:template name="ldh:LoadRDFDocument">
+    <xsl:template name="ldh:RDFDocumentLoad">
         <xsl:param name="uri" as="xs:anyURI"/>
         <!-- if the URI is external, dereference it through the proxy -->
         <!-- add a bogus query parameter to give the RDF/XML document a different URL in the browser cache, otherwise it will clash with the HTML representation -->
@@ -567,7 +567,7 @@ WHERE
 
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-                <xsl:call-template name="ldh:LoadedRDFDocument">
+                <xsl:call-template name="ldh:RDFDocumentLoaded">
                     <xsl:with-param name="uri" select="$uri"/>
                 </xsl:call-template>
             </ixsl:schedule-action>
@@ -1082,7 +1082,7 @@ WHERE
             <!--<xsl:with-param name="state" select="$state"/>-->
         </xsl:call-template>
         
-        <xsl:call-template name="ldh:LoadRDFDocument">
+        <xsl:call-template name="ldh:RDFDocumentLoad">
             <xsl:with-param name="uri" select="$uri"/>
         </xsl:call-template>
     </xsl:template>
@@ -1600,10 +1600,19 @@ WHERE
                 <!-- insert document tree element if it doesn't exist -->
                 <xsl:when test="not($container)">
                     <xsl:result-document href="?." method="ixsl:append-content">
-                        <div id="doc-tree" class="well well-small sidebar-nav" style="width: 15%;position: fixed;left: 0;height: 30em;top: 106px;">
-                            <ul class="nav nav-list"></ul>
+                        <div id="doc-tree" class="well well-small sidebar-nav" style="width: 15%;position: fixed;left: 0;height: 100%;top: 106px;">
+                            <h2 class="nav-header btn">Document tree</h2>
+                            
+                            <ul class="nav nav-list">
+                                <!-- list items will be injected by ldh:DocTreeResourceLoad -->
+                            </ul>
                         </div>
                     </xsl:result-document>
+                    
+                    <xsl:call-template name="ldh:DocTreeResourceLoad">
+                        <xsl:with-param name="container" select="id('doc-tree', ixsl:page())"/>
+                        <xsl:with-param name="uri" select="$ldt:base"/>
+                    </xsl:call-template>
                 </xsl:when>
                 <!-- display document tree element if it exists -->
                 <xsl:otherwise>
