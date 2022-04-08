@@ -17,14 +17,19 @@
 package com.atomgraph.linkeddatahub.imports.stream;
 
 import com.atomgraph.core.client.GraphStoreClient;
+import com.atomgraph.linkeddatahub.model.Service;
 import java.io.InputStream;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.core.Response;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryExecution;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
+import org.glassfish.jersey.uri.UriComponent;
 
 /**
  * Reads RDF from input stream and writes it into a named graph.
@@ -35,6 +40,7 @@ import org.apache.jena.riot.RDFDataMgr;
 public class RDFGraphStoreOutput
 {
 
+    private final Service service, adminService;
     private final GraphStoreClient graphStoreClient;
     private final String base;
     private final InputStream is;
@@ -45,6 +51,8 @@ public class RDFGraphStoreOutput
     /**
      * Constructs output writer.
      * 
+     * @param service SPARQL service of the application
+     * @param adminService SPARQL service of the admin application
      * @param graphStoreClient GSP client for RDF results
      * @param is RDF input stream
      * @param base base URI
@@ -52,8 +60,10 @@ public class RDFGraphStoreOutput
      * @param lang RDF language
      * @param graphURI named graph URI
      */
-    public RDFGraphStoreOutput(GraphStoreClient graphStoreClient, InputStream is, String base, Query query, Lang lang, String graphURI)
+    public RDFGraphStoreOutput(Service service, Service adminService, GraphStoreClient graphStoreClient, InputStream is, String base, Query query, Lang lang, String graphURI)
     {
+        this.service = service;
+        this.adminService = adminService;
         this.graphStoreClient = graphStoreClient;
         this.is = is;
         this.base = base;
@@ -82,6 +92,10 @@ public class RDFGraphStoreOutput
                     {
                          // exceptions get swallowed by the client! TO-DO: wait for completion
                         if (!dataset.getNamedModel(graphUri).isEmpty()) getGraphStoreClient().add(graphUri, dataset.getNamedModel(graphUri));
+                        
+                        // purge cache entries that include the graph URI
+                        if (getService().getProxy() != null) ban(getService().getClient(), getService().getProxy(), graphUri);
+                        if (getAdminService() != null && getAdminService().getProxy() != null) ban(getAdminService().getClient(), getAdminService().getProxy(), graphUri);
                     }
                 );
             }
@@ -91,7 +105,51 @@ public class RDFGraphStoreOutput
             if (getGraphURI() == null) throw new IllegalStateException("Neither RDFImport query nor graph name is specified");
             
             getGraphStoreClient().add(getGraphURI(), model); // exceptions get swallowed by the client! TO-DO: wait for completion
+            
+            // purge cache entries that include the graph URI
+            if (getService().getProxy() != null) ban(getService().getClient(), getService().getProxy(), getGraphURI());
+            if (getAdminService() != null && getAdminService().getProxy() != null) ban(getAdminService().getClient(), getAdminService().getProxy(), getGraphURI());
         }
+    }
+
+    /**
+     * Bans a URL from proxy cache.
+     * 
+     * @param client HTTP client
+     * @param proxy proxy cache endpoint
+     * @param url request URL
+     * @return response from cache
+     */
+    public Response ban(Client client, Resource proxy, String url)
+    {
+        if (url == null) throw new IllegalArgumentException("Resource cannot be null");
+        
+        // create new Client instance, otherwise ApacheHttpClient reuses connection and Varnish ignores BAN request
+        return client.
+            target(proxy.getURI()).
+            request().
+            header("X-Escaped-Request-URI", UriComponent.encode(url, UriComponent.Type.UNRESERVED)).
+            method("BAN", Response.class);
+    }
+    
+    /**
+     * Return application's SPARQL service.
+     * 
+     * @return SPARQL service
+     */
+    public Service getService()
+    {
+        return service;
+    }
+    
+    /**
+     * Return admin application's SPARQL service.
+     * 
+     * @return SPARQL service
+     */
+    public Service getAdminService()
+    {
+        return adminService;
     }
     
     /**

@@ -95,6 +95,10 @@ public class CSVGraphStoreRowProcessor implements RowProcessor // extends com.at
             {
                 // exceptions get swallowed by the client! TO-DO: wait for completion
                 if (!rowDataset.getNamedModel(graphUri).isEmpty()) getGraphStoreClient().add(graphUri, rowDataset.getNamedModel(graphUri));
+                
+                // purge cache entries that include the graph URI
+                if (getService().getProxy() != null) ban(getService().getClient(), getService().getProxy(), graphUri);
+                if (getAdminService() != null && getAdminService().getProxy() != null) ban(getAdminService().getClient(), getAdminService().getProxy(), graphUri);
             }
         );
     }
@@ -139,6 +143,26 @@ public class CSVGraphStoreRowProcessor implements RowProcessor // extends com.at
     }
 
     /**
+     * Bans a URL from proxy cache.
+     * 
+     * @param client HTTP client
+     * @param proxy proxy cache endpoint
+     * @param url request URL
+     * @return response from cache
+     */
+    public Response ban(Client client, Resource proxy, String url)
+    {
+        if (url == null) throw new IllegalArgumentException("Resource cannot be null");
+        
+        // create new Client instance, otherwise ApacheHttpClient reuses connection and Varnish ignores BAN request
+        return client.
+            target(proxy.getURI()).
+            request().
+            header("X-Escaped-Request-URI", UriComponent.encode(url, UriComponent.Type.UNRESERVED)).
+            method("BAN", Response.class);
+    }
+    
+    /**
      * Return application's SPARQL service.
      * 
      * @return SPARQL service
@@ -176,7 +200,6 @@ public class CSVGraphStoreRowProcessor implements RowProcessor // extends com.at
     {
         return base;
     }
-
     
     /**
      * Returns the transformation query.
@@ -218,24 +241,5 @@ public class CSVGraphStoreRowProcessor implements RowProcessor // extends com.at
         return createGraph;
     }
     
-    /**
-     * Bans a URL from proxy cache.
-     * 
-     * @param client HTTP client
-     * @param proxy proxy cache endpoint
-     * @param url request URL
-     * @return response from cache
-     */
-    public Response ban(Client client, Resource proxy, String url)
-    {
-        if (url == null) throw new IllegalArgumentException("Resource cannot be null");
-        
-        // create new Client instance, otherwise ApacheHttpClient reuses connection and Varnish ignores BAN request
-        return client.
-            target(proxy.getURI()).
-            request().
-            header("X-Escaped-Request-URI", UriComponent.encode(url, UriComponent.Type.UNRESERVED)).
-            method("BAN", Response.class);
-    }
     
 }

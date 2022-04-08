@@ -18,6 +18,7 @@ package com.atomgraph.linkeddatahub.imports.stream;
 
 import com.atomgraph.core.MediaType;
 import com.atomgraph.core.client.GraphStoreClient;
+import com.atomgraph.linkeddatahub.model.Service;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -46,6 +47,7 @@ public class StreamRDFOutputWriter implements Function<Response, RDFGraphStoreOu
     
     private static final Logger log = LoggerFactory.getLogger(StreamRDFOutputWriter.class);
 
+    private final Service service, adminService;
     private final GraphStoreClient graphStoreClient;
     private final String baseURI, graphURI;
     private final Query query;
@@ -53,13 +55,17 @@ public class StreamRDFOutputWriter implements Function<Response, RDFGraphStoreOu
     /**
      * Constructs output writer.
      * 
+     * @param service SPARQL service of the application
+     * @param adminService SPARQL service of the admin application
      * @param graphStoreClient GSP client
      * @param baseURI base URI
      * @param query transformation query or null
      * @param graphURI target graph URI
      */
-    public StreamRDFOutputWriter(GraphStoreClient graphStoreClient, String baseURI, Query query, String graphURI)
+    public StreamRDFOutputWriter(Service service, Service adminService, GraphStoreClient graphStoreClient, String baseURI, Query query, String graphURI)
     {
+        this.service = service;
+        this.adminService = adminService;
         this.graphStoreClient = graphStoreClient;
         this.baseURI = baseURI;
         this.query = query;
@@ -86,7 +92,7 @@ public class StreamRDFOutputWriter implements Function<Response, RDFGraphStoreOu
                 Lang lang = RDFLanguages.contentTypeToLang(mediaType.toString()); // convert media type to RDF language
                 if (lang == null) throw new BadRequestException("Content type '" + mediaType + "' is not an RDF media type");
 
-                RDFGraphStoreOutput output = new RDFGraphStoreOutput(getGraphStoreClient(), fis, getBaseURI(), getQuery(), lang, getGraphURI());
+                RDFGraphStoreOutput output = new RDFGraphStoreOutput(getService(), getAdminService(), getGraphStoreClient(), fis, getBaseURI(), getQuery(), lang, getGraphURI());
                 output.write();
                 return output;
             }
@@ -100,6 +106,26 @@ public class StreamRDFOutputWriter implements Function<Response, RDFGraphStoreOu
             if (log.isErrorEnabled()) log.error("Error reading RDF InputStream: {}", ex);
             throw new WebApplicationException(ex);
         }
+    }
+
+    /**
+     * Return application's SPARQL service.
+     * 
+     * @return SPARQL service
+     */
+    public Service getService()
+    {
+        return service;
+    }
+    
+    /**
+     * Return admin application's SPARQL service.
+     * 
+     * @return SPARQL service
+     */
+    public Service getAdminService()
+    {
+        return adminService;
     }
     
     /**

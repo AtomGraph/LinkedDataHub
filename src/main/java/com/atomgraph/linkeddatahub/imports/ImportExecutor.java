@@ -129,8 +129,8 @@ public class ImportExecutor
         
         Supplier<Response> fileSupplier = new ClientResponseSupplier(csvImport.getFile().getURI(), CSV_MEDIA_TYPES, dataManager);
         // skip validation because it will be done during final POST anyway
-        CompletableFuture.supplyAsync(fileSupplier, getExecutorService()).thenApplyAsync(getStreamRDFOutputWriter(service, adminService, csvImport,
-                graphStoreClient, queryBaseURI, query, createGraph), getExecutorService()).
+        CompletableFuture.supplyAsync(fileSupplier, getExecutorService()).thenApplyAsync(getStreamRDFOutputWriter(service, adminService,
+                graphStoreClient, queryBaseURI, query, createGraph, csvImport), getExecutorService()).
             thenAcceptAsync(success(service, dataManager, csvImport, provImport), getExecutorService()).
             exceptionally(failure(service, csvImport, provImport));
     }
@@ -168,8 +168,8 @@ public class ImportExecutor
         
         Supplier<Response> fileSupplier = new ClientResponseSupplier(rdfImport.getFile().getURI(), RDF_MEDIA_TYPES, dataManager);
         // skip validation because it will be done during final POST anyway
-        CompletableFuture.supplyAsync(fileSupplier, getExecutorService()).thenApplyAsync(getStreamRDFOutputWriter(rdfImport,
-                graphStoreClient, queryBaseURI, query), getExecutorService()).
+        CompletableFuture.supplyAsync(fileSupplier, getExecutorService()).thenApplyAsync(getStreamRDFOutputWriter(service, adminService,
+                graphStoreClient, queryBaseURI, query, rdfImport), getExecutorService()).
             thenAcceptAsync(success(service, dataManager, rdfImport, provImport), getExecutorService()).
             exceptionally(failure(service, rdfImport, provImport));
     }
@@ -310,14 +310,16 @@ public class ImportExecutor
     /**
      * Returns output writer for CSV imports.
      * 
-     * @param imp import resource
+     * @param service SPARQL service of the application
+     * @param adminService SPARQL service of the admin application
      * @param graphStoreClient GSP client
      * @param baseURI base URI
      * @param query transformation query
      * @param createGraph function that derives graph URI from a document model
+     * @param imp import resource
      * @return function
      */
-    protected Function<Response, CSVGraphStoreOutput> getStreamRDFOutputWriter(Service service, Service adminService, CSVImport imp, GraphStoreClient graphStoreClient, String baseURI, Query query, Function<Model, Resource> createGraph)
+    protected Function<Response, CSVGraphStoreOutput> getStreamRDFOutputWriter(Service service, Service adminService, GraphStoreClient graphStoreClient, String baseURI, Query query, Function<Model, Resource> createGraph, CSVImport imp)
     {
         return new CSVGraphStoreOutputWriter(service, adminService, graphStoreClient, baseURI, query, createGraph, imp.getDelimiter());
     }
@@ -325,15 +327,17 @@ public class ImportExecutor
     /**
      * Returns output writer for RDF imports.
      * 
-     * @param imp import resource
+     * @param service SPARQL service of the application
+     * @param adminService SPARQL service of the admin application
      * @param graphStoreClient GSP client
      * @param baseURI base URI
      * @param query transformation query
+     * @param imp import resource
      * @return function
      */
-    protected Function<Response, RDFGraphStoreOutput> getStreamRDFOutputWriter(RDFImport imp, GraphStoreClient graphStoreClient, String baseURI, Query query)
+    protected Function<Response, RDFGraphStoreOutput> getStreamRDFOutputWriter(Service service, Service adminService, GraphStoreClient graphStoreClient, String baseURI, Query query, RDFImport imp)
     {
-        return new StreamRDFOutputWriter(graphStoreClient, baseURI, query, imp.getGraphName() != null ? imp.getGraphName().getURI() : null);
+        return new StreamRDFOutputWriter(service, adminService, graphStoreClient, baseURI, query, imp.getGraphName() != null ? imp.getGraphName().getURI() : null);
     }
 
     /**
