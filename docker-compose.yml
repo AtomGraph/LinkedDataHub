@@ -119,17 +119,3 @@ services:
     image: namshi/smtp
     environment:
       - DISABLE_IPV6=true
-
-  wireshark:
-    image: lscr.io/linuxserver/wireshark
-    container_name: wireshark
-    cap_add:
-      - NET_ADMIN
-    network_mode: host
-    environment:
-      #- PUID=1000
-      #- PGID=1000
-      - TZ=Europe/London
-    ports:
-      - 3000:3000 #optional
-    restart: unless-stopped

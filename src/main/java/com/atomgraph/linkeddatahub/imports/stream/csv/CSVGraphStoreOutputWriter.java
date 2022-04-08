@@ -76,12 +76,12 @@ public class CSVGraphStoreOutputWriter implements Function<Response, CSVGraphSto
     public CSVGraphStoreOutput apply(Response csvInput)
     {
         if (csvInput == null) throw new IllegalArgumentException("Response cannot be null");
-        
-        try (csvInput)
+
+        try
         {
             // buffer the CSV in a temp file before transforming it
             File tempFile = File.createTempFile(UUID.randomUUID().toString(), "csv");
-            try (OutputStream output = new FileOutputStream(tempFile); InputStream csvIs = csvInput.readEntity(InputStream.class))
+            try (csvInput; InputStream csvIs = csvInput.readEntity(InputStream.class); OutputStream output = new FileOutputStream(tempFile))
             {
                 csvIs.transferTo(output);
             }
