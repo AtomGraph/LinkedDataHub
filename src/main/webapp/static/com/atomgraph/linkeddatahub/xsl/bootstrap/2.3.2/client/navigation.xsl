@@ -29,7 +29,7 @@ exclude-result-prefixes="#all"
 
     <!-- TEMPLATES -->
     
-    <xsl:template name="ldh:RDFDocumentLoad">
+    <xsl:template name="ldh:DocTreeResourceLoad">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="container" as="element()"/>
         <xsl:param name="uri" as="xs:anyURI"/>
