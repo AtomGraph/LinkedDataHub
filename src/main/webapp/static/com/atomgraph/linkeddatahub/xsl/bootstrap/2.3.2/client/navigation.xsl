@@ -128,6 +128,17 @@ exclude-result-prefixes="#all"
         </xsl:if>
     </xsl:template>
     
+    <xsl:template match="div[@id = 'doc-tree']//li/a" mode="ixsl:onclick">
+        <!-- mark this list item as active -->
+        <xsl:sequence select="ixsl:call(ixsl:get(.., 'classList'), 'toggle', [ 'active', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+        <!-- make the previously active list items inactive -->
+        <xsl:for-each select="ancestor::div[@id = 'doc-tree']//li[contains-token(@class, 'active')]">
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+        </xsl:for-each>
+
+        <xsl:next-match/>
+    </xsl:template>
+    
     <xsl:template match="button[contains-token(@class, 'btn-expand-tree')]" mode="ixsl:onclick">
         <xsl:variable name="href" select="following-sibling::a/@href" as="xs:anyURI"/>
         <xsl:variable name="container" select=".." as="element()"/> <!-- the parent <li> -->
@@ -139,7 +150,7 @@ exclude-result-prefixes="#all"
                 </ul>
             </xsl:result-document>
         </xsl:for-each>
-                    
+        
         <xsl:call-template name="ldh:DocTreeResourceLoad">
             <xsl:with-param name="container" select="$container/ul"/>
             <xsl:with-param name="uri" select="$href"/>
@@ -209,7 +220,7 @@ exclude-result-prefixes="#all"
                         <xsl:result-document href="?." method="ixsl:append-content">
                             <xsl:apply-templates select="$resources" mode="bs2:DocTreeListItem">
                                 <xsl:sort select="ac:label(.)"/>
-                                <xsl:with-param name="active" select="@rdf:about = $uri"/>
+                                <!--<xsl:with-param name="active" select="@rdf:about = $uri"/>-->
                             </xsl:apply-templates>
                         </xsl:result-document>
                     </xsl:for-each>
