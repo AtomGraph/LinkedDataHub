@@ -424,6 +424,20 @@ WHERE
         </li>
     </xsl:template>
     
+    <xsl:template match="*[@rdf:about = resolve-uri('latest/', $ldt:base)]" mode="bs2:BreadCrumbListItem" priority="1">
+        <xsl:param name="leaf" select="true()" as="xs:boolean"/>
+        
+        <li>
+            <a href="{@rdf:about}" class="btn-logo btn-latest">
+                <xsl:apply-templates select="key('resources', 'latest', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+            </a>
+
+            <xsl:if test="not($leaf)">
+                <span class="divider">/</span>
+            </xsl:if>
+        </li>
+    </xsl:template>
+    
     <xsl:template match="*[@rdf:about = resolve-uri('queries/', $ldt:base)]" mode="bs2:BreadCrumbListItem" priority="1">
         <xsl:param name="leaf" select="true()" as="xs:boolean"/>
         
