@@ -1389,12 +1389,6 @@ WHERE
                     <xsl:result-document href="?." method="ixsl:append-content">
                         <xsl:call-template name="ldh:DocTree"/>
                     </xsl:result-document>
-                    
-                    <xsl:call-template name="ldh:DocTreeResourceLoad">
-                        <!-- do a new lookup in case $container did not exist -->
-                        <xsl:with-param name="container" select="id('doc-tree', ixsl:page())/ul"/>
-                        <xsl:with-param name="uri" select="$ldt:base"/>
-                    </xsl:call-template>
                 </xsl:when>
                 <!-- display document tree element if it exists -->
                 <xsl:otherwise>
