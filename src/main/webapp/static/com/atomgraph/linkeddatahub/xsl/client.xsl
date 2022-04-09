@@ -574,193 +574,6 @@ WHERE
         </xsl:variable>
         <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
-    
-    <!-- root children list (unused) -->
-    
-    <xsl:template name="ldh:RootLoad">
-        <xsl:context-item as="map(*)" use="required"/>
-        <xsl:param name="id" as="xs:string"/>
-
-        <xsl:choose>
-            <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
-                <xsl:for-each select="?body">
-                    <xsl:variable name="select-uri" select="key('resources', $ldt:base)/dh:select/@rdf:resource" as="xs:anyURI?"/>
-                    <xsl:if test="$select-uri">
-                        <xsl:variable name="request" as="item()*">
-                            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $select-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-                                <xsl:call-template name="ldh:RootChildrenSelectLoad">
-                                    <xsl:with-param name="id" select="$id"/>
-                                    <xsl:with-param name="this-uri" select="$ldt:base"/>
-                                    <xsl:with-param name="select-uri" select="$select-uri"/>
-                                    <xsl:with-param name="endpoint" select="resolve-uri('sparql', $ldt:base)"/>
-                                </xsl:call-template>
-                            </ixsl:schedule-action>
-                        </xsl:variable>
-                        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
-                    </xsl:if>
-                </xsl:for-each>
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ ?message ])"/>
-            </xsl:otherwise>
-        </xsl:choose>
-    </xsl:template>
-    
-    <xsl:template name="ldh:RootChildrenSelectLoad">
-        <xsl:context-item as="map(*)" use="required"/>
-        <xsl:param name="id" as="xs:string"/>
-        <xsl:param name="this-uri" as="xs:anyURI"/>
-        <xsl:param name="select-uri" as="xs:anyURI"/>
-        <xsl:param name="endpoint" as="xs:anyURI"/>
-        
-        <xsl:choose>
-            <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
-                <xsl:for-each select="?body">
-                    <xsl:variable name="select" select="key('resources', $select-uri)" as="element()?"/>
-                    <xsl:variable name="select-string" select="$select/sp:text" as="xs:string?"/>
-                    <xsl:if test="$select-string">
-                        <!--turn SELECT into DESCRIBE - no point in using ac:build-describe() as we don't want pagination here--> 
-                        <!--TO-DO: use CONSTRUCT to only pull dct:titles?--> 
-                        <xsl:variable name="query-string" select="replace($select-string, 'DISTINCT', '')" as="xs:string"/>
-                        <xsl:variable name="query-string" select="replace($query-string, 'SELECT', 'DESCRIBE')" as="xs:string"/>
-                         <!--set $this variable value--> 
-                        <xsl:variable name="query-string" select="replace($query-string, '\$this', concat('&lt;', $this-uri, '&gt;'))" as="xs:string"/>
-                        <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': string($query-string) })" as="xs:anyURI"/>
-
-                        <xsl:variable name="request" as="item()*">
-                            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-                                <xsl:call-template name="ldh:RootChildrenResultsLoad">
-                                    <xsl:with-param name="id" select="$id"/>
-                                </xsl:call-template>
-                            </ixsl:schedule-action>
-                        </xsl:variable>
-                        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
-                    </xsl:if>
-                </xsl:for-each>
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ ?message ])"/>
-            </xsl:otherwise>
-        </xsl:choose>
-    </xsl:template>
-    
-    <xsl:template name="ldh:RootChildrenResultsLoad">
-        <xsl:context-item as="map(*)" use="required"/>
-        <xsl:param name="id" as="xs:string"/>
-
-        <xsl:choose>
-            <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
-                <xsl:for-each select="?body">
-                    <xsl:variable name="results" select="." as="document-node()"/>
-                        <xsl:variable name="container-list" as="element()*">
-                            <xsl:for-each select="key('resources-by-container', $ldt:base, $results)">
-                                <xsl:sort select="ac:label(.)" order="ascending" lang="{$ldt:lang}"/>
-                                <xsl:apply-templates select="." mode="bs2:List">
-                                    <xsl:with-param name="active" select="starts-with(ldh:absolute-path(ldh:href()), @rdf:about)"/>
-                                </xsl:apply-templates>
-                            </xsl:for-each>
-                        </xsl:variable>
-
-                        <xsl:result-document href="#{$id}" method="ixsl:replace-content">
-                            <xsl:if test="$container-list">
-                                <div class="well well-small">
-                                    <h2 class="nav-header">
-                                        <a href="{$ldt:base}" title="{$ldt:base}">
-                                            <xsl:value-of>
-                                                <xsl:apply-templates select="key('resources', 'root', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                                            </xsl:value-of>
-                                        </a>
-                                    </h2>
-                                    <ul class="nav nav-list">
-                                        <xsl:copy-of select="$container-list"/>
-                                    </ul>
-                                </div>
-                            </xsl:if>
-                        </xsl:result-document>
-                </xsl:for-each>
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:result-document href="#{$id}" method="ixsl:replace-content">
-                    <div class="alert alert-block">Error loading root children</div>
-                </xsl:result-document>
-            </xsl:otherwise>
-        </xsl:choose>
-    </xsl:template>
-    
-    <!-- render dropdown for root containers -->
-    <xsl:template match="*[@rdf:about = ($ldt:base, resolve-uri('charts/', $ldt:base), resolve-uri('files/', $ldt:base), resolve-uri('geo/', $ldt:base), resolve-uri('imports/', $ldt:base), resolve-uri('latest/', $ldt:base), resolve-uri('apps/', $ldt:base), resolve-uri('services/', $ldt:base), resolve-uri('queries/', $ldt:base))]" mode="bs2:BreadCrumbListItem" priority="1">
-        <xsl:param name="leaf" select="true()" as="xs:boolean"/>
-
-        <li>
-            <div class="btn-group">
-                <button class="btn dropdown-toggle" type="button">
-                    <xsl:apply-templates select="." mode="ldh:logo">
-                        <xsl:with-param name="class" select="'btn dropdown-toggle'"/>
-                    </xsl:apply-templates>
-                    
-                    <span class="caret"></span>
-                </button>
-
-                <ul class="dropdown-menu">
-                    <!-- TO-DO: replace with an RDF/XML document and ldh:logo/xhtml:Anchor calls -->
-                    <li>
-                        <a href="{$ldt:base}" class="btn-logo btn-container">
-                            <xsl:apply-templates select="key('resources', 'root', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{$ldt:base}apps/" class="btn-logo btn-app">
-                            <xsl:apply-templates select="key('resources', 'applications', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{$ldt:base}charts/" class="btn-logo btn-chart">
-                            <xsl:apply-templates select="key('resources', 'charts', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{$ldt:base}files/" class="btn-logo btn-file">
-                            <xsl:apply-templates select="key('resources', 'files', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{$ldt:base}geo/" class="btn-logo btn-geo">
-                            <xsl:apply-templates select="key('resources', 'geo', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{$ldt:base}imports/" class="btn-logo btn-import">
-                            <xsl:apply-templates select="key('resources', 'imports', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{$ldt:base}latest/" class="btn-logo btn-latest">
-                            <xsl:apply-templates select="key('resources', 'latest', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{$ldt:base}queries/" class="btn-logo btn-query">
-                            <xsl:apply-templates select="key('resources', 'queries', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{$ldt:base}services/" class="btn-logo btn-service">
-                            <xsl:apply-templates select="key('resources', 'services', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                        </a>
-                    </li>
-                </ul>
-            </div>
-
-            <xsl:text> </xsl:text>
-            <xsl:apply-templates select="@rdf:about" mode="xhtml:Anchor">
-                <xsl:with-param name="id" select="()"/>
-            </xsl:apply-templates>
-
-            <xsl:if test="not($leaf)">
-                <span class="divider">/</span>
-            </xsl:if>
-        </li>
-    </xsl:template>
 
     <!-- service select -->
     
@@ -1229,32 +1042,6 @@ WHERE
         </xsl:choose>
     </xsl:template>
     
-    <xsl:template name="onSkolemize">
-        <xsl:context-item as="map(*)" use="required"/>
-        
-        <xsl:choose>
-            <xsl:when test="?status = (200, 201)"> <!-- OK / Created -->
-                <xsl:variable name="href" select="ac:uri()" as="xs:anyURI"/>
-                <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), $href)" as="xs:anyURI"/>
-
-                <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
-
-                <xsl:variable name="request" as="item()*">
-                    <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
-                        <xsl:call-template name="onDocumentLoad">
-                            <xsl:with-param name="href" select="$href"/>
-                        </xsl:call-template>
-                    </ixsl:schedule-action>
-                </xsl:variable>
-                <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
-            </xsl:when>
-            <xsl:otherwise>
-                <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
-                <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ ?message ])"/>
-            </xsl:otherwise>
-        </xsl:choose>
-    </xsl:template>
-    
     <!-- open drop-down by toggling its CSS class -->
 
     <xsl:template match="*[contains-token(@class, 'btn-group')][*[contains-token(@class, 'dropdown-toggle')]]" mode="ixsl:onclick">
@@ -1586,6 +1373,35 @@ WHERE
                 <ixsl:set-style name="display" select="'none'" object="following-sibling::*[contains-token(@class, 'nav')]"/>
             </xsl:otherwise>
         </xsl:choose>
+    </xsl:template>
+    
+    <!-- left-side document tree -->
+    
+    <xsl:template match="body" mode="ixsl:onmousemove">
+        <xsl:variable name="x" select="ixsl:get(ixsl:event(), 'clientX')"/>
+        
+        <!-- check that the mouse is on the left edge -->
+        <xsl:if test="$x = 0">
+            <xsl:variable name="container" select="id('doc-tree', ixsl:page())" as="element()?"/>
+            <xsl:choose>
+                <!-- insert document tree element if it doesn't exist -->
+                <xsl:when test="not($container)">
+                    <xsl:result-document href="?." method="ixsl:append-content">
+                        <xsl:call-template name="ldh:DocTree"/>
+                    </xsl:result-document>
+                    
+                    <xsl:call-template name="ldh:DocTreeResourceLoad">
+                        <!-- do a new lookup in case $container did not exist -->
+                        <xsl:with-param name="container" select="id('doc-tree', ixsl:page())/ul"/>
+                        <xsl:with-param name="uri" select="$ldt:base"/>
+                    </xsl:call-template>
+                </xsl:when>
+                <!-- display document tree element if it exists -->
+                <xsl:otherwise>
+                    <ixsl:set-style name="display" select="'block'" object="$container"/>
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:if>
     </xsl:template>
     
     <!-- CALLBACKS -->

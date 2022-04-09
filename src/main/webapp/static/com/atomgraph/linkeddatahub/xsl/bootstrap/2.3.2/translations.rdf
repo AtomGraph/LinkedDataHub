@@ -326,4 +326,7 @@
         <rdfs:label xml:lang="en-US">Related results</rdfs:label>
         <rdfs:label xml:lang="es-ES">Resultados relacionados</rdfs:label>
     </rdf:Description>
+    <rdf:Description rdf:about="document-tree">
+        <rdfs:label xml:lang="en-US">Document tree</rdfs:label>
+    </rdf:Description>
 </rdf:RDF>

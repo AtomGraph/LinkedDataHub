@@ -31,6 +31,86 @@ exclude-result-prefixes="#all"
 
     <!-- TEMPLATES -->
     
+    <xsl:template name="ldh:DocTree">
+        <xsl:param name="id" select="'doc-tree'" as="xs:string?"/>
+        <xsl:param name="class" select="'well well-small sidebar-nav'" as="xs:string?"/>
+
+        <div>
+            <xsl:if test="$id">
+                <xsl:attribute name="id" select="$id"/>
+            </xsl:if>
+            <xsl:if test="$class">
+                <xsl:attribute name="class" select="$class"/>
+            </xsl:if>
+            
+            <h2 class="nav-header btn">
+                <xsl:apply-templates select="key('resources', 'document-tree', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+            </h2>
+
+            <ul class="well well-small nav nav-list">
+                <!-- list items will be injected by ldh:DocTreeResourceLoad -->
+            </ul>
+
+            <!-- system containers (not under Root) -->
+            <ul class="well well-small nav nav-list">
+                <li>
+                    <button class="btn btn-small btn-expand-tree">+</button>
+                    <a href="{$ldt:base}" class="btn-logo btn-container">
+                        <xsl:apply-templates select="key('resources', 'root', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                    </a>
+                </li>
+                <li>
+                    <button class="btn btn-small btn-expand-tree">+</button>
+                    <a href="{$ldt:base}apps/" class="btn-logo btn-app">
+                        <xsl:apply-templates select="key('resources', 'applications', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                    </a>
+                </li>
+                <li>
+                    <button class="btn btn-small btn-expand-tree">+</button>
+                    <a href="{$ldt:base}charts/" class="btn-logo btn-chart">
+                        <xsl:apply-templates select="key('resources', 'charts', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                    </a>
+                </li>
+                <li>
+                    <button class="btn btn-small btn-expand-tree">+</button>
+                    <a href="{$ldt:base}files/" class="btn-logo btn-file">
+                        <xsl:apply-templates select="key('resources', 'files', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                    </a>
+                </li>
+                <li>
+                    <button class="btn btn-small btn-expand-tree">+</button>
+                    <a href="{$ldt:base}geo/" class="btn-logo btn-geo">
+                        <xsl:apply-templates select="key('resources', 'geo', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                    </a>
+                </li>
+                <li>
+                    <button class="btn btn-small btn-expand-tree">+</button>
+                    <a href="{$ldt:base}imports/" class="btn-logo btn-import">
+                        <xsl:apply-templates select="key('resources', 'imports', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                    </a>
+                </li>
+                <li>
+                    <button class="btn btn-small btn-expand-tree">+</button>
+                    <a href="{$ldt:base}latest/" class="btn-logo btn-latest">
+                        <xsl:apply-templates select="key('resources', 'latest', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                    </a>
+                </li>
+                <li>
+                    <button class="btn btn-small btn-expand-tree">+</button>
+                    <a href="{$ldt:base}queries/" class="btn-logo btn-query">
+                        <xsl:apply-templates select="key('resources', 'queries', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                    </a>
+                </li>
+                <li>
+                    <button class="btn btn-small btn-expand-tree">+</button>
+                    <a href="{$ldt:base}services/" class="btn-logo btn-service">
+                        <xsl:apply-templates select="key('resources', 'services', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </xsl:template>
+    
     <xsl:template name="ldh:DocTreeResourceLoad">
         <xsl:param name="container" as="element()"/>
         <xsl:param name="uri" as="xs:anyURI"/>
@@ -94,41 +174,6 @@ exclude-result-prefixes="#all"
     </xsl:template>
     
     <!-- EVENT HANDLERS -->
-    
-    <!-- left-side document tree -->
-    
-    <xsl:template match="body" mode="ixsl:onmousemove">
-        <xsl:variable name="x" select="ixsl:get(ixsl:event(), 'clientX')"/>
-        
-        <!-- check that the mouse is on the left edge -->
-        <xsl:if test="$x = 0">
-            <xsl:variable name="container" select="id('doc-tree', ixsl:page())" as="element()?"/>
-            <xsl:choose>
-                <!-- insert document tree element if it doesn't exist -->
-                <xsl:when test="not($container)">
-                    <xsl:result-document href="?." method="ixsl:append-content">
-                        <div id="doc-tree" class="well well-small sidebar-nav">
-                            <h2 class="nav-header btn">Document tree</h2>
-                            
-                            <ul class="well well-small nav nav-list">
-                                <!-- list items will be injected by ldh:DocTreeResourceLoad -->
-                            </ul>
-                        </div>
-                    </xsl:result-document>
-                    
-                    <xsl:call-template name="ldh:DocTreeResourceLoad">
-                        <!-- do a new lookup in case $container did not exist -->
-                        <xsl:with-param name="container" select="id('doc-tree', ixsl:page())/ul"/>
-                        <xsl:with-param name="uri" select="$ldt:base"/>
-                    </xsl:call-template>
-                </xsl:when>
-                <!-- display document tree element if it exists -->
-                <xsl:otherwise>
-                    <ixsl:set-style name="display" select="'block'" object="$container"/>
-                </xsl:otherwise>
-            </xsl:choose>
-        </xsl:if>
-    </xsl:template>
     
     <xsl:template match="div[@id = 'doc-tree']" mode="ixsl:onmouseout">
         <xsl:variable name="related-target" select="ixsl:get(ixsl:event(), 'relatedTarget')" as="element()?"/> <!-- the element mouse entered -->
