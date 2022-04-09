@@ -128,7 +128,7 @@ exclude-result-prefixes="#all"
         </xsl:if>
     </xsl:template>
     
-    <xsl:template match="div[@id = 'doc-tree']//li/a" mode="ixsl:onclick">
+    <xsl:template match="div[@id = 'doc-tree']//li/a" mode="ixsl:onclick" priority="1">
         <!-- mark this list item as active -->
         <xsl:sequence select="ixsl:call(ixsl:get(.., 'classList'), 'toggle', [ 'active', true() ])[current-date() lt xs:date('2000-01-01')]"/>
         <!-- make the previously active list items inactive -->
