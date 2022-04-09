@@ -69,6 +69,75 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
     
+    <xsl:template match="*[@rdf:about]" mode="bs2:DocTreeListItem">
+        <xsl:param name="class" as="xs:string?"/>
+
+        <li>
+            <button class="btn btn-small btn-expand-tree">+</button>
+            
+            <xsl:apply-templates select="@rdf:about" mode="xhtml:Anchor">
+                <xsl:with-param name="id" select="()"/>
+                <xsl:with-param name="class" select="$class"/>
+            </xsl:apply-templates>
+        </li>
+    </xsl:template>
+    
+    <!-- EVENT HANDLERS -->
+    
+    <!-- left-side document tree -->
+    
+    <xsl:template match="body" mode="ixsl:onmousemove">
+        <xsl:variable name="x" select="ixsl:get(ixsl:event(), 'clientX')"/>
+        
+        <!-- check that the mouse is on the left edge -->
+        <xsl:if test="$x = 0">
+            <xsl:variable name="container" select="id('doc-tree', ixsl:page())/ul" as="element()?"/>
+            <xsl:choose>
+                <!-- insert document tree element if it doesn't exist -->
+                <xsl:when test="not($container)">
+                    <xsl:result-document href="?." method="ixsl:append-content">
+                        <div id="doc-tree" class="well well-small sidebar-nav" style="width: 15%;position: fixed;left: 0;height: 100%;top: 106px;">
+                            <h2 class="nav-header btn">Document tree</h2>
+                            
+                            <ul class="well well-small nav nav-list">
+                                <!-- list items will be injected by ldh:DocTreeResourceLoad -->
+                            </ul>
+                        </div>
+                    </xsl:result-document>
+                    
+                    <xsl:call-template name="ldh:DocTreeResourceLoad">
+                        <!-- do a new lookup in case $container did not exist -->
+                        <xsl:with-param name="container" select="id('doc-tree', ixsl:page())/ul"/>
+                        <xsl:with-param name="uri" select="$ldt:base"/>
+                    </xsl:call-template>
+                </xsl:when>
+                <!-- display document tree element if it exists -->
+                <xsl:otherwise>
+                    <ixsl:set-style name="display" select="'block'" object="$container"/>
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:if>
+    </xsl:template>
+    
+    <xsl:template match="div[@id = 'doc-tree']" mode="ixsl:onmouseout">
+        <xsl:variable name="related-target" select="ixsl:get(ixsl:event(), 'relatedTarget')" as="element()?"/> <!-- the element mouse entered -->
+        
+        <!-- only hide if the related target does not have this div as ancestor (is not its child) -->
+        <xsl:if test="not($related-target/ancestor-or-self::div[. is current()])">
+            <ixsl:set-style name="display" select="'none'"/>
+        </xsl:if>
+    </xsl:template>
+    
+    <xsl:template match="button[contains-token(@class, 'btn-expand-tree')]" mode="ixsl:onclick">
+        <xsl:variable name="href" select="following-sibling:a/@href" as="xs:anyURI"/>
+        <xsl:variable name="container" select=".." as="element()"/> <!-- the parent <li> -->
+        
+        <xsl:call-template name="ldh:DocTreeResourceLoad">
+            <xsl:with-param name="container" select="$container"/>
+            <xsl:with-param name="uri" select="$href"/>
+        </xsl:call-template>
+    </xsl:template>
+    
     <!-- CALLBACKS -->
     
     <xsl:template name="ldh:BreadCrumbResourceLoaded">
@@ -127,24 +196,11 @@ exclude-result-prefixes="#all"
             <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
                 <xsl:for-each select="?body">
                     <xsl:variable name="resources" select="rdf:RDF/*[@rdf:about]" as="element()*"/>
-                    <!--<xsl:variable name="parent-uri" select="$resource/sioc:has_container/@rdf:resource | $resource/sioc:has_parent/@rdf:resource" as="xs:anyURI?"/>-->
-<!--                    <xsl:if test="$parent-uri">
-                        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), $parent-uri)" as="xs:anyURI"/>
-                        <xsl:variable name="request" as="item()*">
-                            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-                                <xsl:call-template name="ldh:DocTreeResourceLoad">
-                                    <xsl:with-param name="container" select="$container"/>
-                                    <xsl:with-param name="uri" select="$parent-uri"/>
-                                </xsl:call-template>
-                            </ixsl:schedule-action>
-                        </xsl:variable>
-                        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
-                    </xsl:if>-->
-
                     <!-- append to the doc tree list -->
-                    <xsl:for-each select="$container/ul">
-                        <xsl:result-document href="?." method="ixsl:replace-content">
-                            <xsl:apply-templates select="$resources" mode="bs2:List">
+                    <xsl:for-each select="$container">
+                        <xsl:result-document href="?." method="ixsl:append-content">
+                            <xsl:apply-templates select="$resources" mode="bs2:DocTreeListItem">
+                                <xsl:sort select="ac:label(.)"/>
                                 <xsl:with-param name="active" select="@rdf:about = $uri"/>
                             </xsl:apply-templates>
                         </xsl:result-document>

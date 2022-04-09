@@ -1588,49 +1588,6 @@ WHERE
         </xsl:choose>
     </xsl:template>
     
-    <!-- left-side document tree -->
-    
-    <xsl:template match="body" mode="ixsl:onmousemove">
-        <xsl:variable name="x" select="ixsl:get(ixsl:event(), 'clientX')"/>
-        
-        <!-- check that the mouse is on the left edge -->
-        <xsl:if test="$x = 0">
-            <xsl:variable name="container" select="id('doc-tree', ixsl:page())" as="element()?"/>
-            <xsl:choose>
-                <!-- insert document tree element if it doesn't exist -->
-                <xsl:when test="not($container)">
-                    <xsl:result-document href="?." method="ixsl:append-content">
-                        <div id="doc-tree" class="well well-small sidebar-nav" style="width: 15%;position: fixed;left: 0;height: 100%;top: 106px;">
-                            <h2 class="nav-header btn">Document tree</h2>
-                            
-                            <ul class="well well-small nav nav-list">
-                                <!-- list items will be injected by ldh:DocTreeResourceLoad -->
-                            </ul>
-                        </div>
-                    </xsl:result-document>
-                    
-                    <xsl:call-template name="ldh:DocTreeResourceLoad">
-                        <xsl:with-param name="container" select="id('doc-tree', ixsl:page())"/>
-                        <xsl:with-param name="uri" select="$ldt:base"/>
-                    </xsl:call-template>
-                </xsl:when>
-                <!-- display document tree element if it exists -->
-                <xsl:otherwise>
-                    <ixsl:set-style name="display" select="'block'" object="$container"/>
-                </xsl:otherwise>
-            </xsl:choose>
-        </xsl:if>
-    </xsl:template>
-    
-    <xsl:template match="div[@id = 'doc-tree']" mode="ixsl:onmouseout">
-        <xsl:variable name="related-target" select="ixsl:get(ixsl:event(), 'relatedTarget')" as="element()?"/> <!-- the element mouse entered -->
-        
-        <!-- only hide if the related target does not have this div as ancestor (is not its child) -->
-        <xsl:if test="not($related-target/ancestor-or-self::div[. is current()])">
-            <ixsl:set-style name="display" select="'none'"/>
-        </xsl:if>
-    </xsl:template>
-    
     <!-- CALLBACKS -->
 
     <xsl:template name="onBacklinksLoad">
