@@ -164,6 +164,7 @@ exclude-result-prefixes="#all"
                 <xsl:otherwise>
                     <ixsl:set-style name="display" select="'none'" object="$container/ul"/>
                 </xsl:otherwise>
+            </xsl:choose>
         </xsl:for-each>
         
         <xsl:call-template name="ldh:DocTreeResourceLoad">
