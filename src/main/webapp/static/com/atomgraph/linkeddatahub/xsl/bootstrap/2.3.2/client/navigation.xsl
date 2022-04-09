@@ -96,7 +96,7 @@ exclude-result-prefixes="#all"
                 <!-- insert document tree element if it doesn't exist -->
                 <xsl:when test="not($container)">
                     <xsl:result-document href="?." method="ixsl:append-content">
-                        <div id="doc-tree" class="well well-small sidebar-nav" style="width: 15%;position: fixed;left: 0;height: 100%;top: 106px;">
+                        <div id="doc-tree" class="well well-small sidebar-nav" style="width: 15%;position: fixed;left: 0;height: 100%;top: 106px;overflow:scroll;">
                             <h2 class="nav-header btn">Document tree</h2>
                             
                             <ul class="well well-small nav nav-list">
@@ -131,9 +131,17 @@ exclude-result-prefixes="#all"
     <xsl:template match="button[contains-token(@class, 'btn-expand-tree')]" mode="ixsl:onclick">
         <xsl:variable name="href" select="following-sibling::a/@href" as="xs:anyURI"/>
         <xsl:variable name="container" select=".." as="element()"/> <!-- the parent <li> -->
-        
+
+        <xsl:for-each select="$container">
+            <xsl:result-document href="?." method="ixsl:append-content">
+                <ul class="well well-small nav nav-list">
+                    <!-- list items will be injected by ldh:DocTreeResourceLoad -->
+                </ul>
+            </xsl:result-document>
+        </xsl:for-each>
+                    
         <xsl:call-template name="ldh:DocTreeResourceLoad">
-            <xsl:with-param name="container" select="$container"/>
+            <xsl:with-param name="container" select="$container/ul"/>
             <xsl:with-param name="uri" select="$href"/>
         </xsl:call-template>
     </xsl:template>
@@ -189,7 +197,7 @@ exclude-result-prefixes="#all"
     
     <xsl:template name="ldh:DocTreeResourceLoaded">
         <xsl:context-item as="map(*)" use="required"/>
-        <xsl:param name="container" as="element()"/>
+        <xsl:param name="container" as="element()"/> <!-- <ul> element -->
         <xsl:param name="uri" as="xs:anyURI"/>
 
         <xsl:choose>
