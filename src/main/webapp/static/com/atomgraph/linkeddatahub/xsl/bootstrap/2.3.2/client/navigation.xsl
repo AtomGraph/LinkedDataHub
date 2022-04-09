@@ -73,7 +73,10 @@ exclude-result-prefixes="#all"
         <xsl:param name="class" as="xs:string?"/>
 
         <li>
-            <button class="btn btn-small btn-expand-tree">+</button>
+            <!-- only containers have can have children resources -->
+            <xsl:if test="sioc:has_parent">
+                <button class="btn btn-small btn-expand-tree">+</button>
+            </xsl:if>
             
             <xsl:apply-templates select="@rdf:about" mode="xhtml:Anchor">
                 <xsl:with-param name="id" select="()"/>
@@ -144,11 +147,23 @@ exclude-result-prefixes="#all"
         <xsl:variable name="container" select=".." as="element()"/> <!-- the parent <li> -->
 
         <xsl:for-each select="$container">
-            <xsl:result-document href="?." method="ixsl:append-content">
-                <ul class="well well-small nav nav-list">
-                    <!-- list items will be injected by ldh:DocTreeResourceLoad -->
-                </ul>
-            </xsl:result-document>
+            <xsl:choose>
+                <!-- if children list does not exist, create it -->
+                <xsl:when test="not($container/ul)">
+                    <xsl:result-document href="?." method="ixsl:append-content">
+                        <ul class="well well-small nav nav-list">
+                            <!-- list items will be injected by ldh:DocTreeResourceLoad -->
+                        </ul>
+                    </xsl:result-document>
+                </xsl:when>
+                <!-- if the children list is present but hidden, show it -->
+                <xsl:when test="ixsl:style($container/ul)?display = 'none'">
+                    <ixsl:set-style name="display" select="'block'" object="$container/ul"/>
+                </xsl:when>
+                <!-- otherwise, hide the children list -->
+                <xsl:otherwise>
+                    <ixsl:set-style name="display" select="'none'" object="$container/ul"/>
+                </xsl:otherwise>
         </xsl:for-each>
         
         <xsl:call-template name="ldh:DocTreeResourceLoad">
