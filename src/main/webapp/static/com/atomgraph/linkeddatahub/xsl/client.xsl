@@ -1622,15 +1622,13 @@ WHERE
         </xsl:if>
     </xsl:template>
     
-    <xsl:template match="*[ancestor-or-self::div[@id = 'doc-tree']]" mode="ixsl:onmouseout">
-        <xsl:variable name="target" select="ixsl:get(ixsl:event(), 'target')" as="element()"/>
+    <xsl:template match="div[@id = 'doc-tree']" mode="ixsl:onmouseout">
+        <xsl:variable name="related-target" select="ixsl:get(ixsl:event(), 'relatedTarget')" as="element()"/> <!-- the element mouse entered -->
         
-        <!-- only hide if the target equals the container div, not its children -->
-        <xsl:for-each select="ancestor-or-self::div[@id = 'doc-tree']">
-            <xsl:if test="$target is .">
-                <ixsl:set-style name="display" select="'none'"/>
-            </xsl:if>
-        </xsl:for-each>
+        <!-- only hide if the related target does not have this div as ancestor (is not its child) -->
+        <xsl:if test="not($related-target/ancestor::div[. is current()])">
+            <ixsl:set-style name="display" select="'none'"/>
+        </xsl:if>
     </xsl:template>
     
     <!-- CALLBACKS -->
