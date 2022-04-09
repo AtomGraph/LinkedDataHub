@@ -44,9 +44,11 @@ exclude-result-prefixes="#all"
             <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $select-json ])" as="xs:string"/>
             <!-- replace ?child ?thing with ?child - we don't need the topics of documents here -->
             <xsl:variable name="select-xml" as="document-node()">
-                <xsl:apply-templates select="json-to-xml($select-json-string)" mode="ldh:replace-variables">
-                    <xsl:with-param name="var-names" select="('child')" tunnel="yes"/>
-                </xsl:apply-templates>
+                <xsl:document>
+                    <xsl:apply-templates select="json-to-xml($select-json-string)" mode="ldh:replace-variables">
+                        <xsl:with-param name="var-names" select="('child')" tunnel="yes"/>
+                    </xsl:apply-templates>
+                </xsl:document>
             </xsl:variable>
             <xsl:sequence select="$select-xml"/>
         </xsl:param>
