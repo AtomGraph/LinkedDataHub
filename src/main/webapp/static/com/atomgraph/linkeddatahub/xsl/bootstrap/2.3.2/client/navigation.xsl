@@ -155,6 +155,11 @@ exclude-result-prefixes="#all"
                             <!-- list items will be injected by ldh:DocTreeResourceLoad -->
                         </ul>
                     </xsl:result-document>
+                    
+                    <xsl:call-template name="ldh:DocTreeResourceLoad">
+                        <xsl:with-param name="container" select="$container/ul"/>
+                        <xsl:with-param name="uri" select="$href"/>
+                    </xsl:call-template>
                 </xsl:when>
                 <!-- if the children list is present but hidden, show it -->
                 <xsl:when test="ixsl:style($container/ul)?display = 'none'">
@@ -166,11 +171,6 @@ exclude-result-prefixes="#all"
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:for-each>
-        
-        <xsl:call-template name="ldh:DocTreeResourceLoad">
-            <xsl:with-param name="container" select="$container/ul"/>
-            <xsl:with-param name="uri" select="$href"/>
-        </xsl:call-template>
     </xsl:template>
     
     <!-- CALLBACKS -->
