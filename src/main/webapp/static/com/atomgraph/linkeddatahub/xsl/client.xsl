@@ -1603,7 +1603,7 @@ WHERE
                         <div id="doc-tree" class="well well-small sidebar-nav" style="width: 15%;position: fixed;left: 0;height: 100%;top: 106px;">
                             <h2 class="nav-header btn">Document tree</h2>
                             
-                            <ul class="nav nav-list">
+                            <ul class="well well-small nav nav-list">
                                 <!-- list items will be injected by ldh:DocTreeResourceLoad -->
                             </ul>
                         </div>
@@ -1626,7 +1626,7 @@ WHERE
         <xsl:variable name="related-target" select="ixsl:get(ixsl:event(), 'relatedTarget')" as="element()?"/> <!-- the element mouse entered -->
         
         <!-- only hide if the related target does not have this div as ancestor (is not its child) -->
-        <xsl:if test="not($related-target/ancestor::div[. is current()])">
+        <xsl:if test="not($related-target/ancestor-or-self::div[. is current()])">
             <ixsl:set-style name="display" select="'none'"/>
         </xsl:if>
     </xsl:template>
