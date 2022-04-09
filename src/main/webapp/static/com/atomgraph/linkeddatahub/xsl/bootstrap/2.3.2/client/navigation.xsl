@@ -129,7 +129,7 @@ exclude-result-prefixes="#all"
     </xsl:template>
     
     <xsl:template match="button[contains-token(@class, 'btn-expand-tree')]" mode="ixsl:onclick">
-        <xsl:variable name="href" select="following-sibling:a/@href" as="xs:anyURI"/>
+        <xsl:variable name="href" select="following-sibling::a/@href" as="xs:anyURI"/>
         <xsl:variable name="container" select=".." as="element()"/> <!-- the parent <li> -->
         
         <xsl:call-template name="ldh:DocTreeResourceLoad">
