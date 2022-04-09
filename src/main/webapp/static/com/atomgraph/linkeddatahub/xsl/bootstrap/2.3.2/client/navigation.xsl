@@ -129,12 +129,12 @@ exclude-result-prefixes="#all"
     </xsl:template>
     
     <xsl:template match="div[@id = 'doc-tree']//li/a" mode="ixsl:onclick" priority="1">
-        <!-- mark this list item as active -->
-        <xsl:sequence select="ixsl:call(ixsl:get(.., 'classList'), 'toggle', [ 'active', true() ])[current-date() lt xs:date('2000-01-01')]"/>
         <!-- make the previously active list items inactive -->
         <xsl:for-each select="ancestor::div[@id = 'doc-tree']//li[contains-token(@class, 'active')]">
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', false() ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
+        <!-- mark this list item as active -->
+        <xsl:sequence select="ixsl:call(ixsl:get(.., 'classList'), 'toggle', [ 'active', true() ])[current-date() lt xs:date('2000-01-01')]"/>
 
         <xsl:next-match/>
     </xsl:template>
