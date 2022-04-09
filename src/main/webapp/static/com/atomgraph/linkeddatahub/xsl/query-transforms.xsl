@@ -15,6 +15,27 @@ exclude-result-prefixes="#all"
 extension-element-prefixes="ixsl"
 >
 
+    <!-- replace projected variable(s) -->
+    
+    <!-- identity transform -->
+    <xsl:template match="@* | node()" mode="ldh:replace-variables">
+        <xsl:copy>
+            <xsl:apply-templates select="@* | node()" mode="#current"/>
+        </xsl:copy>
+    </xsl:template>
+    
+    <xsl:template match="/json:map/json:array[@key = 'variables']" mode="ldh:replace-variables" priority="1">
+        <xsl:param name="var-names" as="xs:string*" tunnel="yes"/>
+
+        <xsl:copy>
+            <xsl:apply-templates select="@*" mode="#current"/>
+        
+            <xsl:for-each select="$var-names">
+                <json:string><xsl:text>?</xsl:text><xsl:value-of select="."/></json:string>
+            </xsl:for-each>
+        </xsl:copy>
+    </xsl:template>
+    
     <!-- replace LIMIT -->
     
     <!-- identity transform -->
