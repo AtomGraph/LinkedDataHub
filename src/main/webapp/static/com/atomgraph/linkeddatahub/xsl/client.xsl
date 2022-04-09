@@ -1623,7 +1623,7 @@ WHERE
     </xsl:template>
     
     <xsl:template match="div[@id = 'doc-tree']" mode="ixsl:onmouseout">
-        <xsl:variable name="related-target" select="ixsl:get(ixsl:event(), 'relatedTarget')" as="element()"/> <!-- the element mouse entered -->
+        <xsl:variable name="related-target" select="ixsl:get(ixsl:event(), 'relatedTarget')" as="element()?"/> <!-- the element mouse entered -->
         
         <!-- only hide if the related target does not have this div as ancestor (is not its child) -->
         <xsl:if test="not($related-target/ancestor::div[. is current()])">
