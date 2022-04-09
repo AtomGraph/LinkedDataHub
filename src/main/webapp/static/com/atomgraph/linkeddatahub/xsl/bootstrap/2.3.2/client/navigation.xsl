@@ -96,7 +96,7 @@ exclude-result-prefixes="#all"
                 <!-- insert document tree element if it doesn't exist -->
                 <xsl:when test="not($container)">
                     <xsl:result-document href="?." method="ixsl:append-content">
-                        <div id="doc-tree" class="well well-small sidebar-nav" style="width: 15%;position: fixed;left: 0;height: 100%;top: 106px;overflow:scroll;">
+                        <div id="doc-tree" class="well well-small sidebar-nav">
                             <h2 class="nav-header btn">Document tree</h2>
                             
                             <ul class="well well-small nav nav-list">
