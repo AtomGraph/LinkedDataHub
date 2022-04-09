@@ -91,7 +91,7 @@ exclude-result-prefixes="#all"
         
         <!-- check that the mouse is on the left edge -->
         <xsl:if test="$x = 0">
-            <xsl:variable name="container" select="id('doc-tree', ixsl:page())/ul" as="element()?"/>
+            <xsl:variable name="container" select="id('doc-tree', ixsl:page())" as="element()?"/>
             <xsl:choose>
                 <!-- insert document tree element if it doesn't exist -->
                 <xsl:when test="not($container)">
