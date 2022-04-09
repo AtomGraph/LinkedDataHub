@@ -48,11 +48,6 @@ exclude-result-prefixes="#all"
             </h2>
 
             <ul class="well well-small nav nav-list">
-                <!-- list items will be injected by ldh:DocTreeResourceLoad -->
-            </ul>
-
-            <!-- system containers (not under Root) -->
-            <ul class="well well-small nav nav-list">
                 <li>
                     <button class="btn btn-small btn-expand-tree">+</button>
                     <a href="{$ldt:base}" class="btn-logo btn-container">
