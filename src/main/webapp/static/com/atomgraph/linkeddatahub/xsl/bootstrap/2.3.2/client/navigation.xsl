@@ -32,7 +32,7 @@ exclude-result-prefixes="#all"
     <!-- TEMPLATES -->
     
     <xsl:template name="ldh:DocTree">
-        <xsl:param name="id" select="'doc-tree'" as="xs:string?"/>
+        <xsl:param name="id" as="xs:string"/>
         <xsl:param name="class" select="'well well-small sidebar-nav'" as="xs:string?"/>
 
         <div>
