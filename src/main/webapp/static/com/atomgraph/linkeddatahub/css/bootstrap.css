@@ -67,7 +67,7 @@ li button.btn-add-data, li button.btn-add-ontology { text-align: left; width: 10
 #doc-tree .nav-list > li > a.btn-container, #doc-tree .nav-list > li > a.btn-app, #doc-tree .nav-list > li > a.btn-chart, #doc-tree .nav-list > li > a.btn-file, #doc-tree .nav-list > li > a.btn-geo, #doc-tree .nav-list > li > a.btn-import, #doc-tree .nav-list > li > a.btn-latest, #doc-tree .nav-list > li > a.btn-query, #doc-tree .nav-list > li > a.btn-service { padding-left: 24px; }
 #doc-tree li > a { display: inline-block; }
 .btn.btn-expand-tree { height: 24px; width: 24px; background-image: url('../icons/expand_more_black_24dp.svg'); }
-.btn.btn-expand-tree:focus, .btn.btn-expand-tree:focus { background-position: 0 0; }
+.btn.btn-expand-tree:hover, .btn.btn-expand-tree:focus { background-position: 0 0; }
 .btn.btn-expanded-tree { height: 24px; width: 24px; background-image: url('../icons/chevron_right_black_24dp.svg'); }
 .btn.btn-expanded-tree:hover, .btn.btn-expanded-tree:focus { background-position: 0 0; }
 .left-nav .nav, .right-nav .nav { max-height: 20em; overflow: auto; }
