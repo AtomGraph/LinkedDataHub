@@ -197,6 +197,9 @@ exclude-result-prefixes="#all"
         <xsl:choose>
             <!-- if children list does not exist, create it -->
             <xsl:when test="not($container/ul)">
+                <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'btn-expand-tree', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+                <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'btn-expanded-tree', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+
                 <xsl:for-each select="$container">
                     <xsl:result-document href="?." method="ixsl:append-content">
                         <ul class="well well-small nav nav-list">
