@@ -194,37 +194,37 @@ exclude-result-prefixes="#all"
         <xsl:variable name="href" select="following-sibling::a/@href" as="xs:anyURI"/>
         <xsl:variable name="container" select=".." as="element()"/> <!-- the parent <li> -->
 
-        <xsl:for-each select="$container">
-            <xsl:choose>
-                <!-- if children list does not exist, create it -->
-                <xsl:when test="not($container/ul)">
+        <xsl:choose>
+            <!-- if children list does not exist, create it -->
+            <xsl:when test="not($container/ul)">
+                <xsl:for-each select="$container">
                     <xsl:result-document href="?." method="ixsl:append-content">
                         <ul class="well well-small nav nav-list">
                             <!-- list items will be injected by ldh:DocTreeResourceLoad -->
                         </ul>
                     </xsl:result-document>
-                    
-                    <xsl:call-template name="ldh:DocTreeResourceLoad">
-                        <xsl:with-param name="container" select="$container/ul"/>
-                        <xsl:with-param name="uri" select="$href"/>
-                    </xsl:call-template>
-                </xsl:when>
-                <!-- if the children list is present but hidden, show it -->
-                <xsl:when test="ixsl:style($container/ul)?display = 'none'">
-                    <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'btn-expand-tree', false() ])[current-date() lt xs:date('2000-01-01')]"/>
-                    <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'btn-expanded-tree', true() ])[current-date() lt xs:date('2000-01-01')]"/>
-                    
-                    <ixsl:set-style name="display" select="'block'" object="$container/ul"/>
-                </xsl:when>
-                <!-- otherwise, hide the children list -->
-                <xsl:otherwise>
-                    <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'btn-expand-tree', true() ])[current-date() lt xs:date('2000-01-01')]"/>
-                    <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'btn-expanded-tree', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+                </xsl:for-each>
 
-                    <ixsl:set-style name="display" select="'none'" object="$container/ul"/>
-                </xsl:otherwise>
-            </xsl:choose>
-        </xsl:for-each>
+                <xsl:call-template name="ldh:DocTreeResourceLoad">
+                    <xsl:with-param name="container" select="$container/ul"/>
+                    <xsl:with-param name="uri" select="$href"/>
+                </xsl:call-template>
+            </xsl:when>
+            <!-- if the children list is present but hidden, show it -->
+            <xsl:when test="ixsl:style($container/ul)?display = 'none'">
+                <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'btn-expand-tree', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+                <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'btn-expanded-tree', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+
+                <ixsl:set-style name="display" select="'block'" object="$container/ul"/>
+            </xsl:when>
+            <!-- otherwise, hide the children list -->
+            <xsl:otherwise>
+                <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'btn-expand-tree', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+                <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'btn-expanded-tree', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+
+                <ixsl:set-style name="display" select="'none'" object="$container/ul"/>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:template>
     
     <!-- CALLBACKS -->
