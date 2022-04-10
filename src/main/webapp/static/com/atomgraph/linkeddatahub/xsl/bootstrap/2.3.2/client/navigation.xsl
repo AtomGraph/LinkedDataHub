@@ -190,6 +190,8 @@ exclude-result-prefixes="#all"
         <xsl:next-match/>
     </xsl:template>
     
+    <!-- expands tree -->
+    
     <xsl:template match="button[contains-token(@class, 'btn-expand-tree')]" mode="ixsl:onclick">
         <xsl:variable name="href" select="following-sibling::a/@href" as="xs:anyURI"/>
         <xsl:variable name="container" select=".." as="element()"/> <!-- the parent <li> -->
@@ -220,14 +222,18 @@ exclude-result-prefixes="#all"
 
                 <ixsl:set-style name="display" select="'block'" object="$container/ul"/>
             </xsl:when>
-            <!-- otherwise, hide the children list -->
-            <xsl:otherwise>
-                <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'btn-expand-tree', true() ])[current-date() lt xs:date('2000-01-01')]"/>
-                <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'btn-expanded-tree', false() ])[current-date() lt xs:date('2000-01-01')]"/>
-
-                <ixsl:set-style name="display" select="'none'" object="$container/ul"/>
-            </xsl:otherwise>
         </xsl:choose>
+    </xsl:template>
+    
+    <!-- collapses tree -->
+    
+    <xsl:template match="button[contains-token(@class, 'btn-expanded-tree')]" mode="ixsl:onclick">
+        <xsl:variable name="container" select=".." as="element()"/> <!-- the parent <li> -->
+        
+        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'btn-expand-tree', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'btn-expanded-tree', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+
+        <ixsl:set-style name="display" select="'none'" object="$container/ul"/>
     </xsl:template>
     
     <!-- CALLBACKS -->
