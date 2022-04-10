@@ -50,43 +50,43 @@ exclude-result-prefixes="#all"
             <ul class="well well-small nav nav-list">
                 <!-- TO-DO: generalize -->
                 <li>
-                    <button class="btn btn-small btn-expand-tree">+</button>
+                    <button class="btn btn-small btn-expand-tree"></button>
                     <a href="{$ldt:base}" class="btn-logo btn-container">
                         <xsl:apply-templates select="key('resources', 'root', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
                     </a>
                 </li>
                 <li>
-                    <button class="btn btn-small btn-expand-tree">+</button>
+                    <button class="btn btn-small btn-expand-tree"></button>
                     <a href="{$ldt:base}apps/" class="btn-logo btn-app">
                         <xsl:apply-templates select="key('resources', 'applications', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
                     </a>
                 </li>
                 <li>
-                    <button class="btn btn-small btn-expand-tree">+</button>
+                    <button class="btn btn-small btn-expand-tree"></button>
                     <a href="{$ldt:base}charts/" class="btn-logo btn-chart">
                         <xsl:apply-templates select="key('resources', 'charts', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
                     </a>
                 </li>
                 <li>
-                    <button class="btn btn-small btn-expand-tree">+</button>
+                    <button class="btn btn-small btn-expand-tree"></button>
                     <a href="{$ldt:base}files/" class="btn-logo btn-file">
                         <xsl:apply-templates select="key('resources', 'files', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
                     </a>
                 </li>
                 <li>
-                    <button class="btn btn-small btn-expand-tree">+</button>
+                    <button class="btn btn-small btn-expand-tree"></button>
                     <a href="{$ldt:base}imports/" class="btn-logo btn-import">
                         <xsl:apply-templates select="key('resources', 'imports', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
                     </a>
                 </li>
                 <li>
-                    <button class="btn btn-small btn-expand-tree">+</button>
+                    <button class="btn btn-small btn-expand-tree"></button>
                     <a href="{$ldt:base}queries/" class="btn-logo btn-query">
                         <xsl:apply-templates select="key('resources', 'queries', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
                     </a>
                 </li>
                 <li>
-                    <button class="btn btn-small btn-expand-tree">+</button>
+                    <button class="btn btn-small btn-expand-tree"></button>
                     <a href="{$ldt:base}services/" class="btn-logo btn-service">
                         <xsl:apply-templates select="key('resources', 'services', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
                     </a>
@@ -158,7 +158,7 @@ exclude-result-prefixes="#all"
         <li>
             <!-- only containers have can have children resources -->
             <xsl:if test="sioc:has_parent">
-                <button class="btn btn-small btn-expand-tree">+</button>
+                <button class="btn btn-small btn-expand-tree"></button>
             </xsl:if>
             
             <xsl:apply-templates select="@rdf:about" mode="xhtml:Anchor">
@@ -211,10 +211,16 @@ exclude-result-prefixes="#all"
                 </xsl:when>
                 <!-- if the children list is present but hidden, show it -->
                 <xsl:when test="ixsl:style($container/ul)?display = 'none'">
+                    <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'btn-expand-tree', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+                    <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'btn-expanded-tree', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+                    
                     <ixsl:set-style name="display" select="'block'" object="$container/ul"/>
                 </xsl:when>
                 <!-- otherwise, hide the children list -->
                 <xsl:otherwise>
+                    <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'btn-expand-tree', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+                    <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'btn-expanded-tree', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+
                     <ixsl:set-style name="display" select="'none'" object="$container/ul"/>
                 </xsl:otherwise>
             </xsl:choose>
