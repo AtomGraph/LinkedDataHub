@@ -16,7 +16,6 @@
         dct:description "Root container" ;
         ldh:content <#select-children> .
 
-
     <#select-children> a ldh:Content ;
         rdf:first ldh:SelectChildren ;
         rdf:rest rdf:nil .
@@ -33,7 +32,6 @@
         dct:description "SPARQL queries" ;
         ldh:content <queries/#select-children> .
 
-
     <queries/#select-children> a ldh:Content ;
         rdf:first ldh:SelectChildren ;
         rdf:rest rdf:nil .
@@ -48,7 +46,6 @@
         dct:description "Uploaded files" ;
         ldh:content <files/#select-children> .
 
-
     <files/#select-children> a ldh:Content ;
         rdf:first ldh:SelectChildren ;
         rdf:rest rdf:nil .
@@ -62,7 +59,6 @@
         dct:title "Imports" ;
         dct:description "Data imports" ;
         ldh:content <imports/#select-children> .
-
 
     <imports/#select-children> a ldh:Content ;
         rdf:first ldh:SelectChildren ;
@@ -139,7 +135,6 @@
         dct:description "Saved charts" ;
         ldh:content <charts/#select-children> .
 
-
     <charts/#select-children> a ldh:Content ;
         rdf:first ldh:SelectChildren ;
         rdf:rest rdf:nil .
@@ -155,7 +150,6 @@
         dct:description "Linked Data applications" ;
         ldh:content <apps/#select-children> .
 
-
     <apps/#select-children> a ldh:Content ;
         rdf:first ldh:SelectChildren ;
         rdf:rest rdf:nil .
@@ -169,7 +163,6 @@
         dct:title "Services" ;
         dct:description "SPARQL services" ;
         ldh:content <services/#select-children> .
-
 
     <services/#select-children> a ldh:Content ;
         rdf:first ldh:SelectChildren ;

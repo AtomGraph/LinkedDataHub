@@ -21,7 +21,7 @@
 <>
 {
 
-    <> a dh:Container ;
+    <> a def:Root ;
         dct:title "Root" ;
         dct:description "Root container" ;
         ldh:content <#select-children> .
@@ -31,6 +31,8 @@
         rdf:rest rdf:nil .
 
 }
+
+# CONTAINERS
 
 <queries/>
 {
@@ -43,6 +45,194 @@
     <queries/#select-children> a ldh:Content ;
         rdf:first ldh:SelectChildren ;
         rdf:rest rdf:nil .
+
+}
+
+<files/>
+{
+
+    <files/> a dh:Container ;
+        dct:title "Files" ;
+        dct:description "Uploaded files" ;
+        ldh:content <files/#select-children> .
+
+    <files/#select-children> a ldh:Content ;
+        rdf:first ldh:SelectChildren ;
+        rdf:rest rdf:nil .
+
+}
+
+<imports/>
+{
+
+    <imports/> a dh:Container ;
+        dct:title "Imports" ;
+        dct:description "Data imports" ;
+        ldh:content <imports/#select-children> .
+
+    <imports/#select-children> a ldh:Content ;
+        rdf:first ldh:SelectChildren ;
+        rdf:rest rdf:nil .
+
+}
+
+<geo/>
+{
+
+    <geo/> a dh:Item ;
+        dct:title "Geo" ;
+        dct:description "Geolocated resources" ;
+        ldh:content <geo/#id31036be3-4fb4-493b-bc2d-3ab98693acc9> .
+
+    <geo/#id31036be3-4fb4-493b-bc2d-3ab98693acc9> a ldh:Content ;
+        rdf:first <geo/#id3aa6c894-4412-11ec-81d3-0242ac130003> ;
+        rdf:rest rdf:nil .
+
+    <geo/#id3aa6c894-4412-11ec-81d3-0242ac130003> a sp:Select ;
+        dct:title "Select geo resources" ;
+        sp:text """
+    PREFIX  geo:  <http://www.w3.org/2003/01/geo/wgs84_pos#>
+    PREFIX  dct:  <http://purl.org/dc/terms/>
+
+    SELECT  DISTINCT ?resource
+    WHERE
+    { GRAPH ?graph
+      { ?resource  geo:lat  ?lat ;
+                  geo:long  ?long
+        OPTIONAL
+          { ?resource  a                    ?type }
+        OPTIONAL
+          { ?resource  dct:title  ?title }
+      }
+    }
+    ORDER BY ?title
+    """ .
+
+}
+
+<latest/>
+{
+
+    <latest/> a dh:Item ;
+        dct:title "Latest" ;
+        dct:description "Latest resources" ;
+        ldh:content <latest/#id17e6a62e-d319-44e7-b4ac-f38e29d461e7> .
+
+    <latest/#id17e6a62e-d319-44e7-b4ac-f38e29d461e7> a ldh:Content ;
+        rdf:first <latest/#idf3dfb452-4411-11ec-81d3-0242ac130003> ;
+        rdf:rest rdf:nil .
+
+    <latest/#idf3dfb452-4411-11ec-81d3-0242ac130003> a sp:Select ;
+        dct:title "Select latest" ;
+        sp:text """
+    PREFIX  dct:  <http://purl.org/dc/terms/>
+
+    SELECT DISTINCT  ?dated
+    WHERE
+    { GRAPH ?graph
+      { ?dated  dct:created  ?created }
+    }
+    ORDER BY DESC(?created)
+    """ .
+
+}
+
+<charts/>
+{
+
+    <charts/> a dh:Container ;
+        dct:title "Charts" ;
+        dct:description "Saved charts" ;
+        ldh:content <charts/#select-children> .
+
+    <charts/#select-children> a ldh:Content ;
+        rdf:first ldh:SelectChildren ;
+        rdf:rest rdf:nil .
+
+}
+
+
+<apps/>
+{
+
+    <apps/> a dh:Container ;
+        dct:title "Apps" ;
+        dct:description "Linked Data applications" ;
+        ldh:content <apps/#select-children> .
+
+    <apps/#select-children> a ldh:Content ;
+        rdf:first ldh:SelectChildren ;
+        rdf:rest rdf:nil .
+
+}
+
+<services/>
+{
+
+    <services/> a dh:Container ;
+        dct:title "Services" ;
+        dct:description "SPARQL services" ;
+        ldh:content <services/#select-children> .
+
+    <services/#select-children> a ldh:Content ;
+        rdf:first ldh:SelectChildren ;
+        rdf:rest rdf:nil .
+
+}
+
+### ADMIN-SPECIFIC
+
+<sign%20up>
+{
+
+    <sign%20up> a adm:SignUp ;
+        dct:title "Sign up" ;
+        ldh:content <sign%20up#content> .
+
+    <sign%20up#content> a ldh:Content ;
+        rdf:first """<div xmlns="http://www.w3.org/1999/xhtml">
+    <p class="lead">Welcome. Create your free account and join the web of data.</p>
+    <p>LinkedDataHub uses WebID as the single sign-on (SSO) protocol for distributed applications, which is based on
+        authentication using client certficates. <a href="http://webid.info">Read more about WebID</a>.</p>
+    <div class="alert alert-info">
+        <p>Unlike most LinkedDataHub resources, your WebID profile will have <em>public access</em> as required by the
+        protocol. We will hide your email address however.</p>
+    </div>
+    </div>"""^^rdf:XMLLiteral ;
+        rdf:rest rdf:nil .
+
+}
+
+<request%20access>
+{
+
+    <request%20access> a adm:RequestAccess ;
+        dct:title "Request access" ;
+        ldh:content <request%20access#id023e3fee-a546-4209-b52c-7b65ebb52aa4> .
+
+    <request%20access#id023e3fee-a546-4209-b52c-7b65ebb52aa4> a ldh:Content ;
+        rdf:first """<div xmlns="http://www.w3.org/1999/xhtml">
+    <p class="lead">Request access</p>
+    <p>Ask for access to a restricted resource by making a request. It will be reviewed by the application's
+        administrators.</p>
+    </div>"""^^rdf:XMLLiteral ;
+        rdf:rest rdf:nil .
+
+}
+
+<oauth2/login>
+{
+
+    <oauth2/login> a dh:Item ;
+        dct:title "OAuth 2.0 login" .
+
+}
+
+<oauth2/authorize/google>
+{
+
+    <oauth2/authorize/google> a dh:Item ;
+        dct:title "Google OAuth2.0 authorization" .
 
 }
 
@@ -98,60 +288,6 @@ WHERE
     BIND(bnode() AS ?constructor)
   }
     """ .
-
-}
-
-<sign%20up>
-{
-
-    <sign%20up> a adm:SignUp ;
-        dct:title "Sign up" ;
-        ldh:content <sign%20up#content> .
-
-    <sign%20up#content> a ldh:Content ;
-        rdf:first """<div xmlns="http://www.w3.org/1999/xhtml">
-    <p class="lead">Welcome. Create your free account and join the web of data.</p>
-    <p>LinkedDataHub uses WebID as the single sign-on (SSO) protocol for distributed applications, which is based on
-        authentication using client certficates. <a href="http://webid.info">Read more about WebID</a>.</p>
-    <div class="alert alert-info">
-        <p>Unlike most LinkedDataHub resources, your WebID profile will have <em>public access</em> as required by the
-        protocol. We will hide your email address however.</p>
-    </div>
-    </div>"""^^rdf:XMLLiteral ;
-        rdf:rest rdf:nil .
-
-}
-
-<request%20access>
-{
-
-    <request%20access> a adm:RequestAccess ;
-        dct:title "Request access" ;
-        ldh:content <request%20access#id023e3fee-a546-4209-b52c-7b65ebb52aa4> .
-
-    <request%20access#id023e3fee-a546-4209-b52c-7b65ebb52aa4> a ldh:Content ;
-        rdf:first """<div xmlns="http://www.w3.org/1999/xhtml">
-    <p class="lead">Request access</p>
-    <p>Ask for access to a restricted resource by making a request. It will be reviewed by the application's
-        administrators.</p>
-    </div>"""^^rdf:XMLLiteral ;
-        rdf:rest rdf:nil .
-
-}
-
-<oauth2/login>
-{
-
-    <oauth2/login> a dh:Item ;
-        dct:title "OAuth 2.0 login" .
-
-}
-
-<oauth2/authorize/google>
-{
-
-    <oauth2/authorize/google> a dh:Item ;
-        dct:title "Google OAuth2.0 authorization" .
 
 }
 
