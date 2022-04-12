@@ -25,6 +25,7 @@ What makes LinkedDataHub unique is its completely _data-driven architecture_: ap
 * `bash` shell 4.x. It should be included by default on Linux. On Windows you can install the [Windows Subsystem for Linux](https://docs.microsoft.com/en-us/windows/wsl/install-win10).
 * Java's [`keytool`](https://docs.oracle.com/en/java/javase/11/tools/keytool.html) available on `$PATH`. It comes with the JDK.
 * [`openssl`](https://www.openssl.org/) available on `$PATH`
+* [`uuidgen`](https://man7.org/linux/man-pages/man1/uuidgen.1.html) available on `$PATH`
 * [Docker](https://docs.docker.com/install/) installed. At least 8GB of memory dedicated to Docker is recommended.
 * [Docker Compose](https://docs.docker.com/compose/install/) installed
 

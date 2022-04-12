@@ -2,7 +2,10 @@
 set -e
 
 # check required bash version
-[ "${BASH_VERSINFO:-0}" -lt 4 ] && echo "Bash version too old. Bash 4 is required for associative array support." && exit 1
+[ "${BASH_VERSINFO:-0}" -lt 4 ] && echo "Bash version too old. Bash 4 is required for associative array support. Aborting." && exit 1
+
+# check that uuidgen command is available
+hash uuidgen 2>/dev/null || { echo >&2 "uuidgen not on \$PATH. Aborting."; exit 1; }
 
 if [ "$#" -ne 5 ]; then
     echo "Usage:   $0" '$env_file $out_folder $owner_cert_pwd $secretary_cert_pwd $validity' >&2
