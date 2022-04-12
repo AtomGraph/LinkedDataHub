@@ -227,7 +227,9 @@ public class Add extends GraphStoreImpl // TO-DO: does not need to extend GraphS
                 webTarget.register(new WebIDDelegationFilter(agent));
 
             if (getAgentContext().isPresent() && getAgentContext().get() instanceof IDTokenSecurityContext)
-                webTarget.register(new IDTokenDelegationFilter(((IDTokenSecurityContext)getAgentContext().get()).getJWTToken(), getUriInfo().getBaseUri().getPath(), null));
+                webTarget.register(new IDTokenDelegationFilter(getAgentContext().get().getAgent(),
+                    ((IDTokenSecurityContext)getAgentContext().get()).getJWTToken(),
+                    getUriInfo().getBaseUri().getPath(), null));
         }
 
         // forward the stream to the named graph document. Buffer the entity first so that the server response is not returned before the client response completes

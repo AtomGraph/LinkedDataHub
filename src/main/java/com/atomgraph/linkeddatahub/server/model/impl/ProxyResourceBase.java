@@ -147,7 +147,8 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
             
             //if (securityContext.getAuthenticationScheme().equals(IDTokenFilter.AUTH_SCHEME))
             if (agentContext.isPresent() && agentContext.get() instanceof IDTokenSecurityContext)
-                super.getWebTarget().register(new IDTokenDelegationFilter(((IDTokenSecurityContext)agentContext.get()).getJWTToken(), uriInfo.getBaseUri().getPath(), null));
+                super.getWebTarget().register(new IDTokenDelegationFilter(agentContext.get().getAgent(),
+                    ((IDTokenSecurityContext)agentContext.get()).getJWTToken(), uriInfo.getBaseUri().getPath(), null));
         }
     }
     
