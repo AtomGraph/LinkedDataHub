@@ -135,11 +135,6 @@ extension-element-prefixes="ixsl"
     <xsl:template match="/json:map/json:array[@key = 'variables']" mode="ldh:add-parallax-step" priority="1">
         <xsl:param name="new-var-name" as="xs:string" tunnel="yes"/>
 
-<!--        <xsl:copy>
-            <xsl:apply-templates select="@*" mode="#current"/>
-        
-            <json:string><xsl:text>?</xsl:text><xsl:value-of select="$new-var-name"/></json:string>
-        </xsl:copy>-->
         <xsl:apply-templates select="." mode="ldh:replace-variables">
             <xsl:with-param name="var-names" select="($new-var-name)" tunnel="yes"/>
         </xsl:apply-templates>
