@@ -39,7 +39,7 @@ public class OntologyFactory implements Factory<Optional<Ontology>>
     @Override
     public Optional<Ontology> provide()
     {
-        return getOntology(getContainerRequestContext());
+        return getOntology();
     }
 
     @Override
@@ -50,12 +50,11 @@ public class OntologyFactory implements Factory<Optional<Ontology>>
     /**
      * Retrieves ontology from the request context.
      * 
-     * @param crc request context
      * @return ontology
      */
-    public Optional<Ontology> getOntology(ContainerRequestContext crc)
+    public Optional<Ontology> getOntology()
     {
-        return (Optional<Ontology>)crc.getProperty(OWL.Ontology.getURI());
+        return (Optional<Ontology>)getContainerRequestContext().getProperty(OWL.Ontology.getURI());
     }
     
     /**

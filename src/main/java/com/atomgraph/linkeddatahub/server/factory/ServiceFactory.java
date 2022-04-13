@@ -44,7 +44,7 @@ public class ServiceFactory implements Factory<Optional<Service>>
     @Override
     public Optional<Service> provide()
     {
-        return getService(getContainerRequestContext());
+        return getService();
     }
 
     @Override
@@ -55,12 +55,11 @@ public class ServiceFactory implements Factory<Optional<Service>>
     /**
      * Retrieves (optional) service from container request context.
      * 
-     * @param crc request context
      * @return optional service
      */
-    public Optional<Service> getService(ContainerRequestContext crc)
+    public Optional<Service> getService()
     {
-        Application app = (Application)crc.getProperty(LAPP.Application.getURI());
+        Application app = (Application)getContainerRequestContext().getProperty(LAPP.Application.getURI());
         Service service = app.getService();
 
         return Optional.of(service);

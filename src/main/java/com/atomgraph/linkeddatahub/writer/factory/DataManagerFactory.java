@@ -27,7 +27,6 @@ import com.atomgraph.linkeddatahub.vocabulary.LAPP;
 import com.atomgraph.linkeddatahub.writer.impl.DataManagerImpl;
 import java.net.URI;
 import java.util.HashMap;
-import java.util.Optional;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.container.ContainerRequestContext;
@@ -56,14 +55,12 @@ public class DataManagerFactory implements Factory<DataManager>
     @Context Providers providers;
     @Context ServiceLocator serviceLocator;
     
-    @Inject Optional<AgentContext> agentContext;
-
     @Inject com.atomgraph.linkeddatahub.Application system;
     
     @Override
     public DataManager provide()
     {
-        return getDataManager(getApplication(getContainerRequestContext()));
+        return getDataManager(getApplication());
     }
 
     @Override
@@ -116,11 +113,12 @@ public class DataManagerFactory implements Factory<DataManager>
     
     /**
      * Returns agent context with additional metadata.
-     * @return optional agent context
+     * @return agent context or null
      */
-    public Optional<AgentContext> getAgentContext()
+    public AgentContext getAgentContext()
     {
-        return agentContext;
+        return (AgentContext)getContainerRequestContext().getProperty(AgentContext.class.getCanonicalName());
+        
     }
     
     /**
@@ -154,9 +152,14 @@ public class DataManagerFactory implements Factory<DataManager>
         return serviceLocator.getService(ContainerRequestContext.class);
     }
     
-    public Application getApplication(ContainerRequestContext crc)
+    /**
+     * Retrieves LDT application from the request context.
+     * 
+     * @return LDT application
+     */
+    public Application getApplication()
     {
-        return (Application)crc.getProperty(LAPP.Application.getURI());
+        return (Application)getContainerRequestContext().getProperty(LAPP.Application.getURI());
     }
     
 }

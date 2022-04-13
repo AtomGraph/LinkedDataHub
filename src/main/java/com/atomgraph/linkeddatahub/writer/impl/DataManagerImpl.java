@@ -24,7 +24,6 @@ import com.atomgraph.linkeddatahub.client.filter.auth.WebIDDelegationFilter;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.server.security.IDTokenSecurityContext;
 import java.util.Map;
-import java.util.Optional;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.WebTarget;
 import org.apache.jena.rdf.model.Model;
@@ -42,7 +41,7 @@ public class DataManagerImpl extends com.atomgraph.client.util.DataManagerImpl
     private static final Logger log = LoggerFactory.getLogger(DataManagerImpl.class);
     
     private final URI rootContextURI, baseURI;
-    private final Optional<AgentContext> agentContext;
+    private final AgentContext agentContext;
 
     /**
      * Constructs RDF data manager.
@@ -62,7 +61,7 @@ public class DataManagerImpl extends com.atomgraph.client.util.DataManagerImpl
             Client client, MediaTypes mediaTypes,
             boolean cacheModelLoads, boolean preemptiveAuth, boolean resolvingUncached,
             URI rootContextURI, URI baseURI,
-            Optional<AgentContext> agentContext)
+            AgentContext agentContext)
     {
         super(mapper, modelCache, client, mediaTypes, cacheModelLoads, preemptiveAuth, resolvingUncached);
         this.rootContextURI = rootContextURI;
@@ -106,13 +105,13 @@ public class DataManagerImpl extends com.atomgraph.client.util.DataManagerImpl
     {
         WebTarget endpoint = super.getEndpoint(uri);
         
-        if (delegateWebID && getAgentContext().isPresent())
+        if (delegateWebID && getAgentContext() != null)
         {
             // TO-DO: unify with other usages of WebIDDelegationFilter/IDTokenDelegationFilter
-            if (log.isDebugEnabled()) log.debug("Delegating Agent's <{}> access to secretary", getAgentContext().get().getAgent());
-            endpoint.register(new WebIDDelegationFilter(getAgentContext().get().getAgent()));
+            if (log.isDebugEnabled()) log.debug("Delegating Agent's <{}> access to secretary", getAgentContext().getAgent());
+            endpoint.register(new WebIDDelegationFilter(getAgentContext().getAgent()));
             
-            if (getAgentContext().get() instanceof IDTokenSecurityContext iDTokenSecurityContext)
+            if (getAgentContext() instanceof IDTokenSecurityContext iDTokenSecurityContext)
             {
                 IDTokenSecurityContext idTokenContext = iDTokenSecurityContext;
                 endpoint.register(new IDTokenDelegationFilter(idTokenContext.getAgent(), idTokenContext.getJWTToken(),
@@ -146,9 +145,9 @@ public class DataManagerImpl extends com.atomgraph.client.util.DataManagerImpl
     /**
      * Returns the agent context.
      * 
-     * @return optional agent context
+     * @return agent context or null
      */
-    public Optional<AgentContext> getAgentContext()
+    public AgentContext getAgentContext()
     {
         return agentContext;
     }

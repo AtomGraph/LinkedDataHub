@@ -44,7 +44,7 @@ public class DatasetFactory implements Factory<Optional<Dataset>>
     @Override
     public Optional<Dataset> provide()
     {
-        return getDataset(getContainerRequestContext());
+        return getDataset();
     }
 
     @Override
@@ -55,12 +55,11 @@ public class DatasetFactory implements Factory<Optional<Dataset>>
     /**
      * Retrieves dataset from the request context.
      * 
-     * @param crc request context
      * @return dataset resource
      */
-    public Optional<Dataset> getDataset(ContainerRequestContext crc)
+    public Optional<Dataset> getDataset()
     {
-        return (Optional<Dataset>)crc.getProperty(LAPP.Dataset.getURI());
+        return (Optional<Dataset>)getContainerRequestContext().getProperty(LAPP.Dataset.getURI());
     }
     
     /**

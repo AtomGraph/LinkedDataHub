@@ -40,7 +40,7 @@ public class AgentContextFactory implements Factory<Optional<AgentContext>>
     @Override
     public Optional<AgentContext> provide()
     {
-        return getOntology(getContainerRequestContext());
+        return getOntology();
     }
 
     @Override
@@ -51,12 +51,11 @@ public class AgentContextFactory implements Factory<Optional<AgentContext>>
     /**
      * Retrieves ontology from the request context.
      * 
-     * @param crc context of the current request
      * @return optional ontology resource
      */
-    public Optional<AgentContext> getOntology(ContainerRequestContext crc)
+    public Optional<AgentContext> getOntology()
     {
-        return Optional.ofNullable((AgentContext)crc.getProperty(AgentContext.class.getCanonicalName()));
+        return Optional.ofNullable((AgentContext)getContainerRequestContext().getProperty(AgentContext.class.getCanonicalName()));
     }
     
     /**
