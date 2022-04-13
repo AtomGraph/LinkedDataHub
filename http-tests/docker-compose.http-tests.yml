@@ -3,6 +3,8 @@ services:
   nginx:
     volumes:
       - ./http-tests/ssl/server:/etc/nginx/ssl
+    environment:
+      - SSL_VERIFY_CLIENT=optional_no_ca
   linkeddatahub:
     user: root
     ports:
