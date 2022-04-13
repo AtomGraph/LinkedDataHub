@@ -613,6 +613,26 @@ extension-element-prefixes="ixsl"
 
     <xsl:template match="*[@rdf:about]" mode="bs2:Actions" priority="1">
         <div class="pull-right">
+            <xsl:if test="doc-available($app-request-uri)">
+                <div class="btn-group pull-left open">
+                    <button type="button" class="btn dropdown-toggle btn-reconcile">
+                        <xsl:attribute name="title">
+                            <xsl:apply-templates select="key('resources', 'reconcile-title', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                        </xsl:attribute>
+
+                        <xsl:apply-templates select="key('resources', 'reconcile', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+
+                        <span class="caret"></span>
+                    </button>
+                    <ul class="dropdown-menu">
+                        <xsl:variable name="apps" select="document($app-request-uri)" as="document-node()"/>
+                        <xsl:apply-templates select="$apps//*[sd:endpoint/@rdf:resource]">
+                            <xsl:sort select="ac:label(.)" order="ascending" lang="{$ldt:lang}"/>
+                        </xsl:apply-templates>
+                    </ul>
+                </div>
+            </xsl:if>
+            
             <button type="button">
                 <xsl:attribute name="title">
                     <xsl:apply-templates select="key('resources', 'copy-uri', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>

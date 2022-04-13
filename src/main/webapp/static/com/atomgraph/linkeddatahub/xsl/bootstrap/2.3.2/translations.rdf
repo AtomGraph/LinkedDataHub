@@ -329,4 +329,10 @@
     <rdf:Description rdf:about="document-tree">
         <rdfs:label xml:lang="en-US">Document tree</rdfs:label>
     </rdf:Description>
+    <rdf:Description rdf:about="reconcile-title">
+        <rdfs:label xml:lang="en-US">Reconcile this resource against resources in the selected service</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:about="reconcile">
+        <rdfs:label xml:lang="en-US">Reconcile</rdfs:label>
+    </rdf:Description>
 </rdf:RDF>
