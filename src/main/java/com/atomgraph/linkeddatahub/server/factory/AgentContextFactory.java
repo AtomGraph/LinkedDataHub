@@ -26,6 +26,8 @@ import org.glassfish.hk2.api.ServiceLocator;
 
 /**
  * JAX-RS factory for agent context.
+ * <code>SecurityContext</code> cannot be used outside JAX-RS classes (<samp>Not inside a request scope</samp>).
+ * Therefore we need a specialized agent context class.
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */

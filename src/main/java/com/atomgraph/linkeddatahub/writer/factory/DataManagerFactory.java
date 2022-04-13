@@ -18,7 +18,6 @@ package com.atomgraph.linkeddatahub.writer.factory;
 
 import org.apache.jena.util.LocationMapper;
 import javax.ws.rs.core.Context;
-import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.ext.Provider;
 import com.atomgraph.client.util.DataManager;
 import com.atomgraph.linkeddatahub.apps.model.Application;
@@ -52,7 +51,6 @@ public class DataManagerFactory implements Factory<DataManager>
     private static final Logger log = LoggerFactory.getLogger(DataManagerFactory.class);
 
     @Context UriInfo uriInfo;
-    @Context SecurityContext securityContext;
     @Context ResourceContext resourceContext;
     @Context HttpServletRequest httpServletRequest;
     @Context Providers providers;
@@ -93,7 +91,7 @@ public class DataManagerFactory implements Factory<DataManager>
             getSystem().getClient(), getSystem().getMediaTypes(),
             true, getSystem().isPreemptiveAuth(), getSystem().isResolvingUncached(),
             URI.create(getHttpServletRequest().getRequestURL().toString()).resolve(getHttpServletRequest().getContextPath() + "/"), getUriInfo(),
-                getSecurityContext(), getAgentContext());
+                getAgentContext());
     }
     
     /**
@@ -114,16 +112,6 @@ public class DataManagerFactory implements Factory<DataManager>
     public UriInfo getUriInfo()
     {
         return uriInfo;
-    }
-    
-    /**
-     * Returns the JAX-RS security context.
-     * 
-     * @return security context
-     */
-    public SecurityContext getSecurityContext()
-    {
-        return securityContext;
     }
     
     /**

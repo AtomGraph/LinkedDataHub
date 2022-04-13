@@ -18,11 +18,9 @@ package com.atomgraph.linkeddatahub.writer.impl;
 
 import org.apache.jena.util.LocationMapper;
 import java.net.URI;
-import javax.ws.rs.core.SecurityContext;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.client.filter.auth.IDTokenDelegationFilter;
 import com.atomgraph.linkeddatahub.client.filter.auth.WebIDDelegationFilter;
-import com.atomgraph.linkeddatahub.model.Agent;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.server.security.IDTokenSecurityContext;
 import java.util.Map;
@@ -46,7 +44,6 @@ public class DataManagerImpl extends com.atomgraph.client.util.DataManagerImpl
     
     private final URI rootContextURI;
     private final UriInfo uriInfo;
-    private final SecurityContext securityContext;
     private final Optional<AgentContext> agentContext;
 
     /**
@@ -61,19 +58,17 @@ public class DataManagerImpl extends com.atomgraph.client.util.DataManagerImpl
      * @param resolvingUncached true if uncached URLs are resolved
      * @param rootContextURI the root URI of the JAX-RS application
      * @param uriInfo URI information of the current request
-     * @param securityContext JAX-RS security context
      * @param agentContext agent context
      */
     public DataManagerImpl(LocationMapper mapper, Map<String, Model> modelCache,
             Client client, MediaTypes mediaTypes,
             boolean cacheModelLoads, boolean preemptiveAuth, boolean resolvingUncached,
             URI rootContextURI, UriInfo uriInfo,
-            SecurityContext securityContext, Optional<AgentContext> agentContext)
+            Optional<AgentContext> agentContext)
     {
         super(mapper, modelCache, client, mediaTypes, cacheModelLoads, preemptiveAuth, resolvingUncached);
         this.rootContextURI = rootContextURI;
         this.uriInfo = uriInfo;
-        this.securityContext = securityContext;
         this.agentContext = agentContext;
     }
     
@@ -113,18 +108,15 @@ public class DataManagerImpl extends com.atomgraph.client.util.DataManagerImpl
     {
         WebTarget endpoint = super.getEndpoint(uri);
         
-        if (delegateWebID)
+        if (delegateWebID && getAgentContext().isPresent())
         {
             // TO-DO: unify with other usages of WebIDDelegationFilter/IDTokenDelegationFilter
-            if (getSecurityContext().getUserPrincipal() instanceof Agent agent)
-            {
-                if (log.isDebugEnabled()) log.debug("Delegating Agent's <{}> access to secretary", agent);
-                endpoint.register(new WebIDDelegationFilter(agent));
-            }
+            if (log.isDebugEnabled()) log.debug("Delegating Agent's <{}> access to secretary", getAgentContext().get().getAgent());
+            endpoint.register(new WebIDDelegationFilter(getAgentContext().get().getAgent()));
             
-            if (getAgentContext().isPresent() && getAgentContext().get() instanceof IDTokenSecurityContext)
+            if (getAgentContext().get() instanceof IDTokenSecurityContext iDTokenSecurityContext)
             {
-                IDTokenSecurityContext idTokenContext = ((IDTokenSecurityContext)getAgentContext().get());
+                IDTokenSecurityContext idTokenContext = iDTokenSecurityContext;
                 endpoint.register(new IDTokenDelegationFilter(idTokenContext.getAgent(), idTokenContext.getJWTToken(),
                     getUriInfo().getBaseUri().getPath(), null));
             }
@@ -151,16 +143,6 @@ public class DataManagerImpl extends com.atomgraph.client.util.DataManagerImpl
     public UriInfo getUriInfo()
     {
         return uriInfo;
-    }
-    
-    /**
-     * Returns the security context.
-     * 
-     * @return security context.
-     */
-    public SecurityContext getSecurityContext()
-    {
-        return securityContext;
     }
 
     /**
