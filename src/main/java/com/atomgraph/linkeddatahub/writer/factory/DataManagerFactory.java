@@ -90,7 +90,7 @@ public class DataManagerFactory implements Factory<DataManager>
         return new DataManagerImpl(LocationMapper.get(), new HashMap<>(baseManager.getModelCache()),
             getSystem().getClient(), getSystem().getMediaTypes(),
             true, getSystem().isPreemptiveAuth(), getSystem().isResolvingUncached(),
-            URI.create(getHttpServletRequest().getRequestURL().toString()).resolve(getHttpServletRequest().getContextPath() + "/"), getUriInfo(),
+            URI.create(getHttpServletRequest().getRequestURL().toString()).resolve(getHttpServletRequest().getContextPath() + "/"), getUriInfo().getBaseUri(),
                 getAgentContext());
     }
     

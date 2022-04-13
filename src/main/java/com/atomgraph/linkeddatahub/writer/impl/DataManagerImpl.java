@@ -27,7 +27,6 @@ import java.util.Map;
 import java.util.Optional;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.UriInfo;
 import org.apache.jena.rdf.model.Model;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,8 +41,7 @@ public class DataManagerImpl extends com.atomgraph.client.util.DataManagerImpl
 {
     private static final Logger log = LoggerFactory.getLogger(DataManagerImpl.class);
     
-    private final URI rootContextURI;
-    private final UriInfo uriInfo;
+    private final URI rootContextURI, baseURI;
     private final Optional<AgentContext> agentContext;
 
     /**
@@ -57,18 +55,18 @@ public class DataManagerImpl extends com.atomgraph.client.util.DataManagerImpl
      * @param preemptiveAuth true if HTTP basic auth is sent preemptively
      * @param resolvingUncached true if uncached URLs are resolved
      * @param rootContextURI the root URI of the JAX-RS application
-     * @param uriInfo URI information of the current request
+     * @param baseURI base URI of the LDT application
      * @param agentContext agent context
      */
     public DataManagerImpl(LocationMapper mapper, Map<String, Model> modelCache,
             Client client, MediaTypes mediaTypes,
             boolean cacheModelLoads, boolean preemptiveAuth, boolean resolvingUncached,
-            URI rootContextURI, UriInfo uriInfo,
+            URI rootContextURI, URI baseURI,
             Optional<AgentContext> agentContext)
     {
         super(mapper, modelCache, client, mediaTypes, cacheModelLoads, preemptiveAuth, resolvingUncached);
         this.rootContextURI = rootContextURI;
-        this.uriInfo = uriInfo;
+        this.baseURI = baseURI;
         this.agentContext = agentContext;
     }
     
@@ -118,7 +116,7 @@ public class DataManagerImpl extends com.atomgraph.client.util.DataManagerImpl
             {
                 IDTokenSecurityContext idTokenContext = iDTokenSecurityContext;
                 endpoint.register(new IDTokenDelegationFilter(idTokenContext.getAgent(), idTokenContext.getJWTToken(),
-                    getUriInfo().getBaseUri().getPath(), null));
+                    getBaseURI().getPath(), null));
             }
         }
         
@@ -136,13 +134,13 @@ public class DataManagerImpl extends com.atomgraph.client.util.DataManagerImpl
     }
 
     /**
-     * Returns the URI information of the current request.
+     * Returns the base URI of the LDT application.
      * 
      * @return URI info
      */
-    public UriInfo getUriInfo()
+    public URI getBaseURI()
     {
-        return uriInfo;
+        return baseURI;
     }
 
     /**
