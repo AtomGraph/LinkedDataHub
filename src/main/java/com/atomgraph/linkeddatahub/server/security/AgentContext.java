@@ -26,7 +26,8 @@ public interface AgentContext
 {
     
     /**
-     * Gets agent associated with this context
+     * Returns agent associated with this context.
+     * 
      * @return agent resource
      */
     Agent getAgent();

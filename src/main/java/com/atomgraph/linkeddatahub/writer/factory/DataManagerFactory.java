@@ -23,10 +23,12 @@ import javax.ws.rs.ext.Provider;
 import com.atomgraph.client.util.DataManager;
 import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
+import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.vocabulary.LAPP;
 import com.atomgraph.linkeddatahub.writer.impl.DataManagerImpl;
 import java.net.URI;
 import java.util.HashMap;
+import java.util.Optional;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.container.ContainerRequestContext;
@@ -55,6 +57,8 @@ public class DataManagerFactory implements Factory<DataManager>
     @Context HttpServletRequest httpServletRequest;
     @Context Providers providers;
     @Context ServiceLocator serviceLocator;
+    
+    @Inject Optional<AgentContext> agentContext;
 
     @Inject com.atomgraph.linkeddatahub.Application system;
     
@@ -88,8 +92,8 @@ public class DataManagerFactory implements Factory<DataManager>
         return new DataManagerImpl(LocationMapper.get(), new HashMap<>(baseManager.getModelCache()),
             getSystem().getClient(), getSystem().getMediaTypes(),
             true, getSystem().isPreemptiveAuth(), getSystem().isResolvingUncached(),
-            URI.create(getHttpServletRequest().getRequestURL().toString()).resolve(getHttpServletRequest().getContextPath() + "/"),
-                getSecurityContext());
+            URI.create(getHttpServletRequest().getRequestURL().toString()).resolve(getHttpServletRequest().getContextPath() + "/"), getUriInfo(),
+                getSecurityContext(), getAgentContext());
     }
     
     /**
@@ -120,6 +124,15 @@ public class DataManagerFactory implements Factory<DataManager>
     public SecurityContext getSecurityContext()
     {
         return securityContext;
+    }
+    
+    /**
+     * Returns agent context with additional metadata.
+     * @return optional agent context
+     */
+    public Optional<AgentContext> getAgentContext()
+    {
+        return agentContext;
     }
     
     /**
