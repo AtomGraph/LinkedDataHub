@@ -374,7 +374,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="graph" as="xs:anyURI?"/>
         
         <!-- don't append the div if it's already there -->
-        <xsl:if test="not(id($id, ixsl:page()))">
+        <xsl:if test="not(id($form/@id, ixsl:page()))">
             <xsl:for-each select="ixsl:page()//body">
                 <!-- append modal div to body -->
                 <xsl:result-document href="?." method="ixsl:append-content">
