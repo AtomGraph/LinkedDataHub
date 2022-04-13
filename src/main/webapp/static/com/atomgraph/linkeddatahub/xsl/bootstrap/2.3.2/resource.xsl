@@ -629,8 +629,7 @@ extension-element-prefixes="ixsl"
                             <span class="caret"></span>
                         </button>
                         <ul class="dropdown-menu">
-                            <xsl:variable name="apps" select="document($app-request-uri)" as="document-node()"/>
-                            <xsl:apply-templates select="$apps//*[sd:endpoint/@rdf:resource]">
+                            <xsl:apply-templates select="$apps//*[sd:endpoint/@rdf:resource]" mode="bs2:List">
                                 <xsl:sort select="ac:label(.)" order="ascending" lang="{$ldt:lang}"/>
                             </xsl:apply-templates>
                         </ul>
