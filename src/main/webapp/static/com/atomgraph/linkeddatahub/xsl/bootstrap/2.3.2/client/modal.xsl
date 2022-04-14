@@ -35,7 +35,7 @@ exclude-result-prefixes="#all"
 
     <!-- TEMPLATES -->
     
-    <xsl:template name="ldh:AddDataForm">
+    <xsl:template name="ldh:AddDataForm" as="element()">
         <xsl:param name="id" select="'add-data'" as="xs:string?"/>
         <xsl:param name="button-class" select="'btn btn-primary btn-save'" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
