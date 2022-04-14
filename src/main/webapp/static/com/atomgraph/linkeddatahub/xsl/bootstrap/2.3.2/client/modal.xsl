@@ -4,6 +4,7 @@
     <!ENTITY ldh    "https://w3id.org/atomgraph/linkeddatahub#">
     <!ENTITY ac     "https://w3id.org/atomgraph/client#">
     <!ENTITY rdf    "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+    <!ENTITY rdfs   "http://www.w3.org/2000/01/rdf-schema#">
     <!ENTITY xsd    "http://www.w3.org/2001/XMLSchema#">
     <!ENTITY owl    "http://www.w3.org/2002/07/owl#">
     <!ENTITY ldt    "https://www.w3.org/ns/ldt#">
@@ -229,7 +230,7 @@ exclude-result-prefixes="#all"
                                             </input>
                                             <span class="help-inline">
                                                 <xsl:value-of>
-                                                    <xsl:apply-templates select="key('resources', '&rdf;Resource', document(ac:document-uri('&rdf;')))" mode="ac:label"/>
+                                                    <xsl:apply-templates select="key('resources', '&rdfs;Resource', document(ac:document-uri('&rdfs;')))" mode="ac:label"/>
                                                 </xsl:value-of>
 
                                             </span>
@@ -353,17 +354,17 @@ exclude-result-prefixes="#all"
                         <div class="control-group required">
                             <input type="hidden" name="pu" value="&owl;sameAs"/>
                             <!-- TO-DO: localize label -->
-                            <label class="control-label" for="remote-rdf-source">
+                            <label class="control-label" for="same-as-resource">
                                 <xsl:value-of>
                                     Same as
                                 </xsl:value-of>
                             </label>
                             <div class="controls">
-                                <input type="text" class="input-xxlarge"/>
+                                <input id="same-as-resource" type="text" value="{$label}" class="input-xxlarge"/>
                                 
                                 <span class="help-inline">
                                     <xsl:value-of>
-                                        <xsl:apply-templates select="key('resources', '&rdf;Resource', document(ac:document-uri('&rdf;')))" mode="ac:label"/>
+                                        <xsl:apply-templates select="key('resources', '&rdfs;Resource', document(ac:document-uri('&rdfs;')))" mode="ac:label"/>
                                     </xsl:value-of>
                                 </span>
                             </div>
@@ -403,7 +404,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="label" select="input[@name = 'label']/@value" as="xs:string"/>
         <xsl:variable name="service" select="input[@name = 'service']/@value" as="xs:anyURI"/>
         
-        <xsl:call-template name="ldh:ShowAddDataForm">
+        <xsl:call-template name="ldh:ShowReconcileForm">
             <xsl:with-param name="form" as="element()">
                 <xsl:call-template name="ldh:ReconcileForm">
                     <xsl:with-param name="resource" select="$resource"/>
@@ -462,6 +463,22 @@ exclude-result-prefixes="#all"
                         <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
                     </xsl:for-each>
                 </xsl:if>
+
+                <ixsl:set-style name="cursor" select="'default'"/>
+            </xsl:for-each>
+        </xsl:if>
+    </xsl:template>
+    
+    <xsl:template name="ldh:ShowReconcileForm">
+        <xsl:param name="form" as="element()"/>
+        
+        <!-- don't append the div if it's already there -->
+        <xsl:if test="not(id($form/@id, ixsl:page()))">
+            <xsl:for-each select="ixsl:page()//body">
+                <!-- append modal div to body -->
+                <xsl:result-document href="?." method="ixsl:append-content">
+                    <xsl:sequence select="$form"/>
+                </xsl:result-document>
 
                 <ixsl:set-style name="cursor" select="'default'"/>
             </xsl:for-each>
