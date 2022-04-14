@@ -618,6 +618,8 @@ extension-element-prefixes="ixsl"
                 <xsl:variable name="apps" select="document($app-request-uri)" as="document-node()"/>
                 <!-- only show the reconciliation button if there are any registered SPARQL services -->
                 <xsl:if test="$apps//*[sd:endpoint/@rdf:resource]">
+                    <xsl:variable name="resource" select="." as="element()"/>
+                    
                     <div class="btn-group pull-left">
                         <button type="button" class="btn dropdown-toggle">
                             <xsl:attribute name="title">
@@ -634,8 +636,8 @@ extension-element-prefixes="ixsl"
                                 
                                 <li>
                                     <button class="btn btn-reconcile">
-                                        <input type="hidden" name="resource" value="{@rdf:about}"/>
-                                        <input type="hidden" name="label" value="{ac:label(.)}"/>
+                                        <input type="hidden" name="resource" value="{$resource/@rdf:about}"/>
+                                        <input type="hidden" name="label" value="{ac:label($resource)}"/>
                                         <input type="hidden" name="service" value="{sd:endpoint/@rdf:resource}"/>
                                         
                                         <xsl:apply-templates select="." mode="ac:label"/>
