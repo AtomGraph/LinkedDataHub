@@ -265,6 +265,7 @@ public class Add extends GraphStoreImpl // TO-DO: does not need to extend GraphS
     
     /**
      * Get JAX-RS security context
+     * 
      * @return security context object
      */
     public SecurityContext getSecurityContext()
@@ -274,6 +275,7 @@ public class Add extends GraphStoreImpl // TO-DO: does not need to extend GraphS
     
     /**
      * Gets authenticated agent's context
+     * 
      * @return optional agent's context
      */
     public Optional<AgentContext> getAgentContext()

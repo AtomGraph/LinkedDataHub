@@ -67,7 +67,6 @@ import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.writer.factory.xslt.XsltExecutableSupplier;
 import com.atomgraph.linkeddatahub.writer.factory.XsltExecutableSupplierFactory;
 import com.atomgraph.client.util.XsltResolver;
-import com.atomgraph.core.client.LinkedDataClient;
 import com.atomgraph.linkeddatahub.client.filter.ClientUriRewriteFilter;
 import com.atomgraph.linkeddatahub.imports.ImportExecutor;
 import com.atomgraph.linkeddatahub.io.HtmlJsonLDReaderFactory;
@@ -1011,9 +1010,8 @@ public class Application extends ResourceConfig
         if (auth.hasProperty(ACL.agent))
         {
             Resource agent = auth.getPropertyResourceValue(ACL.agent);
-
-            LinkedDataClient ldc = LinkedDataClient.create(getClient().target(agent.getURI()), getMediaTypes());
-            Model agentModel = ldc.get();
+            // make sure the client has WebID delegation enabled, otherwise it will not have authenticated access
+            Model agentModel = event.getDataManager().loadModel(agent.getURI()); // TO-DO: replace with LinkedDataClient
             if (!agentModel.containsResource(agent)) throw new IllegalStateException("Could not load agent's <" + agent.getURI() + "> description");
             agent = agentModel.getResource(agent.getURI());
 

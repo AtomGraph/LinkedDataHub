@@ -16,9 +16,10 @@
  */
 package com.atomgraph.linkeddatahub.server.io;
 
+import com.atomgraph.client.util.DataManager;
 import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
-import com.atomgraph.linkeddatahub.server.security.AgentContext;
+import com.atomgraph.linkeddatahub.model.Agent;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
 import org.apache.jena.query.QueryFactory;
 import org.apache.jena.query.QueryParseException;
@@ -50,7 +51,6 @@ import java.nio.charset.StandardCharsets;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
@@ -82,7 +82,7 @@ public class ValidatingModelProvider extends com.atomgraph.server.io.ValidatingM
 
     @Inject javax.inject.Provider<com.atomgraph.linkeddatahub.apps.model.Application> application;
     @Inject com.atomgraph.linkeddatahub.Application system;
-    @Inject javax.inject.Provider<Optional<AgentContext>> agentContext;
+    @Inject javax.inject.Provider<DataManager> dataManager;
 
     private final MessageDigest messageDigest;
 
@@ -240,7 +240,8 @@ public class ValidatingModelProvider extends com.atomgraph.server.io.ValidatingM
         }
         
         if (resource.hasProperty(RDF.type, ACL.Authorization))
-            getSystem().getEventBus().post(new com.atomgraph.linkeddatahub.server.event.AuthorizationCreated(getEndUserApplication(), resource));
+            getSystem().getEventBus().post(new com.atomgraph.linkeddatahub.server.event.AuthorizationCreated(getEndUserApplication(),
+                    getDataManagerProvider().get(), resource));
         
         return resource;
     }
@@ -251,9 +252,8 @@ public class ValidatingModelProvider extends com.atomgraph.server.io.ValidatingM
         // show foaf:mbox in end-user apps
         if (getApplication().canAs(EndUserApplication.class)) return model;
         // show foaf:mbox for authenticated agents
-        //if (getSecurityContext() != null && getSecurityContext().getUserPrincipal() instanceof Agent) return model;
-        if (getAgentContext().isPresent()) return model;
-        
+        if (getSecurityContext() != null && getSecurityContext().getUserPrincipal() instanceof Agent) return model;
+
         // show foaf:mbox_sha1sum for all other agents (in admin apps)
         return super.processWrite(hashMboxes(getMessageDigest()).apply(model)); // apply processing from superclasses
     }
@@ -345,16 +345,6 @@ public class ValidatingModelProvider extends com.atomgraph.server.io.ValidatingM
     }
     
     /**
-     * Returns the context of the authenticated agent.
-     * 
-     * @return optional agent context
-     */
-    public Optional<AgentContext> getAgentContext()
-    {
-        return agentContext.get();
-    }
-    
-    /**
      * Returns cryptographic digest using for SHA1 hashing.
      * 
      * @return message digest
@@ -372,6 +362,16 @@ public class ValidatingModelProvider extends com.atomgraph.server.io.ValidatingM
     public com.atomgraph.linkeddatahub.Application getSystem()
     {
         return system;
+    }
+    
+    /**
+     * Returns a JAX-RS provider for the RDF data manager.
+     * 
+     * @return provider
+     */
+    public javax.inject.Provider<DataManager> getDataManagerProvider()
+    {
+        return dataManager;
     }
     
 }
