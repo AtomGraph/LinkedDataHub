@@ -619,7 +619,7 @@ extension-element-prefixes="ixsl"
                 <!-- only show the reconciliation button if there are any registered SPARQL services -->
                 <xsl:if test="$apps//*[sd:endpoint/@rdf:resource]">
                     <div class="btn-group pull-left">
-                        <button type="button" class="btn dropdown-toggle btn-reconcile">
+                        <button type="button" class="btn dropdown-toggle">
                             <xsl:attribute name="title">
                                 <xsl:apply-templates select="key('resources', 'reconcile-title', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
                             </xsl:attribute>
@@ -629,9 +629,17 @@ extension-element-prefixes="ixsl"
                             <span class="caret"></span>
                         </button>
                         <ul class="dropdown-menu">
-                            <xsl:apply-templates select="$apps//*[sd:endpoint/@rdf:resource]" mode="bs2:List">
+                            <xsl:for-each select="$apps//*[sd:endpoint/@rdf:resource]">
                                 <xsl:sort select="ac:label(.)" order="ascending" lang="{$ldt:lang}"/>
-                            </xsl:apply-templates>
+                                
+                                <li>
+                                    <button class="btn btn-reconcile">
+                                        <input type="hidden" name="service" select="{sd:endpoint/@rdf:resource}"/>
+                                        
+                                        <xsl:apply-template select="." mode="ac:label"/>
+                                    </button>
+                                </li>
+                            </xsl:for-each>
                         </ul>
                     </div>
                 </xsl:if>
