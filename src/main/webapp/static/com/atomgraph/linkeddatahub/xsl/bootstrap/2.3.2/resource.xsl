@@ -614,9 +614,9 @@ extension-element-prefixes="ixsl"
 
     <xsl:template match="*[@rdf:about]" mode="bs2:Actions" priority="1">
         <div class="pull-right">
+            <!--
             <xsl:if test="doc-available($app-request-uri)">
                 <xsl:variable name="apps" select="document($app-request-uri)" as="document-node()"/>
-                <!-- only show the reconciliation button if there are any registered SPARQL services -->
                 <xsl:if test="$apps//*[sd:endpoint/@rdf:resource]">
                     <xsl:variable name="resource" select="." as="element()"/>
                     
@@ -648,6 +648,7 @@ extension-element-prefixes="ixsl"
                     </div>
                 </xsl:if>
             </xsl:if>
+            -->
             
             <button type="button">
                 <xsl:attribute name="title">
