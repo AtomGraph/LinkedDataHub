@@ -4,7 +4,6 @@
     <!ENTITY ldh    "https://w3id.org/atomgraph/linkeddatahub#">
     <!ENTITY ac     "https://w3id.org/atomgraph/client#">
     <!ENTITY rdf    "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
-    <!ENTITY rdfs   "http://www.w3.org/2000/01/rdf-schema#">
     <!ENTITY xsd    "http://www.w3.org/2001/XMLSchema#">
     <!ENTITY owl    "http://www.w3.org/2002/07/owl#">
     <!ENTITY ldt    "https://www.w3.org/ns/ldt#">
@@ -230,9 +229,8 @@ exclude-result-prefixes="#all"
                                             </input>
                                             <span class="help-inline">
                                                 <xsl:value-of>
-                                                    <xsl:apply-templates select="key('resources', '&rdfs;Resource', document(ac:document-uri('&rdfs;')))" mode="ac:label"/>
+                                                    <xsl:apply-templates select="key('resources', 'resource', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
                                                 </xsl:value-of>
-
                                             </span>
                                         </div>
                                     </div>
@@ -364,7 +362,7 @@ exclude-result-prefixes="#all"
                                 
                                 <span class="help-inline">
                                     <xsl:value-of>
-                                        <xsl:apply-templates select="key('resources', '&rdfs;Resource', document(ac:document-uri('&rdfs;')))" mode="ac:label"/>
+                                        <xsl:apply-templates select="key('resources', 'resource', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
                                     </xsl:value-of>
                                 </span>
                             </div>
