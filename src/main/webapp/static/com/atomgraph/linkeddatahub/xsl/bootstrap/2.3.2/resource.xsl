@@ -636,7 +636,7 @@ extension-element-prefixes="ixsl"
                                     <button class="btn btn-reconcile">
                                         <input type="hidden" name="service" select="{sd:endpoint/@rdf:resource}"/>
                                         
-                                        <xsl:apply-template select="." mode="ac:label"/>
+                                        <xsl:apply-templates select="." mode="ac:label"/>
                                     </button>
                                 </li>
                             </xsl:for-each>
