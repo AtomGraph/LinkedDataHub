@@ -412,7 +412,6 @@ exclude-result-prefixes="#all"
                     <xsl:with-param name="service" select="$service"/>
                 </xsl:call-template>
             </xsl:with-param>
-            <xsl:with-param name="graph" select="ldh:absolute-path(ldh:href())"/>
         </xsl:call-template>
     </xsl:template>
     
