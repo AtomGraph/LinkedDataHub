@@ -35,7 +35,7 @@ exclude-result-prefixes="#all"
 
     <!-- TEMPLATES -->
     
-    <xsl:template name="ldh:AddDataForm" as="element()">
+    <xsl:template name="ldh:AddDataForm">
         <xsl:param name="id" select="'add-data'" as="xs:string?"/>
         <xsl:param name="button-class" select="'btn btn-primary btn-save'" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
@@ -319,7 +319,7 @@ exclude-result-prefixes="#all"
 
     <xsl:template match="button[contains-token(@class, 'btn-add-data')]" mode="ixsl:onclick">
         <xsl:call-template name="ldh:ShowAddDataForm">
-            <xsl:with-param name="form">
+            <xsl:with-param name="form" as="element()">
                 <xsl:call-template name="ldh:AddDataForm"/>
             </xsl:with-param>
             <xsl:with-param name="graph" select="ldh:absolute-path(ldh:href())"/>
@@ -328,7 +328,7 @@ exclude-result-prefixes="#all"
     
     <xsl:template match="button[contains-token(@class, 'btn-add-ontology')]" mode="ixsl:onclick">
         <xsl:call-template name="ldh:ShowAddDataForm">
-            <xsl:with-param name="form">
+            <xsl:with-param name="form" as="element()">
                 <xsl:call-template name="ldh:AddDataForm">
                     <xsl:with-param name="action" select="resolve-uri('transform', $ldt:base)"/>
                     <xsl:with-param name="query" select="resolve-uri('queries/construct-constructors/#this', $ldt:base)"/>
@@ -341,7 +341,7 @@ exclude-result-prefixes="#all"
 
     <xsl:template match="button[contains-token(@class, 'btn-reconcile')]" mode="ixsl:onclick">
         <xsl:call-template name="ldh:ShowAddDataForm">
-            <xsl:with-param name="form">
+            <xsl:with-param name="form" as="element()">
                 <xsl:call-template name="ldh:AddDataForm"/>
             </xsl:with-param>
             <xsl:with-param name="graph" select="ldh:absolute-path(ldh:href())"/>

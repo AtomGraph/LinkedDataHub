@@ -1409,7 +1409,7 @@ WHERE
         <xsl:variable name="uri" select="if ($results-uri) then $results-uri else ac:uri()" as="xs:anyURI"/>
 
         <xsl:call-template name="ldh:ShowAddDataForm">
-            <xsl:with-param name="form">
+            <xsl:with-param name="form" as="element()">
                 <xsl:call-template name="ldh:AddDataForm">
                     <xsl:with-param name="source" select="$uri"/>
                 </xsl:call-template>
