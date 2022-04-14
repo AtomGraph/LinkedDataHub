@@ -321,6 +321,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="button-class" select="'btn btn-primary btn-save'" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
         <xsl:param name="action" select="ldh:absolute-path(ldh:href())" as="xs:anyURI"/>
+        <xsl:param name="legend-label" select="ac:label(key('resources', 'reconcile-entity', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri))))" as="xs:string"/>
         <xsl:param name="resource" as="xs:anyURI"/>
         <xsl:param name="label" as="xs:string"/>
         <xsl:param name="service" as="xs:anyURI"/>

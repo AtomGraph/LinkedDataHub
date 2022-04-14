@@ -335,4 +335,7 @@
     <rdf:Description rdf:about="reconcile">
         <rdfs:label xml:lang="en-US">Reconcile</rdfs:label>
     </rdf:Description>
+    <rdf:Description rdf:about="reconcile-entity">
+        <rdfs:label xml:lang="en-US">Reconcile entity</rdfs:label>
+    </rdf:Description>
 </rdf:RDF>
