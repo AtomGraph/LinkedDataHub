@@ -5,6 +5,7 @@
     <!ENTITY ac     "https://w3id.org/atomgraph/client#">
     <!ENTITY rdf    "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
     <!ENTITY xsd    "http://www.w3.org/2001/XMLSchema#">
+    <!ENTITY owl    "http://www.w3.org/2002/07/owl#">
     <!ENTITY ldt    "https://www.w3.org/ns/ldt#">
     <!ENTITY dh     "https://www.w3.org/ns/ldt/document-hierarchy#">
     <!ENTITY sd     "http://www.w3.org/ns/sparql-service-description#">
@@ -315,6 +316,63 @@ exclude-result-prefixes="#all"
         </div>
     </xsl:template>
 
+    <xsl:template name="ldh:ReconcileForm">
+        <xsl:param name="id" select="'reconcile'" as="xs:string?"/>
+        <xsl:param name="button-class" select="'btn btn-primary btn-save'" as="xs:string?"/>
+        <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
+        <xsl:param name="action" select="ldh:absolute-path(ldh:href())" as="xs:anyURI"/>
+        <xsl:param name="resource" as="xs:anyURI"/>
+        <xsl:param name="label" as="xs:string"/>
+        <xsl:param name="service" as="xs:anyURI"/>
+        
+        <div class="modal modal-constructor fade in">
+            <xsl:if test="$id">
+                <xsl:attribute name="id" select="$id"/>
+            </xsl:if>
+
+            <div class="modal-header">
+                <button type="button" class="close">&#215;</button>
+
+                <legend>
+                    <xsl:value-of select="$legend-label"/>
+                </legend>
+            </div>
+
+            <div class="modal-body">
+                <form id="form-clone-data" method="POST" action="{$action}">
+                    <xsl:comment>This form uses RDF/POST encoding: http://www.lsrn.org/semweb/rdfpost.html</xsl:comment>
+                    <xsl:call-template name="xhtml:Input">
+                        <xsl:with-param name="name" select="'rdf'"/>
+                        <xsl:with-param name="type" select="'hidden'"/>
+                    </xsl:call-template>
+
+                    <fieldset>
+                        <input type="hidden" name="su" value="{$resource}"/>
+
+                        <div class="control-group required">
+                            <input type="hidden" name="pu" value="&owl;sameAs"/>
+                            <!-- TO-DO: localize label -->
+                            <label class="control-label" for="remote-rdf-source">
+                                <xsl:value-of>
+                                    Same as
+                                </xsl:value-of>
+                            </label>
+                            <div class="controls">
+                                <input type="text" class="input-xxlarge"/>
+                                
+                                <span class="help-inline">
+                                    <xsl:value-of>
+                                        <xsl:apply-templates select="key('resources', '&rdf;Resource', document(ac:document-uri('&rdf;')))" mode="ac:label"/>
+                                    </xsl:value-of>
+                                </span>
+                            </div>
+                        </div>
+                    </fieldset>
+                </form>
+            </div>
+        </div>
+    </xsl:template>
+    
     <!-- EVENT HANDLERS -->
 
     <xsl:template match="button[contains-token(@class, 'btn-add-data')]" mode="ixsl:onclick">
@@ -340,9 +398,17 @@ exclude-result-prefixes="#all"
     </xsl:template>
 
     <xsl:template match="button[contains-token(@class, 'btn-reconcile')]" mode="ixsl:onclick">
+        <xsl:variable name="resource" select="input[@name = 'resource']/@value" as="xs:anyURI"/>
+        <xsl:variable name="label" select="input[@name = 'label']/@value" as="xs:string"/>
+        <xsl:variable name="service" select="input[@name = 'service']/@value" as="xs:anyURI"/>
+        
         <xsl:call-template name="ldh:ShowAddDataForm">
             <xsl:with-param name="form" as="element()">
-                <xsl:call-template name="ldh:AddDataForm"/>
+                <xsl:call-template name="ldh:ReconcileForm">
+                    <xsl:with-param name="resource" select="$resource"/>
+                    <xsl:with-param name="label" select="$label"/>
+                    <xsl:with-param name="service" select="$service"/>
+                </xsl:call-template>
             </xsl:with-param>
             <xsl:with-param name="graph" select="ldh:absolute-path(ldh:href())"/>
         </xsl:call-template>

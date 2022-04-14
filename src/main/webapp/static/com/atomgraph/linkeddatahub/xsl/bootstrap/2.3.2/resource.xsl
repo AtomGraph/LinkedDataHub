@@ -629,11 +629,13 @@ extension-element-prefixes="ixsl"
                             <span class="caret"></span>
                         </button>
                         <ul class="dropdown-menu">
-                            <xsl:for-each select="$apps//*[sd:endpoint/@rdf:resource]">
+                            <xsl:for-each select="$apps//*[@rdf:about][sd:endpoint/@rdf:resource]">
                                 <xsl:sort select="ac:label(.)" order="ascending" lang="{$ldt:lang}"/>
                                 
                                 <li>
                                     <button class="btn btn-reconcile">
+                                        <input type="hidden" name="resource" select="{@rdf:about}"/>
+                                        <input type="hidden" name="label" select="ac:label(.)"/>
                                         <input type="hidden" name="service" select="{sd:endpoint/@rdf:resource}"/>
                                         
                                         <xsl:apply-templates select="." mode="ac:label"/>
