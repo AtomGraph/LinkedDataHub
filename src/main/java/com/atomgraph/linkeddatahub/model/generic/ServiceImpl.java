@@ -133,9 +133,9 @@ public class ServiceImpl extends ResourceImpl implements Service
         SPARQLClient sparqlClient;
         
         if (getMaxGetRequestSize() != null)
-            sparqlClient = SPARQLClient.create(webTarget, getMediaTypes(), getMaxGetRequestSize());
+            sparqlClient = SPARQLClient.create(getMediaTypes(), webTarget, getMaxGetRequestSize());
         else
-            sparqlClient = SPARQLClient.create(webTarget, getMediaTypes());
+            sparqlClient = SPARQLClient.create(getMediaTypes(), webTarget);
         
         if (getAuthUser() != null && getAuthPwd() != null)
         {
@@ -169,7 +169,7 @@ public class ServiceImpl extends ResourceImpl implements Service
      */
     public GraphStoreClient getGraphStoreClient(WebTarget webTarget)
     {
-        GraphStoreClient graphStoreClient = com.atomgraph.linkeddatahub.client.GraphStoreClient.create(webTarget);
+        GraphStoreClient graphStoreClient = GraphStoreClient.create(webTarget);
         
         if (getAuthUser() != null && getAuthPwd() != null)
         {

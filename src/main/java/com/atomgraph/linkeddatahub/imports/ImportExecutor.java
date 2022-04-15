@@ -31,7 +31,6 @@ import com.atomgraph.linkeddatahub.model.Import;
 import com.atomgraph.linkeddatahub.model.RDFImport;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.exception.ImportException;
-import com.atomgraph.linkeddatahub.server.filter.response.BackendInvalidationFilter;
 import com.atomgraph.linkeddatahub.server.util.Skolemizer;
 import com.atomgraph.linkeddatahub.vocabulary.PROV;
 import com.atomgraph.linkeddatahub.vocabulary.VoID;
@@ -63,7 +62,6 @@ import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.util.ResourceUtils;
 import org.apache.jena.vocabulary.DCTerms;
 import org.apache.jena.vocabulary.RDF;
-import org.glassfish.jersey.uri.UriComponent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -340,23 +338,6 @@ public class ImportExecutor
         return new StreamRDFOutputWriter(service, adminService, graphStoreClient, baseURI, query, imp.getGraphName() != null ? imp.getGraphName().getURI() : null);
     }
 
-    /**
-     * Bans URL from Varnish proxy cache.
-     * 
-     * @param dataManager RDF data manager
-     * @param proxy URI resource of the proxy cache
-     * @param url URL to be banned
-     * @return response from Varnish
-     */
-    public Response ban(DataManager dataManager, Resource proxy, String url)
-    {
-        if (url == null) throw new IllegalArgumentException("Resource cannot be null");
-        
-        // create new Client instance, otherwise ApacheHttpClient reuses connection and Varnish ignores BAN request
-        return dataManager.getClient().target(proxy.getURI()).request().
-            header(BackendInvalidationFilter.HEADER_NAME, UriComponent.encode(url, UriComponent.Type.UNRESERVED)).
-            method("BAN", Response.class);
-    }
     
     /**
      * Returns executor service that contains a thread pool.

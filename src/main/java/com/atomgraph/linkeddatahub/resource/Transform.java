@@ -119,8 +119,8 @@ public class Transform extends Add
             Query query = queryLoader.get();
             if (!query.isConstructType()) throw new BadRequestException("Transformation query is not of CONSTRUCT type");
 
-            LinkedDataClient ldc = LinkedDataClient.create(getSystem().getClient().target(source.getURI()), getMediaTypes());
-            Model importModel = ldc.get();
+            LinkedDataClient ldc = LinkedDataClient.create(getSystem().getClient(), getMediaTypes()); // TO-DO: inject
+            Model importModel = ldc.get(URI.create(source.getURI()));
             try (QueryExecution qex = QueryExecution.create(query, importModel))
             {
                 Model transformModel = qex.execConstruct();

@@ -137,8 +137,8 @@ public class RequestAccess extends GraphStoreImpl
             
             accessRequest.addLiteral(DCTerms.created, GregorianCalendar.getInstance());
 
-            LinkedDataClient ldc = LinkedDataClient.create(getSystem().getClient().target(ownerURI), getMediaTypes());
-            Model agentModel = ldc.get();
+            LinkedDataClient ldc = LinkedDataClient.create(getSystem().getClient(), getMediaTypes()); // TO-DO: inject
+            Model agentModel = ldc.get(URI.create(ownerURI));
             owner = agentModel.getResource(ownerURI);
             if (!agentModel.containsResource(owner)) throw new IllegalStateException("Could not load agent's <" + ownerURI + "> description from admin service");
 

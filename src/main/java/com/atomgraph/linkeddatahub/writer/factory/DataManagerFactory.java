@@ -22,6 +22,7 @@ import javax.ws.rs.ext.Provider;
 import com.atomgraph.client.util.DataManager;
 import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
+import com.atomgraph.linkeddatahub.client.LinkedDataClient;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.vocabulary.LAPP;
 import com.atomgraph.linkeddatahub.writer.impl.DataManagerImpl;
@@ -82,12 +83,13 @@ public class DataManagerFactory implements Factory<DataManager>
             baseManager = (com.atomgraph.core.util.jena.DataManager)getSystem().getOntModelSpec(app.as(EndUserApplication.class)).getDocumentManager().getFileManager();
         else
             baseManager = getSystem().getDataManager();
-            
+        
+        LinkedDataClient ldc = LinkedDataClient.create(getSystem().getClient(),
+                getSystem().getMediaTypes(), getUriInfo().getBaseUri(), getAgentContext());
         // copy cached models over from the app's FileManager
         return new DataManagerImpl(LocationMapper.get(), new HashMap<>(baseManager.getModelCache()),
-            getSystem().getClient(), getSystem().getMediaTypes(),
-            true, getSystem().isPreemptiveAuth(), getSystem().isResolvingUncached(),
-            URI.create(getHttpServletRequest().getRequestURL().toString()).resolve(getHttpServletRequest().getContextPath() + "/"), getUriInfo().getBaseUri(),
+            ldc, true, getSystem().isPreemptiveAuth(), getSystem().isResolvingUncached(),
+            URI.create(getHttpServletRequest().getRequestURL().toString()).resolve(getHttpServletRequest().getContextPath() + "/"),
                 getAgentContext());
     }
     
