@@ -10,6 +10,7 @@ print_usage()
     printf "  -f, --cert-pem-file CERT_FILE        .pem file with the WebID certificate of the agent\n"
     printf "  -p, --cert-password CERT_PASSWORD    Password of the WebID certificate\n"
     printf "\n"
+    printf "  --this DOCUMENT_URI                  Document URI\n"
     printf "  --first RESOURCE_URI                 URI of the content element (query, chart etc.)\n"
     printf "  --mode MODE_URI                      URI of the content mode (list, grid etc.) (optional)\n"
 }
@@ -29,6 +30,11 @@ do
         ;;
         -p|--cert-password)
         cert_password="$2"
+        shift # past argument
+        shift # past value
+        ;;
+        --this)
+        first="$2"
         shift # past argument
         shift # past value
         ;;
@@ -58,16 +64,21 @@ if [ -z "$cert_password" ] ; then
     print_usage
     exit 1
 fi
+if [ -z "$this" ] ; then
+    print_usage
+    exit 1
+fi
 if [ -z "$first" ] ; then
     print_usage
     exit 1
 fi
+
 if [ -z "$1" ] ; then
-    print_usage
-    exit 1
+    target="$this"
+else
+    target="$1"
 fi
 
-this="$1"
 if [ -n "$mode" ] ; then
     mode_bgp="?content ac:mode <${mode}> ."
 fi
@@ -78,7 +89,7 @@ curl -X PATCH \
     -v -f -k \
     -E "$cert_pem_file":"$cert_password" \
     -H "Content-Type: application/sparql-update" \
-    "$this" \
+    "$target" \
      --data-binary @- <<EOF
 PREFIX  ldh:  <https://w3id.org/atomgraph/linkeddatahub#>
 PREFIX  ac:   <https://w3id.org/atomgraph/client#>

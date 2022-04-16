@@ -2,13 +2,14 @@
 
 print_usage()
 {
-    printf "Appends content instance to document.\n"
+    printf "Removes content from document.\n"
     printf "\n"
     printf "Usage:  %s options [TARGET_URI]\n" "$0"
     printf "\n"
     printf "Options:\n"
     printf "  -f, --cert-pem-file CERT_FILE        .pem file with the WebID certificate of the agent\n"
     printf "  -p, --cert-password CERT_PASSWORD    Password of the WebID certificate\n"
+    printf "  --this DOCUMENT_URI                  Document URI\n"
 }
 
 hash turtle 2>/dev/null || { echo >&2 "turtle not on \$PATH. Need to set \$JENA_HOME. Aborting."; exit 1; }
@@ -29,6 +30,11 @@ do
         shift # past argument
         shift # past value
         ;;
+        --this)
+        this="$2"
+        shift # past argument
+        shift # past value
+        ;;
         *)    # unknown arguments
         args+=("$1") # save it in an array for later
         shift # past argument
@@ -45,12 +51,17 @@ if [ -z "$cert_password" ] ; then
     print_usage
     exit 1
 fi
-if [ -z "$1" ] ; then
+
+if [ -z "$this" ] ; then
     print_usage
     exit 1
 fi
 
-this="$1"
+if [ -z "$1" ] ; then
+    target="$this"
+else
+    target="$1"
+fi
 
 # SPARQL update logic from https://afs.github.io/rdf-lists-sparql#a-namedel-all-1adelete-the-whole-list-common-case
 
@@ -58,7 +69,7 @@ curl -X PATCH \
     -v -f -k \
     -E "$cert_pem_file":"$cert_password" \
     -H "Content-Type: application/sparql-update" \
-    "$this" \
+    "$target" \
      --data-binary @- <<EOF
 PREFIX  ldh:  <https://w3id.org/atomgraph/linkeddatahub#>
 PREFIX  ac:   <https://w3id.org/atomgraph/client#>
