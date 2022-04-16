@@ -17,13 +17,14 @@
 package com.atomgraph.linkeddatahub.resource.admin;
 
 import com.atomgraph.core.MediaTypes;
-import com.atomgraph.core.client.LinkedDataClient;
 import com.atomgraph.core.exception.ConfigurationException;
 import static com.atomgraph.linkeddatahub.apps.model.AdminApplication.AUTHORIZATION_REQUEST_PATH;
+import com.atomgraph.linkeddatahub.client.LinkedDataClient;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.listener.EMailListener;
 import com.atomgraph.linkeddatahub.model.Agent;
 import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
+import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.server.util.MessageBuilder;
 import com.atomgraph.linkeddatahub.server.util.Skolemizer;
 import com.atomgraph.linkeddatahub.vocabulary.LDHC;
@@ -70,10 +71,11 @@ public class RequestAccess extends GraphStoreImpl
     private static final Logger log = LoggerFactory.getLogger(RequestAccess.class);
     
     private final URI uri;
-    private final Agent agent;
+//    private final Agent agent;
     private final String emailSubject;
     private final String emailText;
     private final UriBuilder authRequestContainerUriBuilder;
+    private final Optional<AgentContext> agentContext;
 
     /**
      * Constructs access request resource.
@@ -88,18 +90,20 @@ public class RequestAccess extends GraphStoreImpl
      * @param providers registry of JAX-RS providers
      * @param system system application
      * @param servletConfig servlet config
+     * @param agentContext optional agent context
      */
     @Inject
     public RequestAccess(@Context Request request, @Context UriInfo uriInfo, MediaTypes mediaTypes,
             com.atomgraph.linkeddatahub.apps.model.Application application, Optional<Ontology> ontology, Optional<Service> service,
             @Context SecurityContext securityContext,
-            @Context Providers providers, com.atomgraph.linkeddatahub.Application system, @Context ServletConfig servletConfig)
+            @Context Providers providers, com.atomgraph.linkeddatahub.Application system, @Context ServletConfig servletConfig,
+            Optional<AgentContext> agentContext)
     {
         super(request, uriInfo, mediaTypes, application, ontology, service, providers, system);
         if (log.isDebugEnabled()) log.debug("Constructing {}", getClass());
         if (securityContext == null || !(securityContext.getUserPrincipal() instanceof Agent)) throw new IllegalStateException("Agent is not authenticated");
         this.uri = uriInfo.getAbsolutePath();
-        this.agent = (Agent)securityContext.getUserPrincipal();
+        this.agentContext = agentContext;
 
         authRequestContainerUriBuilder = uriInfo.getBaseUriBuilder().path(AUTHORIZATION_REQUEST_PATH);
         
@@ -129,7 +133,7 @@ public class RequestAccess extends GraphStoreImpl
         {
             Resource accessRequest = it.next();
             Resource requestAgent = accessRequest.getPropertyResourceValue(LACL.requestAgent);
-            if (!requestAgent.equals(getAgent())) throw new IllegalStateException("Agent requesting access must be authenticated");
+            if (!requestAgent.equals(getAgentContext().get())) throw new IllegalStateException("Agent requesting access must be authenticated");
             
             Resource owner = getApplication().getMaker();
             if (owner == null) throw new IllegalStateException("Application <" + getApplication().getURI() + "> does not have a maker (foaf:maker)");
@@ -137,7 +141,8 @@ public class RequestAccess extends GraphStoreImpl
             
             accessRequest.addLiteral(DCTerms.created, GregorianCalendar.getInstance());
 
-            LinkedDataClient ldc = LinkedDataClient.create(getSystem().getClient(), getMediaTypes()); // TO-DO: inject
+            LinkedDataClient ldc = LinkedDataClient.create(getSystem().getClient(), getSystem().getMediaTypes()).
+                delegation(getUriInfo().getBaseUri(), getAgentContext().orElse(null));
             Model agentModel = ldc.get(URI.create(ownerURI));
             owner = agentModel.getResource(ownerURI);
             if (!agentModel.containsResource(owner)) throw new IllegalStateException("Could not load agent's <" + ownerURI + "> description from admin service");
@@ -150,7 +155,7 @@ public class RequestAccess extends GraphStoreImpl
             }
             catch (MessagingException | UnsupportedEncodingException ex)
             {
-                if (log.isErrorEnabled()) log.error("Could not send access request email to Agent: {}", agent.getURI());
+                if (log.isErrorEnabled()) log.error("Could not send access request email to Agent: {}", getAgentContext().get().getAgent().getURI());
             }
 
             return Response.ok().
@@ -229,10 +234,10 @@ public class RequestAccess extends GraphStoreImpl
      * 
      * @return agent resource or null
      */
-    public Agent getAgent()
-    {
-        return agent;
-    }
+//    public Agent getAgent()
+//    {
+//        return agent;
+//    }
     
     /**
      * Returns the subject of the notification email.
@@ -262,6 +267,16 @@ public class RequestAccess extends GraphStoreImpl
     public UriBuilder getAuthRequestContainerUriBuilder()
     {
         return authRequestContainerUriBuilder.clone();
+    }
+    
+    /**
+     * Gets authenticated agent's context
+     * 
+     * @return optional agent's context
+     */
+    public Optional<AgentContext> getAgentContext()
+    {
+        return agentContext;
     }
     
 }

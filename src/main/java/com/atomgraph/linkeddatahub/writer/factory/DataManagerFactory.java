@@ -84,8 +84,9 @@ public class DataManagerFactory implements Factory<DataManager>
         else
             baseManager = getSystem().getDataManager();
         
-        LinkedDataClient ldc = LinkedDataClient.create(getSystem().getClient(),
-                getSystem().getMediaTypes(), getUriInfo().getBaseUri(), getAgentContext());
+        LinkedDataClient ldc = LinkedDataClient.create(getSystem().getClient(), getSystem().getMediaTypes()).
+            delegation(getUriInfo().getBaseUri(), getAgentContext());
+        
         // copy cached models over from the app's FileManager
         return new DataManagerImpl(LocationMapper.get(), new HashMap<>(baseManager.getModelCache()),
             ldc, true, getSystem().isPreemptiveAuth(), getSystem().isResolvingUncached(),

@@ -36,29 +36,24 @@ public class LinkedDataClient extends com.atomgraph.core.client.LinkedDataClient
 
     private static final Logger log = LoggerFactory.getLogger(LinkedDataClient.class);
 
-    private final URI baseURI;
-    private final AgentContext agentContext;
+    private URI baseURI;
+    private AgentContext agentContext;
     
-    protected LinkedDataClient(Client client, MediaTypes mediaTypes, URI baseURI, AgentContext agentContext)
+    protected LinkedDataClient(Client client, MediaTypes mediaTypes)
     {
         super(client, mediaTypes);
-        this.baseURI = baseURI;
-        this.agentContext = agentContext;
-    }
-
-    protected LinkedDataClient(Client client, MediaTypes mediaTypes, URI baseURI)
-    {
-        this(client, mediaTypes, baseURI, null);
-    }
-
-    public static LinkedDataClient create(Client client, MediaTypes mediaTypes, URI baseURI)
-    {
-        return new LinkedDataClient(client, mediaTypes, baseURI);
     }
     
-    public static LinkedDataClient create(Client client, MediaTypes mediaTypes, URI baseURI, AgentContext agentContext)
+    public static LinkedDataClient create(Client client, MediaTypes mediaTypes)
     {
-        return new LinkedDataClient(client, mediaTypes, baseURI, agentContext);
+        return new LinkedDataClient(client, mediaTypes);
+    }
+    
+    public LinkedDataClient delegation(URI baseURI, AgentContext agentContext)
+    {
+        this.baseURI = baseURI;
+        this.agentContext = agentContext;
+        return this;
     }
     
     /**
@@ -68,7 +63,7 @@ public class LinkedDataClient extends com.atomgraph.core.client.LinkedDataClient
      * @return web target
      */
     @Override
-    public WebTarget getWebTarget(URI uri)
+    public WebTarget getWebTarget(URI uri) // TO-DO: protected
     {
         WebTarget endpoint = super.getWebTarget(uri);
         

@@ -18,8 +18,8 @@ package com.atomgraph.linkeddatahub.resource;
 
 import com.atomgraph.client.util.DataManager;
 import com.atomgraph.core.MediaTypes;
-import com.atomgraph.core.client.LinkedDataClient;
 import com.atomgraph.core.vocabulary.SD;
+import com.atomgraph.linkeddatahub.client.LinkedDataClient;
 import com.atomgraph.linkeddatahub.imports.QueryLoader;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.io.ValidatingModelProvider;
@@ -119,7 +119,8 @@ public class Transform extends Add
             Query query = queryLoader.get();
             if (!query.isConstructType()) throw new BadRequestException("Transformation query is not of CONSTRUCT type");
 
-            LinkedDataClient ldc = LinkedDataClient.create(getSystem().getClient(), getMediaTypes()); // TO-DO: inject
+            LinkedDataClient ldc = LinkedDataClient.create(getSystem().getClient(), getSystem().getMediaTypes()).
+                delegation(getUriInfo().getBaseUri(), getAgentContext().orElse(null));
             Model importModel = ldc.get(URI.create(source.getURI()));
             try (QueryExecution qex = QueryExecution.create(query, importModel))
             {

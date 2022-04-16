@@ -17,16 +17,12 @@
 package com.atomgraph.linkeddatahub.resource;
 
 import com.atomgraph.core.MediaTypes;
-import com.atomgraph.core.client.LinkedDataClient;
 import com.atomgraph.core.vocabulary.SD;
-import com.atomgraph.linkeddatahub.client.filter.auth.IDTokenDelegationFilter;
-import com.atomgraph.linkeddatahub.client.filter.auth.WebIDDelegationFilter;
-import com.atomgraph.linkeddatahub.model.Agent;
+import com.atomgraph.linkeddatahub.client.LinkedDataClient;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.io.ValidatingModelProvider;
 import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
-import com.atomgraph.linkeddatahub.server.security.IDTokenSecurityContext;
 import com.atomgraph.linkeddatahub.vocabulary.NFO;
 import java.io.IOException;
 import java.io.InputStream;
@@ -43,7 +39,6 @@ import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Request;
@@ -219,21 +214,10 @@ public class Add extends GraphStoreImpl // TO-DO: does not need to extend GraphS
     
     protected Response forwardPost(Entity entity, String graphURI)
     {
-        WebTarget webTarget = getSystem().getClient().target(graphURI);
-        // delegate authentication
-        if (getSecurityContext().getUserPrincipal() instanceof Agent agent)
-        {
-            if (getSecurityContext().getAuthenticationScheme().equals(SecurityContext.CLIENT_CERT_AUTH))
-                webTarget.register(new WebIDDelegationFilter(agent));
-
-            if (getAgentContext().isPresent() && getAgentContext().get() instanceof IDTokenSecurityContext)
-                webTarget.register(new IDTokenDelegationFilter(getAgentContext().get().getAgent(),
-                    ((IDTokenSecurityContext)getAgentContext().get()).getJWTToken(),
-                    getUriInfo().getBaseUri().getPath(), null));
-        }
-
+        LinkedDataClient ldc = LinkedDataClient.create(getSystem().getClient(), getSystem().getMediaTypes()).
+            delegation(getUriInfo().getBaseUri(), getAgentContext().orElse(null));
         // forward the stream to the named graph document. Buffer the entity first so that the server response is not returned before the client response completes
-        try (Response response = webTarget.request(getSystem().getMediaTypes().getReadable(Model.class).toArray(MediaType[]::new)).post(entity))
+        try (Response response = ldc.post(URI.create(graphURI), ldc.getReadableMediaTypes(Model.class), entity, ldc.getDefaultMediaType()))
         {
             return Response.status(response.getStatus()).
                 entity(response.readEntity(Model.class)).
