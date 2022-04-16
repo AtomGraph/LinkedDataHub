@@ -65,23 +65,23 @@ public class LinkedDataClient extends com.atomgraph.core.client.LinkedDataClient
     @Override
     public WebTarget getWebTarget(URI uri) // TO-DO: protected
     {
-        WebTarget endpoint = super.getWebTarget(uri);
+        WebTarget webTarget = super.getWebTarget(uri);
         
         if (getAgentContext() != null)
         {
             // TO-DO: unify with other usages of WebIDDelegationFilter/IDTokenDelegationFilter
             if (log.isDebugEnabled()) log.debug("Delegating Agent's <{}> access to secretary", getAgentContext().getAgent());
-            endpoint.register(new WebIDDelegationFilter(getAgentContext().getAgent()));
+            webTarget.register(new WebIDDelegationFilter(getAgentContext().getAgent()));
             
             if (getAgentContext() instanceof IDTokenSecurityContext iDTokenSecurityContext)
             {
                 IDTokenSecurityContext idTokenContext = iDTokenSecurityContext;
-                endpoint.register(new IDTokenDelegationFilter(idTokenContext.getAgent(), idTokenContext.getJWTToken(),
+                webTarget.register(new IDTokenDelegationFilter(idTokenContext.getAgent(), idTokenContext.getJWTToken(),
                     getBaseURI().getPath(), null));
             }
         }
         
-        return endpoint;
+        return webTarget;
     }
     
     /**

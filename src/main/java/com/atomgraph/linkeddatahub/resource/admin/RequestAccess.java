@@ -133,7 +133,7 @@ public class RequestAccess extends GraphStoreImpl
         {
             Resource accessRequest = it.next();
             Resource requestAgent = accessRequest.getPropertyResourceValue(LACL.requestAgent);
-            if (!requestAgent.equals(getAgentContext().get())) throw new IllegalStateException("Agent requesting access must be authenticated");
+            if (!requestAgent.equals(getAgentContext().get().getAgent())) throw new IllegalStateException("Agent requesting access must be authenticated");
             
             Resource owner = getApplication().getMaker();
             if (owner == null) throw new IllegalStateException("Application <" + getApplication().getURI() + "> does not have a maker (foaf:maker)");
