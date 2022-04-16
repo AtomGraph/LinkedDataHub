@@ -143,7 +143,7 @@ public class RequestAccess extends GraphStoreImpl
 
             LinkedDataClient ldc = LinkedDataClient.create(getSystem().getClient(), getSystem().getMediaTypes()).
                 delegation(getUriInfo().getBaseUri(), getAgentContext().orElse(null));
-            Model agentModel = ldc.get(URI.create(ownerURI));
+            Model agentModel = ldc.getModel(ownerURI);
             owner = agentModel.getResource(ownerURI);
             if (!agentModel.containsResource(owner)) throw new IllegalStateException("Could not load agent's <" + ownerURI + "> description from admin service");
 

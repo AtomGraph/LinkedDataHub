@@ -121,7 +121,7 @@ public class Transform extends Add
 
             LinkedDataClient ldc = LinkedDataClient.create(getSystem().getClient(), getSystem().getMediaTypes()).
                 delegation(getUriInfo().getBaseUri(), getAgentContext().orElse(null));
-            Model importModel = ldc.get(URI.create(source.getURI()));
+            Model importModel = ldc.getModel(source.getURI());
             try (QueryExecution qex = QueryExecution.create(query, importModel))
             {
                 Model transformModel = qex.execConstruct();

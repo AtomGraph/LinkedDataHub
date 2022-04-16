@@ -121,7 +121,7 @@ public class Add extends GraphStoreImpl // TO-DO: does not need to extend GraphS
             if (graph == null || !graph.isURIResource()) throw new BadRequestException("Graph URI (sd:name) not provided");
 
             LinkedDataClient ldc = LinkedDataClient.create(getSystem().getClient(), getMediaTypes()); // TO-DO: inject
-            Model importModel = ldc.get(URI.create(source.getURI()));
+            Model importModel = ldc.getModel(source.getURI());
             // forward the stream to the named graph document -- do not directly append triples to graph because the agent might not have access to it
             return forwardPost(Entity.entity(importModel, com.atomgraph.client.MediaType.APPLICATION_NTRIPLES_TYPE), graph.getURI());
         }
@@ -217,7 +217,7 @@ public class Add extends GraphStoreImpl // TO-DO: does not need to extend GraphS
         LinkedDataClient ldc = LinkedDataClient.create(getSystem().getClient(), getSystem().getMediaTypes()).
             delegation(getUriInfo().getBaseUri(), getAgentContext().orElse(null));
         // forward the stream to the named graph document. Buffer the entity first so that the server response is not returned before the client response completes
-        try (Response response = ldc.post(URI.create(graphURI), ldc.getReadableMediaTypes(Model.class), entity, ldc.getDefaultMediaType()))
+        try (Response response = ldc.post(URI.create(graphURI), ldc.getReadableMediaTypes(Model.class), entity))
         {
             return Response.status(response.getStatus()).
                 entity(response.readEntity(Model.class)).

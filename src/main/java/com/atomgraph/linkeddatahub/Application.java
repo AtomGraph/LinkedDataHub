@@ -1012,7 +1012,7 @@ public class Application extends ResourceConfig
         {
             Resource agent = auth.getPropertyResourceValue(ACL.agent);
             // make sure the client has WebID delegation enabled, otherwise it will not have authenticated access
-            Model agentModel = event.getLinkedDataClient().get(URI.create(agent.getURI()));
+            Model agentModel = event.getLinkedDataClient().getModel(agent.getURI());
             if (!agentModel.containsResource(agent)) throw new IllegalStateException("Could not load agent's <" + agent.getURI() + "> description");
             agent = agentModel.getResource(agent.getURI());
 
