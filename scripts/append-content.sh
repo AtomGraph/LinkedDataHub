@@ -34,7 +34,7 @@ do
         shift # past value
         ;;
         --this)
-        first="$2"
+        this="$2"
         shift # past argument
         shift # past value
         ;;
