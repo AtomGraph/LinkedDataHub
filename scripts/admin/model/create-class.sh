@@ -131,10 +131,6 @@ if [ -z "$1" ]; then
     exit 1
 fi
 
-#if [ -z "$1" ]; then
-#    args+=("${base}service") # default target URL = graph store
-#fi
-
 args+=("-f")
 args+=("$cert_pem_file")
 args+=("-p")
