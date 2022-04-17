@@ -4,12 +4,13 @@ print_usage()
 {
     printf "Transforms CSV data into RDF using a SPARQL query and imports it.\n"
     printf "\n"
-    printf "Usage:  %s options [TARGET_URI]\n" "$0"
+    printf "Usage:  %s options\n" "$0"
     printf "\n"
     printf "Options:\n"
     printf "  -f, --cert-pem-file CERT_FILE        .pem file with the WebID certificate of the agent\n"
     printf "  -p, --cert-password CERT_PASSWORD    Password of the WebID certificate\n"
     printf "  -b, --base BASE_URI                  Base URI of the application\n"
+    printf "  --proxy PROXY_URL                    The host this request will be proxied through (optional)\n"
     printf "\n"
     printf "  --title TITLE                        Title of the container\n"
     printf "  --description DESCRIPTION            Description of the container (optional)\n"
@@ -112,16 +113,13 @@ fi
 
 container="${base}imports/"
 
-if [ -z "$1" ]; then
-    args+=("${base}importer") # default target URL = import endpoint
-fi
-
 args+=("-f")
 args+=("$cert_pem_file")
 args+=("-p")
 args+=("$cert_password")
 args+=("-t")
 args+=("text/turtle") # content type
+args+=("${base}importer")
 
 turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy#> .\n"
 turtle+="@prefix ldh:	<https://w3id.org/atomgraph/linkeddatahub#> .\n"
