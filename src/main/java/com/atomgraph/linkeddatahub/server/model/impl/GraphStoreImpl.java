@@ -248,24 +248,25 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
     {
         if (log.isTraceEnabled()) log.trace("POST Graph Store request with RDF payload: {} payload size(): {}", model, model.size());
         
+        final boolean created;
         // neither default graph nor named graph specified -- obtain named graph URI from the document
         if (!defaultGraph && graphUri == null)
         {
             Resource graph = CREATE_GRAPH.apply(model);
             if (graph == null) throw new InternalServerErrorException("Named graph skolemization failed");
             graphUri = URI.create(graph.getURI());
-            
+            created = true;
             model.createResource(graphUri.toString()).
                 addLiteral(DCTerms.created, ResourceFactory.createTypedLiteral(GregorianCalendar.getInstance()));
-            
-            new Skolemizer(graphUri.toString()).apply(model);
-            // when graph URI not explicitly specified, always return 201 Created (even if the graph existed)
-            return Response.created(graphUri).build();
         }
+        else created = false;
         
         // container/item (graph) resource is already skolemized, skolemize the rest of the model
         new Skolemizer(graphUri.toString()).apply(model);
-        return super.post(model, false, graphUri);
+        
+        Response response = super.post(model, false, graphUri);
+        if (created) return Response.created(graphUri).build();
+        else return response;
     }
 
     
@@ -350,20 +351,18 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
             MessageBodyReader<Model> reader = getProviders().getMessageBodyReader(Model.class, null, null, com.atomgraph.core.MediaType.APPLICATION_NTRIPLES_TYPE);
             if (reader instanceof ValidatingModelProvider validatingModelProvider) model = validatingModelProvider.processRead(model);
             
+            final boolean created;
             // neither default graph nor named graph specified -- obtain named graph URI from the document
             if (!defaultGraph && graphUri == null)
             {
                 Resource graph = CREATE_GRAPH.apply(model);
                 if (graph == null) throw new InternalServerErrorException("Named graph skolemization failed");
                 graphUri = URI.create(graph.getURI());
-                
+                created = true;
                 model.createResource(graphUri.toString()).
                     addLiteral(DCTerms.created, ResourceFactory.createTypedLiteral(GregorianCalendar.getInstance()));
-                
-                new Skolemizer(graphUri.toString()).apply(model);
-                // when graph URI not explicitly specified, always return 201 Created (even if the graph existed)
-                return Response.created(graphUri).build();
             }
+            else created = false;
 
             // container/item (graph) resource is already skolemized, skolemize the rest of the model
             new Skolemizer(graphUri.toString()).apply(model);
@@ -372,7 +371,9 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
             if (log.isDebugEnabled()) log.debug("# of files uploaded: {} ", fileCount);
 
             if (log.isDebugEnabled()) log.debug("POSTed Model size: {}", model.size());
-            return post(model, defaultGraph, graphUri);
+            Response response = post(model, defaultGraph, graphUri);
+            if (created) return Response.created(graphUri).build();
+            else return response;
         }
         catch (URISyntaxException ex)
         {
