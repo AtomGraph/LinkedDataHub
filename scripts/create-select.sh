@@ -99,16 +99,13 @@ fi
 container="${base}queries/"
 query=$(<"$query_file") # read query string from file
 
-if [ -z "$1" ]; then
-    args+=("${base}service") # default target URL = graph store
-fi
-
 args+=("-f")
 args+=("$cert_pem_file")
 args+=("-p")
 args+=("$cert_password")
 args+=("-t")
 args+=("text/turtle") # content type
+args+=("${base}service")
 
 turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
