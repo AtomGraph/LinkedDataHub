@@ -10,6 +10,7 @@ print_usage()
     printf "  -f, --cert-pem-file CERT_FILE        .pem file with the WebID certificate of the agent\n"
     printf "  -p, --cert-password CERT_PASSWORD    Password of the WebID certificate\n"
     printf "  -b, --base BASE_URI                  Base URI of the admin application\n"
+    printf "  --proxy PROXY_URL                    The host this request will be proxied through (optional)\n"
     printf "\n"
     printf "  --ontology ONTOLOGY_URI              URI of the ontology to be cleared\n"
 }
@@ -34,6 +35,11 @@ do
         ;;
         -b|--base)
         base="$2"
+        shift # past argument
+        shift # past value
+        ;;
+        --proxy)
+        proxy="$2"
         shift # past argument
         shift # past value
         ;;
@@ -67,9 +73,18 @@ if [ -z "$ontology" ] ; then
     exit 1
 fi
 
+target="${base}clear"
+
+if [ -n "$proxy" ]; then
+    # rewrite target hostname to proxy hostname
+    target_host=$(echo "$target" | cut -d '/' -f 1,2,3)
+    proxy_host=$(echo "$proxy" | cut -d '/' -f 1,2,3)
+    target="${target/$target_host/$proxy_host}"
+fi
+
 curl -s -k -f \
   -E "$cert_pem_file":"$cert_password" \
   -H "Accept: text/turtle" \
   -H "Content-Type: application/x-www-form-urlencoded" \
   --data-urlencode "uri=${ontology}" \
-  "${base}clear"
+  "$target"

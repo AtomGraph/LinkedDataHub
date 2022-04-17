@@ -4,12 +4,13 @@ print_usage()
 {
     printf "Uploads a file.\n"
     printf "\n"
-    printf "Usage:  %s options [TARGET_URI]\n" "$0"
+    printf "Usage:  %s options\n" "$0"
     printf "\n"
     printf "Options:\n"
     printf "  -f, --cert-pem-file CERT_FILE        .pem file with the WebID certificate of the agent\n"
     printf "  -p, --cert-password CERT_PASSWORD    Password of the WebID certificate\n"
     printf "  -b, --base BASE_URI                  Base URI of the application\n"
+    printf "  --proxy PROXY_URL                    The host this request will be proxied through (optional)\n"
     printf "\n"
     printf "  --title TITLE                        Title of the file\n"
     printf "  --description DESCRIPTION            Description of the file (optional)\n"
@@ -38,13 +39,13 @@ do
         shift # past argument
         shift # past value
         ;;
-        -t|--content-type)
-        content_type="$2"
+        -b|--base)
+        base="$2"
         shift # past argument
         shift # past value
         ;;
-        -b|--base)
-        base="$2"
+        --proxy)
+        proxy="$2"
         shift # past argument
         shift # past value
         ;;
@@ -113,10 +114,13 @@ fi
 
 container="${base}files/"
 
-if [ -z "$1" ]; then
-    target="${base}service" # default target URL = graph store
-else
-    target="$1"
+target="${base}service"
+
+if [ -n "$proxy" ]; then
+    # rewrite target hostname to proxy hostname
+    target_host=$(echo "$target" | cut -d '/' -f 1,2,3)
+    proxy_host=$(echo "$proxy" | cut -d '/' -f 1,2,3)
+    target="${target/$target_host/$proxy_host}"
 fi
 
 # need to create explicit file URI since that is what this script returns (not the graph URI)
@@ -145,6 +149,11 @@ rdf_post+="-F \"ob=file\"\n"
 rdf_post+="-F \"pu=http://rdfs.org/sioc/ns#has_container\"\n"
 rdf_post+="-F \"ou=${container}\"\n"
 
+if [ -n "$slug" ] ; then
+    rdf_post+="-F \"sb=item\"\n"
+    rdf_post+="-F \"pu=https://www.w3.org/ns/ldt/document-hierarchy#slug\"\n"
+    rdf_post+="-F \"ol=${slug}\"\n"
+fi
 if [ -n "$description" ] ; then
     rdf_post+="-F \"sb=file\"\n"
     rdf_post+="-F \"pu=http://purl.org/dc/terms/description\"\n"

@@ -9,7 +9,7 @@ print_usage()
     printf "Options:\n"
     printf "  -f, --cert-pem-file CERT_FILE        .pem file with the WebID certificate of the agent\n"
     printf "  -p, --cert-password CERT_PASSWORD    Password of the WebID certificate\n"
-    printf "  --this DOCUMENT_URI                  Document URI\n"
+    printf "  --proxy PROXY_URL                    The host this request will be proxied through (optional)\n"
 }
 
 hash turtle 2>/dev/null || { echo >&2 "turtle not on \$PATH. Need to set \$JENA_HOME. Aborting."; exit 1; }
@@ -30,8 +30,8 @@ do
         shift # past argument
         shift # past value
         ;;
-        --this)
-        this="$2"
+        --proxy)
+        proxy="$2"
         shift # past argument
         shift # past value
         ;;
@@ -52,15 +52,14 @@ if [ -z "$cert_password" ] ; then
     exit 1
 fi
 
-if [ -z "$this" ] ; then
-    print_usage
-    exit 1
-fi
+target="$1"
+this="$1"
 
-if [ -z "$1" ] ; then
-    target="$this"
-else
-    target="$1"
+if [ -n "$proxy" ]; then
+    # rewrite target hostname to proxy hostname
+    target_host=$(echo "$target" | cut -d '/' -f 1,2,3)
+    proxy_host=$(echo "$proxy" | cut -d '/' -f 1,2,3)
+    target="${target/$target_host/$proxy_host}"
 fi
 
 # SPARQL update logic from https://afs.github.io/rdf-lists-sparql#a-namedel-all-1adelete-the-whole-list-common-case

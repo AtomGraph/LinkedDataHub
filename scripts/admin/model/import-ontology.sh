@@ -9,6 +9,7 @@ print_usage()
     printf "Options:\n"
     printf "  -f, --cert-pem-file CERT_FILE        .pem file with the WebID certificate of the agent\n"
     printf "  -p, --cert-password CERT_PASSWORD    Password of the WebID certificate\n"
+    printf "  --proxy PROXY_URL                    The host this request will be proxied through (optional)\n"
     printf "\n"
     printf "  --source SOURCE_URI                  URI of the imported ontology\n"
 }
@@ -34,6 +35,11 @@ do
         ;;
         -b|--base)
         base="$2"
+        shift # past argument
+        shift # past value
+        ;;
+        --proxy)
+        proxy="$2"
         shift # past argument
         shift # past value
         ;;
@@ -67,10 +73,13 @@ if [ "$#" -ne 1 ]; then
     exit 1
 fi
 
-if [ -z "$1" ] ; then
-    target="${base}model/ontologies/"
-else
-    target="$1"
+target="$1"
+
+if [ -n "$proxy" ]; then
+    # rewrite target hostname to proxy hostname
+    target_host=$(echo "$target" | cut -d '/' -f 1,2,3)
+    proxy_host=$(echo "$proxy" | cut -d '/' -f 1,2,3)
+    target="${target/$target_host/$proxy_host}"
 fi
 
 content_type="text/turtle"
