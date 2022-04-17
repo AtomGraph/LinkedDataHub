@@ -257,11 +257,14 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
             
             model.createResource(graphUri.toString()).
                 addLiteral(DCTerms.created, ResourceFactory.createTypedLiteral(GregorianCalendar.getInstance()));
+            
+            new Skolemizer(graphUri.toString()).apply(model);
+            // when graph URI not explicitly specified, always return 201 Created (even if the graph existed)
+            return Response.created(graphUri).build();
         }
         
         // container/item (graph) resource is already skolemized, skolemize the rest of the model
         new Skolemizer(graphUri.toString()).apply(model);
-        
         return super.post(model, false, graphUri);
     }
 
@@ -356,6 +359,10 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
                 
                 model.createResource(graphUri.toString()).
                     addLiteral(DCTerms.created, ResourceFactory.createTypedLiteral(GregorianCalendar.getInstance()));
+                
+                new Skolemizer(graphUri.toString()).apply(model);
+                // when graph URI not explicitly specified, always return 201 Created (even if the graph existed)
+                return Response.created(graphUri).build();
             }
 
             // container/item (graph) resource is already skolemized, skolemize the rest of the model
