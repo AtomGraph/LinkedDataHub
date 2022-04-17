@@ -16,8 +16,9 @@
  */
 package com.atomgraph.linkeddatahub.imports;
 
-import com.atomgraph.client.util.DataManager;
+import com.atomgraph.core.client.LinkedDataClient;
 import com.atomgraph.spinrdf.vocabulary.SP;
+import java.net.URI;
 import java.util.function.Supplier;
 import javax.ws.rs.core.Response;
 import org.apache.jena.query.Query;
@@ -35,21 +36,21 @@ import org.apache.jena.rdf.model.Resource;
 public class QueryLoader implements Supplier<Query>
 {
 
-    private final String uri;
+    private final URI uri;
     private final String baseURI;
     private final Syntax syntax;
-    private final DataManager dataManager;
+    private final LinkedDataClient ldc;
     
     /**
      * Constructs loader from query URI.
      * 
      * @param uri query URI
      * @param baseURI base URI
-     * @param dataManager RDF data manager
+     * @param ldc Linked Data client
      */
-    public QueryLoader(String uri, String baseURI, DataManager dataManager)
+    public QueryLoader(URI uri, String baseURI, LinkedDataClient ldc)
     {
-        this(uri, baseURI, Syntax.syntaxSPARQL_11, dataManager);
+        this(uri, baseURI, Syntax.syntaxSPARQL_11, ldc);
     }
     
     /**
@@ -58,22 +59,22 @@ public class QueryLoader implements Supplier<Query>
      * @param uri query URI
      * @param baseURI base URI
      * @param syntax query syntax
-     * @param dataManager RDF data manager
+     * @param ldc Linked Data client
      */
-    public QueryLoader(String uri, String baseURI, Syntax syntax, DataManager dataManager)
+    public QueryLoader(URI uri, String baseURI, Syntax syntax, LinkedDataClient ldc)
     {
         this.uri = uri;
         this.baseURI = baseURI;
         this.syntax = syntax;
-        this.dataManager = dataManager; // TO-DO: replace with LinkedDataClient
+        this.ldc = ldc;
     }
     
     @Override
     public Query get()
     {
-        try (Response cr = getDataManager().load(getURI()))
+        try (Response cr = getLinkedDataClient().get(getURI()))
         {
-            Resource queryRes = cr.readEntity(Model.class).getResource(getURI());
+            Resource queryRes = cr.readEntity(Model.class).getResource(getURI().toString());
             return QueryFactory.create(queryRes.getRequiredProperty(SP.text).getString(), getBaseURI(), getSyntax());
         }
     }
@@ -83,7 +84,7 @@ public class QueryLoader implements Supplier<Query>
      * 
      * @return query URI
      */
-    public String getURI()
+    public URI getURI()
     {
         return uri;
     }
@@ -109,13 +110,13 @@ public class QueryLoader implements Supplier<Query>
     }
     
     /**
-     * Returns RDF data manager.
+     * Returns Linked Data client.
      * 
-     * @return data manager
+     * @return Linked Data client
      */
-    public DataManager getDataManager()
+    public LinkedDataClient getLinkedDataClient()
     {
-        return dataManager;
+        return ldc;
     }
     
 }

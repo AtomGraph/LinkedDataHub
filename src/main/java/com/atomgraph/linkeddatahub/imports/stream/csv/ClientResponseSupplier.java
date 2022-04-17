@@ -16,7 +16,8 @@
  */
 package com.atomgraph.linkeddatahub.imports.stream.csv;
 
-import com.atomgraph.client.util.DataManager;
+import com.atomgraph.core.client.LinkedDataClient;
+import java.net.URI;
 import java.util.function.Supplier;
 import javax.ws.rs.core.Response;
 import org.slf4j.Logger;
@@ -34,28 +35,41 @@ public class ClientResponseSupplier implements Supplier<Response>
 
     private static final Logger log = LoggerFactory.getLogger(ClientResponseSupplier.class);
    
-    private final String uri;
+    private final LinkedDataClient ldc;
     private final javax.ws.rs.core.MediaType[] mediaTypes;
-    private final DataManager dataManager;
-    
+    private final URI uri;
+
     /**
-     * Constructs supplier from request URL and media types.
+     * Constructs supplier from request URI and media types.
      * 
      * @param uri request URI
      * @param mediaTypes registry of media types
-     * @param dataManager RDF data manager
+     * @param ldc Linked Data client
      */
-    public ClientResponseSupplier(String uri, javax.ws.rs.core.MediaType[] mediaTypes, DataManager dataManager)
+    public ClientResponseSupplier(LinkedDataClient ldc, javax.ws.rs.core.MediaType[] mediaTypes, URI uri)
     {
-        this.uri = uri;
+        this.ldc = ldc;
         this.mediaTypes = mediaTypes;
-        this.dataManager = dataManager;
+        this.uri = uri;
     }
 
+    /**
+     * Constructs supplier from request URI.
+     * 
+     * @param uri request URI
+     * @param ldc Linked Data client
+     */
+    public ClientResponseSupplier(LinkedDataClient ldc, URI uri)
+    {
+        this(ldc, null, uri);
+    }
+    
     @Override
     public Response get()
     {
-        return getDataManager().get(getURI(), getMediaTypes());
+        if (getMediaTypes() != null) return getLinkedDataClient().get(getURI(), getMediaTypes());
+        
+        return getLinkedDataClient().get(getURI());
     }
 
     /**
@@ -63,15 +77,15 @@ public class ClientResponseSupplier implements Supplier<Response>
      * 
      * @return URI
      */
-    public String getURI()
+    public URI getURI()
     {
         return uri;
     }
 
     /**
-     * Returns readable/writable media types.
+     * Returns readable/writable media types or null.
      * 
-     * @return media type array
+     * @return media type array or null
      */
     public javax.ws.rs.core.MediaType[] getMediaTypes()
     {
@@ -79,13 +93,13 @@ public class ClientResponseSupplier implements Supplier<Response>
     }
 
     /**
-     * Returns RDF data manager instance.
+     * Returns Linked Data client.
      * 
      * @return manager instance
      */
-    public DataManager getDataManager()
+    public LinkedDataClient getLinkedDataClient()
     {
-        return dataManager;
+        return ldc;
     }
     
 }

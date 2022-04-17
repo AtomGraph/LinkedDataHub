@@ -22,6 +22,7 @@ import com.atomgraph.core.model.EndpointAccessor;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.model.Patchable;
 import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
+import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
@@ -41,6 +42,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.Providers;
 import org.apache.jena.ontology.Ontology;
@@ -56,9 +58,6 @@ import org.glassfish.jersey.media.multipart.FormDataMultiPart;
  */
 public class Item extends GraphStoreImpl implements Patchable
 {
-
-    private final URI uri;
-    private final EndpointAccessor endpointAccessor;
     
     /**
      * Constructs resource.
@@ -69,17 +68,18 @@ public class Item extends GraphStoreImpl implements Patchable
      * @param application current application
      * @param ontology ontology of the current application
      * @param service SPARQL service of the current application
+     * @param securityContext JAX-RS security context
+     * @param agentContext authenticated agent's context
      * @param providers JAX-RS provider registry
      * @param system system application
      */
     @Inject
     public Item(@Context Request request, @Context UriInfo uriInfo, MediaTypes mediaTypes,
         com.atomgraph.linkeddatahub.apps.model.Application application, Optional<Ontology> ontology, Optional<Service> service,
+        @Context SecurityContext securityContext, Optional<AgentContext> agentContext,
         @Context Providers providers, com.atomgraph.linkeddatahub.Application system)
     {
-        super(request, uriInfo, mediaTypes, application, ontology, service, providers, system);
-        this.uri = uriInfo.getAbsolutePath();
-        this.endpointAccessor = service.get().getEndpointAccessor();
+        super(request, uriInfo, mediaTypes, application, ontology, service, securityContext, agentContext, providers, system);
     }
 
     @Override
@@ -164,7 +164,7 @@ public class Item extends GraphStoreImpl implements Patchable
      */
     public URI getURI()
     {
-        return uri;
+        return getUriInfo().getAbsolutePath();
     }
     
     /**
@@ -174,7 +174,7 @@ public class Item extends GraphStoreImpl implements Patchable
      */
     public EndpointAccessor getEndpointAccessor()
     {
-        return endpointAccessor;
+        return getService().getEndpointAccessor();
     }
     
 }

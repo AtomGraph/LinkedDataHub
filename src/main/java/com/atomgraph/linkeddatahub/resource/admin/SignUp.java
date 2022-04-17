@@ -26,6 +26,7 @@ import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.listener.EMailListener;
 import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
+import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.server.util.MessageBuilder;
 import com.atomgraph.linkeddatahub.server.util.Skolemizer;
 import com.atomgraph.linkeddatahub.server.util.WebIDCertGen;
@@ -69,6 +70,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.InternalServerErrorException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.Providers;
 import static org.apache.jena.datatypes.xsd.XSDDatatype.XSDhexBinary;
@@ -118,7 +120,6 @@ public class SignUp extends GraphStoreImpl
     /** Relative URL of the authorization container */
     public static final String AUTHORIZATION_PATH = "acl/authorizations/";
 
-    private final URI uri;
     private final Model countryModel;
     private final String emailSubject;
     private final String emailText;
@@ -134,6 +135,8 @@ public class SignUp extends GraphStoreImpl
      * @param application current application
      * @param ontology current application's ontology
      * @param service current application's service
+     * @param securityContext JAX-RS security context
+     * @param agentContext authenticated agent's context
      * @param providers registry of JAX-RS providers
      * @param system system application
      * @param servletConfig servlet config
@@ -142,15 +145,14 @@ public class SignUp extends GraphStoreImpl
     @Inject
     public SignUp(@Context Request request, @Context UriInfo uriInfo, MediaTypes mediaTypes,
             com.atomgraph.linkeddatahub.apps.model.Application application, Optional<Ontology> ontology, Optional<Service> service,
+            @Context SecurityContext securityContext, Optional<AgentContext> agentContext,
             @Context Providers providers, com.atomgraph.linkeddatahub.Application system, @Context ServletConfig servletConfig)
     {
-        super(request, uriInfo, mediaTypes, application, ontology, service, providers, system);
+        super(request, uriInfo, mediaTypes, application, ontology, service, securityContext, agentContext, providers, system);
         if (log.isDebugEnabled()) log.debug("Constructing {}", getClass());
         
         if (!application.canAs(AdminApplication.class)) // we are supposed to be in the admin app
             throw new IllegalStateException("Application cannot be cast to apl:AdminApplication");
-        
-        this.uri = uriInfo.getAbsolutePath();
         
         try (InputStream countries = servletConfig.getServletContext().getResourceAsStream(COUNTRY_DATASET_PATH))
         {
@@ -513,7 +515,7 @@ public class SignUp extends GraphStoreImpl
      */
     public URI getURI()
     {
-        return uri;
+        return getUriInfo().getAbsolutePath();
     }
 
     /**

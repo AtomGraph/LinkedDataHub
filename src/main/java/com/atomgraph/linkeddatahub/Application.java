@@ -1220,11 +1220,11 @@ public class Application extends ResourceConfig
      * @param service current SPARQL service
      * @param adminService current admin SPARQL service
      * @param baseURI application's base URI
-     * @param dataManager data manager
+     * @param ldc Linked Data client
      */
-    public void submitImport(CSVImport csvImport, com.atomgraph.linkeddatahub.apps.model.Application app, Service service, Service adminService, String baseURI, DataManager dataManager)
+    public void submitImport(CSVImport csvImport, com.atomgraph.linkeddatahub.apps.model.Application app, Service service, Service adminService, String baseURI, LinkedDataClient ldc)
     {
-        new ImportExecutor(importThreadPool).start(service, adminService, baseURI, dataManager, service.getGraphStoreClient(), GraphStoreImpl.CREATE_GRAPH, csvImport);
+        new ImportExecutor(importThreadPool).start(service, adminService, baseURI, ldc, service.getGraphStoreClient(), GraphStoreImpl.CREATE_GRAPH, csvImport);
     }
     
     /**
@@ -1235,11 +1235,11 @@ public class Application extends ResourceConfig
      * @param service current SPARQL service
      * @param adminService current admin SPARQL service
      * @param baseURI application's base URI
-     * @param dataManager data manager
+     * @param ldc Linked Data client
      */
-    public void submitImport(RDFImport rdfImport, com.atomgraph.linkeddatahub.apps.model.Application app, Service service, Service adminService, String baseURI, DataManager dataManager)
+    public void submitImport(RDFImport rdfImport, com.atomgraph.linkeddatahub.apps.model.Application app, Service service, Service adminService, String baseURI, LinkedDataClient ldc)
     {
-        new ImportExecutor(importThreadPool).start(service, adminService, baseURI, dataManager, service.getGraphStoreClient(), rdfImport);
+        new ImportExecutor(importThreadPool).start(service, adminService, baseURI, ldc, service.getGraphStoreClient(), rdfImport);
     }
     
     /**

@@ -21,13 +21,14 @@ import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.model.Service;
-import com.atomgraph.client.util.DataManager;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
+import com.atomgraph.linkeddatahub.client.LinkedDataClient;
 import com.atomgraph.linkeddatahub.model.CSVImport;
 import com.atomgraph.linkeddatahub.model.Import;
 import com.atomgraph.linkeddatahub.model.RDFImport;
 import com.atomgraph.linkeddatahub.resource.graph.Item;
 import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
+import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import java.net.URI;
 import java.util.Optional;
 import javax.inject.Inject;
@@ -39,6 +40,7 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Response.Status;
+import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.Providers;
 import org.apache.jena.ontology.Ontology;
@@ -59,9 +61,6 @@ import org.slf4j.LoggerFactory;
 public class Importer extends GraphStoreImpl
 {
     private static final Logger log = LoggerFactory.getLogger(Importer.class);
-    
-    private final URI uri;
-    private final DataManager dataManager;
 
     /**
      * Constructs endpoint for asynchronous CSV and RDF data imports.
@@ -72,7 +71,8 @@ public class Importer extends GraphStoreImpl
      * @param application matched application
      * @param ontology matched application's ontology
      * @param service matched application's service
-     * @param dataManager RDF data manager
+     * @param securityContext JAX-RS security context
+     * @param agentContext authenticated agent's context
      * @param providers JAX-RS providers
      * @param system system application 
      * @param servletConfig servlet config
@@ -80,12 +80,10 @@ public class Importer extends GraphStoreImpl
     @Inject
     public Importer(@Context Request request, @Context UriInfo uriInfo, MediaTypes mediaTypes,
             com.atomgraph.linkeddatahub.apps.model.Application application, Optional<Ontology> ontology, Optional<Service> service,
-            DataManager dataManager,
+            @Context SecurityContext securityContext, Optional<AgentContext> agentContext,
             @Context Providers providers, com.atomgraph.linkeddatahub.Application system, @Context ServletConfig servletConfig)
     {
-        super(request, uriInfo, mediaTypes, application, ontology, service, providers, system);
-        this.uri = uriInfo.getAbsolutePath();
-        this.dataManager = dataManager;
+        super(request, uriInfo, mediaTypes, application, ontology, service, securityContext, agentContext, providers, system);
         if (log.isDebugEnabled()) log.debug("Constructing {}", getClass());
     }
 
@@ -130,11 +128,14 @@ public class Importer extends GraphStoreImpl
                     if (topic != null && topic.canAs(Import.class))
                     {
                         Service adminService = getApplication().canAs(EndUserApplication.class) ? getApplication().as(EndUserApplication.class).getAdminApplication().getService() : null;
+                        LinkedDataClient ldc = LinkedDataClient.create(getSystem().getClient(), getSystem().getMediaTypes()).
+                            delegation(getUriInfo().getBaseUri(), getAgentContext().orElse(null));
+                        
                         // start the import asynchroniously
                         if (topic.canAs(CSVImport.class))
-                            getSystem().submitImport(topic.as(CSVImport.class), getApplication(), getApplication().getService(), adminService, getUriInfo().getBaseUri().toString(), getDataManager());
+                            getSystem().submitImport(topic.as(CSVImport.class), getApplication(), getApplication().getService(), adminService, getUriInfo().getBaseUri().toString(), ldc);
                         if (topic.canAs(RDFImport.class))
-                            getSystem().submitImport(topic.as(RDFImport.class), getApplication(), getApplication().getService(), adminService, getUriInfo().getBaseUri().toString(), getDataManager());
+                            getSystem().submitImport(topic.as(RDFImport.class), getApplication(), getApplication().getService(), adminService, getUriInfo().getBaseUri().toString(), ldc);
                     }
                     else
                         if (log.isErrorEnabled()) log.error("Topic '{}' cannot be cast to Import", topic);
@@ -161,17 +162,7 @@ public class Importer extends GraphStoreImpl
      */
     public URI getURI()
     {
-        return uri;
-    }
- 
-    /**
-     * Returns RDF data manager.
-     * 
-     * @return data manager
-     */
-    public DataManager getDataManager()
-    {
-        return dataManager;
+        return getUriInfo().getAbsolutePath();
     }
     
 }

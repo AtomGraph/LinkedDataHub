@@ -28,6 +28,7 @@ import com.atomgraph.linkeddatahub.resource.admin.oauth2.google.Authorize;
 import com.atomgraph.linkeddatahub.server.filter.request.auth.IDTokenFilter;
 import com.atomgraph.linkeddatahub.server.filter.response.BackendInvalidationFilter;
 import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
+import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.server.util.MessageBuilder;
 import com.atomgraph.linkeddatahub.server.util.Skolemizer;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
@@ -65,6 +66,7 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.Providers;
 import org.apache.jena.ontology.Ontology;
@@ -115,6 +117,8 @@ public class Login extends GraphStoreImpl
      * @param application current application
      * @param ontology ontology of the current application
      * @param service SPARQL service of the current application
+     * @param securityContext JAX-RS security context
+     * @param agentContext authenticated agent's context
      * @param providers JAX-RS provider registry
      * @param system system application
      * @param servletConfig servlet config
@@ -122,9 +126,10 @@ public class Login extends GraphStoreImpl
     @Inject
     public Login(@Context Request request, @Context UriInfo uriInfo, MediaTypes mediaTypes, @Context HttpHeaders httpHeaders,
             com.atomgraph.linkeddatahub.apps.model.Application application, Optional<Ontology> ontology, Optional<Service> service,
+            @Context SecurityContext securityContext, Optional<AgentContext> agentContext,
             @Context Providers providers, com.atomgraph.linkeddatahub.Application system, @Context ServletConfig servletConfig)
     {
-        super(request, uriInfo, mediaTypes, application, ontology, service, providers, system);
+        super(request, uriInfo, mediaTypes, application, ontology, service, securityContext, agentContext, providers, system);
         this.httpHeaders = httpHeaders;
         
         emailSubject = servletConfig.getServletContext().getInitParameter(LDHC.signUpEMailSubject.getURI());

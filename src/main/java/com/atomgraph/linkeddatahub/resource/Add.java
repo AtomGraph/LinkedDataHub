@@ -68,9 +68,6 @@ public class Add extends GraphStoreImpl // TO-DO: does not need to extend GraphS
 {
 
     private static final Logger log = LoggerFactory.getLogger(Add.class);
-
-    private final SecurityContext securityContext;
-    private final Optional<AgentContext> agentContext;
     
     /**
      * Constructs endpoint for synchronous RDF data imports.
@@ -89,11 +86,10 @@ public class Add extends GraphStoreImpl // TO-DO: does not need to extend GraphS
     @Inject
     public Add(@Context Request request, @Context UriInfo uriInfo, MediaTypes mediaTypes,
             com.atomgraph.linkeddatahub.apps.model.Application application, Optional<Ontology> ontology, Optional<Service> service,
-            @Context Providers providers, com.atomgraph.linkeddatahub.Application system, @Context SecurityContext securityContext, Optional<AgentContext> agentContext)
+            @Context SecurityContext securityContext, Optional<AgentContext> agentContext,
+            @Context Providers providers, com.atomgraph.linkeddatahub.Application system)
     {
-        super(request, uriInfo, mediaTypes, application, ontology, service, providers, system);
-        this.securityContext = securityContext;
-        this.agentContext = agentContext;
+        super(request, uriInfo, mediaTypes, application, ontology, service, securityContext, agentContext, providers, system);
     }
     
 
@@ -245,26 +241,6 @@ public class Add extends GraphStoreImpl // TO-DO: does not need to extend GraphS
     public URI getURI()
     {
         return getUriInfo().getAbsolutePath();
-    }
-    
-    /**
-     * Get JAX-RS security context
-     * 
-     * @return security context object
-     */
-    public SecurityContext getSecurityContext()
-    {
-        return securityContext;
-    }
-    
-    /**
-     * Gets authenticated agent's context
-     * 
-     * @return optional agent's context
-     */
-    public Optional<AgentContext> getAgentContext()
-    {
-        return agentContext;
     }
     
 }

@@ -47,7 +47,7 @@ import org.slf4j.LoggerFactory;
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
 @Path("oauth2/authorize/google")
-public class Authorize // extends ResourceBase
+public class Authorize
 {
     private static final Logger log = LoggerFactory.getLogger(Authorize.class);
     

@@ -63,7 +63,7 @@ public class LinkedDataClient extends com.atomgraph.core.client.LinkedDataClient
      * @return web target
      */
     @Override
-    public WebTarget getWebTarget(URI uri) // TO-DO: protected
+    protected WebTarget getWebTarget(URI uri)
     {
         WebTarget webTarget = super.getWebTarget(uri);
         

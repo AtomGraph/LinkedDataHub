@@ -21,9 +21,11 @@ import javax.ws.rs.core.Request;
 import javax.ws.rs.ext.Providers;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.model.Service;
+import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import java.util.Optional;
 import javax.inject.Inject;
 import javax.ws.rs.core.EntityTag;
+import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 import org.apache.jena.ontology.Ontology;
 import org.apache.jena.rdf.model.Model;
@@ -50,15 +52,18 @@ public class Item extends com.atomgraph.linkeddatahub.resource.upload.Item
      * @param application current application
      * @param ontology ontology of the current application
      * @param service SPARQL service of the current application
+     * @param securityContext JAX-RS security context
+     * @param agentContext authenticated agent's context
      * @param providers JAX-RS provider registry
      * @param system system application
      */
     @Inject
     public Item(@Context Request request, @Context UriInfo uriInfo, MediaTypes mediaTypes,
             com.atomgraph.linkeddatahub.apps.model.Application application, Optional<Ontology> ontology, Optional<Service> service, 
+            @Context SecurityContext securityContext, Optional<AgentContext> agentContext,
             @Context Providers providers, com.atomgraph.linkeddatahub.Application system)
     {
-        super(request, uriInfo, mediaTypes, application, ontology, service, providers, system);
+        super(request, uriInfo, mediaTypes, application, ontology, service, securityContext, agentContext, providers, system);
         if (log.isDebugEnabled()) log.debug("Constructing {}", getClass());
     }
     

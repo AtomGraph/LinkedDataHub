@@ -21,6 +21,7 @@ import com.atomgraph.core.riot.lang.RDFPostReader;
 import static com.atomgraph.linkeddatahub.apps.model.Application.UPLOADS_PATH;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.io.ValidatingModelProvider;
+import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.server.util.Skolemizer;
 import com.atomgraph.linkeddatahub.vocabulary.Default;
 import com.atomgraph.linkeddatahub.vocabulary.NFO;
@@ -65,6 +66,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.MessageBodyReader;
@@ -201,7 +203,9 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
     private final UriBuilder uploadsUriBuilder;
     private final MessageDigest messageDigest;
     private final URI ownerDocURI, secretaryDocURI;
-
+    private final SecurityContext securityContext;
+    private final Optional<AgentContext> agentContext;
+    
     /**
      * Constructs Graph Store.
      * 
@@ -211,12 +215,15 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
      * @param application current application
      * @param ontology ontology of the current application
      * @param service SPARQL service of the current application
+     * @param securityContext JAX-RS security context
+     * @param agentContext authenticated agent's context
      * @param providers registry of JAX-RS providers
      * @param system system application
      */
     @Inject
     public GraphStoreImpl(@Context Request request, @Context UriInfo uriInfo, MediaTypes mediaTypes,
         com.atomgraph.linkeddatahub.apps.model.Application application, Optional<Ontology> ontology, Optional<Service> service,
+        @Context SecurityContext securityContext, Optional<AgentContext> agentContext,
         @Context Providers providers, com.atomgraph.linkeddatahub.Application system)
     {
         super(request, service.get(), mediaTypes);
@@ -226,6 +233,8 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
         this.application = application;
         this.ontology = ontology.get();
         this.service = service.get();
+        this.securityContext = securityContext;
+        this.agentContext = agentContext;
         this.providers = providers;
         this.system = system;
         this.messageDigest = system.getMessageDigest();
@@ -789,6 +798,26 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
     public Service getService()
     {
         return service;
+    }
+    
+    /**
+     * Get JAX-RS security context
+     * 
+     * @return security context object
+     */
+    public SecurityContext getSecurityContext()
+    {
+        return securityContext;
+    }
+    
+    /**
+     * Gets authenticated agent's context
+     * 
+     * @return optional agent's context
+     */
+    public Optional<AgentContext> getAgentContext()
+    {
+        return agentContext;
     }
     
     /**

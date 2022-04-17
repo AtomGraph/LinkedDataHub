@@ -69,8 +69,6 @@ public class Transform extends Add
 
     private static final Logger log = LoggerFactory.getLogger(Transform.class);
 
-    private final DataManager dataManager;
-
     /**
      * Constructs endpoint for synchronous RDF data imports.
      * 
@@ -89,11 +87,11 @@ public class Transform extends Add
     @Inject
     public Transform(@Context Request request, @Context UriInfo uriInfo, MediaTypes mediaTypes,
             com.atomgraph.linkeddatahub.apps.model.Application application, Optional<Ontology> ontology, Optional<Service> service,
-            @Context Providers providers, com.atomgraph.linkeddatahub.Application system, @Context SecurityContext securityContext, Optional<AgentContext> agentContext,
+            @Context SecurityContext securityContext, Optional<AgentContext> agentContext,
+            @Context Providers providers, com.atomgraph.linkeddatahub.Application system,
             DataManager dataManager)
     {
-        super(request, uriInfo, mediaTypes, application, ontology, service, providers, system, securityContext, agentContext);
-        this.dataManager = dataManager;
+        super(request, uriInfo, mediaTypes, application, ontology, service, securityContext, agentContext, providers, system);
     }
     
     @POST
@@ -114,13 +112,13 @@ public class Transform extends Add
 
             Resource queryRes = arg.getPropertyResourceValue(SPIN.query);
             if (queryRes == null) throw new BadRequestException("Transformation query string (spin:query) not provided");
-            QueryLoader queryLoader = new QueryLoader(queryRes.getURI(), getApplication().getBase().getURI(), Syntax.syntaxARQ, getDataManager());
-
-            Query query = queryLoader.get();
-            if (!query.isConstructType()) throw new BadRequestException("Transformation query is not of CONSTRUCT type");
 
             LinkedDataClient ldc = LinkedDataClient.create(getSystem().getClient(), getSystem().getMediaTypes()).
                 delegation(getUriInfo().getBaseUri(), getAgentContext().orElse(null));
+            QueryLoader queryLoader = new QueryLoader(URI.create(queryRes.getURI()), getApplication().getBase().getURI(), Syntax.syntaxARQ, ldc);
+            Query query = queryLoader.get();
+            if (!query.isConstructType()) throw new BadRequestException("Transformation query is not of CONSTRUCT type");
+
             Model importModel = ldc.getModel(source.getURI());
             try (QueryExecution qex = QueryExecution.create(query, importModel))
             {
@@ -204,8 +202,10 @@ public class Transform extends Add
 
             Resource queryRes = file.getPropertyResourceValue(SPIN.query);
             if (queryRes == null) throw new BadRequestException("Transformation query string (spin:query) not provided");
-            QueryLoader queryLoader = new QueryLoader(queryRes.getURI(), getApplication().getBase().getURI(), Syntax.syntaxARQ, getDataManager());
-
+            
+            LinkedDataClient ldc = LinkedDataClient.create(getSystem().getClient(), getSystem().getMediaTypes()).
+                delegation(getUriInfo().getBaseUri(), getAgentContext().orElse(null));
+            QueryLoader queryLoader = new QueryLoader(URI.create(queryRes.getURI()), getApplication().getBase().getURI(), Syntax.syntaxARQ, ldc);
             Query query = queryLoader.get();
             if (!query.isConstructType()) throw new BadRequestException("Transformation query is not of CONSTRUCT type");
 
@@ -221,16 +221,6 @@ public class Transform extends Add
         {
             resIt.close();
         }
-    }
-    
-    /**
-     * Returns RDF data manager.
-     * 
-     * @return RDF data manager
-     */
-    public DataManager getDataManager()
-    {
-        return dataManager;
     }
     
 }

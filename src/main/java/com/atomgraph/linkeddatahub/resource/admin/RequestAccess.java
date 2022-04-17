@@ -70,12 +70,9 @@ public class RequestAccess extends GraphStoreImpl
     
     private static final Logger log = LoggerFactory.getLogger(RequestAccess.class);
     
-    private final URI uri;
-//    private final Agent agent;
     private final String emailSubject;
     private final String emailText;
     private final UriBuilder authRequestContainerUriBuilder;
-    private final Optional<AgentContext> agentContext;
 
     /**
      * Constructs access request resource.
@@ -95,15 +92,12 @@ public class RequestAccess extends GraphStoreImpl
     @Inject
     public RequestAccess(@Context Request request, @Context UriInfo uriInfo, MediaTypes mediaTypes,
             com.atomgraph.linkeddatahub.apps.model.Application application, Optional<Ontology> ontology, Optional<Service> service,
-            @Context SecurityContext securityContext,
-            @Context Providers providers, com.atomgraph.linkeddatahub.Application system, @Context ServletConfig servletConfig,
-            Optional<AgentContext> agentContext)
+            @Context SecurityContext securityContext, Optional<AgentContext> agentContext,
+            @Context Providers providers, com.atomgraph.linkeddatahub.Application system, @Context ServletConfig servletConfig)
     {
-        super(request, uriInfo, mediaTypes, application, ontology, service, providers, system);
+        super(request, uriInfo, mediaTypes, application, ontology, service, securityContext, agentContext, providers, system);
         if (log.isDebugEnabled()) log.debug("Constructing {}", getClass());
         if (securityContext == null || !(securityContext.getUserPrincipal() instanceof Agent)) throw new IllegalStateException("Agent is not authenticated");
-        this.uri = uriInfo.getAbsolutePath();
-        this.agentContext = agentContext;
 
         authRequestContainerUriBuilder = uriInfo.getBaseUriBuilder().path(AUTHORIZATION_REQUEST_PATH);
         
@@ -226,19 +220,9 @@ public class RequestAccess extends GraphStoreImpl
      */
     public URI getURI()
     {
-        return uri;
+        return getUriInfo().getAbsolutePath();
     }
-
-    /**
-     * Returns authenticated agent or null.
-     * 
-     * @return agent resource or null
-     */
-//    public Agent getAgent()
-//    {
-//        return agent;
-//    }
-    
+   
     /**
      * Returns the subject of the notification email.
      * 
@@ -267,16 +251,6 @@ public class RequestAccess extends GraphStoreImpl
     public UriBuilder getAuthRequestContainerUriBuilder()
     {
         return authRequestContainerUriBuilder.clone();
-    }
-    
-    /**
-     * Gets authenticated agent's context
-     * 
-     * @return optional agent's context
-     */
-    public Optional<AgentContext> getAgentContext()
-    {
-        return agentContext;
     }
     
 }
