@@ -131,6 +131,9 @@ if [ -z "$file" ] ; then
     print_usage
     exit 1
 fi
+if [ -z "$delimiter" ] ; then
+    delimiter=','
+fi
 
 if [ -z "$proxy" ] ; then
     proxy="$base"
