@@ -55,7 +55,7 @@ do
         shift # past argument
         shift # past value
         ;;
-        --request-base)
+        --proxy)
         proxy="$2"
         shift # past argument
         shift # past value
@@ -150,7 +150,8 @@ if [ -n "$query_file" ] ; then
       --proxy "$proxy" \
       --title "$title" \
       --slug "$query_doc_slug" \
-      --query-file "$query_file")
+      --query-file "$query_file"
+    )
 
     pushd . > /dev/null && cd "$SCRIPT_ROOT"
 
@@ -159,7 +160,8 @@ if [ -n "$query_file" ] ; then
       -p "$cert_password" \
       --proxy "$proxy" \
       --accept 'application/n-triples' \
-      "$query_doc")
+      "$query_doc"
+    )
 
     popd > /dev/null
 
@@ -175,7 +177,8 @@ file_doc=$(./create-file.sh \
   --slug "$file_doc_slug" \
   --file-slug "$file_slug" \
   --file "$file" \
-  --file-content-type "$file_content_type")
+  --file-content-type "$file_content_type"
+)
 
 pushd . > /dev/null && cd "$SCRIPT_ROOT"
 
@@ -184,7 +187,8 @@ file_ntriples=$(./get-document.sh \
   -p "$cert_password" \
   --proxy "$proxy" \
   --accept 'application/n-triples' \
-  "$file_doc")
+  "$file_doc"
+)
 
 popd > /dev/null
 

@@ -146,7 +146,8 @@ query_doc=$(./create-query.sh \
   --proxy "$proxy" \
   --title "$title" \
   --slug "$query_doc_slug" \
-  --query-file "$query_file")
+  --query-file "$query_file"
+)
 
 pushd . > /dev/null && cd "$SCRIPT_ROOT"
 
@@ -155,7 +156,8 @@ query_ntriples=$(./get-document.sh \
   -p "$cert_password" \
   --proxy "$proxy" \
   --accept 'application/n-triples' \
-  "$query_doc")
+  "$query_doc"
+)
 
 popd > /dev/null
 
@@ -170,7 +172,8 @@ file_doc=$(./create-file.sh \
   --slug "$file_doc_slug" \
   --file-slug "$file_slug" \
   --file "$file" \
-  --file-content-type "text/csv")
+  --file-content-type "text/csv"
+)
 
 pushd . > /dev/null && cd "$SCRIPT_ROOT"
 
