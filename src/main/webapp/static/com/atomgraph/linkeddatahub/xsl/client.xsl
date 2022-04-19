@@ -1395,7 +1395,7 @@ WHERE
         <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'navigator.clipboard'), 'writeText', [ $uri-or-bnode ])"/>
     </xsl:template>
 
-    <!-- open a form to save RDF document (do nothing is the button is disabled) -->
+    <!-- open a form to save RDF document (do nothing if the button is disabled) -->
     
     <xsl:template match="button[contains-token(@class, 'btn-save-as')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick">
         <xsl:variable name="textarea-id" select="'query-string'" as="xs:string"/>
