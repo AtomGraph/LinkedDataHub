@@ -27,6 +27,7 @@
     sd:supportedLanguage sd:SPARQL11Query, sd:SPARQL11Update ;
     sd:endpoint <http://fuseki-admin:3030/ds/> ;
     a:graphStore <http://fuseki-admin:3030/ds/> ;
+    a:quadStore <http://fuseki-admin:3030/ds/> ;
     lapp:proxy <http://varnish-admin/> .
 
 # root end-user
@@ -44,4 +45,5 @@
     sd:supportedLanguage sd:SPARQL11Query, sd:SPARQL11Update ;
     sd:endpoint <http://fuseki-end-user:3030/ds/> ;
     a:graphStore <http://fuseki-end-user:3030/ds/> ;
+    a:quadStore <http://fuseki-admin:3030/ds/> ;
     lapp:proxy <http://varnish-end-user/> .
