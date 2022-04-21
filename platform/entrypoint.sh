@@ -343,9 +343,35 @@ printf "\n### Root owner WebID certificate's modulus: %s\n" "$OWNER_CERT_MODULUS
 OWNER_KEY_UUID=$(uuidgen | tr '[:upper:]' '[:lower:]') # lowercase
 export OWNER_COMMON_NAME OWNER_URI OWNER_DOC_URI OWNER_CERT_MODULUS OWNER_KEY_UUID
 
-# extract the quad store endpoint (and auth credentials) of the root app from the system dataset using SPARQL and XPath queries
+SECRETARY_URI=$(get_webid_uri "$SECRETARY_CERT")
 
-envsubst '$BASE_URI' < select-root-services.rq.template > select-root-services.rq
+if [ -z "$SECRETARY_URI" ] ; then
+    echo "Secretary's public key does not contain a SAN:URI (subjectAlternativeName) extension with a WebID URI"
+    exit 1
+fi
+
+printf "\n### Secretary's WebID URI: %s\n" "$SECRETARY_URI"
+
+# strip fragment from the URL, if any
+
+case "$SECRETARY_URI" in
+  *#*) SECRETARY_DOC_URI=$(echo "$SECRETARY_URI" | cut -d "#" -f 1) ;;
+  *) SECRETARY_DOC_URI="$SECRETARY_URI" ;;
+esac
+
+SECRETARY_CERT_MODULUS=$(get_modulus "$SECRETARY_CERT")
+printf "\n### Secretary WebID certificate's modulus: %s\n" "$SECRETARY_CERT_MODULUS"
+
+SECRETARY_KEY_UUID=$(uuidgen | tr '[:upper:]' '[:lower:]') # lowercase
+export SECRETARY_URI SECRETARY_DOC_URI SECRETARY_CERT_MODULUS SECRETARY_KEY_UUID
+
+if [ -z "$LOAD_DATASETS" ]; then
+    if [ ! -d /var/linkeddatahub/based-datasets ]; then
+        LOAD_DATASETS=true
+    else
+        LOAD_DATASETS=false
+    fi
+fi
 
 # base the $CONTEXT_DATASET
 
@@ -369,53 +395,185 @@ trig --base="$BASE_URI" "$CONTEXT_DATASET" > "$based_context_dataset"
 
 sparql --data="$based_context_dataset" --query="select-root-services.rq" --results=XML > root_service_metadata.xml
 
-root_end_user_app=$(cat root_service_metadata.xml | xmlstarlet sel -B -N srx="http://www.w3.org/2005/sparql-results#" -T -t -v "/srx:sparql/srx:results/srx:result/srx:binding[@name = 'endUserApp']" -n)
-root_end_user_quad_store_url=$(cat root_service_metadata.xml | xmlstarlet sel -B -N srx="http://www.w3.org/2005/sparql-results#" -T -t -v "/srx:sparql/srx:results/srx:result/srx:binding[@name = 'endUserQuadStore']" -n)
-root_end_user_service_auth_user=$(cat root_service_metadata.xml | xmlstarlet sel -B -N srx="http://www.w3.org/2005/sparql-results#" -T -t -v "/srx:sparql/srx:results/srx:result/srx:binding[@name = 'endUserAuthUser']" -n)
-root_end_user_service_auth_pwd=$(cat root_service_metadata.xml | xmlstarlet sel -B -N srx="http://www.w3.org/2005/sparql-results#" -T -t -v "/srx:sparql/srx:results/srx:result/srx:binding[@name = 'endUserAuthPwd']" -n)
-root_end_user_owner=$(cat root_service_metadata.xml | xmlstarlet sel -B -N srx="http://www.w3.org/2005/sparql-results#" -T -t -v "/srx:sparql/srx:results/srx:result/srx:binding[@name = 'endUserMaker']" -n)
+# extract app metadata from the system dataset using SPARQL and XPath queries
 
-root_admin_app=$(cat root_service_metadata.xml | xmlstarlet sel -B -N srx="http://www.w3.org/2005/sparql-results#" -T -t -v "/srx:sparql/srx:results/srx:result/srx:binding[@name = 'adminApp']" -n)
-root_admin_base_uri=$(cat root_service_metadata.xml | xmlstarlet sel -B -N srx="http://www.w3.org/2005/sparql-results#" -T -t -v "/srx:sparql/srx:results/srx:result/srx:binding[@name = 'adminBaseUri']" -n)
-root_admin_quad_store_url=$(cat root_service_metadata.xml | xmlstarlet sel -B -N srx="http://www.w3.org/2005/sparql-results#" -T -t -v "/srx:sparql/srx:results/srx:result/srx:binding[@name = 'adminQuadStore']" -n)
-root_admin_service_auth_user=$(cat root_service_metadata.xml | xmlstarlet sel -B -N srx="http://www.w3.org/2005/sparql-results#" -T -t -v "/srx:sparql/srx:results/srx:result/srx:binding[@name = 'adminAuthUser']" -n)
-root_admin_service_auth_pwd=$(cat root_service_metadata.xml | xmlstarlet sel -B -N srx="http://www.w3.org/2005/sparql-results#" -T -t -v "/srx:sparql/srx:results/srx:result/srx:binding[@name = 'adminAuthPwd']" -n)
-root_admin_owner=$(cat root_service_metadata.xml | xmlstarlet sel -B -N srx="http://www.w3.org/2005/sparql-results#" -T -t -v "/srx:sparql/srx:results/srx:result/srx:binding[@name = 'adminMaker']" -n)
+readarray apps < <(xmlstarlet sel -B \
+    -N srx="http://www.w3.org/2005/sparql-results#" \
+    -T -t -m "/srx:sparql/srx:results/srx:result" \
+    -o "\"" \
+    -v "srx:binding[@name = 'endUserApp']" \
+    -o "\" \"" \
+    -v "srx:binding[@name = 'endUserBase']" \
+    -o "\" \"" \
+    -v "srx:binding[@name = 'endUserQuadStore']" \
+    -o "\" \"" \
+    -v "srx:binding[@name = 'endUserAuthUser']" \
+    -o "\" \"" \
+    -v "srx:binding[@name = 'endUserAuthPwd']" \
+    -o "\" \"" \
+    -v "srx:binding[@name = 'endUserMaker']" \
+    -o "\" \"" \
+    -v "srx:binding[@name = 'adminApp']" \
+    -o "\" \"" \
+    -v "srx:binding[@name = 'adminBase']" \
+    -o "\" \"" \
+    -v "srx:binding[@name = 'adminQuadStore']" \
+    -o "\" \"" \
+    -v "srx:binding[@name = 'adminAuthUser']" \
+    -o "\" \"" \
+    -v "srx:binding[@name = 'adminAuthPwd']" \
+    -o "\" \"" \
+    -v "srx:binding[@name = 'adminMaker']" \
+    -o "\"" \
+    -n \
+    root_service_metadata.xml)
 
-rm -f root_service_metadata.xml select-root-services.rq
+for app in "${apps[@]}"; do
+    app_array=(${app})
+    end_user_app="${app_array[0]//\"/}"
+    end_user_base_uri="${app_array[1]//\"/}"
+    end_user_quad_store_url="${app_array[2]//\"/}"
+    end_user_service_auth_user="${app_array[3]//\"/}"
+    end_user_service_auth_pwd="${app_array[4]//\"/}"
+    end_user_owner="${app_array[5]//\"/}"
+    admin_app="${app_array[6]//\"/}"
+    admin_base_uri="${app_array[7]//\"/}"
+    admin_quad_store_url="${app_array[8]//\"/}"
+    admin_service_auth_user="${app_array[9]//\"/}"
+    admin_service_auth_pwd="${app_array[10]//\"/}"
+    admin_owner="${app_array[11]//\"/}"
 
-if [ -z "$root_end_user_app" ] ; then
-    printf "\nEnd-user app URI could not be extracted from %s. Exiting...\n" "$CONTEXT_DATASET"
+    printf "\n### Processing dataspace. End-user app: %s Admin app: %s\n" "$end_user_app" "$admin_app"
+
+    if [ -z "$end_user_app" ] ; then
+        printf "\nEnd-user app URI could not be extracted from %s. Exiting...\n" "$CONTEXT_DATASET"
+        exit 1
+    fi
+    if [ -z "$end_user_quad_store_url" ] ; then
+        printf "\nEnd-user quad store URL could not be extracted for the <%s> app. Exiting...\n" "$end_user_app"
+        exit 1
+    fi
+    if [ -z "$admin_app" ] ; then
+        printf "\nAdmin app URI could not be extracted for the <%s> app. Exiting...\n" "$end_user_app"
+        exit 1
+    fi
+    if [ -z "$admin_base_uri" ] ; then
+        printf "\nAdmin base URI extracted for the <%s> app. Exiting...\n" "$end_user_app"
+        exit 1
+    fi
+    if [ -z "$admin_quad_store_url" ] ; then
+        printf "\nAdmin quad store URL could not be extracted for the <%s> app. Exiting...\n" "$end_user_app"
+        exit 1
+    fi
+
+    # check if this app is the root app
+    if [ "$end_user_base_uri" = "$BASE_URI" ] ; then
+        root_end_user_app="$end_user_app"
+        root_end_user_quad_store_url="$end_user_quad_store_url"
+        root_end_user_service_auth_user="$end_user_service_auth_user"
+        root_end_user_service_auth_pwd="$end_user_service_auth_pwd"
+        root_admin_app="$admin_app"
+        root_admin_quad_store_url="$admin_quad_store_url"
+        root_admin_service_auth_user="$admin_service_auth_user"
+        root_admin_service_auth_pwd="$admin_service_auth_pwd"
+    fi
+
+    # append ownership metadata to apps if it's not present (apps have to be URI resources!)
+
+    if [ -z "$end_user_owner" ] ; then
+        echo "<${end_user_app}> <http://xmlns.com/foaf/0.1/maker> <${OWNER_URI}> ." >> "$based_context_dataset"
+    fi
+    if [ -z "$admin_owner" ] ; then
+        echo "<${admin_app}> <http://xmlns.com/foaf/0.1/maker> <${OWNER_URI}> ." >> "$based_context_dataset"
+    fi
+
+    printf "\n### Quad store URL of the root end-user service: %s\n" "$end_user_quad_store_url"
+    printf "\n### Quad store URL of the root admin service: %s\n" "$admin_quad_store_url"
+
+    # load default admin/end-user datasets if we haven't yet created a folder with re-based versions of them (and then create it)
+    if [ "$LOAD_DATASETS" = "true" ]; then
+        mkdir -p /var/linkeddatahub/based-datasets
+
+        # create query file by injecting environmental variables into the template
+
+        case "$END_USER_DATASET_URL" in
+            "file://"*)
+                END_USER_DATASET=$(echo "$END_USER_DATASET_URL" | cut -c 8-) # strip leading file://
+
+                printf "\n### Reading end-user dataset from a local file: %s\n" "$END_USER_DATASET" ;;
+            *)  
+                END_USER_DATASET=$(mktemp)
+
+                printf "\n### Downloading end-user dataset from a URL: %s\n" "$END_USER_DATASET_URL"
+
+                curl "$END_USER_DATASET_URL" > "$END_USER_DATASET" ;;
+        esac
+
+        trig --base="$end_user_base_uri" "$END_USER_DATASET" > /var/linkeddatahub/based-datasets/end-user.nq
+
+        case "$ADMIN_DATASET_URL" in
+            "file://"*)
+                ADMIN_DATASET=$(echo "$ADMIN_DATASET_URL" | cut -c 8-) # strip leading file://
+
+                printf "\n### Reading admin dataset from a local file: %s\n" "$ADMIN_DATASET" ;;
+            *)  
+                ADMIN_DATASET=$(mktemp)
+
+                printf "\n### Downloading admin dataset from a URL: %s\n" "$ADMIN_DATASET_URL"
+
+                curl "$ADMIN_DATASET_URL" > "$ADMIN_DATASET" ;;
+        esac
+
+        trig --base="$admin_base_uri" "$ADMIN_DATASET" > /var/linkeddatahub/based-datasets/admin.nq
+
+        printf "\n### Waiting for %s...\n" "$end_user_quad_store_url"
+        wait_for_url "$end_user_quad_store_url" "$end_user_service_auth_user" "$end_user_service_auth_pwd" "$TIMEOUT" "application/n-quads"
+
+        printf "\n### Loading end-user dataset into the triplestore...\n"
+        append_quads "$end_user_quad_store_url" "$end_user_service_auth_user" "$end_user_service_auth_pwd" /var/linkeddatahub/based-datasets/end-user.nq "application/n-quads"
+
+        printf "\n### Waiting for %s...\n" "$admin_quad_store_url"
+        wait_for_url "$admin_quad_store_url" "$admin_service_auth_user" "$admin_service_auth_pwd" "$TIMEOUT" "application/n-quads"
+
+        printf "\n### Loading admin dataset into the triplestore...\n"
+        append_quads "$admin_quad_store_url" "$admin_service_auth_user" "$admin_service_auth_pwd" /var/linkeddatahub/based-datasets/admin.nq "application/n-quads"
+
+        # append owner metadata to the root admin dataset
+
+        envsubst < root-owner.trig.template > root-owner.trig
+
+        trig --base="$admin_base_uri" --output=nq root-owner.trig > root-owner.nq
+
+        printf "\n### Uploading the metadata of the owner agent...\n\n"
+
+        append_quads "$admin_quad_store_url" "$admin_service_auth_user" "$admin_service_auth_pwd" root-owner.nq "application/n-quads"
+
+        rm -f root-owner.trig root-owner.nq
+
+        # append secretary metadata to the root admin dataset
+
+        envsubst < root-secretary.trig.template > root-secretary.trig
+
+        trig --base="$admin_base_uri" --output=nq root-secretary.trig > root-secretary.nq
+
+        printf "\n### Uploading the metadata of the secretary agent...\n\n"
+
+        append_quads "$admin_quad_store_url" "$admin_service_auth_user" "$admin_service_auth_pwd" root-secretary.nq "application/n-quads"
+
+        rm -f root-secretary.trig root-secretary.nq
+    fi
+done
+
+rm -f root_service_metadata.xml
+
+if [ -z "$root_end_user_app" ]; then
+    printf "\nRoot end-user app with base URI <%s> not found. Exiting...\n" "$BASE_URI"
     exit 1
 fi
-if [ -z "$root_end_user_quad_store_url" ] ; then
-    printf "\nEnd-user quad store URL could not be extracted from %s for root app with base URI %s. Exiting...\n" "$CONTEXT_DATASET" "$BASE_URI"
+if [ -z "$root_admin_app" ]; then
+    printf "\nRoot admin app (for end-user app with base URI <%s>) not found. Exiting...\n" "$BASE_URI"
     exit 1
 fi
-if [ -z "$root_admin_app" ] ; then
-    printf "\nAdmin app URI could not be extracted from %s. Exiting...\n" "$CONTEXT_DATASET"
-    exit 1
-fi
-if [ -z "$root_admin_base_uri" ] ; then
-    printf "\nAdmin base URI extracted from %s for root app with base URI %s. Exiting...\n" "$CONTEXT_DATASET" "$BASE_URI"
-    exit 1
-fi
-if [ -z "$root_admin_quad_store_url" ] ; then
-    printf "\nAdmin quad store URL could not be extracted from %s for root app with base URI %s. Exiting...\n" "$CONTEXT_DATASET" "$BASE_URI"
-    exit 1
-fi
-
-# append ownership metadata to apps if it's not present (apps have to be URI resources!)
-
-if [ -z "$root_end_user_owner" ] ; then
-    echo "<${root_end_user_app}> <http://xmlns.com/foaf/0.1/maker> <${OWNER_URI}> ." >> "$based_context_dataset"
-fi
-if [ -z "$root_admin_owner" ] ; then
-    echo "<${root_admin_app}> <http://xmlns.com/foaf/0.1/maker> <${OWNER_URI}> ." >> "$based_context_dataset"
-fi
-
-printf "\n### Quad store URL of the root end-user service: %s\n" "$root_end_user_quad_store_url"
-printf "\n### Quad store URL of the root admin service: %s\n" "$root_admin_quad_store_url"
 
 # copy mounted client keystore to a location where the webapp can access it
 
@@ -457,113 +615,6 @@ if [ ! -f "$CLIENT_TRUSTSTORE" ]; then
         -noprompt \
         -srckeystore "$CACERTS" \
         -srcstorepass changeit
-fi
-
-SECRETARY_URI=$(get_webid_uri "$SECRETARY_CERT")
-
-if [ -z "$SECRETARY_URI" ] ; then
-    echo "Secretary's public key does not contain a SAN:URI (subjectAlternativeName) extension with a WebID URI"
-    exit 1
-fi
-
-printf "\n### Secretary's WebID URI: %s\n" "$SECRETARY_URI"
-
-# strip fragment from the URL, if any
-
-case "$SECRETARY_URI" in
-  *#*) SECRETARY_DOC_URI=$(echo "$SECRETARY_URI" | cut -d "#" -f 1) ;;
-  *) SECRETARY_DOC_URI="$SECRETARY_URI" ;;
-esac
-
-SECRETARY_CERT_MODULUS=$(get_modulus "$SECRETARY_CERT")
-printf "\n### Secretary WebID certificate's modulus: %s\n" "$SECRETARY_CERT_MODULUS"
-
-SECRETARY_KEY_UUID=$(uuidgen | tr '[:upper:]' '[:lower:]') # lowercase
-export SECRETARY_URI SECRETARY_DOC_URI SECRETARY_CERT_MODULUS SECRETARY_KEY_UUID
-
-if [ -z "$LOAD_DATASETS" ]; then
-    if [ ! -d /var/linkeddatahub/based-datasets ]; then
-        LOAD_DATASETS=true
-    else
-        LOAD_DATASETS=false
-    fi
-fi
-
-# load default admin/end-user datasets if we haven't yet created a folder with re-based versions of them (and then create it)
-if [ "$LOAD_DATASETS" = "true" ]; then
-    mkdir -p /var/linkeddatahub/based-datasets
-
-    # create query file by injecting environmental variables into the template
-
-    envsubst < split-default-graph.rq.template > split-default-graph.rq
-
-    case "$END_USER_DATASET_URL" in
-        "file://"*)
-            END_USER_DATASET=$(echo "$END_USER_DATASET_URL" | cut -c 8-) # strip leading file://
-
-            printf "\n### Reading end-user dataset from a local file: %s\n" "$END_USER_DATASET" ;;
-        *)  
-            END_USER_DATASET=$(mktemp)
-
-            printf "\n### Downloading end-user dataset from a URL: %s\n" "$END_USER_DATASET_URL"
-
-            curl "$END_USER_DATASET_URL" > "$END_USER_DATASET" ;;
-    esac
-
-    trig --base="$BASE_URI" "$END_USER_DATASET" > /var/linkeddatahub/based-datasets/end-user.nq
-    sparql --data /var/linkeddatahub/based-datasets/end-user.nq --base "$BASE_URI" --query split-default-graph.rq --results=nq > /var/linkeddatahub/based-datasets/split.end-user.nq
-
-    case "$ADMIN_DATASET_URL" in
-        "file://"*)
-            ADMIN_DATASET=$(echo "$ADMIN_DATASET_URL" | cut -c 8-) # strip leading file://
-
-            printf "\n### Reading admin dataset from a local file: %s\n" "$ADMIN_DATASET" ;;
-        *)  
-            ADMIN_DATASET=$(mktemp)
-
-            printf "\n### Downloading admin dataset from a URL: %s\n" "$ADMIN_DATASET_URL"
-
-            curl "$ADMIN_DATASET_URL" > "$ADMIN_DATASET" ;;
-    esac
-
-    trig --base="$root_admin_base_uri" "$ADMIN_DATASET" > /var/linkeddatahub/based-datasets/admin.nq
-    sparql --data /var/linkeddatahub/based-datasets/admin.nq --base "$root_admin_base_uri" --query split-default-graph.rq --results=nq > /var/linkeddatahub/based-datasets/split.admin.nq
-
-    printf "\n### Waiting for %s...\n" "$root_end_user_quad_store_url"
-    wait_for_url "$root_end_user_quad_store_url" "$root_end_user_service_auth_user" "$root_end_user_service_auth_pwd" "$TIMEOUT" "application/n-quads"
-
-    printf "\n### Loading end-user dataset into the triplestore...\n"
-    append_quads "$root_end_user_quad_store_url" "$root_end_user_service_auth_user" "$root_end_user_service_auth_pwd" /var/linkeddatahub/based-datasets/split.end-user.nq "application/n-quads"
-
-    printf "\n### Waiting for %s...\n" "$root_admin_quad_store_url"
-    wait_for_url "$root_admin_quad_store_url" "$root_admin_service_auth_user" "$root_admin_service_auth_pwd" "$TIMEOUT" "application/n-quads"
-
-    printf "\n### Loading admin dataset into the triplestore...\n"
-    append_quads "$root_admin_quad_store_url" "$root_admin_service_auth_user" "$root_admin_service_auth_pwd" /var/linkeddatahub/based-datasets/split.admin.nq "application/n-quads"
-
-    # append owner metadata to the root admin dataset
-
-    envsubst < root-owner.trig.template > root-owner.trig
-
-    trig --base="$root_admin_base_uri" --output=nq root-owner.trig > root-owner.nq
-
-    printf "\n### Uploading the metadata of the owner agent...\n\n"
-
-    append_quads "$root_admin_quad_store_url" "$root_admin_service_auth_user" "$root_admin_service_auth_pwd" root-owner.nq "application/n-quads"
-
-    rm -f root-owner.trig root-owner.nq
-
-    # append secretary metadata to the root admin dataset
-
-    envsubst < root-secretary.trig.template > root-secretary.trig
-
-    trig --base="$root_admin_base_uri" --output=nq root-secretary.trig > root-secretary.nq
-
-    printf "\n### Uploading the metadata of the secretary agent...\n\n"
-
-    append_quads "$root_admin_quad_store_url" "$root_admin_service_auth_user" "$root_admin_service_auth_pwd" root-secretary.nq "application/n-quads"
-
-    rm -f root-secretary.trig root-secretary.nq
 fi
 
 # change context configuration
