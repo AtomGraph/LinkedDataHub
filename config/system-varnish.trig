@@ -12,8 +12,6 @@
 ### do not use blank nodes to identify resources! ###
 ### urn: URI scheme is used because applications/services are not accessible in their own dataspace (under $BASE_URI) ###
 
-# APPS
-
 # root admin
 
 <urn:linkeddatahub:apps/admin> a lapp:Application, lapp:AdminApplication ;
@@ -23,6 +21,13 @@
     ldt:service <urn:linkeddatahub:services/admin> ;
     ac:stylesheet <static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/admin/layout.xsl> ;
     lapp:endUserApplication <urn:linkeddatahub:apps/end-user> .
+
+<urn:linkeddatahub:services/admin> a sd:Service ;
+    dct:title "LinkedDataHub admin service" ;
+    sd:supportedLanguage sd:SPARQL11Query, sd:SPARQL11Update ;
+    sd:endpoint <http://fuseki-admin:3030/ds/> ;
+    a:graphStore <http://fuseki-admin:3030/ds/> ;
+    lapp:proxy <http://varnish-admin/> .
 
 # root end-user
 
@@ -34,24 +39,9 @@
     lapp:adminApplication <urn:linkeddatahub:apps/admin> ;
     lapp:public true .
 
-# SERVICES
-
-# root admin
-
-<urn:linkeddatahub:services/admin> a sd:Service ;
-    dct:title "LinkedDataHub admin service" ;
-    sd:supportedLanguage sd:SPARQL11Query, sd:SPARQL11Update ;
-    sd:endpoint <http://fuseki-admin:3030/ds/> ;
-    a:graphStore <http://fuseki-admin:3030/ds/> ;
-    a:quadStore <http://fuseki-admin:3030/ds/> ;
-    lapp:proxy <http://varnish-admin/> .
- 
-# root end-user
-
 <urn:linkeddatahub:services/end-user> a sd:Service ;
     dct:title "LinkedDataHub service" ;
     sd:supportedLanguage sd:SPARQL11Query, sd:SPARQL11Update ;
     sd:endpoint <http://fuseki-end-user:3030/ds/> ;
     a:graphStore <http://fuseki-end-user:3030/ds/> ;
-    a:quadStore <http://fuseki-end-user:3030/ds/> ;
     lapp:proxy <http://varnish-end-user/> .
