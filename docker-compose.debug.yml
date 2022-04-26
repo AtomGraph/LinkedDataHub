@@ -1,0 +1,17 @@
+version: "2.3"
+services:
+  linkeddatahub:
+    ports:
+      - 8000:8000 # debugger
+      - 5140:5140 # profiler
+    environment:
+      - JPDA_ADDRESS=*:8000 # debugger host - performance hit when enabled
+      - CATALINA_OPTS=-XX:+UseContainerSupport -XX:MaxRAMPercentage=75 --add-exports java.base/sun.security.tools.keytool=ALL-UNNAMED -XX:+UseLinuxPosixThreadCPUClocks -agentpath:/var/linkeddatahub/profiler/lib/deployed/jdk16/linux-amd64/libprofilerinterface.so=/var/linkeddatahub/profiler/lib,5140  # heap will use up to 75% of container's RAM
+    volumes:
+      - ./platform/profiler:/var/linkeddatahub/profiler
+  fuseki-admin:
+    ports:
+      - 3030:3030
+  fuseki-end-user:
+    ports:
+      - 3031:3030

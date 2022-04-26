@@ -70,8 +70,7 @@ services:
   fuseki-admin:
     image: atomgraph/fuseki:4de4275df55b99e8306eae8ef8340f1992c8eb41
     user: root # otherwise fuseki user does not have permissions to the mounted folder which is owner by root
-    ports:
-      - 3030:3030
+
     volumes:
       - ./config/fuseki/config.ttl:/fuseki/config.ttl:ro
       - ./data/admin:/fuseki/databases
@@ -79,8 +78,6 @@ services:
   fuseki-end-user:
     image: atomgraph/fuseki:4de4275df55b99e8306eae8ef8340f1992c8eb41
     user: root # otherwise the fuseki user does not have permissions to the mounted folder which is owner by root
-    ports:
-      - 3031:3030
     volumes:
       - ./config/fuseki/config.ttl:/fuseki/config.ttl:ro
       - ./data/end-user:/fuseki/databases
