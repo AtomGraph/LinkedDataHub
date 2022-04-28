@@ -20,6 +20,7 @@ import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.model.Service;
 import java.util.Optional;
 import javax.inject.Inject;
+import javax.ws.rs.Path;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Request;
 
@@ -29,6 +30,7 @@ import javax.ws.rs.core.Request;
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
+@Path("sparql")
 public class SPARQLEndpointImpl extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
 {
     

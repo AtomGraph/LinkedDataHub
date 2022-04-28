@@ -84,6 +84,14 @@ import com.atomgraph.linkeddatahub.model.impl.FileImpl;
 import com.atomgraph.linkeddatahub.model.impl.ImportImpl;
 import com.atomgraph.linkeddatahub.model.impl.RDFImportImpl;
 import com.atomgraph.linkeddatahub.model.impl.UserAccountImpl;
+import com.atomgraph.linkeddatahub.resource.Add;
+import com.atomgraph.linkeddatahub.resource.Importer;
+import com.atomgraph.linkeddatahub.resource.Namespace;
+import com.atomgraph.linkeddatahub.resource.Transform;
+import com.atomgraph.linkeddatahub.resource.admin.Clear;
+import com.atomgraph.linkeddatahub.resource.admin.RequestAccess;
+import com.atomgraph.linkeddatahub.resource.admin.oauth2.Login;
+import com.atomgraph.linkeddatahub.resource.admin.oauth2.google.Authorize;
 import com.atomgraph.linkeddatahub.server.event.AuthorizationCreated;
 import com.atomgraph.linkeddatahub.server.event.SignUp;
 import com.atomgraph.linkeddatahub.server.factory.AgentContextFactory;
@@ -107,6 +115,7 @@ import com.atomgraph.linkeddatahub.server.interceptor.RDFPostCleanupInterceptor;
 import com.atomgraph.linkeddatahub.server.mapper.auth.oauth2.TokenExpiredExceptionMapper;
 import com.atomgraph.linkeddatahub.server.model.impl.Dispatcher;
 import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
+import com.atomgraph.linkeddatahub.server.model.impl.SPARQLEndpointImpl;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.server.util.MessageBuilder;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
@@ -866,7 +875,19 @@ public class Application extends ResourceConfig
      */
     protected void registerResourceClasses()
     {
-        register(Dispatcher.class);
+        register(SPARQLEndpointImpl.class);
+        register(GraphStoreImpl.class);
+        register(Namespace.class);
+        register(SignUp.class);
+        register(RequestAccess.class);
+        register(com.atomgraph.linkeddatahub.resource.upload.sha1.Item.class);
+        register(Importer.class);
+        register(Add.class);
+        register(Transform.class);
+        register(Clear.class);
+        register(Authorize.class);
+        register(Login.class);
+        register(Dispatcher.class); // wildcard that should match if nothing above matched
     }
     
     /**

@@ -19,6 +19,7 @@ package com.atomgraph.linkeddatahub.imports.stream;
 import com.atomgraph.core.MediaType;
 import com.atomgraph.core.client.GraphStoreClient;
 import com.atomgraph.linkeddatahub.model.Service;
+import com.atomgraph.linkeddatahub.server.exception.ImportException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -79,6 +80,8 @@ public class StreamRDFOutputWriter implements Function<Response, RDFGraphStoreOu
         
         try
         {
+            if (!rdfInput.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL)) throw new ImportException("Could not load RDF file", null);
+            
             // buffer the RDF in a temp file before transforming it
             File tempFile = File.createTempFile(UUID.randomUUID().toString(), "tmp");
             try (rdfInput; InputStream rdfIs = rdfInput.readEntity(InputStream.class); OutputStream output = new FileOutputStream(tempFile))

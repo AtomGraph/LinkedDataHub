@@ -37,6 +37,7 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
+import javax.ws.rs.Path;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Context;
@@ -64,7 +65,8 @@ import org.slf4j.LoggerFactory;
  * 
  * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
  */
-public class Add extends GraphStoreImpl // TO-DO: does not need to extend GraphStore is the multipart/form-data is not RDF/POST. Replace with ProxyResourceBase?
+@Path("add")
+public class Add extends GraphStoreImpl // TO-DO: does not need to extend GraphStore as the multipart/form-data is not RDF/POST. Replace with ProxyResourceBase?
 {
 
     private static final Logger log = LoggerFactory.getLogger(Add.class);
@@ -91,7 +93,6 @@ public class Add extends GraphStoreImpl // TO-DO: does not need to extend GraphS
     {
         super(request, uriInfo, mediaTypes, application, ontology, service, securityContext, agentContext, providers, system);
     }
-    
 
     @GET
     @Override

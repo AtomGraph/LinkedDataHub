@@ -28,6 +28,7 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
+import javax.ws.rs.Path;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import org.apache.jena.ontology.OntModel;
@@ -44,6 +45,7 @@ import org.slf4j.LoggerFactory;
  * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
  * @see com.atomgraph.linkeddatahub.server.filter.request.OntologyFilter
  */
+@Path("clear")
 public class Clear
 {
     

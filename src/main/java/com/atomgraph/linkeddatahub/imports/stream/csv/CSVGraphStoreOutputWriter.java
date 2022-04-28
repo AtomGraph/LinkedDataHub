@@ -18,6 +18,7 @@ package com.atomgraph.linkeddatahub.imports.stream.csv;
 
 import com.atomgraph.core.client.GraphStoreClient;
 import com.atomgraph.linkeddatahub.model.Service;
+import com.atomgraph.linkeddatahub.server.exception.ImportException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -31,6 +32,7 @@ import java.util.UUID;
 import java.util.function.Function;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 import org.apache.jena.query.Query;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
@@ -85,6 +87,8 @@ public class CSVGraphStoreOutputWriter implements Function<Response, CSVGraphSto
 
         try
         {
+            if (!csvInput.getStatusInfo().getFamily().equals(Status.Family.SUCCESSFUL)) throw new ImportException("Could not load CSV file", null);
+            
             // buffer the CSV in a temp file before transforming it
             File tempFile = File.createTempFile(UUID.randomUUID().toString(), "tmp");
             try (csvInput; InputStream csvIs = csvInput.readEntity(InputStream.class); OutputStream output = new FileOutputStream(tempFile))

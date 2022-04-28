@@ -58,6 +58,7 @@ import org.slf4j.LoggerFactory;
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
+@Path("importer")
 public class Importer extends GraphStoreImpl
 {
     private static final Logger log = LoggerFactory.getLogger(Importer.class);

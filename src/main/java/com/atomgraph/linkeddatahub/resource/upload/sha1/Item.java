@@ -24,6 +24,7 @@ import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import java.util.Optional;
 import javax.inject.Inject;
+import javax.ws.rs.Path;
 import javax.ws.rs.core.EntityTag;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
@@ -39,6 +40,7 @@ import org.slf4j.LoggerFactory;
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
+@Path("uploads/{sha1sum}")
 public class Item extends com.atomgraph.linkeddatahub.resource.upload.Item
 {
     private static final Logger log = LoggerFactory.getLogger(Item.class);

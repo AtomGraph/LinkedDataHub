@@ -16,6 +16,7 @@
  */
 package com.atomgraph.linkeddatahub.server.exception;
 
+import java.io.IOException;
 import org.apache.jena.rdf.model.Model;
 
 /**
@@ -23,7 +24,7 @@ import org.apache.jena.rdf.model.Model;
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-public class ImportException extends RuntimeException
+public class ImportException extends IOException
 {
     
     /** Import model */

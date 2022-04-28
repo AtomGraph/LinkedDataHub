@@ -95,61 +95,61 @@ public class Dispatcher
      * 
      * @return endpoint resource
      */
-    @Path("sparql")
-    public Object getSPARQLEndpoint()
-    {
-        return SPARQLEndpointImpl.class;
-    }
+//    @Path("sparql")
+//    public Object getSPARQLEndpoint()
+//    {
+//        return SPARQLEndpointImpl.class;
+//    }
 
     /**
      * Returns Graph Store Protocol endpoint.
      * 
      * @return endpoint resource
      */
-    @Path("service")
-    public Object getGraphStore()
-    {
-        return GraphStoreImpl.class;
-    }
+//    @Path("service")
+//    public Object getGraphStore()
+//    {
+//        return GraphStoreImpl.class;
+//    }
 
     /**
      * Returns SPARQL endpoint for the in-memory ontology model.
      * 
      * @return endpoint resource
      */
-    @Path("ns")
-    public Object getNamespace()
-    {
-        return Namespace.class;
-    }
-
-    @Path("ns/{slug}/")
-    public Object getSubOntology()
-    {
-        return Namespace.class;
-    }
+//    @Path("ns")
+//    public Object getNamespace()
+//    {
+//        return Namespace.class;
+//    }
+//
+//    @Path("ns/{slug}/")
+//    public Object getSubOntology()
+//    {
+//        return Namespace.class;
+//    }
     
     /**
      * Returns signup endpoint.
      * 
      * @return endpoint resource
      */
-    @Path("sign up")
-    public Object getSignUp()
-    {
-        return SignUp.class;
-    }
+//    @Path("sign up")
+//    public Object getSignUp()
+//    {
+//        return SignUp.class;
+//    }
     
     /**
      * Returns the ACL access request endpoint.
      * 
      * @return endpoint resource
      */
-    @Path("request access")
-    public Object getRequestAccess()
-    {
-        return RequestAccess.class;
-    }
+//    @Path("request access")
+//    public Object getRequestAccess()
+//    {
+//        return RequestAccess.class;
+//    }
 
     /**
      * Returns content-addressed file item resource.
@@ -157,77 +157,77 @@ public class Dispatcher
      * @return resource
      * @see com.atomgraph.linkeddatahub.apps.model.Application.UPLOADS_PATH
      */
-    @Path("uploads/{sha1sum}")
-    public Object getFileItem()
-    {
-        return com.atomgraph.linkeddatahub.resource.upload.sha1.Item.class;
-    }
+//    @Path("uploads/{sha1sum}")
+//    public Object getFileItem()
+//    {
+//        return com.atomgraph.linkeddatahub.resource.upload.sha1.Item.class;
+//    }
     
     /**
      * Returns the endpoint for asynchronous CSV and RDF imports.
      * 
      * @return endpoint resource
      */
-    @Path("importer")
-    public Object getImportEndpoint()
-    {
-        return Importer.class;
-    }
+//    @Path("importer")
+//    public Object getImportEndpoint()
+//    {
+//        return Importer.class;
+//    }
 
     /**
      * Returns the endpoint for synchronous RDF imports.
      * 
      * @return endpoint resource
      */
-    @Path("add")
-    public Object getAddEndpoint()
-    {
-        return Add.class;
-    }
+//    @Path("add")
+//    public Object getAddEndpoint()
+//    {
+//        return Add.class;
+//    }
     
     /**
      * Returns the endpoint for synchronous RDF imports with a <code>CONSTRUCT</code> query transformation.
      * 
      * @return endpoint resource
      */
-    @Path("transform")
-    public Object getTransformEndpoint()
-    {
-        return Transform.class;
-    }
+//    @Path("transform")
+//    public Object getTransformEndpoint()
+//    {
+//        return Transform.class;
+//    }
     
     /**
      * Returns the endpoint that allows clearing ontologies from cache by URI.
      * 
      * @return endpoint resource
      */
-    @Path("clear")
-    public Object getClearEndpoint()
-    {
-        return Clear.class;
-    }
+//    @Path("clear")
+//    public Object getClearEndpoint()
+//    {
+//        return Clear.class;
+//    }
     
     /**
      * Returns Google OAuth endpoint.
      * 
      * @return endpoint resource
      */
-    @Path("oauth2/authorize/google")
-    public Object getAuthorizeGoogle()
-    {
-        return com.atomgraph.linkeddatahub.resource.admin.oauth2.google.Authorize.class;
-    }
+//    @Path("oauth2/authorize/google")
+//    public Object getAuthorizeGoogle()
+//    {
+//        return com.atomgraph.linkeddatahub.resource.admin.oauth2.google.Authorize.class;
+//    }
 
     /**
      * Returns OAuth login endpoint.
      * 
      * @return endpoint resource
      */
-    @Path("oauth2/login")
-    public Object getOAuth2Login()
-    {
-        return com.atomgraph.linkeddatahub.resource.admin.oauth2.Login.class;
-    }
+//    @Path("oauth2/login")
+//    public Object getOAuth2Login()
+//    {
+//        return com.atomgraph.linkeddatahub.resource.admin.oauth2.Login.class;
+//    }
     
     /**
      * Returns the default JAX-RS resource class.
