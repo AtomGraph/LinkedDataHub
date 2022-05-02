@@ -4,8 +4,8 @@
     xmlns:web="http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"
     xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd" 
     id="linkeddatahub" version="3.0">
-    <display-name>AtomGraph Platform</display-name>
-    <description>Multi-tenant Linked Data platform</description>
+    <display-name>LinkedDataHub</display-name>
+    <description>The Knowledge Graph notebook</description>
     <!-- most of the following context-params can be set in docker-compose.yml (via conf/ROOT.xml) -->
     <context-param>
         <param-name>https://w3id.org/atomgraph/linkeddatahub/config#supportedLanguages</param-name>
@@ -137,6 +137,8 @@ WHERE
                 ?Type (rdfs:subClassOf)* ?Class
               }
           }
+        # only signup, OAuth2 login and WebID profiles can be public in admin app, nothing else
+        FILTER ( $this IN (uri(concat(str($base), "sign%20up")), uri(concat(str($base), "oauth2/login")), uri(concat(str($base), "oauth2/authorize/google"))) || strstarts(str($this), concat(str($base), "admin/acl/agents/")))
       }
   }
 ]]></param-value>
