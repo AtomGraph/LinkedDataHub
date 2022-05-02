@@ -4,9 +4,9 @@
 @prefix xsd:	<http://www.w3.org/2001/XMLSchema#> .
 @prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy#> .
 @prefix sp:	<http://spinrdf.org/sp#> .
-@prefix dct:	<http://purl.org/dc/terms/> .
 @prefix sioc:	<http://rdfs.org/sioc/ns#> .
 @prefix foaf:	<http://xmlns.com/foaf/0.1/> .
+@prefix dct:	<http://purl.org/dc/terms/> .
 
 <>
 {
@@ -72,13 +72,13 @@
     <geo/> a dh:Item ;
         dct:title "Geo" ;
         dct:description "Geolocated resources" ;
-        ldh:content <geo/#id31036be3-4fb4-493b-bc2d-3ab98693acc9> .
+        ldh:content <geo/#select-geo> .
 
-    <geo/#id31036be3-4fb4-493b-bc2d-3ab98693acc9> a ldh:Content ;
-        rdf:first <geo/#id3aa6c894-4412-11ec-81d3-0242ac130003> ;
+    <geo/#select-geo> a ldh:Content ;
+        rdf:first <geo/#select-geo-query> ;
         rdf:rest rdf:nil .
 
-    <geo/#id3aa6c894-4412-11ec-81d3-0242ac130003> a sp:Select ;
+    <geo/#select-geo-query> a sp:Select ;
         dct:title "Select geo resources" ;
         sp:text """
     PREFIX  geo:  <http://www.w3.org/2003/01/geo/wgs84_pos#>
@@ -106,13 +106,13 @@
     <latest/> a dh:Item ;
         dct:title "Latest" ;
         dct:description "Latest resources" ;
-        ldh:content <latest/#id17e6a62e-d319-44e7-b4ac-f38e29d461e7> .
+        ldh:content <latest/#select-latest> .
 
-    <latest/#id17e6a62e-d319-44e7-b4ac-f38e29d461e7> a ldh:Content ;
-        rdf:first <latest/#idf3dfb452-4411-11ec-81d3-0242ac130003> ;
+    <latest/#select-latest> a ldh:Content ;
+        rdf:first <latest/#select-latest-query> ;
         rdf:rest rdf:nil .
 
-    <latest/#idf3dfb452-4411-11ec-81d3-0242ac130003> a sp:Select ;
+    <latest/#select-latest-query> a sp:Select ;
         dct:title "Select latest" ;
         sp:text """
     PREFIX  dct:  <http://purl.org/dc/terms/>
