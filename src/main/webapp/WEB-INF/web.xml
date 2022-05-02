@@ -138,7 +138,7 @@ WHERE
               }
           }
         # only signup, OAuth2 login and WebID profiles can be public in admin app, nothing else
-        FILTER ( $this IN (uri(concat(str($base), "sign%20up")), uri(concat(str($base), "oauth2/login")), uri(concat(str($base), "oauth2/authorize/google"))) || strstarts(str($this), concat(str($base), "admin/acl/agents/")))
+        FILTER ( $this IN (uri(concat(str($base), "sign%20up")), uri(concat(str($base), "oauth2/login")), uri(concat(str($base), "oauth2/authorize/google"))) || strstarts(str($this), concat(str($base), "acl/agents/")))
       }
   }
 ]]></param-value>
