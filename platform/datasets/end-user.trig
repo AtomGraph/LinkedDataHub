@@ -1,5 +1,6 @@
 @prefix def:	<https://w3id.org/atomgraph/linkeddatahub/default#> .
 @prefix ldh:	<https://w3id.org/atomgraph/linkeddatahub#> .
+@prefix ac:	<https://w3id.org/atomgraph/client#> .
 @prefix rdf:	<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix xsd:	<http://www.w3.org/2001/XMLSchema#> .
 @prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy#> .
@@ -76,6 +77,7 @@
 
     <geo/#select-geo> a ldh:Content ;
         rdf:first <geo/#select-geo-query> ;
+        ac:mode ac:MapMode ;
         rdf:rest rdf:nil .
 
     <geo/#select-geo-query> a sp:Select ;

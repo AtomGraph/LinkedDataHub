@@ -612,10 +612,10 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
         if (file == null) throw new IllegalArgumentException("File cannot be null");
         if (is == null) throw new IllegalArgumentException("File InputStream cannot be null");
         
-        try
+        try (FileOutputStream fos = new FileOutputStream(file))
         {
             if (log.isDebugEnabled()) log.debug("Writing input stream: {} to file: {}", is, file);
-            FileChannel destination = new FileOutputStream(file).getChannel();
+            FileChannel destination = fos.getChannel();
             destination.transferFrom(Channels.newChannel(is), 0, 104857600);
             return file;
         }

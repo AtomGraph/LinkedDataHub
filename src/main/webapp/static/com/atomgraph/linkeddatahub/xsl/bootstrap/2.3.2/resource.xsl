@@ -725,6 +725,7 @@ extension-element-prefixes="ixsl"
     <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;Content'][rdf:first/@rdf:resource]" mode="ldh:ContentList" priority="2">
         <xsl:param name="id" select="generate-id()" as="xs:string?"/>
         <xsl:param name="class" select="'row-fluid content resource-content'" as="xs:string?"/>
+        <xsl:param name="mode" select="ac:mode/@rdf:resource" as="xs:anyURI?"/>
         
         <!-- @data-content-uri is used to retrieve $content-uri in client.xsl -->
         <div data-content-uri="{rdf:first/@rdf:resource}">
@@ -734,8 +735,8 @@ extension-element-prefixes="ixsl"
             <xsl:if test="$class">
                 <xsl:attribute name="class" select="$class"/>
             </xsl:if>
-            <xsl:if test="ac:mode/@rdf:resource">
-                <xsl:attribute name="data-content-mode" select="ac:mode/@rdf:resource"/>
+            <xsl:if test="$mode">
+                <xsl:attribute name="data-content-mode" select="$mode"/>
             </xsl:if>
             
             <xsl:apply-templates select="." mode="bs2:Left"/>
