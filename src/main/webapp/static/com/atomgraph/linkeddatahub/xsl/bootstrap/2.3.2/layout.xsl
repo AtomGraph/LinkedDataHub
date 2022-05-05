@@ -6,6 +6,7 @@
     <!ENTITY def    "https://w3id.org/atomgraph/linkeddatahub/default#">
     <!ENTITY ldh    "https://w3id.org/atomgraph/linkeddatahub#">
     <!ENTITY ldht   "https://w3id.org/atomgraph/linkeddatahub/templates#">
+    <!ENTITY ldhc   "https://w3id.org/atomgraph/linkeddatahub/config#">
     <!ENTITY google "https://w3id.org/atomgraph/linkeddatahub/services/google#">
     <!ENTITY ac     "https://w3id.org/atomgraph/client#">
     <!ENTITY a      "https://w3id.org/atomgraph/core#">
@@ -44,6 +45,7 @@ xmlns:a="&a;"
 xmlns:lapp="&lapp;"
 xmlns:lacl="&lacl;"
 xmlns:ldh="&ldh;"
+xmlns:ldhc="&ldhc;"
 xmlns:ldht="&ldht;"
 xmlns:rdf="&rdf;"
 xmlns:xhv="&xhv;"
@@ -110,7 +112,8 @@ exclude-result-prefixes="#all">
     <xsl:param name="acl:agent" as="xs:anyURI?"/>
     <xsl:param name="acl:mode" select="$foaf:Agent[doc-available($ldh:absolutePath)]//*[acl:accessToClass/@rdf:resource = (key('resources', $ldh:absolutePath, document($ldh:absolutePath))/rdf:type/@rdf:resource, key('resources', $ldh:absolutePath, document($ldh:absolutePath))/rdf:type/@rdf:resource/ldh:listSuperClasses(.))]/acl:mode/@rdf:resource" as="xs:anyURI*"/>
     <xsl:param name="ldh:createGraph" select="false()" as="xs:boolean"/>
-    <xsl:param name="ldh:ajaxRendering" select="true()" as="xs:boolean"/>
+    <xsl:param name="ldh:ajaxRendering" select="true()" as="xs:boolean"/> <!-- TO-DO: rename to ldhc:ajaxRendering? -->
+    <xsl:param name="ldhc:webIDSignUp" as="xs:boolean"/>
     <xsl:param name="google:clientID" as="xs:string?"/>
     <xsl:param name="default-classes" as="map(xs:string, xs:anyURI)">
         <xsl:map>
@@ -625,21 +628,23 @@ exclude-result-prefixes="#all">
     </xsl:template>
 
     <xsl:template match="rdf:RDF[not($foaf:Agent//@rdf:about)][$lapp:Application//rdf:type/@rdf:resource = '&lapp;EndUserApplication']" mode="bs2:SignUp" priority="1">
-        <xsl:param name="uri" select="resolve-uri(encode-for-uri('sign up'), $lapp:Application//*[rdf:type/@rdf:resource = '&lapp;AdminApplication']/ldt:base/@rdf:resource)" as="xs:anyURI"/>
+        <!-- resolve links against the base URI of LinkedDataHub and not of the current app, as we want signups to always go the root app -->
+        <xsl:param name="google-signup-uri" select="ac:build-uri(resolve-uri('oauth2/authorize/google', $ldh:base), map{ 'referer': string(ac:uri()) })" as="xs:anyURI"/>
+        <xsl:param name="webid-signup-uri" select="resolve-uri(encode-for-uri('sign up'), $ldh:base)" as="xs:anyURI"/>
         <xsl:param name="google-signup" select="exists($google:clientID)" as="xs:boolean"/>
-        <xsl:param name="webid-signup" select="true()" as="xs:boolean"/>
+        <xsl:param name="webid-signup" select="$ldhc:webIDSignUp" as="xs:boolean"/>
         
         <xsl:if test="$google-signup or $webid-signup">
             <p class="pull-right">
                 <xsl:if test="$google-signup">
-                    <a class="btn btn-primary" href="{ac:build-uri(resolve-uri('oauth2/authorize/google', $lapp:Application//*[rdf:type/@rdf:resource = '&lapp;AdminApplication']/ldt:base/@rdf:resource), map{ 'referer': string(ac:uri()) })}">
+                    <a class="btn btn-primary" href="{$google-signup-uri}">
                         <xsl:value-of>
                             <xsl:apply-templates select="key('resources', 'login-google', document('translations.rdf'))" mode="ac:label"/>
                         </xsl:value-of>
                     </a>
                 </xsl:if>
                 <xsl:if test="$webid-signup">
-                    <a class="btn btn-primary" href="{if (not(starts-with($ldt:base, $ldh:base))) then ac:build-uri((), map{ 'uri': string($uri) }) else $uri}">
+                    <a class="btn btn-primary" href="{if (not(starts-with($ldt:base, $ldh:base))) then ac:build-uri((), map{ 'uri': string($webid-signup-uri) }) else $webid-signup-uri}">
                         <xsl:value-of>
                             <xsl:apply-templates select="key('resources', 'sign-up', document('translations.rdf'))" mode="ac:label"/>
                         </xsl:value-of>

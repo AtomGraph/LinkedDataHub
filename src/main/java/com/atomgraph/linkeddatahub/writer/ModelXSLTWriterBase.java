@@ -32,6 +32,7 @@ import com.atomgraph.client.vocabulary.LDT;
 import com.atomgraph.core.vocabulary.SD;
 import com.atomgraph.linkeddatahub.server.io.ValidatingModelProvider;
 import com.atomgraph.linkeddatahub.vocabulary.FOAF;
+import com.atomgraph.linkeddatahub.vocabulary.LDHC;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.annotation.Annotation;
@@ -183,6 +184,7 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
                 params.put(new QName("", "", "Referer"), new XdmAtomicValue(referer)); // TO-DO: move to ac: namespace
             }
 
+            params.put(new QName("ldhc", LDHC.webIDSignUp.getNameSpace(), LDHC.webIDSignUp.getLocalName()), new XdmAtomicValue(getSystem().isWebIDSignUp()));
             if (getSystem().getProperty(Google.clientID.getURI()) != null)
                 params.put(new QName("google", Google.clientID.getNameSpace(), Google.clientID.getLocalName()), new XdmAtomicValue((String)getSystem().getProperty(Google.clientID.getURI())));
             

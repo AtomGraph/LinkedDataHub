@@ -38,6 +38,7 @@ xmlns:google="&google;"
     <xsl:param name="ldhc:maxTotalConn"/>
     <xsl:param name="ldhc:importKeepAlive"/>
     <xsl:param name="ldhc:notificationAddress"/>
+    <xsl:param name="ldhc:webIDSignUp"/>
     <xsl:param name="mail.smtp.host"/>
     <xsl:param name="mail.smtp.port"/>
     <xsl:param name="mail.user"/>
@@ -123,6 +124,9 @@ xmlns:google="&google;"
             </xsl:if>
             <xsl:if test="$ldhc:notificationAddress">
                 <Parameter name="&ldhc;notificationAddress" value="{$ldhc:notificationAddress}" override="false"/>
+            </xsl:if>
+            <xsl:if test="$ldhc:webIDSignUp">
+                <Parameter name="&ldhc;webIDSignUp" value="{$ldhc:webIDSignUp}" override="false"/>
             </xsl:if>
             <xsl:if test="$mail.smtp.host">
                 <Parameter name="mail.smtp.host" value="{$mail.smtp.host}" override="false"/>

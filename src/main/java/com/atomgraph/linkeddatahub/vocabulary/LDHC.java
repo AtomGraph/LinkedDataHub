@@ -152,4 +152,7 @@ public class LDHC
     /** Max import threads property */
     public static final DatatypeProperty maxImportThreads = m_model.createDatatypeProperty( NS + "maxImportThreads" );
 
+    /** WebID signup property **/
+    public static final DatatypeProperty webIDSignUp = m_model.createDatatypeProperty( NS + "webIDSignUp" );
+
 }

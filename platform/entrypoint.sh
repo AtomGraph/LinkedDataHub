@@ -689,6 +689,10 @@ if [ -n "$NOTIFICATION_ADDRESS" ] ; then
     NOTIFICATION_ADDRESS_PARAM="--stringparam ldhc:notificationAddress '$NOTIFICATION_ADDRESS' "
 fi
 
+if [ -n "$WEBID_SIGNUP" ] ; then
+    WEBID_SIGNUP_PARAM="--stringparam ldhc:webIDSignUp '$WEBID_SIGNUP' "
+fi
+
 if [ -n "$MAIL_PASSWORD" ] ; then
     MAIL_PASSWORD_PARAM="--stringparam mail.password '$MAIL_PASSWORD' "
 fi

@@ -257,7 +257,7 @@ PREFIX  spin: <http://spinrdf.org/spin#>
 CONSTRUCT 
   { 
     ?class spin:constructor ?constructor .
-    ?constructor <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> sp:Construct .
+    ?constructor a sp:Construct .
     ?constructor rdfs:label ?constructorLabel .
     ?constructor sp:text ?constructorString .
   }

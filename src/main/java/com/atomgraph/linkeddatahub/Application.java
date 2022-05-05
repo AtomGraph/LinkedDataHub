@@ -275,7 +275,8 @@ public class Application extends ResourceConfig
     private final ExpiringMap<String, Model> oidcModelCache = ExpiringMap.builder().variableExpiration().build();
     private final Map<URI, XsltExecutable> xsltExecutableCache = new HashMap<>();
     private final MessageDigest messageDigest;
-    
+    private final boolean webIDSignUp;
+
     private Dataset contextDataset;
     
     /**
@@ -324,6 +325,7 @@ public class Application extends ResourceConfig
             servletConfig.getServletContext().getInitParameter(LDHC.maxImportThreads.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(LDHC.maxImportThreads.getURI())) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.notificationAddress.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.notificationAddress.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.supportedLanguages.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.supportedLanguages.getURI()) : null,
+            servletConfig.getServletContext().getInitParameter(LDHC.webIDSignUp.getURI()) != null ? Boolean.parseBoolean(servletConfig.getServletContext().getInitParameter(LDHC.webIDSignUp.getURI())) : true,
             servletConfig.getServletContext().getInitParameter("mail.user") != null ? servletConfig.getServletContext().getInitParameter("mail.user") : null,
             servletConfig.getServletContext().getInitParameter("mail.password") != null ? servletConfig.getServletContext().getInitParameter("mail.password") : null,
             servletConfig.getServletContext().getInitParameter("mail.smtp.host") != null ? servletConfig.getServletContext().getInitParameter("mail.smtp.host") : null,
@@ -379,6 +381,7 @@ public class Application extends ResourceConfig
      * @param maxImportThreads maximum number of threads used for asynchronous imports
      * @param notificationAddressString email address used to send notifications
      * @param supportedLanguageCodes comma-separated codes of supported languages
+     * @param webIDSignUp true if WebID signup is enabled
      * @param mailUser username of the SMTP email server
      * @param mailPassword password of the SMTP email server
      * @param smtpHost hostname of the SMTP email server
@@ -397,7 +400,7 @@ public class Application extends ResourceConfig
             final String uploadRootString, final boolean invalidateCache,
             final Integer cookieMaxAge, final Integer maxPostSize,
             final Integer maxConnPerRoute, final Integer maxTotalConn, final ConnectionKeepAliveStrategy importKeepAliveStrategy, final Integer maxImportThreads,
-            final String notificationAddressString, final String supportedLanguageCodes,
+            final String notificationAddressString, final String supportedLanguageCodes, final boolean webIDSignUp,
             final String mailUser, final String mailPassword, final String smtpHost, final String smtpPort,
             final String googleClientID, final String googleClientSecret)
     {
@@ -504,6 +507,7 @@ public class Application extends ResourceConfig
         this.resolvingUncached = resolvingUncached;
         this.maxContentLength = maxPostSize;
         this.invalidateCache = invalidateCache;
+        this.webIDSignUp = webIDSignUp;
         this.property(Google.clientID.getURI(), googleClientID);
         this.property(Google.clientSecret.getURI(), googleClientSecret);
         
@@ -1827,6 +1831,16 @@ public class Application extends ResourceConfig
     public List<Locale> getSupportedLanguages()
     {
         return supportedLanguages;
+    }
+    
+    /**
+     * Returns true if WebID signup is enabled.
+     * 
+     * @return true if enabled
+     */
+    public boolean isWebIDSignUp()
+    {
+        return webIDSignUp;
     }
     
 }
