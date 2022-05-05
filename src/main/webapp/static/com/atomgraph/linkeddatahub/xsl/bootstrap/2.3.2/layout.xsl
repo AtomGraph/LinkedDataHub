@@ -629,8 +629,8 @@ exclude-result-prefixes="#all">
 
     <xsl:template match="rdf:RDF[not($foaf:Agent//@rdf:about)][$lapp:Application//rdf:type/@rdf:resource = '&lapp;EndUserApplication']" mode="bs2:SignUp" priority="1">
         <!-- resolve links against the base URI of LinkedDataHub and not of the current app, as we want signups to always go the root app -->
-        <xsl:param name="google-signup-uri" select="ac:build-uri(resolve-uri('oauth2/authorize/google', $ldh:base), map{ 'referer': string(ac:uri()) })" as="xs:anyURI"/>
-        <xsl:param name="webid-signup-uri" select="resolve-uri(encode-for-uri('sign up'), $ldh:base)" as="xs:anyURI"/>
+        <xsl:param name="google-signup-uri" select="ac:build-uri(resolve-uri('admin/oauth2/authorize/google', $ldh:base), map{ 'referer': string(ac:uri()) })" as="xs:anyURI"/>
+        <xsl:param name="webid-signup-uri" select="resolve-uri('admin/sign%20up', $ldh:base)" as="xs:anyURI"/>
         <xsl:param name="google-signup" select="exists($google:clientID)" as="xs:boolean"/>
         <xsl:param name="webid-signup" select="$ldhc:webIDSignUp" as="xs:boolean"/>
         
