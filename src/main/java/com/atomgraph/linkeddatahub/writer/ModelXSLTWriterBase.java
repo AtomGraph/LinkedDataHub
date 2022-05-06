@@ -91,7 +91,6 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
     }
     
     @Context SecurityContext securityContext;
-    @Context ContainerRequestContext crc;
 
     @Inject com.atomgraph.linkeddatahub.Application system;
     @Inject javax.inject.Provider<com.atomgraph.linkeddatahub.apps.model.Application> application;
@@ -99,6 +98,7 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
     @Inject javax.inject.Provider<DataManager> dataManager;
     @Inject javax.inject.Provider<XsltExecutableSupplier> xsltExecSupplier;
     @Inject javax.inject.Provider<List<Mode>> modes;
+    @Inject javax.inject.Provider<ContainerRequestContext> crc;
 
     private final MessageDigest messageDigest;
     
