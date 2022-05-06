@@ -19,6 +19,7 @@ package com.atomgraph.linkeddatahub.server.model.impl;
 import com.atomgraph.client.MediaTypes;
 import com.atomgraph.client.util.DataManager;
 import com.atomgraph.client.vocabulary.AC;
+import com.atomgraph.core.exception.BadGatewayException;
 import com.atomgraph.core.io.ModelProvider;
 import com.atomgraph.linkeddatahub.apps.model.Dataset;
 import com.atomgraph.linkeddatahub.client.filter.auth.IDTokenDelegationFilter;
@@ -203,20 +204,23 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
                 throw new BadRequestException(ex);
             }
 
-        Response response = super.get(target);
-        
         Query query = QueryFactory.create("DESCRIBE <" + target.getUri() + ">");
         Model localModel = getService().getSPARQLClient().loadModel(query);
+        getContainerRequestContext().setProperty(LDH.localGraph.getURI(), localModel);
 
-        if (!localModel.isEmpty()) // append the local model to the remote model
+        try
         {
-            if (response.getEntity() instanceof Model model) model.add(localModel);
-            else response = Response.ok(localModel).build();
+            Response response = super.get(target);
             
-            getContainerRequestContext().setProperty(LDH.localGraph.getURI(), localModel);
+            if (response.getEntity() instanceof Model model) model.add(localModel); // append the local model to the remote model
+            
+            return response;
         }
-        
-        return response;
+        catch (BadGatewayException ex) // fallback to the local model in case of error
+        {
+            if (!localModel.isEmpty()) return Response.ok(localModel).build();
+            else throw ex;
+        }
     }
     
     /**
