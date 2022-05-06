@@ -804,9 +804,8 @@ exclude-result-prefixes="#all">
     <!-- don't show document-level tabs if the response returned an error or if we're in EditMode -->
     <xsl:template match="rdf:RDF[key('resources-by-type', '&http;Response')] | rdf:RDF[$ac:forClass or $ac:mode = '&ac;EditMode']" mode="bs2:ModeTabs" priority="1"/>
     
-    <xsl:template match="*[*][@rdf:about = ac:uri()]" mode="bs2:PropertyList">
-        <xsl:variable name="query-string" select="'DESCRIBE &lt;' || ac:uri() || '&gt;'" as="xs:string"/>
-        <xsl:variable name="local-doc" select="$ldh:localModel"/>
+    <xsl:template match="*[*][@rdf:about = ac:uri()][$ldh:localGraph]" mode="bs2:PropertyList">
+        <xsl:variable name="local-doc" select="$ldh:localGraph"/>
 
         <xsl:variable name="triples-original" as="map(xs:string, element())">
             <xsl:map>
