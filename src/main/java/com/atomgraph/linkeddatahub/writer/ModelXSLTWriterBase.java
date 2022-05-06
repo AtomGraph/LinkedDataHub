@@ -378,7 +378,7 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
      */
     public ContainerRequestContext getContainerRequestContext()
     {
-        return crc;
+        return crc.get();
     }
     
 }
