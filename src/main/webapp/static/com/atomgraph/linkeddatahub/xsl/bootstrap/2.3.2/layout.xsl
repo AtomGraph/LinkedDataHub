@@ -112,6 +112,8 @@ exclude-result-prefixes="#all">
     <xsl:param name="acl:agent" as="xs:anyURI?"/>
     <xsl:param name="acl:mode" select="$foaf:Agent[doc-available($ldh:absolutePath)]//*[acl:accessToClass/@rdf:resource = (key('resources', $ldh:absolutePath, document($ldh:absolutePath))/rdf:type/@rdf:resource, key('resources', $ldh:absolutePath, document($ldh:absolutePath))/rdf:type/@rdf:resource/ldh:listSuperClasses(.))]/acl:mode/@rdf:resource" as="xs:anyURI*"/>
     <xsl:param name="ldh:createGraph" select="false()" as="xs:boolean"/>
+    <xsl:param name="ldh:localGraph" as="document-node()?"/>
+    <xsl:param name="ldh:originalGraph" as="document-node()?"/>
     <xsl:param name="ldh:ajaxRendering" select="true()" as="xs:boolean"/> <!-- TO-DO: rename to ldhc:ajaxRendering? -->
     <xsl:param name="ldhc:webIDSignUp" as="xs:boolean"/>
     <xsl:param name="google:clientID" as="xs:string?"/>
@@ -803,13 +805,13 @@ exclude-result-prefixes="#all">
     <!-- don't show document-level tabs if the response returned an error or if we're in EditMode -->
     <xsl:template match="rdf:RDF[key('resources-by-type', '&http;Response')] | rdf:RDF[$ac:forClass or $ac:mode = '&ac;EditMode']" mode="bs2:ModeTabs" priority="1"/>
     
-    <xsl:template match="*[*][@rdf:about = ac:uri()]" mode="bs2:PropertyList">
-        <xsl:variable name="query-string" select="'DESCRIBE &lt;' || ac:uri() || '&gt;'" as="xs:string"/>
-        <xsl:variable name="local-doc" select="document(ac:build-uri($ac:endpoint, map{ 'query': $query-string }))"/>
+    <xsl:template match="*[*][@rdf:about = ac:uri()][$ldh:originalGraph][$ldh:localGraph]" mode="bs2:PropertyList">
+        <xsl:variable name="original-doc" select="$ldh:originalGraph"/>
+        <xsl:variable name="local-doc" select="$ldh:localGraph"/>
 
         <xsl:variable name="triples-original" as="map(xs:string, element())">
             <xsl:map>
-                <xsl:for-each select="*">
+                <xsl:for-each select="$original-doc/rdf:RDF/rdf:Description/*">
                     <xsl:map-entry key="concat(../@rdf:about, '|', namespace-uri(), local-name(), '|', @rdf:resource, @rdf:nodeID, if (text() castable as xs:float) then xs:float(text()) else text(), '|', @rdf:datatype, @xml:lang)" select="."/>
                 </xsl:for-each>
             </xsl:map>
