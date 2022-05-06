@@ -805,13 +805,13 @@ exclude-result-prefixes="#all">
     <!-- don't show document-level tabs if the response returned an error or if we're in EditMode -->
     <xsl:template match="rdf:RDF[key('resources-by-type', '&http;Response')] | rdf:RDF[$ac:forClass or $ac:mode = '&ac;EditMode']" mode="bs2:ModeTabs" priority="1"/>
     
-    <xsl:template match="*[*][@rdf:about = ac:uri()][$ldh:localGraph]" mode="bs2:PropertyList">
+    <xsl:template match="*[*][@rdf:about = ac:uri()][$ldh:originalGraph][$ldh:localGraph]" mode="bs2:PropertyList">
         <xsl:variable name="original-doc" select="$ldh:originalGraph"/>
         <xsl:variable name="local-doc" select="$ldh:localGraph"/>
 
         <xsl:variable name="triples-original" as="map(xs:string, element())">
             <xsl:map>
-                <xsl:for-each select="*">
+                <xsl:for-each select="$original-doc/rdf:RDF/rdf:Description/*">
                     <xsl:map-entry key="concat(../@rdf:about, '|', namespace-uri(), local-name(), '|', @rdf:resource, @rdf:nodeID, if (text() castable as xs:float) then xs:float(text()) else text(), '|', @rdf:datatype, @xml:lang)" select="."/>
                 </xsl:for-each>
             </xsl:map>
