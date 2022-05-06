@@ -104,7 +104,7 @@ public class LDH
     /** Request URI property */
     public static final ObjectProperty requestUri = m_model.createObjectProperty(NS + "requestUri");
     
-    /** Create graph property */
-    public static final DatatypeProperty createGraph = m_model.createDatatypeProperty( NS + "createGraph" );
+    /** Local graph property */
+    public static final DatatypeProperty localGraph = m_model.createDatatypeProperty( NS + "localGraph" );
 
 }
