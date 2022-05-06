@@ -696,7 +696,7 @@ exclude-result-prefixes="#all">
     </xsl:template>
 
     <!-- if there was an error loading external Linked Data document but a local document exists for this URI, override error graph with empty graph -->
-    <xsl:template match="rdf:RDF[key('resources-by-type', '&http;Response')][exists($ldt:localGraph)]" mode="xhtml:Body" priority="1">
+    <xsl:template match="rdf:RDF[key('resources-by-type', '&http;Response')][exists($ldh:localGraph)]" mode="xhtml:Body" priority="1">
         <xsl:param name="classes" select="for $class-uri in map:keys($default-classes) return key('resources', $class-uri, document(ac:document-uri($class-uri)))" as="element()*"/>
         <xsl:param name="content-uris" select="key('resources', ac:uri())/rdf:type/@rdf:resource[ . = ('&def;Root', '&dh;Container', '&dh;Item')][doc-available(resolve-uri('ns?query=ASK%20%7B%7D', $ldt:base))]/ldh:templates(., resolve-uri('ns', $ldt:base), $template-query)//srx:binding[@name = 'content']/srx:uri/xs:anyURI(.)" as="xs:anyURI*"/>
         <xsl:param name="has-content" select="key('resources', key('resources', ac:uri())/ldh:content/@rdf:resource) or exists($content-uris)" as="xs:boolean"/>
