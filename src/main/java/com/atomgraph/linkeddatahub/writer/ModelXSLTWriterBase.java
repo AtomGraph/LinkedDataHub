@@ -49,6 +49,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
+import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.EntityTag;
 import javax.ws.rs.core.MediaType;
@@ -90,6 +91,7 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
     }
     
     @Context SecurityContext securityContext;
+    @Context ContainerRequestContext crc;
 
     @Inject com.atomgraph.linkeddatahub.Application system;
     @Inject javax.inject.Provider<com.atomgraph.linkeddatahub.apps.model.Application> application;
@@ -184,6 +186,11 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
                 params.put(new QName("", "", "Referer"), new XdmAtomicValue(referer)); // TO-DO: move to ac: namespace
             }
 
+            Object localModel = getContainerRequestContext().getProperty(LDH.localGraph.getURI());
+            if (localModel instanceof Model model)
+                params.put(new QName("ldh", LDH.localGraph.getNameSpace(), LDH.localGraph.getLocalName()),
+                    getXsltExecutable().getProcessor().newDocumentBuilder().build(getSource(model)));
+            
             params.put(new QName("ldhc", LDHC.webIDSignUp.getNameSpace(), LDHC.webIDSignUp.getLocalName()), new XdmAtomicValue(getSystem().isWebIDSignUp()));
             if (getSystem().getProperty(Google.clientID.getURI()) != null)
                 params.put(new QName("google", Google.clientID.getNameSpace(), Google.clientID.getLocalName()), new XdmAtomicValue((String)getSystem().getProperty(Google.clientID.getURI())));
@@ -362,6 +369,16 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
     public MessageDigest getMessageDigest()
     {
         return messageDigest;
+    }
+    
+    /**
+     * Returns request context.
+     * 
+     * @return request context
+     */
+    public ContainerRequestContext getContainerRequestContext()
+    {
+        return crc;
     }
     
 }

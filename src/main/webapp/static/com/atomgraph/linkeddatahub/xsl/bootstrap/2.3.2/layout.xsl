@@ -112,6 +112,7 @@ exclude-result-prefixes="#all">
     <xsl:param name="acl:agent" as="xs:anyURI?"/>
     <xsl:param name="acl:mode" select="$foaf:Agent[doc-available($ldh:absolutePath)]//*[acl:accessToClass/@rdf:resource = (key('resources', $ldh:absolutePath, document($ldh:absolutePath))/rdf:type/@rdf:resource, key('resources', $ldh:absolutePath, document($ldh:absolutePath))/rdf:type/@rdf:resource/ldh:listSuperClasses(.))]/acl:mode/@rdf:resource" as="xs:anyURI*"/>
     <xsl:param name="ldh:createGraph" select="false()" as="xs:boolean"/>
+    <xsl:param name="ldh:localGraph" as="document-node()?"/>
     <xsl:param name="ldh:ajaxRendering" select="true()" as="xs:boolean"/> <!-- TO-DO: rename to ldhc:ajaxRendering? -->
     <xsl:param name="ldhc:webIDSignUp" as="xs:boolean"/>
     <xsl:param name="google:clientID" as="xs:string?"/>
@@ -805,7 +806,7 @@ exclude-result-prefixes="#all">
     
     <xsl:template match="*[*][@rdf:about = ac:uri()]" mode="bs2:PropertyList">
         <xsl:variable name="query-string" select="'DESCRIBE &lt;' || ac:uri() || '&gt;'" as="xs:string"/>
-        <xsl:variable name="local-doc" select="document(ac:build-uri($ac:endpoint, map{ 'query': $query-string }))"/>
+        <xsl:variable name="local-doc" select="$ldh:localModel"/>
 
         <xsl:variable name="triples-original" as="map(xs:string, element())">
             <xsl:map>
