@@ -24,8 +24,10 @@ import com.atomgraph.linkeddatahub.apps.model.Dataset;
 import com.atomgraph.linkeddatahub.client.filter.auth.IDTokenDelegationFilter;
 import com.atomgraph.linkeddatahub.client.filter.auth.WebIDDelegationFilter;
 import com.atomgraph.linkeddatahub.model.Agent;
+import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.server.security.IDTokenSecurityContext;
+import com.atomgraph.linkeddatahub.vocabulary.LDH;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -42,6 +44,7 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
@@ -50,6 +53,8 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.Providers;
+import org.apache.jena.query.Query;
+import org.apache.jena.query.QueryFactory;
 import org.apache.jena.query.ResultSet;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
@@ -70,6 +75,8 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
     private static final Logger log = LoggerFactory.getLogger(ProxyResourceBase.class);
 
     private final UriInfo uriInfo;
+    private final ContainerRequestContext crc;
+    private final Service service;
     private final DataManager dataManager;
     private final MediaType[] readableMediaTypes;
     private final Providers providers;
@@ -82,7 +89,9 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
      * @param request current request
      * @param httpHeaders HTTP header info
      * @param mediaTypes registry of readable/writable media types
+     * @param service application's SPARQL service
      * @param securityContext JAX-RS security context
+     * @param crc request context
      * @param system system application
      * @param httpServletRequest servlet request
      * @param dataManager RDFdata manager
@@ -91,11 +100,13 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
      * @param dataset optional dataset
      */
     @Inject
-    public ProxyResourceBase(@Context UriInfo uriInfo, @Context Request request, @Context HttpHeaders httpHeaders, MediaTypes mediaTypes, @Context SecurityContext securityContext,
+    public ProxyResourceBase(@Context UriInfo uriInfo, @Context Request request, @Context HttpHeaders httpHeaders, MediaTypes mediaTypes,
+            Optional<Service> service,
+            @Context SecurityContext securityContext, @Context ContainerRequestContext crc,
             com.atomgraph.linkeddatahub.Application system, @Context HttpServletRequest httpServletRequest, DataManager dataManager, Optional<AgentContext> agentContext,
             @Context Providers providers, Optional<Dataset> dataset)
     {
-        this(uriInfo, request, httpHeaders, mediaTypes, securityContext,
+        this(uriInfo, request, httpHeaders, mediaTypes, service, securityContext, crc,
                 uriInfo.getQueryParameters().getFirst(AC.uri.getLocalName()) == null ? 
                     dataset.isEmpty() ? null : dataset.get().getProxied(uriInfo.getAbsolutePath())
                     :
@@ -113,7 +124,9 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
      * @param request current request
      * @param httpHeaders HTTP header info
      * @param mediaTypes registry of readable/writable media types
+     * @param service application's SPARQL service
      * @param securityContext JAX-RS security context
+     * @param crc request context
      * @param uri <code>uri</code> URL param
      * @param endpoint <code>endpoint</code> URL param
      * @param accept <code>accept</code> URL param
@@ -124,13 +137,17 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
      * @param agentContext authenticated agent's context
      * @param providers registry of JAX-RS providers
      */
-    protected ProxyResourceBase(@Context UriInfo uriInfo, @Context Request request, @Context HttpHeaders httpHeaders, MediaTypes mediaTypes, @Context SecurityContext securityContext,
+    protected ProxyResourceBase(@Context UriInfo uriInfo, @Context Request request, @Context HttpHeaders httpHeaders, MediaTypes mediaTypes,
+            Optional<Service> service,
+            @Context SecurityContext securityContext, @Context ContainerRequestContext crc,
             @QueryParam("uri") URI uri, @QueryParam("endpoint") URI endpoint, @QueryParam("accept") MediaType accept, @QueryParam("mode") URI mode,
             com.atomgraph.linkeddatahub.Application system, @Context HttpServletRequest httpServletRequest, DataManager dataManager, Optional<AgentContext> agentContext,
             @Context Providers providers)
     {
         super(uriInfo, request, httpHeaders, mediaTypes, uri, endpoint, accept, mode, system.getClient(), httpServletRequest);
         this.uriInfo = uriInfo;
+        this.service = service.get();
+        this.crc = crc;
         this.dataManager = dataManager;
         this.providers = providers;
         this.system = system;
@@ -186,7 +203,20 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
                 throw new BadRequestException(ex);
             }
 
-        return super.get(target);
+        Response response = super.get(target);
+        
+        Query query = QueryFactory.create("DESCRIBE <" + target.getUri() + ">");
+        Model localModel = getService().getSPARQLClient().loadModel(query);
+
+        if (!localModel.isEmpty()) // append the local model to the remote model
+        {
+            if (response.getEntity() instanceof Model model) model.add(localModel);
+            else response = Response.ok(localModel).build();
+            
+            getContainerRequestContext().setProperty(LDH.localGraph.getURI(), localModel);
+        }
+        
+        return response;
     }
     
     /**
@@ -240,6 +270,26 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
     public List<Locale> getLanguages()
     {
         return getSystem().getSupportedLanguages();
+    }
+    
+    /**
+     * Returns the SPARQL service of the current application.
+     * 
+     * @return service resource
+     */
+    public Service getService()
+    {
+        return service;
+    }
+    
+    /**
+     * Returns request context.
+     * 
+     * @return request context
+     */
+    public ContainerRequestContext getContainerRequestContext()
+    {
+        return crc;
     }
     
     /**

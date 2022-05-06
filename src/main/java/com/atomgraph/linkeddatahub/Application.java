@@ -102,7 +102,6 @@ import com.atomgraph.linkeddatahub.server.filter.request.ContentLengthLimitFilte
 import com.atomgraph.linkeddatahub.server.filter.request.auth.ProxiedWebIDFilter;
 import com.atomgraph.linkeddatahub.server.filter.response.ResponseHeaderFilter;
 import com.atomgraph.linkeddatahub.server.filter.response.BackendInvalidationFilter;
-import com.atomgraph.linkeddatahub.server.filter.response.LocalResourceLookupFilter;
 import com.atomgraph.linkeddatahub.server.filter.response.XsltExecutableFilter;
 import com.atomgraph.linkeddatahub.server.interceptor.RDFPostCleanupInterceptor;
 import com.atomgraph.linkeddatahub.server.mapper.auth.oauth2.TokenExpiredExceptionMapper;
@@ -895,7 +894,6 @@ public class Application extends ResourceConfig
      */
     protected void registerContainerResponseFilters()
     {
-        register(new LocalResourceLookupFilter());
         register(new ResponseHeaderFilter());
         register(new XsltExecutableFilter());
         if (isInvalidateCache()) register(new BackendInvalidationFilter());
