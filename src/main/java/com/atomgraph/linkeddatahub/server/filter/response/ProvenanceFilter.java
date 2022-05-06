@@ -44,7 +44,7 @@ import org.slf4j.LoggerFactory;
  * 
  * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
  */
-@Priority(Priorities.USER + 100)
+@Priority(Priorities.USER + 100) // higher response priority means executed earlier
 public class ProvenanceFilter implements ContainerResponseFilter
 {
     

@@ -51,7 +51,7 @@ import org.slf4j.LoggerFactory;
  * 
  * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
  */
-@Priority(Priorities.USER + 300)
+@Priority(Priorities.USER + 350) // higher response priority means executed earlier
 public class ResponseHeaderFilter implements ContainerResponseFilter
 {
 

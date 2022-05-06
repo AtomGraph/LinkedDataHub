@@ -38,7 +38,7 @@ import org.apache.jena.rdf.model.Model;
  * 
  * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
  */
-@Priority(Priorities.USER + 150)
+@Priority(Priorities.USER + 300) // higher response priority means executed earlier
 public class LocalResourceLookupFilter implements ContainerResponseFilter
 {
 
