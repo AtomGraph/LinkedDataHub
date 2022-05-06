@@ -212,13 +212,18 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
         {
             Response response = super.get(target);
             
-            if (response.getEntity() instanceof Model model) model.add(localModel); // append the local model to the remote model
+            if (response.getEntity() instanceof Model model)
+            {
+                getContainerRequestContext().setProperty(LDH.originalGraph.getURI(), model);
+                model.add(localModel); // append the local model to the remote model
+            }
             
             return response;
         }
         catch (BadGatewayException ex) // fallback to the local model in case of error
         {
-            if (!localModel.isEmpty()) return Response.ok(localModel).build();
+            getContainerRequestContext().setProperty(LDH.originalGraph.getURI(), ModelFactory.createDefaultModel());
+            if (!localModel.isEmpty()) return getResponse(localModel);
             else throw ex;
         }
     }

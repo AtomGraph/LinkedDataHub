@@ -113,6 +113,7 @@ exclude-result-prefixes="#all">
     <xsl:param name="acl:mode" select="$foaf:Agent[doc-available($ldh:absolutePath)]//*[acl:accessToClass/@rdf:resource = (key('resources', $ldh:absolutePath, document($ldh:absolutePath))/rdf:type/@rdf:resource, key('resources', $ldh:absolutePath, document($ldh:absolutePath))/rdf:type/@rdf:resource/ldh:listSuperClasses(.))]/acl:mode/@rdf:resource" as="xs:anyURI*"/>
     <xsl:param name="ldh:createGraph" select="false()" as="xs:boolean"/>
     <xsl:param name="ldh:localGraph" as="document-node()?"/>
+    <xsl:param name="ldh:originalGraph" as="document-node()?"/>
     <xsl:param name="ldh:ajaxRendering" select="true()" as="xs:boolean"/> <!-- TO-DO: rename to ldhc:ajaxRendering? -->
     <xsl:param name="ldhc:webIDSignUp" as="xs:boolean"/>
     <xsl:param name="google:clientID" as="xs:string?"/>
@@ -695,25 +696,6 @@ exclude-result-prefixes="#all">
         </body>
     </xsl:template>
 
-    <!-- if there was an error loading external Linked Data document but a local document exists for this URI, override error graph with empty graph -->
-    <xsl:template match="rdf:RDF[key('resources-by-type', '&http;Response')][exists($ldh:localGraph)]" mode="xhtml:Body" priority="1">
-        <xsl:param name="classes" select="for $class-uri in map:keys($default-classes) return key('resources', $class-uri, document(ac:document-uri($class-uri)))" as="element()*"/>
-        <xsl:param name="content-uris" select="key('resources', ac:uri())/rdf:type/@rdf:resource[ . = ('&def;Root', '&dh;Container', '&dh;Item')][doc-available(resolve-uri('ns?query=ASK%20%7B%7D', $ldt:base))]/ldh:templates(., resolve-uri('ns', $ldt:base), $template-query)//srx:binding[@name = 'content']/srx:uri/xs:anyURI(.)" as="xs:anyURI*"/>
-        <xsl:param name="has-content" select="key('resources', key('resources', ac:uri())/ldh:content/@rdf:resource) or exists($content-uris)" as="xs:boolean"/>
-
-        <xsl:variable name="empty-graph" as="document-node()">
-            <xsl:document>
-                <rdf:RDF/>
-            </xsl:document>
-        </xsl:variable>
-        
-        <xsl:apply-templates select="$empty-graph" mode="#current">
-            <xsl:with-param name="classes" select="$classes"/>
-            <xsl:with-param name="content-uris" select="$content-uris"/>
-            <xsl:with-param name="has-content" select="$has-content"/>
-        </xsl:apply-templates>
-    </xsl:template>
-    
     <xsl:template match="rdf:RDF" mode="xhtml:Body">
         <xsl:param name="classes" select="for $class-uri in map:keys($default-classes) return key('resources', $class-uri, document(ac:document-uri($class-uri)))" as="element()*"/>
         <xsl:param name="content-uris" select="key('resources', ac:uri())/rdf:type/@rdf:resource[ . = ('&def;Root', '&dh;Container', '&dh;Item')][doc-available(resolve-uri('ns?query=ASK%20%7B%7D', $ldt:base))]/ldh:templates(., resolve-uri('ns', $ldt:base), $template-query)//srx:binding[@name = 'content']/srx:uri/xs:anyURI(.)" as="xs:anyURI*"/>
@@ -824,6 +806,7 @@ exclude-result-prefixes="#all">
     <xsl:template match="rdf:RDF[key('resources-by-type', '&http;Response')] | rdf:RDF[$ac:forClass or $ac:mode = '&ac;EditMode']" mode="bs2:ModeTabs" priority="1"/>
     
     <xsl:template match="*[*][@rdf:about = ac:uri()][$ldh:localGraph]" mode="bs2:PropertyList">
+        <xsl:variable name="original-doc" select="$ldh:originalGraph"/>
         <xsl:variable name="local-doc" select="$ldh:localGraph"/>
 
         <xsl:variable name="triples-original" as="map(xs:string, element())">
