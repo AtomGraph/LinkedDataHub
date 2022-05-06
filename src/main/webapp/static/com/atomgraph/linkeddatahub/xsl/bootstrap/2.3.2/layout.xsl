@@ -809,6 +809,12 @@ exclude-result-prefixes="#all">
         <xsl:variable name="original-doc" select="$ldh:originalGraph"/>
         <xsl:variable name="local-doc" select="$ldh:localGraph"/>
 
+        <xsl:for-each-group select="$original-doc/rdf:RDF/rdf:Description/*" group-by="concat(../@rdf:about, '|', namespace-uri(), local-name(), '|', @rdf:resource, @rdf:nodeID, if (text() castable as xs:float) then xs:float(text()) else text(), '|', @rdf:datatype, @xml:lang)">
+            <xsl:message>
+                COUNT: <xsl:value-of select="count(current-group())"/> KEY: <xsl:value-of select="current-grouping-key()"/>
+            </xsl:message>
+        </xsl:for-each-group>
+
         <xsl:variable name="triples-original" as="map(xs:string, element())">
             <xsl:map>
                 <xsl:for-each select="$original-doc/rdf:RDF/rdf:Description/*">
