@@ -1,3 +1,4 @@
+.git
 .env
 config
 hooks
@@ -6,5 +7,7 @@ data
 http-tests
 node
 node_modules
+scripts
+ssl
 target
 uploads
