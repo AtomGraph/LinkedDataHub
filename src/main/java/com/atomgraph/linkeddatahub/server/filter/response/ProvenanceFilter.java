@@ -40,7 +40,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Records each HTTP interaction in a timestamped meta named graph.
- * The same logic can be found in Docker container's <code>split-default-graph.rq.template</code>.
+ * Currently unused.
  * 
  * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
  */
