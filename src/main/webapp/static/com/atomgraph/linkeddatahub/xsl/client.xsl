@@ -887,8 +887,9 @@ WHERE
                 <xsl:variable name="base-link" select="tokenize(?headers?link, ',')[contains(., '&ldt;base')]" as="xs:string?"/>
                 <!-- set new base URI if the current app has changed -->
                 <xsl:if test="$base-link">
-                    <xsl:variable name="base" select="xs:anyURI(substring-before(substring-after(substring-before($endpoint-link, ';'), '&lt;'), '&gt;'))" as="xs:anyURI"/>
+                    <xsl:variable name="base" select="xs:anyURI(substring-before(substring-after(substring-before($base-link, ';'), '&lt;'), '&gt;'))" as="xs:anyURI"/>
                     <xsl:if test="not($base = ldt:base())">
+                        <xsl:message>Application change. Base URI: <xsl:value-of select="$base"/></xsl:message>
                         <xsl:call-template name="ldt:AppChanged">
                             <xsl:with-param name="base" select="$base"/>
                         </xsl:call-template>
