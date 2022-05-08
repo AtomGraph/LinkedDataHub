@@ -185,6 +185,7 @@ WHERE
 
         <!-- create a LinkedDataHub namespace -->
         <ixsl:set-property name="LinkedDataHub" select="ldh:new-object()"/>
+        <ixsl:set-property name="base" select="$ldt:base" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
         <ixsl:set-property name="contents" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
         <ixsl:set-property name="typeahead" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/> <!-- used by typeahead.xsl -->
         <ixsl:set-property name="graph" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/> <!-- used by graph.xsl -->
@@ -883,6 +884,17 @@ WHERE
             <xsl:when test="?status = 200 and starts-with(?media-type, 'application/xhtml+xml')">
                 <xsl:variable name="endpoint-link" select="tokenize(?headers?link, ',')[contains(., '&sd;endpoint')]" as="xs:string?"/>
                 <xsl:variable name="endpoint" select="if ($endpoint-link) then xs:anyURI(substring-before(substring-after(substring-before($endpoint-link, ';'), '&lt;'), '&gt;')) else ()" as="xs:anyURI?"/>
+                <xsl:variable name="base-link" select="tokenize(?headers?link, ',')[contains(., '&ldt;base')]" as="xs:string?"/>
+                <!-- set new base URI if the current app has changed -->
+                <xsl:if test="$base-link">
+                    <xsl:variable name="base" select="xs:anyURI(substring-before(substring-after(substring-before($endpoint-link, ';'), '&lt;'), '&gt;'))" as="xs:anyURI"/>
+                    <xsl:if test="not($base = ldt:base())">
+                        <xsl:call-template name="ldt:AppChanged">
+                            <xsl:with-param name="base" select="$base"/>
+                        </xsl:call-template>
+                    </xsl:if>
+                    <ixsl:set-property name="base" select="$base" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+                </xsl:if>
 
                 <xsl:apply-templates select="?body" mode="ldh:LoadedHTMLDocument">
                     <xsl:with-param name="href" select="$href"/>
@@ -1014,6 +1026,42 @@ WHERE
         </xsl:call-template>
     </xsl:template>
     
+    <xsl:template name="ldt:AppChanged">
+        <xsl:param name="base" as="xs:anyURI"/>
+
+        <xsl:call-template name="ldh:DocTree">
+            <xsl:with-param name="id" select="'doc-tree'"/>
+            <xsl:with-param name="base" select="$base"/>
+        </xsl:call-template>
+    </xsl:template>
+    
+    <xsl:template name="onBacklinksLoad">
+        <xsl:context-item as="map(*)" use="required"/>
+        <xsl:param name="container" as="element()"/>
+
+        <xsl:choose>
+            <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
+                <xsl:variable name="results" select="?body" as="document-node()"/>
+                
+                <xsl:for-each select="$container">
+                    <xsl:result-document href="?." method="ixsl:append-content">
+                        <ul class="well well-small nav nav-list">
+                            <xsl:apply-templates select="$results/rdf:RDF/rdf:Description[not(@rdf:about = ac:uri())]" mode="bs2:List">
+                                <xsl:sort select="ac:label(.)" order="ascending" lang="{$ldt:lang}"/>
+                                <xsl:with-param name="mode" select="ac:mode()[1]"/> <!-- TO-DO: support multiple modes -->
+                            </xsl:apply-templates>
+                        </ul>
+                    </xsl:result-document>
+                </xsl:for-each>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ ?message ])"/>
+            </xsl:otherwise>
+        </xsl:choose>
+        
+        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
+    </xsl:template>
+
     <!-- EVENT LISTENERS -->
 
     <!-- popstate -->
@@ -1516,35 +1564,6 @@ WHERE
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:if>
-    </xsl:template>
-    
-    <!-- CALLBACKS -->
-
-    <xsl:template name="onBacklinksLoad">
-        <xsl:context-item as="map(*)" use="required"/>
-        <xsl:param name="container" as="element()"/>
-
-        <xsl:choose>
-            <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
-                <xsl:variable name="results" select="?body" as="document-node()"/>
-                
-                <xsl:for-each select="$container">
-                    <xsl:result-document href="?." method="ixsl:append-content">
-                        <ul class="well well-small nav nav-list">
-                            <xsl:apply-templates select="$results/rdf:RDF/rdf:Description[not(@rdf:about = ac:uri())]" mode="bs2:List">
-                                <xsl:sort select="ac:label(.)" order="ascending" lang="{$ldt:lang}"/>
-                                <xsl:with-param name="mode" select="ac:mode()[1]"/> <!-- TO-DO: support multiple modes -->
-                            </xsl:apply-templates>
-                        </ul>
-                    </xsl:result-document>
-                </xsl:for-each>
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ ?message ])"/>
-            </xsl:otherwise>
-        </xsl:choose>
-        
-        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
     </xsl:template>
     
 </xsl:stylesheet>

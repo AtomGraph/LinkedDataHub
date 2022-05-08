@@ -33,6 +33,10 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="xs:anyURI(ixsl:get(ixsl:window(), 'location.href'))"/>
     </xsl:function>
 
+    <xsl:function name="ldt:base" as="xs:anyURI">
+        <xsl:sequence select="xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.base'))"/>
+    </xsl:function>
+    
     <xsl:function name="ac:uri" as="xs:anyURI">
         <xsl:sequence select="xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.uri'))"/>
     </xsl:function>

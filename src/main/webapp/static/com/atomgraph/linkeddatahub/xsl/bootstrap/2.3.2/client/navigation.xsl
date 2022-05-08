@@ -34,6 +34,7 @@ exclude-result-prefixes="#all"
     <xsl:template name="ldh:DocTree">
         <xsl:param name="id" as="xs:string"/>
         <xsl:param name="class" select="'well well-small sidebar-nav'" as="xs:string?"/>
+        <xsl:param name="base" select="ldt:base()" as="xs:anyURI"/>
 
         <div>
             <xsl:if test="$id">
@@ -51,54 +52,54 @@ exclude-result-prefixes="#all"
                 <!-- TO-DO: generalize -->
                 <li>
                     <button class="btn btn-small btn-expand-tree"></button>
-                    <a href="{$ldt:base}" class="btn-logo btn-container">
+                    <a href="{$base}" class="btn-logo btn-container">
                         <xsl:apply-templates select="key('resources', 'root', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
                     </a>
                 </li>
                 <li>
                     <button class="btn btn-small btn-expand-tree"></button>
-                    <a href="{$ldt:base}apps/" class="btn-logo btn-app">
+                    <a href="{$base}apps/" class="btn-logo btn-app">
                         <xsl:apply-templates select="key('resources', 'applications', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
                     </a>
                 </li>
                 <li>
                     <button class="btn btn-small btn-expand-tree"></button>
-                    <a href="{$ldt:base}charts/" class="btn-logo btn-chart">
+                    <a href="{$base}charts/" class="btn-logo btn-chart">
                         <xsl:apply-templates select="key('resources', 'charts', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
                     </a>
                 </li>
                 <li>
                     <button class="btn btn-small btn-expand-tree"></button>
-                    <a href="{$ldt:base}files/" class="btn-logo btn-file">
+                    <a href="{$base}files/" class="btn-logo btn-file">
                         <xsl:apply-templates select="key('resources', 'files', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
                     </a>
                 </li>
                 <li>
                     <button class="btn btn-small btn-expand-tree"></button>
-                    <a href="{$ldt:base}imports/" class="btn-logo btn-import">
+                    <a href="{$base}imports/" class="btn-logo btn-import">
                         <xsl:apply-templates select="key('resources', 'imports', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
                     </a>
                 </li>
                 <li>
                     <button class="btn btn-small btn-expand-tree"></button>
-                    <a href="{$ldt:base}queries/" class="btn-logo btn-query">
+                    <a href="{$base}queries/" class="btn-logo btn-query">
                         <xsl:apply-templates select="key('resources', 'queries', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
                     </a>
                 </li>
                 <li>
                     <button class="btn btn-small btn-expand-tree"></button>
-                    <a href="{$ldt:base}services/" class="btn-logo btn-service">
+                    <a href="{$base}services/" class="btn-logo btn-service">
                         <xsl:apply-templates select="key('resources', 'services', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
                     </a>
                 </li>
                 <!-- non-expandable containers (not based on ldh:SelectChildren) -->
                 <li>
-                    <a href="{$ldt:base}geo/" class="btn-logo btn-geo">
+                    <a href="{$base}geo/" class="btn-logo btn-geo">
                         <xsl:apply-templates select="key('resources', 'geo', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
                     </a>
                 </li>
                 <li>
-                    <a href="{$ldt:base}latest/" class="btn-logo btn-latest">
+                    <a href="{$base}latest/" class="btn-logo btn-latest">
                         <xsl:apply-templates select="key('resources', 'latest', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
                     </a>
                 </li>
