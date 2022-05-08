@@ -1030,10 +1030,14 @@ WHERE
     <xsl:template name="ldt:AppChanged">
         <xsl:param name="base" as="xs:anyURI"/>
 
-        <xsl:call-template name="ldh:DocTree">
-            <xsl:with-param name="id" select="'doc-tree'"/>
-            <xsl:with-param name="base" select="$base"/>
-        </xsl:call-template>
+        <xsl:for-each test="id('doc-tree', ixsl:page())">
+            <xsl:result-document href="?." method="ixsl:replace-content">
+                <xsl:call-template name="ldh:DocTree">
+                    <xsl:with-param name="id" select="'doc-tree'"/>
+                    <xsl:with-param name="base" select="$base"/>
+                </xsl:call-template>
+            </xsl:result-document>
+        </xsl:for-each>
     </xsl:template>
     
     <xsl:template name="onBacklinksLoad">
