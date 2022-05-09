@@ -229,6 +229,8 @@ WHERE
             <xsl:result-document href="?." method="ixsl:replace-content">
                 <xsl:call-template name="ldh:DocTree"/>
             </xsl:result-document>
+            <!-- hide it by default -->
+            <ixsl:set-style name="display" select="'none'" object="."/>
         </xsl:for-each>
     </xsl:template>
 
