@@ -1558,7 +1558,7 @@ WHERE
                 <!-- insert document tree element if it doesn't exist -->
                 <xsl:when test="not($container)">
                     <xsl:result-document href="?." method="ixsl:append-content">
-                        <xsl:call-template name="ldh:DocTree">
+                        <xsl:call-template name="ldh:DocTreeContainer">
                             <xsl:with-param name="id" select="'doc-tree'"/>
                         </xsl:call-template>
                     </xsl:result-document>

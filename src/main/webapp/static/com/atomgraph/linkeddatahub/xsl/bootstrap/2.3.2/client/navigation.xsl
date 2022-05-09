@@ -30,8 +30,8 @@ exclude-result-prefixes="#all"
 >
 
     <!-- TEMPLATES -->
-    
-    <xsl:template name="ldh:DocTree">
+
+    <xsl:template name="ldh:DocTreeContainer">
         <xsl:param name="id" as="xs:string"/>
         <xsl:param name="class" select="'well well-small sidebar-nav'" as="xs:string?"/>
         <xsl:param name="base" select="ldt:base()" as="xs:anyURI"/>
@@ -43,68 +43,76 @@ exclude-result-prefixes="#all"
             <xsl:if test="$class">
                 <xsl:attribute name="class" select="$class"/>
             </xsl:if>
-            
-            <h2 class="nav-header btn">
-                <xsl:apply-templates select="key('resources', 'document-tree', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-            </h2>
 
-            <ul class="well well-small nav nav-list">
-                <!-- TO-DO: generalize -->
-                <li>
-                    <button class="btn btn-small btn-expand-tree"></button>
-                    <a href="{$base}" class="btn-logo btn-container">
-                        <xsl:apply-templates select="key('resources', 'root', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                    </a>
-                </li>
-                <li>
-                    <button class="btn btn-small btn-expand-tree"></button>
-                    <a href="{$base}apps/" class="btn-logo btn-app">
-                        <xsl:apply-templates select="key('resources', 'applications', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                    </a>
-                </li>
-                <li>
-                    <button class="btn btn-small btn-expand-tree"></button>
-                    <a href="{$base}charts/" class="btn-logo btn-chart">
-                        <xsl:apply-templates select="key('resources', 'charts', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                    </a>
-                </li>
-                <li>
-                    <button class="btn btn-small btn-expand-tree"></button>
-                    <a href="{$base}files/" class="btn-logo btn-file">
-                        <xsl:apply-templates select="key('resources', 'files', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                    </a>
-                </li>
-                <li>
-                    <button class="btn btn-small btn-expand-tree"></button>
-                    <a href="{$base}imports/" class="btn-logo btn-import">
-                        <xsl:apply-templates select="key('resources', 'imports', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                    </a>
-                </li>
-                <li>
-                    <button class="btn btn-small btn-expand-tree"></button>
-                    <a href="{$base}queries/" class="btn-logo btn-query">
-                        <xsl:apply-templates select="key('resources', 'queries', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                    </a>
-                </li>
-                <li>
-                    <button class="btn btn-small btn-expand-tree"></button>
-                    <a href="{$base}services/" class="btn-logo btn-service">
-                        <xsl:apply-templates select="key('resources', 'services', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                    </a>
-                </li>
-                <!-- non-expandable containers (not based on ldh:SelectChildren) -->
-                <li>
-                    <a href="{$base}geo/" class="btn-logo btn-geo">
-                        <xsl:apply-templates select="key('resources', 'geo', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                    </a>
-                </li>
-                <li>
-                    <a href="{$base}latest/" class="btn-logo btn-latest">
-                        <xsl:apply-templates select="key('resources', 'latest', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                    </a>
-                </li>
-            </ul>
+            <xsl:call-template name="ldh:DocTree">
+                <xsl:with-param name="base" select="$base"/>
+            </xsl:call-template>
         </div>
+    </xsl:template>
+    
+    <xsl:template name="ldh:DocTree">
+        <xsl:param name="base" select="ldt:base()" as="xs:anyURI"/>
+
+        <h2 class="nav-header btn">
+            <xsl:apply-templates select="key('resources', 'document-tree', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+        </h2>
+
+        <ul class="well well-small nav nav-list">
+            <!-- TO-DO: generalize -->
+            <li>
+                <button class="btn btn-small btn-expand-tree"></button>
+                <a href="{$base}" class="btn-logo btn-container">
+                    <xsl:apply-templates select="key('resources', 'root', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                </a>
+            </li>
+            <li>
+                <button class="btn btn-small btn-expand-tree"></button>
+                <a href="{$base}apps/" class="btn-logo btn-app">
+                    <xsl:apply-templates select="key('resources', 'applications', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                </a>
+            </li>
+            <li>
+                <button class="btn btn-small btn-expand-tree"></button>
+                <a href="{$base}charts/" class="btn-logo btn-chart">
+                    <xsl:apply-templates select="key('resources', 'charts', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                </a>
+            </li>
+            <li>
+                <button class="btn btn-small btn-expand-tree"></button>
+                <a href="{$base}files/" class="btn-logo btn-file">
+                    <xsl:apply-templates select="key('resources', 'files', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                </a>
+            </li>
+            <li>
+                <button class="btn btn-small btn-expand-tree"></button>
+                <a href="{$base}imports/" class="btn-logo btn-import">
+                    <xsl:apply-templates select="key('resources', 'imports', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                </a>
+            </li>
+            <li>
+                <button class="btn btn-small btn-expand-tree"></button>
+                <a href="{$base}queries/" class="btn-logo btn-query">
+                    <xsl:apply-templates select="key('resources', 'queries', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                </a>
+            </li>
+            <li>
+                <button class="btn btn-small btn-expand-tree"></button>
+                <a href="{$base}services/" class="btn-logo btn-service">
+                    <xsl:apply-templates select="key('resources', 'services', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                </a>
+            </li>
+            <!-- non-expandable containers (not based on ldh:SelectChildren) -->
+            <li>
+                <a href="{$base}geo/" class="btn-logo btn-geo">
+                    <xsl:apply-templates select="key('resources', 'geo', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                </a>
+            </li>
+            <li>
+                <a href="{$base}latest/" class="btn-logo btn-latest">
+                    <xsl:apply-templates select="key('resources', 'latest', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                </a>
+            </li>
+        </ul>
     </xsl:template>
     
     <xsl:template name="ldh:DocTreeResourceLoad">
