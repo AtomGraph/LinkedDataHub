@@ -230,7 +230,7 @@ WHERE
                 <xsl:call-template name="ldh:DocTree"/>
             </xsl:result-document>
             <!-- if the layout is not a responsive one, hide the container by default -->
-            <xsl:if test="ixsl:style(.)?position = 'fixed'">
+            <xsl:if test="ixsl:get(ixsl:call(ixsl:window(), 'matchMedia', [ '(min-width: 980px)' ]), 'matches') = true()">
                 <ixsl:set-style name="display" select="'none'" object="."/>
             </xsl:if>
         </xsl:for-each>
