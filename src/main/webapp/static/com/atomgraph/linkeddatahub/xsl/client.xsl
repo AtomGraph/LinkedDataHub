@@ -229,8 +229,10 @@ WHERE
             <xsl:result-document href="?." method="ixsl:replace-content">
                 <xsl:call-template name="ldh:DocTree"/>
             </xsl:result-document>
-            <!-- hide it by default -->
-            <ixsl:set-style name="display" select="'none'" object="."/>
+            <!-- if the layout is not a responsive one, hide the container by default -->
+            <xsl:if test="ixsl:style(.)?position = 'fixed'">
+                <ixsl:set-style name="display" select="'none'" object="."/>
+            </xsl:if>
         </xsl:for-each>
     </xsl:template>
 
