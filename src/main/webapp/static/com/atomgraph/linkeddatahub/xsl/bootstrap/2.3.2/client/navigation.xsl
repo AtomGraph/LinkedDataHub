@@ -136,7 +136,7 @@ exclude-result-prefixes="#all"
             </xsl:variable>
             <xsl:sequence select="$select-xml"/>
         </xsl:param>
-        <xsl:param name="endpoint" select="resolve-uri('sparql', $ldt:base)" as="xs:anyURI"/>
+        <xsl:param name="endpoint" as="xs:anyURI"/>
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
         
@@ -223,6 +223,7 @@ exclude-result-prefixes="#all"
                 <xsl:call-template name="ldh:DocTreeResourceLoad">
                     <xsl:with-param name="container" select="$container/ul"/>
                     <xsl:with-param name="uri" select="$href"/>
+                    <xsl:with-param name="endpoint" select="sd:endpoint()"/>
                 </xsl:call-template>
             </xsl:when>
             <!-- if the children list is present but hidden, show it -->
