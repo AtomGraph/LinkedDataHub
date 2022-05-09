@@ -179,7 +179,8 @@ exclude-result-prefixes="#all"
     
     <!-- EVENT HANDLERS -->
     
-    <xsl:template match="div[@id = 'doc-tree']" mode="ixsl:onmouseout">
+    <!-- hide the document tree container if its position is fixed (i.e. the layout is not responsive) -->
+    <xsl:template match="div[@id = 'doc-tree'][ixsl:style(.)?position = 'fixed']" mode="ixsl:onmouseout">
         <xsl:variable name="related-target" select="ixsl:get(ixsl:event(), 'relatedTarget')" as="element()?"/> <!-- the element mouse entered -->
         
         <!-- only hide if the related target does not have this div as ancestor (is not its child) -->
