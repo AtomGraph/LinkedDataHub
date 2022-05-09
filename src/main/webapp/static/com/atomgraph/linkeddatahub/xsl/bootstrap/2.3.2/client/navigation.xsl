@@ -6,6 +6,7 @@
     <!ENTITY rdf    "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
     <!ENTITY xsd    "http://www.w3.org/2001/XMLSchema#">
     <!ENTITY ldt    "https://www.w3.org/ns/ldt#">
+    <!ENTITY sd     "http://www.w3.org/ns/sparql-service-description#">
     <!ENTITY sp     "http://spinrdf.org/sp#">
     <!ENTITY sioc   "http://rdfs.org/sioc/ns#">
 ]>
@@ -22,6 +23,7 @@ xmlns:ac="&ac;"
 xmlns:ldh="&ldh;"
 xmlns:rdf="&rdf;"
 xmlns:ldt="&ldt;"
+xmlns:sd="&sd;"
 xmlns:sp="&sp;"
 xmlns:sioc="&sioc;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
@@ -30,25 +32,6 @@ exclude-result-prefixes="#all"
 >
 
     <!-- TEMPLATES -->
-
-<!--    <xsl:template name="ldh:DocTreeContainer">
-        <xsl:param name="id" as="xs:string"/>
-        <xsl:param name="class" select="'well well-small sidebar-nav'" as="xs:string?"/>
-        <xsl:param name="base" select="ldt:base()" as="xs:anyURI"/>
-
-        <div>
-            <xsl:if test="$id">
-                <xsl:attribute name="id" select="$id"/>
-            </xsl:if>
-            <xsl:if test="$class">
-                <xsl:attribute name="class" select="$class"/>
-            </xsl:if>
-
-            <xsl:call-template name="ldh:DocTree">
-                <xsl:with-param name="base" select="$base"/>
-            </xsl:call-template>
-        </div>
-    </xsl:template>-->
     
     <xsl:template name="ldh:DocTree">
         <xsl:param name="base" select="ldt:base()" as="xs:anyURI"/>
