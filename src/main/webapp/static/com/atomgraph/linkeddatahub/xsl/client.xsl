@@ -1560,16 +1560,8 @@ WHERE
         
         <!-- check that the mouse is on the left edge -->
         <xsl:if test="$x = 0">
-            <xsl:for-each select="id('doc-tree', ixsl:page())">
-                <xsl:choose>
-                    <xsl:when test="ixsl:style(.)?display = 'none'">
-                        <ixsl:set-style name="display" select="'block'" object="."/>
-                    </xsl:when>
-                    <xsl:otherwise>
-                        <ixsl:set-style name="display" select="'none'" object="."/>
-                    </xsl:otherwise>
-                </xsl:choose>
-            </xsl:for-each>
+            <!-- show #doc-tree -->
+            <ixsl:set-style name="display" select="'block'" object="id('doc-tree', ixsl:page())"/>
         </xsl:if>
     </xsl:template>
     
