@@ -1033,7 +1033,6 @@ WHERE
         <xsl:for-each select="id('doc-tree', ixsl:page())">
             <xsl:result-document href="?." method="ixsl:replace-content">
                 <xsl:call-template name="ldh:DocTree">
-                    <xsl:with-param name="id" select="'doc-tree'"/>
                     <xsl:with-param name="base" select="$base"/>
                 </xsl:call-template>
             </xsl:result-document>
