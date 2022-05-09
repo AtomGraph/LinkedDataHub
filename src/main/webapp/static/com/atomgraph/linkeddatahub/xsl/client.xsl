@@ -224,6 +224,12 @@ WHERE
                 <xsl:with-param name="apps" select="$ldh:apps"/>
             </xsl:call-template>
         </xsl:for-each>
+        <!-- initialize document tree -->
+        <xsl:for-each select="id('doc-tree', ixsl:page())">
+            <xsl:result-document href="?." method="ixsl:replace-content">
+                <xsl:call-template name="ldh:DocTree"/>
+            </xsl:result-document>
+        </xsl:for-each>
     </xsl:template>
 
     <!-- TEMPLATES -->
@@ -1552,19 +1558,7 @@ WHERE
         
         <!-- check that the mouse is on the left edge -->
         <xsl:if test="$x = 0">
-            <xsl:variable name="container" select="id('doc-tree', ixsl:page())" as="element()?"/>
-            <xsl:choose>
-                <!-- inject document tree content if it doesn't exist -->
-                <xsl:when test="not($container/*)">
-                    <xsl:result-document href="?." method="ixsl:append-content">
-                        <xsl:call-template name="ldh:DocTree"/>
-                    </xsl:result-document>
-                </xsl:when>
-                <!-- display document tree element if it already has content -->
-                <xsl:otherwise>
-                    <ixsl:set-style name="display" select="'block'" object="$container"/>
-                </xsl:otherwise>
-            </xsl:choose>
+            <ixsl:set-style name="display" select="'block'" object="id('doc-tree', ixsl:page())"/>
         </xsl:if>
     </xsl:template>
     
