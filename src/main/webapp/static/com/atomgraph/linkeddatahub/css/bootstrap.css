@@ -65,7 +65,7 @@ li button.btn-add-data, li button.btn-add-ontology { text-align: left; width: 10
 #doc-tree { width: 15%; position: fixed; left: 0; top: 106px; height: calc(100% - 106px); overflow: auto; }
 @media (max-width: 979px)
 {
-    #doc-tree { width: auto; position: unset; top: unset; }
+    #doc-tree { display: block; width: auto; position: unset; top: unset; }
 }
 #doc-tree .nav-list > li > a { margin-left: 0; margin-right: 0; }
 #doc-tree .nav-list > li > a.btn-container, #doc-tree .nav-list > li > a.btn-app, #doc-tree .nav-list > li > a.btn-chart, #doc-tree .nav-list > li > a.btn-file, #doc-tree .nav-list > li > a.btn-geo, #doc-tree .nav-list > li > a.btn-import, #doc-tree .nav-list > li > a.btn-latest, #doc-tree .nav-list > li > a.btn-query, #doc-tree .nav-list > li > a.btn-service { padding-left: 24px; }

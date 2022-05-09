@@ -1554,15 +1554,13 @@ WHERE
         <xsl:if test="$x = 0">
             <xsl:variable name="container" select="id('doc-tree', ixsl:page())" as="element()?"/>
             <xsl:choose>
-                <!-- insert document tree element if it doesn't exist -->
-                <xsl:when test="not($container)">
+                <!-- inject document tree content if it doesn't exist -->
+                <xsl:when test="not($container/*)">
                     <xsl:result-document href="?." method="ixsl:append-content">
-                        <xsl:call-template name="ldh:DocTreeContainer">
-                            <xsl:with-param name="id" select="'doc-tree'"/>
-                        </xsl:call-template>
+                        <xsl:call-template name="ldh:DocTree"/>
                     </xsl:result-document>
                 </xsl:when>
-                <!-- display document tree element if it exists -->
+                <!-- display document tree element if it already has content -->
                 <xsl:otherwise>
                     <ixsl:set-style name="display" select="'block'" object="$container"/>
                 </xsl:otherwise>

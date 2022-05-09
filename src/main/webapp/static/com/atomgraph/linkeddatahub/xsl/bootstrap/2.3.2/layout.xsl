@@ -798,6 +798,10 @@ exclude-result-prefixes="#all">
                 </xsl:choose>
             </div>
 
+            <div id="doc-tree" class="well well-small sidebar-nav">
+                <!-- placeholder for client-side ldh:DocTree template -->
+            </div>
+            
             <xsl:apply-templates select="." mode="bs2:Footer"/>
         </body>
     </xsl:template>

@@ -31,7 +31,7 @@ exclude-result-prefixes="#all"
 
     <!-- TEMPLATES -->
 
-    <xsl:template name="ldh:DocTreeContainer">
+<!--    <xsl:template name="ldh:DocTreeContainer">
         <xsl:param name="id" as="xs:string"/>
         <xsl:param name="class" select="'well well-small sidebar-nav'" as="xs:string?"/>
         <xsl:param name="base" select="ldt:base()" as="xs:anyURI"/>
@@ -48,7 +48,7 @@ exclude-result-prefixes="#all"
                 <xsl:with-param name="base" select="$base"/>
             </xsl:call-template>
         </div>
-    </xsl:template>
+    </xsl:template>-->
     
     <xsl:template name="ldh:DocTree">
         <xsl:param name="base" select="ldt:base()" as="xs:anyURI"/>
