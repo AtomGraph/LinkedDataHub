@@ -1,4 +1,4 @@
-## [3.1.5] - 2022-05-10
+## [3.1.6] - 2022-05-10
 ### Added
 - Spanish UI localization
 - Reconciliation of OIDC accounts with existing agents by email address
