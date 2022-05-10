@@ -65,6 +65,13 @@ public class Clear
         this.system = system;
     }
     
+    /**
+     * Clears the specified ontology from memory.
+     * 
+     * @param ontologyURI ontology URI
+     * @param referer the referring URL
+     * @return JAX-RS response
+     */
     @POST
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     public Response post(@FormParam("uri") String ontologyURI, @HeaderParam("Referer") URI referer)

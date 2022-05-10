@@ -35,7 +35,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- *
+ * A catch-all JAX-RS resource that routes requests to sub-resources.
+ * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
 @Path("/")
@@ -123,6 +124,11 @@ public class Dispatcher
         return Namespace.class;
     }
 
+    /**
+     * Returns second-level ontology documents.
+     * 
+     * @return namespace resource
+     */
     @Path("ns/{slug}/")
     public Object getSubOntology()
     {
@@ -155,7 +161,7 @@ public class Dispatcher
      * Returns content-addressed file item resource.
      * 
      * @return resource
-     * @see com.atomgraph.linkeddatahub.apps.model.Application.UPLOADS_PATH
+     * @see com.atomgraph.linkeddatahub.apps.model.Application#UPLOADS_PATH
      */
     @Path("uploads/{sha1sum}")
     public Object getFileItem()

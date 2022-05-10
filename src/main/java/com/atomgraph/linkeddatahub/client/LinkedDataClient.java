@@ -28,7 +28,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- *
+ * Linked Data client that supports WebID and OIDC delegation.
+ * 
  * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
  */
 public class LinkedDataClient extends com.atomgraph.core.client.LinkedDataClient
@@ -39,16 +40,37 @@ public class LinkedDataClient extends com.atomgraph.core.client.LinkedDataClient
     private URI baseURI;
     private AgentContext agentContext;
     
+    /**
+     * Constructs Linked Data client from HTTP client and media types.
+     * 
+     * @param client HTTP client
+     * @param mediaTypes registry of supported readable/writable media types
+     */
     protected LinkedDataClient(Client client, MediaTypes mediaTypes)
     {
         super(client, mediaTypes);
     }
     
+    /**
+     * Factory method that accepts HTTP client and media types.
+     * 
+     * @param client HTTP client
+     * @param mediaTypes registry of supported readable/writable media types
+     * @return Linked Data client instance
+     */
     public static LinkedDataClient create(Client client, MediaTypes mediaTypes)
     {
         return new LinkedDataClient(client, mediaTypes);
     }
     
+    /**
+     * Builder method that delegates the authenticated agent.
+     * It uses client request filters.
+     * 
+     * @param baseURI
+     * @param agentContext
+     * @return 
+     */
     public LinkedDataClient delegation(URI baseURI, AgentContext agentContext)
     {
         this.baseURI = baseURI;

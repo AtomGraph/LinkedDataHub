@@ -103,7 +103,10 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
 {
     
     private static final Logger log = LoggerFactory.getLogger(GraphStoreImpl.class);
-            
+    
+    /**
+     * A function that derives a graph name from the Graph Store Protocol request body.
+     */
     public static Function<Model, Resource> CREATE_GRAPH = new Function<Model, Resource>()
     {
         

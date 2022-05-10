@@ -229,7 +229,7 @@ public class IDTokenFilter extends AuthenticationFilter
      * Returns the URL of the OAuth login endpoint.
      * 
      * @return endpoint URI
-     * @see com.atomgraph.linkeddatahub.resource.oauth2.Login
+     * @see com.atomgraph.linkeddatahub.resource.admin.oauth2.Login
      */
     public URI getLoginURL()
     {
@@ -240,7 +240,7 @@ public class IDTokenFilter extends AuthenticationFilter
      * Returns the URL of the Google authorization endpoint.
      * 
      * @return endpoint URI
-     * @see com.atomgraph.linkeddatahub.resource.oauth2.google.Authorize
+     * @see com.atomgraph.linkeddatahub.resource.admin.oauth2.google.Authorize
      */
     public URI getAuthorizeGoogleURL()
     {

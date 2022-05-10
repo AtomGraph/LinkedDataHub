@@ -3,7 +3,7 @@
 - Spanish UI localization
 - Reconciliation of OIDC accounts with existing agents by email address
 - Document tree widget
-- New /clear endpoint which is used to clear ontologies from memory
+- New `/clear` endpoint which is used to clear ontologies from memory
 - Second nginx port which has WebID client certificate authentication always enabled
 - `--proxy` parameter to CLI scripts
 

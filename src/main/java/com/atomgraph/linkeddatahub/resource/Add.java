@@ -208,6 +208,13 @@ public class Add extends GraphStoreImpl // TO-DO: does not need to extend GraphS
         }
     }
     
+    /**
+     * Forwards <code>POST</code> request to a graph.
+     * 
+     * @param entity request entity
+     * @param graphURI the graph URI
+     * @return JAX-RS response
+     */
     protected Response forwardPost(Entity entity, String graphURI)
     {
         LinkedDataClient ldc = LinkedDataClient.create(getSystem().getClient(), getSystem().getMediaTypes()).
