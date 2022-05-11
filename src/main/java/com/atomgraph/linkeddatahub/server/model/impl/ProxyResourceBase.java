@@ -24,9 +24,9 @@ import com.atomgraph.core.io.ModelProvider;
 import com.atomgraph.linkeddatahub.apps.model.Dataset;
 import com.atomgraph.linkeddatahub.client.filter.auth.IDTokenDelegationFilter;
 import com.atomgraph.linkeddatahub.client.filter.auth.WebIDDelegationFilter;
-import com.atomgraph.linkeddatahub.model.Agent;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
+import com.atomgraph.linkeddatahub.server.security.AgentSecurityContext;
 import com.atomgraph.linkeddatahub.server.security.IDTokenSecurityContext;
 import com.atomgraph.linkeddatahub.vocabulary.LDH;
 import java.net.URI;
@@ -158,15 +158,14 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
         readableMediaTypesList.addAll(mediaTypes.getReadable(ResultSet.class)); // not in the superclass
         this.readableMediaTypes = readableMediaTypesList.toArray(MediaType[]::new);
         
-        if (securityContext.getUserPrincipal() instanceof Agent agent)
+        if (agentContext.isPresent())
         {
-            if (securityContext.getAuthenticationScheme().equals(SecurityContext.CLIENT_CERT_AUTH))
-                super.getWebTarget().register(new WebIDDelegationFilter(agent));
+            if (agentContext.get() instanceof AgentSecurityContext)
+                super.getWebTarget().register(new WebIDDelegationFilter(agentContext.get().getAgent()));
             
-            //if (securityContext.getAuthenticationScheme().equals(IDTokenFilter.AUTH_SCHEME))
-            if (agentContext.isPresent() && agentContext.get() instanceof IDTokenSecurityContext)
+            if (agentContext.get() instanceof IDTokenSecurityContext iDTokenSecurityContext)
                 super.getWebTarget().register(new IDTokenDelegationFilter(agentContext.get().getAgent(),
-                    ((IDTokenSecurityContext)agentContext.get()).getJWTToken(), uriInfo.getBaseUri().getPath(), null));
+                    iDTokenSecurityContext.getJWTToken(), uriInfo.getBaseUri().getPath(), null));
         }
     }
     

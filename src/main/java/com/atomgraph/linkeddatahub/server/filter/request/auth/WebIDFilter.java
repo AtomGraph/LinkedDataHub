@@ -74,8 +74,6 @@ public class WebIDFilter extends AuthenticationFilter
 
     /** Constant for <code>subjectAlternativeName</code> entry URI type */
     public static final int SAN_URI_NAME = 6;
-    /** HTTP request header name that indicates WebID delegation */
-    public static final String ON_BEHALF_OF = "On-Behalf-Of";
     
     private final MediaTypes mediaTypes = new MediaTypes();
     private final javax.ws.rs.core.MediaType[] acceptedTypes;

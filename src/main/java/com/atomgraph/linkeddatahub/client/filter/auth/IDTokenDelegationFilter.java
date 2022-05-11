@@ -16,13 +16,13 @@
  */
 package com.atomgraph.linkeddatahub.client.filter.auth;
 
-import static com.atomgraph.linkeddatahub.client.filter.auth.WebIDDelegationFilter.ON_BEHALF_OF;
 import java.io.IOException;
 import javax.ws.rs.client.ClientRequestContext;
 import javax.ws.rs.client.ClientRequestFilter;
 import javax.ws.rs.core.Cookie;
 import javax.ws.rs.core.HttpHeaders;
 import com.atomgraph.linkeddatahub.server.filter.request.auth.IDTokenFilter;
+import com.atomgraph.linkeddatahub.server.filter.request.auth.WebIDFilter;
 import org.apache.jena.rdf.model.Resource;
 
 /**
@@ -61,7 +61,7 @@ public class IDTokenDelegationFilter implements ClientRequestFilter
         Cookie jwtCookie = new Cookie(IDTokenFilter.COOKIE_NAME, getJwtToken(), getPath(), getDomain());
         cr.getHeaders().add(HttpHeaders.COOKIE, jwtCookie.toString());
 
-        cr.getHeaders().add(ON_BEHALF_OF, getAgent().getURI());
+        cr.getHeaders().add(WebIDFilter.ON_BEHALF_OF, getAgent().getURI());
     }
     
     /**

@@ -50,6 +50,9 @@ public abstract class AuthenticationFilter implements ContainerRequestFilter
     
     private static final Logger log = LoggerFactory.getLogger(AuthenticationFilter.class);
 
+    /** HTTP request header name that indicates WebID delegation */
+    public static final String ON_BEHALF_OF = "On-Behalf-Of";
+    
     @Inject com.atomgraph.linkeddatahub.Application system;
     @Inject javax.inject.Provider<com.atomgraph.linkeddatahub.apps.model.Application> app;
     @Inject javax.inject.Provider<Optional<com.atomgraph.linkeddatahub.apps.model.Dataset>> dataset;
