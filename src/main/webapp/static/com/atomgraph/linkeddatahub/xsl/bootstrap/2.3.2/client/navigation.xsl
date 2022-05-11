@@ -100,7 +100,7 @@ exclude-result-prefixes="#all"
     
     <xsl:template name="ldh:DocTreeActivateHref">
         <xsl:context-item as="element()" use="required"/> <!-- document tree container -->
-        <xsl:param name="href" select="$href" as="xs:anyURI"/>
+        <xsl:param name="href" as="xs:anyURI"/>
 
         <!-- make the previously active list items inactive -->
         <xsl:for-each select=".//li[contains-token(@class, 'active')]">
