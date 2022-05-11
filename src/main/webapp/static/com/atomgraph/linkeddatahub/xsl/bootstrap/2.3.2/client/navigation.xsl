@@ -98,6 +98,20 @@ exclude-result-prefixes="#all"
         </ul>
     </xsl:template>
     
+    <xsl:template name="ldh:DocTreeActivateHref">
+        <xsl:context-item as="element()" use="required"/> <!-- document tree container -->
+        <xsl:param name="href" select="$href" as="xs:anyURI"/>
+
+        <!-- make the previously active list items inactive -->
+        <xsl:for-each select=".//li[contains-token(@class, 'active')]">
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+        </xsl:for-each>
+        <xsl:for-each select=".//li[a/@href = $href]">
+            <!-- mark the new list item as active -->
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+        </xsl:for-each>
+    </xsl:template>
+    
     <xsl:template name="ldh:DocTreeResourceLoad">
         <xsl:param name="container" as="element()"/>
         <xsl:param name="uri" as="xs:anyURI"/>
@@ -172,14 +186,15 @@ exclude-result-prefixes="#all"
         </xsl:if>
     </xsl:template>
     
-    <xsl:template match="div[@id = 'doc-tree']//li/a" mode="ixsl:onclick" priority="1">
-        <!-- make the previously active list items inactive -->
-        <xsl:for-each select="ancestor::div[@id = 'doc-tree']//li[contains-token(@class, 'active')]">
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+    <xsl:template match="div[@id = 'doc-tree']//li/a[@href]" mode="ixsl:onclick" priority="1">
+        <xsl:variable name="href" select="@href" as="xs:anyURI"/>
+        
+        <xsl:for-each select="ancestor::div[@id = 'doc-tree']">
+            <xsl:call-template name="ldh:DocTreeActivateHref">
+                <xsl:with-param name="href" select="$href"/>
+            </xsl:call-template>
         </xsl:for-each>
-        <!-- mark this list item as active -->
-        <xsl:sequence select="ixsl:call(ixsl:get(.., 'classList'), 'toggle', [ 'active', true() ])[current-date() lt xs:date('2000-01-01')]"/>
-
+        
         <xsl:next-match/>
     </xsl:template>
     
