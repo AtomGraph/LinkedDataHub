@@ -571,7 +571,7 @@ WHERE
                 </xsl:variable>
                 <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:if>
-
+        
             <!-- TO-DO: replace hardcoded element ID -->
             <xsl:if test="id('map-canvas', ixsl:page())">
                 <xsl:variable name="canvas-id" select="'map-canvas'" as="xs:string"/>
@@ -1031,6 +1031,13 @@ WHERE
             <xsl:with-param name="content-ids" select="$content-ids"/>
             <!--<xsl:with-param name="state" select="$state"/>-->
         </xsl:call-template>
+
+        <!-- activate the current URL in the document tree -->
+        <xsl:for-each select="id('doc-tree', ixsl:page())">
+            <xsl:call-template name="ldh:DocTreeActivateHref">
+                <xsl:with-param name="href" select="$href"/>
+            </xsl:call-template>
+        </xsl:for-each>
         
         <xsl:call-template name="ldh:RDFDocumentLoad">
             <xsl:with-param name="uri" select="$uri"/>
