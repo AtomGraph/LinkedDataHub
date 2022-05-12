@@ -16,6 +16,7 @@ print_usage()
     printf "  --description DESCRIPTION            Description of the chart (optional)\n"
     printf "  --slug STRING                        String that will be used as URI path segment (optional)\n"
     printf "\n"
+    printf "  --fragment STRING                    String that will be used as URI fragment identifier (optional)\n"
     printf "  --query QUERY_URI                    URI of the SELECT query\n"
     printf "  --chart-type TYPE_URI                URI of the chart type\n"
     printf "  --category-var-name CATEGORY_VAR     Name of the variable used as category (without leading '?')\n"
@@ -57,6 +58,11 @@ do
         ;;
         --slug)
         slug="$2"
+        shift # past argument
+        shift # past value
+        ;;
+        --fragment)
+        fragment="$2"
         shift # past argument
         shift # past value
         ;;
@@ -153,6 +159,9 @@ if [ -n "$description" ] ; then
 fi
 if [ -n "$slug" ] ; then
     turtle+="_:item dh:slug \"${slug}\" .\n"
+fi
+if [ -n "$fragment" ] ; then
+    turtle+="_:chart ldh:fragment \"${fragment}\" .\n"
 fi
 
 # submit Turtle doc to the server

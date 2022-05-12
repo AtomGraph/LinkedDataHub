@@ -5,12 +5,14 @@
 
 package com.atomgraph.linkeddatahub.server.util;
 
-import java.util.HashSet;
-import java.util.Set;
+import com.atomgraph.linkeddatahub.vocabulary.LDH;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 import java.util.function.Function;
 import javax.ws.rs.core.UriBuilder;
 import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.util.ResourceUtils;
@@ -25,17 +27,30 @@ public class Skolemizer implements Function<Model, Model>
 {
 
     private final String base;
+    private final Property fragmentProperty;
     
+    /**
+     * Constructs skolemizer from base URI and optional fragment property.
+     * 
+     * @param base URI that fragments will be resolved against
+     * @param fragmentProperty if specified, the skolemizer will use the value of this property as the fragment ID
+     */
+    public Skolemizer(String base, Property fragmentProperty)
+    {
+        this.base = base;
+        this.fragmentProperty = fragmentProperty;
+    }
+
     /**
      * Constructs skolemizer from base URI.
      * 
-     * @param base URI that fragments will be resolved against
+     * @param base URI that fragments will be resolved against. <code>ldh:fragment</code> is the default.
      */
     public Skolemizer(String base)
     {
-        this.base = base;
+        this(base, LDH.fragment);
     }
-
+    
     /**
      * Skolemizes RDF graph by replacing blank node resources with fragment URI resources.
      * 
@@ -45,7 +60,7 @@ public class Skolemizer implements Function<Model, Model>
     @Override
     public Model apply(Model model)
     {
-        Set<Resource> bnodes = new HashSet<>();
+        Map<Resource, String> bnodes = new HashMap<>();
 
         ExtendedIterator<Statement> it = model.listStatements().
             filterKeep((Statement stmt) -> (stmt.getSubject().isAnon() || stmt.getObject().isAnon()));
@@ -55,8 +70,12 @@ public class Skolemizer implements Function<Model, Model>
             {
                 Statement stmt = it.next();
 
-                if (stmt.getSubject().isAnon()) bnodes.add(stmt.getSubject());
-                if (stmt.getObject().isAnon()) bnodes.add(stmt.getObject().asResource());
+                final String fragment;
+                if (stmt.getSubject().hasProperty(getFragmentProperty())) fragment = stmt.getSubject().getProperty(getFragmentProperty()).getString();
+                else fragment = "id" + UUID.randomUUID().toString(); // UUID can start with a number which is not legal for a fragment ID
+                
+                if (stmt.getSubject().isAnon()) bnodes.put(stmt.getSubject(), fragment);
+                if (stmt.getObject().isAnon()) bnodes.put(stmt.getObject().asResource(), fragment);
             }
         }
         finally
@@ -64,10 +83,15 @@ public class Skolemizer implements Function<Model, Model>
             it.close();
         }
 
-        bnodes.stream().forEach(bnode ->
-            ResourceUtils.renameResource(bnode, UriBuilder.fromUri(getBase()).
-                fragment("id{uuid}").
-                build(UUID.randomUUID().toString()).toString()));
+        bnodes.entrySet().forEach(entry ->
+            {
+                if (getFragmentProperty() != null) entry.getKey().removeAll(getFragmentProperty()); // remove the fragment slug
+                
+                ResourceUtils.renameResource(entry.getKey(), UriBuilder.fromUri(getBase()).
+                    fragment(entry.getValue()).
+                    build().
+                    toString());
+            });
 
         return model;
     }
@@ -80,6 +104,16 @@ public class Skolemizer implements Function<Model, Model>
     public String getBase()
     {
         return base;
+    }
+    
+    /**
+     * Returns the property which can be used to specify the fragment ID.
+     * 
+     * @return RDF property
+     */
+    public Property getFragmentProperty()
+    {
+        return fragmentProperty;
     }
     
 }
