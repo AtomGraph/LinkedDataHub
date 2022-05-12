@@ -229,6 +229,9 @@ WHERE
             <xsl:result-document href="?." method="ixsl:replace-content">
                 <xsl:call-template name="ldh:DocTree"/>
             </xsl:result-document>
+            <xsl:call-template name="ldh:DocTreeActivateHref">
+                <xsl:with-param name="href" select="ldh:href()"/>
+            </xsl:call-template>
             <!-- if the layout is not a responsive one, hide the container by default -->
             <xsl:if test="ixsl:get(ixsl:call(ixsl:window(), 'matchMedia', [ '(min-width: 980px)' ]), 'matches') = true()">
                 <ixsl:set-style name="display" select="'none'" object="."/>
