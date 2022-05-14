@@ -195,7 +195,7 @@ exclude-result-prefixes="#all"
     <!-- load content -->
     
     <xsl:template name="ldh:LoadContent">
-        <xsl:context-item as="element()*" use="required"/> <!-- container element -->
+        <xsl:context-item as="element()" use="required"/> <!-- container element -->
         <xsl:param name="uri" as="xs:anyURI"/>
         <xsl:variable name="content-uri" select="ixsl:get(., 'dataset.contentUri')" as="xs:anyURI"/> <!-- get the value of the @data-content-uri attribute -->
         <xsl:variable name="mode" select="if (ixsl:contains(., 'dataset.contentMode')) then xs:anyURI(ixsl:get(., 'dataset.contentMode')) else ()" as="xs:anyURI?"/> <!-- get the value of the @data-content-mode attribute -->
