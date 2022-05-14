@@ -64,27 +64,27 @@ exclude-result-prefixes="#all"
 
         <!-- highlight the lines going to/from this node and move to the end of the document (visually, move to front) -->
         <!-- cannot use keys due to Saxon-JS issue: https://saxonica.plan.io/issues/5036 -->
-<!--        <xsl:for-each select="key('lines-by-start', @id, ixsl:page()) | key('lines-by-end', @id, ixsl:page())">
-            <ixsl:set-attribute name="stroke" select="$highlight-color"/>
-            <ixsl:set-attribute name="marker-end" select="'url(#' || $highlighted-marker-id || ')'"/>
-            <xsl:sequence select="ixsl:call(ancestor::svg:svg, 'appendChild', [ . ])[current-date() lt xs:date('2000-01-01')]"/>
-        </xsl:for-each>-->
-        <xsl:for-each select="ixsl:page()//svg:line[@data-id1 = current()/@id] | ixsl:page()//svg:line[@data-id2 = current()/@id]">
+        <xsl:for-each select="key('lines-by-start', @id, ixsl:page()) | key('lines-by-end', @id, ixsl:page())">
             <ixsl:set-attribute name="stroke" select="$highlight-color"/>
             <ixsl:set-attribute name="marker-end" select="'url(#' || $highlighted-marker-id || ')'"/>
             <xsl:sequence select="ixsl:call(ancestor::svg:svg, 'appendChild', [ . ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
+<!--        <xsl:for-each select="ixsl:page()//svg:line[@data-id1 = current()/@id] | ixsl:page()//svg:line[@data-id2 = current()/@id]">
+            <ixsl:set-attribute name="stroke" select="$highlight-color"/>
+            <ixsl:set-attribute name="marker-end" select="'url(#' || $highlighted-marker-id || ')'"/>
+            <xsl:sequence select="ixsl:call(ancestor::svg:svg, 'appendChild', [ . ])[current-date() lt xs:date('2000-01-01')]"/>
+        </xsl:for-each>-->
         
         <!-- move line end nodes to the end of the document (visually, move to front) -->
         <!-- cannot use keys due to Saxon-JS issue: https://saxonica.plan.io/issues/5036 -->
-<!--        <xsl:for-each select="id(key('lines-by-start', @id, ixsl:page())/@data-id2, ixsl:page()) | id(key('lines-by-end', @id, ixsl:page())/@data-id1, ixsl:page())">
-            <ixsl:set-attribute name="stroke" select="$highlight-color" object="svg:circle"/>
-            <xsl:sequence select="ixsl:call($svg, 'appendChild', [ . ])[current-date() lt xs:date('2000-01-01')]"/>
-        </xsl:for-each>-->
-        <xsl:for-each select="id(ixsl:page()//svg:line[@data-id1 = current()/@id]/@data-id2, ixsl:page()) | id(ixsl:page()//svg:line[@data-id2 = current()/@id]/@data-id1, ixsl:page())">
+        <xsl:for-each select="id(key('lines-by-start', @id, ixsl:page())/@data-id2, ixsl:page()) | id(key('lines-by-end', @id, ixsl:page())/@data-id1, ixsl:page())">
             <ixsl:set-attribute name="stroke" select="$highlight-color" object="svg:circle"/>
             <xsl:sequence select="ixsl:call($svg, 'appendChild', [ . ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
+<!--        <xsl:for-each select="id(ixsl:page()//svg:line[@data-id1 = current()/@id]/@data-id2, ixsl:page()) | id(ixsl:page()//svg:line[@data-id2 = current()/@id]/@data-id1, ixsl:page())">
+            <ixsl:set-attribute name="stroke" select="$highlight-color" object="svg:circle"/>
+            <xsl:sequence select="ixsl:call($svg, 'appendChild', [ . ])[current-date() lt xs:date('2000-01-01')]"/>
+        </xsl:for-each>-->
 
         <!-- move start node to the end of the document (visually, move to front) -->
         <xsl:sequence select="ixsl:call($svg, 'appendChild', [ . ])[current-date() lt xs:date('2000-01-01')]"/>
@@ -96,23 +96,23 @@ exclude-result-prefixes="#all"
 
         <!-- unhighlight end nodes -->
         <!-- cannot use keys due to Saxon-JS issue: https://saxonica.plan.io/issues/5036 -->
-<!--        <xsl:for-each select="id(key('lines-by-start', @id, ixsl:page())/@data-id2, ixsl:page()) | id(key('lines-by-end', @id, ixsl:page())/@data-id1, ixsl:page())">
-            <ixsl:set-attribute name="stroke" select="'gray'" object="svg:circle"/>
-        </xsl:for-each>-->
-        <xsl:for-each select="id(ixsl:page()//svg:line[@data-id1 = current()/@id]/@data-id2, ixsl:page()) | id(ixsl:page()//svg:line[@data-id2 = current()/@id]/@data-id1, ixsl:page())">
+        <xsl:for-each select="id(key('lines-by-start', @id, ixsl:page())/@data-id2, ixsl:page()) | id(key('lines-by-end', @id, ixsl:page())/@data-id1, ixsl:page())">
             <ixsl:set-attribute name="stroke" select="'gray'" object="svg:circle"/>
         </xsl:for-each>
+<!--        <xsl:for-each select="id(ixsl:page()//svg:line[@data-id1 = current()/@id]/@data-id2, ixsl:page()) | id(ixsl:page()//svg:line[@data-id2 = current()/@id]/@data-id1, ixsl:page())">
+            <ixsl:set-attribute name="stroke" select="'gray'" object="svg:circle"/>
+        </xsl:for-each>-->
 
         <!-- unhighlight the lines going to/from this node -->
         <!-- cannot use keys due to Saxon-JS issue: https://saxonica.plan.io/issues/5036 -->
-<!--        <xsl:for-each select="key('lines-by-start', @id, ixsl:page()) | key('lines-by-end', @id, ixsl:page())">
-            <ixsl:set-attribute name="stroke" select="'gray'"/>
-            <ixsl:set-attribute name="marker-end" select="'url(#triangle)'"/>
-        </xsl:for-each>-->
-        <xsl:for-each select="ixsl:page()//svg:line[@data-id1 = current()/@id] | ixsl:page()//svg:line[@data-id2 = current()/@id]">
+        <xsl:for-each select="key('lines-by-start', @id, ixsl:page()) | key('lines-by-end', @id, ixsl:page())">
             <ixsl:set-attribute name="stroke" select="'gray'"/>
             <ixsl:set-attribute name="marker-end" select="'url(#triangle)'"/>
         </xsl:for-each>
+<!--        <xsl:for-each select="ixsl:page()//svg:line[@data-id1 = current()/@id] | ixsl:page()//svg:line[@data-id2 = current()/@id]">
+            <ixsl:set-attribute name="stroke" select="'gray'"/>
+            <ixsl:set-attribute name="marker-end" select="'url(#triangle)'"/>
+        </xsl:for-each>-->
     </xsl:template>
     
     <xsl:template match="svg:svg" mode="ixsl:onmousedown">
@@ -150,22 +150,22 @@ exclude-result-prefixes="#all"
             <xsl:sequence select="ixsl:call($transform, 'setTranslate', [ $svg-x, $svg-y ])"/>
 
             <!-- move line ends together with the target node -->
-<!--            <xsl:for-each select="key('lines-by-start', $selected-node/@id, ixsl:page())">
+            <xsl:for-each select="key('lines-by-start', $selected-node/@id, ixsl:page())">
                 <ixsl:set-attribute name="x1" select="string($svg-x)"/>
                 <ixsl:set-attribute name="y1" select="string($svg-y)"/>
             </xsl:for-each>
             <xsl:for-each select="key('lines-by-end', $selected-node/@id, ixsl:page())">
                 <ixsl:set-attribute name="x2" select="string($svg-x)"/>
                 <ixsl:set-attribute name="y2" select="string($svg-y)"/>
-            </xsl:for-each>-->
-            <xsl:for-each select="ixsl:page()//svg:line[@data-id1 = $selected-node/@id]">
+            </xsl:for-each>
+<!--            <xsl:for-each select="ixsl:page()//svg:line[@data-id1 = $selected-node/@id]">
                 <ixsl:set-attribute name="x1" select="string($svg-x)"/>
                 <ixsl:set-attribute name="y1" select="string($svg-y)"/>
             </xsl:for-each>
             <xsl:for-each select="ixsl:page()//svg:line[@data-id2 = $selected-node/@id]">
                 <ixsl:set-attribute name="x2" select="string($svg-x)"/>
                 <ixsl:set-attribute name="y2" select="string($svg-y)"/>
-            </xsl:for-each>
+            </xsl:for-each>-->
         </xsl:if>
     </xsl:template>
 
