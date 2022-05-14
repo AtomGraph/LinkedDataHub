@@ -151,20 +151,20 @@ exclude-result-prefixes="#all"
 
             <!-- move line ends together with the target node -->
 <!--            <xsl:for-each select="key('lines-by-start', $selected-node/@id, ixsl:page())">
-                <ixsl:set-attribute name="x1" select="$svg-x"/>
-                <ixsl:set-attribute name="y1" select="$svg-y"/>
+                <ixsl:set-attribute name="x1" select="string($svg-x)"/>
+                <ixsl:set-attribute name="y1" select="string($svg-y)"/>
             </xsl:for-each>
             <xsl:for-each select="key('lines-by-end', $selected-node/@id, ixsl:page())">
-                <ixsl:set-attribute name="x2" select="$svg-x"/>
-                <ixsl:set-attribute name="y2" select="$svg-y"/>
+                <ixsl:set-attribute name="x2" select="string($svg-x)"/>
+                <ixsl:set-attribute name="y2" select="string($svg-y)"/>
             </xsl:for-each>-->
             <xsl:for-each select="ixsl:page()//svg:line[@data-id1 = $selected-node/@id]">
-                <ixsl:set-attribute name="x1" select="$svg-x"/>
-                <ixsl:set-attribute name="y1" select="$svg-y"/>
+                <ixsl:set-attribute name="x1" select="string($svg-x)"/>
+                <ixsl:set-attribute name="y1" select="string($svg-y)"/>
             </xsl:for-each>
             <xsl:for-each select="ixsl:page()//svg:line[@data-id2 = $selected-node/@id]">
-                <ixsl:set-attribute name="x2" select="$svg-x"/>
-                <ixsl:set-attribute name="y2" select="$svg-y"/>
+                <ixsl:set-attribute name="x2" select="string($svg-x)"/>
+                <ixsl:set-attribute name="y2" select="string($svg-y)"/>
             </xsl:for-each>
         </xsl:if>
     </xsl:template>
