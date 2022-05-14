@@ -172,7 +172,15 @@ An environment variable `JENA_HOME` is used by all the command line tools to con
     export JENA_HOME=the directory you downloaded Jena to
     export PATH="$PATH:$JENA_HOME/bin"
 
-**Get the [source code](https://github.com/AtomGraph/LinkedDataHub-Apps)**
+## Sample applications
+
+### Third party
+
+* [NOI OpenDataHub](https://kg.opendatahub.bz.it) – tourism Knowledge Graph portal powered by LinkedDataHub and [@ontop](https://github.com/ontop). [Source code](https://github.com/noi-techpark/it.bz.opendatahub.kg).
+
+### [Demo apps](https://github.com/AtomGraph/LinkedDataHub-Apps)
+
+These demo applications can be installed into a LinkedDataHub instance using the provided CLI scripts.
 
 _:warning: Before running app installation scripts that use LinkedDataHub's CLI scripts, set the `SCRIPT_ROOT` environmental variable to the [`scripts`](https://github.com/AtomGraph/LinkedDataHub/tree/master/scripts) subfolder of your LinkedDataHub fork or clone._ For example:
 

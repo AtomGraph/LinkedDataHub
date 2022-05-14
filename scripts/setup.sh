@@ -1,9 +1,6 @@
 #!/usr/bin/env bash
 set -e
 
-# check required bash version
-[ "${BASH_VERSINFO:-0}" -lt 4 ] && echo "Bash version too old. Bash 4 is required for associative array support. Aborting." && exit 1
-
 # check that uuidgen command is available
 hash uuidgen 2>/dev/null || { echo >&2 "uuidgen not on \$PATH. Aborting."; exit 1; }
 
@@ -41,45 +38,48 @@ validity="$5"
 echo "" >> "$env_file"
 echo "SECRETARY_CERT_PASSWORD=${secretary_cert_pwd}" >> "$env_file"
 
-declare -A env
+function envProp {
+  local expectedKey=$1
+  while IFS='=' read -r k v; do
+      if [ -n "$k" ] && [ "$k" == "$expectedKey" ] ; then
+        echo "$v";
+        break;
+      fi
+  done < "$env_file"
+}
 
-# read file line by line and populate the array. Field separator is "="
-while IFS='=' read -r k v; do
-    if [ -n "$k" ] ; then env["$k"]="$v"; fi
-done < "$env_file"
-
-if [ -z "${env["PROTOCOL"]}" ]; then
+if [ -z "$(envProp "PROTOCOL")" ]; then
     echo "Configuration is incomplete: PROTOCOL is missing"
     exit 1
 fi
-if [ -z "${env["HTTPS_PORT"]}" ]; then
+if [ -z "$(envProp "HTTPS_PORT")" ]; then
     echo "Configuration is incomplete: HTTPS_PORT is missing"
     exit 1
 fi
-if [ -z "${env["HTTP_PORT"]}" ]; then
+if [ -z "$(envProp "HTTP_PORT")" ]; then
     echo "Configuration is incomplete: HTTP_PORT is missing"
     exit 1
 fi
-if [ -z "${env["HOST"]}" ]; then
+if [ -z "$(envProp "HOST")" ]; then
     echo "Configuration is incomplete: HOST is missing"
     exit 1
 fi
-if [ -z "${env["ABS_PATH"]}" ]; then
+if [ -z "$(envProp "ABS_PATH")" ]; then
     echo "Configuration is incomplete: ABS_PATH is missing"
     exit 1
 fi
 
-if [ "${env["PROTOCOL"]}" = "https" ]; then
-    if [ "${env["HTTPS_PORT"]}" = 443 ]; then
-        base_uri="${env["PROTOCOL"]}://${env["HOST"]}${env["ABS_PATH"]}"
+if [ "$(envProp "PROTOCOL")" = "https" ]; then
+    if [ "$(envProp "HTTPS_PORT")" = 443 ]; then
+        base_uri="$(envProp "PROTOCOL")://$(envProp "HOST")$(envProp "ABS_PATH")"
     else
-        base_uri="${env["PROTOCOL"]}://${env["HOST"]}:${env["HTTPS_PORT"]}${env["ABS_PATH"]}"
+        base_uri="$(envProp "PROTOCOL")://$(envProp "HOST"):$(envProp "HTTPS_PORT")$(envProp "ABS_PATH")"
     fi
 else
-    if [ "${env["HTTP_PORT"]}" = 80 ]; then
-        base_uri="${env["PROTOCOL"]}://${env["HOST"]}${env["ABS_PATH"]}"
+    if [ "$(envProp "HTTP_PORT")" = 80 ]; then
+        base_uri="$(envProp "PROTOCOL")://$(envProp "HOST")$(envProp "ABS_PATH")"
     else
-        base_uri="${env["PROTOCOL"]}://${env["HOST"]}:${env["HTTP_PORT"]}${env["ABS_PATH"]}"
+        base_uri="$(envProp "PROTOCOL")://$(envProp "HOST"):$(envProp "HTTP_PORT")$(envProp "ABS_PATH")"
     fi
 fi
 
@@ -90,19 +90,19 @@ printf "\n### Base URI: %s\n" "$base_uri"
 mkdir -p "$out_folder"/server
 
 # crude check if the host is an IP address
-IP_ADDR_MATCH=$(echo "${env["HOST"]}" | grep -oE "\b([0-9]{1,3}\.){3}[0-9]{1,3}\b" || test $? = 1)
+IP_ADDR_MATCH=envProp "HOST" | grep -oE "\b([0-9]{1,3}\.){3}[0-9]{1,3}\b" || test $? = 1
 
 if [ -n "$IP_ADDR_MATCH" ]; then
     if [ -n "$proxy_host" ]; then
-        san="subjectAltName=IP:${env["HOST"]},DNS:${proxy_host}" # IP address - special case for localhost
+        san="subjectAltName=IP:$(envProp "HOST"),DNS:${proxy_host}" # IP address - special case for localhost
     else
-        san="subjectAltName=IP:${env["HOST"]}" # IP address
+        san="subjectAltName=IP:$(envProp "HOST")" # IP address
     fi
 else
     if [ -n "$proxy_host" ]; then
-        san="subjectAltName=DNS:${env["HOST"]},DNS:${proxy_host}" # hostname - special case for localhost
+        san="subjectAltName=DNS:$(envProp "HOST"),DNS:${proxy_host}" # hostname - special case for localhost
     else
-        san="subjectAltName=DNS:${env["HOST"]}" # hostname
+        san="subjectAltName=DNS:$(envProp "HOST")" # hostname
     fi
 fi
 
@@ -110,7 +110,7 @@ fi
 openssl req -x509 -newkey rsa:4096 -sha256 -days 3650 -nodes \
   -keyout "$server_public_key" \
   -out "$server_cert" \
-  -subj "/CN=${env["HOST"]}/OU=LinkedDataHub/O=AtomGraph/L=Copenhagen/C=DK" \
+  -subj "/CN=$(envProp "HOST")/OU=LinkedDataHub/O=AtomGraph/L=Copenhagen/C=DK" \
   -extensions san \
   -config <(echo '[req]'; echo 'distinguished_name=req';
             echo '[san]'; echo "$san")
@@ -119,36 +119,36 @@ openssl req -x509 -newkey rsa:4096 -sha256 -days 3650 -nodes \
 #openssl req -x509 -newkey rsa:4096 -sha256 -days 3650 -nodes \
 #  -keyout "$server_public_key" \
 #  -out "$server_cert" \
-#  -subj "/CN=${env["HOST"]}/OU=LinkedDataHub/O=AtomGraph/L=Copenhagen/C=DK" \
+#  -subj "/CN=$(envProp "HOST")/OU=LinkedDataHub/O=AtomGraph/L=Copenhagen/C=DK" \
 #  -addext "$san"
 
 ### OWNER CERT ###
 
-if [ -z "${env["OWNER_GIVEN_NAME"]}" ]; then
+if [ -z "$(envProp "OWNER_GIVEN_NAME")" ]; then
     echo "Configuration is incomplete: OWNER_GIVEN_NAME is missing"
     exit 1
 fi
-if [ -z "${env["OWNER_FAMILY_NAME"]}" ]; then
+if [ -z "$(envProp "OWNER_FAMILY_NAME")" ]; then
     echo "Configuration is incomplete: OWNER_FAMILY_NAME is missing"
     exit 1
 fi
-if [ -z "${env["OWNER_ORG_UNIT"]}" ]; then
+if [ -z "$(envProp "OWNER_ORG_UNIT")" ]; then
     echo "Configuration is incomplete: OWNER_ORG_UNIT is missing"
     exit 1
 fi
-if [ -z "${env["OWNER_ORGANIZATION"]}" ]; then
+if [ -z "$(envProp "OWNER_ORGANIZATION")" ]; then
     echo "Configuration is incomplete: OWNER_ORGANIZATION is missing"
     exit 1
 fi
-if [ -z "${env["OWNER_LOCALITY"]}" ]; then
+if [ -z "$(envProp "OWNER_LOCALITY")" ]; then
     echo "Configuration is incomplete: OWNER_LOCALITY is missing"
     exit 1
 fi
-if [ -z "${env["OWNER_STATE_OR_PROVINCE"]}" ]; then
+if [ -z "$(envProp "OWNER_STATE_OR_PROVINCE")" ]; then
     echo "Configuration is incomplete: OWNER_STATE_OR_PROVINCE is missing"
     exit 1
 fi
-if [ -z "${env["OWNER_COUNTRY_NAME"]}" ]; then
+if [ -z "$(envProp "OWNER_COUNTRY_NAME")" ]; then
     echo "Configuration is incomplete: OWNER_COUNTRY_NAME is missing"
     exit 1
 fi
@@ -158,7 +158,7 @@ owner_uri="${base_uri}admin/acl/agents/${owner_uuid}/#this"
 
 printf "\n### Owner's WebID URI: %s\n" "$owner_uri"
 
-owner_cert_dname="CN=${env["OWNER_GIVEN_NAME"]} ${env["OWNER_FAMILY_NAME"]}, OU=${env["OWNER_ORG_UNIT"]}, O=${env["OWNER_ORGANIZATION"]}, L=${env["OWNER_LOCALITY"]}, ST=${env["OWNER_STATE_OR_PROVINCE"]}, C=${env["OWNER_COUNTRY_NAME"]}"
+owner_cert_dname="CN=$(envProp "OWNER_GIVEN_NAME") $(envProp "OWNER_FAMILY_NAME"), OU=$(envProp "OWNER_ORG_UNIT"), O=$(envProp "OWNER_ORGANIZATION"), L=$(envProp "OWNER_LOCALITY"), ST=$(envProp "OWNER_STATE_OR_PROVINCE"), C=$(envProp "OWNER_COUNTRY_NAME")"
 printf "\n### Owner WebID certificate's DName attributes: %s\n" "$owner_cert_dname"
 
 mkdir -p "$out_folder"/owner
