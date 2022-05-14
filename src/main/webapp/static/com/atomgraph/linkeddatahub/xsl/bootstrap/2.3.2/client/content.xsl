@@ -192,46 +192,40 @@ exclude-result-prefixes="#all"
     
     <!-- CALLBACKS -->
     
-    <!-- load contents -->
+    <!-- load content -->
     
-    <xsl:template name="ldh:LoadContents">
+    <xsl:template name="ldh:LoadContent">
+        <xsl:context-item as="element()*" use="required"/> <!-- container element -->
         <xsl:param name="uri" as="xs:anyURI"/>
-        <xsl:param name="content-ids" as="xs:string*"/> <!-- workaround for Saxon-JS bug: https://saxonica.plan.io/issues/5036 -->
+        <xsl:variable name="content-uri" select="ixsl:get(., 'dataset.contentUri')" as="xs:anyURI"/> <!-- get the value of the @data-content-uri attribute -->
+        <xsl:variable name="mode" select="if (ixsl:contains(., 'dataset.contentMode')) then xs:anyURI(ixsl:get(., 'dataset.contentMode')) else ()" as="xs:anyURI?"/> <!-- get the value of the @data-content-mode attribute -->
+        <xsl:variable name="container" select="." as="element()"/>
+        <xsl:variable name="progress-container" select="if (contains-token(@class, 'row-fluid')) then ./div[contains-token(@class, 'span7')] else ." as="element()"/>
 
-<!--        <xsl:for-each select="key('elements-by-class', 'resource-content', ixsl:page())">-->
-        <xsl:if test="exists($content-ids)">
-            <xsl:for-each select="id($content-ids, ixsl:page())">
-                <xsl:variable name="content-uri" select="ixsl:get(., 'dataset.contentUri')" as="xs:anyURI"/> <!-- get the value of the @data-content-uri attribute -->
-                <xsl:variable name="mode" select="if (ixsl:contains(., 'dataset.contentMode')) then xs:anyURI(ixsl:get(., 'dataset.contentMode')) else ()" as="xs:anyURI?"/> <!-- get the value of the @data-content-mode attribute -->
-                <xsl:variable name="container" select="." as="element()"/>
-                <xsl:variable name="progress-container" select="if (contains-token(@class, 'row-fluid')) then ./div[contains-token(@class, 'span7')] else ." as="element()"/>
+        <!-- show progress bar in the middle column -->
+        <xsl:for-each select="$progress-container">
+            <xsl:result-document href="?." method="ixsl:append-content">
+                <div class="progress-bar">
+                    <div class="progress progress-striped active">
+                        <div class="bar" style="width: 25%;"></div>
+                    </div>
+                </div>
+            </xsl:result-document>
+        </xsl:for-each>
 
-                <!-- show progress bar in the middle column -->
-                <xsl:for-each select="$progress-container">
-                    <xsl:result-document href="?." method="ixsl:append-content">
-                        <div class="progress-bar">
-                            <div class="progress progress-striped active">
-                                <div class="bar" style="width: 25%;"></div>
-                            </div>
-                        </div>
-                    </xsl:result-document>
-                </xsl:for-each>
-
-                <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), $content-uri)" as="xs:anyURI"/>
-                <xsl:variable name="request" as="item()*">
-                    <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': ac:document-uri($request-uri), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-                        <xsl:call-template name="onContentLoad">
-                            <xsl:with-param name="uri" select="$uri"/>
-                            <xsl:with-param name="content-uri" select="$content-uri"/>
-                            <xsl:with-param name="container" select="$container"/>
-                            <xsl:with-param name="mode" select="$mode"/>
-                            <!--<xsl:with-param name="state" select="$state"/>-->
-                        </xsl:call-template>
-                    </ixsl:schedule-action>
-                </xsl:variable>
-                <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
-            </xsl:for-each>
-        </xsl:if>
+        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), $content-uri)" as="xs:anyURI"/>
+        <xsl:variable name="request" as="item()*">
+            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': ac:document-uri($request-uri), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+                <xsl:call-template name="onContentLoad">
+                    <xsl:with-param name="uri" select="$uri"/>
+                    <xsl:with-param name="content-uri" select="$content-uri"/>
+                    <xsl:with-param name="container" select="$container"/>
+                    <xsl:with-param name="mode" select="$mode"/>
+                    <!--<xsl:with-param name="state" select="$state"/>-->
+                </xsl:call-template>
+            </ixsl:schedule-action>
+        </xsl:variable>
+        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
     
     <!-- embed content -->

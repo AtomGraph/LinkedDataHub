@@ -1029,11 +1029,12 @@ WHERE
 
         <!-- this has to go after <xsl:result-document href="#{$container-id}"> because otherwise new elements will be injected and the $content-ids lookup will not work anymore -->
         <xsl:variable name="content-ids" select="key('elements-by-class', 'resource-content')/@id" as="xs:string*"/>
-        <xsl:call-template name="ldh:LoadContents">
-            <xsl:with-param name="uri" select="$uri"/>
-            <xsl:with-param name="content-ids" select="$content-ids"/>
-            <!--<xsl:with-param name="state" select="$state"/>-->
-        </xsl:call-template>
+        <xsl:variable name="containers" select="id($content-ids, ixsl:page())" as="element()*"/>
+        <xsl:for-each select="$containers">
+            <xsl:call-template name="ldh:LoadContent">
+                <xsl:with-param name="uri" select="$uri"/>
+            </xsl:call-template>
+        </xsl:for-each>
 
         <!-- activate the current URL in the document tree -->
         <xsl:for-each select="id('doc-tree', ixsl:page())">
