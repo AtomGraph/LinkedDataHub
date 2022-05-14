@@ -14,7 +14,7 @@
  *  limitations under the License.
  *
  */
-package com.atomgraph.linkeddatahub.resource.oauth2;
+package com.atomgraph.linkeddatahub.resource.admin.oauth2;
 
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.core.exception.ConfigurationException;
@@ -24,11 +24,13 @@ import com.atomgraph.linkeddatahub.listener.EMailListener;
 import com.atomgraph.linkeddatahub.model.Service;
 import static com.atomgraph.linkeddatahub.resource.admin.SignUp.AGENT_PATH;
 import static com.atomgraph.linkeddatahub.resource.admin.SignUp.AUTHORIZATION_PATH;
-import com.atomgraph.linkeddatahub.resource.oauth2.google.Authorize;
+import com.atomgraph.linkeddatahub.resource.admin.oauth2.google.Authorize;
 import com.atomgraph.linkeddatahub.server.filter.request.auth.IDTokenFilter;
 import com.atomgraph.linkeddatahub.server.filter.response.BackendInvalidationFilter;
 import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
+import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.server.util.MessageBuilder;
+import com.atomgraph.linkeddatahub.server.util.Skolemizer;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
 import com.atomgraph.linkeddatahub.vocabulary.LDHC;
 import com.atomgraph.linkeddatahub.vocabulary.FOAF;
@@ -40,6 +42,7 @@ import com.auth0.jwt.JWT;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Base64;
 import java.util.GregorianCalendar;
 import java.util.Optional;
@@ -63,6 +66,7 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.Providers;
 import org.apache.jena.ontology.Ontology;
@@ -70,7 +74,6 @@ import org.apache.jena.query.ParameterizedSparqlString;
 import org.apache.jena.query.Query;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
-import org.apache.jena.rdf.model.NodeIterator;
 import org.apache.jena.rdf.model.ResIterator;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
@@ -102,7 +105,6 @@ public class Login extends GraphStoreImpl
     private final HttpHeaders httpHeaders;
     private final String emailSubject;
     private final String emailText;
-    private final Query userAccountQuery;
     private final String clientID, clientSecret;
     
     /**
@@ -115,6 +117,8 @@ public class Login extends GraphStoreImpl
      * @param application current application
      * @param ontology ontology of the current application
      * @param service SPARQL service of the current application
+     * @param securityContext JAX-RS security context
+     * @param agentContext authenticated agent's context
      * @param providers JAX-RS provider registry
      * @param system system application
      * @param servletConfig servlet config
@@ -122,9 +126,10 @@ public class Login extends GraphStoreImpl
     @Inject
     public Login(@Context Request request, @Context UriInfo uriInfo, MediaTypes mediaTypes, @Context HttpHeaders httpHeaders,
             com.atomgraph.linkeddatahub.apps.model.Application application, Optional<Ontology> ontology, Optional<Service> service,
+            @Context SecurityContext securityContext, Optional<AgentContext> agentContext,
             @Context Providers providers, com.atomgraph.linkeddatahub.Application system, @Context ServletConfig servletConfig)
     {
-        super(request, uriInfo, mediaTypes, application, ontology, service, providers, system);
+        super(request, uriInfo, mediaTypes, application, ontology, service, securityContext, agentContext, providers, system);
         this.httpHeaders = httpHeaders;
         
         emailSubject = servletConfig.getServletContext().getInitParameter(LDHC.signUpEMailSubject.getURI());
@@ -133,7 +138,6 @@ public class Login extends GraphStoreImpl
         emailText = servletConfig.getServletContext().getInitParameter(LDHC.oAuthSignUpEMailText.getURI());
         if (emailText == null) throw new InternalServerErrorException(new ConfigurationException(LDHC.oAuthSignUpEMailText));
         
-        userAccountQuery = system.getUserAccountQuery();
         clientID = (String)system.getProperty(Google.clientID.getURI());
         clientSecret = (String)system.getProperty(Google.clientSecret.getURI());
     }
@@ -177,32 +181,47 @@ public class Login extends GraphStoreImpl
             String idToken = response.getString("id_token");
             DecodedJWT jwt = JWT.decode(idToken);
 
-            ParameterizedSparqlString pss = new ParameterizedSparqlString(getUserAccountQuery().toString());
-            pss.setLiteral(SIOC.ID.getLocalName(), jwt.getSubject());
-            pss.setLiteral(LACL.issuer.getLocalName(), jwt.getIssuer());
-            boolean accountExists = !getAgentService().getSPARQLClient().loadModel(pss.asQuery()).isEmpty();
+            ParameterizedSparqlString accountPss = new ParameterizedSparqlString(getUserAccountQuery().toString());
+            accountPss.setLiteral(SIOC.ID.getLocalName(), jwt.getSubject());
+            accountPss.setLiteral(LACL.issuer.getLocalName(), jwt.getIssuer());
+            final boolean accountExists = !getAgentService().getSPARQLClient().loadModel(accountPss.asQuery()).isEmpty();
 
             if (!accountExists) // UserAccount with this ID does not exist yet
             {
-                Model agentModel = ModelFactory.createDefaultModel();
-                URI agentGraphUri = getUriInfo().getBaseUriBuilder().path(AGENT_PATH).path("{slug}/").build(UUID.randomUUID().toString());
-
                 String email = jwt.getClaim("email").asString();
-                createAgent(agentModel,
-                    agentGraphUri,
-                    agentModel.createResource(getUriInfo().getBaseUri().resolve(AGENT_PATH).toString()),
-                    jwt.getClaim("given_name").asString(),
-                    jwt.getClaim("family_name").asString(),
-                    email,
-                    jwt.getClaim("picture") != null ? jwt.getClaim("picture").asString() : null);
-                // skolemize here because this Model will not go through SkolemizingModelProvider
-                skolemize(agentModel, agentGraphUri);
+                Resource mbox = ResourceFactory.createResource("mailto:" + email);
                 
+                ParameterizedSparqlString agentPss = new ParameterizedSparqlString(getAgentQuery().toString());
+                agentPss.setParam(FOAF.mbox.getLocalName(), mbox);
+                final Model agentModel = getAgentService().getSPARQLClient().loadModel(agentPss.asQuery());
+                
+                final boolean agentExists;
+                // if Agent with this foaf:mbox does not exist (lookup model is empty), create it; otherwise, reuse it
+                if (agentModel.isEmpty()) 
+                {
+                    agentExists = false;
+                    URI agentGraphUri = getUriInfo().getBaseUriBuilder().path(AGENT_PATH).path("{slug}/").build(UUID.randomUUID().toString());
+
+                    createAgent(agentModel,
+                        agentGraphUri,
+                        agentModel.createResource(getUriInfo().getBaseUri().resolve(AGENT_PATH).toString()),
+                        jwt.getClaim("given_name").asString(),
+                        jwt.getClaim("family_name").asString(),
+                        email,
+                        jwt.getClaim("picture") != null ? jwt.getClaim("picture").asString() : null);
+                    
+                    // skolemize here because this Model will not go through SkolemizingModelProvider
+                    new Skolemizer(agentGraphUri.toString()).apply(agentModel);
+                }
+                else
+                    agentExists = true;
+                
+                // lookup Agent resource after its URI has been skolemized
                 ResIterator it = agentModel.listResourcesWithProperty(FOAF.mbox);
                 try
                 {
                     // we need to retrieve resources again because they've changed from bnodes to URIs
-                    Resource agent = it.next();
+                    final Resource agent = it.next();
                 
                     Model accountModel = ModelFactory.createDefaultModel();
                     URI userAccountGraphUri = getUriInfo().getBaseUriBuilder().path(ACCOUNT_PATH).path("{slug}/").build(UUID.randomUUID().toString());
@@ -214,7 +233,7 @@ public class Login extends GraphStoreImpl
                         jwt.getClaim("name").asString(),
                         email);
                     userAccount.addProperty(SIOC.ACCOUNT_OF, agent);
-                    skolemize(accountModel, userAccountGraphUri);
+                    new Skolemizer(userAccountGraphUri.toString()).apply(accountModel);
                     
                     Response userAccountResponse = super.post(accountModel, false, userAccountGraphUri);
                     if (userAccountResponse.getStatus() != Response.Status.CREATED.getStatusCode())
@@ -224,52 +243,49 @@ public class Login extends GraphStoreImpl
                     }
                     if (log.isDebugEnabled()) log.debug("Created UserAccount for user ID: {}", jwt.getSubject());
 
-                    NodeIterator userAccountIt = accountModel.listObjectsOfProperty(ResourceFactory.createResource(userAccountGraphUri.toString()), FOAF.primaryTopic);
-                    try
+                    // lookup UserAccount resource after its URI has been skolemized
+                    userAccount = accountModel.createResource(userAccountGraphUri.toString()).getPropertyResourceValue(FOAF.primaryTopic);
+                    agent.addProperty(FOAF.account, userAccount);
+                    agentModel.add(agentModel.createResource(getSystem().getSecretaryWebIDURI().toString()), ACL.delegates, agent); // make secretary delegate whis agent
+
+                    URI agentUri = URI.create(agent.getURI());
+                    // get Agent's document URI by stripping the fragment identifier from the Agent's URI
+                    URI agentGraphUri = new URI(agentUri.getScheme(), agentUri.getSchemeSpecificPart(), null).normalize();
+                    Response agentResponse = super.post(agentModel, false, agentGraphUri);
+                    if ((!agentExists && agentResponse.getStatus() != Response.Status.CREATED.getStatusCode()) ||
+                        (agentExists && agentResponse.getStatus() != Response.Status.OK.getStatusCode()))
                     {
-                        userAccount = userAccountIt.next().asResource();
-
-                        agent.addProperty(FOAF.account, userAccount);
-                        agentModel.add(agentModel.createResource(getSystem().getSecretaryWebIDURI().toString()), ACL.delegates, agent); // make secretary delegate whis agent
-
-                        Response agentResponse = super.post(agentModel, false, agentGraphUri);
-                        if (agentResponse.getStatus() != Response.Status.CREATED.getStatusCode())
-                        {
-                            if (log.isErrorEnabled()) log.error("Cannot create Agent");
-                            throw new InternalServerErrorException("Cannot create Agent");
-                        }
-
-                        Model authModel = ModelFactory.createDefaultModel();
-                        URI authGraphUri = getUriInfo().getBaseUriBuilder().path(AUTHORIZATION_PATH).path("{slug}/").build(UUID.randomUUID().toString());
-                        createAuthorization(authModel,
-                            authGraphUri,
-                            accountModel.createResource(getUriInfo().getBaseUri().resolve(AUTHORIZATION_PATH).toString()),
-                            agentGraphUri,
-                            userAccountGraphUri);
-                        skolemize(authModel, authGraphUri);
-                        
-                        Response authResponse = super.post(authModel, false, authGraphUri);
-                        if (authResponse.getStatus() != Response.Status.CREATED.getStatusCode())
-                        {
-                            if (log.isErrorEnabled()) log.error("Cannot create Authorization");
-                            throw new InternalServerErrorException("Cannot create Authorization");
-                        }
-
-                        // purge agent lookup from proxy cache
-                        if (getApplication().getService().getProxy() != null) ban(getApplication().getService().getProxy(), jwt.getSubject());
-                        
-                        // remove secretary WebID from cache
-                        getSystem().getEventBus().post(new com.atomgraph.linkeddatahub.server.event.SignUp(getSystem().getSecretaryWebIDURI()));
-
-                        if (log.isDebugEnabled()) log.debug("Created Agent for user ID: {}", jwt.getSubject());
-                        sendEmail(agent);
+                        if (log.isErrorEnabled()) log.error("Cannot create Agent or append metadata to it");
+                        throw new InternalServerErrorException("Cannot create Agent or append metadata to it");
                     }
-                    finally
+
+                    Model authModel = ModelFactory.createDefaultModel();
+                    URI authGraphUri = getUriInfo().getBaseUriBuilder().path(AUTHORIZATION_PATH).path("{slug}/").build(UUID.randomUUID().toString());
+                    // creating authorization for the Agent documents
+                    createAuthorization(authModel,
+                        authGraphUri,
+                        accountModel.createResource(getUriInfo().getBaseUri().resolve(AUTHORIZATION_PATH).toString()),
+                        agentGraphUri,
+                        userAccountGraphUri);
+                    new Skolemizer(authGraphUri.toString()).apply(authModel);
+
+                    Response authResponse = super.post(authModel, false, authGraphUri);
+                    if (authResponse.getStatus() != Response.Status.CREATED.getStatusCode())
                     {
-                        userAccountIt.close();
+                        if (log.isErrorEnabled()) log.error("Cannot create Authorization");
+                        throw new InternalServerErrorException("Cannot create Authorization");
                     }
+
+                    // purge agent lookup from proxy cache
+                    if (getApplication().getService().getProxy() != null) ban(getApplication().getService().getProxy(), jwt.getSubject());
+
+                    // remove secretary WebID from cache
+                    getSystem().getEventBus().post(new com.atomgraph.linkeddatahub.server.event.SignUp(getSystem().getSecretaryWebIDURI()));
+
+                    if (log.isDebugEnabled()) log.debug("Created Agent for user ID: {}", jwt.getSubject());
+                    sendEmail(agent);
                 }
-                catch (UnsupportedEncodingException | MessagingException | InternalServerErrorException ex)
+                catch (UnsupportedEncodingException | MessagingException | URISyntaxException | InternalServerErrorException ex)
                 {
                     throw new MappableException(ex);
                 }
@@ -390,7 +406,7 @@ public class Login extends GraphStoreImpl
             addProperty(RDF.type, ACL.Authorization).
             addLiteral(DH.slug, UUID.randomUUID().toString()). // TO-DO: get rid of slug properties!
             addProperty(ACL.accessTo, ResourceFactory.createResource(agentGraphURI.toString())).
-            addProperty(ACL.accessTo, ResourceFactory.createResource(userAccountGraphURI.toString())).
+            //addProperty(ACL.accessTo, ResourceFactory.createResource(userAccountGraphURI.toString())).
             addProperty(ACL.mode, ACL.Read).
             addProperty(ACL.agentClass, FOAF.Agent).
             addProperty(ACL.agentClass, ACL.AuthenticatedAgent);
@@ -409,9 +425,16 @@ public class Login extends GraphStoreImpl
      */
     public void sendEmail(Resource agent) throws MessagingException, UnsupportedEncodingException
     {
-        String givenName = agent.getRequiredProperty(FOAF.givenName).getString();
-        String familyName = agent.getRequiredProperty(FOAF.familyName).getString();
-        String fullName = givenName + " " + familyName;
+        final String fullName;
+        if (agent.hasProperty(FOAF.givenName) && agent.hasProperty(FOAF.familyName))
+        {
+            String givenName = agent.getRequiredProperty(FOAF.givenName).getString();
+            String familyName = agent.getRequiredProperty(FOAF.familyName).getString();
+            fullName = givenName + " " + familyName;
+        }
+        else
+            fullName = agent.getProperty(FOAF.name).getString();
+                    
         // we expect foaf:mbox value as mailto: URI (it gets converted from literal in Model provider)
         String mbox = agent.getRequiredProperty(FOAF.mbox).getResource().getURI().substring("mailto:".length());
 
@@ -507,7 +530,17 @@ public class Login extends GraphStoreImpl
      */
     public Query getUserAccountQuery()
     {
-        return userAccountQuery;
+        return getSystem().getUserAccountQuery();
+    }
+    
+    /**
+     * Returns SPARQL query used to load agent by mailbox.
+     * 
+     * @return SPARQL query
+     */
+    public Query getAgentQuery()
+    {
+        return getSystem().getAgentQuery();
     }
     
     /**

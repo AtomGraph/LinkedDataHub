@@ -16,7 +16,9 @@
  */
 package com.atomgraph.linkeddatahub.server.event;
 
+import com.atomgraph.core.util.jena.DataManager;
 import com.atomgraph.linkeddatahub.apps.model.Application;
+import com.atomgraph.linkeddatahub.client.LinkedDataClient;
 import org.apache.jena.rdf.model.Resource;
 
 /**
@@ -28,17 +30,20 @@ public class AuthorizationCreated
 {
 
     private final Application app;
+    private final LinkedDataClient ldc;
     private final Resource authorization;
     
     /**
      * Constructs the event from application and authorization.
      * 
      * @param app associated application
+     * @param ldc Linked Data client
      * @param authorization associated authorization
      */
-    public AuthorizationCreated(Application app, Resource authorization)
+    public AuthorizationCreated(Application app, LinkedDataClient ldc, Resource authorization)
     {
         this.app = app;
+        this.ldc = ldc;
         this.authorization = authorization;
     }
     
@@ -50,6 +55,16 @@ public class AuthorizationCreated
     public Application getApplication()
     {
         return app;
+    }
+    
+    /**
+     * Returns Linked Data client.
+     * 
+     * @return client
+     */
+    public LinkedDataClient getLinkedDataClient()
+    {
+        return ldc;
     }
     
     /**

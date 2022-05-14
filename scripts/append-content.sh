@@ -4,17 +4,15 @@ print_usage()
 {
     printf "Appends content instance to document.\n"
     printf "\n"
-    printf "Usage:  %s options [TARGET_URI]\n" "$0"
+    printf "Usage:  %s options TARGET_URI\n" "$0"
     printf "\n"
     printf "Options:\n"
     printf "  -f, --cert-pem-file CERT_FILE        .pem file with the WebID certificate of the agent\n"
     printf "  -p, --cert-password CERT_PASSWORD    Password of the WebID certificate\n"
-    printf "  -b, --base BASE_URI                  Base URI of the application\n"
+    printf "  --proxy PROXY_URL                    The host this request will be proxied through (optional)\n"
     printf "\n"
     printf "  --first RESOURCE_URI                 URI of the content element (query, chart etc.)\n"
-    printf "  --rest RESOURCE_URI                  URI of the following content (optional)\n"
-    printf "  --title TITLE                        Title of the content (optional)\n"
-    printf "  --slug STRING                        String that will be used as URI path segment (optional)\n"
+    printf "  --mode MODE_URI                      URI of the content mode (list, grid etc.) (optional)\n"
 }
 
 hash turtle 2>/dev/null || { echo >&2 "turtle not on \$PATH. Need to set \$JENA_HOME. Aborting."; exit 1; }
@@ -35,18 +33,8 @@ do
         shift # past argument
         shift # past value
         ;;
-        -b|--base)
-        base="$2"
-        shift # past argument
-        shift # past value
-        ;;
-        --uri)
-        uri="$2"
-        shift # past argument
-        shift # past value
-        ;;
-        --title)
-        title="$2"
+        --proxy)
+        proxy="$2"
         shift # past argument
         shift # past value
         ;;
@@ -55,13 +43,8 @@ do
         shift # past argument
         shift # past value
         ;;
-        --rest)
-        rest="$2"
-        shift # past argument
-        shift # past value
-        ;;
-        --slug)
-        slug="$2"
+        --mode)
+        mode="$2"
         shift # past argument
         shift # past value
         ;;
@@ -81,32 +64,35 @@ if [ -z "$cert_password" ] ; then
     print_usage
     exit 1
 fi
-#if [ -z "$base" ] ; then
-#    print_usage
-#    exit 1
-#fi
 if [ -z "$first" ] ; then
     print_usage
     exit 1
 fi
-if [ -z "$1" ] ; then
-    print_usage
-    exit 1
-fi
 
-if [ -z "request_base" ]; then
-    request_base="$base"
-fi
-
+target="$1"
 this="$1"
+
+if [ -n "$proxy" ]; then
+    # rewrite target hostname to proxy hostname
+    target_host=$(echo "$target" | cut -d '/' -f 1,2,3)
+    proxy_host=$(echo "$proxy" | cut -d '/' -f 1,2,3)
+    target="${target/$target_host/$proxy_host}"
+fi
+
+if [ -n "$mode" ] ; then
+    mode_bgp="?content ac:mode <${mode}> ."
+fi
+
+# SPARQL update logic from https://afs.github.io/rdf-lists-sparql#a-nameadd-lastaadd-an-element-to-the-end-of-a-list
 
 curl -X PATCH \
     -v -f -k \
     -E "$cert_pem_file":"$cert_password" \
     -H "Content-Type: application/sparql-update" \
-    "$this" \
+    "$target" \
      --data-binary @- <<EOF
 PREFIX  ldh:  <https://w3id.org/atomgraph/linkeddatahub#>
+PREFIX  ac:   <https://w3id.org/atomgraph/client#>
 PREFIX  rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 
 INSERT {
@@ -137,6 +123,7 @@ INSERT {
         ?content a ldh:Content ;
             rdf:first <$first> ;
             rdf:rest rdf:nil .
+        ${mode_bgp}
     }
 }
 WHERE
@@ -147,7 +134,7 @@ WHERE
         ?list rdf:rest* ?elt .
         ?elt rdf:rest rdf:nil .
         # ?elt is last cons cell
-       BIND (uri(concat(str(<${this}>), '#', struuid())) as ?content)
+        BIND (uri(concat(str(<${this}>), '#', struuid())) as ?content)
     }
 };
 
@@ -163,13 +150,14 @@ INSERT {
         ?content a ldh:Content ;
             rdf:first <$first> ;
             rdf:rest rdf:nil .
+        ${mode_bgp}
     }
 }
 WHERE
 {
     GRAPH ?g {
-       <${this}> ldh:content rdf:nil .
-       BIND (uri(concat(str(<${this}>), '#', struuid())) as ?content)
+        <${this}> ldh:content rdf:nil .
+        BIND (uri(concat(str(<${this}>), '#', struuid())) as ?content)
     }
 };
 

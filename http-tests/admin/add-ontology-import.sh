@@ -8,19 +8,42 @@ purge_backend_cache "$ADMIN_VARNISH_SERVICE"
 
 pushd . > /dev/null && cd "$SCRIPT_ROOT/admin"
 
-# create template
+namespace_doc="${END_USER_BASE_URL}ns"
+namespace="${namespace_doc}#"
+ontology_doc="${ADMIN_BASE_URL}model/ontologies/namespace/"
+import_uri="http://www.w3.org/ns/auth/acl"
+
+# add ontology import
 
 ./add-ontology-import.sh \
--f "$OWNER_CERT_FILE" \
--p "$OWNER_CERT_PWD" \
---import "https://schema.org" \
-"${ADMIN_BASE_URL}model/ontologies/namespace/"
+  -f "$OWNER_CERT_FILE" \
+  -p "$OWNER_CERT_PWD" \
+  --import "$import_uri" \
+  "$ontology_doc"
+
+# clear the namespace ontology from memory
+
+./clear-ontology.sh \
+  -f "$OWNER_CERT_FILE" \
+  -p "$OWNER_CERT_PWD" \
+  -b "$ADMIN_BASE_URL" \
+  --ontology "$namespace"
 
 popd > /dev/null
 
-# check that the import is present in the ontology
+# check that the import is present in the namespace ontology
 
 curl -k -f -s -N \
   -H "Accept: application/n-triples" \
-  "${ADMIN_BASE_URL}model/ontologies/namespace/" \
-| grep -q "<${ADMIN_BASE_URL}model/ontologies/namespace/#> <http://www.w3.org/2002/07/owl#imports> <https://schema.org>"
+  "$namespace_doc" \
+| grep "<${namespace}> <http://www.w3.org/2002/07/owl#imports> <${import_uri}>" > /dev/null
+
+# check that the imported ontology is present in the ontology model TO-DO: replace with an ASK query when #118 is fixed
+
+curl -k -f -s \
+  -G \
+  -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
+  -H 'Accept: application/sparql-results+xml' \
+  --data-urlencode "query=SELECT * { <${import_uri}> ?p ?o }" \
+  "$namespace_doc" \
+| grep '<literal>Basic Access Control ontology</literal>' > /dev/null

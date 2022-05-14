@@ -43,6 +43,7 @@ xmlns:http="&http;"
 xmlns:acl="&acl;"
 xmlns:ldt="&ldt;"
 xmlns:dh="&dh;"
+xmlns:sd="&sd;"
 xmlns:dct="&dct;"
 xmlns:foaf="&foaf;"
 xmlns:sioc="&sioc;"
@@ -83,7 +84,6 @@ extension-element-prefixes="ixsl"
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'create-action')"/>
-        <!-- <xsl:sequence select="ac:label(.)"/> -->
     </xsl:template>
 
     <xsl:template match="*[@rdf:about = '&dh;Container']" mode="ldh:logo" priority="1">
@@ -146,39 +146,34 @@ extension-element-prefixes="ixsl"
         <xsl:attribute name="class" select="concat($class, ' ', @rdf:nodeID)"/>
     </xsl:template>
 
-    <xsl:template match="*[@rdf:nodeID = 'toggle-content']" mode="ldh:logo">
+<!--    <xsl:template match="*[@rdf:nodeID = 'toggle-content']" mode="ldh:logo">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'btn-toggle-content')"/>
-        <xsl:sequence select="ac:label(.)"/>
-    </xsl:template>
+    </xsl:template>-->
     
     <xsl:template match="*[@rdf:about = '&ldht;Ban']" mode="ldh:logo">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'btn-ban')"/>
-        <xsl:sequence select="ac:label(.)"/>
     </xsl:template>
         
     <xsl:template match="*[@rdf:about = '&ac;Delete']" mode="ldh:logo">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'btn-delete')"/>
-        <xsl:sequence select="ac:label(.)"/>
     </xsl:template>
 
-    <xsl:template match="*[@rdf:nodeID = 'skolemize']" mode="ldh:logo">
+<!--    <xsl:template match="*[@rdf:nodeID = 'skolemize']" mode="ldh:logo">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'btn-skolemize')"/>
-        <xsl:sequence select="ac:label(.)"/>
-    </xsl:template>
+    </xsl:template>-->
     
     <xsl:template match="*[@rdf:about = '&ac;Export']" mode="ldh:logo">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'btn-export')"/>
-        <xsl:sequence select="ac:label(.)"/>
     </xsl:template>
 
     <xsl:template match="*[@rdf:nodeID = 'settings']" mode="ldh:logo">
@@ -191,21 +186,18 @@ extension-element-prefixes="ixsl"
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'btn-save')"/>
-        <xsl:sequence select="ac:label(.)"/>
     </xsl:template>
 
     <xsl:template match="*[@rdf:nodeID = 'close']" mode="ldh:logo">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'btn-close')"/>
-        <xsl:sequence select="ac:label(.)"/>
     </xsl:template>
 
     <xsl:template match="*[@rdf:nodeID = 'reset']" mode="ldh:logo">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'btn-reset')"/>
-        <xsl:sequence select="ac:label(.)"/>
     </xsl:template>
 
     <xsl:template match="*[@rdf:nodeID = 'search']" mode="ldh:logo">
@@ -242,7 +234,6 @@ extension-element-prefixes="ixsl"
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'btn-edit')"/>
-        <xsl:sequence select="ac:label(.)"/>
     </xsl:template>
     
     <xsl:template match="*[@rdf:nodeID = 'copy-uri']" mode="ldh:logo">
@@ -267,43 +258,36 @@ extension-element-prefixes="ixsl"
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'btn-read')"/>
-        <xsl:sequence select="ac:label(.)"/>
     </xsl:template>
 
     <xsl:template match="*[@rdf:about = '&ac;MapMode']" mode="ldh:logo">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'btn-map')"/>
-        <xsl:sequence select="ac:label(.)"/>
     </xsl:template>
 
     <xsl:template match="*[@rdf:about = '&ac;GraphMode']" mode="ldh:logo">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'btn-graph')"/>
-        <xsl:sequence select="ac:label(.)"/>
     </xsl:template>
 
     <xsl:template match="*[@rdf:about = '&ac;QueryEditorMode']" mode="ldh:logo">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'btn-query')"/>
-        <text>Query editor</text>
-<!--        <xsl:sequence select="ac:label(.)"/>-->
     </xsl:template>
 
     <xsl:template match="*[@rdf:about = '&acl;Access']" mode="ldh:logo">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'btn-acl')"/>
-        <xsl:sequence select="ac:label(.)"/>
     </xsl:template>
 
     <xsl:template match="*[rdf:type/@rdf:resource = '&http;Response'][lacl:requestAccess/@rdf:resource]" mode="ldh:logo">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'access-required')"/>
-        <xsl:sequence select="ac:label(.)"/>
     </xsl:template>
 
     <xsl:template match="*" mode="ldh:logo" priority="0">
@@ -397,6 +381,34 @@ extension-element-prefixes="ixsl"
         </div>
     </xsl:template>
 
+    <!-- MODE TABS -->
+    
+    <xsl:template match="*[@rdf:about]" mode="bs2:ModeTabsItem">
+        <xsl:param name="active" as="xs:boolean"/>
+        <xsl:param name="mode-classes" as="map(xs:string, xs:string)">
+            <xsl:map>
+                <xsl:map-entry key="'&ldh;ContentMode'" select="'content-mode'"/>
+                <xsl:map-entry key="'&ac;ReadMode'" select="'read-mode'"/>
+                <xsl:map-entry key="'&ac;MapMode'" select="'map-mode'"/>
+                <xsl:map-entry key="'&ac;ChartMode'" select="'chart-mode'"/>
+                <xsl:map-entry key="'&ac;GraphMode'" select="'graph-mode'"/>
+            </xsl:map>
+        </xsl:param>
+        <xsl:param name="class" select="map:get($mode-classes, @rdf:about) || (if ($active) then ' active' else ())" as="xs:string?"/>
+
+        <li>
+            <xsl:if test="$class">
+                <xsl:attribute name="class" select="$class"/>
+            </xsl:if>
+
+            <a href="{ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ac:uri(), xs:anyURI(@rdf:about))}">
+                <xsl:value-of>
+                    <xsl:apply-templates select="." mode="ac:label"/>
+                </xsl:value-of>
+            </a>
+        </li>
+    </xsl:template>
+    
     <!-- BLOCK ROW -->
     
     <!-- mark query instances as .resource-content which is then rendered by client.xsl -->
@@ -468,7 +480,18 @@ extension-element-prefixes="ixsl"
         <xsl:param name="id" select="generate-id()" as="xs:string?"/>
         <xsl:param name="content-uri" as="xs:anyURI?"/>
         <xsl:param name="class" select="'row-fluid'" as="xs:string?"/>
-        <xsl:param name="constraint-query" as="xs:string?" tunnel="yes"/>
+
+        <xsl:apply-templates select="." mode="bs2:RowBlockContent">
+            <xsl:with-param name="id" select="$id"/>
+            <xsl:with-param name="content-uri" select="$content-uri"/>
+            <xsl:with-param name="class" select="$class"/>
+        </xsl:apply-templates>
+    </xsl:template>
+
+    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:RowBlockContent">
+        <xsl:param name="id" select="generate-id()" as="xs:string?"/>
+        <xsl:param name="content-uri" as="xs:anyURI?"/>
+        <xsl:param name="class" select="'row-fluid'" as="xs:string?"/>
 
         <div>
             <xsl:if test="$id">
@@ -499,7 +522,7 @@ extension-element-prefixes="ixsl"
             </xsl:if>
         </xsl:for-each>
     </xsl:template>
-    
+
     <!-- TO-DO: override other modes -->
     
     <!-- HEADER -->
@@ -507,6 +530,7 @@ extension-element-prefixes="ixsl"
     <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:Header">
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" select="'well'" as="xs:string?"/>
+        <xsl:param name="mode" as="xs:anyURI?"/>
 
         <div>
             <xsl:if test="$id">
@@ -527,6 +551,7 @@ extension-element-prefixes="ixsl"
                     <xsl:with-param name="class" as="xs:string?">
                         <xsl:apply-templates select="." mode="ldh:logo"/>
                     </xsl:with-param>
+                    <xsl:with-param name="mode" select="$mode"/>
                 </xsl:apply-templates>
             </h2>
 
@@ -589,7 +614,47 @@ extension-element-prefixes="ixsl"
 
     <xsl:template match="*[@rdf:about]" mode="bs2:Actions" priority="1">
         <div class="pull-right">
-            <button title="{key('resources', 'copy-uri', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))}" type="button">
+            <!--
+            <xsl:if test="doc-available($app-request-uri)">
+                <xsl:variable name="apps" select="document($app-request-uri)" as="document-node()"/>
+                <xsl:if test="$apps//*[sd:endpoint/@rdf:resource]">
+                    <xsl:variable name="resource" select="." as="element()"/>
+                    
+                    <div class="btn-group pull-left">
+                        <button type="button" class="btn dropdown-toggle">
+                            <xsl:attribute name="title">
+                                <xsl:apply-templates select="key('resources', 'reconcile-title', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                            </xsl:attribute>
+
+                            <xsl:apply-templates select="key('resources', 'reconcile', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                            <xsl:text> </xsl:text>
+                            <span class="caret"></span>
+                        </button>
+                        <ul class="dropdown-menu">
+                            <xsl:for-each select="$apps//*[@rdf:about][sd:endpoint/@rdf:resource]">
+                                <xsl:sort select="ac:label(.)" order="ascending" lang="{$ldt:lang}"/>
+                                
+                                <li>
+                                    <button class="btn btn-reconcile">
+                                        <input type="hidden" name="resource" value="{$resource/@rdf:about}"/>
+                                        <input type="hidden" name="label" value="{ac:label($resource)}"/>
+                                        <input type="hidden" name="service" value="{sd:endpoint/@rdf:resource}"/>
+                                        
+                                        <xsl:apply-templates select="." mode="ac:label"/>
+                                    </button>
+                                </li>
+                            </xsl:for-each>
+                        </ul>
+                    </div>
+                </xsl:if>
+            </xsl:if>
+            -->
+            
+            <button type="button">
+                <xsl:attribute name="title">
+                    <xsl:apply-templates select="key('resources', 'copy-uri', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                </xsl:attribute>
+                
                 <xsl:apply-templates select="key('resources', 'copy-uri', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ldh:logo">
                     <xsl:with-param name="class" select="'btn'"/>
                 </xsl:apply-templates>
@@ -660,6 +725,7 @@ extension-element-prefixes="ixsl"
     <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;Content'][rdf:first/@rdf:resource]" mode="ldh:ContentList" priority="2">
         <xsl:param name="id" select="generate-id()" as="xs:string?"/>
         <xsl:param name="class" select="'row-fluid content resource-content'" as="xs:string?"/>
+        <xsl:param name="mode" select="ac:mode/@rdf:resource" as="xs:anyURI?"/>
         
         <!-- @data-content-uri is used to retrieve $content-uri in client.xsl -->
         <div data-content-uri="{rdf:first/@rdf:resource}">
@@ -669,7 +735,10 @@ extension-element-prefixes="ixsl"
             <xsl:if test="$class">
                 <xsl:attribute name="class" select="$class"/>
             </xsl:if>
-                    
+            <xsl:if test="$mode">
+                <xsl:attribute name="data-content-mode" select="$mode"/>
+            </xsl:if>
+            
             <xsl:apply-templates select="." mode="bs2:Left"/>
             
             <div class="span7">
@@ -697,11 +766,14 @@ extension-element-prefixes="ixsl"
     <xsl:template match="*" mode="ldh:ContentList"/>
 
     <xsl:template match="*[*][@rdf:about]" mode="ldh:ContentHeader" priority="2">
+        <xsl:param name="mode" as="xs:anyURI?"/>
+        
         <h2>
             <xsl:apply-templates select="@rdf:about" mode="xhtml:Anchor">
                 <xsl:with-param name="class" as="xs:string?">
                     <xsl:apply-templates select="." mode="ldh:logo"/>
                 </xsl:with-param>
+                <xsl:with-param name="mode" select="$mode"/>
             </xsl:apply-templates>
         </h2>
     </xsl:template>
@@ -912,7 +984,11 @@ extension-element-prefixes="ixsl"
                         </xsl:if>
 
                         <!-- "Copy URI" button -->
-                        <button title="{key('resources', 'copy-uri', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))}" type="button">
+                        <button type="button">
+                            <xsl:attribute name="title">
+                                <xsl:apply-templates select="key('resources', 'copy-uri', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                            </xsl:attribute>
+
                             <xsl:apply-templates select="key('resources', 'copy-uri', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ldh:logo">
                                 <xsl:with-param name="class" select="'btn'"/>
                             </xsl:apply-templates>

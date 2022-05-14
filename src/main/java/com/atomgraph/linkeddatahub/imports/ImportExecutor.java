@@ -17,8 +17,9 @@
 package com.atomgraph.linkeddatahub.imports;
 
 import com.atomgraph.client.MediaTypes;
-import com.atomgraph.client.util.DataManager;
+import com.atomgraph.client.vocabulary.LDT;
 import com.atomgraph.core.client.GraphStoreClient;
+import com.atomgraph.core.client.LinkedDataClient;
 import com.atomgraph.core.model.DatasetAccessor;
 import com.atomgraph.linkeddatahub.imports.stream.RDFGraphStoreOutput;
 import com.atomgraph.linkeddatahub.imports.stream.csv.CSVGraphStoreOutput;
@@ -30,12 +31,10 @@ import com.atomgraph.linkeddatahub.model.Import;
 import com.atomgraph.linkeddatahub.model.RDFImport;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.exception.ImportException;
-import com.atomgraph.linkeddatahub.server.filter.response.BackendInvalidationFilter;
-import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
+import com.atomgraph.linkeddatahub.server.util.Skolemizer;
 import com.atomgraph.linkeddatahub.vocabulary.PROV;
 import com.atomgraph.linkeddatahub.vocabulary.VoID;
 import com.atomgraph.server.vocabulary.HTTP;
-import com.atomgraph.spinrdf.vocabulary.SPIN;
 import com.univocity.parsers.common.TextParsingException;
 import java.net.URI;
 import java.util.Calendar;
@@ -53,7 +52,7 @@ import javax.ws.rs.core.UriBuilder;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.query.ParameterizedSparqlString;
 import org.apache.jena.query.Query;
-import org.apache.jena.query.QuerySolutionMap;
+import org.apache.jena.query.Syntax;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Property;
@@ -63,7 +62,6 @@ import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.util.ResourceUtils;
 import org.apache.jena.vocabulary.DCTerms;
 import org.apache.jena.vocabulary.RDF;
-import org.glassfish.jersey.uri.UriComponent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -88,7 +86,7 @@ public class ImportExecutor
     /** An array of supported RDF media types */
     public static final javax.ws.rs.core.MediaType[] RDF_MEDIA_TYPES = Stream.concat(MediaTypes.READABLE.get(Model.class).stream(), MediaTypes.READABLE.get(Dataset.class).stream()).
         collect(Collectors.toList()).
-        toArray(new javax.ws.rs.core.MediaType[0]);
+        toArray(javax.ws.rs.core.MediaType[]::new);
 
     private final ExecutorService execService;
 
@@ -108,11 +106,12 @@ public class ImportExecutor
      * @param csvImport CSV import resource
      * @param service application's SPARQL service
      * @param adminService admin application's SPARQL service
-     * @param baseURI application's base URI
-     * @param dataManager RDF data manager
+     * @param appBaseURI application's base URI
+     * @param ldc Linked Data client
      * @param graphStoreClient GSP client
+     * @param createGraph function that derives graph URI from a document model
      */
-    public void start(CSVImport csvImport, Service service, Service adminService, String baseURI, DataManager dataManager, GraphStoreClient graphStoreClient)
+    public void start(Service service, Service adminService, String appBaseURI, LinkedDataClient ldc, GraphStoreClient graphStoreClient, Function<Model, Resource> createGraph, CSVImport csvImport)
     {
         if (csvImport == null) throw new IllegalArgumentException("CSVImport cannot be null");
         if (log.isDebugEnabled()) log.debug("Submitting new import to thread pool: {}", csvImport.toString());
@@ -120,18 +119,18 @@ public class ImportExecutor
         Resource provImport = ModelFactory.createDefaultModel().createResource(csvImport.getURI()).
                 addProperty(PROV.startedAtTime, csvImport.getModel().createTypedLiteral(Calendar.getInstance()));
         
-        QueryLoader queryLoader = new QueryLoader(csvImport.getQuery().getURI(), baseURI, dataManager);
-        QuerySolutionMap qsm = new QuerySolutionMap();
-        qsm.add(SPIN.THIS_VAR_NAME, csvImport.getContainer()); // target container becomes ?this
-        ParameterizedSparqlString pss = new ParameterizedSparqlString(queryLoader.get().toString(), qsm, baseURI);
+        String queryBaseURI = csvImport.getFile().getURI(); // file URI becomes the query base URI
+        QueryLoader queryLoader = new QueryLoader(URI.create(csvImport.getQuery().getURI()), queryBaseURI, Syntax.syntaxARQ, ldc);
+        ParameterizedSparqlString pss = new ParameterizedSparqlString(queryLoader.get().toString(), queryBaseURI);
+        pss.setIri(LDT.base.getLocalName(), appBaseURI); // app's base URI becomes $base
         final Query query = pss.asQuery();
         
-        Supplier<Response> fileSupplier = new ClientResponseSupplier(csvImport.getFile().getURI(), CSV_MEDIA_TYPES, dataManager);
+        Supplier<Response> fileSupplier = new ClientResponseSupplier(ldc, CSV_MEDIA_TYPES, URI.create(csvImport.getFile().getURI()));
         // skip validation because it will be done during final POST anyway
-        CompletableFuture.supplyAsync(fileSupplier, getExecutorService()).thenApplyAsync(getStreamRDFOutputWriter(csvImport,
-                graphStoreClient, baseURI, query), getExecutorService()).
-            thenAcceptAsync(success(csvImport, provImport, service, adminService, dataManager), getExecutorService()).
-            exceptionally(failure(csvImport, provImport, service));
+        CompletableFuture.supplyAsync(fileSupplier, getExecutorService()).thenApplyAsync(getStreamRDFOutputWriter(service, adminService,
+                graphStoreClient, queryBaseURI, query, createGraph, csvImport), getExecutorService()).
+            thenAcceptAsync(success(service, csvImport, provImport), getExecutorService()).
+            exceptionally(failure(service, csvImport, provImport));
     }
 
     /**
@@ -140,37 +139,37 @@ public class ImportExecutor
      * @param rdfImport RDF import resource
      * @param service application's SPARQL service
      * @param adminService admin application's SPARQL service
-     * @param baseURI application's base URI
-     * @param dataManager RDF data manager
+     * @param appBaseURI application's base URI
+     * @param ldc Linked Data client
      * @param graphStoreClient GSP client
      */
 
-    public void start(RDFImport rdfImport, Service service, Service adminService, String baseURI, DataManager dataManager, GraphStoreClient graphStoreClient)
+    public void start(Service service, Service adminService, String appBaseURI, LinkedDataClient ldc, GraphStoreClient graphStoreClient, RDFImport rdfImport)
     {
         if (rdfImport == null) throw new IllegalArgumentException("RDFImport cannot be null");
         if (log.isDebugEnabled()) log.debug("Submitting new import to thread pool: {}", rdfImport.toString());
         
         Resource provImport = ModelFactory.createDefaultModel().createResource(rdfImport.getURI()).
                 addProperty(PROV.startedAtTime, rdfImport.getModel().createTypedLiteral(Calendar.getInstance()));
-        
+
+        String queryBaseURI = rdfImport.getFile().getURI(); // file URI becomes the query base URI
         final Query query;
         if (rdfImport.getQuery() != null) // query is optional on RDFImport
         {
-            QueryLoader queryLoader = new QueryLoader(rdfImport.getQuery().getURI(), baseURI, dataManager);
-            QuerySolutionMap qsm = new QuerySolutionMap();
-            qsm.add(SPIN.THIS_VAR_NAME, rdfImport.getContainer()); // target container becomes ?this
-            ParameterizedSparqlString pss = new ParameterizedSparqlString(queryLoader.get().toString(), qsm, baseURI);
+            QueryLoader queryLoader = new QueryLoader(URI.create(rdfImport.getQuery().getURI()), queryBaseURI, Syntax.syntaxARQ, ldc);
+            ParameterizedSparqlString pss = new ParameterizedSparqlString(queryLoader.get().toString(), queryBaseURI);
+            pss.setIri(LDT.base.getLocalName(), appBaseURI); // app's base URI becomes $base
             query = pss.asQuery();
         }
         else
             query = null;
         
-        Supplier<Response> fileSupplier = new ClientResponseSupplier(rdfImport.getFile().getURI(), RDF_MEDIA_TYPES, dataManager);
+        Supplier<Response> fileSupplier = new ClientResponseSupplier(ldc, RDF_MEDIA_TYPES, URI.create(rdfImport.getFile().getURI()));
         // skip validation because it will be done during final POST anyway
-        CompletableFuture.supplyAsync(fileSupplier, getExecutorService()).thenApplyAsync(getStreamRDFOutputWriter(rdfImport,
-                graphStoreClient, baseURI, query), getExecutorService()).
-            thenAcceptAsync(success(rdfImport, provImport, service, adminService, dataManager), getExecutorService()).
-            exceptionally(failure(rdfImport, provImport, service));
+        CompletableFuture.supplyAsync(fileSupplier, getExecutorService()).thenApplyAsync(getStreamRDFOutputWriter(service, adminService,
+                graphStoreClient, queryBaseURI, query, rdfImport), getExecutorService()).
+            thenAcceptAsync(success(service, rdfImport, provImport), getExecutorService()).
+            exceptionally(failure(service, rdfImport, provImport));
     }
     
     /**
@@ -179,11 +178,9 @@ public class ImportExecutor
      * @param csvImport import resource
      * @param provImport provenance resource
      * @param service application's SPARQL service
-     * @param adminService admin application's SPARQL service
-     * @param dataManager RDF data manager
      * @return consumer of the RDF output
      */
-    protected Consumer<CSVGraphStoreOutput> success(final CSVImport csvImport, final Resource provImport, final Service service, final Service adminService, final DataManager dataManager)
+    protected Consumer<CSVGraphStoreOutput> success(final Service service, final CSVImport csvImport, final Resource provImport)
     {
         return (CSVGraphStoreOutput output) ->
         {
@@ -195,10 +192,6 @@ public class ImportExecutor
             provImport.addProperty(PROV.endedAtTime, provImport.getModel().createTypedLiteral(Calendar.getInstance()));
             
             appendProvGraph(provImport, service.getDatasetAccessor());
-            
-            // purge cache entries that include the target container URL
-            if (service.getProxy() != null) ban(dataManager, service.getProxy(), csvImport.getContainer().getURI());
-            if (adminService != null && adminService.getProxy() != null) ban(dataManager, adminService.getProxy(), csvImport.getContainer().getURI());
         };
     }
     
@@ -208,11 +201,9 @@ public class ImportExecutor
      * @param rdfImport import resource
      * @param provImport provenance resource
      * @param service application's SPARQL service
-     * @param adminService admin application's SPARQL service
-     * @param dataManager RDF data manager
      * @return consumer of the RDF output
      */
-    protected Consumer<RDFGraphStoreOutput> success(final RDFImport rdfImport, final Resource provImport, final Service service, final Service adminService, final DataManager dataManager)
+    protected Consumer<RDFGraphStoreOutput> success(final Service service, final RDFImport rdfImport, final Resource provImport)
     {
         return (RDFGraphStoreOutput output) ->
         {
@@ -224,30 +215,18 @@ public class ImportExecutor
             provImport.addProperty(PROV.endedAtTime, provImport.getModel().createTypedLiteral(Calendar.getInstance()));
             
             appendProvGraph(provImport, service.getDatasetAccessor());
-            
-            // purge cache entries that include the target container URL
-            if (service.getProxy() != null)
-            {
-                if (rdfImport.getContainer() != null) ban(dataManager, service.getProxy(), rdfImport.getContainer().getURI());
-                if (rdfImport.getGraphName() != null) ban(dataManager, service.getProxy(), rdfImport.getGraphName().getURI());
-            }
-            if (adminService != null && adminService.getProxy() != null)
-            {
-                if (rdfImport.getContainer() != null) ban(dataManager, adminService.getProxy(), rdfImport.getContainer().getURI());
-                if (rdfImport.getGraphName() != null) ban(dataManager, adminService.getProxy(), rdfImport.getGraphName().getURI());
-            }
         };
     }
 
     /**
-     * Invoked when RDF import failes to complete.
+     * Invoked when RDF import fails to complete.
      * 
      * @param importInst import resource
      * @param provImport provenance resource
      * @param service application's SPARQL service
      * @return void function
      */
-    protected Function<Throwable, Void> failure(final Import importInst, final Resource provImport, final Service service)
+    protected Function<Throwable, Void> failure(final Service service, final Import importInst, final Resource provImport)
     {
         return new Function<Throwable, Void>()
         {
@@ -259,9 +238,8 @@ public class ImportExecutor
                 
                 if (t instanceof CompletionException)
                 {
-                    if (t.getCause() instanceof TextParsingException) // could not parse CSV
+                    if (t.getCause() instanceof TextParsingException tpe) 
                     {
-                        TextParsingException tpe = (TextParsingException)t.getCause();
                         Resource exception = provImport.getModel().createResource().
                             addProperty(RDF.type, PROV.Entity).
                             addLiteral(DCTerms.description, tpe.getMessage()).
@@ -270,10 +248,10 @@ public class ImportExecutor
                         
                         appendProvGraph(provImport, service.getDatasetAccessor());
                     }
+                    // could not parse CSV
                     
-                    if (t.getCause() instanceof ImportException) // could not save RDF
+                    if (t.getCause() instanceof ImportException ie) 
                     {
-                        ImportException ie = (ImportException)t.getCause();
                         Model excModel = ie.getModel();
                         if (excModel != null)
                         {
@@ -286,6 +264,7 @@ public class ImportExecutor
                         
                         appendProvGraph(provImport, service.getDatasetAccessor());
                     }
+                    // could not save RDF
                 }
                 
                 return null;
@@ -319,56 +298,44 @@ public class ImportExecutor
     {
         URI graphURI = UriBuilder.fromUri(provImport.getURI()).fragment(null).build(); // skip fragment from the Import URI to get its graph URI
         if (log.isDebugEnabled()) log.debug("Appending import metadata to graph: {}", graphURI);
-        
-        GraphStoreImpl.skolemize(provImport.getModel(), graphURI); // make sure we don't store blank nodes
+                    
+        new Skolemizer(graphURI.toString()).apply(provImport.getModel()); // make sure we don't store blank nodes
         accessor.add(graphURI.toString(), provImport.getModel());
     }
 
     /**
      * Returns output writer for CSV imports.
      * 
-     * @param imp import resource
+     * @param service SPARQL service of the application
+     * @param adminService SPARQL service of the admin application
      * @param graphStoreClient GSP client
      * @param baseURI base URI
      * @param query transformation query
+     * @param createGraph function that derives graph URI from a document model
+     * @param imp import resource
      * @return function
      */
-    protected Function<Response, CSVGraphStoreOutput> getStreamRDFOutputWriter(CSVImport imp, GraphStoreClient graphStoreClient, String baseURI, Query query)
+    protected Function<Response, CSVGraphStoreOutput> getStreamRDFOutputWriter(Service service, Service adminService, GraphStoreClient graphStoreClient, String baseURI, Query query, Function<Model, Resource> createGraph, CSVImport imp)
     {
-        return new CSVGraphStoreOutputWriter(graphStoreClient, baseURI, query, imp.getDelimiter());
+        return new CSVGraphStoreOutputWriter(service, adminService, graphStoreClient, baseURI, query, createGraph, imp.getDelimiter());
     }
 
     /**
      * Returns output writer for RDF imports.
      * 
-     * @param imp import resource
+     * @param service SPARQL service of the application
+     * @param adminService SPARQL service of the admin application
      * @param graphStoreClient GSP client
      * @param baseURI base URI
      * @param query transformation query
+     * @param imp import resource
      * @return function
      */
-    protected Function<Response, RDFGraphStoreOutput> getStreamRDFOutputWriter(RDFImport imp, GraphStoreClient graphStoreClient, String baseURI, Query query)
+    protected Function<Response, RDFGraphStoreOutput> getStreamRDFOutputWriter(Service service, Service adminService, GraphStoreClient graphStoreClient, String baseURI, Query query, RDFImport imp)
     {
-        return new StreamRDFOutputWriter(graphStoreClient, baseURI, query, imp.getGraphName() != null ? imp.getGraphName().getURI() : null);
+        return new StreamRDFOutputWriter(service, adminService, graphStoreClient, baseURI, query, imp.getGraphName() != null ? imp.getGraphName().getURI() : null);
     }
 
-    /**
-     * Bans URL from Varnish proxy cache.
-     * 
-     * @param dataManager RDF data manager
-     * @param proxy URI resource of the proxy cache
-     * @param url URL to be banned
-     * @return response from Varnish
-     */
-    public Response ban(DataManager dataManager, Resource proxy, String url)
-    {
-        if (url == null) throw new IllegalArgumentException("Resource cannot be null");
-        
-        // create new Client instance, otherwise ApacheHttpClient reuses connection and Varnish ignores BAN request
-        return dataManager.getClient().target(proxy.getURI()).request().
-            header(BackendInvalidationFilter.HEADER_NAME, UriComponent.encode(url, UriComponent.Type.UNRESERVED)).
-            method("BAN", Response.class);
-    }
     
     /**
      * Returns executor service that contains a thread pool.

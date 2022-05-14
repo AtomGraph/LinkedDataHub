@@ -9,6 +9,7 @@ print_usage()
     printf "Options:\n"
     printf "  -f, --cert-pem-file CERT_FILE        .pem file with the WebID certificate of the agent\n"
     printf "  -p, --cert-password CERT_PASSWORD    Password of the WebID certificate\n"
+    printf "  --proxy PROXY_URL                    The host this request will be proxied through (optional)\n"
     printf "\n"
     printf "  -t, --content-type MEDIA_TYPE        Media type of the RDF body (e.g. text/turtle)\n"
 }
@@ -28,6 +29,11 @@ do
         ;;
         -p|--cert-password)
         cert_password="$2"
+        shift # past argument
+        shift # past value
+        ;;
+        --proxy)
+        proxy="$2"
         shift # past argument
         shift # past value
         ;;
@@ -62,6 +68,13 @@ if [ "$#" -ne 1 ]; then
 fi
 
 target="$1"
+
+if [ -n "$proxy" ]; then
+    # rewrite target hostname to proxy hostname
+    target_host=$(echo "$target" | cut -d '/' -f 1,2,3)
+    proxy_host=$(echo "$proxy" | cut -d '/' -f 1,2,3)
+    target="${target/$target_host/$proxy_host}"
+fi
 
 # POST RDF document from stdin to the server and print Location URL
 cat - | curl -v -k -E "$cert_pem_file":"$cert_password" -d @- -H "Content-Type: ${content_type}" -H "Accept: text/turtle" "$target" -v -D - | tr -d '\r' | sed -En 's/^Location: (.*)/\1/p'

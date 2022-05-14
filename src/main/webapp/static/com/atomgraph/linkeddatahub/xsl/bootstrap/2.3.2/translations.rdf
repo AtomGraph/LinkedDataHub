@@ -6,188 +6,339 @@
 <rdf:RDF xmlns:rdf="&rdf;" xmlns:rdfs="&rdfs;">
     <rdf:Description rdf:nodeID="sign-up">
         <rdfs:label xml:lang="en-US">Sign up</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Registrarse</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="login-google">
         <rdfs:label xml:lang="en-US">Login with Google</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Entrar con Google</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="root">
         <rdfs:label xml:lang="en-US">Root</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Raíz</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="filter">
         <rdfs:label xml:lang="en-US">Filter</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Filtrar</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="search">
         <rdfs:label xml:lang="en-US">Search</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Buscar</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="applications">
         <rdfs:label xml:lang="en-US">Applications</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Aplicaciones</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="notifications">
         <rdfs:label xml:lang="en-US">Notifications</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Notificaciones</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="atomgraph">
         <rdfs:label xml:lang="en-US">AtomGraph</rdfs:label>
+        <rdfs:label xml:lang="es-ES">AtomGraph</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="details">
         <rdfs:label xml:lang="en-US">Details</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Detalles</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="add">
         <rdfs:label xml:lang="en-US">Add</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Añadir</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="remove">
         <rdfs:label xml:lang="en-US">Remove</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Eliminar</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="ban">
         <rdfs:label xml:lang="en-US">Ban</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Prohibir</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="delete">
         <rdfs:label xml:lang="en-US">Delete</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Borrar</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="skolemize">
         <rdfs:label xml:lang="en-US">Skolemize</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Escolemizar</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="skolemize-title">
         <rdfs:label xml:lang="en-US">Replace all blank node resource identifiers with URIs</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Sustituir todos los identificadores de recursos anónimos por URIs</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="export">
         <rdfs:label xml:lang="en-US">export</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Exportar</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="save">
         <rdfs:label xml:lang="en-US">Save</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Guardar</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="close">
         <rdfs:label xml:lang="en-US">Close</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Cerrar</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="reset">
         <rdfs:label xml:lang="en-US">Reset</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Reiniciar</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="settings">
         <rdfs:label xml:lang="en-US">Settings</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Ajustes</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="content">
         <rdfs:label xml:lang="en-US">Content</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Contenido</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="latest">
         <rdfs:label xml:lang="en-US">Latest</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Último</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="geo">
         <rdfs:label xml:lang="en-US">Geo</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Geo</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="files">
         <rdfs:label xml:lang="en-US">Files</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Archivos</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="imports">
         <rdfs:label xml:lang="en-US">Imports</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Importaciones</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="queries">
         <rdfs:label xml:lang="en-US">Queries</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Consultas</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="charts">
         <rdfs:label xml:lang="en-US">Charts</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Gráficos</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="services">
         <rdfs:label xml:lang="en-US">Services</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Servicios</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="layout">
         <rdfs:label xml:lang="en-US">Layout</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Diseño</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="access">
         <rdfs:label xml:lang="en-US">Access</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Acceder</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="toggle-content">
         <rdfs:label xml:lang="en-US">Toggle content</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Activar contenido</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="run">
         <rdfs:label xml:lang="en-US">Run</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Ejecutar</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="search-title">
         <rdfs:label xml:lang="en-US">Search for resources by title, label, content etc.</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Buscar recursos por título, etiqueta, contenido, etc.</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="application-list-title">
         <rdfs:label xml:lang="en-US">Applications</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Aplicaciones</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="mode-list-title">
         <rdfs:label xml:lang="en-US">Change layout mode</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Cambiar modo disposición</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="acl-list-title">
         <rdfs:label xml:lang="en-US">Allowed access modes</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Modos permitidos de acceso</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="create-instance-title">
         <rdfs:label xml:lang="en-US">Create a new resource of selected type</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Crear un recurso nuevo del tipo seleccionado</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="add-data">
         <rdfs:label xml:lang="en-US">Add data</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Añadir datos</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="add-data-title">
         <rdfs:label xml:lang="en-US">Import RDF data</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Importar datos RDF</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="import-ontology">
+        <rdfs:label xml:lang="en-US">Import ontology</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="import-ontology-title">
+        <rdfs:label xml:lang="en-US">Import RDF ontology and create constructors</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="nav-bar-action-delete-title">
         <rdfs:label xml:lang="en-US">Delete the graph of this resource</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Borrar el grafo de este recurso</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="nav-bar-action-refresh-title">
         <rdfs:label xml:lang="en-US">Clear the resource from SPARQL results cache</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Limpiar el recurso de la caché de resultados SPARQL</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="nav-bar-action-edit-graph-title">
         <rdfs:label xml:lang="en-US">Edit the graph of this resource</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Editar el grafo de este recurso</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="nav-bar-action-export-rdf-title">
         <rdfs:label xml:lang="en-US">Export RDF data for this response</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Exportar datos RDF para esta respuesta</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="nav-bar-action-settings-title">
         <rdfs:label xml:lang="en-US">Settings</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Ajustes</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="filter-title">
         <rdfs:label xml:lang="en-US">Filter the current view</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Filtrar la vista actual</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="reset-changes-title">
         <rdfs:label xml:lang="en-US">Reset changes</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Reiniciar cambios</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="copy-uri">
         <rdfs:label xml:lang="en-US">Copy URI</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Copiar URI</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="save-as-title">
         <rdfs:label xml:lang="en-US">Copy this RDF graph into the local graph store</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Copiar este grafo RDF al almacén de grafos locales</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="save-as">
         <rdfs:label xml:lang="en-US">Save as</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Guardar como</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="from-origin">
         <rdfs:label xml:lang="en-US">From origin</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Desde origen</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="local">
         <rdfs:label xml:lang="en-US">Local</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Local</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="common">
         <rdfs:label xml:lang="en-US">Common</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Común</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="backlinks">
         <rdfs:label xml:lang="en-US">Backlinks</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Backlinks</rdfs:label> <!-- I didn't find an easy translation of Backlinks to Spanish, maybe "enlaces de vuelta" ? -->
     </rdf:Description>
     <rdf:Description rdf:nodeID="email">
         <rdfs:label xml:lang="en-US">E-mail</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Correo electrónico</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:about="authorization">
         <rdfs:label xml:lang="en-US">Authorization</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Autorización</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:about="public-key">
         <rdfs:label xml:lang="en-US">Public key</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Clave pública</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:about="user-account">
         <rdfs:label xml:lang="en-US">User account</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Cuenta de usuario</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:about="ask-query">
         <rdfs:label xml:lang="en-US">ASK</rdfs:label>
+        <rdfs:label xml:lang="es-ES">ASK</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:about="select-query">
         <rdfs:label xml:lang="en-US">SELECT</rdfs:label>
+        <rdfs:label xml:lang="es-ES">SELECT</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:about="describe-query">
         <rdfs:label xml:lang="en-US">DESCRIBE</rdfs:label>
+        <rdfs:label xml:lang="es-ES">DESCRIBE</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:about="construct-query">
         <rdfs:label xml:lang="en-US">CONSTRUCT</rdfs:label>
+        <rdfs:label xml:lang="es-ES">CONSTRUCT</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:about="file">
         <rdfs:label xml:lang="en-US">File</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Archivo</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:about="administration">
+        <rdfs:label xml:lang="en-US">Administration</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Administración</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:about="namespace-ontology">
+        <rdfs:label xml:lang="en-US">Namespace ontology</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Espacio de nombres de ontología</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:about="documentation">
+        <rdfs:label xml:lang="en-US">Documentation</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Documentación</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:about="sparql-service">
+        <rdfs:label xml:lang="en-US">SPARQL service</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Servicio SPARQL</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:about="sparql-editor">
+        <rdfs:label xml:lang="en-US">SPARQL editor</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Editor SPARQL</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:about="request-access">
+        <rdfs:label xml:lang="en-US">Request access</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Solicitar acceso</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:about="upload-file">
+        <rdfs:label xml:lang="en-US">Upload file</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Subir fichero</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:about="from-uri">
+        <rdfs:label xml:lang="en-US">From URI</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Desde URI</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:about="add-rdf-data">
+        <rdfs:label xml:lang="en-US">Add RDF data</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Añadir datos RDF</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:about="none">
+        <rdfs:label xml:lang="en-US">None</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Nada</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:about="ascending">
+        <rdfs:label xml:lang="en-US">Ascending</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Ascendente</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:about="descending">
+        <rdfs:label xml:lang="en-US">Descending</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Descendente</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:about="source">
+        <rdfs:label xml:lang="en-US">Source</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Fuente</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:about="graph">
+        <rdfs:label xml:lang="en-US">Graph</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Grafo</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:about="query">
+        <rdfs:label xml:lang="en-US">Query</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Consulta</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:about="clear">
+        <rdfs:label xml:lang="en-US">Clear</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Limpiar</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:about="related-results">
+        <rdfs:label xml:lang="en-US">Related results</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Resultados relacionados</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:about="document-tree">
+        <rdfs:label xml:lang="en-US">Document tree</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:about="reconcile-title">
+        <rdfs:label xml:lang="en-US">Reconcile this resource against resources in the selected service</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:about="reconcile">
+        <rdfs:label xml:lang="en-US">Reconcile</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:about="reconcile-entity">
+        <rdfs:label xml:lang="en-US">Reconcile entity</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:about="resource">
+        <rdfs:label xml:lang="en-US">Resource</rdfs:label>
     </rdf:Description>
 </rdf:RDF>

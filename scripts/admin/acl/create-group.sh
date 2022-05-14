@@ -4,12 +4,13 @@ print_usage()
 {
     printf "Creates an ACL agent group.\n"
     printf "\n"
-    printf "Usage:  %s options [TARGET_URI]\n" "$0"
+    printf "Usage:  %s options\n" "$0"
     printf "\n"
     printf "Options:\n"
     printf "  -f, --cert-pem-file CERT_FILE        .pem file with the WebID certificate of the agent\n"
     printf "  -p, --cert-password CERT_PASSWORD    Password of the WebID certificate\n"
     printf "  -b, --base BASE_URI                  Base URI of the admin application\n"
+    printf "  --proxy PROXY_URL                    The host this request will be proxied through (optional)\n"
     printf "\n"
     printf "  --name NAME                          Name of the group\n"
     printf "  --description DESCRIPTION            Description of the group (optional)\n"
@@ -105,16 +106,13 @@ else
     group="_:auth" # blank node
 fi
 
-if [ -z "$1" ]; then
-    args+=("${base}service") # default target URL = graph store
-fi
-
 args+=("-f")
 args+=("$cert_pem_file")
 args+=("-p")
 args+=("$cert_password")
 args+=("-t")
 args+=("text/turtle") # content type
+args+=("${base}service")
 
 turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"

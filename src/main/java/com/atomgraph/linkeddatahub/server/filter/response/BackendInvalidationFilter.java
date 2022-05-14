@@ -28,6 +28,7 @@ import javax.ws.rs.client.Client;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerResponseContext;
 import javax.ws.rs.container.ContainerResponseFilter;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import org.apache.jena.rdf.model.Resource;
 import org.glassfish.jersey.uri.UriComponent;
@@ -55,6 +56,19 @@ public class BackendInvalidationFilter implements ContainerResponseFilter
     {
         if (getAdminApplication().getService().getProxy() == null) return;
         
+        if (req.getMethod().equals(HttpMethod.POST) && resp.getHeaderString(HttpHeaders.LOCATION) != null)
+        {
+            URI location = (URI)resp.getHeaders().get(HttpHeaders.LOCATION).get(0);
+            URI parentURI = location.resolve("..").normalize();
+            
+            ban(getApplication().getService().getProxy(), location.toString()).close();
+            // ban URI from authorization query results
+            ban(getAdminApplication().getService().getProxy(), location.toString()).close();
+            // ban parent resource URI in order to avoid stale children data in containers
+            ban(getApplication().getService().getProxy(), parentURI.toString()).close();
+            ban(getApplication().getService().getProxy(), getApplication().getBaseURI().relativize(parentURI).toString()).close(); // URIs can be relative in queries
+        }
+        
         if (req.getMethod().equals(HttpMethod.POST) || req.getMethod().equals(HttpMethod.PUT) || req.getMethod().equals(HttpMethod.DELETE) || req.getMethod().equals(HttpMethod.PATCH))
         {
             // ban all admin/ entries when the admin dataset is changed - not perfect, but works
@@ -67,14 +81,20 @@ public class BackendInvalidationFilter implements ContainerResponseFilter
                 ban(getAdminApplication().getService().getProxy(), "acl:AuthenticatedAgent").close();
             }
             
-            // Varnish VCL BANs req.url after 200/201/204 responses
-            
-            // ban parent resource URIs in order to avoid stale children data in containers
-            if (!req.getUriInfo().getAbsolutePath().equals(getApplication().getBaseURI()))
+            if (req.getUriInfo().getAbsolutePath().toString().endsWith("/"))
             {
-                URI parentURI = req.getUriInfo().getAbsolutePath().relativize(URI.create(".."));
-                ban(getApplication().getService().getProxy(), parentURI.toString()).close();
-                ban(getApplication().getService().getProxy(), getApplication().getBaseURI().relativize(parentURI).toString()).close(); // URIs can be relative in queries
+                ban(getApplication().getService().getProxy(), req.getUriInfo().getAbsolutePath().toString()).close();
+                // ban URI from authorization query results
+                ban(getAdminApplication().getService().getProxy(), req.getUriInfo().getAbsolutePath().toString()).close();
+                
+                // ban parent document URIs (those that have a trailing slash) in order to avoid stale children data in containers
+                if (!req.getUriInfo().getAbsolutePath().equals(getApplication().getBaseURI()))
+                {
+                    URI parentURI = req.getUriInfo().getAbsolutePath().resolve("..").normalize();
+
+                    ban(getApplication().getService().getProxy(), parentURI.toString()).close();
+                    ban(getApplication().getService().getProxy(), getApplication().getBaseURI().relativize(parentURI).toString()).close(); // URIs can be relative in queries
+                }
             }
         }
     }

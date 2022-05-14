@@ -41,14 +41,14 @@ echo "Importing RDF from source: $source"
 curl -w "%{http_code}\n" -o /dev/null -v -k \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -H "Accept: text/turtle" \
-  -H "Content-Type: application/x-www-form-urlencoded" \
+  -H "Content-Type: application/rdf+x-www-form-urlencoded" \
   --data-urlencode "rdf=" \
   --data-urlencode "sb=arg" \
   --data-urlencode "pu=http://purl.org/dc/terms/source" \
   --data-urlencode "ou=${source}" \
   --data-urlencode "pu=http://www.w3.org/ns/sparql-service-description#name" \
   --data-urlencode "ou=${graph}" \
-  "${END_USER_BASE_URL}clone" \
+  "${END_USER_BASE_URL}add" \
 | grep -q "$STATUS_OK"
 
 pushd . > /dev/null && cd "$SCRIPT_ROOT"

@@ -26,16 +26,12 @@ group_doc=$(./create-group.sh \
   --name "Test group" \
   --member "$AGENT_URI")
 
-echo "GROUP_DOC: $group_doc"
-
 group=$(curl -s -k \
   -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
   "$group_doc" \
   -H "Accept: application/n-triples" \
   | cat \
   | sed -rn "s/<${group_doc//\//\\/}> <http:\/\/xmlns.com\/foaf\/0.1\/primaryTopic> <(.*)> \./\1/p")
-
-echo "GROUP: $group"
 
 popd > /dev/null
 

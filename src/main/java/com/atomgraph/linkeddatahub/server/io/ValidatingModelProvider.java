@@ -18,9 +18,10 @@ package com.atomgraph.linkeddatahub.server.io;
 
 import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
+import com.atomgraph.linkeddatahub.client.LinkedDataClient;
 import com.atomgraph.linkeddatahub.model.Agent;
+import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
-import org.apache.jena.ontology.OntDocumentManager;
 import org.apache.jena.query.QueryFactory;
 import org.apache.jena.query.QueryParseException;
 import org.apache.jena.rdf.model.Model;
@@ -51,6 +52,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
@@ -82,6 +84,7 @@ public class ValidatingModelProvider extends com.atomgraph.server.io.ValidatingM
 
     @Inject javax.inject.Provider<com.atomgraph.linkeddatahub.apps.model.Application> application;
     @Inject com.atomgraph.linkeddatahub.Application system;
+    @Inject javax.inject.Provider<Optional<AgentContext>> agentContextProvider;
 
     private final MessageDigest messageDigest;
 
@@ -232,14 +235,19 @@ public class ValidatingModelProvider extends com.atomgraph.server.io.ValidatingM
             }
         }
         
-        if (resource.hasProperty(RDF.type, OWL.Ontology))
+        if (getApplication().canAs(AdminApplication.class) && resource.hasProperty(RDF.type, OWL.Ontology))
         {
             // clear cached OntModel if ontology is updated. TO-DO: send event instead
-            OntDocumentManager.getInstance().getFileManager().removeCacheModel(resource.getURI());
+            getSystem().getOntModelSpec().getDocumentManager().getFileManager().removeCacheModel(resource.getURI());
         }
         
         if (resource.hasProperty(RDF.type, ACL.Authorization))
-            getSystem().getEventBus().post(new com.atomgraph.linkeddatahub.server.event.AuthorizationCreated(getEndUserApplication(), resource));
+        {
+            LinkedDataClient ldc = LinkedDataClient.create(getSystem().getClient(), getSystem().getMediaTypes()).
+                delegation(getUriInfo().getBaseUri(), getAgentContextProvider().get().orElse(null));
+            getSystem().getEventBus().post(new com.atomgraph.linkeddatahub.server.event.AuthorizationCreated(getEndUserApplication(),
+                ldc, resource));
+        }
         
         return resource;
     }
@@ -360,6 +368,16 @@ public class ValidatingModelProvider extends com.atomgraph.server.io.ValidatingM
     public com.atomgraph.linkeddatahub.Application getSystem()
     {
         return system;
+    }
+    
+    /**
+     * Returns a JAX-RS provider for the RDF data manager.
+     * 
+     * @return provider
+     */
+    public javax.inject.Provider<Optional<AgentContext>> getAgentContextProvider()
+    {
+        return agentContextProvider;
     }
     
 }

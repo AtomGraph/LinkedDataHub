@@ -8,13 +8,13 @@ purge_backend_cache "$ADMIN_VARNISH_SERVICE"
 
 pushd . > /dev/null && cd "$SCRIPT_ROOT/admin/acl"
 
-# add agent to the writers group to be able to read/write documents (might already be done by another test)
+# add agent to the readers group to be able to read documents (might already be done by another test)
 
 ./add-agent-to-group.sh \
   -f "$OWNER_CERT_FILE" \
   -p "$OWNER_CERT_PWD" \
   --agent "$AGENT_URI" \
-  "${ADMIN_BASE_URL}acl/groups/writers/"
+  "${ADMIN_BASE_URL}acl/groups/readers/"
 
 popd > /dev/null
 

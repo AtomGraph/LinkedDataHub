@@ -18,14 +18,11 @@ package com.atomgraph.linkeddatahub.resource;
 
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.core.vocabulary.SD;
-import com.atomgraph.linkeddatahub.client.filter.auth.IDTokenDelegationFilter;
-import com.atomgraph.linkeddatahub.client.filter.auth.WebIDDelegationFilter;
-import com.atomgraph.linkeddatahub.model.Agent;
+import com.atomgraph.linkeddatahub.client.LinkedDataClient;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.io.ValidatingModelProvider;
 import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
-import com.atomgraph.linkeddatahub.server.security.IDTokenSecurityContext;
 import com.atomgraph.linkeddatahub.vocabulary.NFO;
 import java.io.IOException;
 import java.io.InputStream;
@@ -38,10 +35,10 @@ import javax.inject.Inject;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DefaultValue;
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Request;
@@ -71,9 +68,6 @@ public class Add extends GraphStoreImpl // TO-DO: does not need to extend GraphS
 {
 
     private static final Logger log = LoggerFactory.getLogger(Add.class);
-
-    private final SecurityContext securityContext;
-    private final Optional<AgentContext> agentContext;
     
     /**
      * Constructs endpoint for synchronous RDF data imports.
@@ -92,11 +86,45 @@ public class Add extends GraphStoreImpl // TO-DO: does not need to extend GraphS
     @Inject
     public Add(@Context Request request, @Context UriInfo uriInfo, MediaTypes mediaTypes,
             com.atomgraph.linkeddatahub.apps.model.Application application, Optional<Ontology> ontology, Optional<Service> service,
-            @Context Providers providers, com.atomgraph.linkeddatahub.Application system, @Context SecurityContext securityContext, Optional<AgentContext> agentContext)
+            @Context SecurityContext securityContext, Optional<AgentContext> agentContext,
+            @Context Providers providers, com.atomgraph.linkeddatahub.Application system)
     {
-        super(request, uriInfo, mediaTypes, application, ontology, service, providers, system);
-        this.securityContext = securityContext;
-        this.agentContext = agentContext;
+        super(request, uriInfo, mediaTypes, application, ontology, service, securityContext, agentContext, providers, system);
+    }
+    
+
+    @GET
+    @Override
+    public Response get(@QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
+    {
+        return super.get(false, getURI());
+    }
+    
+    @POST
+    @Override
+    public Response post(Model model, @QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
+    {
+        ResIterator it = model.listSubjectsWithProperty(DCTerms.source);
+        try
+        {
+            if (!it.hasNext()) throw new BadRequestException("Argument resource not provided");
+            
+            Resource arg = it.next();
+            Resource source = arg.getPropertyResourceValue(DCTerms.source);
+            if (source == null) throw new BadRequestException("RDF source URI (dct:source) not provided");
+            
+            Resource graph = arg.getPropertyResourceValue(SD.name);
+            if (graph == null || !graph.isURIResource()) throw new BadRequestException("Graph URI (sd:name) not provided");
+
+            LinkedDataClient ldc = LinkedDataClient.create(getSystem().getClient(), getMediaTypes()); // TO-DO: inject
+            Model importModel = ldc.getModel(source.getURI());
+            // forward the stream to the named graph document -- do not directly append triples to graph because the agent might not have access to it
+            return forwardPost(Entity.entity(importModel, com.atomgraph.client.MediaType.APPLICATION_NTRIPLES_TYPE), graph.getURI());
+        }
+        finally
+        {
+            it.close();
+        }
     }
     
     /**
@@ -118,7 +146,7 @@ public class Add extends GraphStoreImpl // TO-DO: does not need to extend GraphS
         {
             Model model = parseModel(multiPart); // do not skolemize because we don't know the graphUri yet
             MessageBodyReader<Model> reader = getProviders().getMessageBodyReader(Model.class, null, null, com.atomgraph.core.MediaType.APPLICATION_NTRIPLES_TYPE);
-            if (reader instanceof ValidatingModelProvider) model = ((ValidatingModelProvider)reader).processRead(model);
+            if (reader instanceof ValidatingModelProvider validatingModelProvider) model = validatingModelProvider.processRead(model);
             if (log.isDebugEnabled()) log.debug("POSTed Model size: {}", model.size());
 
             return postFileBodyPart(model, getFileNameBodyPartMap(multiPart)); // do not write the uploaded file -- instead append its triples/quads
@@ -140,7 +168,7 @@ public class Add extends GraphStoreImpl // TO-DO: does not need to extend GraphS
      * 
      * @param model RDF graph
      * @param fileNameBodyPartMap parts of the multipart request
-     * @return response
+     * @return response response
      */
     public Response postFileBodyPart(Model model, Map<String, FormDataBodyPart> fileNameBodyPartMap)
     {
@@ -150,7 +178,7 @@ public class Add extends GraphStoreImpl // TO-DO: does not need to extend GraphS
         ResIterator resIt = model.listResourcesWithProperty(NFO.fileName);
         try
         {
-            if (!resIt.hasNext()) throw new BadRequestException("Argument resource not provided");
+            if (!resIt.hasNext()) throw new BadRequestException("File body part not found in the multipart request");
 
             Resource file = resIt.next();
             String fileName = file.getProperty(NFO.fileName).getString();
@@ -165,20 +193,8 @@ public class Add extends GraphStoreImpl // TO-DO: does not need to extend GraphS
 
             try (InputStream is = bodyPart.getValueAs(InputStream.class))
             {
-                WebTarget webTarget = getSystem().getClient().target(graph.getURI());
-                // delegate authentication
-                if (getSecurityContext().getUserPrincipal() instanceof Agent)
-                {
-                    if (getSecurityContext().getAuthenticationScheme().equals(SecurityContext.CLIENT_CERT_AUTH))
-                        webTarget.register(new WebIDDelegationFilter((Agent)getSecurityContext().getUserPrincipal()));
-
-                    if (getAgentContext().isPresent() && getAgentContext().get() instanceof IDTokenSecurityContext)
-                        webTarget.register(new IDTokenDelegationFilter(((IDTokenSecurityContext)getAgentContext().get()).getJWTToken(), getUriInfo().getBaseUri().getPath(), null));
-                }
-
-                // forward the stream to the named graph document
-                return webTarget.request(getSystem().getMediaTypes().getReadable(Model.class).toArray(new MediaType[0])).
-                    post(Entity.entity(getStreamingOutput(is), mediaType));
+                // forward the stream to the named graph document -- do not directly append triples to graph because the agent might not have access to it
+                return forwardPost(Entity.entity(getStreamingOutput(is), mediaType), graph.getURI());
             
             }
             catch (IOException ex)
@@ -193,6 +209,26 @@ public class Add extends GraphStoreImpl // TO-DO: does not need to extend GraphS
     }
     
     /**
+     * Forwards <code>POST</code> request to a graph.
+     * 
+     * @param entity request entity
+     * @param graphURI the graph URI
+     * @return JAX-RS response
+     */
+    protected Response forwardPost(Entity entity, String graphURI)
+    {
+        LinkedDataClient ldc = LinkedDataClient.create(getSystem().getClient(), getSystem().getMediaTypes()).
+            delegation(getUriInfo().getBaseUri(), getAgentContext().orElse(null));
+        // forward the stream to the named graph document. Buffer the entity first so that the server response is not returned before the client response completes
+        try (Response response = ldc.post(URI.create(graphURI), ldc.getReadableMediaTypes(Model.class), entity))
+        {
+            return Response.status(response.getStatus()).
+                entity(response.readEntity(Model.class)).
+                build();
+        }
+    }
+    
+    /**
      * Converts input stream to streaming output.
      * @param is input stream
      * @return streaming output
@@ -203,23 +239,15 @@ public class Add extends GraphStoreImpl // TO-DO: does not need to extend GraphS
             is.transferTo(os);
         };
     }
-
-    /**
-     * Get JAX-RS security context
-     * @return security context object
-     */
-    public SecurityContext getSecurityContext()
-    {
-        return securityContext;
-    }
     
     /**
-     * Gets authenticated agent's context
-     * @return optional agent's context
+     * Returns URI of this resource.
+     * 
+     * @return URI
      */
-    public Optional<AgentContext> getAgentContext()
+    public URI getURI()
     {
-        return agentContext;
+        return getUriInfo().getAbsolutePath();
     }
     
 }

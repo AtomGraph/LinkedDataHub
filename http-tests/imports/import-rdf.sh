@@ -25,26 +25,25 @@ pushd . > /dev/null && cd "$SCRIPT_ROOT"
 # create container
 
 container=$(./create-container.sh \
--f "$AGENT_CERT_FILE" \
--p "$AGENT_CERT_PWD" \
--b "$END_USER_BASE_URL" \
---title "Concepts" \
---slug "concepts" \
---parent "$END_USER_BASE_URL")
+  -f "$AGENT_CERT_FILE" \
+  -p "$AGENT_CERT_PWD" \
+  -b "$END_USER_BASE_URL" \
+  --title "Concepts" \
+  --slug "concepts" \
+  --parent "$END_USER_BASE_URL")
 
 # import RDF
 
 cd imports
 
 ./import-rdf.sh \
--f "$AGENT_CERT_FILE" \
--p "$AGENT_CERT_PWD" \
--b "$END_USER_BASE_URL" \
---title "Test" \
---query-file "$pwd/rdf-test.rq" \
---file "$pwd/test.ttl" \
---file-content-type "text/turtle" \
---action "$container"
+  -f "$AGENT_CERT_FILE" \
+  -p "$AGENT_CERT_PWD" \
+  -b "$END_USER_BASE_URL" \
+  --title "Test" \
+  --query-file "$pwd/rdf-test.rq" \
+  --file "$pwd/test.ttl" \
+  --file-content-type "text/turtle"
 
 popd > /dev/null
 
@@ -70,4 +69,4 @@ curl -k -f -s -N \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -H "Accept: application/n-triples" \
   "${container}${rdf_id}/" \
-| grep -q "<${container}${rdf_id}/> <http://xmlns.com/foaf/0.1/primaryTopic> <${rdf_value}>"
+| grep "<${container}${rdf_id}/> <http://xmlns.com/foaf/0.1/primaryTopic> <${rdf_value}>" > /dev/null

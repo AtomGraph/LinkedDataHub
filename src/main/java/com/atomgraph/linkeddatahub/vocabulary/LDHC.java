@@ -70,7 +70,10 @@ public class LDHC
 
     /** WebID query property */
     public static final DatatypeProperty webIDQuery = m_model.createDatatypeProperty( NS + "webIDQuery" );
-    
+
+    /** Agent query property */
+    public static final DatatypeProperty agentQuery = m_model.createDatatypeProperty( NS + "agentQuery" );
+
     /** User account query property */
     public static final DatatypeProperty userAccountQuery = m_model.createDatatypeProperty( NS + "userAccountQuery" );
     
@@ -142,5 +145,14 @@ public class LDHC
     
     /** Max content length property */
     public static final DatatypeProperty maxContentLength = m_model.createDatatypeProperty( NS + "maxContentLength" );
+
+    /** Support languages property */
+    public static final DatatypeProperty supportedLanguages = m_model.createDatatypeProperty( NS + "supportedLanguages" );
+
+    /** Max import threads property */
+    public static final DatatypeProperty maxImportThreads = m_model.createDatatypeProperty( NS + "maxImportThreads" );
+
+    /** WebID signup property **/
+    public static final DatatypeProperty webIDSignUp = m_model.createDatatypeProperty( NS + "webIDSignUp" );
 
 }

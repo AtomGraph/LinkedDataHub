@@ -33,15 +33,11 @@
     rdfs:label "Request access" ;
     rdfs:isDefinedBy : .
 
-### EXTERNAL ASSERTIONS
-
-# http://rdfs.org/sioc/ns
-
-dh:Container ldh:template ldh:ContainerChildren .
-
 :MissingRDFSLabel a ldh:MissingPropertyValue ;
     rdfs:label "Missing rdfs:label" ;
     sp:arg1 rdfs:label .
+
+### EXTERNAL ASSERTIONS
 
 # http://spinrdf.org/sp
 
@@ -62,7 +58,7 @@ owl:Ontology spin:constructor [
     PREFIX owl:     <http://www.w3.org/2002/07/owl#>
 
     CONSTRUCT {
-        ?this rdfs:label [ a xsd:string ] ;
+        $this rdfs:label [ a xsd:string ] ;
             rdfs:comment [ a xsd:string ] ;
             owl:imports [ a rdfs:Resource ] ;
             owl:versionInfo "1.0-SNAPSHOT" .
@@ -85,7 +81,7 @@ owl:Class spin:constructor [
     PREFIX foaf:    <http://xmlns.com/foaf/0.1/>
 
     CONSTRUCT {
-        ?this rdfs:subClassOf [ a owl:Class ] ;
+        $this rdfs:subClassOf [ a owl:Class ] ;
             rdfs:label [ a xsd:string ] ;
             rdfs:comment [ a xsd:string ] ;
             spin:constructor [ a sp:Construct ] ;
@@ -106,7 +102,7 @@ owl:ObjectProperty spin:constructor [
     PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
 
     CONSTRUCT {
-        ?this rdfs:subPropertyOf [ a rdf:Property ] ;
+        $this rdfs:subPropertyOf [ a rdf:Property ] ;
             rdfs:label [ a xsd:string ] ;
             rdfs:comment [ a xsd:string ] ;
             rdfs:domain [ a rdfs:Resource ] ;
@@ -127,7 +123,7 @@ owl:DatatypeProperty spin:constructor [
     PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
 
     CONSTRUCT {
-        ?this rdfs:subPropertyOf [ a rdf:Property ] ;
+        $this rdfs:subPropertyOf [ a rdf:Property ] ;
             rdfs:label [ a xsd:string ] ;
             rdfs:comment [ a xsd:string ] ;
             rdfs:domain [ a rdfs:Resource ] ;
@@ -150,7 +146,7 @@ owl:Restriction spin:constructor [
             PREFIX sp:      <http://spinrdf.org/sp#>
 
             CONSTRUCT {
-                ?this rdfs:label [ a xsd:string ] ;
+                $this rdfs:label [ a xsd:string ] ;
                   rdfs:comment [ a xsd:string ] ;
                   owl:onProperty [ a rdf:Property ] ;
                   owl:allValuesFrom [ a rdfs:Resource ] ;
@@ -179,7 +175,7 @@ acl:Authorization spin:constructor [
             PREFIX foaf:    <http://xmlns.com/foaf/0.1/>
 
             CONSTRUCT {
-                ?this rdfs:label [ a xsd:string ] ;
+                $this rdfs:label [ a xsd:string ] ;
                     dct:description [ a xsd:string ] ;
                     acl:mode [ a acl:Mode ] ;
                     acl:accessTo [ a rdfs:Resource ] ;
@@ -210,7 +206,7 @@ PREFIX  acl:  <http://www.w3.org/ns/auth/acl#>
 SELECT DISTINCT  ?agent
 WHERE
 { GRAPH ?authGraph
-  { ?this  foaf:primaryTopic  ?auth .
+  { $this  foaf:primaryTopic  ?auth .
     ?auth  acl:agent          ?agent
   }
 }
@@ -228,7 +224,7 @@ cert:PublicKey spin:constructor [
             PREFIX cert:    <http://www.w3.org/ns/auth/cert#>
 
             CONSTRUCT {
-                ?this cert:modulus [ a xsd:hexBinary ] ;
+                $this cert:modulus [ a xsd:hexBinary ] ;
                     cert:exponent 65537 .
             }
             WHERE {}"""
@@ -271,7 +267,7 @@ sioc:UserAccount spin:constructor :UserAccountConstructor ;
         PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
 
         CONSTRUCT {
-            ?this sioc:name [ a xsd:string ] ;
+            $this sioc:name [ a xsd:string ] ;
                 sioc:email [ a rdfs:Resource ] ;
                 sioc:account_of [ a foaf:Agent ] .
         }
@@ -297,7 +293,7 @@ foaf:Agent spin:constructor :AgentConstructor .
         PREFIX cert:    <http://www.w3.org/ns/auth/cert#>
 
         CONSTRUCT {
-            ?this cert:key [ a cert:PublicKey ] ;
+            $this cert:key [ a cert:PublicKey ] ;
                 acl:delegates [ a rdfs:Resource ] .
         }
         WHERE {}""" .
@@ -330,7 +326,7 @@ foaf:Person spin:constructor :PersonConstructor ;
         PREFIX vivo:    <http://vivoweb.org/ontology/core#>
 
         CONSTRUCT {
-            ?this foaf:givenName [ a xsd:string ] ;
+            $this foaf:givenName [ a xsd:string ] ;
                 foaf:familyName [ a xsd:string ] ;
                 foaf:mbox [ a rdfs:Resource ] ;
                 foaf:based_near [ a rdfs:Resource ] ;
@@ -352,7 +348,7 @@ foaf:Group spin:constructor :GroupConstructor ;
         PREFIX dct:     <http://purl.org/dc/terms/>
 
         CONSTRUCT {
-            ?this foaf:name [ a xsd:string ] ;
+            $this foaf:name [ a xsd:string ] ;
                 dct:description [ a xsd:string ] ;
                 foaf:member [ a foaf:Agent ] .
         }

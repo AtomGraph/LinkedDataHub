@@ -38,6 +38,7 @@ import nu.xom.Document;
 import nu.xom.ParsingException;
 import nu.xom.canonical.Canonicalizer;
 import org.apache.commons.io.IOUtils;
+import org.apache.jena.riot.RiotException;
 import org.apache.jena.vocabulary.RDF;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,6 +60,7 @@ public class RDFPostCleanupInterceptor implements ReaderInterceptor
     @Override
     public Object aroundReadFrom(ReaderInterceptorContext context) throws IOException, WebApplicationException
     {
+        // cannot use the RDF/POST-specific MediaType.APPLICATION_RDF_URLENCODED_TYPE because browsers do not support it as form/@enctype: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/form#attr-enctype -->
         if (context.getMediaType() != null && context.getMediaType().isCompatible(MediaType.APPLICATION_FORM_URLENCODED_TYPE))
         {
             StringWriter writer = new StringWriter();
@@ -68,7 +70,7 @@ public class RDFPostCleanupInterceptor implements ReaderInterceptor
             
             if (formData.startsWith(TokenizerRDFPost.RDF))
             {
-                String charsetName = "UTF-8";
+                String charsetName = StandardCharsets.UTF_8.name();
                 String[] params = formData.split("&");
                 List<String> keys = new ArrayList<>(), values = new ArrayList<>();
 
@@ -92,6 +94,7 @@ public class RDFPostCleanupInterceptor implements ReaderInterceptor
                     catch (UnsupportedEncodingException ex)
                     {
                         if (log.isWarnEnabled()) log.warn("Unsupported encoding", ex);
+                        throw new RiotException(ex);
                     }
                 }
 
@@ -113,15 +116,16 @@ public class RDFPostCleanupInterceptor implements ReaderInterceptor
 
                     // set re-serialized RDF/POST as request entity stream
                     context.setInputStream(new ByteArrayInputStream(rdfPost.getBytes(charsetName)));
-                    
                     // replace generic Form URL-encoded media type with RDF/POST
                     context.setMediaType(MediaType.APPLICATION_RDF_URLENCODED_TYPE);
                 }
                 catch (ParsingException | IOException ex)
                 {
                     if (log.isWarnEnabled()) log.warn("Error parsing RDF/POST token", ex);
+                    throw new RiotException(ex);
                 }
             }
+            else context.setInputStream(new ByteArrayInputStream(formData.getBytes(StandardCharsets.UTF_8))); // restore the request entity
         }
         
         return context.proceed();

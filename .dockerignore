@@ -1,10 +1,13 @@
+.git
+.github
 .env
 config
-hooks
-ssl
 data
+hooks
 http-tests
 node
 node_modules
+scripts
+ssl
 target
 uploads

@@ -42,7 +42,6 @@ LIMIT 100</xsl:param>
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'btn-run-query')"/>
-        <xsl:sequence select="ac:label(.)"/>
     </xsl:template>
 
     <xsl:template name="bs2:QueryEditor" >
@@ -115,7 +114,13 @@ LIMIT 100</xsl:param>
                 <label for="service">Service</label>
                 <xsl:text> </xsl:text>
                 <select id="query-service" name="service" class="input-xxlarge">
-                    <option value="">[SPARQL service]</option>
+                    <option value="">
+                        <xsl:value-of>
+                            <xsl:text>[</xsl:text>
+                            <xsl:apply-templates select="key('resources', 'sparql-service', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                            <xsl:text>]</xsl:text>
+                        </xsl:value-of>
+                    </option>
                 </select>
         
                 <textarea id="query-string" name="query" class="span12" rows="15">
@@ -138,11 +143,19 @@ LIMIT 100</xsl:param>
                         <xsl:apply-templates select="key('resources', 'run', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ldh:logo">
                             <xsl:with-param name="class" select="'btn btn-primary'"/>
                         </xsl:apply-templates>
+
+                        <xsl:value-of>
+                            <xsl:apply-templates select="key('resources', 'run', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                        </xsl:value-of>
                     </button>
                     <button class="btn btn-save-query" type="button">
                         <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ldh:logo">
                             <xsl:with-param name="class" select="'btn btn-save-query'"/>
                         </xsl:apply-templates>
+                        
+                        <xsl:value-of>
+                            <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                        </xsl:value-of>
                     </button>
                 </div>
             </fieldset>

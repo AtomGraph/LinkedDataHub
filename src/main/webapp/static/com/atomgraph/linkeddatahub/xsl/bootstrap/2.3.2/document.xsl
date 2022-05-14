@@ -74,14 +74,68 @@ extension-element-prefixes="ixsl"
         </div>
     </xsl:template>
     
+    <!-- MODE TABS -->
+    
+    <xsl:template match="rdf:RDF" mode="bs2:ModeTabs">
+        <xsl:param name="has-content" as="xs:boolean"/>
+        <xsl:param name="active-mode" as="xs:anyURI?"/>
+        <xsl:param name="forClass" as="xs:anyURI?"/>
+        <xsl:param name="ajax-rendering" select="true()" as="xs:boolean"/>
+
+        <div class="row-fluid">
+            <ul class="nav nav-tabs offset2 span7">
+                <xsl:if test="$has-content">
+                    <li class="content-mode{if ((empty($active-mode) and not($forClass)) or $active-mode = '&ldh;ContentMode') then ' active' else() }">
+                        <a href="{ac:build-uri(ac:uri(), map{ 'mode': '&ldh;ContentMode' })}">
+                            <xsl:value-of>
+                                <xsl:apply-templates select="key('resources', 'content', document('translations.rdf'))" mode="ac:label"/>
+                            </xsl:value-of>
+                        </a>
+                    </li>
+                </xsl:if>
+
+                <xsl:for-each select="key('resources', '&ac;ReadMode', document(ac:document-uri('&ac;')))">
+                    <xsl:apply-templates select="." mode="bs2:ModeTabsItem">
+                        <xsl:with-param name="active" select="@rdf:about = $active-mode or (empty($active-mode) and not($has-content))"/>
+                    </xsl:apply-templates>
+                </xsl:for-each>
+                <xsl:for-each select="key('resources', '&ac;MapMode', document(ac:document-uri('&ac;')))">
+                    <xsl:apply-templates select="." mode="bs2:ModeTabsItem">
+                        <xsl:with-param name="active" select="@rdf:about = $active-mode"/>
+                    </xsl:apply-templates>
+                </xsl:for-each>
+                <xsl:if test="$ajax-rendering">
+                    <xsl:for-each select="key('resources', '&ac;ChartMode', document(ac:document-uri('&ac;')))">
+                        <xsl:apply-templates select="." mode="bs2:ModeTabsItem">
+                            <xsl:with-param name="active" select="@rdf:about = $active-mode"/>
+                        </xsl:apply-templates>
+                    </xsl:for-each>
+                </xsl:if>
+                <xsl:for-each select="key('resources', '&ac;GraphMode', document(ac:document-uri('&ac;')))">
+                    <xsl:apply-templates select="." mode="bs2:ModeTabsItem">
+                        <xsl:with-param name="active" select="@rdf:about = $active-mode"/>
+                    </xsl:apply-templates>
+                </xsl:for-each>
+            </ul>
+        </div>
+    </xsl:template>
+    
     <!-- ROW BLOCK -->
     
     <xsl:template match="rdf:RDF" mode="bs2:RowBlock">
-        <xsl:apply-templates mode="#current">
+        <!-- select elements explicitly, because Saxon-JS chokes on text nodes here -->
+        <xsl:apply-templates select="*" mode="#current">
             <xsl:sort select="ac:label(.)"/>
         </xsl:apply-templates>
     </xsl:template>
         
+    <xsl:template match="rdf:RDF" mode="bs2:RowBlockContent">
+        <!-- select elements explicitly, because Saxon-JS chokes on text nodes here -->
+        <xsl:apply-templates select="*" mode="#current">
+            <xsl:sort select="ac:label(.)"/>
+        </xsl:apply-templates>
+    </xsl:template>
+    
     <!-- CONTENT -->
     
     <xsl:template match="rdf:RDF" mode="ldh:Content">
@@ -259,6 +313,8 @@ extension-element-prefixes="ixsl"
                             <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ldh:logo">
                                 <xsl:with-param name="class" select="'btn btn-primary btn-save-chart'"/>
                             </xsl:apply-templates>
+                            
+                            <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
                         </button>
                     </div>
                 </xsl:if>
@@ -417,6 +473,8 @@ extension-element-prefixes="ixsl"
                             <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ldh:logo">
                                 <xsl:with-param name="class" select="'btn btn-primary btn-save-chart'"/>
                             </xsl:apply-templates>
+                            
+                            <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
                         </button>
                     </div>
                 </xsl:if>
@@ -519,7 +577,7 @@ extension-element-prefixes="ixsl"
     <!-- ROW FORM -->
 
     <xsl:template match="rdf:RDF[$ac:forClass = ('&ldh;CSVImport', '&ldh;RDFImport')][$ac:method = 'GET']" mode="bs2:RowForm" priority="2" use-when="system-property('xsl:product-name') = 'SAXON'">
-        <xsl:param name="action" select="ac:build-uri(resolve-uri('imports', $ldt:base), map{ 'forClass': string($ac:forClass), 'mode': '&ac;EditMode' })" as="xs:anyURI"/>
+        <xsl:param name="action" select="ac:build-uri(resolve-uri('importer', $ldt:base), map{ 'forClass': string($ac:forClass), 'mode': '&ac;EditMode' })" as="xs:anyURI"/>
         <xsl:param name="classes" as="element()*"/>
 
         <xsl:next-match>
@@ -618,18 +676,24 @@ extension-element-prefixes="ixsl"
                 <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ldh:logo">
                     <xsl:with-param name="class" select="$button-class"/>
                 </xsl:apply-templates>
+                
+                <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
             </button>
 
             <button type="button" class="btn">
                 <xsl:apply-templates select="key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ldh:logo">
                     <xsl:with-param name="class" select="'btn'"/>
                 </xsl:apply-templates>
+                
+                <xsl:apply-templates select="key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
             </button>
 
             <button type="reset" class="btn">
                 <xsl:apply-templates select="key('resources', 'reset', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ldh:logo">
                     <xsl:with-param name="class" select="'btn'"/>
                 </xsl:apply-templates>
+                
+                <xsl:apply-templates select="key('resources', 'reset', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
             </button>
         </div>
     </xsl:template>
@@ -650,12 +714,16 @@ extension-element-prefixes="ixsl"
                     <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ldh:logo">
                         <xsl:with-param name="class" select="$button-class"/>
                     </xsl:apply-templates>
+                    
+                    <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
                 </button>
 
                 <button type="reset" class="btn">
                     <xsl:apply-templates select="key('resources', 'reset', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ldh:logo">
                         <xsl:with-param name="class" select="'btn'"/>
                     </xsl:apply-templates>
+                    
+                    <xsl:apply-templates select="key('resources', 'reset', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
                 </button>
             </div>
         </div>

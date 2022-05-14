@@ -18,14 +18,9 @@ package com.atomgraph.linkeddatahub.writer.impl;
 
 import org.apache.jena.util.LocationMapper;
 import java.net.URI;
-import javax.ws.rs.core.SecurityContext;
-import com.atomgraph.core.MediaTypes;
-import com.atomgraph.linkeddatahub.client.filter.auth.WebIDDelegationFilter;
-import com.atomgraph.linkeddatahub.model.Agent;
+import com.atomgraph.core.client.LinkedDataClient;
+import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import java.util.Map;
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientRequestFilter;
-import javax.ws.rs.client.WebTarget;
 import org.apache.jena.rdf.model.Model;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,60 +36,29 @@ public class DataManagerImpl extends com.atomgraph.client.util.DataManagerImpl
     private static final Logger log = LoggerFactory.getLogger(DataManagerImpl.class);
     
     private final URI rootContextURI;
-    private final String authScheme;
-    private final Agent agent;
+    private final AgentContext agentContext;
 
     /**
      * Constructs RDF data manager.
      * 
      * @param mapper location mapper
      * @param modelCache model cache
-     * @param client HTTP client
-     * @param mediaTypes media type registry
+     * @param ldc Linked Data client
      * @param cacheModelLoads true if loaded RDF models are cached
      * @param preemptiveAuth true if HTTP basic auth is sent preemptively
      * @param resolvingUncached true if uncached URLs are resolved
      * @param rootContextURI the root URI of the JAX-RS application
-     * @param securityContext JAX-RS security context
+     * @param agentContext agent context
      */
     public DataManagerImpl(LocationMapper mapper, Map<String, Model> modelCache,
-            Client client, MediaTypes mediaTypes,
+            LinkedDataClient ldc,
             boolean cacheModelLoads, boolean preemptiveAuth, boolean resolvingUncached,
             URI rootContextURI,
-            SecurityContext securityContext)
+            AgentContext agentContext)
     {
-        this(mapper, modelCache,
-            client, mediaTypes,
-            cacheModelLoads, preemptiveAuth, resolvingUncached,
-            rootContextURI,
-            securityContext != null ? securityContext.getAuthenticationScheme() : null,
-            (securityContext != null && securityContext.getUserPrincipal() instanceof Agent) ? (Agent)securityContext.getUserPrincipal() : null);
-    }
-    
-    /**
-     * Constructs RDF data manager.
-     * 
-     * @param mapper location mapper
-     * @param modelCache model cache
-     * @param client HTTP client
-     * @param mediaTypes media type registry
-     * @param cacheModelLoads true if loaded RDF models are cached
-     * @param preemptiveAuth true if HTTP basic auth is sent preemptively
-     * @param resolvingUncached true if uncached URLs are resolved
-     * @param rootContextURI the root URI of the JAX-RS application
-     * @param authScheme authentication scheme ID
-     * @param agent authenticated agent or null
-     */
-    public DataManagerImpl(LocationMapper mapper, Map<String, Model> modelCache, 
-            Client client, MediaTypes mediaTypes,
-            boolean cacheModelLoads, boolean preemptiveAuth, boolean resolvingUncached,
-            URI rootContextURI,
-            String authScheme, Agent agent)
-    {
-        super(mapper, modelCache, client, mediaTypes, cacheModelLoads, preemptiveAuth, resolvingUncached);
+        super(mapper, modelCache, ldc, cacheModelLoads, preemptiveAuth, resolvingUncached);
         this.rootContextURI = rootContextURI;
-        this.authScheme = authScheme;
-        this.agent = agent;
+        this.agentContext = agentContext;
     }
     
     @Override
@@ -109,54 +73,6 @@ public class DataManagerImpl extends com.atomgraph.client.util.DataManagerImpl
         
         return false; // super.resolvingUncached(filenameOrURI); // configured in web.xml
     }
-    
-    /**
-     * Returns the client request filter.
-     * 
-     * @return request filter
-     */
-    public ClientRequestFilter getClientAuthFilter()
-    {
-        if (getAgent() != null)
-        {
-            if (log.isDebugEnabled()) log.debug("Delegating Agent's <{}> access to secretary", getAgent());
-            return new WebIDDelegationFilter(getAgent());
-        }
-            
-        return null;
-    }
-    
-    /**
-     * Creates web target for URI.
-     * 
-     * @param uri target URI
-     * @return web target
-     */
-    @Override
-    public WebTarget getEndpoint(URI uri)
-    {
-        return getEndpoint(uri, true);
-    }
-    
-    /**
-     * Creates web target for URI.WebID can be delegated depending on the parameter.
-     * 
-     * @param uri target URI
-     * @param delegateWebID delegate if true
-     * @return web target
-     */
-    public WebTarget getEndpoint(URI uri, boolean delegateWebID)
-    {
-        WebTarget endpoint = super.getEndpoint(uri);
-        
-        if (delegateWebID) // getBaseURI() != null && !getBaseURI().relativize(uri).isAbsolute()
-        {
-            ClientRequestFilter filter = getClientAuthFilter();
-            if (filter != null) endpoint.register(filter);
-        }
-        
-        return endpoint;
-    }
 
     /**
      * Returns the root URI of the JAX-RS application.
@@ -169,23 +85,13 @@ public class DataManagerImpl extends com.atomgraph.client.util.DataManagerImpl
     }
 
     /**
-     * Returns the authentication scheme.
+     * Returns the agent context.
      * 
-     * @return scheme ID.
+     * @return agent context or null
      */
-    public String getAuthScheme()
+    public AgentContext getAgentContext()
     {
-        return authScheme;
-    }
-    
-    /**
-     * Returns the authenticated agent.
-     * 
-     * @return agent resource or null
-     */
-    public Agent getAgent()
-    {
-        return agent;
+        return agentContext;
     }
     
 }

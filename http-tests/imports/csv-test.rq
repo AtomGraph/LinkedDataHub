@@ -7,7 +7,7 @@ PREFIX sioc:       <http://rdfs.org/sioc/ns#>
 CONSTRUCT
 {
     ?item a dh:Item ;
-        sioc:has_container ?this ;
+        sioc:has_container ?container ;
         dh:slug ?id ;
         dct:title ?string ;
         rdf:value ?integer
@@ -18,7 +18,8 @@ WHERE
         <#string> ?string ;
         <#integer> ?integer_string .
 
-    BIND(uri(concat(str(?this), encode_for_uri(?id), "/")) AS ?item)
+    BIND (uri(concat(str($base), "test/")) AS ?container)
+    BIND(uri(concat(str(?container), encode_for_uri(?id), "/")) AS ?item)
     BIND(xsd:integer(?integer_string) AS ?integer)
 
     OPTIONAL 

@@ -25,25 +25,24 @@ pushd . > /dev/null && cd "$SCRIPT_ROOT"
 # create container
 
 container=$(./create-container.sh \
--f "$AGENT_CERT_FILE" \
--p "$AGENT_CERT_PWD" \
--b "$END_USER_BASE_URL" \
---title "Test" \
---slug "test" \
---parent "$END_USER_BASE_URL")
+  -f "$AGENT_CERT_FILE" \
+  -p "$AGENT_CERT_PWD" \
+  -b "$END_USER_BASE_URL" \
+  --title "Test" \
+  --slug "test" \
+  --parent "$END_USER_BASE_URL")
 
 # import CSV
 
 cd imports
 
 ./import-csv.sh \
--f "$AGENT_CERT_FILE" \
--p "$AGENT_CERT_PWD" \
--b "$END_USER_BASE_URL" \
---title "Test" \
---query-file "$pwd/csv-test.rq" \
---file "$pwd/test.csv" \
---action "$container"
+  -f "$AGENT_CERT_FILE" \
+  -p "$AGENT_CERT_PWD" \
+  -b "$END_USER_BASE_URL" \
+  --title "Test" \
+  --query-file "$pwd/csv-test.rq" \
+  --file "$pwd/test.csv"
 
 popd > /dev/null
 
@@ -69,4 +68,4 @@ curl -k -f -s -N \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -H "Accept: application/n-triples" \
   "${container}${csv_id}/" \
-| grep -q "<${container}${csv_id}/> <http://www.w3.org/1999/02/22-rdf-syntax-ns#value> \"${csv_value}\"^^<http://www.w3.org/2001/XMLSchema#integer>"
+| grep "<${container}${csv_id}/> <http://www.w3.org/1999/02/22-rdf-syntax-ns#value> \"${csv_value}\"^^<http://www.w3.org/2001/XMLSchema#integer>" > /dev/null

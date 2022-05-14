@@ -2,14 +2,15 @@
 
 print_usage()
 {
-    printf "Creates a container backed by a SPARQL SELECT query.\n"
+    printf "Creates a container document.\n"
     printf "\n"
-    printf "Usage:  %s options [TARGET_URI]\n" "$0"
+    printf "Usage:  %s options\n" "$0"
     printf "\n"
     printf "Options:\n"
     printf "  -f, --cert-pem-file CERT_FILE        .pem file with the WebID certificate of the agent\n"
     printf "  -p, --cert-password CERT_PASSWORD    Password of the WebID certificate\n"
     printf "  -b, --base BASE_URI                  Base URI of the application\n"
+    printf "  --proxy PROXY_URL                    The host this request will be proxied through (optional)\n"
     printf "\n"
     printf "  --title TITLE                        Title of the container\n"
     printf "  --description DESCRIPTION            Description of the container (optional)\n"
@@ -96,26 +97,26 @@ if [ -z "$parent" ] ; then
     exit 1
 fi
 
-if [ -z "$1" ]; then
-    args+=("${base}service") # default target URL = graph store
-fi
-
 args+=("-f")
 args+=("$cert_pem_file")
 args+=("-p")
 args+=("$cert_password")
 args+=("-t")
 args+=("text/turtle")
+args+=("${base}service")
 
 turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy#> .\n"
+turtle+="@prefix ldh:	<https://w3id.org/atomgraph/linkeddatahub#> .\n"
+turtle+="@prefix rdf:	<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
 turtle+="@prefix sioc:	<http://rdfs.org/sioc/ns#> .\n"
 turtle+="_:container a dh:Container .\n"
 turtle+="_:container dct:title \"${title}\" .\n"
 turtle+="_:container sioc:has_parent <${parent}> .\n"
 if [ -n "$content" ] ; then
-    turtle+="@prefix ldh:	<https://w3id.org/atomgraph/linkeddatahub#> .\n"
     turtle+="_:container ldh:content <${content}> .\n"
+else
+    turtle+="_:container ldh:content [ a ldh:Content ; rdf:first ldh:SelectChildren ; rdf:rest rdf:nil ] .\n"
 fi
 if [ -n "$description" ] ; then
     turtle+="_:container dct:description \"${description}\" .\n"

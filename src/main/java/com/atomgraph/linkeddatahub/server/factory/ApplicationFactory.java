@@ -42,7 +42,7 @@ public class ApplicationFactory implements Factory<com.atomgraph.linkeddatahub.a
     @Override
     public com.atomgraph.linkeddatahub.apps.model.Application provide()
     {
-        return getApplication(getContainerRequestContext());
+        return getApplication();
     }
 
     @Override
@@ -53,12 +53,11 @@ public class ApplicationFactory implements Factory<com.atomgraph.linkeddatahub.a
     /**
      * Retrieves application from the request context.
      * 
-     * @param crc request context
      * @return application resource
      */
-    public com.atomgraph.linkeddatahub.apps.model.Application getApplication(ContainerRequestContext crc)
+    public com.atomgraph.linkeddatahub.apps.model.Application getApplication()
     {
-        return (com.atomgraph.linkeddatahub.apps.model.Application)crc.getProperty(LAPP.Application.getURI());
+        return (com.atomgraph.linkeddatahub.apps.model.Application)getContainerRequestContext().getProperty(LAPP.Application.getURI());
     }
     
     /**

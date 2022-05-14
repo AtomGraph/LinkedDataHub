@@ -1,3 +1,19 @@
+## [3.1.6] - 2022-05-10
+### Added
+- Spanish UI localization
+- Reconciliation of OIDC accounts with existing agents by email address
+- Document tree widget
+- New `/clear` endpoint which is used to clear ontologies from memory
+- Second nginx port which has WebID client certificate authentication always enabled
+- `--proxy` parameter to CLI scripts
+
+### Changed
+- CSV and RDF imports write data directly to the backend Graph Store
+- Only namespace, signup, OAuth2 login, WebID profiles and public keys can be public in admin apps, nothing else (hardcoded in the admin authorization query)
+- When graph URI not explicitly specified, the Graph Store always returns `201 Created` (even if the graph existed)
+- Fuseki image upgraded to 4.3.2
+
+
 ## [3.0.11] - 2022-03-16
 ### Added
 - Interactivity to the graph SVG layout
@@ -21,6 +37,7 @@
 ### Removed
 - Dydra-specific code
 
+
 ## [3.0.3] - 2022-02-16
 ### Added
 - Ability to copy (fork) RDF data into the local dataspace
@@ -42,6 +59,7 @@
 
 ### Removed
 - Linked Data Templates support (still supported by Processor)
+
 
 ## [2.2.9] - 2021-04-22
 ### Added

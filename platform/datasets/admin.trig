@@ -1,19 +1,10 @@
-@prefix ns:	<model/ontologies/namespace/#> .
-@prefix lacl:	<https://w3id.org/atomgraph/linkeddatahub/admin/acl#> .
-@prefix adm:	<https://w3id.org/atomgraph/linkeddatahub/admin#> .
 @prefix def:	<https://w3id.org/atomgraph/linkeddatahub/default#> .
 @prefix ldh:	<https://w3id.org/atomgraph/linkeddatahub#> .
+@prefix ac:	<https://w3id.org/atomgraph/client#> .
 @prefix rdf:	<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
-@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .
 @prefix xsd:	<http://www.w3.org/2001/XMLSchema#> .
-@prefix owl:	<http://www.w3.org/2002/07/owl#> .
-@prefix acl:	<http://www.w3.org/ns/auth/acl#> .
-@prefix cert:	<http://www.w3.org/ns/auth/cert#> .
-@prefix ldt:	<https://www.w3.org/ns/ldt#> .
-@prefix c:	<https://www.w3.org/ns/ldt/core/domain#> .
 @prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy#> .
 @prefix sp:	<http://spinrdf.org/sp#> .
-@prefix spin:	<http://spinrdf.org/spin#> .
 @prefix sioc:	<http://rdfs.org/sioc/ns#> .
 @prefix foaf:	<http://xmlns.com/foaf/0.1/> .
 @prefix dct:	<http://purl.org/dc/terms/> .
@@ -21,30 +12,176 @@
 <>
 {
 
-    <> a dh:Container ;
+    <> a def:Root ;
         dct:title "Root" ;
-        dct:description "Root container" .
+        dct:description "Root container" ;
+        ldh:content <#select-children> .
+
+    <#select-children> a ldh:Content ;
+        rdf:first ldh:SelectChildren ;
+        rdf:rest rdf:nil .
 
 }
+
+# CONTAINERS
 
 <queries/>
 {
 
     <queries/> a dh:Container ;
         dct:title "Queries" ;
-        dct:description "SPARQL queries" .
+        dct:description "SPARQL queries" ;
+        ldh:content <queries/#select-children> .
+
+    <queries/#select-children> a ldh:Content ;
+        rdf:first ldh:SelectChildren ;
+        rdf:rest rdf:nil .
 
 }
 
-<queries/default/>
+<files/>
 {
 
-    <queries/default/> a dh:Container ;
-        sioc:has_parent <queries/> ;
-        dct:title "Default" ;
-        dct:description "Default queries" .
+    <files/> a dh:Container ;
+        dct:title "Files" ;
+        dct:description "Uploaded files" ;
+        ldh:content <files/#select-children> .
+
+    <files/#select-children> a ldh:Content ;
+        rdf:first ldh:SelectChildren ;
+        rdf:rest rdf:nil .
 
 }
+
+<imports/>
+{
+
+    <imports/> a dh:Container ;
+        dct:title "Imports" ;
+        dct:description "Data imports" ;
+        ldh:content <imports/#select-children> .
+
+    <imports/#select-children> a ldh:Content ;
+        rdf:first ldh:SelectChildren ;
+        rdf:rest rdf:nil .
+
+}
+
+<geo/>
+{
+
+    <geo/> a dh:Item ;
+        dct:title "Geo" ;
+        dct:description "Geolocated resources" ;
+        ldh:content <geo/#select-geo> .
+
+    <geo/#select-geo> a ldh:Content ;
+        rdf:first <geo/#select-geo-query> ;
+        ac:mode ac:MapMode ;
+        rdf:rest rdf:nil .
+
+    <geo/#select-geo-query> a sp:Select ;
+        dct:title "Select geo resources" ;
+        sp:text """
+    PREFIX  geo:  <http://www.w3.org/2003/01/geo/wgs84_pos#>
+    PREFIX  dct:  <http://purl.org/dc/terms/>
+
+    SELECT  DISTINCT ?resource
+    WHERE
+    { GRAPH ?graph
+      { ?resource  geo:lat  ?lat ;
+                  geo:long  ?long
+        OPTIONAL
+          { ?resource  a                    ?type }
+        OPTIONAL
+          { ?resource  dct:title  ?title }
+      }
+    }
+    ORDER BY ?title
+    """ .
+
+}
+
+<latest/>
+{
+
+    <latest/> a dh:Item ;
+        dct:title "Latest" ;
+        dct:description "Latest resources" ;
+        ldh:content <latest/#select-latest> .
+
+    <latest/#select-latest> a ldh:Content ;
+        rdf:first <latest/#select-latest-query> ;
+        rdf:rest rdf:nil .
+
+    <latest/#select-latest-query> a sp:Select ;
+        dct:title "Select latest" ;
+        sp:text """
+    PREFIX  dct:  <http://purl.org/dc/terms/>
+
+    SELECT DISTINCT  ?dated
+    WHERE
+    { GRAPH ?graph
+      { ?dated  dct:created  ?created }
+    }
+    ORDER BY DESC(?created)
+    """ .
+
+}
+
+<charts/>
+{
+
+    <charts/> a dh:Container ;
+        dct:title "Charts" ;
+        dct:description "Saved charts" ;
+        ldh:content <charts/#select-children> .
+
+    <charts/#select-children> a ldh:Content ;
+        rdf:first ldh:SelectChildren ;
+        rdf:rest rdf:nil .
+
+}
+
+
+<apps/>
+{
+
+    <apps/> a dh:Container ;
+        dct:title "Apps" ;
+        dct:description "Linked Data applications" ;
+        ldh:content <apps/#select-children> .
+
+    <apps/#select-children> a ldh:Content ;
+        rdf:first ldh:SelectChildren ;
+        rdf:rest rdf:nil .
+
+}
+
+<services/>
+{
+
+    <services/> a dh:Container ;
+        dct:title "Services" ;
+        dct:description "SPARQL services" ;
+        ldh:content <services/#select-children> .
+
+    <services/#select-children> a ldh:Content ;
+        rdf:first ldh:SelectChildren ;
+        rdf:rest rdf:nil .
+
+}
+
+### ADMIN-SPECIFIC
+
+@prefix ns:	<../ns#> .
+@prefix lacl:	<https://w3id.org/atomgraph/linkeddatahub/admin/acl#> .
+@prefix adm:	<https://w3id.org/atomgraph/linkeddatahub/admin#> .
+@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:	<http://www.w3.org/2002/07/owl#> .
+@prefix acl:	<http://www.w3.org/ns/auth/acl#> .
+@prefix cert:	<http://www.w3.org/ns/auth/cert#> .
+@prefix spin:	<http://spinrdf.org/spin#> .
 
 <sign%20up>
 {
@@ -100,6 +237,61 @@
 
 }
 
+<queries/construct-constructors/>
+{
+
+    <queries/construct-constructors/> a dh:Container ;
+        sioc:has_container <queries/> ;
+        dct:title "Construct constructors" ;
+        foaf:primaryTopic <queries/construct-constructors/#this> .
+
+    <queries/construct-constructors/#this> a sp:Construct ;
+        rdfs:label "Construct constructors" ;
+        rdfs:comment "Infers class constructors from the ontology properties" ;
+        sp:text """
+PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX  owl:  <http://www.w3.org/2002/07/owl#>
+PREFIX  sp:   <http://spinrdf.org/sp#>
+PREFIX  spin: <http://spinrdf.org/spin#>
+
+CONSTRUCT 
+  { 
+    ?class spin:constructor ?constructor .
+    ?constructor a sp:Construct .
+    ?constructor rdfs:label ?constructorLabel .
+    ?constructor sp:text ?constructorString .
+  }
+WHERE
+  { { SELECT  ?class (concat("CONSTRUCT {\\n    ", GROUP_CONCAT(?propConstructor ; separator=' .\\n    '), "\\n}\\n{}") AS ?constructorString)
+      WHERE
+        { { SELECT DISTINCT  ?class ?prop ?range
+            WHERE
+              {   { ?class  a  owl:Class }
+                UNION
+                  { ?class  a  rdfs:Class }
+                { ?prop  rdfs:domain  ?domain }
+                FILTER ( ( ?domain = ?class ) || ( ( ?domain = owl:Thing ) && NOT EXISTS { ?class (rdfs:subClassOf)* ?superClass
+                                                                                           FILTER ( ?class != ?superClass )
+                                                                                         } ) )
+                { ?prop  rdfs:range  ?range }
+              }
+            ORDER BY ?class ?prop ?range
+          }
+          BIND(concat("$this <", str(?prop), "> [ a <", str(?range), "> ]") AS ?propConstructor)
+        }
+      GROUP BY ?class
+    }
+    OPTIONAL
+      { ?class  rdfs:label  ?classLabel
+        FILTER langMatches(lang(?classLabel), "en")
+        BIND(concat(?classLabel, " constructor") AS ?constructorLabel)
+      }
+    BIND(bnode() AS ?constructor)
+  }
+    """ .
+
+}
+
 ### ACL ###
 
 <acl/>
@@ -108,7 +300,12 @@
     <acl/> a dh:Container ;
         sioc:has_parent <> ;
         dct:title "Access control" ;
-        dct:description "Manage agents, user accounts and authorizations" .
+        dct:description "Manage agents, user accounts and authorizations" ;
+        ldh:content <acl/#select-children> .
+
+    <acl/#select-children> a ldh:Content ;
+        rdf:first ldh:SelectChildren ;
+        rdf:rest rdf:nil .
 
 }
 
@@ -118,7 +315,12 @@
     <acl/authorizations/> a dh:Container ;
         sioc:has_parent <acl/> ;
         dct:title "Authorizations" ;
-        dct:description "Manage who has access to which resources" .
+        dct:description "Manage who has access to which resources" ;
+        ldh:content <acl/authorizations/#select-children> .
+
+    <acl/authorizations/#select-children> a ldh:Content ;
+        rdf:first ldh:SelectChildren ;
+        rdf:rest rdf:nil .
 
 }
 
@@ -128,7 +330,12 @@
     <acl/authorization-requests/> a dh:Container ;
         sioc:has_parent <acl/> ;
         dct:title "Authorization requests" ;
-        dct:description "Manage who has access to which resources" .
+        dct:description "Manage who has access to which resources" ;
+        ldh:content <acl/authorization-requests/#select-children> .
+
+    <acl/authorization-requests/#select-children> a ldh:Content ;
+        rdf:first ldh:SelectChildren ;
+        rdf:rest rdf:nil .
 
 }
 
@@ -138,7 +345,12 @@
     <acl/agents/> a dh:Container ;
         sioc:has_parent <acl/> ;
         dct:title "Agents" ;
-        dct:description "Manage people and software agents that have access" .
+        dct:description "Manage people and software agents that have access" ;
+        ldh:content <acl/agents/#select-children> .
+
+    <acl/agents/#select-children> a ldh:Content ;
+        rdf:first ldh:SelectChildren ;
+        rdf:rest rdf:nil .
 
 }
 
@@ -148,7 +360,12 @@
     <acl/public-keys/> a dh:Container ;
         sioc:has_parent <acl/> ;
         dct:title "Public keys" ;
-        dct:description "Manage RSA public keys" .
+        dct:description "Manage RSA public keys" ;
+        ldh:content <acl/public-keys/#select-children> .
+
+    <acl/public-keys/#select-children> a ldh:Content ;
+        rdf:first ldh:SelectChildren ;
+        rdf:rest rdf:nil .
 
 }
 
@@ -158,7 +375,12 @@
     <acl/users/> a dh:Container ;
         sioc:has_parent <acl/> ;
         dct:title "Users" ;
-        dct:description "Manage agent user accounts and credentials" .
+        dct:description "Manage agent user accounts and credentials" ;
+        ldh:content <acl/users/#select-children> .
+
+    <acl/users/#select-children> a ldh:Content ;
+        rdf:first ldh:SelectChildren ;
+        rdf:rest rdf:nil .
 
 }
 
@@ -168,7 +390,12 @@
     <acl/groups/> a dh:Container ;
         sioc:has_parent <acl/> ;
         dct:title "Groups" ;
-        dct:description "Manage agent groups that have access" .
+        dct:description "Manage agent groups that have access" ;
+        ldh:content <acl/groups/#select-children> .
+
+    <acl/groups/#select-children> a ldh:Content ;
+        rdf:first ldh:SelectChildren ;
+        rdf:rest rdf:nil .
 
 }
 
@@ -187,7 +414,7 @@
     <acl/authorizations/public/#this> a acl:Authorization ;
         rdfs:label "Public access" ;
         rdfs:comment "Allows non-authenticated access" ;
-        acl:accessTo <model/ontologies/namespace/> ; # end-user ontologies are public
+        acl:accessTo <../ns> ; # end-user ontologies are public
         acl:mode acl:Read ;
         acl:agentClass foaf:Agent, acl:AuthenticatedAgent .
 
@@ -305,7 +532,7 @@
         rdfs:label "Full control" ;
         rdfs:comment "Allows full read/write access to all application resources" ;
         acl:accessToClass dh:Item, dh:Container, def:Root ;
-        acl:accessTo <../sparql>, <../service>, <../imports>, <../add>, <../clone>, <../skolemize>, <../ns> ;
+        acl:accessTo <../sparql>, <../service>, <../importer>, <../add>, <../clear>, <../ns> ;
         acl:mode acl:Read, acl:Append, acl:Write, acl:Control ;
         acl:agentGroup <acl/groups/owners/#this> .
 
@@ -325,7 +552,7 @@
         rdfs:label "Write/append access" ;
         rdfs:comment "Allows write access to all documents and containers" ;
         acl:accessToClass dh:Item, dh:Container, def:Root ;
-        acl:accessTo <../sparql>, <../service>, <../imports>, <../add>, <../clone>, <../skolemize>, <../ns> ;
+        acl:accessTo <../sparql>, <../service>, <../importer>, <../add>, <../ns> ;
         acl:mode acl:Write, acl:Append ;
         acl:agentGroup <acl/groups/owners/#this>, <acl/groups/writers/#this> .
 
@@ -430,7 +657,12 @@
     <model/> a dh:Container ;
         sioc:has_parent <> ;
         dct:title "Model" ;
-        dct:description "Manage application model: classes, properties, constraints etc." .
+        dct:description "Manage application model: classes, properties, constraints etc." ;
+        ldh:content <model/#select-children> .
+
+    <model/#select-children> a ldh:Content ;
+        rdf:first ldh:SelectChildren ;
+        rdf:rest rdf:nil .
 
 }
 
@@ -440,7 +672,12 @@
     <model/ontologies/> a dh:Container ;
         sioc:has_parent <model/> ;
         dct:title "Ontologies" ;
-        dct:description "Manage ontologies that define application domain" .
+        dct:description "Manage ontologies that define application domain" ;
+        ldh:content <model/ontologies/#select-children> .
+
+    <model/ontologies/#select-children> a ldh:Content ;
+        rdf:first ldh:SelectChildren ;
+        rdf:rest rdf:nil .
 
 }
 
@@ -459,6 +696,7 @@
     ns: a owl:Ontology ;
         rdfs:label "Namespace" ;
         rdfs:comment "Namespace of the application" ;
+        foaf:isPrimaryTopicOf <../ns> ;
         owl:imports <https://w3id.org/atomgraph/linkeddatahub/default#> ;
         owl:versionInfo "1.0-SNAPSHOT" .
 

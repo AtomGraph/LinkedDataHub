@@ -16,24 +16,26 @@
  */
 package com.atomgraph.linkeddatahub.writer.factory;
 
-import org.apache.jena.util.FileManager;
 import org.apache.jena.util.LocationMapper;
 import javax.ws.rs.core.Context;
-import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.ext.Provider;
-import com.atomgraph.core.MediaTypes;
 import com.atomgraph.client.util.DataManager;
+import com.atomgraph.linkeddatahub.apps.model.Application;
+import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
+import com.atomgraph.linkeddatahub.client.LinkedDataClient;
+import com.atomgraph.linkeddatahub.server.security.AgentContext;
+import com.atomgraph.linkeddatahub.vocabulary.LAPP;
 import com.atomgraph.linkeddatahub.writer.impl.DataManagerImpl;
 import java.net.URI;
 import java.util.HashMap;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.client.Client;
+import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.Providers;
-import org.apache.jena.ontology.OntDocumentManager;
 import org.glassfish.hk2.api.Factory;
+import org.glassfish.hk2.api.ServiceLocator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,18 +51,17 @@ public class DataManagerFactory implements Factory<DataManager>
     private static final Logger log = LoggerFactory.getLogger(DataManagerFactory.class);
 
     @Context UriInfo uriInfo;
-    @Context SecurityContext securityContext;
     @Context ResourceContext resourceContext;
     @Context HttpServletRequest httpServletRequest;
     @Context Providers providers;
+    @Context ServiceLocator serviceLocator;
     
-    @Inject MediaTypes mediaTypes;
     @Inject com.atomgraph.linkeddatahub.Application system;
     
     @Override
     public DataManager provide()
     {
-        return getDataManager();
+        return getDataManager(getApplication());
     }
 
     @Override
@@ -71,60 +72,36 @@ public class DataManagerFactory implements Factory<DataManager>
     /**
      * Returns RDF data manager.
      * 
+     * @param app end-user application
      * @return data manager
      */
-    public DataManager getDataManager()
+    public DataManager getDataManager(Application app)
     {
-        return getDataManager(LocationMapper.get(), getClient(), getMediaTypes(),
-                isPreemptiveAuth(), isResolvingUncached(), getSecurityContext(),
-                URI.create(getHttpServletRequest().getRequestURL().toString()).resolve(getHttpServletRequest().getContextPath() + "/"));
+        final com.atomgraph.core.util.jena.DataManager baseManager;
+        
+        if (app.canAs(EndUserApplication.class))
+            baseManager = (com.atomgraph.core.util.jena.DataManager)getSystem().getOntModelSpec(app.as(EndUserApplication.class)).getDocumentManager().getFileManager();
+        else
+            baseManager = getSystem().getDataManager();
+        
+        LinkedDataClient ldc = LinkedDataClient.create(getSystem().getClient(), getSystem().getMediaTypes()).
+            delegation(getUriInfo().getBaseUri(), getAgentContext());
+        
+        // copy cached models over from the app's FileManager
+        return new DataManagerImpl(LocationMapper.get(), new HashMap<>(baseManager.getModelCache()),
+            ldc, true, getSystem().isPreemptiveAuth(), getSystem().isResolvingUncached(),
+            URI.create(getHttpServletRequest().getRequestURL().toString()).resolve(getHttpServletRequest().getContextPath() + "/"),
+                getAgentContext());
     }
     
     /**
-     * Constructs and returns an RDF data manager instance.
+     * Returns system application.
      * 
-     * @param mapper location mapper
-     * @param client HTTP client
-     * @param mediaTypes media type registry
-     * @param preemptiveAuth true if HTTP basic auth is sent preemptively
-     * @param resolvingUncached true if uncached URLs are resolved
-     * @param securityContext JAX-RS security context
-     * @param rootContextURI root URI of the JAX-RS application
-     * @return data manager
+     * @return JAX-RS application
      */
-    public DataManager getDataManager(LocationMapper mapper, Client client, MediaTypes mediaTypes,
-            boolean preemptiveAuth, boolean resolvingUncached,
-            SecurityContext securityContext,
-            URI rootContextURI)
+    public com.atomgraph.linkeddatahub.Application getSystem()
     {
-        // copy cached models over from the main ontology cache
-        DataManager dataManager = new DataManagerImpl(mapper, new HashMap<>(((DataManager)OntDocumentManager.getInstance().getFileManager()).getModelCache()),
-            client, mediaTypes,
-            true, preemptiveAuth, resolvingUncached,
-            rootContextURI, securityContext);
- 
-        if (log.isTraceEnabled()) log.trace("DataManager LocationMapper: {}", ((FileManager)dataManager).getLocationMapper());
-        return dataManager;
-    }
-    
-    /**
-     * Returns the registry of readable/writable media types.
-     * 
-     * @return media type registry
-     */
-    public MediaTypes getMediaTypes()
-    {
-        return mediaTypes;
-    }
-    
-    /**
-     * Returns the HTTP client.
-     * 
-     * @return client
-     */
-    public Client getClient()
-    {
-        return system.getClient();
+        return system;
     }
     
     /**
@@ -138,13 +115,13 @@ public class DataManagerFactory implements Factory<DataManager>
     }
     
     /**
-     * Returns the JAX-RS security context.
-     * 
-     * @return security context
+     * Returns agent context with additional metadata.
+     * @return agent context or null
      */
-    public SecurityContext getSecurityContext()
+    public AgentContext getAgentContext()
     {
-        return securityContext;
+        return (AgentContext)getContainerRequestContext().getProperty(AgentContext.class.getCanonicalName());
+        
     }
     
     /**
@@ -169,23 +146,23 @@ public class DataManagerFactory implements Factory<DataManager>
     }
     
     /**
-     * Returns true if HTTP Basic auth credentials are sent preemptively.
+     * Returns the container request context.
      * 
-     * @return true if preemptively
+     * @return request context
      */
-    public boolean isPreemptiveAuth()
+    public ContainerRequestContext getContainerRequestContext()
     {
-        return system.isPreemptiveAuth();
+        return serviceLocator.getService(ContainerRequestContext.class);
     }
-
+    
     /**
-     * Returns true if uncached URLs should be dereferenced by the HTTP client.
+     * Retrieves LDT application from the request context.
      * 
-     * @return true if resolved
+     * @return LDT application
      */
-    public boolean isResolvingUncached()
+    public Application getApplication()
     {
-        return system.isResolvingUncached();
+        return (Application)getContainerRequestContext().getProperty(LAPP.Application.getURI());
     }
     
 }

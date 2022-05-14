@@ -16,34 +16,28 @@
  */
 package com.atomgraph.linkeddatahub.server.filter.request;
 
-import com.atomgraph.core.MediaTypes;
-import com.atomgraph.core.io.ModelProvider;
 import com.atomgraph.linkeddatahub.apps.model.Application;
+import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.vocabulary.LAPP;
 import com.atomgraph.processor.exception.OntologyException;
-import com.atomgraph.client.vocabulary.LDT;
-import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
-import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
-import com.atomgraph.server.util.OntologyLoader;
+import com.atomgraph.linkeddatahub.server.util.OntologyModelGetter;
+import com.atomgraph.processor.util.OntModelReadOnly;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Optional;
 import javax.annotation.Priority;
 import javax.inject.Inject;
-import javax.ws.rs.client.Client;
+import javax.ws.rs.InternalServerErrorException;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.container.PreMatching;
-import javax.ws.rs.core.Response;
+import org.apache.jena.ontology.OntDocumentManager;
+import org.apache.jena.ontology.OntModel;
 import org.apache.jena.ontology.OntModelSpec;
 import org.apache.jena.ontology.Ontology;
-import org.apache.jena.query.ParameterizedSparqlString;
-import org.apache.jena.query.Query;
-import org.apache.jena.rdf.model.InfModel;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
-import org.apache.jena.rdf.model.ModelReader;
 import org.apache.jena.util.FileManager;
 import org.apache.jena.vocabulary.OWL;
 import org.slf4j.Logger;
@@ -61,148 +55,8 @@ public class OntologyFilter implements ContainerRequestFilter
     
     private static final Logger log = LoggerFactory.getLogger(OntologyFilter.class);
 
-    private final MediaTypes mediaTypes = new MediaTypes();
-    private final javax.ws.rs.core.MediaType[] acceptedTypes;
-
     @Inject com.atomgraph.linkeddatahub.Application system;
 
-    /**
-     * Application's ontology model getter.
-     */
-    protected class ModelGetter implements org.apache.jena.rdf.model.ModelGetter
-    {
-        
-        private final Application app;
-        private final OntModelSpec ontModelSpec;
-        private final Query ontologyQuery;
-        
-        /**
-         * Constructs ontology getter for application.
-         * 
-         * @param app application resource
-         * @param ontModelSpec ontology specification
-         * @param ontologyQuery SPARQL query that loads ontology terms
-         */
-        public ModelGetter(Application app, OntModelSpec ontModelSpec, Query ontologyQuery)
-        {
-            this.app = app;
-            this.ontModelSpec = ontModelSpec;
-            this.ontologyQuery = ontologyQuery;
-        }
-
-        @Override
-        public Model getModel(String uri)
-        {
-            FileManager fileManager = getOntModelSpec().getDocumentManager().getFileManager();
-            // read cached ontology or mapped ontology from file
-            String mappedURI = getOntModelSpec().getDocumentManager().getFileManager().mapURI(uri);
-            if (fileManager.hasCachedModel(uri) || !(mappedURI.startsWith("http") || mappedURI.startsWith("https"))) // ontology URI mapped to a local file resource
-                return fileManager.loadModel(uri, getApplication().getBase().getURI(), null);
-            else
-            {
-                // attempt to load ontology graph from the admin endpoint. TO-DO: is that necessary if ontologies terms are now stored in a single graph?
-                ParameterizedSparqlString ontologyPss = new ParameterizedSparqlString(getOntologyQuery().toString());
-                ontologyPss.setIri(LDT.ontology.getLocalName(), uri);
-                Model model = getAdminApplication().getService().getSPARQLClient().loadModel(ontologyPss.asQuery());
-                
-                // if it's empty, fallback to dereferencing the ontology URI
-                if (model.isEmpty())
-                {
-                    // TO-DO: use LinkedDataClient
-                    if (log.isDebugEnabled()) log.debug("Loading end-user Ontology <{}>", uri);
-                    try (Response cr = getClient().target(uri).
-                            request(getAcceptableMediaTypes()).
-                            get())
-                    {
-                        if (!cr.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
-                        {
-                            if (log.isErrorEnabled()) log.error("Could not load ontology from URI: <{}>", uri);
-                            // TO-DO: replace with Jena's OntologyException
-                            throw new OntologyException("Could not load ontology from URI <" + uri + ">");
-                        }
-                        cr.getHeaders().putSingle(ModelProvider.REQUEST_URI_HEADER, uri); // provide a base URI hint to ModelProvider
-                        return cr.readEntity(Model.class);
-                    }
-                    catch (Exception ex)
-                    {
-                        if (log.isErrorEnabled()) log.error("Could not load ontology from URI: {}", uri);
-                        // TO-DO: replace with Jena's OntologyException
-                        throw new OntologyException("Could not load ontology from URI '" + uri + "'");
-                    }
-                }
-                
-                return model;
-            }
-        }
-        
-        @Override
-        public Model getModel(String uri, ModelReader loadIfAbsent) 
-        {
-            try
-            {
-                return getModel(uri);
-            }
-            catch (OntologyException ex)
-            {
-                return loadIfAbsent.readModel(ModelFactory.createDefaultModel(), uri);
-            }
-        }
-
-        /**
-         * Returns the application.
-         * 
-         * @return application resource
-         */
-        public Application getApplication()
-        {
-            return app;
-        }
-        
-        /**
-         * Returns ontology specification.
-         * 
-         * @return ontology specification
-         */
-        public OntModelSpec getOntModelSpec()
-        {
-            return ontModelSpec;
-        }
-        
-        /**
-         * Returns admin application.
-         * 
-         * @return admin application resource
-         */
-        public AdminApplication getAdminApplication()
-        {
-            if (getApplication().canAs(EndUserApplication.class))
-                return getApplication().as(EndUserApplication.class).getAdminApplication();
-            else
-                return getApplication().as(AdminApplication.class);
-        }
-        
-        /**
-         * Returns the SPARQL query used to load ontology terms.
-         * 
-         * @return SPARQL query
-         */
-        @Deprecated
-        public Query getOntologyQuery()
-        {
-            return ontologyQuery;
-        }
-        
-    }
-
-    /**
-     * Constructs filter.
-     */
-    public OntologyFilter()
-    {
-        List<javax.ws.rs.core.MediaType> acceptedTypeList = new ArrayList();
-        acceptedTypeList.addAll(mediaTypes.getReadable(Model.class));
-        acceptedTypes = acceptedTypeList.toArray(new javax.ws.rs.core.MediaType[acceptedTypeList.size()]); 
-    }
     
     @Override
     public void filter(ContainerRequestContext crc) throws IOException
@@ -238,9 +92,9 @@ public class OntologyFilter implements ContainerRequestFilter
      */
     public Ontology getOntology(Application app)
     {
-        if (app.getPropertyResourceValue(LDT.ontology) == null) return null;
+        if (app.getOntology() == null) return null;
 
-        return getOntology(app, app.getPropertyResourceValue(LDT.ontology).getURI(), getSystem().getOntModelSpec());
+        return getOntology(app, app.getOntology().getURI());
     }
     
     /**
@@ -248,45 +102,86 @@ public class OntologyFilter implements ContainerRequestFilter
      * 
      * @param app application resource
      * @param uri ontology URI
-     * @param ontModelSpec ontology specification
      * @return ontology resource
      */
-    public Ontology getOntology(Application app, String uri, OntModelSpec ontModelSpec)
+    public Ontology getOntology(Application app, String uri)
     {
         if (app == null) throw new IllegalArgumentException("Application string cannot be null");
         if (uri == null) throw new IllegalArgumentException("Ontology URI string cannot be null");
 
-        ModelGetter modelGetter = new ModelGetter(app, ontModelSpec, getSystem().getOntologyQuery());
-        // only create InfModel if ontology is not already cached
-        if (!ontModelSpec.getDocumentManager().getFileManager().hasCachedModel(uri))
+        final OntModelSpec ontModelSpec;
+        if (app.canAs(EndUserApplication.class))
         {
-            Model model = modelGetter.getModel(uri);
-
-            final InfModel infModel = ModelFactory.createInfModel(ontModelSpec.getReasoner(), model);
-
-            ontModelSpec.getDocumentManager().addModel(uri, infModel);
-            ontModelSpec.setImportModelGetter(modelGetter);
+            ontModelSpec = new OntModelSpec(getSystem().getOntModelSpec(app.as(EndUserApplication.class)));
+            // only create InfModel if ontology is not already cached
+            if (!ontModelSpec.getDocumentManager().getFileManager().hasCachedModel(uri))
+            {
+                OntologyModelGetter modelGetter = new OntologyModelGetter(app.as(EndUserApplication.class),
+                        ontModelSpec, getSystem().getOntologyQuery(), getSystem().getNoCertClient(), getSystem().getMediaTypes());
+                ontModelSpec.setImportModelGetter(modelGetter);
+                Model baseModel = modelGetter.getModel(uri);
+                OntModel ontModel = ModelFactory.createOntologyModel(ontModelSpec, baseModel);
+                // materialize OntModel inferences to avoid invoking rules engine on every request
+                OntModel materializedModel = ModelFactory.createOntologyModel(OntModelSpec.OWL_MEM); // no inference
+                materializedModel.add(ontModel);
+                ontModel.getDocumentManager().addModel(uri, new OntModelReadOnly(materializedModel), true); // make immutable and add as OntModel so that imports do not need to be reloaded during retrieval
+                // make sure to cache imported models not only by ontology URI but also by document URI
+                ontModel.listImportedOntologyURIs(true).forEach((String importURI) -> addDocumentModel(ontModel.getDocumentManager(), importURI));
+            }
         }
-        
-        try
+        else
         {
-            // construct system provider to materialize inferenced model
-            OntologyLoader ontologyLoader = new com.atomgraph.server.util.OntologyLoader(ontModelSpec.getDocumentManager(), uri, ontModelSpec, true);
-            // Bypass Processor's getOntology() because it overrides the ModelGetter TO-DO: fix!
-            OntModelSpec loadSpec = new OntModelSpec(OntModelSpec.OWL_MEM);
-            loadSpec.setImportModelGetter(modelGetter);
-            return ontModelSpec.getDocumentManager().getOntology(uri, loadSpec).getOntology(uri); // reloads the imports using ModelGetter. TO-DO: optimize?
+            ontModelSpec = new OntModelSpec(getSystem().getOntModelSpec());
+            FileManager fileManager = ontModelSpec.getDocumentManager().getFileManager();
+            if (!fileManager.hasCachedModel(uri))
+            {
+                try
+                {
+                    URI ontologyURI = URI.create(uri);
+                    // remove fragment and normalize
+                    URI ontDocURI = new URI(ontologyURI.getScheme(), ontologyURI.getSchemeSpecificPart(), null).normalize();
+                    Model baseModel = fileManager.loadModel(uri, ontDocURI.toString(), null);
+                    OntModel ontModel = ModelFactory.createOntologyModel(ontModelSpec, baseModel);
+                    ontModel.getDocumentManager().addModel(uri, ontModel, true);
+                }
+                catch (URISyntaxException ex)
+                {
+                    if (log.isErrorEnabled()) log.error("Ontology URI syntax error: {}", ex.getInput());
+                    throw new InternalServerErrorException(ex);
+                }
+            }
         }
-        catch (IllegalArgumentException ex)
-        {
-            // ontology resource was not found
-        }
-        
-        if (log.isErrorEnabled()) log.error("Ontology resource '{}' not found", uri);
-        // TO-DO: replace with Jena's OntologyException
-        throw new OntologyException("Ontology resource '" + uri + "' not found");
+        return ontModelSpec.getDocumentManager().getOntology(uri, ontModelSpec).getOntology(uri); // reloads the imports using ModelGetter. TO-DO: optimize?
     }
 
+    /**
+     * Extracts document URI from ontology import URI and uses it as a secondary cache key.
+     * 
+     * @param odm document manager
+     * @param importURI ontology URI
+     */
+    public static void addDocumentModel(OntDocumentManager odm, String importURI)
+    {
+        try
+        {
+            URI ontologyURI = URI.create(importURI);
+            // remove fragment and normalize
+            URI docURI = new URI(ontologyURI.getScheme(), ontologyURI.getSchemeSpecificPart(), null).normalize();
+            String mappedURI = odm.getFileManager().mapURI(docURI.toString());
+             // only cache import document URI if it's not already cached or mapped
+            if (!odm.getFileManager().hasCachedModel(docURI.toString()) && mappedURI.equals(docURI.toString()))
+            {
+                Model importModel = odm.getModel(importURI);
+                if (importModel == null) throw new IllegalArgumentException("Import model is not cached");
+                odm.addModel(docURI.toString(), importModel, true);
+            }
+        }
+        catch (URISyntaxException ex)
+        {
+            throw new RuntimeException(ex);
+        }
+    }
+    
     /**
      * Retrieves application from the container request context.
      * 
@@ -296,26 +191,6 @@ public class OntologyFilter implements ContainerRequestFilter
     public Application getApplication(ContainerRequestContext crc)
     {
         return ((Application)crc.getProperty(LAPP.Application.getURI()));
-    }
-    
-    /**
-     * Returns HTTP client.
-     * 
-     * @return client
-     */
-    public Client getClient()
-    {
-        return getSystem().getNoCertClient();
-    }
-    
-    /**
-     * Returns readable media types.
-     * 
-     * @return media types
-     */
-    public javax.ws.rs.core.MediaType[] getAcceptableMediaTypes()
-    {
-        return acceptedTypes;
     }
 
     /**

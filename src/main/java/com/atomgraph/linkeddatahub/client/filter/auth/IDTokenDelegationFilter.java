@@ -16,21 +16,25 @@
  */
 package com.atomgraph.linkeddatahub.client.filter.auth;
 
+import static com.atomgraph.linkeddatahub.client.filter.auth.WebIDDelegationFilter.ON_BEHALF_OF;
 import java.io.IOException;
 import javax.ws.rs.client.ClientRequestContext;
 import javax.ws.rs.client.ClientRequestFilter;
 import javax.ws.rs.core.Cookie;
 import javax.ws.rs.core.HttpHeaders;
 import com.atomgraph.linkeddatahub.server.filter.request.auth.IDTokenFilter;
+import org.apache.jena.rdf.model.Resource;
 
 /**
  * A client request filter that delegates JWT ID token using a cookie.
+ * <strong>It's not secure to use ID token delegation to 3rd party servers!</strong>
  * 
  * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
  */
 public class IDTokenDelegationFilter implements ClientRequestFilter
 {
 
+    private final Resource agent;
     private final String jwtToken;
     private final String path;
     private final String domain;
@@ -38,12 +42,14 @@ public class IDTokenDelegationFilter implements ClientRequestFilter
     /**
      * Constructs JWT ID token delegation filter.
      * 
+     * @param agent agent resource
      * @param jwtToken JWT ID token
      * @param path cookie path
      * @param domain cookie domain
      */
-    public IDTokenDelegationFilter(String jwtToken, String path, String domain)
+    public IDTokenDelegationFilter(Resource agent, String jwtToken, String path, String domain) // accept IDTokenSecurityContext?
     {
+        this.agent = agent;
         this.jwtToken = jwtToken;
         this.path = path;
         this.domain = domain;
@@ -54,6 +60,18 @@ public class IDTokenDelegationFilter implements ClientRequestFilter
     {
         Cookie jwtCookie = new Cookie(IDTokenFilter.COOKIE_NAME, getJwtToken(), getPath(), getDomain());
         cr.getHeaders().add(HttpHeaders.COOKIE, jwtCookie.toString());
+
+        cr.getHeaders().add(ON_BEHALF_OF, getAgent().getURI());
+    }
+    
+    /**
+     * Returns delegated agent.
+     * 
+     * @return agent resource
+     */
+    public Resource getAgent()
+    {
+        return agent;
     }
     
     /**
@@ -67,7 +85,7 @@ public class IDTokenDelegationFilter implements ClientRequestFilter
     }
 
     /**
-     * Path of the cookied.
+     * Path of the cookie.
      * 
      * @return URL path string
      */

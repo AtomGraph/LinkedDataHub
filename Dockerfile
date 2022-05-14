@@ -96,7 +96,7 @@ ENV UPLOAD_CONTAINER_PATH=$UPLOAD_CONTAINER_PATH
 
 ENV MAX_CONTENT_LENGTH=
 
-ENV MAX_CONN_PER_ROUTE=20
+ENV MAX_CONN_PER_ROUTE=40
 
 ENV MAX_TOTAL_CONN=40
 
@@ -126,13 +126,9 @@ COPY platform/entrypoint.sh entrypoint.sh
 
 COPY platform/import-letsencrypt-stg-roots.sh import-letsencrypt-stg-roots.sh
 
-# copy SPARQL query used to split the default graph into named graphs
-
-COPY platform/split-default-graph.rq.template split-default-graph.rq.template
-
 # copy SPARQL query used to get metadata of the root app service from the system dataset
 
-COPY platform/select-root-services.rq.template select-root-services.rq.template
+COPY platform/select-root-services.rq select-root-services.rq
 
 # copy the metadata of the built-in secretary agent
 
@@ -178,4 +174,4 @@ RUN ./import-letsencrypt-stg-roots.sh
 
 USER ldh
 
-ENTRYPOINT ["/bin/sh", "entrypoint.sh"]
+ENTRYPOINT ["/bin/bash", "entrypoint.sh"]

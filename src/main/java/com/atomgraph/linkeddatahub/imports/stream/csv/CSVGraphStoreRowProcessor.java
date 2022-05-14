@@ -17,16 +17,22 @@
 package com.atomgraph.linkeddatahub.imports.stream.csv;
 
 import com.atomgraph.core.client.GraphStoreClient;
-import com.atomgraph.etl.csv.ModelTransformer;
+import com.atomgraph.linkeddatahub.model.Service;
+import com.atomgraph.linkeddatahub.server.util.Skolemizer;
 import com.univocity.parsers.common.ParsingContext;
 import com.univocity.parsers.common.processor.RowProcessor;
-import java.util.function.BiFunction;
+import java.util.function.Function;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.core.Response;
 import org.apache.jena.atlas.lib.IRILib;
+import org.apache.jena.query.Dataset;
 import org.apache.jena.query.Query;
+import org.apache.jena.query.QueryExecution;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
+import org.glassfish.jersey.uri.UriComponent;
 
 /**
  *
@@ -35,24 +41,31 @@ import org.apache.jena.rdf.model.Resource;
 public class CSVGraphStoreRowProcessor implements RowProcessor // extends com.atomgraph.etl.csv.stream.CSVStreamRDFProcessor
 {
 
+    private final Service service, adminService;
     private final GraphStoreClient graphStoreClient;
     private final String base;
-    private final BiFunction<Query, Model, Model> function = new ModelTransformer();
     private final Query query;
+    private final Function<Model, Resource> createGraph;
     private int subjectCount, tripleCount;
 
     /**
      * Constructs row processor.
      * 
+     * @param service SPARQL service of the application
+     * @param adminService SPARQL service of the admin application
      * @param graphStoreClient the GSP client
      * @param base base URI
      * @param query transformation query
+     * @param createGraph function that derives graph URI from a document model
      */
-    public CSVGraphStoreRowProcessor(GraphStoreClient graphStoreClient, String base, Query query)
+    public CSVGraphStoreRowProcessor(Service service, Service adminService, GraphStoreClient graphStoreClient, String base, Query query, Function<Model, Resource> createGraph)
     {
+        this.service = service;
+        this.adminService = adminService;
         this.graphStoreClient = graphStoreClient;
         this.base = base;
         this.query = query;
+        this.createGraph = createGraph;
     }
 
     @Override
@@ -64,19 +77,42 @@ public class CSVGraphStoreRowProcessor implements RowProcessor // extends com.at
     @Override
     public void rowProcessed(String[] row, ParsingContext context)
     {
-        Model rowModel = transformRow(row, context);
-        getGraphStoreClient().add(null, rowModel); // Graph name not specified, will be assigned by the server. Exceptions get swallowed by the client! TO-DO: wait for completion
+        Dataset rowDataset = transformRow(row, context);
+        
+        // graph name not specified, will be assigned by the server. Exceptions get swallowed by the client! TO-DO: wait for completion
+        if (!rowDataset.getDefaultModel().isEmpty()) 
+        {
+            String graphUri = getCreateGraph().apply(rowDataset.getDefaultModel()).getURI();
+            new Skolemizer(graphUri).apply(rowDataset.getDefaultModel());
+            getGraphStoreClient().add(graphUri, rowDataset.getDefaultModel());
+            
+            // purge cache entries that include the graph URI
+            if (getService().getProxy() != null) ban(getService().getClient(), getService().getProxy(), graphUri).close();
+            if (getAdminService() != null && getAdminService().getProxy() != null) ban(getAdminService().getClient(), getAdminService().getProxy(), graphUri).close();
+        }
+        
+        rowDataset.listNames().forEachRemaining(graphUri -> 
+            {
+                // exceptions get swallowed by the client! TO-DO: wait for completion
+                if (!rowDataset.getNamedModel(graphUri).isEmpty()) getGraphStoreClient().add(graphUri, rowDataset.getNamedModel(graphUri));
+                
+                // purge cache entries that include the graph URI
+                if (getService().getProxy() != null) ban(getService().getClient(), getService().getProxy(), graphUri).close();
+                if (getAdminService() != null && getAdminService().getProxy() != null) ban(getAdminService().getClient(), getAdminService().getProxy(), graphUri).close();
+            }
+        );
     }
     
     /**
      * Transforms CSV row into an an RDF graph.
      * First a generic CSV/RDF graph is constructed. Then the transformation query is applied on it.
+     * Extended SPARQL syntax is used to allow the <code>CONSTRUCT GRAPH</code> query form.
      * 
      * @param row CSV row
      * @param context parsing context
      * @return RDF result
      */
-    public Model transformRow(String[] row, ParsingContext context)
+    public Dataset transformRow(String[] row, ParsingContext context)
     {
         Model rowModel = ModelFactory.createDefaultModel();
         Resource subject = rowModel.createResource();
@@ -95,7 +131,10 @@ public class CSVGraphStoreRowProcessor implements RowProcessor // extends com.at
             cellNo++;
         }
 
-        return getFunction().apply(getQuery(), rowModel); // transform row
+        try (QueryExecution qex = QueryExecution.create(getQuery(), rowModel))
+        {
+            return qex.execConstructDataset();
+        }
     }
     
     @Override
@@ -103,6 +142,46 @@ public class CSVGraphStoreRowProcessor implements RowProcessor // extends com.at
     {
     }
 
+    /**
+     * Bans a URL from proxy cache.
+     * 
+     * @param client HTTP client
+     * @param proxy proxy cache endpoint
+     * @param url request URL
+     * @return response from cache
+     */
+    public Response ban(Client client, Resource proxy, String url)
+    {
+        if (url == null) throw new IllegalArgumentException("Resource cannot be null");
+        
+        // create new Client instance, otherwise ApacheHttpClient reuses connection and Varnish ignores BAN request
+        return client.
+            target(proxy.getURI()).
+            request().
+            header("X-Escaped-Request-URI", UriComponent.encode(url, UriComponent.Type.UNRESERVED)).
+            method("BAN", Response.class);
+    }
+    
+    /**
+     * Return application's SPARQL service.
+     * 
+     * @return SPARQL service
+     */
+    public Service getService()
+    {
+        return service;
+    }
+    
+    /**
+     * Return admin application's SPARQL service.
+     * 
+     * @return SPARQL service
+     */
+    public Service getAdminService()
+    {
+        return adminService;
+    }
+    
     /**
      * Returns the Graph Store Protocol client.
      * 
@@ -120,17 +199,6 @@ public class CSVGraphStoreRowProcessor implements RowProcessor // extends com.at
     public String getBase()
     {
         return base;
-    }
-    
-    /**
-     * Returns transformation function.
-     * It transforms an RDF model to another model.
-     * 
-     * @return function
-     */
-    public BiFunction<Query, Model, Model> getFunction()
-    {
-        return function;
     }
     
     /**
@@ -162,5 +230,16 @@ public class CSVGraphStoreRowProcessor implements RowProcessor // extends com.at
     {
         return tripleCount;
     }
+    
+    /**
+     * Returns function that is used to create graph names (URIs).
+     * 
+     * @return function
+     */
+    public Function<Model, Resource> getCreateGraph()
+    {
+        return createGraph;
+    }
+    
     
 }

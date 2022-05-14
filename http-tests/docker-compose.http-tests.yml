@@ -3,6 +3,8 @@ services:
   nginx:
     volumes:
       - ./http-tests/ssl/server:/etc/nginx/ssl
+    environment:
+      - SSL_VERIFY_CLIENT=optional_no_ca
   linkeddatahub:
     user: root
     ports:
@@ -14,3 +16,9 @@ services:
       - ./http-tests/ssl/server:/var/linkeddatahub/ssl/server
       - ./http-tests/ssl/owner/public.pem:/var/linkeddatahub/ssl/owner/public.pem
       - ./http-tests/ssl/secretary:/var/linkeddatahub/ssl/secretary
+  fuseki-admin:
+    ports:
+      - 3030:3030
+  fuseki-end-user:
+    ports:
+      - 3031:3030

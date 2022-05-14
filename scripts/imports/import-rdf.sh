@@ -12,19 +12,18 @@ print_usage()
 {
     printf "Transforms CSV data into RDF using a SPARQL query and imports it.\n"
     printf "\n"
-    printf "Usage:  %s options [TARGET_URI]\n" "$0"
+    printf "Usage:  %s options\n" "$0"
     printf "\n"
     printf "Options:\n"
     printf "  -f, --cert-pem-file CERT_FILE        .pem file with the WebID certificate of the agent\n"
     printf "  -p, --cert-password CERT_PASSWORD    Password of the WebID certificate\n"
     printf "  -b, --base BASE_URI                  Base URI of the application\n"
-    printf "  --request-base BASE_URI              Request base URI\n"
+    printf "  --proxy PROXY_URL                    The host this request will be proxied through (optional)\n"
     printf "\n"
     printf "  --title TITLE                        Title of the container\n"
     printf "  --description DESCRIPTION            Description of the container (optional)\n"
     printf "  --slug STRING                        String that will be used as URI path segment (optional)\n"
     printf "\n"
-    printf "  --action CONTAINER_URI               URI of the target container\n"
     printf "  --query-file ABS_PATH                Absolute path to the text file with the SPARQL query string (optional)\n"
     printf "  --query-doc-slug STRING              String that will be used as the query's URI path segment (optional)\n"
     printf "  --graph GRAPH_URI                    URI of the graph (optional)\n"
@@ -56,18 +55,13 @@ do
         shift # past argument
         shift # past value
         ;;
-        --request-base)
-        request_base="$2"
+        --proxy)
+        proxy="$2"
         shift # past argument
         shift # past value
         ;;
         --title)
         title="$2"
-        shift # past argument
-        shift # past value
-        ;;
-        --action)
-        action="$2"
         shift # past argument
         shift # past value
         ;;
@@ -144,36 +138,80 @@ if [ -z "$file_content_type" ] ; then
     exit 1
 fi
 
-if [ -z "$request_base" ] ; then
-    request_base="$base"
+if [ -z "$proxy" ] ; then
+    proxy="$base"
 fi
 
 if [ -n "$query_file" ] ; then
-    query_doc=$(./create-query.sh -b "$base" -f "$cert_pem_file" -p "$cert_password" --title "$title" --slug "$query_doc_slug" --query-file "$query_file") # "TO-DO: ${request_base}service"
-    query_doc=$(echo "$query_doc" | sed -e "s|$base|$request_base|g")
+    query_doc=$(./create-query.sh \
+      -b "$base" \
+      -f "$cert_pem_file" \
+      -p "$cert_password" \
+      --proxy "$proxy" \
+      --title "$title" \
+      --slug "$query_doc_slug" \
+      --query-file "$query_file"
+    )
 
     pushd . > /dev/null && cd "$SCRIPT_ROOT"
 
-    query_ntriples=$(./get-document.sh -f "$cert_pem_file" -p "$cert_password" --accept 'application/n-triples' "$query_doc")
+    query_ntriples=$(./get-document.sh \
+      -f "$cert_pem_file" \
+      -p "$cert_password" \
+      --proxy "$proxy" \
+      --accept 'application/n-triples' \
+      "$query_doc"
+    )
 
     popd > /dev/null
 
-    query=$(echo "$query_ntriples" | sed -rn "s/<${query_doc//\//\\/}> <http:\/\/xmlns.com\/foaf\/0.1\/primaryTopic> <(.*)> \./\1/p")
+    query=$(echo "$query_ntriples" | sed -rn "s/<${query_doc//\//\\/}> <http:\/\/xmlns.com\/foaf\/0.1\/primaryTopic> <(.*)> \./\1/p" | head -1)
 fi
 
-file_doc=$(./create-file.sh -b "$base" -f "$cert_pem_file" -p "$cert_password" --title "$title" --slug "$file_doc_slug" --file-slug "$file_slug" --file "$file" --file-content-type "$file_content_type") # TO-DO: "${request_base}uploads"
-file_doc=$(echo "$file_doc" | sed -e "s|$base|$request_base|g")
+file_doc=$(./create-file.sh \
+  -b "$base" \
+  -f "$cert_pem_file" \
+  -p "$cert_password" \
+  --proxy "$proxy" \
+  --title "$title" \
+  --slug "$file_doc_slug" \
+  --file-slug "$file_slug" \
+  --file "$file" \
+  --file-content-type "$file_content_type"
+)
 
 pushd . > /dev/null && cd "$SCRIPT_ROOT"
 
-file_ntriples=$(./get-document.sh -f "$cert_pem_file" -p "$cert_password" --accept 'application/n-triples' "$file_doc")
+file_ntriples=$(./get-document.sh \
+  -f "$cert_pem_file" \
+  -p "$cert_password" \
+  --proxy "$proxy" \
+  --accept 'application/n-triples' \
+  "$file_doc"
+)
 
 popd > /dev/null
 
-file=$(echo "$file_ntriples" | sed -rn "s/<${file_doc//\//\\/}> <http:\/\/xmlns.com\/foaf\/0.1\/primaryTopic> <(.*)> \./\1/p")
+file=$(echo "$file_ntriples" | sed -rn "s/<${file_doc//\//\\/}> <http:\/\/xmlns.com\/foaf\/0.1\/primaryTopic> <(.*)> \./\1/p" | head -1)
 
 if [ -n "$query" ] ; then
-    ./create-rdf-import.sh -b "$base" -f "$cert_pem_file" -p "$cert_password" --title "$title" --slug "$import_slug" --action "$action" --query "$query" --file "$file" # TO-DO: "${request_base}imports"
+    ./create-rdf-import.sh \
+      -b "$base" \
+      -f "$cert_pem_file" \
+      -p "$cert_password" \
+      --proxy "$proxy" \
+      --title "$title" \
+      --slug "$import_slug" \
+      --query "$query" \
+      --file "$file"
 else
-    ./create-rdf-import.sh -b "$base" -f "$cert_pem_file" -p "$cert_password" --title "$title" --slug "$import_slug" --graph "$graph" --file "$file" # TO-DO: "${request_base}imports"
+    ./create-rdf-import.sh \
+      -b "$base" \
+      -f "$cert_pem_file" \
+      -p "$cert_password" \
+      --proxy "$proxy" \
+      --title "$title" \
+      --slug "$import_slug" \
+      --graph "$graph" \
+      --file "$file"
 fi

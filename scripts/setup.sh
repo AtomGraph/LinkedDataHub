@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -e
 
+# check that uuidgen command is available
+hash uuidgen 2>/dev/null || { echo >&2 "uuidgen not on \$PATH. Aborting."; exit 1; }
+
 if [ "$#" -ne 5 ]; then
     echo "Usage:   $0" '$env_file $out_folder $owner_cert_pwd $secretary_cert_pwd $validity' >&2
     echo "Example: $0 .env ssl Password Password 3650" >&2

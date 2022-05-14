@@ -57,8 +57,8 @@ exclude-result-prefixes="#all"
         <xsl:param name="focus-var-name" as="xs:string"/>
         <xsl:param name="graph-var-name" as="xs:string?"/>
 
-        <!-- set ?this value -->
-        <xsl:variable name="select-string" select="replace($select-string, '\?this', concat('&lt;', $uri, '&gt;'))" as="xs:string"/>
+        <!-- set $this value -->
+        <xsl:variable name="select-string" select="replace($select-string, '\$this', concat('&lt;', $uri, '&gt;'))" as="xs:string"/>
         <xsl:variable name="js-statement" as="element()">
             <!-- TO-DO: move Geo under AtomGraph namespace -->
             <!-- use template literals because the query is multi-line https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals -->

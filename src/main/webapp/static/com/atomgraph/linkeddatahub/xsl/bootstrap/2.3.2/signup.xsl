@@ -301,6 +301,9 @@ exclude-result-prefixes="#all">
     <!-- do not show secretary URI input -->
     <xsl:template match="acl:delegates[doc-available(ac:uri())][key('resources', ac:uri(), document(ac:uri()))/rdf:type/@rdf:resource = '&adm;SignUp']" mode="bs2:FormControl" priority="1"/>
 
+    <!-- do not show the email hash value -->
+    <xsl:template match="foaf:mbox_sha1sum[doc-available(ac:uri())][key('resources', ac:uri(), document(ac:uri()))/rdf:type/@rdf:resource = '&adm;SignUp']" mode="bs2:FormControl" priority="1"/>
+
     <xsl:template name="lacl:password">
         <xsl:param name="this" select="xs:anyURI('&lacl;password')" as="xs:anyURI"/>
         <xsl:param name="type" select="'password'" as="xs:string"/>

@@ -68,13 +68,12 @@ import com.atomgraph.linkeddatahub.writer.factory.xslt.XsltExecutableSupplier;
 import com.atomgraph.linkeddatahub.writer.factory.XsltExecutableSupplierFactory;
 import com.atomgraph.client.util.XsltResolver;
 import com.atomgraph.core.client.LinkedDataClient;
-import com.atomgraph.linkeddatahub.client.GraphStoreClient;
 import com.atomgraph.linkeddatahub.client.filter.ClientUriRewriteFilter;
+import com.atomgraph.linkeddatahub.imports.ImportExecutor;
 import com.atomgraph.linkeddatahub.io.HtmlJsonLDReaderFactory;
 import com.atomgraph.linkeddatahub.io.JsonLDReader;
 import com.atomgraph.linkeddatahub.listener.EMailListener;
 import com.atomgraph.linkeddatahub.writer.ModelXSLTWriter;
-import com.atomgraph.linkeddatahub.listener.ImportListener;
 import com.atomgraph.linkeddatahub.model.Import;
 import com.atomgraph.linkeddatahub.model.RDFImport;
 import com.atomgraph.linkeddatahub.model.UserAccount;
@@ -107,6 +106,7 @@ import com.atomgraph.linkeddatahub.server.filter.response.XsltExecutableFilter;
 import com.atomgraph.linkeddatahub.server.interceptor.RDFPostCleanupInterceptor;
 import com.atomgraph.linkeddatahub.server.mapper.auth.oauth2.TokenExpiredExceptionMapper;
 import com.atomgraph.linkeddatahub.server.model.impl.Dispatcher;
+import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.server.util.MessageBuilder;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
@@ -172,9 +172,13 @@ import com.github.jsonldjava.core.JsonLdOptions;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.TreeMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import javax.mail.Address;
@@ -196,6 +200,7 @@ import net.sf.saxon.s9api.XdmAtomicValue;
 import net.sf.saxon.s9api.XsltCompiler;
 import net.sf.saxon.s9api.XsltExecutable;
 import nu.xom.XPathException;
+import org.apache.http.HttpClientConnection;
 import org.apache.http.HttpResponse;
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
@@ -240,12 +245,14 @@ public class Application extends ResourceConfig
     
     private static final Logger log = LoggerFactory.getLogger(Application.class);
 
+    private final ExecutorService importThreadPool;
     private final ServletConfig servletConfig;
     private final EventBus eventBus = new EventBus();
     private final DataManager dataManager;
+    private final Map<String, OntModelSpec> endUserOntModelSpecs;
     private final MediaTypes mediaTypes;
     private final Client client, importClient, noCertClient;
-    private final Query authQuery, ownerAuthQuery, webIDQuery, userAccountQuery, ontologyQuery; // no relative URIs
+    private final Query authQuery, ownerAuthQuery, webIDQuery, agentQuery, userAccountQuery, ontologyQuery; // no relative URIs
     private final Integer maxGetRequestSize;
     private final boolean preemptiveAuth;
     private final Processor xsltProc = new Processor(false);
@@ -263,11 +270,13 @@ public class Application extends ResourceConfig
     private final Properties emailProperties = new Properties();
     private final KeyStore keyStore, trustStore;
     private final URI secretaryWebIDURI;
+    private final List<Locale> supportedLanguages;
     private final ExpiringMap<URI, Model> webIDmodelCache = ExpiringMap.builder().expiration(1, TimeUnit.DAYS).build(); // TO-DO: config for the expiration period?
     private final ExpiringMap<String, Model> oidcModelCache = ExpiringMap.builder().variableExpiration().build();
     private final Map<URI, XsltExecutable> xsltExecutableCache = new HashMap<>();
     private final MessageDigest messageDigest;
-    
+    private final boolean webIDSignUp;
+
     private Dataset contextDataset;
     
     /**
@@ -298,6 +307,7 @@ public class Application extends ResourceConfig
             servletConfig.getServletContext().getInitParameter(LDHC.authQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.authQuery.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.ownerAuthQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.ownerAuthQuery.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.webIDQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.webIDQuery.getURI()) : null,
+            servletConfig.getServletContext().getInitParameter(LDHC.agentQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.agentQuery.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.userAccountQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.userAccountQuery.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.ontologyQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.ontologyQuery.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.baseUri.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.baseUri.getURI()) : null,
@@ -312,7 +322,10 @@ public class Application extends ResourceConfig
             servletConfig.getServletContext().getInitParameter(LDHC.maxTotalConn.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(LDHC.maxTotalConn.getURI())) : null,
             // TO-DO: respect "timeout" header param in the ConnectionKeepAliveStrategy?
             servletConfig.getServletContext().getInitParameter(LDHC.importKeepAlive.getURI()) != null ? (HttpResponse response, HttpContext context) -> Integer.valueOf(servletConfig.getServletContext().getInitParameter(LDHC.importKeepAlive.getURI())) : null,
+            servletConfig.getServletContext().getInitParameter(LDHC.maxImportThreads.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(LDHC.maxImportThreads.getURI())) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.notificationAddress.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.notificationAddress.getURI()) : null,
+            servletConfig.getServletContext().getInitParameter(LDHC.supportedLanguages.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.supportedLanguages.getURI()) : null,
+            servletConfig.getServletContext().getInitParameter(LDHC.webIDSignUp.getURI()) != null ? Boolean.parseBoolean(servletConfig.getServletContext().getInitParameter(LDHC.webIDSignUp.getURI())) : true,
             servletConfig.getServletContext().getInitParameter("mail.user") != null ? servletConfig.getServletContext().getInitParameter("mail.user") : null,
             servletConfig.getServletContext().getInitParameter("mail.password") != null ? servletConfig.getServletContext().getInitParameter("mail.password") : null,
             servletConfig.getServletContext().getInitParameter("mail.smtp.host") != null ? servletConfig.getServletContext().getInitParameter("mail.smtp.host") : null,
@@ -351,6 +364,7 @@ public class Application extends ResourceConfig
      * @param authQueryString SPARQL string of the authorization query
      * @param ownerAuthQueryString SPARQL string of the admin authorization query
      * @param webIDQueryString SPARQL string of the WebID validation query
+     * @param agentQueryString SPARQL string of the <code>Agent</code> lookup query
      * @param userAccountQueryString SPARQL string of the <code>UserAccount</code> lookup query
      * @param ontologyQueryString SPARQL string of the ontology load query
      * @param baseURIString system base URI
@@ -364,11 +378,14 @@ public class Application extends ResourceConfig
      * @param maxConnPerRoute maximum client connections per rout
      * @param maxTotalConn maximum total client connections
      * @param importKeepAliveStrategy keep-alive strategy for the HTTP client used for imports
+     * @param maxImportThreads maximum number of threads used for asynchronous imports
      * @param notificationAddressString email address used to send notifications
+     * @param supportedLanguageCodes comma-separated codes of supported languages
+     * @param webIDSignUp true if WebID signup is enabled
      * @param mailUser username of the SMTP email server
      * @param mailPassword password of the SMTP email server
-     * @param smtpHost Hostname of the SMTP email server
-     * @param smtpPort Port of the SMTP email server
+     * @param smtpHost hostname of the SMTP email server
+     * @param smtpPort port of the SMTP email server
      * @param googleClientID client ID for Google's OAuth
      * @param googleClientSecret client secret for Google's OAuth
      */
@@ -378,12 +395,13 @@ public class Application extends ResourceConfig
             final String clientKeyStoreURIString, final String clientKeyStorePassword,
             final String secretaryCertAlias,
             final String clientTrustStoreURIString, final String clientTrustStorePassword,
-            final String authQueryString, final String ownerAuthQueryString, final String webIDQueryString, final String userAccountQueryString, final String ontologyQueryString,
+            final String authQueryString, final String ownerAuthQueryString, final String webIDQueryString, final String agentQueryString, final String userAccountQueryString, final String ontologyQueryString,
             final String baseURIString, final String proxyScheme, final String proxyHostname, final Integer proxyPort,
             final String uploadRootString, final boolean invalidateCache,
             final Integer cookieMaxAge, final Integer maxPostSize,
-            final Integer maxConnPerRoute, final Integer maxTotalConn, final ConnectionKeepAliveStrategy importKeepAliveStrategy,
-            final String notificationAddressString, final String mailUser, final String mailPassword, final String smtpHost, final String smtpPort,
+            final Integer maxConnPerRoute, final Integer maxTotalConn, final ConnectionKeepAliveStrategy importKeepAliveStrategy, final Integer maxImportThreads,
+            final String notificationAddressString, final String supportedLanguageCodes, final boolean webIDSignUp,
+            final String mailUser, final String mailPassword, final String smtpHost, final String smtpPort,
             final String googleClientID, final String googleClientSecret)
     {
         if (clientKeyStoreURIString == null)
@@ -425,6 +443,13 @@ public class Application extends ResourceConfig
         }
         this.webIDQuery = QueryFactory.create(webIDQueryString);
         
+        if (agentQueryString == null)
+        {
+            if (log.isErrorEnabled()) log.error("Agent SPARQL query is not configured properly");
+            throw new ConfigurationException(LDHC.agentQuery);
+        }
+        this.agentQuery = QueryFactory.create(agentQueryString);
+        
         if (userAccountQueryString == null)
         {
             if (log.isErrorEnabled()) log.error("UserAccount SPARQL query is not configured properly");
@@ -459,6 +484,21 @@ public class Application extends ResourceConfig
         }
         this.cookieMaxAge = cookieMaxAge;
 
+        if (maxImportThreads == null)
+        {
+            if (log.isErrorEnabled()) log.error("Max import thread count property '{}' not configured", LDHC.maxImportThreads.getURI());
+            throw new ConfigurationException(LDHC.maxImportThreads);
+        }
+        this.importThreadPool = Executors.newFixedThreadPool(maxImportThreads);
+        servletConfig.getServletContext().setAttribute(LDHC.maxImportThreads.getURI(), importThreadPool); // used in ImportListener to shutdown the thread pool
+        
+        if (supportedLanguageCodes == null)
+        {
+            if (log.isErrorEnabled()) log.error("Supported languages ({}) not configured", LDHC.supportedLanguages.getURI());
+            throw new ConfigurationException(LDHC.supportedLanguages);
+        }
+        this.supportedLanguages = Arrays.asList(supportedLanguageCodes.split(",")).stream().map(code -> Locale.forLanguageTag(code)).collect(Collectors.toList());
+        
         this.servletConfig = servletConfig;
         this.mediaTypes = mediaTypes;
         this.maxGetRequestSize = maxGetRequestSize;
@@ -467,6 +507,7 @@ public class Application extends ResourceConfig
         this.resolvingUncached = resolvingUncached;
         this.maxContentLength = maxPostSize;
         this.invalidateCache = invalidateCache;
+        this.webIDSignUp = webIDSignUp;
         this.property(Google.clientID.getURI(), googleClientID);
         this.property(Google.clientSecret.getURI(), googleClientSecret);
         
@@ -575,14 +616,14 @@ public class Application extends ResourceConfig
             BuiltinPersonalities.model.add(com.atomgraph.linkeddatahub.apps.model.Application.class, new com.atomgraph.linkeddatahub.apps.model.impl.ApplicationImplementation());
             BuiltinPersonalities.model.add(com.atomgraph.linkeddatahub.apps.model.Dataset.class, new com.atomgraph.linkeddatahub.apps.model.impl.DatasetImplementation());
             BuiltinPersonalities.model.add(Service.class, new com.atomgraph.linkeddatahub.model.generic.ServiceImplementation(noCertClient, mediaTypes, maxGetRequestSize));
-//            BuiltinPersonalities.model.add(com.atomgraph.linkeddatahub.model.DydraService.class, new com.atomgraph.linkeddatahub.model.dydra.impl.ServiceImplementation(noCertClient, mediaTypes, maxGetRequestSize));
             BuiltinPersonalities.model.add(Import.class, ImportImpl.factory);
             BuiltinPersonalities.model.add(RDFImport.class, RDFImportImpl.factory);
             BuiltinPersonalities.model.add(CSVImport.class, CSVImportImpl.factory);
             BuiltinPersonalities.model.add(File.class, FileImpl.factory);
         
             // TO-DO: config property for cacheModelLoads
-            dataManager = new DataManagerImpl(locationMapper, new HashMap<>(), client, mediaTypes, cacheModelLoads, preemptiveAuth, resolvingUncached);
+            endUserOntModelSpecs = new HashMap<>();
+            dataManager = new DataManagerImpl(locationMapper, new HashMap<>(), LinkedDataClient.create(client, mediaTypes), cacheModelLoads, preemptiveAuth, resolvingUncached);
             ontModelSpec = OntModelSpec.OWL_MEM_RDFS_INF;
             ontModelSpec.setImportModelGetter(dataManager);
             OntDocumentManager.getInstance().setFileManager((FileManager)dataManager);
@@ -656,7 +697,7 @@ public class Application extends ResourceConfig
             
             xsltComp = xsltProc.newXsltCompiler();
             xsltComp.setParameter(new QName("ldh", LDH.base.getNameSpace(), LDH.base.getLocalName()), new XdmAtomicValue(baseURI));
-            xsltComp.setURIResolver(new XsltResolver(LocationMapper.get(), new HashMap<>(), client, mediaTypes, false, false, true)); // default Xerces parser does not support HTTPS
+            xsltComp.setURIResolver(new XsltResolver(LocationMapper.get(), new HashMap<>(), LinkedDataClient.create(client, mediaTypes), false, false, true)); // default Xerces parser does not support HTTPS
             xsltExec = xsltComp.compile(stylesheet);
         }
         catch (FileNotFoundException ex)
@@ -974,9 +1015,8 @@ public class Application extends ResourceConfig
         if (auth.hasProperty(ACL.agent))
         {
             Resource agent = auth.getPropertyResourceValue(ACL.agent);
-
-            LinkedDataClient ldc = LinkedDataClient.create(getClient().target(agent.getURI()), getMediaTypes());
-            Model agentModel = ldc.get();
+            // make sure the client has WebID delegation enabled, otherwise it will not have authenticated access
+            Model agentModel = event.getLinkedDataClient().getModel(agent.getURI());
             if (!agentModel.containsResource(agent)) throw new IllegalStateException("Could not load agent's <" + agent.getURI() + "> description");
             agent = agentModel.getResource(agent.getURI());
 
@@ -1184,12 +1224,11 @@ public class Application extends ResourceConfig
      * @param service current SPARQL service
      * @param adminService current admin SPARQL service
      * @param baseURI application's base URI
-     * @param dataManager data manager
+     * @param ldc Linked Data client
      */
-    public void submitImport(CSVImport csvImport, com.atomgraph.linkeddatahub.apps.model.Application app, Service service, Service adminService, String baseURI, DataManager dataManager)
+    public void submitImport(CSVImport csvImport, com.atomgraph.linkeddatahub.apps.model.Application app, Service service, Service adminService, String baseURI, LinkedDataClient ldc)
     {
-        // we don't want use service.getGraphStoreClient() here because that's for the backend. Processed import data is looped back to the app's SPARQL endpoint as if from the client.
-        ImportListener.submit(csvImport, service, adminService, baseURI, dataManager, GraphStoreClient.create(getClient().target(app.getBaseURI().resolve("service"))));
+        new ImportExecutor(importThreadPool).start(service, adminService, baseURI, ldc, service.getGraphStoreClient(), GraphStoreImpl.CREATE_GRAPH, csvImport);
     }
     
     /**
@@ -1200,12 +1239,11 @@ public class Application extends ResourceConfig
      * @param service current SPARQL service
      * @param adminService current admin SPARQL service
      * @param baseURI application's base URI
-     * @param dataManager data manager
+     * @param ldc Linked Data client
      */
-    public void submitImport(RDFImport rdfImport, com.atomgraph.linkeddatahub.apps.model.Application app, Service service, Service adminService, String baseURI, DataManager dataManager)
+    public void submitImport(RDFImport rdfImport, com.atomgraph.linkeddatahub.apps.model.Application app, Service service, Service adminService, String baseURI, LinkedDataClient ldc)
     {
-        // we don't want use service.getGraphStoreClient() here because that's for the backend. Processed import data is looped back to the app's SPARQL endpoint as if from the client.
-        ImportListener.submit(rdfImport, service, adminService, baseURI, dataManager, GraphStoreClient.create(getClient().target(app.getBaseURI().resolve("service"))));
+        new ImportExecutor(importThreadPool).start(service, adminService, baseURI, ldc, service.getGraphStoreClient(), rdfImport);
     }
     
     /**
@@ -1245,9 +1283,10 @@ public class Application extends ResourceConfig
             register("http", new PlainConnectionSocketFactory()).
             build();
 
-        // https://github.com/eclipse-ee4j/jersey/issues/4449
         PoolingHttpClientConnectionManager conman = new PoolingHttpClientConnectionManager(socketFactoryRegistry)
         {
+
+            // https://github.com/eclipse-ee4j/jersey/issues/4449
 
             @Override
             public void close()
@@ -1262,6 +1301,15 @@ public class Application extends ResourceConfig
                 // This is a workaround for finalize method on jerseys ClientRuntime which
                 // closes the client and shuts down the connection pool when it is garbage collected
             };
+            
+            // https://github.com/eclipse-ee4j/jersey/issues/2855
+            
+            @Override
+            public void releaseConnection(final HttpClientConnection managedConn, final Object state, final long keepalive, final TimeUnit timeUnit)
+            {
+                // set state to null to allow reuse of connections
+                super.releaseConnection(managedConn, null, keepalive, timeUnit);
+            }
 
         };
         if (maxConnPerRoute != null) conman.setDefaultMaxPerRoute(maxConnPerRoute);
@@ -1311,10 +1359,11 @@ public class Application extends ResourceConfig
                 register("http", new PlainConnectionSocketFactory()).
                 build();
         
-            // https://github.com/eclipse-ee4j/jersey/issues/4449
             PoolingHttpClientConnectionManager conman = new PoolingHttpClientConnectionManager(socketFactoryRegistry)
             {
 
+                // https://github.com/eclipse-ee4j/jersey/issues/4449
+                
                 @Override
                 public void close()
                 {
@@ -1328,6 +1377,15 @@ public class Application extends ResourceConfig
                     // This is a workaround for finalize method on jerseys ClientRuntime which
                     // closes the client and shuts down the connection pool when it is garbage collected
                 };
+                
+                // https://github.com/eclipse-ee4j/jersey/issues/2855
+
+                @Override
+                public void releaseConnection(final HttpClientConnection managedConn, final Object state, final long keepalive, final TimeUnit timeUnit)
+                {
+                    // set state to null to allow reuse of connections
+                    super.releaseConnection(managedConn, null, keepalive, timeUnit);
+                }
                 
             };
             if (maxConnPerRoute != null) conman.setDefaultMaxPerRoute(maxConnPerRoute);
@@ -1399,6 +1457,37 @@ public class Application extends ResourceConfig
     {
         return dataManager;
     }
+ 
+    /**
+     * Returns a map of application URIs to ontology specifications.
+     * 
+     * @return URI to ontology specification map
+     */
+    protected Map<String, OntModelSpec> getEndUserOntModelSpecs()
+    {
+        return endUserOntModelSpecs;
+    }
+
+    /**
+     * Returns ontology specification for the specified end-user application.
+     * 
+     * @param app end-user application resource
+     * @return ontology specification 
+     */
+    public OntModelSpec getOntModelSpec(EndUserApplication app)
+    {
+        if (!getEndUserOntModelSpecs().containsKey(app.getURI()))
+        {
+            OntModelSpec appOntModelSpec = new OntModelSpec(OntModelSpec.OWL_MEM_RDFS_INF);
+            appOntModelSpec.setDocumentManager(new OntDocumentManager());
+            appOntModelSpec.getDocumentManager().setFileManager(
+                    new DataManagerImpl(LocationMapper.get(), new HashMap<>(), LinkedDataClient.create(getClient(), getMediaTypes()), true, isPreemptiveAuth(), isResolvingUncached()));
+            
+            getEndUserOntModelSpecs().put(app.getURI(), appOntModelSpec);
+        }
+        
+        return getEndUserOntModelSpecs().get(app.getURI());
+    }
     
     /**
      * Returns a registry of readable and writeable media types.
@@ -1448,7 +1537,7 @@ public class Application extends ResourceConfig
      */
     public Query getAuthQuery()
     {
-        return authQuery;
+        return authQuery.cloneQuery();
     }
     
     /**
@@ -1459,7 +1548,7 @@ public class Application extends ResourceConfig
      */
     public Query getOwnerAuthQuery()
     {
-        return ownerAuthQuery;
+        return ownerAuthQuery.cloneQuery();
     }
     
     /**
@@ -1469,7 +1558,17 @@ public class Application extends ResourceConfig
      */
     public Query getWebIDQuery()
     {
-        return webIDQuery;
+        return webIDQuery.cloneQuery();
+    }
+    
+    /**
+     * Returns the agent lookup query.
+     * 
+     * @return query object
+     */
+    public Query getAgentQuery()
+    {
+        return agentQuery.cloneQuery();
     }
     
     /**
@@ -1479,7 +1578,7 @@ public class Application extends ResourceConfig
      */
     public Query getUserAccountQuery()
     {
-        return userAccountQuery;
+        return userAccountQuery.cloneQuery();
     }
     
     /**
@@ -1489,7 +1588,7 @@ public class Application extends ResourceConfig
      */
     public Query getOntologyQuery()
     {
-        return ontologyQuery;
+        return ontologyQuery.cloneQuery();
     }
     
     /**
@@ -1532,7 +1631,6 @@ public class Application extends ResourceConfig
     {
         return xsltComp;
     }
-    
     
     /**
      * Returns Saxon's XSLT executable.
@@ -1723,6 +1821,26 @@ public class Application extends ResourceConfig
     public MessageDigest getMessageDigest()
     {
         return messageDigest;
+    }
+    
+    /**
+     * Returns list of locales for languages supported by the UI.
+     * 
+     * @return locale list
+     */
+    public List<Locale> getSupportedLanguages()
+    {
+        return supportedLanguages;
+    }
+    
+    /**
+     * Returns true if WebID signup is enabled.
+     * 
+     * @return true if enabled
+     */
+    public boolean isWebIDSignUp()
+    {
+        return webIDSignUp;
     }
     
 }

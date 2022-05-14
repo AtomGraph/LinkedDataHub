@@ -4,9 +4,17 @@
     xmlns:web="http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"
     xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd" 
     id="linkeddatahub" version="3.0">
-    <display-name>AtomGraph Platform</display-name>
-    <description>Multi-tenant Linked Data platform</description>
-    <!-- context-params are set in docker-compose via conf/ROOT.xml -->
+    <display-name>LinkedDataHub</display-name>
+    <description>The Knowledge Graph notebook</description>
+    <!-- most of the following context-params can be set in docker-compose.yml (via conf/ROOT.xml) -->
+    <context-param>
+        <param-name>https://w3id.org/atomgraph/linkeddatahub/config#supportedLanguages</param-name>
+        <param-value>en,es</param-value>
+    </context-param>
+    <context-param>
+        <param-name>https://w3id.org/atomgraph/linkeddatahub/config#maxImportThreads</param-name>
+        <param-value>10</param-value>
+    </context-param>
     <context-param>
         <param-name>https://w3id.org/atomgraph/linkeddatahub/config#authCacheControl</param-name>
         <param-value>max-age=69</param-value>
@@ -129,6 +137,8 @@ WHERE
                 ?Type (rdfs:subClassOf)* ?Class
               }
           }
+        # only namespace, signup, OAuth2 login and WebID profiles can be public in admin app, nothing else
+        FILTER ( $this IN (uri(concat(str($base), "ns")), uri(concat(str($base), "sign%20up")), uri(concat(str($base), "oauth2/login")), uri(concat(str($base), "oauth2/authorize/google"))) || strstarts(str($this), concat(str($base), "acl/agents/")) || strstarts(str($this), concat(str($base), "acl/public-keys/")))
       }
   }
 ]]></param-value>
@@ -136,10 +146,13 @@ WHERE
     <context-param>
         <param-name>https://w3id.org/atomgraph/linkeddatahub/config#agentQuery</param-name>
         <param-value><![CDATA[
-DESCRIBE $Agent
+PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
+
+DESCRIBE ?Agent
 WHERE
   { GRAPH ?g
-      { $Agent  ?p  ?o }
+      { ?Agent  foaf:mbox  $mbox
+      }
   }
 ]]></param-value>
     </context-param>
@@ -321,9 +334,9 @@ support@atomgraph.com]]></param-value>
     <servlet>
         <servlet-name>com.atomgraph.linkeddatahub.Application</servlet-name>
     </servlet>
-<!--    <listener>
+    <listener>
         <listener-class>com.atomgraph.core.util.jena.StartupListener</listener-class>
-    </listener>-->
+    </listener>
     <listener>
         <listener-class>com.atomgraph.linkeddatahub.listener.ImportListener</listener-class>
     </listener>

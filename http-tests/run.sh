@@ -59,18 +59,18 @@ function download_dataset()
 {
     curl -s -f \
       -H "Accept: application/trig" \
-      "${1}"
+      "$1"
 }
 
 function initialize_dataset()
 {
-    echo "@base <${1}> ." \
-    | cat - "${2}" \
+    echo "@base <$1> ." \
+    | cat - "$2" \
     | curl -f -s \
       -X PUT \
       --data-binary @- \
       -H "Content-Type: application/trig" \
-      "${3}" > /dev/null
+      "$3" > /dev/null
 }
 
 function purge_backend_cache()
@@ -122,19 +122,13 @@ download_dataset "$ADMIN_ENDPOINT_URL" > "$TMP_ADMIN_DATASET"
 
 ### Other tests ###
 
-run_tests $(find . -type f -name 'webid-delegation.sh')
-(( error_count += $? ))
-run_tests $(find . -type f -name 'HEAD-accept.sh')
-(( error_count += $? ))
-run_tests $(find . -type f -name 'POST-content-length-413.sh')
-(( error_count += $? ))
-run_tests $(find . -type f -name 'POST-transfer-chunked-413.sh')
-(( error_count += $? ))
 run_tests $(find ./admin/ -type f -name '*.sh')
 (( error_count += $? ))
 run_tests $(find ./imports/ -type f -name '*.sh')
 (( error_count += $? ))
 run_tests $(find ./graph-store-protocol/ -type f -name '*.sh')
+(( error_count += $? ))
+run_tests $(find ./misc/ -type f -name '*.sh')
 (( error_count += $? ))
 run_tests $(find ./proxy/ -type f -name '*.sh')
 (( error_count += $? ))

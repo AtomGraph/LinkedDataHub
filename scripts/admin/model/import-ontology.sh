@@ -4,11 +4,12 @@ print_usage()
 {
     printf "Imports external ontology into the model.\n"
     printf "\n"
-    printf "Usage:  %s options ONTOLOGY_DOC_URI\n" "$0"
+    printf "Usage:  %s options\n" "$0"
     printf "\n"
     printf "Options:\n"
     printf "  -f, --cert-pem-file CERT_FILE        .pem file with the WebID certificate of the agent\n"
     printf "  -p, --cert-password CERT_PASSWORD    Password of the WebID certificate\n"
+    printf "  --proxy PROXY_URL                    The host this request will be proxied through (optional)\n"
     printf "\n"
     printf "  --source SOURCE_URI                  URI of the imported ontology\n"
 }
@@ -37,8 +38,18 @@ do
         shift # past argument
         shift # past value
         ;;
+        --proxy)
+        proxy="$2"
+        shift # past argument
+        shift # past value
+        ;;
         --source)
         source="$2"
+        shift # past argument
+        shift # past value
+        ;;
+        --graph)
+        graph="$2"
         shift # past argument
         shift # past value
         ;;
@@ -62,25 +73,29 @@ if [ -z "$base" ] ; then
     print_usage
     exit 1
 fi
-if [ "$#" -ne 1 ]; then
+if [ -z "$source" ] ; then
+    print_usage
+    exit 1
+fi
+if [ -z "$graph" ] ; then
     print_usage
     exit 1
 fi
 
-if [ -z "$1" ] ; then
-    target="${base}model/ontologies/"
-else
-    target="$1"
+target="${base}transform"
+
+if [ -n "$proxy" ]; then
+    # rewrite target hostname to proxy hostname
+    target_host=$(echo "$target" | cut -d '/' -f 1,2,3)
+    proxy_host=$(echo "$proxy" | cut -d '/' -f 1,2,3)
+    target="${target/$target_host/$proxy_host}"
 fi
 
 content_type="text/turtle"
 
-turtle+="@prefix ldt:	<https://www.w3.org/ns/ldt#> .\n"
-turtle+="@prefix lsmt:	<https://w3id.org/atomgraph/linkeddatahub/admin/sitemap/templates#> .\n"
-turtle+="@prefix rdf:	<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n"
-turtle+="_:arg a lsmt:Source .\n"
-turtle+="_:arg ldt:paramName \"source\".\n"
-turtle+="_:arg rdf:value <${source}>.\n"
+turtle+="_:arg <http://purl.org/dc/terms/source> <${source}> .\n"
+turtle+="_:arg <http://www.w3.org/ns/sparql-service-description#name> <${graph}> .\n"
+turtle+="_:arg <http://spinrdf.org/spin#query> <${base}queries/construct-constructors/#this> .\n"
 
 # submit Turtle doc to the server
 echo -e "$turtle" | turtle --base="$base" | curl -s -k -E "$cert_pem_file":"$cert_password" -d @- -H "Content-Type: $content_type" -H "Accept: text/turtle" "$target" -s -D -

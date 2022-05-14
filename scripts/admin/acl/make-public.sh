@@ -10,7 +10,7 @@ print_usage()
     printf "  -f, --cert-pem-file CERT_FILE        .pem file with the WebID certificate of the agent\n"
     printf "  -p, --cert-password CERT_PASSWORD    Password of the WebID certificate\n"
     printf "  -b, --base BASE_URI                  Base URI of the admin application\n"
-    printf "  --request-base BASE_URI              Request base URI (if different from --base)\n"
+    printf "  --proxy PROXY_URL                    The host this request will be proxied through (optional)\n"
 }
 
 hash turtle 2>/dev/null || { echo >&2 "turtle not on \$PATH. Need to set \$JENA_HOME. Aborting."; exit 1; }
@@ -36,8 +36,8 @@ do
         shift # past argument
         shift # past value
         ;;
-        --request-base)
-        request_base="$2"
+        --proxy)
+        proxy="$2"
         shift # past argument
         shift # past value
         ;;
@@ -58,15 +58,20 @@ if [ -z "$base" ] ; then
     exit 1
 fi
 
-if [ -z "request_base" ]; then
-    request_base="$base"
+target="${base}admin/acl/authorizations/public/"
+
+if [ -n "$proxy" ]; then
+    # rewrite target hostname to proxy hostname
+    target_host=$(echo "$target" | cut -d '/' -f 1,2,3)
+    proxy_host=$(echo "$proxy" | cut -d '/' -f 1,2,3)
+    target="${target/$target_host/$proxy_host}"
 fi
 
 curl -X PATCH \
     -v -f -k \
     -E "$cert_pem_file":"$cert_password" \
     -H "Content-Type: application/sparql-update" \
-    "${request_base}admin/acl/authorizations/public/" \
+    "$target" \
      --data-binary @- <<EOF
 BASE <${base}admin/>
 

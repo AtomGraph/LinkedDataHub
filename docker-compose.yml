@@ -3,10 +3,11 @@ services:
   nginx:
     image: atomgraph/nginx:d329ba2207773d849c41894408fc073dbe27e3b8
     mem_limit: 128m
-    command: /bin/bash -c "envsubst '$$HTTPS_PORT $$UPSTREAM_SERVER $$UPSTREAM_HTTP_PORT $$SERVER_NAME $$SERVER_HTTPS_PORT $$SERVER_HTTP_PORT $$SERVER_CERT_FILE $$SERVER_KEY_FILE $$MAX_BODY_SIZE' < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf && nginx -g 'daemon off;'"
+    command: /bin/bash -c "envsubst '$$HTTPS_PORT $$UPSTREAM_SERVER $$UPSTREAM_HTTP_PORT $$SERVER_NAME $$SERVER_HTTPS_PORT $$SERVER_HTTP_PORT $$SERVER_CERT_FILE $$SERVER_KEY_FILE $$SSL_VERIFY_CLIENT $$MAX_BODY_SIZE $$SERVER_CLIENT_CERT_HTTPS_PORT' < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf && nginx -g 'daemon off;'"
     ports:
       - ${HTTP_PORT}:8080 # allow Tomcat to do HTTP to HTTPS redirect
       - ${HTTPS_PORT}:8443 # HTTPS
+      - ${HTTPS_CLIENT_CERT_PORT:-5443}:9443 # HTTPS client cert
     environment:
       - HTTPS_PORT=${HTTPS_PORT}
       - UPSTREAM_SERVER=linkeddatahub
@@ -14,14 +15,15 @@ services:
       - SERVER_NAME=${HOST}
       - SERVER_HTTPS_PORT=8443 # because of nginx-unprivileged
       - SERVER_HTTP_PORT=8080 # because of nginx-unprivileged
+      - SERVER_CLIENT_CERT_HTTPS_PORT=9443 # 
       - SERVER_CERT_FILE=/etc/nginx/ssl/server.crt
       - SERVER_KEY_FILE=/etc/nginx/ssl/server.key
+      - SSL_VERIFY_CLIENT=optional_no_ca
       - MAX_BODY_SIZE=2097152
     volumes:
       - ./platform/nginx.conf.template:/etc/nginx/nginx.conf.template:ro
       - ./ssl/server:/etc/nginx/ssl:ro
   linkeddatahub:
-    # image: atomgraph/linkeddatahub:latest
     user: root # otherwise the ldh user does not have permissions to the mounted folder which is owner by root
     build: .
     environment:
@@ -30,7 +32,7 @@ services:
       - TZ="Europe/Copenhagen"
       #- CATALINA_OPTS="-Duser.timezone=Europe/Copenhagen"
       - PROXY_HOST=nginx
-      - PROXY_PORT=8443
+      - PROXY_PORT=9443
       - PROTOCOL=${PROTOCOL}
       - HOST=${HOST}
       - ABS_PATH=${ABS_PATH}
@@ -45,7 +47,7 @@ services:
       - CLIENT_TRUSTSTORE_PASSWORD=LinkedDataHub
       - SELF_SIGNED_CERT=true # only on localhost
       - SIGN_UP_CERT_VALIDITY=180
-      - IMPORT_KEEPALIVE=300000
+      - IMPORT_KEEPALIVE=1200000
       - MAX_CONTENT_LENGTH=2097152
       - NOTIFICATION_ADDRESS=LinkedDataHub <notifications@localhost>
       - MAIL_SMTP_HOST=email-server
@@ -66,19 +68,19 @@ services:
       - ./src/main/webapp/static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2:/usr/local/tomcat/webapps/ROOT/static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2:ro
       - ./src/main/webapp/static/com/atomgraph/linkeddatahub/css/bootstrap.css:/usr/local/tomcat/webapps/ROOT/static/com/atomgraph/linkeddatahub/css/bootstrap.css
   fuseki-admin:
-    image: atomgraph/fuseki:9d331f984dcffcb9d0ba2ac6f12c9c2a77b5d5fe
+    image: atomgraph/fuseki:4de4275df55b99e8306eae8ef8340f1992c8eb41
     user: root # otherwise fuseki user does not have permissions to the mounted folder which is owner by root
-    ports:
-      - 3030:3030
+    expose:
+      - 3030
     volumes:
       - ./config/fuseki/config.ttl:/fuseki/config.ttl:ro
       - ./data/admin:/fuseki/databases
     command: [ "--config", "/fuseki/config.ttl" ]
   fuseki-end-user:
-    image: atomgraph/fuseki:9d331f984dcffcb9d0ba2ac6f12c9c2a77b5d5fe
+    image: atomgraph/fuseki:4de4275df55b99e8306eae8ef8340f1992c8eb41
     user: root # otherwise the fuseki user does not have permissions to the mounted folder which is owner by root
-    ports:
-      - 3031:3030
+    expose:
+      - 3030
     volumes:
       - ./config/fuseki/config.ttl:/fuseki/config.ttl:ro
       - ./data/end-user:/fuseki/databases

@@ -26,7 +26,9 @@ import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.listener.EMailListener;
 import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
+import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.server.util.MessageBuilder;
+import com.atomgraph.linkeddatahub.server.util.Skolemizer;
 import com.atomgraph.linkeddatahub.server.util.WebIDCertGen;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
 import com.atomgraph.linkeddatahub.vocabulary.LDHC;
@@ -68,13 +70,15 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.InternalServerErrorException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.Providers;
 import static org.apache.jena.datatypes.xsd.XSDDatatype.XSDhexBinary;
 import org.apache.jena.ontology.Ontology;
+import org.apache.jena.query.ParameterizedSparqlString;
+import org.apache.jena.query.Query;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
-import org.apache.jena.rdf.model.NodeIterator;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.ResIterator;
 import org.apache.jena.rdf.model.Resource;
@@ -116,7 +120,6 @@ public class SignUp extends GraphStoreImpl
     /** Relative URL of the authorization container */
     public static final String AUTHORIZATION_PATH = "acl/authorizations/";
 
-    private final URI uri;
     private final Model countryModel;
     private final String emailSubject;
     private final String emailText;
@@ -132,6 +135,8 @@ public class SignUp extends GraphStoreImpl
      * @param application current application
      * @param ontology current application's ontology
      * @param service current application's service
+     * @param securityContext JAX-RS security context
+     * @param agentContext authenticated agent's context
      * @param providers registry of JAX-RS providers
      * @param system system application
      * @param servletConfig servlet config
@@ -140,15 +145,14 @@ public class SignUp extends GraphStoreImpl
     @Inject
     public SignUp(@Context Request request, @Context UriInfo uriInfo, MediaTypes mediaTypes,
             com.atomgraph.linkeddatahub.apps.model.Application application, Optional<Ontology> ontology, Optional<Service> service,
+            @Context SecurityContext securityContext, Optional<AgentContext> agentContext,
             @Context Providers providers, com.atomgraph.linkeddatahub.Application system, @Context ServletConfig servletConfig)
     {
-        super(request, uriInfo, mediaTypes, application, ontology, service, providers, system);
+        super(request, uriInfo, mediaTypes, application, ontology, service, securityContext, agentContext, providers, system);
         if (log.isDebugEnabled()) log.debug("Constructing {}", getClass());
         
         if (!application.canAs(AdminApplication.class)) // we are supposed to be in the admin app
             throw new IllegalStateException("Application cannot be cast to apl:AdminApplication");
-        
-        this.uri = uriInfo.getAbsolutePath();
         
         try (InputStream countries = servletConfig.getServletContext().getResourceAsStream(COUNTRY_DATASET_PATH))
         {
@@ -185,7 +189,7 @@ public class SignUp extends GraphStoreImpl
     public Response post(Model agentModel, @QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
     {
         URI agentGraphUri = getUriInfo().getBaseUriBuilder().path(AGENT_PATH).path("{slug}/").build(UUID.randomUUID().toString());
-        skolemize(agentModel, agentGraphUri);
+        new Skolemizer(agentGraphUri.toString()).apply(agentModel);
         
         ResIterator it = agentModel.listResourcesWithProperty(RDF.type, FOAF.Person);
         try
@@ -193,6 +197,13 @@ public class SignUp extends GraphStoreImpl
             Resource agent = it.next();
             String password = validateAndRemovePassword(agent);
             // TO-DO: trim values
+            Resource mbox = agent.getRequiredProperty(FOAF.mbox).getResource();
+            
+            ParameterizedSparqlString pss = new ParameterizedSparqlString(getAgentQuery().toString());
+            pss.setParam(FOAF.mbox.getLocalName(), mbox);
+            boolean agentExists = !getAgentService().getSPARQLClient().loadModel(pss.asQuery()).isEmpty();
+            if (agentExists) throw createSPINConstraintViolationException(agent, FOAF.mbox, "Agent with this mailbox already exists");
+            
             String givenName = agent.getRequiredProperty(FOAF.givenName).getString();
             String familyName = agent.getRequiredProperty(FOAF.familyName).getString();
             String fullName = givenName + " " + familyName;
@@ -234,7 +245,7 @@ public class SignUp extends GraphStoreImpl
                     publicKeyGraphUri,
                     publicKeyModel.createResource(getUriInfo().getBaseUri().resolve(PUBLIC_KEY_PATH).toString()),
                     certPublicKey);
-                skolemize(publicKeyModel, publicKeyGraphUri);
+                new Skolemizer(publicKeyGraphUri.toString()).apply(publicKeyModel);
                 
                 Response publicKeyResponse = super.post(publicKeyModel, false, publicKeyGraphUri);
                 if (publicKeyResponse.getStatus() != Response.Status.CREATED.getStatusCode())
@@ -243,60 +254,52 @@ public class SignUp extends GraphStoreImpl
                     throw new InternalServerErrorException("Cannot create PublicKey");
                 }
 
-                NodeIterator publicKeyIt = publicKeyModel.listObjectsOfProperty(ResourceFactory.createResource(publicKeyGraphUri.toString()), FOAF.primaryTopic);
-                try
+                Resource publicKey = publicKeyModel.createResource(publicKeyGraphUri.toString()).getPropertyResourceValue(FOAF.primaryTopic);
+                agent.addProperty(Cert.key, publicKey); // add public key
+                agentModel.add(agentModel.createResource(getSystem().getSecretaryWebIDURI().toString()), ACL.delegates, agent); // make secretary delegate whis agent
+
+                Response agentResponse = super.post(agentModel, false, agentGraphUri);
+                if (agentResponse.getStatus() != Response.Status.CREATED.getStatusCode())
                 {
-                    Resource publicKey = publicKeyIt.next().asResource();
-
-                    agent.addProperty(Cert.key, publicKey); // add public key
-                    agentModel.add(agentModel.createResource(getSystem().getSecretaryWebIDURI().toString()), ACL.delegates, agent); // make secretary delegate whis agent
-
-                    Response agentResponse = super.post(agentModel, false, agentGraphUri);
-                    if (agentResponse.getStatus() != Response.Status.CREATED.getStatusCode())
-                    {
-                        if (log.isErrorEnabled()) log.error("Cannot create Agent");
-                        throw new InternalServerErrorException("Cannot create Agent");
-                    }
-
-                    URI authGraphUri = getUriInfo().getBaseUriBuilder().path(AUTHORIZATION_PATH).path("{slug}/").build(UUID.randomUUID().toString());
-                    Model authModel = ModelFactory.createDefaultModel();
-                    createAuthorization(authModel,
-                        authGraphUri,
-                        authModel.createResource(getUriInfo().getBaseUri().resolve(AUTHORIZATION_PATH).toString()),
-                        agentGraphUri,
-                        publicKeyGraphUri);
-                    skolemize(authModel, authGraphUri);
-                    
-                    Response authResponse = super.post(authModel, false, authGraphUri);
-                    if (authResponse.getStatus() != Response.Status.CREATED.getStatusCode())
-                    {
-                        if (log.isErrorEnabled()) log.error("Cannot create Authorization");
-                        throw new InternalServerErrorException("Cannot create Authorization");
-                    }
-
-                    // remove secretary WebID from cache
-                    getSystem().getEventBus().post(new com.atomgraph.linkeddatahub.server.event.SignUp(getSystem().getSecretaryWebIDURI()));
-
-                    if (download)
-                    {
-                        return Response.ok(keyStoreBytes).
-                            type(PKCS12_MEDIA_TYPE).
-                            header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=cert.p12").
-                            build();
-                    }
-                    else
-                    {
-                        LocalDate certExpires = LocalDate.now().plusDays(getValidityDays()); // ((X509Certificate)cert).getNotAfter(); 
-                        sendEmail(agent, certExpires, keyStoreBytes, keyStoreFileName);
-
-                        return Response.ok().
-                            entity(agentModel.add(publicKeyModel)).
-                            build(); // don't return 201 Created as we don't want a redirect in client.xsl
-                    }
+                    if (log.isErrorEnabled()) log.error("Cannot create Agent");
+                    throw new InternalServerErrorException("Cannot create Agent");
                 }
-                finally
+
+                URI authGraphUri = getUriInfo().getBaseUriBuilder().path(AUTHORIZATION_PATH).path("{slug}/").build(UUID.randomUUID().toString());
+                Model authModel = ModelFactory.createDefaultModel();
+                // creating authorizations for the Agent and PublicKey documents
+                createAuthorization(authModel,
+                    authGraphUri,
+                    authModel.createResource(getUriInfo().getBaseUri().resolve(AUTHORIZATION_PATH).toString()),
+                    agentGraphUri,
+                    publicKeyGraphUri);
+                new Skolemizer(authGraphUri.toString()).apply(authModel);
+
+                Response authResponse = super.post(authModel, false, authGraphUri);
+                if (authResponse.getStatus() != Response.Status.CREATED.getStatusCode())
                 {
-                    publicKeyIt.close();
+                    if (log.isErrorEnabled()) log.error("Cannot create Authorization");
+                    throw new InternalServerErrorException("Cannot create Authorization");
+                }
+
+                // remove secretary WebID from cache
+                getSystem().getEventBus().post(new com.atomgraph.linkeddatahub.server.event.SignUp(getSystem().getSecretaryWebIDURI()));
+
+                if (download)
+                {
+                    return Response.ok(keyStoreBytes).
+                        type(PKCS12_MEDIA_TYPE).
+                        header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=cert.p12").
+                        build();
+                }
+                else
+                {
+                    LocalDate certExpires = LocalDate.now().plusDays(getValidityDays()); // ((X509Certificate)cert).getNotAfter(); 
+                    sendEmail(agent, certExpires, keyStoreBytes, keyStoreFileName);
+
+                    return Response.ok().
+                        entity(agentModel.add(publicKeyModel)).
+                        build(); // don't return 201 Created as we don't want a redirect in client.xsl
                 }
             }
         }
@@ -494,7 +497,17 @@ public class SignUp extends GraphStoreImpl
         else
             return getApplication().as(AdminApplication.class).getEndUserApplication();
     }
-
+    
+    /**
+     * Returns the SPARQL service from which agent data is retrieved.
+     * 
+     * @return SPARQL service
+     */
+    public Service getAgentService()
+    {
+        return getApplication().getService();
+    }
+    
     /**
      * Returns URI of this resource.
      * 
@@ -502,7 +515,7 @@ public class SignUp extends GraphStoreImpl
      */
     public URI getURI()
     {
-        return uri;
+        return getUriInfo().getAbsolutePath();
     }
 
     /**
@@ -543,6 +556,16 @@ public class SignUp extends GraphStoreImpl
     public String getEmailText()
     {
         return emailText;
+    }
+    
+    /**
+     * Returns SPARQL query used to load agent by mailbox.
+     * 
+     * @return SPARQL query
+     */
+    public Query getAgentQuery()
+    {
+        return getSystem().getAgentQuery();
     }
     
 }

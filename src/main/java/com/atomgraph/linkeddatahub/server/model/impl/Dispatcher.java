@@ -19,9 +19,10 @@ package com.atomgraph.linkeddatahub.server.model.impl;
 import com.atomgraph.client.vocabulary.AC;
 import com.atomgraph.linkeddatahub.apps.model.Dataset;
 import com.atomgraph.linkeddatahub.resource.Add;
-import com.atomgraph.linkeddatahub.resource.Clone;
-import com.atomgraph.linkeddatahub.resource.Imports;
+import com.atomgraph.linkeddatahub.resource.Importer;
 import com.atomgraph.linkeddatahub.resource.Namespace;
+import com.atomgraph.linkeddatahub.resource.Transform;
+import com.atomgraph.linkeddatahub.resource.admin.Clear;
 import com.atomgraph.linkeddatahub.resource.admin.RequestAccess;
 import com.atomgraph.linkeddatahub.resource.admin.SignUp;
 import com.atomgraph.linkeddatahub.resource.graph.Item;
@@ -34,7 +35,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- *
+ * A catch-all JAX-RS resource that routes requests to sub-resources.
+ * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
 @Path("/")
@@ -117,26 +119,20 @@ public class Dispatcher
      * @return endpoint resource
      */
     @Path("ns")
-    public Object getOntology()
+    public Object getNamespace()
     {
         return Namespace.class;
     }
 
-//    @Path("ns/{slug}/")
-//    public Object getSubOntology()
-//    {
-//        return Namespace.class;
-//    }
-
     /**
-     * Returns ontology item resource.
+     * Returns second-level ontology documents.
      * 
-     * @return item resource
+     * @return namespace resource
      */
-    @Path("{container}/ontologies/{uuid}/")
-    public Object getOntologyItem()
+    @Path("ns/{slug}/")
+    public Object getSubOntology()
     {
-        return com.atomgraph.linkeddatahub.resource.ontology.Item.class;
+        return Namespace.class;
     }
     
     /**
@@ -165,8 +161,9 @@ public class Dispatcher
      * Returns content-addressed file item resource.
      * 
      * @return resource
+     * @see com.atomgraph.linkeddatahub.apps.model.Application#UPLOADS_PATH
      */
-    @Path("uploads/{sha1sum}/")
+    @Path("uploads/{sha1sum}")
     public Object getFileItem()
     {
         return com.atomgraph.linkeddatahub.resource.upload.sha1.Item.class;
@@ -177,10 +174,10 @@ public class Dispatcher
      * 
      * @return endpoint resource
      */
-    @Path("imports")
+    @Path("importer")
     public Object getImportEndpoint()
     {
-        return Imports.class;
+        return Importer.class;
     }
 
     /**
@@ -195,21 +192,26 @@ public class Dispatcher
     }
     
     /**
-     * Returns the endpoint for cloning (copying) of external RDF documents.
+     * Returns the endpoint for synchronous RDF imports with a <code>CONSTRUCT</code> query transformation.
      * 
      * @return endpoint resource
      */
-    @Path("clone")
-    public Object getCloneEndpoint()
+    @Path("transform")
+    public Object getTransformEndpoint()
     {
-        return Clone.class;
+        return Transform.class;
     }
-
-//    @Path("skolemize")
-//    public Object getSkolemizeEndpoint()
-//    {
-//        return Skolemize.class;
-//    }
+    
+    /**
+     * Returns the endpoint that allows clearing ontologies from cache by URI.
+     * 
+     * @return endpoint resource
+     */
+    @Path("clear")
+    public Object getClearEndpoint()
+    {
+        return Clear.class;
+    }
     
     /**
      * Returns Google OAuth endpoint.
@@ -219,7 +221,7 @@ public class Dispatcher
     @Path("oauth2/authorize/google")
     public Object getAuthorizeGoogle()
     {
-        return com.atomgraph.linkeddatahub.resource.oauth2.google.Authorize.class;
+        return com.atomgraph.linkeddatahub.resource.admin.oauth2.google.Authorize.class;
     }
 
     /**
@@ -230,7 +232,7 @@ public class Dispatcher
     @Path("oauth2/login")
     public Object getOAuth2Login()
     {
-        return com.atomgraph.linkeddatahub.resource.oauth2.Login.class;
+        return com.atomgraph.linkeddatahub.resource.admin.oauth2.Login.class;
     }
     
     /**

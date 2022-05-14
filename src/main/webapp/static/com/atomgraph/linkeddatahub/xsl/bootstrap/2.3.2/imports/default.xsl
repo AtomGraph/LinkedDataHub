@@ -281,6 +281,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="title" select="." as="xs:string?"/>
         <xsl:param name="class" as="xs:string?"/>
         <xsl:param name="target" as="xs:string?"/>
+        <xsl:param name="mode" as="xs:anyURI?"/>
 
         <xsl:next-match>
             <xsl:with-param name="href" select="$href"/>
@@ -288,6 +289,7 @@ exclude-result-prefixes="#all"
             <xsl:with-param name="title" select="$title"/>
             <xsl:with-param name="class" select="$class"/>
             <xsl:with-param name="target" select="$target"/>
+            <xsl:with-param name="mode" select="$mode"/>
         </xsl:next-match>
     </xsl:template>
     
@@ -565,7 +567,7 @@ exclude-result-prefixes="#all"
                             <xsl:if test="$forClass">
                                 <!-- forClass input is required by typeahead's FILTER (?Type IN ()) in client.xsl -->
                                 <xsl:choose>
-                                    <xsl:when test="not($forClass = '&rdfs;Resource') and doc-available(ac:document-uri($forClass))">
+                                    <xsl:when test="not($forClass = ('&rdfs;Resource', '&rdfs;Literal')) and doc-available(ac:document-uri($forClass))">
                                         <xsl:variable name="subclasses" select="ldh:listSubClasses($forClass, false(), $ldt:ontology)" as="attribute()*"/>
                                         <!-- add subclasses as forClass -->
                                         <xsl:for-each select="distinct-values(ldh:listSubClasses($forClass, false(), $ldt:ontology))[not(. = $forClass)]">

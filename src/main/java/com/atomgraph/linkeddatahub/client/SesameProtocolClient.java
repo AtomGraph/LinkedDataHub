@@ -50,20 +50,20 @@ public class SesameProtocolClient extends SPARQLClient
      * @param mediaTypes registry of readable/writable media types
      * @param maxGetRequestSize the maximum size of SPARQL <code>GET</code> requests
      */
-    public SesameProtocolClient(WebTarget webTarget, MediaTypes mediaTypes, int maxGetRequestSize)
+    public SesameProtocolClient(MediaTypes mediaTypes, WebTarget webTarget, int maxGetRequestSize)
     {
-        super(webTarget, mediaTypes, maxGetRequestSize);
+        super(mediaTypes, webTarget, maxGetRequestSize);
     }
 
     /**
      * Constructs client for a given URI target.
      * 
-     * @param webTarget URI web target
      * @param mediaTypes registry of readable/writable media types
+     * @param webTarget URI web target
      */
-    public SesameProtocolClient(WebTarget webTarget, MediaTypes mediaTypes)
+    public SesameProtocolClient(MediaTypes mediaTypes, WebTarget webTarget)
     {
-        super(webTarget, mediaTypes);
+        super(mediaTypes, webTarget);
     }
     
     @Override

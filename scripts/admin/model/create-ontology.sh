@@ -10,6 +10,7 @@ print_usage()
     printf "  -f, --cert-pem-file CERT_FILE        .pem file with the WebID certificate of the agent\n"
     printf "  -p, --cert-password CERT_PASSWORD    Password of the WebID certificate\n"
     printf "  -b, --base BASE_URI                  Base URI of the admin application\n"
+    printf "  --proxy PROXY_URL                    The host this request will be proxied through (optional)\n"
     printf "\n"
     printf "  --label LABEL                        Label of the ontology\n"
     printf "  --comment COMMENT                    Description of the ontology (optional)\n"
@@ -95,16 +96,13 @@ else
     ontology="_:ontology" # blank node
 fi
 
-if [ -z "$1" ]; then
-    args+=("${base}service") # default target URL = graph store
-fi
-
 args+=("-f")
 args+=("$cert_pem_file")
 args+=("-p")
 args+=("$cert_password")
 args+=("-t")
 args+=("text/turtle") # content type
+args+=("${base}service")
 
 turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy#> .\n"
 turtle+="@prefix owl:	<http://www.w3.org/2002/07/owl#> .\n"

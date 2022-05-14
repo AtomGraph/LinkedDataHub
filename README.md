@@ -25,7 +25,8 @@ What makes LinkedDataHub unique is its completely _data-driven architecture_: ap
 * `bash` shell 4.x. It should be included by default on Linux. On Windows you can install the [Windows Subsystem for Linux](https://docs.microsoft.com/en-us/windows/wsl/install-win10).
 * Java's [`keytool`](https://docs.oracle.com/en/java/javase/11/tools/keytool.html) available on `$PATH`. It comes with the JDK.
 * [`openssl`](https://www.openssl.org/) available on `$PATH`
-* [Docker](https://docs.docker.com/install/) installed
+* [`uuidgen`](https://man7.org/linux/man-pages/man1/uuidgen.1.html) available on `$PATH`
+* [Docker](https://docs.docker.com/install/) installed. At least 8GB of memory dedicated to Docker is recommended.
 * [Docker Compose](https://docs.docker.com/compose/install/) installed
 
 ### Steps
@@ -70,7 +71,7 @@ What makes LinkedDataHub unique is its completely _data-driven architecture_: ap
   5. Install `ssl/owner/keystore.p12` into a web browser of your choice (password is the `$owner_cert_pwd` value supplied to `setup.sh`)
      - Google Chrome: `Settings > Advanced > Manage Certificates > Import...`
      - Mozilla Firefox: `Options > Privacy > Security > View Certificates... > Import...`
-     - Apple Safari: The file is installed directly into the operating system. Open the file and import it using the [Keychain Access](https://support.apple.com/guide/keychain-access/what-is-keychain-access-kyca1083/mac) tool.
+     - Apple Safari: The file is installed directly into the operating system. Open the file and import it using the [Keychain Access](https://support.apple.com/guide/keychain-access/what-is-keychain-access-kyca1083/mac) tool (drag it to the `local` section).
      - Microsoft Edge: Does not support certificate management, you need to install the file into Windows. [Read more here](https://social.technet.microsoft.com/Forums/en-US/18301fff-0467-4e41-8dee-4e44823ed5bf/microsoft-edge-browser-and-ssl-certificates?forum=win10itprogeneral).
   6. Open **https://localhost:4443/** in that web browser
 
@@ -171,7 +172,15 @@ An environment variable `JENA_HOME` is used by all the command line tools to con
     export JENA_HOME=the directory you downloaded Jena to
     export PATH="$PATH:$JENA_HOME/bin"
 
-**Get the [source code](https://github.com/AtomGraph/LinkedDataHub-Apps)**
+## Sample applications
+
+### Third party
+
+* [NOI OpenDataHub](https://kg.opendatahub.bz.it) – tourism Knowledge Graph portal powered by LinkedDataHub and [@ontop](https://github.com/ontop). [Source code](https://github.com/noi-techpark/it.bz.opendatahub.kg).
+
+### [Demo apps](https://github.com/AtomGraph/LinkedDataHub-Apps)
+
+These demo applications can be installed into a LinkedDataHub instance using the provided CLI scripts.
 
 _:warning: Before running app installation scripts that use LinkedDataHub's CLI scripts, set the `SCRIPT_ROOT` environmental variable to the [`scripts`](https://github.com/AtomGraph/LinkedDataHub/tree/master/scripts) subfolder of your LinkedDataHub fork or clone._ For example:
 

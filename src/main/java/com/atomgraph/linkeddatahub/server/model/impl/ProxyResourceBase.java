@@ -19,17 +19,21 @@ package com.atomgraph.linkeddatahub.server.model.impl;
 import com.atomgraph.client.MediaTypes;
 import com.atomgraph.client.util.DataManager;
 import com.atomgraph.client.vocabulary.AC;
+import com.atomgraph.core.exception.BadGatewayException;
 import com.atomgraph.core.io.ModelProvider;
 import com.atomgraph.linkeddatahub.apps.model.Dataset;
 import com.atomgraph.linkeddatahub.client.filter.auth.IDTokenDelegationFilter;
 import com.atomgraph.linkeddatahub.client.filter.auth.WebIDDelegationFilter;
 import com.atomgraph.linkeddatahub.model.Agent;
+import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.server.security.IDTokenSecurityContext;
+import com.atomgraph.linkeddatahub.vocabulary.LDH;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
@@ -41,6 +45,7 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
@@ -49,6 +54,8 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.Providers;
+import org.apache.jena.query.Query;
+import org.apache.jena.query.QueryFactory;
 import org.apache.jena.query.ResultSet;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
@@ -69,9 +76,12 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
     private static final Logger log = LoggerFactory.getLogger(ProxyResourceBase.class);
 
     private final UriInfo uriInfo;
+    private final ContainerRequestContext crc;
+    private final Service service;
     private final DataManager dataManager;
     private final MediaType[] readableMediaTypes;
     private final Providers providers;
+    private final com.atomgraph.linkeddatahub.Application system;
 
     /**
      * Constructs the resource.
@@ -80,7 +90,9 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
      * @param request current request
      * @param httpHeaders HTTP header info
      * @param mediaTypes registry of readable/writable media types
+     * @param service application's SPARQL service
      * @param securityContext JAX-RS security context
+     * @param crc request context
      * @param system system application
      * @param httpServletRequest servlet request
      * @param dataManager RDFdata manager
@@ -89,11 +101,13 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
      * @param dataset optional dataset
      */
     @Inject
-    public ProxyResourceBase(@Context UriInfo uriInfo, @Context Request request, @Context HttpHeaders httpHeaders, MediaTypes mediaTypes, @Context SecurityContext securityContext,
+    public ProxyResourceBase(@Context UriInfo uriInfo, @Context Request request, @Context HttpHeaders httpHeaders, MediaTypes mediaTypes,
+            Optional<Service> service,
+            @Context SecurityContext securityContext, @Context ContainerRequestContext crc,
             com.atomgraph.linkeddatahub.Application system, @Context HttpServletRequest httpServletRequest, DataManager dataManager, Optional<AgentContext> agentContext,
             @Context Providers providers, Optional<Dataset> dataset)
     {
-        this(uriInfo, request, httpHeaders, mediaTypes, securityContext,
+        this(uriInfo, request, httpHeaders, mediaTypes, service, securityContext, crc,
                 uriInfo.getQueryParameters().getFirst(AC.uri.getLocalName()) == null ? 
                     dataset.isEmpty() ? null : dataset.get().getProxied(uriInfo.getAbsolutePath())
                     :
@@ -111,7 +125,9 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
      * @param request current request
      * @param httpHeaders HTTP header info
      * @param mediaTypes registry of readable/writable media types
+     * @param service application's SPARQL service
      * @param securityContext JAX-RS security context
+     * @param crc request context
      * @param uri <code>uri</code> URL param
      * @param endpoint <code>endpoint</code> URL param
      * @param accept <code>accept</code> URL param
@@ -122,29 +138,35 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
      * @param agentContext authenticated agent's context
      * @param providers registry of JAX-RS providers
      */
-    protected ProxyResourceBase(@Context UriInfo uriInfo, @Context Request request, @Context HttpHeaders httpHeaders, MediaTypes mediaTypes, @Context SecurityContext securityContext,
+    protected ProxyResourceBase(@Context UriInfo uriInfo, @Context Request request, @Context HttpHeaders httpHeaders, MediaTypes mediaTypes,
+            Optional<Service> service,
+            @Context SecurityContext securityContext, @Context ContainerRequestContext crc,
             @QueryParam("uri") URI uri, @QueryParam("endpoint") URI endpoint, @QueryParam("accept") MediaType accept, @QueryParam("mode") URI mode,
             com.atomgraph.linkeddatahub.Application system, @Context HttpServletRequest httpServletRequest, DataManager dataManager, Optional<AgentContext> agentContext,
             @Context Providers providers)
     {
         super(uriInfo, request, httpHeaders, mediaTypes, uri, endpoint, accept, mode, system.getClient(), httpServletRequest);
         this.uriInfo = uriInfo;
+        this.service = service.get();
+        this.crc = crc;
         this.dataManager = dataManager;
         this.providers = providers;
-        
+        this.system = system;
+
         List<javax.ws.rs.core.MediaType> readableMediaTypesList = new ArrayList<>();
         readableMediaTypesList.addAll(mediaTypes.getReadable(Model.class));
         readableMediaTypesList.addAll(mediaTypes.getReadable(ResultSet.class)); // not in the superclass
-        this.readableMediaTypes = readableMediaTypesList.toArray(new MediaType[readableMediaTypesList.size()]);
+        this.readableMediaTypes = readableMediaTypesList.toArray(MediaType[]::new);
         
-        if (securityContext.getUserPrincipal() instanceof Agent)
+        if (securityContext.getUserPrincipal() instanceof Agent agent)
         {
             if (securityContext.getAuthenticationScheme().equals(SecurityContext.CLIENT_CERT_AUTH))
-                super.getWebTarget().register(new WebIDDelegationFilter((Agent)securityContext.getUserPrincipal()));
+                super.getWebTarget().register(new WebIDDelegationFilter(agent));
             
             //if (securityContext.getAuthenticationScheme().equals(IDTokenFilter.AUTH_SCHEME))
             if (agentContext.isPresent() && agentContext.get() instanceof IDTokenSecurityContext)
-                super.getWebTarget().register(new IDTokenDelegationFilter(((IDTokenSecurityContext)agentContext.get()).getJWTToken(), uriInfo.getBaseUri().getPath(), null));
+                super.getWebTarget().register(new IDTokenDelegationFilter(agentContext.get().getAgent(),
+                    ((IDTokenSecurityContext)agentContext.get()).getJWTToken(), uriInfo.getBaseUri().getPath(), null));
         }
     }
     
@@ -182,7 +204,28 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
                 throw new BadRequestException(ex);
             }
 
-        return super.get(target);
+        Query query = QueryFactory.create("DESCRIBE <" + target.getUri() + ">");
+        Model localModel = getService().getSPARQLClient().loadModel(query);
+        getContainerRequestContext().setProperty(LDH.localGraph.getURI(), localModel);
+
+        try
+        {
+            Response response = super.get(target);
+            
+            if (response.getEntity() instanceof Model model)
+            {
+                getContainerRequestContext().setProperty(LDH.originalGraph.getURI(), ModelFactory.createDefaultModel().add(model)); // local model without the remote model
+                model.add(localModel); // append the local model to the remote model
+            }
+            
+            return response;
+        }
+        catch (BadGatewayException ex) // fallback to the local model in case of error
+        {
+            getContainerRequestContext().setProperty(LDH.originalGraph.getURI(), ModelFactory.createDefaultModel());
+            if (!localModel.isEmpty()) return getResponse(localModel);
+            else throw ex;
+        }
     }
     
     /**
@@ -198,7 +241,7 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
         if (getWebTarget() == null) throw new NotFoundException("Resource URI not supplied"); // cannot throw Exception in constructor: https://github.com/eclipse-ee4j/jersey/issues/4436
         
         try (Response cr = getWebTarget().request().
-            accept(getMediaTypes().getReadable(Model.class).toArray(new javax.ws.rs.core.MediaType[0])).
+            accept(getMediaTypes().getReadable(Model.class).toArray(javax.ws.rs.core.MediaType[]::new)).
             post(Entity.entity(multiPart, multiPart.getMediaType())))
         {
             if (log.isDebugEnabled()) log.debug("POSTing multipart data to URI: {}", getWebTarget().getUri());
@@ -219,12 +262,43 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
         if (getWebTarget() == null) throw new NotFoundException("Resource URI not supplied"); // cannot throw Exception in constructor: https://github.com/eclipse-ee4j/jersey/issues/4436
         
         try (Response cr = getWebTarget().request().
-                accept(getMediaTypes().getReadable(Model.class).toArray(new javax.ws.rs.core.MediaType[0])).
+                accept(getMediaTypes().getReadable(Model.class).toArray(javax.ws.rs.core.MediaType[]::new)).
                 put(Entity.entity(multiPart, multiPart.getMediaType())))
         {
             if (log.isDebugEnabled()) log.debug("PUTing multipart data to URI: {}", getWebTarget().getUri());
             return getResponse(cr);
         }
+    }
+    
+    /**
+     * Returns a list of supported languages.
+     * 
+     * @return list of languages
+     */
+    @Override
+    public List<Locale> getLanguages()
+    {
+        return getSystem().getSupportedLanguages();
+    }
+    
+    /**
+     * Returns the SPARQL service of the current application.
+     * 
+     * @return service resource
+     */
+    public Service getService()
+    {
+        return service;
+    }
+    
+    /**
+     * Returns request context.
+     * 
+     * @return request context
+     */
+    public ContainerRequestContext getContainerRequestContext()
+    {
+        return crc;
     }
     
     /**
@@ -266,6 +340,16 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
     public Providers getProviders()
     {
         return providers;
+    }
+    
+    /**
+     * Returns the system application.
+     * 
+     * @return JAX-RS application
+     */
+    public com.atomgraph.linkeddatahub.Application getSystem()
+    {
+        return system;
     }
     
 }

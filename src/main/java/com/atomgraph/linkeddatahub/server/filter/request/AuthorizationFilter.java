@@ -164,6 +164,7 @@ public class AuthorizationFilter implements ContainerRequestFilter
         qsm.add(SPIN.THIS_VAR_NAME, absolutePath);
         qsm.add("Mode", accessMode);
         qsm.add(LDT.Ontology.getLocalName(), getApplication().getOntology());
+        qsm.add(LDT.base.getLocalName(), getApplication().getBase());
         
         if (agent != null)
         {

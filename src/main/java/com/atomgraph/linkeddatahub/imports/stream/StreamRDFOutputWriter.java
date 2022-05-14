@@ -18,8 +18,14 @@ package com.atomgraph.linkeddatahub.imports.stream;
 
 import com.atomgraph.core.MediaType;
 import com.atomgraph.core.client.GraphStoreClient;
+import com.atomgraph.linkeddatahub.model.Service;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.UUID;
 import java.util.function.Function;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.WebApplicationException;
@@ -41,6 +47,7 @@ public class StreamRDFOutputWriter implements Function<Response, RDFGraphStoreOu
     
     private static final Logger log = LoggerFactory.getLogger(StreamRDFOutputWriter.class);
 
+    private final Service service, adminService;
     private final GraphStoreClient graphStoreClient;
     private final String baseURI, graphURI;
     private final Query query;
@@ -48,13 +55,17 @@ public class StreamRDFOutputWriter implements Function<Response, RDFGraphStoreOu
     /**
      * Constructs output writer.
      * 
+     * @param service SPARQL service of the application
+     * @param adminService SPARQL service of the admin application
      * @param graphStoreClient GSP client
      * @param baseURI base URI
      * @param query transformation query or null
      * @param graphURI target graph URI
      */
-    public StreamRDFOutputWriter(GraphStoreClient graphStoreClient, String baseURI, Query query, String graphURI)
+    public StreamRDFOutputWriter(Service service, Service adminService, GraphStoreClient graphStoreClient, String baseURI, Query query, String graphURI)
     {
+        this.service = service;
+        this.adminService = adminService;
         this.graphStoreClient = graphStoreClient;
         this.baseURI = baseURI;
         this.query = query;
@@ -62,25 +73,59 @@ public class StreamRDFOutputWriter implements Function<Response, RDFGraphStoreOu
     }
 
     @Override
-    public RDFGraphStoreOutput apply(Response input)
+    public RDFGraphStoreOutput apply(Response rdfInput)
     {
-        if (input == null) throw new IllegalArgumentException("Response cannot be null");
+        if (rdfInput == null) throw new IllegalArgumentException("Response cannot be null");
         
-        try (input; InputStream is = input.readEntity(InputStream.class))
+        try
         {
-            MediaType mediaType = new MediaType(input.getMediaType().getType(), input.getMediaType().getSubtype()); // discard charset param
-            Lang lang = RDFLanguages.contentTypeToLang(mediaType.toString()); // convert media type to RDF language
-            if (lang == null) throw new BadRequestException("Content type '" + mediaType + "' is not an RDF media type");
+            // buffer the RDF in a temp file before transforming it
+            File tempFile = File.createTempFile(UUID.randomUUID().toString(), "tmp");
+            try (rdfInput; InputStream rdfIs = rdfInput.readEntity(InputStream.class); OutputStream output = new FileOutputStream(tempFile))
+            {
+                rdfIs.transferTo(output);
+            }
 
-            RDFGraphStoreOutput output = new RDFGraphStoreOutput(getGraphStoreClient(), is, getBaseURI(), getQuery(), lang, getGraphURI());
-            output.write();
-            return output;
+            try (InputStream fis = new FileInputStream(tempFile))
+            {
+                MediaType mediaType = new MediaType(rdfInput.getMediaType().getType(), rdfInput.getMediaType().getSubtype()); // discard charset param
+                Lang lang = RDFLanguages.contentTypeToLang(mediaType.toString()); // convert media type to RDF language
+                if (lang == null) throw new BadRequestException("Content type '" + mediaType + "' is not an RDF media type");
+
+                RDFGraphStoreOutput output = new RDFGraphStoreOutput(getService(), getAdminService(), getGraphStoreClient(), fis, getBaseURI(), getQuery(), lang, getGraphURI());
+                output.write();
+                return output;
+            }
+            finally
+            {
+                tempFile.delete();
+            }
         }
         catch (IOException ex)
         {
             if (log.isErrorEnabled()) log.error("Error reading RDF InputStream: {}", ex);
             throw new WebApplicationException(ex);
         }
+    }
+
+    /**
+     * Return application's SPARQL service.
+     * 
+     * @return SPARQL service
+     */
+    public Service getService()
+    {
+        return service;
+    }
+    
+    /**
+     * Return admin application's SPARQL service.
+     * 
+     * @return SPARQL service
+     */
+    public Service getAdminService()
+    {
+        return adminService;
     }
     
     /**
