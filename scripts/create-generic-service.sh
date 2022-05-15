@@ -15,6 +15,7 @@ print_usage()
     printf "  --title TITLE                        Title of the service\n"
     printf "  --description DESCRIPTION            Description of the service (optional)\n"
     printf "  --slug SLUG                          String that will be used as URI path segment (optional)\n"
+    printf "  --fragment STRING                    String that will be used as URI fragment identifier (optional)\n"
     printf "\n"
     printf "  --endpoint ENDPOINT_URI              Endpoint URI\n"
     printf "  --graph-store GRAPH_STORE_URI        Graph Store URI (optional)\n"
@@ -57,6 +58,11 @@ do
         ;;
         --slug)
         slug="$2"
+        shift # past argument
+        shift # past value
+        ;;
+        --fragment)
+        fragment="$2"
         shift # past argument
         shift # past value
         ;;
@@ -118,6 +124,7 @@ args+=("-t")
 args+=("text/turtle") # content type
 args+=("${base}service")
 
+turtle+="@prefix ldh:	<https://w3id.org/atomgraph/linkeddatahub#> .\n"
 turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy#> .\n"
 turtle+="@prefix a:	<https://w3id.org/atomgraph/core#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
@@ -148,6 +155,9 @@ if [ -n "$description" ] ; then
 fi
 if [ -n "$slug" ] ; then
     turtle+="_:item dh:slug \"${slug}\" .\n"
+fi
+if [ -n "$fragment" ] ; then
+    turtle+="_:chart ldh:fragment \"${fragment}\" .\n"
 fi
 
 # submit Turtle doc to the server

@@ -15,6 +15,7 @@ print_usage()
     printf "  --label LABEL                        Label of the authorization\n"
     printf "  --comment COMMENT                    Description of the authorization (optional)\n"
     printf "  --slug STRING                        String that will be used as URI path segment (optional)\n"
+    printf "  --fragment STRING                    String that will be used as URI fragment identifier (optional)\n"
     printf "\n"
     printf "  --uri URI                            URI of the authorization (optional)\n"
     printf "  --agent AGENT_URI                    URI of the agent (optional)\n"
@@ -63,6 +64,11 @@ do
         ;;
         --slug)
         slug="$2"
+        shift # past argument
+        shift # past value
+        ;;
+        --fragment)
+        fragment="$2"
         shift # past argument
         shift # past value
         ;;
@@ -170,6 +176,7 @@ args+=("-t")
 args+=("text/turtle") # content type
 args+=("${base}service")
 
+turtle+="@prefix ldh:	<https://w3id.org/atomgraph/linkeddatahub#> .\n"
 turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy#> .\n"
 turtle+="@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .\n"
 turtle+="@prefix acl:	<http://www.w3.org/ns/auth/acl#> .\n"
@@ -188,6 +195,9 @@ if [ -n "$comment" ] ; then
 fi
 if [ -n "$slug" ] ; then
     turtle+="_:item dh:slug \"${slug}\" .\n"
+fi
+if [ -n "$fragment" ] ; then
+    turtle+="${auth} ldh:fragment \"${fragment}\" .\n"
 fi
 
 for agent in "${agents[@]}"

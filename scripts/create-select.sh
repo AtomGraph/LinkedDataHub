@@ -15,8 +15,8 @@ print_usage()
     printf "  --title TITLE                        Title of the chart\n"
     printf "  --description DESCRIPTION            Description of the chart (optional)\n"
     printf "  --slug STRING                        String that will be used as URI path segment (optional)\n"
-    printf "\n"
     printf "  --fragment STRING                    String that will be used as URI fragment identifier (optional)\n"
+    printf "\n"
     printf "  --query-file ABS_PATH                Absolute path to the text file with the SPARQL query string\n"
     printf "  --service SERVICE_URI                URI of the SPARQL service specific to this query (optional)\n"
 }

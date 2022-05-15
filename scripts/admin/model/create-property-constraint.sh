@@ -15,6 +15,7 @@ print_usage()
     printf "  --label LABEL                        Label of the constraint\n"
     printf "  --comment COMMENT                    Description of the constraint (optional)\n"
     printf "  --slug STRING                        String that will be used as URI path segment (optional)\n"
+    printf "  --fragment STRING                    String that will be used as URI fragment identifier (optional)\n"
     printf "\n"
     printf "  --uri URI                            URI of the constraint (optional)\n"
     printf "  --property PROPERTY_URI              URI of the constrained property\n"
@@ -55,6 +56,11 @@ do
         ;;
         --slug)
         slug="$2"
+        shift # past argument
+        shift # past value
+        ;;
+        --fragment)
+        fragment="$2"
         shift # past argument
         shift # past value
         ;;
@@ -118,8 +124,8 @@ args+=("$cert_password")
 args+=("-t")
 args+=("text/turtle") # content type
 
-turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy#> .\n"
 turtle+="@prefix ldh:	<https://w3id.org/atomgraph/linkeddatahub#> .\n"
+turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy#> .\n"
 turtle+="@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
 turtle+="@prefix foaf:	<http://xmlns.com/foaf/0.1/> .\n"
@@ -138,6 +144,9 @@ if [ -n "$comment" ] ; then
 fi
 if [ -n "$slug" ] ; then
     turtle+="_:item dh:slug \"${slug}\" .\n"
+fi
+if [ -n "$fragment" ] ; then
+    turtle+="${constraint} ldh:fragment \"${fragment}\" .\n"
 fi
 
 # submit Turtle doc to the server

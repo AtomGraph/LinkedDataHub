@@ -15,8 +15,8 @@ print_usage()
     printf "  --title TITLE                        Title of the chart\n"
     printf "  --description DESCRIPTION            Description of the chart (optional)\n"
     printf "  --slug STRING                        String that will be used as URI path segment (optional)\n"
-    printf "\n"
     printf "  --fragment STRING                    String that will be used as URI fragment identifier (optional)\n"
+    printf "\n"
     printf "  --query QUERY_URI                    URI of the SELECT query\n"
     printf "  --chart-type TYPE_URI                URI of the chart type\n"
     printf "  --category-var-name CATEGORY_VAR     Name of the variable used as category (without leading '?')\n"
@@ -137,11 +137,11 @@ args+=("-t")
 args+=("text/turtle") # content type
 args+=("${base}service")
 
+turtle+="@prefix ldh:	<https://w3id.org/atomgraph/linkeddatahub#> .\n"
 turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
 turtle+="@prefix foaf:	<http://xmlns.com/foaf/0.1/> .\n"
 turtle+="@prefix spin:  <http://spinrdf.org/spin#> .\n"
-turtle+="@prefix ldh:	<https://w3id.org/atomgraph/linkeddatahub#> .\n"
 turtle+="@prefix sioc:	<http://rdfs.org/sioc/ns#> .\n"
 turtle+="_:chart a ldh:ResultSetChart .\n"
 turtle+="_:chart dct:title \"${title}\" .\n"

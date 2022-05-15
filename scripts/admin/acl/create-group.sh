@@ -15,6 +15,7 @@ print_usage()
     printf "  --name NAME                          Name of the group\n"
     printf "  --description DESCRIPTION            Description of the group (optional)\n"
     printf "  --slug STRING                        String that will be used as URI path segment (optional)\n"
+    printf "  --fragment STRING                    String that will be used as URI fragment identifier (optional)\n"
     printf "\n"
     printf "  --uri URI                            URI of the group (optional)\n"
     printf "  --member MEMBER_URI                  URI of the member agent (optional)\n"
@@ -55,6 +56,11 @@ do
         ;;
         --slug)
         slug="$2"
+        shift # past argument
+        shift # past value
+        ;;
+        --fragment)
+        fragment="$2"
         shift # past argument
         shift # past value
         ;;
@@ -114,6 +120,7 @@ args+=("-t")
 args+=("text/turtle") # content type
 args+=("${base}service")
 
+turtle+="@prefix ldh:	<https://w3id.org/atomgraph/linkeddatahub#> .\n"
 turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
 turtle+="@prefix foaf:	<http://xmlns.com/foaf/0.1/> .\n"
@@ -130,6 +137,9 @@ if [ -n "$description" ] ; then
 fi
 if [ -n "$slug" ] ; then
     turtle+="_:item dh:slug \"${slug}\" .\n"
+fi
+if [ -n "$fragment" ] ; then
+    turtle+="${group} ldh:fragment \"${fragment}\" .\n"
 fi
 
 for member in "${members[@]}"
