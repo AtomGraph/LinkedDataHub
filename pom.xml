@@ -134,7 +134,7 @@
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>processor</artifactId>
-            <version>3.13.19-SNAPSHOT</version>
+            <version>3.13.20-SNAPSHOT</version>
             <exclusions>
                 <!-- exclude jakarta.json as its version clashes with Jersey's -->
                 <exclusion>
