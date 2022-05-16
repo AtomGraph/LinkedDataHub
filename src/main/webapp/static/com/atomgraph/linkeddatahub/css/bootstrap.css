@@ -62,7 +62,7 @@ li button.btn-add-data, li button.btn-add-ontology { text-align: left; width: 10
 .dropdown-menu > li > a.btn-map { background-image: url('../icons/ic_map_black_24px.svg'); background-position: 12px center; background-repeat: no-repeat; padding: 5px 5px 5px 40px; }
 .dropdown-menu > li > a.btn-graph { background-image: url('../icons/ic_blur_on_black_24px.svg'); background-position: 12px center; background-repeat: no-repeat; padding: 5px 5px 5px 40px; }
 .dropdown-menu > li > a.btn-query { background-image: url('../icons/ic_code_black_24px.svg'); background-position: 12px center; background-repeat: no-repeat; padding: 5px 5px 5px 40px; }
-#doc-tree { width: 15%; position: fixed; left: 0; top: 106px; height: calc(100% - 106px); }
+#doc-tree { display: none; width: 15%; position: fixed; left: 0; top: 106px; height: calc(100% - 106px); }
 @media (max-width: 979px)
 {
     #doc-tree { display: block; width: auto; position: unset; top: unset; height: auto; }
