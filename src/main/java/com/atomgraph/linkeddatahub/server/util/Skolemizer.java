@@ -25,7 +25,6 @@ import javax.ws.rs.core.UriBuilder;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.util.ResourceUtils;
 import org.apache.jena.util.iterator.ExtendedIterator;
 
@@ -73,20 +72,19 @@ public class Skolemizer implements Function<Model, Model>
     {
         Map<Resource, String> bnodes = new HashMap<>();
 
-        ExtendedIterator<Statement> it = model.listStatements().
-            filterKeep((Statement stmt) -> (stmt.getSubject().isAnon() || stmt.getObject().isAnon()));
+        ExtendedIterator<Resource> it = model.listSubjects().
+            filterKeep((Resource res) -> (res.isAnon()));
         try
         {
             while (it.hasNext())
             {
-                Statement stmt = it.next();
+                Resource bnode = it.next();
 
                 final String fragment;
-                if (stmt.getSubject().hasProperty(getFragmentProperty())) fragment = stmt.getSubject().getProperty(getFragmentProperty()).getString();
+                if (bnode.hasProperty(getFragmentProperty())) fragment = bnode.getProperty(getFragmentProperty()).getString();
                 else fragment = "id" + UUID.randomUUID().toString(); // UUID can start with a number which is not legal for a fragment ID
                 
-                if (stmt.getSubject().isAnon()) bnodes.put(stmt.getSubject(), fragment);
-                if (stmt.getObject().isAnon()) bnodes.put(stmt.getObject().asResource(), fragment);
+                bnodes.put(bnode, fragment);
             }
         }
         finally
