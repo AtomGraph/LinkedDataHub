@@ -90,9 +90,7 @@ printf "\n### Base URI: %s\n" "$base_uri"
 mkdir -p "$out_folder"/server
 
 # crude check if the host is an IP address
-IP_ADDR_MATCH=envProp "HOST" | grep -oE "\b([0-9]{1,3}\.){3}[0-9]{1,3}\b" || test $? = 1
-
-if [ -n "$IP_ADDR_MATCH" ]; then
+if [[ "$(envProp "HOST")" =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$ ]]; then
     if [ -n "$proxy_host" ]; then
         san="subjectAltName=IP:$(envProp "HOST"),DNS:${proxy_host}" # IP address - special case for localhost
     else
