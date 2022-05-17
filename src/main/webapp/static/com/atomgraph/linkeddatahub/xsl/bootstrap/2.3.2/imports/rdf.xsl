@@ -81,7 +81,7 @@ exclude-result-prefixes="#all">
                         <span>
                             <button type="button" class="btn add-type">
                                 <xsl:apply-templates use-when="system-property('xsl:product-name') = 'SAXON'" select="key('resources', 'add', document('translations.rdf'))" mode="ldh:logo"/>
-                                <xsl:text use-when="system-property('xsl:product-name') eq 'Saxon-JS'">&#x2715;</xsl:text>
+                                <xsl:text use-when="system-property('xsl:product-name') eq 'SaxonJS'">&#x2715;</xsl:text>
                             </button>
                         </span>
                         -->

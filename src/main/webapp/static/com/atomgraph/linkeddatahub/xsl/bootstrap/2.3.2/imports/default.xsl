@@ -483,7 +483,7 @@ exclude-result-prefixes="#all"
                         </xsl:otherwise>
                     </xsl:choose>
 
-                    <xsl:value-of use-when="system-property('xsl:product-name') eq 'Saxon-JS'" select="local-name()"/>
+                    <xsl:value-of use-when="system-property('xsl:product-name') eq 'SaxonJS'" select="local-name()"/>
                 </label>
             </xsl:if>
             
@@ -878,7 +878,7 @@ exclude-result-prefixes="#all"
                                 </option>
                             </xsl:otherwise>
                         </xsl:choose>
-                        <xsl:for-each use-when="system-property('xsl:product-name') eq 'Saxon-JS'" select=".">
+                        <xsl:for-each use-when="system-property('xsl:product-name') eq 'SaxonJS'" select=".">
                             <option value="{current-grouping-key()}">
                                 <xsl:value-of select="local-name()"/>
                             </option>
