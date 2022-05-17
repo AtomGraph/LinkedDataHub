@@ -77,6 +77,7 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
 
     private final UriInfo uriInfo;
     private final ContainerRequestContext crc;
+    private final com.atomgraph.linkeddatahub.apps.model.Application application;
     private final Service service;
     private final DataManager dataManager;
     private final MediaType[] readableMediaTypes;
@@ -90,6 +91,7 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
      * @param request current request
      * @param httpHeaders HTTP header info
      * @param mediaTypes registry of readable/writable media types
+     * @param application current application
      * @param service application's SPARQL service
      * @param securityContext JAX-RS security context
      * @param crc request context
@@ -102,12 +104,12 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
      */
     @Inject
     public ProxyResourceBase(@Context UriInfo uriInfo, @Context Request request, @Context HttpHeaders httpHeaders, MediaTypes mediaTypes,
-            Optional<Service> service,
+            com.atomgraph.linkeddatahub.apps.model.Application application, Optional<Service> service,
             @Context SecurityContext securityContext, @Context ContainerRequestContext crc,
             com.atomgraph.linkeddatahub.Application system, @Context HttpServletRequest httpServletRequest, DataManager dataManager, Optional<AgentContext> agentContext,
             @Context Providers providers, Optional<Dataset> dataset)
     {
-        this(uriInfo, request, httpHeaders, mediaTypes, service, securityContext, crc,
+        this(uriInfo, request, httpHeaders, mediaTypes, application, service, securityContext, crc,
                 uriInfo.getQueryParameters().getFirst(AC.uri.getLocalName()) == null ? 
                     dataset.isEmpty() ? null : dataset.get().getProxied(uriInfo.getAbsolutePath())
                     :
@@ -125,6 +127,7 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
      * @param request current request
      * @param httpHeaders HTTP header info
      * @param mediaTypes registry of readable/writable media types
+     * @param application current application
      * @param service application's SPARQL service
      * @param securityContext JAX-RS security context
      * @param crc request context
@@ -139,7 +142,7 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
      * @param providers registry of JAX-RS providers
      */
     protected ProxyResourceBase(@Context UriInfo uriInfo, @Context Request request, @Context HttpHeaders httpHeaders, MediaTypes mediaTypes,
-            Optional<Service> service,
+            com.atomgraph.linkeddatahub.apps.model.Application application, Optional<Service> service,
             @Context SecurityContext securityContext, @Context ContainerRequestContext crc,
             @QueryParam("uri") URI uri, @QueryParam("endpoint") URI endpoint, @QueryParam("accept") MediaType accept, @QueryParam("mode") URI mode,
             com.atomgraph.linkeddatahub.Application system, @Context HttpServletRequest httpServletRequest, DataManager dataManager, Optional<AgentContext> agentContext,
@@ -147,6 +150,7 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
     {
         super(uriInfo, request, httpHeaders, mediaTypes, uri, endpoint, accept, mode, system.getClient(), httpServletRequest);
         this.uriInfo = uriInfo;
+        this.application = application;
         this.service = service.get();
         this.crc = crc;
         this.dataManager = dataManager;
@@ -187,43 +191,49 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
             return getResponse(getDataManager().loadModel(target.getUri().toString()));
         }
         
-        // do not return the whole document if only a single resource (fragment) is requested
-        if (target.getUri().getFragment() != null)
-            try (Response cr = target.request(getReadableMediaTypes()).get())
-            {
-                URI docURI = new URI(target.getUri().getScheme(), target.getUri().getSchemeSpecificPart(), null);
-                
-                cr.getHeaders().putSingle(ModelProvider.REQUEST_URI_HEADER, docURI.toString()); // provide a base URI hint to ModelProvider
-                Model description = cr.readEntity(Model.class);
-                description = ModelFactory.createDefaultModel().add(description.getResource(target.getUri().toString()).listProperties());
-                return getResponse(description);
-            }
-            catch (URISyntaxException ex)
-            {
-                throw new BadRequestException(ex);
-            }
+//        if (target.getUri().getFragment() != null)
+//            try (Response cr = target.request(getReadableMediaTypes()).get())
+//            {
+//                URI docURI = new URI(target.getUri().getScheme(), target.getUri().getSchemeSpecificPart(), null);
+//                
+//                cr.getHeaders().putSingle(ModelProvider.REQUEST_URI_HEADER, docURI.toString()); // provide a base URI hint to ModelProvider
+//                Model description = cr.readEntity(Model.class);
+//                description = ModelFactory.createDefaultModel().add(description.getResource(target.getUri().toString()).listProperties());
+//                return getResponse(description);
+//            }
+//            catch (URISyntaxException ex)
+//            {
+//                throw new BadRequestException(ex);
+//            }
 
-        Query query = QueryFactory.create("DESCRIBE <" + target.getUri() + ">");
-        Model localModel = getService().getSPARQLClient().loadModel(query);
-        getContainerRequestContext().setProperty(LDH.localGraph.getURI(), localModel);
+        // only lookup resource locally using DESCRIBE if it's external (not relative to the app's base URI)
+        if (!getApplication().getBaseURI().relativize(target.getUri()).isAbsolute())
+        {
+            Query query = QueryFactory.create("DESCRIBE <" + target.getUri() + ">");
+            Model localModel = getService().getSPARQLClient().loadModel(query);
+            getContainerRequestContext().setProperty(LDH.localGraph.getURI(), localModel);
 
-        try
-        {
-            Response response = super.get(target);
-            
-            if (response.getEntity() instanceof Model model)
+            try
             {
-                getContainerRequestContext().setProperty(LDH.originalGraph.getURI(), ModelFactory.createDefaultModel().add(model)); // local model without the remote model
-                model.add(localModel); // append the local model to the remote model
+                Response response = super.get(target);
+
+                if (response.getEntity() instanceof Model model)
+                {
+                    // do not return the whole document if only a single resource (fragment) is requested
+                    if (target.getUri().getFragment() != null) model = ModelFactory.createDefaultModel().add(model.getResource(target.getUri().toString()).listProperties());
+                    
+                    getContainerRequestContext().setProperty(LDH.originalGraph.getURI(), ModelFactory.createDefaultModel().add(model)); // local model without the remote model
+                    model.add(localModel); // append the local model to the remote model
+                }
+
+                return response;
             }
-            
-            return response;
-        }
-        catch (BadGatewayException ex) // fallback to the local model in case of error
-        {
-            getContainerRequestContext().setProperty(LDH.originalGraph.getURI(), ModelFactory.createDefaultModel());
-            if (!localModel.isEmpty()) return getResponse(localModel);
-            else throw ex;
+            catch (BadGatewayException ex) // fallback to the local model in case of error
+            {
+                getContainerRequestContext().setProperty(LDH.originalGraph.getURI(), ModelFactory.createDefaultModel());
+                if (!localModel.isEmpty()) return getResponse(localModel);
+                else throw ex;
+            }
         }
     }
     
@@ -278,6 +288,16 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
     public List<Locale> getLanguages()
     {
         return getSystem().getSupportedLanguages();
+    }
+    
+    /**
+     * Returns the current application.
+     * 
+     * @return application resource
+     */
+    public com.atomgraph.linkeddatahub.apps.model.Application getApplication()
+    {
+        return application;
     }
     
     /**
