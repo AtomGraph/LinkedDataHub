@@ -253,6 +253,10 @@ exclude-result-prefixes="#all"
         <xsl:variable name="limit" select="if ($select-xml/json:map/json:number[@key = 'limit']) then xs:integer($select-xml/json:map/json:number[@key = 'limit']) else 0" as="xs:integer"/>
         <xsl:variable name="show" select="($offset - $limit) &gt;= 0 or $result-count &gt;= $limit" as="xs:boolean"/>
 
+<xsl:message>
+    RESULT COUNT: <xsl:value-of select="$result-count"/>
+</xsl:message>
+
         <!-- do not show pagination if the children document count is less than the page limit -->
         <xsl:if test="$show">
             <ul class="pager">
