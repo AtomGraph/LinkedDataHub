@@ -115,7 +115,7 @@ exclude-result-prefixes="#all">
     <xsl:param name="ldh:localGraph" as="document-node()?"/>
     <xsl:param name="ldh:originalGraph" as="document-node()?"/>
     <xsl:param name="ldh:ajaxRendering" select="true()" as="xs:boolean"/> <!-- TO-DO: rename to ldhc:ajaxRendering? -->
-    <xsl:param name="ldhc:webIDSignUp" as="xs:boolean"/>
+    <xsl:param name="ldhc:enableWebIDSignUp" as="xs:boolean"/>
     <xsl:param name="google:clientID" as="xs:string?"/>
     <xsl:param name="default-classes" as="map(xs:string, xs:anyURI)">
         <xsl:map>
@@ -634,7 +634,7 @@ exclude-result-prefixes="#all">
         <xsl:param name="google-signup-uri" select="ac:build-uri(resolve-uri('admin/oauth2/authorize/google', $ldh:base), map{ 'referer': string(ac:uri()) })" as="xs:anyURI"/>
         <xsl:param name="webid-signup-uri" select="resolve-uri('admin/sign%20up', $ldh:base)" as="xs:anyURI"/>
         <xsl:param name="google-signup" select="exists($google:clientID)" as="xs:boolean"/>
-        <xsl:param name="webid-signup" select="$ldhc:webIDSignUp" as="xs:boolean"/>
+        <xsl:param name="webid-signup" select="$ldhc:enableWebIDSignUp" as="xs:boolean"/>
         
         <xsl:if test="$google-signup or $webid-signup">
             <p class="pull-right">

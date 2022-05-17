@@ -33,12 +33,13 @@ xmlns:google="&google;"
     <xsl:param name="ldhc:contextDataset"/>
     <xsl:param name="ldhc:authQuery"/>
     <xsl:param name="ldhc:ownerAuthQuery"/>
+    <xsl:param name="ldhc:enableLinkedDataProxy"/>
     <xsl:param name="ldhc:maxContentLength"/>
     <xsl:param name="ldhc:maxConnPerRoute"/>
     <xsl:param name="ldhc:maxTotalConn"/>
     <xsl:param name="ldhc:importKeepAlive"/>
     <xsl:param name="ldhc:notificationAddress"/>
-    <xsl:param name="ldhc:webIDSignUp"/>
+    <xsl:param name="ldhc:enableWebIDSignUp"/>
     <xsl:param name="mail.smtp.host"/>
     <xsl:param name="mail.smtp.port"/>
     <xsl:param name="mail.user"/>
@@ -110,6 +111,9 @@ xmlns:google="&google;"
             <xsl:if test="$ldhc:ownerAuthQuery">
                 <Parameter name="&ldhc;ownerAuthQuery" value="{$ldhc:ownerAuthQuery}" override="false"/>
             </xsl:if>
+            <xsl:if test="$ldhc:enableLinkedDataProxy">
+                <Parameter name="&ldhc;enableLinkedDataProxy" value="{$ldhc:enableLinkedDataProxy}" override="false"/>
+            </xsl:if>
             <xsl:if test="$ldhc:maxContentLength">
                 <Parameter name="&ldhc;maxContentLength" value="{$ldhc:maxContentLength}" override="false"/>
             </xsl:if>
@@ -125,8 +129,8 @@ xmlns:google="&google;"
             <xsl:if test="$ldhc:notificationAddress">
                 <Parameter name="&ldhc;notificationAddress" value="{$ldhc:notificationAddress}" override="false"/>
             </xsl:if>
-            <xsl:if test="$ldhc:webIDSignUp">
-                <Parameter name="&ldhc;webIDSignUp" value="{$ldhc:webIDSignUp}" override="false"/>
+            <xsl:if test="$ldhc:enableWebIDSignUp">
+                <Parameter name="&ldhc;enableWebIDSignUp" value="{$ldhc:enableWebIDSignUp}" override="false"/>
             </xsl:if>
             <xsl:if test="$mail.smtp.host">
                 <Parameter name="mail.smtp.host" value="{$mail.smtp.host}" override="false"/>
