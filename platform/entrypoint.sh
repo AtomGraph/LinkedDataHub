@@ -670,7 +670,7 @@ if [ -n "$OWNER_AUTH_QUERY" ] ; then
 fi
 
 if [ -n "$ENABLE_LINKED_DATA_PROXY" ] ; then
-    ENABLE_LINKED_DATA_PROXY_PARAM="--stringparam ldhc:linkedDataProxy '$ENABLE_LINKED_DATA_PROXY' "
+    ENABLE_LINKED_DATA_PROXY_PARAM="--stringparam ldhc:enableLinkedDataProxy '$ENABLE_LINKED_DATA_PROXY' "
 fi
 
 if [ -n "$MAX_CONTENT_LENGTH" ] ; then
