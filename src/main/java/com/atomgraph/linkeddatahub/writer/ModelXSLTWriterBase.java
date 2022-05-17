@@ -195,7 +195,7 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
                 params.put(new QName("ldh", LDH.originalGraph.getNameSpace(), LDH.originalGraph.getLocalName()),
                     getXsltExecutable().getProcessor().newDocumentBuilder().build(getSource(model)));
             
-            params.put(new QName("ldhc", LDHC.webIDSignUp.getNameSpace(), LDHC.webIDSignUp.getLocalName()), new XdmAtomicValue(getSystem().isWebIDSignUp()));
+            params.put(new QName("ldhc", LDHC.enableWebIDSignUp.getNameSpace(), LDHC.enableWebIDSignUp.getLocalName()), new XdmAtomicValue(getSystem().isEnableWebIDSignUp()));
             if (getSystem().getProperty(Google.clientID.getURI()) != null)
                 params.put(new QName("google", Google.clientID.getNameSpace(), Google.clientID.getLocalName()), new XdmAtomicValue((String)getSystem().getProperty(Google.clientID.getURI())));
             
