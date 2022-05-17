@@ -47,18 +47,21 @@ public class Dispatcher
 
     private final UriInfo uriInfo;
     private final Optional<Dataset> dataset;
+    private final com.atomgraph.linkeddatahub.Application system;
     
     /**
      * Constructs resource which dispatches requests to sub-resources.
      * 
      * @param uriInfo URI info
      * @param dataset optional dataset
+     * @param system system application
      */
     @Inject
-    public Dispatcher(@Context UriInfo uriInfo, Optional<Dataset> dataset)
+    public Dispatcher(@Context UriInfo uriInfo, Optional<Dataset> dataset, com.atomgraph.linkeddatahub.Application system)
     {
         this.uriInfo = uriInfo;
         this.dataset = dataset;
+        this.system = system;
     }
     
     /**
@@ -75,7 +78,7 @@ public class Dispatcher
     @Path("{path: .*}")
     public Object getSubResource()
     {
-        if (getUriInfo().getQueryParameters().containsKey(AC.uri.getLocalName()))
+        if (getSystem().isEnableLinkedDataProxy() && getUriInfo().getQueryParameters().containsKey(AC.uri.getLocalName()))
         {
             if (log.isDebugEnabled()) log.debug("No Application matched request URI <{}>, dispatching to ProxyResourceBase", getUriInfo().getQueryParameters().getFirst(AC.uri.getLocalName()));
             return ProxyResourceBase.class;
@@ -263,6 +266,16 @@ public class Dispatcher
     public Optional<Dataset> getDataset()
     {
         return dataset;
+    }
+    
+    /**
+     * Returns the system application.
+     * 
+     * @return JAX-RS application
+     */
+    public com.atomgraph.linkeddatahub.Application getSystem()
+    {
+        return system;
     }
     
 }

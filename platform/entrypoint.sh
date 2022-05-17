@@ -669,6 +669,10 @@ if [ -n "$OWNER_AUTH_QUERY" ] ; then
     OWNER_AUTH_QUERY_PARAM="--stringparam ldhc:ownerAuthQuery '$OWNER_AUTH_QUERY' "
 fi
 
+if [ -n "$ENABLE_LINKED_DATA_PROXY" ] ; then
+    ENABLE_LINKED_DATA_PROXY_PARAM="--stringparam ldhc:linkedDataProxy '$ENABLE_LINKED_DATA_PROXY' "
+fi
+
 if [ -n "$MAX_CONTENT_LENGTH" ] ; then
     MAX_CONTENT_LENGTH_PARAM="--stringparam ldhc:maxContentLength '$MAX_CONTENT_LENGTH' "
 fi
@@ -689,8 +693,8 @@ if [ -n "$NOTIFICATION_ADDRESS" ] ; then
     NOTIFICATION_ADDRESS_PARAM="--stringparam ldhc:notificationAddress '$NOTIFICATION_ADDRESS' "
 fi
 
-if [ -n "$WEBID_SIGNUP" ] ; then
-    WEBID_SIGNUP_PARAM="--stringparam ldhc:webIDSignUp '$WEBID_SIGNUP' "
+if [ -n "$ENABLE_WEBID_SIGNUP" ] ; then
+    ENABLE_WEBID_SIGNUP_PARAM="--stringparam ldhc:enableWebIDSignUp '$ENABLE_WEBID_SIGNUP' "
 fi
 
 if [ -n "$MAIL_PASSWORD" ] ; then
@@ -725,12 +729,13 @@ transform="xsltproc \
   $CONTEXT_DATASET_PARAM \
   $AUTH_QUERY_PARAM \
   $OWNER_AUTH_QUERY_PARAM \
+  $ENABLE_LINKED_DATA_PROXY_PARAM \
   $MAX_CONTENT_LENGTH_PARAM \
   $MAX_CONN_PER_ROUTE_PARAM \
   $MAX_TOTAL_CONN_PARAM \
   $IMPORT_KEEPALIVE_PARAM \
   $NOTIFICATION_ADDRESS_PARAM \
-  $WEBID_SIGNUP_PARAM \
+  $ENABLE_WEBID_SIGNUP_PARAM \
   $MAIL_SMTP_HOST_PARAM \
   $MAIL_SMTP_PORT_PARAM \
   $MAIL_USER_PARAM \

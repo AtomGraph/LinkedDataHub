@@ -264,6 +264,7 @@ public class Application extends ResourceConfig
     private final URI baseURI, uploadRoot; // TO-DO: replace baseURI with ServletContext URI?
     private final boolean invalidateCache;
     private final Integer cookieMaxAge;
+    private final boolean enableLinkedDataProxy;
     private final Integer maxContentLength;
     private final Address notificationAddress;
     private final Authenticator authenticator;
@@ -275,7 +276,7 @@ public class Application extends ResourceConfig
     private final ExpiringMap<String, Model> oidcModelCache = ExpiringMap.builder().variableExpiration().build();
     private final Map<URI, XsltExecutable> xsltExecutableCache = new HashMap<>();
     private final MessageDigest messageDigest;
-    private final boolean webIDSignUp;
+    private final boolean enableWebIDSignUp;
 
     private Dataset contextDataset;
     
@@ -317,6 +318,7 @@ public class Application extends ResourceConfig
             servletConfig.getServletContext().getInitParameter(LDHC.uploadRoot.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.uploadRoot.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.invalidateCache.getURI()) != null ? Boolean.parseBoolean(servletConfig.getServletContext().getInitParameter(LDHC.invalidateCache.getURI())) : false,
             servletConfig.getServletContext().getInitParameter(LDHC.cookieMaxAge.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(LDHC.cookieMaxAge.getURI())) : null,
+            servletConfig.getServletContext().getInitParameter(LDHC.enableLinkedDataProxy.getURI()) != null ? Boolean.parseBoolean(servletConfig.getServletContext().getInitParameter(LDHC.enableLinkedDataProxy.getURI())) : true,
             servletConfig.getServletContext().getInitParameter(LDHC.maxContentLength.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(LDHC.maxContentLength.getURI())) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.maxConnPerRoute.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(LDHC.maxConnPerRoute.getURI())) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.maxTotalConn.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(LDHC.maxTotalConn.getURI())) : null,
@@ -325,7 +327,7 @@ public class Application extends ResourceConfig
             servletConfig.getServletContext().getInitParameter(LDHC.maxImportThreads.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(LDHC.maxImportThreads.getURI())) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.notificationAddress.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.notificationAddress.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.supportedLanguages.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.supportedLanguages.getURI()) : null,
-            servletConfig.getServletContext().getInitParameter(LDHC.webIDSignUp.getURI()) != null ? Boolean.parseBoolean(servletConfig.getServletContext().getInitParameter(LDHC.webIDSignUp.getURI())) : true,
+            servletConfig.getServletContext().getInitParameter(LDHC.enableWebIDSignUp.getURI()) != null ? Boolean.parseBoolean(servletConfig.getServletContext().getInitParameter(LDHC.enableWebIDSignUp.getURI())) : true,
             servletConfig.getServletContext().getInitParameter("mail.user") != null ? servletConfig.getServletContext().getInitParameter("mail.user") : null,
             servletConfig.getServletContext().getInitParameter("mail.password") != null ? servletConfig.getServletContext().getInitParameter("mail.password") : null,
             servletConfig.getServletContext().getInitParameter("mail.smtp.host") != null ? servletConfig.getServletContext().getInitParameter("mail.smtp.host") : null,
@@ -374,14 +376,15 @@ public class Application extends ResourceConfig
      * @param uploadRootString location of the root folder for file uploads
      * @param invalidateCache true if Varnish proxy cache should be invalidated
      * @param cookieMaxAge max age of auth cookies
-     * @param maxPostSize maximum size of <code>POST</code> request
+     * @param enableLinkedDataProxy true if Linked Data proxy is enabled
+     * @param maxContentLength maximum size of request entity
      * @param maxConnPerRoute maximum client connections per rout
      * @param maxTotalConn maximum total client connections
      * @param importKeepAliveStrategy keep-alive strategy for the HTTP client used for imports
      * @param maxImportThreads maximum number of threads used for asynchronous imports
      * @param notificationAddressString email address used to send notifications
      * @param supportedLanguageCodes comma-separated codes of supported languages
-     * @param webIDSignUp true if WebID signup is enabled
+     * @param enableWebIDSignUp true if WebID signup is enabled
      * @param mailUser username of the SMTP email server
      * @param mailPassword password of the SMTP email server
      * @param smtpHost hostname of the SMTP email server
@@ -398,9 +401,9 @@ public class Application extends ResourceConfig
             final String authQueryString, final String ownerAuthQueryString, final String webIDQueryString, final String agentQueryString, final String userAccountQueryString, final String ontologyQueryString,
             final String baseURIString, final String proxyScheme, final String proxyHostname, final Integer proxyPort,
             final String uploadRootString, final boolean invalidateCache,
-            final Integer cookieMaxAge, final Integer maxPostSize,
+            final Integer cookieMaxAge, final boolean enableLinkedDataProxy, final Integer maxContentLength,
             final Integer maxConnPerRoute, final Integer maxTotalConn, final ConnectionKeepAliveStrategy importKeepAliveStrategy, final Integer maxImportThreads,
-            final String notificationAddressString, final String supportedLanguageCodes, final boolean webIDSignUp,
+            final String notificationAddressString, final String supportedLanguageCodes, final boolean enableWebIDSignUp,
             final String mailUser, final String mailPassword, final String smtpHost, final String smtpPort,
             final String googleClientID, final String googleClientSecret)
     {
@@ -505,9 +508,10 @@ public class Application extends ResourceConfig
         this.preemptiveAuth = preemptiveAuth;
         this.cacheStylesheet = cacheStylesheet;
         this.resolvingUncached = resolvingUncached;
-        this.maxContentLength = maxPostSize;
+        this.enableLinkedDataProxy = enableLinkedDataProxy;
+        this.maxContentLength = maxContentLength;
         this.invalidateCache = invalidateCache;
-        this.webIDSignUp = webIDSignUp;
+        this.enableWebIDSignUp = enableWebIDSignUp;
         this.property(Google.clientID.getURI(), googleClientID);
         this.property(Google.clientSecret.getURI(), googleClientSecret);
         
@@ -1674,6 +1678,7 @@ public class Application extends ResourceConfig
     
     /**
      * Returns RDF dataset with LinkedDataHub application descriptions.
+     * 
      * @return RDF dataset
      */
     protected Dataset getContextDataset()
@@ -1683,6 +1688,7 @@ public class Application extends ResourceConfig
 
     /**
      * Returns RDF model with LinkedDataHub application descriptions.
+     * 
      * @return RDF model
      */
     public Model getContextModel()
@@ -1692,6 +1698,7 @@ public class Application extends ResourceConfig
 
     /**
      * Returns true if configured to invalidate HTTP proxy cache of triplestore results.
+     * 
      * @return true if invalidated
      */
     public boolean isInvalidateCache()
@@ -1709,6 +1716,16 @@ public class Application extends ResourceConfig
         return cookieMaxAge;
     }
 
+    /**
+     * Returns true if Linked Data proxy is enabled.
+     * 
+     * @return true if enabled
+     */
+    public boolean isEnableLinkedDataProxy()
+    {
+        return enableLinkedDataProxy;
+    }
+    
     /**
      * Maximum allowed request body size.
      * 
@@ -1751,6 +1768,7 @@ public class Application extends ResourceConfig
 
     /**
      * HTTP client instance that does not send the secretary's WebID client certificate.
+     * 
      * @return client instance
      */
     public Client getNoCertClient()
@@ -1838,9 +1856,9 @@ public class Application extends ResourceConfig
      * 
      * @return true if enabled
      */
-    public boolean isWebIDSignUp()
+    public boolean isEnableWebIDSignUp()
     {
-        return webIDSignUp;
+        return enableWebIDSignUp;
     }
     
 }
