@@ -20,7 +20,6 @@ import com.atomgraph.client.MediaTypes;
 import com.atomgraph.client.util.DataManager;
 import com.atomgraph.client.vocabulary.AC;
 import com.atomgraph.core.exception.BadGatewayException;
-import com.atomgraph.core.io.ModelProvider;
 import com.atomgraph.linkeddatahub.apps.model.Dataset;
 import com.atomgraph.linkeddatahub.client.filter.auth.IDTokenDelegationFilter;
 import com.atomgraph.linkeddatahub.client.filter.auth.WebIDDelegationFilter;
@@ -30,14 +29,12 @@ import com.atomgraph.linkeddatahub.server.security.AgentSecurityContext;
 import com.atomgraph.linkeddatahub.server.security.IDTokenSecurityContext;
 import com.atomgraph.linkeddatahub.vocabulary.LDH;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.BadRequestException;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.POST;
@@ -206,6 +203,8 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
 //                throw new BadRequestException(ex);
 //            }
 
+        Response response = super.get(target);
+
         // only lookup resource locally using DESCRIBE if it's external (not relative to the app's base URI)
         if (!getApplication().getBaseURI().relativize(target.getUri()).isAbsolute())
         {
@@ -215,8 +214,6 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
 
             try
             {
-                Response response = super.get(target);
-
                 if (response.getEntity() instanceof Model model)
                 {
                     // do not return the whole document if only a single resource (fragment) is requested
@@ -225,8 +222,6 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
                     getContainerRequestContext().setProperty(LDH.originalGraph.getURI(), ModelFactory.createDefaultModel().add(model)); // local model without the remote model
                     model.add(localModel); // append the local model to the remote model
                 }
-
-                return response;
             }
             catch (BadGatewayException ex) // fallback to the local model in case of error
             {
@@ -235,6 +230,8 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
                 else throw ex;
             }
         }
+        
+        return response;
     }
     
     /**
