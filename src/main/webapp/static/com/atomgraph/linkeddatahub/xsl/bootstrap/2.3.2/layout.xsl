@@ -798,9 +798,7 @@ exclude-result-prefixes="#all">
                 </xsl:choose>
             </div>
 
-            <div id="doc-tree" class="well well-small sidebar-nav">
-                <!-- placeholder for client-side ldh:DocTree template -->
-            </div>
+            <xsl:apply-templates select="." mode="bs2:DocumentTree"/>
             
             <xsl:apply-templates select="." mode="bs2:Footer"/>
         </body>
@@ -1236,6 +1234,24 @@ exclude-result-prefixes="#all">
         <xsl:next-match/>
     </xsl:template>
 
+    <!-- DOCUMENT TREE -->
+    
+    <xsl:template match="rdf:RDF" mode="bs2:DocumentTree">
+        <xsl:param name="id" select="'doc-tree'" as="xs:string?"/>
+        <xsl:param name="class" select="'well well-small sidebar-nav'" as="xs:string?"/>
+        
+        <div>
+            <xsl:if test="$id">
+                <xsl:attribute name="id" select="$id"/>
+            </xsl:if>
+            <xsl:if test="$class">
+                <xsl:attribute name="class" select="$class"/>
+            </xsl:if>
+            
+            <!-- placeholder for client-side ldh:DocTree template -->
+        </div>
+    </xsl:template>
+    
     <!-- FOOTER -->
     
     <xsl:template match="rdf:RDF" mode="bs2:Footer">
