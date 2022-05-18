@@ -29,7 +29,7 @@ import org.slf4j.LoggerFactory;
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  * @see com.atomgraph.linkeddatahub.model.Agent
  */
-public class AgentSecurityContext implements SecurityContext, AgentContext
+public abstract class AgentSecurityContext implements SecurityContext, AgentContext
 {
     
     private static final Logger log = LoggerFactory.getLogger(AgentSecurityContext.class);
