@@ -244,9 +244,8 @@ public class AuthorizationFilter implements ContainerRequestFilter
         if (qsm == null) throw new IllegalArgumentException("QuerySolutionMap cannot be null");
         
         // send query bindings separately from the query if the service supports the Sesame protocol
-        if (service.getSPARQLClient() instanceof SesameProtocolClient)
-            try (Response cr = ((SesameProtocolClient)service.getSPARQLClient()). // register(new CacheControlFilter(CacheControl.valueOf("no-cache"))). // add Cache-Control: no-cache to request
-                query(pss.asQuery(), Model.class, qsm))
+        if (service.getSPARQLClient() instanceof SesameProtocolClient sesameProtocolClient)
+            try (Response cr = sesameProtocolClient.query(pss.asQuery(), Model.class, qsm)) // register(new CacheControlFilter(CacheControl.valueOf("no-cache"))). // add Cache-Control: no-cache to request
             {
                 return cr.readEntity(Model.class);
             }

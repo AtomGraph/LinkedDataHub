@@ -20,8 +20,8 @@ import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.client.filter.auth.IDTokenDelegationFilter;
 import com.atomgraph.linkeddatahub.client.filter.auth.WebIDDelegationFilter;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
-import com.atomgraph.linkeddatahub.server.security.AgentSecurityContext;
 import com.atomgraph.linkeddatahub.server.security.IDTokenSecurityContext;
+import com.atomgraph.linkeddatahub.server.security.WebIDSecurityContext;
 import java.net.URI;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.WebTarget;
@@ -92,11 +92,11 @@ public class LinkedDataClient extends com.atomgraph.core.client.LinkedDataClient
         
         if (getAgentContext() != null)
         {
-            if (getAgentContext() instanceof AgentSecurityContext agentSecurityContext)
+            if (getAgentContext() instanceof WebIDSecurityContext webIDSecurityContext)
             {
                 // TO-DO: unify with other usages of WebIDDelegationFilter/IDTokenDelegationFilter
-                if (log.isDebugEnabled()) log.debug("Delegating Agent's <{}> access to secretary", agentSecurityContext.getAgent());
-                webTarget.register(new WebIDDelegationFilter(agentSecurityContext.getAgent()));
+                if (log.isDebugEnabled()) log.debug("Delegating Agent's <{}> access to secretary", webIDSecurityContext.getAgent());
+                webTarget.register(new WebIDDelegationFilter(webIDSecurityContext.getAgent()));
             }
             
             if (getAgentContext() instanceof IDTokenSecurityContext iDTokenSecurityContext)

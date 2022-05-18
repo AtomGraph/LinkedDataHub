@@ -24,7 +24,7 @@ import com.atomgraph.linkeddatahub.model.Agent;
 import com.atomgraph.linkeddatahub.server.exception.auth.webid.InvalidWebIDPublicKeyException;
 import com.atomgraph.linkeddatahub.server.exception.auth.webid.WebIDLoadingException;
 import com.atomgraph.linkeddatahub.server.exception.auth.webid.WebIDDelegationException;
-import com.atomgraph.linkeddatahub.server.security.AgentSecurityContext;
+import com.atomgraph.linkeddatahub.server.security.WebIDSecurityContext;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
 import com.atomgraph.linkeddatahub.vocabulary.Cert;
 import com.atomgraph.linkeddatahub.vocabulary.FOAF;
@@ -147,7 +147,7 @@ public class WebIDFilter extends AuthenticationFilter
             }
 
             // imitate type inference, otherwise we'll get Jena's polymorphism exception
-            return new AgentSecurityContext(getScheme(), agent.addProperty(RDF.type, FOAF.Agent).as(Agent.class));
+            return new WebIDSecurityContext(getScheme(), agent.addProperty(RDF.type, FOAF.Agent).as(Agent.class));
         }
         catch (CertificateException ex)
         {

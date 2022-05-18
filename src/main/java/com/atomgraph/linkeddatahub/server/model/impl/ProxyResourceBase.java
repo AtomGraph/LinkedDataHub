@@ -25,8 +25,8 @@ import com.atomgraph.linkeddatahub.client.filter.auth.IDTokenDelegationFilter;
 import com.atomgraph.linkeddatahub.client.filter.auth.WebIDDelegationFilter;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
-import com.atomgraph.linkeddatahub.server.security.AgentSecurityContext;
 import com.atomgraph.linkeddatahub.server.security.IDTokenSecurityContext;
+import com.atomgraph.linkeddatahub.server.security.WebIDSecurityContext;
 import com.atomgraph.linkeddatahub.vocabulary.LDH;
 import java.net.URI;
 import java.util.ArrayList;
@@ -161,7 +161,7 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
         
         if (agentContext.isPresent())
         {
-            if (agentContext.get() instanceof AgentSecurityContext)
+            if (agentContext.get() instanceof WebIDSecurityContext)
                 super.getWebTarget().register(new WebIDDelegationFilter(agentContext.get().getAgent()));
             
             if (agentContext.get() instanceof IDTokenSecurityContext iDTokenSecurityContext)
