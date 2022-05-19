@@ -31,6 +31,7 @@ import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Optional;
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
@@ -105,7 +106,8 @@ public class Item extends GraphStoreImpl
     @Override
     public ResponseBuilder getResponseBuilder(Model model, URI graphUri)
     {
-        List<Variant> variants = com.atomgraph.core.model.impl.Response.getVariantListBuilder(getWritableMediaTypes(Model.class), getLanguages(), getEncodings()).
+        // do not pass language list as languages do not apply to binary files
+        List<Variant> variants = com.atomgraph.core.model.impl.Response.getVariantListBuilder(getWritableMediaTypes(Model.class), Collections.emptyList(), getEncodings()).
             add().build();
         Variant variant = getRequest().selectVariant(variants);
         if (variant == null)
