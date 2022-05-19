@@ -187,23 +187,6 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
             if (log.isDebugEnabled()) log.debug("isMapped({}): {}", target.getUri(), getDataManager().isMapped(target.getUri().toString()));
             return getResponse(getDataManager().loadModel(target.getUri().toString()));
         }
-        
-//        if (target.getUri().getFragment() != null)
-//            try (Response cr = target.request(getReadableMediaTypes()).get())
-//            {
-//                URI docURI = new URI(target.getUri().getScheme(), target.getUri().getSchemeSpecificPart(), null);
-//                
-//                cr.getHeaders().putSingle(ModelProvider.REQUEST_URI_HEADER, docURI.toString()); // provide a base URI hint to ModelProvider
-//                Model description = cr.readEntity(Model.class);
-//                description = ModelFactory.createDefaultModel().add(description.getResource(target.getUri().toString()).listProperties());
-//                return getResponse(description);
-//            }
-//            catch (URISyntaxException ex)
-//            {
-//                throw new BadRequestException(ex);
-//            }
-
-        Response response = super.get(target);
 
         // only lookup resource locally using DESCRIBE if it's external (not relative to the app's base URI)
         if (!getApplication().getBaseURI().relativize(target.getUri()).isAbsolute())
@@ -214,6 +197,8 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
 
             try
             {
+                Response response = super.get(target);
+                
                 if (response.getEntity() instanceof Model model)
                 {
                     // do not return the whole document if only a single resource (fragment) is requested
@@ -231,7 +216,7 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
             }
         }
         
-        return response;
+        return super.get(target);
     }
     
     /**
