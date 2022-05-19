@@ -336,9 +336,24 @@
                      
                      <h2 id="sparql">Executing SPARQL</h2>
                      
-                     <p>Every LinkedDataHub application provides a SPARQL endpoint on <code>sparql</code> path (relative to the application's base URI). It supports
+                     <p>Every LinkedDataHub application provides a SPARQL endpoint on <code>sparql</code> path (relative to the application's base URI). It supports the
                         <a href="https://www.w3.org/TR/sparql11-protocol/" target="_blank">SPARQL 1.1 Protocol</a> and serves as a proxy for the service endpoint of the
                         application.</p>
+                     </div>
+                  
+                  <div>
+                     
+                     <h2 id="ld-proxy">Linked Data proxy</h2>
+                     
+                     <p>LinkedDataHub works as a <dfn>Linked Data proxy</dfn> (from the end-user perspective, as a <dfn>Linked Data browser</dfn>) when a URL is provided using the <code>uri</code> query parameter.
+                        All HTTP methods are supported.</p>
+                     
+                     <p>If the URL dereferences successfully as RDF, LinkedDataHub forwards its response body
+                        (re-serializing it to enable content negotiation).
+                        During a write request, the request body is forwarded to the provided URL.</p>
+                     
+                     <p>The proxy only accepts external (non-relative to the current application's base URI)
+                        URLs; local URLs have to be dereferenced directly.</p>
                      </div>
                   
                   <div>
