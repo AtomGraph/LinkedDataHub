@@ -67,6 +67,7 @@
                            </ul>
                         </li>
                         <li><a href="../../reference/command-line-interface/index.html" title="CLI scripts can be used perform all actions available in the UI">Command line interface</a></li>
+                        <li><a href="../../reference/configuration/index.html" title="Overview of configuration options">Configuration</a></li>
                         <li><a href="../../reference/contents/index.html" title="Content blocks and the basic data content actions">Content management</a></li>
                         <li><a href="../../reference/dataset-structure/index.html" title="The default RDF dataset structure used by LinkedDataHub">Dataset structure</a></li>
                         <li><a href="../../reference/dataspace/index.html" title="LinkedDataHub dataspaces, applications, and services">Dataspace</a></li>
@@ -106,7 +107,6 @@
                <header>
                   <h1>Change the model</h1>
                </header>
-               <nav></nav>
                <div>
                   
                   <p class="lead">Change the model: create constructors, classes, and constraints</p>
@@ -139,7 +139,7 @@ PREFIX xsd:  &lt;http://www.w3.org/2001/XMLSchema#&gt;
 
 CONSTRUCT
 {
-  ?this skos:inScheme [ a skos:ConceptScheme ] ;
+  $this skos:inScheme [ a skos:ConceptScheme ] ;
     skos:topConceptOf [ a skos:ConceptScheme ] ;
     skos:prefLabel [ a xsd:string ] ;
     skos:altLabel [ a xsd:string ] ;
@@ -190,7 +190,7 @@ WHERE {}</pre>
                                     
                                     <li>Click on <samp>CONSTRUCT</samp> in the drop-down list that appears</li>
                                     
-                                    <li>Switch the <samp>Blank node</samp> dropdown to <samp>URI</samp> and enter <samp>https://localhost:4443/admin/model/ontologies/namespace/#ConstructConcept</samp></li>
+                                    <li>Switch the <samp>Blank node</samp> dropdown to <samp>URI</samp> and enter <samp>https://localhost:4443/ns#ConstructConcept</samp></li>
                                     
                                     <li>Fill out the mandatory fields in the form:
                                        
@@ -225,7 +225,7 @@ pushd . &amp;&amp; cd "$SCRIPT_ROOT"/admin/model
   -b "${base}admin/" \
   -f "$cert_pem_file" \
   -p "$cert_password" \
-  --uri "${base}admin/model/ontologies/namespace/#ConstructConcept" \
+  --uri "${base}ns#ConstructConcept" \
   --label "Construct concept" \
   --slug construct-concept \
   --query-file "$pwd/queries/construct-concept.rq" \
@@ -307,7 +307,7 @@ popd</pre>
   -b "${base}" \
   -f "${cert_pem_file}" \
   -p "${cert_password}" \
-  --uri "https://localhost:4443/admin/model/ontologies/namespace/#MissingPrefLabel" \
+  --uri "https://localhost:4443/ns#MissingPrefLabel" \
   --label "Missing skos:prefLabel" \
   --slug missing-pref-label \
   --property "http://www.w3.org/2004/02/skos/core#prefLabel" \
@@ -349,7 +349,7 @@ popd</pre>
                                     
                                     <li>Click on <samp>Class</samp> in the drop-down list that appears</li>
                                     
-                                    <li>Switch the <samp>Blank node</samp> dropdown to <samp>URI</samp> and enter <samp>https://localhost:4443/admin/model/ontologies/namespace/#Concept</samp></li>
+                                    <li>Switch the <samp>Blank node</samp> dropdown to <samp>URI</samp> and enter <samp>https://localhost:4443/ns#Concept</samp></li>
                                     
                                     <li>Fill out the mandatory fields in the form:
                                        
@@ -384,11 +384,11 @@ popd</pre>
   -b "${base}" \
   -f "${cert_pem_file}" \
   -p "${cert_password}" \
-  --uri "${base}admin/model/ontologies/namespace/#Concept" \
+  --uri "${base}ns#Concept" \
   --label "Concept" \
   --slug concept \
-  --constructor "${base}admin/model/ontologies/namespace/#ConstructConcept" \
-  --constraint "${base}admin/model/ontologies/namespace/#MissingPrefLabel" \
+  --constructor "{$base}ns#ConstructConcept" \
+  --constraint "{$base}ns#MissingPrefLabel" \
   "${base}admin/model/ontologies/namespace/"
 
 popd</pre>
@@ -402,6 +402,7 @@ popd</pre>
                      <p class="lead"><a href="../../reference/administration/model/#classes" target="_blank">Read more about classes.</a></p>
                      </div>
                   </div>
+               <nav></nav>
             </main>
          </div>
       </div>

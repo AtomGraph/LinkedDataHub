@@ -67,6 +67,7 @@
                            </ul>
                         </li>
                         <li><a href="../../reference/command-line-interface/index.html" title="CLI scripts can be used perform all actions available in the UI">Command line interface</a></li>
+                        <li><a href="../../reference/configuration/index.html" title="Overview of configuration options">Configuration</a></li>
                         <li><a href="../../reference/contents/index.html" title="Content blocks and the basic data content actions">Content management</a></li>
                         <li><a href="../../reference/dataset-structure/index.html" title="The default RDF dataset structure used by LinkedDataHub">Dataset structure</a></li>
                         <li><a href="../../reference/dataspace/index.html" title="LinkedDataHub dataspaces, applications, and services">Dataspace</a></li>
@@ -106,7 +107,6 @@
                <header>
                   <h1>Manage dataspaces</h1>
                </header>
-               <nav></nav>
                <div>
                   
                   <p class="lead">Step by step guide to creating a new dataspace backed by SPARQL services</p>
@@ -147,7 +147,8 @@
                         
                         <div class="alert alert-info">
                            
-                           <p>Make sure the file's syntax is valid <a href="https://www.w3.org/TR/turtle/" target="_blank">Turtle</a>, otherwise the setup will not work. You can use <a href="http://ttl.summerofcode.be/" target="_blank">Turtle Validator</a> to check the syntax.</p>
+                           <p>Use URIs (for example in the <samp>urn:</samp> scheme) to identify apps and services, not blank nodes. Make sure the file's syntax
+                              is valid <a href="https://www.w3.org/TR/turtle/" target="_blank">Turtle</a>, otherwise the setup will not work. You can use <a href="http://ttl.summerofcode.be/" target="_blank">Turtle Validator</a> to check the syntax.</p>
                            </div>
                         </div>
                      
@@ -172,6 +173,7 @@
                      <p>LinkedDataHub service as well as the default SPARQL services <samp>fuseki-end-user</samp> and <samp>fuseki-admin</samp> are defined in <a href="https://github.com/AtomGraph/LinkedDataHub/blob/master/docker-compose.yml" target="_blank"><samp>docker-compose.yml</samp></a> and run as Docker containers.</p>
                      </div>
                   </div>
+               <nav></nav>
             </main>
          </div>
       </div>

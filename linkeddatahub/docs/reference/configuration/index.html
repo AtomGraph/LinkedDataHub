@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml">
    <head>
       <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
-      <title>LinkedDataHub v3 - Dataset structure</title>
-      <meta name="description" content="The default RDF dataset structure used by LinkedDataHub"/>
+      <title>LinkedDataHub v3 - Configuration</title>
+      <meta name="description" content="Overview of configuration options"/>
       <link rel="up" href="../index.html"/>
       <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/css/bootstrap.css" rel="stylesheet" type="text/css"/>
       <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/css/bootstrap-responsive.css" rel="stylesheet" type="text/css"/>
@@ -67,9 +67,9 @@
                            </ul>
                         </li>
                         <li><a href="../command-line-interface/index.html" title="CLI scripts can be used perform all actions available in the UI">Command line interface</a></li>
-                        <li><a href="../configuration/index.html" title="Overview of configuration options">Configuration</a></li>
+                        <li class="active"><a href="" title="Overview of configuration options">Configuration</a></li>
                         <li><a href="../contents/index.html" title="Content blocks and the basic data content actions">Content management</a></li>
-                        <li class="active"><a href="" title="The default RDF dataset structure used by LinkedDataHub">Dataset structure</a></li>
+                        <li><a href="../dataset-structure/index.html" title="The default RDF dataset structure used by LinkedDataHub">Dataset structure</a></li>
                         <li><a href="../dataspace/index.html" title="LinkedDataHub dataspaces, applications, and services">Dataspace</a></li>
                         <li><a href="../documents/index.html" title="Document hierarchy and the basic data management actions">Document management</a></li>
                         <li><a href="../http-api/index.html" title="Learn how to access and manage RDF data over generic HTTP API">HTTP API</a></li>
@@ -105,55 +105,82 @@
             </nav>
             <main class="span7">
                <header>
-                  <h1>Dataset structure</h1>
+                  <h1>Configuration</h1>
                </header>
                <div>
                   
-                  <p class="lead">The default RDF dataset structure used by LinkedDataHub.</p>
+                  <p class="lead">Overview of configuration options</p>
+                  
+                  <p>LinkedDataHub is configured using environment variables in the <code>docker-compose.yml</code> file (environment-specific configuration should go into <code>docker-compose.override.yml</code> instead).</p>
                   
                   <div>
                      
-                     <h2 id="structure">Structure</h2>
+                     <h2 id="webid-signup">WebID signup</h2>
                      
-                     <p>Default LinkedDataHub dataset structure follows these conventions:</p>
-                     
-                     <ol>
+                     <dl>
                         
-                        <li>the default graph is not used</li>
+                        <dt><samp>ENABLE_WEBID_SIGNUP</samp></dt>
                         
-                        <li>each document's description is stored in an RDF named graph whose name is the same
-                           as the document URI. The graph can be managed using the <a href="../http-api/" target="_blank">Graph Store Protocol</a>.</li>
+                        <dd><samp>false</samp> to disable (enabled by default)</dd>
                         
-                        <li>documents form a <a href="../documents/#hierarchy">parent/child hierarchy</a>. There are 2 types of documents: containers that can have other documents as children,
-                           and items that cannot.</li>
-                        </ol>
-                     
-                     <p>The default dataset is installed into an application service during the <a href="../../get-started/setup/">setup</a>.</p>
+                        <dd><em>Currently this will only hide the signup button in the UI, without disabling the endpoint</em></dd>
+                        </dl>
                      </div>
                   
                   <div>
                      
-                     <h2 id="hierarchical-uris">Hierarchical URIs</h2>
+                     <h2 id="social-login">Social login</h2>
                      
-                     <p>By default, the URIs of the document resources represent the same <a href="../documents/#hierarchy">parent/child hierarchy</a>. Which means the root container's URI equals the <a href="../dataspace/#applications">base URI</a>
-                        of the application, and descendant document URIs are relative to their parent container
-                        URIs.</p>
-                     
-                     <p>Uploaded binary files are an exception to this rule. They are content-addressed in
-                        the <code>uploads/{sha1sum}</code> namespace, where <code>sha1sum</code> is the SHA1 hash of the file content.</p>
+                     <dl>
+                        
+                        <dt><samp>GOOGLE_CLIENT_ID</samp></dt>
+                        
+                        <dd><a href="https://developers.google.com/identity/gsi/web/guides/get-google-api-clientid">OAuth client ID</a></dd>
+                        
+                        <dd><a href="../../get-started/get-an-account/">Login with Google</a> authentication is enable when this value is provided</dd>
+                        
+                        <dt><samp>GOOGLE_CLIENT_SECRET</samp></dt>
+                        
+                        <dd><a href="https://developers.google.com/identity/gsi/web/guides/get-google-api-clientid">OAuth client secret</a></dd>
+                        </dl>
                      </div>
                   
                   <div>
                      
-                     <h2 id="default-datasets">Default datasets</h2>
+                     <h2 id="email-server">Email server</h2>
                      
-                     <p>The default datasets of administration and end-user applications can be found in <a href="https://github.com/AtomGraph/LinkedDataHub/blob/master/platform/datasets/admin.trig" target="_blank"><samp>platform/datasets/admin.trig</samp></a> and
-                        <a href="https://github.com/AtomGraph/LinkedDataHub/blob/master/platform/datasets/end-user.trig" target="_blank"><samp>platform/datasets/end-user.trig</samp></a>, respectively.</p>
-                     
-                     <p>RDF terms (classes, properties etc.) used in the default datasets come from well-known
-                        vocabularies FOAF and SIOC (with additional LinkedDataHub-specific assertions) as
-                        well as  <a href="../administration/model/">system ontologies</a>.</p>
+                     <dl>
+                        
+                        <dt><samp>MAIL_SMTP_HOST</samp></dt>
+                        
+                        <dd>Hostname of the email server</dd>
+                        
+                        <dt><samp>MAIL_SMTP_PORT</samp></dt>
+                        
+                        <dd>Port number of the email server</dd>
+                        
+                        <dt><samp>MAIL_USER</samp></dt>
+                        
+                        <dd>Username</dd>
+                        
+                        <dt><samp>MAIL_PASSWORD</samp></dt>
+                        
+                        <dd>Password (if required)</dd>
+                        </dl>
                      </div>
+                  
+                  <div>
+                     
+                     <h2 id="linked-data">Linked Data</h2>
+                     
+                     <dl>
+                        
+                        <dt><samp>ENABLE_LINKED_DATA_PROXY</samp></dt>
+                        
+                        <dd><samp>false</samp> to disable (enabled by default)</dd>
+                        </dl>
+                     </div>
+                  
                   </div>
                <nav></nav>
             </main>

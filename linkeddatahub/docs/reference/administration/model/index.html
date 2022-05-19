@@ -67,6 +67,7 @@
                            </ul>
                         </li>
                         <li><a href="../../command-line-interface/index.html" title="CLI scripts can be used perform all actions available in the UI">Command line interface</a></li>
+                        <li><a href="../../configuration/index.html" title="Overview of configuration options">Configuration</a></li>
                         <li><a href="../../contents/index.html" title="Content blocks and the basic data content actions">Content management</a></li>
                         <li><a href="../../dataset-structure/index.html" title="The default RDF dataset structure used by LinkedDataHub">Dataset structure</a></li>
                         <li><a href="../../dataspace/index.html" title="LinkedDataHub dataspaces, applications, and services">Dataspace</a></li>
@@ -106,7 +107,6 @@
                <header>
                   <h1>Model</h1>
                </header>
-               <nav></nav>
                <div>
                   
                   <div>
@@ -251,7 +251,7 @@ PREFIX sioc:    &lt;http://rdfs.org/sioc/ns#&gt;
 PREFIX dct:     &lt;http://purl.org/dc/terms/&gt;
 
 CONSTRUCT {
-  ?this sioc:content "&lt;div xmlns=\"http://www.w3.org/1999/xhtml\"&gt;&lt;/div&gt;"^^rdf:XMLLiteral .
+  $this sioc:content "&lt;div xmlns=\"http://www.w3.org/1999/xhtml\"&gt;&lt;/div&gt;"^^rdf:XMLLiteral .
 }
 WHERE {}</code></pre>
                         
@@ -291,6 +291,7 @@ WHERE {}</code></pre>
                      <p>LinkedDataHub allows definition of new properties.</p>
                      </div>
                   </div>
+               <nav></nav>
             </main>
          </div>
       </div>
