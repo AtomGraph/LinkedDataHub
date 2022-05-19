@@ -189,7 +189,7 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
         }
 
         // only lookup resource locally using DESCRIBE if it's external (not relative to the app's base URI)
-        if (!getApplication().getBaseURI().relativize(target.getUri()).isAbsolute())
+        if (getApplication().getBaseURI().relativize(target.getUri()).isAbsolute())
         {
             Query query = QueryFactory.create("DESCRIBE <" + target.getUri() + ">");
             Model localModel = getService().getSPARQLClient().loadModel(query);
