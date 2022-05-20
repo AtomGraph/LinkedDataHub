@@ -69,6 +69,7 @@ import com.atomgraph.linkeddatahub.writer.factory.XsltExecutableSupplierFactory;
 import com.atomgraph.client.util.XsltResolver;
 import com.atomgraph.core.client.LinkedDataClient;
 import com.atomgraph.linkeddatahub.client.filter.ClientUriRewriteFilter;
+import com.atomgraph.linkeddatahub.client.grddl.YoutubeModelReader;
 import com.atomgraph.linkeddatahub.imports.ImportExecutor;
 import com.atomgraph.linkeddatahub.io.HtmlJsonLDReaderFactory;
 import com.atomgraph.linkeddatahub.io.JsonLDReader;
@@ -249,6 +250,7 @@ public class Application extends ResourceConfig
     private final ServletConfig servletConfig;
     private final EventBus eventBus = new EventBus();
     private final DataManager dataManager;
+    private final LinkedDataClient linkedDataClient;
     private final Map<String, OntModelSpec> endUserOntModelSpecs;
     private final MediaTypes mediaTypes;
     private final Client client, importClient, noCertClient;
@@ -627,7 +629,9 @@ public class Application extends ResourceConfig
         
             // TO-DO: config property for cacheModelLoads
             endUserOntModelSpecs = new HashMap<>();
-            dataManager = new DataManagerImpl(locationMapper, new HashMap<>(), LinkedDataClient.create(client, mediaTypes), cacheModelLoads, preemptiveAuth, resolvingUncached);
+            linkedDataClient = LinkedDataClient.create(client, mediaTypes);
+            linkedDataClient.getClient().register(YoutubeModelReader.class);
+            dataManager = new DataManagerImpl(locationMapper, new HashMap<>(), linkedDataClient, cacheModelLoads, preemptiveAuth, resolvingUncached);
             ontModelSpec = OntModelSpec.OWL_MEM_RDFS_INF;
             ontModelSpec.setImportModelGetter(dataManager);
             OntDocumentManager.getInstance().setFileManager((FileManager)dataManager);
@@ -701,7 +705,7 @@ public class Application extends ResourceConfig
             
             xsltComp = xsltProc.newXsltCompiler();
             xsltComp.setParameter(new QName("ldh", LDH.base.getNameSpace(), LDH.base.getLocalName()), new XdmAtomicValue(baseURI));
-            xsltComp.setURIResolver(new XsltResolver(LocationMapper.get(), new HashMap<>(), LinkedDataClient.create(client, mediaTypes), false, false, true)); // default Xerces parser does not support HTTPS
+            xsltComp.setURIResolver(new XsltResolver(LocationMapper.get(), new HashMap<>(), linkedDataClient, false, false, true)); // default Xerces parser does not support HTTPS
             xsltExec = xsltComp.compile(stylesheet);
         }
         catch (FileNotFoundException ex)
@@ -1463,6 +1467,15 @@ public class Application extends ResourceConfig
     }
  
     /**
+     * 
+     * @return 
+     */
+    public LinkedDataClient getLinkedDataClient()
+    {
+        return linkedDataClient;
+    }
+    
+    /**
      * Returns a map of application URIs to ontology specifications.
      * 
      * @return URI to ontology specification map
@@ -1485,7 +1498,7 @@ public class Application extends ResourceConfig
             OntModelSpec appOntModelSpec = new OntModelSpec(OntModelSpec.OWL_MEM_RDFS_INF);
             appOntModelSpec.setDocumentManager(new OntDocumentManager());
             appOntModelSpec.getDocumentManager().setFileManager(
-                    new DataManagerImpl(LocationMapper.get(), new HashMap<>(), LinkedDataClient.create(getClient(), getMediaTypes()), true, isPreemptiveAuth(), isResolvingUncached()));
+                    new DataManagerImpl(LocationMapper.get(), new HashMap<>(), linkedDataClient, true, isPreemptiveAuth(), isResolvingUncached()));
             
             getEndUserOntModelSpecs().put(app.getURI(), appOntModelSpec);
         }

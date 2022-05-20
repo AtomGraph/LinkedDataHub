@@ -38,9 +38,6 @@ public class LinkedDataClient extends com.atomgraph.core.client.LinkedDataClient
 
     private static final Logger log = LoggerFactory.getLogger(LinkedDataClient.class);
 
-    private URI baseURI;
-    private AgentContext agentContext;
-    
     /**
      * Constructs Linked Data client from HTTP client and media types.
      * 
@@ -74,60 +71,87 @@ public class LinkedDataClient extends com.atomgraph.core.client.LinkedDataClient
      */
     public LinkedDataClient delegation(URI baseURI, AgentContext agentContext)
     {
-        this.baseURI = baseURI;
-        this.agentContext = agentContext;
-        return this;
+        return new Builder(baseURI, agentContext).build();
     }
     
-    /**
-     * Creates web target for URI.WebID can be delegated depending on the parameter.
-     * 
-     * @param uri target URI
-     * @return web target
-     */
-    @Override
-    protected WebTarget getWebTarget(URI uri)
+    public class Builder
     {
-        WebTarget webTarget = super.getWebTarget(uri);
         
-        if (getAgentContext() != null)
+        private final URI baseURI;
+        private final AgentContext agentContext;
+    
+        public Builder(URI baseURI, AgentContext agentContext)
         {
-            if (getAgentContext() instanceof WebIDSecurityContext webIDSecurityContext)
-            {
-                // TO-DO: unify with other usages of WebIDDelegationFilter/IDTokenDelegationFilter
-                if (log.isDebugEnabled()) log.debug("Delegating Agent's <{}> access to secretary", webIDSecurityContext.getAgent());
-                webTarget.register(new WebIDDelegationFilter(webIDSecurityContext.getAgent()));
-            }
-            
-            if (getAgentContext() instanceof IDTokenSecurityContext iDTokenSecurityContext)
-            {
-                IDTokenSecurityContext idTokenContext = iDTokenSecurityContext;
-                webTarget.register(new IDTokenDelegationFilter(idTokenContext.getAgent(), idTokenContext.getJWTToken(),
-                    getBaseURI().getPath(), null));
-            }
+            this.baseURI = baseURI;
+            this.agentContext = agentContext;
+        }
+
+        public LinkedDataClient build()
+        {
+            return new DelegatedLinkedDataClient(LinkedDataClient.this.getClient(), LinkedDataClient.this.getMediaTypes());
         }
         
-        return webTarget;
-    }
+        /**
+         * Returns the application's base URI.
+         * 
+         * @return base URI
+         */
+        public URI getBaseURI()
+        {
+            return baseURI;
+        }
+
+        /**
+         * Returns the authenticated agent's context.
+         * 
+         * @return agent context
+         */
+        public AgentContext getAgentContext()
+        {
+            return agentContext;
+        }
     
-    /**
-     * Returns the application's base URI.
-     * 
-     * @return base URI
-     */
-    public URI getBaseURI()
-    {
-        return baseURI;
-    }
+        public class DelegatedLinkedDataClient extends LinkedDataClient
+        {
+
+            protected DelegatedLinkedDataClient(Client client, MediaTypes mediaTypes)
+            {
+                super(client, mediaTypes);
+            }
+
+            /**
+             * Creates web target for URI.WebID can be delegated depending on the parameter.
+             * 
+             * @param uri target URI
+             * @return web target
+             */
+            @Override
+            protected WebTarget getWebTarget(URI uri)
+            {
+                WebTarget webTarget = super.getWebTarget(uri);
+
+                if (getAgentContext() != null)
+                {
+                    if (getAgentContext() instanceof WebIDSecurityContext webIDSecurityContext)
+                    {
+                        // TO-DO: unify with other usages of WebIDDelegationFilter/IDTokenDelegationFilter
+                        if (log.isDebugEnabled()) log.debug("Delegating Agent's <{}> access to secretary", webIDSecurityContext.getAgent());
+                        webTarget.register(new WebIDDelegationFilter(webIDSecurityContext.getAgent()));
+                    }
+
+                    if (getAgentContext() instanceof IDTokenSecurityContext iDTokenSecurityContext)
+                    {
+                        IDTokenSecurityContext idTokenContext = iDTokenSecurityContext;
+                        webTarget.register(new IDTokenDelegationFilter(idTokenContext.getAgent(), idTokenContext.getJWTToken(),
+                            getBaseURI().getPath(), null));
+                    }
+                }
+
+                return webTarget;
+            }
+
+        }
     
-    /**
-     * Returns the authenticated agent's context.
-     * 
-     * @return agent context
-     */
-    public AgentContext getAgentContext()
-    {
-        return agentContext;
     }
     
 }
