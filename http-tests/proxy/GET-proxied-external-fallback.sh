@@ -20,7 +20,7 @@ pushd . > /dev/null && cd "$SCRIPT_ROOT/admin/acl"
 
 popd > /dev/null
 
-cd "$SCRIPT_ROOT"
+pushd . > /dev/null && cd "$SCRIPT_ROOT"
 
 # import data with URIs that do *not* dereference as RDF
 
