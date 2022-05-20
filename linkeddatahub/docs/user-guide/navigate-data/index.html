@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml">
    <head>
       <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
-      <title>LinkedDataHub v3 - Add data</title>
-      <meta name="description" content="Fork RDF data from Linked Data resources and SPARQL results"/>
+      <title>LinkedDataHub v3 - Navigate data</title>
+      <meta name="description" content="Navigate the document hierarchy, related results, and backlinks"/>
       <link rel="up" href="../index.html"/>
       <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/css/bootstrap.css" rel="stylesheet" type="text/css"/>
       <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/css/bootstrap-responsive.css" rel="stylesheet" type="text/css"/>
@@ -83,7 +83,7 @@
                      </ul>
                   </li>
                   <li><a href="../index.html" title="Step-by-step tutorials for everyday tasks with LinkedDataHub">User guide</a><ul class="nav nav-list">
-                        <li class="active"><a href="" title="Fork RDF data from Linked Data resources and SPARQL results">Add data</a></li>
+                        <li><a href="../add-data/index.html" title="Fork RDF data from Linked Data resources and SPARQL results">Add data</a></li>
                         <li><a href="../browse-data/index.html" title="Use LinkedDataHub's built-in Linked Data browser to explore remote datasources">Browse data</a></li>
                         <li><a href="../change-layout/index.html" title="How to customize the layout of an application and the UI of the resources">Change layout</a></li>
                         <li><a href="../change-model/index.html" title="Change the model: create constructors, classes, and constraints">Change the model</a></li>
@@ -96,7 +96,7 @@
                            </ul>
                         </li>
                         <li><a href="../manage-dataspaces/index.html" title="Create or change a dataspace, configure SPARQL services and XSLT stylesheets">Manage dataspaces</a></li>
-                        <li><a href="../navigate-data/index.html" title="Navigate the document hierarchy, related results, and backlinks">Navigate data</a></li>
+                        <li class="active"><a href="" title="Navigate the document hierarchy, related results, and backlinks">Navigate data</a></li>
                         <li><a href="../query-data/index.html" title="Learn how to query application data with SPARQL, store queries and charts">Query data</a></li>
                         <li><a href="../search-data/index.html" title="Search for resources using text keywords">Search data</a></li>
                         <li><a href="../upload-file/index.html" title="Learn how to upload files to LinkedDataHub">Upload file</a></li>
@@ -106,86 +106,54 @@
             </nav>
             <main class="span7">
                <header>
-                  <h1>Add data</h1>
+                  <h1>Navigate data</h1>
                </header>
                <div>
                   
-                  <p class="lead">Fork RDF data from Linked Data resources and SPARQL results</p>
-                  
-                  <p>You can fork (copy the contents of) any RDF document to a namedgraph in your dataspace.
-                     Two sources of RDF are supported: RDF resources on the web (Linked Data), and RDF
-                     file uploads.</p>
-                  
-                  <div class="alert alert-info">
-                     
-                     <p>Adding data this way will cause a blocking request, so use it for small amounts of
-                        data only (e.g. a few thousands of RDF triples).
-                        For larger data, use asynchronous <a href="../../reference/imports/rdf/" target="_blank">RDF imports</a>.</p>
-                     </div>
+                  <p class="lead">Navigate the document hierarchy, related results, and backlinks</p>
                   
                   <div>
                      
-                     <h2 id="from-linked-data">From Linked Data</h2>
+                     <h2 id="doc-tree">Document tree</h2>
+                     
+                     <p>Document tree is a widget that enables quick overview of the application's <a href="../../documents/#hierarchy">document hierarchy</a>. Each document is shown as a node in the tree; container documents
+                        can be expanded to reveal the children documents.</p>
+                     
+                     <p>The widget can be accessed by sliding the mouse to the left edge of the screen (on
+                        responsive layouts, it is always visible).</p>
                      
                      <p>
-                        <object data="../../files/videos/AddData.webm" type="video/webm"></object>
+                        <img alt="Document tree" src="../../files/videos/DocTree.gif"/>
                         </p>
-                     
-                     <p>To copy the contents of the current RDF document (local or remote) into a local document,
-                        follow these steps:</p>
-                     
-                     <ol>
-                        
-                        <li>Click on the <span class="btn btn-primary">Save</span> button on the right side of the <a href="../../reference/user-interface/#action-bar" target="_blank">action bar</a>.
-                           A form will open with the following fields:
-                           
-                           <dl>
-                              
-                              <dt>Source</dt>
-                              
-                              <dd>URI of the source document</dd>
-                              
-                              <dt>Graph</dt>
-                              
-                              <dd>The target document. You can start typing to find it by its label, or paste its URI
-                                 here. You can also create a new document here by clicking the <span>[+]</span> button next to the input.</dd>
-                              </dl>
-                           </li>
-                        
-                        <li>Click <span class="btn btn-primary">Save</span> to perform the fork operation.</li>
-                        </ol>
                      </div>
                   
                   <div>
                      
-                     <h2 id="from-file">From file</h2>
+                     <h2 id="parallax">Parallax</h2>
                      
-                     <p>To upload the contents of an RDF file into a local document, follow these steps:</p>
+                     <p>Parallax navigation is a rather unique navigation approach that lends itself perfectly
+                        to graph data. It is enabled for container content and shown as <samp>Related results</samp> in the
+                        <a href="../../reference/user-interface/#right-nav">right-side navigation</a>. Parallax allows "jumping" from a result set to a related result set using the selected
+                        RDF property. It works in
+                        combination with faceted search which can be used to filter the initial result set.</p>
                      
-                     <ol>
-                        
-                        <li>Click on the <span class="btn btn-primary">Add data</span> button on the left side of the <a href="../../reference/user-interface/#action-bar" target="_blank">action bar</a>. A form will open, asking you
-                           to fill out the following fields:
-                           
-                           <dl>
-                              
-                              <dt>Format</dt>
-                              
-                              <dd>Choose the RDF format of the file</dd>
-                              
-                              <dt>Filename</dt>
-                              
-                              <dd>Select the file on your computer</dd>
-                              
-                              <dt>Graph</dt>
-                              
-                              <dd>The target document. Start typing to find it by its label, or paste its URI here.
-                                 You can also create a new document here by clicking the <span>[+]</span> button next to the input.</dd>
-                              </dl>
-                           </li>
-                        
-                        <li>Click <span class="btn btn-primary">Save</span> to perform the fork operation.</li>
-                        </ol>
+                     <p>For example, facets can be used to filter a set products that belong to a certain
+                        category, and then parallax can be used to jump to a set of companies that provide
+                        those products, and then further on to
+                        a set representatives of those companies.</p>
+                     
+                     <p>
+                        <img alt="Related results" src="../../files/videos/ParallaxNav.gif"/>
+                        </p>
+                     </div>
+                  
+                  <div>
+                     
+                     <h2 id="backlinks">Backlinks</h2>
+                     
+                     <p>Backlinks are shown in the <a href="../../reference/user-interface/#right-nav">right-side navigation</a> for every resource in <a href="../../reference/user-interface/#layout-modes">property layout mode</a>.
+                        They display a list of resources which have properties with the current resource as
+                        the object.</p>
                      </div>
                   </div>
                <nav></nav>
