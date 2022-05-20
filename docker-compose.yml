@@ -68,7 +68,7 @@ services:
       - ./src/main/webapp/static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2:/usr/local/tomcat/webapps/ROOT/static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2:ro
       - ./src/main/webapp/static/com/atomgraph/linkeddatahub/css/bootstrap.css:/usr/local/tomcat/webapps/ROOT/static/com/atomgraph/linkeddatahub/css/bootstrap.css
   fuseki-admin:
-    image: atomgraph/fuseki:02760089ba11167472e434334400ff408b9cefee
+    image: atomgraph/fuseki:9985c4edd850c9277d241f6edc0d883013713ad3
     user: root # otherwise fuseki user does not have permissions to the mounted folder which is owner by root
     expose:
       - 3030
@@ -77,7 +77,7 @@ services:
       - ./data/admin:/fuseki/databases
     command: [ "--config", "/fuseki/config.ttl" ]
   fuseki-end-user:
-    image: atomgraph/fuseki:02760089ba11167472e434334400ff408b9cefee
+    image: atomgraph/fuseki:9985c4edd850c9277d241f6edc0d883013713ad3
     user: root # otherwise the fuseki user does not have permissions to the mounted folder which is owner by root
     expose:
       - 3030
