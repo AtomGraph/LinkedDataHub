@@ -33,6 +33,8 @@ cat "$pwd/../imports/test.ttl" \
 
 concept7367_triple_count=14
 
+popd > /dev/null
+
 # attempt to load the concept7367 URI using LDH as a proxy
 
 triple_count=$(curl -k -f -s \
