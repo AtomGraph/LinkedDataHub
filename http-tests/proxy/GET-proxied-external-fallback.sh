@@ -28,6 +28,7 @@ cat "$pwd/../imports/test.ttl" \
 | ./add-data.sh \
   -f "$AGENT_CERT_FILE" \
   -p "$AGENT_CERT_PWD" \
+  -t 'text/turtle' \
   "$END_USER_BASE_URL"
 
 concept7367_triple_count=14
