@@ -128,7 +128,7 @@ public class Importer extends GraphStoreImpl
                     if (topic != null && topic.canAs(Import.class))
                     {
                         Service adminService = getApplication().canAs(EndUserApplication.class) ? getApplication().as(EndUserApplication.class).getAdminApplication().getService() : null;
-                        LinkedDataClient ldc = LinkedDataClient.create(getSystem().getClient(), getSystem().getMediaTypes()).
+                        LinkedDataClient ldc = getSystem().getLinkedDataClient().
                             delegation(getUriInfo().getBaseUri(), getAgentContext().orElse(null));
                         
                         // start the import asynchroniously

@@ -243,7 +243,7 @@ public class ValidatingModelProvider extends com.atomgraph.server.io.ValidatingM
         
         if (resource.hasProperty(RDF.type, ACL.Authorization))
         {
-            LinkedDataClient ldc = LinkedDataClient.create(getSystem().getClient(), getSystem().getMediaTypes()).
+            LinkedDataClient ldc = getSystem().getLinkedDataClient().
                 delegation(getUriInfo().getBaseUri(), getAgentContextProvider().get().orElse(null));
             getSystem().getEventBus().post(new com.atomgraph.linkeddatahub.server.event.AuthorizationCreated(getEndUserApplication(),
                 ldc, resource));
