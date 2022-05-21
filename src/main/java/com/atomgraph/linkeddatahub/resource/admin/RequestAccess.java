@@ -135,7 +135,7 @@ public class RequestAccess extends GraphStoreImpl
             
             accessRequest.addLiteral(DCTerms.created, GregorianCalendar.getInstance());
 
-            LinkedDataClient ldc = LinkedDataClient.create(getSystem().getClient(), getSystem().getMediaTypes()).
+            LinkedDataClient ldc = getSystem().getLinkedDataClient().
                 delegation(getUriInfo().getBaseUri(), getAgentContext().orElse(null));
             Model agentModel = ldc.getModel(ownerURI);
             owner = agentModel.getResource(ownerURI);

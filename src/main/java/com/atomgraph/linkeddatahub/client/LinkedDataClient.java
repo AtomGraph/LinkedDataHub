@@ -74,6 +74,9 @@ public class LinkedDataClient extends com.atomgraph.core.client.LinkedDataClient
         return new Builder(baseURI, agentContext).build();
     }
     
+    /**
+     * A helper class that stores the agent context.
+     */
     public class Builder
     {
         
@@ -111,6 +114,9 @@ public class LinkedDataClient extends com.atomgraph.core.client.LinkedDataClient
             return agentContext;
         }
     
+        /**
+         * Linked Data client with agent delegation support.
+         */
         public class DelegatedLinkedDataClient extends LinkedDataClient
         {
 
