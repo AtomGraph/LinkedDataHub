@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml">
    <head>
       <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
-      <title>LinkedDataHub v3 - Command line interface</title>
-      <meta name="description" content="CLI scripts can be used perform all actions available in the UI"/>
+      <title>LinkedDataHub v3 - RDF dataset</title>
+      <meta name="description" content="The default RDF dataset structure used by LinkedDataHub"/>
       <link rel="up" href="../index.html"/>
       <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/css/bootstrap.css" rel="stylesheet" type="text/css"/>
       <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/css/bootstrap-responsive.css" rel="stylesheet" type="text/css"/>
@@ -66,14 +66,14 @@
                               <li><a href="../administration/model/index.html" title="Ontology classes, constraints, properties etc.">Model</a></li>
                            </ul>
                         </li>
-                        <li class="active"><a href="" title="CLI scripts can be used perform all actions available in the UI">Command line interface</a></li>
+                        <li><a href="../command-line-interface/index.html" title="CLI scripts can be used perform all actions available in the UI">Command line interface</a></li>
                         <li><a href="../configuration/index.html" title="Overview of configuration options">Configuration</a></li>
                         <li><a href="../data-management/index.html" title="Management actions that can be performed on documents (graphs) and their content">Data management</a><ul class="nav nav-list">
                               <li><a href="../data-management/contents/index.html" title="Content blocks and the basic data content actions">Content management</a></li>
                               <li><a href="../data-management/documents/index.html" title="Document hierarchy and the basic data management actions">Document management</a></li>
                            </ul>
                         </li>
-                        <li><a href="../dataset/index.html" title="The default RDF dataset structure used by LinkedDataHub">RDF dataset</a></li>
+                        <li class="active"><a href="" title="The default RDF dataset structure used by LinkedDataHub">RDF dataset</a></li>
                         <li><a href="../dataspace/index.html" title="LinkedDataHub dataspaces, applications, and services">Dataspace</a></li>
                         <li><a href="../http-api/index.html" title="Learn how to access and manage RDF data over generic HTTP API">HTTP API</a></li>
                         <li><a href="../imports/index.html" title="Types of data imports supported by LinkedDataHub">Imports</a><ul class="nav nav-list">
@@ -112,258 +112,64 @@
             </nav>
             <main class="span7">
                <header>
-                  <h1>Command line interface</h1>
+                  <h1>RDF dataset</h1>
                </header>
                <div>
                   
-                  <p class="lead">CLI scripts can be used perform all actions available in the UI</p>
+                  <p class="lead">The default RDF dataset structure used by LinkedDataHub.</p>
                   
-                  <p>LinkedDataHub CLI wraps the <a href="../http-api/">HTTP API</a> into a set of shell scripts with convenient parameters. The scripts should run on
-                     any Unix-based system.
-                     They can be used for testing, automation, scheduled execution and such. It is usually
-                     much quicker to perform actions using CLI rather than the
-                     <a href="../user-interface/">user interface</a>, as well as easier to reproduce.</p>
-                  
-                  <p>Some scripts correspond to a single request to LinkedDataHub, others combine others
-                     into tasks with multiple interdependent requests, such as CSV import.</p>
-                  
-                  <p>You will need to supply a <samp>.pem</samp> file of your <a href="../../get-started/#get-webid">WebID certificate</a> as well as its password as script arguments, among others.</p>
-                  
-                  <div class="alert alert-info">
+                  <div>
                      
-                     <p>The CLI scripts use the environmental variable <code>$SCRIPT_ROOT</code>, which should point to the <samp>scripts</samp> in your LinkedDataHub fork.</p>
+                     <h2 id="structure">Structure</h2>
                      
-                     <p>They also use the <a href="https://jena.apache.org/documentation/tools/" target="_blank">Jena's CLI commands</a> internally, so make sure to have them on <code>$PATH</code> before running the scripts.</p>
+                     <p>Default LinkedDataHub dataset structure follows these conventions:</p>
+                     
+                     <ol>
+                        
+                        <li>the default graph is not used</li>
+                        
+                        <li>each document's description is stored in an RDF named graph whose name is the same
+                           as the document URI. The graph can be managed using the <a href="../http-api/" target="_blank">Graph Store Protocol</a>.</li>
+                        
+                        <li>documents form a <a href="../documents/#hierarchy">parent/child hierarchy</a>. There are 2 types of documents: containers that can have other documents as children,
+                           and items that cannot.</li>
+                        </ol>
+                     
+                     <p>The default dataset is installed into an application service during the <a href="../../get-started/setup/">setup</a>.</p>
                      </div>
                   
                   <div>
                      
-                     <h2 id="scripts">Scripts</h2>
+                     <h2 id="hierarchical-uris">Hierarchical URIs</h2>
                      
-                     <p>Currently supported:</p>
+                     <p>By default, the URIs of the document resources represent the same <a href="../documents/#hierarchy">parent/child hierarchy</a>. Which means the root container's URI equals the <a href="../dataspace/#applications">base URI</a>
+                        of the application, and descendant document URIs are relative to their parent container
+                        URIs.</p>
                      
-                     <table class="table table-striped">
-                        
-                        <thead>
-                           
-                           <tr>
-                              
-                              <th>Purpose</th>
-                              
-                              <th>Script</th>
-                              </tr>
-                           </thead>
-                        
-                        <tbody>
-                           
-                           <tr>
-                              
-                              <th colspan="2">General</th>
-                              </tr>
-                           
-                           <tr>
-                              
-                              <td>Create document</td>
-                              
-                              <td><samp>create-document.sh</samp></td>
-                              </tr>
-                           
-                           <tr>
-                              
-                              <td>Update document</td>
-                              
-                              <td><samp>update-document.sh</samp></td>
-                              </tr>
-                           
-                           <tr>
-                              
-                              <td>Create container</td>
-                              
-                              <td><samp>create-container.sh</samp></td>
-                              </tr>
-                           
-                           <tr>
-                              
-                              <td>Create item</td>
-                              
-                              <td><samp>create-item.sh</samp></td>
-                              </tr>
-                           
-                           <tr>
-                              
-                              <td>Create result set chart</td>
-                              
-                              <td><samp>create-result-set-chart.sh</samp></td>
-                              </tr>
-                           
-                           <tr>
-                              
-                              <td>Create <code>SELECT</code> query</td>
-                              
-                              <td><samp>create-select.sh</samp></td>
-                              </tr>
-                           </tbody>
-                        
-                        <tbody>
-                           
-                           <tr>
-                              
-                              <th colspan="2">Imports</th>
-                              </tr>
-                           
-                           <tr>
-                              
-                              <td>Create file</td>
-                              
-                              <td><samp>imports/create-file.sh</samp></td>
-                              </tr>
-                           
-                           <tr>
-                              
-                              <td>Create query</td>
-                              
-                              <td><samp>imports/create-query.sh</samp></td>
-                              </tr>
-                           
-                           <tr>
-                              
-                              <td>Create CSV import</td>
-                              
-                              <td><samp>imports/create-csv-import.sh</samp></td>
-                              </tr>
-                           
-                           <tr>
-                              
-                              <td>Import CSV data</td>
-                              
-                              <td><samp>imports/import-csv.sh</samp></td>
-                              </tr>
-                           </tbody>
-                        
-                        <tbody>
-                           
-                           <tr>
-                              
-                              <th colspan="2"><a href="../administration/">Administration</a></th>
-                              </tr>
-                           
-                           <tr>
-                              
-                              <td>Add <code>owl:import</code> to ontology</td>
-                              
-                              <td><samp>admin/add-ontology-import.sh</samp></td>
-                              </tr>
-                           
-                           <tr>
-                              
-                              <td>Clear and reload ontology</td>
-                              
-                              <td><samp>admin/clear-ontology.sh</samp></td>
-                              </tr>
-                           </tbody>
-                        
-                        <tbody>
-                           
-                           <tr>
-                              
-                              <th colspan="2"><a href="../administration/acl/">Access control</a></th>
-                              </tr>
-                           
-                           <tr>
-                              
-                              <td>Add <a href="../administration/acl/#agents">agent</a> to <a href="../administration/acl/#groups">group</a></td>
-                              
-                              <td><samp>admin/acl/add-agent-to-group.sh</samp></td>
-                              </tr>
-                           
-                           <tr>
-                              
-                              <td>Create <a href="../administration/acl/#authorizations">authorization</a></td>
-                              
-                              <td><samp>admin/acl/create-authorization.sh</samp></td>
-                              </tr>
-                           
-                           <tr>
-                              
-                              <td>Create <a href="../administration/acl/#groups">group</a></td>
-                              
-                              <td><samp>admin/acl/create-group.sh</samp></td>
-                              </tr>
-                           
-                           <tr>
-                              
-                              <td>Make application publicly readable to any agent</td>
-                              
-                              <td><samp>admin/acl/make-public.sh</samp></td>
-                              </tr>
-                           </tbody>
-                        
-                        <tbody>
-                           
-                           <tr>
-                              
-                              <th colspan="2"><a href="../administration/model/">Model</a></th>
-                              </tr>
-                           
-                           <tr>
-                              
-                              <td>Create <a href="../administration/model/#classes">class</a></td>
-                              
-                              <td><samp>admin/model/create-class.sh</samp></td>
-                              </tr>
-                           
-                           <tr>
-                              
-                              <td>Create <code>CONSTRUCT</code> query</td>
-                              
-                              <td><samp>admin/model/create-construct.sh</samp></td>
-                              </tr>
-                           
-                           <tr>
-                              
-                              <td>Create <a href="../administration/model/#ontologies">ontology</a></td>
-                              
-                              <td><samp>admin/model/create-ontology.sh</samp></td>
-                              </tr>
-                           
-                           <tr>
-                              
-                              <td>Create <a href="../administration/model/#constraints">property constraint</a></td>
-                              
-                              <td><samp>admin/model/create-property-constraint.sh</samp></td>
-                              </tr>
-                           
-                           <tr>
-                              
-                              <td>Create <code>SELECT</code> query</td>
-                              
-                              <td><samp>admin/model/create-select.sh</samp></td>
-                              </tr>
-                           
-                           <tr>
-                              
-                              <td>Import ontology</td>
-                              
-                              <td><samp>admin/model/import-ontology.sh</samp></td>
-                              </tr>
-                           </tbody>
-                        </table>
-                     
-                     <p>Usage example:</p>
-                     
-                     <pre>./create-file.sh https://linkeddatahub.com/my-context/my-dataspace/ \
-  -f linkeddatahub.pem \
-  -p CertPassword \
-  --title "Friends" \
-  --file-slug 646af756-a49f-40da-a25e-ea8d81f6d306 \
-  --file friends.csv \
-  --file-content-type text/csv</pre>
-                     
-                     <p>See also the <a href="../../user-guide/import-data/import-csv-data/">Import CSV data</a> tutorial.</p>
+                     <p>Uploaded binary files are an exception to this rule. They are content-addressed in
+                        the <code>uploads/{sha1sum}</code> namespace, where <code>sha1sum</code> is the SHA1 hash of the file content.</p>
                      </div>
                   
-                  <p class="lead">Find the <a href="https://github.com/AtomGraph/LinkedDataHub/tree/master/scripts" target="_blank">CLI scripts on GitHub</a> or check out the
-                     <a href="https://github.com/AtomGraph/LinkedDataHub-Apps/tree/master/demo" target="_blank">demo apps</a> that use them.</p>
+                  <div>
+                     
+                     <h2 id="default-datasets">Default datasets</h2>
+                     
+                     <p>The default datasets of administration and end-user applications can be found in <a href="https://github.com/AtomGraph/LinkedDataHub/blob/master/platform/datasets/admin.trig" target="_blank"><samp>platform/datasets/admin.trig</samp></a> and
+                        <a href="https://github.com/AtomGraph/LinkedDataHub/blob/master/platform/datasets/end-user.trig" target="_blank"><samp>platform/datasets/end-user.trig</samp></a>, respectively.</p>
+                     
+                     <p>RDF terms (classes, properties etc.) used in the default datasets come from well-known
+                        vocabularies FOAF and SIOC (with additional LinkedDataHub-specific assertions) as
+                        well as  <a href="../administration/model/">system ontologies</a>.</p>
+                     </div>
+                  
+                  <div>
+                     
+                     <h2 id="storage">Storage</h2>
+                     
+                     <p>The dataset of each application is stored in an RDF triplestore which is accessed
+                        as a <a href="../dataspace/#services">SPARQL service</a>. End-user applications and admin applications have separate datasets and are backed
+                        by two different services.</p>
+                     </div>
                   </div>
                <nav></nav>
             </main>

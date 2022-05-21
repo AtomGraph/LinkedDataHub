@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml">
    <head>
       <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
-      <title>LinkedDataHub v3 - CSV imports</title>
-      <meta name="description" content="CSV imports and mapping to RDF using SPARQL CONSTRUCT"/>
+      <title>LinkedDataHub v3 - Document management</title>
+      <meta name="description" content="Document hierarchy and the basic data management actions"/>
       <link rel="up" href="../index.html"/>
       <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/css/bootstrap.css" rel="stylesheet" type="text/css"/>
       <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/css/bootstrap-responsive.css" rel="stylesheet" type="text/css"/>
@@ -68,17 +68,17 @@
                         </li>
                         <li><a href="../../command-line-interface/index.html" title="CLI scripts can be used perform all actions available in the UI">Command line interface</a></li>
                         <li><a href="../../configuration/index.html" title="Overview of configuration options">Configuration</a></li>
-                        <li><a href="../../data-management/index.html" title="Management actions that can be performed on documents (graphs) and their content">Data management</a><ul class="nav nav-list">
-                              <li><a href="../../data-management/contents/index.html" title="Content blocks and the basic data content actions">Content management</a></li>
-                              <li><a href="../../data-management/documents/index.html" title="Document hierarchy and the basic data management actions">Document management</a></li>
+                        <li><a href="../index.html" title="Management actions that can be performed on documents (graphs) and their content">Data management</a><ul class="nav nav-list">
+                              <li><a href="../contents/index.html" title="Content blocks and the basic data content actions">Content management</a></li>
+                              <li class="active"><a href="" title="Document hierarchy and the basic data management actions">Document management</a></li>
                            </ul>
                         </li>
                         <li><a href="../../dataset/index.html" title="The default RDF dataset structure used by LinkedDataHub">RDF dataset</a></li>
                         <li><a href="../../dataspace/index.html" title="LinkedDataHub dataspaces, applications, and services">Dataspace</a></li>
                         <li><a href="../../http-api/index.html" title="Learn how to access and manage RDF data over generic HTTP API">HTTP API</a></li>
-                        <li><a href="../index.html" title="Types of data imports supported by LinkedDataHub">Imports</a><ul class="nav nav-list">
-                              <li class="active"><a href="" title="CSV imports and mapping to RDF using SPARQL CONSTRUCT">CSV imports</a></li>
-                              <li><a href="../rdf/index.html" title="RDF imports and transforming RDF using SPARQL CONSTRUCT">RDF imports</a></li>
+                        <li><a href="../../imports/index.html" title="Types of data imports supported by LinkedDataHub">Imports</a><ul class="nav nav-list">
+                              <li><a href="../../imports/csv/index.html" title="CSV imports and mapping to RDF using SPARQL CONSTRUCT">CSV imports</a></li>
+                              <li><a href="../../imports/rdf/index.html" title="RDF imports and transforming RDF using SPARQL CONSTRUCT">RDF imports</a></li>
                            </ul>
                         </li>
                         <li><a href="../../stylesheets/index.html" title="Built-in XSLT and CSS stylesheets">Stylesheets</a></li>
@@ -112,184 +112,190 @@
             </nav>
             <main class="span7">
                <header>
-                  <h1>CSV imports</h1>
+                  <h1>Document management</h1>
                </header>
                <div>
                   
-                  <p class="lead">CSV imports and mapping to RDF using SPARQL CONSTRUCT</p>
-                  
-                  <p>A data import is a combination of 3 resources:</p>
-                  
-                  <dl>
-                     
-                     <dt>File</dt>
-                     
-                     <dd>An uploaded file holding the data to be converted to RDF and imported, such as CSV
-                        or RDF file</dd>
-                     
-                     <dt>Mapping</dt>
-                     
-                     <dd>The <code>CONSTRUCT</code> query that produces RDF</dd>
-                     
-                     <dt>Target container</dt>
-                     
-                     <dd>The container to which converted items will be <a href="../../http-api/#ld-post">POST</a>ed, skolemized against,
-                        and become its children</dd>
-                     </dl>
-                  
-                  <p>The import process runs in the background, i.e. the import item is created before
-                     the process completes.
-                     Currently the only way to determine when it completes is to refresh the import item
-                     and check the import
-                     status (completed/failed). Upon successful report, metadata such as the number of
-                     imported RDF triples is attached
-                     to the import.</p>
-                  
-                  <p>The converted RDF is validated against <a href="../../administration/model/#constraints">constraints</a>
-                     before import. Constraint violations, if any, are attached to the import item.</p>
+                  <p class="lead">This guide explains the document hierarchy and the basic data management actions.</p>
                   
                   <div>
                      
-                     <h2 id="import-csv">Import CSV</h2>
+                     <h2 id="dataspace">Dataspace</h2>
                      
-                     <p><a href="https://en.wikipedia.org/wiki/Comma-separated_values" target="_blank">CSV</a> is a plain-text format for
-                        tabular data. CSV import in LinkedDataHub consists of 2 steps:</p>
+                     <p>The user is always working within the <a href="../../dataspace/#dataspaces">dataspace</a>. A dataspace consists of two
+                        applications:</p>
                      
                      <ol>
                         
-                        <li>
-                           <a href="#generic-conversion">generic conversion</a>
-                           </li>
+                        <li>the end-user application</li>
                         
-                        <li>
-                           <a href="#vocabulary-conversion">vocabulary conversion</a>
-                           </li>
+                        <li>the administration application which only administration users have access to</li>
                         </ol>
                      
-                     <p>We provide an running example of CSV data that will be shown as RDF conversion in
-                        the following
-                        sections:</p>
+                     <p>This guide provides the end-user perspective; see <a href="../../administration/">Administration</a> guides for the
+                        administrator perspective.</p>
+                     </div>
+                  
+                  <div>
                      
-                     <pre>countryCode,latitude,longitude,name
-AD,42.5,1.6,Andorra
-AE,23.4,53.8,"United Arab Emirates"
-AF,33.9,67.7,Afghanistan</pre>
+                     <h2 id="hierarchy">Document hierarchy</h2>
+                     
+                     <p>The basic structure of resources in an application is analogous to the file system,
+                        but built using RDF
+                        resources and relationships between them instead. There is a hierarchy of <dfn>containers</dfn> (folders),
+                        which are collections of <dfn>items</dfn> (files) as well as sub-containers (sub-folders). Both containers
+                        and items are <dfn>documents</dfn>. Items cannot contain other documents.</p>
+                     
+                     <p>The first level of resources in a container is referred to as its <dfn>children</dfn> (of which that container
+                        is the <dfn>parent</dfn>, while all levels down the hierarchy are collectively referred to as
+                        <dfn>descendants</dfn>.</p>
+                     
+                     <p>When a user logs in, the application loads its root container (unless a specific URI
+                        was requested). From there,
+                        users can navigate down the resource hierarchy, starting with children of the <dfn>root container</dfn>. At
+                        any moment there is only one <dfn>current document</dfn> per page, on which <a href="#manage">actions</a> can
+                        be performed: it can be viewed, edited etc.</p>
+                     
+                     <p>LinkedDataHub also provides several <dfn>system containers</dfn> for built-in content types such as files, imports,
+                        and SPARQL queries, as well as temporal and geospatial views over the application's
+                        dataset.</p>
+                     </div>
+                  
+                  <div>
+                     
+                     <h2 id="manage">Manage documents</h2>
+                     
+                     <p>The following actions can also be performed using the <a href="../../command-line-interface/" target="_blank">command line interface</a>.</p>
                      
                      <div>
                         
-                        <h3 id="generic-conversion">Generic conversion</h3>
+                        <h3 id="view">View</h3>
                         
-                        <p>The data table is converted to a graph by treating rows as resources, columns as predicates,
-                           and
-                           cells as <code>xsd:string</code> literals. The approach is the same as CSV on the Web
-                           <a href="https://www.w3.org/TR/2015/REC-csv2rdf-20151217/#dfn-minimal-mode" target="_blank">minimal mode</a>.</p>
+                        <p>
+                           <object data="../../../files/videos/View.webm" type="video/webm"></object>
+                           </p>
                         
-                        <pre>@base &lt;https://linkeddatahub.com/demo/city-graph/&gt; .
-
-_:8228a149-8efe-448d-b15f-8abf92e7bd17
-  &lt;#countryCode&gt; "AD" ;
-  &lt;#latitude&gt; "42.5" ;
-  &lt;#longitude&gt; "1.6" ;
-  &lt;#name&gt; "Andorra" .
-
-_:ec59dcfc-872a-4144-822b-9ad5e2c6149c
-  &lt;#countryCode&gt; "AE" ;
-  &lt;#latitude&gt; "23.4" ;
-  &lt;#longitude&gt; "53.8" ;
-  &lt;#name&gt; "United Arab Emirates" .
-
-_:e8f2e8e9-3d02-4bf5-b4f1-4794ba5b52c9
-  &lt;#countryCode&gt; "AF" ;
-  &lt;#latitude&gt; "33.9" ;
-  &lt;#longitude&gt; "67.7" ;
-  &lt;#name&gt; "Afghanistan" .</pre>
+                        <p>This is the default action when a document is accessed. The content of the view is
+                           different depending on
+                           whether the current document is a container or an item. The presentation layout also
+                           depends on the current
+                           <a href="../../user-interface/#layout-modes">layout mode</a>.</p>
+                        
+                        <p>Container view displays a list of its children. Containers usually do not retrieve
+                           the full list of their
+                           children. Instead, they provide a paginated access over them, allowing a user to
+                           <a href="../../user-interface/#pagination" title="Pagination">navigate between pages</a> that contain a "slice"
+                           with a limited number of children.</p>
+                        
+                        <p>Item view displays description of the current resource, listing its properties.</p>
                         </div>
                      
                      <div>
                         
-                        <h3 id="vocabulary-conversion">Vocabulary conversion</h3>
+                        <h3 id="create">Create</h3>
                         
-                        <p>This step provides a semantic "lift" for the generic RDF output of the previous step
-                           by mapping it
-                           to classes and properties from specific vocabularies. It also connects instances in
-                           the imported data to the documents in LinkedDataHub's <a href="../../dataset/" target="_blank">dataset</a>.</p>
+                        <p>
+                           <object data="../../../files/videos/Create.webm" type="video/webm"></object>
+                           </p>
                         
-                        <p>The mapping is a user-defined SPARQL
-                           <code>CONSTRUCT</code> query which transforms <em>one row at a time</em>. In this case we produce a SKOS concept paired with its item (document) for each
-                           country:</p>
+                        <p>Create action creates a new resource of the selected type using
+                           <a href="../../user-interface/#create-edit" title="Create mode">create mode</a>. A newly created document becomes a
+                           child of the current container, unless a different one is specified in the creation
+                           dialog.</p>
                         
-                        <pre><code>PREFIX  ldh:  &lt;https://w3id.org/atomgraph/linkeddatahub#&gt;
-PREFIX  geo:  &lt;http://www.w3.org/2003/01/geo/wgs84_pos#&gt;
-PREFIX  dh:   &lt;https://www.w3.org/ns/ldt/document-hierarchy#&gt;
-PREFIX  dct:  &lt;http://purl.org/dc/terms/&gt;
-PREFIX  rdf:  &lt;http://www.w3.org/1999/02/22-rdf-syntax-ns#&gt;
-PREFIX  xsd:  &lt;http://www.w3.org/2001/XMLSchema#&gt;
-PREFIX  foaf: &lt;http://xmlns.com/foaf/0.1/&gt;
-PREFIX  sioc: &lt;http://rdfs.org/sioc/ns#&gt;
-
-CONSTRUCT
-  {
-    ?item a dh:Item ;
-        sioc:has_container ?container ;
-        dct:title ?name ;
-        dh:slug ?countryCode ;
-        foaf:primaryTopic ?country .
-    ?country a &lt;http://dbpedia.org/ontology/Place&gt; ;
-        dct:identifier ?countryCode ;
-        geo:lat ?lat ;
-        geo:long ?long ;
-        dct:title ?name .
-  }
-WHERE
-  { 
-    BIND(bnode() AS ?item)
-    BIND (uri(concat(str($base), "countries/")) AS ?container)
-
-    ?country  &lt;#countryCode&gt;  ?countryCode ;
-              &lt;#latitude&gt;     ?latString ;
-              &lt;#longitude&gt;    ?longString ;
-              &lt;#name&gt;         ?name .
-
-    BIND(xsd:float(?latString) AS ?lat)
-    BIND(xsd:float(?longString) AS ?long)
-  }</code></pre>
+                        <p>Every document can contain (X)HTML content which is edited using an embedded WYSIWYG
+                           editor.</p>
                         
-                        <p>These are the rules that hold for mapping queries:</p>
+                        <p>The resource type can be something else than a document, e.g. a physical thing such
+                           as person, or an
+                           abstract concept. In that case, it is referred to as the <dfn>topic resource</dfn> which can be created together
+                           with the document. The document relates to the topic resource using the <code>foaf:primaryTopic</code> property.</p>
                         
-                        <ul>
-                           
-                           <li><code>BASE</code> value is automatically set to the imported file's URI. Do not add an explicit <code>BASE</code> to the query.</li>
-                           
-                           <li><code>$base</code> binding is set to the value of the application's baseURI</li>
-                           
-                           <li>produce items (documents) and pair them with topic resources using the <code>foaf:primaryTopic</code> property</li>
-                           
-                           <li>use<code>OPTIONAL</code> for optional cell values</li>
-                           
-                           <li>use <code>BIND()</code> to introduce new values and/or cast literals to the appropriate result
-                              datatype or URI</li>
-                           </ul>
+                        <p>A new document can only be created if it and its topic resource validate, i.e. if
+                           all property values from
+                           user input satisfy URI syntax, mandatory values and other constraints. Constraints
+                           are also
+                           <a href="../../administration/model/#constraints">managed in the model</a>.</p>
+                        </div>
+                     
+                     <div>
                         
-                        <p>Blank node resources in the output will be skolemized depending on their RDF types.</p>
+                        <h3 id="update">Update</h3>
                         
-                        <p>We are planning to provide a UI-based mapping tool in the future.</p>
+                        <p>
+                           <object data="../../../files/videos/Edit.webm" type="video/webm"></object>
+                           </p>
                         
-                        <p>The result of our mapping  (only the first resource is shown):</p>
+                        <p>In LinkedDataHub's dataset, every document is also a named RDF graph. It is the graph
+                           that is being edited using
+                           <a href="../../user-interface/#create-edit">edit mode</a> and updated as a result of this action.</p>
                         
-                        <pre>_:item a &lt;https://linkeddatahub.com/demo/city-graph/ns/domain/default#Item&gt; ;
-    dct:title "Andorra" ;
-    dh:slug "AD" ;
-    foaf:primaryTopic _:country .
-
-_:country a &lt;https://linkeddatahub.com/demo/city-graph/ns#Country&gt; ;
-    dct:identifier "AD" ;
-    geo:lat 42.5 ;
-    geo:long 1.6 ;
-    dct:title "Andorra" .</pre>
+                        <p>Just like with document creation, a document can only be updated if it and its topic
+                           resource validate, i.e.
+                           if all property values from user input satisfy URI syntax, mandatory values and other
+                           constraints.</p>
+                        </div>
+                     
+                     <div>
+                        
+                        <h3 id="delete">Delete</h3>
+                        
+                        <p>
+                           <object data="../../../files/videos/Delete.webm" type="video/webm"></object>
+                           </p>
+                        
+                        <p>This action deletes the current document by deleting the graph with its description.</p>
+                        
+                        <p>Deleting a container currently does not delete any of its descendants.</p>
+                        
+                        <p>It is not possible to delete the root container.</p>
+                        </div>
+                     
+                     <div>
+                        
+                        <h3 id="download">Download</h3>
+                        
+                        <p>
+                           <object data="../../../files/videos/Download.webm" type="video/webm"></object>
+                           </p>
+                        
+                        <p>Download action returns the description of the current document as RDF data in the
+                           selected format.</p>
                         </div>
                      </div>
                   
-                  <p class="lead">If you are ready to import some CSV, see our step-by-step tutorial on <a href="../../../user-guide/import-data/import-csv-data/">creating an CSV import</a>.</p>
+                  <div>
+                     
+                     <h2 id="search">Search</h2>
+                     
+                     <p>Perform an application-wide search for resources (documents as well as their topics)
+                        using the
+                        <a href="../../user-interface/#nav-bar">search box</a>. Search uses regex to match search keywords
+                        against resource labels, descriptions, and content, and shows the results in a dropdown
+                        list.</p>
+                     
+                     <p>The search bar also works as address bar for Linked Data resources. Enter a URI and
+                        LinkedDataHub will attempt
+                        to load RDF data from it by switching into Linked Data browser mode.</p>
+                     </div>
+                  
+                  <div>
+                     
+                     <h2 id="files">Files</h2>
+                     
+                     <p>System container with uploaded files can be found in the <a href="../../user-interface/#action-bar">breadcrumb bar</a>.</p>
+                     
+                     <div>
+                        
+                        <h3 id="upload">Upload</h3>
+                        
+                        <p>Files <a href="../../../user-guide/upload-file/" target="_blank">can be uploaded</a> by selecting the File type in the <a href="../../user-interface/#action-bar">action bar</a>.</p>
+                        
+                        <p>
+                           <object data="../../../files/videos/Upload.webm" type="video/webm"></object>
+                           </p>
+                        </div>
+                     </div>
                   </div>
                <nav></nav>
             </main>

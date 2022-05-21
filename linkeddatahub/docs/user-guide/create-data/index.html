@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml">
    <head>
       <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
-      <title>LinkedDataHub v3 - Upload file</title>
-      <meta name="description" content="Learn how to upload files to LinkedDataHub"/>
+      <title>LinkedDataHub v3 - Create data</title>
+      <meta name="description" content="How to create documents, content, and instances"/>
       <link rel="up" href="../index.html"/>
       <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/css/bootstrap.css" rel="stylesheet" type="text/css"/>
       <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/css/bootstrap-responsive.css" rel="stylesheet" type="text/css"/>
@@ -91,9 +91,9 @@
                         <li><a href="../change-layout/index.html" title="How to customize the layout of an application and the UI of the resources">Change layout</a></li>
                         <li><a href="../change-model/index.html" title="Change the model: create constructors, classes, and constraints">Change the model</a></li>
                         <li><a href="../change-system-base-uri/index.html" title="How to change host, port, or the path LinkedDataHub service runs on">Change system base URI</a></li>
-                        <li><a href="../create-data/index.html" title="How to create documents, content, and instances">Create data</a><ul class="nav nav-list">
-                              <li><a href="../create-data/create-content/index.html" title="Learn how to create data-driven content">Create content</a></li>
-                              <li><a href="../create-data/create-documents/index.html" title="Learn how to create container and item documents">Create documents</a></li>
+                        <li class="active"><a href="" title="How to create documents, content, and instances">Create data</a><ul class="nav nav-list">
+                              <li><a href="create-content/index.html" title="Learn how to create data-driven content">Create content</a></li>
+                              <li><a href="create-documents/index.html" title="Learn how to create container and item documents">Create documents</a></li>
                            </ul>
                         </li>
                         <li><a href="../import-data/index.html" title="How to import data into LinkedDataHub">Import data</a><ul class="nav nav-list">
@@ -105,92 +105,35 @@
                         <li><a href="../navigate-data/index.html" title="Navigate the document hierarchy, related results, and backlinks">Navigate data</a></li>
                         <li><a href="../query-data/index.html" title="Learn how to query application data with SPARQL, store queries and charts">Query data</a></li>
                         <li><a href="../search-data/index.html" title="Search for resources using text keywords">Search data</a></li>
-                        <li class="active"><a href="" title="Learn how to upload files to LinkedDataHub">Upload file</a></li>
+                        <li><a href="../upload-file/index.html" title="Learn how to upload files to LinkedDataHub">Upload file</a></li>
                      </ul>
                   </li>
                </ul>
             </nav>
             <main class="span7">
                <header>
-                  <h1>Upload file</h1>
+                  <h1>Create data</h1>
                </header>
                <div>
                   
-                  <p class="lead">Learn how to upload files to LinkedDataHub</p>
+                  <p class="lead">How to create documents, content, and instances</p>
                   
-                  <div class="tabbable">
-                     
-                     <ul class="nav nav-tabs">
-                        
-                        <li class="active"><a>User interface</a></li>
-                        
-                        <li><a>Command line interface</a></li>
-                        </ul>
-                     
-                     <div class="tab-content">
-                        
-                        <div class="tab-pane active">
-                           
-                           <div>
-                              
-                              <ol>
-                                 
-                                 <li>Click the <span class="btn btn-primary">Create</span> dropdown in the top-left corner</li>
-                                 
-                                 <li>Click on <samp>File</samp> in the drop-down list that appears</li>
-                                 
-                                 <li>Fill out the mandatory fields in the form:
-                                    
-                                    <dl>
-                                       
-                                       <dt>FileName</dt>
-                                       
-                                       <dd>Select file from your filesystem</dd>
-                                       
-                                       <dt>Title</dt>
-                                       
-                                       <dd>Enter file title</dd>
-                                       
-                                       <dt>Title</dt>
-                                       
-                                       <dd>Enter document title</dd>
-                                       </dl>
-                                    </li>
-                                 
-                                 <li>Click <span class="btn btn-primary">Save</span></li>
-                                 </ol>
-                              
-                              <p>See how below:</p>
-                              
-                              <p>
-                                 <object data="../../files/videos/Upload.webm" type="video/webm"></object>
-                                 </p>
-                              </div>
-                           </div>
-                        
-                        <div class="tab-pane">
-                           
-                           <div>
-                              
-                              <p>Replace <code>${OWNER_KEY_PASSWORD}</code> with its value from the <samp>.env</samp> file and execute the following command:</p>
-                              
-                              <pre>pushd . &amp;&amp; cd "$SCRIPT_ROOT/imports"
-
-./create-file.sh \
--b "https://localhost:4443/" \
--f certs/owner.p12.pem \
--p "${OWNER_KEY_PASSWORD}" \
---title "${title}" \
---file "${filename}" \
---file-content-type "${content_type}"
-
-popd</pre>
-                              </div>
-                           </div>
-                        </div>
-                     </div>
+                  <p>Documents are RDF documents stored in the <a href="../../reference/dataset/">application's dataset</a>. They contain descriptions of resources, e.g. instances created by the user, imported
+                     from files, or loaded from Linked Data.</p>
+                  
+                  <p>Each document can have content, which is a chain (RDF list) of URI resources and XHTML
+                     literals.</p>
                   </div>
-               <nav></nav>
+               <nav>
+                  <div class="well">
+                     <h2><a href="create-content/index.html" title="Learn how to create data-driven content">Create content</a></h2>
+                     <p>Learn how to create data-driven content</p>
+                  </div>
+                  <div class="well">
+                     <h2><a href="create-documents/index.html" title="Learn how to create container and item documents">Create documents</a></h2>
+                     <p>Learn how to create container and item documents</p>
+                  </div>
+               </nav>
             </main>
          </div>
       </div>

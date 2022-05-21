@@ -68,10 +68,13 @@
                         </li>
                         <li><a href="../reference/command-line-interface/index.html" title="CLI scripts can be used perform all actions available in the UI">Command line interface</a></li>
                         <li><a href="../reference/configuration/index.html" title="Overview of configuration options">Configuration</a></li>
-                        <li><a href="../reference/contents/index.html" title="Content blocks and the basic data content actions">Content management</a></li>
-                        <li><a href="../reference/dataset-structure/index.html" title="The default RDF dataset structure used by LinkedDataHub">Dataset structure</a></li>
+                        <li><a href="../reference/data-management/index.html" title="Management actions that can be performed on documents (graphs) and their content">Data management</a><ul class="nav nav-list">
+                              <li><a href="../reference/data-management/contents/index.html" title="Content blocks and the basic data content actions">Content management</a></li>
+                              <li><a href="../reference/data-management/documents/index.html" title="Document hierarchy and the basic data management actions">Document management</a></li>
+                           </ul>
+                        </li>
+                        <li><a href="../reference/dataset/index.html" title="The default RDF dataset structure used by LinkedDataHub">RDF dataset</a></li>
                         <li><a href="../reference/dataspace/index.html" title="LinkedDataHub dataspaces, applications, and services">Dataspace</a></li>
-                        <li><a href="../reference/documents/index.html" title="Document hierarchy and the basic data management actions">Document management</a></li>
                         <li><a href="../reference/http-api/index.html" title="Learn how to access and manage RDF data over generic HTTP API">HTTP API</a></li>
                         <li><a href="../reference/imports/index.html" title="Types of data imports supported by LinkedDataHub">Imports</a><ul class="nav nav-list">
                               <li><a href="../reference/imports/csv/index.html" title="CSV imports and mapping to RDF using SPARQL CONSTRUCT">CSV imports</a></li>
@@ -88,8 +91,11 @@
                         <li><a href="../user-guide/change-layout/index.html" title="How to customize the layout of an application and the UI of the resources">Change layout</a></li>
                         <li><a href="../user-guide/change-model/index.html" title="Change the model: create constructors, classes, and constraints">Change the model</a></li>
                         <li><a href="../user-guide/change-system-base-uri/index.html" title="How to change host, port, or the path LinkedDataHub service runs on">Change system base URI</a></li>
-                        <li><a href="../user-guide/create-content/index.html" title="Learn how to create data-driven content">Create content</a></li>
-                        <li><a href="../user-guide/create-document/index.html" title="Learn how to create container and item documents">Create document</a></li>
+                        <li><a href="../user-guide/create-data/index.html" title="How to create documents, content, and instances">Create data</a><ul class="nav nav-list">
+                              <li><a href="../user-guide/create-data/create-content/index.html" title="Learn how to create data-driven content">Create content</a></li>
+                              <li><a href="../user-guide/create-data/create-documents/index.html" title="Learn how to create container and item documents">Create documents</a></li>
+                           </ul>
+                        </li>
                         <li><a href="../user-guide/import-data/index.html" title="How to import data into LinkedDataHub">Import data</a><ul class="nav nav-list">
                               <li><a href="../user-guide/import-data/import-csv-data/index.html" title="Step by step guide to converting CSV data to RDF and importing into end-user application">Import CSV data</a></li>
                               <li><a href="../user-guide/import-data/import-rdf-data/index.html" title="Step by step guide to importing RDF data">Import RDF data</a></li>
@@ -116,7 +122,7 @@
                   <p>This guide will show how a LinkedDataHub application can be used to manage domain-specific
                      RDF classes and instances. As an example, we will us <a href="https://www.w3.org/TR/skos-primer/" target="_blank">SKOS</a> concepts and concept schemes.</p>
                   
-                  <p>Note that all <a href="../reference/documents/#manage" target="_blank">management actions</a> can also be performed using the <a href="../reference/command-line-interface/" target="_blank">CLI (Command Line Interface)</a>. Where applicable, the UI and CLI instructions are shown side by side. The <a href="https://github.com/AtomGraph/LinkedDataHub-Apps/tree/master/demo/skos" target="_blank">SKOS demo app</a> which implements the SKOS example which is used in this guide.</p>
+                  <p>Note that all <a href="../reference/data-management/documents/#manage" target="_blank">management actions</a> can also be performed using the <a href="../reference/command-line-interface/" target="_blank">CLI (Command Line Interface)</a>. Where applicable, the UI and CLI instructions are shown side by side. The <a href="https://github.com/AtomGraph/LinkedDataHub-Apps/tree/master/demo/skos" target="_blank">SKOS demo app</a> which implements the SKOS example which is used in this guide.</p>
                   
                   <div>
                      
@@ -221,7 +227,7 @@
                      
                      <p>Congratulations! You have just created the first concept instance based on your model.</p>
                      
-                     <p class="lead"><a href="../reference/documents/" target="_blank">Read more about document management.</a></p>
+                     <p class="lead"><a href="../reference/data-management/documents/" target="_blank">Read more about document management.</a></p>
                      </div>
                   
                   <div>
