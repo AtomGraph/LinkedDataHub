@@ -36,7 +36,7 @@ public class YouTubeReaderInterceptor implements ClientRequestFilter, ReaderInte
 
     private static final Logger log = LoggerFactory.getLogger(YouTubeReaderInterceptor.class);
 
-    public static String HOST = "youtube.googleapis.com";
+    public static String URL = "https://youtube.googleapis.com/youtube/v3/videos";
 
     @Override
     public void filter(ClientRequestContext crc) throws IOException
@@ -46,7 +46,7 @@ public class YouTubeReaderInterceptor implements ClientRequestFilter, ReaderInte
     @Override
     public Object aroundReadFrom(ReaderInterceptorContext context) throws IOException, WebApplicationException
     {
-        if (context.getHeaders().getFirst(HttpHeaders.HOST) != null && context.getHeaders().getFirst(HttpHeaders.HOST).equals(HOST) &&
+        if (context.getHeaders().getFirst("X-Request-URI") != null && context.getHeaders().getFirst("X-Request-URI").startsWith(URL) &&
             context.getMediaType().isCompatible(MediaType.APPLICATION_JSON_TYPE))
         {
             log.debug("YOUTUBE!");
