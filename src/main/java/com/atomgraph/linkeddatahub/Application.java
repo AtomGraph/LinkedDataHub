@@ -69,7 +69,7 @@ import com.atomgraph.linkeddatahub.writer.factory.XsltExecutableSupplierFactory;
 import com.atomgraph.client.util.XsltResolver;
 import com.atomgraph.linkeddatahub.client.LinkedDataClient;
 import com.atomgraph.linkeddatahub.client.filter.ClientUriRewriteFilter;
-import com.atomgraph.linkeddatahub.client.grddl.YoutubeModelReader;
+import com.atomgraph.linkeddatahub.client.filter.YouTubeReaderInterceptor;
 import com.atomgraph.linkeddatahub.imports.ImportExecutor;
 import com.atomgraph.linkeddatahub.io.HtmlJsonLDReaderFactory;
 import com.atomgraph.linkeddatahub.io.JsonLDReader;
@@ -630,7 +630,7 @@ public class Application extends ResourceConfig
             // TO-DO: config property for cacheModelLoads
             endUserOntModelSpecs = new HashMap<>();
             linkedDataClient = LinkedDataClient.create(client, mediaTypes);
-            linkedDataClient.getClient().register(YoutubeModelReader.class);
+            linkedDataClient.getClient().register(YouTubeReaderInterceptor.class);
             dataManager = new DataManagerImpl(locationMapper, new HashMap<>(), linkedDataClient, cacheModelLoads, preemptiveAuth, resolvingUncached);
             ontModelSpec = OntModelSpec.OWL_MEM_RDFS_INF;
             ontModelSpec.setImportModelGetter(dataManager);
