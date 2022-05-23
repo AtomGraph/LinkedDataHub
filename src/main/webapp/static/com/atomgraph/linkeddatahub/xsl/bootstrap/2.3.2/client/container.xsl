@@ -410,6 +410,7 @@ exclude-result-prefixes="#all"
                             <xsl:call-template name="container-mode">
                                 <xsl:with-param name="container-id" select="$container-id"/>
                                 <xsl:with-param name="select-xml" select="$select-xml"/>
+                                <xsl:with-param name="endpoint" select="$endpoint"/>
                                 <xsl:with-param name="results" select="$results"/>
                                 <xsl:with-param name="order-by-predicate" select="$order-by-predicate"/>
                                 <xsl:with-param name="desc" select="$desc"/>
