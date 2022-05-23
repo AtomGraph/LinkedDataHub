@@ -352,6 +352,7 @@ exclude-result-prefixes="#all"
                         <xsl:call-template name="container-mode">
                             <xsl:with-param name="container-id" select="$container-id"/>
                             <xsl:with-param name="select-xml" select="$select-xml"/>
+                            <xsl:with-param name="endpoint" select="$endpoint"/>
                             <xsl:with-param name="results" select="$results"/>
                             <xsl:with-param name="order-by-predicate" select="$order-by-predicate"/>
                             <xsl:with-param name="desc" select="$desc"/>
@@ -523,6 +524,7 @@ exclude-result-prefixes="#all"
     <xsl:template name="container-mode">
         <xsl:param name="container-id" as="xs:string"/>
         <xsl:param name="select-xml" as="document-node()"/>
+        <xsl:param name="endpoint" as="xs:anyURI"/>
         <xsl:param name="results" as="document-node()"/>
         <xsl:param name="order-by-predicate" as="xs:anyURI?"/>
         <xsl:param name="desc" as="xs:boolean?"/>
@@ -624,33 +626,42 @@ exclude-result-prefixes="#all"
                 <xsl:when test="$active-mode = '&ac;ListMode'">
                     <xsl:apply-templates select="$sorted-results" mode="bs2:BlockList">
                         <xsl:with-param name="select-xml" select="$select-xml"/>
+                        <xsl:with-param name="endpoint" select="$endpoint" tunnel="yes"/>
                     </xsl:apply-templates>
                 </xsl:when>
                 <xsl:when test="$active-mode = '&ac;TableMode'">
                     <xsl:apply-templates select="$sorted-results" mode="xhtml:Table">
                         <xsl:with-param name="select-xml" select="$select-xml"/>
+                        <xsl:with-param name="endpoint" select="$endpoint" tunnel="yes"/>
                     </xsl:apply-templates>
                 </xsl:when>
                 <xsl:when test="$active-mode = '&ac;GridMode'">
                     <xsl:apply-templates select="$sorted-results" mode="bs2:Grid">
                         <xsl:with-param name="select-xml" select="$select-xml"/>
+                        <xsl:with-param name="endpoint" select="$endpoint" tunnel="yes"/>
                     </xsl:apply-templates>
                 </xsl:when>
                 <xsl:when test="$active-mode = '&ac;ChartMode'">
                     <xsl:apply-templates select="$sorted-results" mode="bs2:Chart">
                         <xsl:with-param name="canvas-id" select="$container-id || '-chart-canvas'"/>
+                        <xsl:with-param name="endpoint" select="$endpoint" tunnel="yes"/>
                     </xsl:apply-templates>
                 </xsl:when>
                 <xsl:when test="$active-mode = '&ac;MapMode'">
                     <xsl:apply-templates select="$sorted-results" mode="bs2:Map">
                         <xsl:with-param name="canvas-id" select="$container-id || '-map-canvas'"/>
+                        <xsl:with-param name="endpoint" select="$endpoint" tunnel="yes"/>
                     </xsl:apply-templates>
                 </xsl:when>
                 <xsl:when test="$active-mode = '&ac;GraphMode'">
-                    <xsl:apply-templates select="$sorted-results" mode="bs2:Graph"/>
+                    <xsl:apply-templates select="$sorted-results" mode="bs2:Graph">
+                        <xsl:with-param name="endpoint" select="$endpoint" tunnel="yes"/>
+                    </xsl:apply-templates>
                 </xsl:when>
                 <xsl:otherwise>
-                    <xsl:apply-templates select="$sorted-results" mode="bs2:Block"/>
+                    <xsl:apply-templates select="$sorted-results" mode="bs2:Block">
+                        <xsl:with-param name="endpoint" select="$endpoint" tunnel="yes"/>
+                    </xsl:apply-templates>
                 </xsl:otherwise>
             </xsl:choose>
         </div>
