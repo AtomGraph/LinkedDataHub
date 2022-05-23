@@ -157,7 +157,7 @@ if [ -n "$slug" ] ; then
     turtle+="_:item dh:slug \"${slug}\" .\n"
 fi
 if [ -n "$fragment" ] ; then
-    turtle+="_:chart ldh:fragment \"${fragment}\" .\n"
+    turtle+="_:service ldh:fragment \"${fragment}\" .\n"
 fi
 
 # submit Turtle doc to the server
