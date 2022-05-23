@@ -18,9 +18,6 @@ package com.atomgraph.linkeddatahub.client.filter;
 
 import java.io.IOException;
 import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.client.ClientRequestContext;
-import javax.ws.rs.client.ClientRequestFilter;
-import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.ext.ReaderInterceptor;
 import javax.ws.rs.ext.ReaderInterceptorContext;
@@ -31,17 +28,13 @@ import org.slf4j.LoggerFactory;
  *
  * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
  */
-public class YouTubeReaderInterceptor implements ClientRequestFilter, ReaderInterceptor
+public class YouTubeReaderInterceptor implements ReaderInterceptor
 {
 
     private static final Logger log = LoggerFactory.getLogger(YouTubeReaderInterceptor.class);
 
     public static String URL = "https://youtube.googleapis.com/youtube/v3/videos";
-
-    @Override
-    public void filter(ClientRequestContext crc) throws IOException
-    {
-    }
+    public static String SCOPE = "https://www.googleapis.com/auth/youtube.readonly";
 
     @Override
     public Object aroundReadFrom(ReaderInterceptorContext context) throws IOException, WebApplicationException
@@ -49,7 +42,6 @@ public class YouTubeReaderInterceptor implements ClientRequestFilter, ReaderInte
         if (context.getHeaders().getFirst("X-Request-URI") != null && context.getHeaders().getFirst("X-Request-URI").startsWith(URL) &&
             context.getMediaType().isCompatible(MediaType.APPLICATION_JSON_TYPE))
         {
-            log.debug("YOUTUBE!");
         }
         
         return context.proceed();
