@@ -16,6 +16,7 @@
  */
 package com.atomgraph.linkeddatahub.client.filter;
 
+import static com.atomgraph.core.io.ModelProvider.REQUEST_URI_HEADER;
 import java.io.IOException;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
@@ -39,7 +40,7 @@ public class YouTubeReaderInterceptor implements ReaderInterceptor
     @Override
     public Object aroundReadFrom(ReaderInterceptorContext context) throws IOException, WebApplicationException
     {
-        if (context.getHeaders().getFirst("X-Request-URI") != null && context.getHeaders().getFirst("X-Request-URI").startsWith(URL) &&
+        if (context.getHeaders().getFirst(REQUEST_URI_HEADER) != null && context.getHeaders().getFirst(REQUEST_URI_HEADER).startsWith(URL) &&
             context.getMediaType().isCompatible(MediaType.APPLICATION_JSON_TYPE))
         {
         }
