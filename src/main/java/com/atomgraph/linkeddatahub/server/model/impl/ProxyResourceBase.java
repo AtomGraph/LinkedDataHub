@@ -19,6 +19,7 @@ package com.atomgraph.linkeddatahub.server.model.impl;
 import com.atomgraph.client.MediaTypes;
 import com.atomgraph.client.util.DataManager;
 import com.atomgraph.client.vocabulary.AC;
+import com.atomgraph.core.client.SPARQLClient;
 import com.atomgraph.core.exception.BadGatewayException;
 import com.atomgraph.linkeddatahub.apps.model.Dataset;
 import com.atomgraph.linkeddatahub.client.filter.auth.IDTokenDelegationFilter;
@@ -191,8 +192,17 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
         // only lookup resource locally using DESCRIBE if it's external (not relative to the app's base URI)
         if (getApplication().getBaseURI().relativize(target.getUri()).isAbsolute())
         {
+            final SPARQLClient sparqlClient;
+            // if endpoint URI is provided as ?endpoint, use that; otherwise, default the local service endoint
+            if (getUriInfo().getQueryParameters().containsKey(AC.endpoint.getLocalName()))
+            {
+                String endpointURI = getUriInfo().getQueryParameters().getFirst(AC.endpoint.getLocalName());
+                sparqlClient = SPARQLClient.create(getClient().target(endpointURI));
+            }
+            else sparqlClient = getService().getSPARQLClient();
+            
             Query query = QueryFactory.create("DESCRIBE <" + target.getUri() + ">");
-            Model localModel = getService().getSPARQLClient().loadModel(query);
+            Model localModel = sparqlClient.loadModel(query);
             getContainerRequestContext().setProperty(LDH.localGraph.getURI(), localModel);
 
             try
