@@ -1,3 +1,18 @@
+## [3.1.9] - 2022-05-23
+### Added
+- `--fragment` parameter to CLI scripts that can be used to specify the fragment ID of the resource paired with the document (defaults to UUID)
+- `ENABLE_LINKED_DATA_PROXY` env parameter that allows disabling the Linked Data proxy/browser (enabled by default)
+
+### Changed
+- Fixed double `On-Behalf-Of` header value when both WebID and OIDC agent contexts were delegated
+- Fixed Linked Data proxy fallback to a local `DESCRIBE` query when the external URL does not dereference
+- Fixed IP address check in the setup script
+- Jena upgraded to 4.5.0
+- Fuseki Docker image upgraded to 4.5.0
+- Saxon-JS upgraded to 2.4
+- `key()` lookups enabled in client-side XSLT as HTML page mutations do not break indexes anymore (fixed in [5036](https://saxonica.plan.io/issues/5036))
+
+
 ## [3.1.6] - 2022-05-10
 ### Added
 - Spanish UI localization
