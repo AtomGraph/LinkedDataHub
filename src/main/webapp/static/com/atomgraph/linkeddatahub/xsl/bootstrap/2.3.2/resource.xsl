@@ -530,7 +530,6 @@ extension-element-prefixes="ixsl"
     <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:Header">
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" select="'well'" as="xs:string?"/>
-        <xsl:param name="mode" as="xs:anyURI?"/>
 
         <div>
             <xsl:if test="$id">
@@ -551,7 +550,6 @@ extension-element-prefixes="ixsl"
                     <xsl:with-param name="class" as="xs:string?">
                         <xsl:apply-templates select="." mode="ldh:logo"/>
                     </xsl:with-param>
-                    <xsl:with-param name="mode" select="$mode"/>
                 </xsl:apply-templates>
             </h2>
 
@@ -766,14 +764,11 @@ extension-element-prefixes="ixsl"
     <xsl:template match="*" mode="ldh:ContentList"/>
 
     <xsl:template match="*[*][@rdf:about]" mode="ldh:ContentHeader" priority="2">
-        <xsl:param name="mode" as="xs:anyURI?"/>
-        
         <h2>
             <xsl:apply-templates select="@rdf:about" mode="xhtml:Anchor">
                 <xsl:with-param name="class" as="xs:string?">
                     <xsl:apply-templates select="." mode="ldh:logo"/>
                 </xsl:with-param>
-                <xsl:with-param name="mode" select="$mode"/>
             </xsl:apply-templates>
         </h2>
     </xsl:template>

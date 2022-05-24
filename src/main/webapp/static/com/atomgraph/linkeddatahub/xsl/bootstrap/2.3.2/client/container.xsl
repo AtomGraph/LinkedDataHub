@@ -627,41 +627,41 @@ exclude-result-prefixes="#all"
                 <xsl:when test="$active-mode = '&ac;ListMode'">
                     <xsl:apply-templates select="$sorted-results" mode="bs2:BlockList">
                         <xsl:with-param name="select-xml" select="$select-xml"/>
-                        <xsl:with-param name="endpoint" select="$endpoint" tunnel="yes"/>
+                        <xsl:with-param name="endpoint" select="if (not($endpoint = sd:endpoint())) then $endpoint else ()" tunnel="yes"/>
                     </xsl:apply-templates>
                 </xsl:when>
                 <xsl:when test="$active-mode = '&ac;TableMode'">
                     <xsl:apply-templates select="$sorted-results" mode="xhtml:Table">
                         <xsl:with-param name="select-xml" select="$select-xml"/>
-                        <xsl:with-param name="endpoint" select="$endpoint" tunnel="yes"/>
+                        <xsl:with-param name="endpoint" select="if (not($endpoint = sd:endpoint())) then $endpoint else ()" tunnel="yes"/>
                     </xsl:apply-templates>
                 </xsl:when>
                 <xsl:when test="$active-mode = '&ac;GridMode'">
                     <xsl:apply-templates select="$sorted-results" mode="bs2:Grid">
                         <xsl:with-param name="select-xml" select="$select-xml"/>
-                        <xsl:with-param name="endpoint" select="$endpoint" tunnel="yes"/>
+                        <xsl:with-param name="endpoint" select="if (not($endpoint = sd:endpoint())) then $endpoint else ()" tunnel="yes"/>
                     </xsl:apply-templates>
                 </xsl:when>
                 <xsl:when test="$active-mode = '&ac;ChartMode'">
                     <xsl:apply-templates select="$sorted-results" mode="bs2:Chart">
                         <xsl:with-param name="canvas-id" select="$container-id || '-chart-canvas'"/>
-                        <xsl:with-param name="endpoint" select="$endpoint" tunnel="yes"/>
+                        <xsl:with-param name="endpoint" select="if (not($endpoint = sd:endpoint())) then $endpoint else ()" tunnel="yes"/>
                     </xsl:apply-templates>
                 </xsl:when>
                 <xsl:when test="$active-mode = '&ac;MapMode'">
                     <xsl:apply-templates select="$sorted-results" mode="bs2:Map">
                         <xsl:with-param name="canvas-id" select="$container-id || '-map-canvas'"/>
-                        <xsl:with-param name="endpoint" select="$endpoint" tunnel="yes"/>
+                        <xsl:with-param name="endpoint" select="if (not($endpoint = sd:endpoint())) then $endpoint else ()" tunnel="yes"/>
                     </xsl:apply-templates>
                 </xsl:when>
                 <xsl:when test="$active-mode = '&ac;GraphMode'">
                     <xsl:apply-templates select="$sorted-results" mode="bs2:Graph">
-                        <xsl:with-param name="endpoint" select="$endpoint" tunnel="yes"/>
+                        <xsl:with-param name="endpoint" select="if (not($endpoint = sd:endpoint())) then $endpoint else ()" tunnel="yes"/>
                     </xsl:apply-templates>
                 </xsl:when>
                 <xsl:otherwise>
                     <xsl:apply-templates select="$sorted-results" mode="bs2:Block">
-                        <xsl:with-param name="endpoint" select="$endpoint" tunnel="yes"/>
+                        <xsl:with-param name="endpoint" select="if (not($endpoint = sd:endpoint())) then $endpoint else ()" tunnel="yes"/>
                     </xsl:apply-templates>
                 </xsl:otherwise>
             </xsl:choose>
@@ -724,7 +724,6 @@ exclude-result-prefixes="#all"
     <xsl:template match="*[key('resources', foaf:primaryTopic/@rdf:resource)]" mode="bs2:BlockList" priority="1">
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" select="'well'" as="xs:string?"/>
-        <xsl:param name="mode" as="xs:anyURI?"/>
 
         <div>
             <xsl:if test="$id">
@@ -745,9 +744,7 @@ exclude-result-prefixes="#all"
 
             <xsl:apply-templates select="." mode="bs2:Timestamp"/>
             <xsl:text> </xsl:text>
-            <xsl:apply-templates select="@rdf:about | @rdf:nodeID" mode="xhtml:Anchor">
-                <xsl:with-param name="mode" select="$mode"/>
-            </xsl:apply-templates>
+            <xsl:apply-templates select="@rdf:about | @rdf:nodeID" mode="xhtml:Anchor"/>
 
             <xsl:apply-templates select="key('resources', foaf:primaryTopic/@rdf:resource)" mode="bs2:Header">
                 <xsl:with-param name="class" select="'well well-small'"/>
