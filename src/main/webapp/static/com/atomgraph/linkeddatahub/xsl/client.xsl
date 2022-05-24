@@ -857,9 +857,10 @@ WHERE
         <xsl:param name="service-uri" select="if (id('search-service', ixsl:page())) then xs:anyURI(ixsl:get(id('search-service', ixsl:page()), 'value')) else ()" as="xs:anyURI?"/>
         <xsl:param name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.apps'))" as="element()?"/>
         <xsl:param name="push-state" select="true()" as="xs:boolean"/>
-        <!-- decode raw URL from the ?uri query param, if it's present -->
-        <xsl:variable name="uri" select="if (contains($href, '?')) then let $query-params := ldh:parse-query-params(substring-after($href, '?')) return if (exists($query-params?uri)) then ldh:decode-uri($query-params?uri[1]) else ldh:absolute-path($href) else ldh:absolute-path($href)" as="xs:anyURI"/> <!-- raw URL -->
-        <xsl:message>onDocumentLoad $href: <xsl:value-of select="$href"/> $uri: <xsl:value-of select="$uri"/></xsl:message>
+        <!-- decode raw document URL (without fragment) from the ?uri query param, if it's present -->
+        <xsl:variable name="uri" select="if (contains($href, '?')) then let $query-params := ldh:parse-query-params(substring-after(ac:document-uri($href, '?'))) return if (exists($query-params?uri)) then ldh:decode-uri($query-params?uri[1]) else ldh:absolute-path($href) else ldh:absolute-path($href)" as="xs:anyURI"/>
+        <xsl:variable name="doc-uri" select="ac:document-uri($uri)" as="xs:anyURI"/>
+        <xsl:message>onDocumentLoad $href: <xsl:value-of select="$href"/> $uri: <xsl:value-of select="$uri"/> $doc-uri: <xsl:value-of select="$doc-uri"/></xsl:message>
 
         <!-- update the URI in the nav bar -->
         <xsl:choose>
@@ -951,10 +952,11 @@ WHERE
         <xsl:param name="push-state" select="true()" as="xs:boolean"/>
         <xsl:param name="endpoint" as="xs:anyURI?"/>
         <xsl:param name="replace-content" select="true()" as="xs:boolean"/>
-        <!-- decode raw URL from the ?uri query param, if it's present -->
-        <xsl:variable name="uri" select="if (contains($href, '?')) then let $query-params := ldh:parse-query-params(substring-after($href, '?')) return if (exists($query-params?uri)) then ldh:decode-uri($query-params?uri[1]) else ldh:absolute-path($href) else ldh:absolute-path($href)" as="xs:anyURI"/> <!-- raw URL -->
+        <!-- decode raw document URL (without fragment) from the ?uri query param, if it's present -->
+        <xsl:variable name="uri" select="if (contains($href, '?')) then let $query-params := ldh:parse-query-params(substring-after(ac:document-uri($href, '?'))) return if (exists($query-params?uri)) then ldh:decode-uri($query-params?uri[1]) else ldh:absolute-path($href) else ldh:absolute-path($href)" as="xs:anyURI"/>
+        <xsl:variable name="doc-uri" select="ac:document-uri($uri)" as="xs:anyURI"/>
         <xsl:variable name="fragment" select="if (contains($href, '#')) then substring-after($href, '#') else ()" as="xs:string?"/>
-        <xsl:message>ldh:LoadedHTMLDocument $href: <xsl:value-of select="$href"/> $uri: <xsl:value-of select="$uri"/> $fragment: <xsl:value-of select="$fragment"/> </xsl:message>
+        <xsl:message>ldh:LoadedHTMLDocument $href: <xsl:value-of select="$href"/> $uri: <xsl:value-of select="$uri"/> $doc-uri: <xsl:value-of select="$doc-uri"/> $fragment: <xsl:value-of select="$fragment"/> </xsl:message>
         
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
         <!-- enable .btn-edit if it's present -->
@@ -964,7 +966,7 @@ WHERE
         </xsl:for-each>
         <xsl:for-each select="ixsl:page()//div[contains-token(@class, 'action-bar')]//button[contains-token(@class, 'btn-delete')]">
             <!-- disable Delete button for the Root document -->
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'disabled', $uri = $ldt:base ])[current-date() lt xs:date('2000-01-01')]"/>
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'disabled', $doc-uri = $ldt:base ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
 
         <!-- enable .btn-save-as if it's present -->
@@ -979,7 +981,7 @@ WHERE
         
         <!-- update the a.btn-edit link if it is visible -->
         <xsl:for-each select="ixsl:page()//div[contains-token(@class, 'action-bar')]//a[contains-token(@class, 'btn-edit')]">
-            <xsl:variable name="edit-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), $uri, xs:anyURI('&ac;EditMode'))" as="xs:anyURI"/>
+            <xsl:variable name="edit-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), $doc-uri, xs:anyURI('&ac;EditMode'))" as="xs:anyURI"/>
             <ixsl:set-attribute name="href" select="$edit-uri" object="."/>
         </xsl:for-each>
 
@@ -1021,7 +1023,7 @@ WHERE
             <!-- update RDF download links to match the current URI -->
             <xsl:for-each select="id('export-rdf', ixsl:page())/following-sibling::ul/li/a">
                 <!-- use @title attribute for the media type TO-DO: find a better way, a hidden input or smth -->
-                <xsl:variable name="href" select="ac:build-uri(ldh:absolute-path(ldh:href()), let $params := map{ 'accept': string(@title) } return if (not(starts-with($uri, $ldt:base))) then map:merge(($params, map{ 'uri': $uri })) else $params)" as="xs:anyURI"/>
+                <xsl:variable name="href" select="ac:build-uri(ldh:absolute-path(ldh:href()), let $params := map{ 'accept': string(@title) } return if (not(starts-with($doc-uri, $ldt:base))) then map:merge(($params, map{ 'uri': $doc-uri })) else $params)" as="xs:anyURI"/>
                 <ixsl:set-attribute name="href" select="$href" object="."/>
             </xsl:for-each>
         </xsl:if>
