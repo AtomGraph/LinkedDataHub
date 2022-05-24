@@ -74,7 +74,18 @@ exclude-result-prefixes="#all"
         <xsl:param name="mode" as="xs:anyURI*"/>
         <xsl:param name="forClass" as="xs:anyURI?"/>
 
-        <xsl:variable name="query-params" select="map:merge((if (exists($mode)) then map{ 'mode': for $m in $mode return string($m) } else (), if ($forClass) then map{ 'forClass': string($forClass) } else ()))" as="map(xs:string, xs:string*)"/>
+        <xsl:sequence select="ldh:href($base, $absolute-path, $uri, $mode, $forClass, ())"/>
+    </xsl:function>
+    
+    <xsl:function name="ldh:href" as="xs:anyURI">
+        <xsl:param name="base" as="xs:anyURI"/>
+        <xsl:param name="absolute-path" as="xs:anyURI"/>
+        <xsl:param name="uri" as="xs:anyURI"/>
+        <xsl:param name="mode" as="xs:anyURI*"/>
+        <xsl:param name="forClass" as="xs:anyURI?"/>
+        <xsl:param name="endpoint" as="xs:anyURI?"/>
+
+        <xsl:variable name="query-params" select="map:merge((if (exists($mode)) then map{ 'mode': for $m in $mode return string($m) } else (), if ($forClass) then map{ 'forClass': string($forClass) } else (), if ($endpoint) then map{ 'endpoint': string($endpoint) } else ()))" as="map(xs:string, xs:string*)"/>
         <xsl:choose>
             <!-- do not proxy $uri via ?uri= if it is relative to the $base -->
             <xsl:when test="starts-with($uri, $base)">
@@ -276,13 +287,12 @@ exclude-result-prefixes="#all"
     
     <!-- subject resource -->
     <xsl:template match="@rdf:about" mode="xhtml:Anchor">
-        <xsl:param name="href" select="if (starts-with(., $ldt:base)) then xs:anyURI(.) else xs:anyURI('')" as="xs:anyURI"/>
+        <xsl:param name="endpoint" as="xs:anyURI?" tunnel="yes"/>
+        <xsl:param name="href" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ., (), $endpoint)" as="xs:anyURI"/>
         <xsl:param name="id" select="encode-for-uri(.)" as="xs:string?"/>
         <xsl:param name="title" select="." as="xs:string?"/>
         <xsl:param name="class" as="xs:string?"/>
         <xsl:param name="target" as="xs:string?"/>
-        <xsl:param name="query-params" select="if (starts-with(., $ldt:base)) then map{} else map{ 'uri': string(.) }" as="map(xs:string, xs:string*)"/>
-        <xsl:param name="fragment" select="encode-for-uri(.)" as="xs:string?"/>
 
         <xsl:next-match>
             <xsl:with-param name="href" select="$href"/>
@@ -290,13 +300,12 @@ exclude-result-prefixes="#all"
             <xsl:with-param name="title" select="$title"/>
             <xsl:with-param name="class" select="$class"/>
             <xsl:with-param name="target" select="$target"/>
-            <xsl:with-param name="query-params" select="$query-params"/>
-            <xsl:with-param name="fragment" select="$fragment"/>
         </xsl:next-match>
     </xsl:template>
     
     <xsl:template match="@rdf:about | @rdf:resource" mode="svg:Anchor">
-        <xsl:param name="href" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ., $ac:mode)" as="xs:anyURI"/>
+        <xsl:param name="endpoint" as="xs:anyURI?" tunnel="yes"/>
+        <xsl:param name="href" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ., $ac:mode, $endpoint)" as="xs:anyURI"/>
         <xsl:param name="id" select="encode-for-uri(.)" as="xs:string?"/>
         <xsl:param name="label" select="if (parent::rdf:Description) then ac:svg-label(..) else ac:svg-object-label(.)" as="xs:string"/>
         <xsl:param name="title" select="$label" as="xs:string"/>
@@ -317,7 +326,8 @@ exclude-result-prefixes="#all"
 
     <!-- proxy link URIs if they are external -->
     <xsl:template match="@rdf:resource | srx:uri" priority="2">
-        <xsl:param name="href" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), xs:anyURI(.))" as="xs:anyURI"/>
+        <xsl:param name="endpoint" as="xs:anyURI?" tunnel="yes"/>
+        <xsl:param name="href" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ., $endpoint)" as="xs:anyURI"/>
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="title" select="." as="xs:string?"/>
         <xsl:param name="class" as="xs:string?"/>
