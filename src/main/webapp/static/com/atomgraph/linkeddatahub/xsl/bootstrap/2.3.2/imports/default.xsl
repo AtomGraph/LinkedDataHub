@@ -276,7 +276,7 @@ exclude-result-prefixes="#all"
     
     <!-- subject resource -->
     <xsl:template match="@rdf:about" mode="xhtml:Anchor">
-        <xsl:param name="href" select="if (starts-with($href, $ldt:base)) then xs:anyURI(.) else xs:anyURI('')" as="xs:anyURI"/>
+        <xsl:param name="href" select="if (starts-with(., $ldt:base)) then xs:anyURI(.) else xs:anyURI('')" as="xs:anyURI"/>
         <xsl:param name="id" select="encode-for-uri(.)" as="xs:string?"/>
         <xsl:param name="title" select="." as="xs:string?"/>
         <xsl:param name="class" as="xs:string?"/>
