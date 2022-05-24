@@ -276,12 +276,13 @@ exclude-result-prefixes="#all"
     
     <!-- subject resource -->
     <xsl:template match="@rdf:about" mode="xhtml:Anchor">
-        <xsl:param name="href" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), .)" as="xs:anyURI"/>
+        <xsl:param name="href" select="if (starts-with($href, $ldt:base)) then xs:anyURI(.) else xs:anyURI('')" as="xs:anyURI"/>
         <xsl:param name="id" select="encode-for-uri(.)" as="xs:string?"/>
         <xsl:param name="title" select="." as="xs:string?"/>
         <xsl:param name="class" as="xs:string?"/>
         <xsl:param name="target" as="xs:string?"/>
         <xsl:param name="mode" as="xs:anyURI?"/>
+        <xsl:param name="query-params" select="if (starts-with($href, $ldt:base)) then map{} else map{ 'uri': string(ac:document-uri($href)) }" as="map(xs:string, xs:string*)"/>
 
         <xsl:next-match>
             <xsl:with-param name="href" select="$href"/>
@@ -290,6 +291,7 @@ exclude-result-prefixes="#all"
             <xsl:with-param name="class" select="$class"/>
             <xsl:with-param name="target" select="$target"/>
             <xsl:with-param name="mode" select="$mode"/>
+            <xsl:with-param name="query-params" select="$query-params"/>
         </xsl:next-match>
     </xsl:template>
     
