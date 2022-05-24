@@ -93,7 +93,7 @@ exclude-result-prefixes="#all"
                 <xsl:sequence select="xs:anyURI(ac:build-uri($uri, $query-params) || (if ($fragment) then '#' || $fragment else ()))"/>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:variable name="fragment" select="'#' || encode-for-uri(.)" as="xs:string?"/>
+                <xsl:variable name="fragment" select="'#' || encode-for-uri($uri)" as="xs:string?"/>
                 <xsl:sequence select="xs:anyURI(ac:build-uri($absolute-path, map:merge((map{ 'uri': string($uri) }, $query-params))) || $fragment)"/>
             </xsl:otherwise>
         </xsl:choose>
