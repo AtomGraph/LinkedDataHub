@@ -952,7 +952,7 @@ WHERE
         <xsl:param name="replace-content" select="true()" as="xs:boolean"/>
         <!-- decode raw URL from the ?uri query param, if it's present -->
         <xsl:variable name="uri" select="if (contains($href, '?')) then let $query-params := ldh:parse-query-params(substring-after($href, '?')) return if (exists($query-params?uri)) then ldh:decode-uri($query-params?uri[1]) else ldh:absolute-path($href) else ldh:absolute-path($href)" as="xs:anyURI"/> <!-- raw URL -->
-        <xsl:variable name="fragment" select="if (contains($href, '#')) then '#' || substring-after($href, '#') else ()" as="xs:string?"/>
+        <xsl:variable name="fragment" select="if (contains($href, '#')) then substring-after($href, '#') else ()" as="xs:string?"/>
         <xsl:message>$fragment: <xsl:value-of select="$fragment"/> $href: <xsl:value-of select="$href"/></xsl:message>
         
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
