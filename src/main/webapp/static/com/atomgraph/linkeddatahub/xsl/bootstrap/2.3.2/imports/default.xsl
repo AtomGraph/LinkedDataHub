@@ -282,7 +282,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="class" as="xs:string?"/>
         <xsl:param name="target" as="xs:string?"/>
         <xsl:param name="mode" as="xs:anyURI?"/>
-        <xsl:param name="query-params" select="if (starts-with($href, $ldt:base)) then map{} else map{ 'uri': string(ac:document-uri($href)) }" as="map(xs:string, xs:string*)"/>
+        <xsl:param name="query-params" select="if (starts-with(., $ldt:base)) then map{} else map{ 'uri': string(ac:document-uri(.)) }" as="map(xs:string, xs:string*)"/>
 
         <xsl:next-match>
             <xsl:with-param name="href" select="$href"/>
