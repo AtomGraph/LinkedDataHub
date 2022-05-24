@@ -89,10 +89,12 @@ exclude-result-prefixes="#all"
         <xsl:choose>
             <!-- do not proxy $uri via ?uri= if it is relative to the $base -->
             <xsl:when test="starts-with($uri, $base)">
-                <xsl:sequence select="ac:build-uri($uri, $query-params)"/>
+                <xsl:variable name="fragment" select="if (contains($uri, '#')) then substring-after($uri, '#') else ()" as="xs:string?"/>
+                <xsl:sequence select="ac:build-uri($uri, $query-params) || (if ($fragment) then '#' || $fragment else ())"/>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:sequence select="ac:build-uri($absolute-path, map:merge((map{ 'uri': string($uri) }, $query-params)))"/>
+                <xsl:variable name="fragment" select="'#' || encode-for-uri(.)" as="xs:string?"/>
+                <xsl:sequence select="ac:build-uri($absolute-path, map:merge((map{ 'uri': string($uri) }, $query-params))) || $fragment"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:function>
@@ -288,7 +290,7 @@ exclude-result-prefixes="#all"
     <!-- subject resource -->
     <xsl:template match="@rdf:about" mode="xhtml:Anchor">
         <xsl:param name="endpoint" as="xs:anyURI?" tunnel="yes"/>
-        <xsl:param name="href" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ., (), $endpoint)" as="xs:anyURI"/>
+        <xsl:param name="href" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ., (), (), $endpoint)" as="xs:anyURI"/>
         <xsl:param name="id" select="encode-for-uri(.)" as="xs:string?"/>
         <xsl:param name="title" select="." as="xs:string?"/>
         <xsl:param name="class" as="xs:string?"/>
@@ -305,7 +307,7 @@ exclude-result-prefixes="#all"
     
     <xsl:template match="@rdf:about | @rdf:resource" mode="svg:Anchor">
         <xsl:param name="endpoint" as="xs:anyURI?" tunnel="yes"/>
-        <xsl:param name="href" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ., $ac:mode, $endpoint)" as="xs:anyURI"/>
+        <xsl:param name="href" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ., $ac:mode, (), $endpoint)" as="xs:anyURI"/>
         <xsl:param name="id" select="encode-for-uri(.)" as="xs:string?"/>
         <xsl:param name="label" select="if (parent::rdf:Description) then ac:svg-label(..) else ac:svg-object-label(.)" as="xs:string"/>
         <xsl:param name="title" select="$label" as="xs:string"/>
@@ -327,7 +329,7 @@ exclude-result-prefixes="#all"
     <!-- proxy link URIs if they are external -->
     <xsl:template match="@rdf:resource | srx:uri" priority="2">
         <xsl:param name="endpoint" as="xs:anyURI?" tunnel="yes"/>
-        <xsl:param name="href" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ., $endpoint)" as="xs:anyURI"/>
+        <xsl:param name="href" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ., (), (), $endpoint)" as="xs:anyURI"/>
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="title" select="." as="xs:string?"/>
         <xsl:param name="class" as="xs:string?"/>
