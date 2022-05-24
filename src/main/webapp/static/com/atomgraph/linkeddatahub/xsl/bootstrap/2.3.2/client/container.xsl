@@ -627,41 +627,41 @@ exclude-result-prefixes="#all"
                 <xsl:when test="$active-mode = '&ac;ListMode'">
                     <xsl:apply-templates select="$sorted-results" mode="bs2:BlockList">
                         <xsl:with-param name="select-xml" select="$select-xml"/>
-                        <xsl:with-param name="endpoint" select="$endpoint" tunnel="yes"/>
+                        <xsl:with-param name="endpoint" select="if (not($endpoint = sd:endpoint())) then $endpoint else ()" tunnel="yes"/>
                     </xsl:apply-templates>
                 </xsl:when>
                 <xsl:when test="$active-mode = '&ac;TableMode'">
                     <xsl:apply-templates select="$sorted-results" mode="xhtml:Table">
                         <xsl:with-param name="select-xml" select="$select-xml"/>
-                        <xsl:with-param name="endpoint" select="$endpoint" tunnel="yes"/>
+                        <xsl:with-param name="endpoint" select="if (not($endpoint = sd:endpoint())) then $endpoint else ()" tunnel="yes"/>
                     </xsl:apply-templates>
                 </xsl:when>
                 <xsl:when test="$active-mode = '&ac;GridMode'">
                     <xsl:apply-templates select="$sorted-results" mode="bs2:Grid">
                         <xsl:with-param name="select-xml" select="$select-xml"/>
-                        <xsl:with-param name="endpoint" select="$endpoint" tunnel="yes"/>
+                        <xsl:with-param name="endpoint" select="if (not($endpoint = sd:endpoint())) then $endpoint else ()" tunnel="yes"/>
                     </xsl:apply-templates>
                 </xsl:when>
                 <xsl:when test="$active-mode = '&ac;ChartMode'">
                     <xsl:apply-templates select="$sorted-results" mode="bs2:Chart">
                         <xsl:with-param name="canvas-id" select="$container-id || '-chart-canvas'"/>
-                        <xsl:with-param name="endpoint" select="$endpoint" tunnel="yes"/>
+                        <xsl:with-param name="endpoint" select="if (not($endpoint = sd:endpoint())) then $endpoint else ()" tunnel="yes"/>
                     </xsl:apply-templates>
                 </xsl:when>
                 <xsl:when test="$active-mode = '&ac;MapMode'">
                     <xsl:apply-templates select="$sorted-results" mode="bs2:Map">
                         <xsl:with-param name="canvas-id" select="$container-id || '-map-canvas'"/>
-                        <xsl:with-param name="endpoint" select="$endpoint" tunnel="yes"/>
+                        <xsl:with-param name="endpoint" select="if (not($endpoint = sd:endpoint())) then $endpoint else ()" tunnel="yes"/>
                     </xsl:apply-templates>
                 </xsl:when>
                 <xsl:when test="$active-mode = '&ac;GraphMode'">
                     <xsl:apply-templates select="$sorted-results" mode="bs2:Graph">
-                        <xsl:with-param name="endpoint" select="$endpoint" tunnel="yes"/>
+                        <xsl:with-param name="endpoint" select="if (not($endpoint = sd:endpoint())) then $endpoint else ()" tunnel="yes"/>
                     </xsl:apply-templates>
                 </xsl:when>
                 <xsl:otherwise>
                     <xsl:apply-templates select="$sorted-results" mode="bs2:Block">
-                        <xsl:with-param name="endpoint" select="$endpoint" tunnel="yes"/>
+                        <xsl:with-param name="endpoint" select="if (not($endpoint = sd:endpoint())) then $endpoint else ()" tunnel="yes"/>
                     </xsl:apply-templates>
                 </xsl:otherwise>
             </xsl:choose>
