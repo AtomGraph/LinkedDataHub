@@ -324,7 +324,7 @@ exclude-result-prefixes="#all"
     
     <xsl:template name="render-container">
         <xsl:param name="container" as="element()"/>
-        <xsl:param name="container-id" select="ixsl:get($container, 'id')" as="xs:string"/>
+        <xsl:param name="content-id" select="ixsl:get($container/.., 'id')" as="xs:string"/>
         <xsl:param name="content-uri" as="xs:anyURI"/>
         <xsl:param name="endpoint" as="xs:anyURI"/>
         <xsl:param name="content" as="element()?"/>
@@ -337,7 +337,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="default-desc" as="xs:boolean?"/>
         <xsl:param name="active-mode" as="xs:anyURI"/>
         <xsl:param name="select-xml" as="document-node()"/>
-        <xsl:param name="order-by-container-id" select="$container-id || '-container-order'" as="xs:string?"/>
+        <xsl:param name="order-by-container-id" select="$content-id || '-container-order'" as="xs:string?"/>
 
         <!-- hide progress bar -->
         <xsl:for-each select="$container//div[@class = 'progress-bar']">
@@ -350,7 +350,7 @@ exclude-result-prefixes="#all"
                 <xsl:for-each select="$container/div[ul]">
                     <xsl:result-document href="?." method="ixsl:replace-content">
                         <xsl:call-template name="container-mode">
-                            <xsl:with-param name="container-id" select="$container-id"/>
+                            <xsl:with-param name="container-id" select="$content-id"/>
                             <xsl:with-param name="select-xml" select="$select-xml"/>
                             <xsl:with-param name="endpoint" select="$endpoint"/>
                             <xsl:with-param name="results" select="$results"/>
@@ -408,7 +408,7 @@ exclude-result-prefixes="#all"
 
                         <div>
                             <xsl:call-template name="container-mode">
-                                <xsl:with-param name="container-id" select="$container-id"/>
+                                <xsl:with-param name="container-id" select="$content-id"/>
                                 <xsl:with-param name="select-xml" select="$select-xml"/>
                                 <xsl:with-param name="endpoint" select="$endpoint"/>
                                 <xsl:with-param name="results" select="$results"/>
@@ -447,7 +447,7 @@ exclude-result-prefixes="#all"
 
         <!-- after we've created the map container element, create the JS objects using it -->
         <xsl:if test="$active-mode = '&ac;MapMode'">
-            <xsl:variable name="canvas-id" select="$container-id || '-map-canvas'" as="xs:string"/>
+            <xsl:variable name="canvas-id" select="$content-id || '-map-canvas'" as="xs:string"/>
             <xsl:variable name="initial-load" select="not(ixsl:contains(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $content-uri), 'map'))" as="xs:boolean"/>
             <!-- reuse center and zoom if map object already exists, otherwise set defaults -->
             <xsl:variable name="center-lat" select="if (not($initial-load)) then xs:float(ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $content-uri), 'map'), 'getCenter', []), 'lat', [])) else 56" as="xs:float"/>
@@ -483,7 +483,7 @@ exclude-result-prefixes="#all"
             </xsl:call-template>
         </xsl:if>
         <xsl:if test="$active-mode = '&ac;ChartMode'">
-            <xsl:variable name="canvas-id" select="$container-id || '-chart-canvas'" as="xs:string"/>
+            <xsl:variable name="canvas-id" select="$content-id || '-chart-canvas'" as="xs:string"/>
             <xsl:variable name="chart-type" select="xs:anyURI('&ac;Table')" as="xs:anyURI"/>
             <xsl:variable name="category" as="xs:string?"/>
             <xsl:variable name="series" select="distinct-values($results/*/*/concat(namespace-uri(), local-name()))" as="xs:string*"/>

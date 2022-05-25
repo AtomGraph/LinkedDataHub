@@ -343,8 +343,10 @@
     </rdf:Description>
     <rdf:Description rdf:about="open">
         <rdfs:label xml:lang="en-US">Open</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Abrir</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:about="explore">
         <rdfs:label xml:lang="en-US">Explore</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Explorar</rdfs:label>
     </rdf:Description>
 </rdf:RDF>
