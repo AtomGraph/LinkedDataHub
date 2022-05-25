@@ -341,4 +341,10 @@
     <rdf:Description rdf:about="resource">
         <rdfs:label xml:lang="en-US">Resource</rdfs:label>
     </rdf:Description>
+    <rdf:Description rdf:about="open">
+        <rdfs:label xml:lang="en-US">Open</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:about="explore">
+        <rdfs:label xml:lang="en-US">Explore</rdfs:label>
+    </rdf:Description>
 </rdf:RDF>

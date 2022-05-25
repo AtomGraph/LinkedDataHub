@@ -185,6 +185,20 @@ exclude-result-prefixes="#all">
               }
         ]]>
     </xsl:variable>
+    <xsl:param name="explore-service-query" as="xs:string">
+<![CDATA[
+SELECT DISTINCT  ?type (COUNT(?s) AS ?count) (SAMPLE(?s) AS ?sample)
+WHERE
+  {   { ?s  a  ?type }
+    UNION
+      { GRAPH ?g
+          { ?s  a  ?type }
+      }
+  }
+GROUP BY ?type
+ORDER BY DESC(COUNT(?s))
+LIMIT   100
+]]></xsl:param>
     
     <xsl:key name="resources-by-primary-topic" match="*[@rdf:about] | *[@rdf:nodeID]" use="foaf:primaryTopic/@rdf:resource"/>
     <xsl:key name="violations-by-root" match="*" use="spin:violationRoot/@rdf:resource"/>
@@ -1227,13 +1241,55 @@ exclude-result-prefixes="#all">
                 <input type="hidden" name="mode" value="&ac;QueryEditorMode"/>
                 <input type="hidden" name="query" value="{sp:text}"/>
 
-                <button type="submit" class="btn btn-primary">Open</button>
+                <button type="submit" class="btn btn-primary">
+                    <xsl:value-of>
+                        <xsl:apply-templates select="key('resources', 'open', document('translations.rdf'))" mode="ac:label"/>
+                    </xsl:value-of>
+                </button>
             </form>
         </div>
         
         <xsl:next-match/>
     </xsl:template>
 
+    <xsl:template match="*[@rdf:about][sd:endpoint/@rdf:resource]" mode="bs2:Actions" priority="2">
+        <xsl:param name="method" select="'get'" as="xs:string"/>
+        <xsl:param name="action" select="xs:anyURI('')" as="xs:anyURI"/>
+        <xsl:param name="id" as="xs:string?"/>
+        <xsl:param name="class" as="xs:string?"/>
+        <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
+        <xsl:param name="enctype" as="xs:string?"/>
+        
+        <div class="pull-right">
+            <form method="{$method}" action="{$action}" class="form-open-query">
+                <xsl:if test="$id">
+                    <xsl:attribute name="id" select="$id"/>
+                </xsl:if>
+                <xsl:if test="$class">
+                    <xsl:attribute name="class" select="$class"/>
+                </xsl:if>
+                <xsl:if test="$accept-charset">
+                    <xsl:attribute name="accept-charset" select="$accept-charset"/>
+                </xsl:if>
+                <xsl:if test="$enctype">
+                    <xsl:attribute name="enctype" select="$enctype"/>
+                </xsl:if>
+
+                <input type="hidden" name="service" value="{@rdf:about}"/>
+                <input type="hidden" name="mode" value="&ac;QueryEditorMode"/>
+                <input type="hidden" name="query" value="{$explore-service-query}"/>
+
+                <button type="submit" class="btn btn-primary">
+                    <xsl:value-of>
+                        <xsl:apply-templates select="key('resources', 'explore', document('translations.rdf'))" mode="ac:label"/>
+                    </xsl:value-of>
+                </button>
+            </form>
+        </div>
+        
+        <xsl:next-match/>
+    </xsl:template>
+    
     <!-- DOCUMENT TREE -->
     
     <xsl:template match="rdf:RDF" mode="bs2:DocumentTree">
