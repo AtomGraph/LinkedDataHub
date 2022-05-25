@@ -186,8 +186,7 @@ exclude-result-prefixes="#all">
         ]]>
     </xsl:variable>
     <xsl:param name="explore-service-query" as="xs:string">
-<![CDATA[
-SELECT DISTINCT  ?type (COUNT(?s) AS ?count) (SAMPLE(?s) AS ?sample)
+<![CDATA[SELECT DISTINCT  ?type (COUNT(?s) AS ?count) (SAMPLE(?s) AS ?sample)
 WHERE
   {   { ?s  a  ?type }
     UNION

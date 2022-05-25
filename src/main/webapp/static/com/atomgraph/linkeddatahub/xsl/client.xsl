@@ -1270,8 +1270,6 @@ WHERE
         <xsl:variable name="endpoint" select="($service/sd:endpoint/@rdf:resource/xs:anyURI(.), resolve-uri('sparql', $ldt:base))[1]" as="xs:anyURI"/>
         <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': string($query-string) })" as="xs:anyURI"/>
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), $results-uri)" as="xs:anyURI"/>
-        <!-- TO-DO: use <ixsl:schedule-action> instead -->
-        <xsl:variable name="results" select="document($request-uri)" as="document-node()"/>
 
         <xsl:choose>
             <xsl:when test="$key-code = 'Escape'">
