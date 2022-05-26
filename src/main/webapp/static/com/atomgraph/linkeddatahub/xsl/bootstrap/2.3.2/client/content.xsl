@@ -195,11 +195,12 @@ exclude-result-prefixes="#all"
     <!-- edit button onclick -->
     
     <xsl:template match="div[contains-token(@class, 'resource-content')]//button[contains-token(@class, 'btn-edit')]" mode="ixsl:onclick">
-        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'resource-content')]/div[contains-token(@class, 'span7')]" as="element()"/>
+        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'resource-content')]" as="element()"/>
         <xsl:variable name="content-uri" select="ixsl:get($container, 'dataset.contentUri')" as="xs:anyURI"/>
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), $content-uri)"/>
 
-        <xsl:for-each select="$container">
+        <!-- replace the middle column only -->
+        <xsl:for-each select="$container/div[contains-token(@class, 'span7')]">
             <xsl:result-document href="?." method="ixsl:replace-content">
                 <span></span>
             </xsl:result-document>
