@@ -202,7 +202,7 @@ exclude-result-prefixes="#all"
         <!-- replace the middle column only -->
         <xsl:for-each select="$container">
             <xsl:result-document href="?." method="ixsl:replace-content">
-                <div class="span7">
+                <div class="offset2 span7">
                     <span></span>
                 </div>
             </xsl:result-document>
