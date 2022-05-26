@@ -200,9 +200,11 @@ exclude-result-prefixes="#all"
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), $content-uri)"/>
 
         <!-- replace the middle column only -->
-        <xsl:for-each select="$container/div[contains-token(@class, 'span7')]">
+        <xsl:for-each select="$container">
             <xsl:result-document href="?." method="ixsl:replace-content">
-                <span></span>
+                <div class="span7">
+                    <span></span>
+                </div>
             </xsl:result-document>
         </xsl:for-each>
         
