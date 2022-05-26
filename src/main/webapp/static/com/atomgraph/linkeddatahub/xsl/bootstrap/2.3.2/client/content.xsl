@@ -201,9 +201,18 @@ exclude-result-prefixes="#all"
 
         <xsl:for-each select="$container">
             <xsl:result-document href="?." method="ixsl:replace-content">
-                <xsl:apply-templates select="key('resources', $content-uri, document(ac:document-uri($request-uri)))" mode="ldh:Typeahead"/>
+                <span></span>
             </xsl:result-document>
         </xsl:for-each>
+        
+        <xsl:variable name="request" as="item()*">
+            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+                <xsl:call-template name="onTypeaheadResourceLoad">
+                    <xsl:with-param name="resource-uri" select="$content-uri"/>
+                    <xsl:with-param name="typeahead-span" select="$container/span[1]"/>
+                </xsl:call-template>
+            </ixsl:schedule-action>
+        </xsl:variable>
     </xsl:template>
     
     <!-- CALLBACKS -->
