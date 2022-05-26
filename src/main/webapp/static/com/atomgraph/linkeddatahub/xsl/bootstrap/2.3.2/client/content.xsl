@@ -204,6 +204,11 @@ exclude-result-prefixes="#all"
             <xsl:result-document href="?." method="ixsl:replace-content">
                 <div class="offset2 span7">
                     <span></span>
+                    <button type="button" class="btn btn-primary btn-save">
+                        <xsl:value-of>
+                            <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                        </xsl:value-of>
+                    </button>
                 </div>
             </xsl:result-document>
         </xsl:for-each>
@@ -217,6 +222,19 @@ exclude-result-prefixes="#all"
             </ixsl:schedule-action>
         </xsl:variable>
         <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+    </xsl:template>
+
+    <!-- save button onclick -->
+    
+    <xsl:template match="div[contains-token(@class, 'resource-content')]//button[contains-token(@class, 'btn-save')]" mode="ixsl:onclick">
+        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'resource-content')]" as="element()"/>
+        <xsl:variable name="content-uri" select="ixsl:get(preceding-sibling::span//input[@name = 'ou'], 'value')" as="xs:anyURI"/>
+
+        <xsl:for-each select="$container">
+            <xsl:call-template name="ldh:LoadContent">
+                <xsl:with-param name="uri" select="$content-uri"/>
+            </xsl:call-template>
+        </xsl:for-each>
     </xsl:template>
     
     <!-- CALLBACKS -->
