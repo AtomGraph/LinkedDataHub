@@ -213,6 +213,7 @@ exclude-result-prefixes="#all"
                 </xsl:call-template>
             </ixsl:schedule-action>
         </xsl:variable>
+        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
     
     <!-- CALLBACKS -->
