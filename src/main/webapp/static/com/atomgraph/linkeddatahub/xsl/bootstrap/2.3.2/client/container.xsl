@@ -403,6 +403,10 @@ exclude-result-prefixes="#all"
                                         </xsl:otherwise>
                                     </xsl:choose>
                                 </label>
+                                
+                                <button type="button" class="btn btn-edit">
+                                    <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
+                                </button>
                             </form>
                         </div>
 

@@ -190,6 +190,22 @@ exclude-result-prefixes="#all"
         </xsl:for-each>
     </xsl:template>
     
+    <!-- EVENT LISTENERS -->
+    
+    <!-- edit button onclick -->
+    
+    <xsl:template match="div[contains-token(@class, 'resource-content')]//button[contains-token(@class, 'btn-edit')]" mode="ixsl:onchange">
+        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'resource-content')]" as="element()"/>
+        <!-- replace dots with dashes to avoid Saxon-JS treating them as field separators: https://saxonica.plan.io/issues/5031 -->
+        <xsl:variable name="content-uri" select="xs:anyURI(translate(ixsl:get($container, 'dataset.contentUri'), '.', '-'))" as="xs:anyURI"/>
+
+        <xsl:for-each select="$container">
+            <xsl:result-document href="?." method="ixsl:replace-content">
+                <xsl:apply-templates select="key('resources', $content-uri, ac:document-uri($content-uri))" mode="ldh:Typeahead"/>
+            </xsl:result-document>
+        </xsl:for-each>
+    </xsl:template>
+    
     <!-- CALLBACKS -->
     
     <!-- load content -->
