@@ -201,7 +201,7 @@ exclude-result-prefixes="#all"
 
         <xsl:for-each select="$container">
             <xsl:result-document href="?." method="ixsl:replace-content">
-                <xsl:apply-templates select="key('resources', $content-uri, ac:document-uri($content-uri))" mode="ldh:Typeahead"/>
+                <xsl:apply-templates select="key('resources', $content-uri, document(ac:document-uri($content-uri)))" mode="ldh:Typeahead"/>
             </xsl:result-document>
         </xsl:for-each>
     </xsl:template>
