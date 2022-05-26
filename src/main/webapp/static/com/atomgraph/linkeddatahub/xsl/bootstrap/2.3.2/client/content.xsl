@@ -231,6 +231,9 @@ exclude-result-prefixes="#all"
         <xsl:variable name="content-uri" select="ixsl:get(preceding-sibling::span//input[@name = 'ou'], 'value')" as="xs:anyURI"/>
 
         <xsl:for-each select="$container">
+            <!-- update @data-content-uri value -->
+            <ixsl:set-property name="dataset.contentUri" select="$content-uri" object="."/>
+            
             <xsl:call-template name="ldh:LoadContent">
                 <xsl:with-param name="uri" select="$content-uri"/>
             </xsl:call-template>
