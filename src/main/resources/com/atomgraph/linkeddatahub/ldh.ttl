@@ -230,7 +230,7 @@
     rdfs:subClassOf rdf:List ;
     rdfs:label "Content" ;
     spin:constructor :ContentInstanceConstructor ;
-    spin:constraint :MissingFirst, :MissingRest ;
+    spin:constraint :MissingValue ;
     rdfs:isDefinedBy : .
 
 :ContentInstanceConstructor a sp:Construct ;
@@ -369,14 +369,9 @@ WHERE
     sp:arg1 :seriesVarName ;
     rdfs:isDefinedBy : .
 
-:MissingFirst a :MissingPropertyValue ;
-    rdfs:label "Missing first" ;
-    sp:arg1 rdf:first ;
-    rdfs:isDefinedBy : .
-
-:MissingRest a :MissingPropertyValue ;
-    rdfs:label "Missing first" ;
-    sp:arg1 rdf:rest ;
+:MissingValue a :MissingPropertyValue ;
+    rdfs:label "Missing value" ;
+    sp:arg1 rdf:value ;
     rdfs:isDefinedBy : .
 
 # CONTENTS
