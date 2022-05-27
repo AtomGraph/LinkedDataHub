@@ -90,12 +90,6 @@
     rdfs:label "Series variable name" ;
     rdfs:isDefinedBy : .
 
-:content a owl:ObjectProperty ;
-    rdfs:domain foaf:Document ;
-    rdfs:range :Content ;
-    rdfs:label "Content" ;
-    rdfs:isDefinedBy : .
-
 # CLASSES
 
 # imports
@@ -246,8 +240,7 @@
       PREFIX ac:    <https://w3id.org/atomgraph/client#>
 
       CONSTRUCT {
-          $this rdf:first [ a rdfs:Resource ] ;
-            rdf:rest rdf:nil ;
+          $this rdf:value [ a rdfs:Resource ] ;
             ac:mode [ a rdfs:Resource ] .
       }
       WHERE {}""" ;
@@ -497,9 +490,10 @@ dh:Item spin:constructor :TitleConstructor, :DescriptionConstructor, :PrimaryTop
     rdfs:label "Content constructor" ;
     sp:text """
         PREFIX ldh:     <https://w3id.org/atomgraph/linkeddatahub#>
+        PREFIX rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 
         CONSTRUCT {
-          $this ldh:content [ a ldh:Content ] .
+          $this rdf:_1 [ a ldh:Content ] .
         }
         WHERE {}""" ;
     rdfs:isDefinedBy : .
@@ -511,9 +505,8 @@ dh:Item spin:constructor :TitleConstructor, :DescriptionConstructor, :PrimaryTop
         PREFIX rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 
         CONSTRUCT {
-            $this ldh:content [ a ldh:Content ;
-                rdf:first ldh:SelectChildren ;
-                rdf:rest rdf:nil
+            $this rdf:_1 [ a ldh:Content ;
+                rdf:value ldh:SelectChildren
             ] .
         }
         WHERE {}""" ;
