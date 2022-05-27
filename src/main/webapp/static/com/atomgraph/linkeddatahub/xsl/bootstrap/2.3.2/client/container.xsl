@@ -303,7 +303,13 @@ exclude-result-prefixes="#all"
             <xsl:for-each select="$container">
                 <xsl:result-document href="?." method="ixsl:replace-content">
                     <div class="left-nav span2"></div>
-                    <div class="span7"></div>
+                    <div class="span7">
+                        <div class="progress-bar">
+                            <div class="progress progress-striped active">
+                                <div class="bar" style="width: 25%;"></div>
+                            </div>
+                        </div>
+                    </div>
                     <div class="right-nav span3"></div>
                 </xsl:result-document>
             </xsl:for-each>
