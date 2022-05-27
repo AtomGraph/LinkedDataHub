@@ -701,11 +701,13 @@ extension-element-prefixes="ixsl"
         <!-- sort rdf:_1, rdf:_2, ... properties by index -->
         <xsl:variable name="predicates" as="element()*">
             <xsl:perform-sort select="*[namespace-uri() = '&rdf;'][starts-with(local-name(), '_')]">
-                <xsl:sort select="xs:integer(substring-after(local-name(), '_'))"/>
+                <xsl:sort select="substring-after(local-name(), '_')" data-type="xs:integer"/>
             </xsl:perform-sort>
         </xsl:variable>
         
-        <xsl:apply-templates select="key('resources', $predicates/@rdf:resource)" mode="ldh:Content"/>
+        <xsl:for-each select="$predicates">
+            <xsl:apply-templates select="key('resources', @rdf:resource)" mode="ldh:Content"/>
+        </xsl:for-each>
     </xsl:template>
 
     <!-- CONTENT -->
