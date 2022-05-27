@@ -297,7 +297,18 @@ exclude-result-prefixes="#all"
         <xsl:param name="endpoint" select="xs:anyURI"/>
         <xsl:param name="focus-var-name" as="xs:string"/>
         <xsl:param name="active-mode" as="xs:anyURI"/>
+        <xsl:param name="replace-content" select="false()" as="xs:boolean"/>
 
+        <xsl:if test="$replace-content">
+            <xsl:for-each select="$container">
+                <xsl:result-document href="?." method="ixsl:replace-content">
+                    <div class="left-nav span2"></div>
+                    <div class="span7"></div>
+                    <div class="right-nav span3"></div>
+                </xsl:result-document>
+            </xsl:for-each>
+        </xsl:if>
+        
         <!-- wrap SELECT into a DESCRIBE -->
         <xsl:variable name="query-xml" as="element()">
             <xsl:apply-templates select="$select-xml" mode="ldh:wrap-describe"/>
@@ -890,7 +901,6 @@ exclude-result-prefixes="#all"
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
         <xsl:call-template name="render-container">
-            <!--<xsl:with-param name="container-id" select="$container-id"/>-->
             <xsl:with-param name="container" select="$results-container"/>
             <xsl:with-param name="content-uri" select="$content-uri"/>
             <xsl:with-param name="content" select="$content"/>
@@ -1331,15 +1341,6 @@ exclude-result-prefixes="#all"
                     <xsl:variable name="default-order-by-var-name" select="$select-xml/json:map/json:array[@key = 'order']/json:map[2]/json:string[@key = 'expression']/substring-after(., '?')" as="xs:string?"/>
                     <xsl:variable name="default-order-by-predicate" select="$bgp-triples-map[json:string[@key = 'object'] = '?' || $default-order-by-var-name][1]/json:string[@key = 'predicate']" as="xs:anyURI?"/>
                     <xsl:variable name="default-desc" select="$select-xml/json:map/json:array[@key = 'order']/json:map[2]/json:boolean[@key = 'descending']" as="xs:boolean?"/>
-
-                    <!-- insert div.left-nav if it doesn't exist -->
-                    <xsl:if test="not($container/div[contains-token(@class, 'left-nav')])">
-                        <xsl:for-each select="$container">
-                            <xsl:result-document href="?." method="ixsl:append-content">
-                                <div class="left-nav span2"></div>
-                            </xsl:result-document>
-                        </xsl:for-each>
-                    </xsl:if>
 
                     <xsl:call-template name="render-container">
                         <!-- if  the container is full-width row (.row-fluid), render results in the middle column (.span7) -->

@@ -104,6 +104,7 @@ exclude-result-prefixes="#all"
                     <xsl:with-param name="endpoint" select="$endpoint"/>
                     <xsl:with-param name="focus-var-name" select="$focus-var-name"/>
                     <xsl:with-param name="active-mode" select="if ($mode) then $mode else xs:anyURI('&ac;ListMode')"/>
+                    <xsl:with-param name="replace-content" select="true()"/>
                 </xsl:call-template>
             </xsl:when>
             <xsl:otherwise>
