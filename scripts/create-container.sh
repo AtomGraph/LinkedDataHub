@@ -114,9 +114,9 @@ turtle+="_:container a dh:Container .\n"
 turtle+="_:container dct:title \"${title}\" .\n"
 turtle+="_:container sioc:has_parent <${parent}> .\n"
 if [ -n "$content" ] ; then
-    turtle+="_:container ldh:content <${content}> .\n"
+    turtle+="_:container rdf:_1 <${content}> .\n"
 else
-    turtle+="_:container ldh:content [ a ldh:Content ; rdf:first ldh:SelectChildren ; rdf:rest rdf:nil ] .\n"
+    turtle+="_:container rdf:_1 [ a ldh:Content ; rdf:value ldh:SelectChildren ] .\n"
 fi
 if [ -n "$description" ] ; then
     turtle+="_:container dct:description \"${description}\" .\n"
