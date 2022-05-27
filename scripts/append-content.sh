@@ -98,7 +98,8 @@ PREFIX  xsd:  <http://www.w3.org/2001/XMLSchema#>
 INSERT {
   GRAPH <${this}> {
     <${this}> ?property ?content .
-    ?content rdf:value <${value}> .
+    ?content a ldh:Content ;
+        rdf:value <${value}> .
     ${mode_bgp}
   }
 }
