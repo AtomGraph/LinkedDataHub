@@ -771,13 +771,15 @@ exclude-result-prefixes="#all"
                                                 <xsl:variable name="max-seq-index" select="if (empty($seq-properties)) then 0 else max(for $seq-property in $seq-properties return xs:integer(substring-after($seq-property, '&rdf;' || '_')))" as="xs:double?"/>
                                                 <!--<xsl:variable name="property" select="'&rdf;_' || ($max-seq-index + 1)" as="xs:string"/>-->
                                                 <xsl:variable name="property-doc" as="document-node()">
-                                                    <rdf:RDF>
-                                                        <rdf:Description>
-                                                            <xsl:element name="{'rdf:_' || ($max-seq-index + 1)}" namespace="&rdf;">
-                                                                <xsl:attribute name="rdf:nodeID" namespace="&rdf;" select="$max-bnode-id"/>
-                                                            </xsl:element>
-                                                        </rdf:Description>
-                                                    </rdf:RDF>
+                                                    <xsl:document>
+                                                        <rdf:RDF>
+                                                            <rdf:Description>
+                                                                <xsl:element name="{'rdf:_' || ($max-seq-index + 1)}" namespace="&rdf;">
+                                                                    <xsl:attribute name="rdf:nodeID" namespace="&rdf;" select="$max-bnode-id"/>
+                                                                </xsl:element>
+                                                            </rdf:Description>
+                                                        </rdf:RDF>
+                                                    </xsl:document>
                                                 </xsl:variable>
 
                                                 <xsl:result-document href="?." method="ixsl:append-content">
