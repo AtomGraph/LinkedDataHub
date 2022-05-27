@@ -83,7 +83,7 @@ if [ -n "$mode" ] ; then
     mode_bgp="?content ac:mode <${mode}> ."
 fi
 
-# SPARQL update logic from https://afs.github.io/rdf-lists-sparql#a-nameadd-lastaadd-an-element-to-the-end-of-a-list
+# SPARQL update logic from https://github.com/enridaga/list-benchmark/tree/master/queries
 
 curl -X PATCH \
     -v -f -k \

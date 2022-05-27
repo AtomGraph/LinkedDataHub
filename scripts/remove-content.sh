@@ -62,7 +62,7 @@ if [ -n "$proxy" ]; then
     target="${target/$target_host/$proxy_host}"
 fi
 
-# SPARQL update logic from https://afs.github.io/rdf-lists-sparql#a-namedel-all-1adelete-the-whole-list-common-case
+# SPARQL update logic from https://github.com/enridaga/list-benchmark/tree/master/queries
 
 curl -X PATCH \
     -v -f -k \
@@ -71,34 +71,19 @@ curl -X PATCH \
     "$target" \
      --data-binary @- <<EOF
 PREFIX  ldh:  <https://w3id.org/atomgraph/linkeddatahub#>
-PREFIX  ac:   <https://w3id.org/atomgraph/client#>
-PREFIX  rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 
 DELETE {
-  GRAPH ?g {
-    ?z a ?type .
-    ?z rdf:first ?head .
-    ?z rdf:rest ?tail .
-    ?z ac:mode ?mode .
+  GRAPH ?this {
+    ?this ?seq ?content .
+    ?content ?p ?o .
   }
 }
 WHERE
-  { GRAPH ?g
-      { <${this}> ldh:content  ?content .
-        ?content (rdf:rest)* ?z .
-        ?z  rdf:first  ?head ;
-            rdf:rest   ?tail
-        OPTIONAL
-          { ?z  a  ?type }
-        OPTIONAL
-          { ?z  ac:mode  ?mode }
+  { GRAPH ?this
+      { ?this     ?seq  ?content .
+        ?content  a     ldh:Content ;
+                  ?p    ?o
       }
-  };
-
-DELETE WHERE {
-  GRAPH ?g {
-    <${this}> ldh:content  ?content .
   }
-};
 
 EOF
