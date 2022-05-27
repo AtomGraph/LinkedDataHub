@@ -256,7 +256,7 @@ exclude-result-prefixes="#all"
 
         <!-- show progress bar in the middle column -->
         <xsl:for-each select="$progress-container">
-            <xsl:result-document href="?." method="ixsl:append-content">
+            <xsl:result-document href="?." method="ixsl:replace-content">
                 <div class="progress-bar">
                     <div class="progress progress-striped active">
                         <div class="bar" style="width: 25%;"></div>

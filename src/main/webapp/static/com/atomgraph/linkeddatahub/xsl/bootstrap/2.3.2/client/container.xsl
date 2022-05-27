@@ -1333,7 +1333,7 @@ exclude-result-prefixes="#all"
                     <xsl:variable name="default-desc" select="$select-xml/json:map/json:array[@key = 'order']/json:map[2]/json:boolean[@key = 'descending']" as="xs:boolean?"/>
 
                     <!-- insert div.left-nav if it doesn't exist -->
-                    <xsl:if test="$container/div[contains-token(@class, 'left-nav')]">
+                    <xsl:if test="not($container/div[contains-token(@class, 'left-nav')])">
                         <xsl:for-each select="$container">
                             <xsl:result-document href="?." method="ixsl:append-content">
                                 <div class="left-nav span2"></div>
