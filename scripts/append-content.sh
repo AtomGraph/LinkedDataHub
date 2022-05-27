@@ -11,7 +11,7 @@ print_usage()
     printf "  -p, --cert-password CERT_PASSWORD    Password of the WebID certificate\n"
     printf "  --proxy PROXY_URL                    The host this request will be proxied through (optional)\n"
     printf "\n"
-    printf "  --first RESOURCE_URI                 URI of the content element (query, chart etc.)\n"
+    printf "  --value RESOURCE_URI                 URI of the content element (query, chart etc.)\n"
     printf "  --mode MODE_URI                      URI of the content mode (list, grid etc.) (optional)\n"
 }
 
@@ -38,8 +38,8 @@ do
         shift # past argument
         shift # past value
         ;;
-        --first)
-        first="$2"
+        --value)
+        value="$2"
         shift # past argument
         shift # past value
         ;;
@@ -64,7 +64,7 @@ if [ -z "$cert_password" ] ; then
     print_usage
     exit 1
 fi
-if [ -z "$first" ] ; then
+if [ -z "$value" ] ; then
     print_usage
     exit 1
 fi
@@ -92,73 +92,29 @@ curl -X PATCH \
     "$target" \
      --data-binary @- <<EOF
 PREFIX  ldh:  <https://w3id.org/atomgraph/linkeddatahub#>
-PREFIX  ac:   <https://w3id.org/atomgraph/client#>
 PREFIX  rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX  xsd:  <http://www.w3.org/2001/XMLSchema#>
 
 INSERT {
-  GRAPH ?g {
-    ?this ldh:content rdf:nil .
+  GRAPH <${this}> {
+    <${this}> ?property ?content .
+    ?content rdf:value <${value}> .
+    ${mode_bgp}
   }
 }
 WHERE
-  { SELECT  ?g ?this
-    WHERE
-      { GRAPH ?g
-          { ?this  ?p  ?o
-            FILTER NOT EXISTS { ?this  ldh:content  ?content }
-          }
-        VALUES ?this { <${this}> }
-      }
+  { { SELECT  (( MAX(?index) + 1 ) AS ?next)
+      WHERE
+        { GRAPH <${this}>
+            { <${this}>
+                        ?seq      ?content .
+              ?content  a  ldh:Content
+              BIND(xsd:integer(substr(str(?seq), 45)) AS ?index)
+            }
+        }
+    }
+    BIND(iri(concat(str(rdf:), "_", str(?next))) AS ?property)
+    BIND(uri(concat(str(<${this}>), "#", struuid())) AS ?content)
   };
-
-# List of length >= 1
-DELETE {
-    GRAPH ?g {
-        ?elt rdf:rest rdf:nil
-    }
-}
-INSERT {
-    GRAPH ?g {
-        ?elt rdf:rest ?content .
-        ?content a ldh:Content ;
-            rdf:first <$first> ;
-            rdf:rest rdf:nil .
-        ${mode_bgp}
-    }
-}
-WHERE
-{
-    GRAPH ?g {
-        <${this}> ldh:content ?list .
-        # List of length >= 1
-        ?list rdf:rest* ?elt .
-        ?elt rdf:rest rdf:nil .
-        # ?elt is last cons cell
-        BIND (uri(concat(str(<${this}>), '#', struuid())) as ?content)
-    }
-};
-
-# List of length = 0
-DELETE {
-    GRAPH ?g {
-        <${this}> ldh:content rdf:nil .
-    }
-}
-INSERT {
-    GRAPH ?g {
-        <${this}> ldh:content ?content .
-        ?content a ldh:Content ;
-            rdf:first <$first> ;
-            rdf:rest rdf:nil .
-        ${mode_bgp}
-    }
-}
-WHERE
-{
-    GRAPH ?g {
-        <${this}> ldh:content rdf:nil .
-        BIND (uri(concat(str(<${this}>), '#', struuid())) as ?content)
-    }
-};
 
 EOF
