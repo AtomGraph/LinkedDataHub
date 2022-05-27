@@ -237,6 +237,8 @@ exclude-result-prefixes="#all"
             <xsl:call-template name="ldh:LoadContent">
                 <xsl:with-param name="uri" select="$content-uri"/>
             </xsl:call-template>
+            
+            <!-- TO-DO: execute PATCH against this named graph to update the content URI in the content list -->
         </xsl:for-each>
     </xsl:template>
     

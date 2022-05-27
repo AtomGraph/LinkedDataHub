@@ -366,7 +366,7 @@ exclude-result-prefixes="#all"
             <!-- first time rendering the container results -->
             <xsl:otherwise>
                 <xsl:for-each select="$container">
-                    <xsl:result-document href="?." method="ixsl:append-content">
+                    <xsl:result-document href="?." method="ixsl:replace-content">
                         <div class="pull-right">
                             <form class="form-inline">
                                 <label for="{$order-by-container-id}">
@@ -1332,6 +1332,15 @@ exclude-result-prefixes="#all"
                     <xsl:variable name="default-order-by-predicate" select="$bgp-triples-map[json:string[@key = 'object'] = '?' || $default-order-by-var-name][1]/json:string[@key = 'predicate']" as="xs:anyURI?"/>
                     <xsl:variable name="default-desc" select="$select-xml/json:map/json:array[@key = 'order']/json:map[2]/json:boolean[@key = 'descending']" as="xs:boolean?"/>
 
+                    <!-- insert div.left-nav if it doesn't exist -->
+                    <xsl:if test="$container/div[contains-token(@class, 'left-nav')]">
+                        <xsl:for-each select="$container">
+                            <xsl:result-document href="?." method="ixsl:append-content">
+                                <div class="left-nav span2"></div>
+                            </xsl:result-document>
+                        </xsl:for-each>
+                    </xsl:if>
+
                     <xsl:call-template name="render-container">
                         <!-- if  the container is full-width row (.row-fluid), render results in the middle column (.span7) -->
                         <xsl:with-param name="container" select="if (contains-token($container/@class, 'row-fluid')) then $container/div[contains-token(@class, 'span7')] else $container"/>
@@ -1354,9 +1363,9 @@ exclude-result-prefixes="#all"
                         <xsl:if test="not(*)">
                             <xsl:variable name="facet-container-id" select="$container-id || '-left-nav'" as="xs:string"/>
 
-                                <xsl:result-document href="?." method="ixsl:append-content">
-                                    <div id="{$facet-container-id}" class="well well-small"/>
-                                </xsl:result-document>
+                            <xsl:result-document href="?." method="ixsl:append-content">
+                                <div id="{$facet-container-id}" class="well well-small"/>
+                            </xsl:result-document>
 
                             <!-- use the initial (not the current, transformed) SELECT query and focus var name for facet rendering -->
                             <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', [ $select-string ])"/>
