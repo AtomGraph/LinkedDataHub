@@ -229,6 +229,7 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
     
+    <!-- appends new content instance to the form -->
     <xsl:template match="a[contains-token(@class, 'add-constructor')]" mode="ixsl:onclick" priority="1">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="form" select="ancestor::form" as="element()?"/>
@@ -250,6 +251,7 @@ exclude-result-prefixes="#all"
                 <xsl:call-template name="onAddForm">
                     <xsl:with-param name="container" select="id('content-body', ixsl:page())"/>
                     <xsl:with-param name="max-bnode-id" select="$max-bnode-id"/>
+                    <xsl:with-param name="forClass" select="$forClass"/>
                 </xsl:call-template>
             </ixsl:schedule-action>
         </xsl:variable>
@@ -546,6 +548,7 @@ exclude-result-prefixes="#all"
         </xsl:for-each>
     </xsl:template>
     
+    <!-- show a typeahead dropdown with all blank nodes in the form -->
     <xsl:template match="form//input[contains-token(@class, 'resource-typeahead')]" mode="ixsl:onfocusin">
         <xsl:variable name="menu" select="following-sibling::ul" as="element()"/>
         <xsl:variable name="item-doc" as="document-node()">
@@ -676,6 +679,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="new-form-id" as="xs:string?"/>
         <xsl:param name="new-target-id" as="xs:string?"/>
         <xsl:param name="max-bnode-id" as="xs:double?"/>
+        <xsl:param name="forClass" as="xs:anyURI?"/>
 
         <xsl:choose>
             <xsl:when test="?status = 200 and starts-with(?media-type, 'application/xhtml+xml')">
@@ -758,6 +762,29 @@ exclude-result-prefixes="#all"
                                         <xsl:result-document href="?." method="ixsl:append-content">
                                             <xsl:copy-of select="$form/*"/>
                                         </xsl:result-document>
+                                        
+                                        <!-- if the instance is of type ldh:Content, add a rdf:_X property (div.control-group) to the document that connects them -->
+                                        <xsl:if test="$forClass = '&ldh;Content'">
+                                            <!-- we're assuming here the document <fieldset> is always the first one -->
+                                            <xsl:for-each select="$form//fieldset[1]">
+                                                <xsl:variable name="seq-properties" select=".//input[@type = 'pu'][starts-with(@value, '&rdf;' || '_')]" as="xs:anyURI*"/>
+                                                <xsl:variable name="max-seq-index" select="if (empty($seq-properties)) then 0 else max(for $seq-property in $seq-properties return xs:integer(substring-after($seq-property, '&rdf;' || '_')))" as="xs:double?"/>
+                                                <xsl:variable name="property" select="'&rdf;_' || ($max-seq-index + 1)" as="xs:string"/>
+                                                <xsl:variable name="property-doc" as="document-node()">
+                                                    <rdf:RDF>
+                                                        <rdf:Description>
+                                                            <xsl:element name="{$property}" namespace="&rdf;">
+                                                                <xsl:attribute name="rdf:nodeID" namespace="&rdf;" select="$max-bnode-id"/>
+                                                            </xsl:element>
+                                                        </rdf:Description>
+                                                    </rdf:RDF>
+                                                </xsl:variable>
+
+                                                <xsl:result-document href="?." method="ixsl:append-content">
+                                                    <xsl:apply-templates select="$property-doc//rdf:Description/*" mode="bs2:FormControl"/>
+                                                </xsl:result-document>
+                                            </xsl:for-each>
+                                        </xsl:if>
                                     </xsl:for-each>
                                 </xsl:when>
                                 <!-- there's no <form> so we're not in EditMode - replace the whole content -->
