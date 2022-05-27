@@ -39,7 +39,7 @@ exclude-result-prefixes="#all"
     
     <!-- SELECT query -->
     
-    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&sp;Select'][sp:text]" mode="ldh:Content" priority="1">
+    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&sp;Select'][sp:text]" mode="ldh:RenderContent" priority="1">
         <xsl:param name="uri" as="xs:anyURI"/>
         <xsl:param name="container" as="element()"/>
         <xsl:param name="mode" as="xs:anyURI?"/>
@@ -121,7 +121,7 @@ exclude-result-prefixes="#all"
 
     <!-- DESCRIBE/CONSTRUCT queries -->
     
-    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = ('&sp;Describe', '&sp;Construct')][sp:text]" mode="ldh:Content" priority="1">
+    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = ('&sp;Describe', '&sp;Construct')][sp:text]" mode="ldh:RenderContent" priority="1">
         <xsl:param name="uri" as="xs:anyURI"/>
         <xsl:param name="container" as="element()"/>
         <xsl:param name="mode" as="xs:anyURI?"/>
@@ -174,7 +174,7 @@ exclude-result-prefixes="#all"
     
     <!-- default content (RDF resource) -->
     
-    <xsl:template match="*[*][@rdf:about]" mode="ldh:Content">
+    <xsl:template match="*[*][@rdf:about]" mode="ldh:RenderContent">
         <xsl:param name="container" as="element()"/>
 
         <!-- hide progress bar -->
@@ -307,7 +307,7 @@ exclude-result-prefixes="#all"
                     <ixsl:set-style name="width" select="'50%'" object="."/>
                 </xsl:for-each>
 
-                <xsl:apply-templates select="$content" mode="ldh:Content">
+                <xsl:apply-templates select="$content" mode="ldh:RenderContent">
                     <xsl:with-param name="uri" select="$uri"/>
                     <xsl:with-param name="container" select="$container"/>
                     <xsl:with-param name="mode" select="$mode"/>

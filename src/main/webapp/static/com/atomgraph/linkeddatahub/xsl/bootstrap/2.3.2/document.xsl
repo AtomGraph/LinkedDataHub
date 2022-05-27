@@ -138,9 +138,9 @@ extension-element-prefixes="ixsl"
     
     <!-- CONTENT -->
     
-    <xsl:template match="rdf:RDF" mode="ldh:Content">
+<!--    <xsl:template match="rdf:RDF" mode="ldh:Content">
         <xsl:apply-templates mode="#current"/>
-    </xsl:template>
+    </xsl:template>-->
 
     <!-- MAP -->
     

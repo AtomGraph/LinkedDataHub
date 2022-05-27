@@ -778,11 +778,6 @@ exclude-result-prefixes="#all"
             <xsl:with-param name="forClass" select="$forClass"/>
         </xsl:apply-templates>
     </xsl:template>
-
-    <!-- typeahead for rdf:nil -->
-    <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;Content']/rdf:rest/@rdf:resource[ . = '&rdf;nil']" mode="bs2:FormControl" priority="1">
-        <xsl:apply-templates select="key('resources', '&rdf;nil', document(ac:document-uri('&rdf;')))" mode="ldh:Typeahead"/>
-    </xsl:template>
     
     <!-- WYSIWYG editor for XMLLiteral objects -->
 
@@ -808,7 +803,7 @@ exclude-result-prefixes="#all"
     
     <!-- FORM CONTROL TYPE LABEL -->
 
-    <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;Content']/rdf:first/@rdf:* | *[rdf:type/@rdf:resource = '&ldh;Content']/rdf:first/xhtml:*" mode="bs2:FormControlTypeLabel" priority="1">
+    <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;Content']/rdf:value/@rdf:* | *[rdf:type/@rdf:resource = '&ldh;Content']/rdf:value/xhtml:*" mode="bs2:FormControlTypeLabel" priority="1">
         <select class="help-inline content-type">
             <option value="&rdfs;Resource">
                 <xsl:if test="self::attribute()">

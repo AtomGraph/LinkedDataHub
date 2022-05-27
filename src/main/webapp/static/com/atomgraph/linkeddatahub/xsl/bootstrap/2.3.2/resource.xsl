@@ -337,7 +337,7 @@ extension-element-prefixes="ixsl"
     <!-- RIGHT NAV -->
     
     <!-- empty right nav for content instances -->
-    <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;Content'][rdf:first/@rdf:resource]" mode="bs2:Right" priority="1">
+    <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;Content'][rdf:value/@rdf:resource]" mode="bs2:Right" priority="1">
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" select="'right-nav span3'" as="xs:string?"/>
         
@@ -518,7 +518,7 @@ extension-element-prefixes="ixsl"
         <xsl:variable name="content-uris" select="rdf:type/@rdf:resource[doc-available(resolve-uri('ns?query=ASK%20%7B%7D', $ldt:base))]/ldh:templates(., resolve-uri('ns', $ldt:base), $template-query)//srx:binding[@name = 'content']/srx:uri/xs:anyURI(.)" as="xs:anyURI*" use-when="system-property('xsl:product-name') = 'SAXON'"/>
         <xsl:for-each select="$content-uris" use-when="system-property('xsl:product-name') = 'SAXON'">
             <xsl:if test="doc-available(ac:document-uri(.))">
-                <xsl:apply-templates select="key('resources', ., document(ac:document-uri(.)))" mode="ldh:ContentList"/>
+                <xsl:apply-templates select="key('resources', ., document(ac:document-uri(.)))" mode="ldh:Content"/>
             </xsl:if>
         </xsl:for-each>
     </xsl:template>
@@ -697,7 +697,20 @@ extension-element-prefixes="ixsl"
     
     <!-- CONTENT LIST -->
     
-    <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;Content'][rdf:first[@rdf:parseType = 'Literal']/xhtml:div]" mode="ldh:ContentList" priority="2">
+    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="ldh:ContentList">
+        <!-- sort rdf:_1, rdf:_2, ... properties by index -->
+        <xsl:variable name="predicates" as="element()*">
+            <xsl:perform-sort select="*[namespace-uri() = '&rdf;'][starts-with(local-name(), '_')]">
+                <xsl:sort select="xs:integer(substring-after(local-name(), '_'))"/>
+            </xsl:perform-sort>
+        </xsl:variable>
+        
+        <xsl:apply-templates select="key('resources', $predicates/@rdf:resource)" mode="ldh:Content"/>
+    </xsl:template>
+
+    <!-- CONTENT -->
+    
+    <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;Content'][rdf:value[@rdf:parseType = 'Literal']/xhtml:div]" mode="ldh:Content" priority="2">
         <xsl:param name="id" select="generate-id()" as="xs:string?"/>
         <xsl:param name="class" select="'content xhtml-content span7 offset2'" as="xs:string?"/>
         
@@ -712,21 +725,18 @@ extension-element-prefixes="ixsl"
 
                 <!--  remove XHTML namespace -->
                 <!-- <xsl:copy-of copy-namespaces="no" select="sioc:content/xhtml:div"/> -->
-                <xsl:apply-templates select="rdf:first[@rdf:parseType = 'Literal']/xhtml:div" mode="ldh:XHTMLContent"/>
+                <xsl:apply-templates select="rdf:value[@rdf:parseType = 'Literal']/xhtml:div" mode="ldh:XHTMLContent"/>
             </div>
         </div>
-
-        <!-- process the next ldh:Content in the list -->
-        <xsl:apply-templates select="key('resources', rdf:rest/@rdf:resource)" mode="#current"/>
     </xsl:template>
 
-    <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;Content'][rdf:first/@rdf:resource]" mode="ldh:ContentList" priority="2">
+    <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;Content'][rdf:value/@rdf:resource]" mode="ldh:Content" priority="2">
         <xsl:param name="id" select="generate-id()" as="xs:string?"/>
         <xsl:param name="class" select="'row-fluid content resource-content'" as="xs:string?"/>
         <xsl:param name="mode" select="ac:mode/@rdf:resource" as="xs:anyURI?"/>
         
         <!-- @data-content-uri is used to retrieve $content-uri in client.xsl -->
-        <div data-content-uri="{rdf:first/@rdf:resource}">
+        <div data-content-uri="{rdf:value/@rdf:resource}">
             <xsl:if test="$id">
                 <xsl:attribute name="id" select="$id"/>
             </xsl:if>
@@ -741,13 +751,13 @@ extension-element-prefixes="ixsl"
             
             <div class="span7">
                 <xsl:choose>
-                    <xsl:when test="doc-available(ac:document-uri(rdf:first/@rdf:resource))">
-                        <xsl:apply-templates select="key('resources', rdf:first/@rdf:resource, document(ac:document-uri(rdf:first/@rdf:resource)))" mode="ldh:ContentHeader"/>
+                    <xsl:when test="doc-available(ac:document-uri(rdf:value/@rdf:resource))">
+                        <xsl:apply-templates select="key('resources', rdf:value/@rdf:resource, document(ac:document-uri(rdf:value/@rdf:resource)))" mode="ldh:ContentHeader"/>
                     </xsl:when>
                     <xsl:otherwise>
                         <h2>
-                            <a href="{ac:build-uri(ac:uri(), map{ 'uri': string(rdf:first/@rdf:resource) }) }">
-                                <xsl:value-of select="rdf:first/@rdf:resource"/>
+                            <a href="{ac:build-uri(ac:uri(), map{ 'uri': string(rdf:value/@rdf:resource) }) }">
+                                <xsl:value-of select="rdf:value/@rdf:resource"/>
                             </a>
                         </h2>
                     </xsl:otherwise>
@@ -756,12 +766,9 @@ extension-element-prefixes="ixsl"
             
             <xsl:apply-templates select="." mode="bs2:Right"/>
         </div>
-        
-        <!-- process the next ldh:Content in the list -->
-        <xsl:apply-templates select="key('resources', rdf:rest/@rdf:resource)" mode="#current"/>
     </xsl:template>
     
-    <xsl:template match="*" mode="ldh:ContentList"/>
+    <xsl:template match="*" mode="ldh:Content"/>
 
     <xsl:template match="*[*][@rdf:about]" mode="ldh:ContentHeader" priority="2">
         <h2>

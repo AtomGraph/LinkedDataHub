@@ -712,7 +712,7 @@ LIMIT   100
     <xsl:template match="rdf:RDF" mode="xhtml:Body">
         <xsl:param name="classes" select="for $class-uri in map:keys($default-classes) return key('resources', $class-uri, document(ac:document-uri($class-uri)))" as="element()*"/>
         <xsl:param name="content-uris" select="key('resources', ac:uri())/rdf:type/@rdf:resource[ . = ('&def;Root', '&dh;Container', '&dh;Item')][doc-available(resolve-uri('ns?query=ASK%20%7B%7D', $ldt:base))]/ldh:templates(., resolve-uri('ns', $ldt:base), $template-query)//srx:binding[@name = 'content']/srx:uri/xs:anyURI(.)" as="xs:anyURI*"/>
-        <xsl:param name="has-content" select="key('resources', key('resources', ac:uri())/ldh:content/@rdf:resource) or exists($content-uris)" as="xs:boolean"/>
+        <xsl:param name="has-content" select="key('resources', key('resources', ac:uri())/rdf:_1/@rdf:resource) or exists($content-uris)" as="xs:boolean"/>
 
         <body>
             <xsl:apply-templates select="." mode="bs2:NavBar"/>
@@ -763,11 +763,11 @@ LIMIT   100
                     <!-- check if the current document has content or its class has content -->
                     <xsl:when test="(empty($ac:mode) or $ac:mode = '&ldh;ContentMode') and $has-content">
                         <xsl:for-each select="key('resources', ac:uri())">
-                            <xsl:apply-templates select="key('resources', ldh:content/@rdf:*)" mode="ldh:ContentList"/>
+                            <xsl:apply-templates select="." mode="ldh:ContentList"/>
                             
                             <xsl:for-each select="$content-uris">
                                 <xsl:if test="doc-available(ac:document-uri(.))">
-                                    <xsl:apply-templates select="key('resources', ., document(ac:document-uri(.)))" mode="ldh:ContentList"/>
+                                    <xsl:apply-templates select="key('resources', ., document(ac:document-uri(.)))" mode="ldh:Content"/>
                                 </xsl:if>
                             </xsl:for-each>
                         </xsl:for-each>

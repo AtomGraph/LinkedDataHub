@@ -50,9 +50,7 @@ exclude-result-prefixes="#all">
             <xsl:apply-templates select="." mode="bs2:NavBar"/>
 
             <div id="content-body" class="container-fluid">
-                <xsl:for-each select="key('resources', ac:uri())">
-                    <xsl:apply-templates select="key('resources', ldh:content/@rdf:*)" mode="ldh:ContentList"/>
-                </xsl:for-each>
+                <xsl:apply-templates select="key('resources', ac:uri())" mode="ldh:ContentList"/>
 
                 <xsl:apply-templates select="." mode="bs2:RowBlock"/>
             </div>
