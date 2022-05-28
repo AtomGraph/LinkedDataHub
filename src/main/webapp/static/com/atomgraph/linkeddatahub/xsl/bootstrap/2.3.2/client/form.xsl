@@ -760,7 +760,8 @@ exclude-result-prefixes="#all"
                                         </xsl:for-each>
 
                                         <xsl:result-document href="?." method="ixsl:append-content">
-                                            <xsl:copy-of select="$form/*"/>
+                                            <!-- only append the <fieldset> from the $form, not the whole <form> -->
+                                            <xsl:copy-of select="$form//fieldset"/>
                                         </xsl:result-document>
                                         
                                         <!-- if the instance is of type ldh:Content, add a rdf:_X property (div.control-group) to the document that connects them -->
@@ -769,19 +770,18 @@ exclude-result-prefixes="#all"
                                             <xsl:for-each select=".//fieldset[1]">
                                                 <xsl:variable name="seq-properties" select=".//input[@name = 'pu']/@value[starts-with(., '&rdf;' || '_')]" as="xs:anyURI*"/>
                                                 <xsl:variable name="max-seq-index" select="if (empty($seq-properties)) then 0 else max(for $seq-property in $seq-properties return xs:integer(substring-after($seq-property, '&rdf;' || '_')))" as="xs:integer"/>
-                                                <!--<xsl:variable name="property" select="'&rdf;_' || ($max-seq-index + 1)" as="xs:string"/>-->
                                                 <xsl:variable name="property-doc" as="document-node()">
                                                     <xsl:document>
                                                         <rdf:RDF>
-                                                            <rdf:Description>
+                                                            <rdf:Description rdf:nodeID="doc">
                                                                 <xsl:element name="{'rdf:_' || ($max-seq-index + 1)}" namespace="&rdf;">
-                                                                    <xsl:attribute name="rdf:nodeID" namespace="&rdf;" select="$max-bnode-id"/>
+                                                                    <!-- construct blank node label following Jena's 'A*' convention -->
+                                                                    <xsl:attribute name="rdf:nodeID" namespace="&rdf;" select="'A' || (if (empty($max-bnode-id)) then 0 else $max-bnode-id + 1)"/>
                                                                 </xsl:element>
                                                             </rdf:Description>
                                                         </rdf:RDF>
                                                     </xsl:document>
                                                 </xsl:variable>
-
                                                 <xsl:result-document href="?." method="ixsl:append-content">
                                                     <xsl:apply-templates select="$property-doc//rdf:Description/*" mode="bs2:FormControl"/>
                                                 </xsl:result-document>
