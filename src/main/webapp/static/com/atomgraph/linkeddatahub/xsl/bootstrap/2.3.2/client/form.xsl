@@ -761,7 +761,7 @@ exclude-result-prefixes="#all"
 
                                         <xsl:result-document href="?." method="ixsl:append-content">
                                             <!-- only append the <fieldset> from the $form, not the whole <form> -->
-                                            <xsl:copy-of select="$form//fieldset"/>
+                                            <xsl:copy-of select="$form//div[contains-token(@class, 'row-fluid')]"/>
                                         </xsl:result-document>
                                         
                                         <!-- if the instance is of type ldh:Content, add a rdf:_X property (div.control-group) to the document that connects them -->
