@@ -631,7 +631,12 @@ extension-element-prefixes="ixsl"
 
             <xsl:apply-templates mode="bs2:Exception"/>
 
-            <xsl:apply-templates select="*" mode="#current">
+            <!-- show the current document on the top -->
+            <xsl:apply-templates select="*[@rdf:about = ac:uri()]" mode="#current">
+                <xsl:with-param name="inline" select="false()" tunnel="yes"/>
+            </xsl:apply-templates>
+            <!-- show the rest of the resources (contents, instances) below it -->
+            <xsl:apply-templates select="*[not(@rdf:about = ac:uri()])" mode="#current">
                 <xsl:sort select="ac:label(.)"/>
                 <xsl:with-param name="inline" select="false()" tunnel="yes"/>
             </xsl:apply-templates>

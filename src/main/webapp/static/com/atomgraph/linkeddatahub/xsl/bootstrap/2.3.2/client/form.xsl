@@ -767,7 +767,7 @@ exclude-result-prefixes="#all"
                                         <!-- if the instance is of type ldh:Content, add a rdf:_X property (div.control-group) to the document that connects them -->
                                         <xsl:if test="$forClass = '&ldh;Content'">
                                             <!-- we're assuming here the document <fieldset> is always the first one -->
-                                            <xsl:for-each select=".//div[contains-token(@class, 'row-fluid')][1]/fieldset">
+                                            <xsl:for-each select="div[contains-token(@class, 'row-fluid')][1]//fieldset">
                                                 <xsl:variable name="seq-properties" select=".//input[@name = 'pu']/@value[starts-with(., '&rdf;' || '_')]" as="xs:anyURI*"/>
                                                 <xsl:variable name="max-seq-index" select="if (empty($seq-properties)) then 0 else max(for $seq-property in $seq-properties return xs:integer(substring-after($seq-property, '&rdf;' || '_')))" as="xs:integer"/>
                                                 <xsl:variable name="property-doc" as="document-node()">
