@@ -636,7 +636,7 @@ extension-element-prefixes="ixsl"
                 <xsl:with-param name="inline" select="false()" tunnel="yes"/>
             </xsl:apply-templates>
             <!-- show the rest of the resources (contents, instances) below it -->
-            <xsl:apply-templates select="*[not(@rdf:about = ac:uri()])" mode="#current">
+            <xsl:apply-templates select="*[not(@rdf:about = ac:uri())]" mode="#current">
                 <xsl:sort select="ac:label(.)"/>
                 <xsl:with-param name="inline" select="false()" tunnel="yes"/>
             </xsl:apply-templates>
