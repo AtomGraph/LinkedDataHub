@@ -541,7 +541,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="disabled" select="false()" as="xs:boolean"/>
         <xsl:param name="traversed-ids" as="xs:string*" tunnel="yes"/>
         <xsl:param name="inline" select="false()" as="xs:boolean" tunnel="yes"/>
-        <xsl:param name="template"  as="element()?"/>
+        <!--<xsl:param name="template"  as="element()?"/>-->
         <xsl:param name="type-label" select="true()" as="xs:boolean"/>
         <xsl:param name="template-doc" as="document-node()?"/>
         <xsl:variable name="resource" select="key('resources', .)"/>
@@ -666,8 +666,10 @@ exclude-result-prefixes="#all"
         <xsl:param name="disabled" select="false()" as="xs:boolean"/>
         <xsl:param name="traversed-ids" as="xs:string*" tunnel="yes"/>
         <xsl:param name="inline" select="false()" as="xs:boolean" tunnel="yes"/>
-        <xsl:param name="template"  as="element()?"/>
+        <!--<xsl:param name="template"  as="element()?"/>-->
         <xsl:param name="type-label" select="true()" as="xs:boolean"/>
+        <xsl:param name="type-label" select="true()" as="xs:boolean"/>
+        <xsl:param name="template-doc" as="document-node()?"/>
         <xsl:variable name="resource" select="key('resources', .)"/>
 
         <xsl:choose>
@@ -684,6 +686,44 @@ exclude-result-prefixes="#all"
                 <xsl:apply-templates select="../../@rdf:about | ../../@rdf:nodeID" mode="#current">
                     <xsl:with-param name="type" select="'hidden'"/>
                 </xsl:apply-templates>
+            </xsl:when>
+            <xsl:when test="$resource">
+                <span>
+                    <xsl:apply-templates select="$resource" mode="ldh:Typeahead"/>
+                </span>
+                
+                <xsl:if test="$template-doc">
+                    <xsl:text> </xsl:text>
+                    <xsl:variable name="forClass" select="key('resources', key('resources-by-type', ../../rdf:type/@rdf:resource, $template-doc)/*[concat(namespace-uri(), local-name()) = current()/../concat(namespace-uri(), local-name())]/@rdf:nodeID, $template-doc)/rdf:type/@rdf:resource[not(. = '&rdfs;Class')]" as="xs:anyURI?"/>
+                    <xsl:if test="$forClass">
+                        <!-- forClass input is required by typeahead's FILTER (?Type IN ()) in client.xsl -->
+                        <xsl:choose>
+                            <xsl:when test="not($forClass = ('&rdfs;Resource', '&rdfs;Literal')) and doc-available(ac:document-uri($forClass))">
+                                <xsl:variable name="subclasses" select="ldh:listSubClasses($forClass, false(), $ldt:ontology)" as="attribute()*"/>
+                                <!-- add subclasses as forClass -->
+                                <xsl:for-each select="distinct-values(ldh:listSubClasses($forClass, false(), $ldt:ontology))[not(. = $forClass)]">
+                                    <input type="hidden" class="forClass" value="{.}"/>
+                                </xsl:for-each>
+                                <!-- bs2:Constructor sets forClass -->
+                                <xsl:apply-templates select="key('resources', $forClass, document(ac:document-uri($forClass)))" mode="bs2:Constructor">
+                                    <xsl:with-param name="modal-form" select="true()"/>
+                                    <xsl:with-param name="subclasses" select="$subclasses"/>
+                                    <xsl:with-param name="create-graph" select="true()"/>
+                                </xsl:apply-templates>
+                            </xsl:when>
+                            <xsl:otherwise>
+                                <!-- $forClass URI cannot be resolved to an RDF document -->
+                                <input type="hidden" class="forClass" value="{$forClass}"/>
+                            </xsl:otherwise>
+                        </xsl:choose>
+
+                        <xsl:apply-templates select="." mode="bs2:FormControlTypeLabel">
+                            <xsl:with-param name="type" select="$type"/>
+                            <xsl:with-param name="type-label" select="$type-label"/>
+                            <xsl:with-param name="forClass" select="$forClass"/>
+                        </xsl:apply-templates>
+                    </xsl:if>
+                </xsl:if>
             </xsl:when>
             <xsl:otherwise>
                 <xsl:apply-templates select="." mode="xhtml:Input">

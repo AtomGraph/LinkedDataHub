@@ -548,13 +548,15 @@ exclude-result-prefixes="#all"
         </xsl:for-each>
     </xsl:template>
     
-    <!-- show a typeahead dropdown with all blank nodes in the form -->
+    <!-- show a typeahead dropdown with instances in the form -->
+    
     <xsl:template match="form//input[contains-token(@class, 'resource-typeahead')]" mode="ixsl:onfocusin">
         <xsl:variable name="menu" select="following-sibling::ul" as="element()"/>
         <xsl:variable name="item-doc" as="document-node()">
             <xsl:document>
                 <rdf:RDF>
-                    <xsl:for-each select="ancestor::form//input[@name = 'sb'][@value]">
+                    <!-- convert instances in the RDF/POST form to RDF/XML -->
+                    <xsl:for-each select="ancestor::form//input[@name = ('sb', 'su')][@value]"> <!-- [following-sibling::input[@name = 'pu'][@value = '&rdf;type'][following-sibling::input[@name = 'ou'][@value = '&ldh;Content']]] -->
                         <rdf:Description rdf:nodeID="{@value}">
                             <dct:title>
                                 <xsl:value-of select="@value"/>
