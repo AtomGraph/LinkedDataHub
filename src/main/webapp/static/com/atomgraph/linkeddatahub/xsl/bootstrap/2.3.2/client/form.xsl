@@ -467,7 +467,7 @@ exclude-result-prefixes="#all"
                 </xsl:result-document>
 
                 <!-- initialize wymeditor textarea -->
-                <xsl:apply-templates select="key('elements-by-class', 'wymeditor', ancestor::div)" mode="ldh:PostConstruct"/>
+                <xsl:apply-templates select="key('elements-by-class', 'wymeditor', ancestor::div[1])" mode="ldh:PostConstruct"/>
             </xsl:for-each>
         </xsl:if>
     </xsl:template>
@@ -788,7 +788,7 @@ exclude-result-prefixes="#all"
                                                 </xsl:variable>
                                                 
                                                 <xsl:result-document href="?." method="ixsl:append-content">
-                                                    <xsl:apply-templates select="$property-doc//rdf:Description/*" mode="bs2:FormControl"/>
+                                                    <xsl:apply-templates select="$property-doc//rdf:Description[@rdf:nodeID = 'doc']" mode="bs2:FormControl"/>
                                                 </xsl:result-document>
                                                 
                                                 <!-- replace plain input with a typeahead -->
