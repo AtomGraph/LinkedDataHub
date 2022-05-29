@@ -784,9 +784,25 @@ exclude-result-prefixes="#all"
                                                         </rdf:RDF>
                                                     </xsl:document>
                                                 </xsl:variable>
+                                                
                                                 <xsl:result-document href="?." method="ixsl:append-content">
                                                     <xsl:apply-templates select="$property-doc//rdf:Description/*" mode="bs2:FormControl"/>
                                                 </xsl:result-document>
+                                                
+                                                <!-- replace plain input with a typeahead -->
+                                                <xsl:variable name="lookup-class" select="'resource-typeahead typeahead'" as="xs:string"/>
+                                                <xsl:variable name="lookup-list-class" select="'resource-typeahead typeahead dropdown-menu'" as="xs:string"/>
+                                                <xsl:variable name="uuid" select="ixsl:call(ixsl:window(), 'generateUUID', [])" as="xs:string"/>
+
+                                                <xsl:for-each select="div[contains-token(@class, 'control-group')]/div[contains-token(@class, 'controls')]">
+                                                    <xsl:result-document href="?." method="ixsl:replace-content">
+                                                        <xsl:call-template name="bs2:Lookup">
+                                                            <xsl:with-param name="class" select="$lookup-class"/>
+                                                            <xsl:with-param name="id" select="'input-' || $uuid"/>
+                                                            <xsl:with-param name="list-class" select="$lookup-list-class"/>
+                                                        </xsl:call-template>
+                                                    </xsl:result-document>
+                                                </xsl:for-each>
                                             </xsl:for-each>
                                         </xsl:if>
                                     </xsl:for-each>
