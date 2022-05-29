@@ -465,11 +465,9 @@ exclude-result-prefixes="#all"
                     <!-- don't insert a new <div class="controls">, only its children -->
                     <xsl:copy-of select="$new-controls"/>
                 </xsl:result-document>
-                
-                <!-- key() lookup doesn't work because of https://saxonica.plan.io/issues/5036 -->
-                <!--<xsl:apply-templates select="key('elements-by-class', 'wymeditor', .)" mode="ldh:PostConstruct"/>-->
+
                 <!-- initialize wymeditor textarea -->
-                <xsl:apply-templates select="descendant::*[contains-token(@class, 'wymeditor')]" mode="ldh:PostConstruct"/>
+                <xsl:apply-templates select="key('elements-by-class', 'wymeditor', ancestor::div)" mode="ldh:PostConstruct"/>
             </xsl:for-each>
         </xsl:if>
     </xsl:template>
@@ -772,14 +770,17 @@ exclude-result-prefixes="#all"
                                             <xsl:for-each select="div[contains-token(@class, 'row-fluid')][1]//fieldset">
                                                 <xsl:variable name="seq-properties" select=".//input[@name = 'pu']/@value[starts-with(., '&rdf;' || '_')]" as="xs:anyURI*"/>
                                                 <xsl:variable name="max-seq-index" select="if (empty($seq-properties)) then 0 else max(for $seq-property in $seq-properties return xs:integer(substring-after($seq-property, '&rdf;' || '_')))" as="xs:integer"/>
+                                                <!-- construct blank node label following Jena's 'A*' convention -->
+                                                <xsl:variable name="bnode-id" select="'A' || (if (empty($max-bnode-id)) then 0 else $max-bnode-id + 1)" as="xs:string"/>
                                                 <xsl:variable name="property-doc" as="document-node()">
                                                     <xsl:document>
                                                         <rdf:RDF>
                                                             <rdf:Description rdf:nodeID="doc">
                                                                 <xsl:element name="{'rdf:_' || ($max-seq-index + 1)}" namespace="&rdf;">
-                                                                    <!-- construct blank node label following Jena's 'A*' convention -->
-                                                                    <xsl:attribute name="rdf:nodeID" namespace="&rdf;" select="'A' || (if (empty($max-bnode-id)) then 0 else $max-bnode-id + 1)"/>
+                                                                    <xsl:attribute name="rdf:nodeID" namespace="&rdf;" select="$bnode-id"/>
                                                                 </xsl:element>
+                                                            </rdf:Description>
+                                                            <rdf:Description rdf:nodeID="{$bnode-id}">
                                                             </rdf:Description>
                                                         </rdf:RDF>
                                                     </xsl:document>
@@ -790,17 +791,12 @@ exclude-result-prefixes="#all"
                                                 </xsl:result-document>
                                                 
                                                 <!-- replace plain input with a typeahead -->
-                                                <xsl:variable name="lookup-class" select="'resource-typeahead typeahead'" as="xs:string"/>
-                                                <xsl:variable name="lookup-list-class" select="'resource-typeahead typeahead dropdown-menu'" as="xs:string"/>
-                                                <xsl:variable name="uuid" select="ixsl:call(ixsl:window(), 'generateUUID', [])" as="xs:string"/>
-
+                                                <xsl:variable name="resource" select="$property-doc/" as="element()"/>
                                                 <xsl:for-each select="div[contains-token(@class, 'control-group')][input[@name = 'pu'][@value = '&rdf;_' || ($max-seq-index + 1)]]/div[contains-token(@class, 'controls')]">
                                                     <xsl:result-document href="?." method="ixsl:replace-content">
-                                                        <xsl:call-template name="bs2:Lookup">
-                                                            <xsl:with-param name="class" select="$lookup-class"/>
-                                                            <xsl:with-param name="id" select="'input-' || $uuid"/>
-                                                            <xsl:with-param name="list-class" select="$lookup-list-class"/>
-                                                        </xsl:call-template>
+                                                        <span>
+                                                            <xsl:apply-templates select="key('resources', $bnode-id, $property-doc)" mode="ldh:Typeahead"/>
+                                                        </span>
                                                     </xsl:result-document>
                                                 </xsl:for-each>
                                             </xsl:for-each>
