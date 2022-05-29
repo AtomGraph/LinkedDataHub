@@ -791,11 +791,11 @@ exclude-result-prefixes="#all"
                                                 </xsl:result-document>
                                                 
                                                 <!-- replace plain input with a typeahead -->
-                                                <xsl:variable name="resource" select="$property-doc/" as="element()"/>
+                                                <xsl:variable name="resource" select="key('resources', $bnode-id, $property-doc)" as="element()"/>
                                                 <xsl:for-each select="div[contains-token(@class, 'control-group')][input[@name = 'pu'][@value = '&rdf;_' || ($max-seq-index + 1)]]/div[contains-token(@class, 'controls')]">
                                                     <xsl:result-document href="?." method="ixsl:replace-content">
                                                         <span>
-                                                            <xsl:apply-templates select="key('resources', $bnode-id, $property-doc)" mode="ldh:Typeahead"/>
+                                                            <xsl:apply-templates select="$resource" mode="ldh:Typeahead"/>
                                                         </span>
                                                     </xsl:result-document>
                                                 </xsl:for-each>
