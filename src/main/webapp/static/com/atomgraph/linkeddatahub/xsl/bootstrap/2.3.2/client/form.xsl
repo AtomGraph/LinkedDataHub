@@ -794,7 +794,7 @@ exclude-result-prefixes="#all"
                                                 <xsl:variable name="lookup-list-class" select="'resource-typeahead typeahead dropdown-menu'" as="xs:string"/>
                                                 <xsl:variable name="uuid" select="ixsl:call(ixsl:window(), 'generateUUID', [])" as="xs:string"/>
 
-                                                <xsl:for-each select="div[contains-token(@class, 'control-group')]/div[contains-token(@class, 'controls')]">
+                                                <xsl:for-each select="div[contains-token(@class, 'control-group')][input[@name = 'pu'][@value = '&rdf;_' || ($max-seq-index + 1)]]/div[contains-token(@class, 'controls')]">
                                                     <xsl:result-document href="?." method="ixsl:replace-content">
                                                         <xsl:call-template name="bs2:Lookup">
                                                             <xsl:with-param name="class" select="$lookup-class"/>
