@@ -42,7 +42,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Request filter that fixes XHTML content in RDF/POST payload.
+ * Request filter that fixes XHTML content in a multipart RDF/POST payload.
  * <code>rdf:XMLLiteral</code> needs to be canonical XML, therefore we wrap the original XHTML into
  * a <code>&lt;div&gt;</code> element and canonicalize the document.
  * 
@@ -50,10 +50,10 @@ import org.slf4j.LoggerFactory;
  * @see com.atomgraph.linkeddatahub.server.interceptor.RDFPostCleanupInterceptor
  */
 @Priority(Priorities.ENTITY_CODER)
-public class RDFPostCleanupFilter extends RDFPostCleanupInterceptor implements ContainerRequestFilter
+public class MultipartRDFPostCleanupFilter extends RDFPostCleanupInterceptor implements ContainerRequestFilter
 {
 
-    private static final Logger log = LoggerFactory.getLogger(RDFPostCleanupFilter.class);
+    private static final Logger log = LoggerFactory.getLogger(MultipartRDFPostCleanupFilter.class);
 
     @Context Providers providers;
 
@@ -114,7 +114,7 @@ public class RDFPostCleanupFilter extends RDFPostCleanupInterceptor implements C
 //                    keys.add(bodyPart.getName());
 //                    values.add(bodyPart.getValue());
 
-                    // only fix XMLLiterals that are objects of rdf:first
+                    // only fix XMLLiterals that are objects of rdf:value
                     // in case of XHTML from WYMEditor, stmt.getLiteral().isWellFormedXML() == false at this point
                     // we want to fix 2 cases (URL-decoded):
 
@@ -122,7 +122,7 @@ public class RDFPostCleanupFilter extends RDFPostCleanupInterceptor implements C
                     if (i >= 1 && i + 1 < multiPart.getBodyParts().size() && // check bounds
                         ((FormDataBodyPart)multiPart.getBodyParts().get(i - 1)).getName().equals(TokenizerRDFPost.URI_PRED) &&
                         ((FormDataBodyPart)multiPart.getBodyParts().get(i - 1)).getValue() != null &&
-                        ((FormDataBodyPart)multiPart.getBodyParts().get(i - 1)).getValue().equals(RDF.first.getURI()) &&
+                        ((FormDataBodyPart)multiPart.getBodyParts().get(i - 1)).getValue().equals(RDF.value.getURI()) &&
                         bodyPart.getName().equals(TokenizerRDFPost.LITERAL_OBJ) &&
                         bodyPart.getValue() != null &&
                         ((FormDataBodyPart)multiPart.getBodyParts().get(i + 1)).getName().equals(TokenizerRDFPost.TYPE) &&
@@ -137,7 +137,7 @@ public class RDFPostCleanupFilter extends RDFPostCleanupInterceptor implements C
                     if (i >= 2 &&
                         ((FormDataBodyPart)multiPart.getBodyParts().get(i - 2)).getName().equals(TokenizerRDFPost.URI_PRED) &&
                         ((FormDataBodyPart)multiPart.getBodyParts().get(i - 2)).getValue() != null &&
-                        ((FormDataBodyPart)multiPart.getBodyParts().get(i - 2)).getValue().equals(RDF.first.getURI()) &&
+                        ((FormDataBodyPart)multiPart.getBodyParts().get(i - 2)).getValue().equals(RDF.value.getURI()) &&
                         ((FormDataBodyPart)multiPart.getBodyParts().get(i - 1)).getName().equals(TokenizerRDFPost.TYPE) &&
                         ((FormDataBodyPart)multiPart.getBodyParts().get(i - 1)).getValue() != null &&
                         ((FormDataBodyPart)multiPart.getBodyParts().get(i - 1)).getValue().equals(RDF.xmlLiteral.getURI()) &&
