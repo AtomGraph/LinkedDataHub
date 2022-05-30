@@ -1098,7 +1098,7 @@ extension-element-prefixes="ixsl"
                                 <xsl:if test="current-grouping-key() = '&rdf;_1'">
                                     <xsl:for-each select="2 to ($max-seq-index + 1)">
                                         <option value="&rdf;_{.}">
-                                            <xsl:value-of select="."/>
+                                            <xsl:value-of select="'_' || ."/>
                                         </option>
                                     </xsl:for-each>
                                 </xsl:if>
@@ -1113,7 +1113,7 @@ extension-element-prefixes="ixsl"
                             <xsl:if test="current-grouping-key() = '&rdf;_1'">
                                 <xsl:for-each select="2 to ($max-seq-index + 1)">
                                     <option value="&rdf;_{.}">
-                                        <xsl:value-of select="."/>
+                                        <xsl:value-of select="'_' || ."/>
                                     </option>
                                 </xsl:for-each>
                             </xsl:if>
