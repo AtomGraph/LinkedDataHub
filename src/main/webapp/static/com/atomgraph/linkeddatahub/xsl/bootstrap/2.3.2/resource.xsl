@@ -1031,7 +1031,7 @@ extension-element-prefixes="ixsl"
                 <xsl:with-param name="traversed-ids" select="$traversed-ids" tunnel="yes"/>
             </xsl:apply-templates>
 
-            <xsl:apply-templates select="$template/*[1]" mode="bs2:PropertyControl">
+            <xsl:apply-templates select="." mode="bs2:PropertyControl">
                 <xsl:with-param name="template" select="$template"/>
                 <xsl:with-param name="forClass" select="$forClass"/>
                 <xsl:with-param name="required" select="true()"/>
@@ -1061,8 +1061,80 @@ extension-element-prefixes="ixsl"
     
     <!-- PROPERTY CONTROL -->
     
-    <!-- hide property dropdown -->
-    <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;Content']/*" mode="bs2:PropertyControl" priority="1"/>
+    <!-- hide property dropdown for content instances -->
+    
+    <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;Content']" mode="bs2:PropertyControl" priority="1"/>
+    
+    <xsl:template match="*[@rdf:about or @rdf:nodeID]" mode="bs2:PropertyControl">
+        <xsl:param name="class" as="xs:string?"/>
+        <xsl:param name="label" select="true()" as="xs:boolean"/>
+        <xsl:param name="template" as="element()*"/>
+        <xsl:param name="id" select="generate-id()" as="xs:string"/>
+        <xsl:param name="for" select="generate-id($template/*[1]/(node() | @rdf:resource | @rdf:nodeID)[1])" as="xs:string"/>
+        <xsl:param name="forClass" as="xs:anyURI*"/>
+        <xsl:variable name="seq-properties" select="../rdf:Description/*/concat(namespace-uri(), local-name())[starts-with(., '&rdf;' || '_')]" as="xs:anyURI*"/>
+        <xsl:variable name="max-seq-index" select="if (empty($seq-properties)) then 0 else max(for $seq-property in $seq-properties return xs:integer(substring-after($seq-property, '&rdf;' || '_')))" as="xs:integer"/>
+
+        <div class="control-group">
+            <span class="control-label">
+                <select class="input-medium">
+                    <!-- group properties by URI - there might be duplicates in the constructor -->
+                    <xsl:for-each-group select="$template/*" group-by="concat(namespace-uri(), local-name())">
+                        <xsl:sort select="ac:property-label(.)"/>
+                        <xsl:variable name="this" select="xs:anyURI(current-grouping-key())" as="xs:anyURI"/>
+                        <xsl:variable name="available" select="doc-available(ac:document-uri($this))" as="xs:boolean"/>
+                        <xsl:choose use-when="system-property('xsl:product-name') = 'SAXON'">
+                            <xsl:when test="$available and key('resources', $this, document(ac:document-uri($this)))">
+                                <xsl:apply-templates select="key('resources', $this, document(ac:document-uri($this)))" mode="xhtml:Option">
+                                    <!-- <xsl:with-param name="selected" select="@rdf:about = $this"/> -->
+                                </xsl:apply-templates>
+                            </xsl:when>
+                            <xsl:otherwise>
+                                <option value="{current-grouping-key()}">
+                                    <xsl:value-of select="local-name()"/>
+                                </option>
+                                
+                                <!-- generate additional content sequence properties (that are not in the constructor but are used in the resource description -->
+                                <xsl:if test="current-grouping-key() = '&rdf;_1'">
+                                    <xsl:for-each select="2 .. $max-seq-index + 1">
+                                        <option value="&rdf;_{.}">
+                                            <xsl:value-of select="."/>
+                                        </option>
+                                    </xsl:for-each>
+                                </xsl:if>
+                            </xsl:otherwise>
+                        </xsl:choose>
+                        <xsl:for-each use-when="system-property('xsl:product-name') eq 'SaxonJS'" select=".">
+                            <option value="{current-grouping-key()}">
+                                <xsl:value-of select="local-name()"/>
+                            </option>
+                            
+                            <!-- generate additional content sequence properties (that are not in the constructor but are used in the resource description -->
+                            <xsl:if test="current-grouping-key() = '&rdf;_1'">
+                                <xsl:for-each select="2 .. $max-seq-index + 1">
+                                    <option value="&rdf;_{.}">
+                                        <xsl:value-of select="."/>
+                                    </option>
+                                </xsl:for-each>
+                            </xsl:if>
+                        </xsl:for-each>
+                    </xsl:for-each-group>
+                </select>
+            </span>
+
+            <div class="controls">
+                <!-- $forClass value is used in client.xsl -->
+                <xsl:for-each select="$forClass">
+                    <input type="hidden" name="forClass" value="{.}"/>
+                </xsl:for-each>
+                <button type="button" id="button-{generate-id()}" class="btn add-value">
+                    <xsl:apply-templates select="key('resources', 'add', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ldh:logo">
+                        <xsl:with-param name="class" select="'btn add-value'"/>
+                    </xsl:apply-templates>
+                </button>
+            </div>
+        </div>
+    </xsl:template>
     
     <!-- TYPEAHEAD -->
     

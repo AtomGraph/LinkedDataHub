@@ -897,59 +897,6 @@ exclude-result-prefixes="#all"
         </xsl:if>
     </xsl:template>
     
-    <!-- PROPERTY CONTROL -->
-    
-    <xsl:template match="*[@rdf:about or @rdf:nodeID]/*" mode="bs2:PropertyControl">
-        <xsl:param name="class" as="xs:string?"/>
-        <xsl:param name="label" select="true()" as="xs:boolean"/>
-        <xsl:param name="template" as="element()*"/>
-        <xsl:param name="id" select="generate-id()" as="xs:string"/>
-        <xsl:param name="for" select="generate-id((node() | @rdf:resource | @rdf:nodeID)[1])" as="xs:string"/>
-        <xsl:param name="forClass" as="xs:anyURI*"/>
-
-        <div class="control-group">
-            <span class="control-label">
-                <select class="input-medium">
-                    <!-- group properties by URI - there might be duplicates in the constructor -->
-                    <xsl:for-each-group select="$template/*" group-by="concat(namespace-uri(), local-name())">
-                        <xsl:sort select="ac:property-label(.)"/>
-                        <xsl:variable name="this" select="xs:anyURI(current-grouping-key())" as="xs:anyURI"/>
-                        <xsl:variable name="available" select="doc-available(ac:document-uri($this))" as="xs:boolean"/>
-                        <xsl:choose use-when="system-property('xsl:product-name') = 'SAXON'">
-                            <xsl:when test="$available and key('resources', $this, document(ac:document-uri($this)))">
-                                <xsl:apply-templates select="key('resources', $this, document(ac:document-uri($this)))" mode="xhtml:Option">
-                                    <!-- <xsl:with-param name="selected" select="@rdf:about = $this"/> -->
-                                </xsl:apply-templates>
-                            </xsl:when>
-                            <xsl:otherwise>
-                                <option value="{current-grouping-key()}">
-                                    <xsl:value-of select="local-name()"/>
-                                </option>
-                            </xsl:otherwise>
-                        </xsl:choose>
-                        <xsl:for-each use-when="system-property('xsl:product-name') eq 'SaxonJS'" select=".">
-                            <option value="{current-grouping-key()}">
-                                <xsl:value-of select="local-name()"/>
-                            </option>
-                        </xsl:for-each>
-                    </xsl:for-each-group>
-                </select>
-            </span>
-
-            <div class="controls">
-                <!-- $forClass value is used in client.xsl -->
-                <xsl:for-each select="$forClass">
-                    <input type="hidden" name="forClass" value="{.}"/>
-                </xsl:for-each>
-                <button type="button" id="button-{generate-id()}" class="btn add-value">
-                    <xsl:apply-templates select="key('resources', 'add', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ldh:logo">
-                        <xsl:with-param name="class" select="'btn add-value'"/>
-                    </xsl:apply-templates>
-                </button>
-            </div>
-        </div>
-    </xsl:template>
-    
     <!-- real numbers -->
     
     <xsl:template match="text()[../@rdf:datatype = '&xsd;float'] | text()[../@rdf:datatype = '&xsd;double']" priority="1" mode="xhtml:Input">
