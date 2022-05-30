@@ -764,42 +764,19 @@ exclude-result-prefixes="#all"
                                             <xsl:copy-of select="$form//div[contains-token(@class, 'row-fluid')]"/>
                                         </xsl:result-document>
                                         
-                                        <!-- if the instance is of type ldh:Content, add a rdf:_X property (div.control-group) to the document that connects them -->
+                                        <!-- if the instance is of type ldh:Content, add a new rdf:_X property to the property dropdown -->
                                         <xsl:if test="$forClass = '&ldh;Content'">
                                             <!-- we're assuming here the document <fieldset> is always the first one -->
-                                            <xsl:for-each select="./div[contains-token(@class, 'row-fluid')][1]//fieldset">
+                                            <xsl:for-each select="./div[contains-token(@class, 'row-fluid')][1]//div[contains-token(@class, 'control-group')]/select">
                                                 <xsl:variable name="seq-properties" select=".//input[@name = 'pu']/@value[starts-with(., '&rdf;' || '_')]" as="xs:anyURI*"/>
                                                 <xsl:variable name="max-seq-index" select="if (empty($seq-properties)) then 0 else max(for $seq-property in $seq-properties return xs:integer(substring-after($seq-property, '&rdf;' || '_')))" as="xs:integer"/>
-                                                <!-- construct blank node label following Jena's 'A*' convention -->
-                                                <xsl:variable name="bnode-id" select="'A' || (if (empty($max-bnode-id)) then 0 else $max-bnode-id + 1)" as="xs:string"/>
-                                                <xsl:variable name="property-doc" as="document-node()">
-                                                    <xsl:document>
-                                                        <rdf:RDF>
-                                                            <rdf:Description rdf:nodeID="doc">
-                                                                <xsl:element name="{'rdf:_' || ($max-seq-index + 1)}" namespace="&rdf;">
-                                                                    <xsl:attribute name="rdf:nodeID" namespace="&rdf;" select="$bnode-id"/>
-                                                                </xsl:element>
-                                                            </rdf:Description>
-                                                            <rdf:Description rdf:nodeID="{$bnode-id}">
-                                                                <rdf:value rdf:nodeID="whatever"/> <!-- placeholder property required to make key('resources') match -->
-                                                            </rdf:Description>
-                                                        </rdf:RDF>
-                                                    </xsl:document>
-                                                </xsl:variable>
+                                                <xsl:variable name="property-uri" select="xs:anyURI('&rdf;_' || ($max-seq-index + 1))" as="xs:anURI"/>
                                                 
                                                 <xsl:result-document href="?." method="ixsl:append-content">
-                                                    <xsl:apply-templates select="$property-doc//rdf:Description[@rdf:nodeID = 'doc']" mode="bs2:FormControl"/>
+                                                    <option value="{$property-uri}">
+                                                        <xsl:value-of select="'&rdf;_' || ($max-seq-index + 1)"/>
+                                                    </option>
                                                 </xsl:result-document>
-                                                
-                                                <!-- replace plain input with a typeahead -->
-                                                <xsl:variable name="resource" select="key('resources', $bnode-id, $property-doc)" as="element()"/>
-                                                <xsl:for-each select="./div[contains-token(@class, 'control-group')][input[@name = 'pu'][@value = '&rdf;_' || ($max-seq-index + 1)]]/div[contains-token(@class, 'controls')]">
-                                                    <xsl:result-document href="?." method="ixsl:replace-content">
-                                                        <span>
-                                                            <xsl:apply-templates select="$resource" mode="ldh:Typeahead"/>
-                                                        </span>
-                                                    </xsl:result-document>
-                                                </xsl:for-each>
                                             </xsl:for-each>
                                         </xsl:if>
                                     </xsl:for-each>
