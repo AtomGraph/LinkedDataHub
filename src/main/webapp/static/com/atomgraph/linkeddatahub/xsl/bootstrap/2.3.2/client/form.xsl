@@ -811,9 +811,10 @@ exclude-result-prefixes="#all"
                             <xsl:if test="$seq-property">
                                 <!-- switch context to the last div.control-group which now contains the property select -->
                                 <xsl:for-each select="./div[contains-token(@class, 'control-group')][./span[contains-token(@class, 'control-label')]/select]">
-                                    <xsl:variable name="seq-index" select="xs:integer(substring-after($property, '&rdf;_'))" as="xs:integer"/>
+                                    <xsl:variable name="seq-properties" select="ancestor::fieldset//input[@name = 'pu']/@value[starts-with(., '&rdf;' || '_')]" as="xs:anyURI*"/>
+                                    <xsl:variable name="max-seq-index" select="if (empty($seq-properties)) then 0 else max(for $seq-property in $seq-properties return xs:integer(substring-after($seq-property, '&rdf;' || '_')))" as="xs:integer"/>
                                     <!-- append new property to the dropdown with an incremented index -->
-                                    <xsl:variable name="next-property" select="xs:anyURI('&rdf;_' || ($seq-index + 1))" as="xs:anyURI"/>
+                                    <xsl:variable name="next-property" select="xs:anyURI('&rdf;_' || ($max-seq-index + 1))" as="xs:anyURI"/>
 
                                     <xsl:for-each select=".//select">
                                         <!-- only add property if it doesn't already exist -->
@@ -821,7 +822,7 @@ exclude-result-prefixes="#all"
                                             <xsl:result-document href="?." method="ixsl:append-content">
                                                 <option value="{$next-property}">
                                                     <xsl:text>_</xsl:text>
-                                                    <xsl:value-of select="$seq-index + 1"/>
+                                                    <xsl:value-of select="$max-seq-index + 1"/>
                                                 </option>
                                             </xsl:result-document>
                                         </xsl:if>
