@@ -816,7 +816,9 @@ exclude-result-prefixes="#all"
                             <xsl:with-param name="doc-id" select="$doc-id" tunnel="yes"/>
                         </xsl:apply-templates>
                     </xsl:variable>
-                    <xsl:variable name="new-control-group" select="$form//div[contains-token(@class, 'control-group')][input[@name = 'pu']/@value = $property]" as="element()"/>
+                    <!-- if this is a rdf:Seq membership property, always revert to rdf:_1 (because that's the only one we have in the constructor) and fix the form inputs afterwards -->
+                    <xsl:variable name="constructed-property" select="if ($seq-property) then xs:anyURI('&rdf;_1') else $property" as="xs:anyURI"/>
+                    <xsl:variable name="new-control-group" select="$form//div[contains-token(@class, 'control-group')][input[@name = 'pu']/@value = $constructed-property]" as="element()"/>
                     
                     <xsl:for-each select="$control-group">
                         <!-- move property creation control group down, by appending it to the parent fieldset -->
