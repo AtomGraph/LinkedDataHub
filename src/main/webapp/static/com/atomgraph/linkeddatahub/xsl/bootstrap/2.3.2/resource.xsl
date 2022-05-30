@@ -1072,7 +1072,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="id" select="generate-id()" as="xs:string"/>
         <xsl:param name="for" select="generate-id($template/*[1]/(node() | @rdf:resource | @rdf:nodeID)[1])" as="xs:string"/>
         <xsl:param name="forClass" as="xs:anyURI*"/>
-        <xsl:variable name="seq-properties" select="../rdf:Description/*/concat(namespace-uri(), local-name())[starts-with(., '&rdf;' || '_')]/xs:anyURI(.)" as="xs:anyURI*"/>
+        <xsl:variable name="seq-properties" select="for $property in ../rdf:Description/*/concat(namespace-uri(), local-name())[starts-with(., '&rdf;' || '_')] return xs:anyURI($property)" as="xs:anyURI*"/>
         <xsl:variable name="max-seq-index" select="if (empty($seq-properties)) then 0 else max(for $seq-property in $seq-properties return xs:integer(substring-after($seq-property, '&rdf;' || '_')))" as="xs:integer"/>
 
         <div class="control-group">
