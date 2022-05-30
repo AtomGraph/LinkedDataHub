@@ -244,7 +244,7 @@ exclude-result-prefixes="#all">
     </xsl:template>
 
     <!-- suppress properties -->
-    <xsl:template match="dct:title[doc-available(ac:uri())][key('resources', ac:uri(), document(ac:uri()))/rdf:type/@rdf:resource = '&adm;RequestAccess'] | dct:description[doc-available(ac:uri())][key('resources', ac:uri(), document(ac:uri()))/rdf:type/@rdf:resource = '&adm;RequestAccess'] | ldh:content[doc-available(ac:uri())][key('resources', ac:uri(), document(ac:uri()))/rdf:type/@rdf:resource = '&adm;RequestAccess']" mode="bs2:FormControl" priority="4"/>
+    <xsl:template match="dct:title[doc-available(ac:uri())][key('resources', ac:uri(), document(ac:uri()))/rdf:type/@rdf:resource = '&adm;RequestAccess'] | dct:description[doc-available(ac:uri())][key('resources', ac:uri(), document(ac:uri()))/rdf:type/@rdf:resource = '&adm;RequestAccess'] | rdf:_1[doc-available(ac:uri())][key('resources', ac:uri(), document(ac:uri()))/rdf:type/@rdf:resource = '&adm;RequestAccess']" mode="bs2:FormControl" priority="4"/>
 
     <!-- hide properties (including all of document resource properties) -->
     <xsl:template match="rdfs:label[doc-available(ac:uri())][key('resources', ac:uri(), document(ac:uri()))/rdf:type/@rdf:resource = '&adm;RequestAccess'] | foaf:isPrimaryTopicOf[doc-available(ac:uri())][key('resources', ac:uri(), document(ac:uri()))/rdf:type/@rdf:resource = '&adm;RequestAccess'] | *[foaf:primaryTopic][doc-available(ac:uri())][key('resources', ac:uri(), document(ac:uri()))/rdf:type/@rdf:resource = '&adm;RequestAccess']/*" mode="bs2:FormControl" priority="3">

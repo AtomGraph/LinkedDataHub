@@ -67,17 +67,12 @@ exclude-result-prefixes="#all"
 
     <!-- subject type change -->
     <xsl:template match="select[contains-token(@class, 'subject-type')]" mode="ldh:PostConstruct" priority="1">
-        <xsl:message>
-            <xsl:value-of select="ixsl:call(., 'addEventListener', [ 'change', ixsl:get(ixsl:window(), 'onSubjectTypeChange') ])"/>
-        </xsl:message>
+        <xsl:value-of select="ixsl:call(., 'addEventListener', [ 'change', ixsl:get(ixsl:window(), 'onSubjectTypeChange') ])[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
     
     <xsl:template match="textarea[contains-token(@class, 'wymeditor')]" mode="ldh:PostConstruct" priority="1">
-        <!-- without wrapping into comment, we get: SEVERE: In delayed event: DOM error appending text node with value: '[object Object]' to node with name: #document -->
-        <xsl:message>
-            <!-- call .wymeditor() on textarea to show WYMEditor -->
-            <xsl:sequence select="ixsl:call(ixsl:call(ixsl:window(), 'jQuery', [ . ]), 'wymeditor', [])"/>
-        </xsl:message>
+        <!-- call .wymeditor() on textarea to show WYMEditor -->
+        <xsl:sequence select="ixsl:call(ixsl:call(ixsl:window(), 'jQuery', [ . ]), 'wymeditor', [])[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
 
     <!-- TO-DO: phase out as regular ixsl: event templates -->
@@ -85,7 +80,7 @@ exclude-result-prefixes="#all"
         <!-- subject value change -->
         <xsl:if test="contains-token(@class, 'subject')">
             <xsl:message>
-                <xsl:value-of select="ixsl:call(., 'addEventListener', [ 'change', ixsl:get(ixsl:window(), 'onSubjectValueChange') ])"/>
+                <xsl:value-of select="ixsl:call(., 'addEventListener', [ 'change', ixsl:get(ixsl:window(), 'onSubjectValueChange') ])[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:message>
         </xsl:if>
         
