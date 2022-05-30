@@ -212,6 +212,9 @@ exclude-result-prefixes="#all"
     <xsl:template match="button[contains-token(@class, 'add-value')]" mode="ixsl:onclick">
         <xsl:variable name="control-group" select="../.." as="element()"/> <!-- ../../copy-of() -->
         <xsl:variable name="property" select="../preceding-sibling::*/select/option[ixsl:get(., 'selected') = true()]/ixsl:get(., 'value')" as="xs:anyURI"/>
+        <xsl:variable name="seq-property" select="starts-with($property, '&rdf;_')" as="xs:boolean"/>
+        <!-- if this is a rdf:Seq membership property, always revert to rdf:_1 (because that's the only one we have in the constructor) and fix the form inputs afterwards -->
+        <xsl:variable name="property" select="if ($seq-property) then xs:anyURI('&rdf;_1') else $property" as="xs:anyURI"/>
         <xsl:variable name="forClass" select="preceding-sibling::input/@value" as="xs:anyURI*"/>
         <xsl:variable name="href" select="ac:build-uri(ldh:absolute-path(ldh:href()), map{ 'forClass': string($forClass) })" as="xs:anyURI"/>
         
@@ -220,9 +223,9 @@ exclude-result-prefixes="#all"
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
                 <xsl:call-template name="onAddValue">
-                    <!--<xsl:with-param name="forClass" select="$forClass"/>-->
                     <xsl:with-param name="control-group" select="$control-group"/>
                     <xsl:with-param name="property" select="$property"/>
+                    <xsl:with-param name="seq-property" select="$seq-property"/>
                 </xsl:call-template>
             </ixsl:schedule-action>
         </xsl:variable>
@@ -775,6 +778,7 @@ exclude-result-prefixes="#all"
                                                 <xsl:for-each select="./div[contains-token(@class, 'control-group')]//select">
                                                     <xsl:result-document href="?." method="ixsl:append-content">
                                                         <option value="{$property-uri}">
+                                                            <xsl:text>_</xsl:text>
                                                             <xsl:value-of select="$max-seq-index + 1"/>
                                                         </option>
                                                     </xsl:result-document>
@@ -824,7 +828,8 @@ exclude-result-prefixes="#all"
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="control-group" as="element()"/>
         <xsl:param name="property" as="xs:anyURI"/>
-        
+        <xsl:param name="seq-property" select="starts-with($property, '&rdf;_')" as="xs:boolean"/>
+
         <xsl:choose>
             <xsl:when test="?status = 200 and starts-with(?media-type, 'application/xhtml+xml')">
                 <xsl:for-each select="?body">
@@ -847,11 +852,6 @@ exclude-result-prefixes="#all"
                         <xsl:result-document href="?." method="ixsl:replace-content">
                             <xsl:copy-of select="$new-control-group/*"/>
                         </xsl:result-document>
-                        
-                        <!-- apply WYMEditor on textarea if object is XMLLiteral -->
-<!--                        <xsl:call-template name="add-value-listeners">
-                            <xsl:with-param name="id" select="$new-control-group//input[@name = ('ob', 'ou', 'ol')]/@id"/>
-                        </xsl:call-template>-->
                     </xsl:for-each>
                 </xsl:for-each>
                 
