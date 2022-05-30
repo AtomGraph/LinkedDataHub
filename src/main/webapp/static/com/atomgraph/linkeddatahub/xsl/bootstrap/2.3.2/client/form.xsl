@@ -425,7 +425,7 @@ exclude-result-prefixes="#all"
                 </xsl:document>
             </xsl:variable>
             <xsl:variable name="new-controls" as="node()*">
-                <xsl:apply-templates select="$constructor//rdf:first/@rdf:*" mode="bs2:FormControl"/>
+                <xsl:apply-templates select="$constructor//rdf:value/@rdf:*" mode="bs2:FormControl"/>
             </xsl:variable>
             
             <xsl:for-each select="$controls">
