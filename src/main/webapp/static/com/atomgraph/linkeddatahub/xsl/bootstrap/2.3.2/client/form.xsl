@@ -856,17 +856,18 @@ exclude-result-prefixes="#all"
                             <xsl:copy-of select="$new-control-group/*"/>
                         </xsl:result-document>
                         
-                        <!-- fix up the sequence property URI and label by increasing the counter -->
+                        <!-- fix up the rdf:_X sequence property URI and label by increasing the counter (if it's higher than 1) -->
                         <xsl:if test="$seq-property">
                             <xsl:variable name="seq-index" select="xs:integer(substring-after($property, '&rdf;_'))" as="xs:integer"/>
-                            
-                            <ixsl:set-attribute name="pu" object="." select="'&rdf;_' || ($seq-index + 1)"/>
-                            
-                            <xsl:for-each select="label">
-                                <xsl:result-document href="?." method="ixsl:replace-content">
-                                    <xsl:value-of select="'_' || ($seq-index + 1)"/>
-                                </xsl:result-document>
-                            </xsl:for-each>
+                            <xsl:if test="$seq-index &gt; 1">
+                                <ixsl:set-attribute name="pu" object="." select="'&rdf;_' || ($seq-index + 1)"/>
+
+                                <xsl:for-each select="label">
+                                    <xsl:result-document href="?." method="ixsl:replace-content">
+                                        <xsl:value-of select="'_' || ($seq-index + 1)"/>
+                                    </xsl:result-document>
+                                </xsl:for-each>
+                            </xsl:if>
                         </xsl:if>
                     </xsl:for-each>
                 </xsl:for-each>
