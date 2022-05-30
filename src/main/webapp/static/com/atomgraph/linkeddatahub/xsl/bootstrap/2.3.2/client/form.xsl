@@ -841,7 +841,7 @@ exclude-result-prefixes="#all"
                             
                             <xsl:for-each select=".//select">
                                 <!-- only add property if it doesn't already exist -->
-                                <xsl:if test="not(option/@value = $property-uri)">
+                                <xsl:if test="not(option/@value = $next-property)">
                                     <xsl:result-document href="?." method="ixsl:append-content">
                                         <option value="{$next-property}">
                                             <xsl:text>_</xsl:text>
