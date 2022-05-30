@@ -828,6 +828,27 @@ exclude-result-prefixes="#all"
                             <xsl:result-document href="?." method="ixsl:append-content">
                                 <xsl:copy-of select="$control-group"/>
                             </xsl:result-document>
+                            
+                            <xsl:if test="$seq-property">
+                                <!-- switch context to the last div.control-group which now contains the property select -->
+                                <xsl:for-each select="div[contains-token(@class, 'control-group')][div[contains-token(@class, 'control-label')]/select]">
+                                    <xsl:variable name="seq-index" select="xs:integer(substring-after($property, '&rdf;_'))" as="xs:integer"/>
+                                    <!-- append new property to the dropdown with an incremented index -->
+                                    <xsl:variable name="next-property" select="xs:anyURI('&rdf;_' || ($seq-index + 1))" as="xs:anyURI"/>
+
+                                    <xsl:for-each select=".//select">
+                                        <!-- only add property if it doesn't already exist -->
+                                        <xsl:if test="not(option/@value = $next-property)">
+                                            <xsl:result-document href="?." method="ixsl:append-content">
+                                                <option value="{$next-property}">
+                                                    <xsl:text>_</xsl:text>
+                                                    <xsl:value-of select="$seq-index + 1"/>
+                                                </option>
+                                            </xsl:result-document>
+                                        </xsl:if>
+                                    </xsl:for-each>
+                                </xsl:for-each>
+                            </xsl:if>
                         </xsl:for-each>
 
                         <xsl:result-document href="?." method="ixsl:replace-content">
@@ -836,21 +857,6 @@ exclude-result-prefixes="#all"
                         
                         <xsl:if test="$seq-property">
                             <xsl:variable name="seq-index" select="xs:integer(substring-after($property, '&rdf;_'))" as="xs:integer"/>
-                            <!-- append new property to the dropdown with an incremented index -->
-                            <xsl:variable name="next-property" select="xs:anyURI('&rdf;_' || ($seq-index + 1))" as="xs:anyURI"/>
-                            
-                            <xsl:for-each select=".//select">
-                                <!-- only add property if it doesn't already exist -->
-                                <xsl:if test="not(option/@value = $next-property)">
-                                    <xsl:result-document href="?." method="ixsl:append-content">
-                                        <option value="{$next-property}">
-                                            <xsl:text>_</xsl:text>
-                                            <xsl:value-of select="$seq-index + 1"/>
-                                        </option>
-                                    </xsl:result-document>
-                                </xsl:if>
-                            </xsl:for-each>
-                            
                             <xsl:if test="$seq-index &gt; 1">
                                 <!-- fix up the rdf:_X sequence property URI and label by increasing the counter (if it's higher than 1) -->
                                 <ixsl:set-attribute name="pu" object="." select="$property"/>
