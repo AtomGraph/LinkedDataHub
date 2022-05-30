@@ -766,28 +766,6 @@ exclude-result-prefixes="#all"
                                             <!-- only append the <fieldset> from the $form, not the whole <form> -->
                                             <xsl:copy-of select="$form//div[contains-token(@class, 'row-fluid')]"/>
                                         </xsl:result-document>
-                                        
-                                        <!-- if the instance is of type ldh:Content, add a new rdf:_X property to the property dropdown -->
-                                        <xsl:if test="$forClass = '&ldh;Content'">
-                                            <!-- we're assuming here the document <fieldset> is always the first one -->
-                                            <xsl:for-each select="./div[contains-token(@class, 'row-fluid')][1]//fieldset">
-                                                <xsl:variable name="seq-properties" select=".//input[@name = 'pu']/@value[starts-with(., '&rdf;_')]" as="xs:anyURI*"/>
-                                                <xsl:variable name="max-seq-index" select="if (empty($seq-properties)) then 0 else max(for $seq-property in $seq-properties return xs:integer(substring-after($seq-property, '&rdf;_')))" as="xs:integer"/>
-                                                <xsl:variable name="property-uri" select="xs:anyURI('&rdf;_' || ($max-seq-index + 1))" as="xs:anyURI"/>
-
-                                                <xsl:for-each select="./div[contains-token(@class, 'control-group')]//select">
-                                                    <!-- only add property if it doesn't already exist -->
-                                                    <xsl:if test="not(option/@value = $property-uri)">
-                                                        <xsl:result-document href="?." method="ixsl:append-content">
-                                                            <option value="{$property-uri}">
-                                                                <xsl:text>_</xsl:text>
-                                                                <xsl:value-of select="$max-seq-index + 1"/>
-                                                            </option>
-                                                        </xsl:result-document>
-                                                    </xsl:if>
-                                                </xsl:for-each>
-                                            </xsl:for-each>
-                                        </xsl:if>
                                     </xsl:for-each>
                                 </xsl:when>
                                 <!-- there's no <form> so we're not in EditMode - replace the whole content -->
@@ -846,7 +824,7 @@ exclude-result-prefixes="#all"
                     
                     <xsl:for-each select="$control-group">
                         <!-- move property creation control group down, by appending it to the parent fieldset -->
-                        <xsl:for-each select="$control-group/..">
+                        <xsl:for-each select="..">
                             <xsl:result-document href="?." method="ixsl:append-content">
                                 <xsl:copy-of select="$control-group"/>
                             </xsl:result-document>
@@ -856,15 +834,30 @@ exclude-result-prefixes="#all"
                             <xsl:copy-of select="$new-control-group/*"/>
                         </xsl:result-document>
                         
-                        <!-- fix up the rdf:_X sequence property URI and label by increasing the counter (if it's higher than 1) -->
                         <xsl:if test="$seq-property">
                             <xsl:variable name="seq-index" select="xs:integer(substring-after($property, '&rdf;_'))" as="xs:integer"/>
+                            <!-- append new property to the dropdown with an incremented index -->
+                            <xsl:variable name="next-property" select="xs:anyURI('&rdf;_' || ($seq-index + 1))" as="xs:anyURI"/>
+                            
+                            <xsl:for-each select=".//select">
+                                <!-- only add property if it doesn't already exist -->
+                                <xsl:if test="not(option/@value = $property-uri)">
+                                    <xsl:result-document href="?." method="ixsl:append-content">
+                                        <option value="{$next-property}">
+                                            <xsl:text>_</xsl:text>
+                                            <xsl:value-of select="$max-seq-index + 1"/>
+                                        </option>
+                                    </xsl:result-document>
+                                </xsl:if>
+                            </xsl:for-each>
+                            
                             <xsl:if test="$seq-index &gt; 1">
-                                <ixsl:set-attribute name="pu" object="." select="'&rdf;_' || ($seq-index + 1)"/>
+                                <!-- fix up the rdf:_X sequence property URI and label by increasing the counter (if it's higher than 1) -->
+                                <ixsl:set-attribute name="pu" object="." select="$property"/>
 
                                 <xsl:for-each select="label">
                                     <xsl:result-document href="?." method="ixsl:replace-content">
-                                        <xsl:value-of select="'_' || ($seq-index + 1)"/>
+                                        <xsl:value-of select="'_' || $seq-index"/>
                                     </xsl:result-document>
                                 </xsl:for-each>
                             </xsl:if>
