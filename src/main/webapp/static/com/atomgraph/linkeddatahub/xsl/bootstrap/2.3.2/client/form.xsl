@@ -831,7 +831,7 @@ exclude-result-prefixes="#all"
                             
                             <xsl:if test="$seq-property">
                                 <!-- switch context to the last div.control-group which now contains the property select -->
-                                <xsl:for-each select="div[contains-token(@class, 'control-group')][div[contains-token(@class, 'control-label')]/select]">
+                                <xsl:for-each select="./div[contains-token(@class, 'control-group')][./span[contains-token(@class, 'control-label')]/select]">
                                     <xsl:variable name="seq-index" select="xs:integer(substring-after($property, '&rdf;_'))" as="xs:integer"/>
                                     <!-- append new property to the dropdown with an incremented index -->
                                     <xsl:variable name="next-property" select="xs:anyURI('&rdf;_' || ($seq-index + 1))" as="xs:anyURI"/>
