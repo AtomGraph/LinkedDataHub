@@ -79,9 +79,7 @@ exclude-result-prefixes="#all"
     <xsl:template match="fieldset//input" mode="ldh:PostConstruct" priority="1">
         <!-- subject value change -->
         <xsl:if test="contains-token(@class, 'subject')">
-            <xsl:message>
-                <xsl:value-of select="ixsl:call(., 'addEventListener', [ 'change', ixsl:get(ixsl:window(), 'onSubjectValueChange') ])[current-date() lt xs:date('2000-01-01')]"/>
-            </xsl:message>
+            <xsl:value-of select="ixsl:call(., 'addEventListener', [ 'change', ixsl:get(ixsl:window(), 'onSubjectValueChange') ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:if>
         
         <!-- TO-DO: move to a better place. Does not take effect if typeahead is reset -->
@@ -418,7 +416,7 @@ exclude-result-prefixes="#all"
                     <rdf:RDF>
                         <rdf:Description rdf:nodeID="A1">
                             <rdf:type rdf:resource="&ldh;Content"/>
-                            <rdf:first rdf:nodeID="A2"/>
+                            <rdf:value rdf:nodeID="A2"/>
                         </rdf:Description>
                         <rdf:Description rdf:nodeID="A2">
                             <rdf:type rdf:resource="&rdfs;Resource"/>
@@ -443,15 +441,15 @@ exclude-result-prefixes="#all"
                     <rdf:RDF>
                         <rdf:Description rdf:nodeID="A1">
                             <rdf:type rdf:resource="&ldh;Content"/>
-                            <rdf:first rdf:parseType="Literal">
+                            <rdf:value rdf:parseType="Literal">
                                 <xhtml:div/>
-                            </rdf:first>
+                            </rdf:value>
                         </rdf:Description>
                     </rdf:RDF>
                 </xsl:document>
             </xsl:variable>
             <xsl:variable name="new-controls" as="node()*">
-                <xsl:apply-templates select="$constructor//rdf:first/xhtml:*" mode="bs2:FormControl"/>
+                <xsl:apply-templates select="$constructor//rdf:value/xhtml:*" mode="bs2:FormControl"/>
             </xsl:variable>
 
             <xsl:for-each select="$controls">
@@ -468,23 +466,17 @@ exclude-result-prefixes="#all"
 
     <!-- remove div.row-fluid (button is within <legend>) -->
     <xsl:template match="fieldset/legend/div/button[contains-token(@class, 'btn-remove-resource')]" mode="ixsl:onclick" priority="1">
-        <xsl:message>
-            <xsl:value-of select="ixsl:call(../../../../.., 'remove', [])"/>
-        </xsl:message>
+        <xsl:value-of select="ixsl:call(../../../../.., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
 
     <!-- remove <fieldset> (button is within <fieldset>) -->
     <xsl:template match="fieldset/div/button[contains-token(@class, 'btn-remove-resource')]" mode="ixsl:onclick" priority="1">
-        <xsl:message>
-            <xsl:value-of select="ixsl:call(../.., 'remove', [])"/>
-        </xsl:message>
+        <xsl:value-of select="ixsl:call(../.., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
 
     <!-- remove <div class="control-group"> -->
     <xsl:template match="button[contains-token(@class, 'btn-remove-property')]" mode="ixsl:onclick" priority="1">
-        <xsl:message>
-            <xsl:value-of select="ixsl:call(../../.., 'remove', [])"/>
-        </xsl:message>
+        <xsl:value-of select="ixsl:call(../../.., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
 
     <xsl:template match="button[contains-token(@class, 'add-type')]" mode="ixsl:onclick" priority="1">
@@ -620,9 +612,7 @@ exclude-result-prefixes="#all"
     
     <xsl:template match="div[contains-token(@class, 'modal')]//button[tokenize(@class, ' ') = ('close', 'btn-close')]" mode="ixsl:onclick">
         <xsl:for-each select="ancestor::div[contains-token(@class, 'modal')]">
-            <xsl:message>
-                <xsl:value-of select="ixsl:call(., 'remove', [])"/>
-            </xsl:message>
+            <xsl:value-of select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
     </xsl:template>
     
@@ -741,16 +731,12 @@ exclude-result-prefixes="#all"
                                 <xsl:when test="$target/ancestor::form[contains-token(@class, 'form-horizontal')]">
                                     <xsl:for-each select="$target/ancestor::form[contains-token(@class, 'form-horizontal')]">
                                         <!-- remove the old form-actions <div> because we'll be appending a new one below -->
-                                        <xsl:for-each select="./div[div[contains-token(@class, 'form-actions')]]">
-                                            <xsl:message>
-                                                <xsl:value-of select="ixsl:call(., 'remove', [])"/>
-                                            </xsl:message>
+                                        <xsl:for-each select="./div[./div[contains-token(@class, 'form-actions')]]">
+                                            <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
                                         </xsl:for-each>
                                         <!-- remove the current "Create" buttons from the form -->
                                         <xsl:for-each select="$target/ancestor::div[contains-token(@class, 'create-resource')]">
-                                            <xsl:message>
-                                                <xsl:value-of select="ixsl:call(., 'remove', [])"/>
-                                            </xsl:message>
+                                            <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
                                         </xsl:for-each>
 
                                         <xsl:result-document href="?." method="ixsl:append-content">
@@ -1005,9 +991,7 @@ exclude-result-prefixes="#all"
 
                     <!-- remove modal constructor form -->
                     <xsl:if test="$modal-form">
-                        <xsl:message>
-                            <xsl:sequence select="ixsl:call($modal-form/.., 'remove', [])"/>
-                        </xsl:message>
+                        <xsl:sequence select="ixsl:call($modal-form/.., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
                     </xsl:if>
 
                     <xsl:for-each select="$typeahead-span">
