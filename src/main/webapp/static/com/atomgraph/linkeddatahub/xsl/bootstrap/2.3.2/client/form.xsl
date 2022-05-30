@@ -212,9 +212,6 @@ exclude-result-prefixes="#all"
     <xsl:template match="button[contains-token(@class, 'add-value')]" mode="ixsl:onclick">
         <xsl:variable name="control-group" select="../.." as="element()"/>
         <xsl:variable name="property" select="../preceding-sibling::*/select/option[ixsl:get(., 'selected') = true()]/ixsl:get(., 'value')" as="xs:anyURI"/>
-        <xsl:variable name="seq-property" select="starts-with($property, '&rdf;_')" as="xs:boolean"/>
-        <!-- if this is a rdf:Seq membership property, always revert to rdf:_1 (because that's the only one we have in the constructor) and fix the form inputs afterwards -->
-        <xsl:variable name="property" select="if ($seq-property) then xs:anyURI('&rdf;_1') else $property" as="xs:anyURI"/>
         <xsl:variable name="forClass" select="preceding-sibling::input/@value" as="xs:anyURI*"/>
         <xsl:variable name="href" select="ac:build-uri(ldh:absolute-path(ldh:href()), map{ 'forClass': string($forClass) })" as="xs:anyURI"/>
         
@@ -225,7 +222,6 @@ exclude-result-prefixes="#all"
                 <xsl:call-template name="onAddValue">
                     <xsl:with-param name="control-group" select="$control-group"/>
                     <xsl:with-param name="property" select="$property"/>
-                    <xsl:with-param name="seq-property" select="$seq-property"/>
                 </xsl:call-template>
             </ixsl:schedule-action>
         </xsl:variable>
