@@ -104,7 +104,7 @@ exclude-result-prefixes="#all"
     <!-- increase bnode ID counters to avoid clashes with existing IDs. Only works with Jena's A1, A2, ... naming scheme -->
     <xsl:template match="input[@name = ('sb', 'ob')]/@value[starts-with(., 'A')]" mode="form" priority="1">
         <xsl:param name="bnode-number" select="number(substring-after(., 'A'))" as="xs:double"/>
-        <xsl:param name="max-bnode-id" as="xs:double?" tunnel="yes"/>
+        <xsl:param name="max-bnode-id" as="xs:integer" tunnel="yes"/>
         
         <xsl:choose>
             <xsl:when test="exists($max-bnode-id)">
@@ -119,7 +119,7 @@ exclude-result-prefixes="#all"
     <!-- also replace <legend> text to match the updated bnode label -->
     <xsl:template match="fieldset/legend/text()[starts-with(., 'A')][../following-sibling::input[@name = 'sb']/@value = .]" mode="form" priority="1">
         <xsl:param name="bnode-number" select="number(substring-after(., 'A'))" as="xs:double"/>
-        <xsl:param name="max-bnode-id" as="xs:double?" tunnel="yes"/>
+        <xsl:param name="max-bnode-id" as="xs:integer" tunnel="yes"/>
         
         <xsl:choose>
             <xsl:when test="exists($max-bnode-id)">
@@ -234,7 +234,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="form" select="ancestor::form" as="element()?"/>
         <xsl:variable name="bnode-ids" select="distinct-values($form//input[@name = ('sb', 'ob')]/ixsl:get(., 'value'))" as="xs:string*"/>
          <!-- find the last bnode ID on the form so that we can change this resources ID to +1. Will only work with Jena's ID format A1, A2, ... -->
-        <xsl:variable name="max-bnode-id" select="max(for $bnode-id in $bnode-ids return number(substring-after($bnode-id, 'A')))" as="xs:double?"/>
+        <xsl:variable name="max-bnode-id" select="if (empty($bnode-ids)) then 0 else max(for $bnode-id in $bnode-ids return xs:integer(substring-after($bnode-id, 'A')))" as="xs:integer"/>
         <!--- show a modal form if this button is in a <fieldset>, meaning on a resource-level and not form level. Otherwise (e.g. for the "Create" button) show normal form -->
         <xsl:variable name="modal-form" select="exists(ancestor::fieldset)" as="xs:boolean"/>
         <xsl:variable name="forClass" select="input[@class = 'forClass']/@value" as="xs:anyURI"/>
@@ -677,7 +677,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="target-id" as="xs:string?"/>
         <xsl:param name="new-form-id" as="xs:string?"/>
         <xsl:param name="new-target-id" as="xs:string?"/>
-        <xsl:param name="max-bnode-id" as="xs:double?"/>
+        <xsl:param name="max-bnode-id" as="xs:integer"/>
         <xsl:param name="forClass" as="xs:anyURI?"/>
 
         <xsl:choose>
