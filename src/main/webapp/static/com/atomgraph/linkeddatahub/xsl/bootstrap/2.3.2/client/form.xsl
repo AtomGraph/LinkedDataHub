@@ -845,7 +845,7 @@ exclude-result-prefixes="#all"
                                     <xsl:result-document href="?." method="ixsl:append-content">
                                         <option value="{$next-property}">
                                             <xsl:text>_</xsl:text>
-                                            <xsl:value-of select="$max-seq-index + 1"/>
+                                            <xsl:value-of select="$seq-index + 1"/>
                                         </option>
                                     </xsl:result-document>
                                 </xsl:if>
