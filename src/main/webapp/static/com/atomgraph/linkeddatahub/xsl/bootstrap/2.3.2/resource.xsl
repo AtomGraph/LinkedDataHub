@@ -1096,7 +1096,7 @@ extension-element-prefixes="ixsl"
                                 
                                 <!-- generate additional content sequence properties (that are not in the constructor but are used in the resource description -->
                                 <xsl:if test="current-grouping-key() = '&rdf;_1'">
-                                    <xsl:for-each select="2 .. $max-seq-index + 1">
+                                    <xsl:for-each select="2 to ($max-seq-index + 1)">
                                         <option value="&rdf;_{.}">
                                             <xsl:value-of select="."/>
                                         </option>
@@ -1111,7 +1111,7 @@ extension-element-prefixes="ixsl"
                             
                             <!-- generate additional content sequence properties (that are not in the constructor but are used in the resource description -->
                             <xsl:if test="current-grouping-key() = '&rdf;_1'">
-                                <xsl:for-each select="2 .. $max-seq-index + 1">
+                                <xsl:for-each select="2 to ($max-seq-index + 1)">
                                     <option value="&rdf;_{.}">
                                         <xsl:value-of select="."/>
                                     </option>
