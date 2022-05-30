@@ -210,7 +210,7 @@ exclude-result-prefixes="#all"
     </xsl:template>
     
     <xsl:template match="button[contains-token(@class, 'add-value')]" mode="ixsl:onclick">
-        <xsl:variable name="control-group" select="../.." as="element()"/> <!-- ../../copy-of() -->
+        <xsl:variable name="control-group" select="../.." as="element()"/>
         <xsl:variable name="property" select="../preceding-sibling::*/select/option[ixsl:get(., 'selected') = true()]/ixsl:get(., 'value')" as="xs:anyURI"/>
         <xsl:variable name="seq-property" select="starts-with($property, '&rdf;_')" as="xs:boolean"/>
         <!-- if this is a rdf:Seq membership property, always revert to rdf:_1 (because that's the only one we have in the constructor) and fix the form inputs afterwards -->
@@ -771,17 +771,20 @@ exclude-result-prefixes="#all"
                                         <xsl:if test="$forClass = '&ldh;Content'">
                                             <!-- we're assuming here the document <fieldset> is always the first one -->
                                             <xsl:for-each select="./div[contains-token(@class, 'row-fluid')][1]//fieldset">
-                                                <xsl:variable name="seq-properties" select=".//input[@name = 'pu']/@value[starts-with(., '&rdf;' || '_')]" as="xs:anyURI*"/>
-                                                <xsl:variable name="max-seq-index" select="if (empty($seq-properties)) then 0 else max(for $seq-property in $seq-properties return xs:integer(substring-after($seq-property, '&rdf;' || '_')))" as="xs:integer"/>
+                                                <xsl:variable name="seq-properties" select=".//input[@name = 'pu']/@value[starts-with(., '&rdf;_')]" as="xs:anyURI*"/>
+                                                <xsl:variable name="max-seq-index" select="if (empty($seq-properties)) then 0 else max(for $seq-property in $seq-properties return xs:integer(substring-after($seq-property, '&rdf;_')))" as="xs:integer"/>
                                                 <xsl:variable name="property-uri" select="xs:anyURI('&rdf;_' || ($max-seq-index + 1))" as="xs:anyURI"/>
 
                                                 <xsl:for-each select="./div[contains-token(@class, 'control-group')]//select">
-                                                    <xsl:result-document href="?." method="ixsl:append-content">
-                                                        <option value="{$property-uri}">
-                                                            <xsl:text>_</xsl:text>
-                                                            <xsl:value-of select="$max-seq-index + 1"/>
-                                                        </option>
-                                                    </xsl:result-document>
+                                                    <!-- only add property if it doesn't already exist -->
+                                                    <xsl:if test="not(option/@value = $property-uri)">
+                                                        <xsl:result-document href="?." method="ixsl:append-content">
+                                                            <option value="{$property-uri}">
+                                                                <xsl:text>_</xsl:text>
+                                                                <xsl:value-of select="$max-seq-index + 1"/>
+                                                            </option>
+                                                        </xsl:result-document>
+                                                    </xsl:if>
                                                 </xsl:for-each>
                                             </xsl:for-each>
                                         </xsl:if>
@@ -852,6 +855,19 @@ exclude-result-prefixes="#all"
                         <xsl:result-document href="?." method="ixsl:replace-content">
                             <xsl:copy-of select="$new-control-group/*"/>
                         </xsl:result-document>
+                        
+                        <!-- fix up the sequence property URI and label by increasing the counter -->
+                        <xsl:if test="$seq-property">
+                            <xsl:variable name="seq-index" select="xs:integer(substring-after($property, '&rdf;_'))" as="xs:integer"/>
+                            
+                            <ixsl:set-attribute name="pu" object="." select="'&rdf;_' || ($seq-index + 1)"/>
+                            
+                            <xsl:for-each select="label">
+                                <xsl:result-document href="?." method="ixsl:replace-content">
+                                    <xsl:value-of select="'_' || ($seq-index + 1)"/>
+                                </xsl:result-document>
+                            </xsl:for-each>
+                        </xsl:if>
                     </xsl:for-each>
                 </xsl:for-each>
                 
