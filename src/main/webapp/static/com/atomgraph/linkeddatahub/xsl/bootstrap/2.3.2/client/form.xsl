@@ -536,16 +536,20 @@ exclude-result-prefixes="#all"
     
     <xsl:template match="form//input[contains-token(@class, 'resource-typeahead')]" mode="ixsl:onfocusin">
         <xsl:variable name="menu" select="following-sibling::ul" as="element()"/>
+        <xsl:variable name="forClass" select="../following-sibling::input[@class = 'forClass']/@value/xs:anyURI(.)" as="xs:anyURI?"/>
         <xsl:variable name="item-doc" as="document-node()">
             <xsl:document>
                 <rdf:RDF>
                     <!-- convert instances in the RDF/POST form to RDF/XML -->
-                    <xsl:for-each select="ancestor::form//input[@name = ('sb', 'su')][@value]"> <!-- [following-sibling::input[@name = 'pu'][@value = '&rdf;type'][following-sibling::input[@name = 'ou'][@value = '&ldh;Content']]] -->
-                        <rdf:Description rdf:nodeID="{@value}">
-                            <dct:title>
-                                <xsl:value-of select="@value"/>
-                            </dct:title>
-                        </rdf:Description>
+                    <xsl:for-each select="ancestor::form//input[@name = ('sb', 'su')][@value]">
+                        <!-- filter resources by type if $forClass is provided -->
+                        <xsl:if test="empty($forClass) or following-sibling::input[@name = 'pu'][@value = '&rdf;type']/following-sibling::input[@name = 'ou']/@value = $forClass">
+                            <rdf:Description rdf:nodeID="{@value}">
+                                <dct:title>
+                                    <xsl:value-of select="@value"/>
+                                </dct:title>
+                            </rdf:Description>
+                        </xsl:if>
                     </xsl:for-each>
                 </rdf:RDF>
             </xsl:document>
