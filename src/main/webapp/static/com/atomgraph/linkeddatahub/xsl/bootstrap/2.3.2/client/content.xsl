@@ -218,7 +218,7 @@ exclude-result-prefixes="#all"
                 <rdf:RDF>
                     <rdf:Description>
                         <rdf:value rdf:parseType="Literal">
-                            <xsl:copy-of select="$container/*[not(. is $button)])"/>
+                            <xsl:copy-of select="$container/*[not(. is $button)]"/>
                         </rdf:value>
                     </rdf:Description>
                 </rdf:RDF>
