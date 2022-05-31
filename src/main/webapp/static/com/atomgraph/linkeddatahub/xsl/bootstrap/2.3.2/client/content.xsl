@@ -43,7 +43,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="xhtml" select="*" as="element()*"/>
         
         <xsl:result-document href="?." method="ixsl:replace-content">
-            <button type="button" class="btn btn-edit">
+            <button type="button" class="btn btn-edit pull-right">
                 <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
             </button>
             
@@ -207,7 +207,31 @@ exclude-result-prefixes="#all"
     
     <!-- EVENT LISTENERS -->
     
-    <!-- edit button onclick -->
+    <!-- XHTML content edit button onclick -->
+    
+    <xsl:template match="div[contains-token(@class, 'xhtml-content')]//button[contains-token(@class, 'btn-edit')]" mode="ixsl:onclick">
+        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'xhtml-content')]" as="element()"/>
+
+        <xsl:variable name="xml-literal" as="document-node()">
+            <xsl:document>
+                <rdf:RDF>
+                    <rdf:Description>
+                        <rdf:value rdf:parseType="Literal">
+                            <xsl:copy-of select="."/>
+                        </rdf:value>
+                    </rdf:Description>
+                </rdf:RDF>
+            </xsl:document>
+        </xsl:variable>
+    
+        <xsl:for-each select="$container">
+            <xsl:result-document href="?." method="ixsl:replace-content">
+                <xsl:apply-templates select="$xml-literal//rdf:value/*" mode="bs2:FormControl"/>
+            </xsl:result-document>
+        </xsl:for-each>
+    </xsl:template>
+    
+    <!-- resource content edit button onclick -->
     
     <xsl:template match="div[contains-token(@class, 'resource-content')]//button[contains-token(@class, 'btn-edit')]" mode="ixsl:onclick">
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'resource-content')]" as="element()"/>
