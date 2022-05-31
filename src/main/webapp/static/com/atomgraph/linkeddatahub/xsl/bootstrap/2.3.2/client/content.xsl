@@ -242,11 +242,14 @@ exclude-result-prefixes="#all"
             
             <xsl:variable name="update-string" as="xs:string">
                 <![CDATA[
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+
 DELETE
 {
     GRAPH $this
     {
-        $this ?seq $oldContent .
+        $this ?seq $content .
+        ?content rdf:value $oldValue .
     }
 }
 INSERT
@@ -254,20 +257,22 @@ INSERT
     GRAPH $this
     {
         $this ?seq $content .
+        ?content rdf:value $newValue .
     }
 }
 WHERE
 {
     GRAPH $this
     {
-        $this ?seq $oldContent .
+        $this ?seq $content .
+        ?content rdf:value $oldValue .
     }
 }
                 ]]>
             </xsl:variable>
             <xsl:variable name="update-string" select="replace($update-string, '\$this', concat('&lt;', ac:uri(), '&gt;'))" as="xs:string"/>
-            <xsl:variable name="update-string" select="replace($update-string, '\$oldContent', concat('&lt;', $old-content-uri, '&gt;'))" as="xs:string"/>
-            <xsl:variable name="update-string" select="replace($update-string, '\$content', concat('&lt;', $content-uri, '&gt;'))" as="xs:string"/>
+            <xsl:variable name="update-string" select="replace($update-string, '\$oldValue', concat('&lt;', $old-content-uri, '&gt;'))" as="xs:string"/>
+            <xsl:variable name="update-string" select="replace($update-string, '\$newValue', concat('&lt;', $content-uri, '&gt;'))" as="xs:string"/>
 
             <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ac:uri())" as="xs:anyURI"/>
             <xsl:variable name="request" as="item()*">
