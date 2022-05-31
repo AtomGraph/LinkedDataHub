@@ -209,6 +209,8 @@ WHERE
         </xsl:if>-->
         <!-- initialize wymeditor textareas -->
         <xsl:apply-templates select="key('elements-by-class', 'wymeditor', ixsl:page())" mode="ldh:PostConstruct"/>
+        <!-- add edit buttons to XHTML content -->
+        <xsl:apply-templates select="key('elements-by-class', 'xhtml-content', ixsl:page())" mode="ldh:PostConstruct"/>
         <!-- append typeahead list after the search/URI input -->
         <xsl:for-each select="id('uri', ixsl:page())/..">
             <xsl:result-document href="?." method="ixsl:append-content">
