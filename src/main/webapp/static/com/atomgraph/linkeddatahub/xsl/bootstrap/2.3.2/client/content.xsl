@@ -44,7 +44,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="container" as="element()"/>
         <xsl:param name="mode" as="xs:anyURI?"/>
         <!-- replace dots with dashes to avoid Saxon-JS treating them as field separators: https://saxonica.plan.io/issues/5031 -->
-        <xsl:param name="content-uri" select="xs:anyURI(translate(@rdf:about, '.', '-'))" as="xs:anyURI"/>
+        <xsl:param name="content-value" select="xs:anyURI(translate(@rdf:about, '.', '-'))" as="xs:anyURI"/>
         <!-- set $this variable value unless getting the query string from state -->
         <xsl:variable name="select-string" select="replace(sp:text, '\$this', concat('&lt;', $uri, '&gt;'))" as="xs:string"/>
         <xsl:variable name="select-json" as="item()">
@@ -62,15 +62,15 @@ exclude-result-prefixes="#all"
         <xsl:choose>
             <!-- service URI is not specified or specified and can be loaded -->
             <xsl:when test="not($service-uri) or ($service-uri and exists($service))">
-                <!-- window.LinkedDataHub.contents[{$content-uri}] object is already created -->
+                <!-- window.LinkedDataHub.contents[{$content-value}] object is already created -->
                 <!-- store the initial SELECT query (without modifiers) -->
-                <ixsl:set-property name="select-query" select="$select-string" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $content-uri)"/>
+                <ixsl:set-property name="select-query" select="$select-string" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $content-value)"/>
                 <!-- store the first var name of the initial SELECT query -->
-                <ixsl:set-property name="focus-var-name" select="$focus-var-name" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $content-uri)"/>
+                <ixsl:set-property name="focus-var-name" select="$focus-var-name" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $content-value)"/>
                 <xsl:if test="$service-uri">
                     <!-- store (the URI of) the service -->
-                    <ixsl:set-property name="service-uri" select="$service-uri" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $content-uri)"/>
-                    <ixsl:set-property name="service" select="$service" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $content-uri)"/>
+                    <ixsl:set-property name="service-uri" select="$service-uri" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $content-value)"/>
+                    <ixsl:set-property name="service" select="$service" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $content-value)"/>
                 </xsl:if>
 
                 <xsl:variable name="select-xml" as="document-node()">
@@ -89,7 +89,7 @@ exclude-result-prefixes="#all"
                 </xsl:variable>
 
                 <!-- store the transformed query XML -->
-                <ixsl:set-property name="select-xml" select="$select-xml" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $content-uri)"/>
+                <ixsl:set-property name="select-xml" select="$select-xml" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $content-value)"/>
                 <!-- update progress bar -->
                 <xsl:for-each select="$container//div[@class = 'bar']">
                     <ixsl:set-style name="width" select="'75%'" object="."/>
@@ -97,7 +97,7 @@ exclude-result-prefixes="#all"
 
                 <xsl:call-template name="ldh:RenderContainer">
                     <xsl:with-param name="container" select="$container"/>
-                    <xsl:with-param name="content-uri" select="$content-uri"/>
+                    <xsl:with-param name="content-value" select="$content-value"/>
                     <xsl:with-param name="content" select="."/>
                     <xsl:with-param name="select-string" select="$select-string"/>
                     <xsl:with-param name="select-xml" select="$select-xml"/>
@@ -126,7 +126,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="container" as="element()"/>
         <xsl:param name="mode" as="xs:anyURI?"/>
         <!-- replace dots with dashes to avoid Saxon-JS treating them as field separators: https://saxonica.plan.io/issues/5031 -->
-        <xsl:param name="content-uri" select="xs:anyURI(translate(@rdf:about, '.', '-'))" as="xs:anyURI"/>
+        <xsl:param name="content-value" select="xs:anyURI(translate(@rdf:about, '.', '-'))" as="xs:anyURI"/>
         <!-- set $this variable value unless getting the query string from state -->
         <xsl:variable name="query-string" select="replace(sp:text, '\$this', concat('&lt;', $uri, '&gt;'))" as="xs:string"/>
         <!-- service can be explicitly specified on content using ldh:service -->
@@ -137,11 +137,11 @@ exclude-result-prefixes="#all"
         <xsl:choose>
             <!-- service URI is not specified or specified and can be loaded -->
             <xsl:when test="not($service-uri) or ($service-uri and exists($service))">
-                <!-- window.LinkedDataHub.contents[{$content-uri}] object is already created -->
+                <!-- window.LinkedDataHub.contents[{$content-value}] object is already created -->
                 <xsl:if test="$service-uri">
                     <!-- store (the URI of) the service -->
-                    <ixsl:set-property name="service-uri" select="$service-uri" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $content-uri)"/>
-                    <ixsl:set-property name="service" select="$service" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $content-uri)"/>
+                    <ixsl:set-property name="service-uri" select="$service-uri" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $content-value)"/>
+                    <ixsl:set-property name="service" select="$service" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $content-value)"/>
                 </xsl:if>
 
                 <!-- update progress bar -->
@@ -155,7 +155,7 @@ exclude-result-prefixes="#all"
                 <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                     <xsl:call-template name="onQueryContentLoad">
                         <xsl:with-param name="container" select="$container"/>
-                        <xsl:with-param name="content-uri" select="$content-uri"/>
+                        <xsl:with-param name="content-value" select="$content-value"/>
                         <xsl:with-param name="mode" select="$mode"/>
                     </xsl:call-template>
                 </ixsl:schedule-action>
@@ -197,8 +197,8 @@ exclude-result-prefixes="#all"
     
     <xsl:template match="div[contains-token(@class, 'resource-content')]//button[contains-token(@class, 'btn-edit')]" mode="ixsl:onclick">
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'resource-content')]" as="element()"/>
-        <xsl:variable name="content-uri" select="ixsl:get($container, 'dataset.contentUri')" as="xs:anyURI"/>
-        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), $content-uri)"/>
+        <xsl:variable name="content-value" select="ixsl:get($container, 'dataset.contentValue')" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), $content-value)"/>
 
         <!-- replace the middle column only -->
         <xsl:for-each select="$container">
@@ -217,7 +217,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                 <xsl:call-template name="onTypeaheadResourceLoad">
-                    <xsl:with-param name="resource-uri" select="$content-uri"/>
+                    <xsl:with-param name="resource-uri" select="$content-value"/>
                     <xsl:with-param name="typeahead-span" select="$container/div[contains-token(@class, 'span7')]/span[1]"/>
                 </xsl:call-template>
             </ixsl:schedule-action>
@@ -229,15 +229,15 @@ exclude-result-prefixes="#all"
     
     <xsl:template match="div[contains-token(@class, 'resource-content')]//button[contains-token(@class, 'btn-save')]" mode="ixsl:onclick">
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'resource-content')]" as="element()"/>
-        <xsl:variable name="old-content-uri" select="ixsl:get($container, 'dataset.contentUri')" as="xs:anyURI"/>
-        <xsl:variable name="content-uri" select="ixsl:get(preceding-sibling::span//input[@name = 'ou'], 'value')" as="xs:anyURI"/>
+        <xsl:variable name="old-content-value" select="ixsl:get($container, 'dataset.contentValue')" as="xs:anyURI"/>
+        <xsl:variable name="content-value" select="ixsl:get(preceding-sibling::span//input[@name = 'ou'], 'value')" as="xs:anyURI"/>
 
         <xsl:for-each select="$container">
-            <!-- update @data-content-uri value -->
-            <ixsl:set-property name="dataset.contentUri" select="$content-uri" object="."/>
+            <!-- update @data-content-value value -->
+            <ixsl:set-property name="dataset.contentValue" select="$content-value" object="."/>
             
             <xsl:call-template name="ldh:LoadContent">
-                <xsl:with-param name="uri" select="$content-uri"/>
+                <xsl:with-param name="uri" select="$content-value"/>
             </xsl:call-template>
             
             <xsl:variable name="update-string" as="xs:string">
@@ -248,7 +248,7 @@ DELETE
 {
     GRAPH $this
     {
-        $this ?seq $content .
+        $this ?seq ?content .
         ?content rdf:value $oldValue .
     }
 }
@@ -256,7 +256,7 @@ INSERT
 {
     GRAPH $this
     {
-        $this ?seq $content .
+        $this ?seq ?content .
         ?content rdf:value $newValue .
     }
 }
@@ -264,15 +264,15 @@ WHERE
 {
     GRAPH $this
     {
-        $this ?seq $content .
+        $this ?seq ?content .
         ?content rdf:value $oldValue .
     }
 }
                 ]]>
             </xsl:variable>
             <xsl:variable name="update-string" select="replace($update-string, '\$this', concat('&lt;', ac:uri(), '&gt;'))" as="xs:string"/>
-            <xsl:variable name="update-string" select="replace($update-string, '\$oldValue', concat('&lt;', $old-content-uri, '&gt;'))" as="xs:string"/>
-            <xsl:variable name="update-string" select="replace($update-string, '\$newValue', concat('&lt;', $content-uri, '&gt;'))" as="xs:string"/>
+            <xsl:variable name="update-string" select="replace($update-string, '\$oldValue', concat('&lt;', $old-content-value, '&gt;'))" as="xs:string"/>
+            <xsl:variable name="update-string" select="replace($update-string, '\$newValue', concat('&lt;', $content-value, '&gt;'))" as="xs:string"/>
 
             <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ac:uri())" as="xs:anyURI"/>
             <xsl:variable name="request" as="item()*">
@@ -292,7 +292,7 @@ WHERE
     <xsl:template name="ldh:LoadContent">
         <xsl:context-item as="element()" use="required"/> <!-- container element -->
         <xsl:param name="uri" as="xs:anyURI"/>
-        <xsl:variable name="content-uri" select="ixsl:get(., 'dataset.contentUri')" as="xs:anyURI"/> <!-- get the value of the @data-content-uri attribute -->
+        <xsl:variable name="content-value" select="ixsl:get(., 'dataset.contentValue')" as="xs:anyURI"/> <!-- get the value of the @data-content-value attribute -->
         <xsl:variable name="mode" select="if (ixsl:contains(., 'dataset.contentMode')) then xs:anyURI(ixsl:get(., 'dataset.contentMode')) else ()" as="xs:anyURI?"/> <!-- get the value of the @data-content-mode attribute -->
         <xsl:variable name="container" select="." as="element()"/>
         <xsl:variable name="progress-container" select="if (contains-token(@class, 'row-fluid')) then ./div[contains-token(@class, 'span7')] else ." as="element()"/>
@@ -308,12 +308,12 @@ WHERE
             </xsl:result-document>
         </xsl:for-each>
 
-        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), $content-uri)" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), $content-value)" as="xs:anyURI"/>
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': ac:document-uri($request-uri), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                 <xsl:call-template name="onContentLoad">
                     <xsl:with-param name="uri" select="$uri"/>
-                    <xsl:with-param name="content-uri" select="$content-uri"/>
+                    <xsl:with-param name="content-value" select="$content-value"/>
                     <xsl:with-param name="container" select="$container"/>
                     <xsl:with-param name="mode" select="$mode"/>
                 </xsl:call-template>
@@ -327,21 +327,21 @@ WHERE
     <xsl:template name="onContentLoad">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="uri" as="xs:anyURI"/>
-        <xsl:param name="content-uri" as="xs:anyURI"/>
+        <xsl:param name="content-value" as="xs:anyURI"/>
         <xsl:param name="container" as="element()"/>
         <xsl:param name="container-id" select="ixsl:get($container, 'id')" as="xs:string"/>
         <xsl:param name="mode" as="xs:anyURI?"/>
         
         <!-- for some reason Saxon-JS 2.3 does not see this variable if it's inside <xsl:when> -->
-        <xsl:variable name="content" select="key('resources', $content-uri, ?body)" as="element()?"/>
+        <xsl:variable name="content" select="key('resources', $content-value, ?body)" as="element()?"/>
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml' and $content">
                 <!-- replace dots which have a special meaning in Saxon-JS -->
-                <xsl:variable name="escaped-content-uri" select="xs:anyURI(translate($content-uri, '.', '-'))" as="xs:anyURI"/>
+                <xsl:variable name="escaped-content-value" select="xs:anyURI(translate($content-value, '.', '-'))" as="xs:anyURI"/>
                 <!-- create new cache entry using content URI as key -->
-                <ixsl:set-property name="{$escaped-content-uri}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
+                <ixsl:set-property name="{$escaped-content-value}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
                 <!-- store this content element -->
-                <ixsl:set-property name="content" select="$content" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri)"/>
+                <ixsl:set-property name="content" select="$content" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-value)"/>
 
                 <xsl:for-each select="$container//div[@class = 'bar']">
                     <!-- update progress bar -->
@@ -358,7 +358,7 @@ WHERE
             <xsl:when test="?status = 406">
                 <xsl:for-each select="$container">
                     <xsl:result-document href="?." method="ixsl:replace-content">
-                        <object data="{$content-uri}"/>
+                        <object data="{$content-value}"/>
                     </xsl:result-document>
                 </xsl:for-each>
             </xsl:when>
@@ -366,7 +366,7 @@ WHERE
                 <xsl:for-each select="$container">
                     <xsl:result-document href="?." method="ixsl:replace-content">
                         <div class="alert alert-block">
-                            <strong>Could not load content resource: <a href="{$content-uri}"><xsl:value-of select="$content-uri"/></a></strong>
+                            <strong>Could not load content resource: <a href="{$content-value}"><xsl:value-of select="$content-value"/></a></strong>
                         </div>
                     </xsl:result-document>
                 </xsl:for-each>
@@ -378,7 +378,7 @@ WHERE
     
     <xsl:template name="onQueryContentLoad">
         <xsl:param name="container" as="element()"/>
-        <xsl:param name="content-uri" as="xs:anyURI"/>
+        <xsl:param name="content-value" as="xs:anyURI"/>
         <xsl:param name="mode" as="xs:anyURI?"/>
 
         <xsl:choose>
@@ -402,7 +402,7 @@ WHERE
                 <xsl:for-each select="$container">
                     <xsl:result-document href="?." method="ixsl:replace-content">
                         <div class="alert alert-block">
-                            <strong>Could not load content resource: <a href="{$content-uri}"><xsl:value-of select="$content-uri"/></a></strong>
+                            <strong>Could not load content resource: <a href="{$content-value}"><xsl:value-of select="$content-value"/></a></strong>
                         </div>
                     </xsl:result-document>
                 </xsl:for-each>
