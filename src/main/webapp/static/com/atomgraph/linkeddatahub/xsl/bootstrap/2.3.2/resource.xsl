@@ -413,27 +413,27 @@ extension-element-prefixes="ixsl"
     
     <!-- mark query instances as .resource-content which is then rendered by client.xsl -->
     <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&sp;Select'][sp:text]" mode="bs2:RowBlock" priority="1">
-        <xsl:param name="content-uri" select="@rdf:about" as="xs:anyURI"/>
+        <xsl:param name="content-value" select="@rdf:about" as="xs:anyURI"/>
 
         <xsl:next-match>
-            <xsl:with-param name="content-uri" select="$content-uri"/>
+            <xsl:with-param name="content-value" select="$content-value"/>
         </xsl:next-match>
     </xsl:template>
     
     <!-- mark chart instances as .resource-content which is then rendered by client.xsl -->
     <xsl:template match="*[@rdf:about][spin:query/@rdf:resource][ldh:chartType/@rdf:resource]" mode="bs2:RowBlock" priority="1">
-        <xsl:param name="content-uri" select="@rdf:about" as="xs:anyURI"/>
+        <xsl:param name="content-value" select="@rdf:about" as="xs:anyURI"/>
 
         <xsl:next-match>
-            <xsl:with-param name="content-uri" select="$content-uri"/>
+            <xsl:with-param name="content-value" select="$content-value"/>
         </xsl:next-match>
     </xsl:template>
     
     <!-- embed file content -->
     <xsl:template match="*[@rdf:about][dct:format]" mode="bs2:RowBlock" priority="2">
         <xsl:param name="id" select="generate-id()" as="xs:string?"/>
-        <xsl:param name="content-uri" as="xs:anyURI?"/>
-        <xsl:param name="class" select="if ($content-uri) then 'row-fluid content resource-content' else 'row-fluid'" as="xs:string?"/>
+        <xsl:param name="content-value" as="xs:anyURI?"/>
+        <xsl:param name="class" select="if ($content-value) then 'row-fluid content resource-content' else 'row-fluid'" as="xs:string?"/>
 
         <div>
             <xsl:if test="$id">
@@ -442,8 +442,8 @@ extension-element-prefixes="ixsl"
             <xsl:if test="$class">
                 <xsl:attribute name="class" select="$class"/>
             </xsl:if>
-            <xsl:if test="$content-uri">
-                <xsl:attribute name="data-content-uri" select="$content-uri"/>
+            <xsl:if test="$content-value">
+                <xsl:attribute name="data-content-value" select="$content-value"/>
             </xsl:if>
 
             <xsl:apply-templates select="." mode="bs2:Left"/>
@@ -478,19 +478,19 @@ extension-element-prefixes="ixsl"
 
     <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:RowBlock">
         <xsl:param name="id" select="generate-id()" as="xs:string?"/>
-        <xsl:param name="content-uri" as="xs:anyURI?"/>
+        <xsl:param name="content-value" as="xs:anyURI?"/>
         <xsl:param name="class" select="'row-fluid'" as="xs:string?"/>
 
         <xsl:apply-templates select="." mode="bs2:RowBlockContent">
             <xsl:with-param name="id" select="$id"/>
-            <xsl:with-param name="content-uri" select="$content-uri"/>
+            <xsl:with-param name="content-value" select="$content-value"/>
             <xsl:with-param name="class" select="$class"/>
         </xsl:apply-templates>
     </xsl:template>
 
     <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:RowBlockContent">
         <xsl:param name="id" select="generate-id()" as="xs:string?"/>
-        <xsl:param name="content-uri" as="xs:anyURI?"/>
+        <xsl:param name="content-value" as="xs:anyURI?"/>
         <xsl:param name="class" select="'row-fluid'" as="xs:string?"/>
 
         <div>
@@ -506,8 +506,8 @@ extension-element-prefixes="ixsl"
             <div class="span7">
                 <xsl:apply-templates select="." mode="bs2:Block"/>
                 
-                <xsl:if test="$content-uri">
-                    <div id="{$id || '-content'}" class="content resource-content" data-content-uri="{$content-uri}"/>
+                <xsl:if test="$content-value">
+                    <div id="{$id || '-content'}" class="content resource-content" data-content-value="{$content-value}"/>
                 </xsl:if>
             </div>
 
@@ -515,8 +515,8 @@ extension-element-prefixes="ixsl"
         </div>
         
         <!-- render contents attached to the types of this resource using ldh:template -->
-        <xsl:variable name="content-uris" select="rdf:type/@rdf:resource[doc-available(resolve-uri('ns?query=ASK%20%7B%7D', $ldt:base))]/ldh:templates(., resolve-uri('ns', $ldt:base), $template-query)//srx:binding[@name = 'content']/srx:uri/xs:anyURI(.)" as="xs:anyURI*" use-when="system-property('xsl:product-name') = 'SAXON'"/>
-        <xsl:for-each select="$content-uris" use-when="system-property('xsl:product-name') = 'SAXON'">
+        <xsl:variable name="content-values" select="rdf:type/@rdf:resource[doc-available(resolve-uri('ns?query=ASK%20%7B%7D', $ldt:base))]/ldh:templates(., resolve-uri('ns', $ldt:base), $template-query)//srx:binding[@name = 'content']/srx:uri/xs:anyURI(.)" as="xs:anyURI*" use-when="system-property('xsl:product-name') = 'SAXON'"/>
+        <xsl:for-each select="$content-values" use-when="system-property('xsl:product-name') = 'SAXON'">
             <xsl:if test="doc-available(ac:document-uri(.))">
                 <xsl:apply-templates select="key('resources', ., document(ac:document-uri(.)))" mode="ldh:Content"/>
             </xsl:if>
@@ -737,8 +737,8 @@ extension-element-prefixes="ixsl"
         <xsl:param name="class" select="'row-fluid content resource-content'" as="xs:string?"/>
         <xsl:param name="mode" select="ac:mode/@rdf:resource" as="xs:anyURI?"/>
         
-        <!-- @data-content-uri is used to retrieve $content-uri in client.xsl -->
-        <div data-content-uri="{rdf:value/@rdf:resource}">
+        <!-- @data-content-value is used to retrieve $content-value in client.xsl -->
+        <div data-content-value="{rdf:value/@rdf:resource}">
             <xsl:if test="$id">
                 <xsl:attribute name="id" select="$id"/>
             </xsl:if>
@@ -917,7 +917,7 @@ extension-element-prefixes="ixsl"
         
     <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:RowForm">
         <xsl:param name="id" select="generate-id()" as="xs:string?"/>
-        <xsl:param name="content-uri" as="xs:anyURI?"/>
+        <xsl:param name="content-value" as="xs:anyURI?"/>
         <xsl:param name="class" select="'row-fluid'" as="xs:string?"/>
 
         <div>
