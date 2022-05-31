@@ -210,6 +210,7 @@ exclude-result-prefixes="#all"
     <!-- XHTML content edit button onclick -->
     
     <xsl:template match="div[contains-token(@class, 'xhtml-content')]//button[contains-token(@class, 'btn-edit')]" mode="ixsl:onclick">
+        <xsl:variable name="button" select="." as="element()"/>
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'xhtml-content')]" as="element()"/>
 
         <xsl:variable name="xml-literal" as="document-node()">
@@ -217,16 +218,21 @@ exclude-result-prefixes="#all"
                 <rdf:RDF>
                     <rdf:Description>
                         <rdf:value rdf:parseType="Literal">
-                            <xsl:copy-of select="."/>
+                            <xsl:copy-of select="$container/*[not(. is $button])"/>
                         </rdf:value>
                     </rdf:Description>
                 </rdf:RDF>
             </xsl:document>
         </xsl:variable>
-    
+        <xsl:variable name="html" as="element()*">
+            <xsl:apply-templates select="$xml-literal//rdf:value/*" mode="bs2:FormControl"/>
+        </xsl:variable>
+        
         <xsl:for-each select="$container">
             <xsl:result-document href="?." method="ixsl:replace-content">
-                <xsl:apply-templates select="$xml-literal//rdf:value/*" mode="bs2:FormControl"/>
+                <xsl:copy-of select="$button"/>
+                
+                <xsl:apply-templates select="$html" mode="ldh:PostConstruct"/>
             </xsl:result-document>
         </xsl:for-each>
     </xsl:template>
