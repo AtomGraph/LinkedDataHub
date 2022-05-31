@@ -218,7 +218,7 @@ exclude-result-prefixes="#all"
                 <rdf:RDF>
                     <rdf:Description>
                         <rdf:value rdf:parseType="Literal">
-                            <xsl:copy-of select="$container/*[not(. is $button])"/>
+                            <xsl:copy-of select="$container/*[not(. is $button)])"/>
                         </rdf:value>
                     </rdf:Description>
                 </rdf:RDF>
@@ -230,9 +230,9 @@ exclude-result-prefixes="#all"
         
         <xsl:for-each select="$container">
             <xsl:result-document href="?." method="ixsl:replace-content">
-                <xsl:copy-of select="$button"/>
-                
                 <xsl:apply-templates select="$html" mode="ldh:PostConstruct"/>
+                
+                <!--<button>Save</button>-->
             </xsl:result-document>
         </xsl:for-each>
     </xsl:template>
