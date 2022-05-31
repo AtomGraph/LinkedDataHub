@@ -229,6 +229,7 @@ exclude-result-prefixes="#all"
     
     <xsl:template match="div[contains-token(@class, 'resource-content')]//button[contains-token(@class, 'btn-save')]" mode="ixsl:onclick">
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'resource-content')]" as="element()"/>
+        <xsl:variable name="old-content-uri" select="ixsl:get($container, 'dataset.contentUri')" as="xs:anyURI"/>
         <xsl:variable name="content-uri" select="ixsl:get(preceding-sibling::span//input[@name = 'ou'], 'value')" as="xs:anyURI"/>
 
         <xsl:for-each select="$container">
@@ -239,7 +240,43 @@ exclude-result-prefixes="#all"
                 <xsl:with-param name="uri" select="$content-uri"/>
             </xsl:call-template>
             
-            <!-- TO-DO: execute PATCH against this named graph to update the content URI in the content list -->
+            <xsl:variable name="update-string" as="xs:string">
+                <![CDATA[
+DELETE
+{
+    GRAPH $this
+    {
+        $this ?seq $oldContent .
+    }
+}
+INSERT
+{
+    GRAPH $this
+    {
+        $this ?seq $content .
+    }
+}
+WHERE
+{
+    GRAPH $this
+    {
+        $this ?seq $oldContent .
+    }
+}
+                ]]>
+            </xsl:variable>
+            <xsl:variable name="update-string" select="replace($update-string, '\$this', concat('&lt;', ac:uri(), '&gt;'))" as="xs:string"/>
+            <xsl:variable name="update-string" select="replace($update-string, '\$oldContent', concat('&lt;', $old-content-uri, '&gt;'))" as="xs:string"/>
+            <xsl:variable name="update-string" select="replace($update-string, '\$content', concat('&lt;', $content-uri, '&gt;'))" as="xs:string"/>
+
+            <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ac:uri())" as="xs:anyURI"/>
+            <xsl:variable name="request" as="item()*">
+                <ixsl:schedule-action http-request="map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string }">
+<!--                    <xsl:call-template name="">
+                    </xsl:call-template>-->
+                </ixsl:schedule-action>
+            </xsl:variable>
+            <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
     </xsl:template>
     
