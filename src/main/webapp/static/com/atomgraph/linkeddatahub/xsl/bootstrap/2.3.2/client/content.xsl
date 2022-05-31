@@ -37,6 +37,20 @@ exclude-result-prefixes="#all"
 
     <!-- TEMPLATES -->
     
+    <!-- insert edit button in XHTML content -->
+    
+    <xsl:template match="div[contains-token(@class, 'xhtml-content')]" mode="ldh:PostConstruct">
+        <xsl:variable name="xhtml" select="*" as="element()*"/>
+        
+        <xsl:result-document href="?." method="ixsl:replace-content">
+            <button type="button" class="btn btn-edit">
+                <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
+            </button>
+            
+            <xsl:copy-of select="$xhtml"/>
+        </xsl:result-document>
+    </xsl:template>
+    
     <!-- SELECT query -->
     
     <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&sp;Select'][sp:text]" mode="ldh:RenderContent" priority="1">
