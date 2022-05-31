@@ -53,7 +53,7 @@ exclude-result-prefixes="#all"
         <xsl:for-each select="id($id, ixsl:page())">
             <xsl:apply-templates select="." mode="ldh:PostConstruct"/>
             
-            <xsl:value-of select="ixsl:call(., 'focus', [])"/>
+            <xsl:sequence select="ixsl:call(., 'focus', [])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
     </xsl:template>
     
@@ -67,7 +67,7 @@ exclude-result-prefixes="#all"
 
     <!-- subject type change -->
     <xsl:template match="select[contains-token(@class, 'subject-type')]" mode="ldh:PostConstruct" priority="1">
-        <xsl:value-of select="ixsl:call(., 'addEventListener', [ 'change', ixsl:get(ixsl:window(), 'onSubjectTypeChange') ])[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:sequence select="ixsl:call(., 'addEventListener', [ 'change', ixsl:get(ixsl:window(), 'onSubjectTypeChange') ])[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
     
     <xsl:template match="textarea[contains-token(@class, 'wymeditor')]" mode="ldh:PostConstruct" priority="1">
@@ -79,7 +79,7 @@ exclude-result-prefixes="#all"
     <xsl:template match="fieldset//input" mode="ldh:PostConstruct" priority="1">
         <!-- subject value change -->
         <xsl:if test="contains-token(@class, 'subject')">
-            <xsl:value-of select="ixsl:call(., 'addEventListener', [ 'change', ixsl:get(ixsl:window(), 'onSubjectValueChange') ])[current-date() lt xs:date('2000-01-01')]"/>
+            <xsl:sequence select="ixsl:call(., 'addEventListener', [ 'change', ixsl:get(ixsl:window(), 'onSubjectValueChange') ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:if>
         
         <!-- TO-DO: move to a better place. Does not take effect if typeahead is reset -->
@@ -466,17 +466,17 @@ exclude-result-prefixes="#all"
 
     <!-- remove div.row-fluid (button is within <legend>) -->
     <xsl:template match="fieldset/legend/div/button[contains-token(@class, 'btn-remove-resource')]" mode="ixsl:onclick" priority="1">
-        <xsl:value-of select="ixsl:call(../../../../.., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:sequence select="ixsl:call(../../../../.., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
 
     <!-- remove <fieldset> (button is within <fieldset>) -->
     <xsl:template match="fieldset/div/button[contains-token(@class, 'btn-remove-resource')]" mode="ixsl:onclick" priority="1">
-        <xsl:value-of select="ixsl:call(../.., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:sequence select="ixsl:call(../.., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
 
     <!-- remove <div class="control-group"> -->
     <xsl:template match="button[contains-token(@class, 'btn-remove-property')]" mode="ixsl:onclick" priority="1">
-        <xsl:value-of select="ixsl:call(../../.., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:sequence select="ixsl:call(../../.., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
 
     <xsl:template match="button[contains-token(@class, 'add-type')]" mode="ixsl:onclick" priority="1">
@@ -616,7 +616,7 @@ exclude-result-prefixes="#all"
     
     <xsl:template match="div[contains-token(@class, 'modal')]//button[tokenize(@class, ' ') = ('close', 'btn-close')]" mode="ixsl:onclick">
         <xsl:for-each select="ancestor::div[contains-token(@class, 'modal')]">
-            <xsl:value-of select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
+            <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
     </xsl:template>
     
@@ -781,7 +781,7 @@ exclude-result-prefixes="#all"
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ ?message ])"/>
+                <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ ?message ])"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
@@ -857,7 +857,7 @@ exclude-result-prefixes="#all"
                 <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ ?message ])"/>
+                <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ ?message ])"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
@@ -977,7 +977,7 @@ exclude-result-prefixes="#all"
             </xsl:when>
             <xsl:otherwise>
                 <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
-                <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ ?message ])"/>
+                <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ ?message ])"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
@@ -1006,7 +1006,7 @@ exclude-result-prefixes="#all"
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ ?message ])"/>
+                <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ ?message ])"/>
             </xsl:otherwise>
         </xsl:choose>
         
@@ -1038,7 +1038,7 @@ exclude-result-prefixes="#all"
                 <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ ?message ])"/>
+                <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ ?message ])"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>

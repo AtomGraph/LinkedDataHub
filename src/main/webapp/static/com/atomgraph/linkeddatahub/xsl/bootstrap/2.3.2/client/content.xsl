@@ -272,8 +272,8 @@ WHERE
             <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ac:uri())" as="xs:anyURI"/>
             <xsl:variable name="request" as="item()*">
                 <ixsl:schedule-action http-request="map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string }">
-<!--                    <xsl:call-template name="">
-                    </xsl:call-template>-->
+                    <xsl:call-template name="onContentUpdate">
+                    </xsl:call-template>
                 </ixsl:schedule-action>
             </xsl:variable>
             <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
@@ -403,6 +403,12 @@ WHERE
                 </xsl:for-each>
             </xsl:otherwise>
         </xsl:choose>
+    </xsl:template>
+    
+    <!-- inline content update -->
+    
+    <xsl:template name="onContentUpdate">
+        <xsl:context-item as="map(*)" use="required"/>
     </xsl:template>
     
 </xsl:stylesheet>
