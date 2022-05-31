@@ -454,7 +454,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="violations" as="element()*"/>
         <xsl:param name="error" select="@rdf:resource = $violations/ldh:violationValue or $violations/spin:violationPath/@rdf:resource = $this" as="xs:boolean"/>
         <xsl:param name="label" select="true()" as="xs:boolean"/>
-        <xsl:param name="template-doc" as="document-node()?"/>
+        <xsl:param name="constructor" as="document-node()?"/>
         <xsl:param name="template" as="element()*"/>
         <xsl:param name="cloneable" select="false()" as="xs:boolean"/>
         <xsl:param name="types" select="../rdf:type/@rdf:resource" as="xs:anyURI*"/>
@@ -521,7 +521,7 @@ exclude-result-prefixes="#all"
 
                 <xsl:apply-templates select="node() | @rdf:*[local-name() = ('resource', 'nodeID')]" mode="#current">
                     <xsl:with-param name="required" select="$required"/>
-                    <xsl:with-param name="template-doc" select="$template-doc"/>
+                    <xsl:with-param name="constructor" select="$constructor"/>
                 </xsl:apply-templates>
             </div>
             
@@ -542,7 +542,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="traversed-ids" as="xs:string*" tunnel="yes"/>
         <xsl:param name="inline" select="false()" as="xs:boolean" tunnel="yes"/>
         <xsl:param name="type-label" select="true()" as="xs:boolean"/>
-        <xsl:param name="template-doc" as="document-node()?"/>
+        <xsl:param name="constructor" as="document-node()?"/>
         <xsl:variable name="resource" select="key('resources', .)"/>
         <xsl:variable name="doc-uri" select="if (starts-with($ldt:base, .)) then xs:anyURI(.) else ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(.)) })" as="xs:anyURI"/>
 
@@ -575,9 +575,9 @@ exclude-result-prefixes="#all"
                             <xsl:apply-templates select="key('resources', ., document(ac:document-uri($doc-uri)))" mode="ldh:Typeahead"/>
                         </span>
 
-                        <xsl:if test="$template-doc">
+                        <xsl:if test="$constructor">
                             <xsl:text> </xsl:text>
-                            <xsl:variable name="forClass" select="key('resources', key('resources-by-type', ../../rdf:type/@rdf:resource, $template-doc)/*[concat(namespace-uri(), local-name()) = current()/../concat(namespace-uri(), local-name())]/@rdf:nodeID, $template-doc)/rdf:type/@rdf:resource[not(. = '&rdfs;Class')]" as="xs:anyURI?"/>
+                            <xsl:variable name="forClass" select="key('resources', key('resources-by-type', ../../rdf:type/@rdf:resource, $constructor)/*[concat(namespace-uri(), local-name()) = current()/../concat(namespace-uri(), local-name())]/@rdf:nodeID, $constructor)/rdf:type/@rdf:resource[not(. = '&rdfs;Class')]" as="xs:anyURI?"/>
                             <xsl:if test="$forClass">
                                 <!-- forClass input is required by typeahead's FILTER (?Type IN ()) in client.xsl -->
                                 <xsl:choose>
@@ -666,7 +666,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="traversed-ids" as="xs:string*" tunnel="yes"/>
         <xsl:param name="inline" select="false()" as="xs:boolean" tunnel="yes"/>
         <xsl:param name="type-label" select="true()" as="xs:boolean"/>
-        <xsl:param name="template-doc" as="document-node()?"/>
+        <xsl:param name="constructor" as="document-node()?"/>
         <xsl:variable name="resource" select="key('resources', .)"/>
 
         <xsl:choose>
@@ -689,9 +689,9 @@ exclude-result-prefixes="#all"
                     <xsl:apply-templates select="$resource" mode="ldh:Typeahead"/>
                 </span>
                 
-                <xsl:if test="$template-doc">
+                <xsl:if test="$constructor">
                     <xsl:text> </xsl:text>
-                    <xsl:variable name="forClass" select="key('resources', key('resources-by-type', ../../rdf:type/@rdf:resource, $template-doc)/*[concat(namespace-uri(), local-name()) = current()/../concat(namespace-uri(), local-name())]/@rdf:nodeID, $template-doc)/rdf:type/@rdf:resource[not(. = '&rdfs;Class')]" as="xs:anyURI?"/>
+                    <xsl:variable name="forClass" select="key('resources', key('resources-by-type', ../../rdf:type/@rdf:resource, $constructor)/*[concat(namespace-uri(), local-name()) = current()/../concat(namespace-uri(), local-name())]/@rdf:nodeID, $constructor)/rdf:type/@rdf:resource[not(. = '&rdfs;Class')]" as="xs:anyURI?"/>
                     <xsl:if test="$forClass">
                         <!-- forClass input is required by typeahead's FILTER (?Type IN ()) in client.xsl -->
                         <xsl:choose>

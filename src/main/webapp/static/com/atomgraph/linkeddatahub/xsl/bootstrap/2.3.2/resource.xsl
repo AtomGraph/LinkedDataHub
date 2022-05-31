@@ -1027,7 +1027,7 @@ extension-element-prefixes="ixsl"
                 <xsl:sort select="if ($constraint-query) then exists(for $type in $types return spin:constraints($type, resolve-uri('ns', $ldt:base), $constraint-query)//srx:binding[@name = 'property'][srx:uri = current()/concat(namespace-uri(), local-name())]) else false()" order="descending"/>
                 <xsl:sort select="ac:property-label(.)"/>
                 <xsl:with-param name="violations" select="$violations"/>
-                <xsl:with-param name="template-doc" select="$template-doc"/>
+                <xsl:with-param name="constructor" select="$constructor"/>
                 <xsl:with-param name="traversed-ids" select="$traversed-ids" tunnel="yes"/>
             </xsl:apply-templates>
 
