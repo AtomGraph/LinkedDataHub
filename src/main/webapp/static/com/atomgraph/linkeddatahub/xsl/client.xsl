@@ -100,7 +100,7 @@ extension-element-prefixes="ixsl"
     <xsl:param name="sd:endpoint" as="xs:anyURI?"/>
     <xsl:param name="ldh:absolutePath" as="xs:anyURI"/>
     <xsl:param name="app-request-uri" as="xs:anyURI"/>
-    <xsl:param name="ldh:apps" as="document-node()?">
+    <xsl:param name="ldh:apps" as="document-node()">
         <xsl:document>
             <rdf:RDF></rdf:RDF>
         </xsl:document>
@@ -209,8 +209,6 @@ WHERE
         </xsl:if>-->
         <!-- initialize wymeditor textareas -->
         <xsl:apply-templates select="key('elements-by-class', 'wymeditor', ixsl:page())" mode="ldh:PostConstruct"/>
-        <!-- add edit buttons to XHTML content -->
-        <xsl:apply-templates select="key('elements-by-class', 'xhtml-content', ixsl:page())" mode="ldh:PostConstruct"/>
         <!-- append typeahead list after the search/URI input -->
         <xsl:for-each select="id('uri', ixsl:page())/..">
             <xsl:result-document href="?." method="ixsl:append-content">
@@ -1039,6 +1037,9 @@ WHERE
                 </xsl:call-template>
             </xsl:for-each>
         </xsl:if>
+
+        <!-- add edit buttons to XHTML content -->
+        <xsl:apply-templates select="key('elements-by-class', 'xhtml-content')" mode="ldh:PostConstruct"/>
 
         <!-- activate the current URL in the document tree -->
         <xsl:for-each select="id('doc-tree', ixsl:page())">
