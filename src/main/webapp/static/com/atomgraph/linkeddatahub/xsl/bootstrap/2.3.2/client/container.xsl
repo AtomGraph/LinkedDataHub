@@ -306,7 +306,7 @@ exclude-result-prefixes="#all"
                     <div class="span7">
                         <div class="progress-bar">
                             <div class="progress progress-striped active">
-                                <div class="bar" style="width: 25%;"></div>
+                                <div class="bar" style="width: 75%;"></div>
                             </div>
                         </div>
                     </div>
