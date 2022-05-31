@@ -224,13 +224,17 @@ exclude-result-prefixes="#all"
                 </rdf:RDF>
             </xsl:document>
         </xsl:variable>
-        <xsl:variable name="html" as="element()*">
+        <xsl:variable name="editor-html" as="element()*">
             <xsl:apply-templates select="$xml-literal//rdf:value/*" mode="bs2:FormControl"/>
         </xsl:variable>
         
         <xsl:for-each select="$container">
             <xsl:result-document href="?." method="ixsl:replace-content">
-                <xsl:apply-templates select="$html" mode="ldh:PostConstruct"/>
+                <xsl:copy-of select="$editor-html"/>
+                
+                <!-- initialize wymeditor textarea -->
+                <xsl:apply-templates select="key('elements-by-class', 'wymeditor', .)" mode="ldh:PostConstruct"/>
+
                 
                 <!--<button>Save</button>-->
             </xsl:result-document>
