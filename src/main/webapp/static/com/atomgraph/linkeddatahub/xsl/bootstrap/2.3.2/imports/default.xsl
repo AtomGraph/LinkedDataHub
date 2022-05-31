@@ -541,7 +541,6 @@ exclude-result-prefixes="#all"
         <xsl:param name="disabled" select="false()" as="xs:boolean"/>
         <xsl:param name="traversed-ids" as="xs:string*" tunnel="yes"/>
         <xsl:param name="inline" select="false()" as="xs:boolean" tunnel="yes"/>
-        <!--<xsl:param name="template"  as="element()?"/>-->
         <xsl:param name="type-label" select="true()" as="xs:boolean"/>
         <xsl:param name="template-doc" as="document-node()?"/>
         <xsl:variable name="resource" select="key('resources', .)"/>
@@ -666,7 +665,6 @@ exclude-result-prefixes="#all"
         <xsl:param name="disabled" select="false()" as="xs:boolean"/>
         <xsl:param name="traversed-ids" as="xs:string*" tunnel="yes"/>
         <xsl:param name="inline" select="false()" as="xs:boolean" tunnel="yes"/>
-        <!--<xsl:param name="template"  as="element()?"/>-->
         <xsl:param name="type-label" select="true()" as="xs:boolean"/>
         <xsl:param name="template-doc" as="document-node()?"/>
         <xsl:variable name="resource" select="key('resources', .)"/>
