@@ -211,8 +211,11 @@ WHERE
         <xsl:apply-templates select="key('elements-by-class', 'wymeditor', ixsl:page())" mode="ldh:PostConstruct"/>
         <!-- add edit buttons to XHTML content -->
         <xsl:for-each select="key('elements-by-class', 'xhtml-content', ixsl:page())">
+            <xsl:variable name="xhtml-content" as="element()">
+                <xsl:apply-templates select="." mode="content"/>
+            </xsl:variable>
             <xsl:result-document href="?." method="ixsl:replace-content">
-                <xsl:apply-templates select="." mode="ldh:PostConstruct"/>
+                <xsl:copy-of select="$xhtml-content/*"/>
             </xsl:result-document>
         </xsl:for-each>
         <!-- append typeahead list after the search/URI input -->
@@ -1005,7 +1008,7 @@ WHERE
 
             <xsl:variable name="results" as="document-node()">
                 <xsl:document>
-                    <xsl:apply-templates select="." mode="ldh:PostConstruct"/>
+                    <xsl:apply-templates select="." mode="content"/>
                 </xsl:document>
             </xsl:variable>
 
