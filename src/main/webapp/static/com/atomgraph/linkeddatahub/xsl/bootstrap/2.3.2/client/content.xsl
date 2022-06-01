@@ -254,7 +254,7 @@ exclude-result-prefixes="#all"
             </xsl:result-document>
             
             <!-- call .wymeditor() on textarea to show WYMEditor -->
-            <xsl:variable name="wymeditor" select="ixsl:call(ixsl:call(ixsl:window(), 'jQuery', [ . ]), 'wymeditor', [])"/>
+            <xsl:variable name="wymeditor" select="ixsl:call(ixsl:call(ixsl:window(), 'jQuery', [ $container//textarea ]), 'wymeditor', [])"/>
             <xsl:variable name="content-uri" select="xs:anyURI(ac:uri() || '#' || ancestor::div[contains-token(@class, 'content')]/@id)" as="xs:anyURI"/>
             <xsl:message>$content-uri: <xsl:value-of select="$content-uri"/></xsl:message>
             <!-- replace dots which have a special meaning in Saxon-JS -->
