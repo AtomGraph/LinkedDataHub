@@ -36,10 +36,10 @@ exclude-result-prefixes="#all"
 >
 
     <!-- TEMPLATES -->
-    
-    <!-- insert edit button in XHTML content -->
-    
-    <xsl:template match="div[contains-token(@class, 'xhtml-content')]" mode="ldh:PostConstruct">
+
+    <!-- content identity transform -->
+
+    <xsl:template match="div[contains-token(@class, 'xhtml-content')]" mode="content" priority="1">
         <xsl:copy>
             <xsl:copy-of select="@*"/>
 
@@ -50,7 +50,13 @@ exclude-result-prefixes="#all"
             <xsl:copy-of select="*"/>
         </xsl:copy>
     </xsl:template>
-    
+
+    <xsl:template match="@* | node()" mode="content">
+        <xsl:copy>
+            <xsl:apply-templates select="@* | node()" mode="#current"/>
+        </xsl:copy>
+    </xsl:template>
+
     <!-- SELECT query -->
     
     <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&sp;Select'][sp:text]" mode="ldh:RenderContent" priority="1">
