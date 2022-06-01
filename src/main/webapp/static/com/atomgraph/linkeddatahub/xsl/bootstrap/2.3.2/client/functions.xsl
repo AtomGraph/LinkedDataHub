@@ -197,8 +197,8 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="ixsl:eval(string($js-statement/@statement))"/>
     </xsl:function>
     
-    <xsl:function name="ldh:parse-html">
-        <xsl:param name="string" as="document-node()"/>
+    <xsl:function name="ldh:parse-html" as="document-node()">
+        <xsl:param name="string" as="xs:string"/>
         <xsl:param name="mime-type" as="xs:string"/>
         
         <xsl:sequence select="ixsl:call(ldh:new('DOMParser', []), 'parseFromString', [ $string, $mime-type ])"/>
