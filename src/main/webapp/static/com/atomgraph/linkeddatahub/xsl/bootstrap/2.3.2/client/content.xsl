@@ -40,15 +40,15 @@ exclude-result-prefixes="#all"
     <!-- insert edit button in XHTML content -->
     
     <xsl:template match="div[contains-token(@class, 'xhtml-content')]" mode="ldh:PostConstruct">
-        <xsl:variable name="xhtml" select="*" as="element()*"/>
-        
-        <xsl:result-document href="?." method="ixsl:replace-content">
+        <xsl:copy>
+            <xsl:copy-of select="@*"/>
+
             <button type="button" class="btn btn-edit pull-right">
                 <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
             </button>
-            
-            <xsl:copy-of select="$xhtml"/>
-        </xsl:result-document>
+
+            <xsl:copy-of select="*"/>
+        </xsl:copy>
     </xsl:template>
     
     <!-- SELECT query -->
