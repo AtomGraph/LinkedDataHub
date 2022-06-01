@@ -235,16 +235,22 @@ exclude-result-prefixes="#all"
             <xsl:apply-templates select="$xml-literal//rdf:value/xhtml:*" mode="bs2:FormControl"/>
         </xsl:variable>
         
-        <xsl:message>
+<!--        <xsl:message>
             $xml-literal: <xsl:value-of select="serialize($xml-literal)"/>
             $editor-html: <xsl:value-of select="serialize($editor-html)"/>
-        </xsl:message>
+        </xsl:message>-->
         
         <xsl:for-each select="$container">
             <xsl:result-document href="?." method="ixsl:replace-content">
                 <xsl:copy-of select="$editor-html"/>
                 
-                <!--<button>Save</button>-->
+                <div class="form-actions">
+                    <button type="button" class="btn btn-primary btn-save">
+                        <xsl:value-of>
+                            <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                        </xsl:value-of>
+                    </button>
+                </div>
             </xsl:result-document>
             
             <!-- initialize wymeditor textarea -->
@@ -264,11 +270,13 @@ exclude-result-prefixes="#all"
             <xsl:result-document href="?." method="ixsl:replace-content">
                 <div class="offset2 span7">
                     <span></span>
-                    <button type="button" class="btn btn-primary btn-save">
-                        <xsl:value-of>
-                            <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                        </xsl:value-of>
-                    </button>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-primary btn-save">
+                            <xsl:value-of>
+                                <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                            </xsl:value-of>
+                        </button>
+                    </div>
                 </div>
             </xsl:result-document>
         </xsl:for-each>
