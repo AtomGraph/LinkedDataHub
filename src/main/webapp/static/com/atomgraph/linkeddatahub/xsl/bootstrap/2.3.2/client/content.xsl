@@ -243,12 +243,11 @@ exclude-result-prefixes="#all"
             <xsl:result-document href="?." method="ixsl:replace-content">
                 <xsl:copy-of select="$editor-html"/>
                 
-                <!-- initialize wymeditor textarea -->
-                <xsl:apply-templates select="key('elements-by-class', 'wymeditor', .)" mode="ldh:PostConstruct"/>
-
-                
                 <!--<button>Save</button>-->
             </xsl:result-document>
+            
+            <!-- initialize wymeditor textarea -->
+            <xsl:apply-templates select="key('elements-by-class', 'wymeditor', .)" mode="ldh:PostConstruct"/>
         </xsl:for-each>
     </xsl:template>
     
