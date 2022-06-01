@@ -269,7 +269,10 @@ exclude-result-prefixes="#all"
         <xsl:for-each select="$container">
             <xsl:result-document href="?." method="ixsl:replace-content">
                 <div class="offset2 span7">
-                    <span></span>
+                    <p>
+                        <span></span>
+                    </p>
+                    
                     <div class="form-actions">
                         <button type="button" class="btn btn-primary btn-save">
                             <xsl:value-of>
@@ -285,14 +288,28 @@ exclude-result-prefixes="#all"
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                 <xsl:call-template name="onTypeaheadResourceLoad">
                     <xsl:with-param name="resource-uri" select="$content-value"/>
-                    <xsl:with-param name="typeahead-span" select="$container/div[contains-token(@class, 'span7')]/span[1]"/>
+                    <xsl:with-param name="typeahead-span" select="$container/div[contains-token(@class, 'span7')]/p/span[1]"/>
                 </xsl:call-template>
             </ixsl:schedule-action>
         </xsl:variable>
         <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
 
-    <!-- save button onclick -->
+    <!-- save xhtml-content onclick -->
+    
+    <xsl:template match="div[contains-token(@class, 'xhtml-content')]//button[contains-token(@class, 'btn-save')]" mode="ixsl:onclick">
+        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'xhtml-content')]" as="element()"/>
+        <xsl:variable name="textarea" select="ancestor::div[contains-token(@class, 'span7')]/textarea" as="element()"/>
+        <xsl:variable name="old-content-value" select="ldh:parse-html($textarea)" as="document-node()"/>
+        <xsl:variable name="content-value" select="ixsl:call($textarea, 'html', [])" as="xs:string"/>
+
+        <xsl:message>
+            $old-content-value: <xsl:value-of select="serialize($old-content-value)"/>
+            $content-value: <xsl:value-of select="ancestor::div[contains-token(@class, 'span7')]/textarea"/>
+        </xsl:message>
+    </xsl:template>
+
+    <!-- save resource-content onclick -->
     
     <xsl:template match="div[contains-token(@class, 'resource-content')]//button[contains-token(@class, 'btn-save')]" mode="ixsl:onclick">
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'resource-content')]" as="element()"/>
