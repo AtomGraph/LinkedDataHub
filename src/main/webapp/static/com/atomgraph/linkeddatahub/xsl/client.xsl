@@ -162,6 +162,7 @@ WHERE
     LIMIT   10
   }
 ]]></xsl:param>
+    <xsl:param name="force-exclude-all-namespaces" select="true()"/> <!-- used by xml-to-string.xsl -->
 
     <xsl:key name="resources" match="*[*][@rdf:about] | *[*][@rdf:nodeID]" use="@rdf:about | @rdf:nodeID"/>
     <xsl:key name="elements-by-class" match="*" use="tokenize(@class, ' ')"/>
