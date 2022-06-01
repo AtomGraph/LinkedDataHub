@@ -300,7 +300,7 @@ exclude-result-prefixes="#all"
     <xsl:template match="div[contains-token(@class, 'xhtml-content')]//button[contains-token(@class, 'btn-save')]" mode="ixsl:onclick">
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'xhtml-content')]" as="element()"/>
         <xsl:variable name="textarea" select="ancestor::div[contains-token(@class, 'span7')]/textarea" as="element()"/>
-        <xsl:variable name="old-content-value" select="ldh:parse-html($textarea)" as="document-node()"/>
+        <xsl:variable name="old-content-value" select="ldh:parse-html(string($textarea), 'text/html')" as="document-node()"/>
         <xsl:variable name="content-value" select="ixsl:call($textarea, 'html', [])" as="xs:string"/>
 
         <xsl:message>
