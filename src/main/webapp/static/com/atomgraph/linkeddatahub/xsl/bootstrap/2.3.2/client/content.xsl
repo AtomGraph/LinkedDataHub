@@ -223,6 +223,7 @@ exclude-result-prefixes="#all"
             <xsl:document>
                 <rdf:RDF>
                     <rdf:Description>
+                        <rdf:type rdf:resource="&ldh;Content"/>
                         <rdf:value rdf:parseType="Literal">
                             <xsl:copy-of select="$container/*[not(. is $button)]"/>
                         </rdf:value>
