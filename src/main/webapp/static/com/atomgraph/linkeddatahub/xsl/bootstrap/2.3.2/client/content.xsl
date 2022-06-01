@@ -254,7 +254,7 @@ exclude-result-prefixes="#all"
             </xsl:result-document>
             
             <!-- call .wymeditor() on textarea to show WYMEditor -->
-            <xsl:variable name="wymeditor" select="ixsl:call(ixsl:call(ixsl:window(), 'jQuery', [ $container//textarea ]), 'wymeditor', [])"/>
+            <xsl:variable name="wymeditor" select="ixsl:call(ixsl:call(ixsl:window(), 'jQuery', [ $container//textarea ]), 'wymeditor', [])" as="item()"/>
             <xsl:variable name="content-uri" select="xs:anyURI(ac:uri() || '#' || ancestor::div[contains-token(@class, 'content')]/@id)" as="xs:anyURI"/>
             <xsl:message>$content-uri: <xsl:value-of select="$content-uri"/></xsl:message>
             <!-- replace dots which have a special meaning in Saxon-JS -->
@@ -314,11 +314,11 @@ exclude-result-prefixes="#all"
         <xsl:variable name="content-uri" select="xs:anyURI(ac:uri() || '#' || $container/@id)" as="xs:anyURI"/>
         <!-- replace dots which have a special meaning in Saxon-JS -->
         <xsl:variable name="escaped-content-uri" select="xs:anyURI(translate($content-uri, '.', '-'))" as="xs:anyURI"/>
-        <xsl:variable name="wymeditor" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri), 'wymeditor')"/>
+        <xsl:variable name="wymeditor" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri), 'wymeditor')" as="item()"/>
         
         <xsl:message>
             $old-content-value: <xsl:value-of select="serialize($old-content-value)"/>
-            $content-value: <xsl:value-of select="ixsl:call($wymeditor, 'xhtml', [])"/>
+            $content-value: <xsl:value-of select="ixsl:call($wymeditor, 'html', [])"/>
         </xsl:message>
     </xsl:template>
 
