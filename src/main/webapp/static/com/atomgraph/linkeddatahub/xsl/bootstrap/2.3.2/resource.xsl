@@ -714,17 +714,17 @@ extension-element-prefixes="ixsl"
     
     <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;Content'][rdf:value[@rdf:parseType = 'Literal']/xhtml:div]" mode="ldh:Content" priority="2">
         <xsl:param name="id" select="generate-id()" as="xs:string?"/>
-        <xsl:param name="class" select="'content xhtml-content span7 offset2'" as="xs:string?"/>
+        <xsl:param name="class" select="'row-fluid content xhtml-content'" as="xs:string?"/>
         
-        <div class="row-fluid">
-            <div>
-                <xsl:if test="$id">
-                    <xsl:attribute name="id" select="$id"/>
-                </xsl:if>
-                <xsl:if test="$class">
-                    <xsl:attribute name="class" select="$class"/>
-                </xsl:if>
+        <div>
+            <xsl:if test="$id">
+                <xsl:attribute name="id" select="$id"/>
+            </xsl:if>
+            <xsl:if test="$class">
+                <xsl:attribute name="class" select="$class"/>
+            </xsl:if>
 
+            <div class="span7 offset2">
                 <!--  remove XHTML namespace -->
                 <!-- <xsl:copy-of copy-namespaces="no" select="sioc:content/xhtml:div"/> -->
                 <xsl:apply-templates select="rdf:value[@rdf:parseType = 'Literal']/xhtml:div" mode="ldh:XHTMLContent"/>
