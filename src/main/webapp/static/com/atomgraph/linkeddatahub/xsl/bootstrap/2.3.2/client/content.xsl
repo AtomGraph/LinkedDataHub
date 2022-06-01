@@ -231,7 +231,7 @@ exclude-result-prefixes="#all"
             </xsl:document>
         </xsl:variable>
         <xsl:variable name="editor-html" as="element()*">
-            <xsl:apply-templates select="$xml-literal//rdf:value/*" mode="bs2:FormControl"/>
+            <xsl:apply-templates select="$xml-literal//rdf:value/xhtml:*" mode="bs2:FormControl"/>
         </xsl:variable>
         
         <xsl:message>
