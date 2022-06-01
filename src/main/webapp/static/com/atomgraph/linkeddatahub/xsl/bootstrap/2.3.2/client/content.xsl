@@ -217,7 +217,7 @@ exclude-result-prefixes="#all"
     
     <xsl:template match="div[contains-token(@class, 'xhtml-content')]//button[contains-token(@class, 'btn-edit')]" mode="ixsl:onclick">
         <xsl:variable name="button" select="." as="element()"/>
-        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'xhtml-content')]" as="element()"/>
+        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'span7')]" as="element()"/>
 
         <xsl:variable name="xml-literal" as="document-node()">
             <xsl:document>
