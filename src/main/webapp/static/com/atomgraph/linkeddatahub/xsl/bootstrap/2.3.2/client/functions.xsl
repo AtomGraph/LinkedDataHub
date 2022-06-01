@@ -201,7 +201,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="string" as="document-node()"/>
         <xsl:param name="mime-type" as="xs:string"/>
         
-        <xsl:sequence select="ixsl:call(ldh:new('DOMParser'), 'parseFromString', [ $string, $mime-type ])"/>
+        <xsl:sequence select="ixsl:call(ldh:new('DOMParser', []), 'parseFromString', [ $string, $mime-type ])"/>
     </xsl:function>
 
 </xsl:stylesheet>
