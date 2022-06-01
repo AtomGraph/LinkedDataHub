@@ -39,7 +39,7 @@ exclude-result-prefixes="#all"
 
     <!-- content identity transform -->
 
-    <xsl:template match="div[contains-token(@class, 'xhtml-content')]" mode="content" priority="1">
+    <xsl:template match="div[contains-token(@class, 'xhtml-content')]//div[contains-token(@class, 'span7')]" mode="content" priority="1">
         <xsl:copy>
             <xsl:copy-of select="@*"/>
 
