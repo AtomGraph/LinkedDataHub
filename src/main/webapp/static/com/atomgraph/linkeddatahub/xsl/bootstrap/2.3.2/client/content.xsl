@@ -308,14 +308,17 @@ exclude-result-prefixes="#all"
     <xsl:template match="div[contains-token(@class, 'xhtml-content')]//button[contains-token(@class, 'btn-save')]" mode="ixsl:onclick">
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'xhtml-content')]" as="element()"/>
         <xsl:variable name="textarea" select="ancestor::div[contains-token(@class, 'span7')]/textarea" as="element()"/>
-        <xsl:sequence select="ixsl:call(ixsl:call(ixsl:window(), 'jQuery', [ $textarea ]), 'wymeditor', [])"/>
         <xsl:variable name="old-content-value" select="ldh:parse-html(string($textarea), 'text/html')" as="document-node()"/>
-        <xsl:sequence name="store-html" select="ixsl:call($textarea, 'html', [])[current-date() lt xs:date('2000-01-01')]"/>
-        <xsl:variable name="content-value" select="ldh:parse-html(string($textarea), 'text/html')" as="document-node()"/>
-
+        <!-- <xsl:sequence name="store-html" select="ixsl:call($textarea, 'html', [])[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:variable name="content-value" select="ldh:parse-html(string($textarea), 'text/html')" as="document-node()"/>-->
+        <xsl:variable name="content-uri" select="xs:anyURI(ac:uri() || '#' || $container/@id)" as="xs:anyURI"/>
+        <!-- replace dots which have a special meaning in Saxon-JS -->
+        <xsl:variable name="escaped-content-uri" select="xs:anyURI(translate($content-uri, '.', '-'))" as="xs:anyURI"/>
+        <xsl:variable name="wymeditor" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri), 'wymeditor')"/>
+        
         <xsl:message>
             $old-content-value: <xsl:value-of select="serialize($old-content-value)"/>
-            $content-value: <xsl:value-of select="ancestor::div[contains-token(@class, 'span7')]/textarea"/>
+            $content-value: <xsl:value-of select="ixsl:call($wymeditor, 'xhtml', [])"/>
         </xsl:message>
     </xsl:template>
 
