@@ -733,7 +733,7 @@ extension-element-prefixes="ixsl"
     </xsl:template>
 
     <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;Content'][rdf:value/@rdf:resource]" mode="ldh:Content" priority="2">
-        <xsl:param name="id" select="generate-id()" as="xs:string?"/>
+        <xsl:param name="id" select="if (contains(@rdf:about, ac:uri() || '#')) then substring-after(@rdf:about, ac:uri() || '#') else generate-id()" as="xs:string?"/>
         <xsl:param name="class" select="'row-fluid content resource-content'" as="xs:string?"/>
         <xsl:param name="mode" select="ac:mode/@rdf:resource" as="xs:anyURI?"/>
         

@@ -253,8 +253,16 @@ exclude-result-prefixes="#all"
                 </div>
             </xsl:result-document>
             
-            <!-- initialize wymeditor textarea -->
-            <xsl:apply-templates select="key('elements-by-class', 'wymeditor', .)" mode="ldh:PostConstruct"/>
+            <!-- call .wymeditor() on textarea to show WYMEditor -->
+            <xsl:variable name="wymeditor" select="ixsl:call(ixsl:call(ixsl:window(), 'jQuery', [ . ]), 'wymeditor', [])"/>
+            <xsl:variable name="content-uri" select="xs:anyURI(ac:uri() || '#' || ancestor::div[contains-token(@class, 'content')]/@id)" as="xs:anyURI"/>
+            <xsl:message>$content-uri: <xsl:value-of select="$content-uri"/></xsl:message>
+            <!-- replace dots which have a special meaning in Saxon-JS -->
+            <xsl:variable name="escaped-content-uri" select="xs:anyURI(translate($content-uri, '.', '-'))" as="xs:anyURI"/>
+            <!-- create new cache entry using content URI as key -->
+            <ixsl:set-property name="{$escaped-content-uri}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
+            <!-- store this content element -->
+            <ixsl:set-property name="wymeditor" select="$wymeditor" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri)"/>
         </xsl:for-each>
     </xsl:template>
     
@@ -300,8 +308,10 @@ exclude-result-prefixes="#all"
     <xsl:template match="div[contains-token(@class, 'xhtml-content')]//button[contains-token(@class, 'btn-save')]" mode="ixsl:onclick">
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'xhtml-content')]" as="element()"/>
         <xsl:variable name="textarea" select="ancestor::div[contains-token(@class, 'span7')]/textarea" as="element()"/>
+        <xsl:sequence select="ixsl:call(ixsl:call(ixsl:window(), 'jQuery', [ $textarea ]), 'wymeditor', [])"/>
         <xsl:variable name="old-content-value" select="ldh:parse-html(string($textarea), 'text/html')" as="document-node()"/>
-        <xsl:variable name="content-value" select="ixsl:call($textarea, 'html', [])" as="xs:string"/>
+        <xsl:sequence name="store-html" select="ixsl:call($textarea, 'html', [])[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:variable name="content-value" select="ldh:parse-html(string($textarea), 'text/html')" as="document-node()"/>
 
         <xsl:message>
             $old-content-value: <xsl:value-of select="serialize($old-content-value)"/>
