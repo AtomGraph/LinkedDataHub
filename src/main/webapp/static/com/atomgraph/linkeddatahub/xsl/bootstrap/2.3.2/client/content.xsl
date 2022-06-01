@@ -234,6 +234,11 @@ exclude-result-prefixes="#all"
             <xsl:apply-templates select="$xml-literal//rdf:value/*" mode="bs2:FormControl"/>
         </xsl:variable>
         
+        <xsl:message>
+            $xml-literal: <xsl:value-of select="serialize($xml-literal)"/>
+            $editor-html: <xsl:value-of select="serialize($editor-html)"/>
+        </xsl:message>
+        
         <xsl:for-each select="$container">
             <xsl:result-document href="?." method="ixsl:replace-content">
                 <xsl:copy-of select="$editor-html"/>
