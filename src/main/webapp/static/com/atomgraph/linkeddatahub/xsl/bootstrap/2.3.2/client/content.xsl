@@ -253,8 +253,8 @@ exclude-result-prefixes="#all"
                 </div>
             </xsl:result-document>
             
-            <!-- call .wymeditor() on textarea to show WYMEditor -->
-            <xsl:sequence select="ixsl:call(ixsl:call(ixsl:window(), 'jQuery', [ $container//textarea ]), 'wymeditor', [])[current-date() lt xs:date('2000-01-01')]"/>
+            <!-- initialize wymeditor textarea -->
+            <xsl:apply-templates select="key('elements-by-class', 'wymeditor', .)" mode="ldh:PostConstruct"/>
         </xsl:for-each>
     </xsl:template>
     
@@ -299,11 +299,11 @@ exclude-result-prefixes="#all"
     
     <xsl:template match="div[contains-token(@class, 'xhtml-content')]//button[contains-token(@class, 'btn-save')]" mode="ixsl:onclick">
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'xhtml-content')]" as="element()"/>
-        <xsl:variable name="textarea" select="ancestor::div[contains-token(@class, 'span7')]/textarea" as="element()"/>
-        <xsl:variable name="old-content-value" select="ldh:parse-html(string($textarea), 'text/html')" as="document-node()"/>
+        <xsl:variable name="textarea" select="ancestor::div[contains-token(@class, 'span7')]/textarea[contains-token(@class, 'wymeditor')]" as="element()"/>
+        <xsl:variable name="old-content-value" select="string($textarea)" as="xs:string"/>
         <xsl:variable name="wymeditor" select="ixsl:call(ixsl:get(ixsl:window(), 'jQuery'), 'getWymeditorByTextarea', [ $textarea ])" as="item()"/>
         <xsl:sequence select="ixsl:call($wymeditor, 'update', [])[current-date() lt xs:date('2000-01-01')]"/> <!-- update HTML in the textarea -->
-        <xsl:variable name="content-value" select="ixsl:call(ixsl:call(ixsl:window(), 'jQuery', [ $textarea ]), 'val', [])" as="item()"/>
+        <xsl:variable name="content-value" select="ixsl:call(ixsl:call(ixsl:window(), 'jQuery', [ $textarea ]), 'val', [])" as="xs:string"/>
         
         <xsl:message>
             $old-content-value: <xsl:value-of select="serialize($old-content-value)"/>
