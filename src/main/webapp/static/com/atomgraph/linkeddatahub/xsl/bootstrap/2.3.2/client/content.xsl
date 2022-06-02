@@ -254,7 +254,7 @@ exclude-result-prefixes="#all"
             </xsl:result-document>
             
             <!-- call .wymeditor() on textarea to show WYMEditor -->
-            <xsl:variable name="wymeditor" select="ixsl:call(ixsl:call(ixsl:window(), 'jQuery', [ $container//textarea ]), 'wymeditor', [])" as="item()"/>
+            <xsl:sequence select="ixsl:call(ixsl:call(ixsl:window(), 'jQuery', [ $container//textarea ]), 'wymeditor', [])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
     </xsl:template>
     
