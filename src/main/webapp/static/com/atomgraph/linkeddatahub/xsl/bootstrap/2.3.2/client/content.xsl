@@ -315,10 +315,11 @@ exclude-result-prefixes="#all"
         <!-- replace dots which have a special meaning in Saxon-JS -->
         <xsl:variable name="escaped-content-uri" select="xs:anyURI(translate($content-uri, '.', '-'))" as="xs:anyURI"/>
         <xsl:variable name="wymeditor" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri), 'wymeditor')" as="item()"/>
+        <xsl:sequence select="ixsl:call($wymeditor, 'html', [])[current-date() lt xs:date('2000-01-01')]"/>
         
         <xsl:message>
             $old-content-value: <xsl:value-of select="serialize($old-content-value)"/>
-            $content-value: <xsl:value-of select="ixsl:call($wymeditor, 'html', [])"/>
+            $content-value: <xsl:value-of select="ldh:parse-html(string($textarea), 'text/html')"/>
         </xsl:message>
     </xsl:template>
 
