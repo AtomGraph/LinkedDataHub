@@ -395,10 +395,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="typeahead-class" select="'btn add-typeahead'" as="xs:string"/>
         <xsl:variable name="typeahead-doc" select="ixsl:get(ixsl:window(), 'LinkedDataHub.typeahead.rdfXml')" as="document-node()"/>
         <xsl:variable name="resource" select="key('resources', $resource-id, $typeahead-doc)" as="element()"/>
-<xsl:message>
-    $resource-id: <xsl:value-of select="$resource-id"/>
-    $resource: <xsl:value-of select="serialize($resource)"/>
-</xsl:message>
+
         <xsl:for-each select="../..">
             <xsl:result-document href="?." method="ixsl:replace-content">
                 <xsl:apply-templates select="$resource" mode="ldh:Typeahead">

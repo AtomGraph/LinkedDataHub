@@ -355,7 +355,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="list-id" select="concat('ul-', $id)" as="xs:string"/>
 
         <xsl:call-template name="xhtml:Input">
-            <!--<xsl:with-param name="name" select="'ou'"/>-->
+            <xsl:with-param name="name" select="'ou'"/>
             <xsl:with-param name="type" select="$type"/>
             <xsl:with-param name="id" select="$id"/>
             <xsl:with-param name="class" select="$class"/>
