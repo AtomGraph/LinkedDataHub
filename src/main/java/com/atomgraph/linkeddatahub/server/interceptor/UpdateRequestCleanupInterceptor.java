@@ -17,6 +17,8 @@
 package com.atomgraph.linkeddatahub.server.interceptor;
 
 import com.atomgraph.core.MediaType;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
@@ -25,7 +27,12 @@ import javax.ws.rs.Priorities;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.ext.ReaderInterceptor;
 import javax.ws.rs.ext.ReaderInterceptorContext;
+import nu.xom.Builder;
+import nu.xom.Document;
+import nu.xom.ParsingException;
+import nu.xom.canonical.Canonicalizer;
 import org.apache.commons.io.IOUtils;
+import org.apache.jena.vocabulary.RDF;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,10 +58,53 @@ public class UpdateRequestCleanupInterceptor implements ReaderInterceptor
             IOUtils.copy(context.getInputStream(), writer, StandardCharsets.UTF_8);
 
             String updateString = writer.toString();
-            if (updateString.contains("XMLLiteral")) log.debug("XMLLiteral in SPARQL update");
+            if (updateString.contains("rdf:XMLLiteral") || updateString.contains("<" + RDF.xmlLiteral.getURI() + ">"))
+            {
+                log.debug("XMLLiteral in SPARQL update");
+                //canonicalizeXML(wrapXHTML(xml));
+            }
+            
+            context.setInputStream(new ByteArrayInputStream(updateString.getBytes(StandardCharsets.UTF_8))); // restore the request entity
         }
         
         return context.proceed();
     }
 
+    /**
+     * Wraps XHTML content string into a <code>&lt;div&gt;</code> element.
+     * 
+     * @param xhtml XHTML string
+     * @return wrapped XHTML string
+     */
+    public String wrapXHTML(String xhtml)
+    {
+        if (xhtml == null) throw new IllegalArgumentException("XHTML String cannot be null");
+        
+        return "<div xmlns='http://www.w3.org/1999/xhtml'>" + xhtml + "</div>";
+    }
+    
+    /**
+     * Canonicalizes XML string.
+     * 
+     * @param xml XML string
+     * @param charsetName charset name
+     * @return canonicalized XML string
+     * @throws IOException I/O exception
+     * @throws ParsingException XML parsing error
+     * @see <a href="https://www.w3.org/TR/xml-c14n11/">Canonical XML Version 1.1</a>
+     */
+    public String canonicalizeXML(String xml, String charsetName) throws IOException, ParsingException
+    {
+        if (xml == null) throw new IllegalArgumentException("XML String cannot be null");
+        if (charsetName == null) throw new IllegalArgumentException("Charset String cannot be null");
+
+        try (ByteArrayInputStream bais = new ByteArrayInputStream(xml.getBytes(charsetName));
+                ByteArrayOutputStream baos = new ByteArrayOutputStream())
+        {
+            Document xhtml = new Builder().build(bais);
+            new Canonicalizer(baos).write(xhtml);
+            return baos.toString(StandardCharsets.UTF_8.name());
+        }
+    }
+    
 }
