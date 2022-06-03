@@ -318,7 +318,7 @@ exclude-result-prefixes="#all"
                     GRAPH $this
                     {
                         $this ?seq $content .
-                        $content rdf:value $oldValue .
+                        $content rdf:value ?oldValue .
                     }
                 }
                 INSERT
@@ -341,7 +341,6 @@ exclude-result-prefixes="#all"
         </xsl:variable>
         <xsl:variable name="update-string" select="replace($update-string, '\$this', '&lt;' || ac:uri() || '&gt;')" as="xs:string"/>
         <xsl:variable name="update-string" select="replace($update-string, '\$content', '&lt;' || $content-uri || '&gt;')" as="xs:string"/>
-        <!--<xsl:variable name="update-string" select="replace($update-string, '\$oldValue', '&lt;' || $old-content-value || '&gt;')" as="xs:string"/>-->
         <xsl:variable name="update-string" select="replace($update-string, '\$newValue', '&quot;' || $content-value || '&quot;^^&lt;&rdf;XMLLiteral&gt;')" as="xs:string"/>
 
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ac:uri())" as="xs:anyURI"/>
@@ -369,30 +368,30 @@ exclude-result-prefixes="#all"
                 {
                     GRAPH $this
                     {
-                        $this ?seq ?content .
-                        ?content rdf:value $oldValue .
+                        $this ?seq $content .
+                        $content rdf:value ?oldValue .
                     }
                 }
                 INSERT
                 {
                     GRAPH $this
                     {
-                        $this ?seq ?content .
-                        ?content rdf:value $newValue .
+                        $this ?seq $content .
+                        $content rdf:value $newValue .
                     }
                 }
                 WHERE
                 {
                     GRAPH $this
                     {
-                        $this ?seq ?content .
-                        ?content rdf:value $oldValue .
+                        $this ?seq $content .
+                        $content rdf:value ?oldValue .
                     }
                 }
             ]]>
         </xsl:variable>
         <xsl:variable name="update-string" select="replace($update-string, '\$this', '&lt;' || ac:uri() || '&gt;')" as="xs:string"/>
-        <xsl:variable name="update-string" select="replace($update-string, '\$oldValue', '&lt;' || $old-content-value || '&gt;')" as="xs:string"/>
+        <xsl:variable name="update-string" select="replace($update-string, '\$content', '&lt;' || $content-uri || '&gt;')" as="xs:string"/>
         <xsl:variable name="update-string" select="replace($update-string, '\$newValue', '&lt;' || $content-value || '&gt;')" as="xs:string"/>
 
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ac:uri())" as="xs:anyURI"/>
@@ -401,6 +400,7 @@ exclude-result-prefixes="#all"
                 <xsl:call-template name="onResourceContentUpdate">
                     <xsl:with-param name="container" select="$container"/>
                     <xsl:with-param name="uri" select="ac:uri()"/>
+                    <xsl:with-param name="content-value" select="$content-value"/>
                 </xsl:call-template>
             </ixsl:schedule-action>
         </xsl:variable>
