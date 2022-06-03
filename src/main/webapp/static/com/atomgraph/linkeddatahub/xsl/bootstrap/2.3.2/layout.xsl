@@ -767,7 +767,7 @@ LIMIT   100
                             
                             <xsl:for-each select="$content-values">
                                 <xsl:if test="doc-available(ac:document-uri(.))">
-                                    <xsl:apply-templates select="key('resources', ., document(ac:document-uri(.)))" mode="ldh:Content"/>
+                                    <xsl:apply-templates select="key('resources', ., document(ac:document-uri(.)))" mode="bs2:RowContent"/>
                                 </xsl:if>
                             </xsl:for-each>
                         </xsl:for-each>

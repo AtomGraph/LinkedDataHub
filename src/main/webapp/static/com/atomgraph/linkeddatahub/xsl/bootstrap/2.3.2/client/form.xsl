@@ -841,8 +841,8 @@ exclude-result-prefixes="#all"
                         <xsl:if test="$seq-property">
                             <xsl:variable name="seq-index" select="xs:integer(substring-after($property, '&rdf;_'))" as="xs:integer"/>
                             <xsl:if test="$seq-index &gt; 1">
-                                <!-- fix up the rdf:_X sequence property URI and label by increasing the counter (if it's higher than 1) -->
-                                <ixsl:set-attribute name="pu" object="." select="$property"/>
+                                <!-- fix up the rdf:_X sequence property URI and label -->
+                                <ixsl:set-attribute name="value" object="input[@name = 'pu']" select="$property"/>
 
                                 <xsl:for-each select="label">
                                     <xsl:result-document href="?." method="ixsl:replace-content">

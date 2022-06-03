@@ -712,10 +712,11 @@ extension-element-prefixes="ixsl"
 
     <!-- ROW CONTENT -->
     
-    <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;Content'][rdf:value[@rdf:parseType = 'Literal']/xhtml:div]" mode="bs2:RowContent" priority="2">
+    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;Content'][rdf:value[@rdf:parseType = 'Literal']/xhtml:div]" mode="bs2:RowContent" priority="2">
         <xsl:param name="id" select="generate-id()" as="xs:string?"/>
         <xsl:param name="class" select="'row-fluid content xhtml-content'" as="xs:string?"/>
-        
+        <xsl:param name="about" select="@rdf:about" as="xs:anyURI"/>
+
         <div>
             <xsl:if test="$id">
                 <xsl:attribute name="id" select="$id"/>
@@ -723,7 +724,10 @@ extension-element-prefixes="ixsl"
             <xsl:if test="$class">
                 <xsl:attribute name="class" select="$class"/>
             </xsl:if>
-
+            <xsl:if test="$about">
+                <xsl:attribute name="about" select="$about"/>
+            </xsl:if>
+            
             <div class="span7 offset2">
                 <!--  remove XHTML namespace -->
                 <!-- <xsl:copy-of copy-namespaces="no" select="sioc:content/xhtml:div"/> -->
