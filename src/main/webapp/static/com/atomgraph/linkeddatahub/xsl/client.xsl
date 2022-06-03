@@ -551,10 +551,10 @@ WHERE
 
         <xsl:for-each select="?body">
             <!-- replace dots with dashes to avoid Saxon-JS treating them as field separators: https://saxonica.plan.io/issues/5031 -->
-            <xsl:variable name="content-value" select="xs:anyURI(translate($uri, '.', '-'))" as="xs:anyURI"/>
-            <ixsl:set-property name="{$content-value}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
-            <!-- store document under window.LinkedDataHub[$content-value].results -->
-            <ixsl:set-property name="results" select="." object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $content-value)"/>
+            <xsl:variable name="escaped-content-uri" select="xs:anyURI(translate($uri, '.', '-'))" as="xs:anyURI"/>
+            <ixsl:set-property name="{$escaped-content-uri}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
+            <!-- store document under window.LinkedDataHub[$escaped-content-uri].results -->
+            <ixsl:set-property name="results" select="." object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri)"/>
                 
             <!-- focus on current resource -->
             <xsl:for-each select="key('resources', $uri)">
@@ -640,33 +640,7 @@ WHERE
         </xsl:if>
     </xsl:template>
     
-    <!-- push states -->
-    
-<!--    <xsl:template name="ldh:PushContentState">
-        <xsl:param name="href" as="xs:anyURI"/>
-        <xsl:param name="title" as="xs:string?"/>
-        <xsl:param name="select-string" as="xs:string"/>
-        <xsl:param name="select-xml" as="document-node()"/>
-        <xsl:param name="content-value" as="xs:anyURI"/>
-        <xsl:param name="sparql" select="false()" as="xs:boolean"/>
-        <xsl:param name="service-uri" as="xs:anyURI?"/>
-
-        <xsl:variable name="state" as="map(xs:string, item())">
-            <xsl:map>
-                <xsl:map-entry key="'href'" select="$href"/>
-                <xsl:map-entry key="'content-value'" select="$content-value"/>
-                <xsl:map-entry key="'query-string'" select="$select-string"/>
-                <xsl:map-entry key="'sparql'" select="$sparql"/>
-                <xsl:if test="$service-uri">
-                    <xsl:map-entry key="'service-uri'" select="$service-uri"/>
-                </xsl:if>
-            </xsl:map>
-        </xsl:variable>
-        <xsl:variable name="state-obj" select="ixsl:call(ixsl:window(), 'JSON.parse', [ $state => serialize(map{ 'method': 'json' }) ])"/>
-        <ixsl:set-property name="query" select="ixsl:call(ixsl:window(), 'JSON.parse', [ xml-to-json($select-xml) ])" object="$state-obj"/>
-        
-        <xsl:sequence select="ixsl:call(ixsl:window(), 'history.pushState', [ $state-obj, $title ])[current-date() lt xs:date('2000-01-01')]"/>
-    </xsl:template>-->
+    <!-- push state -->
 
     <xsl:template name="ldh:PushState">
          <!-- has to be a proxied URI with the actual URI encoded as ?uri, otherwise we get a "DOMException: The operation is insecure" -->
@@ -741,8 +715,9 @@ WHERE
     
     <xsl:template name="onSPARQLResultsLoad">
         <xsl:context-item as="map(*)" use="required"/>
-        <xsl:param name="content-value" as="xs:anyURI"/>
         <xsl:param name="container" as="element()"/>
+        <xsl:param name="results-uri" as="xs:anyURI"/>
+        <xsl:param name="escaped-content-uri" select="xs:anyURI(translate($results-uri, '.', '-'))" as="xs:anyURI"/>
         <xsl:param name="container-id" select="ixsl:get($container, 'id')" as="xs:string"/>
         <xsl:param name="results-container-id" select="$container-id || '-sparql-results'" as="xs:string"/>
         <xsl:param name="chart-canvas-id" select="$container-id || '-chart-canvas'" as="xs:string"/>
@@ -761,14 +736,14 @@ WHERE
             <xsl:when test="not(id($results-container-id, ixsl:page()))">
                 <xsl:for-each select="$container">
                     <xsl:result-document href="?." method="ixsl:append-content">
-                        <div id="{$results-container-id}" class="sparql-results" data-content-value="{$content-value}"/> <!-- used as $content-value in chart form's onchange events -->
+                        <div id="{$results-container-id}" class="sparql-results" about="{$results-uri}"/> <!-- used as $content-uri in chart form's onchange events -->
                     </xsl:result-document>
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
-                <!-- update @data-content-value value -->
+                <!-- update @about value -->
                 <xsl:for-each select="id($results-container-id, ixsl:page())">
-                    <ixsl:set-property name="dataset.contentValue" select="$content-value" object="."/>
+                    <ixsl:set-attribute name="about" select="$results-uri" object="."/>
                 </xsl:for-each>
             </xsl:otherwise>
         </xsl:choose>
@@ -814,10 +789,10 @@ WHERE
                     </xsl:result-document>
 
                     <!-- create new cache entry using content URI as key -->
-                    <ixsl:set-property name="{$content-value}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
-                    <ixsl:set-property name="results" select="$results" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $content-value)"/>
+                    <ixsl:set-property name="{$escaped-content-uri}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
+                    <ixsl:set-property name="results" select="$results" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri)"/>
                     <xsl:variable name="data-table" select="if ($results/rdf:RDF) then ac:rdf-data-table($results, $category, $series) else ac:sparql-results-data-table($results, $category, $series)"/>
-                    <ixsl:set-property name="data-table" select="$data-table" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $content-value)"/>
+                    <ixsl:set-property name="data-table" select="$data-table" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri)"/>
                     
                     <xsl:call-template name="render-chart">
                         <xsl:with-param name="data-table" select="$data-table"/>
@@ -829,7 +804,7 @@ WHERE
 
 <!--                    <xsl:if test="$push-state">
                         <xsl:call-template name="ldh:PushState">
-                            <xsl:with-param name="href" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), $content-value)"/>
+                            <xsl:with-param name="href" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), $escaped-content-uri)"/>
                             <xsl:with-param name="container" select="$container"/>
                             <xsl:with-param name="query" select="$query"/>
                             <xsl:with-param name="sparql" select="true()"/>
@@ -1128,7 +1103,7 @@ WHERE
                     <xsl:variable name="request" as="item()*">
                         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $uri, 'headers': map{ 'Accept': 'application/sparql-results+xml,application/rdf+xml;q=0.9' } }">
                             <xsl:call-template name="onSPARQLResultsLoad">
-                                <xsl:with-param name="content-value" select="$uri"/>
+                                <xsl:with-param name="results-uri" select="$uri"/>
                                 <xsl:with-param name="container" select="id($container-id, ixsl:page())"/>
                                 <!-- we don't want to push a state that was just popped -->
                                 <xsl:with-param name="push-state" select="false()"/>
@@ -1543,11 +1518,10 @@ WHERE
     
     <xsl:template match="div[contains-token(@class, 'backlinks-nav')]//*[contains-token(@class, 'nav-header')]" mode="ixsl:onclick">
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'backlinks-nav')]" as="element()"/>
-        <xsl:variable name="content-value" select="input[@name = 'uri']/@value" as="xs:anyURI"/>
-        <xsl:variable name="query-string" select="replace($backlinks-string, '\$this', concat('&lt;', $content-value, '&gt;'))" as="xs:string"/>
-        <!-- replace dots with dashes from this point (not before using in the query string!) -->
-        <xsl:variable name="content-value" select="xs:anyURI(translate($content-value, '.', '-'))" as="xs:anyURI"/>
-        <xsl:variable name="service-uri" select="if (ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $content-value)) then (if (ixsl:contains(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $content-value), 'service-uri')) then ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $content-value), 'service-uri') else ()) else ()" as="xs:anyURI?"/>
+        <xsl:variable name="content-uri" select="$container/@about" as="xs:anyURI"/>
+        <xsl:variable name="query-string" select="replace($backlinks-string, '\$this', concat('&lt;', $content-uri, '&gt;'))" as="xs:string"/>
+        <xsl:variable name="escaped-content-uri" select="xs:anyURI(translate($content-uri, '.', '-'))" as="xs:anyURI"/>
+        <xsl:variable name="service-uri" select="if (ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri)) then (if (ixsl:contains(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri), 'service-uri')) then ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri), 'service-uri') else ()) else ()" as="xs:anyURI?"/>
         <xsl:variable name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.apps'))" as="element()?"/>
         <xsl:variable name="endpoint" select="($service/sd:endpoint/@rdf:resource/xs:anyURI(.), sd:endpoint())[1]" as="xs:anyURI"/>
         <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': string($query-string) })" as="xs:anyURI"/>
