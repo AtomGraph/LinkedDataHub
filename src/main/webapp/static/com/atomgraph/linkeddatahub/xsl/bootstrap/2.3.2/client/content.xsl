@@ -267,10 +267,12 @@ exclude-result-prefixes="#all"
         <xsl:for-each select="$container">
             <xsl:result-document href="?." method="ixsl:replace-content">
                 <div class="offset2 span7">
-                    <p>
-                        <span></span>
-                    </p>
-                    
+                    <fieldset>
+                        <p>
+                            <span></span>
+                        </p>
+                    </fieldset>
+
                     <div class="form-actions">
                         <button type="button" class="btn btn-primary btn-save">
                             <xsl:value-of>
@@ -315,7 +317,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'resource-content')]" as="element()"/>
         <xsl:variable name="content-uri" select="$container/@about" as="xs:anyURI"/>
         <xsl:variable name="old-content-value" select="ixsl:get($container, 'dataset.contentValue')" as="xs:anyURI"/>
-        <xsl:variable name="content-value" select="ixsl:get(preceding-sibling::span//input[@name = 'ou'], 'value')" as="xs:anyURI"/>
+        <xsl:variable name="content-value" select="ixsl:get(../preceding-sibling::fieldset//input[@name = 'ou'], 'value')" as="xs:anyURI"/>
 
         <xsl:for-each select="$container">
             <!-- update @data-content-value value -->

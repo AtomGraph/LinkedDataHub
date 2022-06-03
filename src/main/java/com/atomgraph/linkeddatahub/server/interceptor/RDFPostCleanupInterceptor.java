@@ -49,7 +49,7 @@ import org.slf4j.LoggerFactory;
  * a <code>&lt;div&gt;</code> element and canonicalize the document.
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
- * @see com.atomgraph.linkeddatahub.server.filter.request.RDFPostCleanupFilter
+ * @see com.atomgraph.linkeddatahub.server.filter.request.MultipartRDFPostCleanupFilter
  */
 @Priority(Priorities.ENTITY_CODER)
 public class RDFPostCleanupInterceptor implements ReaderInterceptor

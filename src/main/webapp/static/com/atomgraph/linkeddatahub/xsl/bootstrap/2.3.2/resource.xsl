@@ -373,7 +373,6 @@ extension-element-prefixes="ixsl"
                         </xsl:value-of>
 
                         <span class="caret caret-reversed pull-right"></span>
-                        <input type="hidden" name="uri" value="{@rdf:about}"/>
                     </h2>
                     <!-- will be hydrated by client.xsl -->
                 </div>

@@ -104,6 +104,7 @@ import com.atomgraph.linkeddatahub.server.filter.response.ResponseHeaderFilter;
 import com.atomgraph.linkeddatahub.server.filter.response.BackendInvalidationFilter;
 import com.atomgraph.linkeddatahub.server.filter.response.XsltExecutableFilter;
 import com.atomgraph.linkeddatahub.server.interceptor.RDFPostCleanupInterceptor;
+import com.atomgraph.linkeddatahub.server.interceptor.UpdateRequestCleanupInterceptor;
 import com.atomgraph.linkeddatahub.server.mapper.auth.oauth2.TokenExpiredExceptionMapper;
 import com.atomgraph.linkeddatahub.server.model.impl.Dispatcher;
 import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
@@ -890,6 +891,7 @@ public class Application extends ResourceConfig
         register(AuthorizationFilter.class);
         register(ContentLengthLimitFilter.class);
         register(new RDFPostCleanupInterceptor()); // for application/x-www-form-urlencoded
+        register(new UpdateRequestCleanupInterceptor()); // for application/sparql-update
         register(new MultipartRDFPostCleanupFilter()); // for multipart/form-data
     }
 
