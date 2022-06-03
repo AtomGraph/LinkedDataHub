@@ -117,7 +117,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="uri" as="xs:anyURI"/>
         <xsl:param name="select-xml" as="document-node()"> <!-- using the ldh:SelectChildren query -->
             <xsl:variable name="select-string" select="key('resources', '&ldh;SelectChildren', document(ac:document-uri('&ldh;')))/sp:text" as="xs:string"/>
-            <xsl:variable name="select-string" select="replace($select-string, '\$this', concat('&lt;', $uri, '&gt;'))" as="xs:string"/>
+            <xsl:variable name="select-string" select="replace($select-string, '\$this', '&lt;' || $uri || '&gt;')" as="xs:string"/>
             <xsl:variable name="select-json" as="item()">
                 <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', [ $select-string ])"/>
                 <xsl:sequence select="ixsl:call($select-builder, 'build', [])"/>

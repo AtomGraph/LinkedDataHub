@@ -65,7 +65,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="mode" as="xs:anyURI?"/>
         <xsl:variable name="escaped-content-uri" select="xs:anyURI(translate($container/@about, '.', '-'))" as="xs:anyURI"/>
         <!-- set $this variable value unless getting the query string from state -->
-        <xsl:variable name="select-string" select="replace(sp:text, '\$this', concat('&lt;', $uri, '&gt;'))" as="xs:string"/>
+        <xsl:variable name="select-string" select="replace(sp:text, '\$this', '&lt;' || $uri || '&gt;')" as="xs:string"/>
         <xsl:variable name="select-json" as="item()">
             <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', [ $select-string ])"/>
             <xsl:sequence select="ixsl:call($select-builder, 'build', [])"/>
@@ -146,7 +146,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="mode" as="xs:anyURI?"/>
         <xsl:variable name="escaped-content-uri" select="xs:anyURI(translate($container/@about, '.', '-'))" as="xs:anyURI"/>
         <!-- set $this variable value unless getting the query string from state -->
-        <xsl:variable name="query-string" select="replace(sp:text, '\$this', concat('&lt;', $uri, '&gt;'))" as="xs:string"/>
+        <xsl:variable name="query-string" select="replace(sp:text, '\$this', '&lt;' || $uri || '&gt;')" as="xs:string"/>
         <!-- service can be explicitly specified on content using ldh:service -->
         <xsl:variable name="service-uri" select="xs:anyURI(ldh:service/@rdf:resource)" as="xs:anyURI?"/>
         <xsl:variable name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.apps'))" as="element()?"/>
@@ -339,10 +339,10 @@ exclude-result-prefixes="#all"
                 }
             ]]>
         </xsl:variable>
-        <xsl:variable name="update-string" select="replace($update-string, '\$this', concat('&lt;', ac:uri(), '&gt;'))" as="xs:string"/>
-        <xsl:variable name="update-string" select="replace($update-string, '\$content', concat('&lt;', $content-uri, '&gt;'))" as="xs:string"/>
-        <!--<xsl:variable name="update-string" select="replace($update-string, '\$oldValue', concat('&lt;', $old-content-value, '&gt;'))" as="xs:string"/>-->
-        <xsl:variable name="update-string" select="replace($update-string, '\$newValue', concat('&lt;', $content-value, '&gt;'))" as="xs:string"/>
+        <xsl:variable name="update-string" select="replace($update-string, '\$this', '&lt;' || ac:uri() || '&gt;')" as="xs:string"/>
+        <xsl:variable name="update-string" select="replace($update-string, '\$content', '&lt;' || $content-uri || '&gt;')" as="xs:string"/>
+        <!--<xsl:variable name="update-string" select="replace($update-string, '\$oldValue', '&lt;' || $old-content-value || '&gt;')" as="xs:string"/>-->
+        <xsl:variable name="update-string" select="replace($update-string, '\$newValue', '&quot;' || $content-value || '&quot^^&lt;&rdf;XMLLiteral&gt;')" as="xs:string"/>
 
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ac:uri())" as="xs:anyURI"/>
         <xsl:variable name="request" as="item()*">
@@ -391,9 +391,9 @@ exclude-result-prefixes="#all"
                 }
             ]]>
         </xsl:variable>
-        <xsl:variable name="update-string" select="replace($update-string, '\$this', concat('&lt;', ac:uri(), '&gt;'))" as="xs:string"/>
-        <xsl:variable name="update-string" select="replace($update-string, '\$oldValue', concat('&lt;', $old-content-value, '&gt;'))" as="xs:string"/>
-        <xsl:variable name="update-string" select="replace($update-string, '\$newValue', concat('&lt;', $content-value, '&gt;'))" as="xs:string"/>
+        <xsl:variable name="update-string" select="replace($update-string, '\$this', &lt;' || ac:uri() || '&gt;'))" as="xs:string"/>
+        <xsl:variable name="update-string" select="replace($update-string, '\$oldValue', '&lt;' || $old-content-value || '&gt;')" as="xs:string"/>
+        <xsl:variable name="update-string" select="replace($update-string, '\$newValue', '&lt;' || $content-value || '&gt;')" as="xs:string"/>
 
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ac:uri())" as="xs:anyURI"/>
         <xsl:variable name="request" as="item()*">
