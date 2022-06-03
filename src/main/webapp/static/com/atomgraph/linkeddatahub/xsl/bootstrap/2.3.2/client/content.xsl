@@ -267,11 +267,9 @@ exclude-result-prefixes="#all"
         <xsl:for-each select="$container">
             <xsl:result-document href="?." method="ixsl:replace-content">
                 <div class="offset2 span7">
-                    <fieldset>
-                        <p>
-                            <span></span>
-                        </p>
-                    </fieldset>
+                    <p>
+                        <span></span>
+                    </p>
 
                     <div class="form-actions">
                         <button type="button" class="btn btn-primary btn-save">
@@ -288,7 +286,7 @@ exclude-result-prefixes="#all"
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                 <xsl:call-template name="onTypeaheadResourceLoad">
                     <xsl:with-param name="resource-uri" select="$content-uri"/>
-                    <xsl:with-param name="typeahead-span" select="$container/div[contains-token(@class, 'span7')]/p/span[1]"/>
+                    <xsl:with-param name="typeahead-span" select="$container/div[contains-token(@class, 'span7')]//p/span[1]"/>
                 </xsl:call-template>
             </ixsl:schedule-action>
         </xsl:variable>
@@ -317,7 +315,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'resource-content')]" as="element()"/>
         <xsl:variable name="content-uri" select="$container/@about" as="xs:anyURI"/>
         <xsl:variable name="old-content-value" select="ixsl:get($container, 'dataset.contentValue')" as="xs:anyURI"/>
-        <xsl:variable name="content-value" select="ixsl:get(../preceding-sibling::fieldset//input[@name = 'ou'], 'value')" as="xs:anyURI"/>
+        <xsl:variable name="content-value" select="ixsl:get($container//input[@name = 'ou'], 'value')" as="xs:anyURI"/>
 
         <xsl:for-each select="$container">
             <!-- update @data-content-value value -->

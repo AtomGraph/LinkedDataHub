@@ -14,7 +14,7 @@ jobs:
       SECRETARY_CERT_PWD: LinkedDataHub
     steps:
       - name: Install Linux packages
-        run:  sudo apt-get update && sudo apt-get install -qq raptor2-utils && sudo apt-get install curl
+        run: sudo apt-get update && sudo apt-get install -qq raptor2-utils && sudo apt-get install curl
       - name: Download Jena
         run: curl -sS --fail "${{env.ASF_ARCHIVE}}jena/binaries/apache-jena-${{env.JENA_VERSION}}.tar.gz" -o "${{runner.temp}}/jena.tar.gz"
       - name: Unpack Jena
@@ -32,7 +32,7 @@ jobs:
       - name: Build Docker image & Run Docker containers
         run: docker-compose -f docker-compose.yml -f ./http-tests/docker-compose.http-tests.yml --env-file ./http-tests/.env up --build -d
       - name: Wait for the server to start...
-        run: while true; do curl -k https://localhost:4443; sleep 2; done
+        run: while ! (status=$(curl -k -s -w "%{http_code}\n" https://localhost:4443 -o /dev/null) && echo "$status" && echo "$status" | grep "403") ; do sleep 1 ; done # wait for the webapp to start (returns 403 by default)
       - name: Run HTTP test scripts
         run: ./run.sh "$PWD/ssl/owner/cert.pem" "${{env.OWNER_CERT_PWD}}" "$PWD/ssl/secretary/cert.pem" "${{env.SECRETARY_CERT_PWD}}"
         shell: bash
