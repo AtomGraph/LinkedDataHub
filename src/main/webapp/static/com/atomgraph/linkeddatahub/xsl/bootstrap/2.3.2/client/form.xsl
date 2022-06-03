@@ -547,7 +547,14 @@ exclude-result-prefixes="#all"
                     <xsl:for-each select="ancestor::form//input[@name = ('sb', 'su')][@value]">
                         <!-- filter resources by type if $forClass is provided -->
                         <xsl:if test="empty($forClass) or following-sibling::input[@name = 'pu'][@value = '&rdf;type']/following-sibling::input[@name = 'ou']/@value = $forClass">
-                            <rdf:Description rdf:nodeID="{@value}">
+                            <rdf:Description>
+                                <xsl:if test="@name = 'sb'">
+                                     <xsl:attribute name="rdf:nodeID" select="@value"/>
+                                </xsl:if>
+                                <xsl:if test="@name = 'su'">
+                                     <xsl:attribute name="rdf:about" select="@value"/>
+                                </xsl:if>
+                                
                                 <dct:title>
                                     <xsl:value-of select="@value"/>
                                 </dct:title>
@@ -562,7 +569,6 @@ exclude-result-prefixes="#all"
 
         <xsl:call-template name="typeahead:process">
             <xsl:with-param name="menu" select="$menu"/>
-            <!-- TO-DO: filter by type? -->
             <xsl:with-param name="items" select="$item-doc/rdf:RDF/rdf:Description"/>
             <xsl:with-param name="element" select="."/>
         </xsl:call-template>
