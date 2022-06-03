@@ -260,8 +260,8 @@ exclude-result-prefixes="#all"
     
     <xsl:template match="div[contains-token(@class, 'resource-content')]//button[contains-token(@class, 'btn-edit')]" mode="ixsl:onclick">
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'resource-content')]" as="element()"/>
-        <xsl:variable name="content-uri" select="$container/@about" as="xs:anyURI"/>
-        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), $content-uri)"/>
+        <xsl:variable name="content-value" select="ixsl:get($container, 'dataset.contentValue')" as="xs:anyURI"/> <!-- get the value of the @data-content-value attribute -->
+        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), $content-value)"/>
 
         <!-- replace the middle column only -->
         <xsl:for-each select="$container">
@@ -285,7 +285,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                 <xsl:call-template name="onTypeaheadResourceLoad">
-                    <xsl:with-param name="resource-uri" select="$content-uri"/>
+                    <xsl:with-param name="resource-uri" select="$content-value"/>
                     <xsl:with-param name="typeahead-span" select="$container/div[contains-token(@class, 'span7')]//p/span[1]"/>
                 </xsl:call-template>
             </ixsl:schedule-action>
