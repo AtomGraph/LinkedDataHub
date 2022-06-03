@@ -562,7 +562,6 @@ exclude-result-prefixes="#all"
             <!-- TO-DO: filter by type? -->
             <xsl:with-param name="items" select="$item-doc/rdf:RDF/rdf:Description"/>
             <xsl:with-param name="element" select="."/>
-            <xsl:with-param name="name" select="'ob'"/>
         </xsl:call-template>
     </xsl:template>
 
