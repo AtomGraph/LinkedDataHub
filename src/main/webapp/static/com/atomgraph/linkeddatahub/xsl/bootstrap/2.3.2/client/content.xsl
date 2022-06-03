@@ -297,6 +297,7 @@ exclude-result-prefixes="#all"
     
     <xsl:template match="div[contains-token(@class, 'xhtml-content')]//button[contains-token(@class, 'btn-save')]" mode="ixsl:onclick">
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'xhtml-content')]" as="element()"/>
+        <xsl:variable name="content-uri" select="$container/@about" as="xs:anyURI"/>
         <xsl:variable name="textarea" select="ancestor::div[contains-token(@class, 'span7')]/textarea[contains-token(@class, 'wymeditor')]" as="element()"/>
         <xsl:variable name="old-content-value" select="string($textarea)" as="xs:string"/>
         <xsl:variable name="wymeditor" select="ixsl:call(ixsl:get(ixsl:window(), 'jQuery'), 'getWymeditorByTextarea', [ $textarea ])" as="item()"/>
@@ -307,6 +308,50 @@ exclude-result-prefixes="#all"
             $old-content-value: <xsl:value-of select="serialize($old-content-value)"/>
             $content-value: <xsl:value-of select="$content-value"/> <!-- ldh:parse-html(string($textarea), 'text/html') -->
         </xsl:message>
+        
+        <xsl:variable name="update-string" as="xs:string">
+            <![CDATA[
+                PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+
+                DELETE
+                {
+                    GRAPH $this
+                    {
+                        $this ?seq $content .
+                        $content rdf:value $oldValue .
+                    }
+                }
+                INSERT
+                {
+                    GRAPH $this
+                    {
+                        $this ?seq $content .
+                        $content rdf:value $newValue .
+                    }
+                }
+                WHERE
+                {
+                    GRAPH $this
+                    {
+                        $this ?seq $content .
+                        $content rdf:value ?oldValue .
+                    }
+                }
+            ]]>
+        </xsl:variable>
+        <xsl:variable name="update-string" select="replace($update-string, '\$this', concat('&lt;', ac:uri(), '&gt;'))" as="xs:string"/>
+        <xsl:variable name="update-string" select="replace($update-string, '\$content', concat('&lt;', $content-uri, '&gt;'))" as="xs:string"/>
+        <!--<xsl:variable name="update-string" select="replace($update-string, '\$oldValue', concat('&lt;', $old-content-value, '&gt;'))" as="xs:string"/>-->
+        <xsl:variable name="update-string" select="replace($update-string, '\$newValue', concat('&lt;', $content-value, '&gt;'))" as="xs:string"/>
+
+        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ac:uri())" as="xs:anyURI"/>
+        <xsl:variable name="request" as="item()*">
+            <ixsl:schedule-action http-request="map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string }">
+                <xsl:call-template name="onXHTMLContentUpdate">
+                </xsl:call-template>
+            </ixsl:schedule-action>
+        </xsl:variable>
+        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
 
     <!-- save resource-content onclick -->
@@ -316,58 +361,50 @@ exclude-result-prefixes="#all"
         <xsl:variable name="content-uri" select="$container/@about" as="xs:anyURI"/>
         <xsl:variable name="old-content-value" select="ixsl:get($container, 'dataset.contentValue')" as="xs:anyURI"/>
         <xsl:variable name="content-value" select="ixsl:get($container//input[@name = 'ou'], 'value')" as="xs:anyURI"/>
+        <xsl:variable name="update-string" as="xs:string">
+            <![CDATA[
+                PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 
-        <xsl:for-each select="$container">
-            <!-- update @data-content-value value -->
-            <ixsl:set-property name="dataset.contentValue" select="$content-value" object="."/>
-            
-            <xsl:call-template name="ldh:LoadContent">
-                <xsl:with-param name="uri" select="ac:uri()"/> <!-- content value gets read from dataset.contentValue -->
-            </xsl:call-template>
-            
-            <xsl:variable name="update-string" as="xs:string">
-                <![CDATA[
-PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+                DELETE
+                {
+                    GRAPH $this
+                    {
+                        $this ?seq ?content .
+                        ?content rdf:value $oldValue .
+                    }
+                }
+                INSERT
+                {
+                    GRAPH $this
+                    {
+                        $this ?seq ?content .
+                        ?content rdf:value $newValue .
+                    }
+                }
+                WHERE
+                {
+                    GRAPH $this
+                    {
+                        $this ?seq ?content .
+                        ?content rdf:value $oldValue .
+                    }
+                }
+            ]]>
+        </xsl:variable>
+        <xsl:variable name="update-string" select="replace($update-string, '\$this', concat('&lt;', ac:uri(), '&gt;'))" as="xs:string"/>
+        <xsl:variable name="update-string" select="replace($update-string, '\$oldValue', concat('&lt;', $old-content-value, '&gt;'))" as="xs:string"/>
+        <xsl:variable name="update-string" select="replace($update-string, '\$newValue', concat('&lt;', $content-value, '&gt;'))" as="xs:string"/>
 
-DELETE
-{
-    GRAPH $this
-    {
-        $this ?seq ?content .
-        ?content rdf:value $oldValue .
-    }
-}
-INSERT
-{
-    GRAPH $this
-    {
-        $this ?seq ?content .
-        ?content rdf:value $newValue .
-    }
-}
-WHERE
-{
-    GRAPH $this
-    {
-        $this ?seq ?content .
-        ?content rdf:value $oldValue .
-    }
-}
-                ]]>
-            </xsl:variable>
-            <xsl:variable name="update-string" select="replace($update-string, '\$this', concat('&lt;', ac:uri(), '&gt;'))" as="xs:string"/>
-            <xsl:variable name="update-string" select="replace($update-string, '\$oldValue', concat('&lt;', $old-content-value, '&gt;'))" as="xs:string"/>
-            <xsl:variable name="update-string" select="replace($update-string, '\$newValue', concat('&lt;', $content-value, '&gt;'))" as="xs:string"/>
-
-            <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ac:uri())" as="xs:anyURI"/>
-            <xsl:variable name="request" as="item()*">
-                <ixsl:schedule-action http-request="map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string }">
-                    <xsl:call-template name="onContentUpdate">
-                    </xsl:call-template>
-                </ixsl:schedule-action>
-            </xsl:variable>
-            <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
-        </xsl:for-each>
+        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ac:uri())" as="xs:anyURI"/>
+        <xsl:variable name="request" as="item()*">
+            <ixsl:schedule-action http-request="map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string }">
+                <xsl:call-template name="onResourceContentUpdate">
+                    <xsl:with-param name="container" select="$container"/>
+                    <xsl:with-param name="uri" select="$uri"/>
+                </xsl:call-template>
+            </ixsl:schedule-action>
+        </xsl:variable>
+        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
     
     <!-- CALLBACKS -->
@@ -496,11 +533,45 @@ WHERE
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
+
+    <!-- XHTML content update -->
     
-    <!-- inline content update -->
-    
-    <xsl:template name="onContentUpdate">
+    <xsl:template name="onXHTMLContentUpdate">
         <xsl:context-item as="map(*)" use="required"/>
+
+        <xsl:choose>
+            <xsl:when test="?status = 200">
+                <xsl:message>XHTML content update</xsl:message>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ 'Could not update XHTML content' ])[current-date() lt xs:date('2000-01-01')]"/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:template>
+
+    <!-- resource content update -->
+    
+    <xsl:template name="onResourceContentUpdate">
+        <xsl:context-item as="map(*)" use="required"/>
+        <xsl:param name="uri" as="xs:anyURI"/> <!-- document URI -->
+        <xsl:param name="container" as="element()"/>
+        <xsl:param name="content-value" as="xs:anyURI"/>
+
+        <xsl:choose>
+            <xsl:when test="?status = 200">
+                <xsl:for-each select="$container">
+                    <!-- update @data-content-value value -->
+                    <ixsl:set-property name="dataset.contentValue" select="$content-value" object="."/>
+
+                    <xsl:call-template name="ldh:LoadContent">
+                        <xsl:with-param name="uri" select="ac:uri()"/> <!-- content value gets read from dataset.contentValue -->
+                    </xsl:call-template>
+                </xsl:for-each>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ 'Could not update resource content' ])[current-date() lt xs:date('2000-01-01')]"/>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:template>
     
 </xsl:stylesheet>
