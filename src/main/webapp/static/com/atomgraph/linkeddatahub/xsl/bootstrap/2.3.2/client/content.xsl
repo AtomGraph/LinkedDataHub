@@ -342,7 +342,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="update-string" select="replace($update-string, '\$this', '&lt;' || ac:uri() || '&gt;')" as="xs:string"/>
         <xsl:variable name="update-string" select="replace($update-string, '\$content', '&lt;' || $content-uri || '&gt;')" as="xs:string"/>
         <!--<xsl:variable name="update-string" select="replace($update-string, '\$oldValue', '&lt;' || $old-content-value || '&gt;')" as="xs:string"/>-->
-        <xsl:variable name="update-string" select="replace($update-string, '\$newValue', '&quot;' || $content-value || '&quot^^&lt;&rdf;XMLLiteral&gt;')" as="xs:string"/>
+        <xsl:variable name="update-string" select="replace($update-string, '\$newValue', '&quot;' || $content-value || '&quot;^^&lt;&rdf;XMLLiteral&gt;')" as="xs:string"/>
 
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ac:uri())" as="xs:anyURI"/>
         <xsl:variable name="request" as="item()*">
