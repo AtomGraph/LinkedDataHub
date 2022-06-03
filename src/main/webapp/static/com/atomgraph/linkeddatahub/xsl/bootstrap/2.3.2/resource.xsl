@@ -457,12 +457,6 @@ extension-element-prefixes="ixsl"
         </div>
     </xsl:template>
     
-    <!-- hide the current document resource -->
-    <!--<xsl:template match="*[rdf:type/@rdf:resource = ('&def;Root', '&dh;Container', '&dh;Item')]" mode="bs2:RowBlock" priority="1"/>-->
-
-    <!-- hide Content resources -->
-    <!--<xsl:template match="*[rdf:type/@rdf:resource = '&ldh;Content']" mode="bs2:RowBlock" priority="2"/>-->
-
     <!-- hide inlined blank node resources from the main block flow -->
     <xsl:template match="*[*][key('resources', @rdf:nodeID)][count(key('predicates-by-object', @rdf:nodeID)[not(self::foaf:primaryTopic)]) = 1]" mode="bs2:RowBlock" priority="1">
         <xsl:param name="display" select="false()" as="xs:boolean" tunnel="yes"/>

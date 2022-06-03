@@ -125,7 +125,7 @@ extension-element-prefixes="ixsl"
     <xsl:template match="rdf:RDF" mode="bs2:RowBlock">
         <!-- select elements explicitly, because Saxon-JS chokes on text nodes here -->
         <!-- hide the current document resource and the content resources -->
-        <xsl:apply-templates select="*[not(@rdf:about = ac:uri()) and not(rdf:type/@rdf:resource = '&ldh;Content')]" mode="#current">
+        <xsl:apply-templates select="*[not(@rdf:about = ac:uri() and rdf:type/@rdf:resource = ('&def;Root', '&dh;Container', '&dh;Item')) and not(rdf:type/@rdf:resource = '&ldh;Content')]" mode="#current">
             <xsl:sort select="ac:label(.)"/>
         </xsl:apply-templates>
     </xsl:template>
