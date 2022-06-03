@@ -458,10 +458,10 @@ extension-element-prefixes="ixsl"
     </xsl:template>
     
     <!-- hide the current document resource -->
-    <xsl:template match="*[rdf:type/@rdf:resource = ('&def;Root', '&dh;Container', '&dh;Item')]" mode="bs2:RowBlock" priority="1"/>
+    <!--<xsl:template match="*[rdf:type/@rdf:resource = ('&def;Root', '&dh;Container', '&dh;Item')]" mode="bs2:RowBlock" priority="1"/>-->
 
     <!-- hide Content resources -->
-    <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;Content']" mode="bs2:RowBlock" priority="2"/>
+    <!--<xsl:template match="*[rdf:type/@rdf:resource = '&ldh;Content']" mode="bs2:RowBlock" priority="2"/>-->
 
     <!-- hide inlined blank node resources from the main block flow -->
     <xsl:template match="*[*][key('resources', @rdf:nodeID)][count(key('predicates-by-object', @rdf:nodeID)[not(self::foaf:primaryTopic)]) = 1]" mode="bs2:RowBlock" priority="1">
@@ -471,18 +471,6 @@ extension-element-prefixes="ixsl"
             <xsl:next-match/>
         </xsl:if>
     </xsl:template>
-
-<!--    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:RowBlock">
-        <xsl:param name="id" select="generate-id()" as="xs:string?"/>
-        <xsl:param name="about" select="@rdf:about" as="xs:anyURI?"/>
-        <xsl:param name="class" select="'row-fluid'" as="xs:string?"/>
-
-        <xsl:apply-templates select="." mode="bs2:RowBlockContent">
-            <xsl:with-param name="id" select="$id"/>
-            <xsl:with-param name="about" select="$about"/>
-            <xsl:with-param name="class" select="$class"/>
-        </xsl:apply-templates>
-    </xsl:template>-->
     
     <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:RowBlock">
         <xsl:param name="id" select="generate-id()" as="xs:string?"/>
