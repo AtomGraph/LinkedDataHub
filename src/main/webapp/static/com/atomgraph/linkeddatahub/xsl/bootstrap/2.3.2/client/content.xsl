@@ -391,7 +391,7 @@ exclude-result-prefixes="#all"
                 }
             ]]>
         </xsl:variable>
-        <xsl:variable name="update-string" select="replace($update-string, '\$this', &lt;' || ac:uri() || '&gt;'))" as="xs:string"/>
+        <xsl:variable name="update-string" select="replace($update-string, '\$this', '&lt;' || ac:uri() || '&gt;'))" as="xs:string"/>
         <xsl:variable name="update-string" select="replace($update-string, '\$oldValue', '&lt;' || $old-content-value || '&gt;')" as="xs:string"/>
         <xsl:variable name="update-string" select="replace($update-string, '\$newValue', '&lt;' || $content-value || '&gt;')" as="xs:string"/>
 
