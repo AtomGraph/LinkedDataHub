@@ -22,7 +22,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
-import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.annotation.Priority;
@@ -35,7 +34,6 @@ import nu.xom.Document;
 import nu.xom.ParsingException;
 import nu.xom.canonical.Canonicalizer;
 import org.apache.commons.io.IOUtils;
-import org.apache.jena.query.QueryParseException;
 import org.apache.jena.vocabulary.RDF;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,12 +60,7 @@ public class UpdateRequestCleanupInterceptor implements ReaderInterceptor
             IOUtils.copy(context.getInputStream(), writer, StandardCharsets.UTF_8);
 
             String updateString = writer.toString();
-            if (updateString.contains("rdf:" + RDF.xmlLiteral.getLocalName()))
-            {
-                
-                
-            }
-            
+
             if (updateString.contains("<" + RDF.xmlLiteral.getURI() + ">"))
             {
                 Pattern pattern = Pattern.compile("\\\"(.*)\\\"\\^\\^<http:\\/\\/www\\.w3\\.org\\/1999\\/02\\/22-rdf-syntax-ns#XMLLiteral>");
@@ -78,7 +71,8 @@ public class UpdateRequestCleanupInterceptor implements ReaderInterceptor
                     try
                     {
                         xml = canonicalizeXML(wrapXHTML(xml), StandardCharsets.UTF_8.name());
-                        updateString = matcher.replaceFirst(xml);
+                        String xmlLiteral = "\"" + xml + "\"^^<" + RDF.xmlLiteral.getURI() + ">";
+                        updateString = matcher.replaceFirst(xmlLiteral);
                         log.debug("Fixed SPARQL update: " + updateString);
                     }
                     catch (ParsingException ex)
