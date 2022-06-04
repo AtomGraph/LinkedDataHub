@@ -22,6 +22,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
+import java.util.logging.Level;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.annotation.Priority;
 import javax.ws.rs.Priorities;
 import javax.ws.rs.WebApplicationException;
@@ -32,6 +35,7 @@ import nu.xom.Document;
 import nu.xom.ParsingException;
 import nu.xom.canonical.Canonicalizer;
 import org.apache.commons.io.IOUtils;
+import org.apache.jena.query.QueryParseException;
 import org.apache.jena.vocabulary.RDF;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,10 +62,30 @@ public class UpdateRequestCleanupInterceptor implements ReaderInterceptor
             IOUtils.copy(context.getInputStream(), writer, StandardCharsets.UTF_8);
 
             String updateString = writer.toString();
-            if (updateString.contains("rdf:XMLLiteral") || updateString.contains("<" + RDF.xmlLiteral.getURI() + ">"))
+            if (updateString.contains("rdf:" + RDF.xmlLiteral.getLocalName()))
             {
-                log.debug("XMLLiteral in SPARQL update");
-                //canonicalizeXML(wrapXHTML(xml));
+                
+                
+            }
+            
+            if (updateString.contains("<" + RDF.xmlLiteral.getURI() + ">"))
+            {
+                Pattern pattern = Pattern.compile("\\\"(.*)\\\"\\^\\^<http:\\/\\/www\\.w3\\.org\\/1999\\/02\\/22-rdf-syntax-ns#XMLLiteral>");
+                Matcher matcher = pattern.matcher(updateString);
+                while (matcher.find())
+                {
+                    String xml = matcher.group(1);
+                    try
+                    {
+                        xml = canonicalizeXML(wrapXHTML(xml), StandardCharsets.UTF_8.name());
+                        updateString = matcher.replaceFirst(xml);
+                        log.debug("Fixed SPARQL update: " + updateString);
+                    }
+                    catch (ParsingException ex)
+                    {
+                        throw new IOException(ex);
+                    }
+                }
             }
             
             context.setInputStream(new ByteArrayInputStream(updateString.getBytes(StandardCharsets.UTF_8))); // restore the request entity
