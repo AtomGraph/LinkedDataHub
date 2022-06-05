@@ -301,10 +301,15 @@ exclude-result-prefixes="#all"
         <xsl:variable name="textarea" select="ancestor::div[contains-token(@class, 'span7')]/textarea[contains-token(@class, 'wymeditor')]" as="element()"/>
         <xsl:variable name="old-content-string" select="string($textarea)" as="xs:string"/>
         <xsl:variable name="wymeditor" select="ixsl:call(ixsl:get(ixsl:window(), 'jQuery'), 'getWymeditorByTextarea', [ $textarea ])" as="item()"/>
+        <!-- update the textarea with WYMEditor content -->
         <xsl:sequence select="ixsl:call($wymeditor, 'update', [])[current-date() lt xs:date('2000-01-01')]"/> <!-- update HTML in the textarea -->
         <xsl:variable name="content-string" select="ixsl:call(ixsl:call(ixsl:window(), 'jQuery', [ $textarea ]), 'val', [])" as="xs:string"/>
         <xsl:variable name="content-value" select="ldh:parse-html('&lt;div&gt;' || $content-string || '&lt;/div&gt;', 'application/xhtml+xml')" as="document-node()"/>
-
+        <!-- insert the "Edit" button -->
+        <xsl:variable name="content-value" as="document-node()">
+            <xsl:apply-templates select="$content-value" mode="content"/>
+        </xsl:variable>
+    
         <xsl:message>
             $old-content-string: <xsl:value-of select="serialize($old-content-string)"/>
             $content-string: <xsl:value-of select="$content-string"/>
