@@ -305,13 +305,22 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="ixsl:call($wymeditor, 'update', [])[current-date() lt xs:date('2000-01-01')]"/> <!-- update HTML in the textarea -->
         <xsl:variable name="content-string" select="ixsl:call(ixsl:call(ixsl:window(), 'jQuery', [ $textarea ]), 'val', [])" as="xs:string"/>
         <xsl:variable name="content-value" select="ldh:parse-html('&lt;div&gt;' || $content-string || '&lt;/div&gt;', 'application/xhtml+xml')" as="document-node()"/>
+        <xsl:variable name="content-value" as="document-node()">
+            <xsl:document>
+                <div class="xhtml-content">
+                    <div class="span7">
+                        <xsl:copy-of select="$content-value"/>
+                    </div>
+                </div>
+            </xsl:document>
+        </xsl:variable>
         <!-- insert the "Edit" button -->
         <xsl:variable name="content-value" as="document-node()">
             <xsl:document>
                 <xsl:apply-templates select="$content-value" mode="content"/>
             </xsl:document>
         </xsl:variable>
-    
+        
         <xsl:message>
             $old-content-string: <xsl:value-of select="serialize($old-content-string)"/>
             $content-string: <xsl:value-of select="$content-string"/>
