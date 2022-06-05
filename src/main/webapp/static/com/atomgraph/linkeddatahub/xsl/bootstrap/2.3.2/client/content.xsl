@@ -305,6 +305,7 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="ixsl:call($wymeditor, 'update', [])[current-date() lt xs:date('2000-01-01')]"/> <!-- update HTML in the textarea -->
         <xsl:variable name="content-string" select="ixsl:call(ixsl:call(ixsl:window(), 'jQuery', [ $textarea ]), 'val', [])" as="xs:string"/>
         <xsl:variable name="content-value" select="ldh:parse-html('&lt;div&gt;' || $content-string || '&lt;/div&gt;', 'application/xhtml+xml')" as="document-node()"/>
+        <!-- wrap into addition divs to make "content" mode match afterwards -->
         <xsl:variable name="content-value" as="document-node()">
             <xsl:document>
                 <div class="xhtml-content">
@@ -571,7 +572,8 @@ exclude-result-prefixes="#all"
                 
                 <xsl:for-each select="$container/div[contains-token(@class, 'span7')]">
                     <xsl:result-document href="?." method="ixsl:replace-content">
-                        <xsl:copy-of select="$content-value"/>
+                        <!-- strip the div.xhtml-content/div.span7 wrappers -->
+                        <xsl:copy-of select="$content-value/div/div/*"/>
                     </xsl:result-document>
                 </xsl:for-each>
                     
