@@ -307,7 +307,9 @@ exclude-result-prefixes="#all"
         <xsl:variable name="content-value" select="ldh:parse-html('&lt;div&gt;' || $content-string || '&lt;/div&gt;', 'application/xhtml+xml')" as="document-node()"/>
         <!-- insert the "Edit" button -->
         <xsl:variable name="content-value" as="document-node()">
-            <xsl:apply-templates select="$content-value" mode="content"/>
+            <xsl:document>
+                <xsl:apply-templates select="$content-value" mode="content"/>
+            </xsl:document>
         </xsl:variable>
     
         <xsl:message>
