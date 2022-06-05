@@ -73,7 +73,6 @@ public class UpdateRequestCleanupInterceptor implements ReaderInterceptor
                         xml = canonicalizeXML(wrapXHTML(xml), StandardCharsets.UTF_8.name());
                         String xmlLiteral = "\"\"\"" + xml + "\"\"\"^^<" + RDF.xmlLiteral.getURI() + ">";
                         updateString = matcher.replaceFirst(xmlLiteral);
-                        log.debug("Fixed SPARQL update: " + updateString);
                     }
                     catch (ParsingException ex)
                     {

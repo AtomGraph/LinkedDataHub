@@ -299,14 +299,16 @@ exclude-result-prefixes="#all"
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'xhtml-content')]" as="element()"/>
         <xsl:variable name="content-uri" select="$container/@about" as="xs:anyURI"/>
         <xsl:variable name="textarea" select="ancestor::div[contains-token(@class, 'span7')]/textarea[contains-token(@class, 'wymeditor')]" as="element()"/>
-        <xsl:variable name="old-content-value" select="string($textarea)" as="xs:string"/>
+        <xsl:variable name="old-content-string" select="string($textarea)" as="xs:string"/>
         <xsl:variable name="wymeditor" select="ixsl:call(ixsl:get(ixsl:window(), 'jQuery'), 'getWymeditorByTextarea', [ $textarea ])" as="item()"/>
         <xsl:sequence select="ixsl:call($wymeditor, 'update', [])[current-date() lt xs:date('2000-01-01')]"/> <!-- update HTML in the textarea -->
-        <xsl:variable name="content-value" select="ixsl:call(ixsl:call(ixsl:window(), 'jQuery', [ $textarea ]), 'val', [])" as="xs:string"/>
-        
+        <xsl:variable name="content-string" select="ixsl:call(ixsl:call(ixsl:window(), 'jQuery', [ $textarea ]), 'val', [])" as="xs:string"/>
+        <xsl:variable name="content-value" select="ldh:parse-html(string($content-string), 'text/html')" as="element()"/>
+
         <xsl:message>
-            $old-content-value: <xsl:value-of select="serialize($old-content-value)"/>
-            $content-value: <xsl:value-of select="$content-value"/> <!-- ldh:parse-html(string($textarea), 'text/html') -->
+            $old-content-string: <xsl:value-of select="serialize($old-content-string)"/>
+            $content-string: <xsl:value-of select="$content-string"/>
+            $content-value: <xsl:value-of select="serialize($content-value)"/>
         </xsl:message>
         
         <xsl:variable name="update-string" as="xs:string">
@@ -341,12 +343,16 @@ exclude-result-prefixes="#all"
         </xsl:variable>
         <xsl:variable name="update-string" select="replace($update-string, '\$this', '&lt;' || ac:uri() || '&gt;')" as="xs:string"/>
         <xsl:variable name="update-string" select="replace($update-string, '\$content', '&lt;' || $content-uri || '&gt;')" as="xs:string"/>
-        <xsl:variable name="update-string" select="replace($update-string, '\$newValue', '&quot;' || $content-value || '&quot;^^&lt;&rdf;XMLLiteral&gt;')" as="xs:string"/>
-
+        <xsl:variable name="update-string" select="replace($update-string, '\$newValue', '&quot;' || $content-string || '&quot;^^&lt;&rdf;XMLLiteral&gt;')" as="xs:string"/>
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ac:uri())" as="xs:anyURI"/>
+        
+        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string }">
                 <xsl:call-template name="onXHTMLContentUpdate">
+                    <xsl:with-param name="container" select="$container"/>
+                    <xsl:with-param name="content-value" select="$content-value"/>
                 </xsl:call-template>
             </ixsl:schedule-action>
         </xsl:variable>
@@ -393,8 +399,10 @@ exclude-result-prefixes="#all"
         <xsl:variable name="update-string" select="replace($update-string, '\$this', '&lt;' || ac:uri() || '&gt;')" as="xs:string"/>
         <xsl:variable name="update-string" select="replace($update-string, '\$content', '&lt;' || $content-uri || '&gt;')" as="xs:string"/>
         <xsl:variable name="update-string" select="replace($update-string, '\$newValue', '&lt;' || $content-value || '&gt;')" as="xs:string"/>
-
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ac:uri())" as="xs:anyURI"/>
+        
+        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string }">
                 <xsl:call-template name="onResourceContentUpdate">
@@ -538,10 +546,20 @@ exclude-result-prefixes="#all"
     
     <xsl:template name="onXHTMLContentUpdate">
         <xsl:context-item as="map(*)" use="required"/>
+        <xsl:param name="container" as="element()"/>
+        <xsl:param name="content-value" as="element()"/>
 
         <xsl:choose>
             <xsl:when test="?status = 200">
                 <xsl:message>XHTML content update</xsl:message>
+                
+                <xsl:for-each select="$container/div[contains-token(@class, 'span7')]">
+                    <xsl:result-document href="?." method="ixsl:replace-content">
+                        <xsl:copy-of select="$content-value"/>
+                    </xsl:result-document>
+                </xsl:for-each>
+                    
+                <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
             </xsl:when>
             <xsl:otherwise>
                 <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ 'Could not update XHTML content' ])[current-date() lt xs:date('2000-01-01')]"/>
@@ -563,8 +581,10 @@ exclude-result-prefixes="#all"
                     <!-- update @data-content-value value -->
                     <ixsl:set-property name="dataset.contentValue" select="$content-value" object="."/>
 
+                    <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
+
                     <xsl:call-template name="ldh:LoadContent">
-                        <xsl:with-param name="uri" select="ac:uri()"/> <!-- content value gets read from dataset.contentValue -->
+                        <xsl:with-param name="uri" select="$uri"/> <!-- content value gets read from dataset.contentValue -->
                     </xsl:call-template>
                 </xsl:for-each>
             </xsl:when>
