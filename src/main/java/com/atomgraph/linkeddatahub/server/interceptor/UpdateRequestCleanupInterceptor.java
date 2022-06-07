@@ -64,7 +64,7 @@ public class UpdateRequestCleanupInterceptor implements ReaderInterceptor
 
             if (updateString.contains("<" + RDF.xmlLiteral.getURI() + ">"))
             {
-                // provide DOTALL flag in order to match newlines: https://docs.oracle.com/javase/7/docs/api/java/util/regex/Pattern.html#DOTALL
+                // enable DOTALL flag in order to match newlines: https://docs.oracle.com/javase/7/docs/api/java/util/regex/Pattern.html#DOTALL
                 Pattern pattern = Pattern.compile("\\\"(.*)\\\"\\^\\^<http:\\/\\/www\\.w3\\.org\\/1999\\/02\\/22-rdf-syntax-ns#XMLLiteral>", DOTALL);
                 Matcher matcher = pattern.matcher(updateString);
                 while (matcher.find())
