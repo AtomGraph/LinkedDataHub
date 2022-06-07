@@ -193,10 +193,6 @@ WHERE
         <ixsl:set-property name="graph" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/> <!-- used by graph.xsl -->
         <ixsl:set-property name="endpoint" select="$sd:endpoint" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
         <ixsl:set-property name="yasqe" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
-        <!-- if ldh:ContentMode is enabled, change the page's URL to reflect that -->
-        <xsl:for-each select="ac:mode() = '&ac;ReadMode' and id('content-body', ixsl:page())/div[contains-token(@class, 'row-fluid')][1]/ul[contains-token(@class, 'nav-tabs')]/li[contains-token(@class, 'content-mode')]">
-            <xsl:sequence select="ixsl:call(ixsl:window(), 'history.replaceState', [ (), '', ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ac:build-uri(ldh:href(), map{ 'mode': '&ldh;ContentMode' } )) ])[current-date() lt xs:date('2000-01-01')]"/>
-        </xsl:for-each>
         <xsl:apply-templates select="ixsl:page()" mode="ldh:LoadedHTMLDocument">
             <xsl:with-param name="href" select="ldh:href()"/>
             <xsl:with-param name="endpoint" select="$sd:endpoint"/>
@@ -1039,6 +1035,10 @@ WHERE
             </xsl:call-template>
         </xsl:for-each>
         
+        <!-- if ldh:ContentMode is enabled, change the page's URL to reflect that -->
+        <xsl:for-each select="ac:mode() = '&ac;ReadMode' and id('content-body', ixsl:page())/div[contains-token(@class, 'row-fluid')][1]/ul[contains-token(@class, 'nav-tabs')]/li[contains-token(@class, 'content-mode')]">
+            <xsl:sequence select="ixsl:call(ixsl:window(), 'history.replaceState', [ (), '', ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ac:build-uri(ldh:href(), map{ 'mode': '&ldh;ContentMode' } )) ])[current-date() lt xs:date('2000-01-01')]"/>
+        </xsl:for-each>
         <!-- append "Create" button to content list -->
         <xsl:if test="ac:mode() = '&ldh;ContentMode'">
             <xsl:for-each select="id('content-body', ixsl:page())">
