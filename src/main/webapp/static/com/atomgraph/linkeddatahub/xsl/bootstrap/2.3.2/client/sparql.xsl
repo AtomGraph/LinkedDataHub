@@ -47,7 +47,7 @@ LIMIT 100</xsl:param>
     <xsl:template name="bs2:QueryEditor" >
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" select="'span7'" as="xs:string?"/>
-        <xsl:param name="mode" select="ac:mode()" as="xs:anyURI*"/>
+        <xsl:param name="mode" select="$ac:mode" as="xs:anyURI*"/>
         <xsl:param name="service" as="xs:anyURI?"/>
         <xsl:param name="endpoint" as="xs:anyURI?"/>
         <xsl:param name="query" select="$ac:query" as="xs:string?"/>
