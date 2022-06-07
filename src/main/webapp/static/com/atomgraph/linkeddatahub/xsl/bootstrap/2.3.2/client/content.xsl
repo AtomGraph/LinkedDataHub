@@ -397,11 +397,12 @@ exclude-result-prefixes="#all"
     </xsl:template>
     
     <!-- toggle between Content as URI resource and HTML (rdf:XMLLiteral) -->
-    <xsl:template match="div[contains-token(@class, 'xhtml-content') or contains-token(@class, 'resource-content')]//select[contains-token(@class, 'content-type')]" mode="ixsl:onchange">
+    <xsl:template match="div[contains-token(@class, 'xhtml-content') or contains-token(@class, 'resource-content')]//select[contains-token(@class, 'content-type')]" mode="ixsl:onchange" priority="1">
         <xsl:next-match/>
 
         <xsl:variable name="content-type" select="ixsl:get(., 'value')" as="xs:anyURI"/>
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'xhtml-content')]" as="element()"/>
+        <xsl:message>$content-type: <xsl:value-of select="$content-type"/></xsl:message>
 
         <xsl:if test="$content-type = '&rdfs;Resource'">
             <xsl:sequence select="ixsl:call(ixsl:get($container, 'classList'), 'replace', [ 'xhtml-content', 'resource-content' ])[current-date() lt xs:date('2000-01-01')]"/>
