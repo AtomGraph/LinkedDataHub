@@ -181,6 +181,7 @@ WHERE
         <xsl:message>$ldh:absolutePath: <xsl:value-of select="$ldh:absolutePath"/></xsl:message>
         <xsl:message>count($ldh:apps//*[rdf:type/@rdf:resource = '&sd;Service']): <xsl:value-of select="count($ldh:apps//*[rdf:type/@rdf:resource = '&sd;Service'])"/></xsl:message>
         <xsl:message>$ac:lang: <xsl:value-of select="$ac:lang"/></xsl:message>
+        <xsl:message>$ac:mode: <xsl:value-of select="$ac:mode"/></xsl:message>
         <xsl:message>$sd:endpoint: <xsl:value-of select="$sd:endpoint"/></xsl:message>
         <xsl:message>ixsl:query-params()?uri: <xsl:value-of select="ixsl:query-params()?uri"/></xsl:message>
 
@@ -193,7 +194,7 @@ WHERE
         <ixsl:set-property name="endpoint" select="$sd:endpoint" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
         <ixsl:set-property name="yasqe" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
         <!-- if ldh:ContentMode is enabled, change the page's URL to reflect that -->
-        <xsl:for-each select="id('content-body', ixsl:page())/div[contains-token(@class, 'row-fluid')][1]/ul[contains-token(@class, 'nav-tabs')]/li[contains-token(@class, 'content-mode')]">
+        <xsl:for-each select="$ac:mode = '&ac;ReadMode' and id('content-body', ixsl:page())/div[contains-token(@class, 'row-fluid')][1]/ul[contains-token(@class, 'nav-tabs')]/li[contains-token(@class, 'content-mode')]">
             <xsl:sequence select="ixsl:call(ixsl:window(), 'history.replaceState', [ (), '', ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ac:build-uri(ac:uri(), map{ 'mode': '&ldh;ContentMode' } )) ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
         <xsl:apply-templates select="ixsl:page()" mode="ldh:LoadedHTMLDocument">
