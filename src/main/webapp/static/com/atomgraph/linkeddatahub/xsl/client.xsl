@@ -224,20 +224,6 @@ WHERE
                 <xsl:copy-of select="$xhtml-content/*"/>
             </xsl:result-document>
         </xsl:for-each>
-        <!-- append "Create" button to content list -->
-        <xsl:if test="ac:mode() = '&ldh;ContentMode'">
-            <xsl:for-each select="id('content-body', ixsl:page())">
-                <xsl:result-document href="?." method="ixsl:append-content">
-                    <div class="row-fluid">
-                        <div class="offset2 span7">
-                            <p>
-                                <button type="button" class="btn btn-primary create-action">Content</button>
-                            </p>
-                        </div>
-                    </div>
-                </xsl:result-document>
-            </xsl:for-each>
-        </xsl:if>
         <!-- append typeahead list after the search/URI input -->
         <xsl:for-each select="id('uri', ixsl:page())/..">
             <xsl:result-document href="?." method="ixsl:append-content">
@@ -1052,6 +1038,21 @@ WHERE
                 <xsl:with-param name="href" select="$href"/>
             </xsl:call-template>
         </xsl:for-each>
+        
+        <!-- append "Create" button to content list -->
+        <xsl:if test="ac:mode() = '&ldh;ContentMode'">
+            <xsl:for-each select="id('content-body', ixsl:page())">
+                <xsl:result-document href="?." method="ixsl:append-content">
+                    <div class="row-fluid">
+                        <div class="offset2 span7">
+                            <p>
+                                <button type="button" class="btn btn-primary create-action">Content</button>
+                            </p>
+                        </div>
+                    </div>
+                </xsl:result-document>
+            </xsl:for-each>
+        </xsl:if>
         
         <xsl:call-template name="ldh:RDFDocumentLoad">
             <xsl:with-param name="uri" select="$uri"/>
