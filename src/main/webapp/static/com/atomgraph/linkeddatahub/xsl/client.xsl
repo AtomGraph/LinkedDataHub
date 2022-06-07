@@ -107,7 +107,6 @@ extension-element-prefixes="ixsl"
         </xsl:document>
     </xsl:param>
     <xsl:param name="ac:lang" select="ixsl:get(ixsl:get(ixsl:page(), 'documentElement'), 'lang')" as="xs:string"/>
-    <xsl:param name="ac:mode" select="if (ixsl:query-params()?mode) then xs:anyURI(ixsl:query-params()?mode) else xs:anyURI('&ac;ReadMode')" as="xs:anyURI*"/>
     <xsl:param name="ac:query" select="ixsl:query-params()?query" as="xs:string?"/>
     <xsl:param name="ac:googleMapsKey" select="'AIzaSyCQ4rt3EnNCmGTpBN0qoZM1Z_jXhUnrTpQ'" as="xs:string"/>
     <xsl:param name="page-size" select="20" as="xs:integer"/>
@@ -181,7 +180,6 @@ WHERE
         <xsl:message>$ldh:absolutePath: <xsl:value-of select="$ldh:absolutePath"/></xsl:message>
         <xsl:message>count($ldh:apps//*[rdf:type/@rdf:resource = '&sd;Service']): <xsl:value-of select="count($ldh:apps//*[rdf:type/@rdf:resource = '&sd;Service'])"/></xsl:message>
         <xsl:message>$ac:lang: <xsl:value-of select="$ac:lang"/></xsl:message>
-        <xsl:message>$ac:mode: <xsl:value-of select="$ac:mode"/></xsl:message>
         <xsl:message>$sd:endpoint: <xsl:value-of select="$sd:endpoint"/></xsl:message>
         <xsl:message>ixsl:query-params()?uri: <xsl:value-of select="ixsl:query-params()?uri"/></xsl:message>
 
@@ -193,6 +191,10 @@ WHERE
         <ixsl:set-property name="graph" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/> <!-- used by graph.xsl -->
         <ixsl:set-property name="endpoint" select="$sd:endpoint" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
         <ixsl:set-property name="yasqe" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+        <!-- if ldh:ContentMode is enabled, change the page's URL to reflect that -->
+        <xsl:if test="id('content-body', ixsl:page())/div[[contains-token(@class, 'row-fluid')]][1]/ul[[contains-token(@class, 'nav-tabs')]]/li[contains-token(@class, 'content-mode')]">
+            <xsl:sequence select="ixsl:call(ixsl:window(), 'history.replaceState', [ (), ixsl:page()/html/head/title, ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ac:build-uri(ac:uri(), map{ 'mode': '&ldh;ContentMode' } )) ])[current-date() lt xs:date('2000-01-01')]"/>
+        </xsl:if>
         <xsl:apply-templates select="ixsl:page()" mode="ldh:LoadedHTMLDocument">
             <xsl:with-param name="href" select="ldh:href()"/>
             <xsl:with-param name="endpoint" select="$sd:endpoint"/>
@@ -657,7 +659,7 @@ WHERE
     <!-- push state -->
 
     <xsl:template name="ldh:PushState">
-         <!-- has to be a proxied URI with the actual URI encoded as ?uri, otherwise we get a "DOMException: The operation is insecure" -->
+         <!-- $href has to be a proxied URI with the actual URI encoded as ?uri, otherwise we get a "DOMException: The operation is insecure" -->
         <xsl:param name="href" as="xs:anyURI"/>
         <xsl:param name="title" as="xs:string?"/>
         <xsl:param name="container" as="element()"/>
