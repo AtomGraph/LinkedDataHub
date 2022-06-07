@@ -24,6 +24,7 @@ import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import static java.util.regex.Pattern.DOTALL;
 import javax.annotation.Priority;
 import javax.ws.rs.Priorities;
 import javax.ws.rs.WebApplicationException;
@@ -63,7 +64,8 @@ public class UpdateRequestCleanupInterceptor implements ReaderInterceptor
 
             if (updateString.contains("<" + RDF.xmlLiteral.getURI() + ">"))
             {
-                Pattern pattern = Pattern.compile("\\\"(.*)\\\"\\^\\^<http:\\/\\/www\\.w3\\.org\\/1999\\/02\\/22-rdf-syntax-ns#XMLLiteral>");
+                // provide DOTALL flag in order to match newlines: https://docs.oracle.com/javase/7/docs/api/java/util/regex/Pattern.html#DOTALL
+                Pattern pattern = Pattern.compile("\\\"(.*)\\\"\\^\\^<http:\\/\\/www\\.w3\\.org\\/1999\\/02\\/22-rdf-syntax-ns#XMLLiteral>", DOTALL);
                 Matcher matcher = pattern.matcher(updateString);
                 while (matcher.find())
                 {
