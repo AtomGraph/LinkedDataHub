@@ -264,14 +264,11 @@ exclude-result-prefixes="#all"
             <xsl:apply-templates select="$xml-literal//rdf:value/xhtml:*" mode="bs2:FormControl"/>
         </xsl:variable>
         
-<!--        <xsl:message>
-            $xml-literal: <xsl:value-of select="serialize($xml-literal)"/>
-            $editor-html: <xsl:value-of select="serialize($editor-html)"/>
-        </xsl:message>-->
-        
         <xsl:for-each select="$container">
             <xsl:result-document href="?." method="ixsl:replace-content">
-                <xsl:copy-of select="$editor-html"/>
+                <div>
+                    <xsl:copy-of select="$editor-html"/>
+                </div>
                 
                 <div class="form-actions">
                     <button type="button" class="btn btn-primary btn-save">
@@ -298,9 +295,11 @@ exclude-result-prefixes="#all"
         <xsl:for-each select="$container">
             <xsl:result-document href="?." method="ixsl:replace-content">
                 <div class="offset2 span7">
-                    <p>
-                        <span></span>
-                    </p>
+                    <div>
+                        <p>
+                            <span></span>
+                        </p>
+                    </div>
 
                     <div class="form-actions">
                         <button type="button" class="btn btn-primary btn-save">
@@ -329,7 +328,7 @@ exclude-result-prefixes="#all"
     <xsl:template match="div[contains-token(@class, 'xhtml-content')]//button[contains-token(@class, 'btn-save')]" mode="ixsl:onclick">
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'xhtml-content')]" as="element()"/>
         <xsl:variable name="content-uri" select="$container/@about" as="xs:anyURI"/>
-        <xsl:variable name="textarea" select="ancestor::div[contains-token(@class, 'span7')]/textarea[contains-token(@class, 'wymeditor')]" as="element()"/>
+        <xsl:variable name="textarea" select="ancestor::div[contains-token(@class, 'span7')]//textarea[contains-token(@class, 'wymeditor')]" as="element()"/>
         <xsl:variable name="old-content-string" select="string($textarea)" as="xs:string"/>
         <xsl:variable name="wymeditor" select="ixsl:call(ixsl:get(ixsl:window(), 'jQuery'), 'getWymeditorByTextarea', [ $textarea ])" as="item()"/>
         <!-- update the textarea with WYMEditor content -->
