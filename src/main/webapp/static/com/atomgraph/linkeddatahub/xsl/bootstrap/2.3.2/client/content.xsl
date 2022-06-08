@@ -414,7 +414,7 @@ exclude-result-prefixes="#all"
     </xsl:template>
     
     <!-- appends new content instance to the content list -->
-    <xsl:template match="div[contains-token(@class, 'row-fluid')]//a[contains-token(@class, 'add-constructor')][contains-token(@class, 'xhtml-content')]" mode="ixsl:onclick" priority="1">
+    <xsl:template match="div[contains-token(@class, 'row-fluid')]//a[contains-token(@class, 'create-action')][contains-token(@class, 'xhtml-content')]" mode="ixsl:onclick">
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'span7')]" as="element()"/>
 
         <xsl:variable name="xml-literal" as="document-node()">
