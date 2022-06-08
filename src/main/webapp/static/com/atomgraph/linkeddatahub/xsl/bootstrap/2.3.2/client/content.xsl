@@ -66,7 +66,39 @@ exclude-result-prefixes="#all"
             }
         ]]>
     </xsl:variable>
-        
+    <xsl:variable name="content-append-string" as="xs:string">
+        <!-- same as in append-content.sh CLI script -->
+        <![CDATA[
+            PREFIX  ldh:  <https://w3id.org/atomgraph/linkeddatahub#>
+            PREFIX  ac:   <https://w3id.org/atomgraph/client#>
+            PREFIX  rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+            PREFIX  xsd:  <http://www.w3.org/2001/XMLSchema#>
+
+            INSERT {
+              GRAPH $this {
+                $this ?property ?content .
+                ?content a ldh:Content ;
+                    rdf:value $value .
+                #${mode_bgp}
+              }
+            }
+            WHERE
+              { { SELECT  (( MAX(?index) + 1 ) AS ?next)
+                  WHERE
+                    { GRAPH $this
+                        { $this
+                                    ?seq      ?content .
+                          ?content  a  ldh:Content
+                          BIND(xsd:integer(substr(str(?seq), 45)) AS ?index)
+                        }
+                    }
+                }
+                BIND(iri(concat(str(rdf:), "_", str(coalesce(?next, 1)))) AS ?property)
+                BIND(uri(concat(str($this), "#", struuid())) AS ?content)
+              }
+        ]]>
+    </xsl:variable>
+    
     <!-- TEMPLATES -->
 
     <!-- content identity transform -->
@@ -328,7 +360,7 @@ exclude-result-prefixes="#all"
     
     <xsl:template match="div[contains-token(@class, 'xhtml-content')]//button[contains-token(@class, 'btn-save')]" mode="ixsl:onclick">
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'xhtml-content')]" as="element()"/>
-        <xsl:variable name="content-uri" select="$container/@about" as="xs:anyURI"/>
+        <xsl:variable name="content-uri" select="$container/@about" as="xs:anyURI?"/>
         <xsl:variable name="textarea" select="ancestor::div[contains-token(@class, 'span7')]//textarea[contains-token(@class, 'wymeditor')]" as="element()"/>
         <xsl:variable name="old-content-string" select="string($textarea)" as="xs:string"/>
         <xsl:variable name="wymeditor" select="ixsl:call(ixsl:get(ixsl:window(), 'jQuery'), 'getWymeditorByTextarea', [ $textarea ])" as="item()"/>
@@ -352,22 +384,44 @@ exclude-result-prefixes="#all"
                 <xsl:apply-templates select="$content-value" mode="content"/>
             </xsl:document>
         </xsl:variable>
-        <xsl:variable name="update-string" select="replace($content-update-string, '\$this', '&lt;' || ac:uri() || '&gt;')" as="xs:string"/>
-        <xsl:variable name="update-string" select="replace($update-string, '\$content', '&lt;' || $content-uri || '&gt;')" as="xs:string"/>
-        <xsl:variable name="update-string" select="replace($update-string, '\$newValue', '&quot;' || $content-string || '&quot;^^&lt;&rdf;XMLLiteral&gt;')" as="xs:string"/>
-        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ac:uri())" as="xs:anyURI"/>
-        
+
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
-        <xsl:variable name="request" as="item()*">
-            <ixsl:schedule-action http-request="map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string }">
-                <xsl:call-template name="onXHTMLContentUpdate">
-                    <xsl:with-param name="container" select="$container"/>
-                    <xsl:with-param name="content-value" select="$content-value"/>
-                </xsl:call-template>
-            </ixsl:schedule-action>
-        </xsl:variable>
-        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:choose>
+            <!-- updating existing content -->
+            <xsl:when test="$content-uri">
+                <xsl:variable name="update-string" select="replace($content-update-string, '\$this', '&lt;' || ac:uri() || '&gt;')" as="xs:string"/>
+                <xsl:variable name="update-string" select="replace($update-string, '\$content', '&lt;' || $content-uri || '&gt;')" as="xs:string"/>
+                <xsl:variable name="update-string" select="replace($update-string, '\$newValue', '&quot;' || $content-string || '&quot;^^&lt;&rdf;XMLLiteral&gt;')" as="xs:string"/>
+                <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ac:uri())" as="xs:anyURI"/>
+
+                <xsl:variable name="request" as="item()*">
+                    <ixsl:schedule-action http-request="map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string }">
+                        <xsl:call-template name="onXHTMLContentUpdate">
+                            <xsl:with-param name="container" select="$container"/>
+                            <xsl:with-param name="content-value" select="$content-value"/>
+                        </xsl:call-template>
+                    </ixsl:schedule-action>
+                </xsl:variable>
+                <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+            </xsl:when>
+            <!-- appending new content -->
+            <xsl:otherwise>
+                <xsl:variable name="update-string" select="replace($content-append-string, '\$this', '&lt;' || ac:uri() || '&gt;')" as="xs:string"/>
+                <xsl:variable name="update-string" select="replace($update-string, '\$value', '&quot;' || $content-string || '&quot;^^&lt;&rdf;XMLLiteral&gt;')" as="xs:string"/>
+                <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ac:uri())" as="xs:anyURI"/>
+
+                <xsl:variable name="request" as="item()*">
+                    <ixsl:schedule-action http-request="map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string }">
+                        <xsl:call-template name="onXHTMLContentUpdate">
+                            <xsl:with-param name="container" select="$container"/>
+                            <xsl:with-param name="content-value" select="$content-value"/>
+                        </xsl:call-template>
+                    </ixsl:schedule-action>
+                </xsl:variable>
+                <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:template>
 
     <!-- save resource-content onclick -->
@@ -403,8 +457,6 @@ exclude-result-prefixes="#all"
 
         <xsl:next-match/>
 
-        <xsl:message>$content-type: <xsl:value-of select="$content-type"/></xsl:message>
-
         <xsl:if test="$content-type = '&rdfs;Resource'">
             <xsl:sequence select="ixsl:call(ixsl:get($container, 'classList'), 'replace', [ 'xhtml-content', 'resource-content' ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:if>
@@ -436,7 +488,7 @@ exclude-result-prefixes="#all"
         <!-- add .content.xhtml-content to div.row-fluid -->
         <xsl:for-each select="ancestor::div[contains-token(@class, 'row-fluid')]">
             <xsl:variable name="uuid" select="ixsl:call(ixsl:window(), 'generateUUID', [])" as="xs:string"/>
-            <ixsl:set-attribute name="about" select="ac:uri() || '#' || $uuid" object="."/>
+            <!--<ixsl:set-attribute name="about" select="ac:uri() || '#' || $uuid" object="."/>-->
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'content', true() ])[current-date() lt xs:date('2000-01-01')]"/>
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'xhtml-content', true() ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
