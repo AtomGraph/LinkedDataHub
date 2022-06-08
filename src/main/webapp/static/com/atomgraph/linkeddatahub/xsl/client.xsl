@@ -1046,8 +1046,8 @@ WHERE
                     <div class="row-fluid">
                         <div class="offset2 span7">
                             <p>
-                                <button type="button" class="btn btn-primary create-action resource-content">Resource</button>
-                                <button type="button" class="btn btn-primary create-action xhtml-content">HTML</button>
+                                <button type="button" class="btn btn-primary create-action add-resource-content">Resource</button>
+                                <button type="button" class="btn btn-primary create-action add-xhtml-content">HTML</button>
                             </p>
                         </div>
                     </div>
