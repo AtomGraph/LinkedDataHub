@@ -717,7 +717,7 @@ LIMIT   100
         <body>
             <xsl:apply-templates select="." mode="bs2:NavBar"/>
 
-            <div id="content-body" class="container-fluid">
+            <div about="{ac:uri()}" id="content-body" class="container-fluid">
                 <xsl:apply-templates select="." mode="bs2:ModeTabs">
                     <xsl:with-param name="has-content" select="$has-content"/>
                     <xsl:with-param name="active-mode" select="$ac:mode"/>
