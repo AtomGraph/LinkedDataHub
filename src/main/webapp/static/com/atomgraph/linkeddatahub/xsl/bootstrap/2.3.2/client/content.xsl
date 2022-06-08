@@ -423,7 +423,7 @@ exclude-result-prefixes="#all"
                     <rdf:Description>
                         <rdf:type rdf:resource="&ldh;Content"/>
                         <rdf:value rdf:parseType="Literal">
-                            <div></div>
+                            <xhtml:div/>
                         </rdf:value>
                     </rdf:Description>
                 </rdf:RDF>
