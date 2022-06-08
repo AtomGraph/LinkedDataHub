@@ -1035,12 +1035,10 @@ WHERE
             </xsl:call-template>
         </xsl:for-each>
         
-        <xsl:message>ac:mode(): <xsl:value-of select="ac:mode()"/> empty(ac:mode()): <xsl:value-of select="empty(ac:mode())"/></xsl:message>
         <!-- if ldh:ContentMode is enabled, change the page's URL to reflect that -->
         <xsl:if test="empty(ac:mode()) and id('content-body', ixsl:page())/div[contains-token(@class, 'row-fluid')][1]/ul[contains-token(@class, 'nav-tabs')]/li[contains-token(@class, 'content-mode')]">
             <xsl:sequence select="ixsl:call(ixsl:window(), 'history.replaceState', [ (), '', ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ac:build-uri(ac:uri(), map{ 'mode': '&ldh;ContentMode' } )) ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:if>
-        <xsl:message>ac:mode(): <xsl:value-of select="ac:mode()"/></xsl:message>
         <!-- append "Create" button to content list -->
         <xsl:if test="ac:mode() = '&ldh;ContentMode'">
             <xsl:for-each select="id('content-body', ixsl:page())">
