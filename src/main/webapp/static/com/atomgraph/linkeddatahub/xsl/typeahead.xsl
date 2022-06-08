@@ -41,7 +41,7 @@ version="3.0"
     <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="ac:TypeaheadOption">
         <xsl:param name="class" as="xs:string?"/>
         <xsl:param name="query" as="xs:string"/>
-        <xsl:param name="name" as="xs:string"/>
+        <xsl:param name="name" select="if (@rdf:about) then 'ou' else if (@rdf:nodeID) then 'ob' else ()" as="xs:string"/>
         <xsl:variable name="label" as="xs:string*">
             <xsl:apply-templates select="." mode="ac:label"/>
         </xsl:variable>
@@ -126,7 +126,7 @@ version="3.0"
                         <xsl:with-param name="items" select="rdf:RDF/*[@rdf:about]"/>
                         <xsl:with-param name="resource-types" select="$resource-types"/>
                         <xsl:with-param name="element" select="$element"/>
-                        <xsl:with-param name="name" select="'ou'"/>
+                        <!--<xsl:with-param name="name" select="'ou'"/>-->
                     </xsl:call-template>
                 </xsl:for-each>
             </xsl:when>
@@ -140,7 +140,7 @@ version="3.0"
         <xsl:param name="menu" as="element()"/>
         <xsl:param name="items" as="element()*"/>
         <xsl:param name="element" as="element()"/>
-        <xsl:param name="name" as="xs:string"/>
+        <!--<xsl:param name="name" as="xs:string"/>-->
         <xsl:param name="resource-types" as="xs:anyURI*"/>
 
         <xsl:choose>
@@ -151,7 +151,7 @@ version="3.0"
                     <!-- TO-DO: filtering properties by literal text() containing $query -->
                     <xsl:with-param name="items" select="$items[if (exists($resource-types)) then (rdf:type/@rdf:resource = $resource-types) else true()]"/>
                     <xsl:with-param name="element" select="$element"/>
-                    <xsl:with-param name="name" select="$name"/>
+                    <!--<xsl:with-param name="name" select="$name"/>-->
                 </xsl:call-template>
                 
                 <xsl:call-template name="typeahead:show">
@@ -171,12 +171,12 @@ version="3.0"
         <xsl:param name="menu" as="element()"/>
         <xsl:param name="items" as="element()*"/>
         <xsl:param name="element" as="element()"/>
-        <xsl:param name="name" as="xs:string"/>
+        <!--<xsl:param name="name" as="xs:string"/>-->
         
         <xsl:result-document href="#{$menu/@id}" method="ixsl:replace-content">
             <xsl:apply-templates select="$items" mode="ac:TypeaheadOption">
                 <xsl:with-param name="query" select="$element/ixsl:get(., 'value')"/>
-                <xsl:with-param name="name" select="$name"/>
+                <!--<xsl:with-param name="name" select="$name"/>-->
                 <!-- TO-DO: replace with ac:label()? -->
                 <xsl:sort select="rdfs:label[1]"/>
                 <xsl:sort select="dct:title[1]"/>

@@ -711,13 +711,13 @@ LIMIT   100
 
     <xsl:template match="rdf:RDF" mode="xhtml:Body">
         <xsl:param name="classes" select="for $class-uri in map:keys($default-classes) return key('resources', $class-uri, document(ac:document-uri($class-uri)))" as="element()*"/>
-        <xsl:param name="content-uris" select="key('resources', ac:uri())/rdf:type/@rdf:resource[ . = ('&def;Root', '&dh;Container', '&dh;Item')][doc-available(resolve-uri('ns?query=ASK%20%7B%7D', $ldt:base))]/ldh:templates(., resolve-uri('ns', $ldt:base), $template-query)//srx:binding[@name = 'content']/srx:uri/xs:anyURI(.)" as="xs:anyURI*"/>
-        <xsl:param name="has-content" select="key('resources', key('resources', ac:uri())/rdf:_1/@rdf:resource) or exists($content-uris)" as="xs:boolean"/>
+        <xsl:param name="content-values" select="key('resources', ac:uri())/rdf:type/@rdf:resource[ . = ('&def;Root', '&dh;Container', '&dh;Item')][doc-available(resolve-uri('ns?query=ASK%20%7B%7D', $ldt:base))]/ldh:templates(., resolve-uri('ns', $ldt:base), $template-query)//srx:binding[@name = 'content']/srx:uri/xs:anyURI(.)" as="xs:anyURI*"/>
+        <xsl:param name="has-content" select="key('resources', key('resources', ac:uri())/rdf:_1/@rdf:resource) or exists($content-values)" as="xs:boolean"/>
 
         <body>
             <xsl:apply-templates select="." mode="bs2:NavBar"/>
 
-            <div id="content-body" class="container-fluid">
+            <div about="{ac:uri()}" id="content-body" class="container-fluid">
                 <xsl:apply-templates select="." mode="bs2:ModeTabs">
                     <xsl:with-param name="has-content" select="$has-content"/>
                     <xsl:with-param name="active-mode" select="$ac:mode"/>
@@ -765,9 +765,9 @@ LIMIT   100
                         <xsl:for-each select="key('resources', ac:uri())">
                             <xsl:apply-templates select="." mode="ldh:ContentList"/>
                             
-                            <xsl:for-each select="$content-uris">
+                            <xsl:for-each select="$content-values">
                                 <xsl:if test="doc-available(ac:document-uri(.))">
-                                    <xsl:apply-templates select="key('resources', ., document(ac:document-uri(.)))" mode="ldh:Content"/>
+                                    <xsl:apply-templates select="key('resources', ., document(ac:document-uri(.)))" mode="bs2:RowContent"/>
                                 </xsl:if>
                             </xsl:for-each>
                         </xsl:for-each>

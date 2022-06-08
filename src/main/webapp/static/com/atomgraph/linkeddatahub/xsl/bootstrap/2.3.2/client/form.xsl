@@ -53,7 +53,7 @@ exclude-result-prefixes="#all"
         <xsl:for-each select="id($id, ixsl:page())">
             <xsl:apply-templates select="." mode="ldh:PostConstruct"/>
             
-            <xsl:value-of select="ixsl:call(., 'focus', [])"/>
+            <xsl:sequence select="ixsl:call(., 'focus', [])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
     </xsl:template>
     
@@ -67,7 +67,7 @@ exclude-result-prefixes="#all"
 
     <!-- subject type change -->
     <xsl:template match="select[contains-token(@class, 'subject-type')]" mode="ldh:PostConstruct" priority="1">
-        <xsl:value-of select="ixsl:call(., 'addEventListener', [ 'change', ixsl:get(ixsl:window(), 'onSubjectTypeChange') ])[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:sequence select="ixsl:call(., 'addEventListener', [ 'change', ixsl:get(ixsl:window(), 'onSubjectTypeChange') ])[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
     
     <xsl:template match="textarea[contains-token(@class, 'wymeditor')]" mode="ldh:PostConstruct" priority="1">
@@ -79,7 +79,7 @@ exclude-result-prefixes="#all"
     <xsl:template match="fieldset//input" mode="ldh:PostConstruct" priority="1">
         <!-- subject value change -->
         <xsl:if test="contains-token(@class, 'subject')">
-            <xsl:value-of select="ixsl:call(., 'addEventListener', [ 'change', ixsl:get(ixsl:window(), 'onSubjectValueChange') ])[current-date() lt xs:date('2000-01-01')]"/>
+            <xsl:sequence select="ixsl:call(., 'addEventListener', [ 'change', ixsl:get(ixsl:window(), 'onSubjectValueChange') ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:if>
         
         <!-- TO-DO: move to a better place. Does not take effect if typeahead is reset -->
@@ -222,10 +222,10 @@ exclude-result-prefixes="#all"
     </xsl:template>
     
     <!-- appends new content instance to the form -->
-    <xsl:template match="a[contains-token(@class, 'add-constructor')]" mode="ixsl:onclick" priority="1">
+    <xsl:template match="form//a[contains-token(@class, 'add-constructor')]" mode="ixsl:onclick" priority="1">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="form" select="ancestor::form" as="element()?"/>
-        <xsl:variable name="bnode-ids" select="distinct-values($form//input[@name = ('sb', 'ob')]/ixsl:get(., 'value'))" as="xs:string*"/>
+        <xsl:variable name="bnode-ids" select="distinct-values($form//input[@name = ('sb', 'ob')]/ixsl:get(., 'value')[starts-with(., 'A')])" as="xs:string*"/>
          <!-- find the last bnode ID on the form so that we can change this resources ID to +1. Will only work with Jena's ID format A1, A2, ... -->
         <xsl:variable name="max-bnode-id" select="if (empty($bnode-ids)) then 0 else max(for $bnode-id in $bnode-ids return xs:integer(substring-after($bnode-id, 'A')))" as="xs:integer"/>
         <!--- show a modal form if this button is in a <fieldset>, meaning on a resource-level and not form level. Otherwise (e.g. for the "Create" button) show normal form -->
@@ -299,10 +299,10 @@ exclude-result-prefixes="#all"
                 <xsl:for-each select="$menu/li[contains-token(@class, 'active')]">
                     <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/> <!-- prevent form submit -->
                 
-                    <xsl:variable name="resource-uri" select="input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
+                    <xsl:variable name="resource-id" select="input[@name = ('ou', 'ob')]/ixsl:get(., 'value')" as="xs:anyURI"/>
                     <xsl:variable name="typeahead-class" select="'btn add-typeahead'" as="xs:string"/>
                     <xsl:variable name="typeahead-doc" select="ixsl:get(ixsl:window(), 'LinkedDataHub.typeahead.rdfXml')" as="document-node()"/> <!-- set by typeahead:xml-loaded -->
-                    <xsl:variable name="resource" select="key('resources', $resource-uri, $typeahead-doc)"/>
+                    <xsl:variable name="resource" select="key('resources', $resource-id, $typeahead-doc)"/>
 
                     <xsl:for-each select="../..">
                         <xsl:result-document href="?." method="ixsl:replace-content">
@@ -424,7 +424,7 @@ exclude-result-prefixes="#all"
                     </rdf:RDF>
                 </xsl:document>
             </xsl:variable>
-            <xsl:variable name="new-controls" as="node()*">
+            <xsl:variable name="new-controls" as="element()*">
                 <xsl:apply-templates select="$constructor//rdf:value/@rdf:*" mode="bs2:FormControl"/>
             </xsl:variable>
             
@@ -448,7 +448,7 @@ exclude-result-prefixes="#all"
                     </rdf:RDF>
                 </xsl:document>
             </xsl:variable>
-            <xsl:variable name="new-controls" as="node()*">
+            <xsl:variable name="new-controls" as="element()*">
                 <xsl:apply-templates select="$constructor//rdf:value/xhtml:*" mode="bs2:FormControl"/>
             </xsl:variable>
 
@@ -466,17 +466,17 @@ exclude-result-prefixes="#all"
 
     <!-- remove div.row-fluid (button is within <legend>) -->
     <xsl:template match="fieldset/legend/div/button[contains-token(@class, 'btn-remove-resource')]" mode="ixsl:onclick" priority="1">
-        <xsl:value-of select="ixsl:call(../../../../.., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:sequence select="ixsl:call(../../../../.., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
 
     <!-- remove <fieldset> (button is within <fieldset>) -->
     <xsl:template match="fieldset/div/button[contains-token(@class, 'btn-remove-resource')]" mode="ixsl:onclick" priority="1">
-        <xsl:value-of select="ixsl:call(../.., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:sequence select="ixsl:call(../.., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
 
     <!-- remove <div class="control-group"> -->
     <xsl:template match="button[contains-token(@class, 'btn-remove-property')]" mode="ixsl:onclick" priority="1">
-        <xsl:value-of select="ixsl:call(../../.., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:sequence select="ixsl:call(../../.., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
 
     <xsl:template match="button[contains-token(@class, 'add-type')]" mode="ixsl:onclick" priority="1">
@@ -544,7 +544,14 @@ exclude-result-prefixes="#all"
                     <xsl:for-each select="ancestor::form//input[@name = ('sb', 'su')][@value]">
                         <!-- filter resources by type if $forClass is provided -->
                         <xsl:if test="empty($forClass) or following-sibling::input[@name = 'pu'][@value = '&rdf;type']/following-sibling::input[@name = 'ou']/@value = $forClass">
-                            <rdf:Description rdf:nodeID="{@value}">
+                            <rdf:Description>
+                                <xsl:if test="@name = 'sb'">
+                                     <xsl:attribute name="rdf:nodeID" select="@value"/>
+                                </xsl:if>
+                                <xsl:if test="@name = 'su'">
+                                     <xsl:attribute name="rdf:about" select="@value"/>
+                                </xsl:if>
+                                
                                 <dct:title>
                                     <xsl:value-of select="@value"/>
                                 </dct:title>
@@ -559,10 +566,8 @@ exclude-result-prefixes="#all"
 
         <xsl:call-template name="typeahead:process">
             <xsl:with-param name="menu" select="$menu"/>
-            <!-- TO-DO: filter by type? -->
             <xsl:with-param name="items" select="$item-doc/rdf:RDF/rdf:Description"/>
             <xsl:with-param name="element" select="."/>
-            <xsl:with-param name="name" select="'ob'"/>
         </xsl:call-template>
     </xsl:template>
 
@@ -616,7 +621,7 @@ exclude-result-prefixes="#all"
     
     <xsl:template match="div[contains-token(@class, 'modal')]//button[tokenize(@class, ' ') = ('close', 'btn-close')]" mode="ixsl:onclick">
         <xsl:for-each select="ancestor::div[contains-token(@class, 'modal')]">
-            <xsl:value-of select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
+            <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
     </xsl:template>
     
@@ -781,7 +786,7 @@ exclude-result-prefixes="#all"
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ ?message ])"/>
+                <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ ?message ])"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
@@ -841,8 +846,8 @@ exclude-result-prefixes="#all"
                         <xsl:if test="$seq-property">
                             <xsl:variable name="seq-index" select="xs:integer(substring-after($property, '&rdf;_'))" as="xs:integer"/>
                             <xsl:if test="$seq-index &gt; 1">
-                                <!-- fix up the rdf:_X sequence property URI and label by increasing the counter (if it's higher than 1) -->
-                                <ixsl:set-attribute name="pu" object="." select="$property"/>
+                                <!-- fix up the rdf:_X sequence property URI and label -->
+                                <ixsl:set-attribute name="value" object="input[@name = 'pu']" select="$property"/>
 
                                 <xsl:for-each select="label">
                                     <xsl:result-document href="?." method="ixsl:replace-content">
@@ -857,7 +862,7 @@ exclude-result-prefixes="#all"
                 <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ ?message ])"/>
+                <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ ?message ])"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
@@ -977,7 +982,7 @@ exclude-result-prefixes="#all"
             </xsl:when>
             <xsl:otherwise>
                 <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
-                <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ ?message ])"/>
+                <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ ?message ])"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
@@ -1006,7 +1011,7 @@ exclude-result-prefixes="#all"
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ ?message ])"/>
+                <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ ?message ])"/>
             </xsl:otherwise>
         </xsl:choose>
         
@@ -1038,7 +1043,7 @@ exclude-result-prefixes="#all"
                 <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ ?message ])"/>
+                <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ ?message ])"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>

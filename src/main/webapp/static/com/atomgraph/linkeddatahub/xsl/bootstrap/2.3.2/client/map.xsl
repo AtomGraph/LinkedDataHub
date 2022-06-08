@@ -49,7 +49,7 @@ exclude-result-prefixes="#all"
     <!-- creates SPARQLMap.Geo object (for containers) -->
     
     <xsl:function name="ac:create-geo-object">
-        <xsl:param name="content-uri" as="xs:anyURI"/>
+        <xsl:param name="escaped-content-uri" as="xs:anyURI"/>
         <xsl:param name="uri" as="xs:anyURI"/>
         <xsl:param name="base" as="xs:anyURI"/>
         <xsl:param name="endpoint" as="xs:anyURI"/>
@@ -58,16 +58,16 @@ exclude-result-prefixes="#all"
         <xsl:param name="graph-var-name" as="xs:string?"/>
 
         <!-- set $this value -->
-        <xsl:variable name="select-string" select="replace($select-string, '\$this', concat('&lt;', $uri, '&gt;'))" as="xs:string"/>
+        <xsl:variable name="select-string" select="replace($select-string, '\$this', '&lt;' || $uri || '&gt;')" as="xs:string"/>
         <xsl:variable name="js-statement" as="element()">
             <!-- TO-DO: move Geo under AtomGraph namespace -->
             <!-- use template literals because the query is multi-line https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals -->
             <xsl:choose>
                 <xsl:when test="$graph-var-name">
-                    <root statement="new SPARQLMap.Geo(window.LinkedDataHub.contents['{$content-uri}'].map, new URL('{$base}'), new URL('{$endpoint}'), `{$select-string}`, '{$focus-var-name}', '{$graph-var-name}')"/>
+                    <root statement="new SPARQLMap.Geo(window.LinkedDataHub.contents['{$escaped-content-uri}'].map, new URL('{$base}'), new URL('{$endpoint}'), `{$select-string}`, '{$focus-var-name}', '{$graph-var-name}')"/>
                 </xsl:when>
                 <xsl:otherwise>
-                    <root statement="new SPARQLMap.Geo(window.LinkedDataHub.contents['{$content-uri}'].map, new URL('{$base}'), new URL('{$endpoint}'), `{$select-string}`, '{$focus-var-name}')"/>
+                    <root statement="new SPARQLMap.Geo(window.LinkedDataHub.contents['{$escaped-content-uri}'].map, new URL('{$base}'), new URL('{$endpoint}'), `{$select-string}`, '{$focus-var-name}')"/>
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:variable>
@@ -75,10 +75,10 @@ exclude-result-prefixes="#all"
     </xsl:function>
 
     <xsl:template name="ac:add-geo-listener">
-        <xsl:param name="content-uri" as="xs:anyURI"/>
+        <xsl:param name="escaped-content-uri" as="xs:anyURI"/>
 
         <xsl:variable name="js-statement" as="element()">
-            <root statement="window.LinkedDataHub.contents['{$content-uri}'].map.addListener('idle', function() {{ window.LinkedDataHub.contents['{$content-uri}'].geo.loadMarkers(window.LinkedDataHub.contents['{$content-uri}'].geo.addMarkers); }})"/>
+            <root statement="window.LinkedDataHub.contents['{$escaped-content-uri}'].map.addListener('idle', function() {{ window.LinkedDataHub.contents['{$escaped-content-uri}'].geo.loadMarkers(window.LinkedDataHub.contents['{$escaped-content-uri}'].geo.addMarkers); }})"/>
         </xsl:variable>
         <xsl:sequence select="ixsl:eval(string($js-statement/@statement))"/>
     </xsl:template>
