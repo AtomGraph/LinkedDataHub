@@ -509,6 +509,13 @@ exclude-result-prefixes="#all"
             <xsl:apply-templates select="$constructor//rdf:value/xhtml:*" mode="bs2:FormControl"/>
         </xsl:variable>
 
+        <!-- move the current row of controls to the bottom of the content list -->
+        <xsl:for-each select="$container/..">
+            <xsl:result-document href="?." method="ixsl:append-content">
+                <xsl:copy-of select="$container"/>
+            </xsl:result-document>
+        </xsl:for-each>
+        
         <!-- add .content.xhtml-content to div.row-fluid -->
         <xsl:for-each select="$container">
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'content', true() ])[current-date() lt xs:date('2000-01-01')]"/>
@@ -533,13 +540,6 @@ exclude-result-prefixes="#all"
             <!-- initialize wymeditor textarea -->
             <xsl:apply-templates select="key('elements-by-class', 'wymeditor', .)" mode="ldh:PostConstruct"/>
         </xsl:for-each>
-        
-        <!-- move the current row of controls to the bottom of the content list -->
-        <xsl:for-each select="$container/..">
-            <xsl:result-document href="?." method="ixsl:append-content">
-                <xsl:copy-of select="$container"/>
-            </xsl:result-document>
-        </xsl:for-each>
     </xsl:template>
     
     <!-- appends new resource content instance to the content list -->
@@ -562,6 +562,13 @@ exclude-result-prefixes="#all"
             <xsl:apply-templates select="$constructor//rdf:value/@rdf:*" mode="bs2:FormControl"/>
         </xsl:variable>
         
+        <!-- move the current row of controls to the bottom of the content list -->
+        <xsl:for-each select="$container/..">
+            <xsl:result-document href="?." method="ixsl:append-content">
+                <xsl:copy-of select="$container"/>
+            </xsl:result-document>
+        </xsl:for-each>
+
         <!-- add .content.resource-content to div.row-fluid -->
         <xsl:for-each select="$container">
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'content', true() ])[current-date() lt xs:date('2000-01-01')]"/>
@@ -581,13 +588,6 @@ exclude-result-prefixes="#all"
                         </xsl:value-of>
                     </button>
                 </div>
-            </xsl:result-document>
-        </xsl:for-each>
-        
-        <!-- move the current row of controls to the bottom of the content list -->
-        <xsl:for-each select="$container/..">
-            <xsl:result-document href="?." method="ixsl:append-content">
-                <xsl:copy-of select="$container"/>
             </xsl:result-document>
         </xsl:for-each>
     </xsl:template>
