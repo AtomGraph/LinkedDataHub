@@ -433,6 +433,12 @@ exclude-result-prefixes="#all"
             <xsl:apply-templates select="$xml-literal//rdf:value/xhtml:*" mode="bs2:FormControl"/>
         </xsl:variable>
         
+        <!-- add .content.xhtml-content to div.row-fluid -->
+        <xsl:for-each select="ancestor::div[contains-token(@class, 'row-fluid')]">
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'content', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggler', [ 'xhtml-content', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+        </xsl:for-each>
+        
         <xsl:for-each select="$container">
             <xsl:result-document href="?." method="ixsl:replace-content">
                 <div>
