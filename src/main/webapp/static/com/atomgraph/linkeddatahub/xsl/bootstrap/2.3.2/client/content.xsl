@@ -454,6 +454,7 @@ exclude-result-prefixes="#all"
             <xsl:otherwise>
                 <xsl:variable name="update-string" select="replace($content-append-string, '\$this', '&lt;' || ac:uri() || '&gt;')" as="xs:string"/>
                 <xsl:variable name="update-string" select="replace($update-string, '\$value', '&lt;' || $content-value || '&gt;')" as="xs:string"/>
+                <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ac:uri())" as="xs:anyURI"/>
                 <xsl:variable name="request" as="item()*">
                     <ixsl:schedule-action http-request="map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string }">
                         <xsl:call-template name="onResourceContentUpdate">
