@@ -281,7 +281,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="button" select="." as="element()"/>
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'span7')]" as="element()"/>
 
-        <xsl:variable name="xml-literal" as="document-node()">
+        <xsl:variable name="constructor" as="document-node()">
             <xsl:document>
                 <rdf:RDF>
                     <rdf:Description>
@@ -293,14 +293,14 @@ exclude-result-prefixes="#all"
                 </rdf:RDF>
             </xsl:document>
         </xsl:variable>
-        <xsl:variable name="editor-html" as="element()*">
-            <xsl:apply-templates select="$xml-literal//rdf:value/xhtml:*" mode="bs2:FormControl"/>
+        <xsl:variable name="controls" as="element()*">
+            <xsl:apply-templates select="$constructor//rdf:value/xhtml:*" mode="bs2:FormControl"/>
         </xsl:variable>
         
         <xsl:for-each select="$container">
             <xsl:result-document href="?." method="ixsl:replace-content">
                 <div>
-                    <xsl:copy-of select="$editor-html"/>
+                    <xsl:copy-of select="$controls"/>
                 </div>
                 
                 <div class="form-actions">
@@ -465,11 +465,11 @@ exclude-result-prefixes="#all"
         </xsl:if>
     </xsl:template>
     
-    <!-- appends new content instance to the content list -->
+    <!-- appends new XHTML content instance to the content list -->
     <xsl:template match="div[contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'create-action')][contains-token(@class, 'add-xhtml-content')]" mode="ixsl:onclick">
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'span7')]" as="element()"/>
 
-        <xsl:variable name="xml-literal" as="document-node()">
+        <xsl:variable name="constructor" as="document-node()">
             <xsl:document>
                 <rdf:RDF>
                     <rdf:Description>
@@ -481,14 +481,13 @@ exclude-result-prefixes="#all"
                 </rdf:RDF>
             </xsl:document>
         </xsl:variable>
-        <xsl:variable name="editor-html" as="element()*">
-            <xsl:apply-templates select="$xml-literal//rdf:value/xhtml:*" mode="bs2:FormControl"/>
+        <xsl:variable name="controls" as="element()*">
+            <xsl:apply-templates select="$constructor//rdf:value/xhtml:*" mode="bs2:FormControl"/>
         </xsl:variable>
         
         <!-- add .content.xhtml-content to div.row-fluid -->
         <xsl:for-each select="ancestor::div[contains-token(@class, 'row-fluid')]">
             <xsl:variable name="uuid" select="ixsl:call(ixsl:window(), 'generateUUID', [])" as="xs:string"/>
-            <!--<ixsl:set-attribute name="about" select="ac:uri() || '#' || $uuid" object="."/>-->
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'content', true() ])[current-date() lt xs:date('2000-01-01')]"/>
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'xhtml-content', true() ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
@@ -496,7 +495,7 @@ exclude-result-prefixes="#all"
         <xsl:for-each select="$container">
             <xsl:result-document href="?." method="ixsl:replace-content">
                 <div>
-                    <xsl:copy-of select="$editor-html"/>
+                    <xsl:copy-of select="$controls"/>
                 </div>
                 
                 <div class="form-actions">
@@ -510,6 +509,51 @@ exclude-result-prefixes="#all"
             
             <!-- initialize wymeditor textarea -->
             <xsl:apply-templates select="key('elements-by-class', 'wymeditor', .)" mode="ldh:PostConstruct"/>
+        </xsl:for-each>
+    </xsl:template>
+    
+    <!-- appends new resource content instance to the content list -->
+    <xsl:template match="div[contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'create-action')][contains-token(@class, 'add-resource-content')]" mode="ixsl:onclick">
+        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'span7')]" as="element()"/>
+
+        <xsl:variable name="constructor" as="document-node()">
+            <xsl:document>
+                <rdf:RDF>
+                    <rdf:Description rdf:nodeID="A1">
+                        <rdf:type rdf:resource="&ldh;Content"/>
+                        <rdf:value rdf:nodeID="A2"/>
+                    </rdf:Description>
+                    <rdf:Description rdf:nodeID="A2">
+                        <rdf:type rdf:resource="&rdfs;Resource"/>
+                    </rdf:Description>
+                </rdf:RDF>
+            </xsl:document>
+        </xsl:variable>
+        <xsl:variable name="controls" as="element()*">
+            <xsl:apply-templates select="$constructor//rdf:value/@rdf:*" mode="bs2:FormControl"/>
+        </xsl:variable>
+        
+        <!-- add .content.resource-content to div.row-fluid -->
+        <xsl:for-each select="ancestor::div[contains-token(@class, 'row-fluid')]">
+            <xsl:variable name="uuid" select="ixsl:call(ixsl:window(), 'generateUUID', [])" as="xs:string"/>
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'content', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'resource-content', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+        </xsl:for-each>
+        
+        <xsl:for-each select="$container">
+            <xsl:result-document href="?." method="ixsl:replace-content">
+                <div>
+                    <xsl:copy-of select="$controls"/>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="btn btn-primary btn-save">
+                        <xsl:value-of>
+                            <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                        </xsl:value-of>
+                    </button>
+                </div>
+            </xsl:result-document>
         </xsl:for-each>
     </xsl:template>
     
