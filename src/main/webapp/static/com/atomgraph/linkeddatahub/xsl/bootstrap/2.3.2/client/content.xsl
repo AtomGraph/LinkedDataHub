@@ -492,8 +492,7 @@ exclude-result-prefixes="#all"
     
     <!-- appends new XHTML content instance to the content list -->
     <xsl:template match="div[contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'create-action')][contains-token(@class, 'add-xhtml-content')]" mode="ixsl:onclick">
-        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'span7')]" as="element()"/>
-
+        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'row-fluid')]" as="element()"/>
         <xsl:variable name="constructor" as="document-node()">
             <xsl:document>
                 <rdf:RDF>
@@ -509,15 +508,14 @@ exclude-result-prefixes="#all"
         <xsl:variable name="controls" as="node()*">
             <xsl:apply-templates select="$constructor//rdf:value/xhtml:*" mode="bs2:FormControl"/>
         </xsl:variable>
-        
+
         <!-- add .content.xhtml-content to div.row-fluid -->
-        <xsl:for-each select="ancestor::div[contains-token(@class, 'row-fluid')]">
-            <xsl:variable name="uuid" select="ixsl:call(ixsl:window(), 'generateUUID', [])" as="xs:string"/>
+        <xsl:for-each select="$container">
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'content', true() ])[current-date() lt xs:date('2000-01-01')]"/>
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'xhtml-content', true() ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
         
-        <xsl:for-each select="$container">
+        <xsl:for-each select="ancestor::div[contains-token(@class, 'span7')]">
             <xsl:result-document href="?." method="ixsl:replace-content">
                 <div>
                     <xsl:copy-of select="$controls"/>
@@ -535,12 +533,18 @@ exclude-result-prefixes="#all"
             <!-- initialize wymeditor textarea -->
             <xsl:apply-templates select="key('elements-by-class', 'wymeditor', .)" mode="ldh:PostConstruct"/>
         </xsl:for-each>
+        
+        <!-- move the current row of controls to the bottom of the content list -->
+        <xsl:for-each select="$container/..">
+            <xsl:result-document href="?." method="ixsl:append-content">
+                <xsl:copy-of select="$container"/>
+            </xsl:result-document>
+        </xsl:for-each>
     </xsl:template>
     
     <!-- appends new resource content instance to the content list -->
     <xsl:template match="div[contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'create-action')][contains-token(@class, 'add-resource-content')]" mode="ixsl:onclick">
-        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'span7')]" as="element()"/>
-
+        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'row-fluid')]" as="element()"/>
         <xsl:variable name="constructor" as="document-node()">
             <xsl:document>
                 <rdf:RDF>
@@ -559,13 +563,12 @@ exclude-result-prefixes="#all"
         </xsl:variable>
         
         <!-- add .content.resource-content to div.row-fluid -->
-        <xsl:for-each select="ancestor::div[contains-token(@class, 'row-fluid')]">
-            <xsl:variable name="uuid" select="ixsl:call(ixsl:window(), 'generateUUID', [])" as="xs:string"/>
+        <xsl:for-each select="$container">
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'content', true() ])[current-date() lt xs:date('2000-01-01')]"/>
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'resource-content', true() ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
         
-        <xsl:for-each select="$container">
+        <xsl:for-each select="ancestor::div[contains-token(@class, 'span7')]">
             <xsl:result-document href="?." method="ixsl:replace-content">
                 <div>
                     <xsl:copy-of select="$controls"/>
@@ -578,6 +581,13 @@ exclude-result-prefixes="#all"
                         </xsl:value-of>
                     </button>
                 </div>
+            </xsl:result-document>
+        </xsl:for-each>
+        
+        <!-- move the current row of controls to the bottom of the content list -->
+        <xsl:for-each select="$container/..">
+            <xsl:result-document href="?." method="ixsl:append-content">
+                <xsl:copy-of select="$container"/>
             </xsl:result-document>
         </xsl:for-each>
     </xsl:template>
