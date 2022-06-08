@@ -76,8 +76,8 @@ exclude-result-prefixes="#all"
 
             INSERT {
               GRAPH $this {
-                $this ?property ?content .
-                ?content a ldh:Content ;
+                $this ?property $content .
+                $content a ldh:Content ;
                     rdf:value $value .
                 #${mode_bgp}
               }
@@ -87,14 +87,13 @@ exclude-result-prefixes="#all"
                   WHERE
                     { GRAPH $this
                         { $this
-                                    ?seq      ?content .
-                          ?content  a  ldh:Content
+                                    ?seq      ?oldContent .
+                          ?oldContent  a  ldh:Content
                           BIND(xsd:integer(substr(str(?seq), 45)) AS ?index)
                         }
                     }
                 }
                 BIND(iri(concat(str(rdf:), "_", str(coalesce(?next, 1)))) AS ?property)
-                BIND(uri(concat(str($this), "#", struuid())) AS ?content)
               }
         ]]>
     </xsl:variable>
@@ -360,7 +359,6 @@ exclude-result-prefixes="#all"
     
     <xsl:template match="div[contains-token(@class, 'xhtml-content')]//button[contains-token(@class, 'btn-save')]" mode="ixsl:onclick">
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'xhtml-content')]" as="element()"/>
-        <xsl:variable name="content-uri" select="$container/@about" as="xs:anyURI?"/>
         <xsl:variable name="textarea" select="ancestor::div[contains-token(@class, 'span7')]//textarea[contains-token(@class, 'wymeditor')]" as="element()"/>
         <xsl:variable name="old-content-string" select="string($textarea)" as="xs:string"/>
         <xsl:variable name="wymeditor" select="ixsl:call(ixsl:get(ixsl:window(), 'jQuery'), 'getWymeditorByTextarea', [ $textarea ])" as="item()"/>
@@ -389,7 +387,8 @@ exclude-result-prefixes="#all"
 
         <xsl:choose>
             <!-- updating existing content -->
-            <xsl:when test="$content-uri">
+            <xsl:when test="$container/@about">
+                <xsl:variable name="content-uri" select="$container/@about" as="xs:anyURI"/>
                 <xsl:variable name="update-string" select="replace($content-update-string, '\$this', '&lt;' || ac:uri() || '&gt;')" as="xs:string"/>
                 <xsl:variable name="update-string" select="replace($update-string, '\$content', '&lt;' || $content-uri || '&gt;')" as="xs:string"/>
                 <xsl:variable name="update-string" select="replace($update-string, '\$newValue', '&quot;' || $content-string || '&quot;^^&lt;&rdf;XMLLiteral&gt;')" as="xs:string"/>
@@ -406,6 +405,9 @@ exclude-result-prefixes="#all"
             </xsl:when>
             <!-- appending new content -->
             <xsl:otherwise>
+                <xsl:variable name="content-uri" select="xs:anyURI(ac:uri() || '#' || ac:uuid())" as="xs:anyURI?"/> <!-- build content URI -->
+                <ixsl:set-attribute name="about" select="$content-uri" object="$container"/>
+
                 <xsl:variable name="update-string" select="replace($content-append-string, '\$this', '&lt;' || ac:uri() || '&gt;')" as="xs:string"/>
                 <xsl:variable name="update-string" select="replace($update-string, '\$value', '&quot;' || $content-string || '&quot;^^&lt;&rdf;XMLLiteral&gt;')" as="xs:string"/>
                 <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ac:uri())" as="xs:anyURI"/>
@@ -426,7 +428,6 @@ exclude-result-prefixes="#all"
     
     <xsl:template match="div[contains-token(@class, 'resource-content')]//button[contains-token(@class, 'btn-save')]" mode="ixsl:onclick">
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'resource-content')]" as="element()"/>
-        <xsl:variable name="content-uri" select="$container/@about" as="xs:anyURI?"/>
         <xsl:variable name="old-content-value" select="ixsl:get($container, 'dataset.contentValue')" as="xs:anyURI"/>
         <xsl:variable name="content-value" select="ixsl:get($container//input[@name = 'ou'], 'value')" as="xs:anyURI"/>
         
@@ -434,7 +435,8 @@ exclude-result-prefixes="#all"
 
         <xsl:choose>
             <!-- updating existing content -->
-            <xsl:when test="$content-uri">
+            <xsl:when test="$container/@about">
+                <xsl:variable name="content-uri" select="$container/@about" as="xs:anyURI"/>
                 <xsl:variable name="update-string" select="replace($content-update-string, '\$this', '&lt;' || ac:uri() || '&gt;')" as="xs:string"/>
                 <xsl:variable name="update-string" select="replace($update-string, '\$content', '&lt;' || $content-uri || '&gt;')" as="xs:string"/>
                 <xsl:variable name="update-string" select="replace($update-string, '\$newValue', '&lt;' || $content-value || '&gt;')" as="xs:string"/>
@@ -452,7 +454,11 @@ exclude-result-prefixes="#all"
             </xsl:when> 
             <!-- appending new content -->
             <xsl:otherwise>
+                <xsl:variable name="content-uri" select="xs:anyURI(ac:uri() || '#' || ac:uuid())" as="xs:anyURI?"/> <!-- build content URI -->
+                <ixsl:set-attribute name="about" select="$content-uri" object="$container"/>
+                
                 <xsl:variable name="update-string" select="replace($content-append-string, '\$this', '&lt;' || ac:uri() || '&gt;')" as="xs:string"/>
+                <xsl:variable name="update-string" select="replace($update-string, '\$content', '&lt;' || $content-uri || '&gt;')" as="xs:string"/>
                 <xsl:variable name="update-string" select="replace($update-string, '\$value', '&lt;' || $content-value || '&gt;')" as="xs:string"/>
                 <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ac:uri())" as="xs:anyURI"/>
                 <xsl:variable name="request" as="item()*">
