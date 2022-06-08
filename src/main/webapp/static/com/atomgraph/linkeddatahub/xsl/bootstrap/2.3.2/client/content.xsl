@@ -293,7 +293,7 @@ exclude-result-prefixes="#all"
                 </rdf:RDF>
             </xsl:document>
         </xsl:variable>
-        <xsl:variable name="controls" as="element()*">
+        <xsl:variable name="controls" as="node()*">
             <xsl:apply-templates select="$constructor//rdf:value/xhtml:*" mode="bs2:FormControl"/>
         </xsl:variable>
         
@@ -481,7 +481,7 @@ exclude-result-prefixes="#all"
                 </rdf:RDF>
             </xsl:document>
         </xsl:variable>
-        <xsl:variable name="controls" as="element()*">
+        <xsl:variable name="controls" as="node()*">
             <xsl:apply-templates select="$constructor//rdf:value/xhtml:*" mode="bs2:FormControl"/>
         </xsl:variable>
         
@@ -529,7 +529,7 @@ exclude-result-prefixes="#all"
                 </rdf:RDF>
             </xsl:document>
         </xsl:variable>
-        <xsl:variable name="controls" as="element()*">
+        <xsl:variable name="controls" as="node()*">
             <xsl:apply-templates select="$constructor//rdf:value/@rdf:*" mode="bs2:FormControl"/>
         </xsl:variable>
         
