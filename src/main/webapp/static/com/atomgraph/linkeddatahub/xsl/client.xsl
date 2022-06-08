@@ -1035,10 +1035,12 @@ WHERE
             </xsl:call-template>
         </xsl:for-each>
         
+        <xsl:message>ac:mode(): <xsl:value-of select="ac:mode()"/></xsl:message>
         <!-- if ldh:ContentMode is enabled, change the page's URL to reflect that -->
         <xsl:for-each select="ac:mode() = '&ac;ReadMode' and id('content-body', ixsl:page())/div[contains-token(@class, 'row-fluid')][1]/ul[contains-token(@class, 'nav-tabs')]/li[contains-token(@class, 'content-mode')]">
             <xsl:sequence select="ixsl:call(ixsl:window(), 'history.replaceState', [ (), '', ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ac:build-uri(ldh:href(), map{ 'mode': '&ldh;ContentMode' } )) ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
+        <xsl:message>ac:mode(): <xsl:value-of select="ac:mode()"/></xsl:message>
         <!-- append "Create" button to content list -->
         <xsl:if test="ac:mode() = '&ldh;ContentMode'">
             <xsl:for-each select="id('content-body', ixsl:page())">
@@ -1046,7 +1048,8 @@ WHERE
                     <div class="row-fluid">
                         <div class="offset2 span7">
                             <p>
-                                <button type="button" class="btn btn-primary create-action">Content</button>
+                                <button type="button" class="btn btn-primary create-action resource-content">Resource</button>
+                                <button type="button" class="btn btn-primary create-action xhtml-content">HTML</button>
                             </p>
                         </div>
                     </div>
