@@ -436,7 +436,7 @@ exclude-result-prefixes="#all"
         <!-- add .content.xhtml-content to div.row-fluid -->
         <xsl:for-each select="ancestor::div[contains-token(@class, 'row-fluid')]">
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'content', true() ])[current-date() lt xs:date('2000-01-01')]"/>
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggler', [ 'xhtml-content', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'xhtml-content', true() ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
         
         <xsl:for-each select="$container">
