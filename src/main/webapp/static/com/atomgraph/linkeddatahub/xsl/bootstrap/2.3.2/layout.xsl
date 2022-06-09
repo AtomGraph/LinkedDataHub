@@ -107,7 +107,7 @@ exclude-result-prefixes="#all">
     <xsl:param name="ac:httpHeaders" as="xs:string"/> 
     <xsl:param name="ac:method" as="xs:string"/>
     <xsl:param name="ac:uri" as="xs:anyURI"/>
-    <xsl:param name="ac:mode" as="xs:anyURI*"/> <!-- select="xs:anyURI('&ac;ReadMode')"  -->
+    <xsl:param name="ac:mode" as="xs:anyURI*"/> <!-- select="xs:anyURI('&ac;ReadMode')" -->
     <xsl:param name="ac:googleMapsKey" select="'AIzaSyCQ4rt3EnNCmGTpBN0qoZM1Z_jXhUnrTpQ'" as="xs:string"/>
     <xsl:param name="acl:agent" as="xs:anyURI?"/>
     <xsl:param name="acl:mode" select="$foaf:Agent[doc-available($ldh:absolutePath)]//*[acl:accessToClass/@rdf:resource = (key('resources', $ldh:absolutePath, document($ldh:absolutePath))/rdf:type/@rdf:resource, key('resources', $ldh:absolutePath, document($ldh:absolutePath))/rdf:type/@rdf:resource/ldh:listSuperClasses(.))]/acl:mode/@rdf:resource" as="xs:anyURI*"/>
@@ -761,15 +761,13 @@ LIMIT   100
                         </xsl:choose>
                     </xsl:when>
                     <!-- check if the current document has content or its class has content -->
-                    <xsl:when test="(empty($ac:mode) or $ac:mode = '&ldh;ContentMode') and $has-content">
-                        <xsl:for-each select="key('resources', ac:uri())">
-                            <xsl:apply-templates select="." mode="ldh:ContentList"/>
-                            
-                            <xsl:for-each select="$content-values">
-                                <xsl:if test="doc-available(ac:document-uri(.))">
-                                    <xsl:apply-templates select="key('resources', ., document(ac:document-uri(.)))" mode="bs2:RowContent"/>
-                                </xsl:if>
-                            </xsl:for-each>
+                    <xsl:when test="(empty($ac:mode) and $has-content) or $ac:mode = '&ldh;ContentMode'">
+                        <xsl:apply-templates select="key('resources', ac:uri())" mode="ldh:ContentList"/>
+
+                        <xsl:for-each select="$content-values">
+                            <xsl:if test="doc-available(ac:document-uri(.))">
+                                <xsl:apply-templates select="key('resources', ., document(ac:document-uri(.)))" mode="bs2:RowContent"/>
+                            </xsl:if>
                         </xsl:for-each>
                     </xsl:when>
                     <xsl:when test="$ac:mode = '&ac;MapMode'">

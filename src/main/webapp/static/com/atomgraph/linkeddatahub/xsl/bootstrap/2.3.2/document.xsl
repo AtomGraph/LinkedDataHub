@@ -84,15 +84,13 @@ extension-element-prefixes="ixsl"
 
         <div class="row-fluid">
             <ul class="nav nav-tabs offset2 span7">
-                <xsl:if test="$has-content">
-                    <li class="content-mode{if ((empty($active-mode) and not($forClass)) or $active-mode = '&ldh;ContentMode') then ' active' else() }">
-                        <a href="{ac:build-uri(ac:uri(), map{ 'mode': '&ldh;ContentMode' })}">
-                            <xsl:value-of>
-                                <xsl:apply-templates select="key('resources', 'content', document('translations.rdf'))" mode="ac:label"/>
-                            </xsl:value-of>
-                        </a>
-                    </li>
-                </xsl:if>
+                <li class="content-mode{if ((empty($active-mode) and not($forClass)) or $active-mode = '&ldh;ContentMode') then ' active' else() }">
+                    <a href="{ac:build-uri(ac:uri(), map{ 'mode': '&ldh;ContentMode' })}">
+                        <xsl:value-of>
+                            <xsl:apply-templates select="key('resources', 'content', document('translations.rdf'))" mode="ac:label"/>
+                        </xsl:value-of>
+                    </a>
+                </li>
 
                 <xsl:for-each select="key('resources', '&ac;ReadMode', document(ac:document-uri('&ac;')))">
                     <xsl:apply-templates select="." mode="bs2:ModeTabsItem">

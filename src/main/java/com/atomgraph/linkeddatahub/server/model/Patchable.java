@@ -36,6 +36,7 @@ public interface Patchable
      * @param updateRequest SPARQL update
      * @param graphUri named graph URI
      * @return response
+     * @see <a href="https://www.w3.org/TR/sparql11-http-rdf-update/#http-patch">HTTP PATCH</a>
      */
     @PATCH Response patch(UpdateRequest updateRequest, @QueryParam("graph") URI graphUri);
     

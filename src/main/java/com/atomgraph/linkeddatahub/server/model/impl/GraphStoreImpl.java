@@ -311,11 +311,13 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
     }
 
     /**
-     * Implements <code>PATCH</code> method of SPARQL Graph Store Protocol.Accepts SPARQL update as the request body.
+     * Implements <code>PATCH</code> method of SPARQL Graph Store Protocol.
+     * Accepts SPARQL update as the request body which is executed in the context of the specified graph.
+     * The <code>GRAPH</code> keyword is therefore not allowed in the update string.
      * 
      * @param updateRequest SPARQL update
      * @param graphUri named graph URI
-     * @return response
+     * @return response response object
      */
     @PATCH
     @Override
