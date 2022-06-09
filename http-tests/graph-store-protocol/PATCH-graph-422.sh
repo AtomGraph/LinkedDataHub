@@ -37,13 +37,13 @@ WHERE
     ?s ?p ?o
   }
 }
-EOF)
+EOF
+)
 
-echo "$update" \
-| curl -k -w "%{http_code}\n" -o /dev/null -f -s -G \
+curl -k -w "%{http_code}\n" -o /dev/null -f -s \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -X PATCH \
   -H "Content-Type: application/sparql-update" \
   "$END_USER_BASE_URL" \
-   --data-binary @- \
+   --data-binary "$update" \
 | grep -q "$STATUS_UNPROCESSABLE_ENTITY"
