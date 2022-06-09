@@ -64,6 +64,7 @@ import javax.ws.rs.PATCH;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Request;
@@ -320,8 +321,8 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
     {
         if (updateRequest == null) throw new BadRequestException("SPARQL update not specified");
         if (graphUri == null) throw new BadRequestException("Named graph not specified");
-        if (updateRequest.toString().toUpperCase().contains("GRAPH")) throw new BadRequestException("SPARQL update used with PATCH method cannot contain the GRAPH keyword");
-        
+        if (updateRequest.toString().toUpperCase().contains("GRAPH")) throw new WebApplicationException("SPARQL update used with PATCH method cannot contain the GRAPH keyword", 422); // Unprocessable Entity
+
         String updateString = updateRequest.toString();
         // append WITH <graphUri> before DELETE or INSERT
         if (updateString.toUpperCase().contains("DELETE"))
