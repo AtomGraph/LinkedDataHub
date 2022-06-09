@@ -53,6 +53,7 @@ import java.util.UUID;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import static java.util.regex.Pattern.CASE_INSENSITIVE;
 import javax.inject.Inject;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.Consumes;
@@ -325,16 +326,16 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
         
         String updateString = updateRequest.toString();
         // check that the update string does not contain "GRAPH <"
-        Matcher graphMatcher = Pattern.compile("(?i)GRAPH(\\s*)<").matcher(updateString);
+        Matcher graphMatcher = Pattern.compile("GRAPH\\s*<", CASE_INSENSITIVE).matcher(updateString);
         if (graphMatcher.matches()) throw new WebApplicationException("SPARQL update used with PATCH method cannot contain the GRAPH keyword", 422); // Unprocessable Entity
 
         // prepend "WITH <graphUri>" before "DELETE {" or "INSERT {"
-        Matcher deleteMatcher = Pattern.compile("(?i)DELETE(\\s*)\\{").matcher(updateString);
+        Matcher deleteMatcher = Pattern.compile("DELETE\\s*\\{", CASE_INSENSITIVE).matcher(updateString);
         if (deleteMatcher.matches())
             updateString = deleteMatcher.replaceAll("WITH <" + graphUri + ">\nDELETE \\{");
         else
         {
-            Matcher insertMatcher = Pattern.compile("(?i)INSERT(\\s*)\\{").matcher(updateString);
+            Matcher insertMatcher = Pattern.compile("INSERT\\s*\\{", CASE_INSENSITIVE).matcher(updateString);
             if (insertMatcher.matches())
                 updateString = insertMatcher.replaceAll("WITH <" + graphUri + ">\nINSERT \\{");
             else throw new BadRequestException("SPARQL update contains no DELETE or INSERT?"); // cannot happen
