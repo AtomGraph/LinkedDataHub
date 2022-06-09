@@ -85,4 +85,6 @@ INSERT
   <acl/authorizations/public/#this> acl:accessToClass def:Root, dh:Container, dh:Item, nfo:FileDataObject ;
       acl:accessTo <../sparql> .
 }
+WHERE
+{}
 EOF
