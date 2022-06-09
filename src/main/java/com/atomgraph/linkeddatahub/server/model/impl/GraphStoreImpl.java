@@ -51,6 +51,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.inject.Inject;
 import javax.ws.rs.BadRequestException;
@@ -321,16 +322,21 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
     {
         if (updateRequest == null) throw new BadRequestException("SPARQL update not specified");
         if (graphUri == null) throw new BadRequestException("Named graph not specified");
-        if (updateRequest.toString().toUpperCase().contains("GRAPH")) throw new WebApplicationException("SPARQL update used with PATCH method cannot contain the GRAPH keyword", 422); // Unprocessable Entity
-
+        
         String updateString = updateRequest.toString();
-        // append WITH <graphUri> before DELETE or INSERT
-        if (updateString.toUpperCase().contains("DELETE"))
-           updateString = updateString.replaceAll("(?i)" + Pattern.quote("DELETE"), "WITH <" + graphUri + ">\nDELETE");
+        // check that the update string does not contain "GRAPH <"
+        Matcher graphMatcher = Pattern.compile("(?i)GRAPH(\\s*)<").matcher(updateString);
+        if (graphMatcher.matches()) throw new WebApplicationException("SPARQL update used with PATCH method cannot contain the GRAPH keyword", 422); // Unprocessable Entity
+
+        // prepend "WITH <graphUri>" before "DELETE {" or "INSERT {"
+        Matcher deleteMatcher = Pattern.compile("(?i)DELETE(\\s*)\\{").matcher(updateString);
+        if (deleteMatcher.matches())
+            updateString = deleteMatcher.replaceAll("WITH <" + graphUri + ">\nDELETE \\{");
         else
         {
-            if (updateString.toUpperCase().contains("INSERT"))
-                updateString = updateString.replaceAll("(?i)" + Pattern.quote("INSERT"), "WITH <" + graphUri + ">\nINSERT");
+            Matcher insertMatcher = Pattern.compile("(?i)INSERT(\\s*)\\{").matcher(updateString);
+            if (insertMatcher.matches())
+                updateString = insertMatcher.replaceAll("WITH <" + graphUri + ">\nINSERT \\{");
             else throw new BadRequestException("SPARQL update contains no DELETE or INSERT?"); // cannot happen
         }
         updateRequest = UpdateFactory.create(updateString);
