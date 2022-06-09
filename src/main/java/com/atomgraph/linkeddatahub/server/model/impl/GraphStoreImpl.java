@@ -17,7 +17,6 @@
 package com.atomgraph.linkeddatahub.server.model.impl;
 
 import com.atomgraph.core.MediaTypes;
-import com.atomgraph.core.model.SPARQLEndpoint;
 import com.atomgraph.core.riot.lang.RDFPostReader;
 import static com.atomgraph.linkeddatahub.apps.model.Application.UPLOADS_PATH;
 import com.atomgraph.linkeddatahub.model.Service;
@@ -52,6 +51,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
+import java.util.regex.Pattern;
 import javax.inject.Inject;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.Consumes;
@@ -66,8 +66,6 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
@@ -87,6 +85,7 @@ import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.rdf.model.StmtIterator;
 import org.apache.jena.sparql.vocabulary.FOAF;
+import org.apache.jena.update.UpdateFactory;
 import org.apache.jena.update.UpdateRequest;
 import org.apache.jena.util.ResourceUtils;
 import org.apache.jena.vocabulary.DCTerms;
@@ -321,12 +320,20 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
     {
         if (updateRequest == null) throw new BadRequestException("SPARQL update not specified");
         if (graphUri == null) throw new BadRequestException("Named graph not specified");
-        if (updateRequest.toString().toLowerCase().contains("graph")) throw new BadRequestException("SPARQL update used with PATCH method cannot contain the GRAPH keyword");
+        if (updateRequest.toString().toUpperCase().contains("GRAPH")) throw new BadRequestException("SPARQL update used with PATCH method cannot contain the GRAPH keyword");
         
-        MultivaluedMap<String, String> params = new MultivaluedHashMap<>();
-        params.add(SPARQLEndpoint.USING_NAMED_GRAPH_URI, graphUri.toString()); // restrict update dataset to the single specified named graph
-        
-        getService().getSPARQLClient().update(updateRequest, params);
+        String updateString = updateRequest.toString();
+        // append WITH <graphUri> before DELETE or INSERT
+        if (updateString.toUpperCase().contains("DELETE"))
+           updateString = updateString.replaceAll("(?i)" + Pattern.quote("DELETE"), "WITH <" + graphUri + ">\nDELETE");
+        else
+        {
+            if (updateString.toUpperCase().contains("INSERT"))
+                updateString = updateString.replaceAll("(?i)" + Pattern.quote("INSERT"), "WITH <" + graphUri + ">\nINSERT");
+            else throw new BadRequestException("SPARQL update contains no DELETE or INSERT?"); // cannot happen
+        }
+        updateRequest = UpdateFactory.create(updateString);
+        getService().getEndpointAccessor().update(updateRequest, Collections.<URI>emptyList(), Collections.<URI>emptyList());
         
         return Response.ok().build();
     }
