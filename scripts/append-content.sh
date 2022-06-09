@@ -97,22 +97,18 @@ PREFIX  rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX  xsd:  <http://www.w3.org/2001/XMLSchema#>
 
 INSERT {
-  GRAPH <${this}> {
-    <${this}> ?property ?content .
-    ?content a ldh:Content ;
-        rdf:value <${value}> .
-    ${mode_bgp}
-  }
+  <${this}> ?property ?content .
+  ?content a ldh:Content ;
+      rdf:value <${value}> .
+  ${mode_bgp}
 }
 WHERE
   { { SELECT  (( MAX(?index) + 1 ) AS ?next)
       WHERE
-        { GRAPH <${this}>
-            { <${this}>
-                        ?seq      ?content .
-              ?content  a  ldh:Content
-              BIND(xsd:integer(substr(str(?seq), 45)) AS ?index)
-            }
+        { <${this}>
+                    ?seq      ?content .
+          ?content  a  ldh:Content
+          BIND(xsd:integer(substr(str(?seq), 45)) AS ?index)
         }
     }
     BIND(iri(concat(str(rdf:), "_", str(coalesce(?next, 1)))) AS ?property)

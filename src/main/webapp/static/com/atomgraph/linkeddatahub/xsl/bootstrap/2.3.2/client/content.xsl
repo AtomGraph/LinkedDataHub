@@ -63,16 +63,27 @@ exclude-result-prefixes="#all"
             PREFIX  ldh:  <https://w3id.org/atomgraph/linkeddatahub#>
             PREFIX  ac:   <https://w3id.org/atomgraph/client#>
             PREFIX  rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+            PREFIX  xsd:  <http://www.w3.org/2001/XMLSchema#>
 
             INSERT
             {
-                $this $property $content .
+                $this ?property $content .
                 $content a ldh:Content ;
                     rdf:value $value .
                 #${mode_bgp}
             }
             WHERE
-            {}
+            {
+                { SELECT  (( MAX(?index) + 1 ) AS ?next)
+                  WHERE
+                    { $this
+                                ?seq      ?oldContent .
+                      ?oldContent  a  ldh:Content
+                      BIND(xsd:integer(substr(str(?seq), 45)) AS ?index)
+                    }
+                }
+                BIND(iri(concat(str(rdf:), "_", str(coalesce(?next, 1)))) AS ?property)
+            }
         ]]>
     </xsl:variable>
     
@@ -386,14 +397,7 @@ exclude-result-prefixes="#all"
                 <xsl:variable name="content-uri" select="xs:anyURI(ac:uri() || '#' || ac:uuid())" as="xs:anyURI?"/> <!-- build content URI -->
                 <ixsl:set-attribute name="about" select="$content-uri" object="$container"/>
 
-                <xsl:variable name="escaped-content-uri" select="xs:anyURI(translate(ac:uri(), '.', '-'))" as="xs:anyURI"/>
-                <xsl:variable name="rdf-doc" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri), 'results')" as="document-node()"/>
-                <xsl:variable name="seq-properties" select="for $property in key('resources', ac:uri(), $rdf-doc)/rdf:*[starts-with(local-name(), '_')]/concat(namespace-uri(), local-name()) return xs:anyURI($property)" as="xs:anyURI*"/>
-                <xsl:message>$seq-properties: <xsl:value-of select="$seq-properties"/></xsl:message>
-                <xsl:variable name="max-seq-index" select="if (empty($seq-properties)) then 0 else max(for $seq-property in $seq-properties return xs:integer(substring-after($seq-property, '&rdf;' || '_')))" as="xs:integer"/>
-                <xsl:variable name="next-property" select="xs:anyURI('&rdf;_' || ($max-seq-index + 1))" as="xs:anyURI"/>
                 <xsl:variable name="update-string" select="replace($content-append-string, '\$this', '&lt;' || ac:uri() || '&gt;')" as="xs:string"/>
-                <xsl:variable name="update-string" select="replace($update-string, '\$property', '&lt;' || $next-property || '&gt;')" as="xs:string"/>
                 <xsl:variable name="update-string" select="replace($update-string, '\$value', '&quot;' || $content-string || '&quot;^^&lt;&rdf;XMLLiteral&gt;')" as="xs:string"/>
                 <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ac:uri())" as="xs:anyURI"/>
                 <xsl:variable name="request" as="item()*">
