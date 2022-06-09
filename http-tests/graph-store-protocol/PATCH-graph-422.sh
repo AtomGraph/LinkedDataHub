@@ -20,12 +20,7 @@ popd > /dev/null
 
 # attempting to patch document with illegal update containing GRAPH should return error
 
-curl -k -w "%{http_code}\n" -o /dev/null -f -s -G \
-  -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
-  -X PATCH \
-  -H "Content-Type: application/sparql-update" \
-  "$container" \
-   --data-binary @- <<EOF
+update=$(cat <<EOF
 PREFIX  rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 
 INSERT
@@ -42,5 +37,13 @@ WHERE
     ?s ?p ?o
   }
 }
-EOF
+EOF)
+
+echo "$update" \
+| curl -k -w "%{http_code}\n" -o /dev/null -f -s -G \
+  -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
+  -X PATCH \
+  -H "Content-Type: application/sparql-update" \
+  "$END_USER_BASE_URL" \
+   --data-binary @- \
 | grep -q "$STATUS_UNPROCESSABLE_ENTITY"

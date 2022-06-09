@@ -20,12 +20,7 @@ popd > /dev/null
 
 # patch document
 
-curl -k -w "%{http_code}\n" -o /dev/null -f -s -G \
-  -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
-  -X PATCH \
-  -H "Content-Type: application/sparql-update" \
-  "$container" \
-   --data-binary @- <<EOF
+update=$(cat <<EOF
 PREFIX  rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 
 INSERT
@@ -35,6 +30,15 @@ INSERT
 WHERE
 {}
 EOF
+)
+
+echo "$update" \
+| curl -k -w "%{http_code}\n" -o /dev/null -f -s -G \
+  -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
+  -X PATCH \
+  -H "Content-Type: application/sparql-update" \
+  "$END_USER_BASE_URL" \
+   --data-binary @- \
 | grep -q "$STATUS_OK"
 
 # check that the graph is changed
