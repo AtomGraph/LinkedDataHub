@@ -222,7 +222,7 @@ exclude-result-prefixes="#all"
     </xsl:template>
     
     <!-- appends new content instance to the form -->
-    <xsl:template match="form//a[contains-token(@class, 'add-constructor')]" mode="ixsl:onclick" priority="1">
+    <xsl:template match="a[contains-token(@class, 'add-constructor')]" mode="ixsl:onclick" priority="1">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="form" select="ancestor::form" as="element()?"/>
         <xsl:variable name="bnode-ids" select="distinct-values($form//input[@name = ('sb', 'ob')]/ixsl:get(., 'value')[starts-with(., 'A')])" as="xs:string*"/>
