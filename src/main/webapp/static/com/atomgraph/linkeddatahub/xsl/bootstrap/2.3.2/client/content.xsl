@@ -388,7 +388,8 @@ exclude-result-prefixes="#all"
 
                 <xsl:variable name="escaped-content-uri" select="xs:anyURI(translate(ac:uri(), '.', '-'))" as="xs:anyURI"/>
                 <xsl:variable name="rdf-doc" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri), 'results')" as="document-node()"/>
-                <xsl:variable name="seq-properties" select="for $property in key('resources', ac:uri(), $rdf-doc)/rdf:*[starts-with(local-name(), '_')]/concat(local-name(), namespace-uri()) return xs:anyURI($property)" as="xs:anyURI*"/>
+                <xsl:variable name="seq-properties" select="for $property in key('resources', ac:uri(), $rdf-doc)/rdf:*[starts-with(local-name(), '_')]/concat(namespace-uri(), local-name()) return xs:anyURI($property)" as="xs:anyURI*"/>
+                <xsl:message>$seq-properties: <xsl:value-of select="$seq-properties"/></xsl:message>
                 <xsl:variable name="max-seq-index" select="if (empty($seq-properties)) then 0 else max(for $seq-property in $seq-properties return xs:integer(substring-after($seq-property, '&rdf;' || '_')))" as="xs:integer"/>
                 <xsl:variable name="next-property" select="xs:anyURI('&rdf;_' || ($max-seq-index + 1))" as="xs:anyURI"/>
                 <xsl:variable name="update-string" select="replace($content-append-string, '\$this', '&lt;' || ac:uri() || '&gt;')" as="xs:string"/>
