@@ -82,10 +82,7 @@ PREFIX  nfo: <http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#>
 
 INSERT DATA
 {
-  GRAPH <acl/authorizations/public/>
-  {
-    <acl/authorizations/public/#this> acl:accessToClass def:Root, dh:Container, dh:Item, nfo:FileDataObject ;
-        acl:accessTo <../sparql> .
-  }
+  <acl/authorizations/public/#this> acl:accessToClass def:Root, dh:Container, dh:Item, nfo:FileDataObject ;
+      acl:accessTo <../sparql> .
 }
 EOF

@@ -21,6 +21,7 @@ import com.atomgraph.core.riot.lang.RDFPostReader;
 import static com.atomgraph.linkeddatahub.apps.model.Application.UPLOADS_PATH;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.io.ValidatingModelProvider;
+import com.atomgraph.linkeddatahub.server.model.Patchable;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.server.util.Skolemizer;
 import com.atomgraph.linkeddatahub.vocabulary.Default;
@@ -50,6 +51,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import static java.util.regex.Pattern.CASE_INSENSITIVE;
 import javax.inject.Inject;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.Consumes;
@@ -62,6 +66,7 @@ import javax.ws.rs.PATCH;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Request;
@@ -83,6 +88,7 @@ import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.rdf.model.StmtIterator;
 import org.apache.jena.sparql.vocabulary.FOAF;
+import org.apache.jena.update.UpdateFactory;
 import org.apache.jena.update.UpdateRequest;
 import org.apache.jena.util.ResourceUtils;
 import org.apache.jena.vocabulary.DCTerms;
@@ -99,7 +105,7 @@ import org.slf4j.LoggerFactory;
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
+public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl implements Patchable
 {
     
     private static final Logger log = LoggerFactory.getLogger(GraphStoreImpl.class);
@@ -286,7 +292,7 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
     @Override
     public Response put(Model model, @QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
     {
-        if (graphUri == null) throw new InternalServerErrorException("Named graph not specified");
+        if (graphUri == null) throw new BadRequestException("Named graph not specified");
 
         if (getOwnerDocURI().equals(graphUri)) throw new BadRequestException("Cannot update application owner's document");
         if (getSecretaryDocURI().equals(graphUri)) throw new BadRequestException("Cannot update application secretary's document");
@@ -305,16 +311,36 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
     }
 
     /**
-     * Implements <code>PATCH</code> method of SPARQL Graph Store Protocol.
-     * Accepts SPARQL update as the request body.
+     * Implements <code>PATCH</code> method of SPARQL Graph Store Protocol.Accepts SPARQL update as the request body.
      * 
      * @param updateRequest SPARQL update
+     * @param graphUri named graph URI
      * @return response
      */
     @PATCH
-    public Response patch(UpdateRequest updateRequest)
+    @Override
+    public Response patch(UpdateRequest updateRequest, @QueryParam("graph") URI graphUri)
     {
-        // TO-DO: do a check that the update only uses this named graph
+        if (updateRequest == null) throw new BadRequestException("SPARQL update not specified");
+        if (graphUri == null) throw new BadRequestException("Named graph not specified");
+        
+        String updateString = updateRequest.toString();
+        // check that the update string does not contain "GRAPH <"
+        Matcher graphMatcher = Pattern.compile("GRAPH\\s*<", CASE_INSENSITIVE).matcher(updateString);
+        if (graphMatcher.find()) throw new WebApplicationException("SPARQL update used with PATCH method cannot contain the GRAPH keyword", 422); // Unprocessable Entity
+
+        // prepend "WITH <graphUri>" before "DELETE {" or "INSERT {"
+        Matcher deleteMatcher = Pattern.compile("DELETE\\s*\\{", CASE_INSENSITIVE).matcher(updateString);
+        if (deleteMatcher.find())
+            updateString = deleteMatcher.replaceAll("WITH <" + graphUri + ">\nDELETE \\{");
+        else
+        {
+            Matcher insertMatcher = Pattern.compile("INSERT\\s*\\{", CASE_INSENSITIVE).matcher(updateString);
+            if (insertMatcher.find())
+                updateString = insertMatcher.replaceAll("WITH <" + graphUri + ">\nINSERT \\{");
+            else throw new BadRequestException("SPARQL update contains no DELETE or INSERT?"); // cannot happen
+        }
+        updateRequest = UpdateFactory.create(updateString);
         getService().getEndpointAccessor().update(updateRequest, Collections.<URI>emptyList(), Collections.<URI>emptyList());
         
         return Response.ok().build();

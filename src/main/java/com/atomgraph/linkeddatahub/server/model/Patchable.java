@@ -16,7 +16,9 @@
  */
 package com.atomgraph.linkeddatahub.server.model;
 
+import java.net.URI;
 import javax.ws.rs.PATCH;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Response;
 import org.apache.jena.update.UpdateRequest;
 
@@ -29,12 +31,12 @@ public interface Patchable
 {
     
     /**
-     * Handles <code>PATCH</code> request.
-     * SPARQL update is used as the patch format.
+     * Handles <code>PATCH</code> request.SPARQL update is used as the patch format.
      * 
      * @param updateRequest SPARQL update
+     * @param graphUri named graph URI
      * @return response
      */
-    @PATCH Response patch(UpdateRequest updateRequest);
+    @PATCH Response patch(UpdateRequest updateRequest, @QueryParam("graph") URI graphUri);
     
 }

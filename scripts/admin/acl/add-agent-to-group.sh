@@ -71,14 +71,10 @@ fi
 
 sparql+="PREFIX foaf:	<http://xmlns.com/foaf/0.1/>\n"
 sparql+="INSERT {\n"
-sparql+="  GRAPH <${group_doc}> {\n"
-sparql+="    ?group foaf:member <${agent}> .\n"
-sparql+="  }\n"
+sparql+="  ?group foaf:member <${agent}> .\n"
 sparql+="}\n"
 sparql+="WHERE {\n"
-sparql+="  GRAPH <${group_doc}> {\n"
-sparql+="    <${group_doc}> foaf:primaryTopic ?group .\n"
-sparql+="  }\n"
+sparql+="  <${group_doc}> foaf:primaryTopic ?group .\n"
 sparql+="}\n"
 
 # PATCH SPARQL to the named graph

@@ -73,17 +73,13 @@ curl -X PATCH \
 PREFIX  ldh:  <https://w3id.org/atomgraph/linkeddatahub#>
 
 DELETE {
-  GRAPH <${this}> {
-    <${this}> ?seq ?content .
-    ?content ?p ?o .
-  }
+  <${this}> ?seq ?content .
+  ?content ?p ?o .
 }
 WHERE
-  { GRAPH <${this}>
-      { <${this}>     ?seq  ?content .
-        ?content  a     ldh:Content ;
-                  ?p    ?o
-      }
+  { <${this}>     ?seq  ?content .
+    ?content  a     ldh:Content ;
+              ?p    ?o
   }
 
 EOF

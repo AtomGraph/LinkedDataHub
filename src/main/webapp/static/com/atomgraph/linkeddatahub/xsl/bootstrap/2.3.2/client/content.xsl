@@ -42,27 +42,18 @@ exclude-result-prefixes="#all"
 
             DELETE
             {
-                GRAPH $this
-                {
-                    $this ?seq $content .
-                    $content rdf:value ?oldValue .
-                }
+                $this ?seq $content .
+                $content rdf:value ?oldValue .
             }
             INSERT
             {
-                GRAPH $this
-                {
-                    $this ?seq $content .
-                    $content rdf:value $newValue .
-                }
+                $this ?seq $content .
+                $content rdf:value $newValue .
             }
             WHERE
             {
-                GRAPH $this
-                {
-                    $this ?seq $content .
-                    $content rdf:value ?oldValue .
-                }
+                $this ?seq $content .
+                $content rdf:value ?oldValue .
             }
         ]]>
     </xsl:variable>
@@ -74,27 +65,25 @@ exclude-result-prefixes="#all"
             PREFIX  rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
             PREFIX  xsd:  <http://www.w3.org/2001/XMLSchema#>
 
-            INSERT {
-              GRAPH $this {
+            INSERT
+            {
                 $this ?property $content .
                 $content a ldh:Content ;
                     rdf:value $value .
                 #${mode_bgp}
-              }
             }
             WHERE
-              { { SELECT  (( MAX(?index) + 1 ) AS ?next)
+            {
+                { SELECT  (( MAX(?index) + 1 ) AS ?next)
                   WHERE
-                    { GRAPH $this
-                        { $this
-                                    ?seq      ?oldContent .
-                          ?oldContent  a  ldh:Content
-                          BIND(xsd:integer(substr(str(?seq), 45)) AS ?index)
-                        }
+                    { $this
+                                ?seq      ?oldContent .
+                      ?oldContent  a  ldh:Content
+                      BIND(xsd:integer(substr(str(?seq), 45)) AS ?index)
                     }
                 }
                 BIND(iri(concat(str(rdf:), "_", str(coalesce(?next, 1)))) AS ?property)
-              }
+            }
         ]]>
     </xsl:variable>
     
@@ -409,6 +398,7 @@ exclude-result-prefixes="#all"
                 <ixsl:set-attribute name="about" select="$content-uri" object="$container"/>
 
                 <xsl:variable name="update-string" select="replace($content-append-string, '\$this', '&lt;' || ac:uri() || '&gt;')" as="xs:string"/>
+                <xsl:variable name="update-string" select="replace($update-string, '\$content', '&lt;' || $content-uri || '&gt;')" as="xs:string"/>
                 <xsl:variable name="update-string" select="replace($update-string, '\$value', '&quot;' || $content-string || '&quot;^^&lt;&rdf;XMLLiteral&gt;')" as="xs:string"/>
                 <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ac:uri())" as="xs:anyURI"/>
                 <xsl:variable name="request" as="item()*">
