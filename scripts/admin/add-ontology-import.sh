@@ -72,14 +72,10 @@ fi
 sparql+="PREFIX owl:	<http://www.w3.org/2002/07/owl#>\n"
 sparql+="PREFIX foaf:	<http://xmlns.com/foaf/0.1/>\n"
 sparql+="INSERT {\n"
-sparql+="  GRAPH <${ontology_doc}> {\n"
-sparql+="    ?ontology owl:imports <${import}> .\n"
-sparql+="  }\n"
+sparql+="  ?ontology owl:imports <${import}> .\n"
 sparql+="}\n"
 sparql+="WHERE {\n"
-sparql+="  GRAPH <${ontology_doc}> {\n"
-sparql+="    <${ontology_doc}> foaf:primaryTopic ?ontology .\n"
-sparql+="  }\n"
+sparql+="  <${ontology_doc}> foaf:primaryTopic ?ontology .\n"
 sparql+="}\n"
 
 # PATCH SPARQL to the named graph

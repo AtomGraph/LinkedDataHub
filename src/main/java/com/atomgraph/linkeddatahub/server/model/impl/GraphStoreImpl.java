@@ -17,10 +17,12 @@
 package com.atomgraph.linkeddatahub.server.model.impl;
 
 import com.atomgraph.core.MediaTypes;
+import com.atomgraph.core.model.SPARQLEndpoint;
 import com.atomgraph.core.riot.lang.RDFPostReader;
 import static com.atomgraph.linkeddatahub.apps.model.Application.UPLOADS_PATH;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.io.ValidatingModelProvider;
+import com.atomgraph.linkeddatahub.server.model.Patchable;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.server.util.Skolemizer;
 import com.atomgraph.linkeddatahub.vocabulary.Default;
@@ -64,6 +66,8 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
@@ -99,7 +103,7 @@ import org.slf4j.LoggerFactory;
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
+public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl implements Patchable
 {
     
     private static final Logger log = LoggerFactory.getLogger(GraphStoreImpl.class);
@@ -286,7 +290,7 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
     @Override
     public Response put(Model model, @QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
     {
-        if (graphUri == null) throw new InternalServerErrorException("Named graph not specified");
+        if (graphUri == null) throw new BadRequestException("Named graph not specified");
 
         if (getOwnerDocURI().equals(graphUri)) throw new BadRequestException("Cannot update application owner's document");
         if (getSecretaryDocURI().equals(graphUri)) throw new BadRequestException("Cannot update application secretary's document");
@@ -305,17 +309,24 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
     }
 
     /**
-     * Implements <code>PATCH</code> method of SPARQL Graph Store Protocol.
-     * Accepts SPARQL update as the request body.
+     * Implements <code>PATCH</code> method of SPARQL Graph Store Protocol.Accepts SPARQL update as the request body.
      * 
      * @param updateRequest SPARQL update
+     * @param graphUri named graph URI
      * @return response
      */
     @PATCH
-    public Response patch(UpdateRequest updateRequest)
+    @Override
+    public Response patch(UpdateRequest updateRequest, @QueryParam("graph") URI graphUri)
     {
-        // TO-DO: do a check that the update only uses this named graph
-        getService().getEndpointAccessor().update(updateRequest, Collections.<URI>emptyList(), Collections.<URI>emptyList());
+        if (updateRequest == null) throw new BadRequestException("SPARQL update not specified");
+        if (graphUri == null) throw new BadRequestException("Named graph not specified");
+        if (updateRequest.toString().toLowerCase().contains("graph")) throw new BadRequestException("SPARQL update used with PATCH method cannot contain the GRAPH keyword");
+        
+        MultivaluedMap<String, String> params = new MultivaluedHashMap<>();
+        params.add(SPARQLEndpoint.USING_NAMED_GRAPH_URI, graphUri.toString()); // restrict update dataset to the single specified named graph
+        
+        getService().getSPARQLClient().update(updateRequest, params);
         
         return Response.ok().build();
     }

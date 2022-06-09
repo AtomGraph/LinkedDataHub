@@ -20,13 +20,11 @@ import com.atomgraph.client.vocabulary.AC;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.core.model.EndpointAccessor;
 import com.atomgraph.linkeddatahub.model.Service;
-import com.atomgraph.linkeddatahub.server.model.Patchable;
 import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import javax.inject.Inject;
@@ -56,7 +54,7 @@ import org.glassfish.jersey.media.multipart.FormDataMultiPart;
  * 
  * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
  */
-public class Item extends GraphStoreImpl implements Patchable
+public class Item extends GraphStoreImpl
 {
     
     /**
@@ -128,12 +126,9 @@ public class Item extends GraphStoreImpl implements Patchable
     
     @PATCH
     @Override
-    public Response patch(UpdateRequest updateRequest)
+    public Response patch(UpdateRequest updateRequest, @QueryParam("graph") URI graphUri)
     {
-        // TO-DO: do a check that the update only uses this named graph
-        getEndpointAccessor().update(updateRequest, Collections.<URI>emptyList(), Collections.<URI>emptyList());
-        
-        return Response.ok().build();
+        return super.patch(updateRequest, getURI());
     }
     
     /**
