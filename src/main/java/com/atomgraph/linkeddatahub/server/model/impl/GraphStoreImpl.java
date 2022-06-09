@@ -327,16 +327,16 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
         String updateString = updateRequest.toString();
         // check that the update string does not contain "GRAPH <"
         Matcher graphMatcher = Pattern.compile("GRAPH\\s*<", CASE_INSENSITIVE).matcher(updateString);
-        if (graphMatcher.matches()) throw new WebApplicationException("SPARQL update used with PATCH method cannot contain the GRAPH keyword", 422); // Unprocessable Entity
+        if (graphMatcher.find()) throw new WebApplicationException("SPARQL update used with PATCH method cannot contain the GRAPH keyword", 422); // Unprocessable Entity
 
         // prepend "WITH <graphUri>" before "DELETE {" or "INSERT {"
         Matcher deleteMatcher = Pattern.compile("DELETE\\s*\\{", CASE_INSENSITIVE).matcher(updateString);
-        if (deleteMatcher.matches())
+        if (deleteMatcher.find())
             updateString = deleteMatcher.replaceAll("WITH <" + graphUri + ">\nDELETE \\{");
         else
         {
             Matcher insertMatcher = Pattern.compile("INSERT\\s*\\{", CASE_INSENSITIVE).matcher(updateString);
-            if (insertMatcher.matches())
+            if (insertMatcher.find())
                 updateString = insertMatcher.replaceAll("WITH <" + graphUri + ">\nINSERT \\{");
             else throw new BadRequestException("SPARQL update contains no DELETE or INSERT?"); // cannot happen
         }
