@@ -21,8 +21,8 @@ public class PatchUpdateVisitor extends UpdateVisitorBase
     @Override
     public void visit(UpdateModify update)
     {
-        if (!update.getDeleteAcc().getGraph().equals(Quad.defaultGraphIRI)) containsNamedGraph = true;
-        if (!update.getInsertAcc().getGraph().equals(Quad.defaultGraphIRI)) containsNamedGraph = true;
+        if (!update.getDeleteAcc().getGraph().equals(Quad.defaultGraphNodeGenerated)) containsNamedGraph = true;
+        if (!update.getInsertAcc().getGraph().equals(Quad.defaultGraphNodeGenerated)) containsNamedGraph = true;
         
         
         //update.getWherePattern().visit(ev);
