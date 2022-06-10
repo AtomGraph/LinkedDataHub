@@ -5,6 +5,7 @@
 
 package com.atomgraph.linkeddatahub.server.util;
 
+import org.apache.jena.sparql.core.Quad;
 import org.apache.jena.sparql.modify.request.UpdateModify;
 import org.apache.jena.sparql.modify.request.UpdateVisitorBase;
 
@@ -15,20 +16,21 @@ import org.apache.jena.sparql.modify.request.UpdateVisitorBase;
 public class PatchUpdateVisitor extends UpdateVisitorBase
 {
 
-    public boolean containsGraph = false;
+    public boolean containsNamedGraph = false;
 
     @Override
     public void visit(UpdateModify update)
     {
-        if (update.getDeleteAcc().getGraph() != null) containsGraph = true;
-        if (update.getInsertAcc().getGraph() != null) containsGraph = true;
+        if (!update.getDeleteAcc().getGraph().equals(Quad.defaultGraphIRI)) containsNamedGraph = true;
+        if (!update.getInsertAcc().getGraph().equals(Quad.defaultGraphIRI)) containsNamedGraph = true;
+        
         
         //update.getWherePattern().visit(ev);
     }
 
-    public boolean isContainsGraph()
+    public boolean isContainsNamedGraph()
     {
-        return containsGraph;
+        return containsNamedGraph;
     }
     
 }
