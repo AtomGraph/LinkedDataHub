@@ -80,6 +80,7 @@ import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.jena.atlas.RuntimeIOException;
 import org.apache.jena.datatypes.xsd.XSDDateTime;
+import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.ontology.Ontology;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ResIterator;
@@ -87,8 +88,8 @@ import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.rdf.model.StmtIterator;
+import org.apache.jena.sparql.modify.request.UpdateModify;
 import org.apache.jena.sparql.vocabulary.FOAF;
-import org.apache.jena.update.UpdateFactory;
 import org.apache.jena.update.UpdateRequest;
 import org.apache.jena.util.ResourceUtils;
 import org.apache.jena.vocabulary.DCTerms;
@@ -334,18 +335,13 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
         graphMatcher = Pattern.compile("GRAPH\\s+\\?.*\\s+\\{", CASE_INSENSITIVE).matcher(updateString);
         if (graphMatcher.find()) throw new WebApplicationException("SPARQL update used with PATCH method cannot contain the GRAPH keyword", 422); // Unprocessable Entity
 
-        // prepend "WITH <graphUri>" before "DELETE {" or "INSERT {"
-        Matcher deleteMatcher = Pattern.compile("DELETE\\s*\\{", CASE_INSENSITIVE).matcher(updateString);
-        if (deleteMatcher.find())
-            updateString = deleteMatcher.replaceAll("WITH <" + graphUri + ">\nDELETE \\{");
-        else
+        // set WITH <graphUri>
+        updateRequest.getOperations().forEach(update ->
         {
-            Matcher insertMatcher = Pattern.compile("INSERT\\s*\\{", CASE_INSENSITIVE).matcher(updateString);
-            if (insertMatcher.find())
-                updateString = insertMatcher.replaceAll("WITH <" + graphUri + ">\nINSERT \\{");
-            else throw new BadRequestException("SPARQL update contains no DELETE or INSERT?"); // cannot happen
-        }
-        updateRequest = UpdateFactory.create(updateString);
+            if (!(update instanceof UpdateModify updateModify)) throw new WebApplicationException("Only UpdateModify form of SPARQL Update is supported", 422);
+            updateModify.setWithIRI(NodeFactory.createURI(graphUri.toString()));
+        });
+
         getService().getEndpointAccessor().update(updateRequest, Collections.<URI>emptyList(), Collections.<URI>emptyList());
         
         return Response.ok().build();
