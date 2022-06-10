@@ -23,6 +23,7 @@ import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.io.ValidatingModelProvider;
 import com.atomgraph.linkeddatahub.server.model.Patchable;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
+import com.atomgraph.linkeddatahub.server.util.PatchUpdateVisitor;
 import com.atomgraph.linkeddatahub.server.util.Skolemizer;
 import com.atomgraph.linkeddatahub.vocabulary.Default;
 import com.atomgraph.linkeddatahub.vocabulary.NFO;
@@ -338,6 +339,9 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
         // set WITH <graphUri>
         updateRequest.getOperations().forEach(update ->
         {
+            PatchUpdateVisitor visitor = new PatchUpdateVisitor();
+            update.visit(visitor);
+            
             if (!(update instanceof UpdateModify updateModify)) throw new WebApplicationException("Only UpdateModify form of SPARQL Update is supported", 422);
             updateModify.setWithIRI(NodeFactory.createURI(graphUri.toString()));
         });
