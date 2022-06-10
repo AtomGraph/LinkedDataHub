@@ -16,7 +16,7 @@ import org.apache.jena.sparql.modify.request.UpdateVisitorBase;
 public class PatchUpdateVisitor extends UpdateVisitorBase
 {
 
-    public boolean containsNamedGraph = false;
+    private boolean containsNamedGraph = false;
 
     @Override
     public void visit(UpdateModify update)

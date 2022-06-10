@@ -52,9 +52,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import static java.util.regex.Pattern.CASE_INSENSITIVE;
 import javax.inject.Inject;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.Consumes;
@@ -327,21 +324,19 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
     {
         if (updateRequest == null) throw new BadRequestException("SPARQL update not specified");
         if (graphUri == null) throw new BadRequestException("Named graph not specified");
-        
-        String updateString = updateRequest.toString();
-        // check that the update string does not contain "GRAPH <...> {"
-        Matcher graphMatcher = Pattern.compile("GRAPH\\s+<.*>\\s+\\{", CASE_INSENSITIVE).matcher(updateString);
-        if (graphMatcher.find()) throw new WebApplicationException("SPARQL update used with PATCH method cannot contain the GRAPH keyword", 422); // Unprocessable Entity
-        // check that the update string does not contain "GRAPH ?... {"
-        graphMatcher = Pattern.compile("GRAPH\\s+\\?.*\\s+\\{", CASE_INSENSITIVE).matcher(updateString);
-        if (graphMatcher.find()) throw new WebApplicationException("SPARQL update used with PATCH method cannot contain the GRAPH keyword", 422); // Unprocessable Entity
 
-        // set WITH <graphUri>
         updateRequest.getOperations().forEach(update ->
         {
+            // check for GRAPH keyword which is disallowed
             PatchUpdateVisitor visitor = new PatchUpdateVisitor();
             update.visit(visitor);
-            
+            if (visitor.isContainsNamedGraph())
+            {
+                if (log.isWarnEnabled()) log.debug("SPARQL update used with PATCH method cannot contain the GRAPH keyword");
+                throw new WebApplicationException("SPARQL update used with PATCH method cannot contain the GRAPH keyword", 422); // Unprocessable Entity
+            }
+
+            // set WITH <graphUri>
             if (!(update instanceof UpdateModify updateModify)) throw new WebApplicationException("Only UpdateModify form of SPARQL Update is supported", 422);
             updateModify.setWithIRI(NodeFactory.createURI(graphUri.toString()));
         });
