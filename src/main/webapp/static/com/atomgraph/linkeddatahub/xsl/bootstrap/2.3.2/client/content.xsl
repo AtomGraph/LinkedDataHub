@@ -716,6 +716,8 @@ exclude-result-prefixes="#all"
         <xsl:param name="container" as="element()"/>
         <xsl:param name="content-value" as="document-node()"/>
 
+        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
+
         <xsl:choose>
             <xsl:when test="?status = 200">
                 <xsl:for-each select="$container/div[contains-token(@class, 'span7')]">
@@ -724,8 +726,6 @@ exclude-result-prefixes="#all"
                         <xsl:copy-of select="$content-value/div/div/*"/>
                     </xsl:result-document>
                 </xsl:for-each>
-                    
-                <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
             </xsl:when>
             <xsl:otherwise>
                 <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ 'Could not update XHTML content' ])[current-date() lt xs:date('2000-01-01')]"/>
@@ -741,13 +741,13 @@ exclude-result-prefixes="#all"
         <xsl:param name="container" as="element()"/>
         <xsl:param name="content-value" as="xs:anyURI"/>
 
+        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
+
         <xsl:choose>
             <xsl:when test="?status = 200">
                 <xsl:for-each select="$container">
                     <!-- update @data-content-value value -->
                     <ixsl:set-property name="dataset.contentValue" select="$content-value" object="."/>
-
-                    <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
 
                     <xsl:call-template name="ldh:LoadContent">
                         <xsl:with-param name="uri" select="$uri"/> <!-- content value gets read from dataset.contentValue -->

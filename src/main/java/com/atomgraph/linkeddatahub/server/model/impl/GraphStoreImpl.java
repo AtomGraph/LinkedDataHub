@@ -327,11 +327,11 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
         if (graphUri == null) throw new BadRequestException("Named graph not specified");
         
         String updateString = updateRequest.toString();
-        // check that the update string does not contain "GRAPH <"
-        Matcher graphMatcher = Pattern.compile("GRAPH\\s*<", CASE_INSENSITIVE).matcher(updateString);
+        // check that the update string does not contain "GRAPH <...> {"
+        Matcher graphMatcher = Pattern.compile("GRAPH\\s+<.*>\\s+\\{", CASE_INSENSITIVE).matcher(updateString);
         if (graphMatcher.find()) throw new WebApplicationException("SPARQL update used with PATCH method cannot contain the GRAPH keyword", 422); // Unprocessable Entity
-        // check that the update string does not contain "GRAPH ?"
-        graphMatcher = Pattern.compile("GRAPH\\s*\\?", CASE_INSENSITIVE).matcher(updateString);
+        // check that the update string does not contain "GRAPH ?... {"
+        graphMatcher = Pattern.compile("GRAPH\\s+\\?.*\\s+\\{", CASE_INSENSITIVE).matcher(updateString);
         if (graphMatcher.find()) throw new WebApplicationException("SPARQL update used with PATCH method cannot contain the GRAPH keyword", 422); // Unprocessable Entity
 
         // prepend "WITH <graphUri>" before "DELETE {" or "INSERT {"
