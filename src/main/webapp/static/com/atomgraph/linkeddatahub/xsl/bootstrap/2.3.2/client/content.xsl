@@ -313,7 +313,7 @@ exclude-result-prefixes="#all"
                             <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
                         </xsl:value-of>
                     </button>
-                    <button type="button" class="btn btn-primary btn-delete">
+                    <button type="button" class="btn btn-delete">
                         <xsl:value-of>
                             <xsl:apply-templates select="key('resources', 'delete', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
                         </xsl:value-of>
@@ -486,9 +486,9 @@ exclude-result-prefixes="#all"
         </xsl:choose>
     </xsl:template>
     
-    <!-- delete content onclick -->
+    <!-- delete content onclick (increased priority to take precedence over document's .btn-delete) -->
     
-    <xsl:template match="div[contains-token(@class, 'content')]//button[contains-token(@class, 'btn-delete')]" mode="ixsl:onclick">
+    <xsl:template match="div[contains-token(@class, 'content')]//button[contains-token(@class, 'btn-delete')]" mode="ixsl:onclick" priority="1">
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'content')]" as="element()"/>
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
