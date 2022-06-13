@@ -52,7 +52,7 @@ public class LDHT
     public static final Resource NAMESPACE = m_model.createResource( NS );
 
     /** For class property */
-    public static final ObjectProperty forClass = m_model.createObjectProperty( NS + "forClass" );
+    //public static final ObjectProperty forClass = m_model.createObjectProperty( NS + "forClass" );
 
     /** Ban property */
     public static final DatatypeProperty ban = m_model.createDatatypeProperty( NS + "ban" );

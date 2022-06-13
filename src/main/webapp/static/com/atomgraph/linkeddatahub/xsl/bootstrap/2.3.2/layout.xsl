@@ -133,15 +133,19 @@ exclude-result-prefixes="#all">
         </xsl:map>
     </xsl:param>
 
-    <!-- the query has to support services that do not belong to any app -->
+    <!-- the query has to support services that do not belong to any app. Use type URIs because that is what triggers Varnish invalidation. -->
     <xsl:variable name="app-query" as="xs:string">
         DESCRIBE  ?resource
         WHERE
           { GRAPH ?graph
               {
-                  { ?resource  &lt;&ldt;base&gt;     ?base }
+                  { ?resource  a &lt;&lapp;Application&gt; ;
+                        &lt;&ldt;base&gt;     ?base
+                  }
                   UNION
-                  { ?resource  &lt;&sd;endpoint&gt;  ?endpoint }
+                  { ?resource  a &lt;&sd;Service&gt; ;
+                        &lt;&sd;endpoint&gt;  ?endpoint
+                  }
               }
           }
     </xsl:variable>

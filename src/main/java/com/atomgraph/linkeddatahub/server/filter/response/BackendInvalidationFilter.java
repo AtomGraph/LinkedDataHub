@@ -16,6 +16,7 @@
  */
 package com.atomgraph.linkeddatahub.server.filter.response;
 
+import com.atomgraph.client.vocabulary.AC;
 import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import java.io.IOException;
@@ -67,6 +68,12 @@ public class BackendInvalidationFilter implements ContainerResponseFilter
             // ban parent resource URI in order to avoid stale children data in containers
             ban(getApplication().getService().getProxy(), parentURI.toString()).close();
             ban(getApplication().getService().getProxy(), getApplication().getBaseURI().relativize(parentURI).toString()).close(); // URIs can be relative in queries
+            // ban all results of queries that use forClass type
+            if (req.getUriInfo().getQueryParameters().containsKey(AC.forClass.getLocalName()))
+            {
+                String forClass = req.getUriInfo().getQueryParameters().getFirst(AC.forClass.getLocalName());
+                ban(getApplication().getService().getProxy(), forClass).close();
+            }
         }
         
         if (req.getMethod().equals(HttpMethod.POST) || req.getMethod().equals(HttpMethod.PUT) || req.getMethod().equals(HttpMethod.DELETE) || req.getMethod().equals(HttpMethod.PATCH))
