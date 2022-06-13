@@ -36,27 +36,6 @@ extension-element-prefixes="ixsl"
 exclude-result-prefixes="#all"
 >
 
-    <xsl:variable name="content-update-string" as="xs:string">
-        <![CDATA[
-            PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-
-            DELETE
-            {
-                $this ?seq $content .
-                $content rdf:value ?oldValue .
-            }
-            INSERT
-            {
-                $this ?seq $content .
-                $content rdf:value $newValue .
-            }
-            WHERE
-            {
-                $this ?seq $content .
-                $content rdf:value ?oldValue .
-            }
-        ]]>
-    </xsl:variable>
     <xsl:variable name="content-append-string" as="xs:string">
         <!-- same as in append-content.sh CLI script -->
         <![CDATA[
@@ -83,6 +62,43 @@ exclude-result-prefixes="#all"
                     }
                 }
                 BIND(iri(concat(str(rdf:), "_", str(coalesce(?next, 1)))) AS ?property)
+            }
+        ]]>
+    </xsl:variable>
+    <xsl:variable name="content-update-string" as="xs:string">
+        <![CDATA[
+            PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+
+            DELETE
+            {
+                $this ?seq $content .
+                $content rdf:value ?oldValue .
+            }
+            INSERT
+            {
+                $this ?seq $content .
+                $content rdf:value $newValue .
+            }
+            WHERE
+            {
+                $this ?seq $content .
+                $content rdf:value ?oldValue .
+            }
+        ]]>
+    </xsl:variable>
+    <xsl:variable name="content-delete-string" as="xs:string">
+        <![CDATA[
+            PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+
+            DELETE
+            {
+                $this ?seq $content .
+                $content rdf:value ?value .
+            }
+            WHERE
+            {
+                $this ?seq $content .
+                $content rdf:value ?value .
             }
         ]]>
     </xsl:variable>
@@ -297,6 +313,11 @@ exclude-result-prefixes="#all"
                             <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
                         </xsl:value-of>
                     </button>
+                    <button type="button" class="btn btn-primary btn-delete">
+                        <xsl:value-of>
+                            <xsl:apply-templates select="key('resources', 'delete', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                        </xsl:value-of>
+                    </button>
                 </div>
             </xsl:result-document>
             
@@ -463,6 +484,27 @@ exclude-result-prefixes="#all"
                 <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:otherwise>
         </xsl:choose>
+    </xsl:template>
+    
+    <!-- delete content onclick -->
+    
+    <xsl:template match="div[contains-token(@class, 'content')]//button[contains-token(@class, 'btn-delete')]" mode="ixsl:onclick">
+        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'content')]" as="element()"/>
+
+        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+
+        <xsl:variable name="content-uri" select="$container/@about" as="xs:anyURI"/>
+        <xsl:variable name="update-string" select="replace($content-update-string, '\$this', '&lt;' || ac:uri() || '&gt;')" as="xs:string"/>
+        <xsl:variable name="update-string" select="replace($update-string, '\$content', '&lt;' || $content-uri || '&gt;')" as="xs:string"/>
+        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ac:uri())" as="xs:anyURI"/>
+        <xsl:variable name="request" as="item()*">
+            <ixsl:schedule-action http-request="map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string }">
+                <xsl:call-template name="onContentUpdate">
+                    <xsl:with-param name="container" select="$container"/>
+                </xsl:call-template>
+            </ixsl:schedule-action>
+        </xsl:variable>
+        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
     
     <!-- toggle between Content as URI resource and HTML (rdf:XMLLiteral) in inline editing mode -->
@@ -756,6 +798,26 @@ exclude-result-prefixes="#all"
             </xsl:when>
             <xsl:otherwise>
                 <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ 'Could not update resource content' ])[current-date() lt xs:date('2000-01-01')]"/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:template>
+    
+    <!-- content delete -->
+
+    <xsl:template name="onContentUpdate">
+        <xsl:context-item as="map(*)" use="required"/>
+        <xsl:param name="container" as="element()"/>
+
+        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
+
+        <xsl:choose>
+            <xsl:when test="?status = 200">
+                <xsl:for-each select="$container">
+                    <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
+                </xsl:for-each>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ 'Could not delete content' ])[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
