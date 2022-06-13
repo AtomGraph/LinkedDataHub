@@ -16,16 +16,19 @@ import org.apache.jena.sparql.modify.request.UpdateVisitorBase;
 public class PatchUpdateVisitor extends UpdateVisitorBase
 {
 
-    public boolean containsNamedGraph = false;
+    private boolean containsNamedGraph = false;
 
     @Override
     public void visit(UpdateModify update)
     {
-        if (!update.getDeleteAcc().getGraph().equals(Quad.defaultGraphNodeGenerated)) containsNamedGraph = true;
-        if (!update.getInsertAcc().getGraph().equals(Quad.defaultGraphNodeGenerated)) containsNamedGraph = true;
-        
-        
-        //update.getWherePattern().visit(ev);
+        update.getDeleteAcc().getQuads().forEach(quad ->
+        {
+            if (!quad.getGraph().equals(Quad.defaultGraphNodeGenerated)) containsNamedGraph = true;
+        });
+        update.getInsertAcc().getQuads().forEach(quad ->
+        {
+            if (!quad.getGraph().equals(Quad.defaultGraphNodeGenerated)) containsNamedGraph = true;
+        });
     }
 
     public boolean isContainsNamedGraph()
