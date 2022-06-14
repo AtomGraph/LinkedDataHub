@@ -152,7 +152,7 @@ public class SignUp extends GraphStoreImpl
         if (log.isDebugEnabled()) log.debug("Constructing {}", getClass());
         
         if (!application.canAs(AdminApplication.class)) // we are supposed to be in the admin app
-            throw new IllegalStateException("Application cannot be cast to apl:AdminApplication");
+            throw new IllegalStateException("Application cannot be cast to lapp:AdminApplication");
         
         try (InputStream countries = servletConfig.getServletContext().getResourceAsStream(COUNTRY_DATASET_PATH))
         {

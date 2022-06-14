@@ -17,7 +17,7 @@
 package com.atomgraph.linkeddatahub.server.filter.response;
 
 import com.atomgraph.core.vocabulary.SD;
-import com.atomgraph.linkeddatahub.model.Agent;
+import com.atomgraph.linkeddatahub.model.auth.Agent;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.vocabulary.PROV;
 import java.io.IOException;

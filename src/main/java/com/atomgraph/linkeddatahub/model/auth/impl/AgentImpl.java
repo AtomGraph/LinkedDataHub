@@ -1,5 +1,5 @@
 /**
- *  Copyright 2020 Martynas Jusevičius <martynas@atomgraph.com>
+ *  Copyright 2019 Martynas Jusevičius <martynas@atomgraph.com>
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -14,30 +14,28 @@
  *  limitations under the License.
  *
  */
-package com.atomgraph.linkeddatahub.model.impl;
+package com.atomgraph.linkeddatahub.model.auth.impl;
 
-import com.atomgraph.core.vocabulary.SD;
-import com.atomgraph.linkeddatahub.model.RDFImport;
-import com.atomgraph.linkeddatahub.vocabulary.LDH;
-import com.atomgraph.spinrdf.vocabulary.SPIN;
+import com.atomgraph.linkeddatahub.model.auth.Agent;
+import com.atomgraph.linkeddatahub.vocabulary.FOAF;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.enhanced.EnhNode;
 import org.apache.jena.enhanced.Implementation;
 import org.apache.jena.graph.Node;
 import org.apache.jena.ontology.ConversionException;
-import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.rdf.model.impl.ResourceImpl;
 import org.apache.jena.vocabulary.RDF;
 
 /**
- * RDF import implementation.
+ * Agent implementation.
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-public class RDFImportImpl extends ImportImpl implements RDFImport
+public class AgentImpl extends ResourceImpl implements Agent
 {
-    
+
     /**
-     * The implementation factory.
+     * Jena's implementation for this class.
      */
     public static Implementation factory = new Implementation() 
     {
@@ -47,11 +45,11 @@ public class RDFImportImpl extends ImportImpl implements RDFImport
         {
             if (canWrap(node, enhGraph))
             {
-                return new RDFImportImpl(node, enhGraph);
+                return new AgentImpl(node, enhGraph);
             }
             else
             {
-                throw new ConversionException( "Cannot convert node " + node.toString() + " to Import: it does not have rdf:type ldh:RDFImport or equivalent");
+                throw new ConversionException("Cannot convert node " + node.toString() + " to Agent: it does not have rdf:type foaf:Agent or equivalent");
             }
         }
 
@@ -59,8 +57,8 @@ public class RDFImportImpl extends ImportImpl implements RDFImport
         public boolean canWrap(Node node, EnhGraph eg)
         {
             if (eg == null) throw new IllegalArgumentException("EnhGraph cannot be null");
-
-            return eg.asGraph().contains(node, RDF.type.asNode(), LDH.RDFImport.asNode());
+            
+            return eg.asGraph().contains(node, RDF.type.asNode(), FOAF.Agent.asNode());
         }
     };
     
@@ -70,21 +68,15 @@ public class RDFImportImpl extends ImportImpl implements RDFImport
      * @param n node
      * @param g graph
      */
-    public RDFImportImpl(Node n, EnhGraph g)
+    public AgentImpl(Node n, EnhGraph g)
     {
         super(n, g);
     }
-
+    
     @Override
-    public Resource getQuery()
+    public String getName()
     {
-        return getPropertyResourceValue(SPIN.query);
-    }
-
-    @Override
-    public Resource getGraphName()
-    {
-        return getPropertyResourceValue(SD.name);
+        return getURI();
     }
     
 }

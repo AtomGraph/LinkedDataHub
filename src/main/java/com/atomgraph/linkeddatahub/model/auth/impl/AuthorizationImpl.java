@@ -1,5 +1,5 @@
 /**
- *  Copyright 2019 Martynas Jusevičius <martynas@atomgraph.com>
+ *  Copyright 2022 Martynas Jusevičius <martynas@atomgraph.com>
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -14,28 +14,36 @@
  *  limitations under the License.
  *
  */
-package com.atomgraph.linkeddatahub.model.impl;
+package com.atomgraph.linkeddatahub.model.auth.impl;
 
-import com.atomgraph.linkeddatahub.model.Agent;
-import com.atomgraph.linkeddatahub.vocabulary.FOAF;
+import com.atomgraph.client.vocabulary.AC;
+import com.atomgraph.linkeddatahub.model.auth.Authorization;
+import com.atomgraph.linkeddatahub.vocabulary.ACL;
+import java.util.List;
+import java.util.stream.Collectors;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.enhanced.EnhNode;
 import org.apache.jena.enhanced.Implementation;
 import org.apache.jena.graph.Node;
 import org.apache.jena.ontology.ConversionException;
+import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.rdf.model.StmtIterator;
 import org.apache.jena.rdf.model.impl.ResourceImpl;
 import org.apache.jena.vocabulary.RDF;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- * Agent implementation.
- * 
- * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
+ *
+ * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
  */
-public class AgentImpl extends ResourceImpl implements Agent
+public class AuthorizationImpl extends ResourceImpl implements Authorization
 {
 
+    private static final Logger log = LoggerFactory.getLogger(AuthorizationImpl.class);
+
     /**
-     * Jena's implementation for this class.
+     * The implementation factory.
      */
     public static Implementation factory = new Implementation() 
     {
@@ -45,11 +53,11 @@ public class AgentImpl extends ResourceImpl implements Agent
         {
             if (canWrap(node, enhGraph))
             {
-                return new AgentImpl(node, enhGraph);
+                return new AuthorizationImpl(node, enhGraph);
             }
             else
             {
-                throw new ConversionException("Cannot convert node " + node.toString() + " to Agent: it does not have rdf:type foaf:Agent or equivalent");
+                throw new ConversionException( "Cannot convert node " + node.toString() + " to Import: it does not have rdf:type acl:Authorization or equivalent");
             }
         }
 
@@ -57,8 +65,8 @@ public class AgentImpl extends ResourceImpl implements Agent
         public boolean canWrap(Node node, EnhGraph eg)
         {
             if (eg == null) throw new IllegalArgumentException("EnhGraph cannot be null");
-            
-            return eg.asGraph().contains(node, RDF.type.asNode(), FOAF.Agent.asNode());
+
+            return eg.asGraph().contains(node, RDF.type.asNode(), ACL.Authorization.asNode());
         }
     };
     
@@ -68,15 +76,23 @@ public class AgentImpl extends ResourceImpl implements Agent
      * @param n node
      * @param g graph
      */
-    public AgentImpl(Node n, EnhGraph g)
+    public AuthorizationImpl(Node n, EnhGraph g)
     {
         super(n, g);
     }
     
     @Override
-    public String getName()
+    public List<Resource> getModes()
     {
-        return getURI();
+        StmtIterator it = listProperties(AC.mode);
+        try
+        {
+            return it.toList().stream().map(stmt -> stmt.getResource()).collect(Collectors.toList());
+        }
+        finally
+        {
+            it.close();
+        }
     }
-    
+
 }

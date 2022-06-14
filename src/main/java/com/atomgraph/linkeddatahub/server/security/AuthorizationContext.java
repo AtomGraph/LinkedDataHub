@@ -16,20 +16,26 @@
  */
 package com.atomgraph.linkeddatahub.server.security;
 
-import com.atomgraph.linkeddatahub.model.auth.Agent;
+import com.atomgraph.linkeddatahub.model.auth.Authorization;
 
 /**
- *
- * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
+ * Authorization context.
+ * 
+ * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
  */
-public interface AgentContext
+public class AuthorizationContext
 {
+
+    public final Authorization authorization;
     
-    /**
-     * Returns agent associated with this context.
-     * 
-     * @return agent resource
-     */
-    Agent getAgent();
+    public AuthorizationContext(Authorization authorization)
+    {
+        this.authorization = authorization;
+    }
+    
+    public Authorization getAuthorization()
+    {
+        return authorization;
+    }
     
 }

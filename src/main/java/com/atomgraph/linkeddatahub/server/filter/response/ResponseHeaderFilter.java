@@ -22,7 +22,7 @@ import com.atomgraph.core.util.Link;
 import com.atomgraph.core.vocabulary.SD;
 import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.apps.model.Dataset;
-import com.atomgraph.linkeddatahub.model.Agent;
+import com.atomgraph.linkeddatahub.model.auth.Agent;
 import com.atomgraph.linkeddatahub.server.filter.request.AuthorizationFilter;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
 import java.io.IOException;

@@ -59,7 +59,7 @@ import com.atomgraph.linkeddatahub.server.mapper.OntClassNotFoundExceptionMapper
 import com.atomgraph.linkeddatahub.server.mapper.jena.QueryExecExceptionMapper;
 import com.atomgraph.linkeddatahub.server.mapper.jena.RiotParseExceptionMapper;
 import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
-import com.atomgraph.linkeddatahub.model.Agent;
+import com.atomgraph.linkeddatahub.model.auth.Agent;
 import com.atomgraph.linkeddatahub.model.CSVImport;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.model.File;
@@ -77,8 +77,10 @@ import com.atomgraph.linkeddatahub.writer.ModelXSLTWriter;
 import com.atomgraph.linkeddatahub.model.Import;
 import com.atomgraph.linkeddatahub.model.RDFImport;
 import com.atomgraph.linkeddatahub.model.UserAccount;
+import com.atomgraph.linkeddatahub.model.auth.Authorization;
 import com.atomgraph.linkeddatahub.server.mapper.auth.webid.WebIDDelegationExceptionMapper;
-import com.atomgraph.linkeddatahub.model.impl.AgentImpl;
+import com.atomgraph.linkeddatahub.model.auth.impl.AgentImpl;
+import com.atomgraph.linkeddatahub.model.auth.impl.AuthorizationImpl;
 import com.atomgraph.linkeddatahub.model.impl.CSVImportImpl;
 import com.atomgraph.linkeddatahub.model.impl.FileImpl;
 import com.atomgraph.linkeddatahub.model.impl.ImportImpl;
@@ -614,13 +616,14 @@ public class Application extends ResourceConfig
             }
             
             SP.init(BuiltinPersonalities.model);
+            BuiltinPersonalities.model.add(Authorization.class, AuthorizationImpl.factory);
             BuiltinPersonalities.model.add(Agent.class, AgentImpl.factory);
             BuiltinPersonalities.model.add(UserAccount.class, UserAccountImpl.factory);
             BuiltinPersonalities.model.add(AdminApplication.class, new com.atomgraph.linkeddatahub.apps.model.admin.impl.ApplicationImplementation());
             BuiltinPersonalities.model.add(EndUserApplication.class, new com.atomgraph.linkeddatahub.apps.model.end_user.impl.ApplicationImplementation());
             BuiltinPersonalities.model.add(com.atomgraph.linkeddatahub.apps.model.Application.class, new com.atomgraph.linkeddatahub.apps.model.impl.ApplicationImplementation());
             BuiltinPersonalities.model.add(com.atomgraph.linkeddatahub.apps.model.Dataset.class, new com.atomgraph.linkeddatahub.apps.model.impl.DatasetImplementation());
-            BuiltinPersonalities.model.add(Service.class, new com.atomgraph.linkeddatahub.model.generic.ServiceImplementation(noCertClient, mediaTypes, maxGetRequestSize));
+            BuiltinPersonalities.model.add(Service.class, new com.atomgraph.linkeddatahub.model.impl.ServiceImplementation(noCertClient, mediaTypes, maxGetRequestSize));
             BuiltinPersonalities.model.add(Import.class, ImportImpl.factory);
             BuiltinPersonalities.model.add(RDFImport.class, RDFImportImpl.factory);
             BuiltinPersonalities.model.add(CSVImport.class, CSVImportImpl.factory);

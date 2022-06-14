@@ -14,7 +14,7 @@
  *  limitations under the License.
  *
  */
-package com.atomgraph.linkeddatahub.model.generic;
+package com.atomgraph.linkeddatahub.model.impl;
 
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.core.client.GraphStoreClient;
