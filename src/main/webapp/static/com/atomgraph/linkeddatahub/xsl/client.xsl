@@ -1039,27 +1039,6 @@ WHERE
         <xsl:if test="id('content-body', ixsl:page())/div[contains-token(@class, 'row-fluid')][1]/ul[contains-token(@class, 'nav-tabs')]/li[contains-token(@class, 'content-mode')][contains-token(@class, 'active')]">
             <xsl:sequence select="ixsl:call(ixsl:window(), 'history.replaceState', [ (), '', ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ac:build-uri(ac:uri(), map{ 'mode': '&ldh;ContentMode' } )) ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:if>
-        <!-- append "Create" button to content list -->
-        <!--
-        <xsl:if test="ac:mode() = '&ldh;ContentMode'">
-            <xsl:for-each select="id('content-body', ixsl:page())">
-                <xsl:result-document href="?." method="ixsl:append-content">
-                    <div class="row-fluid">
-                        <div class="offset2 span7">
-                            <p>
-                                <button type="button" class="btn btn-primary create-action add-resource-content">
-                                    <xsl:apply-templates select="key('resources', 'resource', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                                </button>
-                                <button type="button" class="btn btn-primary create-action add-xhtml-content">
-                                    <xsl:apply-templates select="key('resources', 'html', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                                </button>
-                            </p>
-                        </div>
-                    </div>
-                </xsl:result-document>
-            </xsl:for-each>
-        </xsl:if>
-        -->
         
         <xsl:call-template name="ldh:RDFDocumentLoad">
             <xsl:with-param name="uri" select="$uri"/>

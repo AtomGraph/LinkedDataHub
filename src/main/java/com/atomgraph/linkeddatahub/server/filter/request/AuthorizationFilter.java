@@ -122,7 +122,7 @@ public class AuthorizationFilter implements ContainerRequestFilter
         
         if (getApplication().isReadOnly())
         {
-            if (request.getMethod().equals(HttpMethod.GET) || request.getMethod().equals(HttpMethod.GET)) // allow read-only methods
+            if (request.getMethod().equals(HttpMethod.GET) || request.getMethod().equals(HttpMethod.HEAD)) // allow read-only methods
             {
                 if (log.isTraceEnabled()) log.trace("App is read-only, skipping authorization for request URI: {}", request.getUriInfo().getAbsolutePath());
                 return;
