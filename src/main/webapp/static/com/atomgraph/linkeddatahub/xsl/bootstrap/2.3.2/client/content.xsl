@@ -496,9 +496,9 @@ exclude-result-prefixes="#all"
     <xsl:template match="div[contains-token(@class, 'content')]//button[contains-token(@class, 'btn-delete')]" mode="ixsl:onclick" priority="1">
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'content')]" as="element()"/>
 
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
-
         <xsl:if test="ixsl:call(ixsl:window(), 'confirm', [ ac:label(key('resources', 'are-you-sure', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))) ])">
+            <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+
             <xsl:variable name="content-uri" select="$container/@about" as="xs:anyURI"/>
             <xsl:variable name="update-string" select="replace($content-update-string, '\$this', '&lt;' || ac:uri() || '&gt;')" as="xs:string"/>
             <xsl:variable name="update-string" select="replace($update-string, '\$content', '&lt;' || $content-uri || '&gt;')" as="xs:string"/>
