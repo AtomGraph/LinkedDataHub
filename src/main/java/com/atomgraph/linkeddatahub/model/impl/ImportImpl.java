@@ -50,7 +50,7 @@ public class ImportImpl extends ResourceImpl implements Import
             }
             else
             {
-                throw new ConversionException( "Cannot convert node " + node.toString() + " to Import: it does not have rdf:type apl:RDFImport or equivalent");
+                throw new ConversionException( "Cannot convert node " + node.toString() + " to Import: it does not have rdf:type ldh:RDFImport or equivalent");
             }
         }
 

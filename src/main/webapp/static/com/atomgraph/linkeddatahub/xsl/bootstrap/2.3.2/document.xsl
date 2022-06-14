@@ -118,6 +118,25 @@ extension-element-prefixes="ixsl"
         </div>
     </xsl:template>
     
+    <!-- CONTENT LIST -->
+    
+    <xsl:template match="rdf:RDF" mode="ldh:ContentList">
+        <xsl:apply-templates select="key('resources', ac:uri())" mode="#current"/>
+        
+        <div class="row-fluid">
+            <div class="offset2 span7">
+                <p>
+                    <button type="button" class="btn btn-primary create-action add-resource-content">
+                        <xsl:apply-templates select="key('resources', 'resource', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                    </button>
+                    <button type="button" class="btn btn-primary create-action add-xhtml-content">
+                        <xsl:apply-templates select="key('resources', 'html', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                    </button>
+                </p>
+            </div>
+        </div>
+    </xsl:template>
+    
     <!-- ROW BLOCK -->
     
     <xsl:template match="rdf:RDF" mode="bs2:RowBlock">

@@ -54,7 +54,7 @@ public class CSVImportImpl extends ImportImpl implements CSVImport
             }
             else
             {
-                throw new ConversionException( "Cannot convert node " + node.toString() + " to Import: it does not have rdf:type apl:CSVImport or equivalent");
+                throw new ConversionException( "Cannot convert node " + node.toString() + " to Import: it does not have rdf:type ldh:CSVImport or equivalent");
             }
         }
 

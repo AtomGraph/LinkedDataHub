@@ -766,7 +766,7 @@ LIMIT   100
                     </xsl:when>
                     <!-- check if the current document has content or its class has content -->
                     <xsl:when test="(empty($ac:mode) and $has-content) or $ac:mode = '&ldh;ContentMode'">
-                        <xsl:apply-templates select="key('resources', ac:uri())" mode="ldh:ContentList"/>
+                        <xsl:apply-templates select="." mode="ldh:ContentList"/>
 
                         <xsl:for-each select="$content-values">
                             <xsl:if test="doc-available(ac:document-uri(.))">
