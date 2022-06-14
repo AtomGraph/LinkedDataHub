@@ -211,15 +211,6 @@ WHERE
         </xsl:if>-->
         <!-- initialize wymeditor textareas -->
         <xsl:apply-templates select="key('elements-by-class', 'wymeditor', ixsl:page())" mode="ldh:PostConstruct"/>
-        <!-- add edit buttons to XHTML content -->
-        <xsl:for-each select="key('elements-by-class', 'xhtml-content', ixsl:page())">
-            <xsl:variable name="xhtml-content" as="element()">
-                <xsl:apply-templates select="." mode="content"/>
-            </xsl:variable>
-            <xsl:result-document href="?." method="ixsl:replace-content">
-                <xsl:copy-of select="$xhtml-content/*"/>
-            </xsl:result-document>
-        </xsl:for-each>
         <!-- append typeahead list after the search/URI input -->
         <xsl:for-each select="id('uri', ixsl:page())/..">
             <xsl:result-document href="?." method="ixsl:append-content">
@@ -983,11 +974,7 @@ WHERE
             <!-- set document.title which history.pushState() does not do -->
             <ixsl:set-property name="title" select="string(/html/head/title)" object="ixsl:page()"/>
 
-            <xsl:variable name="results" as="document-node()">
-                <xsl:document>
-                    <xsl:apply-templates select="." mode="content"/>
-                </xsl:document>
-            </xsl:variable>
+            <xsl:variable name="results" select="." as="document-node()"/>
 
             <!-- replace content body with the loaded XHTML -->
             <xsl:for-each select="$container">

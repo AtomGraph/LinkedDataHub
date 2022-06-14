@@ -105,26 +105,6 @@ exclude-result-prefixes="#all"
     
     <!-- TEMPLATES -->
 
-    <!-- content identity transform -->
-
-    <xsl:template match="div[contains-token(@class, 'xhtml-content')]//div[contains-token(@class, 'span7')]" mode="content" priority="1">
-        <xsl:copy>
-            <xsl:copy-of select="@*"/>
-
-            <button type="button" class="btn btn-edit pull-right">
-                <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
-            </button>
-
-            <xsl:copy-of select="*"/>
-        </xsl:copy>
-    </xsl:template>
-
-    <xsl:template match="@* | node()" mode="content">
-        <xsl:copy>
-            <xsl:apply-templates select="@* | node()" mode="#current"/>
-        </xsl:copy>
-    </xsl:template>
-
     <!-- SELECT query -->
     
     <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&sp;Select'][sp:text]" mode="ldh:RenderContent" priority="1">
@@ -381,22 +361,6 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="ixsl:call($wymeditor, 'update', [])[current-date() lt xs:date('2000-01-01')]"/> <!-- update HTML in the textarea -->
         <xsl:variable name="content-string" select="ixsl:call(ixsl:call(ixsl:window(), 'jQuery', [ $textarea ]), 'val', [])" as="xs:string"/>
         <xsl:variable name="content-value" select="ldh:parse-html('&lt;div&gt;' || $content-string || '&lt;/div&gt;', 'application/xhtml+xml')" as="document-node()"/>
-        <!-- wrap into addition divs to make "content" mode match afterwards -->
-        <xsl:variable name="content-value" as="document-node()">
-            <xsl:document>
-                <div class="xhtml-content">
-                    <div class="span7">
-                        <xsl:copy-of select="$content-value"/>
-                    </div>
-                </div>
-            </xsl:document>
-        </xsl:variable>
-        <!-- insert the "Edit" button -->
-        <xsl:variable name="content-value" as="document-node()">
-            <xsl:document>
-                <xsl:apply-templates select="$content-value" mode="content"/>
-            </xsl:document>
-        </xsl:variable>
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
