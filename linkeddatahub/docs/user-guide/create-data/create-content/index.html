@@ -94,6 +94,7 @@
                         <li><a href="../index.html" title="How to create documents, content, and instances">Create data</a><ul class="nav nav-list">
                               <li class="active"><a href="" title="Learn how to create data-driven content">Create content</a></li>
                               <li><a href="../create-documents/index.html" title="Learn how to create container and item documents">Create documents</a></li>
+                              <li><a href="../create-instances/index.html" title="Learn how to create of built-in and user-defined classes">Create instances</a></li>
                            </ul>
                         </li>
                         <li><a href="../../import-data/index.html" title="How to import data into LinkedDataHub">Import data</a><ul class="nav nav-list">
@@ -118,79 +119,138 @@
                   
                   <p class="lead">Learn how to create data-driven content</p>
                   
+                  <p>Each document (container or item) can have <dfn>content</dfn>, i.e. a list of content blocks which is shown in the <a href="../../../reference/user-interface/#layout-modes">content layout mode</a>. Currently, the following content types are supported:</p>
+                  
+                  <ul>
+                     
+                     <li>HTML fragment</li>
+                     
+                     <li>RDF Linked Data resource</li>
+                     
+                     <li><code>SELECT</code> query (rendered as a container)</li>
+                     
+                     <li>chart</li>
+                     </ul>
+                  
+                  <p>Content other than HTML content is called <dfn>resource content</dfn>. The HTML content is part of the document while resource content is simply embedded
+                     (transcluded) into the HTML page.</p>
+                  
+                  <p>The content blocks are attached to the document using <a href="https://www.w3.org/TR/rdf-schema/#ch_seq" target="_blank">RDF sequence properties</a> <samp>rdf:_1</samp>, <samp>rdf:_2</samp> etc.
+                     The number in the property URI indicates the position of the content block on the
+                     document's content list.</p>
+                  
+                  <p>There are 2 ways to create content: inline editing and edit mode.</p>
+                  
                   <div>
                      
-                     <h2 id="document-content">Document content</h2>
+                     <h2 id="inline-editing">Inline editing</h2>
                      
-                     <p>Each document (container or item) can have a list of content blocks. Currently, each
-                        block can either be an HTML fragment, an RDF resource, a <code>SELECT</code> query, or a chart. <code>SELECT</code>
-                        queries will be rendered a containers; instances of other content types will be simply
-                        embedded (transcluded) onto the document.</p>
+                     <p>Inline editing allows to manage content blocks without leaving the content layout
+                        mode.</p>
                      
-                     <p>To create content and add it to the document, follow these steps:</p>
+                     <p>To create new content, follow these steps:</p>
+                     
+                     <ol>
+                        
+                        <li>Make sure you're in the content layout mode</li>
+                        
+                        <li>At the bottom of the content list, click one of the two buttons:
+                           
+                           <ol>
+                              
+                              <li><span class="btn btn-primary">Resource</span> in order to create resource content</li>
+                              
+                              <li><span class="btn btn-primary">HTML</span> in order to create HTML content</li>
+                              </ol>
+                           </li>
+                        
+                        <li>In the case of HTML, add content in the WYSIWYG editor</li>
+                        
+                        <li>In the case of URI resource, start typing its label and select the resource from the
+                           dropdown, or paste its URI into the input</li>
+                        
+                        <li>Click the <span class="btn btn-primary">Save</span> button to save the content</li>
+                        </ol>
+                     
+                     <p>To edit content, follow these steps:</p>
+                     
+                     <ol>
+                        
+                        <li>Click the edit button on the top-right of a content block</li>
+                        
+                        <li>In the case of HTML, add content in the WYSIWYG editor</li>
+                        
+                        <li>In the case of URI resource, start typing its label and select the resource from the
+                           dropdown, or paste its URI into the input</li>
+                        </ol>
+                     
+                     <p>To remove content, follow these steps:</p>
+                     
+                     <ol>
+                        
+                        <li>Remove the content resource</li>
+                        
+                        <li>Remove the property that connected it to the document</li>
+                        </ol>
+                     </div>
+                  
+                  <div>
+                     
+                     <h2 id="edit-mode">Edit mode</h2>
+                     
+                     <p>This method requires switching the whole document into edit mode, but it is more general
+                        as it treats the content blocks as regular RDF resources.</p>
+                     
+                     <p>To create content and add it to the document in edit mode, follow these steps:</p>
                      
                      <ol>
                         
                         <li>Click the <span class="btn">Edit</span> button in the <a href="../../../reference/user-interface/#action-bar" target="_blank">action bar</a> to open the editing form for the current document</li>
                         
-                        <li>Scroll to the end of the <span class="btn btn-primary">Content</span> creation button</li>
+                        <li>Scroll to the end of the form and click the <span class="btn btn-primary">Content</span> creation button</li>
+                        
+                        <li>In the dropdown next to <samp>Value</samp> you can toggle between resource content and HTML content</li>
                         
                         <li>In the new content fieldset that appears, fill out these fields:
                            
                            <dl>
                               
-                              <dt>First</dt>
-                              
-                              <dd>In the dropdown, choose the content type: HTML or URI resource</dd>
+                              <dt>Value</dt>
                               
                               <dd>In the case of HTML, add content in the WYSIWYG editor</dd>
                               
                               <dd>In the case of URI resource, start typing its label and select the resource from the
                                  dropdown, or paste its URI into the input</dd>
-                              
-                              <dt>Rest</dt>
-                              
-                              <dd>If you have created more content blocks to follow this, select the identifier of the
-                                 next one from the dropdown. Otherwise, leave it as is.</dd>
                               </dl>
                            The heading of the block shows the content identifier (a blank node when creating,
                            a URI when editing).
                            </li>
                         
-                        <li>If this is the first instance of content for this document, go to the document's fieldset
-                           and fill out this field:
+                        <li>Link the content to the document resource using RDF sequence properties <samp>rdf:_1</samp>, <samp>rdf:_2</samp> etc. The property URI depends on the index (position) of the content in the content
+                           list;
+                           you can add new sequence properties using a dropdown at the bottom of the fieldset.
+                           If the content is first on the list, the steps are as follows:
                            
                            <dl>
                               
-                              <dt>Content</dt>
+                              <dt>_1</dt>
                               
                               <dd>Click the input field and select the content's blank node identifier from the dropdown,
-                                 or paste its URI.</dd>
-                              </dl>
-                           </li>
-                        
-                        <li>If this is <em>not</em> the first instance of content for this document, go to the currently last content
-                           block (the one whose <samp>Rest</samp> property value is <samp>nil</samp>):
-                           
-                           <dl>
-                              
-                              <dt>Rest</dt>
-                              
-                              <dd>Click the input field and select the blank node <dfn>identifier</dfn> of the new content from the dropdown, or paste its URI.</dd>
+                                 or paste its URI if it already has one.</dd>
                               </dl>
                            </li>
                         
                         <li>Click <span class="btn btn-primary">Save</span> at the bottom of the form to submit it</li>
                         </ol>
                      
-                     <div class="alert alert-info">
+                     <p>To remove content, follow these steps:</p>
+                     
+                     <ol>
                         
-                        <p>We are aware that this is quite cumbersome editing workflow that represents the underlying
-                           RDF structure too directly, but it does the job for now. In the following version,
-                           we will integrate an editor into the
-                           content layout, so that adding or changing contents will not require switching to
-                           the editing layout mode.</p>
-                        </div>
+                        <li>remove the content resource</li>
+                        
+                        <li>remove the property that connected it to the document</li>
+                        </ol>
                      </div>
                   <!--
     <div>

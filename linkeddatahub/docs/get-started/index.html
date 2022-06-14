@@ -94,6 +94,7 @@
                         <li><a href="../user-guide/create-data/index.html" title="How to create documents, content, and instances">Create data</a><ul class="nav nav-list">
                               <li><a href="../user-guide/create-data/create-content/index.html" title="Learn how to create data-driven content">Create content</a></li>
                               <li><a href="../user-guide/create-data/create-documents/index.html" title="Learn how to create container and item documents">Create documents</a></li>
+                              <li><a href="../user-guide/create-data/create-instances/index.html" title="Learn how to create of built-in and user-defined classes">Create instances</a></li>
                            </ul>
                         </li>
                         <li><a href="../user-guide/import-data/index.html" title="How to import data into LinkedDataHub">Import data</a><ul class="nav nav-list">
@@ -162,73 +163,43 @@
                   
                   <div>
                      
-                     <h2 id="create-container">Create a container</h2>
+                     <h2 id="create-document">Create a document</h2>
                      
-                     <p>We will need to containers for our SKOS instances: one for the concepts and one for
-                        the concept schemes.</p>
+                     <p>You will need to create documents if you want to store data in LinkedDataHub. Documents
+                        are RDF Linked Data resources as well as named graphs in the application's dataset.</p>
                      
-                     <p>Use <samp>Concepts</samp> as title and <samp>concepts</samp> as URI slug for the former; <samp>Concept schemes</samp> as title and <samp>concept-schemes</samp> as URI slug for the latter.</p>
+                     <p>There are types of documents supported by LinkedDataHub: containers and items. Containers
+                        can have children documents, just like folders in a filesystem. Items usually contain
+                        content and/or are paired with
+                        non-informations resources such as abstract concepts or physical objects.</p>
                      
                      <p class="lead"><a href="../user-guide/create-document/" target="_blank">Follow a tutorial to create a container.</a></p>
                      </div>
                   
                   <div>
                      
-                     <h2 id="change-model">Change the model</h2>
+                     <h2 id="create-instance">Create an instance</h2>
                      
-                     <p>In order to be able to manage SKOS concepts and concept schemes, we need to create
-                        <a href="../reference/administration/model/#classes" target="_blank">classes</a> that represent them in the <a href="../reference/administration/model/" target="_blank">model</a> of our dataspace. Not only will they serve as RDF types of the instances, but will
-                        have <a href="../reference/administration/model/#constructors" target="_blank">constructors</a> attached that define the default properties and their (data)types for that class.</p>
+                     <p>Out of the box, you can create instances of classes that LinkedDataHub ships with
+                        by default. Those are built-in classes in system ontologies such as container and
+                        item mentioned above, all forms of SPARQL queries, charts, data imports, files etc.</p>
                      
-                     <p>Model is managed in the <a href="../reference/dataspace/#admin-apps" target="_blank">administration application</a> of a dataspace. Head there by clicking the <span class="btn btn-settings">Settings</span> in the <a href="../reference/user-interface/#action-bar" target="_blank">action bar</a> and then choosing <samp>Administration</samp>.</p>
+                     <p>LinkedDataHub also allows creation of instances of user-defined classes from ontologies
+                        imported by the user.</p>
                      
-                     <div class="alert alert-info">
-                        
-                        <p>In order to change the <a href="../reference/administration/acl/" target="_blank">access control</a> or the <a href="../reference/administration/model/" target="_blank">model</a> of a dataspace,
-                           you need to be an administrator, i.e. a member of the <a href="../reference/administration/acl/#groups" target="_blank">owners group</a>.</p>
-                        </div>
-                     
-                     <p class="lead"><a href="../user-guide/change-model/" target="_blank">Follow a tutorial to change the model: a class and its constructor.</a></p>
+                     <p class="lead"><a href="../user-guide/create-data/create-instances/" target="_blank">Learn how to create instances of built-in and user-defined classes.</a></p>
                      </div>
                   
                   <div>
                      
-                     <h2 id="create-instance">Create an instance</h2>
+                     <h2 id="change-model">Change the model</h2>
                      
-                     <p>Go back to the end-user application and refresh the page — the previously created
-                        classes should now be available for instance creation. Follow these steps:</p>
+                     <p>In order to be able to instance data, we need to create <a href="../reference/administration/model/#classes" target="_blank">classes</a> that represent them (and ontologies where those classes are defined) in the <a href="../reference/administration/model/" target="_blank">model</a> of our dataspace. Not only will they serve as RDF types of the instances, but will
+                        have <a href="../reference/administration/model/#constructors" target="_blank">constructors</a> attached that define the default properties and their (data)types for that class.</p>
                      
-                     <ol>
-                        
-                        <li>Click the <span class="btn btn-primary">Create</span> dropdown in the top-left corner</li>
-                        
-                        <li>Click on <samp>Instance</samp> in the drop-down list that appears. An editing form will open.</li>
-                        
-                        <li>In the resource of <samp>Type</samp> <samp>Instance</samp>, click on the <samp>Instance</samp> typeahead input, type <samp>Concept</samp> and select the class from the list</li>
-                        
-                        <li>Fill out the mandatory fields in the form that appeared:
-                           
-                           <dl>
-                              
-                              <dt>Preferred label</dt>
-                              
-                              <dd>Enter concept label</dd>
-                              
-                              <dt>Title</dt>
-                              
-                              <dd>Enter document title</dd>
-                              </dl>
-                           </li>
-                        
-                        <li>Click <span class="btn btn-primary">Save</span></li>
-                        </ol>
-                     
-                     <p>A concept and its item should appear with the URI <samp>https://localhost:4443/concepts/{slug}/</samp>, depending on the optional URI slug value (a unique UUID string is assigned by default).</p>
-                     
-                     <p>Congratulations! You have just created the first concept instance based on your model.</p>
-                     
-                     <p class="lead"><a href="../reference/data-management/documents/" target="_blank">Read more about document management.</a></p>
+                     <p class="lead"><a href="../user-guide/change-model/" target="_blank">Follow a tutorial to change the model: create a class and its constructor.</a></p>
                      </div>
+                  
                   
                   <div>
                      

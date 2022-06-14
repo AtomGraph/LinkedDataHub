@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml">
    <head>
       <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
-      <title>LinkedDataHub v3 - Create documents</title>
-      <meta name="description" content="Learn how to create container and item documents"/>
+      <title>LinkedDataHub v3 - Create instances</title>
+      <meta name="description" content="Learn how to create of built-in and user-defined classes"/>
       <link rel="up" href="../index.html"/>
       <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/css/bootstrap.css" rel="stylesheet" type="text/css"/>
       <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/css/bootstrap-responsive.css" rel="stylesheet" type="text/css"/>
@@ -93,8 +93,8 @@
                         <li><a href="../../change-system-base-uri/index.html" title="How to change host, port, or the path LinkedDataHub service runs on">Change system base URI</a></li>
                         <li><a href="../index.html" title="How to create documents, content, and instances">Create data</a><ul class="nav nav-list">
                               <li><a href="../create-content/index.html" title="Learn how to create data-driven content">Create content</a></li>
-                              <li class="active"><a href="" title="Learn how to create container and item documents">Create documents</a></li>
-                              <li><a href="../create-instances/index.html" title="Learn how to create of built-in and user-defined classes">Create instances</a></li>
+                              <li><a href="../create-documents/index.html" title="Learn how to create container and item documents">Create documents</a></li>
+                              <li class="active"><a href="" title="Learn how to create of built-in and user-defined classes">Create instances</a></li>
                            </ul>
                         </li>
                         <li><a href="../../import-data/index.html" title="How to import data into LinkedDataHub">Import data</a><ul class="nav nav-list">
@@ -113,91 +113,72 @@
             </nav>
             <main class="span7">
                <header>
-                  <h1>Create documents</h1>
+                  <h1>Create instances</h1>
                </header>
                <div>
                   
-                  <p class="lead">Learn how to create container and item documents</p>
+                  <p class="lead">Learn how to create of built-in and user-defined classes</p>
                   
                   <p class="text-center">
-                     <iframe allowfullscreen="allowfullscreen" frameborder="0" height="315" src="https://www.youtube.com/embed/paetjTkFBxE" width="560"></iframe>
+                     <iframe allowfullscreen="allowfullscreen" frameborder="0" height="315" src="https://www.youtube.com/embed/i1hBLUGDhGM" width="560"></iframe>
                      </p>
                   
-                  <p>To create a container document (which can have <a href="../../../reference/data-management/documents/#hierarchy" target="_blank">children documents</a>), follow these steps:</p>
+                  <p><dfn>Built-in classes</dfn> (such as <samp>Container</samp>, <samp>Item</samp>, <samp>SELECT</samp> etc.) ship with <a href="../../../reference/administration/model/#ontologies">system ontologies</a> in LinkedDataHub while <dfn>user-defined classes</dfn> come from ontologies imported by the user (see the user guide on <a href="../../change-model/">changing the model</a> on how to do that).</p>
                   
-                  <div class="tabbable">
+                  <div>
                      
-                     <ul class="nav nav-tabs">
-                        
-                        <li class="active"><a>User interface</a></li>
-                        
-                        <li><a>Command line interface</a></li>
-                        </ul>
+                     <h2>Built-in classes</h2>
                      
-                     <div class="tab-content">
+                     <p>To create instances of built-in classes, follow these steps:</p>
+                     
+                     <ol>
                         
-                        <div class="tab-pane active">
-                           
-                           <div>
-                              
-                              <ol>
-                                 
-                                 <li>Click the <span class="btn btn-primary">Create</span> dropdown in the top-left corner</li>
-                                 
-                                 <li>Click on <samp>Container</samp> in the drop-down list that appears</li>
-                                 
-                                 <li>Fill out the mandatory fields in the form:
-                                    
-                                    <dl>
-                                       
-                                       <dt>Title</dt>
-                                       
-                                       <dd>Enter <samp>Concepts</samp></dd>
-                                       
-                                       <dt>URI slug</dt>
-                                       
-                                       <dd>Enter <samp>concepts</samp> — this will be the relative path of the container</dd>
-                                       </dl>
-                                    </li>
-                                 
-                                 <li>Click <span class="btn btn-primary">Save</span></li>
-                                 </ol>
-                              
-                              <p>See how below:</p>
-                              
-                              <p>
-                                 <object data="../../../files/videos/Create.webm" type="video/webm"></object>
-                                 </p>
-                              </div>
-                           </div>
+                        <li>Click the <span class="btn btn-primary">Create</span> dropdown in the top-left corner</li>
                         
-                        <div class="tab-pane">
-                           
-                           <div>
-                              
-                              <p>Replace <code>${OWNER_KEY_PASSWORD}</code> with its value from the <samp>.env</samp> file and execute the following command:</p>
-                              
-                              <pre>pushd . &amp;&amp; cd "$SCRIPT_ROOT"
-
-./create-container.sh \
-  -b "https://localhost:4443/" \
-  -f certs/owner.p12.pem \
-  -p "$OWNER_KEY_PASSWORD" \
-  --title "$title" \
-  --slug "$slug" \
-  --parent "https://localhost:4443/" \
-
-popd</pre>
-                              </div>
-                           </div>
-                        </div>
+                        <li>In the drop-down list that appears click on the menu item of the class you want to
+                           create an instance for. An editing form will open.</li>
+                        
+                        <li>Fill out the fields in the form that appeared. The mandatory properties are rendered
+                           in bold, without providing their values you will not be able to save the instance
+                           form.</li>
+                        
+                        <li>Click <span class="btn btn-primary">Save</span></li>
+                        
+                        <li>In case there were errors such as missing or malformed values, an error message will
+                           be shown and the offending property and value will be highlighted. Fix them or you
+                           will not be able to save the instance form.</li>
+                        </ol>
+                     
+                     <p>You will be redirected to the document of the newly created instance.</p>
                      </div>
                   
-                  <p>A container titled <samp>Concepts</samp> should appear with the URI <a href="https://localhost:4443/concepts/" target="_blank">https://localhost:4443/concepts/</a>.</p>
-                  
-                  <p>To create an item document, choose <samp>Item</samp> at step #2 above.</p>
-                  
-                  <p class="lead"><a href="../../../reference/data-management/documents/" target="_blank">Read more about document management.</a></p>
+                  <div>
+                     
+                     <h2>User-defined classes</h2>
+                     
+                     <p>To create instances of user-defined classes, follow these steps:</p>
+                     
+                     <ol>
+                        
+                        <li>Click the <span class="btn btn-primary">Create</span> dropdown in the top-left corner</li>
+                        
+                        <li>Click on <samp>Instance</samp> in the drop-down list that appears. An editing form will open.</li>
+                        
+                        <li>In the resource of <samp>Type</samp> <samp>Instance</samp>, click on the <samp>Instance</samp> typeahead input, type the class name and select the class from the list</li>
+                        
+                        <li>Fill out the fields in the form that appeared. The mandatory properties are rendered
+                           in bold, without providing their values you will not be able to save the instance
+                           form.</li>
+                        
+                        <li>In case there were errors such as missing or malformed values, an error message will
+                           be shown and the offending property and value will be highlighted. Fix them or you
+                           will not be able to save the instance form.</li>
+                        
+                        <li>Click <span class="btn btn-primary">Save</span></li>
+                        </ol>
+                     
+                     <p>You will be redirected to the document of the newly created instance.</p>
+                     </div>
                   </div>
                <nav></nav>
             </main>

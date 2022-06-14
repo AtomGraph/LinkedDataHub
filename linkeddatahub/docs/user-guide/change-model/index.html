@@ -94,6 +94,7 @@
                         <li><a href="../create-data/index.html" title="How to create documents, content, and instances">Create data</a><ul class="nav nav-list">
                               <li><a href="../create-data/create-content/index.html" title="Learn how to create data-driven content">Create content</a></li>
                               <li><a href="../create-data/create-documents/index.html" title="Learn how to create container and item documents">Create documents</a></li>
+                              <li><a href="../create-data/create-instances/index.html" title="Learn how to create of built-in and user-defined classes">Create instances</a></li>
                            </ul>
                         </li>
                         <li><a href="../import-data/index.html" title="How to import data into LinkedDataHub">Import data</a><ul class="nav nav-list">
@@ -122,8 +123,7 @@
                      
                      <h2 id="change-model">Change the model</h2>
                      
-                     <p>In order to be able to manage SKOS concepts and concept schemes, we need to create
-                        <a href="../../reference/administration/model/#classes" target="_blank">classes</a> that represent them in the <a href="../../reference/administration/model/" target="_blank">model</a> of our dataspace. Not only will they serve as RDF types of the instances, but will
+                     <p>In order to be able to manage instances, we need to create <a href="../../reference/administration/model/#classes" target="_blank">classes</a> that represent them in the <a href="../../reference/administration/model/" target="_blank">model</a> of our dataspace. Not only will they serve as RDF types of the instances, but will
                         have <a href="../../reference/administration/model/#constructors" target="_blank">constructors</a> attached that define the default properties and their (data)types for that class.</p>
                      
                      <p>Model is managed in the <a href="../../reference/dataspace/#admin-apps" target="_blank">administration application</a> of a dataspace. Head there by clicking the <span class="btn btn-settings">Settings</span> in the <a href="../../reference/user-interface/#action-bar" target="_blank">action bar</a> and then choosing <samp>Administration</samp>.</p>
@@ -133,6 +133,8 @@
                         <p>In order to manage the <a href="../../reference/administration/acl/" target="_blank">access control</a>, or the <a href="../../reference/administration/model/" target="_blank">model</a> of a dataspace,
                            the agent needs to be a member of the <a href="../../reference/administration/acl/#groups" target="_blank">owners group</a>.</p>
                         </div>
+                     
+                     <p>We will use the SKOS ontology and its <samp>skos:Concept</samp> class as an example in this guide.</p>
                      </div>
                   
                   <div>
@@ -254,7 +256,7 @@ popd</pre>
                      <h2 id="create-constraint">Create a constraint</h2>
                      
                      <p>To control data quality, we probably want to make some of the instance properties
-                        mandatory. For example, a <samp>Concept</samp> instance should always have a <code>skos:prefLabel</code> value.</p>
+                        mandatory. For example, a <samp>skos:Concept</samp> instance should always have a <code>skos:prefLabel</code> value.</p>
                      
                      <div class="tabbable">
                         
@@ -311,9 +313,9 @@ popd</pre>
                                  <pre>pushd . &amp;&amp; cd "$SCRIPT_ROOT"/admin/model
 
 ./create-property-constraint.sh \
-  -b "${base}" \
-  -f "${cert_pem_file}" \
-  -p "${cert_password}" \
+  -b "$base" \
+  -f "$cert_pem_file" \
+  -p "$cert_password" \
   --uri "https://localhost:4443/ns#MissingPrefLabel" \
   --label "Missing skos:prefLabel" \
   --slug missing-pref-label \
@@ -388,10 +390,10 @@ popd</pre>
                                  <pre>pushd . &amp;&amp; cd "$SCRIPT_ROOT"/admin/model
 
 ./create-class.sh \
-  -b "${base}" \
-  -f "${cert_pem_file}" \
-  -p "${cert_password}" \
-  --uri "${base}ns#Concept" \
+  -b "$base" \
+  -f "$cert_pem_file" \
+  -p "$cert_password" \
+  --uri "http://www.w3.org/2004/02/skos/core#Concept" \
   --label "Concept" \
   --slug concept \
   --constructor "{$base}ns#ConstructConcept" \
