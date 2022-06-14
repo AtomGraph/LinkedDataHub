@@ -349,4 +349,7 @@
         <rdfs:label xml:lang="en-US">Explore</rdfs:label>
         <rdfs:label xml:lang="es-ES">Explorar</rdfs:label>
     </rdf:Description>
+    <rdf:Description rdf:about="are-you-sure">
+        <rdfs:label xml:lang="en-US">Are you sure?</rdfs:label>
+    </rdf:Description>
 </rdf:RDF>

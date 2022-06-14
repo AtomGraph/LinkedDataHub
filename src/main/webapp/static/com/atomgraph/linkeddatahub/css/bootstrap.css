@@ -46,7 +46,7 @@ li button.btn-add-data, li button.btn-add-ontology { text-align: left; width: 10
 .dropdown-menu .btn-logo { background-position: 12px center; padding-left: 40px; }
 .btn.btn-toggle-content { font-size: 0; color: transparent; background-image: url('../icons/baseline-expand_less-24px.svg'); background-position: center center; background-repeat: no-repeat; width: 48px; }
 .btn.btn-ban { font-size: 0; color: transparent; background-image: url('../icons/ic_refresh_black_24px.svg'); background-position: center center; background-repeat: no-repeat; width: 48px; }
-.btn.btn-delete { font-size: 0; color: transparent; background-image: url('../icons/ic_delete_forever_black_24px.svg'); background-position: center center; background-repeat: no-repeat; width: 48px; }
+.action-bar .btn.btn-delete { font-size: 0; color: transparent; background-image: url('../icons/ic_delete_forever_black_24px.svg'); background-position: center center; background-repeat: no-repeat; width: 48px; }
 .btn.dropdown-toggle.btn-export { text-align: right; font-size: 0; color: transparent; background-image: url('../icons/ic_file_download_black_24px.svg'); background-position: center center; background-repeat: no-repeat; width: 64px; }
 .btn.dropdown-toggle.btn-acl { text-align: right; font-size: 0; color: transparent; background-image: url('../icons/baseline-remove_red_eye-24px.svg'); background-position: center center; background-repeat: no-repeat; width: 64px; }
 .btn.dropdown-toggle.btn-read { text-align: right; font-size: 0; color: transparent; background-image: url('../icons/ic_details_black_24px.svg'); background-position: center center; background-repeat: no-repeat; width: 64px; }
@@ -119,6 +119,7 @@ button.add-typeahead { width: 219px; }
 .btn.btn-remove-property, .btn.btn-remove-resource { background-image: url('../icons/ic_remove_black_24px.svg'); background-position: center center; background-repeat: no-repeat; height: 30px; width: 30px; }
 .btn.btn-add { background-image: url('../icons/ic_add_black_24px.svg'); background-position: center center; background-repeat: no-repeat; height: 30px; width: 30px; }
 .btn.btn-save { background-image: url('../icons/ic_save_white_24px.svg'); background-position: 12px center; background-repeat: no-repeat; padding-left: 40px; }
+.btn.btn-delete { background-image: url('../icons/ic_delete_forever_black_24px.svg'); background-position: 12px center; background-repeat: no-repeat; padding-left: 40px; }
 .btn.btn-run-query { background-image: url('../icons/baseline-play_arrow-24px.svg'); background-position: 12px center; background-repeat: no-repeat; padding-left: 40px; }
 .modal-constructor { margin-left: 0; width: 80%; left: 10%; }
 .form-horizontal span.control-label { padding-top: 1px; }
