@@ -756,8 +756,7 @@ exclude-result-prefixes="#all"
             <xsl:when test="?status = 200">
                 <xsl:for-each select="$container/div[contains-token(@class, 'span7')]">
                     <xsl:result-document href="?." method="ixsl:replace-content">
-                        <!-- strip the div.xhtml-content/div.span7 wrappers -->
-                        <xsl:copy-of select="$content-value/div/div/*"/>
+                        <xsl:copy-of select="$content-value"/>
                     </xsl:result-document>
                 </xsl:for-each>
             </xsl:when>
