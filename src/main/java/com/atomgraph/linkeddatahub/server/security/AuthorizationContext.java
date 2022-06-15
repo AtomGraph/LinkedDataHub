@@ -47,8 +47,12 @@ public class AuthorizationContext
         ResIterator it = authorizationModel.listSubjectsWithProperty(RDF.type, ACL.Authorization);
         try
         {
-            Authorization auth =  it.next().as(Authorization.class);
-            modeURIs.addAll(auth.getModeURIs());
+            while (it.hasNext())
+            {
+                Authorization auth = it.next().as(Authorization.class);
+                modeURIs.addAll(auth.getModeURIs());
+            }
+            
             return modeURIs;
         }
         finally
