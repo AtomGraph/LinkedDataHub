@@ -21,9 +21,9 @@ import com.atomgraph.core.vocabulary.SD;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.client.SesameProtocolClient;
 import com.atomgraph.linkeddatahub.server.exception.auth.AuthorizationException;
-import com.atomgraph.linkeddatahub.model.Agent;
+import com.atomgraph.linkeddatahub.model.auth.Agent;
 import com.atomgraph.linkeddatahub.model.Service;
-import com.atomgraph.linkeddatahub.server.security.AgentSecurityContext;
+import com.atomgraph.linkeddatahub.server.security.AuthorizationContext;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
 import com.atomgraph.linkeddatahub.vocabulary.LACL;
 import com.atomgraph.processor.vocabulary.LDT;
@@ -146,8 +146,7 @@ public class AuthorizationFilter implements ContainerRequestFilter
             throw new AuthorizationException("Access not authorized for request URI", request.getUriInfo().getAbsolutePath(), accessMode);
         }
         else // authorization successful
-            if (request.getSecurityContext().getUserPrincipal() instanceof Agent)
-                ((AgentSecurityContext)request.getSecurityContext()).getAgent().getModel().add(authorization.getModel()); // append authorization metadata to Agent's model
+            request.setProperty(AuthorizationContext.class.getCanonicalName(), new AuthorizationContext(authorization.getModel()));
     }
     
     /**

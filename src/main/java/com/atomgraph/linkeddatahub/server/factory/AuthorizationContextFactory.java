@@ -16,46 +16,41 @@
  */
 package com.atomgraph.linkeddatahub.server.factory;
 
-import com.atomgraph.linkeddatahub.server.security.AgentContext;
+import com.atomgraph.linkeddatahub.server.security.AuthorizationContext;
 import java.util.Optional;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.Context;
-import javax.ws.rs.ext.Provider;
 import org.glassfish.hk2.api.Factory;
 import org.glassfish.hk2.api.ServiceLocator;
 
 /**
- * JAX-RS factory for agent context.
- * <code>SecurityContext</code> cannot be used outside JAX-RS classes (<samp>Not inside a request scope</samp>).
- * Therefore we need a specialized agent context class.
- * 
- * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
+ *
+ * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
  */
-@Provider
-public class AgentContextFactory implements Factory<Optional<AgentContext>>
+public class AuthorizationContextFactory implements Factory<Optional<AuthorizationContext>>
 {
 
     @Context private ServiceLocator serviceLocator;
 
     @Override
-    public Optional<AgentContext> provide()
+    public Optional<AuthorizationContext> provide()
     {
-        return getAgentContext();
+        return getAuthorizationContext();
     }
 
     @Override
-    public void dispose(Optional<AgentContext> arg0)
+    public void dispose(Optional<AuthorizationContext> arg0)
     {
     }
     
     /**
-     * Retrieves agent context from the request context.
+     * Retrieves authorization context from the request context.
      * 
      * @return optional ontology resource
      */
-    public Optional<AgentContext> getAgentContext()
+    public Optional<AuthorizationContext> getAuthorizationContext()
     {
-        return Optional.ofNullable((AgentContext)getContainerRequestContext().getProperty(AgentContext.class.getCanonicalName()));
+        return Optional.ofNullable((AuthorizationContext)getContainerRequestContext().getProperty(AuthorizationContext.class.getCanonicalName()));
     }
     
     /**

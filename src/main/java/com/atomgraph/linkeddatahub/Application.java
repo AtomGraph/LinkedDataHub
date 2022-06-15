@@ -59,7 +59,7 @@ import com.atomgraph.linkeddatahub.server.mapper.OntClassNotFoundExceptionMapper
 import com.atomgraph.linkeddatahub.server.mapper.jena.QueryExecExceptionMapper;
 import com.atomgraph.linkeddatahub.server.mapper.jena.RiotParseExceptionMapper;
 import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
-import com.atomgraph.linkeddatahub.model.Agent;
+import com.atomgraph.linkeddatahub.model.auth.Agent;
 import com.atomgraph.linkeddatahub.model.CSVImport;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.model.File;
@@ -77,8 +77,10 @@ import com.atomgraph.linkeddatahub.writer.ModelXSLTWriter;
 import com.atomgraph.linkeddatahub.model.Import;
 import com.atomgraph.linkeddatahub.model.RDFImport;
 import com.atomgraph.linkeddatahub.model.UserAccount;
+import com.atomgraph.linkeddatahub.model.auth.Authorization;
 import com.atomgraph.linkeddatahub.server.mapper.auth.webid.WebIDDelegationExceptionMapper;
-import com.atomgraph.linkeddatahub.model.impl.AgentImpl;
+import com.atomgraph.linkeddatahub.model.auth.impl.AgentImpl;
+import com.atomgraph.linkeddatahub.model.auth.impl.AuthorizationImpl;
 import com.atomgraph.linkeddatahub.model.impl.CSVImportImpl;
 import com.atomgraph.linkeddatahub.model.impl.FileImpl;
 import com.atomgraph.linkeddatahub.model.impl.ImportImpl;
@@ -88,6 +90,7 @@ import com.atomgraph.linkeddatahub.server.event.AuthorizationCreated;
 import com.atomgraph.linkeddatahub.server.event.SignUp;
 import com.atomgraph.linkeddatahub.server.factory.AgentContextFactory;
 import com.atomgraph.linkeddatahub.server.factory.ApplicationFactory;
+import com.atomgraph.linkeddatahub.server.factory.AuthorizationContextFactory;
 import com.atomgraph.linkeddatahub.server.filter.request.ApplicationFilter;
 import com.atomgraph.linkeddatahub.server.filter.request.auth.WebIDFilter;
 import com.atomgraph.linkeddatahub.server.io.ValidatingModelProvider;
@@ -109,6 +112,7 @@ import com.atomgraph.linkeddatahub.server.mapper.auth.oauth2.TokenExpiredExcepti
 import com.atomgraph.linkeddatahub.server.model.impl.Dispatcher;
 import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
+import com.atomgraph.linkeddatahub.server.security.AuthorizationContext;
 import com.atomgraph.linkeddatahub.server.util.MessageBuilder;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
 import com.atomgraph.linkeddatahub.vocabulary.FOAF;
@@ -614,6 +618,7 @@ public class Application extends ResourceConfig
             }
             
             SP.init(BuiltinPersonalities.model);
+            BuiltinPersonalities.model.add(Authorization.class, AuthorizationImpl.factory);
             BuiltinPersonalities.model.add(Agent.class, AgentImpl.factory);
             BuiltinPersonalities.model.add(UserAccount.class, UserAccountImpl.factory);
             BuiltinPersonalities.model.add(AdminApplication.class, new com.atomgraph.linkeddatahub.apps.model.admin.impl.ApplicationImplementation());
@@ -792,6 +797,15 @@ public class Application extends ResourceConfig
             protected void configure()
             {
                 bindFactory(AgentContextFactory.class).to(new TypeLiteral<Optional<AgentContext>>() {}).
+                in(RequestScoped.class);
+            }
+        });
+        register(new AbstractBinder()
+        {
+            @Override
+            protected void configure()
+            {
+                bindFactory(AuthorizationContextFactory.class).to(new TypeLiteral<Optional<AuthorizationContext>>() {}).
                 in(RequestScoped.class);
             }
         });

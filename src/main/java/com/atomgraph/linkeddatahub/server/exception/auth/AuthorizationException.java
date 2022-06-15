@@ -16,7 +16,7 @@
  */
 package com.atomgraph.linkeddatahub.server.exception.auth;
 
-import com.atomgraph.linkeddatahub.model.Agent;
+import com.atomgraph.linkeddatahub.model.auth.Agent;
 import org.apache.jena.rdf.model.Resource;
 import java.net.URI;
 

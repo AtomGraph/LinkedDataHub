@@ -1,5 +1,5 @@
 /**
- *  Copyright 2022 Martynas Jusevičius <martynas@atomgraph.com>
+ *  Copyright 2019 Martynas Jusevičius <martynas@atomgraph.com>
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -14,22 +14,17 @@
  *  limitations under the License.
  *
  */
-package com.atomgraph.linkeddatahub.server.security;
+package com.atomgraph.linkeddatahub.model.auth;
 
-import com.atomgraph.linkeddatahub.model.auth.Agent;
+import java.security.Principal;
+import org.apache.jena.rdf.model.Resource;
 
 /**
- *
+ * Software or human agent identified by URI.
+ * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-public interface AgentContext
+public interface Agent extends Resource, Principal
 {
-    
-    /**
-     * Returns agent associated with this context.
-     * 
-     * @return agent resource
-     */
-    Agent getAgent();
-    
+
 }

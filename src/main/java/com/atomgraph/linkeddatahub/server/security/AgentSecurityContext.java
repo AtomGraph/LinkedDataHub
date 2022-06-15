@@ -16,7 +16,7 @@
  */
 package com.atomgraph.linkeddatahub.server.security;
 
-import com.atomgraph.linkeddatahub.model.Agent;
+import com.atomgraph.linkeddatahub.model.auth.Agent;
 import javax.ws.rs.core.SecurityContext;
 import java.security.Principal;
 import org.apache.jena.sparql.vocabulary.FOAF;
@@ -27,7 +27,7 @@ import org.slf4j.LoggerFactory;
  * Security context for an agent identified by URI.
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
- * @see com.atomgraph.linkeddatahub.model.Agent
+ * @see com.atomgraph.linkeddatahub.model.auth.Agent
  */
 public abstract class AgentSecurityContext implements SecurityContext, AgentContext
 {
