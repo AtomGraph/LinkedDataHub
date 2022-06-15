@@ -710,9 +710,11 @@ extension-element-prefixes="ixsl"
             </xsl:if>
             
             <div class="span7 offset2">
-                <button type="button" class="btn btn-edit pull-right">
-                    <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
-                </button>
+                <xsl:if test="$acl:mode = '&acl;Write'">
+                    <button type="button" class="btn btn-edit pull-right">
+                        <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
+                    </button>
+                </xsl:if>
                 
                 <xsl:apply-templates select="rdf:value[@rdf:parseType = 'Literal']/xhtml:div" mode="ldh:XHTMLContent"/>
             </div>
