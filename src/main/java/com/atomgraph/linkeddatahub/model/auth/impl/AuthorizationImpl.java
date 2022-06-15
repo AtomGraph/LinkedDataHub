@@ -19,6 +19,7 @@ package com.atomgraph.linkeddatahub.model.auth.impl;
 import com.atomgraph.client.vocabulary.AC;
 import com.atomgraph.linkeddatahub.model.auth.Authorization;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
+import java.net.URI;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.apache.jena.enhanced.EnhGraph;
@@ -93,6 +94,12 @@ public class AuthorizationImpl extends ResourceImpl implements Authorization
         {
             it.close();
         }
+    }
+
+    @Override
+    public List<URI> getModeURIs()
+    {
+        return getModes().stream().map(resource -> URI.create(resource.getURI())).collect(Collectors.toList());
     }
 
 }

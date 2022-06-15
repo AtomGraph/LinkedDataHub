@@ -24,7 +24,6 @@ import com.atomgraph.linkeddatahub.server.exception.auth.AuthorizationException;
 import com.atomgraph.linkeddatahub.model.auth.Agent;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.model.auth.Authorization;
-import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.server.security.AuthorizationContext;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
 import com.atomgraph.linkeddatahub.vocabulary.LACL;
@@ -124,7 +123,7 @@ public class AuthorizationFilter implements ContainerRequestFilter
         
         if (getApplication().isReadOnly())
         {
-            if (request.getMethod().equals(HttpMethod.GET)) // allow read-only method
+            if (request.getMethod().equals(HttpMethod.GET) || request.getMethod().equals(HttpMethod.HEAD)) // allow read-only methods
             {
                 if (log.isTraceEnabled()) log.trace("App is read-only, skipping authorization for request URI: {}", request.getUriInfo().getAbsolutePath());
                 return;
@@ -148,9 +147,7 @@ public class AuthorizationFilter implements ContainerRequestFilter
             throw new AuthorizationException("Access not authorized for request URI", request.getUriInfo().getAbsolutePath(), accessMode);
         }
         else // authorization successful
-        {
-            request.setProperty(AgentContext.class.getCanonicalName(), new AuthorizationContext(authorization.as(Authorization.class)));
-        }
+            request.setProperty(AuthorizationContext.class.getCanonicalName(), new AuthorizationContext(authorization.as(Authorization.class)));
     }
     
     /**

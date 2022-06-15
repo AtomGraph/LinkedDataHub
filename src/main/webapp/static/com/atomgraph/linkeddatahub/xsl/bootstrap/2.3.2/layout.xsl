@@ -101,16 +101,16 @@ exclude-result-prefixes="#all">
     <xsl:param name="ac:endpoint" select="resolve-uri('sparql', $ldt:base)" as="xs:anyURI"/>
     <xsl:param name="a:graphStore" select="resolve-uri('service', $ldt:base)" as="xs:anyURI"/> <!-- TO-DO: rename to ac:graphStore? -->
     <xsl:param name="sd:endpoint" as="xs:anyURI?"/>
+    <xsl:param name="acl:agent" as="xs:anyURI?"/>
     <xsl:param name="lapp:Application" as="document-node()?"/>
-    <xsl:param name="foaf:Agent" as="document-node()?"/>
+    <xsl:param name="foaf:Agent" select="if ($acl:agent) then document(ac:document-uri($acl:agent)) else ()" as="document-node()?"/>
     <xsl:param name="force-exclude-all-namespaces" select="true()"/>
     <xsl:param name="ac:httpHeaders" as="xs:string"/> 
     <xsl:param name="ac:method" as="xs:string"/>
     <xsl:param name="ac:uri" as="xs:anyURI"/>
     <xsl:param name="ac:mode" as="xs:anyURI*"/> <!-- select="xs:anyURI('&ac;ReadMode')" -->
     <xsl:param name="ac:googleMapsKey" select="'AIzaSyCQ4rt3EnNCmGTpBN0qoZM1Z_jXhUnrTpQ'" as="xs:string"/>
-    <xsl:param name="acl:agent" as="xs:anyURI?"/>
-    <xsl:param name="acl:mode" select="$foaf:Agent[doc-available($ldh:absolutePath)]//*[acl:accessToClass/@rdf:resource = (key('resources', $ldh:absolutePath, document($ldh:absolutePath))/rdf:type/@rdf:resource, key('resources', $ldh:absolutePath, document($ldh:absolutePath))/rdf:type/@rdf:resource/ldh:listSuperClasses(.))]/acl:mode/@rdf:resource" as="xs:anyURI*"/>
+    <xsl:param name="acl:mode" as="xs:anyURI*"/>
     <xsl:param name="ldh:createGraph" select="false()" as="xs:boolean"/>
     <xsl:param name="ldh:localGraph" as="document-node()?"/>
     <xsl:param name="ldh:originalGraph" as="document-node()?"/>

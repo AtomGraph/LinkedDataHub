@@ -90,6 +90,7 @@ import com.atomgraph.linkeddatahub.server.event.AuthorizationCreated;
 import com.atomgraph.linkeddatahub.server.event.SignUp;
 import com.atomgraph.linkeddatahub.server.factory.AgentContextFactory;
 import com.atomgraph.linkeddatahub.server.factory.ApplicationFactory;
+import com.atomgraph.linkeddatahub.server.factory.AuthorizationContextFactory;
 import com.atomgraph.linkeddatahub.server.filter.request.ApplicationFilter;
 import com.atomgraph.linkeddatahub.server.filter.request.auth.WebIDFilter;
 import com.atomgraph.linkeddatahub.server.io.ValidatingModelProvider;
@@ -111,6 +112,7 @@ import com.atomgraph.linkeddatahub.server.mapper.auth.oauth2.TokenExpiredExcepti
 import com.atomgraph.linkeddatahub.server.model.impl.Dispatcher;
 import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
+import com.atomgraph.linkeddatahub.server.security.AuthorizationContext;
 import com.atomgraph.linkeddatahub.server.util.MessageBuilder;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
 import com.atomgraph.linkeddatahub.vocabulary.FOAF;
@@ -795,6 +797,15 @@ public class Application extends ResourceConfig
             protected void configure()
             {
                 bindFactory(AgentContextFactory.class).to(new TypeLiteral<Optional<AgentContext>>() {}).
+                in(RequestScoped.class);
+            }
+        });
+        register(new AbstractBinder()
+        {
+            @Override
+            protected void configure()
+            {
+                bindFactory(AuthorizationContextFactory.class).to(new TypeLiteral<Optional<AuthorizationContext>>() {}).
                 in(RequestScoped.class);
             }
         });

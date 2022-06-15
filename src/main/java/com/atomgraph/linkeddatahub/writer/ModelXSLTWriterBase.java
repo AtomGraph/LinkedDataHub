@@ -31,6 +31,7 @@ import com.atomgraph.linkeddatahub.vocabulary.LAPP;
 import com.atomgraph.client.vocabulary.LDT;
 import com.atomgraph.core.vocabulary.SD;
 import com.atomgraph.linkeddatahub.server.io.ValidatingModelProvider;
+import com.atomgraph.linkeddatahub.server.security.AuthorizationContext;
 import com.atomgraph.linkeddatahub.vocabulary.FOAF;
 import com.atomgraph.linkeddatahub.vocabulary.LDHC;
 import java.io.IOException;
@@ -64,7 +65,6 @@ import net.sf.saxon.s9api.XdmValue;
 import net.sf.saxon.s9api.XsltExecutable;
 import org.apache.http.HttpHeaders;
 import org.apache.jena.ontology.OntModelSpec;
-import org.apache.jena.ontology.Ontology;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.StmtIterator;
@@ -94,11 +94,11 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
 
     @Inject com.atomgraph.linkeddatahub.Application system;
     @Inject javax.inject.Provider<com.atomgraph.linkeddatahub.apps.model.Application> application;
-    @Inject javax.inject.Provider<Optional<Ontology>> ontology;
     @Inject javax.inject.Provider<DataManager> dataManager;
     @Inject javax.inject.Provider<XsltExecutableSupplier> xsltExecSupplier;
     @Inject javax.inject.Provider<List<Mode>> modes;
     @Inject javax.inject.Provider<ContainerRequestContext> crc;
+    @Inject javax.inject.Provider<Optional<AuthorizationContext>> authorizationContext;
 
     private final MessageDigest messageDigest;
     
@@ -169,6 +169,9 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
                 params.put(new QName("foaf", FOAF.Agent.getNameSpace(), FOAF.Agent.getLocalName()),
                     getXsltExecutable().getProcessor().newDocumentBuilder().build(source));
             }
+            if (getAuthorizationContext().get().isPresent())
+                params.put(new QName("acl", ACL.mode.getNameSpace(), ACL.mode.getLocalName()),
+                    XdmValue.makeSequence(getAuthorizationContext().get().get().getAuthorization().getModeURIs()));
 
             if (getUriInfo().getQueryParameters().containsKey(LDH.createGraph.getLocalName()))
                 params.put(new QName("ldh", LDH.createGraph.getNameSpace(), LDH.createGraph.getLocalName()),
@@ -286,16 +289,6 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
         return securityContext;
     }
     
-    /**
-     * Returns provider of (optional) ontology of the current application.
-     * 
-     * @return provider
-     */
-    public javax.inject.Provider<Optional<Ontology>> getOntology()
-    {
-        return ontology;
-    }
-    
     @Override
     public DataManager getDataManager()
     {
@@ -365,6 +358,16 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
         return application;
     }
 
+    /**
+     * Returns optional ACL authorizationContext.
+     * 
+     * @return optional authorizationContext
+     */
+    public javax.inject.Provider<Optional<AuthorizationContext>> getAuthorizationContext()
+    {
+        return authorizationContext;
+    }
+    
     /**
      * Returns message digest.
      * 
