@@ -16,7 +16,6 @@
  */
 package com.atomgraph.linkeddatahub.model.auth.impl;
 
-import com.atomgraph.client.vocabulary.AC;
 import com.atomgraph.linkeddatahub.model.auth.Authorization;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
 import java.net.URI;
@@ -85,7 +84,7 @@ public class AuthorizationImpl extends ResourceImpl implements Authorization
     @Override
     public List<Resource> getModes()
     {
-        StmtIterator it = listProperties(AC.mode);
+        StmtIterator it = listProperties(ACL.mode);
         try
         {
             return it.toList().stream().map(stmt -> stmt.getResource()).collect(Collectors.toList());
