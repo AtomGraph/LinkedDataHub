@@ -23,7 +23,6 @@ import com.atomgraph.core.vocabulary.SD;
 import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.apps.model.Dataset;
 import com.atomgraph.linkeddatahub.model.auth.Agent;
-import com.atomgraph.linkeddatahub.server.filter.request.AuthorizationFilter;
 import com.atomgraph.linkeddatahub.server.security.AuthorizationContext;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
 import java.io.IOException;
@@ -68,8 +67,6 @@ public class ResponseHeaderFilter implements ContainerResponseFilter
         
         if (getAuthorizationContext().isPresent())
             getAuthorizationContext().get().getModeURIs().forEach(mode -> response.getHeaders().add(HttpHeaders.LINK, new Link(mode, ACL.mode.getURI(), null)));
-        else
-            if (log.isWarnEnabled()) log.warn("AuthorizationContext is empty, cannot write acl:mode response header. Is {} registered?", AuthorizationFilter.class);
         
         List<Object> linkValues = response.getHeaders().get(HttpHeaders.LINK);
         // check whether Link rel=ldt:base is not already set. Link headers might be forwarded by ProxyResourceBase
