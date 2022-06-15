@@ -171,7 +171,7 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
             }
             if (getAuthorizationContext().get().isPresent())
                 params.put(new QName("acl", ACL.mode.getNameSpace(), ACL.mode.getLocalName()),
-                    XdmValue.makeSequence(getAuthorizationContext().get().get().getAuthorization().getModeURIs()));
+                    XdmValue.makeSequence(getAuthorizationContext().get().get().getModeURIs()));
 
             if (getUriInfo().getQueryParameters().containsKey(LDH.createGraph.getLocalName()))
                 params.put(new QName("ldh", LDH.createGraph.getNameSpace(), LDH.createGraph.getLocalName()),

@@ -19,7 +19,7 @@ package com.atomgraph.linkeddatahub.model.auth.impl;
 import com.atomgraph.linkeddatahub.model.auth.Authorization;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
 import java.net.URI;
-import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.enhanced.EnhNode;
@@ -82,12 +82,12 @@ public class AuthorizationImpl extends ResourceImpl implements Authorization
     }
     
     @Override
-    public List<Resource> getModes()
+    public Set<Resource> getModes()
     {
         StmtIterator it = listProperties(ACL.mode);
         try
         {
-            return it.toList().stream().map(stmt -> stmt.getResource()).collect(Collectors.toList());
+            return it.toList().stream().map(stmt -> stmt.getResource()).collect(Collectors.toSet());
         }
         finally
         {
@@ -96,9 +96,9 @@ public class AuthorizationImpl extends ResourceImpl implements Authorization
     }
 
     @Override
-    public List<URI> getModeURIs()
+    public Set<URI> getModeURIs()
     {
-        return getModes().stream().map(resource -> URI.create(resource.getURI())).collect(Collectors.toList());
+        return getModes().stream().map(resource -> URI.create(resource.getURI())).collect(Collectors.toSet());
     }
 
 }

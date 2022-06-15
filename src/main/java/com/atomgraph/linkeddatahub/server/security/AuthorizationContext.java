@@ -17,6 +17,13 @@
 package com.atomgraph.linkeddatahub.server.security;
 
 import com.atomgraph.linkeddatahub.model.auth.Authorization;
+import com.atomgraph.linkeddatahub.vocabulary.ACL;
+import java.net.URI;
+import java.util.HashSet;
+import java.util.Set;
+import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.ResIterator;
+import org.apache.jena.vocabulary.RDF;
 
 /**
  * Authorization context.
@@ -26,16 +33,28 @@ import com.atomgraph.linkeddatahub.model.auth.Authorization;
 public class AuthorizationContext
 {
 
-    public final Authorization authorization;
+    public final Model authorizationModel;
     
-    public AuthorizationContext(Authorization authorization)
+    public AuthorizationContext(Model authorizationModel)
     {
-        this.authorization = authorization;
+        this.authorizationModel = authorizationModel;
     }
     
-    public Authorization getAuthorization()
+    public Set<URI> getModeURIs()
     {
-        return authorization;
+        Set<URI> modeURIs = new HashSet<>();
+        
+        ResIterator it = authorizationModel.listSubjectsWithProperty(RDF.type, ACL.Authorization);
+        try
+        {
+            Authorization auth =  it.next().as(Authorization.class);
+            modeURIs.addAll(auth.getModeURIs());
+            return modeURIs;
+        }
+        finally
+        {
+            it.close();
+        }
     }
     
 }

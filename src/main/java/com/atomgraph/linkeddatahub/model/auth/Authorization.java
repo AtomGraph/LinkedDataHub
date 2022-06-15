@@ -17,7 +17,7 @@
 package com.atomgraph.linkeddatahub.model.auth;
 
 import java.net.URI;
-import java.util.List;
+import java.util.Set;
 import org.apache.jena.rdf.model.Resource;
 
 /**
@@ -27,8 +27,8 @@ import org.apache.jena.rdf.model.Resource;
 public interface Authorization extends Resource
 {
     
-    List<Resource> getModes();
+    Set<Resource> getModes();
     
-    List<URI> getModeURIs();
+    Set<URI> getModeURIs();
     
 }
