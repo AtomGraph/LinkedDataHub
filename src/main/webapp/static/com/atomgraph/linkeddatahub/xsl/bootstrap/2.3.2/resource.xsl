@@ -744,7 +744,8 @@ extension-element-prefixes="ixsl"
             
             <xsl:apply-templates select="." mode="bs2:Left"/>
             
-            <xsl:for-each select="rdf:value/@rdf:resource">
+            <!-- multiple rdf:value properties can appear in malformed data, but only one of them is used -->
+            <xsl:for-each select="rdf:value[1]/@rdf:resource">
                 <div class="span7">
                     <xsl:choose>
                         <xsl:when test="doc-available(ac:document-uri(.))">
