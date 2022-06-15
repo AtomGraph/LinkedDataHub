@@ -744,20 +744,22 @@ extension-element-prefixes="ixsl"
             
             <xsl:apply-templates select="." mode="bs2:Left"/>
             
-            <div class="span7">
-                <xsl:choose>
-                    <xsl:when test="doc-available(ac:document-uri(rdf:value/@rdf:resource))">
-                        <xsl:apply-templates select="key('resources', rdf:value/@rdf:resource, document(ac:document-uri(rdf:value/@rdf:resource)))" mode="ldh:ContentHeader"/>
-                    </xsl:when>
-                    <xsl:otherwise>
-                        <h2>
-                            <a href="{ac:build-uri(ac:uri(), map{ 'uri': string(rdf:value/@rdf:resource) }) }">
-                                <xsl:value-of select="rdf:value/@rdf:resource"/>
-                            </a>
-                        </h2>
-                    </xsl:otherwise>
-                </xsl:choose>
-            </div>
+            <xsl:for-each select="rdf:value/@rdf:resource">
+                <div class="span7">
+                    <xsl:choose>
+                        <xsl:when test="doc-available(ac:document-uri(.))">
+                            <xsl:apply-templates select="key('resources', ., document(ac:document-uri(.)))" mode="ldh:ContentHeader"/>
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <h2>
+                                <a href="{ac:build-uri(ac:uri(), map{ 'uri': string(.) }) }">
+                                    <xsl:value-of select="."/>
+                                </a>
+                            </h2>
+                        </xsl:otherwise>
+                    </xsl:choose>
+                </div>
+            </xsl:for-each>
             
             <xsl:apply-templates select="." mode="bs2:Right"/>
         </div>
