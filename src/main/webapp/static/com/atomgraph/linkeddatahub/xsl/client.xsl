@@ -886,7 +886,7 @@ WHERE
                 </xsl:if>
                 <xsl:variable name="acl-mode-links" select="tokenize(?headers?link, ',')[contains(., '&acl;mode')]" as="xs:string*"/>
                 <xsl:variable name="acl-modes" select="for $mode-link in $acl-mode-links return xs:anyURI(substring-before(substring-after(substring-before($mode-link, ';'), '&lt;'), '&gt;'))" as="xs:anyURI*"/>
-                <ixsl:set-property name="acl.mode" select="$acl-modes" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+                <ixsl:set-property name="acl-modes" select="$acl-modes" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
 
                 <xsl:apply-templates select="?body" mode="ldh:LoadedHTMLDocument">
                     <xsl:with-param name="href" select="$href"/>

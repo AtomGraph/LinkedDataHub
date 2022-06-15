@@ -50,7 +50,7 @@ exclude-result-prefixes="#all"
     </xsl:function>
 
     <xsl:function name="acl:mode" as="xs:anyURI*">
-        <xsl:sequence select="xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.acl.mode'))"/>
+        <xsl:sequence select="xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.acl-modes'))"/>
     </xsl:function>
     
     <xsl:function name="sd:endpoint" as="xs:anyURI">
