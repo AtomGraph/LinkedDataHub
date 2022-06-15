@@ -755,6 +755,10 @@ exclude-result-prefixes="#all"
         <xsl:choose>
             <xsl:when test="?status = 200">
                 <xsl:for-each select="$container/div[contains-token(@class, 'span7')]">
+                    <button type="button" class="btn btn-edit pull-right">
+                        <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
+                    </button>
+                
                     <xsl:result-document href="?." method="ixsl:replace-content">
                         <xsl:copy-of select="$content-value"/>
                     </xsl:result-document>
