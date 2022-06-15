@@ -6,6 +6,7 @@
     <!ENTITY rdf    "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
     <!ENTITY xsd    "http://www.w3.org/2001/XMLSchema#">
     <!ENTITY srx    "http://www.w3.org/2005/sparql-results#">
+    <!ENTITY acl    "http://www.w3.org/ns/auth/acl#">
     <!ENTITY ldt    "https://www.w3.org/ns/ldt#">
     <!ENTITY sioc   "http://rdfs.org/sioc/ns#">
 ]>
@@ -22,6 +23,7 @@ xmlns:ac="&ac;"
 xmlns:ldh="&ldh;"
 xmlns:rdf="&rdf;"
 xmlns:srx="&srx;"
+xmlns:acl="&acl;"
 xmlns:ldt="&ldt;"
 xmlns:sioc="&sioc;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
@@ -47,6 +49,10 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="if (contains($href, '?')) then let $query-params := ldh:parse-query-params(substring-after($href, '?')) return ldh:decode-uri($query-params?mode) else ()"/> <!-- raw URL -->
     </xsl:function>
 
+    <xsl:function name="acl:mode" as="xs:anyURI*">
+        <xsl:sequence select="xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.acl.mode'))"/>
+    </xsl:function>
+    
     <xsl:function name="sd:endpoint" as="xs:anyURI">
         <xsl:sequence select="xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.endpoint'))"/>
     </xsl:function>
