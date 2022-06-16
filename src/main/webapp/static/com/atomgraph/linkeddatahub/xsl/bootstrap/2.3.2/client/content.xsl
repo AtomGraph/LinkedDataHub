@@ -335,9 +335,6 @@ exclude-result-prefixes="#all"
             <xsl:result-document href="?." method="ixsl:replace-content">
                 <div class="offset2 span7">
                     <div>
-<!--                        <p>
-                            <span></span>
-                        </p>-->
                         <xsl:copy-of select="$controls"/>
                     </div>
 
