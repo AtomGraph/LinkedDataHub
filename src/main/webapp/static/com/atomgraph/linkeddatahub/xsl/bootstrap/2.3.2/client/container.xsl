@@ -6,6 +6,7 @@
     <!ENTITY rdf    "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
     <!ENTITY xsd    "http://www.w3.org/2001/XMLSchema#">
     <!ENTITY srx    "http://www.w3.org/2005/sparql-results#">
+    <!ENTITY acl    "http://www.w3.org/ns/auth/acl#">
     <!ENTITY ldt    "https://www.w3.org/ns/ldt#">
     <!ENTITY sd     "http://www.w3.org/ns/sparql-service-description#">
     <!ENTITY foaf   "http://xmlns.com/foaf/0.1/">
@@ -23,6 +24,7 @@ xmlns:ac="&ac;"
 xmlns:ldh="&ldh;"
 xmlns:rdf="&rdf;"
 xmlns:srx="&srx;"
+xmlns:acl="&acl;"
 xmlns:ldt="&ldt;"
 xmlns:sd="&sd;"
 xmlns:foaf="&foaf;"
@@ -384,6 +386,12 @@ exclude-result-prefixes="#all"
             <xsl:otherwise>
                 <xsl:for-each select="$container">
                     <xsl:result-document href="?." method="ixsl:replace-content">
+                        <xsl:if test="acl:mode() = '&acl;Append'">
+                            <button type="button" class="btn btn-edit pull-right">
+                                <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
+                            </button>
+                        </xsl:if>
+
                         <div class="pull-right">
                             <form class="form-inline">
                                 <label for="{$order-by-container-id}">
@@ -420,10 +428,6 @@ exclude-result-prefixes="#all"
                                         </xsl:otherwise>
                                     </xsl:choose>
                                 </label>
-                                
-                                <button type="button" class="btn btn-edit">
-                                    <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
-                                </button>
                             </form>
                         </div>
 

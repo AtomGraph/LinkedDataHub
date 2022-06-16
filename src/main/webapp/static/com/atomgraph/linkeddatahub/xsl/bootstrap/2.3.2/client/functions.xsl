@@ -49,6 +49,7 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="if (contains($href, '?')) then let $query-params := ldh:parse-query-params(substring-after($href, '?')) return ldh:decode-uri($query-params?mode) else ()"/> <!-- raw URL -->
     </xsl:function>
 
+    <!-- TO-DO: reuse server-side instead of $acl:mode -->
     <xsl:function name="acl:mode" as="xs:anyURI*">
         <xsl:sequence select="(
             if (ixsl:contains(ixsl:window(), 'LinkedDataHub.acl-modes.read')) then xs:anyURI('&acl;Read') else (),
