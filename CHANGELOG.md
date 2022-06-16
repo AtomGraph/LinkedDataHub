@@ -1,3 +1,15 @@
+## [3.2.0] - 2022-06-16
+### Added
+- Inline creation and editing of container and XHTML content in content layout mode
+- ACL access modes sent as `Link` response headers and accessible in the client-side XSLT stylesheets using the `acl:mode` function
+- Results of queries that use `forClass` type after a new instance was created are banned from Varnish cache
+- `endpoint` URL param can be used to override the SPARQL endpoint that the fallback `DESCRIBE` query gets executed against
+- XML literals in SPARQL updates get canonicalized before reaching the SPARQL endpoint
+
+### Changed
+- Content model uses `rdf:Seq` and `rdf:_1`, `rdf:_2` ... properties instead of `rdf:List` and `rdf:first`/`rdf:rest`
+- SPARQL updates submitted to the Graph Store via the `PATCH` method now have to use the default graph context, the `GRAPH` keyword is disallowed
+
 ## [3.1.9] - 2022-05-23
 ### Added
 - `--fragment` parameter to CLI scripts that can be used to specify the fragment ID of the resource paired with the document (defaults to UUID)
