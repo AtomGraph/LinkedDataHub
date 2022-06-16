@@ -6,6 +6,7 @@
     <!ENTITY rdf    "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
     <!ENTITY rdfs   "http://www.w3.org/2000/01/rdf-schema#">
     <!ENTITY xsd    "http://www.w3.org/2001/XMLSchema#">
+    <!ENTITY acl    "http://www.w3.org/ns/auth/acl#">
     <!ENTITY ldt    "https://www.w3.org/ns/ldt#">
     <!ENTITY dh     "https://www.w3.org/ns/ldt/document-hierarchy#">
     <!ENTITY sd     "http://www.w3.org/ns/sparql-service-description#">
@@ -255,6 +256,19 @@ exclude-result-prefixes="#all"
                 <xsl:copy-of select="$row-block/*"/>
             </xsl:result-document>
         </xsl:for-each>
+
+        <!-- insert "Edit" button if agent has acl:Write access -->
+        <xsl:if test="acl:mode() = '&acl;Write'">
+            <xsl:for-each select="$container//div[contains-token(@class, 'span7')]">
+                <button type="button" class="btn btn-edit pull-right">
+                    <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
+                </button>
+
+                <xsl:result-document href="?." method="ixsl:replace-content">
+                    <xsl:copy-of select="$container//div[contains-token(@class, 'span7')]/*"/>
+                </xsl:result-document>
+            </xsl:for-each>
+        </xsl:if>
     </xsl:template>
     
     <!-- EVENT LISTENERS -->
