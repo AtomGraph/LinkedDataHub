@@ -545,7 +545,7 @@ WHERE
         <xsl:variable name="acl-modes" select="for $mode-link in $acl-mode-links return xs:anyURI(substring-before(substring-after(substring-before($mode-link, ';'), '&lt;'), '&gt;'))" as="xs:anyURI*"/>
         <!-- if content mode is enabled but agent does not have acl:Write access, hide edit buttons -->
         <xsl:if test="ac:mode() = '&ldh;ContentMode' and not($acl-modes = '&acl;Write')">
-            <xsl:for-each select="key('elements-by-class', 'btn-edit', id('content-body', ixsl:page())">
+            <xsl:for-each select="key('elements-by-class', 'btn-edit', id('content-body', ixsl:page()))">
                 <ixsl:set-style name="display" select="'none'"/>
             </xsl:for-each>
         </xsl:if>
