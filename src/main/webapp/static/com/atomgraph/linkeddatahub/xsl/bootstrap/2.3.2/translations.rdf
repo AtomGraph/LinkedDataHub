@@ -355,4 +355,8 @@
     <rdf:Description rdf:about="are-you-sure">
         <rdfs:label xml:lang="en-US">Are you sure?</rdfs:label>
     </rdf:Description>
+    <rdf:Description rdf:about="cancel">
+        <rdfs:label xml:lang="en-US">Cancel</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Cancelar</rdfs:label>
+    </rdf:Description>
 </rdf:RDF>

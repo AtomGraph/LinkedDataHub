@@ -517,6 +517,25 @@ exclude-result-prefixes="#all"
         </xsl:if>
     </xsl:template>
     
+    <!-- xhtml-content cancel onclick -->
+    
+    <xsl:template match="div[contains-token(@class, 'xhtml-content')]//button[contains-token(@class, 'btn-cancel')]" mode="ixsl:onclick">
+        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'xhtml-content')]" as="element()"/>
+        <xsl:variable name="textarea" select="ancestor::div[contains-token(@class, 'span7')]//textarea[contains-token(@class, 'wymeditor')]" as="element()"/>
+        <xsl:variable name="old-content-string" select="string($textarea)" as="xs:string"/>
+        <xsl:variable name="content-value" select="ldh:parse-html('&lt;div&gt;' || $old-content-string || '&lt;/div&gt;', 'application/xhtml+xml')" as="document-node()"/>
+
+        <xsl:for-each select="$container/div[contains-token(@class, 'span7')]">
+            <xsl:result-document href="?." method="ixsl:replace-content">
+                <button type="button" class="btn btn-edit pull-right">
+                    <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
+                </button>
+
+                <xsl:copy-of select="$content-value"/>
+            </xsl:result-document>
+        </xsl:for-each>
+    </xsl:template>
+    
     <!-- toggle between Content as URI resource and HTML (rdf:XMLLiteral) in inline editing mode -->
     <xsl:template match="div[contains-token(@class, 'xhtml-content') or contains-token(@class, 'resource-content')]//select[contains-token(@class, 'content-type')]" mode="ixsl:onchange" priority="1">
         <xsl:variable name="content-type" select="ixsl:get(., 'value')" as="xs:anyURI"/>
@@ -581,6 +600,11 @@ exclude-result-prefixes="#all"
                             <xsl:apply-templates select="key('resources', 'delete', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
                         </xsl:value-of>
                     </button>
+                    <button type="button" class="btn btn-cancel">
+                        <xsl:value-of>
+                            <xsl:apply-templates select="key('resources', 'cancel', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                        </xsl:value-of>
+                    </button>
                 </div>
             </xsl:result-document>
             
@@ -637,6 +661,11 @@ exclude-result-prefixes="#all"
                     <button type="button" class="btn btn-delete">
                         <xsl:value-of>
                             <xsl:apply-templates select="key('resources', 'delete', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                        </xsl:value-of>
+                    </button>
+                    <button type="button" class="btn btn-cancel">
+                        <xsl:value-of>
+                            <xsl:apply-templates select="key('resources', 'cancel', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
                         </xsl:value-of>
                     </button>
                 </div>
