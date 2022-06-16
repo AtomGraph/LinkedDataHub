@@ -540,22 +540,14 @@ WHERE
             </xsl:call-template>
         </xsl:if>
 
-        <!-- set LinkedDataHub.acl-modes objects which are later used by the acl:mode function -->
-        <!-- doing it here because this template is called after every document load (also the initial load) and has access to ?headers -->
+        <!-- checking acl:mode here because this template is called after every document load (also the initial load) and has access to ?headers -->
         <xsl:variable name="acl-mode-links" select="tokenize(?headers?link, ',')[contains(., '&acl;mode')]" as="xs:string*"/>
         <xsl:variable name="acl-modes" select="for $mode-link in $acl-mode-links return xs:anyURI(substring-before(substring-after(substring-before($mode-link, ';'), '&lt;'), '&gt;'))" as="xs:anyURI*"/>
-        <ixsl:set-property name="acl-modes" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
-        <xsl:if test="$acl-modes = '&acl;Read'">
-            <ixsl:set-property name="read" select="true()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.acl-modes')"/>
-        </xsl:if>
-        <xsl:if test="$acl-modes = '&acl;Append'">
-            <ixsl:set-property name="append" select="true()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.acl-modes')"/>
-        </xsl:if>
-        <xsl:if test="$acl-modes = '&acl;Write'">
-            <ixsl:set-property name="write" select="true()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.acl-modes')"/>
-        </xsl:if>
-        <xsl:if test="$acl-modes = '&acl;Control'">
-            <ixsl:set-property name="control" select="true()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.acl-modes')"/>
+        <!-- if content mode is enabled but agent does not have acl:Write access, hide edit buttons -->
+        <xsl:if test="ac:mode() = '&ldh;ContentMode' and not($acl-modes = '&acl;Write')">
+            <xsl:for-each select="key('elements-by-class', 'btn-edit', id('content-body', ixsl:page())">
+                <ixsl:set-style name="display" select="'none'"/>
+            </xsl:for-each>
         </xsl:if>
                 
         <xsl:for-each select="?body">

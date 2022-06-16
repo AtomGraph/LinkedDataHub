@@ -258,18 +258,16 @@ exclude-result-prefixes="#all"
             </xsl:result-document>
         </xsl:for-each>
 
-        <!-- insert "Edit" button if agent has acl:Write access -->
-        <xsl:if test="acl:mode() = '&acl;Write'">
-            <xsl:for-each select="$container//div[contains-token(@class, 'span7')]">
-                <button type="button" class="btn btn-edit pull-right">
-                    <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
-                </button>
+        <!-- insert "Edit" button -->
+        <xsl:for-each select="$container//div[contains-token(@class, 'span7')]">
+            <button type="button" class="btn btn-edit pull-right">
+                <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
+            </button>
 
-                <xsl:result-document href="?." method="ixsl:replace-content">
-                    <xsl:copy-of select="$container//div[contains-token(@class, 'span7')]/*"/>
-                </xsl:result-document>
-            </xsl:for-each>
-        </xsl:if>
+            <xsl:result-document href="?." method="ixsl:replace-content">
+                <xsl:copy-of select="$container//div[contains-token(@class, 'span7')]/*"/>
+            </xsl:result-document>
+        </xsl:for-each>
     </xsl:template>
     
     <!-- EVENT LISTENERS -->

@@ -386,11 +386,9 @@ exclude-result-prefixes="#all"
             <xsl:otherwise>
                 <xsl:for-each select="$container">
                     <xsl:result-document href="?." method="ixsl:replace-content">
-                        <xsl:if test="acl:mode() = '&acl;Write'">
-                            <button type="button" class="btn btn-edit pull-right">
-                                <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
-                            </button>
-                        </xsl:if>
+                        <button type="button" class="btn btn-edit pull-right">
+                            <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
+                        </button>
 
                         <div class="pull-right">
                             <form class="form-inline">
