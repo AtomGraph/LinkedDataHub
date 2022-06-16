@@ -521,19 +521,31 @@ exclude-result-prefixes="#all"
     
     <xsl:template match="div[contains-token(@class, 'xhtml-content')]//button[contains-token(@class, 'btn-cancel')]" mode="ixsl:onclick">
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'xhtml-content')]" as="element()"/>
-        <xsl:variable name="textarea" select="ancestor::div[contains-token(@class, 'span7')]//textarea[contains-token(@class, 'wymeditor')]" as="element()"/>
-        <xsl:variable name="old-content-string" select="string($textarea)" as="xs:string"/>
-        <xsl:variable name="content-value" select="ldh:parse-html('&lt;div&gt;' || $old-content-string || '&lt;/div&gt;', 'application/xhtml+xml')" as="document-node()"/>
 
-        <xsl:for-each select="$container/div[contains-token(@class, 'span7')]">
-            <xsl:result-document href="?." method="ixsl:replace-content">
-                <button type="button" class="btn btn-edit pull-right">
-                    <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
-                </button>
+        <xsl:choose>
+            <!-- restore existing content -->
+            <xsl:when test="$container/@about">
+                <xsl:variable name="textarea" select="ancestor::div[contains-token(@class, 'span7')]//textarea[contains-token(@class, 'wymeditor')]" as="element()"/>
+                <xsl:variable name="old-content-string" select="string($textarea)" as="xs:string"/>
+                <xsl:variable name="content-value" select="ldh:parse-html('&lt;div&gt;' || $old-content-string || '&lt;/div&gt;', 'application/xhtml+xml')" as="document-node()"/>
 
-                <xsl:copy-of select="$content-value"/>
-            </xsl:result-document>
-        </xsl:for-each>
+                <xsl:for-each select="$container/div[contains-token(@class, 'span7')]">
+                    <xsl:result-document href="?." method="ixsl:replace-content">
+                        <button type="button" class="btn btn-edit pull-right">
+                            <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
+                        </button>
+
+                        <xsl:copy-of select="$content-value"/>
+                    </xsl:result-document>
+                </xsl:for-each>
+            </xsl:when>
+            <!-- remove content that hasn't been saved yet -->
+            <xsl:otherwise>
+                <xsl:for-each select="$container">
+                    <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
+                </xsl:for-each>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:template>
     
     <!-- toggle between Content as URI resource and HTML (rdf:XMLLiteral) in inline editing mode -->
