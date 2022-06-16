@@ -311,6 +311,11 @@ exclude-result-prefixes="#all"
                             <xsl:apply-templates select="key('resources', 'delete', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
                         </xsl:value-of>
                     </button>
+                    <button type="button" class="btn btn-cancel">
+                        <xsl:value-of>
+                            <xsl:apply-templates select="key('resources', 'cancel', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                        </xsl:value-of>
+                    </button>
                 </div>
             </xsl:result-document>
             
@@ -362,6 +367,11 @@ exclude-result-prefixes="#all"
                                 <xsl:apply-templates select="key('resources', 'delete', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
                             </xsl:value-of>
                         </button>
+                        <button type="button" class="btn btn-cancel">
+                            <xsl:value-of>
+                                <xsl:apply-templates select="key('resources', 'cancel', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                            </xsl:value-of>
+                        </button>
                     </div>
                 </div>
             </xsl:result-document>
@@ -378,7 +388,7 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
 
-    <!-- save xhtml-content onclick -->
+    <!-- save XHTML content onclick -->
     
     <xsl:template match="div[contains-token(@class, 'xhtml-content')]//button[contains-token(@class, 'btn-save')]" mode="ixsl:onclick">
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'xhtml-content')]" as="element()"/>
@@ -517,7 +527,7 @@ exclude-result-prefixes="#all"
         </xsl:if>
     </xsl:template>
     
-    <!-- xhtml-content cancel onclick -->
+    <!-- XHTML content cancel onclick -->
     
     <xsl:template match="div[contains-token(@class, 'xhtml-content')]//button[contains-token(@class, 'btn-cancel')]" mode="ixsl:onclick">
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'xhtml-content')]" as="element()"/>
