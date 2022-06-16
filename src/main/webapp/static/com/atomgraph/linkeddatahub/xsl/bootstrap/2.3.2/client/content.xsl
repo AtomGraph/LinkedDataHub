@@ -313,14 +313,32 @@ exclude-result-prefixes="#all"
         <xsl:variable name="content-value" select="ixsl:get($container, 'dataset.contentValue')" as="xs:anyURI"/> <!-- get the value of the @data-content-value attribute -->
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), $content-value)"/>
 
+        <xsl:variable name="constructor" as="document-node()">
+            <xsl:document>
+                <rdf:RDF>
+                    <rdf:Description rdf:nodeID="A1">
+                        <rdf:type rdf:resource="&ldh;Content"/>
+                        <rdf:value rdf:nodeID="A2"/>
+                    </rdf:Description>
+                    <rdf:Description rdf:nodeID="A2">
+                        <rdf:type rdf:resource="&rdfs;Resource"/>
+                    </rdf:Description>
+                </rdf:RDF>
+            </xsl:document>
+        </xsl:variable>
+        <xsl:variable name="controls" as="node()*">
+            <xsl:apply-templates select="$constructor//rdf:value/@rdf:*" mode="bs2:FormControl"/>
+        </xsl:variable>
+        
         <!-- replace the middle column only -->
         <xsl:for-each select="$container">
             <xsl:result-document href="?." method="ixsl:replace-content">
                 <div class="offset2 span7">
                     <div>
-                        <p>
+<!--                        <p>
                             <span></span>
-                        </p>
+                        </p>-->
+                        <xsl:copy-of select="$controls"/>
                     </div>
 
                     <div class="form-actions">
@@ -343,7 +361,7 @@ exclude-result-prefixes="#all"
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                 <xsl:call-template name="onTypeaheadResourceLoad">
                     <xsl:with-param name="resource-uri" select="$content-value"/>
-                    <xsl:with-param name="typeahead-span" select="$container/div[contains-token(@class, 'span7')]//p/span[1]"/>
+                    <xsl:with-param name="typeahead-span" select="$container/div[contains-token(@class, 'span7')]//span[1]"/>
                 </xsl:call-template>
             </ixsl:schedule-action>
         </xsl:variable>
