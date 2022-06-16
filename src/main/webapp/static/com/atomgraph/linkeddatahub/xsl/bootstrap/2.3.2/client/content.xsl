@@ -558,6 +558,29 @@ exclude-result-prefixes="#all"
         </xsl:choose>
     </xsl:template>
     
+    <!-- resource content cancel onclick -->
+    
+    <xsl:template match="div[contains-token(@class, 'resource-content')]//button[contains-token(@class, 'btn-cancel')]" mode="ixsl:onclick">
+        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'resource-content')]" as="element()"/>
+
+        <xsl:choose>
+            <!-- updating existing content -->
+            <xsl:when test="$container/@about">
+                <xsl:for-each select="$container">
+                    <xsl:call-template name="ldh:LoadContent">
+                        <xsl:with-param name="uri" select="ac:uri()"/> <!-- content value gets read from dataset.contentValue -->
+                    </xsl:call-template>
+                </xsl:for-each>
+            </xsl:when> 
+            <!-- remove content that hasn't been saved yet -->
+            <xsl:otherwise>
+                <xsl:for-each select="$container">
+                    <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
+                </xsl:for-each>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:template>
+    
     <!-- toggle between Content as URI resource and HTML (rdf:XMLLiteral) in inline editing mode -->
     <xsl:template match="div[contains-token(@class, 'xhtml-content') or contains-token(@class, 'resource-content')]//select[contains-token(@class, 'content-type')]" mode="ixsl:onchange" priority="1">
         <xsl:variable name="content-type" select="ixsl:get(., 'value')" as="xs:anyURI"/>
