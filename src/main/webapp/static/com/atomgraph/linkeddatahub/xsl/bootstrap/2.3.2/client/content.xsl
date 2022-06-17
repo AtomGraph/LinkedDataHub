@@ -244,17 +244,31 @@ exclude-result-prefixes="#all"
     
     <xsl:template match="*[*][@rdf:about]" mode="ldh:RenderContent">
         <xsl:param name="container" as="element()"/>
+        <xsl:param name="mode" as="xs:anyURI?"/>
 
         <!-- hide progress bar -->
         <ixsl:set-style name="display" select="'none'" object="$container//div[@class = 'progress-bar']"/>
         
-        <xsl:variable name="row-block" as="element()?">
-            <xsl:apply-templates select="." mode="bs2:RowBlock"/>
+        <xsl:variable name="row" as="element()?">
+            <xsl:choose>
+                <xsl:when test="$mode = '&ac;MapMode'">
+                    <xsl:apply-templates select="." mode="bs2:Map"/>
+                </xsl:when>
+                <xsl:when test="$mode = '&ac;ChartMode'">
+                    <xsl:apply-templates select="." mode="bs2:Chart"/>
+                </xsl:when>
+                <xsl:when test="$mode = '&ac;GraphMode'">
+                    <xsl:apply-templates select="." mode="bs2:Graph"/>
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:apply-templates select="." mode="bs2:RowBlock"/>
+                </xsl:otherwise>
+            </xsl:choose>
         </xsl:variable>
 
         <xsl:for-each select="$container">
             <xsl:result-document href="?." method="ixsl:replace-content">
-                <xsl:copy-of select="$row-block/*"/>
+                <xsl:copy-of select="$row/*"/>
             </xsl:result-document>
         </xsl:for-each>
 
