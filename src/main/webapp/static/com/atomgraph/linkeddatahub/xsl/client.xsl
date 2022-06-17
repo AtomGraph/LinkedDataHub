@@ -585,7 +585,7 @@ WHERE
 
             <xsl:variable name="results" select="." as="document-node()"/>
             <!-- initialize maps -->
-            <xsl:for-each test="key('elements-by-class', 'map-canvas', ixsl:page())">
+            <xsl:for-each select="key('elements-by-class', 'map-canvas', ixsl:page())">
                 <xsl:variable name="canvas-id" select="@id" as="xs:string"/>
                 <xsl:variable name="initial-load" select="true()" as="xs:boolean"/>
                 <!-- reuse center and zoom if map object already exists, otherwise set defaults -->
@@ -603,7 +603,7 @@ WHERE
                 </xsl:for-each>
             </xsl:for-each>
             <!-- initialize charts -->
-            <xsl:for-each test="key('elements-by-class', 'chart-canvas', ixsl:page())">
+            <xsl:for-each select="key('elements-by-class', 'chart-canvas', ixsl:page())">
                 <xsl:variable name="canvas-id" select="@id" as="xs:string"/>
                 <xsl:variable name="chart-type" select="xs:anyURI('&ac;Table')" as="xs:anyURI"/>
                 <xsl:variable name="category" as="xs:string?"/>
