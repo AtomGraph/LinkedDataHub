@@ -507,7 +507,7 @@ WHERE
 
         <!-- this has to go after <xsl:result-document href="#{$container-id}"> because otherwise new elements will be injected and the $content-ids lookup will not work anymore -->
         <!-- ldh:LoadContent also has to finish before JS components such as map and chart are initialized from RDF $results (below) -->
-        <xsl:variable name="content-ids" select="key('elements-by-class', 'resource-content')/@id" as="xs:string*"/>
+        <xsl:variable name="content-ids" select="key('elements-by-class', 'resource-content', ixsl:page())/@id" as="xs:string*"/>
         <xsl:if test="not(empty($content-ids))">
             <xsl:variable name="containers" select="id($content-ids, ixsl:page())" as="element()*"/>
             <xsl:for-each select="$containers">
