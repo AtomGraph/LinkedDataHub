@@ -565,7 +565,7 @@ WHERE
                 <xsl:for-each select="$containers">
                     <xsl:call-template name="ldh:LoadContent">
                         <xsl:with-param name="uri" select="$uri"/>
-                        <xsl:with-param name="rdf-doc" select="$results"/>
+                        <xsl:with-param name="results" select="$results"/>
                     </xsl:call-template>
                 </xsl:for-each>
             </xsl:if>

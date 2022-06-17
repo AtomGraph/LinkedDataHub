@@ -742,7 +742,7 @@ exclude-result-prefixes="#all"
     <xsl:template name="ldh:LoadContent">
         <xsl:context-item as="element()" use="required"/> <!-- container element -->
         <xsl:param name="uri" as="xs:anyURI"/> <!-- document URI -->
-        <xsl:param name="rdf-doc" as="document-node()?"/>
+        <xsl:param name="results" as="document-node()?"/>
         <xsl:variable name="content-uri" select="@about" as="xs:anyURI"/>
         <xsl:variable name="content-value" select="ixsl:get(., 'dataset.contentValue')" as="xs:anyURI"/> <!-- get the value of the @data-content-value attribute -->
         <xsl:variable name="mode" select="if (ixsl:contains(., 'dataset.contentMode')) then xs:anyURI(ixsl:get(., 'dataset.contentMode')) else ()" as="xs:anyURI?"/> <!-- get the value of the @data-content-mode attribute -->
@@ -768,7 +768,7 @@ exclude-result-prefixes="#all"
                     <xsl:with-param name="content-value" select="$content-value"/>
                     <xsl:with-param name="container" select="$container"/>
                     <xsl:with-param name="mode" select="$mode"/>
-                    <xsl:with-param name="rdf-doc" select="$rdf-doc"/>
+                    <xsl:with-param name="results" select="$results"/>
                 </xsl:call-template>
             </ixsl:schedule-action>
         </xsl:variable>
@@ -785,7 +785,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="content-uri" select="$container/@about" as="xs:anyURI"/>
         <xsl:param name="content-value" as="xs:anyURI"/>
         <xsl:param name="mode" as="xs:anyURI?"/>
-        <xsl:param name="rdf-doc" as="document-node()?"/>
+        <xsl:param name="results" as="document-node()?"/>
         
         <!-- for some reason Saxon-JS 2.3 does not see this variable if it's inside <xsl:when> -->
         <xsl:variable name="content" select="key('resources', $content-value, ?body)" as="element()?"/>
@@ -797,6 +797,8 @@ exclude-result-prefixes="#all"
                 <ixsl:set-property name="{$escaped-content-uri}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
                 <!-- store this content element -->
                 <ixsl:set-property name="content" select="$content" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri)"/>
+                <!-- store the result document -->
+                <ixsl:set-property name="results" select="$results" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri)"/>
 
                 <xsl:for-each select="$container//div[@class = 'bar']">
                     <!-- update progress bar -->
@@ -821,7 +823,7 @@ exclude-result-prefixes="#all"
 
                     <ixsl:set-property name="map" select="$map" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
 
-                    <xsl:for-each select="$rdf-doc//rdf:Description[geo:lat/text() castable as xs:float][geo:long/text() castable as xs:float]">
+                    <xsl:for-each select="$results//rdf:Description[geo:lat/text() castable as xs:float][geo:long/text() castable as xs:float]">
                         <xsl:call-template name="gm:AddMarker">
                             <xsl:with-param name="map" select="$map"/>
                         </xsl:call-template>
@@ -832,8 +834,8 @@ exclude-result-prefixes="#all"
                     <xsl:variable name="canvas-id" select="@id" as="xs:string"/>
                     <xsl:variable name="chart-type" select="xs:anyURI('&ac;Table')" as="xs:anyURI"/>
                     <xsl:variable name="category" as="xs:string?"/>
-                    <xsl:variable name="series" select="distinct-values($rdf-doc/*/*/concat(namespace-uri(), local-name()))" as="xs:string*"/>
-                    <xsl:variable name="data-table" select="ac:rdf-data-table($rdf-doc, $category, $series)"/>
+                    <xsl:variable name="series" select="distinct-values($results/*/*/concat(namespace-uri(), local-name()))" as="xs:string*"/>
+                    <xsl:variable name="data-table" select="ac:rdf-data-table($results, $category, $series)"/>
 
                     <ixsl:set-property name="data-table" select="$data-table" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
 
