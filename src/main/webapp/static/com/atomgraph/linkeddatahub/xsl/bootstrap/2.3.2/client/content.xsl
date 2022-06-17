@@ -251,7 +251,9 @@ exclude-result-prefixes="#all"
         
         <xsl:variable name="doc" as="document-node()">
             <xsl:document>
-                <xsl:copy-of select="."/>
+                <rdf:RDF>
+                    <xsl:copy-of select="."/>
+                </rdf:RDF>
             </xsl:document>
         </xsl:variable>
         <xsl:variable name="row" as="node()*">
