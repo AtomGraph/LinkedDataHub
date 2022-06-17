@@ -244,17 +244,42 @@ exclude-result-prefixes="#all"
     
     <xsl:template match="*[*][@rdf:about]" mode="ldh:RenderContent">
         <xsl:param name="container" as="element()"/>
+        <xsl:param name="mode" as="xs:anyURI?"/>
 
         <!-- hide progress bar -->
         <ixsl:set-style name="display" select="'none'" object="$container//div[@class = 'progress-bar']"/>
         
-        <xsl:variable name="row-block" as="element()?">
-            <xsl:apply-templates select="." mode="bs2:RowBlock"/>
+        <xsl:variable name="doc" as="document-node()">
+            <xsl:document>
+                <rdf:RDF>
+                    <xsl:copy-of select="."/>
+                </rdf:RDF>
+            </xsl:document>
+        </xsl:variable>
+        <xsl:variable name="row" as="node()*">
+            <xsl:choose>
+                <xsl:when test="$mode = '&ac;MapMode'">
+                    <xsl:apply-templates select="$doc" mode="bs2:Map">
+                        <xsl:with-param name="canvas-id" select="generate-id() || '-map-canvas'"/>
+                    </xsl:apply-templates>
+                </xsl:when>
+                <xsl:when test="$mode = '&ac;ChartMode'">
+                    <xsl:apply-templates select="$doc" mode="bs2:Chart">
+                        <xsl:with-param name="canvas-id" select="generate-id() || '-chart-canvas'"/>
+                    </xsl:apply-templates>
+                </xsl:when>
+                <xsl:when test="$mode = '&ac;GraphMode'">
+                    <xsl:apply-templates select="$doc" mode="bs2:Graph"/>
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:apply-templates select="." mode="bs2:RowBlock"/>
+                </xsl:otherwise>
+            </xsl:choose>
         </xsl:variable>
 
         <xsl:for-each select="$container">
             <xsl:result-document href="?." method="ixsl:replace-content">
-                <xsl:copy-of select="$row-block/*"/>
+                <xsl:copy-of select="$row"/>
             </xsl:result-document>
         </xsl:for-each>
 
@@ -715,6 +740,7 @@ exclude-result-prefixes="#all"
     <xsl:template name="ldh:LoadContent">
         <xsl:context-item as="element()" use="required"/> <!-- container element -->
         <xsl:param name="uri" as="xs:anyURI"/> <!-- document URI -->
+        <xsl:param name="rdf-doc" as="document-node()?"/>
         <xsl:variable name="content-uri" select="@about" as="xs:anyURI"/>
         <xsl:variable name="content-value" select="ixsl:get(., 'dataset.contentValue')" as="xs:anyURI"/> <!-- get the value of the @data-content-value attribute -->
         <xsl:variable name="mode" select="if (ixsl:contains(., 'dataset.contentMode')) then xs:anyURI(ixsl:get(., 'dataset.contentMode')) else ()" as="xs:anyURI?"/> <!-- get the value of the @data-content-mode attribute -->
@@ -756,6 +782,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="content-uri" select="$container/@about" as="xs:anyURI"/>
         <xsl:param name="content-value" as="xs:anyURI"/>
         <xsl:param name="mode" as="xs:anyURI?"/>
+        <xsl:param name="rdf-doc" as="document-node()?"/>
         
         <!-- for some reason Saxon-JS 2.3 does not see this variable if it's inside <xsl:when> -->
         <xsl:variable name="content" select="key('resources', $content-value, ?body)" as="element()?"/>
@@ -778,6 +805,43 @@ exclude-result-prefixes="#all"
                     <xsl:with-param name="container" select="$container"/>
                     <xsl:with-param name="mode" select="$mode"/>
                 </xsl:apply-templates>
+
+                <!-- initialize map -->
+                <xsl:for-each select="key('elements-by-class', 'map-canvas', $container)">
+                    <xsl:variable name="canvas-id" select="@id" as="xs:string"/>
+                    <xsl:variable name="initial-load" select="true()" as="xs:boolean"/>
+                    <!-- reuse center and zoom if map object already exists, otherwise set defaults -->
+                    <xsl:variable name="center-lat" select="56" as="xs:float"/>
+                    <xsl:variable name="center-lng" select="10" as="xs:float"/>
+                    <xsl:variable name="zoom" select="4" as="xs:integer"/>
+                    <xsl:variable name="map" select="ac:create-map($canvas-id, $center-lat, $center-lng, $zoom)"/>
+
+                    <ixsl:set-property name="map" select="$map" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+
+                    <xsl:for-each select="$rdf-doc//rdf:Description[geo:lat/text() castable as xs:float][geo:long/text() castable as xs:float]">
+                        <xsl:call-template name="gm:AddMarker">
+                            <xsl:with-param name="map" select="$map"/>
+                        </xsl:call-template>
+                    </xsl:for-each>
+                </xsl:for-each>
+                <!-- initialize chart -->
+                <xsl:for-each select="key('elements-by-class', 'chart-canvas', $container)">
+                    <xsl:variable name="canvas-id" select="@id" as="xs:string"/>
+                    <xsl:variable name="chart-type" select="xs:anyURI('&ac;Table')" as="xs:anyURI"/>
+                    <xsl:variable name="category" as="xs:string?"/>
+                    <xsl:variable name="series" select="distinct-values($rdf-doc/*/*/concat(namespace-uri(), local-name()))" as="xs:string*"/>
+                    <xsl:variable name="data-table" select="ac:rdf-data-table($rdf-doc, $category, $series)"/>
+
+                    <ixsl:set-property name="data-table" select="$data-table" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+
+                    <xsl:call-template name="render-chart">
+                        <xsl:with-param name="data-table" select="$data-table"/>
+                        <xsl:with-param name="canvas-id" select="$canvas-id"/>
+                        <xsl:with-param name="chart-type" select="$chart-type"/>
+                        <xsl:with-param name="category" select="$category"/>
+                        <xsl:with-param name="series" select="$series"/>
+                    </xsl:call-template>
+                </xsl:for-each>
             </xsl:when>
             <!-- content could not be loaded as RDF -->
             <xsl:when test="?status = 406">

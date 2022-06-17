@@ -153,9 +153,17 @@ extension-element-prefixes="ixsl"
     <!-- MAP -->
     
     <xsl:template match="rdf:RDF" mode="bs2:Map">
-        <xsl:param name="canvas-id" select="'map-canvas'" as="xs:string"/>
+        <xsl:param name="canvas-id" as="xs:string"/>
+        <xsl:param name="class" select="'map-canvas'" as="xs:string?"/>
 
-        <div id="{$canvas-id}"/>
+        <div>
+            <xsl:if test="$canvas-id">
+                <xsl:attribute name="id" select="$canvas-id"/>
+            </xsl:if>
+            <xsl:if test="$class">
+                <xsl:attribute name="class" select="$class"/>
+            </xsl:if>
+        </div>
     </xsl:template>
         
     <!-- CHART -->
@@ -163,10 +171,11 @@ extension-element-prefixes="ixsl"
     <!-- graph chart (for RDF/XML results) -->
 
     <xsl:template match="rdf:RDF" mode="bs2:Chart">
+        <xsl:param name="canvas-id" as="xs:string"/>
+        <xsl:param name="class" select="'chart-canvas'" as="xs:string?"/>
         <xsl:param name="chart-type" select="xs:anyURI('&ac;Table')" as="xs:anyURI?"/>
         <xsl:param name="category" as="xs:string?"/>
         <xsl:param name="series" select="distinct-values(*/*/concat(namespace-uri(), local-name()))" as="xs:string*"/>
-        <xsl:param name="canvas-id" select="'chart-canvas'" as="xs:string"/>
 
         <xsl:apply-templates select="." mode="bs2:ChartForm">
             <xsl:with-param name="chart-type" select="$chart-type"/>
@@ -174,7 +183,14 @@ extension-element-prefixes="ixsl"
             <xsl:with-param name="series" select="$series"/>
         </xsl:apply-templates>
 
-        <div id="{$canvas-id}"></div>
+        <div>
+            <xsl:if test="$canvas-id">
+                <xsl:attribute name="id" select="$canvas-id"/>
+            </xsl:if>
+            <xsl:if test="$class">
+                <xsl:attribute name="class" select="$class"/>
+            </xsl:if>
+        </div>
     </xsl:template>
 
     <xsl:template match="rdf:RDF" mode="bs2:ChartForm" priority="-1">
@@ -333,10 +349,11 @@ extension-element-prefixes="ixsl"
     <!-- table chart (for SPARQL XML results) -->
 
     <xsl:template match="srx:sparql" mode="bs2:Chart">
+        <xsl:param name="canvas-id" as="xs:string"/>
+        <xsl:param name="class" select="'chart-canvas'" as="xs:string?"/>
         <xsl:param name="chart-type" select="xs:anyURI('&ac;Table')" as="xs:anyURI?"/>
         <xsl:param name="category" select="srx:head/srx:variable[1]/@name" as="xs:string?"/>
         <xsl:param name="series" select="srx:head/srx:variable/@name" as="xs:string*"/>
-        <xsl:param name="canvas-id" select="'canvas-id'" as="xs:string"/>
 
         <xsl:apply-templates select="." mode="bs2:ChartForm">
             <xsl:with-param name="chart-type" select="$chart-type"/>
@@ -344,7 +361,14 @@ extension-element-prefixes="ixsl"
             <xsl:with-param name="series" select="$series"/>
         </xsl:apply-templates>
 
-        <div id="{$canvas-id}"></div>
+        <div>
+            <xsl:if test="$canvas-id">
+                <xsl:attribute name="id" select="$canvas-id"/>
+            </xsl:if>
+            <xsl:if test="$class">
+                <xsl:attribute name="class" select="$class"/>
+            </xsl:if>
+        </div>
     </xsl:template>
 
     <xsl:template match="srx:sparql" mode="bs2:ChartForm">

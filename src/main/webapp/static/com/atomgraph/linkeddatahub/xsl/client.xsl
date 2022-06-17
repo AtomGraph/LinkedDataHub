@@ -504,7 +504,7 @@ WHERE
     <xsl:template name="ldh:RDFDocumentLoaded">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="uri" as="xs:anyURI"/>
-
+        
         <!-- load breadcrumbs -->
         <xsl:if test="id('breadcrumb-nav', ixsl:page())">
             <xsl:result-document href="#breadcrumb-nav" method="ixsl:replace-content">
@@ -551,12 +551,25 @@ WHERE
         </xsl:if>
                 
         <xsl:for-each select="?body">
+            <xsl:variable name="results" select="." as="document-node()"/>
             <!-- replace dots with dashes to avoid Saxon-JS treating them as field separators: https://saxonica.plan.io/issues/5031 -->
             <xsl:variable name="escaped-content-uri" select="xs:anyURI(translate($uri, '.', '-'))" as="xs:anyURI"/>
             <ixsl:set-property name="{$escaped-content-uri}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
             <!-- store document under window.LinkedDataHub[$escaped-content-uri].results -->
             <ixsl:set-property name="results" select="." object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri)"/>
-                
+            
+            <!-- this has to go after <xsl:result-document href="#{$container-id}"> because otherwise new elements will be injected and the $content-ids lookup will not work anymore -->
+            <xsl:variable name="content-ids" select="key('elements-by-class', 'resource-content', ixsl:page())/@id" as="xs:string*"/>
+            <xsl:if test="not(empty($content-ids))">
+                <xsl:variable name="containers" select="id($content-ids, ixsl:page())" as="element()*"/>
+                <xsl:for-each select="$containers">
+                    <xsl:call-template name="ldh:LoadContent">
+                        <xsl:with-param name="uri" select="$uri"/>
+                        <xsl:with-param name="rdf-doc" select="$results"/>
+                    </xsl:call-template>
+                </xsl:for-each>
+            </xsl:if>
+        
             <!-- focus on current resource -->
             <xsl:for-each select="key('resources', $uri)">
                 <!-- if the current resource is an Item, hide the <div> with the top/left "Create" dropdown as Items cannot have child documents -->
@@ -582,10 +595,10 @@ WHERE
                 </xsl:variable>
                 <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:if>
-        
-            <!-- TO-DO: replace hardcoded element ID -->
-            <xsl:if test="id('map-canvas', ixsl:page())">
-                <xsl:variable name="canvas-id" select="'map-canvas'" as="xs:string"/>
+
+            <!-- initialize map -->
+            <xsl:for-each select="key('elements-by-class', 'map-canvas', ixsl:page())">
+                <xsl:variable name="canvas-id" select="@id" as="xs:string"/>
                 <xsl:variable name="initial-load" select="true()" as="xs:boolean"/>
                 <!-- reuse center and zoom if map object already exists, otherwise set defaults -->
                 <xsl:variable name="center-lat" select="56" as="xs:float"/>
@@ -595,17 +608,15 @@ WHERE
                 
                 <ixsl:set-property name="map" select="$map" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
                 
-                <xsl:for-each select="//rdf:Description[geo:lat/text() castable as xs:float][geo:long/text() castable as xs:float]">
+                <xsl:for-each select="$results//rdf:Description[geo:lat/text() castable as xs:float][geo:long/text() castable as xs:float]">
                     <xsl:call-template name="gm:AddMarker">
                         <xsl:with-param name="map" select="$map"/>
                     </xsl:call-template>
                 </xsl:for-each>
-            </xsl:if>
-
-            <!-- TO-DO: replace hardcoded element ID -->
-            <xsl:if test="id('chart-canvas', ixsl:page())">
-                <xsl:variable name="canvas-id" select="'chart-canvas'" as="xs:string"/>
-                <xsl:variable name="results" select="." as="document-node()"/>
+            </xsl:for-each>
+            <!-- initialize chart -->
+            <xsl:for-each select="key('elements-by-class', 'chart-canvas', ixsl:page())">
+                <xsl:variable name="canvas-id" select="@id" as="xs:string"/>
                 <xsl:variable name="chart-type" select="xs:anyURI('&ac;Table')" as="xs:anyURI"/>
                 <xsl:variable name="category" as="xs:string?"/>
                 <xsl:variable name="series" select="distinct-values($results/*/*/concat(namespace-uri(), local-name()))" as="xs:string*"/>
@@ -620,7 +631,7 @@ WHERE
                     <xsl:with-param name="category" select="$category"/>
                     <xsl:with-param name="series" select="$series"/>
                 </xsl:call-template>
-            </xsl:if>
+            </xsl:for-each>
         </xsl:for-each>
     </xsl:template>
     
@@ -1011,17 +1022,6 @@ WHERE
                 <!-- use @title attribute for the media type TO-DO: find a better way, a hidden input or smth -->
                 <xsl:variable name="href" select="ac:build-uri(ldh:absolute-path(ldh:href()), let $params := map{ 'accept': string(@title) } return if (not(starts-with($doc-uri, $ldt:base))) then map:merge(($params, map{ 'uri': $doc-uri })) else $params)" as="xs:anyURI"/>
                 <ixsl:set-attribute name="href" select="$href" object="."/>
-            </xsl:for-each>
-        </xsl:if>
-
-        <!-- this has to go after <xsl:result-document href="#{$container-id}"> because otherwise new elements will be injected and the $content-ids lookup will not work anymore -->
-        <xsl:variable name="content-ids" select="key('elements-by-class', 'resource-content')/@id" as="xs:string*"/>
-        <xsl:if test="not(empty($content-ids))">
-            <xsl:variable name="containers" select="id($content-ids, ixsl:page())" as="element()*"/>
-            <xsl:for-each select="$containers">
-                <xsl:call-template name="ldh:LoadContent">
-                    <xsl:with-param name="uri" select="$uri"/>
-                </xsl:call-template>
             </xsl:for-each>
         </xsl:if>
 
