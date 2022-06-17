@@ -249,7 +249,7 @@ exclude-result-prefixes="#all"
         <!-- hide progress bar -->
         <ixsl:set-style name="display" select="'none'" object="$container//div[@class = 'progress-bar']"/>
         
-        <xsl:variable name="row" as="element()?">
+        <xsl:variable name="row" as="node()*">
             <xsl:choose>
                 <xsl:when test="$mode = '&ac;MapMode'">
                     <xsl:apply-templates select="." mode="bs2:Map"/>
