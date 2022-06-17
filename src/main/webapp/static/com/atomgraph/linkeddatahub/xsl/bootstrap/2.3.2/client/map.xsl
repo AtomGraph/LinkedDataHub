@@ -59,17 +59,15 @@ exclude-result-prefixes="#all"
 
         <!-- set $this value -->
         <xsl:variable name="select-string" select="replace($select-string, '\$this', '&lt;' || $uri || '&gt;')" as="xs:string"/>
-        <xsl:variable name="js-statement" as="element()">
-            <!-- TO-DO: move Geo under AtomGraph namespace -->
-            <xsl:choose>
-                <xsl:when test="$graph-var-name">
-                    <xsl:sequence select="ldh:new('SPARQLMap.Geo', [ $map, ldh:new('URL', [ $base ]), ldh:new('URL', [ $endpoint ]), $select-string, $focus-var-name, $graph-var-name ])"/>
-                </xsl:when>
-                <xsl:otherwise>
-                    <xsl:sequence select="ldh:new('SPARQLMap.Geo', [ $map, ldh:new('URL', [ $base ]), ldh:new('URL', [ $endpoint ]), $select-string, $focus-var-name ])"/>
-                </xsl:otherwise>
-            </xsl:choose>
-        </xsl:variable>
+        <!-- TO-DO: move Geo under AtomGraph namespace -->
+        <xsl:choose>
+            <xsl:when test="$graph-var-name">
+                <xsl:sequence select="ldh:new('SPARQLMap.Geo', [ $map, ldh:new('URL', [ $base ]), ldh:new('URL', [ $endpoint ]), $select-string, $focus-var-name, $graph-var-name ])"/>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:sequence select="ldh:new('SPARQLMap.Geo', [ $map, ldh:new('URL', [ $base ]), ldh:new('URL', [ $endpoint ]), $select-string, $focus-var-name ])"/>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:function>
 
     <xsl:template name="ac:add-geo-listener">
