@@ -768,6 +768,7 @@ exclude-result-prefixes="#all"
                     <xsl:with-param name="content-value" select="$content-value"/>
                     <xsl:with-param name="container" select="$container"/>
                     <xsl:with-param name="mode" select="$mode"/>
+                    <xsl:with-param name="rdf-doc" select="$rdf-doc"/>
                 </xsl:call-template>
             </ixsl:schedule-action>
         </xsl:variable>
