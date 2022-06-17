@@ -838,7 +838,7 @@ exclude-result-prefixes="#all"
 
     <!-- map -->
 
-    <xsl:template match="rdf:RDF" mode="bs2:Map">
+<!--    <xsl:template match="rdf:RDF" mode="bs2:Map">
         <xsl:param name="canvas-id" as="xs:string"/>
         <xsl:param name="class" select="'map-canvas'" as="xs:string?"/>
 
@@ -847,7 +847,7 @@ exclude-result-prefixes="#all"
                 <xsl:attribute name="class" select="$class"/>
             </xsl:if>
         </div>
-    </xsl:template>
+    </xsl:template>-->
     
     <!-- parallax -->
     

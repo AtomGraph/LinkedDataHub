@@ -259,10 +259,14 @@ exclude-result-prefixes="#all"
         <xsl:variable name="row" as="node()*">
             <xsl:choose>
                 <xsl:when test="$mode = '&ac;MapMode'">
-                    <xsl:apply-templates select="$doc" mode="bs2:Map"/>
+                    <xsl:apply-templates select="$doc" mode="bs2:Map">
+                        <xsl:with-param name="canvas-id" select="generate-id() || '-map-canvas'"/>
+                    </xsl:apply-templates>
                 </xsl:when>
                 <xsl:when test="$mode = '&ac;ChartMode'">
-                    <xsl:apply-templates select="$doc" mode="bs2:Chart"/>
+                    <xsl:apply-templates select="$doc" mode="bs2:Chart">
+                        <xsl:with-param name="canvas-id" select="generate-id() || '-chart-canvas'"/>
+                    </xsl:apply-templates>
                 </xsl:when>
                 <xsl:when test="$mode = '&ac;GraphMode'">
                     <xsl:apply-templates select="$doc" mode="bs2:Graph"/>
@@ -275,7 +279,7 @@ exclude-result-prefixes="#all"
 
         <xsl:for-each select="$container">
             <xsl:result-document href="?." method="ixsl:replace-content">
-                <xsl:copy-of select="$row/*"/>
+                <xsl:copy-of select="$row"/>
             </xsl:result-document>
         </xsl:for-each>
 

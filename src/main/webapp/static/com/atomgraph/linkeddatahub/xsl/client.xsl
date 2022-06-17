@@ -582,10 +582,11 @@ WHERE
                 </xsl:variable>
                 <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:if>
-        
-            <!-- TO-DO: replace hardcoded element ID -->
-            <xsl:if test="id('map-canvas', ixsl:page())">
-                <xsl:variable name="canvas-id" select="'map-canvas'" as="xs:string"/>
+
+            <xsl:variable name="results" select="." as="document-node()"/>
+            <!-- initialize maps -->
+            <xsl:for-each test="key('elements-by-class', 'map-canvas', ixsl:page())">
+                <xsl:variable name="canvas-id" select="@id" as="xs:string"/>
                 <xsl:variable name="initial-load" select="true()" as="xs:boolean"/>
                 <!-- reuse center and zoom if map object already exists, otherwise set defaults -->
                 <xsl:variable name="center-lat" select="56" as="xs:float"/>
@@ -595,17 +596,15 @@ WHERE
                 
                 <ixsl:set-property name="map" select="$map" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
                 
-                <xsl:for-each select="//rdf:Description[geo:lat/text() castable as xs:float][geo:long/text() castable as xs:float]">
+                <xsl:for-each select="$results//rdf:Description[geo:lat/text() castable as xs:float][geo:long/text() castable as xs:float]">
                     <xsl:call-template name="gm:AddMarker">
                         <xsl:with-param name="map" select="$map"/>
                     </xsl:call-template>
                 </xsl:for-each>
-            </xsl:if>
-
-            <!-- TO-DO: replace hardcoded element ID -->
-            <xsl:if test="id('chart-canvas', ixsl:page())">
-                <xsl:variable name="canvas-id" select="'chart-canvas'" as="xs:string"/>
-                <xsl:variable name="results" select="." as="document-node()"/>
+            </xsl:for-each>
+            <!-- initialize charts -->
+            <xsl:for-each test="key('elements-by-class', 'chart-canvas', ixsl:page())">
+                <xsl:variable name="canvas-id" select="@id" as="xs:string"/>
                 <xsl:variable name="chart-type" select="xs:anyURI('&ac;Table')" as="xs:anyURI"/>
                 <xsl:variable name="category" as="xs:string?"/>
                 <xsl:variable name="series" select="distinct-values($results/*/*/concat(namespace-uri(), local-name()))" as="xs:string*"/>
@@ -620,7 +619,7 @@ WHERE
                     <xsl:with-param name="category" select="$category"/>
                     <xsl:with-param name="series" select="$series"/>
                 </xsl:call-template>
-            </xsl:if>
+            </xsl:for-each>
         </xsl:for-each>
     </xsl:template>
     
