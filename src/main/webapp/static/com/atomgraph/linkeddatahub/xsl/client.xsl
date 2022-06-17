@@ -505,6 +505,18 @@ WHERE
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="uri" as="xs:anyURI"/>
 
+        <!-- this has to go after <xsl:result-document href="#{$container-id}"> because otherwise new elements will be injected and the $content-ids lookup will not work anymore -->
+        <!-- ldh:LoadContent also has to finish before JS components such as map and chart are initialized from RDF $results (below) -->
+        <xsl:variable name="content-ids" select="key('elements-by-class', 'resource-content')/@id" as="xs:string*"/>
+        <xsl:if test="not(empty($content-ids))">
+            <xsl:variable name="containers" select="id($content-ids, ixsl:page())" as="element()*"/>
+            <xsl:for-each select="$containers">
+                <xsl:call-template name="ldh:LoadContent">
+                    <xsl:with-param name="uri" select="$uri"/>
+                </xsl:call-template>
+            </xsl:for-each>
+        </xsl:if>
+        
         <!-- load breadcrumbs -->
         <xsl:if test="id('breadcrumb-nav', ixsl:page())">
             <xsl:result-document href="#breadcrumb-nav" method="ixsl:replace-content">
@@ -1010,17 +1022,6 @@ WHERE
                 <!-- use @title attribute for the media type TO-DO: find a better way, a hidden input or smth -->
                 <xsl:variable name="href" select="ac:build-uri(ldh:absolute-path(ldh:href()), let $params := map{ 'accept': string(@title) } return if (not(starts-with($doc-uri, $ldt:base))) then map:merge(($params, map{ 'uri': $doc-uri })) else $params)" as="xs:anyURI"/>
                 <ixsl:set-attribute name="href" select="$href" object="."/>
-            </xsl:for-each>
-        </xsl:if>
-
-        <!-- this has to go after <xsl:result-document href="#{$container-id}"> because otherwise new elements will be injected and the $content-ids lookup will not work anymore -->
-        <xsl:variable name="content-ids" select="key('elements-by-class', 'resource-content')/@id" as="xs:string*"/>
-        <xsl:if test="not(empty($content-ids))">
-            <xsl:variable name="containers" select="id($content-ids, ixsl:page())" as="element()*"/>
-            <xsl:for-each select="$containers">
-                <xsl:call-template name="ldh:LoadContent">
-                    <xsl:with-param name="uri" select="$uri"/>
-                </xsl:call-template>
             </xsl:for-each>
         </xsl:if>
 
