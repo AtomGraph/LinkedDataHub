@@ -249,16 +249,21 @@ exclude-result-prefixes="#all"
         <!-- hide progress bar -->
         <ixsl:set-style name="display" select="'none'" object="$container//div[@class = 'progress-bar']"/>
         
+        <xsl:variable name="doc" as="document-node()">
+            <xsl:document>
+                <xsl:copy-of select="."/>
+            </xsl:document>
+        </xsl:variable>
         <xsl:variable name="row" as="node()*">
             <xsl:choose>
                 <xsl:when test="$mode = '&ac;MapMode'">
-                    <xsl:apply-templates select="." mode="bs2:Map"/>
+                    <xsl:apply-templates select="$doc" mode="bs2:Map"/>
                 </xsl:when>
                 <xsl:when test="$mode = '&ac;ChartMode'">
-                    <xsl:apply-templates select="." mode="bs2:Chart"/>
+                    <xsl:apply-templates select="$doc" mode="bs2:Chart"/>
                 </xsl:when>
                 <xsl:when test="$mode = '&ac;GraphMode'">
-                    <xsl:apply-templates select="." mode="bs2:Graph"/>
+                    <xsl:apply-templates select="$doc" mode="bs2:Graph"/>
                 </xsl:when>
                 <xsl:otherwise>
                     <xsl:apply-templates select="." mode="bs2:RowBlock"/>
