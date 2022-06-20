@@ -422,7 +422,7 @@ exclude-result-prefixes="#all"
         <xsl:if test="$mode">
             <!-- set the select.content-mode value to $mode and remove its @name -->
             <xsl:for-each select="key('elements-by-class', 'content-mode', $container)">
-                <ixsl:set-property name="value" select="$mode"/>
+                <ixsl:set-property name="value" select="$mode" object="."/>
                 <ixsl:remove-attribute name="name"/>
             </xsl:for-each>
         </xsl:if>
