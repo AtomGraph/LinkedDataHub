@@ -383,7 +383,9 @@ exclude-result-prefixes="#all"
         </xsl:variable>
         <xsl:variable name="controls" as="node()*">
             <xsl:apply-templates select="$constructor//rdf:value/@rdf:*" mode="bs2:FormControl"/>
-            <xsl:apply-templates select="$constructor//ac:mode/@rdf:*" mode="bs2:FormControl"/>
+            <xsl:apply-templates select="$constructor//ac:mode/@rdf:*" mode="bs2:FormControl">
+                <xsl:with-param name="type-label" select="false()"/>
+            </xsl:apply-templates>
         </xsl:variable>
         
         <!-- replace the middle column only -->
