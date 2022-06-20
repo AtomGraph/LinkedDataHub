@@ -71,25 +71,29 @@ exclude-result-prefixes="#all"
     </xsl:variable>
     <xsl:variable name="content-update-string" as="xs:string">
         <![CDATA[
-            PREFIX  ac: <https://w3id.org/atomgraph/client#>
+            PREFIX ldh: <https://w3id.org/atomgraph/linkeddatahub#>
+            PREFIX ac:  <https://w3id.org/atomgraph/client#>
             PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 
             DELETE
             {
                 $this ?seq $content .
-                $content rdf:value ?oldValue ;
+                $content a ldh:Content ;
+                    rdf:value ?oldValue ;
                     ac:mode ?oldMode .
             }
             INSERT
             {
                 $this ?seq $content .
-                $content rdf:value $newValue ;
+                $content a ldh:Content ;
+                    rdf:value $newValue ;
                     ac:mode ?newMode .
             }
             WHERE
             {
                 $this ?seq $content .
-                $content rdf:value ?oldValue .
+                $content a ldh:Content ;
+                    rdf:value ?oldValue .
                 OPTIONAL
                 {
                     $content ac:mode ?oldMode
@@ -99,19 +103,22 @@ exclude-result-prefixes="#all"
     </xsl:variable>
     <xsl:variable name="content-delete-string" as="xs:string">
         <![CDATA[
+            PREFIX ldh: <https://w3id.org/atomgraph/linkeddatahub#>
             PREFIX  ac: <https://w3id.org/atomgraph/client#>
             PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 
             DELETE
             {
                 $this ?seq $content .
-                $content rdf:value ?value ;
+                $content a ldh:Content ;
+                    rdf:value ?value ;
                     ac:mode ?mode .
             }
             WHERE
             {
                 $this ?seq $content .
-                $content rdf:value ?value .
+                $content a ldh:Content ;
+                    rdf:value ?value .
                 OPTIONAL
                 {
                     $content ac:mode ?mode
