@@ -1030,7 +1030,7 @@ WHERE
         <!-- if ldh:ContentMode is active, change the page's URL to reflect that -->
         <xsl:if test="id('content-body', ixsl:page())/div[contains-token(@class, 'row-fluid')][1]/ul[contains-token(@class, 'nav-tabs')]/li[contains-token(@class, 'content-mode')][contains-token(@class, 'active')]">
             <xsl:variable name="fragment" select="substring-after($href, '#')" as="xs:string"/>
-            <xsl:sequence select="ixsl:call(ixsl:window(), 'history.replaceState', [ (), '', ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ac:build-uri(ac:uri(), map{ 'mode': '&ldh;ContentMode' } )) || if ($fragment) then '#' || $fragment else () ])[current-date() lt xs:date('2000-01-01')]"/>
+            <xsl:sequence select="ixsl:call(ixsl:window(), 'history.replaceState', [ (), '', ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ac:build-uri(ac:uri(), map{ 'mode': '&ldh;ContentMode' } )) || (if ($fragment) then '#' || $fragment else ()) ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:if>
         
         <xsl:call-template name="ldh:RDFDocumentLoad">
