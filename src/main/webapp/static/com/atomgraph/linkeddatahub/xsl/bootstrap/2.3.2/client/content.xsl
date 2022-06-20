@@ -529,6 +529,7 @@ exclude-result-prefixes="#all"
                 <xsl:variable name="update-string" select="replace($content-update-string, '\$this', '&lt;' || ac:uri() || '&gt;')" as="xs:string"/>
                 <xsl:variable name="update-string" select="replace($update-string, '\$content', '&lt;' || $content-uri || '&gt;')" as="xs:string"/>
                 <xsl:variable name="update-string" select="replace($update-string, '\$newValue', '&lt;' || $content-value || '&gt;')" as="xs:string"/>
+                <xsl:variable name="update-string" select="if ($mode) then replace($update-string, '\$newMode', '&lt;' || $mode || '&gt;') else $update-string" as="xs:string"/>
                 <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ac:uri())" as="xs:anyURI"/>
                 <xsl:variable name="request" as="item()*">
                     <ixsl:schedule-action http-request="map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string }">
@@ -549,6 +550,7 @@ exclude-result-prefixes="#all"
                 <xsl:variable name="update-string" select="replace($content-append-string, '\$this', '&lt;' || ac:uri() || '&gt;')" as="xs:string"/>
                 <xsl:variable name="update-string" select="replace($update-string, '\$content', '&lt;' || $content-uri || '&gt;')" as="xs:string"/>
                 <xsl:variable name="update-string" select="replace($update-string, '\$value', '&lt;' || $content-value || '&gt;')" as="xs:string"/>
+                <xsl:variable name="update-string" select="if ($mode) then replace($update-string, '\$mode', '&lt;' || $mode || '&gt;') else $update-string" as="xs:string"/>
                 <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ac:uri())" as="xs:anyURI"/>
                 <xsl:variable name="request" as="item()*">
                     <ixsl:schedule-action http-request="map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string }">
