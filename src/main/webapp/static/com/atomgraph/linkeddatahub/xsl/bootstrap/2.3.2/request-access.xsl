@@ -181,9 +181,9 @@ exclude-result-prefixes="#all">
             </xsl:for-each>
         </select>
         
-        <xsl:apply-templates select="." mode="bs2:FormControlTypeLabel">
-            <xsl:with-param name="type-label" select="$type-label"/>
-        </xsl:apply-templates>
+        <xsl:if test="$type-label">
+            <xsl:apply-templates select="." mode="bs2:FormControlTypeLabel"/>
+        </xsl:if>
     </xsl:template>
     
     <xsl:template match="lacl:requestAgent[doc-available(ac:uri())][key('resources', ac:uri(), document(ac:uri()))/rdf:type/@rdf:resource = '&adm;RequestAccess']" mode="bs2:FormControl" priority="2">

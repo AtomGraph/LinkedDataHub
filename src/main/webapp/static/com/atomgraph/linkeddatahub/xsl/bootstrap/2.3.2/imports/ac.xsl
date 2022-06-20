@@ -19,6 +19,7 @@ exclude-result-prefixes="#all">
     
     <!-- override the value of ac:mode with a dropdown of ac:Mode instances -->
     <xsl:template match="ac:mode/@rdf:resource | ac:mode/@rdf:nodeID" mode="bs2:FormControl">
+        <xsl:param name="type-label" select="true()" as="xs:boolean"/>
         <xsl:variable name="value" select="." as="xs:string"/>
 
         <xsl:variable name="modes" select="key('resources-by-type', '&ac;Mode', document(ac:document-uri('&ac;')))" as="element()*"/>
@@ -35,7 +36,9 @@ exclude-result-prefixes="#all">
             </xsl:for-each>
         </select>
 
-        <xsl:apply-templates select="." mode="bs2:FormControlTypeLabel"/>
+        <xsl:if test="$type-label">
+            <xsl:apply-templates select="." mode="bs2:FormControlTypeLabel"/>
+        </xsl:if>
     </xsl:template>
     
 </xsl:stylesheet>

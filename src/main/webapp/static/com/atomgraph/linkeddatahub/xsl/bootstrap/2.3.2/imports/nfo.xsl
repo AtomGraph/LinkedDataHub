@@ -30,6 +30,7 @@ exclude-result-prefixes="#all">
         <xsl:param name="class" as="xs:string?"/>
         <xsl:param name="accept" as="xs:string?"/>
         <xsl:param name="container" select="resolve-uri('uploads/', $ldt:base)" as="xs:anyURI"/> <!-- TO-DO: get container URI from the ns:ItemOfFileContainer restriction -->
+        <xsl:param name="type-label" select="true()" as="xs:boolean"/>
 
         <xsl:call-template name="xhtml:Input">
             <xsl:with-param name="name" select="'ol'"/>
@@ -38,7 +39,9 @@ exclude-result-prefixes="#all">
             <xsl:with-param name="class" select="$class"/>
         </xsl:call-template>
         
-        <xsl:apply-templates select="." mode="bs2:FormControlTypeLabel"/>
+        <xsl:if test="$type-label">
+            <xsl:apply-templates select="." mode="bs2:FormControlTypeLabel"/>
+        </xsl:if>
     </xsl:template>
 
     <xsl:template match="nfo:fileName/@rdf:datatype" mode="bs2:FormControl">
@@ -49,9 +52,8 @@ exclude-result-prefixes="#all">
 
     <xsl:template match="*[@rdf:*[local-name() = 'nodeID']]/nfo:fileName/@rdf:*[local-name() = 'nodeID'][key('resources', .)[not(* except rdf:type[@rdf:resource = '&xsd;string'])]]" mode="bs2:FormControlTypeLabel">
         <xsl:param name="type" as="xs:string?"/>
-        <xsl:param name="type-label" select="true()" as="xs:boolean"/>
 
-        <xsl:if test="not($type = 'hidden') and $type-label">
+        <xsl:if test="not($type = 'hidden')">
             <span class="help-inline">Upload</span>
         </xsl:if>
     </xsl:template>
