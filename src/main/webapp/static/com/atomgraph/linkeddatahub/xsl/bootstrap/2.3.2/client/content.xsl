@@ -537,6 +537,7 @@ exclude-result-prefixes="#all"
                             <xsl:with-param name="container" select="$container"/>
                             <xsl:with-param name="uri" select="ac:uri()"/>
                             <xsl:with-param name="content-value" select="$content-value"/>
+                            <xsl:with-param name="mode" select="$mode"/>
                         </xsl:call-template>
                     </ixsl:schedule-action>
                 </xsl:variable>
@@ -558,6 +559,7 @@ exclude-result-prefixes="#all"
                             <xsl:with-param name="container" select="$container"/>
                             <xsl:with-param name="uri" select="ac:uri()"/>
                             <xsl:with-param name="content-value" select="$content-value"/>
+                            <xsl:with-param name="mode" select="$mode"/>
                         </xsl:call-template>
                     </ixsl:schedule-action>
                 </xsl:variable>
@@ -994,6 +996,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="uri" as="xs:anyURI"/> <!-- document URI -->
         <xsl:param name="container" as="element()"/>
         <xsl:param name="content-value" as="xs:anyURI"/>
+        <xsl:param name="mode" as="xs:anyURI?"/>
 
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
 
@@ -1003,6 +1006,11 @@ exclude-result-prefixes="#all"
                     <!-- update @data-content-value value -->
                     <ixsl:set-property name="dataset.contentValue" select="$content-value" object="."/>
 
+                    <xsl:if test="$mode">
+                        <!-- update @data-content-mode value -->
+                        <ixsl:set-property name="dataset.contentMode" select="$mode" object="."/>
+                    </xsl:if>
+                    
                     <xsl:call-template name="ldh:LoadContent">
                         <xsl:with-param name="uri" select="$uri"/> <!-- content value gets read from dataset.contentValue -->
                     </xsl:call-template>
