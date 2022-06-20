@@ -620,22 +620,25 @@ exclude-result-prefixes="#all"
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
-    
-    <!-- toggle between Content as URI resource and HTML (rdf:XMLLiteral) in inline editing mode -->
-    <xsl:template match="div[contains-token(@class, 'xhtml-content') or contains-token(@class, 'resource-content')]//select[contains-token(@class, 'content-type')]" mode="ixsl:onchange" priority="1">
-        <xsl:variable name="content-type" select="ixsl:get(., 'value')" as="xs:anyURI"/>
-        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'xhtml-content') or contains-token(@class, 'resource-content')]" as="element()"/>
+
+    <!-- toggle between Content as HTML (rdf:XMLLiteral) and URI resource in inline editing mode (increased priority to take precedence over the template in form.xsl) -->
+    <xsl:template match="div[contains-token(@class, 'xhtml-content')]//select[contains-token(@class, 'content-type')][ixsl:get(., 'value') = '&rdfs;Resource']" mode="ixsl:onchange" priority="1">
+        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'xhtml-content')]" as="element()"/>
 
         <xsl:next-match/>
 
-        <xsl:if test="$content-type = '&rdfs;Resource'">
-            <xsl:sequence select="ixsl:call(ixsl:get($container, 'classList'), 'replace', [ 'xhtml-content', 'resource-content' ])[current-date() lt xs:date('2000-01-01')]"/>
-        </xsl:if>
-        <xsl:if test="$content-type = '&rdf;XMLLiteral'">
-            <xsl:sequence select="ixsl:call(ixsl:get($container, 'classList'), 'replace', [ 'resource-content', 'xhtml-content' ])[current-date() lt xs:date('2000-01-01')]"/>
-        </xsl:if>
+        <xsl:sequence select="ixsl:call(ixsl:get($container, 'classList'), 'replace', [ 'xhtml-content', 'resource-content' ])[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
-    
+
+    <!-- toggle between Content as URI resource and HTML (rdf:XMLLiteral) in inline editing mode (increased priority to take precedence over the template in form.xsl) -->
+    <xsl:template match="div[contains-token(@class, 'resource-content')]//select[contains-token(@class, 'content-type')][ixsl:get(., 'value') = '&rdf;XMLLiteral']" mode="ixsl:onchange" priority="1">
+        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'resource-content')]" as="element()"/>
+
+        <xsl:next-match/>
+
+        <xsl:sequence select="ixsl:call(ixsl:get($container, 'classList'), 'replace', [ 'resource-content', 'xhtml-content' ])[current-date() lt xs:date('2000-01-01')]"/>
+    </xsl:template>
+
     <!-- appends new XHTML content instance to the content list -->
     <xsl:template match="div[contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'create-action')][contains-token(@class, 'add-xhtml-content')]" mode="ixsl:onclick">
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'row-fluid')]" as="element()"/>
@@ -702,8 +705,12 @@ exclude-result-prefixes="#all"
                     <rdf:Description rdf:nodeID="A1">
                         <rdf:type rdf:resource="&ldh;Content"/>
                         <rdf:value rdf:nodeID="A2"/>
+                        <ac:mode rdf:nodeID="A3"/>
                     </rdf:Description>
                     <rdf:Description rdf:nodeID="A2">
+                        <rdf:type rdf:resource="&rdfs;Resource"/>
+                    </rdf:Description>
+                    <rdf:Description rdf:nodeID="A3">
                         <rdf:type rdf:resource="&rdfs;Resource"/>
                     </rdf:Description>
                 </rdf:RDF>
@@ -711,6 +718,9 @@ exclude-result-prefixes="#all"
         </xsl:variable>
         <xsl:variable name="controls" as="node()*">
             <xsl:apply-templates select="$constructor//rdf:value/@rdf:*" mode="bs2:FormControl"/>
+            <xsl:apply-templates select="$constructor//ac:mode/@rdf:*" mode="bs2:FormControl">
+                <xsl:with-param name="type-label" select="false()"/>
+            </xsl:apply-templates>
         </xsl:variable>
         
         <!-- move the current row of controls to the bottom of the content list -->
