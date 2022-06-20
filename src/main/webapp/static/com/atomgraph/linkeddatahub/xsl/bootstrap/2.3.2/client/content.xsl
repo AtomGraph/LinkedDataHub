@@ -52,8 +52,8 @@ exclude-result-prefixes="#all"
             {
                 $this ?property $content .
                 $content a ldh:Content ;
-                    rdf:value $value .
-                #${mode_bgp}
+                    rdf:value $value ;
+                    ac:mode $mode .
             }
             WHERE
             {
@@ -71,38 +71,51 @@ exclude-result-prefixes="#all"
     </xsl:variable>
     <xsl:variable name="content-update-string" as="xs:string">
         <![CDATA[
+            PREFIX  ac: <https://w3id.org/atomgraph/client#>
             PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 
             DELETE
             {
                 $this ?seq $content .
-                $content rdf:value ?oldValue .
+                $content rdf:value ?oldValue ;
+                    ac:mode ?oldMode .
             }
             INSERT
             {
                 $this ?seq $content .
-                $content rdf:value $newValue .
+                $content rdf:value $newValue ;
+                    ac:mode ?newMode .
             }
             WHERE
             {
                 $this ?seq $content .
                 $content rdf:value ?oldValue .
+                OPTIONAL
+                {
+                    $content ac:mode ?oldMode
+                }
             }
         ]]>
     </xsl:variable>
     <xsl:variable name="content-delete-string" as="xs:string">
         <![CDATA[
+            PREFIX  ac: <https://w3id.org/atomgraph/client#>
             PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 
             DELETE
             {
                 $this ?seq $content .
-                $content rdf:value ?value .
+                $content rdf:value ?value ;
+                    ac:mode ?mode .
             }
             WHERE
             {
                 $this ?seq $content .
                 $content rdf:value ?value .
+                OPTIONAL
+                {
+                    $content ac:mode ?mode
+                }
             }
         ]]>
     </xsl:variable>
@@ -498,7 +511,8 @@ exclude-result-prefixes="#all"
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'resource-content')]" as="element()"/>
         <xsl:variable name="old-content-value" select="ixsl:get($container, 'dataset.contentValue')" as="xs:anyURI"/>
         <xsl:variable name="content-value" select="ixsl:get($container//input[@name = 'ou'], 'value')" as="xs:anyURI"/>
-        
+        <xsl:variable name="mode" select="ixsl:get(key('elements-by-class', 'content-mode', $container), 'value')" as="xs:anyURI?"/>
+
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
         <xsl:choose>
