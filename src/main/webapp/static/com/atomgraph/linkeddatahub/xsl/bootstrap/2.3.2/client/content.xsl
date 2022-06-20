@@ -261,17 +261,23 @@ exclude-result-prefixes="#all"
         <xsl:variable name="row" as="node()*">
             <xsl:choose>
                 <xsl:when test="$mode = '&ac;MapMode'">
-                    <xsl:apply-templates select="$doc" mode="bs2:Map">
-                        <xsl:with-param name="canvas-id" select="generate-id() || '-map-canvas'"/>
-                    </xsl:apply-templates>
+                    <div class="offset2 span7">
+                        <xsl:apply-templates select="$doc" mode="bs2:Map">
+                            <xsl:with-param name="canvas-id" select="generate-id() || '-map-canvas'"/>
+                        </xsl:apply-templates>
+                    </div>
                 </xsl:when>
                 <xsl:when test="$mode = '&ac;ChartMode'">
-                    <xsl:apply-templates select="$doc" mode="bs2:Chart">
-                        <xsl:with-param name="canvas-id" select="generate-id() || '-chart-canvas'"/>
-                    </xsl:apply-templates>
+                    <div class="offset2 span7">
+                        <xsl:apply-templates select="$doc" mode="bs2:Chart">
+                            <xsl:with-param name="canvas-id" select="generate-id() || '-chart-canvas'"/>
+                        </xsl:apply-templates>
+                    </div>
                 </xsl:when>
                 <xsl:when test="$mode = '&ac;GraphMode'">
-                    <xsl:apply-templates select="$doc" mode="bs2:Graph"/>
+                    <div class="offset2 span7">
+                        <xsl:apply-templates select="$doc" mode="bs2:Graph"/>
+                    </div>
                 </xsl:when>
                 <xsl:otherwise>
                     <xsl:apply-templates select="." mode="bs2:RowBlock"/>
