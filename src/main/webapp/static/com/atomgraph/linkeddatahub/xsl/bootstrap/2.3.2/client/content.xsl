@@ -362,6 +362,7 @@ exclude-result-prefixes="#all"
     <xsl:template match="div[contains-token(@class, 'resource-content')]//button[contains-token(@class, 'btn-edit')]" mode="ixsl:onclick">
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'resource-content')]" as="element()"/>
         <xsl:variable name="content-value" select="ixsl:get($container, 'dataset.contentValue')" as="xs:anyURI"/> <!-- get the value of the @data-content-value attribute -->
+        <xsl:variable name="mode" select="if (ixsl:contains($container, 'dataset.contentMode')) then xs:anyURI(ixsl:get($container, 'dataset.contentMode')) else ()" as="xs:anyURI?"/> <!-- get the value of the @data-content-mode attribute -->
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), $content-value)"/>
 
         <xsl:variable name="constructor" as="document-node()">
@@ -384,6 +385,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="controls" as="node()*">
             <xsl:apply-templates select="$constructor//rdf:value/@rdf:*" mode="bs2:FormControl"/>
             <xsl:apply-templates select="$constructor//ac:mode/@rdf:*" mode="bs2:FormControl">
+                <xsl:with-param name="class" select="'content-mode'"/>
                 <xsl:with-param name="type-label" select="false()"/>
             </xsl:apply-templates>
         </xsl:variable>
@@ -416,6 +418,14 @@ exclude-result-prefixes="#all"
                 </div>
             </xsl:result-document>
         </xsl:for-each>
+        
+        <xsl:if test="$mode">
+            <!-- set the select.content-mode value to $mode and remove its @name -->
+            <xsl:for-each select="key('elements-by-class', 'content-mode', $container)">
+                <ixsl:set-property name="value" select="$mode"/>
+                <ixsl:remove-attribute name="name"/>
+            </xsl:for-each>
+        </xsl:if>
         
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
