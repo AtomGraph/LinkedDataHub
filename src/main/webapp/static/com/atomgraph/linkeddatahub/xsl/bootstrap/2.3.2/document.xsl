@@ -156,13 +156,17 @@ extension-element-prefixes="ixsl"
         <xsl:param name="canvas-id" as="xs:string"/>
         <xsl:param name="class" select="'map-canvas'" as="xs:string?"/>
 
-        <div>
-            <xsl:if test="$canvas-id">
-                <xsl:attribute name="id" select="$canvas-id"/>
-            </xsl:if>
-            <xsl:if test="$class">
-                <xsl:attribute name="class" select="$class"/>
-            </xsl:if>
+        <div class="row-fluid">
+            <div class="offset2 span7">
+                <div>
+                    <xsl:if test="$canvas-id">
+                        <xsl:attribute name="id" select="$canvas-id"/>
+                    </xsl:if>
+                    <xsl:if test="$class">
+                        <xsl:attribute name="class" select="$class"/>
+                    </xsl:if>
+                </div>
+            </div>
         </div>
     </xsl:template>
         
@@ -177,19 +181,23 @@ extension-element-prefixes="ixsl"
         <xsl:param name="category" as="xs:string?"/>
         <xsl:param name="series" select="distinct-values(*/*/concat(namespace-uri(), local-name()))" as="xs:string*"/>
 
-        <xsl:apply-templates select="." mode="bs2:ChartForm">
-            <xsl:with-param name="chart-type" select="$chart-type"/>
-            <xsl:with-param name="category" select="$category"/>
-            <xsl:with-param name="series" select="$series"/>
-        </xsl:apply-templates>
+        <div class="row-fluid">
+            <div class="offset2 span7">
+                <xsl:apply-templates select="." mode="bs2:ChartForm">
+                    <xsl:with-param name="chart-type" select="$chart-type"/>
+                    <xsl:with-param name="category" select="$category"/>
+                    <xsl:with-param name="series" select="$series"/>
+                </xsl:apply-templates>
 
-        <div>
-            <xsl:if test="$canvas-id">
-                <xsl:attribute name="id" select="$canvas-id"/>
-            </xsl:if>
-            <xsl:if test="$class">
-                <xsl:attribute name="class" select="$class"/>
-            </xsl:if>
+                <div>
+                    <xsl:if test="$canvas-id">
+                        <xsl:attribute name="id" select="$canvas-id"/>
+                    </xsl:if>
+                    <xsl:if test="$class">
+                        <xsl:attribute name="class" select="$class"/>
+                    </xsl:if>
+                </div>
+            </div>
         </div>
     </xsl:template>
 
