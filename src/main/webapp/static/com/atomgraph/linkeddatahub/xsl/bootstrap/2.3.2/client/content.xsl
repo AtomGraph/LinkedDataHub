@@ -576,7 +576,7 @@ exclude-result-prefixes="#all"
                     <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
                     <xsl:variable name="content-uri" select="$container/@about" as="xs:anyURI"/>
-                    <xsl:variable name="update-string" select="replace($content-update-string, '\$this', '&lt;' || ac:uri() || '&gt;')" as="xs:string"/>
+                    <xsl:variable name="update-string" select="replace($content-delete-string, '\$this', '&lt;' || ac:uri() || '&gt;')" as="xs:string"/>
                     <xsl:variable name="update-string" select="replace($update-string, '\$content', '&lt;' || $content-uri || '&gt;')" as="xs:string"/>
                     <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ac:uri())" as="xs:anyURI"/>
                     <xsl:variable name="request" as="item()*">
