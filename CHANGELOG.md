@@ -9,6 +9,7 @@
 ### Changed
 - Content model uses `rdf:Seq` and `rdf:_1`, `rdf:_2` ... properties instead of `rdf:List` and `rdf:first`/`rdf:rest`
 - SPARQL updates submitted to the Graph Store via the `PATCH` method now have to use the default graph context, the `GRAPH` keyword is disallowed
+- Fixed caching of delegated WebID agents, eliminating an unnecessary request with each authentication
 
 ## [3.1.9] - 2022-05-23
 ### Added
