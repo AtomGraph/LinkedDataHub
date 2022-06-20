@@ -553,12 +553,6 @@ WHERE
                 
         <xsl:for-each select="?body">
             <xsl:variable name="results" select="." as="document-node()"/>
-            <!-- replace dots with dashes to avoid Saxon-JS treating them as field separators: https://saxonica.plan.io/issues/5031 -->
-            <xsl:variable name="escaped-content-uri" select="xs:anyURI(translate($uri, '.', '-'))" as="xs:anyURI"/>
-            <ixsl:set-property name="{$escaped-content-uri}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
-            <!-- store document under window.LinkedDataHub[$escaped-content-uri].results -->
-            <ixsl:set-property name="results" select="." object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri)"/>
-            
             <!-- this has to go after <xsl:result-document href="#{$container-id}"> because otherwise new elements will be injected and the $content-ids lookup will not work anymore -->
             <xsl:variable name="content-ids" select="key('elements-by-class', 'resource-content', ixsl:page())/@id" as="xs:string*"/>
             <xsl:if test="not(empty($content-ids))">
@@ -1035,7 +1029,8 @@ WHERE
         
         <!-- if ldh:ContentMode is active, change the page's URL to reflect that -->
         <xsl:if test="id('content-body', ixsl:page())/div[contains-token(@class, 'row-fluid')][1]/ul[contains-token(@class, 'nav-tabs')]/li[contains-token(@class, 'content-mode')][contains-token(@class, 'active')]">
-            <xsl:sequence select="ixsl:call(ixsl:window(), 'history.replaceState', [ (), '', ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ac:build-uri(ac:uri(), map{ 'mode': '&ldh;ContentMode' } )) ])[current-date() lt xs:date('2000-01-01')]"/>
+            <xsl:variable name="fragment" select="substring-after($href, '#')" as="xs:string"/>
+            <xsl:sequence select="ixsl:call(ixsl:window(), 'history.replaceState', [ (), '', ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ac:build-uri(ac:uri(), map{ 'mode': '&ldh;ContentMode' } )) || if ($fragment) then '#' || $fragment else () ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:if>
         
         <xsl:call-template name="ldh:RDFDocumentLoad">

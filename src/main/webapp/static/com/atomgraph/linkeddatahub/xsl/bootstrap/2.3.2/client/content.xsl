@@ -868,7 +868,7 @@ exclude-result-prefixes="#all"
                 <ixsl:set-property name="{$escaped-content-uri}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
                 <!-- store this content element -->
                 <ixsl:set-property name="content" select="$content" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri)"/>
-                <!-- store the result document -->
+                <!-- store document under window.LinkedDataHub[$escaped-content-uri].results -->
                 <ixsl:set-property name="results" select="$results" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri)"/>
 
                 <xsl:for-each select="$container//div[@class = 'bar']">
