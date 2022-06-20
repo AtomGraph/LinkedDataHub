@@ -370,8 +370,12 @@ exclude-result-prefixes="#all"
                     <rdf:Description rdf:nodeID="A1">
                         <rdf:type rdf:resource="&ldh;Content"/>
                         <rdf:value rdf:nodeID="A2"/>
+                        <ac:mode rdf:nodeID="A3"/>
                     </rdf:Description>
                     <rdf:Description rdf:nodeID="A2">
+                        <rdf:type rdf:resource="&rdfs;Resource"/>
+                    </rdf:Description>
+                    <rdf:Description rdf:nodeID="A3">
                         <rdf:type rdf:resource="&rdfs;Resource"/>
                     </rdf:Description>
                 </rdf:RDF>
@@ -379,6 +383,7 @@ exclude-result-prefixes="#all"
         </xsl:variable>
         <xsl:variable name="controls" as="node()*">
             <xsl:apply-templates select="$constructor//rdf:value/@rdf:*" mode="bs2:FormControl"/>
+            <xsl:apply-templates select="$constructor//ac:mode/@rdf:*" mode="bs2:FormControl"/>
         </xsl:variable>
         
         <!-- replace the middle column only -->
