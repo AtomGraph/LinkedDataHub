@@ -87,7 +87,7 @@ exclude-result-prefixes="#all"
                 $this ?seq $content .
                 $content a ldh:Content ;
                     rdf:value $newValue ;
-                    ac:mode ?newMode .
+                    ac:mode $newMode .
             }
             WHERE
             {
