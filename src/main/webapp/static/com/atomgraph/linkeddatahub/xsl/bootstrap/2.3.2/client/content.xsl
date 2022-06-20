@@ -754,6 +754,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="controls" as="node()*">
             <xsl:apply-templates select="$constructor//rdf:value/@rdf:*" mode="bs2:FormControl"/>
             <xsl:apply-templates select="$constructor//ac:mode/@rdf:*" mode="bs2:FormControl">
+                <xsl:with-param name="class" select="'content-mode'"/>
                 <xsl:with-param name="type-label" select="false()"/>
             </xsl:apply-templates>
         </xsl:variable>
