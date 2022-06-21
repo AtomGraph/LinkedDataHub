@@ -285,6 +285,11 @@ exclude-result-prefixes="#all"
                         <xsl:apply-templates select="$doc" mode="xhtml:Table"/>
                     </div>
                 </xsl:when>
+                <xsl:when test="$mode = '&ac;GridMode'">
+                    <div class="offset2 span7">
+                        <xsl:apply-templates select="$doc" mode="bs2:Grid"/>
+                    </div>
+                </xsl:when>
                 <xsl:when test="$mode = '&ac;MapMode'">
                     <div class="offset2 span7">
                         <xsl:apply-templates select="$doc" mode="bs2:Map">
