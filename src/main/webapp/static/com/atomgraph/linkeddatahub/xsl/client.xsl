@@ -541,16 +541,6 @@ WHERE
             </xsl:call-template>
         </xsl:if>
 
-        <!-- checking acl:mode here because this template is called after every document load (also the initial load) and has access to ?headers -->
-        <xsl:variable name="acl-mode-links" select="tokenize(?headers?link, ',')[contains(., '&acl;mode')]" as="xs:string*"/>
-        <xsl:variable name="acl-modes" select="for $mode-link in $acl-mode-links return xs:anyURI(substring-before(substring-after(substring-before($mode-link, ';'), '&lt;'), '&gt;'))" as="xs:anyURI*"/>
-        <!-- if content mode is enabled but agent does not have acl:Write access, hide edit buttons -->
-        <xsl:if test="ac:mode() = '&ldh;ContentMode' and not($acl-modes = '&acl;Write')">
-            <xsl:for-each select="key('elements-by-class', 'btn-edit', id('content-body', ixsl:page()))">
-                <ixsl:set-style name="display" select="'none'"/>
-            </xsl:for-each>
-        </xsl:if>
-                
         <xsl:for-each select="?body">
             <xsl:variable name="results" select="." as="document-node()"/>
             <!-- replace dots with dashes to avoid Saxon-JS treating them as field separators: https://saxonica.plan.io/issues/5031 -->
@@ -567,6 +557,16 @@ WHERE
                     <xsl:call-template name="ldh:LoadContent">
                         <xsl:with-param name="uri" select="$uri"/>
                     </xsl:call-template>
+                </xsl:for-each>
+            </xsl:if>
+
+            <!-- checking acl:mode here because this template is called after every document load (also the initial load) and has access to ?headers -->
+            <xsl:variable name="acl-mode-links" select="tokenize(?headers?link, ',')[contains(., '&acl;mode')]" as="xs:string*"/>
+            <xsl:variable name="acl-modes" select="for $mode-link in $acl-mode-links return xs:anyURI(substring-before(substring-after(substring-before($mode-link, ';'), '&lt;'), '&gt;'))" as="xs:anyURI*"/>
+            <!-- if content mode is enabled but agent does not have acl:Write access, hide edit buttons -->
+            <xsl:if test="ac:mode() = '&ldh;ContentMode' and not($acl-modes = '&acl;Write')">
+                <xsl:for-each select="key('elements-by-class', 'btn-edit', id('content-body', ixsl:page()))">
+                    <ixsl:set-style name="display" select="'none'"/>
                 </xsl:for-each>
             </xsl:if>
         
