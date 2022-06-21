@@ -852,7 +852,7 @@ exclude-result-prefixes="#all"
         <!-- for some reason Saxon-JS 2.3 does not see this variable if it's inside <xsl:when> -->
         <xsl:variable name="value" select="key('resources', $content-value, ?body)" as="element()?"/>
         <xsl:choose>
-            <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml' and $content">
+            <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml' and $value">
                 <!-- replace dots which have a special meaning in Saxon-JS -->
                 <xsl:variable name="escaped-content-uri" select="xs:anyURI(translate($content-uri, '.', '-'))" as="xs:anyURI"/>
                 <!-- create new cache entry using content URI as key -->
