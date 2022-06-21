@@ -90,6 +90,13 @@ public class ResponseHeaderFilter implements ContainerResponseFilter
             if (getLinksByRel(linkValues, SD.endpoint.getURI()).isEmpty() && getDataset().isPresent() && getDataset().get().getService() != null)
                 response.getHeaders().add(HttpHeaders.LINK, new Link(URI.create(getDataset().get().getService().getSPARQLEndpoint().getURI()), SD.endpoint.getURI(), null));
         }
+        
+        if (response.getHeaders().get(HttpHeaders.LINK) != null)
+        {
+            // combine Link header values into a single value because Saxon-JS 2.x is not able to deal with duplicate header names: https://saxonica.plan.io/issues/5199
+            String linkValue = response.getHeaders().get(HttpHeaders.LINK).toString();
+            response.getHeaders().putSingle(HttpHeaders.LINK, linkValue.substring(1, linkValue.length() - 1)); // trim leading and trailing bracket added by toString()
+        }
     }
 
     /**
