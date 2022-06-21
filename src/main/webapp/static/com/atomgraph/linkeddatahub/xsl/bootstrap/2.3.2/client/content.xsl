@@ -883,7 +883,7 @@ exclude-result-prefixes="#all"
 
                 <!-- if content mode is enabled but agent does not have acl:Write access, hide edit buttons -->
                 <xsl:if test="ac:mode() = '&ldh;ContentMode' and not($acl-modes = '&acl;Write')">
-                    <xsl:for-each select="key('elements-by-class', 'btn-edit', $container))">
+                    <xsl:for-each select="key('elements-by-class', 'btn-edit', $container)">
                         <ixsl:set-style name="display" select="'none'"/>
                     </xsl:for-each>
                 </xsl:if>
