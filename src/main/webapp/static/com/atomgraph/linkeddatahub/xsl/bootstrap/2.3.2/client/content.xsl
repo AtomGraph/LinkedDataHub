@@ -884,7 +884,7 @@ exclude-result-prefixes="#all"
                     <xsl:variable name="zoom" select="4" as="xs:integer"/>
                     <xsl:variable name="map" select="ac:create-map($canvas-id, $center-lat, $center-lng, $zoom)"/>
 
-                    <ixsl:set-property name="map" select="$map" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+                    <!--<ixsl:set-property name="map" select="$map" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>-->
 
                     <xsl:for-each select="$value">
                         <xsl:call-template name="gm:AddMarker">
@@ -900,7 +900,7 @@ exclude-result-prefixes="#all"
                     <xsl:variable name="series" select="distinct-values($rdf-doc/*/*/concat(namespace-uri(), local-name()))" as="xs:string*"/>
                     <xsl:variable name="data-table" select="ac:rdf-data-table($rdf-doc, $category, $series)"/>
 
-                    <ixsl:set-property name="data-table" select="$data-table" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+                    <!--<ixsl:set-property name="data-table" select="$data-table" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>-->
 
                     <xsl:call-template name="render-chart">
                         <xsl:with-param name="data-table" select="$data-table"/>
