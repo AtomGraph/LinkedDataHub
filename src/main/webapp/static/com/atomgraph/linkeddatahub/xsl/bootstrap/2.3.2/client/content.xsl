@@ -885,7 +885,7 @@ exclude-result-prefixes="#all"
 
                     <ixsl:set-property name="map" select="$map" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
 
-                    <xsl:for-each select="$results//rdf:Description[geo:lat/text() castable as xs:float][geo:long/text() castable as xs:float]">
+                    <xsl:for-each select="$value[geo:lat/text() castable as xs:float][geo:long/text() castable as xs:float]">
                         <xsl:call-template name="gm:AddMarker">
                             <xsl:with-param name="map" select="$map"/>
                         </xsl:call-template>
