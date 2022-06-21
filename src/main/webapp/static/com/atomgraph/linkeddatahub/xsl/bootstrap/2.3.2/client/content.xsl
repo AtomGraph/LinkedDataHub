@@ -853,6 +853,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="value" select="key('resources', $content-value, ?body)" as="element()?"/>
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml' and $value">
+                <xsl:variable name="rdf-doc" select="?body" as="document-node()"/>
                 <!-- replace dots which have a special meaning in Saxon-JS -->
                 <xsl:variable name="escaped-content-uri" select="xs:anyURI(translate($content-uri, '.', '-'))" as="xs:anyURI"/>
                 <!-- create new cache entry using content URI as key -->
@@ -896,8 +897,8 @@ exclude-result-prefixes="#all"
                     <xsl:variable name="canvas-id" select="@id" as="xs:string"/>
                     <xsl:variable name="chart-type" select="xs:anyURI('&ac;Table')" as="xs:anyURI"/>
                     <xsl:variable name="category" as="xs:string?"/>
-                    <xsl:variable name="series" select="distinct-values(?body/*/*/concat(namespace-uri(), local-name()))" as="xs:string*"/>
-                    <xsl:variable name="data-table" select="ac:rdf-data-table(?body, $category, $series)"/>
+                    <xsl:variable name="series" select="distinct-values($rdf-doc/*/*/concat(namespace-uri(), local-name()))" as="xs:string*"/>
+                    <xsl:variable name="data-table" select="ac:rdf-data-table($rdf-doc, $category, $series)"/>
 
                     <ixsl:set-property name="data-table" select="$data-table" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
 
