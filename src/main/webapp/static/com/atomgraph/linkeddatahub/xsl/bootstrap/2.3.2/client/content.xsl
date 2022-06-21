@@ -811,6 +811,7 @@ exclude-result-prefixes="#all"
     <xsl:template name="ldh:LoadContent">
         <xsl:context-item as="element()" use="required"/> <!-- container element -->
         <xsl:param name="uri" as="xs:anyURI"/> <!-- document URI -->
+        <xsl:param name="acl-modes" as="xs:anyURI*"/>
         <xsl:variable name="content-uri" select="@about" as="xs:anyURI"/>
         <xsl:variable name="content-value" select="ixsl:get(., 'dataset.contentValue')" as="xs:anyURI"/> <!-- get the value of the @data-content-value attribute -->
         <xsl:variable name="mode" select="if (ixsl:contains(., 'dataset.contentMode')) then xs:anyURI(ixsl:get(., 'dataset.contentMode')) else ()" as="xs:anyURI?"/> <!-- get the value of the @data-content-mode attribute -->
@@ -836,6 +837,7 @@ exclude-result-prefixes="#all"
                     <xsl:with-param name="content-value" select="$content-value"/>
                     <xsl:with-param name="container" select="$container"/>
                     <xsl:with-param name="mode" select="$mode"/>
+                    <xsl:with-param name="acl-modes" select="$acl-modes"/>
                 </xsl:call-template>
             </ixsl:schedule-action>
         </xsl:variable>
@@ -852,7 +854,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="content-uri" select="$container/@about" as="xs:anyURI"/>
         <xsl:param name="content-value" as="xs:anyURI"/>
         <xsl:param name="mode" as="xs:anyURI?"/>
-<!--        <xsl:param name="results" as="document-node()?"/>-->
+        <xsl:param name="acl-modes" as="xs:anyURI*"/>
         
         <!-- for some reason Saxon-JS 2.3 does not see this variable if it's inside <xsl:when> -->
         <xsl:variable name="value" select="key('resources', $content-value, ?body)" as="element()?"/>
@@ -879,6 +881,13 @@ exclude-result-prefixes="#all"
                     <xsl:with-param name="mode" select="$mode"/>
                 </xsl:apply-templates>
 
+                <!-- if content mode is enabled but agent does not have acl:Write access, hide edit buttons -->
+                <xsl:if test="ac:mode() = '&ldh;ContentMode' and not($acl-modes = '&acl;Write')">
+                    <xsl:for-each select="key('elements-by-class', 'btn-edit', $container))">
+                        <ixsl:set-style name="display" select="'none'"/>
+                    </xsl:for-each>
+                </xsl:if>
+            
                 <!-- initialize map -->
                 <xsl:for-each select="key('elements-by-class', 'map-canvas', $container)">
                     <xsl:variable name="canvas-id" select="@id" as="xs:string"/>

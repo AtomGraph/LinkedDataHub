@@ -548,7 +548,11 @@ WHERE
             <ixsl:set-property name="{$escaped-content-uri}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
             <!-- store document under window.LinkedDataHub[$escaped-content-uri].results -->
             <ixsl:set-property name="results" select="." object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri)"/>
-            
+
+            <!-- checking acl:mode here because this template is called after every document load (also the initial load) and has access to ?headers -->
+            <xsl:variable name="acl-mode-links" select="tokenize(?headers?link, ',')[contains(., '&acl;mode')]" as="xs:string*"/>
+            <xsl:variable name="acl-modes" select="for $mode-link in $acl-mode-links return xs:anyURI(substring-before(substring-after(substring-before($mode-link, ';'), '&lt;'), '&gt;'))" as="xs:anyURI*"/>
+
             <!-- this has to go after <xsl:result-document href="#{$container-id}"> because otherwise new elements will be injected and the $content-ids lookup will not work anymore -->
             <xsl:variable name="content-ids" select="key('elements-by-class', 'resource-content', ixsl:page())/@id" as="xs:string*"/>
             <xsl:if test="not(empty($content-ids))">
@@ -556,17 +560,8 @@ WHERE
                 <xsl:for-each select="$containers">
                     <xsl:call-template name="ldh:LoadContent">
                         <xsl:with-param name="uri" select="$uri"/>
+                        <xsl:with-param name="acl-modes" select="$acl-modes"/>
                     </xsl:call-template>
-                </xsl:for-each>
-            </xsl:if>
-
-            <!-- checking acl:mode here because this template is called after every document load (also the initial load) and has access to ?headers -->
-            <xsl:variable name="acl-mode-links" select="tokenize(?headers?link, ',')[contains(., '&acl;mode')]" as="xs:string*"/>
-            <xsl:variable name="acl-modes" select="for $mode-link in $acl-mode-links return xs:anyURI(substring-before(substring-after(substring-before($mode-link, ';'), '&lt;'), '&gt;'))" as="xs:anyURI*"/>
-            <!-- if content mode is enabled but agent does not have acl:Write access, hide edit buttons -->
-            <xsl:if test="ac:mode() = '&ldh;ContentMode' and not($acl-modes = '&acl;Write')">
-                <xsl:for-each select="key('elements-by-class', 'btn-edit', id('content-body', ixsl:page()))">
-                    <ixsl:set-style name="display" select="'none'"/>
                 </xsl:for-each>
             </xsl:if>
         
