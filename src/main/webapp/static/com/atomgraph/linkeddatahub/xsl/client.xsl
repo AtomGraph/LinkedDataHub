@@ -566,7 +566,6 @@ WHERE
                 <xsl:for-each select="$containers">
                     <xsl:call-template name="ldh:LoadContent">
                         <xsl:with-param name="uri" select="$uri"/>
-                        <xsl:with-param name="results" select="$results"/>
                     </xsl:call-template>
                 </xsl:for-each>
             </xsl:if>
@@ -730,7 +729,8 @@ WHERE
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="container" as="element()"/>
         <xsl:param name="results-uri" as="xs:anyURI"/>
-        <xsl:param name="escaped-content-uri" select="xs:anyURI(translate($results-uri, '.', '-'))" as="xs:anyURI"/>
+        <xsl:param name="content-uri" select="$results-uri" as="xs:anyURI"/>
+        <xsl:param name="escaped-content-uri" select="xs:anyURI(translate($content-uri, '.', '-'))" as="xs:anyURI"/>
         <xsl:param name="container-id" select="ixsl:get($container, 'id')" as="xs:string"/>
         <xsl:param name="results-container-id" select="$container-id || '-sparql-results'" as="xs:string"/>
         <xsl:param name="chart-canvas-id" select="$container-id || '-chart-canvas'" as="xs:string"/>

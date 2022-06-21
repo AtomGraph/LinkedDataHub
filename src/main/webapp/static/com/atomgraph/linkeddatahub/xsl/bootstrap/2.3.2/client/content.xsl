@@ -541,7 +541,6 @@ exclude-result-prefixes="#all"
                         <xsl:call-template name="onResourceContentUpdate">
                             <xsl:with-param name="container" select="$container"/>
                             <xsl:with-param name="uri" select="ac:uri()"/>
-                            <xsl:with-param name="content-uri" select="$content-uri"/>
                             <xsl:with-param name="content-value" select="$content-value"/>
                             <xsl:with-param name="mode" select="$mode"/>
                         </xsl:call-template>
@@ -564,7 +563,6 @@ exclude-result-prefixes="#all"
                         <xsl:call-template name="onResourceContentUpdate">
                             <xsl:with-param name="container" select="$container"/>
                             <xsl:with-param name="uri" select="ac:uri()"/>
-                            <xsl:with-param name="content-uri" select="$content-uri"/>
                             <xsl:with-param name="content-value" select="$content-value"/>
                             <xsl:with-param name="mode" select="$mode"/>
                         </xsl:call-template>
@@ -644,18 +642,13 @@ exclude-result-prefixes="#all"
     
     <xsl:template match="div[contains-token(@class, 'resource-content')]//button[contains-token(@class, 'btn-cancel')]" mode="ixsl:onclick">
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'resource-content')]" as="element()"/>
-        <xsl:variable name="content-uri" select="$container/@about" as="xs:anyURI"/>
 
         <xsl:choose>
             <!-- updating existing content -->
             <xsl:when test="$container/@about">
                 <xsl:for-each select="$container">
-                    <xsl:variable name="escaped-content-uri" select="xs:anyURI(translate($content-uri, '.', '-'))" as="xs:anyURI"/>
-                    <xsl:variable name="results" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri), 'results')" as="document-node()"/>
-
                     <xsl:call-template name="ldh:LoadContent">
                         <xsl:with-param name="uri" select="ac:uri()"/> <!-- content value gets read from dataset.contentValue -->
-                        <xsl:with-param name="results" select="$results"/>
                     </xsl:call-template>
                 </xsl:for-each>
             </xsl:when> 
@@ -813,7 +806,6 @@ exclude-result-prefixes="#all"
     <xsl:template name="ldh:LoadContent">
         <xsl:context-item as="element()" use="required"/> <!-- container element -->
         <xsl:param name="uri" as="xs:anyURI"/> <!-- document URI -->
-        <xsl:param name="results" as="document-node()"/> <!-- RDF/XML or SPARQL XML results -->
         <xsl:variable name="content-uri" select="@about" as="xs:anyURI"/>
         <xsl:variable name="content-value" select="ixsl:get(., 'dataset.contentValue')" as="xs:anyURI"/> <!-- get the value of the @data-content-value attribute -->
         <xsl:variable name="mode" select="if (ixsl:contains(., 'dataset.contentMode')) then xs:anyURI(ixsl:get(., 'dataset.contentMode')) else ()" as="xs:anyURI?"/> <!-- get the value of the @data-content-mode attribute -->
@@ -834,12 +826,11 @@ exclude-result-prefixes="#all"
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), $content-value)" as="xs:anyURI"/>
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': ac:document-uri($request-uri), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-                <xsl:call-template name="onContentLoad">
+                <xsl:call-template name="onContentValueLoad">
                     <xsl:with-param name="uri" select="$uri"/>
                     <xsl:with-param name="content-value" select="$content-value"/>
                     <xsl:with-param name="container" select="$container"/>
                     <xsl:with-param name="mode" select="$mode"/>
-                    <xsl:with-param name="results" select="$results"/>
                 </xsl:call-template>
             </ixsl:schedule-action>
         </xsl:variable>
@@ -848,7 +839,7 @@ exclude-result-prefixes="#all"
     
     <!-- embed content -->
     
-    <xsl:template name="onContentLoad">
+    <xsl:template name="onContentValueLoad">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="uri" as="xs:anyURI"/>
         <xsl:param name="container" as="element()"/>
@@ -856,10 +847,10 @@ exclude-result-prefixes="#all"
         <xsl:param name="content-uri" select="$container/@about" as="xs:anyURI"/>
         <xsl:param name="content-value" as="xs:anyURI"/>
         <xsl:param name="mode" as="xs:anyURI?"/>
-        <xsl:param name="results" as="document-node()?"/>
+<!--        <xsl:param name="results" as="document-node()?"/>-->
         
         <!-- for some reason Saxon-JS 2.3 does not see this variable if it's inside <xsl:when> -->
-        <xsl:variable name="content" select="key('resources', $content-value, ?body)" as="element()?"/>
+        <xsl:variable name="value" select="key('resources', $content-value, ?body)" as="element()?"/>
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml' and $content">
                 <!-- replace dots which have a special meaning in Saxon-JS -->
@@ -867,16 +858,16 @@ exclude-result-prefixes="#all"
                 <!-- create new cache entry using content URI as key -->
                 <ixsl:set-property name="{$escaped-content-uri}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
                 <!-- store this content element -->
-                <ixsl:set-property name="content" select="$content" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri)"/>
+                <ixsl:set-property name="content" select="$value" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri)"/>
                 <!-- store document under window.LinkedDataHub[$escaped-content-uri].results -->
-                <ixsl:set-property name="results" select="$results" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri)"/>
+                <!--<ixsl:set-property name="results" select="$results" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri)"/>-->
 
                 <xsl:for-each select="$container//div[@class = 'bar']">
                     <!-- update progress bar -->
                     <ixsl:set-style name="width" select="'50%'" object="."/>
                 </xsl:for-each>
 
-                <xsl:apply-templates select="$content" mode="ldh:RenderContent">
+                <xsl:apply-templates select="$value" mode="ldh:RenderContent">
                     <xsl:with-param name="uri" select="$uri"/>
                     <xsl:with-param name="container" select="$container"/>
                     <xsl:with-param name="mode" select="$mode"/>
@@ -1008,7 +999,6 @@ exclude-result-prefixes="#all"
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="uri" as="xs:anyURI"/> <!-- document URI -->
         <xsl:param name="container" as="element()"/>
-        <xsl:param name="content-uri" as="xs:anyURI"/>
         <xsl:param name="content-value" as="xs:anyURI"/>
         <xsl:param name="mode" as="xs:anyURI?"/>
 
@@ -1025,12 +1015,8 @@ exclude-result-prefixes="#all"
                         <ixsl:set-property name="dataset.contentMode" select="$mode" object="."/>
                     </xsl:if>
                     
-                    <xsl:variable name="escaped-content-uri" select="xs:anyURI(translate($content-uri, '.', '-'))" as="xs:anyURI"/>
-                    <xsl:variable name="results" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri), 'results')" as="document-node()"/>
-                    
                     <xsl:call-template name="ldh:LoadContent">
                         <xsl:with-param name="uri" select="$uri"/> <!-- content value gets read from dataset.contentValue -->
-                        <xsl:with-param name="results" select="$results"/>
                     </xsl:call-template>
                 </xsl:for-each>
             </xsl:when>
