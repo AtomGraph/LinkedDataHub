@@ -648,19 +648,19 @@ exclude-result-prefixes="#all"
             </xsl:variable>
             <xsl:choose>
                 <xsl:when test="$active-mode = '&ac;ListMode'">
-                    <xsl:apply-templates select="$sorted-results" mode="bs2:BlockList">
+                    <xsl:apply-templates select="$sorted-results" mode="bs2:ContainerBlockList">
                         <xsl:with-param name="select-xml" select="$select-xml"/>
                         <xsl:with-param name="endpoint" select="if (not($endpoint = sd:endpoint())) then $endpoint else ()" tunnel="yes"/>
                     </xsl:apply-templates>
                 </xsl:when>
                 <xsl:when test="$active-mode = '&ac;TableMode'">
-                    <xsl:apply-templates select="$sorted-results" mode="xhtml:Table">
+                    <xsl:apply-templates select="$sorted-results" mode="bs2:ContainerTable">
                         <xsl:with-param name="select-xml" select="$select-xml"/>
                         <xsl:with-param name="endpoint" select="if (not($endpoint = sd:endpoint())) then $endpoint else ()" tunnel="yes"/>
                     </xsl:apply-templates>
                 </xsl:when>
                 <xsl:when test="$active-mode = '&ac;GridMode'">
-                    <xsl:apply-templates select="$sorted-results" mode="bs2:Grid">
+                    <xsl:apply-templates select="$sorted-results" mode="bs2:ContainerGrid">
                         <xsl:with-param name="select-xml" select="$select-xml"/>
                         <xsl:with-param name="endpoint" select="if (not($endpoint = sd:endpoint())) then $endpoint else ()" tunnel="yes"/>
                     </xsl:apply-templates>
@@ -727,7 +727,7 @@ exclude-result-prefixes="#all"
     
     <!-- block list -->
 
-    <xsl:template match="rdf:RDF" mode="bs2:BlockList" use-when="system-property('xsl:product-name') eq 'SaxonJS'">
+    <xsl:template match="rdf:RDF" mode="bs2:ContainerBlockList" use-when="system-property('xsl:product-name') eq 'SaxonJS'">
         <xsl:param name="select-xml" as="document-node()"/>
         <xsl:variable name="result-count" select="count(rdf:Description)" as="xs:integer"/>
 
@@ -736,7 +736,7 @@ exclude-result-prefixes="#all"
             <xsl:with-param name="select-xml" select="$select-xml"/>
         </xsl:call-template>
 
-        <xsl:next-match/>
+        <xsl:apply-templates select="." mode="bs2:BlockList"/>
 
         <xsl:call-template name="bs2:PagerList">
             <xsl:with-param name="result-count" select="$result-count"/>
@@ -784,7 +784,7 @@ exclude-result-prefixes="#all"
 
     <!-- grid -->
 
-    <xsl:template match="rdf:RDF" mode="bs2:Grid" use-when="system-property('xsl:product-name') eq 'SaxonJS'">
+    <xsl:template match="rdf:RDF" mode="bs2:ContainerGrid" use-when="system-property('xsl:product-name') eq 'SaxonJS'">
         <xsl:param name="select-xml" as="document-node()"/>
         <xsl:variable name="result-count" select="count(rdf:Description)" as="xs:integer"/>
 
@@ -793,7 +793,7 @@ exclude-result-prefixes="#all"
             <xsl:with-param name="select-xml" select="$select-xml"/>
         </xsl:call-template>
 
-        <xsl:next-match/>
+        <xsl:apply-templates select="." mode="bs2:Grid"/>
 
         <xsl:call-template name="bs2:PagerList">
             <xsl:with-param name="result-count" select="$result-count"/>
@@ -806,7 +806,7 @@ exclude-result-prefixes="#all"
 
     <!-- table -->
 
-    <xsl:template match="rdf:RDF" mode="xhtml:Table" use-when="system-property('xsl:product-name') eq 'SaxonJS'">
+    <xsl:template match="rdf:RDF" mode="bs2:ContainerTable" use-when="system-property('xsl:product-name') eq 'SaxonJS'">
         <xsl:param name="select-xml" as="document-node()"/>
         <xsl:variable name="result-count" select="count(rdf:Description)" as="xs:integer"/>
 
@@ -815,7 +815,7 @@ exclude-result-prefixes="#all"
             <xsl:with-param name="select-xml" select="$select-xml"/>
         </xsl:call-template>
 
-        <xsl:next-match/>
+        <xsl:apply-templates select="." mode="xhtml:Table"/>
 
         <xsl:call-template name="bs2:PagerList">
             <xsl:with-param name="result-count" select="$result-count"/>
