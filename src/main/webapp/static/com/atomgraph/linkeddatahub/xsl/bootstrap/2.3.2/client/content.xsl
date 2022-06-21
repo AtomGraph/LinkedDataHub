@@ -885,7 +885,7 @@ exclude-result-prefixes="#all"
 
                     <ixsl:set-property name="map" select="$map" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
 
-                    <xsl:for-each select="$value[geo:lat/text() castable as xs:float][geo:long/text() castable as xs:float]">
+                    <xsl:for-each select="$value">
                         <xsl:call-template name="gm:AddMarker">
                             <xsl:with-param name="map" select="$map"/>
                         </xsl:call-template>
@@ -896,7 +896,7 @@ exclude-result-prefixes="#all"
                     <xsl:variable name="canvas-id" select="@id" as="xs:string"/>
                     <xsl:variable name="chart-type" select="xs:anyURI('&ac;Table')" as="xs:anyURI"/>
                     <xsl:variable name="category" as="xs:string?"/>
-                    <xsl:variable name="series" select="distinct-values($results/*/*/concat(namespace-uri(), local-name()))" as="xs:string*"/>
+                    <xsl:variable name="series" select="distinct-values(?body/*/*/concat(namespace-uri(), local-name()))" as="xs:string*"/>
                     <xsl:variable name="data-table" select="ac:rdf-data-table($results, $category, $series)"/>
 
                     <ixsl:set-property name="data-table" select="$data-table" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
