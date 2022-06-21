@@ -281,11 +281,11 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
         List<String> linkTokens = Arrays.asList(headerMap.get(javax.ws.rs.core.HttpHeaders.LINK).get(0).toString().split(","));
         
         List<URI> baseLinks = linkTokens.stream().
-            map((Object header) ->
+            map((String header) ->
             {
                 try
                 {
-                    return Link.valueOf(header.toString());
+                    return Link.valueOf(header.trim());
                 }
                 catch (URISyntaxException ex)
                 {
