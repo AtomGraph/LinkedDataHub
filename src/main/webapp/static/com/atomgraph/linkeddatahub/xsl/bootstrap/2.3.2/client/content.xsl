@@ -897,7 +897,7 @@ exclude-result-prefixes="#all"
                     <xsl:variable name="chart-type" select="xs:anyURI('&ac;Table')" as="xs:anyURI"/>
                     <xsl:variable name="category" as="xs:string?"/>
                     <xsl:variable name="series" select="distinct-values(?body/*/*/concat(namespace-uri(), local-name()))" as="xs:string*"/>
-                    <xsl:variable name="data-table" select="ac:rdf-data-table($results, $category, $series)"/>
+                    <xsl:variable name="data-table" select="ac:rdf-data-table(?body, $category, $series)"/>
 
                     <ixsl:set-property name="data-table" select="$data-table" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
 
