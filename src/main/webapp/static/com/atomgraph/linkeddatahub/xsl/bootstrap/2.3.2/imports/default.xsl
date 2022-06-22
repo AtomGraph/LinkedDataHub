@@ -548,13 +548,12 @@ exclude-result-prefixes="#all"
 
         <xsl:choose>
             <xsl:when test="$type = 'hidden'">
-                <xsl:next-match>
+                <xsl:apply-templates select="." mode="xhtml:Input">
                     <xsl:with-param name="type" select="$type"/>
                     <xsl:with-param name="id" select="$id"/>
                     <xsl:with-param name="class" select="$class"/>
                     <xsl:with-param name="disabled" select="$disabled"/>
-                    <xsl:with-param name="type-label" select="false()"/>
-                </xsl:next-match>
+                </xsl:apply-templates>
             </xsl:when>
             <!-- loop if node not visited already -->
             <xsl:when test="$inline and $resource and not(. = $traversed-ids)">
@@ -673,13 +672,12 @@ exclude-result-prefixes="#all"
 
         <xsl:choose>
             <xsl:when test="$type = 'hidden'">
-                <xsl:next-match>
+                <xsl:apply-templates select="." mode="xhtml:Input">
                     <xsl:with-param name="type" select="$type"/>
                     <xsl:with-param name="id" select="$id"/>
                     <xsl:with-param name="class" select="$class"/>
                     <xsl:with-param name="disabled" select="$disabled"/>
-                    <xsl:with-param name="type-label" select="false()"/>
-                </xsl:next-match>
+                </xsl:apply-templates>
             </xsl:when>
             <xsl:when test="$inline and $resource and not(. = $traversed-ids)">
                 <xsl:apply-templates select="." mode="xhtml:Input">
