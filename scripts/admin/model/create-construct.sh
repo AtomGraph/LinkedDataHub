@@ -2,7 +2,7 @@
 
 print_usage()
 {
-    printf "Creates a SPARQL CONSTRUCT query in the Domain ontology.\n"
+    printf "Creates a SPARQL CONSTRUCT query.\n"
     printf "\n"
     printf "Usage:  %s options [TARGET_URI]\n" "$0"
     printf "\n"

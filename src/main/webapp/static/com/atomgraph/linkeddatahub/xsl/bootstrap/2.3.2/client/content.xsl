@@ -281,33 +281,19 @@ exclude-result-prefixes="#all"
         <xsl:variable name="row" as="node()*">
             <xsl:choose>
                 <xsl:when test="$mode = '&ac;TableMode'">
-                    <div class="offset2 span7">
-                        <xsl:apply-templates select="$doc" mode="xhtml:Table"/>
-                    </div>
+                    <xsl:apply-templates select="." mode="bs2:RowTable"/>
                 </xsl:when>
                 <xsl:when test="$mode = '&ac;GridMode'">
-                    <div class="offset2 span7">
-                        <xsl:apply-templates select="$doc" mode="bs2:Grid"/>
-                    </div>
+                    <xsl:apply-templates select="." mode="bs2:RowGrid"/>
                 </xsl:when>
                 <xsl:when test="$mode = '&ac;MapMode'">
-                    <div class="offset2 span7">
-                        <xsl:apply-templates select="$doc" mode="bs2:Map">
-                            <xsl:with-param name="canvas-id" select="generate-id() || '-map-canvas'"/>
-                        </xsl:apply-templates>
-                    </div>
+                    <xsl:apply-templates select="." mode="bs2:RowMap"/>
                 </xsl:when>
                 <xsl:when test="$mode = '&ac;ChartMode'">
-                    <div class="offset2 span7">
-                        <xsl:apply-templates select="$doc" mode="bs2:Chart">
-                            <xsl:with-param name="canvas-id" select="generate-id() || '-chart-canvas'"/>
-                        </xsl:apply-templates>
-                    </div>
+                    <xsl:apply-templates select="$doc" mode="bs2:RowChart"/>
                 </xsl:when>
                 <xsl:when test="$mode = '&ac;GraphMode'">
-                    <div class="offset2 span7">
-                        <xsl:apply-templates select="$doc" mode="bs2:Graph"/>
-                    </div>
+                    <xsl:apply-templates select="$doc" mode="bs2:RowGraph"/>
                 </xsl:when>
                 <xsl:otherwise>
                     <xsl:apply-templates select="." mode="bs2:RowBlock"/>
@@ -317,7 +303,7 @@ exclude-result-prefixes="#all"
 
         <xsl:for-each select="$container">
             <xsl:result-document href="?." method="ixsl:replace-content">
-                <xsl:copy-of select="$row"/>
+                <xsl:copy-of select="$row/*"/> <!-- inject the content of div.row-fluid -->
             </xsl:result-document>
         </xsl:for-each>
 
