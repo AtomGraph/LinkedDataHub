@@ -588,16 +588,10 @@ WHERE
                     <xsl:variable name="containers" select="id($xhtml-content-ids, ixsl:page())" as="element()*"/>
                     <xsl:for-each select="$containers">
                         <xsl:variable name="container" select="." as="element()"/>
-                        <!-- insert "Edit" button if the agent has acl:Write access -->
-                        <xsl:for-each select="$container//div[contains-token(@class, 'span7')]">
-                            <xsl:result-document href="?." method="ixsl:replace-content">
-                                <button type="button" class="btn btn-edit pull-right">
-                                    <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
-                                </button>
-
-                                <xsl:copy-of select="$container//div[contains-token(@class, 'span7')]/*"/>
-                            </xsl:result-document>
-                        </xsl:for-each>
+                        
+                        <xsl:call-template name="ldh:ContentLoaded">
+                            <xsl:with-param name="container" select="$container"/>
+                        </xsl:call-template>
                     </xsl:for-each>
                 </xsl:if>
             </xsl:if>

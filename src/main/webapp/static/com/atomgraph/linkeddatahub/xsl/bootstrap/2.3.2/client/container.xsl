@@ -386,12 +386,6 @@ exclude-result-prefixes="#all"
             <xsl:otherwise>
                 <xsl:for-each select="$container">
                     <xsl:result-document href="?." method="ixsl:replace-content">
-                        <xsl:if test="acl:mode() = '&acl;Write'">
-                            <button type="button" class="btn btn-edit pull-right">
-                                <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
-                            </button>
-                        </xsl:if>
-
                         <div class="pull-right">
                             <form class="form-inline">
                                 <label for="{$order-by-container-id}">
@@ -447,6 +441,10 @@ exclude-result-prefixes="#all"
                     </xsl:result-document>
                 </xsl:for-each>
                 
+                <xsl:call-template name="ldh:ContentLoaded">
+                    <xsl:with-param name="container" select="$container"/>
+                </xsl:call-template>
+
                 <!-- use the BGPs where the predicate is a URI value and the subject and object are variables -->
                 <xsl:variable name="bgp-triples-map" select="$select-xml//json:map[json:string[@key = 'type'] = 'bgp']/json:array[@key = 'triples']/json:map[json:string[@key = 'subject'] = '?' || $focus-var-name][not(starts-with(json:string[@key = 'predicate'], '?'))][starts-with(json:string[@key = 'object'], '?')]" as="element()*"/>
                 

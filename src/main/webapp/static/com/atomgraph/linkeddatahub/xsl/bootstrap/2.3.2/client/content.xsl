@@ -307,6 +307,14 @@ exclude-result-prefixes="#all"
             </xsl:result-document>
         </xsl:for-each>
 
+        <xsl:call-template name="ldh:ContentLoaded">
+            <xsl:with-param name="container" select="$container"/>
+        </xsl:call-template>
+    </xsl:template>
+    
+    <xsl:template name="ldh:ContentLoaded">
+        <xsl:param name="container" as="element()"/>
+
         <!-- insert "Edit" button if the agent has acl:Write access -->
         <xsl:for-each select="$container//div[contains-token(@class, 'span7')]">
             <xsl:result-document href="?." method="ixsl:replace-content">
@@ -942,19 +950,10 @@ exclude-result-prefixes="#all"
                             <xsl:copy-of select="$row-block"/>
                         </xsl:result-document>
                     </xsl:for-each>
-                    
-                    <!-- insert "Edit" button if the agent has acl:Write access -->
-                    <xsl:for-each select="$container//div[contains-token(@class, 'span7')]">
-                        <xsl:result-document href="?." method="ixsl:replace-content">
-                            <xsl:if test="acl:mode() = '&acl;Write'">
-                                <button type="button" class="btn btn-edit pull-right">
-                                    <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
-                                </button>
-                            </xsl:if>
 
-                            <xsl:copy-of select="$container//div[contains-token(@class, 'span7')]/*"/>
-                        </xsl:result-document>
-                    </xsl:for-each>
+                    <xsl:call-template name="ldh:ContentLoaded">
+                        <xsl:with-param name="container" select="$container"/>
+                    </xsl:call-template>
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
