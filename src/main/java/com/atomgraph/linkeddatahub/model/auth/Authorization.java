@@ -22,7 +22,7 @@ import org.apache.jena.rdf.model.Resource;
 
 /**
  *
- * @author Martynas Jusevičius <martynas@atomgraph.com>
+ * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
  */
 public interface Authorization extends Resource
 {

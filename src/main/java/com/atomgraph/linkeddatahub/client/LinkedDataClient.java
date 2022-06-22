@@ -68,9 +68,9 @@ public class LinkedDataClient extends com.atomgraph.core.client.LinkedDataClient
      * Builder method that delegates the authenticated agent.
      * It uses client request filters.
      * 
-     * @param baseURI
-     * @param agentContext
-     * @return 
+     * @param baseURI application's base URI
+     * @param agentContext agent's auth context
+     * @return client instance
      */
     public LinkedDataClient delegation(URI baseURI, AgentContext agentContext)
     {

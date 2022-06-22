@@ -31,6 +31,10 @@ public class PatchUpdateVisitor extends UpdateVisitorBase
         });
     }
 
+    /**
+     * Returns true if the SPARQL update contains the <code>GRAPH</code> keyword in the <code>INSERT</code>/<code>DELETE</code> templates.
+     * @return 
+     */
     public boolean isContainsNamedGraph()
     {
         return containsNamedGraph;

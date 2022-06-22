@@ -26,6 +26,12 @@ import com.atomgraph.linkeddatahub.model.auth.Agent;
 public class WebIDSecurityContext extends AgentSecurityContext
 {
 
+    /**
+     * Constructs context from authentication scheme and agent instance.
+     * 
+     * @param authScheme auth scheme
+     * @param agent authenticated agent
+     */
     public WebIDSecurityContext(String authScheme, Agent agent)
     {
         super(authScheme, agent);
