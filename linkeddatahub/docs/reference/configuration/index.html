@@ -121,74 +121,97 @@
                   
                   <p>LinkedDataHub is configured using environment variables in the <code>docker-compose.yml</code> file (environment-specific configuration should go into <code>docker-compose.override.yml</code> instead).</p>
                   
+                  <p>Below you'll find a list of environment variables grouped by service (they are defined
+                     in the <samp>environment</samp> section).</p>
+                  
                   <div>
                      
-                     <h2 id="webid-signup">WebID signup</h2>
+                     <h2 id="linkeddatahub">linkeddatahub</h2>
                      
-                     <dl>
+                     <div>
                         
-                        <dt><samp>ENABLE_WEBID_SIGNUP</samp></dt>
+                        <h3 id="webid-signup">WebID signup</h3>
                         
-                        <dd><samp>false</samp> to disable (enabled by default)</dd>
+                        <dl>
+                           
+                           <dt><samp>ENABLE_WEBID_SIGNUP</samp></dt>
+                           
+                           <dd><samp>false</samp> to disable (enabled by default)</dd>
+                           
+                           <dd><em>Currently this will only hide the signup button in the UI, without disabling the endpoint</em></dd>
+                           </dl>
+                        </div>
+                     
+                     <div>
                         
-                        <dd><em>Currently this will only hide the signup button in the UI, without disabling the endpoint</em></dd>
-                        </dl>
+                        <h3 id="social-login">Social login</h3>
+                        
+                        <dl>
+                           
+                           <dt><samp>GOOGLE_CLIENT_ID</samp></dt>
+                           
+                           <dd><a href="https://developers.google.com/identity/gsi/web/guides/get-google-api-clientid">OAuth client ID</a></dd>
+                           
+                           <dd><a href="../../get-started/get-an-account/">Login with Google</a> authentication is enable when this value is provided</dd>
+                           
+                           <dt><samp>GOOGLE_CLIENT_SECRET</samp></dt>
+                           
+                           <dd><a href="https://developers.google.com/identity/gsi/web/guides/get-google-api-clientid">OAuth client secret</a></dd>
+                           </dl>
+                        </div>
+                     
+                     <div>
+                        
+                        <h3 id="email-server">Email server</h3>
+                        
+                        <dl>
+                           
+                           <dt><samp>MAIL_SMTP_HOST</samp></dt>
+                           
+                           <dd>Hostname of the email server</dd>
+                           
+                           <dt><samp>MAIL_SMTP_PORT</samp></dt>
+                           
+                           <dd>Port number of the email server</dd>
+                           
+                           <dt><samp>MAIL_USER</samp></dt>
+                           
+                           <dd>Username</dd>
+                           
+                           <dt><samp>MAIL_PASSWORD</samp></dt>
+                           
+                           <dd>Password (if required)</dd>
+                           </dl>
+                        </div>
+                     
+                     <div>
+                        
+                        <h3 id="linked-data">Linked Data</h3>
+                        
+                        <dl>
+                           
+                           <dt><samp>ENABLE_LINKED_DATA_PROXY</samp></dt>
+                           
+                           <dd><samp>false</samp> to disable the <a href="../http-api/#ld-proxy">Linked Data proxy</a> (enabled by default)</dd>
+                           </dl>
+                        </div>
                      </div>
                   
                   <div>
                      
-                     <h2 id="social-login">Social login</h2>
+                     <h2 id="nginx">nginx</h2>
                      
                      <dl>
                         
-                        <dt><samp>GOOGLE_CLIENT_ID</samp></dt>
+                        <dt>SSL_VERIFY_CLIENT</dt>
                         
-                        <dd><a href="https://developers.google.com/identity/gsi/web/guides/get-google-api-clientid">OAuth client ID</a></dd>
+                        <dd><samp>off</samp> to disable TLS client certificate authentication on the <samp>$HTTPS_PORT</samp> port.</dd>
                         
-                        <dd><a href="../../get-started/get-an-account/">Login with Google</a> authentication is enable when this value is provided</dd>
-                        
-                        <dt><samp>GOOGLE_CLIENT_SECRET</samp></dt>
-                        
-                        <dd><a href="https://developers.google.com/identity/gsi/web/guides/get-google-api-clientid">OAuth client secret</a></dd>
+                        <dd>This option can be used to avoid the certificate prompt in the browser in end-user
+                           facing applications. The client certificate authentication is still available on port
+                           5443.</dd>
                         </dl>
                      </div>
-                  
-                  <div>
-                     
-                     <h2 id="email-server">Email server</h2>
-                     
-                     <dl>
-                        
-                        <dt><samp>MAIL_SMTP_HOST</samp></dt>
-                        
-                        <dd>Hostname of the email server</dd>
-                        
-                        <dt><samp>MAIL_SMTP_PORT</samp></dt>
-                        
-                        <dd>Port number of the email server</dd>
-                        
-                        <dt><samp>MAIL_USER</samp></dt>
-                        
-                        <dd>Username</dd>
-                        
-                        <dt><samp>MAIL_PASSWORD</samp></dt>
-                        
-                        <dd>Password (if required)</dd>
-                        </dl>
-                     </div>
-                  
-                  <div>
-                     
-                     <h2 id="linked-data">Linked Data</h2>
-                     
-                     <dl>
-                        
-                        <dt><samp>ENABLE_LINKED_DATA_PROXY</samp></dt>
-                        
-                        <dd><samp>false</samp> to disable the <a href="../http-api/#ld-proxy">Linked Data proxy</a> (enabled by default)</dd>
-                        </dl>
-                     </div>
-                  
                   </div>
                <nav></nav>
             </main>

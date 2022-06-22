@@ -139,6 +139,85 @@
                   
                   <div>
                      
+                     <h2 id="parameters">Parameters</h2>
+                     
+                     <p>Common parameters used by most scripts include:</p>
+                     
+                     <dl>
+                        
+                        <dt>-f</dt>
+                        
+                        <dt>--cert-pem-file</dt>
+                        
+                        <dd><samp>.pem</samp> file with the WebID certificate of the agent</dd>
+                        
+                        <dt>-p</dt>
+                        
+                        <dt>--cert-password</dt>
+                        
+                        <dd>Password of the WebID certificate</dd>
+                        
+                        <dt>-b</dt>
+                        
+                        <dt>--base</dt>
+                        
+                        <dd>Base URI of the application</dd>
+                        
+                        <dt>--proxy</dt>
+                        
+                        <dd>The host this request will be proxied through (optional)</dd>
+                        
+                        <dd>It can be used with port 5443 for which the client certificate authentication is always
+                           enabled, for example <samp>--proxy https://localhost:5443/</samp></dd>
+                        </dl>
+                     
+                     <p>Other parameters are script-specific.</p>
+                     </div>
+                  
+                  <div>
+                     
+                     <h2 id="usage">Usage</h2>
+                     
+                     <p>A usage message with parameters of a script is printed when the scripted is run without
+                        any arguments. There can be named parameters and default parameters, both of those
+                        can be optional. For example:</p>
+                     
+                     <pre>~/WebRoot/AtomGraph/LinkedDataHub/scripts$ ./create-select.sh
+Creates a SPARQL SELECT query.
+
+Usage:  ./create-select.sh options
+
+Options:
+  -f, --cert-pem-file CERT_FILE        .pem file with the WebID certificate of the agent
+  -p, --cert-password CERT_PASSWORD    Password of the WebID certificate
+  -b, --base BASE_URI                  Base URI of the application
+  --proxy PROXY_URL                    The host this request will be proxied through (optional)
+
+  --title TITLE                        Title of the chart
+  --description DESCRIPTION            Description of the chart (optional)
+  --slug STRING                        String that will be used as URI path segment (optional)
+  --fragment STRING                    String that will be used as URI fragment identifier (optional)
+
+  --query-file ABS_PATH                Absolute path to the text file with the SPARQL query string
+  --service SERVICE_URI                URI of the SPARQL service specific to this query (optional)</pre>
+                     
+                     <p>The optional parameters are marked with <samp>(Optional)</samp>. In this case there is no default argument, but some scripts require document (named
+                        graph) URI as the default parameter, e.g. ontology document URL.</p>
+                     
+                     <p>This is how a <samp>create-select.sh</samp> invocation would look like:</p>
+                     
+                     <pre>./create-select.sh \
+  -b "$base" \
+  -f "$cert_pem_file" \
+  -p "$cert_password" \
+  --proxy "$proxy" \
+  --title "Select concepts" \
+  --slug select-concepts \
+  --query-file "$pwd/queries/select-concepts.rq"</pre>
+                     </div>
+                  
+                  <div>
+                     
                      <h2 id="scripts">Scripts</h2>
                      
                      <p>Currently supported:</p>

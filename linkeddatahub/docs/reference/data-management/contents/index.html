@@ -135,14 +135,12 @@
                         <li>Chart (graph or result set)</li>
                         </ul>
                      
-                     <p>Once created, the content instance can be added to the content list of any document
-                        using its URI. The tab for the content layout will only be visible if the document
-                        has content.</p>
+                     <p>Content other than HTML content is called <dfn>resource content</dfn>. The HTML content is part of the document while resource content is simply embedded
+                        (transcluded) into the HTML page.</p>
                      
-                     <p>Behind the scenes, the content list is an RDF list, meaning that its members are chained
-                        together by linking the previous member to to following member. That defines the order
-                        in which the content list
-                        appears on a document.</p>
+                     <p>The content instances are attached to the document using <a href="https://www.w3.org/TR/rdf-schema/#ch_seq" target="_blank">RDF sequence properties</a> <samp>rdf:_1</samp>, <samp>rdf:_2</samp> etc.
+                        The index number in the property URI indicates the position of the content block on
+                        the document's content list.</p>
                      </div>
                   </div>
                <nav></nav>

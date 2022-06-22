@@ -268,7 +268,8 @@ WHERE {}</code></pre>
                         <p>LinkedDataHub reuses <a href="http://spinrdf.org/spin.html#spin-constructors" target="_blank">SPIN constructors</a> for the implementation, but adds a
                            special syntax convention using blank nodes to indicate the expected resource type
                            (<code>[ a ex:Person ]</code>) or literal datatype
-                           (<code>[ a xsd:string ]</code>).</p>
+                           (<code>[ a xsd:string ]</code>). The magic variable <code>$this</code> refers to the instance being constructed, it is a blank node resource initially but
+                           gets skolemized to a URI when submitted to the server.</p>
                         
                         <p>Note that classes inherit constructors from superclasses in runtime. Subclasses do
                            not have to redefine constructor properties already found
