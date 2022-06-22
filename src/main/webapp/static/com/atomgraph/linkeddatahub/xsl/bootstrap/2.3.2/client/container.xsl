@@ -441,10 +441,6 @@ exclude-result-prefixes="#all"
                     </xsl:result-document>
                 </xsl:for-each>
                 
-                <xsl:call-template name="ldh:ContentLoaded">
-                    <xsl:with-param name="container" select="$container"/>
-                </xsl:call-template>
-
                 <!-- use the BGPs where the predicate is a URI value and the subject and object are variables -->
                 <xsl:variable name="bgp-triples-map" select="$select-xml//json:map[json:string[@key = 'type'] = 'bgp']/json:array[@key = 'triples']/json:map[json:string[@key = 'subject'] = '?' || $focus-var-name][not(starts-with(json:string[@key = 'predicate'], '?'))][starts-with(json:string[@key = 'object'], '?')]" as="element()*"/>
                 
@@ -1322,6 +1318,10 @@ exclude-result-prefixes="#all"
                         <xsl:with-param name="default-desc" select="$default-desc"/>
                         <xsl:with-param name="select-xml" select="$select-xml"/>
                         <xsl:with-param name="active-mode" select="$active-mode"/>
+                    </xsl:call-template>
+
+                    <xsl:call-template name="ldh:ContentLoaded">
+                        <xsl:with-param name="container" select="$container"/>
                     </xsl:call-template>
 
                     <xsl:for-each select="$container/div[contains-token(@class, 'left-nav')]">
