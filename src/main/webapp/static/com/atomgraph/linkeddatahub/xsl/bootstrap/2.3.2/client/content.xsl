@@ -504,7 +504,7 @@ exclude-result-prefixes="#all"
             </xsl:when>
             <!-- appending new content -->
             <xsl:otherwise>
-                <xsl:variable name="content-uri" select="xs:anyURI(ac:uri() || '#' || ac:uuid())" as="xs:anyURI?"/> <!-- build content URI -->
+                <xsl:variable name="content-uri" select="xs:anyURI(ac:uri() || '#id' || ac:uuid())" as="xs:anyURI?"/> <!-- build content URI -->
                 <ixsl:set-attribute name="about" select="$content-uri" object="$container"/>
 
                 <xsl:variable name="update-string" select="replace($content-append-string, '\$this', '&lt;' || ac:uri() || '&gt;')" as="xs:string"/>
@@ -557,7 +557,7 @@ exclude-result-prefixes="#all"
             </xsl:when> 
             <!-- appending new content -->
             <xsl:otherwise>
-                <xsl:variable name="content-uri" select="xs:anyURI(ac:uri() || '#' || ac:uuid())" as="xs:anyURI?"/> <!-- build content URI -->
+                <xsl:variable name="content-uri" select="xs:anyURI(ac:uri() || '#id' || ac:uuid())" as="xs:anyURI?"/> <!-- build content URI -->
                 <ixsl:set-attribute name="about" select="$content-uri" object="$container"/>
                 
                 <xsl:variable name="update-string" select="replace($content-append-string, '\$this', '&lt;' || ac:uri() || '&gt;')" as="xs:string"/>

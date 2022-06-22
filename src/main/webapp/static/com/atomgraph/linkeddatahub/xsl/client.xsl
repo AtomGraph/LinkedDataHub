@@ -580,25 +580,28 @@ WHERE
                     </xsl:call-template>
                 </xsl:for-each>
             </xsl:if>
+<xsl:message>ac:mode(): <xsl:value-of select="ac:mode()"/></xsl:message>
             <!-- add "Edit" buttons to XHTML content -->
-            <xsl:variable name="xhtml-content-ids" select="key('elements-by-class', 'xhtml-content', ixsl:page())/@id" as="xs:string*"/>
-            <xsl:if test="not(empty($xhtml-content-ids))">
-                <xsl:variable name="containers" select="id($xhtml-content-ids, ixsl:page())" as="element()*"/>
-                <xsl:for-each select="$containers">
-                    <xsl:variable name="container" select="." as="element()"/>
-                    <!-- insert "Edit" button if the agent has acl:Write access -->
-                    <xsl:for-each select="$container//div[contains-token(@class, 'span7')]">
-                        <xsl:result-document href="?." method="ixsl:replace-content">
-                            <xsl:if test="acl:mode() = '&acl;Write'">
+            <xsl:if test="acl:mode() = '&acl;Write'">
+                <xsl:variable name="xhtml-content-ids" select="key('elements-by-class', 'xhtml-content', ixsl:page())/@id" as="xs:string*"/>
+<xsl:message>$xhtml-content-ids: <xsl:value-of select="$xhtml-content-ids"/></xsl:message>
+                <xsl:if test="not(empty($xhtml-content-ids))">
+                    <xsl:variable name="containers" select="id($xhtml-content-ids, ixsl:page())" as="element()*"/>
+                    <xsl:for-each select="$containers">
+                        <xsl:variable name="container" select="." as="element()"/>
+<xsl:message>$container: <xsl:value-of select="serialize($container)"/></xsl:message>
+                        <!-- insert "Edit" button if the agent has acl:Write access -->
+                        <xsl:for-each select="$container//div[contains-token(@class, 'span7')]">
+                            <xsl:result-document href="?." method="ixsl:replace-content">
                                 <button type="button" class="btn btn-edit pull-right">
                                     <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
                                 </button>
-                            </xsl:if>
 
-                            <xsl:copy-of select="$container//div[contains-token(@class, 'span7')]/*"/>
-                        </xsl:result-document>
+                                <xsl:copy-of select="$container//div[contains-token(@class, 'span7')]/*"/>
+                            </xsl:result-document>
+                        </xsl:for-each>
                     </xsl:for-each>
-                </xsl:for-each>
+                </xsl:if>
             </xsl:if>
             
             <!-- focus on current resource -->
