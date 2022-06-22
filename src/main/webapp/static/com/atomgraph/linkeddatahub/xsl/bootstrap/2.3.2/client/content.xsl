@@ -321,12 +321,14 @@ exclude-result-prefixes="#all"
             </xsl:result-document>
         </xsl:for-each>
 
-        <!-- insert "Edit" button -->
+        <!-- insert "Edit" button if the agent has acl:Write access -->
         <xsl:for-each select="$container//div[contains-token(@class, 'span7')]">
             <xsl:result-document href="?." method="ixsl:replace-content">
-                <button type="button" class="btn btn-edit pull-right">
-                    <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
-                </button>
+                <xsl:if test="acl:mode() = '&acl;Write'">
+                    <button type="button" class="btn btn-edit pull-right">
+                        <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
+                    </button>
+                </xsl:if>
 
                 <xsl:copy-of select="$container//div[contains-token(@class, 'span7')]/*"/>
             </xsl:result-document>
@@ -867,8 +869,6 @@ exclude-result-prefixes="#all"
                 <ixsl:set-property name="{$escaped-content-uri}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
                 <!-- store this content element -->
                 <ixsl:set-property name="content" select="$value" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri)"/>
-                <!-- store document under window.LinkedDataHub[$escaped-content-uri].results -->
-                <!--<ixsl:set-property name="results" select="$results" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri)"/>-->
 
                 <xsl:for-each select="$container//div[@class = 'bar']">
                     <!-- update progress bar -->
@@ -880,13 +880,6 @@ exclude-result-prefixes="#all"
                     <xsl:with-param name="container" select="$container"/>
                     <xsl:with-param name="mode" select="$mode"/>
                 </xsl:apply-templates>
-
-                <!-- if content mode is enabled but agent does not have acl:Write access, hide edit buttons -->
-                <xsl:if test="ac:mode() = '&ldh;ContentMode' and not($acl-modes = '&acl;Write')">
-                    <xsl:for-each select="key('elements-by-class', 'btn-edit', $container)">
-                        <ixsl:set-style name="display" select="'none'"/>
-                    </xsl:for-each>
-                </xsl:if>
             
                 <!-- initialize map -->
                 <xsl:for-each select="key('elements-by-class', 'map-canvas', $container)">
@@ -961,6 +954,19 @@ exclude-result-prefixes="#all"
                     <xsl:for-each select="$container">
                         <xsl:result-document href="?." method="ixsl:replace-content">
                             <xsl:copy-of select="$row-block"/>
+                        </xsl:result-document>
+                    </xsl:for-each>
+                    
+                    <!-- insert "Edit" button if the agent has acl:Write access -->
+                    <xsl:for-each select="$container//div[contains-token(@class, 'span7')]">
+                        <xsl:result-document href="?." method="ixsl:replace-content">
+                            <xsl:if test="acl:mode() = '&acl;Write'">
+                                <button type="button" class="btn btn-edit pull-right">
+                                    <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
+                                </button>
+                            </xsl:if>
+
+                            <xsl:copy-of select="$container//div[contains-token(@class, 'span7')]/*"/>
                         </xsl:result-document>
                     </xsl:for-each>
                 </xsl:for-each>
