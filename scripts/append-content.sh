@@ -112,7 +112,7 @@ WHERE
         }
     }
     BIND(iri(concat(str(rdf:), "_", str(coalesce(?next, 1)))) AS ?property)
-    BIND(uri(concat(str(<${this}>), "#", struuid())) AS ?content)
+    BIND(uri(concat(str(<${this}>), "#id", struuid())) AS ?content)
   };
 
 EOF
