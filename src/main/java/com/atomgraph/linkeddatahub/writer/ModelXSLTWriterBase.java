@@ -29,6 +29,7 @@ import com.atomgraph.linkeddatahub.vocabulary.LDHT;
 import com.atomgraph.linkeddatahub.vocabulary.Google;
 import com.atomgraph.linkeddatahub.vocabulary.LAPP;
 import com.atomgraph.client.vocabulary.LDT;
+import com.atomgraph.core.util.Link;
 import com.atomgraph.core.vocabulary.SD;
 import com.atomgraph.linkeddatahub.server.io.ValidatingModelProvider;
 import com.atomgraph.linkeddatahub.server.security.AuthorizationContext;
@@ -64,6 +65,7 @@ import net.sf.saxon.s9api.XdmAtomicValue;
 import net.sf.saxon.s9api.XdmValue;
 import net.sf.saxon.s9api.XsltExecutable;
 import org.apache.http.HttpHeaders;
+import org.apache.jena.ontology.ObjectProperty;
 import org.apache.jena.ontology.OntModelSpec;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
@@ -263,6 +265,43 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
         return ValidatingModelProvider.hashMboxes(getMessageDigest()).apply(model); // apply processing from superclasses
     }
 
+    /**
+     * Override the Web-Client's implementation because LinkedDataHub concatenates <code>Link</code> headers into a single value.
+     * 
+     * @param headerMap response headers
+     * @param property rel property
+     * @return filtered headers
+     * @see com.atomgraph.linkeddatahub.server.filter.response.ResponseHeaderFilter
+     */
+    @Override
+    public URI getLinkURI(MultivaluedMap<String, Object> headerMap, ObjectProperty property)
+    {
+        if (headerMap.get(javax.ws.rs.core.HttpHeaders.LINK) == null) return null;
+        
+        List<String> linkTokens = Arrays.asList(headerMap.get(javax.ws.rs.core.HttpHeaders.LINK).get(0).toString().split(","));
+        
+        List<URI> baseLinks = linkTokens.stream().
+            map((String header) ->
+            {
+                try
+                {
+                    return Link.valueOf(header.trim());
+                }
+                catch (URISyntaxException ex)
+                {
+                    if (log.isWarnEnabled()) log.warn("Could not parse Link URI", ex);
+                    return null;
+                }
+            }).
+            filter(link -> link != null && link.getRel().equals(property.getURI())).
+            map(link -> link.getHref()).
+            collect(Collectors.toList());
+
+        if (!baseLinks.isEmpty()) return baseLinks.get(0);
+
+        return null;
+    }
+    
     /**
      * Returns system application.
      * 

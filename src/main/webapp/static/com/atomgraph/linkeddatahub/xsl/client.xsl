@@ -79,6 +79,7 @@ extension-element-prefixes="ixsl"
     <xsl:import href="bootstrap/2.3.2/imports/default.xsl"/>
     <xsl:import href="../../../../com/atomgraph/client/xsl/bootstrap/2.3.2/resource.xsl"/>
     <xsl:import href="../../../../com/atomgraph/client/xsl/bootstrap/2.3.2/container.xsl"/>
+    <xsl:import href="bootstrap/2.3.2/imports/ac.xsl"/>
     <xsl:import href="bootstrap/2.3.2/resource.xsl"/>
     <xsl:import href="bootstrap/2.3.2/document.xsl"/>
     <xsl:import href="query-transforms.xsl"/>
@@ -504,18 +505,6 @@ WHERE
     <xsl:template name="ldh:RDFDocumentLoaded">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="uri" as="xs:anyURI"/>
-
-        <!-- this has to go after <xsl:result-document href="#{$container-id}"> because otherwise new elements will be injected and the $content-ids lookup will not work anymore -->
-        <!-- ldh:LoadContent also has to finish before JS components such as map and chart are initialized from RDF $results (below) -->
-        <xsl:variable name="content-ids" select="key('elements-by-class', 'resource-content', ixsl:page())/@id" as="xs:string*"/>
-        <xsl:if test="not(empty($content-ids))">
-            <xsl:variable name="containers" select="id($content-ids, ixsl:page())" as="element()*"/>
-            <xsl:for-each select="$containers">
-                <xsl:call-template name="ldh:LoadContent">
-                    <xsl:with-param name="uri" select="$uri"/>
-                </xsl:call-template>
-            </xsl:for-each>
-        </xsl:if>
         
         <!-- load breadcrumbs -->
         <xsl:if test="id('breadcrumb-nav', ixsl:page())">
@@ -553,22 +542,66 @@ WHERE
         </xsl:if>
 
         <!-- checking acl:mode here because this template is called after every document load (also the initial load) and has access to ?headers -->
+        <!-- set LinkedDataHub.acl-modes objects which are later used by the acl:mode function -->
+        <!-- doing it here because this template is called after every document load (also the initial load) and has access to ?headers -->
         <xsl:variable name="acl-mode-links" select="tokenize(?headers?link, ',')[contains(., '&acl;mode')]" as="xs:string*"/>
         <xsl:variable name="acl-modes" select="for $mode-link in $acl-mode-links return xs:anyURI(substring-before(substring-after(substring-before($mode-link, ';'), '&lt;'), '&gt;'))" as="xs:anyURI*"/>
-        <!-- if content mode is enabled but agent does not have acl:Write access, hide edit buttons -->
-        <xsl:if test="ac:mode() = '&ldh;ContentMode' and not($acl-modes = '&acl;Write')">
-            <xsl:for-each select="key('elements-by-class', 'btn-edit', id('content-body', ixsl:page()))">
-                <ixsl:set-style name="display" select="'none'"/>
-            </xsl:for-each>
+        <ixsl:set-property name="acl-modes" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+        <xsl:if test="$acl-modes = '&acl;Read'">
+            <ixsl:set-property name="read" select="true()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.acl-modes')"/>
         </xsl:if>
-                
+        <xsl:if test="$acl-modes = '&acl;Append'">
+            <ixsl:set-property name="append" select="true()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.acl-modes')"/>
+        </xsl:if>
+        <xsl:if test="$acl-modes = '&acl;Write'">
+            <ixsl:set-property name="write" select="true()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.acl-modes')"/>
+        </xsl:if>
+        <xsl:if test="$acl-modes = '&acl;Control'">
+            <ixsl:set-property name="control" select="true()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.acl-modes')"/>
+        </xsl:if>
+        
         <xsl:for-each select="?body">
+            <xsl:variable name="results" select="." as="document-node()"/>
             <!-- replace dots with dashes to avoid Saxon-JS treating them as field separators: https://saxonica.plan.io/issues/5031 -->
             <xsl:variable name="escaped-content-uri" select="xs:anyURI(translate($uri, '.', '-'))" as="xs:anyURI"/>
             <ixsl:set-property name="{$escaped-content-uri}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
             <!-- store document under window.LinkedDataHub[$escaped-content-uri].results -->
             <ixsl:set-property name="results" select="." object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri)"/>
-                
+
+            <!-- this has to go after <xsl:result-document href="#{$container-id}"> because otherwise new elements will be injected and the $resource-content-ids lookup will not work anymore -->
+            <!-- load resource contents -->
+            <xsl:variable name="resource-content-ids" select="key('elements-by-class', 'resource-content', ixsl:page())/@id" as="xs:string*"/>
+            <xsl:if test="not(empty($resource-content-ids))">
+                <xsl:variable name="containers" select="id($resource-content-ids, ixsl:page())" as="element()*"/>
+                <xsl:for-each select="$containers">
+                    <xsl:call-template name="ldh:LoadContent">
+                        <xsl:with-param name="uri" select="$uri"/>
+                        <xsl:with-param name="acl-modes" select="$acl-modes"/>
+                    </xsl:call-template>
+                </xsl:for-each>
+            </xsl:if>
+
+            <!-- add "Edit" buttons to XHTML content -->
+            <xsl:if test="acl:mode() = '&acl;Write'">
+                <xsl:variable name="xhtml-content-ids" select="key('elements-by-class', 'xhtml-content', ixsl:page())/@id" as="xs:string*"/>
+                <xsl:if test="not(empty($xhtml-content-ids))">
+                    <xsl:variable name="containers" select="id($xhtml-content-ids, ixsl:page())" as="element()*"/>
+                    <xsl:for-each select="$containers">
+                        <xsl:variable name="container" select="." as="element()"/>
+                        <!-- insert "Edit" button if the agent has acl:Write access -->
+                        <xsl:for-each select="$container//div[contains-token(@class, 'span7')]">
+                            <xsl:result-document href="?." method="ixsl:replace-content">
+                                <button type="button" class="btn btn-edit pull-right">
+                                    <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
+                                </button>
+
+                                <xsl:copy-of select="$container//div[contains-token(@class, 'span7')]/*"/>
+                            </xsl:result-document>
+                        </xsl:for-each>
+                    </xsl:for-each>
+                </xsl:if>
+            </xsl:if>
+            
             <!-- focus on current resource -->
             <xsl:for-each select="key('resources', $uri)">
                 <!-- if the current resource is an Item, hide the <div> with the top/left "Create" dropdown as Items cannot have child documents -->
@@ -595,8 +628,7 @@ WHERE
                 <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:if>
 
-            <xsl:variable name="results" select="." as="document-node()"/>
-            <!-- initialize maps -->
+            <!-- initialize map -->
             <xsl:for-each select="key('elements-by-class', 'map-canvas', ixsl:page())">
                 <xsl:variable name="canvas-id" select="@id" as="xs:string"/>
                 <xsl:variable name="initial-load" select="true()" as="xs:boolean"/>
@@ -614,7 +646,7 @@ WHERE
                     </xsl:call-template>
                 </xsl:for-each>
             </xsl:for-each>
-            <!-- initialize charts -->
+            <!-- initialize chart -->
             <xsl:for-each select="key('elements-by-class', 'chart-canvas', ixsl:page())">
                 <xsl:variable name="canvas-id" select="@id" as="xs:string"/>
                 <xsl:variable name="chart-type" select="xs:anyURI('&ac;Table')" as="xs:anyURI"/>
@@ -729,7 +761,8 @@ WHERE
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="container" as="element()"/>
         <xsl:param name="results-uri" as="xs:anyURI"/>
-        <xsl:param name="escaped-content-uri" select="xs:anyURI(translate($results-uri, '.', '-'))" as="xs:anyURI"/>
+        <xsl:param name="content-uri" select="$results-uri" as="xs:anyURI"/>
+        <xsl:param name="escaped-content-uri" select="xs:anyURI(translate($content-uri, '.', '-'))" as="xs:anyURI"/>
         <xsl:param name="container-id" select="ixsl:get($container, 'id')" as="xs:string"/>
         <xsl:param name="results-container-id" select="$container-id || '-sparql-results'" as="xs:string"/>
         <xsl:param name="chart-canvas-id" select="$container-id || '-chart-canvas'" as="xs:string"/>
@@ -1034,7 +1067,8 @@ WHERE
         
         <!-- if ldh:ContentMode is active, change the page's URL to reflect that -->
         <xsl:if test="id('content-body', ixsl:page())/div[contains-token(@class, 'row-fluid')][1]/ul[contains-token(@class, 'nav-tabs')]/li[contains-token(@class, 'content-mode')][contains-token(@class, 'active')]">
-            <xsl:sequence select="ixsl:call(ixsl:window(), 'history.replaceState', [ (), '', ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ac:build-uri(ac:uri(), map{ 'mode': '&ldh;ContentMode' } )) ])[current-date() lt xs:date('2000-01-01')]"/>
+            <xsl:variable name="fragment" select="substring-after($href, '#')" as="xs:string"/>
+            <xsl:sequence select="ixsl:call(ixsl:window(), 'history.replaceState', [ (), '', ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ac:build-uri(ac:uri(), map{ 'mode': '&ldh;ContentMode' } )) || (if ($fragment) then '#' || $fragment else ()) ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:if>
         
         <xsl:call-template name="ldh:RDFDocumentLoad">

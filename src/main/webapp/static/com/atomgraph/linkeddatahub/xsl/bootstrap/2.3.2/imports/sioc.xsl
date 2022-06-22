@@ -65,11 +65,12 @@ exclude-result-prefixes="#all">
             </xsl:otherwise>
         </xsl:choose>
 
-        <xsl:apply-templates select="." mode="bs2:FormControlTypeLabel">
-            <xsl:with-param name="type" select="$type"/>
-            <xsl:with-param name="type-label" select="$type-label"/>
-            <xsl:with-param name="forClass" select="$forClass"/>
-        </xsl:apply-templates>
+        <xsl:if test="$type-label">
+            <xsl:apply-templates select="." mode="bs2:FormControlTypeLabel">
+                <xsl:with-param name="type" select="$type"/>
+                <xsl:with-param name="forClass" select="$forClass"/>
+            </xsl:apply-templates>
+        </xsl:if>
     </xsl:template>
 
     <xsl:template match="sioc:email/@rdf:*"  mode="bs2:FormControl">
@@ -85,18 +86,18 @@ exclude-result-prefixes="#all">
             <xsl:with-param name="class" select="$class"/>
             <xsl:with-param name="value" select="substring-after(., 'mailto:')"/>
         </xsl:call-template>
-        
-        <xsl:apply-templates select="." mode="bs2:FormControlTypeLabel">
-            <xsl:with-param name="type" select="$type"/>
-            <xsl:with-param name="type-label" select="$type-label"/>
-        </xsl:apply-templates>
+
+        <xsl:if test="$type-label">
+            <xsl:apply-templates select="." mode="bs2:FormControlTypeLabel">
+                <xsl:with-param name="type" select="$type"/>
+            </xsl:apply-templates>
+        </xsl:if>
     </xsl:template>
 
     <xsl:template match="sioc:email/@rdf:*" mode="bs2:FormControlTypeLabel">
         <xsl:param name="type" as="xs:string?"/>
-        <xsl:param name="type-label" select="true()" as="xs:boolean"/>
 
-        <xsl:if test="not($type = 'hidden') and $type-label">
+        <xsl:if test="not($type = 'hidden')">
             <span class="help-inline">Literal</span>
         </xsl:if>
     </xsl:template>

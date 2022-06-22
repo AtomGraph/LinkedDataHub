@@ -6,6 +6,7 @@
     <!ENTITY rdf    "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
     <!ENTITY rdfs   "http://www.w3.org/2000/01/rdf-schema#">
     <!ENTITY xsd    "http://www.w3.org/2001/XMLSchema#">
+    <!ENTITY geo     "http://www.w3.org/2003/01/geo/wgs84_pos#">
     <!ENTITY acl    "http://www.w3.org/ns/auth/acl#">
     <!ENTITY ldt    "https://www.w3.org/ns/ldt#">
     <!ENTITY dh     "https://www.w3.org/ns/ldt/document-hierarchy#">
@@ -28,6 +29,7 @@ xmlns:array="http://www.w3.org/2005/xpath-functions/array"
 xmlns:ac="&ac;"
 xmlns:ldh="&ldh;"
 xmlns:rdf="&rdf;"
+xmlns:geo="&geo;"
 xmlns:acl="&acl;"
 xmlns:ldt="&ldt;"
 xmlns:sioc="&sioc;"
@@ -50,8 +52,8 @@ exclude-result-prefixes="#all"
             {
                 $this ?property $content .
                 $content a ldh:Content ;
-                    rdf:value $value .
-                #${mode_bgp}
+                    rdf:value $value ;
+                    ac:mode $mode .
             }
             WHERE
             {
@@ -69,38 +71,58 @@ exclude-result-prefixes="#all"
     </xsl:variable>
     <xsl:variable name="content-update-string" as="xs:string">
         <![CDATA[
+            PREFIX ldh: <https://w3id.org/atomgraph/linkeddatahub#>
+            PREFIX ac:  <https://w3id.org/atomgraph/client#>
             PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 
             DELETE
             {
                 $this ?seq $content .
-                $content rdf:value ?oldValue .
+                $content a ldh:Content ;
+                    rdf:value ?oldValue ;
+                    ac:mode ?oldMode .
             }
             INSERT
             {
                 $this ?seq $content .
-                $content rdf:value $newValue .
+                $content a ldh:Content ;
+                    rdf:value $newValue ;
+                    ac:mode $newMode .
             }
             WHERE
             {
                 $this ?seq $content .
-                $content rdf:value ?oldValue .
+                $content a ldh:Content ;
+                    rdf:value ?oldValue .
+                OPTIONAL
+                {
+                    $content ac:mode ?oldMode
+                }
             }
         ]]>
     </xsl:variable>
     <xsl:variable name="content-delete-string" as="xs:string">
         <![CDATA[
+            PREFIX ldh: <https://w3id.org/atomgraph/linkeddatahub#>
+            PREFIX  ac: <https://w3id.org/atomgraph/client#>
             PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 
             DELETE
             {
                 $this ?seq $content .
-                $content rdf:value ?value .
+                $content a ldh:Content ;
+                    rdf:value ?value ;
+                    ac:mode ?mode .
             }
             WHERE
             {
                 $this ?seq $content .
-                $content rdf:value ?value .
+                $content a ldh:Content ;
+                    rdf:value ?value .
+                OPTIONAL
+                {
+                    $content ac:mode ?mode
+                }
             }
         ]]>
     </xsl:variable>
@@ -258,18 +280,34 @@ exclude-result-prefixes="#all"
         </xsl:variable>
         <xsl:variable name="row" as="node()*">
             <xsl:choose>
+                <xsl:when test="$mode = '&ac;TableMode'">
+                    <div class="offset2 span7">
+                        <xsl:apply-templates select="$doc" mode="xhtml:Table"/>
+                    </div>
+                </xsl:when>
+                <xsl:when test="$mode = '&ac;GridMode'">
+                    <div class="offset2 span7">
+                        <xsl:apply-templates select="$doc" mode="bs2:Grid"/>
+                    </div>
+                </xsl:when>
                 <xsl:when test="$mode = '&ac;MapMode'">
-                    <xsl:apply-templates select="$doc" mode="bs2:Map">
-                        <xsl:with-param name="canvas-id" select="generate-id() || '-map-canvas'"/>
-                    </xsl:apply-templates>
+                    <div class="offset2 span7">
+                        <xsl:apply-templates select="$doc" mode="bs2:Map">
+                            <xsl:with-param name="canvas-id" select="generate-id() || '-map-canvas'"/>
+                        </xsl:apply-templates>
+                    </div>
                 </xsl:when>
                 <xsl:when test="$mode = '&ac;ChartMode'">
-                    <xsl:apply-templates select="$doc" mode="bs2:Chart">
-                        <xsl:with-param name="canvas-id" select="generate-id() || '-chart-canvas'"/>
-                    </xsl:apply-templates>
+                    <div class="offset2 span7">
+                        <xsl:apply-templates select="$doc" mode="bs2:Chart">
+                            <xsl:with-param name="canvas-id" select="generate-id() || '-chart-canvas'"/>
+                        </xsl:apply-templates>
+                    </div>
                 </xsl:when>
                 <xsl:when test="$mode = '&ac;GraphMode'">
-                    <xsl:apply-templates select="$doc" mode="bs2:Graph"/>
+                    <div class="offset2 span7">
+                        <xsl:apply-templates select="$doc" mode="bs2:Graph"/>
+                    </div>
                 </xsl:when>
                 <xsl:otherwise>
                     <xsl:apply-templates select="." mode="bs2:RowBlock"/>
@@ -283,12 +321,14 @@ exclude-result-prefixes="#all"
             </xsl:result-document>
         </xsl:for-each>
 
-        <!-- insert "Edit" button -->
+        <!-- insert "Edit" button if the agent has acl:Write access -->
         <xsl:for-each select="$container//div[contains-token(@class, 'span7')]">
             <xsl:result-document href="?." method="ixsl:replace-content">
-                <button type="button" class="btn btn-edit pull-right">
-                    <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
-                </button>
+                <xsl:if test="acl:mode() = '&acl;Write'">
+                    <button type="button" class="btn btn-edit pull-right">
+                        <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
+                    </button>
+                </xsl:if>
 
                 <xsl:copy-of select="$container//div[contains-token(@class, 'span7')]/*"/>
             </xsl:result-document>
@@ -354,6 +394,7 @@ exclude-result-prefixes="#all"
     <xsl:template match="div[contains-token(@class, 'resource-content')]//button[contains-token(@class, 'btn-edit')]" mode="ixsl:onclick">
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'resource-content')]" as="element()"/>
         <xsl:variable name="content-value" select="ixsl:get($container, 'dataset.contentValue')" as="xs:anyURI"/> <!-- get the value of the @data-content-value attribute -->
+        <xsl:variable name="mode" select="if (ixsl:contains($container, 'dataset.contentMode')) then xs:anyURI(ixsl:get($container, 'dataset.contentMode')) else ()" as="xs:anyURI?"/> <!-- get the value of the @data-content-mode attribute -->
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), $content-value)"/>
 
         <xsl:variable name="constructor" as="document-node()">
@@ -362,8 +403,12 @@ exclude-result-prefixes="#all"
                     <rdf:Description rdf:nodeID="A1">
                         <rdf:type rdf:resource="&ldh;Content"/>
                         <rdf:value rdf:nodeID="A2"/>
+                        <ac:mode rdf:nodeID="A3"/>
                     </rdf:Description>
                     <rdf:Description rdf:nodeID="A2">
+                        <rdf:type rdf:resource="&rdfs;Resource"/>
+                    </rdf:Description>
+                    <rdf:Description rdf:nodeID="A3">
                         <rdf:type rdf:resource="&rdfs;Resource"/>
                     </rdf:Description>
                 </rdf:RDF>
@@ -371,6 +416,10 @@ exclude-result-prefixes="#all"
         </xsl:variable>
         <xsl:variable name="controls" as="node()*">
             <xsl:apply-templates select="$constructor//rdf:value/@rdf:*" mode="bs2:FormControl"/>
+            <xsl:apply-templates select="$constructor//ac:mode/@rdf:*" mode="bs2:FormControl">
+                <xsl:with-param name="class" select="'content-mode'"/>
+                <xsl:with-param name="type-label" select="false()"/>
+            </xsl:apply-templates>
         </xsl:variable>
         
         <!-- replace the middle column only -->
@@ -401,6 +450,14 @@ exclude-result-prefixes="#all"
                 </div>
             </xsl:result-document>
         </xsl:for-each>
+        
+        <xsl:if test="$mode">
+            <!-- set the select.content-mode value to $mode and remove its @name -->
+            <xsl:for-each select="key('elements-by-class', 'content-mode', $container)">
+                <ixsl:set-property name="value" select="$mode" object="."/>
+                <ixsl:remove-attribute name="name"/>
+            </xsl:for-each>
+        </xsl:if>
         
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
@@ -447,7 +504,7 @@ exclude-result-prefixes="#all"
             </xsl:when>
             <!-- appending new content -->
             <xsl:otherwise>
-                <xsl:variable name="content-uri" select="xs:anyURI(ac:uri() || '#' || ac:uuid())" as="xs:anyURI?"/> <!-- build content URI -->
+                <xsl:variable name="content-uri" select="xs:anyURI(ac:uri() || '#id' || ac:uuid())" as="xs:anyURI?"/> <!-- build content URI -->
                 <ixsl:set-attribute name="about" select="$content-uri" object="$container"/>
 
                 <xsl:variable name="update-string" select="replace($content-append-string, '\$this', '&lt;' || ac:uri() || '&gt;')" as="xs:string"/>
@@ -473,7 +530,8 @@ exclude-result-prefixes="#all"
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'resource-content')]" as="element()"/>
         <xsl:variable name="old-content-value" select="ixsl:get($container, 'dataset.contentValue')" as="xs:anyURI"/>
         <xsl:variable name="content-value" select="ixsl:get($container//input[@name = 'ou'], 'value')" as="xs:anyURI"/>
-        
+        <xsl:variable name="mode" select="ixsl:get(key('elements-by-class', 'content-mode', $container), 'value')" as="xs:anyURI?"/>
+
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
         <xsl:choose>
@@ -483,6 +541,7 @@ exclude-result-prefixes="#all"
                 <xsl:variable name="update-string" select="replace($content-update-string, '\$this', '&lt;' || ac:uri() || '&gt;')" as="xs:string"/>
                 <xsl:variable name="update-string" select="replace($update-string, '\$content', '&lt;' || $content-uri || '&gt;')" as="xs:string"/>
                 <xsl:variable name="update-string" select="replace($update-string, '\$newValue', '&lt;' || $content-value || '&gt;')" as="xs:string"/>
+                <xsl:variable name="update-string" select="if ($mode) then replace($update-string, '\$newMode', '&lt;' || $mode || '&gt;') else $update-string" as="xs:string"/>
                 <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ac:uri())" as="xs:anyURI"/>
                 <xsl:variable name="request" as="item()*">
                     <ixsl:schedule-action http-request="map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string }">
@@ -490,6 +549,7 @@ exclude-result-prefixes="#all"
                             <xsl:with-param name="container" select="$container"/>
                             <xsl:with-param name="uri" select="ac:uri()"/>
                             <xsl:with-param name="content-value" select="$content-value"/>
+                            <xsl:with-param name="mode" select="$mode"/>
                         </xsl:call-template>
                     </ixsl:schedule-action>
                 </xsl:variable>
@@ -497,12 +557,13 @@ exclude-result-prefixes="#all"
             </xsl:when> 
             <!-- appending new content -->
             <xsl:otherwise>
-                <xsl:variable name="content-uri" select="xs:anyURI(ac:uri() || '#' || ac:uuid())" as="xs:anyURI?"/> <!-- build content URI -->
+                <xsl:variable name="content-uri" select="xs:anyURI(ac:uri() || '#id' || ac:uuid())" as="xs:anyURI?"/> <!-- build content URI -->
                 <ixsl:set-attribute name="about" select="$content-uri" object="$container"/>
                 
                 <xsl:variable name="update-string" select="replace($content-append-string, '\$this', '&lt;' || ac:uri() || '&gt;')" as="xs:string"/>
                 <xsl:variable name="update-string" select="replace($update-string, '\$content', '&lt;' || $content-uri || '&gt;')" as="xs:string"/>
                 <xsl:variable name="update-string" select="replace($update-string, '\$value', '&lt;' || $content-value || '&gt;')" as="xs:string"/>
+                <xsl:variable name="update-string" select="if ($mode) then replace($update-string, '\$mode', '&lt;' || $mode || '&gt;') else $update-string" as="xs:string"/>
                 <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ac:uri())" as="xs:anyURI"/>
                 <xsl:variable name="request" as="item()*">
                     <ixsl:schedule-action http-request="map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string }">
@@ -510,6 +571,7 @@ exclude-result-prefixes="#all"
                             <xsl:with-param name="container" select="$container"/>
                             <xsl:with-param name="uri" select="ac:uri()"/>
                             <xsl:with-param name="content-value" select="$content-value"/>
+                            <xsl:with-param name="mode" select="$mode"/>
                         </xsl:call-template>
                     </ixsl:schedule-action>
                 </xsl:variable>
@@ -530,7 +592,7 @@ exclude-result-prefixes="#all"
                     <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
                     <xsl:variable name="content-uri" select="$container/@about" as="xs:anyURI"/>
-                    <xsl:variable name="update-string" select="replace($content-update-string, '\$this', '&lt;' || ac:uri() || '&gt;')" as="xs:string"/>
+                    <xsl:variable name="update-string" select="replace($content-delete-string, '\$this', '&lt;' || ac:uri() || '&gt;')" as="xs:string"/>
                     <xsl:variable name="update-string" select="replace($update-string, '\$content', '&lt;' || $content-uri || '&gt;')" as="xs:string"/>
                     <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ac:uri())" as="xs:anyURI"/>
                     <xsl:variable name="request" as="item()*">
@@ -605,22 +667,25 @@ exclude-result-prefixes="#all"
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
-    
-    <!-- toggle between Content as URI resource and HTML (rdf:XMLLiteral) in inline editing mode -->
-    <xsl:template match="div[contains-token(@class, 'xhtml-content') or contains-token(@class, 'resource-content')]//select[contains-token(@class, 'content-type')]" mode="ixsl:onchange" priority="1">
-        <xsl:variable name="content-type" select="ixsl:get(., 'value')" as="xs:anyURI"/>
-        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'xhtml-content') or contains-token(@class, 'resource-content')]" as="element()"/>
+
+    <!-- toggle between Content as HTML (rdf:XMLLiteral) and URI resource in inline editing mode (increased priority to take precedence over the template in form.xsl) -->
+    <xsl:template match="div[contains-token(@class, 'xhtml-content')]//select[contains-token(@class, 'content-type')][ixsl:get(., 'value') = '&rdfs;Resource']" mode="ixsl:onchange" priority="1">
+        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'xhtml-content')]" as="element()"/>
 
         <xsl:next-match/>
 
-        <xsl:if test="$content-type = '&rdfs;Resource'">
-            <xsl:sequence select="ixsl:call(ixsl:get($container, 'classList'), 'replace', [ 'xhtml-content', 'resource-content' ])[current-date() lt xs:date('2000-01-01')]"/>
-        </xsl:if>
-        <xsl:if test="$content-type = '&rdf;XMLLiteral'">
-            <xsl:sequence select="ixsl:call(ixsl:get($container, 'classList'), 'replace', [ 'resource-content', 'xhtml-content' ])[current-date() lt xs:date('2000-01-01')]"/>
-        </xsl:if>
+        <xsl:sequence select="ixsl:call(ixsl:get($container, 'classList'), 'replace', [ 'xhtml-content', 'resource-content' ])[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
-    
+
+    <!-- toggle between Content as URI resource and HTML (rdf:XMLLiteral) in inline editing mode (increased priority to take precedence over the template in form.xsl) -->
+    <xsl:template match="div[contains-token(@class, 'resource-content')]//select[contains-token(@class, 'content-type')][ixsl:get(., 'value') = '&rdf;XMLLiteral']" mode="ixsl:onchange" priority="1">
+        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'resource-content')]" as="element()"/>
+
+        <xsl:next-match/>
+
+        <xsl:sequence select="ixsl:call(ixsl:get($container, 'classList'), 'replace', [ 'resource-content', 'xhtml-content' ])[current-date() lt xs:date('2000-01-01')]"/>
+    </xsl:template>
+
     <!-- appends new XHTML content instance to the content list -->
     <xsl:template match="div[contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'create-action')][contains-token(@class, 'add-xhtml-content')]" mode="ixsl:onclick">
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'row-fluid')]" as="element()"/>
@@ -687,8 +752,12 @@ exclude-result-prefixes="#all"
                     <rdf:Description rdf:nodeID="A1">
                         <rdf:type rdf:resource="&ldh;Content"/>
                         <rdf:value rdf:nodeID="A2"/>
+                        <ac:mode rdf:nodeID="A3"/>
                     </rdf:Description>
                     <rdf:Description rdf:nodeID="A2">
+                        <rdf:type rdf:resource="&rdfs;Resource"/>
+                    </rdf:Description>
+                    <rdf:Description rdf:nodeID="A3">
                         <rdf:type rdf:resource="&rdfs;Resource"/>
                     </rdf:Description>
                 </rdf:RDF>
@@ -696,6 +765,10 @@ exclude-result-prefixes="#all"
         </xsl:variable>
         <xsl:variable name="controls" as="node()*">
             <xsl:apply-templates select="$constructor//rdf:value/@rdf:*" mode="bs2:FormControl"/>
+            <xsl:apply-templates select="$constructor//ac:mode/@rdf:*" mode="bs2:FormControl">
+                <xsl:with-param name="class" select="'content-mode'"/>
+                <xsl:with-param name="type-label" select="false()"/>
+            </xsl:apply-templates>
         </xsl:variable>
         
         <!-- move the current row of controls to the bottom of the content list -->
@@ -740,6 +813,7 @@ exclude-result-prefixes="#all"
     <xsl:template name="ldh:LoadContent">
         <xsl:context-item as="element()" use="required"/> <!-- container element -->
         <xsl:param name="uri" as="xs:anyURI"/> <!-- document URI -->
+        <xsl:param name="acl-modes" as="xs:anyURI*"/>
         <xsl:variable name="content-uri" select="@about" as="xs:anyURI"/>
         <xsl:variable name="content-value" select="ixsl:get(., 'dataset.contentValue')" as="xs:anyURI"/> <!-- get the value of the @data-content-value attribute -->
         <xsl:variable name="mode" select="if (ixsl:contains(., 'dataset.contentMode')) then xs:anyURI(ixsl:get(., 'dataset.contentMode')) else ()" as="xs:anyURI?"/> <!-- get the value of the @data-content-mode attribute -->
@@ -760,11 +834,12 @@ exclude-result-prefixes="#all"
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), $content-value)" as="xs:anyURI"/>
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': ac:document-uri($request-uri), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-                <xsl:call-template name="onContentLoad">
+                <xsl:call-template name="onContentValueLoad">
                     <xsl:with-param name="uri" select="$uri"/>
                     <xsl:with-param name="content-value" select="$content-value"/>
                     <xsl:with-param name="container" select="$container"/>
                     <xsl:with-param name="mode" select="$mode"/>
+                    <xsl:with-param name="acl-modes" select="$acl-modes"/>
                 </xsl:call-template>
             </ixsl:schedule-action>
         </xsl:variable>
@@ -773,7 +848,7 @@ exclude-result-prefixes="#all"
     
     <!-- embed content -->
     
-    <xsl:template name="onContentLoad">
+    <xsl:template name="onContentValueLoad">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="uri" as="xs:anyURI"/>
         <xsl:param name="container" as="element()"/>
@@ -781,28 +856,63 @@ exclude-result-prefixes="#all"
         <xsl:param name="content-uri" select="$container/@about" as="xs:anyURI"/>
         <xsl:param name="content-value" as="xs:anyURI"/>
         <xsl:param name="mode" as="xs:anyURI?"/>
+        <xsl:param name="acl-modes" as="xs:anyURI*"/>
         
         <!-- for some reason Saxon-JS 2.3 does not see this variable if it's inside <xsl:when> -->
-        <xsl:variable name="content" select="key('resources', $content-value, ?body)" as="element()?"/>
+        <xsl:variable name="value" select="key('resources', $content-value, ?body)" as="element()?"/>
         <xsl:choose>
-            <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml' and $content">
+            <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml' and $value">
+                <xsl:variable name="rdf-doc" select="?body" as="document-node()"/>
                 <!-- replace dots which have a special meaning in Saxon-JS -->
                 <xsl:variable name="escaped-content-uri" select="xs:anyURI(translate($content-uri, '.', '-'))" as="xs:anyURI"/>
                 <!-- create new cache entry using content URI as key -->
                 <ixsl:set-property name="{$escaped-content-uri}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
                 <!-- store this content element -->
-                <ixsl:set-property name="content" select="$content" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri)"/>
+                <ixsl:set-property name="content" select="$value" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri)"/>
 
                 <xsl:for-each select="$container//div[@class = 'bar']">
                     <!-- update progress bar -->
                     <ixsl:set-style name="width" select="'50%'" object="."/>
                 </xsl:for-each>
 
-                <xsl:apply-templates select="$content" mode="ldh:RenderContent">
+                <xsl:apply-templates select="$value" mode="ldh:RenderContent">
                     <xsl:with-param name="uri" select="$uri"/>
                     <xsl:with-param name="container" select="$container"/>
                     <xsl:with-param name="mode" select="$mode"/>
                 </xsl:apply-templates>
+            
+                <!-- initialize map -->
+                <xsl:for-each select="key('elements-by-class', 'map-canvas', $container)">
+                    <xsl:variable name="canvas-id" select="@id" as="xs:string"/>
+                    <xsl:variable name="initial-load" select="true()" as="xs:boolean"/>
+                    <!-- reuse center and zoom if map object already exists, otherwise set defaults -->
+                    <xsl:variable name="center-lat" select="56" as="xs:float"/>
+                    <xsl:variable name="center-lng" select="10" as="xs:float"/>
+                    <xsl:variable name="zoom" select="4" as="xs:integer"/>
+                    <xsl:variable name="map" select="ac:create-map($canvas-id, $center-lat, $center-lng, $zoom)"/>
+
+                    <xsl:for-each select="$value">
+                        <xsl:call-template name="gm:AddMarker">
+                            <xsl:with-param name="map" select="$map"/>
+                        </xsl:call-template>
+                    </xsl:for-each>
+                </xsl:for-each>
+                <!-- initialize chart -->
+                <xsl:for-each select="key('elements-by-class', 'chart-canvas', $container)">
+                    <xsl:variable name="canvas-id" select="@id" as="xs:string"/>
+                    <xsl:variable name="chart-type" select="xs:anyURI('&ac;Table')" as="xs:anyURI"/>
+                    <xsl:variable name="category" as="xs:string?"/>
+                    <xsl:variable name="series" select="distinct-values($rdf-doc/*/*/concat(namespace-uri(), local-name()))" as="xs:string*"/>
+                    <xsl:variable name="data-table" select="ac:rdf-data-table($rdf-doc, $category, $series)"/>
+
+                    <xsl:call-template name="render-chart">
+                        <xsl:with-param name="data-table" select="$data-table"/>
+                        <xsl:with-param name="canvas-id" select="$canvas-id"/>
+                        <xsl:with-param name="chart-type" select="$chart-type"/>
+                        <xsl:with-param name="category" select="$category"/>
+                        <xsl:with-param name="series" select="$series"/>
+                    </xsl:call-template>
+                </xsl:for-each>
             </xsl:when>
             <!-- content could not be loaded as RDF -->
             <xsl:when test="?status = 406">
@@ -844,6 +954,19 @@ exclude-result-prefixes="#all"
                     <xsl:for-each select="$container">
                         <xsl:result-document href="?." method="ixsl:replace-content">
                             <xsl:copy-of select="$row-block"/>
+                        </xsl:result-document>
+                    </xsl:for-each>
+                    
+                    <!-- insert "Edit" button if the agent has acl:Write access -->
+                    <xsl:for-each select="$container//div[contains-token(@class, 'span7')]">
+                        <xsl:result-document href="?." method="ixsl:replace-content">
+                            <xsl:if test="acl:mode() = '&acl;Write'">
+                                <button type="button" class="btn btn-edit pull-right">
+                                    <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
+                                </button>
+                            </xsl:if>
+
+                            <xsl:copy-of select="$container//div[contains-token(@class, 'span7')]/*"/>
                         </xsl:result-document>
                     </xsl:for-each>
                 </xsl:for-each>
@@ -894,6 +1017,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="uri" as="xs:anyURI"/> <!-- document URI -->
         <xsl:param name="container" as="element()"/>
         <xsl:param name="content-value" as="xs:anyURI"/>
+        <xsl:param name="mode" as="xs:anyURI?"/>
 
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
 
@@ -903,6 +1027,11 @@ exclude-result-prefixes="#all"
                     <!-- update @data-content-value value -->
                     <ixsl:set-property name="dataset.contentValue" select="$content-value" object="."/>
 
+                    <xsl:if test="$mode">
+                        <!-- update @data-content-mode value -->
+                        <ixsl:set-property name="dataset.contentMode" select="$mode" object="."/>
+                    </xsl:if>
+                    
                     <xsl:call-template name="ldh:LoadContent">
                         <xsl:with-param name="uri" select="$uri"/> <!-- content value gets read from dataset.contentValue -->
                     </xsl:call-template>

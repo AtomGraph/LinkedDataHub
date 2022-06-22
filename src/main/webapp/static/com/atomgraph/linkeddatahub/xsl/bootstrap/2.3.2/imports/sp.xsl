@@ -39,16 +39,15 @@ exclude-result-prefixes="#all">
             </xsl:if>
         </textarea>
 
-        <xsl:apply-templates select="." mode="bs2:FormControlTypeLabel">
-            <xsl:with-param name="type-label" select="$type-label"/>
-        </xsl:apply-templates>
+        <xsl:if test="$type-label">
+            <xsl:apply-templates select="." mode="bs2:FormControlTypeLabel"/>
+        </xsl:if>
     </xsl:template>
     
     <xsl:template match="sp:text/text() | *[@rdf:*[local-name() = 'nodeID']]/sp:text/@rdf:*[local-name() = 'nodeID'][key('resources', .)[not(* except rdf:type[@rdf:resource = '&xsd;string'])]]" mode="bs2:FormControlTypeLabel">
         <xsl:param name="type" as="xs:string?"/>
-        <xsl:param name="type-label" select="true()" as="xs:boolean"/>
 
-        <xsl:if test="not($type = 'hidden') and $type-label">
+        <xsl:if test="not($type = 'hidden')">
             <span class="help-inline">Literal</span>
         </xsl:if>
     </xsl:template>

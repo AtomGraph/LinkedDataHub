@@ -386,9 +386,11 @@ exclude-result-prefixes="#all"
             <xsl:otherwise>
                 <xsl:for-each select="$container">
                     <xsl:result-document href="?." method="ixsl:replace-content">
-                        <button type="button" class="btn btn-edit pull-right">
-                            <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
-                        </button>
+                        <xsl:if test="acl:mode() = '&acl;Write'">
+                            <button type="button" class="btn btn-edit pull-right">
+                                <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
+                            </button>
+                        </xsl:if>
 
                         <div class="pull-right">
                             <form class="form-inline">
@@ -470,15 +472,6 @@ exclude-result-prefixes="#all"
 
         <!-- after we've created the map container element, create the JS objects using it -->
         <xsl:if test="$active-mode = '&ac;MapMode'">
-            <xsl:variable name="canvas-id" select="$content-id || '-map-canvas'" as="xs:string"/>
-            <xsl:variable name="initial-load" select="not(ixsl:contains(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri), 'map'))" as="xs:boolean"/>
-            <!-- reuse center and zoom if map object already exists, otherwise set defaults -->
-            <xsl:variable name="center-lat" select="if (not($initial-load)) then xs:float(ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri), 'map'), 'getCenter', []), 'lat', [])) else 56" as="xs:float"/>
-            <xsl:variable name="center-lng" select="if (not($initial-load)) then xs:float(ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri), 'map'), 'getCenter', []), 'lng', [])) else 10" as="xs:float"/>
-            <xsl:variable name="zoom" select="if (not($initial-load)) then xs:integer(ixsl:call(ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri), 'map'), 'getZoom', [])) else 4" as="xs:integer"/>
-            
-            <ixsl:set-property name="map" select="ac:create-map($canvas-id, $center-lat, $center-lng, $zoom)" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri)"/>
-
             <!-- unset LIMIT and OFFSET - we want all of the container's children on the map -->
             <xsl:variable name="select-xml" as="document-node()">
                 <xsl:document>
@@ -499,7 +492,16 @@ exclude-result-prefixes="#all"
             <xsl:variable name="bgp-triples-map" select="$select-xml//json:map[json:string[@key = 'type'] = 'bgp']/json:array[@key = 'triples']/json:map[json:string[@key = 'subject'] = '?' || $focus-var-name][not(starts-with(json:string[@key = 'predicate'], '?'))][starts-with(json:string[@key = 'object'], '?')] | $select-xml//json:map[json:string[@key = 'type'] = 'bgp']/json:array[@key = 'triples']/json:map[starts-with(json:string[@key = 'subject'], '?')][not(starts-with(json:string[@key = 'predicate'], '?'))][json:string[@key = 'object'] = '?' || $focus-var-name]" as="element()*"/>
             <xsl:variable name="graph-var-name" select="$bgp-triples-map/ancestor::json:map[json:string[@key = 'type'] = 'graph'][1]/json:string[@key = 'name']/substring-after(., '?')" as="xs:string?"/>
 
-            <ixsl:set-property name="geo" select="ac:create-geo-object($escaped-content-uri, ac:uri(), $ldt:base, $endpoint, $select-string, $focus-var-name, $graph-var-name)" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri)"/>
+            <xsl:variable name="canvas-id" select="$content-id || '-map-canvas'" as="xs:string"/>
+            <xsl:variable name="initial-load" select="not(ixsl:contains(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri), 'map'))" as="xs:boolean"/>
+            <!-- reuse center and zoom if map object already exists, otherwise set defaults -->
+            <xsl:variable name="center-lat" select="if (not($initial-load)) then xs:float(ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri), 'map'), 'getCenter', []), 'lat', [])) else 56" as="xs:float"/>
+            <xsl:variable name="center-lng" select="if (not($initial-load)) then xs:float(ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri), 'map'), 'getCenter', []), 'lng', [])) else 10" as="xs:float"/>
+            <xsl:variable name="zoom" select="if (not($initial-load)) then xs:integer(ixsl:call(ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri), 'map'), 'getZoom', [])) else 4" as="xs:integer"/>
+            <xsl:variable name="map" select="ac:create-map($canvas-id, $center-lat, $center-lng, $zoom)" as="item()"/>
+            <ixsl:set-property name="map" select="$map" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri)"/>
+
+            <ixsl:set-property name="geo" select="ac:create-geo-object($map, ac:uri(), $ldt:base, $endpoint, $select-string, $focus-var-name, $graph-var-name)" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri)"/>
 
             <xsl:call-template name="ac:add-geo-listener">
                 <xsl:with-param name="escaped-content-uri" select="$escaped-content-uri"/>
@@ -648,19 +650,19 @@ exclude-result-prefixes="#all"
             </xsl:variable>
             <xsl:choose>
                 <xsl:when test="$active-mode = '&ac;ListMode'">
-                    <xsl:apply-templates select="$sorted-results" mode="bs2:BlockList">
+                    <xsl:apply-templates select="$sorted-results" mode="bs2:ContainerBlockList">
                         <xsl:with-param name="select-xml" select="$select-xml"/>
                         <xsl:with-param name="endpoint" select="if (not($endpoint = sd:endpoint())) then $endpoint else ()" tunnel="yes"/>
                     </xsl:apply-templates>
                 </xsl:when>
                 <xsl:when test="$active-mode = '&ac;TableMode'">
-                    <xsl:apply-templates select="$sorted-results" mode="xhtml:Table">
+                    <xsl:apply-templates select="$sorted-results" mode="bs2:ContainerTable">
                         <xsl:with-param name="select-xml" select="$select-xml"/>
                         <xsl:with-param name="endpoint" select="if (not($endpoint = sd:endpoint())) then $endpoint else ()" tunnel="yes"/>
                     </xsl:apply-templates>
                 </xsl:when>
                 <xsl:when test="$active-mode = '&ac;GridMode'">
-                    <xsl:apply-templates select="$sorted-results" mode="bs2:Grid">
+                    <xsl:apply-templates select="$sorted-results" mode="bs2:ContainerGrid">
                         <xsl:with-param name="select-xml" select="$select-xml"/>
                         <xsl:with-param name="endpoint" select="if (not($endpoint = sd:endpoint())) then $endpoint else ()" tunnel="yes"/>
                     </xsl:apply-templates>
@@ -727,7 +729,7 @@ exclude-result-prefixes="#all"
     
     <!-- block list -->
 
-    <xsl:template match="rdf:RDF" mode="bs2:BlockList" use-when="system-property('xsl:product-name') eq 'SaxonJS'">
+    <xsl:template match="rdf:RDF" mode="bs2:ContainerBlockList" use-when="system-property('xsl:product-name') eq 'SaxonJS'">
         <xsl:param name="select-xml" as="document-node()"/>
         <xsl:variable name="result-count" select="count(rdf:Description)" as="xs:integer"/>
 
@@ -736,7 +738,7 @@ exclude-result-prefixes="#all"
             <xsl:with-param name="select-xml" select="$select-xml"/>
         </xsl:call-template>
 
-        <xsl:next-match/>
+        <xsl:apply-templates select="." mode="bs2:BlockList"/>
 
         <xsl:call-template name="bs2:PagerList">
             <xsl:with-param name="result-count" select="$result-count"/>
@@ -784,7 +786,7 @@ exclude-result-prefixes="#all"
 
     <!-- grid -->
 
-    <xsl:template match="rdf:RDF" mode="bs2:Grid" use-when="system-property('xsl:product-name') eq 'SaxonJS'">
+    <xsl:template match="rdf:RDF" mode="bs2:ContainerGrid" use-when="system-property('xsl:product-name') eq 'SaxonJS'">
         <xsl:param name="select-xml" as="document-node()"/>
         <xsl:variable name="result-count" select="count(rdf:Description)" as="xs:integer"/>
 
@@ -793,7 +795,7 @@ exclude-result-prefixes="#all"
             <xsl:with-param name="select-xml" select="$select-xml"/>
         </xsl:call-template>
 
-        <xsl:next-match/>
+        <xsl:apply-templates select="." mode="bs2:Grid"/>
 
         <xsl:call-template name="bs2:PagerList">
             <xsl:with-param name="result-count" select="$result-count"/>
@@ -806,7 +808,7 @@ exclude-result-prefixes="#all"
 
     <!-- table -->
 
-    <xsl:template match="rdf:RDF" mode="xhtml:Table" use-when="system-property('xsl:product-name') eq 'SaxonJS'">
+    <xsl:template match="rdf:RDF" mode="bs2:ContainerTable" use-when="system-property('xsl:product-name') eq 'SaxonJS'">
         <xsl:param name="select-xml" as="document-node()"/>
         <xsl:variable name="result-count" select="count(rdf:Description)" as="xs:integer"/>
 
@@ -815,7 +817,7 @@ exclude-result-prefixes="#all"
             <xsl:with-param name="select-xml" select="$select-xml"/>
         </xsl:call-template>
 
-        <xsl:next-match/>
+        <xsl:apply-templates select="." mode="xhtml:Table"/>
 
         <xsl:call-template name="bs2:PagerList">
             <xsl:with-param name="result-count" select="$result-count"/>

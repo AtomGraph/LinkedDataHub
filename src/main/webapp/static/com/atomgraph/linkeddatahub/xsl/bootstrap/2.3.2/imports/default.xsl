@@ -547,6 +547,14 @@ exclude-result-prefixes="#all"
         <xsl:variable name="doc-uri" select="if (starts-with($ldt:base, .)) then xs:anyURI(.) else ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(.)) })" as="xs:anyURI"/>
 
         <xsl:choose>
+            <xsl:when test="$type = 'hidden'">
+                <xsl:apply-templates select="." mode="xhtml:Input">
+                    <xsl:with-param name="type" select="$type"/>
+                    <xsl:with-param name="id" select="$id"/>
+                    <xsl:with-param name="class" select="$class"/>
+                    <xsl:with-param name="disabled" select="$disabled"/>
+                </xsl:apply-templates>
+            </xsl:when>
             <!-- loop if node not visited already -->
             <xsl:when test="$inline and $resource and not(. = $traversed-ids)">
                 <xsl:apply-templates select="." mode="xhtml:Input">
@@ -559,14 +567,6 @@ exclude-result-prefixes="#all"
                 <xsl:apply-templates select="../../@rdf:about | ../../@rdf:nodeID" mode="#current">
                     <xsl:with-param name="type" select="'hidden'"/>
                 </xsl:apply-templates>
-            </xsl:when>
-            <xsl:when test="$type = 'hidden'">
-                <xsl:next-match>
-                    <xsl:with-param name="type" select="$type"/>
-                    <xsl:with-param name="id" select="$id"/>
-                    <xsl:with-param name="class" select="$class"/>
-                    <xsl:with-param name="disabled" select="$disabled"/>
-                </xsl:next-match>
             </xsl:when>
             <xsl:when test="starts-with(., $ldt:base) and doc-available($doc-uri)">
                 <xsl:choose>
@@ -599,12 +599,13 @@ exclude-result-prefixes="#all"
                                         <input type="hidden" class="forClass" value="{$forClass}"/>
                                     </xsl:otherwise>
                                 </xsl:choose>
-                            
-                                <xsl:apply-templates select="." mode="bs2:FormControlTypeLabel">
-                                    <xsl:with-param name="type" select="$type"/>
-                                    <xsl:with-param name="type-label" select="$type-label"/>
-                                    <xsl:with-param name="forClass" select="$forClass"/>
-                                </xsl:apply-templates>
+
+                                <xsl:if test="$type-label">
+                                    <xsl:apply-templates select="." mode="bs2:FormControlTypeLabel">
+                                        <xsl:with-param name="type" select="$type"/>
+                                        <xsl:with-param name="forClass" select="$forClass"/>
+                                    </xsl:apply-templates>
+                                </xsl:if>
                             </xsl:if>
                         </xsl:if>
                     </xsl:when>
@@ -620,21 +621,21 @@ exclude-result-prefixes="#all"
                     <xsl:with-param name="class" select="$class"/>
                     <xsl:with-param name="disabled" select="$disabled"/>
                 </xsl:apply-templates>
-                
-                <xsl:apply-templates select="." mode="bs2:FormControlTypeLabel">
-                    <xsl:with-param name="type" select="$type"/>
-                    <xsl:with-param name="type-label" select="$type-label"/>
-                </xsl:apply-templates>
+
+                <xsl:if test="$type-label">
+                    <xsl:apply-templates select="." mode="bs2:FormControlTypeLabel">
+                        <xsl:with-param name="type" select="$type"/>
+                    </xsl:apply-templates>
+                </xsl:if>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
 
     <xsl:template match="@rdf:resource" mode="bs2:FormControlTypeLabel">
         <xsl:param name="type" as="xs:string?"/>
-        <xsl:param name="type-label" select="true()" as="xs:boolean"/>
         <xsl:param name="forClass" as="xs:anyURI?"/>
 
-        <xsl:if test="not($type = 'hidden') and $type-label">
+        <xsl:if test="not($type = 'hidden')">
             <xsl:choose>
                 <xsl:when test="$forClass">
                     <span class="help-inline">
@@ -670,6 +671,14 @@ exclude-result-prefixes="#all"
         <xsl:variable name="resource" select="key('resources', .)"/>
 
         <xsl:choose>
+            <xsl:when test="$type = 'hidden'">
+                <xsl:apply-templates select="." mode="xhtml:Input">
+                    <xsl:with-param name="type" select="$type"/>
+                    <xsl:with-param name="id" select="$id"/>
+                    <xsl:with-param name="class" select="$class"/>
+                    <xsl:with-param name="disabled" select="$disabled"/>
+                </xsl:apply-templates>
+            </xsl:when>
             <xsl:when test="$inline and $resource and not(. = $traversed-ids)">
                 <xsl:apply-templates select="." mode="xhtml:Input">
                     <xsl:with-param name="type" select="'hidden'"/>
@@ -714,11 +723,12 @@ exclude-result-prefixes="#all"
                             </xsl:otherwise>
                         </xsl:choose>
 
-                        <xsl:apply-templates select="." mode="bs2:FormControlTypeLabel">
-                            <xsl:with-param name="type" select="$type"/>
-                            <xsl:with-param name="type-label" select="$type-label"/>
-                            <xsl:with-param name="forClass" select="$forClass"/>
-                        </xsl:apply-templates>
+                        <xsl:if test="$type-label">
+                            <xsl:apply-templates select="." mode="bs2:FormControlTypeLabel">
+                                <xsl:with-param name="type" select="$type"/>
+                                <xsl:with-param name="forClass" select="$forClass"/>
+                            </xsl:apply-templates>
+                        </xsl:if>
                     </xsl:if>
                 </xsl:if>
             </xsl:when>
@@ -729,11 +739,12 @@ exclude-result-prefixes="#all"
                     <xsl:with-param name="class" select="$class"/>
                     <xsl:with-param name="disabled" select="$disabled"/>
                 </xsl:apply-templates>
-                
-                <xsl:apply-templates select="." mode="bs2:FormControlTypeLabel">
-                    <xsl:with-param name="type" select="$type"/>
-                    <xsl:with-param name="type-label" select="$type-label"/>
-                </xsl:apply-templates>
+
+                <xsl:if test="$type-label">
+                    <xsl:apply-templates select="." mode="bs2:FormControlTypeLabel">
+                        <xsl:with-param name="type" select="$type"/>
+                    </xsl:apply-templates>
+                </xsl:if>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
@@ -763,11 +774,12 @@ exclude-result-prefixes="#all"
             <xsl:with-param name="type" select="'hidden'"/>
             <xsl:with-param name="value" select="key('resources', .)/rdf:type/@rdf:resource"/>
         </xsl:call-template>
-        
-        <xsl:apply-templates select="." mode="bs2:FormControlTypeLabel">
-            <xsl:with-param name="type" select="$type"/>
-            <xsl:with-param name="type-label" select="$type-label"/>
-        </xsl:apply-templates>
+
+        <xsl:if test="$type-label">
+            <xsl:apply-templates select="." mode="bs2:FormControlTypeLabel">
+                <xsl:with-param name="type" select="$type"/>
+            </xsl:apply-templates>
+        </xsl:if>
     </xsl:template>
     
     <!-- blank nodes that only have non-XSD rdf:type and no other properties become resource typeaheads -->
@@ -809,11 +821,12 @@ exclude-result-prefixes="#all"
             </xsl:otherwise>
         </xsl:choose>
 
-        <xsl:apply-templates select="." mode="bs2:FormControlTypeLabel">
-            <xsl:with-param name="type" select="$type"/>
-            <xsl:with-param name="type-label" select="$type-label"/>
-            <xsl:with-param name="forClass" select="$forClass"/>
-        </xsl:apply-templates>
+        <xsl:if test="$type-label">
+            <xsl:apply-templates select="." mode="bs2:FormControlTypeLabel">
+                <xsl:with-param name="type" select="$type"/>
+                <xsl:with-param name="forClass" select="$forClass"/>
+            </xsl:apply-templates>
+        </xsl:if>
     </xsl:template>
     
     <!-- WYSIWYG editor for XMLLiteral objects -->
@@ -831,11 +844,12 @@ exclude-result-prefixes="#all"
             <xsl:with-param name="name" select="'lt'"/>
             <xsl:with-param name="value" select="'&rdf;XMLLiteral'"/>
         </xsl:call-template>
-        
-        <xsl:apply-templates select="." mode="bs2:FormControlTypeLabel">
-            <xsl:with-param name="type" select="$type"/>
-            <xsl:with-param name="type-label" select="$type-label"/>
-        </xsl:apply-templates>
+
+        <xsl:if test="$type-label">
+            <xsl:apply-templates select="." mode="bs2:FormControlTypeLabel">
+                <xsl:with-param name="type" select="$type"/>
+            </xsl:apply-templates>
+        </xsl:if>
     </xsl:template>
     
     <!-- FORM CONTROL TYPE LABEL -->
@@ -861,10 +875,9 @@ exclude-result-prefixes="#all"
     
     <xsl:template match="*[@rdf:nodeID]/*/@rdf:nodeID[key('resources', .)[not(* except rdf:type[not(starts-with(@rdf:resource, '&xsd;'))])]]" mode="bs2:FormControlTypeLabel">
         <xsl:param name="type" as="xs:string?"/>
-        <xsl:param name="type-label" select="true()" as="xs:boolean"/>
         <xsl:param name="forClass" as="xs:anyURI?"/>
 
-        <xsl:if test="not($type = 'hidden') and $type-label">
+        <xsl:if test="not($type = 'hidden')">
             <xsl:choose>
                 <xsl:when test="$forClass">
                     <span class="help-inline">

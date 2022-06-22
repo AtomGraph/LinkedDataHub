@@ -19,15 +19,29 @@ exclude-result-prefixes="#all">
     
     <!-- override the value of ac:mode with a dropdown of ac:Mode instances -->
     <xsl:template match="ac:mode/@rdf:resource | ac:mode/@rdf:nodeID" mode="bs2:FormControl">
+        <xsl:param name="id" select="generate-id()" as="xs:string"/>
+        <xsl:param name="class" as="xs:string?"/>
+        <xsl:param name="disabled" select="false()" as="xs:boolean"/>
+        <xsl:param name="type-label" select="true()" as="xs:boolean"/>
         <xsl:variable name="value" select="." as="xs:string"/>
 
         <xsl:variable name="modes" select="key('resources-by-type', '&ac;Mode', document(ac:document-uri('&ac;')))" as="element()*"/>
         <select name="ou" id="{generate-id()}">
+            <xsl:if test="$id">
+                <xsl:attribute name="id" select="$id"/>
+            </xsl:if>
+            <xsl:if test="$class">
+                <xsl:attribute name="class" select="$class"/>
+            </xsl:if>
+            <xsl:if test="$disabled">
+                <xsl:attribute name="disabled" select="'disabled'"/>
+            </xsl:if>
+            
             <option>
-                <!-- an empty option in case on ac:mode is specified -->
+                <!-- an empty option in case ac:mode is not specified -->
             </option>
             
-            <xsl:for-each select="$modes">
+            <xsl:for-each select="$modes[not(@rdf:about = '&ac;EditMode')]"> <!-- don't show EditMode -->
                 <xsl:sort select="ac:label(.)" lang="{$ldt:lang}"/>
                 <xsl:apply-templates select="." mode="xhtml:Option">
                     <xsl:with-param name="selected" select="@rdf:about = $value"/>
@@ -35,7 +49,9 @@ exclude-result-prefixes="#all">
             </xsl:for-each>
         </select>
 
-        <xsl:apply-templates select="." mode="bs2:FormControlTypeLabel"/>
+        <xsl:if test="$type-label">
+            <xsl:apply-templates select="." mode="bs2:FormControlTypeLabel"/>
+        </xsl:if>
     </xsl:template>
     
 </xsl:stylesheet>

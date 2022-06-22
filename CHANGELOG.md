@@ -1,4 +1,4 @@
-## [3.2.0] - 2022-06-16
+## [3.2.0] - 2022-06-22
 ### Added
 - Inline creation and editing of container and XHTML content in content layout mode
 - ACL access modes sent as `Link` response headers and accessible in the client-side XSLT stylesheets using the `acl:mode` function
@@ -9,6 +9,8 @@
 ### Changed
 - Content model uses `rdf:Seq` and `rdf:_1`, `rdf:_2` ... properties instead of `rdf:List` and `rdf:first`/`rdf:rest`
 - SPARQL updates submitted to the Graph Store via the `PATCH` method now have to use the default graph context, the `GRAPH` keyword is disallowed
+- Fixed caching of delegated WebID agents, eliminating an unnecessary request with each authentication
+- Multiple `Link` headers combined into a single one with concatenated values
 
 ## [3.1.9] - 2022-05-23
 ### Added
@@ -35,6 +37,7 @@
 - `--proxy` parameter to CLI scripts
 
 ### Changed
+- Variables in SPARQL query and update strings whose values are injected now start with `$` instead of `?`, for example `$this`
 - CSV and RDF imports write data directly to the backend Graph Store
 - Only namespace, signup, OAuth2 login, WebID profiles and public keys can be public in admin apps, nothing else (hardcoded in the admin authorization query)
 - When graph URI not explicitly specified, the Graph Store always returns `201 Created` (even if the graph existed)

@@ -404,66 +404,65 @@ exclude-result-prefixes="#all"
             </xsl:result-document>
         </xsl:for-each>
     </xsl:template>
-    
-    <!-- toggle between Content as URI resource and HTML (rdf:XMLLiteral) -->
-    <xsl:template match="select[contains-token(@class, 'content-type')]" mode="ixsl:onchange">
-        <xsl:variable name="content-type" select="ixsl:get(., 'value')" as="xs:anyURI"/>
+
+    <!-- toggle between Content as HTML (rdf:XMLLiteral) and URI resource -->
+    <xsl:template match="select[contains-token(@class, 'content-type')][ixsl:get(., 'value') = '&rdfs;Resource']" mode="ixsl:onchange">
         <xsl:variable name="controls" select=".." as="element()"/>
+        <xsl:variable name="constructor" as="document-node()">
+            <xsl:document>
+                <rdf:RDF>
+                    <rdf:Description rdf:nodeID="A1">
+                        <rdf:type rdf:resource="&ldh;Content"/>
+                        <rdf:value rdf:nodeID="A2"/>
+                    </rdf:Description>
+                    <rdf:Description rdf:nodeID="A2">
+                        <rdf:type rdf:resource="&rdfs;Resource"/>
+                    </rdf:Description>
+                </rdf:RDF>
+            </xsl:document>
+        </xsl:variable>
+        <xsl:variable name="new-controls" as="node()*">
+            <xsl:apply-templates select="$constructor//rdf:value/@rdf:*" mode="bs2:FormControl"/>
+        </xsl:variable>
 
-        <xsl:if test="$content-type = '&rdfs;Resource'">
-            <xsl:variable name="constructor" as="document-node()">
-                <xsl:document>
-                    <rdf:RDF>
-                        <rdf:Description rdf:nodeID="A1">
-                            <rdf:type rdf:resource="&ldh;Content"/>
-                            <rdf:value rdf:nodeID="A2"/>
-                        </rdf:Description>
-                        <rdf:Description rdf:nodeID="A2">
-                            <rdf:type rdf:resource="&rdfs;Resource"/>
-                        </rdf:Description>
-                    </rdf:RDF>
-                </xsl:document>
-            </xsl:variable>
-            <xsl:variable name="new-controls" as="node()*">
-                <xsl:apply-templates select="$constructor//rdf:value/@rdf:*" mode="bs2:FormControl"/>
-            </xsl:variable>
-            
-            <xsl:for-each select="$controls">
-                <xsl:result-document href="?." method="ixsl:replace-content">
-                    <!-- don't insert a new <div class="controls">, only its children -->
-                    <xsl:copy-of select="$new-controls"/>
-                </xsl:result-document>
-            </xsl:for-each>
-        </xsl:if>
-        <xsl:if test="$content-type = '&rdf;XMLLiteral'">
-            <xsl:variable name="constructor" as="document-node()">
-                <xsl:document>
-                    <rdf:RDF>
-                        <rdf:Description rdf:nodeID="A1">
-                            <rdf:type rdf:resource="&ldh;Content"/>
-                            <rdf:value rdf:parseType="Literal">
-                                <xhtml:div/>
-                            </rdf:value>
-                        </rdf:Description>
-                    </rdf:RDF>
-                </xsl:document>
-            </xsl:variable>
-            <xsl:variable name="new-controls" as="node()*">
-                <xsl:apply-templates select="$constructor//rdf:value/xhtml:*" mode="bs2:FormControl"/>
-            </xsl:variable>
-
-            <xsl:for-each select="$controls">
-                <xsl:result-document href="?." method="ixsl:replace-content">
-                    <!-- don't insert a new <div class="controls">, only its children -->
-                    <xsl:copy-of select="$new-controls"/>
-                </xsl:result-document>
-
-                <!-- initialize wymeditor textarea -->
-                <xsl:apply-templates select="key('elements-by-class', 'wymeditor', ancestor::div[1])" mode="ldh:PostConstruct"/>
-            </xsl:for-each>
-        </xsl:if>
+        <xsl:for-each select="$controls">
+            <xsl:result-document href="?." method="ixsl:replace-content">
+                <!-- don't insert a new <div class="controls">, only its children -->
+                <xsl:copy-of select="$new-controls"/>
+            </xsl:result-document>
+        </xsl:for-each>
     </xsl:template>
 
+    <!-- toggle between Content as URI resource and HTML (rdf:XMLLiteral) -->
+    <xsl:template match="select[contains-token(@class, 'content-type')][ixsl:get(., 'value') = '&rdf;XMLLiteral']" mode="ixsl:onchange">
+        <xsl:variable name="controls" select=".." as="element()"/>
+        <xsl:variable name="constructor" as="document-node()">
+            <xsl:document>
+                <rdf:RDF>
+                    <rdf:Description rdf:nodeID="A1">
+                        <rdf:type rdf:resource="&ldh;Content"/>
+                        <rdf:value rdf:parseType="Literal">
+                            <xhtml:div/>
+                        </rdf:value>
+                    </rdf:Description>
+                </rdf:RDF>
+            </xsl:document>
+        </xsl:variable>
+        <xsl:variable name="new-controls" as="node()*">
+            <xsl:apply-templates select="$constructor//rdf:value/xhtml:*" mode="bs2:FormControl"/>
+        </xsl:variable>
+
+        <xsl:for-each select="$controls">
+            <xsl:result-document href="?." method="ixsl:replace-content">
+                <!-- don't insert a new <div class="controls">, only its children -->
+                <xsl:copy-of select="$new-controls"/>
+            </xsl:result-document>
+
+            <!-- initialize wymeditor textarea -->
+            <xsl:apply-templates select="key('elements-by-class', 'wymeditor', ancestor::div[1])" mode="ldh:PostConstruct"/>
+        </xsl:for-each>
+    </xsl:template>
+    
     <!-- remove div.row-fluid (button is within <legend>) -->
     <xsl:template match="fieldset/legend/div/button[contains-token(@class, 'btn-remove-resource')]" mode="ixsl:onclick" priority="1">
         <xsl:sequence select="ixsl:call(../../../../.., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>

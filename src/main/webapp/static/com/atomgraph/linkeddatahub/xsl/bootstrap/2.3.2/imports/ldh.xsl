@@ -21,6 +21,7 @@ exclude-result-prefixes="#all">
     
     <!-- override the value of ldh:chartType with a dropdown of ac:Chart subclasses (currently in the APL vocabulary) -->
     <xsl:template match="ldh:chartType/@rdf:resource | ldh:chartType/@rdf:nodeID" mode="bs2:FormControl">
+        <xsl:param name="type-label" select="true()" as="xs:boolean"/>
         <xsl:variable name="value" select="." as="xs:string"/>
 
         <xsl:variable name="chart-types" select="key('resources-by-subclass', '&ac;Chart', document(ac:document-uri('&ldh;')))" as="element()*"/>
@@ -33,7 +34,9 @@ exclude-result-prefixes="#all">
             </xsl:for-each>
         </select>
 
-        <xsl:apply-templates select="." mode="bs2:FormControlTypeLabel"/>
+        <xsl:if test="$type-label">
+            <xsl:apply-templates select="." mode="bs2:FormControlTypeLabel"/>
+        </xsl:if>
     </xsl:template>
     
 </xsl:stylesheet>
