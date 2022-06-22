@@ -568,10 +568,11 @@ WHERE
             <!-- store document under window.LinkedDataHub[$escaped-content-uri].results -->
             <ixsl:set-property name="results" select="." object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri)"/>
 
-            <!-- this has to go after <xsl:result-document href="#{$container-id}"> because otherwise new elements will be injected and the $content-ids lookup will not work anymore -->
-            <xsl:variable name="content-ids" select="key('elements-by-class', 'resource-content', ixsl:page())/@id" as="xs:string*"/>
-            <xsl:if test="not(empty($content-ids))">
-                <xsl:variable name="containers" select="id($content-ids, ixsl:page())" as="element()*"/>
+            <!-- this has to go after <xsl:result-document href="#{$container-id}"> because otherwise new elements will be injected and the $resource-content-ids lookup will not work anymore -->
+            <!-- load resource contents -->
+            <xsl:variable name="resource-content-ids" select="key('elements-by-class', 'resource-content', ixsl:page())/@id" as="xs:string*"/>
+            <xsl:if test="not(empty($resource-content-ids))">
+                <xsl:variable name="containers" select="id($resource-content-ids, ixsl:page())" as="element()*"/>
                 <xsl:for-each select="$containers">
                     <xsl:call-template name="ldh:LoadContent">
                         <xsl:with-param name="uri" select="$uri"/>
@@ -579,7 +580,27 @@ WHERE
                     </xsl:call-template>
                 </xsl:for-each>
             </xsl:if>
-        
+            <!-- add "Edit" buttons to XHTML content -->
+            <xsl:variable name="xhtml-content-ids" select="key('elements-by-class', 'xhtml-content', ixsl:page())/@id" as="xs:string*"/>
+            <xsl:if test="not(empty($xhtml-content-ids))">
+                <xsl:variable name="containers" select="id($xhtml-content-ids, ixsl:page())" as="element()*"/>
+                <xsl:for-each select="$containers">
+                    <xsl:variable name="container" select="." as="element()"/>
+                    <!-- insert "Edit" button if the agent has acl:Write access -->
+                    <xsl:for-each select="$container//div[contains-token(@class, 'span7')]">
+                        <xsl:result-document href="?." method="ixsl:replace-content">
+                            <xsl:if test="acl:mode() = '&acl;Write'">
+                                <button type="button" class="btn btn-edit pull-right">
+                                    <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
+                                </button>
+                            </xsl:if>
+
+                            <xsl:copy-of select="$container//div[contains-token(@class, 'span7')]/*"/>
+                        </xsl:result-document>
+                    </xsl:for-each>
+                </xsl:for-each>
+            </xsl:if>
+            
             <!-- focus on current resource -->
             <xsl:for-each select="key('resources', $uri)">
                 <!-- if the current resource is an Item, hide the <div> with the top/left "Create" dropdown as Items cannot have child documents -->
