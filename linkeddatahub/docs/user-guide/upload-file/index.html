@@ -179,8 +179,8 @@
 
 ./create-file.sh \
 -b "https://localhost:4443/" \
--f certs/owner.p12.pem \
--p "${OWNER_KEY_PASSWORD}" \
+-f "${cert_pem_file}" \
+-p "${cert_password}" \
 --title "${title}" \
 --file "${filename}" \
 --file-content-type "${content_type}"

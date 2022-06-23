@@ -266,8 +266,8 @@
                               
                               <pre>./import-csv.sh \
 -b https://linkeddatahub.com/my-context/my-app/ \
--f linkeddatahub.pem \
--p CertPassword \
+-f "${cert_pem_file}" \
+-p "${cert_password}" \
 --title "Places" \
 --query-file places.rq \
 --file places.csv \

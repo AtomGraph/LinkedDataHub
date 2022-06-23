@@ -181,11 +181,11 @@
 
 ./create-container.sh \
   -b "https://localhost:4443/" \
-  -f certs/owner.p12.pem \
-  -p "$OWNER_KEY_PASSWORD" \
+-f "${cert_pem_file}" \
+-p "${cert_password}" \
   --title "$title" \
   --slug "$slug" \
-  --parent "https://localhost:4443/" \
+  --parent "https://localhost:4443/"
 
 popd</pre>
                               </div>
