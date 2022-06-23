@@ -369,7 +369,6 @@ exclude-result-prefixes="#all"
                                 <!-- if  the container is full-width row (.row-fluid), render results in the middle column (.span7) -->
                                 <xsl:with-param name="container" select="if (contains-token($container/@class, 'row-fluid')) then $container/div[contains-token(@class, 'span7')] else $container"/>
                                 <xsl:with-param name="content-uri" select="$content-uri"/>
-                                <xsl:with-param name="container-id" select="ixsl:get($container, 'id')"/>
                                 <xsl:with-param name="chart-type" select="$chart-type"/>
                                 <xsl:with-param name="category" select="$category"/>
                                 <xsl:with-param name="series" select="$series"/>
