@@ -271,13 +271,6 @@ exclude-result-prefixes="#all"
         <!-- hide progress bar -->
         <ixsl:set-style name="display" select="'none'" object="$container//div[@class = 'progress-bar']"/>
         
-        <xsl:variable name="doc" as="document-node()">
-            <xsl:document>
-                <rdf:RDF>
-                    <xsl:copy-of select="."/>
-                </rdf:RDF>
-            </xsl:document>
-        </xsl:variable>
         <xsl:variable name="row" as="node()*">
             <xsl:apply-templates select="." mode="bs2:Row">
                 <xsl:with-param name="mode" select="$mode"/>
@@ -924,13 +917,15 @@ exclude-result-prefixes="#all"
                     <!-- hide progress bar -->
                     <ixsl:set-style name="display" select="'none'" object="$container//div[@class = 'progress-bar']"/>
 
-                    <xsl:variable name="row-block" as="element()*">
-                        <xsl:apply-templates select="." mode="bs2:RowBlock"/>
+                    <xsl:variable name="row" as="element()*">
+                        <xsl:apply-templates select="." mode="bs2:Row">
+                            <xsl:with-param name="mode" select="$mode"/>
+                        </xsl:apply-templates>
                     </xsl:variable>
 
                     <xsl:for-each select="$container">
                         <xsl:result-document href="?." method="ixsl:replace-content">
-                            <xsl:copy-of select="$row-block"/>
+                            <xsl:copy-of select="$row/*"/>
                         </xsl:result-document>
                     </xsl:for-each>
 

@@ -52,7 +52,7 @@ exclude-result-prefixes="#all">
             <div id="content-body" class="container-fluid">
                 <xsl:apply-templates select="key('resources', ac:uri())" mode="ldh:ContentList"/>
 
-                <xsl:apply-templates select="." mode="bs2:RowBlock"/>
+                <xsl:apply-templates select="." mode="bs2:Row"/>
             </div>
 
             <xsl:apply-templates select="." mode="bs2:Footer"/>
@@ -61,7 +61,7 @@ exclude-result-prefixes="#all">
     
     <xsl:template match="rdf:RDF[doc-available(ac:uri())][key('resources', ac:uri(), document(ac:uri()))/rdf:type/@rdf:resource = '&adm;SignUp']" mode="bs2:ModeTabs" priority="2"/>
 
-    <xsl:template match="*[rdf:type/@rdf:resource = '&adm;SignUp'][$ac:method = 'GET']" mode="bs2:RowBlock" priority="2">
+    <xsl:template match="*[rdf:type/@rdf:resource = '&adm;SignUp'][$ac:method = 'GET']" mode="bs2:Row" priority="2">
         <xsl:apply-templates select="ldh:construct(map{ xs:anyURI('&foaf;Person'): spin:constructors(xs:anyURI('&foaf;Person'), resolve-uri('ns', $ldt:base), $constructor-query)//srx:binding[@name = 'construct']/srx:literal/string(.) })" mode="bs2:RowForm">
             <xsl:with-param name="action" select="ac:uri()"/>
             <xsl:with-param name="enctype" select="()"/> <!-- don't use 'multipart/form-data' which is the default -->
@@ -71,7 +71,7 @@ exclude-result-prefixes="#all">
         </xsl:apply-templates>
     </xsl:template>
     
-    <xsl:template match="rdf:RDF[doc-available(ac:uri())][key('resources', ac:uri(), document(ac:uri()))/rdf:type/@rdf:resource = '&adm;SignUp'][$ac:method = 'POST'][key('resources-by-type', '&spin;ConstraintViolation')]" mode="bs2:RowBlock" priority="3">
+    <xsl:template match="rdf:RDF[doc-available(ac:uri())][key('resources', ac:uri(), document(ac:uri()))/rdf:type/@rdf:resource = '&adm;SignUp'][$ac:method = 'POST'][key('resources-by-type', '&spin;ConstraintViolation')]" mode="bs2:Row" priority="3">
         <xsl:apply-templates select="." mode="bs2:RowForm">
             <xsl:with-param name="action" select="ac:uri()"/>
             <xsl:with-param name="enctype" select="()"/>
@@ -82,7 +82,7 @@ exclude-result-prefixes="#all">
     </xsl:template>
     
     <!-- match the first resource, whatever it is -->
-    <xsl:template match="*[doc-available(ac:uri())][key('resources', ac:uri(), document(ac:uri()))/rdf:type/@rdf:resource = '&adm;SignUp'][$ac:method = 'POST'][not(key('resources-by-type', '&http;Response'))][1]" mode="bs2:RowBlock" priority="3">
+    <xsl:template match="*[doc-available(ac:uri())][key('resources', ac:uri(), document(ac:uri()))/rdf:type/@rdf:resource = '&adm;SignUp'][$ac:method = 'POST'][not(key('resources-by-type', '&http;Response'))][1]" mode="bs2:Row" priority="3">
         <div class="row-fluid">
             <div class="offset2 span7">
                 <div class="alert alert-success row-fluid">
@@ -104,7 +104,7 @@ exclude-result-prefixes="#all">
     </xsl:template>
     
     <!-- suppress resources other than foaf:Person and cert:PublicKey -->
-    <xsl:template match="*[doc-available(ac:uri())][key('resources', ac:uri(), document(ac:uri()))/rdf:type/@rdf:resource = '&adm;SignUp'][$ac:method = 'POST'][not(key('resources-by-type', '&http;Response'))][not(rdf:type/@rdf:resource = ('&foaf;Person', '&cert;PublicKey'))]" mode="bs2:RowBlock" priority="2"/>
+    <xsl:template match="*[doc-available(ac:uri())][key('resources', ac:uri(), document(ac:uri()))/rdf:type/@rdf:resource = '&adm;SignUp'][$ac:method = 'POST'][not(key('resources-by-type', '&http;Response'))][not(rdf:type/@rdf:resource = ('&foaf;Person', '&cert;PublicKey'))]" mode="bs2:Row" priority="2"/>
 
     <!-- disable the right nav (backlinks etc.) -->
     <xsl:template match="*[*][@rdf:about or @rdf:nodeID][doc-available(ac:uri())][key('resources', ac:uri(), document(ac:uri()))/rdf:type/@rdf:resource = '&adm;SignUp']" mode="bs2:Right"/>

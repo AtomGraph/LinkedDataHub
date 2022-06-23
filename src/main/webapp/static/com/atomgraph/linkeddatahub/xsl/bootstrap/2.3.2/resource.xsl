@@ -411,21 +411,21 @@ extension-element-prefixes="ixsl"
     <!-- BLOCK ROW -->
     
     <!-- mark query instances as .resource-content which is then rendered by client.xsl -->
-    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&sp;Select'][sp:text]" mode="bs2:RowBlock" priority="1">
+<!--    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&sp;Select'][sp:text]" mode="bs2:RowBlock" priority="1">
         <xsl:next-match>
             <xsl:with-param name="content-value" select="@rdf:about"/>
         </xsl:next-match>
-    </xsl:template>
+    </xsl:template>-->
     
     <!-- mark chart instances as .resource-content which is then rendered by client.xsl -->
-    <xsl:template match="*[@rdf:about][spin:query/@rdf:resource][ldh:chartType/@rdf:resource]" mode="bs2:RowBlock" priority="1">
+<!--    <xsl:template match="*[@rdf:about][spin:query/@rdf:resource][ldh:chartType/@rdf:resource]" mode="bs2:RowBlock" priority="1">
         <xsl:next-match>
             <xsl:with-param name="content-value" select="@rdf:about"/>
         </xsl:next-match>
-    </xsl:template>
+    </xsl:template>-->
     
     <!-- embed file content -->
-    <xsl:template match="*[@rdf:about][dct:format]" mode="bs2:RowBlock" priority="2">
+    <xsl:template match="*[@rdf:about][dct:format]" mode="bs2:Block" priority="2">
         <xsl:param name="id" select="generate-id()" as="xs:string?"/>
         <xsl:param name="about" select="@rdf:about" as="xs:anyURI?"/>
         <xsl:param name="class" select="'row-fluid'" as="xs:string?"/>
@@ -457,7 +457,7 @@ extension-element-prefixes="ixsl"
     </xsl:template>
     
     <!-- hide inlined blank node resources from the main block flow -->
-    <xsl:template match="*[*][key('resources', @rdf:nodeID)][count(key('predicates-by-object', @rdf:nodeID)[not(self::foaf:primaryTopic)]) = 1]" mode="bs2:RowBlock" priority="1">
+    <xsl:template match="*[*][key('resources', @rdf:nodeID)][count(key('predicates-by-object', @rdf:nodeID)[not(self::foaf:primaryTopic)]) = 1]" mode="bs2:Block" priority="1">
         <xsl:param name="display" select="false()" as="xs:boolean" tunnel="yes"/>
         
         <xsl:if test="$display">
@@ -465,7 +465,7 @@ extension-element-prefixes="ixsl"
         </xsl:if>
     </xsl:template>
     
-    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:RowBlock">
+<!--    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:RowBlock">
         <xsl:param name="id" select="generate-id()" as="xs:string?"/>
         <xsl:param name="class" select="'row-fluid'" as="xs:string?"/>
         <xsl:param name="about" select="@rdf:about" as="xs:anyURI?"/>
@@ -494,15 +494,7 @@ extension-element-prefixes="ixsl"
 
             <xsl:apply-templates select="." mode="bs2:Right"/>
         </div>
-        
-        <!-- render contents attached to the types of this resource using ldh:template -->
-        <xsl:variable name="content-values" select="rdf:type/@rdf:resource[doc-available(resolve-uri('ns?query=ASK%20%7B%7D', $ldt:base))]/ldh:templates(., resolve-uri('ns', $ldt:base), $template-query)//srx:binding[@name = 'content']/srx:uri/xs:anyURI(.)" as="xs:anyURI*" use-when="system-property('xsl:product-name') = 'SAXON'"/>
-        <xsl:for-each select="$content-values" use-when="system-property('xsl:product-name') = 'SAXON'">
-            <xsl:if test="doc-available(ac:document-uri(.))">
-                <xsl:apply-templates select="key('resources', ., document(ac:document-uri(.)))" mode="bs2:RowContent"/>
-            </xsl:if>
-        </xsl:for-each>
-    </xsl:template>
+    </xsl:template>-->
 
     <!-- ROW -->
     
@@ -556,9 +548,17 @@ extension-element-prefixes="ixsl"
                         <xsl:apply-templates select="$doc" mode="bs2:Graph"/>
                     </xsl:when>
                     <xsl:otherwise>
-                        <xsl:apply-templates select="." mode="bs2:RowBlock"/>
+                        <xsl:apply-templates select="." mode="bs2:Block"/>
                     </xsl:otherwise>
                 </xsl:choose>
+        
+                <!-- render contents attached to the types of this resource using ldh:template -->
+                <xsl:variable name="content-values" select="rdf:type/@rdf:resource[doc-available(resolve-uri('ns?query=ASK%20%7B%7D', $ldt:base))]/ldh:templates(., resolve-uri('ns', $ldt:base), $template-query)//srx:binding[@name = 'content']/srx:uri/xs:anyURI(.)" as="xs:anyURI*" use-when="system-property('xsl:product-name') = 'SAXON'"/>
+                <xsl:for-each select="$content-values" use-when="system-property('xsl:product-name') = 'SAXON'">
+                    <xsl:if test="doc-available(ac:document-uri(.))">
+                        <xsl:apply-templates select="key('resources', ., document(ac:document-uri(.)))" mode="bs2:RowContent"/>
+                    </xsl:if>
+                </xsl:for-each>
             </div>
 
             <xsl:apply-templates select="." mode="bs2:Right"/>
