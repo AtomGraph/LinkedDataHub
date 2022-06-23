@@ -807,8 +807,7 @@ LIMIT   100
                         </xsl:apply-templates>
                     </xsl:when>
                     <xsl:otherwise>
-                        <xsl:apply-templates select="." mode="bs2:Row">
-                            <xsl:with-param name="template-query" select="$template-query" tunnel="yes"/>
+                        <xsl:apply-templates select="." mode="bs2:Block">
                             <xsl:sort select="ac:label(.)"/>
                         </xsl:apply-templates>
                     </xsl:otherwise>
