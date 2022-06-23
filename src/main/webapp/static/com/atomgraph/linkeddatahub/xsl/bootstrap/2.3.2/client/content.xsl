@@ -884,11 +884,13 @@ exclude-result-prefixes="#all"
                     </xsl:call-template>
                 </xsl:for-each>
             </xsl:when>
-            <!-- content could not be loaded as RDF -->
+            <!-- content could not be loaded as RDF (e.g. binary file) -->
             <xsl:when test="?status = 406">
                 <xsl:for-each select="$container">
                     <xsl:result-document href="?." method="ixsl:replace-content">
-                        <object data="{$content-value}"/>
+                        <div class="offset2 span7">
+                            <object data="{$content-value}"/>
+                        </div>
                     </xsl:result-document>
                 </xsl:for-each>
             </xsl:when>
