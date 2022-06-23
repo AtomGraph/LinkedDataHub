@@ -757,8 +757,6 @@ WHERE
         <xsl:param name="results-uri" as="xs:anyURI"/>
         <xsl:param name="content-uri" select="$results-uri" as="xs:anyURI"/>
         <xsl:param name="escaped-content-uri" select="xs:anyURI(translate($content-uri, '.', '-'))" as="xs:anyURI"/>
-        <xsl:param name="container-id" select="ixsl:get($container, 'id')" as="xs:string"/>
-        <xsl:param name="results-container-id" select="$container-id || '-sparql-results'" as="xs:string"/>
         <xsl:param name="chart-canvas-id" select="$container-id || '-chart-canvas'" as="xs:string"/>
         <xsl:param name="chart-type" select="xs:anyURI('&ac;Table')" as="xs:anyURI"/>
         <xsl:param name="category" as="xs:string?"/>
@@ -770,22 +768,6 @@ WHERE
         <xsl:param name="show-editor" select="true()" as="xs:boolean"/>
 
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
-
-        <xsl:choose>
-            <xsl:when test="not(id($results-container-id, ixsl:page()))">
-                <xsl:for-each select="$container">
-                    <xsl:result-document href="?." method="ixsl:append-content">
-                        <div id="{$results-container-id}" class="sparql-results" about="{$results-uri}"/> <!-- used as $content-uri in chart form's onchange events -->
-                    </xsl:result-document>
-                </xsl:for-each>
-            </xsl:when>
-            <xsl:otherwise>
-                <!-- update @about value -->
-                <xsl:for-each select="id($results-container-id, ixsl:page())">
-                    <ixsl:set-attribute name="about" select="$results-uri" object="."/>
-                </xsl:for-each>
-            </xsl:otherwise>
-        </xsl:choose>
 
         <xsl:variable name="response" select="." as="map(*)"/>
         <xsl:choose>
@@ -818,14 +800,16 @@ WHERE
                         <ixsl:set-property name="{$textarea-id}" select="ixsl:eval(string($js-statement/@statement))" object="ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe')"/>
                     </xsl:if>
                     
-                    <xsl:result-document href="#{$results-container-id}" method="ixsl:replace-content">
-                        <xsl:apply-templates select="$results" mode="bs2:Chart">
-                            <xsl:with-param name="canvas-id" select="$chart-canvas-id"/>
-                            <xsl:with-param name="chart-type" select="$chart-type"/>
-                            <xsl:with-param name="category" select="$category"/>
-                            <xsl:with-param name="series" select="$series"/>
-                        </xsl:apply-templates>
-                    </xsl:result-document>
+                    <xsl:for-each select="$container">
+                        <xsl:result-document href="?." method="ixsl:replace-content">
+                            <xsl:apply-templates select="$results" mode="bs2:Chart">
+                                <xsl:with-param name="canvas-id" select="$chart-canvas-id"/>
+                                <xsl:with-param name="chart-type" select="$chart-type"/>
+                                <xsl:with-param name="category" select="$category"/>
+                                <xsl:with-param name="series" select="$series"/>
+                            </xsl:apply-templates>
+                        </xsl:result-document>
+                    </xsl:for-each>
 
                     <!-- create new cache entry using content URI as key -->
                     <ixsl:set-property name="{$escaped-content-uri}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
@@ -841,15 +825,6 @@ WHERE
                         <xsl:with-param name="series" select="$series"/>
                     </xsl:call-template>
 
-<!--                    <xsl:if test="$push-state">
-                        <xsl:call-template name="ldh:PushState">
-                            <xsl:with-param name="href" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), $escaped-content-uri)"/>
-                            <xsl:with-param name="container" select="$container"/>
-                            <xsl:with-param name="query" select="$query"/>
-                            <xsl:with-param name="sparql" select="true()"/>
-                        </xsl:call-template>
-                    </xsl:if>-->
-                    
                     <xsl:for-each select="$container//div[@class = 'progress-bar']">
                         <ixsl:set-style name="display" select="'none'" object="."/>
                     </xsl:for-each>
