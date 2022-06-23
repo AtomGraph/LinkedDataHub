@@ -543,10 +543,14 @@ extension-element-prefixes="ixsl"
                         <xsl:apply-templates select="$doc" mode="bs2:Grid"/>
                     </xsl:when>
                     <xsl:when test="$mode = '&ac;MapMode'">
-                        <xsl:apply-templates select="$doc" mode="bs2:Map"/>
+                        <xsl:apply-templates select="$doc" mode="bs2:Map">
+                            <xsl:with-param name="canvas-id" select="generate-id() || '-map-canvas'"/>
+                        </xsl:apply-templates>
                     </xsl:when>
                     <xsl:when test="$mode = '&ac;ChartMode'">
-                        <xsl:apply-templates select="$doc" mode="bs2:Chart"/>
+                        <xsl:apply-templates select="$doc" mode="bs2:Chart">
+                            <xsl:with-param name="canvas-id" select="generate-id() || '-chart-canvas'"/>
+                        </xsl:apply-templates>
                     </xsl:when>
                     <xsl:when test="$mode = '&ac;GraphMode'">
                         <xsl:apply-templates select="$doc" mode="bs2:Graph"/>
