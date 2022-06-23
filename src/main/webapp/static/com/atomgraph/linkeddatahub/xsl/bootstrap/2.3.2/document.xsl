@@ -176,11 +176,13 @@ extension-element-prefixes="ixsl"
         <xsl:param name="chart-type" select="xs:anyURI('&ac;Table')" as="xs:anyURI?"/>
         <xsl:param name="category" as="xs:string?"/>
         <xsl:param name="series" select="distinct-values(*/*/concat(namespace-uri(), local-name()))" as="xs:string*"/>
+        <xsl:param name="show-save" select="true()" as="xs:boolean"/>
 
         <xsl:apply-templates select="." mode="bs2:ChartForm">
             <xsl:with-param name="chart-type" select="$chart-type"/>
             <xsl:with-param name="category" select="$category"/>
             <xsl:with-param name="series" select="$series"/>
+            <xsl:with-param name="show-save" select="$show-save"/>
         </xsl:apply-templates>
 
         <div>
@@ -354,11 +356,13 @@ extension-element-prefixes="ixsl"
         <xsl:param name="chart-type" select="xs:anyURI('&ac;Table')" as="xs:anyURI?"/>
         <xsl:param name="category" select="srx:head/srx:variable[1]/@name" as="xs:string?"/>
         <xsl:param name="series" select="srx:head/srx:variable/@name" as="xs:string*"/>
+        <xsl:param name="show-save" select="true()" as="xs:boolean"/>
 
         <xsl:apply-templates select="." mode="bs2:ChartForm">
             <xsl:with-param name="chart-type" select="$chart-type"/>
             <xsl:with-param name="category" select="$category"/>
             <xsl:with-param name="series" select="$series"/>
+            <xsl:with-param name="show-save" select="$show-save"/>
         </xsl:apply-templates>
 
         <div>
