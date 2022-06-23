@@ -408,27 +408,12 @@ extension-element-prefixes="ixsl"
         </li>
     </xsl:template>
     
-    <!-- BLOCK ROW -->
-    
-    <!-- mark query instances as .resource-content which is then rendered by client.xsl -->
-<!--    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&sp;Select'][sp:text]" mode="bs2:RowBlock" priority="1">
-        <xsl:next-match>
-            <xsl:with-param name="content-value" select="@rdf:about"/>
-        </xsl:next-match>
-    </xsl:template>-->
-    
-    <!-- mark chart instances as .resource-content which is then rendered by client.xsl -->
-<!--    <xsl:template match="*[@rdf:about][spin:query/@rdf:resource][ldh:chartType/@rdf:resource]" mode="bs2:RowBlock" priority="1">
-        <xsl:next-match>
-            <xsl:with-param name="content-value" select="@rdf:about"/>
-        </xsl:next-match>
-    </xsl:template>-->
+    <!-- BLOCK -->
     
     <!-- embed file content -->
     <xsl:template match="*[@rdf:about][dct:format]" mode="bs2:Block" priority="2">
         <xsl:param name="id" select="generate-id()" as="xs:string?"/>
-        <xsl:param name="about" select="@rdf:about" as="xs:anyURI?"/>
-        <xsl:param name="class" select="'row-fluid'" as="xs:string?"/>
+        <xsl:param name="class" as="xs:string?"/>
 
         <div>
             <xsl:if test="$id">
@@ -437,22 +422,13 @@ extension-element-prefixes="ixsl"
             <xsl:if test="$class">
                 <xsl:attribute name="class" select="$class"/>
             </xsl:if>
-            <xsl:if test="$about">
-                <xsl:attribute name="about" select="$about"/>
-            </xsl:if>
 
-            <xsl:apply-templates select="." mode="bs2:Left"/>
+            <xsl:apply-templates select="." mode="bs2:Header"/>
 
-            <div class="span7">
-                <xsl:apply-templates select="." mode="bs2:Header"/>
-
-                <xsl:apply-templates select="." mode="bs2:PropertyList"/>
+            <xsl:apply-templates select="." mode="bs2:PropertyList"/>
             
-                <xsl:variable name="media-type" select="substring-after(dct:format[1]/@rdf:resource, 'http://www.sparontologies.net/mediatype/')" as="xs:string"/>
-                <object data="{@rdf:about}" type="{$media-type}"></object>
-            </div>
-
-            <xsl:apply-templates select="." mode="bs2:Right"/>
+            <xsl:variable name="media-type" select="substring-after(dct:format[1]/@rdf:resource, 'http://www.sparontologies.net/mediatype/')" as="xs:string"/>
+            <object data="{@rdf:about}" type="{$media-type}"></object>
         </div>
     </xsl:template>
     
@@ -464,37 +440,6 @@ extension-element-prefixes="ixsl"
             <xsl:next-match/>
         </xsl:if>
     </xsl:template>
-    
-<!--    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:RowBlock">
-        <xsl:param name="id" select="generate-id()" as="xs:string?"/>
-        <xsl:param name="class" select="'row-fluid'" as="xs:string?"/>
-        <xsl:param name="about" select="@rdf:about" as="xs:anyURI?"/>
-        <xsl:param name="content-value" as="xs:anyURI?"/>
-
-        <div>
-            <xsl:if test="$id">
-                <xsl:attribute name="id" select="$id"/>
-            </xsl:if>
-            <xsl:if test="$class">
-                <xsl:attribute name="class" select="$class"/>
-            </xsl:if>
-            <xsl:if test="$about">
-                <xsl:attribute name="about" select="$about"/>
-            </xsl:if>
-            
-            <xsl:apply-templates select="." mode="bs2:Left"/>
-
-            <div class="span7">
-                <xsl:apply-templates select="." mode="bs2:Block"/>
-                
-                <xsl:if test="$content-value">
-                    <div id="{$id || '-content'}" class="content resource-content" data-content-value="{$content-value}"/>
-                </xsl:if>
-            </div>
-
-            <xsl:apply-templates select="." mode="bs2:Right"/>
-        </div>
-    </xsl:template>-->
 
     <!-- ROW -->
     
