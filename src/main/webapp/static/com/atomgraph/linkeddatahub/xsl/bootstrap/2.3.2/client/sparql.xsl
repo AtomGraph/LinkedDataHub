@@ -211,8 +211,8 @@ LIMIT 100</xsl:param>
         <xsl:variable name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.apps'))" as="element()?"/>
         <xsl:variable name="endpoint" select="($service/sd:endpoint/@rdf:resource/xs:anyURI(.), sd:endpoint())[1]" as="xs:anyURI"/>
         <xsl:variable name="container" select="id('content-body', ixsl:page())" as="element()"/>
-        <xsl:param name="container-id" select="ixsl:get($container, 'id')" as="xs:string"/>
-        <xsl:param name="results-container-id" select="$container-id || '-sparql-results'" as="xs:string"/>
+        <xsl:variable name="container-id" select="ixsl:get($container, 'id')" as="xs:string"/>
+        <xsl:variable name="results-container-id" select="$container-id || '-sparql-results'" as="xs:string"/>
         <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': $query })" as="xs:anyURI"/>
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, $ldt:base, $results-uri)" as="xs:anyURI"/>
         <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml,application/rdf+xml;q=0.9' } }" as="map(xs:string, item())"/>
