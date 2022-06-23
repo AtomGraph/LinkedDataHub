@@ -279,26 +279,9 @@ exclude-result-prefixes="#all"
             </xsl:document>
         </xsl:variable>
         <xsl:variable name="row" as="node()*">
-            <xsl:choose>
-                <xsl:when test="$mode = '&ac;TableMode'">
-                    <xsl:apply-templates select="." mode="bs2:RowTable"/>
-                </xsl:when>
-                <xsl:when test="$mode = '&ac;GridMode'">
-                    <xsl:apply-templates select="." mode="bs2:RowGrid"/>
-                </xsl:when>
-                <xsl:when test="$mode = '&ac;MapMode'">
-                    <xsl:apply-templates select="." mode="bs2:RowMap"/>
-                </xsl:when>
-                <xsl:when test="$mode = '&ac;ChartMode'">
-                    <xsl:apply-templates select="$doc" mode="bs2:RowChart"/>
-                </xsl:when>
-                <xsl:when test="$mode = '&ac;GraphMode'">
-                    <xsl:apply-templates select="$doc" mode="bs2:RowGraph"/>
-                </xsl:when>
-                <xsl:otherwise>
-                    <xsl:apply-templates select="." mode="bs2:RowBlock"/>
-                </xsl:otherwise>
-            </xsl:choose>
+            <xsl:apply-templates select="." mode="bs2:Row">
+                <xsl:with-param name="mode" select="$mode"/>
+            </xsl:apply-templates>
         </xsl:variable>
 
         <xsl:for-each select="$container">

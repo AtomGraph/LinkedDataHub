@@ -504,13 +504,14 @@ extension-element-prefixes="ixsl"
         </xsl:for-each>
     </xsl:template>
 
-    <!-- ROW TABLE -->
+    <!-- ROW -->
     
-    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:RowTable">
+    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:Row">
         <xsl:param name="id" select="generate-id()" as="xs:string?"/>
         <xsl:param name="class" select="'row-fluid'" as="xs:string?"/>
         <xsl:param name="about" select="@rdf:about" as="xs:anyURI?"/>
         <xsl:param name="content-value" as="xs:anyURI?"/>
+        <xsl:param name="mode" as="xs:anyURI?"/>
 
         <div>
             <xsl:if test="$id">
@@ -534,162 +535,26 @@ extension-element-prefixes="ixsl"
                     </xsl:document>
                 </xsl:variable>
         
-                <xsl:apply-templates select="$doc" mode="xhtml:Table"/>
-            </div>
-
-            <xsl:apply-templates select="." mode="bs2:Right"/>
-        </div>
-    </xsl:template>
-    
-    <!-- ROW GRID -->
-    
-    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:RowGrid">
-        <xsl:param name="id" select="generate-id()" as="xs:string?"/>
-        <xsl:param name="class" select="'row-fluid'" as="xs:string?"/>
-        <xsl:param name="about" select="@rdf:about" as="xs:anyURI?"/>
-        <xsl:param name="content-value" as="xs:anyURI?"/>
-
-        <div>
-            <xsl:if test="$id">
-                <xsl:attribute name="id" select="$id"/>
-            </xsl:if>
-            <xsl:if test="$class">
-                <xsl:attribute name="class" select="$class"/>
-            </xsl:if>
-            <xsl:if test="$about">
-                <xsl:attribute name="about" select="$about"/>
-            </xsl:if>
-            
-            <xsl:apply-templates select="." mode="bs2:Left"/>
-
-            <div class="span7">
-                <xsl:variable name="doc" as="document-node()">
-                    <xsl:document>
-                        <rdf:RDF>
-                            <xsl:copy-of select="."/>
-                        </rdf:RDF>
-                    </xsl:document>
-                </xsl:variable>
-        
-                <xsl:apply-templates select="$doc" mode="bs2:Grid"/>
-            </div>
-
-            <xsl:apply-templates select="." mode="bs2:Right"/>
-        </div>
-    </xsl:template>
-    
-    <!-- ROW MAP -->
-    
-    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:RowMap">
-        <xsl:param name="id" select="generate-id()" as="xs:string?"/>
-        <xsl:param name="class" select="'row-fluid'" as="xs:string?"/>
-        <xsl:param name="about" select="@rdf:about" as="xs:anyURI?"/>
-        <xsl:param name="content-value" as="xs:anyURI?"/>
-        <xsl:param name="canvas-id" select="generate-id() || '-map-canvas'" as="xs:string?"/>
-
-        <div>
-            <xsl:if test="$id">
-                <xsl:attribute name="id" select="$id"/>
-            </xsl:if>
-            <xsl:if test="$class">
-                <xsl:attribute name="class" select="$class"/>
-            </xsl:if>
-            <xsl:if test="$about">
-                <xsl:attribute name="about" select="$about"/>
-            </xsl:if>
-            
-            <xsl:apply-templates select="." mode="bs2:Left"/>
-
-            <div class="span7">
-                <xsl:variable name="doc" as="document-node()">
-                    <xsl:document>
-                        <rdf:RDF>
-                            <xsl:copy-of select="."/>
-                        </rdf:RDF>
-                    </xsl:document>
-                </xsl:variable>
-        
-                <xsl:apply-templates select="$doc" mode="bs2:Map">
-                    <xsl:with-param name="canvas-id" select="$canvas-id"/>
-                </xsl:apply-templates>
-            </div>
-
-            <xsl:apply-templates select="." mode="bs2:Right"/>
-        </div>
-    </xsl:template>
-    
-    <!-- ROW CHART -->
-    
-    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:RowChart">
-        <xsl:param name="id" select="generate-id()" as="xs:string?"/>
-        <xsl:param name="class" select="'row-fluid'" as="xs:string?"/>
-        <xsl:param name="about" select="@rdf:about" as="xs:anyURI?"/>
-        <xsl:param name="content-value" as="xs:anyURI?"/>
-        <xsl:param name="canvas-id" select="generate-id() || '-chart-canvas'" as="xs:string?"/>
-
-        <div>
-            <xsl:if test="$id">
-                <xsl:attribute name="id" select="$id"/>
-            </xsl:if>
-            <xsl:if test="$class">
-                <xsl:attribute name="class" select="$class"/>
-            </xsl:if>
-            <xsl:if test="$about">
-                <xsl:attribute name="about" select="$about"/>
-            </xsl:if>
-            
-            <xsl:apply-templates select="." mode="bs2:Left"/>
-
-            <div class="span7">
-                <xsl:variable name="doc" as="document-node()">
-                    <xsl:document>
-                        <rdf:RDF>
-                            <xsl:copy-of select="."/>
-                        </rdf:RDF>
-                    </xsl:document>
-                </xsl:variable>
-        
-                <xsl:apply-templates select="$doc" mode="bs2:Chart">
-                    <xsl:with-param name="canvas-id" select="$canvas-id"/>
-                </xsl:apply-templates>
-            </div>
-
-            <xsl:apply-templates select="." mode="bs2:Right"/>
-        </div>
-    </xsl:template>
-    
-    <!-- ROW GRAPH -->
-    
-    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:RowChart">
-        <xsl:param name="id" select="generate-id()" as="xs:string?"/>
-        <xsl:param name="class" select="'row-fluid'" as="xs:string?"/>
-        <xsl:param name="about" select="@rdf:about" as="xs:anyURI?"/>
-        <xsl:param name="content-value" as="xs:anyURI?"/>
-        <xsl:param name="canvas-id" select="generate-id() || '-chart-canvas'" as="xs:string?"/>
-
-        <div>
-            <xsl:if test="$id">
-                <xsl:attribute name="id" select="$id"/>
-            </xsl:if>
-            <xsl:if test="$class">
-                <xsl:attribute name="class" select="$class"/>
-            </xsl:if>
-            <xsl:if test="$about">
-                <xsl:attribute name="about" select="$about"/>
-            </xsl:if>
-            
-            <xsl:apply-templates select="." mode="bs2:Left"/>
-
-            <div class="span7">
-                <xsl:variable name="doc" as="document-node()">
-                    <xsl:document>
-                        <rdf:RDF>
-                            <xsl:copy-of select="."/>
-                        </rdf:RDF>
-                    </xsl:document>
-                </xsl:variable>
-        
-                <xsl:apply-templates select="$doc" mode="bs2:Graph"/>
+                <xsl:choose>
+                    <xsl:when test="$mode = '&ac;TableMode'">
+                        <xsl:apply-templates select="$doc" mode="xhtml:Table"/>
+                    </xsl:when>
+                    <xsl:when test="$mode = '&ac;GridMode'">
+                        <xsl:apply-templates select="$doc" mode="bs2:Grid"/>
+                    </xsl:when>
+                    <xsl:when test="$mode = '&ac;MapMode'">
+                        <xsl:apply-templates select="$doc" mode="bs2:Map"/>
+                    </xsl:when>
+                    <xsl:when test="$mode = '&ac;ChartMode'">
+                        <xsl:apply-templates select="$doc" mode="bs2:Chart"/>
+                    </xsl:when>
+                    <xsl:when test="$mode = '&ac;GraphMode'">
+                        <xsl:apply-templates select="$doc" mode="bs2:Graph"/>
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <xsl:apply-templates select="." mode="bs2:RowBlock"/>
+                    </xsl:otherwise>
+                </xsl:choose>
             </div>
 
             <xsl:apply-templates select="." mode="bs2:Right"/>
