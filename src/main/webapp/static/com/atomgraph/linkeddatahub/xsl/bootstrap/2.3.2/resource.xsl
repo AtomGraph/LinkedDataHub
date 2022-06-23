@@ -414,7 +414,7 @@ extension-element-prefixes="ixsl"
     <xsl:template match="*[@rdf:about][spin:query/@rdf:resource][ldh:chartType/@rdf:resource]" mode="bs2:Block" priority="1">
         <xsl:next-match/>
         
-        <div id="{generate-id()}-content" class="content resource-content" data-content-value="{@rdf:about}" />
+        <div id="{generate-id()}-content" about="{@rdf:about}" class="content resource-content" data-content-value="{@rdf:about}" />
     </xsl:template>
     
     <!-- embed file content -->
