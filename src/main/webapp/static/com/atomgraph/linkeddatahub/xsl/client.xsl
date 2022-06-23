@@ -757,7 +757,7 @@ WHERE
         <xsl:param name="results-uri" as="xs:anyURI"/>
         <xsl:param name="content-uri" select="$results-uri" as="xs:anyURI"/>
         <xsl:param name="escaped-content-uri" select="xs:anyURI(translate($content-uri, '.', '-'))" as="xs:anyURI"/>
-        <xsl:param name="chart-canvas-id" select="$container-id || '-chart-canvas'" as="xs:string"/>
+        <xsl:param name="chart-canvas-id" as="xs:string"/>
         <xsl:param name="chart-type" select="xs:anyURI('&ac;Table')" as="xs:anyURI"/>
         <xsl:param name="category" as="xs:string?"/>
         <xsl:param name="series" as="xs:string*"/>
