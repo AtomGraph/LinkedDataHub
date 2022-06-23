@@ -836,14 +836,16 @@ WHERE
                 </xsl:for-each>
                     
                 <!-- error response - could not load query results -->
-                <xsl:result-document href="#{$results-container-id}" method="ixsl:replace-content">
-                    <div class="alert alert-block">
-                        <strong>Error during query execution:</strong>
-                        <pre>
-                            <xsl:value-of select="$response?message"/>
-                        </pre>
-                    </div>
-                </xsl:result-document>
+                <xsl:for-each select="$container">
+                    <xsl:result-document href="?." method="ixsl:replace-content">
+                        <div class="alert alert-block">
+                            <strong>Error during query execution:</strong>
+                            <pre>
+                                <xsl:value-of select="$response?message"/>
+                            </pre>
+                        </div>
+                    </xsl:result-document>
+                </xsl:for-each>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
