@@ -800,8 +800,9 @@ WHERE
                         </xsl:variable>
                         <ixsl:set-property name="{$textarea-id}" select="ixsl:eval(string($js-statement/@statement))" object="ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe')"/>
                     </xsl:if>
-                    
-                    <xsl:for-each select="$container">
+
+                    <!-- workaround until SPARQL editor is refactored as a content block -->
+                    <xsl:for-each select="if (contains-token($container/@class, 'row-fluid')) then $container/div[contains-token(@class, 'span7')] else $container">
                         <xsl:result-document href="?." method="ixsl:replace-content">
                             <xsl:apply-templates select="$results" mode="bs2:Chart">
                                 <xsl:with-param name="canvas-id" select="$chart-canvas-id"/>
@@ -811,14 +812,14 @@ WHERE
                                 <xsl:with-param name="show-save" select="$show-chart-save"/>
                             </xsl:apply-templates>
                         </xsl:result-document>
-                        
-                        <!-- post-process the container if it's a chart instance being rendered and not SPARQL results -->
-                        <xsl:if test="not($query)">
-                            <xsl:call-template name="ldh:ContentLoaded">
-                                <xsl:with-param name="container" select="."/>
-                            </xsl:call-template>
-                        </xsl:if>
                     </xsl:for-each>
+                        
+                    <!-- post-process the container if it's a chart instance being rendered and not SPARQL results -->
+                    <xsl:if test="not($query)">
+                        <xsl:call-template name="ldh:ContentLoaded">
+                            <xsl:with-param name="container" select="$container"/>
+                        </xsl:call-template>
+                    </xsl:if>
 
                     <!-- create new cache entry using content URI as key -->
                     <ixsl:set-property name="{$escaped-content-uri}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
