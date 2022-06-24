@@ -376,6 +376,7 @@ exclude-result-prefixes="#all"
                                 <xsl:with-param name="show-editor" select="false()"/>
                                 <xsl:with-param name="content-method" select="xs:QName('ixsl:append-content')"/>
                                 <xsl:with-param name="push-state" select="false()"/>
+                                <xsl:with-param name="show-chart-save" select="false()"/>
                             </xsl:call-template>
                         </ixsl:schedule-action>
                     </xsl:variable>
