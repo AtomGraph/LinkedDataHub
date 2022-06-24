@@ -811,6 +811,13 @@ WHERE
                                 <xsl:with-param name="show-save" select="$show-chart-save"/>
                             </xsl:apply-templates>
                         </xsl:result-document>
+                        
+                        <!-- post-process the container if it's a chart instance being rendered and not SPARQL results -->
+                        <xsl:if test="not($query)">
+                            <xsl:call-template name="ldh:ContentLoaded">
+                                <xsl:with-param name="container" select="."/>
+                            </xsl:call-template>
+                        </xsl:if>
                     </xsl:for-each>
 
                     <!-- create new cache entry using content URI as key -->
