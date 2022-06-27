@@ -21,13 +21,13 @@ import com.atomgraph.linkeddatahub.server.filter.request.AuthenticationFilter;
 import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.model.auth.Agent;
+import static com.atomgraph.linkeddatahub.resource.admin.oauth2.Login.TOKEN_ENDPOINT;
 import com.atomgraph.linkeddatahub.server.security.IDTokenSecurityContext;
 import com.atomgraph.linkeddatahub.vocabulary.FOAF;
 import com.atomgraph.linkeddatahub.vocabulary.Google;
 import com.atomgraph.linkeddatahub.vocabulary.LACL;
 import com.atomgraph.processor.vocabulary.SIOC;
 import com.auth0.jwt.JWT;
-import com.auth0.jwt.exceptions.TokenExpiredException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import java.io.IOException;
 import java.net.URI;
@@ -38,12 +38,15 @@ import java.util.concurrent.TimeUnit;
 import javax.annotation.PostConstruct;
 import javax.annotation.Priority;
 import javax.json.JsonObject;
+import javax.ws.rs.InternalServerErrorException;
 import javax.ws.rs.NotAuthorizedException;
 import javax.ws.rs.Priorities;
 import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.client.Entity;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.PreMatching;
 import javax.ws.rs.core.Cookie;
+import javax.ws.rs.core.Form;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
@@ -117,6 +120,11 @@ public class IDTokenFilter extends AuthenticationFilter
         if (jwtString == null) return null;
         
         DecodedJWT idToken = JWT.decode(jwtString);
+        if (idToken.getExpiresAt().before(new Date()))
+        {
+            if (log.isDebugEnabled()) log.debug("ID token for subject '{}' has expired at {}, refreshing it", idToken.getSubject(), idToken.getExpiresAt());
+            idToken = refreshIDToken(getSystem().getOIDCRefreshTokens().get(getClientID()));
+        }
         if (!verify(idToken)) return null;
         
         String cacheKey = idToken.getIssuer() + idToken.getSubject();
@@ -171,13 +179,6 @@ public class IDTokenFilter extends AuthenticationFilter
      */
     protected boolean verify(DecodedJWT idToken)
     {
-        Date now = new Date();
-        if (idToken.getExpiresAt().before(now))
-        {
-            if (log.isDebugEnabled()) log.debug("ID token for subject '{}' has expired at {}", idToken.getSubject(), idToken.getExpiresAt());
-            throw new TokenExpiredException("ID token for subject '"  + idToken.getSubject() + "' has expired at " + idToken.getExpiresAt());
-        }
-        
         // TO-DO: use keys, this is for debugging purposes only: https://developers.google.com/identity/protocols/oauth2/openid-connect#validatinganidtoken
         try (Response cr = getSystem().getNoCertClient().
             target("https://oauth2.googleapis.com/tokeninfo").
@@ -229,9 +230,27 @@ public class IDTokenFilter extends AuthenticationFilter
         }
     }
 
-    public void refreshToken()
+    public DecodedJWT refreshIDToken(String refreshToken)
     {
-        getSystem().getOIDCModelCache().get(getClientID());
+        Form form = new Form().
+            param("grant_type", "refresh_token").
+            param("client_id", getClientID()).
+            param("client_secret", getClientSecret()).
+            param("refresh_token", refreshToken);
+        
+        try (Response cr = getSystem().getClient().target(TOKEN_ENDPOINT).
+                request().post(Entity.form(form)))
+        {
+            JsonObject response = cr.readEntity(JsonObject.class);
+            if (response.containsKey("error"))
+            {
+                if (log.isErrorEnabled()) log.error("OAuth error: '{}'", response.getString("error"));
+                throw new InternalServerErrorException(response.getString("error"));
+            }
+
+            String idToken = response.getString("id_token");
+            return JWT.decode(idToken);
+        }
     }
     
     /**
