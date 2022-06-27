@@ -28,6 +28,7 @@ import com.atomgraph.linkeddatahub.vocabulary.Google;
 import com.atomgraph.linkeddatahub.vocabulary.LACL;
 import com.atomgraph.processor.vocabulary.SIOC;
 import com.auth0.jwt.JWT;
+import com.auth0.jwt.exceptions.TokenExpiredException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import java.io.IOException;
 import java.net.URI;
@@ -122,8 +123,17 @@ public class IDTokenFilter extends AuthenticationFilter
         DecodedJWT idToken = JWT.decode(jwtString);
         if (idToken.getExpiresAt().before(new Date()))
         {
-            if (log.isDebugEnabled()) log.debug("ID token for subject '{}' has expired at {}, refreshing it", idToken.getSubject(), idToken.getExpiresAt());
-            idToken = refreshIDToken(getSystem().getOIDCRefreshTokens().get(getClientID()));
+            String refreshToken = getSystem().getOIDCRefreshTokens().get(getClientID());
+            if (refreshToken != null)
+            {
+                if (log.isDebugEnabled()) log.debug("ID token for subject '{}' has expired at {}, refreshing it", idToken.getSubject(), idToken.getExpiresAt());
+                idToken = refreshIDToken(refreshToken);
+            }
+            else
+            {
+                if (log.isDebugEnabled()) log.debug("ID token for subject '{}' has expired at {}, refresh token not found", idToken.getSubject(), idToken.getExpiresAt());
+                throw new TokenExpiredException("ID token for subject '"  + idToken.getSubject() + "' has expired at " + idToken.getExpiresAt());
+            }
         }
         if (!verify(idToken)) return null;
         
