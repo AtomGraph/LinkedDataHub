@@ -180,8 +180,11 @@ public class Login extends GraphStoreImpl
 
             String idToken = response.getString("id_token");
             DecodedJWT jwt = JWT.decode(idToken);
-            String refreshToken = response.getString("refresh_token");
-            getSystem().getOIDCRefreshTokens().put(getClientID(), refreshToken);
+            if (response.containsKey("refresh_token"))
+            {
+                String refreshToken = response.getString("refresh_token");
+                getSystem().getOIDCRefreshTokens().put(getClientID(), refreshToken); // store for later use in IDTokenFilter
+            }
 
             ParameterizedSparqlString accountPss = new ParameterizedSparqlString(getUserAccountQuery().toString());
             accountPss.setLiteral(SIOC.ID.getLocalName(), jwt.getSubject());
