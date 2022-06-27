@@ -23,6 +23,7 @@ import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.model.auth.Agent;
 import com.atomgraph.linkeddatahub.server.security.IDTokenSecurityContext;
 import com.atomgraph.linkeddatahub.vocabulary.FOAF;
+import com.atomgraph.linkeddatahub.vocabulary.Google;
 import com.atomgraph.linkeddatahub.vocabulary.LACL;
 import com.atomgraph.processor.vocabulary.SIOC;
 import com.auth0.jwt.JWT;
@@ -73,6 +74,7 @@ public class IDTokenFilter extends AuthenticationFilter
     public static final String AUTH_SCHEME = "JWT";
     /** Name of the cookie that stores the ID token */
     public static final String COOKIE_NAME = "LinkedDataHub.id_token";
+    private String clientID, clientSecret;
     
     private ParameterizedSparqlString userAccountQuery;
 
@@ -83,6 +85,8 @@ public class IDTokenFilter extends AuthenticationFilter
     public void init()
     {
         userAccountQuery = new ParameterizedSparqlString(getSystem().getUserAccountQuery().toString());
+        clientID = (String)getSystem().getProperty(Google.clientID.getURI());
+        clientSecret = (String)getSystem().getProperty(Google.clientSecret.getURI());
     }
     
     @Override
@@ -225,6 +229,11 @@ public class IDTokenFilter extends AuthenticationFilter
         }
     }
 
+    public void refreshToken()
+    {
+        getSystem().getOIDCModelCache().get(getClientID());
+    }
+    
     /**
      * Returns the URL of the OAuth login endpoint.
      * 
@@ -268,6 +277,26 @@ public class IDTokenFilter extends AuthenticationFilter
     public ParameterizedSparqlString getUserAccountQuery()
     {
         return userAccountQuery.copy();
+    }
+    
+    /**
+     * Returns the configured Google client ID for this application.
+     * 
+     * @return client ID
+     */
+    private String getClientID()
+    {
+        return clientID;
+    }
+    
+    /**
+     * Returns the configured Google client secret for this application.
+     * 
+     * @return client secret
+     */
+    private String getClientSecret()
+    {
+        return clientSecret;
     }
     
 }

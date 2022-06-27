@@ -282,6 +282,7 @@ public class Application extends ResourceConfig
     private final Map<URI, XsltExecutable> xsltExecutableCache = new HashMap<>();
     private final MessageDigest messageDigest;
     private final boolean enableWebIDSignUp;
+    private final Map<String, String> oidcRefreshTokens = new HashMap<>();
 
     private Dataset contextDataset;
     
@@ -1875,6 +1876,16 @@ public class Application extends ResourceConfig
     public boolean isEnableWebIDSignUp()
     {
         return enableWebIDSignUp;
+    }
+    
+    /**
+     * Cache of OAuth refresh tokens.
+     * 
+     * @return clientID to current refresh token map
+     */
+    public Map<String, String> getOIDCRefreshTokens()
+    {
+        return oidcRefreshTokens;
     }
     
 }
