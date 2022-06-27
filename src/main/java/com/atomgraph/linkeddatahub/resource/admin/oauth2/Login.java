@@ -180,6 +180,7 @@ public class Login extends GraphStoreImpl
 
             String idToken = response.getString("id_token");
             DecodedJWT jwt = JWT.decode(idToken);
+            String refreshToken = response.getString("refresh_token"); // TO-DO: store persistently
 
             ParameterizedSparqlString accountPss = new ParameterizedSparqlString(getUserAccountQuery().toString());
             accountPss.setLiteral(SIOC.ID.getLocalName(), jwt.getSubject());
