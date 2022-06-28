@@ -617,6 +617,12 @@ if [ ! -f "$CLIENT_TRUSTSTORE" ]; then
         -srcstorepass changeit
 fi
 
+# create empty properties file if it doesn't exist
+
+if [ -n "$OIDC_REFRESH_TOKENS" ] && [ ! -f "$OIDC_REFRESH_TOKENS" ]; then
+    touch "$OIDC_REFRESH_TOKENS"
+fi
+
 # change context configuration
 
 BASE_URI_PARAM="--stringparam ldhc:baseUri '$BASE_URI' "

@@ -540,15 +540,23 @@ public class Application extends ResourceConfig
             throw new IllegalStateException("Google OIDC signup is enabled (clientID client is provided) but refresh token cache is not configured (ldhc:oidcRefreshTokens)");
         }
         if (oidcRefreshTokensProperties != null)
-            try
+        {
+            try (InputStream propertiesStream = servletConfig.getServletContext().getResourceAsStream(oidcRefreshTokensProperties))
             {
-                this.oidcRefreshTokens.load(servletConfig.getServletContext().getResourceAsStream(oidcRefreshTokensProperties));
+                if (propertiesStream == null)
+                {
+                    if (log.isErrorEnabled()) log.error(".properties file with OIDC refresh tokens not found (ldhc:oidcRefreshTokens)");
+                    throw new IllegalStateException(".properties file with OIDC refresh tokens not found (ldhc:oidcRefreshTokens)");
+                }
+
+                this.oidcRefreshTokens.load(propertiesStream);
             }
             catch (IOException ex)
             {
                 if (log.isErrorEnabled()) log.error("Cannot read .properties file with OIDC refresh tokens: {}", ex);
                 throw new IllegalStateException(ex);
             }
+        }
 
         if (notificationAddressString != null)
         {
