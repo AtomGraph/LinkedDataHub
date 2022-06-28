@@ -57,7 +57,7 @@ services:
       # - GOOGLE_CLIENT_ID=
       # - GOOGLE_CLIENT_SECRET=
     volumes:
-      - /var/linkeddatahub/oidc_refresh_tokens.properties
+      - /var/linkeddatahub/oidc
       - ./ssl/server:/var/linkeddatahub/ssl/server:ro
       - ./ssl/owner/public.pem:/var/linkeddatahub/ssl/owner/public.pem:ro
       - ./ssl/secretary:/var/linkeddatahub/ssl/secretary:ro
