@@ -111,6 +111,7 @@ public class Authorize
         
         UriBuilder authUriBuilder = UriBuilder.fromUri(ENDPOINT_URI).
             queryParam("response_type", "code").
+            queryParam("access_type", "offline").
             queryParam("client_id", getClientID()).
             queryParam("redirect_uri", redirectUri).
             queryParam("scope", SCOPE).

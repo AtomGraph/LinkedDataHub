@@ -40,6 +40,7 @@ xmlns:google="&google;"
     <xsl:param name="ldhc:importKeepAlive"/>
     <xsl:param name="ldhc:notificationAddress"/>
     <xsl:param name="ldhc:enableWebIDSignUp"/>
+    <xsl:param name="ldhc:oidcRefreshTokens"/>
     <xsl:param name="mail.smtp.host"/>
     <xsl:param name="mail.smtp.port"/>
     <xsl:param name="mail.user"/>
@@ -131,6 +132,9 @@ xmlns:google="&google;"
             </xsl:if>
             <xsl:if test="$ldhc:enableWebIDSignUp">
                 <Parameter name="&ldhc;enableWebIDSignUp" value="{$ldhc:enableWebIDSignUp}" override="false"/>
+            </xsl:if>
+            <xsl:if test="$ldhc:oidcRefreshTokens">
+                <Parameter name="&ldhc;oidcRefreshTokens" value="{$ldhc:oidcRefreshTokens}" override="false"/>
             </xsl:if>
             <xsl:if test="$mail.smtp.host">
                 <Parameter name="mail.smtp.host" value="{$mail.smtp.host}" override="false"/>
