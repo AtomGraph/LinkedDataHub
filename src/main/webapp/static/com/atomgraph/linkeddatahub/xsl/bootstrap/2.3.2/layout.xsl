@@ -1085,7 +1085,7 @@ LIMIT   100
             <div class="pull-right">
                 <a href="{ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ac:uri(), xs:anyURI('&ac;EditMode'))}" title="{ac:label(key('resources', 'nav-bar-action-edit-graph-title', document('translations.rdf')))}">
                     <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="ldh:logo">
-                        <xsl:with-param name="class" select="'btn' || (if ($ac:mode = '&ac;EditMode') then ' active' else ()) || (if not($acl:mode = '&acl;Write') then ' disabled' else ())"/>
+                        <xsl:with-param name="class" select="'btn' || (if ($ac:mode = '&ac;EditMode') then ' active' else ()) || (if (not($acl:mode = '&acl;Write')) then ' disabled' else ())"/>
                     </xsl:apply-templates>
 
                     <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
