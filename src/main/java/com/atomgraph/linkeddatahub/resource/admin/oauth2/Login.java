@@ -40,6 +40,7 @@ import com.atomgraph.processor.vocabulary.DH;
 import com.atomgraph.processor.vocabulary.SIOC;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -183,7 +184,15 @@ public class Login extends GraphStoreImpl
             if (response.containsKey("refresh_token"))
             {
                 String refreshToken = response.getString("refresh_token");
-                getSystem().getOIDCRefreshTokens().put(getClientID(), refreshToken); // store for later use in IDTokenFilter
+                try
+                {
+                    getSystem().storeRefreshToken(getClientID(), refreshToken); // store for later use in IDTokenFilter
+                }
+                catch (IOException ex)
+                {
+                    if (log.isErrorEnabled()) log.error("Error storing OAuth refresh token", ex);
+                    throw new InternalServerErrorException(ex);
+                }
             }
 
             ParameterizedSparqlString accountPss = new ParameterizedSparqlString(getUserAccountQuery().toString());

@@ -62,7 +62,6 @@ import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
 import com.atomgraph.linkeddatahub.model.auth.Agent;
 import com.atomgraph.linkeddatahub.model.CSVImport;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
-import com.atomgraph.linkeddatahub.model.File;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.writer.factory.xslt.XsltExecutableSupplier;
 import com.atomgraph.linkeddatahub.writer.factory.XsltExecutableSupplierFactory;
@@ -174,6 +173,7 @@ import com.atomgraph.server.mapper.SPINConstraintViolationExceptionMapper;
 import com.atomgraph.spinrdf.vocabulary.SP;
 import com.github.jsonldjava.core.DocumentLoader;
 import com.github.jsonldjava.core.JsonLdOptions;
+import java.io.FileOutputStream;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -282,6 +282,7 @@ public class Application extends ResourceConfig
     private final Map<URI, XsltExecutable> xsltExecutableCache = new HashMap<>();
     private final MessageDigest messageDigest;
     private final boolean enableWebIDSignUp;
+    private final String oidcRefreshTokensPropertiesPath;
     private final Properties oidcRefreshTokens;
 
     private Dataset contextDataset;
@@ -392,7 +393,7 @@ public class Application extends ResourceConfig
      * @param notificationAddressString email address used to send notifications
      * @param supportedLanguageCodes comma-separated codes of supported languages
      * @param enableWebIDSignUp true if WebID signup is enabled
-     * @param oidcRefreshTokensProperties path to the internal properties file with OIDC refresh tokens
+     * @param oidcRefreshTokensPropertiesPath path to the properties file with OIDC refresh tokens
      * @param mailUser username of the SMTP email server
      * @param mailPassword password of the SMTP email server
      * @param smtpHost hostname of the SMTP email server
@@ -411,7 +412,7 @@ public class Application extends ResourceConfig
             final String uploadRootString, final boolean invalidateCache,
             final Integer cookieMaxAge, final boolean enableLinkedDataProxy, final Integer maxContentLength,
             final Integer maxConnPerRoute, final Integer maxTotalConn, final ConnectionKeepAliveStrategy importKeepAliveStrategy, final Integer maxImportThreads,
-            final String notificationAddressString, final String supportedLanguageCodes, final boolean enableWebIDSignUp, final String oidcRefreshTokensProperties,
+            final String notificationAddressString, final String supportedLanguageCodes, final boolean enableWebIDSignUp, final String oidcRefreshTokensPropertiesPath,
             final String mailUser, final String mailPassword, final String smtpHost, final String smtpPort,
             final String googleClientID, final String googleClientSecret)
     {
@@ -520,6 +521,7 @@ public class Application extends ResourceConfig
         this.maxContentLength = maxContentLength;
         this.invalidateCache = invalidateCache;
         this.enableWebIDSignUp = enableWebIDSignUp;
+        this.oidcRefreshTokensPropertiesPath = oidcRefreshTokensPropertiesPath;
         this.oidcRefreshTokens = new Properties();
         if (googleClientID != null) this.property(Google.clientID.getURI(), googleClientID);
         if (googleClientSecret != null) this.property(Google.clientSecret.getURI(), googleClientSecret);
@@ -534,14 +536,14 @@ public class Application extends ResourceConfig
             throw new IllegalStateException(ex);
         }
         
-        if (googleClientID != null && oidcRefreshTokensProperties == null)
+        if (googleClientID != null && oidcRefreshTokensPropertiesPath == null)
         {
             if (log.isErrorEnabled()) log.error("Google OIDC signup is enabled (clientID client is provided) but refresh token cache is not configured (ldhc:oidcRefreshTokens)");
             throw new IllegalStateException("Google OIDC signup is enabled (clientID client is provided) but refresh token cache is not configured (ldhc:oidcRefreshTokens)");
         }
-        if (oidcRefreshTokensProperties != null)
+        if (oidcRefreshTokensPropertiesPath != null)
         {
-            try (InputStream propertiesStream = servletConfig.getServletContext().getResourceAsStream(oidcRefreshTokensProperties))
+            try (InputStream propertiesStream = new FileInputStream(oidcRefreshTokensPropertiesPath))
             {
                 if (propertiesStream == null)
                 {
@@ -657,7 +659,7 @@ public class Application extends ResourceConfig
             BuiltinPersonalities.model.add(Import.class, ImportImpl.factory);
             BuiltinPersonalities.model.add(RDFImport.class, RDFImportImpl.factory);
             BuiltinPersonalities.model.add(CSVImport.class, CSVImportImpl.factory);
-            BuiltinPersonalities.model.add(File.class, FileImpl.factory);
+            BuiltinPersonalities.model.add(com.atomgraph.linkeddatahub.model.File.class, FileImpl.factory);
         
             // TO-DO: config property for cacheModelLoads
             endUserOntModelSpecs = new HashMap<>();
@@ -1905,15 +1907,19 @@ public class Application extends ResourceConfig
         return enableWebIDSignUp;
     }
     
-    /**
-     * Cache of OAuth refresh tokens.
-     * The property key is the client ID.
-     * 
-     * @return refresh token properties
-     */
-    public Properties getOIDCRefreshTokens()
+    public String getRefreshToken(String clientID)
     {
-        return oidcRefreshTokens;
+        return oidcRefreshTokens.getProperty(clientID);
+    }
+    
+    public void storeRefreshToken(String clientID, String refreshToken) throws IOException
+    {
+        oidcRefreshTokens.put(clientID, refreshToken);
+        
+        try (FileOutputStream fos = new FileOutputStream(oidcRefreshTokensPropertiesPath))
+        {
+            oidcRefreshTokens.store(fos, null);
+        }
     }
     
 }
