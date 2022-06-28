@@ -620,7 +620,7 @@ fi
 # create empty properties file if it doesn't exist
 
 if [ -n "$OIDC_REFRESH_TOKENS" ] && [ ! -f "$OIDC_REFRESH_TOKENS" ]; then
-    touch "$OIDC_REFRESH_TOKENS"
+    touch "${CATALINA_HOME}/webapps/ROOT/${OIDC_REFRESH_TOKENS}"
 fi
 
 # change context configuration
