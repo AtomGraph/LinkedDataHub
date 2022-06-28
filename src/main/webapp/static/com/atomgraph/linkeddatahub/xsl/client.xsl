@@ -583,6 +583,11 @@ WHERE
 
             <!-- add "Edit" buttons to XHTML content -->
             <xsl:if test="acl:mode() = '&acl;Write'">
+                <!-- enable .btn-edit if it's present -->
+                <xsl:for-each select="ixsl:page()//div[contains-token(@class, 'action-bar')]//a[contains-token(@class, 'btn-edit')]">
+                    <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'disabled', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+                </xsl:for-each>
+
                 <xsl:variable name="xhtml-content-ids" select="key('elements-by-class', 'xhtml-content', ixsl:page())/@id" as="xs:string*"/>
                 <xsl:if test="not(empty($xhtml-content-ids))">
                     <xsl:variable name="containers" select="id($xhtml-content-ids, ixsl:page())" as="element()*"/>
@@ -595,7 +600,13 @@ WHERE
                     </xsl:for-each>
                 </xsl:if>
             </xsl:if>
-            
+            <xsl:if test="not(acl:mode() = '&acl;Write')">
+                <!-- disable .btn-edit if it's present -->
+                <xsl:for-each select="ixsl:page()//div[contains-token(@class, 'action-bar')]//a[contains-token(@class, 'btn-edit')]">
+                    <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'disabled', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+                </xsl:for-each>
+            </xsl:if>
+
             <!-- focus on current resource -->
             <xsl:for-each select="key('resources', $uri)">
                 <!-- if the current resource is an Item, hide the <div> with the top/left "Create" dropdown as Items cannot have child documents -->

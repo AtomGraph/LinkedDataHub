@@ -1082,23 +1082,17 @@ LIMIT   100
                 </button>
             </div>
 
-            <div class="pull-right">
-                <a href="{ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ac:uri(), xs:anyURI('&ac;EditMode'))}" title="{ac:label(key('resources', 'nav-bar-action-edit-graph-title', document('translations.rdf')))}">
-                    <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="ldh:logo">
-                        <xsl:with-param name="class" select="'btn' || (if ($ac:mode = '&ac;EditMode') then ' active' else ())"/>
-                    </xsl:apply-templates>
-                    
-                    <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
-                </a>
-            </div>
-            
-<!--            <div class="pull-right">
-                <button type="button" title="{ac:label(key('resources', 'skolemize-title', document('translations.rdf')))}">
-                    <xsl:apply-templates select="key('resources', 'skolemize', document('translations.rdf'))" mode="ldh:logo">
-                        <xsl:with-param name="class" select="'btn'"/>
-                    </xsl:apply-templates>
-                </button>
-            </div>-->
+            <xsl:if test="$acl:mode = '&acl;Write'">
+                <div class="pull-right">
+                    <a href="{ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ac:uri(), xs:anyURI('&ac;EditMode'))}" title="{ac:label(key('resources', 'nav-bar-action-edit-graph-title', document('translations.rdf')))}">
+                        <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="ldh:logo">
+                            <xsl:with-param name="class" select="'btn' || (if ($ac:mode = '&ac;EditMode') then ' active' else ())"/>
+                        </xsl:apply-templates>
+
+                        <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
+                    </a>
+                </div>
+            </xsl:if>
             
             <xsl:if test="$ldh:ajaxRendering">
                 <div class="pull-right">
@@ -1114,19 +1108,6 @@ LIMIT   100
                     </button>
                 </div>
             </xsl:if>
-            
-<!--            <div class="pull-right">
-                <form action="{ac:uri()}?ban=true" method="post">
-                    <input type="hidden" name="ban" value="true"/>
-                    <button type="submit" title="{ac:label(key('resources', 'nav-bar-action-refresh-title', document('translations.rdf')))}">
-                        <xsl:apply-templates select="key('resources', '&ldht;Ban', document(ac:document-uri('&ldht;')))" mode="ldh:logo">
-                            <xsl:with-param name="class" select="'btn'"/>
-                        </xsl:apply-templates>
-                        
-                        <xsl:apply-templates select="key('resources', '&ldht;Ban', document(ac:document-uri('&ldht;')))" mode="ac:label"/>
-                    </button>
-                </form>
-            </div>-->
             
             <div class="btn-group pull-right">
                 <button type="button" title="{ac:label(key('resources', 'acl-list-title', document('translations.rdf')))}">
