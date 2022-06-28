@@ -123,7 +123,7 @@ public class IDTokenFilter extends AuthenticationFilter
         DecodedJWT idToken = JWT.decode(jwtString);
         if (idToken.getExpiresAt().before(new Date()))
         {
-            String refreshToken = getSystem().getOIDCRefreshTokens().get(getClientID());
+            String refreshToken = getSystem().getOIDCRefreshTokens().getProperty(getClientID());
             if (refreshToken != null)
             {
                 if (log.isDebugEnabled()) log.debug("ID token for subject '{}' has expired at {}, refreshing it", idToken.getSubject(), idToken.getExpiresAt());

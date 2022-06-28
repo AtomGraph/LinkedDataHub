@@ -282,7 +282,7 @@ public class Application extends ResourceConfig
     private final Map<URI, XsltExecutable> xsltExecutableCache = new HashMap<>();
     private final MessageDigest messageDigest;
     private final boolean enableWebIDSignUp;
-    private final Map<String, String> oidcRefreshTokens = new HashMap<>();
+    private final Properties oidcRefreshTokens;
 
     private Dataset contextDataset;
     
@@ -334,6 +334,7 @@ public class Application extends ResourceConfig
             servletConfig.getServletContext().getInitParameter(LDHC.notificationAddress.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.notificationAddress.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.supportedLanguages.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.supportedLanguages.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.enableWebIDSignUp.getURI()) != null ? Boolean.parseBoolean(servletConfig.getServletContext().getInitParameter(LDHC.enableWebIDSignUp.getURI())) : true,
+            servletConfig.getServletContext().getInitParameter(LDHC.oidcRefreshTokens.getURI()),
             servletConfig.getServletContext().getInitParameter("mail.user") != null ? servletConfig.getServletContext().getInitParameter("mail.user") : null,
             servletConfig.getServletContext().getInitParameter("mail.password") != null ? servletConfig.getServletContext().getInitParameter("mail.password") : null,
             servletConfig.getServletContext().getInitParameter("mail.smtp.host") != null ? servletConfig.getServletContext().getInitParameter("mail.smtp.host") : null,
@@ -391,6 +392,7 @@ public class Application extends ResourceConfig
      * @param notificationAddressString email address used to send notifications
      * @param supportedLanguageCodes comma-separated codes of supported languages
      * @param enableWebIDSignUp true if WebID signup is enabled
+     * @param oidcRefreshTokensProperties path to the internal properties file with OIDC refresh tokens
      * @param mailUser username of the SMTP email server
      * @param mailPassword password of the SMTP email server
      * @param smtpHost hostname of the SMTP email server
@@ -409,7 +411,7 @@ public class Application extends ResourceConfig
             final String uploadRootString, final boolean invalidateCache,
             final Integer cookieMaxAge, final boolean enableLinkedDataProxy, final Integer maxContentLength,
             final Integer maxConnPerRoute, final Integer maxTotalConn, final ConnectionKeepAliveStrategy importKeepAliveStrategy, final Integer maxImportThreads,
-            final String notificationAddressString, final String supportedLanguageCodes, final boolean enableWebIDSignUp,
+            final String notificationAddressString, final String supportedLanguageCodes, final boolean enableWebIDSignUp, final String oidcRefreshTokensProperties,
             final String mailUser, final String mailPassword, final String smtpHost, final String smtpPort,
             final String googleClientID, final String googleClientSecret)
     {
@@ -518,8 +520,9 @@ public class Application extends ResourceConfig
         this.maxContentLength = maxContentLength;
         this.invalidateCache = invalidateCache;
         this.enableWebIDSignUp = enableWebIDSignUp;
-        this.property(Google.clientID.getURI(), googleClientID);
-        this.property(Google.clientSecret.getURI(), googleClientSecret);
+        this.oidcRefreshTokens = new Properties();
+        if (googleClientID != null) this.property(Google.clientID.getURI(), googleClientID);
+        if (googleClientSecret != null) this.property(Google.clientSecret.getURI(), googleClientSecret);
         
         try
         {
@@ -530,6 +533,22 @@ public class Application extends ResourceConfig
             if (log.isErrorEnabled()) log.error("Upload root URI syntax error: {}", ex);
             throw new IllegalStateException(ex);
         }
+        
+        if (googleClientID != null && oidcRefreshTokensProperties == null)
+        {
+            if (log.isErrorEnabled()) log.error("Google OIDC signup is enabled (clientID client is provided) but refresh token cache is not configured (ldhc:oidcRefreshTokens)");
+            throw new IllegalStateException("Google OIDC signup is enabled (clientID client is provided) but refresh token cache is not configured (ldhc:oidcRefreshTokens)");
+        }
+        if (oidcRefreshTokensProperties != null)
+            try
+            {
+                this.oidcRefreshTokens.load(servletConfig.getServletContext().getResourceAsStream(oidcRefreshTokensProperties));
+            }
+            catch (IOException ex)
+            {
+                if (log.isErrorEnabled()) log.error("Cannot read .properties file with OIDC refresh tokens: {}", ex);
+                throw new IllegalStateException(ex);
+            }
 
         if (notificationAddressString != null)
         {
@@ -1880,10 +1899,11 @@ public class Application extends ResourceConfig
     
     /**
      * Cache of OAuth refresh tokens.
+     * The property key is the client ID.
      * 
-     * @return clientID to current refresh token map
+     * @return refresh token properties
      */
-    public Map<String, String> getOIDCRefreshTokens()
+    public Properties getOIDCRefreshTokens()
     {
         return oidcRefreshTokens;
     }

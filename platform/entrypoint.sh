@@ -697,6 +697,10 @@ if [ -n "$ENABLE_WEBID_SIGNUP" ] ; then
     ENABLE_WEBID_SIGNUP_PARAM="--stringparam ldhc:enableWebIDSignUp '$ENABLE_WEBID_SIGNUP' "
 fi
 
+if [ -n "$OIDC_REFRESH_TOKENS" ] ; then
+    OIDC_REFRESH_TOKENS_PARAM="--stringparam ldhc:oidcRefreshTokens '$OIDC_REFRESH_TOKENS' "
+fi
+
 if [ -n "$MAIL_PASSWORD" ] ; then
     MAIL_PASSWORD_PARAM="--stringparam mail.password '$MAIL_PASSWORD' "
 fi
@@ -736,6 +740,7 @@ transform="xsltproc \
   $IMPORT_KEEPALIVE_PARAM \
   $NOTIFICATION_ADDRESS_PARAM \
   $ENABLE_WEBID_SIGNUP_PARAM \
+  $OIDC_REFRESH_TOKENS_PARAM \
   $MAIL_SMTP_HOST_PARAM \
   $MAIL_SMTP_PORT_PARAM \
   $MAIL_USER_PARAM \

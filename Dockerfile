@@ -94,6 +94,8 @@ ENV END_USER_DATASET_URL=file:///var/linkeddatahub/datasets/end-user.trig
 
 ENV UPLOAD_CONTAINER_PATH=$UPLOAD_CONTAINER_PATH
 
+ENV OIDC_REFRESH_TOKENS="$CATALINA_HOME/webapps/ROOT/oidc_refresh_tokens.properties"
+
 ENV MAX_CONTENT_LENGTH=
 
 ENV MAX_CONN_PER_ROUTE=40
