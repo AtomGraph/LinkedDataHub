@@ -240,6 +240,12 @@ public class IDTokenFilter extends AuthenticationFilter
         }
     }
 
+    /**
+     * Gets new ID token using a refresh token.
+     * 
+     * @param refreshToken refresh token
+     * @return ID token
+     */
     public DecodedJWT refreshIDToken(String refreshToken)
     {
         Form form = new Form().

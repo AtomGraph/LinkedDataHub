@@ -1907,11 +1907,24 @@ public class Application extends ResourceConfig
         return enableWebIDSignUp;
     }
     
+    /**
+     * Gets refresh token from persistent storage.
+     * 
+     * @param clientID OAuth client ID
+     * @return refresh token
+     */
     public String getRefreshToken(String clientID)
     {
         return oidcRefreshTokens.getProperty(clientID);
     }
     
+    /**
+     * Persistently stores refresh token.
+     * 
+     * @param clientID OAuth client ID
+     * @param refreshToken refresh token value
+     * @throws IOException error writing the properties file
+     */
     public void storeRefreshToken(String clientID, String refreshToken) throws IOException
     {
         oidcRefreshTokens.put(clientID, refreshToken);
