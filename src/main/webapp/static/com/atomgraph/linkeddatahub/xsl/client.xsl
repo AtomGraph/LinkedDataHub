@@ -1006,6 +1006,19 @@ WHERE
         </xsl:if>
 
         <xsl:if test="$push-state">
+            <xsl:variable name="href" as="xs:anyURI">
+                <xsl:choose>
+                    <!-- if ldh:ContentMode is active, change the page's URL to reflect that -->
+                    <xsl:when test="id('content-body', ixsl:page())/div[contains-token(@class, 'row-fluid')][1]/ul[contains-token(@class, 'nav-tabs')]/li[contains-token(@class, 'content-mode')][contains-token(@class, 'active')]">
+                        <xsl:variable name="fragment" select="substring-after($href, '#')" as="xs:string"/>
+                        <xsl:sequence select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ac:build-uri(ac:uri(), map{ 'mode': '&ldh;ContentMode' } )) || (if ($fragment) then '#' || $fragment else ())"/>
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <xsl:sequence select="$href"/>
+                    </xsl:otherwise>
+                </xsl:choose>
+            </xsl:variable>
+        
             <xsl:call-template name="ldh:PushState">
                 <xsl:with-param name="href" select="$href"/>
                 <xsl:with-param name="title" select="/html/head/title"/>
@@ -1053,12 +1066,6 @@ WHERE
                 <xsl:with-param name="href" select="$href"/>
             </xsl:call-template>
         </xsl:for-each>
-        
-        <!-- if ldh:ContentMode is active, change the page's URL to reflect that -->
-        <xsl:if test="id('content-body', ixsl:page())/div[contains-token(@class, 'row-fluid')][1]/ul[contains-token(@class, 'nav-tabs')]/li[contains-token(@class, 'content-mode')][contains-token(@class, 'active')]">
-            <xsl:variable name="fragment" select="substring-after($href, '#')" as="xs:string"/>
-            <xsl:sequence select="ixsl:call(ixsl:window(), 'history.replaceState', [ (), '', ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ac:build-uri(ac:uri(), map{ 'mode': '&ldh;ContentMode' } )) || (if ($fragment) then '#' || $fragment else ()) ])[current-date() lt xs:date('2000-01-01')]"/>
-        </xsl:if>
         
         <xsl:call-template name="ldh:RDFDocumentLoad">
             <xsl:with-param name="uri" select="$uri"/>
