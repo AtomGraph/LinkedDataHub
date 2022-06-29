@@ -733,6 +733,24 @@ extension-element-prefixes="ixsl"
         <xsl:param name="about" select="@rdf:about" as="xs:anyURI"/>
         <xsl:param name="mode" select="ac:mode/@rdf:resource" as="xs:anyURI?"/>
         
+        <!-- multiple rdf:value properties can appear in malformed data, but only one of them is used -->
+        <div class="row-fluid">
+            <div class="offset2 span7">
+                <xsl:choose>
+                    <xsl:when test="doc-available(ac:document-uri(.))">
+                        <xsl:apply-templates select="key('resources', ., document(ac:document-uri(.)))" mode="ldh:ContentHeader"/>
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <h2>
+                            <a href="{ac:build-uri(ac:uri(), map{ 'uri': string(.) }) }">
+                                <xsl:value-of select="."/>
+                            </a>
+                        </h2>
+                    </xsl:otherwise>
+                </xsl:choose>
+            </div>
+        </div>
+
         <!-- @data-content-value is used to retrieve $content-value in client.xsl -->
         <div data-content-value="{rdf:value/@rdf:resource}">
             <xsl:if test="$id">
@@ -750,23 +768,7 @@ extension-element-prefixes="ixsl"
             
             <xsl:apply-templates select="." mode="bs2:Left"/>
             
-            <!-- multiple rdf:value properties can appear in malformed data, but only one of them is used -->
-            <xsl:for-each select="rdf:value[1]/@rdf:resource">
-                <div class="span7">
-                    <xsl:choose>
-                        <xsl:when test="doc-available(ac:document-uri(.))">
-                            <xsl:apply-templates select="key('resources', ., document(ac:document-uri(.)))" mode="ldh:ContentHeader"/>
-                        </xsl:when>
-                        <xsl:otherwise>
-                            <h2>
-                                <a href="{ac:build-uri(ac:uri(), map{ 'uri': string(.) }) }">
-                                    <xsl:value-of select="."/>
-                                </a>
-                            </h2>
-                        </xsl:otherwise>
-                    </xsl:choose>
-                </div>
-            </xsl:for-each>
+            <div class="span7"></div>
             
             <xsl:apply-templates select="." mode="bs2:Right"/>
         </div>
