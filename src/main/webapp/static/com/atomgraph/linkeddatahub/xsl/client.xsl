@@ -1005,27 +1005,6 @@ WHERE
             <ixsl:set-property name="endpoint" select="$endpoint" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
         </xsl:if>
 
-        <xsl:if test="$push-state">
-            <xsl:variable name="href" as="xs:anyURI">
-                <xsl:choose>
-                    <!-- if ldh:ContentMode is active, change the page's URL to reflect that -->
-                    <xsl:when test="id('content-body', ixsl:page())/div[contains-token(@class, 'row-fluid')][1]/ul[contains-token(@class, 'nav-tabs')]/li[contains-token(@class, 'content-mode')][contains-token(@class, 'active')]">
-                        <xsl:variable name="fragment" select="substring-after($href, '#')" as="xs:string"/>
-                        <xsl:sequence select="xs:anyURI(ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ac:build-uri(ac:uri(), map{ 'mode': '&ldh;ContentMode' } )) || (if ($fragment) then '#' || $fragment else ()))"/>
-                    </xsl:when>
-                    <xsl:otherwise>
-                        <xsl:sequence select="$href"/>
-                    </xsl:otherwise>
-                </xsl:choose>
-            </xsl:variable>
-        
-            <xsl:call-template name="ldh:PushState">
-                <xsl:with-param name="href" select="$href"/>
-                <xsl:with-param name="title" select="/html/head/title"/>
-                <xsl:with-param name="container" select="$container"/>
-            </xsl:call-template>
-        </xsl:if>
-
         <xsl:if test="$replace-content">
             <!-- set document.title which history.pushState() does not do -->
             <ixsl:set-property name="title" select="string(/html/head/title)" object="ixsl:page()"/>
@@ -1060,6 +1039,27 @@ WHERE
             </xsl:for-each>
         </xsl:if>
 
+        <xsl:if test="$push-state">
+            <xsl:variable name="href" as="xs:anyURI">
+                <xsl:choose>
+                    <!-- if ldh:ContentMode is active, change the page's URL to reflect that -->
+                    <xsl:when test="id('content-body', ixsl:page())/div[contains-token(@class, 'row-fluid')][1]/ul[contains-token(@class, 'nav-tabs')]/li[contains-token(@class, 'content-mode')][contains-token(@class, 'active')]">
+                        <xsl:variable name="fragment" select="substring-after($href, '#')" as="xs:string"/>
+                        <xsl:sequence select="xs:anyURI(ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ac:build-uri(ac:uri(), map{ 'mode': '&ldh;ContentMode' } )) || (if ($fragment) then '#' || $fragment else ()))"/>
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <xsl:sequence select="$href"/>
+                    </xsl:otherwise>
+                </xsl:choose>
+            </xsl:variable>
+        
+            <xsl:call-template name="ldh:PushState">
+                <xsl:with-param name="href" select="$href"/>
+                <xsl:with-param name="title" select="/html/head/title"/>
+                <xsl:with-param name="container" select="$container"/>
+            </xsl:call-template>
+        </xsl:if>
+        
         <!-- activate the current URL in the document tree -->
         <xsl:for-each select="id('doc-tree', ixsl:page())">
             <xsl:call-template name="ldh:DocTreeActivateHref">
