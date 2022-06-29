@@ -300,12 +300,15 @@ exclude-result-prefixes="#all"
         <xsl:param name="focus-var-name" as="xs:string"/>
         <xsl:param name="active-mode" as="xs:anyURI"/>
         <xsl:param name="replace-content" select="false()" as="xs:boolean"/>
-
+        <xsl:variable name="header" select="$container//h2" as="element()?"/>
+        
         <xsl:if test="$replace-content">
             <xsl:for-each select="$container">
                 <xsl:result-document href="?." method="ixsl:replace-content">
                     <div class="left-nav span2"></div>
                     <div class="span7">
+                        <xsl:copy-of select="$header"/>
+                        
                         <div class="progress-bar">
                             <div class="progress progress-striped active">
                                 <div class="bar" style="width: 75%;"></div>
