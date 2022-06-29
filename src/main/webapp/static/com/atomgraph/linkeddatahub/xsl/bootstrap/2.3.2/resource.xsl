@@ -411,7 +411,7 @@ extension-element-prefixes="ixsl"
     <!-- BLOCK -->
 
     <!-- append div.resource-content to chart instances which is then rendered by client.xsl -->
-    <xsl:template match="*[@rdf:about][spin:query/@rdf:resource][ldh:chartType/@rdf:resource]" mode="bs2:Block" priority="1">
+    <xsl:template match="*[@rdf:about][spin:query/@rdf:resource][ldh:chartType/@rdf:resource]" mode="bs2:Row" priority="1">
         <xsl:next-match/>
         
         <div id="{generate-id()}-content" about="{@rdf:about}" class="content resource-content" data-content-value="{@rdf:about}" />
@@ -504,18 +504,18 @@ extension-element-prefixes="ixsl"
                         <xsl:apply-templates select="." mode="bs2:Block"/>
                     </xsl:otherwise>
                 </xsl:choose>
-        
-                <!-- render contents attached to the types of this resource using ldh:template -->
-                <xsl:variable name="content-values" select="rdf:type/@rdf:resource[doc-available(resolve-uri('ns?query=ASK%20%7B%7D', $ldt:base))]/ldh:templates(., resolve-uri('ns', $ldt:base), $template-query)//srx:binding[@name = 'content']/srx:uri/xs:anyURI(.)" as="xs:anyURI*" use-when="system-property('xsl:product-name') = 'SAXON'"/>
-                <xsl:for-each select="$content-values" use-when="system-property('xsl:product-name') = 'SAXON'">
-                    <xsl:if test="doc-available(ac:document-uri(.))">
-                        <xsl:apply-templates select="key('resources', ., document(ac:document-uri(.)))" mode="bs2:RowContent"/>
-                    </xsl:if>
-                </xsl:for-each>
             </div>
 
             <xsl:apply-templates select="." mode="bs2:Right"/>
         </div>
+        
+        <!-- render contents attached to the types of this resource using ldh:template -->
+        <xsl:variable name="content-values" select="rdf:type/@rdf:resource[doc-available(resolve-uri('ns?query=ASK%20%7B%7D', $ldt:base))]/ldh:templates(., resolve-uri('ns', $ldt:base), $template-query)//srx:binding[@name = 'content']/srx:uri/xs:anyURI(.)" as="xs:anyURI*" use-when="system-property('xsl:product-name') = 'SAXON'"/>
+        <xsl:for-each select="$content-values" use-when="system-property('xsl:product-name') = 'SAXON'">
+            <xsl:if test="doc-available(ac:document-uri(.))">
+                <xsl:apply-templates select="key('resources', ., document(ac:document-uri(.)))" mode="bs2:RowContent"/>
+            </xsl:if>
+        </xsl:for-each>
     </xsl:template>
     
     <!-- HEADER -->
