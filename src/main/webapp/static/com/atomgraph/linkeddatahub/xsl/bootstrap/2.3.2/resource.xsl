@@ -763,7 +763,7 @@ extension-element-prefixes="ixsl"
     <!-- ROW CONTENT HEADER -->
     
     <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;Content']" mode="bs2:RowContentHeader" priority="1">
-        <xsl:variable name="anchor" as="element()?">
+        <xsl:variable name="anchor" as="node()*">
             <xsl:for-each select="@rdf:about">
                 <xsl:apply-templates select="key('resources', ., document(ac:document-uri(.)))" mode="xhtml:Anchor">
                     <xsl:with-param name="class" as="xs:string?">
@@ -773,7 +773,7 @@ extension-element-prefixes="ixsl"
             </xsl:for-each>
         </xsl:variable>
         
-        <xsl:if test="$anchor">
+        <xsl:if test="exists($anchor)">
             <div class="row-fluid">
                 <div class="offset2 span7">
                     <h2>
