@@ -766,20 +766,22 @@ extension-element-prefixes="ixsl"
         <div class="row-fluid">
             <div class="offset2 span7">
                 <h2>
-                    <xsl:choose>
-                        <xsl:when test="doc-available(ac:document-uri(.))">
-                            <xsl:apply-templates select="key('resources', @rdf:about, document(ac:document-uri(@rdf:about)))" mode="xhtml:Anchor">
-                                <xsl:with-param name="class" as="xs:string?">
-                                    <xsl:apply-templates select="." mode="ldh:logo"/>
-                                </xsl:with-param>
-                            </xsl:apply-templates>
-                        </xsl:when>
-                        <xsl:otherwise>
-                            <a href="{ac:build-uri(ac:uri(), map{ 'uri': string(.) }) }">
-                                <xsl:value-of select="."/>
-                            </a>
-                        </xsl:otherwise>
-                    </xsl:choose>
+                    <xsl:for-each select="@rdf:about">
+                        <xsl:choose>
+                            <xsl:when test="doc-available(ac:document-uri(.))">
+                                <xsl:apply-templates select="key('resources', ., document(ac:document-uri(.)))" mode="xhtml:Anchor">
+                                    <xsl:with-param name="class" as="xs:string?">
+                                        <xsl:apply-templates select="." mode="ldh:logo"/>
+                                    </xsl:with-param>
+                                </xsl:apply-templates>
+                            </xsl:when>
+                            <xsl:otherwise>
+                                <a href="{ac:build-uri(ac:uri(), map{ 'uri': string(.) }) }">
+                                    <xsl:value-of select="."/>
+                                </a>
+                            </xsl:otherwise>
+                        </xsl:choose>
+                    </xsl:for-each>
                 </h2>
             </div>
         </div>
