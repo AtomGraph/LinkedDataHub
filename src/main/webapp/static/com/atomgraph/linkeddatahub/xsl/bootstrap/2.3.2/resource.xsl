@@ -773,15 +773,15 @@ extension-element-prefixes="ixsl"
             </xsl:for-each>
         </xsl:variable>
         
-        <xsl:where-populated>
+        <xsl:if test="$anchor">
             <div class="row-fluid">
                 <div class="offset2 span7">
                     <h2>
-                        <xsl:sequence select="$anchor"/>
+                        <xsl:copy-of select="$anchor"/>
                     </h2>
                 </div>
             </div>
-        </xsl:where-populated>
+        </xsl:if>
     </xsl:template>
     
     <xsl:template match="*[*][@rdf:about]" mode="bs2:RowContentHeader"/>
