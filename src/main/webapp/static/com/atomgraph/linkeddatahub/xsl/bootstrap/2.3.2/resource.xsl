@@ -733,24 +733,8 @@ extension-element-prefixes="ixsl"
         <xsl:param name="about" select="@rdf:about" as="xs:anyURI"/>
         <xsl:param name="mode" select="ac:mode/@rdf:resource" as="xs:anyURI?"/>
         
-        <!-- multiple rdf:value properties can appear in malformed data, but only one of them is used -->
-        <div class="row-fluid">
-            <div class="offset2 span7">
-                <xsl:choose>
-                    <xsl:when test="doc-available(ac:document-uri(.))">
-                        <xsl:apply-templates select="key('resources', ., document(ac:document-uri(.)))" mode="ldh:ContentHeader"/>
-                    </xsl:when>
-                    <xsl:otherwise>
-                        <h2>
-                            <a href="{ac:build-uri(ac:uri(), map{ 'uri': string(.) }) }">
-                                <xsl:value-of select="."/>
-                            </a>
-                        </h2>
-                    </xsl:otherwise>
-                </xsl:choose>
-            </div>
-        </div>
-
+        <xsl:apply-templates select="." mode="bs2:RowContentHeader"/>
+        
         <!-- @data-content-value is used to retrieve $content-value in client.xsl -->
         <div data-content-value="{rdf:value/@rdf:resource}">
             <xsl:if test="$id">
@@ -776,15 +760,32 @@ extension-element-prefixes="ixsl"
     
     <xsl:template match="*" mode="bs2:RowContent"/>
 
-    <xsl:template match="*[*][@rdf:about]" mode="ldh:ContentHeader" priority="2">
-        <h2>
-            <xsl:apply-templates select="@rdf:about" mode="xhtml:Anchor">
-                <xsl:with-param name="class" as="xs:string?">
-                    <xsl:apply-templates select="." mode="ldh:logo"/>
-                </xsl:with-param>
-            </xsl:apply-templates>
-        </h2>
+    <!-- ROW CONTENT HEADER -->
+    
+    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;Content']" mode="bs2:RowContentHeader" priority="1">
+        <div class="row-fluid">
+            <div class="offset2 span7">
+                <h2>
+                    <xsl:choose>
+                        <xsl:when test="doc-available(ac:document-uri(.))">
+                            <xsl:apply-templates select="key('resources', @rdf:about, document(ac:document-uri(@rdf:about)))" mode="xhtml:Anchor">
+                                <xsl:with-param name="class" as="xs:string?">
+                                    <xsl:apply-templates select="." mode="ldh:logo"/>
+                                </xsl:with-param>
+                            </xsl:apply-templates>
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <a href="{ac:build-uri(ac:uri(), map{ 'uri': string(.) }) }">
+                                <xsl:value-of select="."/>
+                            </a>
+                        </xsl:otherwise>
+                    </xsl:choose>
+                </h2>
+            </div>
+        </div>
     </xsl:template>
+    
+    <xsl:template match="*[*][@rdf:about]" mode="bs2:RowContentHeader"/>
     
     <!-- CONSTRUCTOR -->
 
