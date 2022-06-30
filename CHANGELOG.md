@@ -1,3 +1,10 @@
+## [3.2.3] - 2022-06-30
+### Added
+- The persistent storage of `refresh_token`s allows long-lived sessions when authenticated with Google login
+
+### Changed
+- Fixed the back button (the history states were being mismanaged)
+
 ## [3.2.0] - 2022-06-22
 ### Added
 - Inline creation and editing of container and XHTML content in content layout mode

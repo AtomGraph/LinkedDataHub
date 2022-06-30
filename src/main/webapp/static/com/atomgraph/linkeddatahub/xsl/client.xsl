@@ -583,6 +583,11 @@ WHERE
 
             <!-- add "Edit" buttons to XHTML content -->
             <xsl:if test="acl:mode() = '&acl;Write'">
+                <!-- enable .btn-edit if it's present -->
+                <xsl:for-each select="ixsl:page()//div[contains-token(@class, 'action-bar')]//a[contains-token(@class, 'btn-edit')]">
+                    <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'disabled', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+                </xsl:for-each>
+
                 <xsl:variable name="xhtml-content-ids" select="key('elements-by-class', 'xhtml-content', ixsl:page())/@id" as="xs:string*"/>
                 <xsl:if test="not(empty($xhtml-content-ids))">
                     <xsl:variable name="containers" select="id($xhtml-content-ids, ixsl:page())" as="element()*"/>
@@ -595,7 +600,13 @@ WHERE
                     </xsl:for-each>
                 </xsl:if>
             </xsl:if>
-            
+            <xsl:if test="not(acl:mode() = '&acl;Write')">
+                <!-- disable .btn-edit if it's present -->
+                <xsl:for-each select="ixsl:page()//div[contains-token(@class, 'action-bar')]//a[contains-token(@class, 'btn-edit')]">
+                    <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'disabled', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+                </xsl:for-each>
+            </xsl:if>
+
             <!-- focus on current resource -->
             <xsl:for-each select="key('resources', $uri)">
                 <!-- if the current resource is an Item, hide the <div> with the top/left "Create" dropdown as Items cannot have child documents -->
@@ -974,7 +985,10 @@ WHERE
         <!-- enable .btn-edit if it's present -->
         <xsl:for-each select="ixsl:page()//div[contains-token(@class, 'action-bar')]//a[contains-token(@class, 'btn-edit')]">
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', false() ])[current-date() lt xs:date('2000-01-01')]"/>
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'disabled', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+
+            <!-- update the a.btn-edit link if it is visible -->
+            <xsl:variable name="edit-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), $doc-uri, xs:anyURI('&ac;EditMode'))" as="xs:anyURI"/>
+            <ixsl:set-attribute name="href" select="$edit-uri" object="."/>
         </xsl:for-each>
         <xsl:for-each select="ixsl:page()//div[contains-token(@class, 'action-bar')]//button[contains-token(@class, 'btn-delete')]">
             <!-- disable Delete button for the Root document -->
@@ -989,20 +1003,6 @@ WHERE
         <ixsl:set-property name="uri" select="$uri" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
         <xsl:if test="$endpoint">
             <ixsl:set-property name="endpoint" select="$endpoint" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
-        </xsl:if>
-        
-        <!-- update the a.btn-edit link if it is visible -->
-        <xsl:for-each select="ixsl:page()//div[contains-token(@class, 'action-bar')]//a[contains-token(@class, 'btn-edit')]">
-            <xsl:variable name="edit-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), $doc-uri, xs:anyURI('&ac;EditMode'))" as="xs:anyURI"/>
-            <ixsl:set-attribute name="href" select="$edit-uri" object="."/>
-        </xsl:for-each>
-
-        <xsl:if test="$push-state">
-            <xsl:call-template name="ldh:PushState">
-                <xsl:with-param name="href" select="$href"/>
-                <xsl:with-param name="title" select="/html/head/title"/>
-                <xsl:with-param name="container" select="$container"/>
-            </xsl:call-template>
         </xsl:if>
 
         <xsl:if test="$replace-content">
@@ -1039,18 +1039,33 @@ WHERE
             </xsl:for-each>
         </xsl:if>
 
+        <xsl:if test="$push-state">
+            <xsl:variable name="href" as="xs:anyURI">
+                <xsl:choose>
+                    <!-- if ldh:ContentMode is active, change the page's URL to reflect that -->
+                    <xsl:when test="id('content-body', ixsl:page())/div[contains-token(@class, 'row-fluid')][1]/ul[contains-token(@class, 'nav-tabs')]/li[contains-token(@class, 'content-mode')][contains-token(@class, 'active')]">
+                        <xsl:variable name="fragment" select="substring-after($href, '#')" as="xs:string"/>
+                        <xsl:sequence select="xs:anyURI(ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ac:build-uri(ac:uri(), map{ 'mode': '&ldh;ContentMode' } )) || (if ($fragment) then '#' || $fragment else ()))"/>
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <xsl:sequence select="$href"/>
+                    </xsl:otherwise>
+                </xsl:choose>
+            </xsl:variable>
+        
+            <xsl:call-template name="ldh:PushState">
+                <xsl:with-param name="href" select="$href"/>
+                <xsl:with-param name="title" select="/html/head/title"/>
+                <xsl:with-param name="container" select="$container"/>
+            </xsl:call-template>
+        </xsl:if>
+        
         <!-- activate the current URL in the document tree -->
         <xsl:for-each select="id('doc-tree', ixsl:page())">
             <xsl:call-template name="ldh:DocTreeActivateHref">
                 <xsl:with-param name="href" select="$href"/>
             </xsl:call-template>
         </xsl:for-each>
-        
-        <!-- if ldh:ContentMode is active, change the page's URL to reflect that -->
-        <xsl:if test="id('content-body', ixsl:page())/div[contains-token(@class, 'row-fluid')][1]/ul[contains-token(@class, 'nav-tabs')]/li[contains-token(@class, 'content-mode')][contains-token(@class, 'active')]">
-            <xsl:variable name="fragment" select="substring-after($href, '#')" as="xs:string"/>
-            <xsl:sequence select="ixsl:call(ixsl:window(), 'history.replaceState', [ (), '', ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ac:build-uri(ac:uri(), map{ 'mode': '&ldh;ContentMode' } )) || (if ($fragment) then '#' || $fragment else ()) ])[current-date() lt xs:date('2000-01-01')]"/>
-        </xsl:if>
         
         <xsl:call-template name="ldh:RDFDocumentLoad">
             <xsl:with-param name="uri" select="$uri"/>

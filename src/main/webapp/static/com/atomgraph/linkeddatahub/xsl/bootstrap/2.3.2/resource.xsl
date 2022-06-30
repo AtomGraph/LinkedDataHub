@@ -411,7 +411,7 @@ extension-element-prefixes="ixsl"
     <!-- BLOCK -->
 
     <!-- append div.resource-content to chart instances which is then rendered by client.xsl -->
-    <xsl:template match="*[@rdf:about][spin:query/@rdf:resource][ldh:chartType/@rdf:resource]" mode="bs2:Block" priority="1">
+    <xsl:template match="*[@rdf:about][spin:query/@rdf:resource][ldh:chartType/@rdf:resource]" mode="bs2:Row" priority="1">
         <xsl:next-match/>
         
         <div id="{generate-id()}-content" about="{@rdf:about}" class="content resource-content" data-content-value="{@rdf:about}" />
@@ -504,18 +504,18 @@ extension-element-prefixes="ixsl"
                         <xsl:apply-templates select="." mode="bs2:Block"/>
                     </xsl:otherwise>
                 </xsl:choose>
-        
-                <!-- render contents attached to the types of this resource using ldh:template -->
-                <xsl:variable name="content-values" select="rdf:type/@rdf:resource[doc-available(resolve-uri('ns?query=ASK%20%7B%7D', $ldt:base))]/ldh:templates(., resolve-uri('ns', $ldt:base), $template-query)//srx:binding[@name = 'content']/srx:uri/xs:anyURI(.)" as="xs:anyURI*" use-when="system-property('xsl:product-name') = 'SAXON'"/>
-                <xsl:for-each select="$content-values" use-when="system-property('xsl:product-name') = 'SAXON'">
-                    <xsl:if test="doc-available(ac:document-uri(.))">
-                        <xsl:apply-templates select="key('resources', ., document(ac:document-uri(.)))" mode="bs2:RowContent"/>
-                    </xsl:if>
-                </xsl:for-each>
             </div>
 
             <xsl:apply-templates select="." mode="bs2:Right"/>
         </div>
+        
+        <!-- render contents attached to the types of this resource using ldh:template -->
+        <xsl:variable name="content-values" select="rdf:type/@rdf:resource[doc-available(resolve-uri('ns?query=ASK%20%7B%7D', $ldt:base))]/ldh:templates(., resolve-uri('ns', $ldt:base), $template-query)//srx:binding[@name = 'content']/srx:uri/xs:anyURI(.)" as="xs:anyURI*" use-when="system-property('xsl:product-name') = 'SAXON'"/>
+        <xsl:for-each select="$content-values" use-when="system-property('xsl:product-name') = 'SAXON'">
+            <xsl:if test="doc-available(ac:document-uri(.))">
+                <xsl:apply-templates select="key('resources', ., document(ac:document-uri(.)))" mode="bs2:RowContent"/>
+            </xsl:if>
+        </xsl:for-each>
     </xsl:template>
     
     <!-- HEADER -->
@@ -733,6 +733,8 @@ extension-element-prefixes="ixsl"
         <xsl:param name="about" select="@rdf:about" as="xs:anyURI"/>
         <xsl:param name="mode" select="ac:mode/@rdf:resource" as="xs:anyURI?"/>
         
+        <xsl:apply-templates select="." mode="bs2:RowContentHeader"/>
+        
         <!-- @data-content-value is used to retrieve $content-value in client.xsl -->
         <div data-content-value="{rdf:value/@rdf:resource}">
             <xsl:if test="$id">
@@ -750,23 +752,7 @@ extension-element-prefixes="ixsl"
             
             <xsl:apply-templates select="." mode="bs2:Left"/>
             
-            <!-- multiple rdf:value properties can appear in malformed data, but only one of them is used -->
-            <xsl:for-each select="rdf:value[1]/@rdf:resource">
-                <div class="span7">
-                    <xsl:choose>
-                        <xsl:when test="doc-available(ac:document-uri(.))">
-                            <xsl:apply-templates select="key('resources', ., document(ac:document-uri(.)))" mode="ldh:ContentHeader"/>
-                        </xsl:when>
-                        <xsl:otherwise>
-                            <h2>
-                                <a href="{ac:build-uri(ac:uri(), map{ 'uri': string(.) }) }">
-                                    <xsl:value-of select="."/>
-                                </a>
-                            </h2>
-                        </xsl:otherwise>
-                    </xsl:choose>
-                </div>
-            </xsl:for-each>
+            <div class="span7"></div>
             
             <xsl:apply-templates select="." mode="bs2:Right"/>
         </div>
@@ -774,15 +760,31 @@ extension-element-prefixes="ixsl"
     
     <xsl:template match="*" mode="bs2:RowContent"/>
 
-    <xsl:template match="*[*][@rdf:about]" mode="ldh:ContentHeader" priority="2">
-        <h2>
-            <xsl:apply-templates select="@rdf:about" mode="xhtml:Anchor">
-                <xsl:with-param name="class" as="xs:string?">
-                    <xsl:apply-templates select="." mode="ldh:logo"/>
-                </xsl:with-param>
-            </xsl:apply-templates>
-        </h2>
+    <!-- ROW CONTENT HEADER -->
+    
+    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;Content']" mode="bs2:RowContentHeader" priority="1">
+        <xsl:variable name="anchor" as="node()*">
+            <xsl:for-each select="@rdf:about">
+                <xsl:apply-templates select="key('resources', ., document(ac:document-uri(.)))" mode="xhtml:Anchor">
+                    <xsl:with-param name="class" as="xs:string?">
+                        <xsl:apply-templates select="." mode="ldh:logo"/>
+                    </xsl:with-param>
+                </xsl:apply-templates>
+            </xsl:for-each>
+        </xsl:variable>
+        
+        <xsl:if test="exists($anchor)">
+            <div class="row-fluid">
+                <div class="offset2 span7">
+                    <h2>
+                        <xsl:sequence select="$anchor"/>
+                    </h2>
+                </div>
+            </div>
+        </xsl:if>
     </xsl:template>
+    
+    <xsl:template match="*[*][@rdf:about]" mode="bs2:RowContentHeader"/>
     
     <!-- CONSTRUCTOR -->
 

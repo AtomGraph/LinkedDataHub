@@ -235,13 +235,15 @@
 
 :ContentInstanceConstructor a sp:Construct ;
   sp:text """
+      PREFIX ac:    <https://w3id.org/atomgraph/client#>
       PREFIX rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
       PREFIX rdfs:  <http://www.w3.org/2000/01/rdf-schema#>
-      PREFIX ac:    <https://w3id.org/atomgraph/client#>
+      PREFIX xsd:   <http://www.w3.org/2001/XMLSchema#>
 
       CONSTRUCT {
           $this rdf:value [ a rdfs:Resource ] ;
-            ac:mode [ a rdfs:Resource ] .
+            ac:mode [ a rdfs:Resource ] ;
+            rdfs:label [ a xsd:string ] .
       }
       WHERE {}""" ;
     rdfs:label "Content constructor" ;

@@ -21,8 +21,10 @@ import com.atomgraph.linkeddatahub.server.filter.request.AuthenticationFilter;
 import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.model.auth.Agent;
+import static com.atomgraph.linkeddatahub.resource.admin.oauth2.Login.TOKEN_ENDPOINT;
 import com.atomgraph.linkeddatahub.server.security.IDTokenSecurityContext;
 import com.atomgraph.linkeddatahub.vocabulary.FOAF;
+import com.atomgraph.linkeddatahub.vocabulary.Google;
 import com.atomgraph.linkeddatahub.vocabulary.LACL;
 import com.atomgraph.processor.vocabulary.SIOC;
 import com.auth0.jwt.JWT;
@@ -37,12 +39,15 @@ import java.util.concurrent.TimeUnit;
 import javax.annotation.PostConstruct;
 import javax.annotation.Priority;
 import javax.json.JsonObject;
+import javax.ws.rs.InternalServerErrorException;
 import javax.ws.rs.NotAuthorizedException;
 import javax.ws.rs.Priorities;
 import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.client.Entity;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.PreMatching;
 import javax.ws.rs.core.Cookie;
+import javax.ws.rs.core.Form;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
@@ -73,6 +78,7 @@ public class IDTokenFilter extends AuthenticationFilter
     public static final String AUTH_SCHEME = "JWT";
     /** Name of the cookie that stores the ID token */
     public static final String COOKIE_NAME = "LinkedDataHub.id_token";
+    private String clientID, clientSecret;
     
     private ParameterizedSparqlString userAccountQuery;
 
@@ -83,6 +89,8 @@ public class IDTokenFilter extends AuthenticationFilter
     public void init()
     {
         userAccountQuery = new ParameterizedSparqlString(getSystem().getUserAccountQuery().toString());
+        clientID = (String)getSystem().getProperty(Google.clientID.getURI());
+        clientSecret = (String)getSystem().getProperty(Google.clientSecret.getURI());
     }
     
     @Override
@@ -113,6 +121,20 @@ public class IDTokenFilter extends AuthenticationFilter
         if (jwtString == null) return null;
         
         DecodedJWT idToken = JWT.decode(jwtString);
+        if (idToken.getExpiresAt().before(new Date()))
+        {
+            String refreshToken = getSystem().getRefreshToken(getClientID());
+            if (refreshToken != null)
+            {
+                if (log.isDebugEnabled()) log.debug("ID token for subject '{}' has expired at {}, refreshing it", idToken.getSubject(), idToken.getExpiresAt());
+                idToken = refreshIDToken(refreshToken);
+            }
+            else
+            {
+                if (log.isDebugEnabled()) log.debug("ID token for subject '{}' has expired at {}, refresh token not found", idToken.getSubject(), idToken.getExpiresAt());
+                throw new TokenExpiredException("ID token for subject '"  + idToken.getSubject() + "' has expired at " + idToken.getExpiresAt());
+            }
+        }
         if (!verify(idToken)) return null;
         
         String cacheKey = idToken.getIssuer() + idToken.getSubject();
@@ -167,13 +189,6 @@ public class IDTokenFilter extends AuthenticationFilter
      */
     protected boolean verify(DecodedJWT idToken)
     {
-        Date now = new Date();
-        if (idToken.getExpiresAt().before(now))
-        {
-            if (log.isDebugEnabled()) log.debug("ID token for subject '{}' has expired at {}", idToken.getSubject(), idToken.getExpiresAt());
-            throw new TokenExpiredException("ID token for subject '"  + idToken.getSubject() + "' has expired at " + idToken.getExpiresAt());
-        }
-        
         // TO-DO: use keys, this is for debugging purposes only: https://developers.google.com/identity/protocols/oauth2/openid-connect#validatinganidtoken
         try (Response cr = getSystem().getNoCertClient().
             target("https://oauth2.googleapis.com/tokeninfo").
@@ -226,6 +241,35 @@ public class IDTokenFilter extends AuthenticationFilter
     }
 
     /**
+     * Gets new ID token using a refresh token.
+     * 
+     * @param refreshToken refresh token
+     * @return ID token
+     */
+    public DecodedJWT refreshIDToken(String refreshToken)
+    {
+        Form form = new Form().
+            param("grant_type", "refresh_token").
+            param("client_id", getClientID()).
+            param("client_secret", getClientSecret()).
+            param("refresh_token", refreshToken);
+        
+        try (Response cr = getSystem().getClient().target(TOKEN_ENDPOINT).
+                request().post(Entity.form(form)))
+        {
+            JsonObject response = cr.readEntity(JsonObject.class);
+            if (response.containsKey("error"))
+            {
+                if (log.isErrorEnabled()) log.error("OAuth error: '{}'", response.getString("error"));
+                throw new InternalServerErrorException(response.getString("error"));
+            }
+
+            String idToken = response.getString("id_token");
+            return JWT.decode(idToken);
+        }
+    }
+    
+    /**
      * Returns the URL of the OAuth login endpoint.
      * 
      * @return endpoint URI
@@ -268,6 +312,26 @@ public class IDTokenFilter extends AuthenticationFilter
     public ParameterizedSparqlString getUserAccountQuery()
     {
         return userAccountQuery.copy();
+    }
+    
+    /**
+     * Returns the configured Google client ID for this application.
+     * 
+     * @return client ID
+     */
+    private String getClientID()
+    {
+        return clientID;
+    }
+    
+    /**
+     * Returns the configured Google client secret for this application.
+     * 
+     * @return client secret
+     */
+    private String getClientSecret()
+    {
+        return clientSecret;
     }
     
 }
