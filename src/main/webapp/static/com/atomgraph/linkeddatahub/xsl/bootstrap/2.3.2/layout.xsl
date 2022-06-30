@@ -1040,7 +1040,7 @@ LIMIT   100
     <!-- CONTENT HEADER -->
 
     <!-- hide the header of def:SelectChildren content -->
-    <xsl:template match="*[*][$ldh:ajaxRendering][@rdf:about = '&ldh;SelectChildren']" mode="bs2:RowContentHeader"/>
+    <xsl:template match="*[*][$ldh:ajaxRendering][rdf:value/@rdf:resource = '&ldh;SelectChildren']" mode="bs2:RowContentHeader"/>
 
     <!-- FORM CONTROL -->
 
