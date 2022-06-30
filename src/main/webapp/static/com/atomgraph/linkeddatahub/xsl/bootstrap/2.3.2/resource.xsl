@@ -777,7 +777,7 @@ extension-element-prefixes="ixsl"
             <div class="row-fluid">
                 <div class="offset2 span7">
                     <h2>
-                        <xsl:copy-of select="$anchor"/>
+                        <xsl:sequence select="$anchor"/>
                     </h2>
                 </div>
             </div>
