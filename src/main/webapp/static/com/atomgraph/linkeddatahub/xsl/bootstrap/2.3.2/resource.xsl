@@ -773,7 +773,7 @@ extension-element-prefixes="ixsl"
             </xsl:for-each>
         </xsl:variable>
         
-        <xsl:if test="$anchor">
+        <xsl:where-populated>
             <div class="row-fluid">
                 <div class="offset2 span7">
                     <h2>
@@ -781,7 +781,7 @@ extension-element-prefixes="ixsl"
                     </h2>
                 </div>
             </div>
-        </xsl:if>
+        </xsl:where-populated>
     </xsl:template>
     
     <xsl:template match="*[*][@rdf:about]" mode="bs2:RowContentHeader"/>
