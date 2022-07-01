@@ -158,7 +158,7 @@ exclude-result-prefixes="#all"
             <xsl:apply-templates select="@*" mode="#current"/>
 
             <p>
-                <xsl:value-of select="$query-json-string"/>
+                <xsl:value-of select="$construct-json-string"/>
             </p>
         </xsl:copy>
     </xsl:template>
