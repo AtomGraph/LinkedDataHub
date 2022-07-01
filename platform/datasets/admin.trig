@@ -264,6 +264,7 @@ WHERE
                                                                                            FILTER ( ?class != ?superClass )
                                                                                          } ) )
                 { ?prop  rdfs:range  ?range }
+                FILTER (isURI(?range))
               }
             ORDER BY ?class ?prop ?range
           }
