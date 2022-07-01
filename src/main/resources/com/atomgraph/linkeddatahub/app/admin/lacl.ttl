@@ -90,7 +90,7 @@
     sp:arg1 :requestAccessTo ;
     rdfs:isDefinedBy : .
 
-:AuthorizationRequestConstructor a sp:Construct ;
+:AuthorizationRequestConstructor a ldh:Constructor ;
     rdfs:label "Authorization request constructor" ;
     sp:text """
         PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>

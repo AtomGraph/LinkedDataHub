@@ -50,7 +50,7 @@
 # ontology
 
 owl:Ontology spin:constructor [
-        a sp:Construct ;
+        a ldh:Constructor ;
         rdfs:label "Ontology constructor" ;
         sp:text """
     PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
@@ -70,13 +70,13 @@ owl:Ontology spin:constructor [
 # CLASS
 
 owl:Class spin:constructor [
-        a sp:Construct ;
+        a ldh:Constructor ;
         rdfs:label "Class constructor" ;
         sp:text """
+    PREFIX ldh:     <https://w3id.org/atomgraph/linkeddatahub#>
     PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
     PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
     PREFIX owl:     <http://www.w3.org/2002/07/owl#>
-    PREFIX sp:      <http://spinrdf.org/sp#>
     PREFIX spin:    <http://spinrdf.org/spin#>
     PREFIX foaf:    <http://xmlns.com/foaf/0.1/>
 
@@ -84,7 +84,7 @@ owl:Class spin:constructor [
         $this rdfs:subClassOf [ a owl:Class ] ;
             rdfs:label [ a xsd:string ] ;
             rdfs:comment [ a xsd:string ] ;
-            spin:constructor [ a sp:Construct ] ;
+            spin:constructor [ a ldh:Constructor ] ;
             spin:constraint [ a rdfs:Resource ] .
     }
     WHERE {}"""
@@ -94,7 +94,7 @@ owl:Class spin:constructor [
 # object property
 
 owl:ObjectProperty spin:constructor [
-        a sp:Construct ;
+        a ldh:Constructor ;
         rdfs:label "Object property constructor" ;
         sp:text """
     PREFIX rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
@@ -115,7 +115,7 @@ owl:ObjectProperty spin:constructor [
 # datatype property
 
 owl:DatatypeProperty spin:constructor [
-        a sp:Construct ;
+        a ldh:Constructor ;
         rdfs:label "Datatype property constructor" ;
         sp:text """
     PREFIX rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
@@ -136,14 +136,13 @@ owl:DatatypeProperty spin:constructor [
 # restriction
 
 owl:Restriction spin:constructor [
-        a sp:Construct ;
+        a ldh:Constructor ;
         rdfs:label "Restriction constructor" ;
         sp:text """
             PREFIX rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
             PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
             PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
             PREFIX owl:     <http://www.w3.org/2002/07/owl#>
-            PREFIX sp:      <http://spinrdf.org/sp#>
 
             CONSTRUCT {
                 $this rdfs:label [ a xsd:string ] ;
@@ -164,7 +163,7 @@ acl: rdfs:label "Basic Access Control ontology" .
 # AUTHORIZATION
 
 acl:Authorization spin:constructor [
-        a sp:Construct ;
+        a ldh:Constructor ;
         rdfs:label "Authorization constructor" ;
         sp:text """
             PREFIX dct:     <http://purl.org/dc/terms/>
@@ -217,7 +216,7 @@ WHERE
 cert:Key rdfs:label "Key" .
 
 cert:PublicKey spin:constructor [
-        a sp:Construct ;
+        a ldh:Constructor ;
         rdfs:label "Public key constructor" ;
         sp:text """
             PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
@@ -258,7 +257,7 @@ sioc:UserAccount spin:constructor :UserAccountConstructor ;
         sp:arg1 :account_of
     ] .
 
-:UserAccountConstructor a sp:Construct ;
+:UserAccountConstructor a ldh:Constructor ;
     rdfs:label "User account constructor" ;
     sp:text """
         PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
@@ -284,7 +283,7 @@ foaf:Agent spin:constructor :AgentConstructor .
 #        sp:arg1 cert:key
 #    ] ; # Agent has either PublicKey or UserAccount
 
-:AgentConstructor a sp:Construct ;
+:AgentConstructor a ldh:Constructor ;
     rdfs:label "Agent constructor" ;
     sp:text """
         PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
@@ -317,7 +316,7 @@ foaf:Person spin:constructor :PersonConstructor ;
         sp:arg1 foaf:mbox
     ] .
 
-:PersonConstructor a sp:Construct ;
+:PersonConstructor a ldh:Constructor ;
     rdfs:label "Person constructor" ;
     sp:text """
         PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
@@ -340,7 +339,7 @@ foaf:Group spin:constructor :GroupConstructor ;
         sp:arg1 foaf:name
     ] .
 
-:GroupConstructor a sp:Construct ;
+:GroupConstructor a ldh:Constructor ;
     rdfs:label "Group constructor" ;
     sp:text """
         PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>

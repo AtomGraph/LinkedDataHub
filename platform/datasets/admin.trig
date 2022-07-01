@@ -238,6 +238,7 @@
         rdfs:label "Construct constructors" ;
         rdfs:comment "Infers class constructors from the ontology properties" ;
         sp:text """
+PREFIX ldh:   <https://w3id.org/atomgraph/linkeddatahub#>
 PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX  owl:  <http://www.w3.org/2002/07/owl#>
 PREFIX  sp:   <http://spinrdf.org/sp#>
@@ -246,7 +247,7 @@ PREFIX  spin: <http://spinrdf.org/spin#>
 CONSTRUCT 
   { 
     ?class spin:constructor ?constructor .
-    ?constructor a sp:Construct .
+    ?constructor a ldh:Constructor .
     ?constructor rdfs:label ?constructorLabel .
     ?constructor sp:text ?constructorString .
   }
