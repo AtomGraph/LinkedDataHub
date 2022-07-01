@@ -145,7 +145,7 @@ exclude-result-prefixes="#all"
     </xsl:template>
     
     <!-- replace sp:text textarea with a constructor editor -->
-    <xsl:template match="div[contains-token(@class, 'control-group')][input[@name = 'pu']/@value = '&sp;text']/div[contains-token(@class, 'controls')]">
+    <xsl:template match="div[contains-token(@class, 'control-group')][input[@name = 'pu']/@value = '&sp;text']/div[contains-token(@class, 'controls')]" mode="form" priority="1">
         <xsl:copy>
             <xsl:apply-templates select="@*" mode="#current"/>
 
