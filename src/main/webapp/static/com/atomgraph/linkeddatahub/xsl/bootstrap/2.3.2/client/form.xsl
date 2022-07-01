@@ -145,11 +145,21 @@ exclude-result-prefixes="#all"
     </xsl:template>
     
     <!-- replace sp:text textarea with a constructor editor -->
-    <xsl:template match="div[contains-token(@class, 'control-group')][input[@name = 'pu']/@value = '&sp;text']/div[contains-token(@class, 'controls')]" mode="form" priority="1">
+    <xsl:template match="div[contains-token(@class, 'control-group')][input[@name = 'pu']/@value = '&sp;text']/div[contains-token(@class, 'controls')][textarea]" mode="form" priority="1">
+        <xsl:variable name="query-string" select="textarea/text()" as="xs:string"/>
+        <xsl:variable name="query-json" as="item()">
+            <xsl:variable name="query-builder" select="ixsl:call(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'fromString', [ $query-string ])"/>
+            <xsl:sequence select="ixsl:call($query-builder, 'build', [])"/>
+        </xsl:variable>
+        <xsl:variable name="query-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $query-json ])" as="xs:string"/>
+        <xsl:variable name="query-xml" select="json-to-xml($query-json-string)" as="document-node()"/>
+
         <xsl:copy>
             <xsl:apply-templates select="@*" mode="#current"/>
 
-            <p>WTF</p>
+            <p>
+                <xsl:value-of select="$query-json-string"/>
+            </p>
         </xsl:copy>
     </xsl:template>
     
