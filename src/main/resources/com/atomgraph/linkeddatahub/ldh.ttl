@@ -127,7 +127,7 @@
 #    rdfs:label "XML import" ;
 #    rdfs:isDefinedBy : .
 
-:ImportConstructor a ldh:Constructor ;
+:ImportConstructor a :Constructor ;
     sp:text """PREFIX ldh:      <https://w3id.org/atomgraph/linkeddatahub#>
         PREFIX rdfs:  <http://www.w3.org/2000/01/rdf-schema#>
         PREFIX sioc:  <http://rdfs.org/sioc/ns#>
@@ -143,7 +143,7 @@
     rdfs:label "Import constructor" ;
     rdfs:isDefinedBy : .
 
-:CSVImportConstructor a ldh:Constructor ;
+:CSVImportConstructor a :Constructor ;
     sp:text """PREFIX ldh:        <https://w3id.org/atomgraph/linkeddatahub#>
         PREFIX sp:      <http://spinrdf.org/sp#>
         PREFIX spin:    <http://spinrdf.org/spin#>
@@ -156,7 +156,7 @@
     rdfs:label "CSV import constructor" ;
     rdfs:isDefinedBy : .
 
-:RDFImportConstructor a ldh:Constructor ;
+:RDFImportConstructor a :Constructor ;
     sp:text """PREFIX sp:      <http://spinrdf.org/sp#>
         PREFIX spin:    <http://spinrdf.org/spin#>
 
@@ -175,7 +175,7 @@
     spin:constraint :MissingQuery, :MissingChartType ;
     rdfs:isDefinedBy : .
 
-:ChartConstructor a ldh:Constructor ;
+:ChartConstructor a :Constructor ;
   sp:text """
       PREFIX ldh:   <https://w3id.org/atomgraph/linkeddatahub#>
       PREFIX rdfs:  <http://www.w3.org/2000/01/rdf-schema#>
@@ -194,7 +194,7 @@
     spin:constraint :MissingSeriesProperty ; # - category property not required if URI/ID is used instead
     rdfs:isDefinedBy : .
 
-:GraphChartConstructor a ldh:Constructor ;
+:GraphChartConstructor a :Constructor ;
   sp:text """
       PREFIX ldh:   <https://w3id.org/atomgraph/linkeddatahub#>
       PREFIX rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
@@ -217,7 +217,7 @@
     spin:constraint :MissingCategoryVarName, :MissingSeriesVarName ;
     rdfs:isDefinedBy : .
 
-:ResultSetChartConstructor a ldh:Constructor ;
+:ResultSetChartConstructor a :Constructor ;
   sp:text """
       PREFIX ldh:   <https://w3id.org/atomgraph/linkeddatahub#>
       PREFIX xsd:   <http://www.w3.org/2001/XMLSchema#>
@@ -240,7 +240,7 @@
     spin:constraint :MissingValue ;
     rdfs:isDefinedBy : .
 
-:ContentInstanceConstructor a ldh:Constructor ;
+:ContentInstanceConstructor a :Constructor ;
   sp:text """
       PREFIX ac:    <https://w3id.org/atomgraph/client#>
       PREFIX rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
@@ -452,7 +452,7 @@ ac:ChartMode a ac:Mode, ac:ContainerMode ;
 dh:Item spin:constructor :TitleConstructor, :DescriptionConstructor, :PrimaryTopicConstructor, :ContentConstructor ;
     spin:constraint :MissingContainer .
 
-:PrimaryTopicConstructor a ldh:Constructor ;
+:PrimaryTopicConstructor a :Constructor ;
     rdfs:label "Primary topic constructor" ;
     sp:text """
         PREFIX foaf:    <http://xmlns.com/foaf/0.1/>
@@ -464,7 +464,7 @@ dh:Item spin:constructor :TitleConstructor, :DescriptionConstructor, :PrimaryTop
         WHERE {}""" ;
     rdfs:isDefinedBy : .
 
-:TitleConstructor a ldh:Constructor ;
+:TitleConstructor a :Constructor ;
     rdfs:label "Title constructor" ;
     sp:text """
         PREFIX rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
@@ -477,7 +477,7 @@ dh:Item spin:constructor :TitleConstructor, :DescriptionConstructor, :PrimaryTop
         WHERE {}""" ;
     rdfs:isDefinedBy : .
 
-:DescriptionConstructor a ldh:Constructor ;
+:DescriptionConstructor a :Constructor ;
     rdfs:label "Description constructor" ;
     sp:text """
         PREFIX rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
@@ -490,7 +490,7 @@ dh:Item spin:constructor :TitleConstructor, :DescriptionConstructor, :PrimaryTop
         WHERE {}""" ;
     rdfs:isDefinedBy : .
 
-:ContentConstructor a ldh:Constructor ;
+:ContentConstructor a :Constructor ;
     rdfs:label "Content constructor" ;
     sp:text """
         PREFIX ldh:     <https://w3id.org/atomgraph/linkeddatahub#>
@@ -502,7 +502,7 @@ dh:Item spin:constructor :TitleConstructor, :DescriptionConstructor, :PrimaryTop
         WHERE {}""" ;
     rdfs:isDefinedBy : .
 
-:ContainerContentConstructor a ldh:Constructor ;
+:ContainerContentConstructor a :Constructor ;
     rdfs:label "Container content constructor" ;
     sp:text """
         PREFIX ldh:     <https://w3id.org/atomgraph/linkeddatahub#>
@@ -534,7 +534,7 @@ dh:Container spin:constructor :TitleConstructor, :DescriptionConstructor, :Prima
 # http://spinrdf.org/sp
 
 sp:Query spin:constructor [
-        a ldh:Constructor ;
+        a :Constructor ;
         rdfs:label "Query constructor" ;
         sp:text """
           PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
@@ -568,7 +568,7 @@ nfo:FileDataObject spin:constructor :FileConstructor ;
         sp:arg1 nfo:fileName
     ] .
 
-:FileConstructor a ldh:Constructor ;
+:FileConstructor a :Constructor ;
     sp:text """PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
     PREFIX nfo:     <http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#>
     PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
@@ -599,7 +599,7 @@ sd:Service spin:constructor :ServiceConstructor ;
             sp:arg1 sd:endpoint
         ] .
 
-:ServiceConstructor a ldh:Constructor ;
+:ServiceConstructor a :Constructor ;
     sp:text """
       PREFIX a:       <https://w3id.org/atomgraph/core#>
       PREFIX lapp:    <https://w3id.org/atomgraph/linkeddatahub/apps#>
