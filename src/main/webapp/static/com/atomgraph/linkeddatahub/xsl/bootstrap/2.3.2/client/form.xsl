@@ -146,13 +146,13 @@ exclude-result-prefixes="#all"
     
     <!-- replace sp:text textarea with a constructor editor -->
     <xsl:template match="div[contains-token(@class, 'control-group')][input[@name = 'pu']/@value = '&sp;text']/div[contains-token(@class, 'controls')][textarea]" mode="form" priority="1">
-        <xsl:variable name="query-string" select="textarea/text()" as="xs:string"/>
-        <xsl:variable name="query-json" as="item()">
-            <xsl:variable name="query-builder" select="ixsl:call(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'fromString', [ $query-string ])"/>
-            <xsl:sequence select="ixsl:call($query-builder, 'build', [])"/>
+        <xsl:variable name="construct-string" select="textarea/text()" as="xs:string"/>
+        <xsl:variable name="construct-json" as="item()">
+            <xsl:variable name="construct-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'fromString', [ $construct-string ])"/>
+            <xsl:sequence select="ixsl:call($construct-builder, 'build', [])"/>
         </xsl:variable>
-        <xsl:variable name="query-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $query-json ])" as="xs:string"/>
-        <xsl:variable name="query-xml" select="json-to-xml($query-json-string)" as="document-node()"/>
+        <xsl:variable name="construct-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $construct-json ])" as="xs:string"/>
+        <xsl:variable name="construct-xml" select="json-to-xml($construct-json-string)" as="document-node()"/>
 
         <xsl:copy>
             <xsl:apply-templates select="@*" mode="#current"/>
