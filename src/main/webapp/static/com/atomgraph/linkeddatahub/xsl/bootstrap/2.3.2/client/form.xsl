@@ -147,6 +147,8 @@ exclude-result-prefixes="#all"
     <!-- replace sp:text textarea with a constructor editor -->
     <xsl:template match="div[contains-token(@class, 'control-group')][input[@name = 'pu']/@value = '&sp;text']/div[contains-token(@class, 'controls')][textarea]" mode="form" priority="1">
         <xsl:variable name="construct-string" select="textarea/text()" as="xs:string"/>
+        <xsl:message>$construct-string: <xsl:value-of select="serialize($construct-string)"/></xsl:message>
+        
         <xsl:variable name="construct-json" as="item()">
             <xsl:variable name="construct-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'fromString', [ $construct-string ])"/>
             <xsl:sequence select="ixsl:call($construct-builder, 'build', [])"/>
