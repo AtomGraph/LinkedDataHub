@@ -10,6 +10,7 @@
     <!ENTITY ldt        "https://www.w3.org/ns/ldt#">
     <!ENTITY dh         "https://www.w3.org/ns/ldt/document-hierarchy#">
     <!ENTITY sd         "http://www.w3.org/ns/sparql-service-description#">
+    <!ENTITY sp         "http://spinrdf.org/sp#">
     <!ENTITY dct        "http://purl.org/dc/terms/">
 ]>
 <xsl:stylesheet version="3.0"
@@ -140,6 +141,15 @@ exclude-result-prefixes="#all"
         <xsl:copy>
             <xsl:apply-templates select="@*" mode="#current"/>
             <xsl:attribute name="value" select="ixsl:call(ixsl:window(), 'generateUUID', [])"/>
+        </xsl:copy>
+    </xsl:template>
+    
+    <!-- replace sp:text textarea with a constructor editor -->
+    <xsl:template match="div[contains-token(@class, 'control-group')][input[@name = 'pu']/@value = '&sp;text']/div[contains-token(@class, 'controls')]">
+        <xsl:copy>
+            <xsl:apply-templates select="@*" mode="#current"/>
+
+            <p>WTF</p>
         </xsl:copy>
     </xsl:template>
     
