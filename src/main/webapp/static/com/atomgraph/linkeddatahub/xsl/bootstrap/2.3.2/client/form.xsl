@@ -10,6 +10,7 @@
     <!ENTITY ldt        "https://www.w3.org/ns/ldt#">
     <!ENTITY dh         "https://www.w3.org/ns/ldt/document-hierarchy#">
     <!ENTITY sd         "http://www.w3.org/ns/sparql-service-description#">
+    <!ENTITY sp         "http://spinrdf.org/sp#">
     <!ENTITY dct        "http://purl.org/dc/terms/">
 ]>
 <xsl:stylesheet version="3.0"
@@ -142,7 +143,7 @@ exclude-result-prefixes="#all"
             <xsl:attribute name="value" select="ixsl:call(ixsl:window(), 'generateUUID', [])"/>
         </xsl:copy>
     </xsl:template>
-    
+        
     <xsl:template match="@* | node()" mode="form">
         <xsl:copy>
             <xsl:apply-templates select="@* | node()" mode="#current"/>
@@ -258,7 +259,7 @@ exclude-result-prefixes="#all"
         </xsl:if>
     </xsl:template>
     
-    <!-- types (Classes) are looked up in the <ns> endpoint -->
+    <!-- types (classes with constructors) are looked up in the <ns> endpoint -->
     <xsl:template match="input[contains-token(@class, 'type-typeahead')]" mode="ixsl:onkeyup" priority="1">
         <xsl:next-match>
             <xsl:with-param name="endpoint" select="resolve-uri('ns', $ldt:base)"/>
@@ -266,12 +267,12 @@ exclude-result-prefixes="#all"
         </xsl:next-match>
     </xsl:template>
     
-    <!-- lookup by ?label and optional ?Type using search SELECT -->
+    <!-- lookup by $label and optional $Type using search SELECT -->
     <xsl:template match="input[contains-token(@class, 'typeahead')]" mode="ixsl:onkeyup">
         <xsl:param name="menu" select="following-sibling::ul" as="element()"/>
         <xsl:param name="delay" select="400" as="xs:integer"/>
         <xsl:param name="endpoint" select="sd:endpoint()" as="xs:anyURI"/>
-        <xsl:param name="resource-types" select="ancestor::div[@class = 'controls']/input[@class = 'forClass']/@value" as="xs:anyURI*"/>
+        <xsl:param name="resource-types" select="(ancestor::div[@class = 'controls']//input[@class = 'forClass']/@value, ancestor::label//input[@class = 'forClass']/@value)[1]" as="xs:anyURI*"/>
         <xsl:param name="select-string" select="$select-labelled-string" as="xs:string?"/>
         <xsl:param name="limit" select="100" as="xs:integer?"/>
         <xsl:variable name="key-code" select="ixsl:get(ixsl:event(), 'code')" as="xs:string"/>
@@ -350,18 +351,12 @@ exclude-result-prefixes="#all"
             <xsl:with-param name="menu" select="$menu"/>
         </xsl:call-template>
     </xsl:template>
-    
-    <xsl:template match="ul[contains-token(@class, 'dropdown-menu')][contains-token(@class, 'type-typeahead')]/li" mode="ixsl:onmousedown" priority="1">
-        <xsl:next-match>
-            <xsl:with-param name="typeahead-class" select="'btn add-typeahead add-typetypeahead'"/>
-        </xsl:next-match>
-    </xsl:template>
-    
+
     <!-- select .type-typeahead item (priority over plain .typeahead) -->
     
     <xsl:template match="ul[contains-token(@class, 'dropdown-menu')][contains-token(@class, 'type-typeahead')]/li" mode="ixsl:onmousedown" priority="1">
+        <xsl:param name="typeahead-class" select="'btn add-typeahead add-type-typeahead'" as="xs:string"/>
         <xsl:variable name="resource-id" select="input[@name = ('ou', 'ob')]/ixsl:get(., 'value')" as="xs:string"/> <!-- can be URI resource or blank node ID -->
-        <xsl:variable name="typeahead-class" select="'btn add-typeahead add-typetypeahead'" as="xs:string"/>
         <xsl:variable name="typeahead-doc" select="ixsl:get(ixsl:window(), 'LinkedDataHub.typeahead.rdfXml')" as="document-node()"/>
         <xsl:variable name="resource" select="key('resources', $resource-id, $typeahead-doc)" as="element()"/>
         <xsl:variable name="fieldset" select="ancestor::fieldset" as="element()"/>
@@ -391,8 +386,8 @@ exclude-result-prefixes="#all"
     <!-- select typeahead item -->
     
     <xsl:template match="ul[contains-token(@class, 'dropdown-menu')][contains-token(@class, 'typeahead')]/li" mode="ixsl:onmousedown">
+        <xsl:param name="typeahead-class" select="'btn add-typeahead'" as="xs:string"/>
         <xsl:variable name="resource-id" select="input[@name = ('ou', 'ob')]/ixsl:get(., 'value')" as="xs:string"/> <!-- can be URI resource or blank node ID -->
-        <xsl:variable name="typeahead-class" select="'btn add-typeahead'" as="xs:string"/>
         <xsl:variable name="typeahead-doc" select="ixsl:get(ixsl:window(), 'LinkedDataHub.typeahead.rdfXml')" as="document-node()"/>
         <xsl:variable name="resource" select="key('resources', $resource-id, $typeahead-doc)" as="element()"/>
 
@@ -486,8 +481,8 @@ exclude-result-prefixes="#all"
         <xsl:for-each select="..">
             <xsl:result-document href="?." method="ixsl:replace-content">
                 <xsl:call-template name="bs2:Lookup">
-                    <xsl:with-param name="class" select="$lookup-class"/>
                     <xsl:with-param name="id" select="'input-' || $uuid"/>
+                    <xsl:with-param name="class" select="$lookup-class"/>
                     <xsl:with-param name="list-class" select="$lookup-list-class"/>
                 </xsl:call-template>
             </xsl:result-document>
@@ -503,8 +498,8 @@ exclude-result-prefixes="#all"
         </xsl:for-each>
     </xsl:template>
 
-    <!-- special case for rdf:type lookups -->
-    <xsl:template match="button[contains-token(@class, 'add-typetypeahead')]" mode="ixsl:onclick" priority="1">
+    <!-- special case for class (with constructor) lookups -->
+    <xsl:template match="button[contains-token(@class, 'add-type-typeahead')]" mode="ixsl:onclick" priority="1">
         <xsl:next-match>
             <xsl:with-param name="lookup-class" select="'type-typeahead typeahead'"/>
             <xsl:with-param name="lookup-list-class" select="'type-typeahead typeahead dropdown-menu'" as="xs:string"/>
@@ -613,14 +608,6 @@ exclude-result-prefixes="#all"
     <xsl:template match="fieldset//input" mode="ixsl:onmouseout">
         <xsl:for-each select="../div[contains-token(@class, 'tooltip')]">
             <ixsl:set-style name="display" select="'none'"/>
-        </xsl:for-each>
-    </xsl:template>
-    
-    <!-- close modal form -->
-    
-    <xsl:template match="div[contains-token(@class, 'modal')]//button[tokenize(@class, ' ') = ('close', 'btn-close')]" mode="ixsl:onclick">
-        <xsl:for-each select="ancestor::div[contains-token(@class, 'modal')]">
-            <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
     </xsl:template>
     

@@ -95,7 +95,8 @@ extension-element-prefixes="ixsl"
     <xsl:include href="bootstrap/2.3.2/client/map.xsl"/>
     <xsl:include href="bootstrap/2.3.2/client/graph.xsl"/>
     <xsl:include href="bootstrap/2.3.2/client/sparql.xsl"/>
-
+    <xsl:include href="bootstrap/2.3.2/client/constructor.xsl"/>
+    
     <xsl:param name="ac:contextUri" as="xs:anyURI"/>
     <xsl:param name="ldt:base" as="xs:anyURI"/>
     <xsl:param name="ldt:ontology" as="xs:anyURI"/> <!-- used in default.xsl -->
@@ -125,11 +126,20 @@ PREFIX  schema2: <https://schema.org/>
 
 SELECT DISTINCT  ?resource
 WHERE
-  { GRAPH ?graph
-      { ?resource  a  ?Type .
-        ?resource (((((((((rdfs:label|dc:title)|dct:title)|foaf:name)|foaf:givenName)|foaf:familyName)|sioc:name)|skos:prefLabel)|sioc:content)|schema1:name)|schema2:name ?label
+  {
+    {
+        GRAPH ?graph
+          { ?resource  a  $Type .
+            ?resource ((((((((rdfs:label|dc:title)|dct:title)|foaf:name)|foaf:givenName)|foaf:familyName)|sioc:name)|skos:prefLabel)|schema1:name)|schema2:name $label
+            FILTER isURI(?resource)
+          }
+    }
+    UNION
+    {
+        ?resource  a  $Type .
+        ?resource ((((((((rdfs:label|dc:title)|dct:title)|foaf:name)|foaf:givenName)|foaf:familyName)|sioc:name)|skos:prefLabel)|schema1:name)|schema2:name $label
         FILTER isURI(?resource)
-      }
+    }  
   }
 ]]>
     </xsl:param>
@@ -498,7 +508,7 @@ WHERE
         <xsl:context-item as="map(*)" use="required"/>
 
         <xsl:for-each select="?status">
-            <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ . ])"/>
+            <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ . ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
     </xsl:template>-->
         
@@ -580,7 +590,7 @@ WHERE
                     </xsl:call-template>
                 </xsl:for-each>
             </xsl:if>
-
+            
             <!-- add "Edit" buttons to XHTML content -->
             <xsl:if test="acl:mode() = '&acl;Write'">
                 <!-- enable .btn-edit if it's present -->
@@ -1004,7 +1014,7 @@ WHERE
         <xsl:if test="$endpoint">
             <ixsl:set-property name="endpoint" select="$endpoint" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
         </xsl:if>
-
+            
         <xsl:if test="$replace-content">
             <!-- set document.title which history.pushState() does not do -->
             <ixsl:set-property name="title" select="string(/html/head/title)" object="ixsl:page()"/>
@@ -1105,7 +1115,7 @@ WHERE
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ ?message ])"/>
+                <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ ?message ])[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:otherwise>
         </xsl:choose>
         
@@ -1249,7 +1259,7 @@ WHERE
             </xsl:when>
             <xsl:otherwise>
                 <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
-                <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ ?message ])"/>
+                <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ ?message ])[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>

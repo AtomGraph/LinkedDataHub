@@ -569,7 +569,7 @@ exclude-result-prefixes="#all"
                     <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ac:uri())" as="xs:anyURI"/>
                     <xsl:variable name="request" as="item()*">
                         <ixsl:schedule-action http-request="map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string }">
-                            <xsl:call-template name="onContentUpdate">
+                            <xsl:call-template name="onContentDelete">
                                 <xsl:with-param name="container" select="$container"/>
                             </xsl:call-template>
                         </ixsl:schedule-action>
@@ -911,6 +911,7 @@ exclude-result-prefixes="#all"
     <!-- embed DESCRIBE/CONSTRUCT result -->
     
     <xsl:template name="onQueryContentLoad">
+        <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="container" as="element()"/>
         <xsl:param name="query-uri" as="xs:anyURI"/>
         <xsl:param name="mode" as="xs:anyURI?"/>
@@ -1012,7 +1013,7 @@ exclude-result-prefixes="#all"
     
     <!-- content delete -->
 
-    <xsl:template name="onContentUpdate">
+    <xsl:template name="onContentDelete">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="container" as="element()"/>
 

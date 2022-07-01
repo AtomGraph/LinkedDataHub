@@ -103,7 +103,7 @@ exclude-result-prefixes="#all">
             <xsl:when test="doc-available($doc-uri) and key('resources', ., document($doc-uri))">
                 <span>
                     <xsl:apply-templates select="key('resources', ., document($doc-uri))" mode="ldh:Typeahead">
-                        <xsl:with-param name="class" select="'btn add-typeahead add-typetypeahead'"/>
+                        <xsl:with-param name="class" select="'btn add-typeahead add-type-typeahead'"/>
                     </xsl:apply-templates>
                 </span>
             </xsl:when>

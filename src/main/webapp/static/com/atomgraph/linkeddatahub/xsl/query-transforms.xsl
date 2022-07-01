@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xsl:stylesheet [
     <!ENTITY ldh        "https://w3id.org/atomgraph/linkeddatahub#">
+    <!ENTITY rdf        "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
 ]>
 <xsl:stylesheet version="3.0"
 xmlns:xhtml="http://www.w3.org/1999/xhtml"
@@ -658,6 +659,37 @@ extension-element-prefixes="ixsl"
                     <json:boolean key="distinct">true</json:boolean>
                 </json:map>
                 <json:string key="variable"><xsl:text>?</xsl:text><xsl:value-of select="$count-var-name"/></json:string>
+            </json:map>
+        </xsl:copy>
+    </xsl:template>
+    
+    <!-- constructor template -->
+    
+    <!-- identity transform -->
+    <xsl:template match="@* | node()" mode="ldh:add-constructor-triple">
+        <xsl:copy>
+            <xsl:apply-templates select="@* | node()" mode="#current"/>
+        </xsl:copy>
+    </xsl:template>
+    
+    <!-- add a "?this $predicate [ a $object-type ]" pattern to the CONSTRUCT template -->
+    <xsl:template match="json:array[@key = 'template']" mode="ldh:add-constructor-triple" priority="1">
+        <xsl:param name="subject" select="'?this'" as="xs:string" tunnel="yes"/>
+        <xsl:param name="predicate" as="xs:anyURI" tunnel="yes"/>
+        <xsl:param name="object-type"  as="xs:anyURI" tunnel="yes"/>
+
+        <xsl:copy>
+            <xsl:apply-templates select="@* | node()" mode="#current"/>
+
+            <json:map>
+                <json:string key="subject"><xsl:value-of select="$subject"/></json:string>
+                <json:string key="predicate"><xsl:value-of select="$predicate"/></json:string>
+                <json:string key="object">_:<xsl:value-of select="generate-id()"/></json:string>
+            </json:map>
+            <json:map>
+                <json:string key="subject">_:<xsl:value-of select="generate-id()"/></json:string>
+                <json:string key="predicate">&rdf;type</json:string>
+                <json:string key="object"><xsl:value-of select="$object-type"/></json:string>
             </json:map>
         </xsl:copy>
     </xsl:template>

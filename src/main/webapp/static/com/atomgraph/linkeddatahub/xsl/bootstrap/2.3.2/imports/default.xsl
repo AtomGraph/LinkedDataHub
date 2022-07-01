@@ -111,8 +111,8 @@ exclude-result-prefixes="#all"
         <xsl:param name="endpoint" as="xs:anyURI"/>
         <xsl:param name="query" as="xs:string"/>
         
-        <xsl:variable name="query-string" select="replace($query, '\?Type', concat('&lt;', $class, '&gt;'))" as="xs:string"/>
-        <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': string($query-string) })" as="xs:anyURI"/>
+        <xsl:variable name="query-string" select="replace($query, '\$Type', concat('&lt;', $class, '&gt;'))" as="xs:string"/>
+        <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': $query-string })" as="xs:anyURI"/>
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, $ldt:base, $results-uri)" as="xs:anyURI"/>
         <xsl:sequence select="document($request-uri)"/>
     </xsl:function>
@@ -122,8 +122,8 @@ exclude-result-prefixes="#all"
         <xsl:param name="endpoint" as="xs:anyURI"/>
         <xsl:param name="query" as="xs:string"/>
         
-        <xsl:variable name="query-string" select="replace($query, '\?Type', concat('&lt;', $class, '&gt;'))" as="xs:string"/>
-        <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': string($query-string) })" as="xs:anyURI"/>
+        <xsl:variable name="query-string" select="replace($query, '\$Type', concat('&lt;', $class, '&gt;'))" as="xs:string"/>
+        <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': $query-string })" as="xs:anyURI"/>
         <xsl:variable name="request-uri" select="$results-uri" as="xs:anyURI"/> <!-- ldh:href($ldt:base, ldh:absolute-path(ldh:href()), $results-uri) -->
         <xsl:sequence select="document($request-uri)"/>
     </xsl:function>
@@ -133,8 +133,8 @@ exclude-result-prefixes="#all"
         <xsl:param name="endpoint" as="xs:anyURI"/>
         <xsl:param name="query" as="xs:string"/>
         
-        <xsl:variable name="query-string" select="replace($query, '\?Type', concat('&lt;', $class, '&gt;'))" as="xs:string"/>
-        <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': string($query-string) })" as="xs:anyURI"/>
+        <xsl:variable name="query-string" select="replace($query, '\$Type', concat('&lt;', $class, '&gt;'))" as="xs:string"/>
+        <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': $query-string })" as="xs:anyURI"/>
         <xsl:variable name="request-uri" select="$results-uri" as="xs:anyURI"/> <!-- ldh:href($ldt:base, ldh:absolute-path(ldh:href()), $results-uri) -->
         <xsl:sequence select="document($request-uri)"/>
     </xsl:function>
@@ -245,6 +245,19 @@ exclude-result-prefixes="#all"
         <xsl:param name="arg2" as="xs:anyAtomicType*"/>
 
         <xsl:sequence select="distinct-values($arg1[not(.=$arg2)])"/>
+    </xsl:function>
+
+    <xsl:function name="ldh:parse-query-params" as="map(xs:string, xs:string*)">
+        <xsl:param name="query-string" as="xs:string"/>
+
+        <xsl:sequence select="map:merge(
+            for $query in tokenize($query-string, '&amp;')
+            return
+                let $param := tokenize($query, '=')
+                return map:entry(head($param), tail($param))
+            ,
+            map { 'duplicates': 'combine' }
+        )"/>
     </xsl:function>
 
     <!-- SHARED FUNCTIONS -->
@@ -579,7 +592,7 @@ exclude-result-prefixes="#all"
                             <xsl:text> </xsl:text>
                             <xsl:variable name="forClass" select="key('resources', key('resources-by-type', ../../rdf:type/@rdf:resource, $constructor)/*[concat(namespace-uri(), local-name()) = current()/../concat(namespace-uri(), local-name())]/@rdf:nodeID, $constructor)/rdf:type/@rdf:resource[not(. = '&rdfs;Class')]" as="xs:anyURI?"/>
                             <xsl:if test="$forClass">
-                                <!-- forClass input is required by typeahead's FILTER (?Type IN ()) in client.xsl -->
+                                <!-- forClass input is required by typeahead's FILTER ($Type IN ()) in client.xsl -->
                                 <xsl:choose>
                                     <xsl:when test="not($forClass = ('&rdfs;Resource', '&rdfs;Literal')) and doc-available(ac:document-uri($forClass))">
                                         <xsl:variable name="subclasses" select="ldh:listSubClasses($forClass, false(), $ldt:ontology)" as="attribute()*"/>
@@ -702,7 +715,7 @@ exclude-result-prefixes="#all"
                     <xsl:text> </xsl:text>
                     <xsl:variable name="forClass" select="key('resources', key('resources-by-type', ../../rdf:type/@rdf:resource, $constructor)/*[concat(namespace-uri(), local-name()) = current()/../concat(namespace-uri(), local-name())]/@rdf:nodeID, $constructor)/rdf:type/@rdf:resource[not(. = '&rdfs;Class')]" as="xs:anyURI?"/>
                     <xsl:if test="$forClass">
-                        <!-- forClass input is required by typeahead's FILTER (?Type IN ()) in client.xsl -->
+                        <!-- forClass input is required by typeahead's FILTER ($Type IN ()) in client.xsl -->
                         <xsl:choose>
                             <xsl:when test="not($forClass = ('&rdfs;Resource', '&rdfs;Literal')) and doc-available(ac:document-uri($forClass))">
                                 <xsl:variable name="subclasses" select="ldh:listSubClasses($forClass, false(), $ldt:ontology)" as="attribute()*"/>
@@ -801,7 +814,7 @@ exclude-result-prefixes="#all"
         <xsl:text> </xsl:text>
 
         <xsl:variable name="forClass" select="key('resources', .)/rdf:type/@rdf:resource" as="xs:anyURI"/>
-        <!-- forClass input is used by typeahead's FILTER (?Type IN ()) in client.xsl -->
+        <!-- forClass input is used by typeahead's FILTER ($Type IN ()) in client.xsl -->
         <xsl:choose>
             <xsl:when test="not($forClass = '&rdfs;Resource') and doc-available(ac:document-uri($forClass))">
                 <xsl:variable name="subclasses" select="ldh:listSubClasses($forClass, false(), $ldt:ontology)" as="attribute()*"/>
@@ -817,7 +830,7 @@ exclude-result-prefixes="#all"
                 </xsl:apply-templates>
             </xsl:when>
             <xsl:otherwise>
-                <input type="hidden" class="forClass" value="{$forClass}"/> <!-- required by ?Type FILTER -->
+                <input type="hidden" class="forClass" value="{$forClass}"/> <!-- required by $Type FILTER -->
             </xsl:otherwise>
         </xsl:choose>
 
