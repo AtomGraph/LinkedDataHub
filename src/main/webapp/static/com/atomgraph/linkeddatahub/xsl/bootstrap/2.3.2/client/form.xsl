@@ -159,9 +159,27 @@ exclude-result-prefixes="#all"
         <xsl:copy>
             <xsl:apply-templates select="@*" mode="#current"/>
 
-            <p>
-                <xsl:value-of select="$construct-json-string"/>
-            </p>
+            <table>
+                <thead>
+                    <tr>
+                        <td>Property</td>
+                        <td>Object type</td>
+                    </tr>
+                </thead>
+                <tbody>
+                    <xsl:for-each select="$construct-xml/json:map/json:array[@key = 'template']/json:map[json:string[@key = 'subject'] = '?this']">
+                        <tr>
+                            <td>
+                                <xsl:value-of select="json:string[@key = 'predicate']"/>
+                            </td>
+                            <td>
+                                <xsl:variable name="object-bnode-id" select="json:string[@key = 'object']" as="xs:string"/>
+                                <xsl:value-of select="../json:map[json:string[@key = 'subject'] = $object-bnode-id]/json:string[@key = 'object']"/>
+                            </td>
+                        </tr>
+                    </xsl:for-each>
+                </tbody>
+            </table>
         </xsl:copy>
     </xsl:template>
     
