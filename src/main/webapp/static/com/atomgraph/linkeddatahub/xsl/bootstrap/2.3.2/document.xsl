@@ -870,7 +870,7 @@ extension-element-prefixes="ixsl"
                 </div>
             </div>
             
-            <div about="{.}" class="row-fluid constructor-template">
+            <div id="{generate-id()}-constructor" about="{.}" class="row-fluid constructor-template">
                 <input type="hidden" name="construct-string" value="{key('resources', ., document(ac:document-uri(.)))/sp:text}"/>
             </div>
         </xsl:for-each>
