@@ -860,7 +860,11 @@ extension-element-prefixes="ixsl"
         <xsl:param name="class" as="xs:anyURI"/>
         <xsl:param name="constructor-query" as="xs:string"/>
         <xsl:param name="constructors" select="spin:constructors($class, resolve-uri('ns', $ldt:base), $constructor-query)" as="document-node()"/>
-
+        
+        <xsl:message>WTF
+            <xsl:copy-of select="$constructors"/>
+        </xsl:message>
+        
         <xsl:for-each select="$constructors//srx:binding[@name = 'constructor']/srx:uri">
             <h2>
                 <xsl:value-of select="."/>
