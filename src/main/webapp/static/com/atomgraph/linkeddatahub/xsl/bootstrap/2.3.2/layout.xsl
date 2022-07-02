@@ -157,7 +157,7 @@ exclude-result-prefixes="#all">
             SELECT  *
             WHERE
               {
-                ?Type  ldh:template  ?content
+                $Type  ldh:template  ?content
               }
         ]]>
     </xsl:variable>
@@ -170,7 +170,7 @@ exclude-result-prefixes="#all">
 
             SELECT  ?property
             WHERE
-              { ?Type (rdfs:subClassOf)*/spin:constraint  ?constraint .
+              { $Type (rdfs:subClassOf)*/spin:constraint  ?constraint .
                 ?constraint  a             ldh:MissingPropertyValue ;
                           sp:arg1          ?property
               }
@@ -184,7 +184,7 @@ exclude-result-prefixes="#all">
 
             SELECT  ?construct
             WHERE
-              { ?Type (rdfs:subClassOf)*/spin:constructor  ?constructor .
+              { $Type (rdfs:subClassOf)*/spin:constructor  ?constructor .
                 ?constructor sp:text ?construct .
               }
         ]]>
