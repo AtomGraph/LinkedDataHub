@@ -62,19 +62,6 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.endpoint'))"/>
     </xsl:function>
     
-    <xsl:function name="ldh:parse-query-params" as="map(xs:string, xs:string*)">
-        <xsl:param name="query-string" as="xs:string"/>
-
-        <xsl:sequence select="map:merge(
-            for $query in tokenize($query-string, '&amp;')
-            return
-                let $param := tokenize($query, '=')
-                return map:entry(head($param), tail($param))
-            ,
-            map { 'duplicates': 'combine' }
-        )"/>
-    </xsl:function>
-
     <xsl:function name="ldh:decode-uri" as="xs:anyURI?">
         <xsl:param name="encoded-uri" as="xs:string?"/>
 

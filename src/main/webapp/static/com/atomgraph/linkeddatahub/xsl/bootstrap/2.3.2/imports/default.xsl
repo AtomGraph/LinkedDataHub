@@ -247,6 +247,19 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="distinct-values($arg1[not(.=$arg2)])"/>
     </xsl:function>
 
+    <xsl:function name="ldh:parse-query-params" as="map(xs:string, xs:string*)">
+        <xsl:param name="query-string" as="xs:string"/>
+
+        <xsl:sequence select="map:merge(
+            for $query in tokenize($query-string, '&amp;')
+            return
+                let $param := tokenize($query, '=')
+                return map:entry(head($param), tail($param))
+            ,
+            map { 'duplicates': 'combine' }
+        )"/>
+    </xsl:function>
+
     <!-- SHARED FUNCTIONS -->
 
     <!-- TO-DO: move down to Web-Client -->
