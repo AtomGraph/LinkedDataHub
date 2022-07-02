@@ -122,6 +122,7 @@ import com.atomgraph.linkeddatahub.vocabulary.LAPP;
 import com.atomgraph.linkeddatahub.writer.Mode;
 import com.atomgraph.linkeddatahub.writer.ModelXSLTWriterBase;
 import com.atomgraph.linkeddatahub.writer.factory.ModeFactory;
+import com.atomgraph.linkeddatahub.writer.function.DecodeURI;
 import com.atomgraph.processor.vocabulary.AP;
 import com.atomgraph.processor.vocabulary.LDT;
 import com.atomgraph.server.mapper.OntologyExceptionMapper;
@@ -701,8 +702,7 @@ public class Application extends ResourceConfig
             }
 
             xsltProc.registerExtensionFunction(new UUID());
-//            xsltProc.registerExtensionFunction(new Construct(xsltProc));
-//            xsltProc.registerExtensionFunction(new ConstructForClass(xsltProc));
+            xsltProc.registerExtensionFunction(new DecodeURI());
             xsltProc.registerExtensionFunction(new com.atomgraph.linkeddatahub.writer.function.Construct(xsltProc));
             
             Model mappingModel = locationMapper.toModel();

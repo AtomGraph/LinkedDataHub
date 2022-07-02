@@ -62,7 +62,7 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.endpoint'))"/>
     </xsl:function>
     
-    <xsl:function name="ldh:decode-uri" as="xs:anyURI?">
+    <xsl:function name="ldh:decode-uri" as="xs:anyURI?" use-when="system-property('xsl:product-name') eq 'SaxonJS'">
         <xsl:param name="encoded-uri" as="xs:string?"/>
 
         <xsl:if test="$encoded-uri">
