@@ -858,6 +858,7 @@ extension-element-prefixes="ixsl"
     
     <xsl:template match="rdf:RDF" mode="bs2:ConstructorMode">
         <xsl:param name="class" as="xs:anyURI"/>
+        <xsl:param name="constructor-query" as="xs:string"/>
         <xsl:param name="constructors" select="spin:constructors($class, resolve-uri('ns', $ldt:base), $constructor-query)" as="document-node()"/>
 
         <xsl:for-each select="$constructors//srx:binding[@name = 'constructor']/srx:uri">
