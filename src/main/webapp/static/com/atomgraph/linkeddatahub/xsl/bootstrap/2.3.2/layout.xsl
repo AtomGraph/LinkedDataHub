@@ -807,6 +807,11 @@ LIMIT   100
                             <xsl:sort select="ac:label(.)"/>
                         </xsl:apply-templates>
                     </xsl:when>
+                    <xsl:when test="$ac:mode = '&ldh;ConstructorMode'">
+                        <xsl:apply-templates select="." mode="bs2:ConstructorMode">
+                            <xsl:with-param name="class" select="ldh:parse-query-params(substring-after($ldh:requestUri, '?'))?class/xs:anyURI(.)"/>
+                        </xsl:apply-templates>
+                    </xsl:when>
                     <xsl:otherwise>
                         <xsl:apply-templates select="." mode="bs2:Row">
                             <xsl:sort select="ac:label(.)"/>

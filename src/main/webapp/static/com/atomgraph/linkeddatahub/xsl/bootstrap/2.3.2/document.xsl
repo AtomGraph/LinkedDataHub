@@ -853,5 +853,18 @@ extension-element-prefixes="ixsl"
     <xsl:template match="rdf:RDF" mode="bs2:Object">
         <xsl:apply-templates mode="#current"/>
     </xsl:template>
+
+    <!-- CONSTRUCTOR MODE -->
+    
+    <xsl:template match="rdf:RDF" mode="bs2:ConstructorMode">
+        <xsl:param name="class" as="xs:anyURI"/>
+        <xsl:param name="constructors" select="spin:constructors($class, resolve-uri('ns', $ldt:base), $constructor-query)" as="document-node()"/>
+
+        <xsl:for-each select="$constructors//srx:binding[@name = 'constructor']/srx:uri">
+            <h2>
+                <xsl:value-of select="."/>
+            </h2>
+        </xsl:for-each>
+    </xsl:template>
     
 </xsl:stylesheet>
