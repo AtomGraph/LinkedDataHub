@@ -866,9 +866,11 @@ extension-element-prefixes="ixsl"
         </xsl:message>
         
         <xsl:for-each select="$constructors//srx:binding[@name = 'constructor']/srx:uri">
-            <h2>
-                <xsl:value-of select="."/>
-            </h2>
+            <div>
+                <h2>
+                    <xsl:apply-templates select="key('resources', ., document(ac:document-uri(.)))" mode="ac:label"/>
+                </h2>
+            </div>
         </xsl:for-each>
     </xsl:template>
     
