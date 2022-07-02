@@ -182,7 +182,7 @@ exclude-result-prefixes="#all">
             PREFIX  sp:   <http://spinrdf.org/sp#>
             PREFIX  spin: <http://spinrdf.org/spin#>
 
-            SELECT  ?construct
+            SELECT  ?constructor ?construct
             WHERE
               { $Type (rdfs:subClassOf)*/spin:constructor  ?constructor .
                 ?constructor sp:text ?construct .
