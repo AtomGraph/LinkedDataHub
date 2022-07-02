@@ -581,6 +581,18 @@ WHERE
                 </xsl:for-each>
             </xsl:if>
 
+            <!-- load constructor templates -->
+            <xsl:variable name="constructor-template-ids" select="key('elements-by-class', 'constructor-template', ixsl:page())/@id" as="xs:string*"/>
+            <xsl:if test="not(empty($constructor-template-ids))">
+                <xsl:variable name="containers" select="id($constructor-template-ids, ixsl:page())" as="element()*"/>
+                <xsl:for-each select="$containers">
+                    <xsl:call-template name="ldh:LoadConstructor">
+                        <xsl:with-param name="uri" select="$uri"/>
+                        <xsl:with-param name="acl-modes" select="$acl-modes"/>
+                    </xsl:call-template>
+                </xsl:for-each>
+            </xsl:if>
+            
             <!-- add "Edit" buttons to XHTML content -->
             <xsl:if test="acl:mode() = '&acl;Write'">
                 <!-- enable .btn-edit if it's present -->

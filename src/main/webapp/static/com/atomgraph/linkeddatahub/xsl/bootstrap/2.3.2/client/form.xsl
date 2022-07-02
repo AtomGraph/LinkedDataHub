@@ -37,6 +37,51 @@ exclude-result-prefixes="#all"
 
     <!-- TEMPLATES -->
 
+    <!-- render constructor template -->
+
+    <xsl:template name="ldh:LoadConstructor">
+        <xsl:context-item as="element()" use="required"/> <!-- container element -->
+        <xsl:param name="uri" as="xs:anyURI"/> <!-- document URI -->
+        <xsl:param name="acl-modes" as="xs:anyURI*"/>
+        <xsl:variable name="constructor-uri" select="@about" as="xs:anyURI"/>
+        <xsl:variable name="construct-string" select="input[@name = 'construct-string']/@value" as="xs:string"/>
+        <xsl:message>$construct-string: <xsl:value-of select="serialize($construct-string)"/></xsl:message>
+        <xsl:variable name="construct-json" as="item()">
+            <xsl:variable name="construct-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'fromString', [ $construct-string ])"/>
+            <xsl:sequence select="ixsl:call($construct-builder, 'build', [])"/>
+        </xsl:variable>
+        <xsl:variable name="construct-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $construct-json ])" as="xs:string"/>
+        <xsl:variable name="construct-xml" select="json-to-xml($construct-json-string)" as="document-node()"/>
+
+        <xsl:result-document href="?." method="ixsl:replace-content">
+            <div class="offset2 span7">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Property</th>
+                            <th>Object type</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <xsl:for-each select="$construct-xml/json:map/json:array[@key = 'template']/json:map[json:string[@key = 'subject'] = '?this']">
+                            <xsl:sort select="json:string[@key = 'predicate']"/>
+
+                            <tr>
+                                <td>
+                                    <xsl:value-of select="json:string[@key = 'predicate']"/>
+                                </td>
+                                <td>
+                                    <xsl:variable name="object-bnode-id" select="json:string[@key = 'object']" as="xs:string"/>
+                                    <xsl:value-of select="../json:map[json:string[@key = 'subject'] = $object-bnode-id]/json:string[@key = 'object']"/>
+                                </td>
+                            </tr>
+                        </xsl:for-each>
+                    </tbody>
+                </table>
+            </div>
+        </xsl:result-document>
+    </xsl:template>
+
 <!--    <xsl:template name="typeahead:xml-loaded">
         <xsl:context-item as="map(*)" use="required"/>
 
@@ -143,46 +188,7 @@ exclude-result-prefixes="#all"
             <xsl:attribute name="value" select="ixsl:call(ixsl:window(), 'generateUUID', [])"/>
         </xsl:copy>
     </xsl:template>
-    
-    <!-- replace sp:text textarea with a constructor editor -->
-    <xsl:template match="div[contains-token(@class, 'control-group')][input[@name = 'pu']/@value = '&sp;text']/div[contains-token(@class, 'controls')][textarea]" mode="form" priority="1">
-        <xsl:variable name="construct-string" select="textarea/text()" as="xs:string"/>
-        <xsl:message>$construct-string: <xsl:value-of select="serialize($construct-string)"/></xsl:message>
         
-        <xsl:variable name="construct-json" as="item()">
-            <xsl:variable name="construct-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'fromString', [ $construct-string ])"/>
-            <xsl:sequence select="ixsl:call($construct-builder, 'build', [])"/>
-        </xsl:variable>
-        <xsl:variable name="construct-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $construct-json ])" as="xs:string"/>
-        <xsl:variable name="construct-xml" select="json-to-xml($construct-json-string)" as="document-node()"/>
-
-        <xsl:copy>
-            <xsl:apply-templates select="@*" mode="#current"/>
-
-            <table>
-                <thead>
-                    <tr>
-                        <td>Property</td>
-                        <td>Object type</td>
-                    </tr>
-                </thead>
-                <tbody>
-                    <xsl:for-each select="$construct-xml/json:map/json:array[@key = 'template']/json:map[json:string[@key = 'subject'] = '?this']">
-                        <tr>
-                            <td>
-                                <xsl:value-of select="json:string[@key = 'predicate']"/>
-                            </td>
-                            <td>
-                                <xsl:variable name="object-bnode-id" select="json:string[@key = 'object']" as="xs:string"/>
-                                <xsl:value-of select="../json:map[json:string[@key = 'subject'] = $object-bnode-id]/json:string[@key = 'object']"/>
-                            </td>
-                        </tr>
-                    </xsl:for-each>
-                </tbody>
-            </table>
-        </xsl:copy>
-    </xsl:template>
-    
     <xsl:template match="@* | node()" mode="form">
         <xsl:copy>
             <xsl:apply-templates select="@* | node()" mode="#current"/>
