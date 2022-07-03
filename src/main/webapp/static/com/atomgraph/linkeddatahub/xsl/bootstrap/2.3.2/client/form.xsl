@@ -57,10 +57,14 @@ exclude-result-prefixes="#all"
             <div class="offset2 span7">
                 <div class="row-fluid">
                     <div class="span6">
-                        <p>Property</p>
+                        <p>
+                            <strong>Property</strong>
+                        </p>
                     </div>
                     <div class="span6">
-                        <p>Object type</p>
+                        <p>
+                            <strong>Object type</strong>
+                        </p>
                     </div>
                 </div>
                 
@@ -69,22 +73,26 @@ exclude-result-prefixes="#all"
 
                     <div class="row-fluid">
                         <div class="span6">
-                            <xsl:value-of select="json:string[@key = 'predicate']"/>
+                            <p>
+                                <xsl:value-of select="json:string[@key = 'predicate']"/>
+                            </p>
                         </div>
                         <div class="span6">
-                            <xsl:variable name="object-bnode-id" select="json:string[@key = 'object']" as="xs:string"/>
-                            <xsl:variable name="object-type" select="../json:map[json:string[@key = 'subject'] = $object-bnode-id]/json:string[@key = 'object']" as="xs:anyURI"/>
-                            <xsl:choose>
-                                <xsl:when test="starts-with($object-type, '&xsd;')">
-                                    <xsl:value-of select="$object-type"/>
-                                </xsl:when>
-                                <xsl:otherwise>
-                                    <xsl:variable name="request-uri" select="ac:build-uri($ldt:base, map{ 'uri': ac:document-uri($object-type), 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
-                                    <xsl:apply-templates select="key('resources', $object-type, document($request-uri))" mode="ldh:Typeahead">
-                                        <xsl:with-param name="class" select="'btn add-typeahead add-typetypeahead'"/>
-                                    </xsl:apply-templates>
-                                </xsl:otherwise>
-                            </xsl:choose>
+                            <p>
+                                <xsl:variable name="object-bnode-id" select="json:string[@key = 'object']" as="xs:string"/>
+                                <xsl:variable name="object-type" select="../json:map[json:string[@key = 'subject'] = $object-bnode-id]/json:string[@key = 'object']" as="xs:anyURI"/>
+                                <xsl:choose>
+                                    <xsl:when test="starts-with($object-type, '&xsd;')">
+                                        <xsl:value-of select="$object-type"/>
+                                    </xsl:when>
+                                    <xsl:otherwise>
+                                        <xsl:variable name="request-uri" select="ac:build-uri($ldt:base, map{ 'uri': ac:document-uri($object-type), 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
+                                        <xsl:apply-templates select="key('resources', $object-type, document($request-uri))" mode="ldh:Typeahead">
+                                            <xsl:with-param name="class" select="'btn add-typeahead add-typetypeahead'"/>
+                                        </xsl:apply-templates>
+                                    </xsl:otherwise>
+                                </xsl:choose>
+                            </p>
                         </div>
                     </div>
                 </xsl:for-each>
