@@ -78,7 +78,8 @@ exclude-result-prefixes="#all"
                                             <xsl:value-of select="$object-type"/>
                                         </xsl:when>
                                         <xsl:otherwise>
-                                            <xsl:apply-templates select="key('resources', $object-type, document(ac:document-uri($object-type)))" mode="ldh:Typeahead"/>
+                                            <xsl:variable name="request-uri" select="ac:build-uri($ldt:base, map{ 'uri': ac:document-uri($object-type), 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
+                                            <xsl:apply-templates select="key('resources', $object-type, document($request-uri))" mode="ldh:Typeahead"/>
                                         </xsl:otherwise>
                                     </xsl:choose>
                                 </td>
