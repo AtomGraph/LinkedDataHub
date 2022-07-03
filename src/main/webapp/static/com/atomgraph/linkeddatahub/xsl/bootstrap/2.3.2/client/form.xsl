@@ -72,7 +72,15 @@ exclude-result-prefixes="#all"
                                 </td>
                                 <td>
                                     <xsl:variable name="object-bnode-id" select="json:string[@key = 'object']" as="xs:string"/>
-                                    <xsl:value-of select="../json:map[json:string[@key = 'subject'] = $object-bnode-id]/json:string[@key = 'object']"/>
+                                    <xsl:variable name="object-type" select="../json:map[json:string[@key = 'subject'] = $object-bnode-id]/json:string[@key = 'object']" as="xs:anyURI"/>
+                                    <xsl:choose>
+                                        <xsl:when test="starts-with($object-type, '&xsd;')">
+                                            <xsl:value-of select="$object-type"/>
+                                        </xsl:when>
+                                        <xsl:otherwise>
+                                            <xsl:apply-templates select="key('resources', $object-type, document(ac:document-uri($object-type)))" mode="ldh:Typeahead"/>
+                                        </xsl:otherwise>
+                                    </xsl:choose>
                                 </td>
                             </tr>
                         </xsl:for-each>
