@@ -79,7 +79,9 @@ exclude-result-prefixes="#all"
                                         </xsl:when>
                                         <xsl:otherwise>
                                             <xsl:variable name="request-uri" select="ac:build-uri($ldt:base, map{ 'uri': ac:document-uri($object-type), 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
-                                            <xsl:apply-templates select="key('resources', $object-type, document($request-uri))" mode="ldh:Typeahead"/>
+                                            <xsl:apply-templates select="key('resources', $object-type, document($request-uri))" mode="ldh:Typeahead">
+                                                <xsl:with-param name="class" select="'btn add-typeahead type-typeahead'"/>
+                                            </xsl:apply-templates>
                                         </xsl:otherwise>
                                     </xsl:choose>
                                 </td>
