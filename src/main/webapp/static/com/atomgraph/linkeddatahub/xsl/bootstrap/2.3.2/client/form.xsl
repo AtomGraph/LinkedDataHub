@@ -353,8 +353,8 @@ exclude-result-prefixes="#all"
         </xsl:if>
     </xsl:template>
     
-    <!-- classes are looked up in the <ns> endpoint -->
-    <xsl:template match="input[contains-token(@class, 'class-typeahead')]" mode="ixsl:onkeyup" priority="1">
+    <!-- classes and properties are looked up in the <ns> endpoint -->
+    <xsl:template match="input[contains-token(@class, 'class-typeahead')] | input[contains-token(@class, 'property-typeahead')]" mode="ixsl:onkeyup" priority="1">
         <xsl:next-match>
             <xsl:with-param name="endpoint" select="resolve-uri('ns', $ldt:base)"/>
             <xsl:with-param name="select-string" select="$select-labelled-string"/>
@@ -459,7 +459,13 @@ exclude-result-prefixes="#all"
             <xsl:with-param name="typeahead-class" select="'btn add-typeahead add-class-typeahead'"/>
         </xsl:next-match>
     </xsl:template>
-    
+
+    <xsl:template match="ul[contains-token(@class, 'dropdown-menu')][contains-token(@class, 'property-typeahead')]/li" mode="ixsl:onmousedown" priority="2">
+        <xsl:next-match>
+            <xsl:with-param name="typeahead-class" select="'btn add-typeahead add-property-typeahead'"/>
+        </xsl:next-match>
+    </xsl:template>
+
     <!-- select .type-typeahead item (priority over plain .typeahead) -->
     
     <xsl:template match="ul[contains-token(@class, 'dropdown-menu')][contains-token(@class, 'type-typeahead')]/li" mode="ixsl:onmousedown" priority="1">
@@ -611,6 +617,14 @@ exclude-result-prefixes="#all"
         <xsl:next-match>
             <xsl:with-param name="lookup-class" select="'class-typeahead typeahead'"/>
             <xsl:with-param name="lookup-list-class" select="'class-typeahead typeahead dropdown-menu'" as="xs:string"/>
+        </xsl:next-match>
+    </xsl:template>
+
+    <!-- special case for property lookups -->
+    <xsl:template match="button[contains-token(@class, 'add-property-typeahead')]" mode="ixsl:onclick" priority="1">
+        <xsl:next-match>
+            <xsl:with-param name="lookup-class" select="'property-typeahead typeahead'"/>
+            <xsl:with-param name="lookup-list-class" select="'property-typeahead typeahead dropdown-menu'" as="xs:string"/>
         </xsl:next-match>
     </xsl:template>
 
