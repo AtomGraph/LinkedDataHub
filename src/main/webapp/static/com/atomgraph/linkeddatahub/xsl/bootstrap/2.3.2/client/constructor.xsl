@@ -68,10 +68,12 @@ exclude-result-prefixes="#all"
                     <xsl:sort select="json:string[@key = 'predicate']"/>
                 </xsl:apply-templates>
             </div>
-            <div class="offset2 span7">
-                <p>
-                    <button type="button" class="btn btn-primary create-action add-triple-template">Triple template</button>
-                </p>
+            <div class="row-fluid">
+                <div class="offset2 span7">
+                    <p>
+                        <button type="button" class="btn btn-primary create-action add-triple-template">Triple template</button>
+                    </p>
+                </div>
             </div>
             <div class="row-fluid">
                 <div class="offset2 span7">
