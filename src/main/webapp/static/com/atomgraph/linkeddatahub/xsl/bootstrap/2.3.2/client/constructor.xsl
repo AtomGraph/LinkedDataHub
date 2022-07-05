@@ -85,10 +85,14 @@ exclude-result-prefixes="#all"
                         </div>
                         <div class="span4">
                             <p>
-                                <select>
-                                    <option value="&rdfs;Resource">Resource</option>
-                                    <option value="&rdfs;Literal">Literal</option>
-                                </select>
+                                <label class="radio">
+                                    <input type="radio" name="{generate-id()}-object-kind" value="&rdfs;Resource" checked="checked"/>
+                                    <xsl:text>Resource</xsl:text>
+                                </label>
+                                <label class="radio">
+                                    <input type="radio" name="{generate-id()}-object-kind" value="&rdfs;Literal"/>
+                                    <xsl:text>Literal</xsl:text>
+                                </label>
                             </p>
                         </div>
                         <div class="span4">
