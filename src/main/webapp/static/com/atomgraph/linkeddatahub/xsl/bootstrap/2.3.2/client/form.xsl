@@ -443,10 +443,10 @@ exclude-result-prefixes="#all"
             <xsl:with-param name="menu" select="$menu"/>
         </xsl:call-template>
     </xsl:template>
-    
-    <xsl:template match="ul[contains-token(@class, 'dropdown-menu')][contains-token(@class, 'type-typeahead')]/li" mode="ixsl:onmousedown" priority="1">
+
+    <xsl:template match="ul[contains-token(@class, 'dropdown-menu')][contains-token(@class, 'class-typeahead')]/li" mode="ixsl:onmousedown" priority="2">
         <xsl:next-match>
-            <xsl:with-param name="typeahead-class" select="'btn add-typeahead add-type-typeahead'"/>
+            <xsl:with-param name="typeahead-class" select="'btn add-typeahead add-class-typeahead'"/>
         </xsl:next-match>
     </xsl:template>
     
