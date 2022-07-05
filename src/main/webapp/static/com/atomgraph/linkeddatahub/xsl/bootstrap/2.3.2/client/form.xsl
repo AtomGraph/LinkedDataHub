@@ -481,8 +481,8 @@ exclude-result-prefixes="#all"
         <xsl:for-each select="..">
             <xsl:result-document href="?." method="ixsl:replace-content">
                 <xsl:call-template name="bs2:Lookup">
-                    <xsl:with-param name="class" select="$lookup-class"/>
                     <xsl:with-param name="id" select="'input-' || $uuid"/>
+                    <xsl:with-param name="class" select="$lookup-class"/>
                     <xsl:with-param name="list-class" select="$lookup-list-class"/>
                 </xsl:call-template>
             </xsl:result-document>
