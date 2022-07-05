@@ -76,18 +76,21 @@ exclude-result-prefixes="#all"
                 <xsl:for-each select="$construct-xml/json:map/json:array[@key = 'template']/json:map[json:string[@key = 'subject'] = '?this']">
                     <xsl:sort select="json:string[@key = 'predicate']"/>
 
+                    <xsl:variable name="predicate" select="json:string[@key = 'predicate']" as="xs:anyURI"/>
+                    <xsl:variable name="request-uri" select="ac:build-uri($ldt:base, map{ 'uri': ac:document-uri($predicate), 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
+
                     <div class="row-fluid">
                         <div class="span4">
                             <p>
-                                <xsl:variable name="predicate" select="json:string[@key = 'predicate']" as="xs:anyURI"/>
-                                <xsl:variable name="request-uri" select="ac:build-uri($ldt:base, map{ 'uri': ac:document-uri($predicate), 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
-                                
                                 <span>
                                     <xsl:apply-templates select="key('resources', $predicate, document($request-uri))" mode="ldh:Typeahead">
                                         <xsl:with-param name="class" select="'btn add-typeahead add-property-typeahead'"/>
                                     </xsl:apply-templates>
                                 </span>
                             </p>
+                            
+                            <!-- used by typeahead to set $Type -->
+                            <input type="hidden" class="forClass" value="&rdf;Property" autocomplete="off"/>
                         </div>
                         <div class="span4">
                             <p>
