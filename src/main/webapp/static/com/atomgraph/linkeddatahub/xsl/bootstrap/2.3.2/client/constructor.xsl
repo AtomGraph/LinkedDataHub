@@ -47,17 +47,17 @@ exclude-result-prefixes="#all"
         <xsl:result-document href="?." method="ixsl:replace-content">
             <div class="offset2 span7">
                 <div class="row-fluid">
-                    <div class="span4">
+                    <div class="span5">
                         <p>
                             <strong>Property</strong>
                         </p>
                     </div>
-                    <div class="span4">
+                    <div class="span2">
                         <p>
                             <strong>Object kind</strong>
                         </p>
                     </div>
-                    <div class="span4">
+                    <div class="span5">
                         <p>
                             <strong>Object type</strong>
                         </p>
@@ -71,7 +71,7 @@ exclude-result-prefixes="#all"
                     <xsl:variable name="request-uri" select="ac:build-uri($ldt:base, map{ 'uri': ac:document-uri($predicate), 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
 
                     <div class="row-fluid">
-                        <div class="span4">
+                        <div class="span5">
                             <p>
                                 <span>
                                     <xsl:apply-templates select="key('resources', $predicate, document($request-uri))" mode="ldh:Typeahead">
@@ -83,7 +83,7 @@ exclude-result-prefixes="#all"
                             <!-- used by typeahead to set $Type -->
                             <input type="hidden" class="forClass" value="&rdf;Property" autocomplete="off"/>
                         </div>
-                        <div class="span4">
+                        <div class="span2">
                             <p>
                                 <label class="radio">
                                     <input type="radio" name="{generate-id()}-object-kind" value="&rdfs;Resource" checked="checked"/>
@@ -95,7 +95,7 @@ exclude-result-prefixes="#all"
                                 </label>
                             </p>
                         </div>
-                        <div class="span4">
+                        <div class="span5">
                             <xsl:variable name="object-bnode-id" select="json:string[@key = 'object']" as="xs:string"/>
                             <xsl:variable name="object-type" select="../json:map[json:string[@key = 'subject'] = $object-bnode-id]/json:string[@key = 'object']" as="xs:anyURI"/>
                             <xsl:choose>
