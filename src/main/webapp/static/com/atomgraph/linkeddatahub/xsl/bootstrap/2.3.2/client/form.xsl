@@ -91,26 +91,29 @@ exclude-result-prefixes="#all"
                             </p>
                         </div>
                         <div class="span4">
-                            <p>
-                                <xsl:variable name="object-bnode-id" select="json:string[@key = 'object']" as="xs:string"/>
-                                <xsl:variable name="object-type" select="../json:map[json:string[@key = 'subject'] = $object-bnode-id]/json:string[@key = 'object']" as="xs:anyURI"/>
-                                <xsl:choose>
-                                    <xsl:when test="starts-with($object-type, '&xsd;')">
+                            <xsl:variable name="object-bnode-id" select="json:string[@key = 'object']" as="xs:string"/>
+                            <xsl:variable name="object-type" select="../json:map[json:string[@key = 'subject'] = $object-bnode-id]/json:string[@key = 'object']" as="xs:anyURI"/>
+                            <xsl:choose>
+                                <xsl:when test="starts-with($object-type, '&xsd;')">
+                                    <p>
                                         <xsl:value-of select="$object-type"/>
-                                    </xsl:when>
-                                    <xsl:otherwise>
-                                        <xsl:variable name="request-uri" select="ac:build-uri($ldt:base, map{ 'uri': ac:document-uri($object-type), 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
-                                        
+                                    </p>
+                                </xsl:when>
+                                <xsl:otherwise>
+                                    <xsl:variable name="request-uri" select="ac:build-uri($ldt:base, map{ 'uri': ac:document-uri($object-type), 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
+
+                                    <p>
                                         <span>
                                             <xsl:apply-templates select="key('resources', $object-type, document($request-uri))" mode="ldh:Typeahead">
                                                 <xsl:with-param name="class" select="'btn add-typeahead add-class-typeahead'"/>
                                             </xsl:apply-templates>
                                         </span>
-                                        
-                                        <input type="hidden" class="forClass" value="&rdfs;Class" autocomplete="off"/>
-                                    </xsl:otherwise>
-                                </xsl:choose>
-                            </p>
+                                    </p>
+
+                                    <!-- used by typeahead to set $Type -->
+                                    <input type="hidden" class="forClass" value="&rdfs;Class" autocomplete="off"/>
+                                </xsl:otherwise>
+                            </xsl:choose>
                         </div>
                     </div>
                 </xsl:for-each>
@@ -361,7 +364,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="menu" select="following-sibling::ul" as="element()"/>
         <xsl:param name="delay" select="400" as="xs:integer"/>
         <xsl:param name="endpoint" select="sd:endpoint()" as="xs:anyURI"/>
-        <xsl:param name="resource-types" select="ancestor::div[@class = 'controls']/input[@class = 'forClass']/@value" as="xs:anyURI*"/>
+        <xsl:param name="resource-types" select="ancestor::div/input[@class = 'forClass']/@value" as="xs:anyURI*"/> <!-- [@class = 'controls'] -->
         <xsl:param name="select-string" select="$select-labelled-string" as="xs:string?"/>
         <xsl:param name="limit" select="100" as="xs:integer?"/>
         <xsl:variable name="key-code" select="ixsl:get(ixsl:event(), 'code')" as="xs:string"/>
