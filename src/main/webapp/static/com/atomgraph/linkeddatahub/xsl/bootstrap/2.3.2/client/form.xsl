@@ -45,7 +45,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="acl-modes" as="xs:anyURI*"/>
         <xsl:variable name="constructor-uri" select="@about" as="xs:anyURI"/>
         <xsl:variable name="construct-string" select="input[@name = 'construct-string']/@value" as="xs:string"/>
-        <xsl:message>$construct-string: <xsl:value-of select="serialize($construct-string)"/></xsl:message>
+        <!--<xsl:message>$construct-string: <xsl:value-of select="serialize($construct-string)"/></xsl:message>-->
         <xsl:variable name="construct-json" as="item()">
             <xsl:variable name="construct-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'fromString', [ $construct-string ])"/>
             <xsl:sequence select="ixsl:call($construct-builder, 'build', [])"/>
@@ -79,7 +79,14 @@ exclude-result-prefixes="#all"
                     <div class="row-fluid">
                         <div class="span6">
                             <p>
-                                <xsl:value-of select="json:string[@key = 'predicate']"/>
+                                <xsl:variable name="predicate" select="json:string[@key = 'predicate']" as="xs:anyURI"/>
+                                <xsl:variable name="request-uri" select="ac:build-uri($ldt:base, map{ 'uri': ac:document-uri($predicate), 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
+                                
+                                <span>
+                                    <xsl:apply-templates select="key('resources', $predicate, document($request-uri))" mode="ldh:Typeahead">
+                                        <xsl:with-param name="class" select="'btn add-typeahead add-property-typeahead'"/>
+                                    </xsl:apply-templates>
+                                </span>
                             </p>
                         </div>
                         <div class="span3">
