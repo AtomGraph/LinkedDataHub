@@ -126,8 +126,8 @@ PREFIX  schema2: <https://schema.org/>
 SELECT DISTINCT  ?resource
 WHERE
   { GRAPH ?graph
-      { ?resource  a  ?Type .
-        ?resource (((((((((rdfs:label|dc:title)|dct:title)|foaf:name)|foaf:givenName)|foaf:familyName)|sioc:name)|skos:prefLabel)|sioc:content)|schema1:name)|schema2:name ?label
+      { ?resource  a  $Type .
+        ?resource (((((((((rdfs:label|dc:title)|dct:title)|foaf:name)|foaf:givenName)|foaf:familyName)|sioc:name)|skos:prefLabel)|sioc:content)|schema1:name)|schema2:name $label
         FILTER isURI(?resource)
       }
   }

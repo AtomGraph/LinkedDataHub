@@ -813,7 +813,7 @@ extension-element-prefixes="ixsl"
         <xsl:variable name="forClass" select="@rdf:about" as="xs:anyURI"/>
 
         <xsl:if test="doc-available(ac:document-uri($forClass))">
-            <!-- this is used for typeahead's FILTER ?Type -->
+            <!-- this is used for typeahead's FILTER $Type -->
             <input type="hidden" class="forClass" value="{$forClass}"/>
 
             <!-- if $forClass subclasses are provided, render a dropdown with multiple constructor choices. Otherwise, only render a single constructor button for $forClass -->

@@ -45,7 +45,7 @@ exclude-result-prefixes="#all">
         
         <xsl:text> </xsl:text>
 
-        <!-- forClass input is used by typeahead's FILTER (?Type IN ()) in client.xsl. Not the same as $ac:forClass! -->
+        <!-- forClass input is used by typeahead's FILTER ($Type IN ()) in client.xsl. Not the same as $ac:forClass! -->
         <xsl:variable name="forClass" select="key('resources', .)/rdf:type/@rdf:resource" as="xs:anyURI"/>
         <xsl:choose>
             <xsl:when test="not($forClass = '&rdfs;Resource') and doc-available(ac:document-uri($forClass))">

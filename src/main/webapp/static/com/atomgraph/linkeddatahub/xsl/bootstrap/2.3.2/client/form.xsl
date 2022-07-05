@@ -61,7 +61,12 @@ exclude-result-prefixes="#all"
                             <strong>Property</strong>
                         </p>
                     </div>
-                    <div class="span6">
+                    <div class="span2">
+                        <p>
+                            <strong>Object kind</strong>
+                        </p>
+                    </div>
+                    <div class="span4">
                         <p>
                             <strong>Object type</strong>
                         </p>
@@ -77,7 +82,15 @@ exclude-result-prefixes="#all"
                                 <xsl:value-of select="json:string[@key = 'predicate']"/>
                             </p>
                         </div>
-                        <div class="span6">
+                        <div class="span2">
+                            <p>
+                                <select>
+                                    <option value="&rdfs;Resource">Resource</option>
+                                    <option value="&rdfs;Literal">Literal</option>
+                                </select>
+                            </p>
+                        </div>
+                        <div class="span4">
                             <p>
                                 <xsl:variable name="object-bnode-id" select="json:string[@key = 'object']" as="xs:string"/>
                                 <xsl:variable name="object-type" select="../json:map[json:string[@key = 'subject'] = $object-bnode-id]/json:string[@key = 'object']" as="xs:anyURI"/>
@@ -88,7 +101,7 @@ exclude-result-prefixes="#all"
                                     <xsl:otherwise>
                                         <xsl:variable name="request-uri" select="ac:build-uri($ldt:base, map{ 'uri': ac:document-uri($object-type), 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
                                         <xsl:apply-templates select="key('resources', $object-type, document($request-uri))" mode="ldh:Typeahead">
-                                            <xsl:with-param name="class" select="'btn add-typeahead add-typetypeahead'"/>
+                                            <xsl:with-param name="class" select="'btn add-typeahead add-class-typeahead'"/>
                                         </xsl:apply-templates>
                                     </xsl:otherwise>
                                 </xsl:choose>
@@ -330,7 +343,7 @@ exclude-result-prefixes="#all"
         </xsl:next-match>
     </xsl:template>
     
-    <!-- lookup by ?label and optional ?Type using search SELECT -->
+    <!-- lookup by $label and optional $Type using search SELECT -->
     <xsl:template match="input[contains-token(@class, 'typeahead')]" mode="ixsl:onkeyup">
         <xsl:param name="menu" select="following-sibling::ul" as="element()"/>
         <xsl:param name="delay" select="400" as="xs:integer"/>
@@ -417,7 +430,7 @@ exclude-result-prefixes="#all"
     
     <xsl:template match="ul[contains-token(@class, 'dropdown-menu')][contains-token(@class, 'type-typeahead')]/li" mode="ixsl:onmousedown" priority="1">
         <xsl:next-match>
-            <xsl:with-param name="typeahead-class" select="'btn add-typeahead add-typetypeahead'"/>
+            <xsl:with-param name="typeahead-class" select="'btn add-typeahead add-type-typeahead'"/>
         </xsl:next-match>
     </xsl:template>
     
@@ -425,7 +438,7 @@ exclude-result-prefixes="#all"
     
     <xsl:template match="ul[contains-token(@class, 'dropdown-menu')][contains-token(@class, 'type-typeahead')]/li" mode="ixsl:onmousedown" priority="1">
         <xsl:variable name="resource-id" select="input[@name = ('ou', 'ob')]/ixsl:get(., 'value')" as="xs:string"/> <!-- can be URI resource or blank node ID -->
-        <xsl:variable name="typeahead-class" select="'btn add-typeahead add-typetypeahead'" as="xs:string"/>
+        <xsl:variable name="typeahead-class" select="'btn add-typeahead add-type-typeahead'" as="xs:string"/>
         <xsl:variable name="typeahead-doc" select="ixsl:get(ixsl:window(), 'LinkedDataHub.typeahead.rdfXml')" as="document-node()"/>
         <xsl:variable name="resource" select="key('resources', $resource-id, $typeahead-doc)" as="element()"/>
         <xsl:variable name="fieldset" select="ancestor::fieldset" as="element()"/>
@@ -567,8 +580,16 @@ exclude-result-prefixes="#all"
         </xsl:for-each>
     </xsl:template>
 
-    <!-- special case for rdf:type lookups -->
-    <xsl:template match="button[contains-token(@class, 'add-typetypeahead')]" mode="ixsl:onclick" priority="1">
+    <!-- special case for class lookups -->
+    <xsl:template match="button[contains-token(@class, 'add-class-typeahead')]" mode="ixsl:onclick" priority="1">
+        <xsl:next-match>
+            <xsl:with-param name="lookup-class" select="'class-typeahead typeahead'"/>
+            <xsl:with-param name="lookup-list-class" select="'class-typeahead typeahead dropdown-menu'" as="xs:string"/>
+        </xsl:next-match>
+    </xsl:template>
+
+    <!-- special case for class (with constructor) lookups -->
+    <xsl:template match="button[contains-token(@class, 'add-type-typeahead')]" mode="ixsl:onclick" priority="1">
         <xsl:next-match>
             <xsl:with-param name="lookup-class" select="'type-typeahead typeahead'"/>
             <xsl:with-param name="lookup-list-class" select="'type-typeahead typeahead dropdown-menu'" as="xs:string"/>
