@@ -64,60 +64,70 @@ exclude-result-prefixes="#all"
                     </div>
                 </div>
                 
-                <xsl:for-each select="$construct-xml/json:map/json:array[@key = 'template']/json:map[json:string[@key = 'subject'] = '?this']">
+                <xsl:apply-templates select="$construct-xml/json:map/json:array[@key = 'template']/json:map" mode="bs2:ConstructorTripleRow">
                     <xsl:sort select="json:string[@key = 'predicate']"/>
-
-                    <xsl:variable name="predicate" select="json:string[@key = 'predicate']" as="xs:anyURI"/>
-                    <xsl:variable name="request-uri" select="ac:build-uri($ldt:base, map{ 'uri': ac:document-uri($predicate), 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
-
-                    <div class="row-fluid">
-                        <div class="span5">
-                            <p>
-                                <span>
-                                    <xsl:apply-templates select="key('resources', $predicate, document($request-uri))" mode="ldh:Typeahead">
-                                        <xsl:with-param name="class" select="'btn add-typeahead add-property-typeahead'"/>
-                                    </xsl:apply-templates>
-                                </span>
-                            </p>
-                            
-                            <!-- used by typeahead to set $Type -->
-                            <input type="hidden" class="forClass" value="&rdf;Property" autocomplete="off"/>
-                        </div>
-                        <div class="span2">
-                            <p>
-                                <label class="radio">
-                                    <input type="radio" class="object-kind" name="{generate-id()}-object-kind" value="&rdfs;Resource" checked="checked"/>
-                                    <xsl:text>Resource</xsl:text>
-                                </label>
-                                <label class="radio">
-                                    <input type="radio" class="object-kind" name="{generate-id()}-object-kind" value="&rdfs;Literal"/>
-                                    <xsl:text>Literal</xsl:text>
-                                </label>
-                            </p>
-                        </div>
-                        <div class="span5">
-                            <xsl:variable name="object-bnode-id" select="json:string[@key = 'object']" as="xs:string"/>
-                            <xsl:variable name="object-type" select="../json:map[json:string[@key = 'subject'] = $object-bnode-id]/json:string[@key = 'object']" as="xs:anyURI"/>
-                            
-                            <xsl:choose>
-                                <xsl:when test="starts-with($object-type, '&xsd;')">
-                                    <xsl:call-template name="ldh:ConstructorLiteralObject">
-                                        <xsl:with-param name="object-type" select="$object-type"/>
-                                    </xsl:call-template>
-                                </xsl:when>
-                                <xsl:otherwise>
-                                    <xsl:call-template name="ldh:ConstructorResourceObject">
-                                        <xsl:with-param name="object-type" select="$object-type"/>
-                                    </xsl:call-template>
-                                </xsl:otherwise>
-                            </xsl:choose>
-                        </div>
-                    </div>
-                </xsl:for-each>
+                </xsl:apply-templates>
             </div>
         </xsl:result-document>
     </xsl:template>
 
+    <xsl:template match="json:array[@key = 'template']/json:map[json:string[@key = 'subject'] = '?this']" mode="bs2:ConstructorTripleRow" priority="1">
+        <xsl:param name="class" select="'row-fluid constructor-triple'" as="xs:string?"/>
+        
+        <div>
+            <xsl:if test="$class">
+                <xsl:attribute name="class" select="$class"/>
+            </xsl:if>
+            
+            <div class="span5">
+                <xsl:variable name="predicate" select="json:string[@key = 'predicate']" as="xs:anyURI"/>
+                <xsl:variable name="request-uri" select="ac:build-uri($ldt:base, map{ 'uri': ac:document-uri($predicate), 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
+
+                <p>
+                    <span>
+                        <xsl:apply-templates select="key('resources', $predicate, document($request-uri))" mode="ldh:Typeahead">
+                            <xsl:with-param name="class" select="'btn add-typeahead add-property-typeahead'"/>
+                        </xsl:apply-templates>
+                    </span>
+                </p>
+
+                <!-- used by typeahead to set $Type -->
+                <input type="hidden" class="forClass" value="&rdf;Property" autocomplete="off"/>
+            </div>
+            <div class="span2">
+                <p>
+                    <label class="radio">
+                        <input type="radio" class="object-kind" name="{generate-id()}-object-kind" value="&rdfs;Resource" checked="checked"/>
+                        <xsl:text>Resource</xsl:text>
+                    </label>
+                    <label class="radio">
+                        <input type="radio" class="object-kind" name="{generate-id()}-object-kind" value="&rdfs;Literal"/>
+                        <xsl:text>Literal</xsl:text>
+                    </label>
+                </p>
+            </div>
+            <div class="span5">
+                <xsl:variable name="object-bnode-id" select="json:string[@key = 'object']" as="xs:string"/>
+                <xsl:variable name="object-type" select="../json:map[json:string[@key = 'subject'] = $object-bnode-id]/json:string[@key = 'object']" as="xs:anyURI"/>
+
+                <xsl:choose>
+                    <xsl:when test="starts-with($object-type, '&xsd;')">
+                        <xsl:call-template name="ldh:ConstructorLiteralObject">
+                            <xsl:with-param name="object-type" select="$object-type"/>
+                        </xsl:call-template>
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <xsl:call-template name="ldh:ConstructorResourceObject">
+                            <xsl:with-param name="object-type" select="$object-type"/>
+                        </xsl:call-template>
+                    </xsl:otherwise>
+                </xsl:choose>
+            </div>
+        </div>
+    </xsl:template>
+    
+    <xsl:template match="*" mode="bs2:ConstructorTripleRow"/>
+    
     <xsl:template name="ldh:ConstructorLiteralObject">
         <xsl:param name="object-type" as="xs:anyURI?"/>
         
