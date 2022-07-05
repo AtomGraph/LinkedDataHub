@@ -68,6 +68,32 @@ exclude-result-prefixes="#all"
                     <xsl:sort select="json:string[@key = 'predicate']"/>
                 </xsl:apply-templates>
             </div>
+            <div class="offset2 span7">
+                <p>
+                    <button type="button" class="btn btn-primary create-action add-triple-template">Triple template</button>
+                </p>
+            </div>
+            <div class="row-fluid">
+                <div class="offset2 span7">
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-primary btn-save">
+                            <xsl:value-of>
+                                <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                            </xsl:value-of>
+                        </button>
+                        <button type="button" class="btn btn-delete">
+                            <xsl:value-of>
+                                <xsl:apply-templates select="key('resources', 'delete', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                            </xsl:value-of>
+                        </button>
+                        <button type="button" class="btn btn-cancel">
+                            <xsl:value-of>
+                                <xsl:apply-templates select="key('resources', 'cancel', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                            </xsl:value-of>
+                        </button>
+                    </div>
+                </div>
+            </div>
         </xsl:result-document>
     </xsl:template>
 
