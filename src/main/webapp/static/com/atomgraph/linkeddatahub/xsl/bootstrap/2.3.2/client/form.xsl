@@ -56,12 +56,12 @@ exclude-result-prefixes="#all"
         <xsl:result-document href="?." method="ixsl:replace-content">
             <div class="offset2 span7">
                 <div class="row-fluid">
-                    <div class="span6">
+                    <div class="span4">
                         <p>
                             <strong>Property</strong>
                         </p>
                     </div>
-                    <div class="span2">
+                    <div class="span4">
                         <p>
                             <strong>Object kind</strong>
                         </p>
@@ -77,12 +77,12 @@ exclude-result-prefixes="#all"
                     <xsl:sort select="json:string[@key = 'predicate']"/>
 
                     <div class="row-fluid">
-                        <div class="span6">
+                        <div class="span4">
                             <p>
                                 <xsl:value-of select="json:string[@key = 'predicate']"/>
                             </p>
                         </div>
-                        <div class="span2">
+                        <div class="span4">
                             <p>
                                 <select>
                                     <option value="&rdfs;Resource">Resource</option>
@@ -100,9 +100,14 @@ exclude-result-prefixes="#all"
                                     </xsl:when>
                                     <xsl:otherwise>
                                         <xsl:variable name="request-uri" select="ac:build-uri($ldt:base, map{ 'uri': ac:document-uri($object-type), 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
-                                        <xsl:apply-templates select="key('resources', $object-type, document($request-uri))" mode="ldh:Typeahead">
-                                            <xsl:with-param name="class" select="'btn add-typeahead add-class-typeahead'"/>
-                                        </xsl:apply-templates>
+                                        
+                                        <span>
+                                            <xsl:apply-templates select="key('resources', $object-type, document($request-uri))" mode="ldh:Typeahead">
+                                                <xsl:with-param name="class" select="'btn add-typeahead add-class-typeahead'"/>
+                                            </xsl:apply-templates>
+                                        </span>
+                                        
+                                        <input type="hidden" class="forClass" value="&rdfs;Class" autocomplete="off"/>
                                     </xsl:otherwise>
                                 </xsl:choose>
                             </p>
@@ -335,7 +340,15 @@ exclude-result-prefixes="#all"
         </xsl:if>
     </xsl:template>
     
-    <!-- types (Classes) are looked up in the <ns> endpoint -->
+    <!-- classes are looked up in the <ns> endpoint -->
+    <xsl:template match="input[contains-token(@class, 'class-typeahead')]" mode="ixsl:onkeyup" priority="1">
+        <xsl:next-match>
+            <xsl:with-param name="endpoint" select="resolve-uri('ns', $ldt:base)"/>
+            <xsl:with-param name="select-string" select="$select-labelled-string"/>
+        </xsl:next-match>
+    </xsl:template>
+
+    <!-- types (classes with constructors) are looked up in the <ns> endpoint -->
     <xsl:template match="input[contains-token(@class, 'type-typeahead')]" mode="ixsl:onkeyup" priority="1">
         <xsl:next-match>
             <xsl:with-param name="endpoint" select="resolve-uri('ns', $ldt:base)"/>
