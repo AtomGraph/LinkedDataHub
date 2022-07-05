@@ -227,18 +227,10 @@ exclude-result-prefixes="#all"
         <xsl:for-each select="ancestor::div[contains-token(@class, 'row-fluid')][1]/div[last()]">
             <xsl:result-document href="?." method="ixsl:replace-content">
                 <xsl:if test="$object-kind = '&rdfs;Resource'">
-                    <xsl:variable name="object-type" select=".//select/ixsl:get(., 'value')" as="xs:anyURI"/>
-
-                    <xsl:call-template name="ldh:ConstructorResourceObject">
-                        <xsl:with-param name="object-type" select="$object-type"/>
-                    </xsl:call-template>
+                    <xsl:call-template name="ldh:ConstructorResourceObject"/>
                 </xsl:if>
                 <xsl:if test="$object-kind = '&rdfs;Literal'">
-                    <!--<xsl:variable name="object-type" select=".//button[contains-token(@class, 'add-class-typeahead')]//input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>-->
-
-                    <xsl:call-template name="ldh:ConstructorLiteralObject">
-<!--                        <xsl:with-param name="object-type" select="$object-type"/>-->
-                    </xsl:call-template>
+                    <xsl:call-template name="ldh:ConstructorLiteralObject"/>
                 </xsl:if>
             </xsl:result-document>
         </xsl:for-each>
