@@ -95,7 +95,8 @@ extension-element-prefixes="ixsl"
     <xsl:include href="bootstrap/2.3.2/client/map.xsl"/>
     <xsl:include href="bootstrap/2.3.2/client/graph.xsl"/>
     <xsl:include href="bootstrap/2.3.2/client/sparql.xsl"/>
-
+    <xsl:include href="bootstrap/2.3.2/client/constructor.xsl"/>
+    
     <xsl:param name="ac:contextUri" as="xs:anyURI"/>
     <xsl:param name="ldt:base" as="xs:anyURI"/>
     <xsl:param name="ldt:ontology" as="xs:anyURI"/> <!-- used in default.xsl -->
