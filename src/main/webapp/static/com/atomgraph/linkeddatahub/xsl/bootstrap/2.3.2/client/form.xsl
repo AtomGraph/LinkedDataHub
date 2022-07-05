@@ -56,17 +56,17 @@ exclude-result-prefixes="#all"
         <xsl:result-document href="?." method="ixsl:replace-content">
             <div class="offset2 span7">
                 <div class="row-fluid">
-                    <div class="span4">
+                    <div class="span6">
                         <p>
                             <strong>Property</strong>
                         </p>
                     </div>
-                    <div class="span4">
+                    <div class="span3">
                         <p>
                             <strong>Object kind</strong>
                         </p>
                     </div>
-                    <div class="span4">
+                    <div class="span3">
                         <p>
                             <strong>Object type</strong>
                         </p>
@@ -77,12 +77,12 @@ exclude-result-prefixes="#all"
                     <xsl:sort select="json:string[@key = 'predicate']"/>
 
                     <div class="row-fluid">
-                        <div class="span4">
+                        <div class="span6">
                             <p>
                                 <xsl:value-of select="json:string[@key = 'predicate']"/>
                             </p>
                         </div>
-                        <div class="span4">
+                        <div class="span3">
                             <p>
                                 <select>
                                     <option value="&rdfs;Resource">Resource</option>
@@ -90,7 +90,7 @@ exclude-result-prefixes="#all"
                                 </select>
                             </p>
                         </div>
-                        <div class="span4">
+                        <div class="span3">
                             <xsl:variable name="object-bnode-id" select="json:string[@key = 'object']" as="xs:string"/>
                             <xsl:variable name="object-type" select="../json:map[json:string[@key = 'subject'] = $object-bnode-id]/json:string[@key = 'object']" as="xs:anyURI"/>
                             <xsl:choose>
