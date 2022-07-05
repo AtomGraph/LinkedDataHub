@@ -174,7 +174,7 @@ exclude-result-prefixes="#all"
                
                 <p>
                     <xsl:call-template name="bs2:Lookup">
-                        <xsl:with-param name="class" select="'ckass-typeahead typeahead'"/>
+                        <xsl:with-param name="class" select="'class-typeahead typeahead'"/>
                         <xsl:with-param name="id" select="'input-' || $uuid"/>
                         <xsl:with-param name="list-class" select="'class-typeahead typeahead dropdown-menu'"/>
                     </xsl:call-template>
