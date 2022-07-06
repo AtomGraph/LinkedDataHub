@@ -332,8 +332,8 @@ exclude-result-prefixes="#all"
                 <!-- not all controls might have value, filter to those that have -->
                 <xsl:iterate select="$form//div[contains-token(@class, 'control-group')][label/input[@name = 'ou']/@value][div[contains-token(@class, 'controls')]//input[@name = 'ou']/@value]">
                     <xsl:param name="construct-xml" select="$construct-xml" as="document-node()"/>
-                    <xsl:param name="predicate" select="label/input[@name = 'ou']/@value" as="xs:anyURI"/>
-                    <xsl:param name="object-type" select="div[contains-token(@class, 'controls')]//input[@name = 'ou']/@value" as="xs:anyURI"/>
+                    <xsl:param name="predicate" as="xs:anyURI?"/>
+                    <xsl:param name="object-type" as="xs:anyURI?"/>
 
                     <xsl:on-completion>
                         <xsl:sequence select="$construct-xml"/>
@@ -342,8 +342,8 @@ exclude-result-prefixes="#all"
                     <xsl:next-iteration>
                         <xsl:with-param name="construct-xml">
                             <xsl:apply-templates select="$construct-xml" mode="ldh:add-constructor-triple">
-                                <xsl:with-param name="predicate" select="$predicate"/>
-                                <xsl:with-param name="object-type" select="$object-type"/>
+                                <xsl:with-param name="predicate" select="label/input[@name = 'ou']/@value"/>
+                                <xsl:with-param name="object-type" select="div[contains-token(@class, 'controls')]//input[@name = 'ou']/@value"/>
                             </xsl:apply-templates>
                         </xsl:with-param>
                     </xsl:next-iteration>
