@@ -53,9 +53,10 @@ exclude-result-prefixes="#all"
                         </xsl:apply-templates>
 
                         <div class="control-group">
-                            <div class="controls">
+                            <label class="control-label">
                                 <button type="button" class="btn btn-primary create-action add-triple-template">Triple template</button>
-                            </div>
+                            </label>
+                            <div class="controls"></div>
                         </div>
                     </fieldset>
 
