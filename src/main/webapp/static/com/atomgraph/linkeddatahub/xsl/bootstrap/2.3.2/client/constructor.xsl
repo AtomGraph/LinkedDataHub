@@ -316,39 +316,35 @@ exclude-result-prefixes="#all"
     <xsl:template match="div[contains-token(@class, 'constructor-template')]//div[contains-token(@class, 'form-actions')]/button[contains-token(@class, 'btn-save')]" mode="ixsl:onclick">
         <xsl:variable name="form" select="ancestor::form" as="element()"/>
         <xsl:variable name="construct-xml" as="document-node()">
-            <xsl:document>
-                <json:map>
-                    <json:string key="queryType">CONSTRUCT</json:string>
-                    <json:array key="template"/>
-                    <json:array key="where"/>
-                    <json:string key="type">query</json:string>
-                    <json:map key="prefixes"/>
-                </json:map>
-            </xsl:document>
-        </xsl:variable>
-        
-        <xsl:variable name="construct-xml" as="document-node()">
-            <xsl:document>
-                <!-- not all controls might have value, filter to those that have -->
-                <xsl:iterate select="$form//div[contains-token(@class, 'control-group')][label/input[@name = 'ou']/@value][div[contains-token(@class, 'controls')]//input[@name = 'ou']/@value]">
-                    <xsl:param name="construct-xml" select="$construct-xml" as="document-node()"/>
-                    <xsl:param name="predicate" as="xs:anyURI?"/>
-                    <xsl:param name="object-type" as="xs:anyURI?"/>
+            <!-- not all controls might have value, filter to those that have -->
+            <xsl:iterate select="$form//div[contains-token(@class, 'control-group')][label/input[@name = 'ou']/@value][./div[contains-token(@class, 'controls')]//input[@name = 'ou']/@value]">
+                <xsl:param name="construct-xml" as="document-node()">
+                    <xsl:document>
+                        <json:map>
+                            <json:string key="queryType">CONSTRUCT</json:string>
+                            <json:array key="template"/>
+                            <json:array key="where"/>
+                            <json:string key="type">query</json:string>
+                            <json:map key="prefixes"/>
+                        </json:map>
+                    </xsl:document>
+                </xsl:param>
+                <xsl:param name="predicate" as="xs:anyURI?"/>
+                <xsl:param name="object-type" as="xs:anyURI?"/>
 
-                    <xsl:on-completion>
-                        <xsl:sequence select="$construct-xml"/>
-                    </xsl:on-completion>
+                <xsl:on-completion>
+                    <xsl:sequence select="$construct-xml"/>
+                </xsl:on-completion>
 
-                    <xsl:next-iteration>
-                        <xsl:with-param name="construct-xml">
-                            <xsl:apply-templates select="$construct-xml" mode="ldh:add-constructor-triple">
-                                <xsl:with-param name="predicate" select="label/input[@name = 'ou']/@value"/>
-                                <xsl:with-param name="object-type" select="div[contains-token(@class, 'controls')]//input[@name = 'ou']/@value"/>
-                            </xsl:apply-templates>
-                        </xsl:with-param>
-                    </xsl:next-iteration>
-                </xsl:iterate>
-            </xsl:document>
+                <xsl:next-iteration>
+                    <xsl:with-param name="construct-xml">
+                        <xsl:apply-templates select="$construct-xml" mode="ldh:add-constructor-triple">
+                            <xsl:with-param name="predicate" select="label/input[@name = 'ou']/@value" tunnel="yes"/>
+                            <xsl:with-param name="object-type" select="./div[contains-token(@class, 'controls')]//input[@name = 'ou']/@value" tunnel="yes"/>
+                        </xsl:apply-templates>
+                    </xsl:with-param>
+                </xsl:next-iteration>
+            </xsl:iterate>
         </xsl:variable>
         
         <xsl:message>
