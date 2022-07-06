@@ -329,35 +329,23 @@ exclude-result-prefixes="#all"
         
         <xsl:variable name="construct-xml" as="document-node()">
             <xsl:document>
-                <xsl:iterate select="$form/fieldset">
+                <!-- not all controls might have value, filter to those that have -->
+                <xsl:iterate select="$form//div[contains-token(@class, 'control-group')][label/input[@name = 'ou']/@value][div[contains-token(@class, 'controls')]//input[@name = 'ou']/@value]">
                     <xsl:param name="construct-xml" select="$construct-xml" as="document-node()"/>
-                    <xsl:variable name="constructor-uri" select="@about" as="xs:anyURI"/>
+                    <xsl:variable name="predicate" select="label/input[@name = 'ou']/@value" as="xs:anyURI"/>
+                    <xsl:variable name="object-type" select="div[contains-token(@class, 'controls')]//input[@name = 'ou']/@value" as="xs:anyURI"/>
 
-                    <xsl:iterate select="div[contains-token(@class, 'control-group')][label/input[@name = 'ou']/@value][div[contains-token(@class, 'controls')]//input[@name = 'ou']/@value]">
-                        <xsl:param name="construct-xml" select="$construct-xml" as="document-node()"/>
-                        <xsl:variable name="predicate" select="label/input[@name = 'ou']/@value" as="xs:anyURI"/>
-                        <xsl:variable name="object-type" select="div[contains-token(@class, 'controls')]//input[@name = 'ou']/@value" as="xs:anyURI"/>
-
-                        <xsl:on-completion>
-                            <xsl:sequence select="$construct-xml"/>
-                        </xsl:on-completion>
-
-                        <xsl:next-iteration>
-                            <xsl:with-param name="construct-xml">
-                                <xsl:apply-templates select="$construct-xml" mode="ldh:add-constructor-triple">
-                                    <xsl:with-param name="predicate" select="$predicate"/>
-                                    <xsl:with-param name="object-type" select="$object-type"/>
-                                </xsl:apply-templates>
-                            </xsl:with-param>
-                        </xsl:next-iteration>
-                    </xsl:iterate>
-                    
                     <xsl:on-completion>
                         <xsl:sequence select="$construct-xml"/>
                     </xsl:on-completion>
 
                     <xsl:next-iteration>
-                        <xsl:with-param name="construct-xml" select="$construct-xml"/>
+                        <xsl:with-param name="construct-xml">
+                            <xsl:apply-templates select="$construct-xml" mode="ldh:add-constructor-triple">
+                                <xsl:with-param name="predicate" select="$predicate"/>
+                                <xsl:with-param name="object-type" select="$object-type"/>
+                            </xsl:apply-templates>
+                        </xsl:with-param>
                     </xsl:next-iteration>
                 </xsl:iterate>
             </xsl:document>
