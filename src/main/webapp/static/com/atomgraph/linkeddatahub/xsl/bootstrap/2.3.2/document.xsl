@@ -862,14 +862,6 @@ extension-element-prefixes="ixsl"
         <xsl:param name="constructors" select="spin:constructors($type, resolve-uri('ns', $ldt:base), $constructor-query)" as="document-node()"/>
         
         <xsl:for-each select="$constructors//srx:binding[@name = 'constructor']/srx:uri">
-            <div class="row-fluid">
-                <div class="offset2 span7">
-                    <h2>
-                        <xsl:apply-templates select="key('resources', ., document(ac:document-uri(.)))" mode="ac:label"/>
-                    </h2>
-                </div>
-            </div>
-            
             <div id="{generate-id()}-constructor" about="{.}" class="row-fluid constructor-template">
                 <input type="hidden" name="construct-string" value="{key('resources', ., document(ac:document-uri(.)))/sp:text}"/>
             </div>

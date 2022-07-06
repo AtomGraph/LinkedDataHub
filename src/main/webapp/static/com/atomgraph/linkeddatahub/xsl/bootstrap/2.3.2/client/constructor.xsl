@@ -43,10 +43,10 @@ exclude-result-prefixes="#all"
         </xsl:variable>
         <xsl:variable name="construct-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $construct-json ])" as="xs:string"/>
         <xsl:variable name="construct-xml" select="json-to-xml($construct-json-string)" as="document-node()"/>
-
+        
         <xsl:result-document href="?." method="ixsl:replace-content">
             <div class="offset2 span7">
-                <form class="form-horizontal">
+                <form class="form-horizontal" about="{$constructor-uri}">
                     <fieldset>
                         <legend>
                             <xsl:variable name="request-uri" select="ac:build-uri($ldt:base, map{ 'uri': ac:document-uri($constructor-uri), 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
@@ -310,6 +310,62 @@ exclude-result-prefixes="#all"
                 <xsl:copy-of select="$controls"/>
             </xsl:result-document>
         </xsl:for-each>
+    </xsl:template>
+    
+    <!-- save constructor form onclick -->
+    <xsl:template match="div[contains-token(@class, 'constructor-template')]//div[contains-token(@class, 'form-actions')]/button[contains-token(@class, 'btn-save')]" mode="ixsl:onclick">
+        <xsl:variable name="form" select="ancestor::form" as="element()"/>
+        <xsl:variable name="construct-xml" as="document-node()">
+            <xsl:document>
+                <json:map>
+                    <json:string key="queryType">CONSTRUCT</json:string>
+                    <json:array key="template"/>
+                    <json:array key="where"/>
+                    <json:string key="type">query</json:string>
+                    <json:map key="prefixes"/>
+                </json:map>
+            </xsl:document>
+        </xsl:variable>
+        
+        <xsl:variable name="construct-xml" as="document-node()">
+            <xsl:document>
+                <xsl:iterate select="$form/fieldset">
+                    <xsl:param name="construct-xml" select="$construct-xml" as="document-node()"/>
+                    <xsl:variable name="constructor-uri" select="@about" as="xs:anyURI"/>
+
+                    <xsl:iterate select="div[contains-token(@class, 'control-group')][label/input[@name = 'ou']/@value][div[contains-token(@class, 'controls')]//input[@name = 'ou']/@value]">
+                        <xsl:param name="construct-xml" select="$construct-xml" as="document-node()"/>
+                        <xsl:variable name="predicate" select="label/input[@name = 'ou']/@value" as="xs:anyURI"/>
+                        <xsl:variable name="object-type" select="div[contains-token(@class, 'controls')]//input[@name = 'ou']/@value" as="xs:anyURI"/>
+
+                        <xsl:on-completion>
+                            <xsl:sequence select="$construct-xml"/>
+                        </xsl:on-completion>
+
+                        <xsl:next-iteration>
+                            <xsl:with-param name="construct-xml">
+                                <xsl:apply-templates select="$construct-xml" mode="ldh:add-constructor-triple">
+                                    <xsl:with-param name="predicate" select="$predicate"/>
+                                    <xsl:with-param name="object-type" select="$object-type"/>
+                                </xsl:apply-templates>
+                            </xsl:with-param>
+                        </xsl:next-iteration>
+                    </xsl:iterate>
+                    
+                    <xsl:on-completion>
+                        <xsl:sequence select="$construct-xml"/>
+                    </xsl:on-completion>
+
+                    <xsl:next-iteration>
+                        <xsl:with-param name="construct-xml" select="$construct-xml"/>
+                    </xsl:next-iteration>
+                </xsl:iterate>
+            </xsl:document>
+        </xsl:variable>
+        
+        <xsl:message>
+            $construct-xml: <xsl:value-of select="serialize($construct-xml)"/>
+        </xsl:message>
     </xsl:template>
     
 </xsl:stylesheet>
