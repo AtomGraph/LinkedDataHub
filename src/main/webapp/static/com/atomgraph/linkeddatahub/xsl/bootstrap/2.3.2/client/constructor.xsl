@@ -90,52 +90,74 @@ exclude-result-prefixes="#all"
                 <xsl:attribute name="class" select="$class"/>
             </xsl:if>
             
-            <label class="control-label">
-                <xsl:variable name="predicate" select="json:string[@key = 'predicate']" as="xs:anyURI"/>
-                <xsl:variable name="request-uri" select="ac:build-uri($ldt:base, map{ 'uri': ac:document-uri($predicate), 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
-
-                <span>
-                    <xsl:apply-templates select="key('resources', $predicate, document($request-uri))" mode="ldh:Typeahead">
-                        <xsl:with-param name="class" select="'btn add-typeahead add-property-typeahead'"/>
-                    </xsl:apply-templates>
-                </span>
-
-                <!-- used by typeahead to set $Type -->
-                <input type="hidden" class="forClass" value="&rdf;Property" autocomplete="off"/>
-            </label>
+            <xsl:apply-templates select="json:string[@key = 'predicate']" mode="ldh:ConstructorTripleFormControl"/>
             
-            <div class="controls">
-                <label class="radio">
-                    <input type="radio" class="object-kind" name="{generate-id()}-object-kind" value="&rdfs;Resource" checked="checked"/>
-                    <xsl:text>Resource</xsl:text>
-                </label>
-                <label class="radio">
-                    <input type="radio" class="object-kind" name="{generate-id()}-object-kind" value="&rdfs;Literal"/>
-                    <xsl:text>Literal</xsl:text>
-                </label>
-                
-                <span class="help-inline">
-                    <xsl:variable name="object-bnode-id" select="json:string[@key = 'object']" as="xs:string"/>
-                    <xsl:variable name="object-type" select="../json:map[json:string[@key = 'subject'] = $object-bnode-id]/json:string[@key = 'object']" as="xs:anyURI"/>
-
-                    <xsl:choose>
-                        <xsl:when test="starts-with($object-type, '&xsd;')">
-                            <xsl:call-template name="ldh:ConstructorLiteralObject">
-                                <xsl:with-param name="object-type" select="$object-type"/>
-                            </xsl:call-template>
-                        </xsl:when>
-                        <xsl:otherwise>
-                            <xsl:call-template name="ldh:ConstructorResourceObject">
-                                <xsl:with-param name="object-type" select="$object-type"/>
-                            </xsl:call-template>
-                        </xsl:otherwise>
-                    </xsl:choose>
-                </span>
-            </div>
+            <xsl:apply-templates select="json:string[@key = 'object']" mode="ldh:ConstructorTripleFormControl"/>
         </div>
     </xsl:template>
     
     <xsl:template match="*" mode="bs2:ConstructorTripleForm"/>
+    
+    <xsl:template match="json:map/json:string[@key = 'predicate']" mode="ldh:ConstructorTripleFormControl" name="ldh:ConstructorPredicate">
+        <xsl:param name="predicate" select="." as="xs:anyURI?"/>
+
+        <label class="control-label">
+            <xsl:choose>
+                <xsl:when test="$predicate">
+                    <xsl:variable name="request-uri" select="ac:build-uri($ldt:base, map{ 'uri': ac:document-uri($predicate), 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
+
+                    <span>
+                        <xsl:apply-templates select="key('resources', $predicate, document($request-uri))" mode="ldh:Typeahead">
+                            <xsl:with-param name="class" select="'btn add-typeahead add-property-typeahead'"/>
+                        </xsl:apply-templates>
+                    </span>
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:variable name="uuid" select="ixsl:call(ixsl:window(), 'generateUUID', [])" as="xs:string"/>
+
+                    <xsl:call-template name="bs2:Lookup">
+                        <xsl:with-param name="class" select="'property-typeahead typeahead'"/>
+                        <xsl:with-param name="id" select="'input-' || $uuid"/>
+                        <xsl:with-param name="list-class" select="'property-typeahead typeahead dropdown-menu'"/>
+                    </xsl:call-template>
+                </xsl:otherwise>
+            </xsl:choose>
+
+            <!-- used by typeahead to set $Type -->
+            <input type="hidden" class="forClass" value="&rdf;Property" autocomplete="off"/>
+        </label>
+    </xsl:template>
+    
+    <xsl:template match="json:map/json:string[@key = 'object']" mode="ldh:ConstructorTripleFormControl" name="ldh:ConstructorObject">
+        <xsl:variable name="object-bnode-id" select="." as="xs:string"/>
+        <xsl:variable name="object-type" select="../../json:map[json:string[@key = 'subject'] = $object-bnode-id]/json:string[@key = 'object']" as="xs:anyURI"/>
+
+        <div class="controls">
+            <label class="radio">
+                <input type="radio" class="object-kind" name="{generate-id()}-object-kind" value="&rdfs;Resource" checked="checked"/>
+                <xsl:text>Resource</xsl:text>
+            </label>
+            <label class="radio">
+                <input type="radio" class="object-kind" name="{generate-id()}-object-kind" value="&rdfs;Literal"/>
+                <xsl:text>Literal</xsl:text>
+            </label>
+
+            <span class="help-inline">
+                <xsl:choose>
+                    <xsl:when test="starts-with($object-type, '&xsd;')">
+                        <xsl:call-template name="ldh:ConstructorLiteralObject">
+                            <xsl:with-param name="object-type" select="$object-type"/>
+                        </xsl:call-template>
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <xsl:call-template name="ldh:ConstructorResourceObject">
+                            <xsl:with-param name="object-type" select="$object-type"/>
+                        </xsl:call-template>
+                    </xsl:otherwise>
+                </xsl:choose>
+            </span>
+        </div>
+    </xsl:template>
     
     <xsl:template name="ldh:ConstructorLiteralObject">
         <xsl:param name="object-type" as="xs:anyURI?"/>
@@ -251,31 +273,16 @@ exclude-result-prefixes="#all"
     </xsl:template>
     
     <!-- appends new resource content instance to the content list -->
-    <xsl:template match="div[contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'create-action')][contains-token(@class, 'add-triple-template')]" mode="ixsl:onclick">
-        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'row-fluid')]" as="element()"/>
-        <xsl:variable name="constructor" as="document-node()">
-            <xsl:document>
-                <rdf:RDF>
-                    <rdf:Description rdf:nodeID="A1">
-                        <rdf:type rdf:resource="&ldh;Content"/>
-                        <rdf:value rdf:nodeID="A2"/>
-                        <ac:mode rdf:nodeID="A3"/>
-                    </rdf:Description>
-                    <rdf:Description rdf:nodeID="A2">
-                        <rdf:type rdf:resource="&rdfs;Resource"/>
-                    </rdf:Description>
-                    <rdf:Description rdf:nodeID="A3">
-                        <rdf:type rdf:resource="&rdfs;Resource"/>
-                    </rdf:Description>
-                </rdf:RDF>
-            </xsl:document>
-        </xsl:variable>
+    <xsl:template match="div[contains-token(@class, 'control-group')]/button[contains-token(@class, 'create-action')][contains-token(@class, 'add-triple-template')]" mode="ixsl:onclick">
+        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'control-group')]" as="element()"/>
         <xsl:variable name="controls" as="node()*">
-            <xsl:apply-templates select="$constructor//rdf:value/@rdf:*" mode="bs2:FormControl"/>
-            <xsl:apply-templates select="$constructor//ac:mode/@rdf:*" mode="bs2:FormControl">
-                <xsl:with-param name="class" select="'content-mode'"/>
-                <xsl:with-param name="type-label" select="false()"/>
-            </xsl:apply-templates>
+            <xsl:call-template name="ldh:ConstructorPredicate">
+                <xsl:with-param name="predicate" select="()"/>
+            </xsl:call-template>
+            
+            <xsl:call-template name="ldh:ConstructorObject">
+                <xsl:with-param name="object-type" select="()"/>
+            </xsl:call-template>
         </xsl:variable>
         
         <!-- move the current row of controls to the bottom of the content list -->
@@ -285,30 +292,12 @@ exclude-result-prefixes="#all"
             </xsl:result-document>
         </xsl:for-each>
 
-        <!-- add .content.resource-content to div.row-fluid -->
+        <!-- add .constructor-triple to div.control-group -->
         <xsl:for-each select="$container">
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'content', true() ])[current-date() lt xs:date('2000-01-01')]"/>
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'resource-content', true() ])[current-date() lt xs:date('2000-01-01')]"/>
-        </xsl:for-each>
-        
-        <xsl:for-each select="ancestor::div[contains-token(@class, 'span7')]">
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'constructor-triple', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+
             <xsl:result-document href="?." method="ixsl:replace-content">
-                <div>
-                    <xsl:copy-of select="$controls"/>
-                </div>
-                
-                <div class="form-actions">
-                    <button type="button" class="btn btn-primary btn-save">
-                        <xsl:value-of>
-                            <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                        </xsl:value-of>
-                    </button>
-                    <button type="button" class="btn btn-cancel">
-                        <xsl:value-of>
-                            <xsl:apply-templates select="key('resources', 'cancel', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                        </xsl:value-of>
-                    </button>
-                </div>
+                <xsl:copy-of select="$controls"/>
             </xsl:result-document>
         </xsl:for-each>
     </xsl:template>
