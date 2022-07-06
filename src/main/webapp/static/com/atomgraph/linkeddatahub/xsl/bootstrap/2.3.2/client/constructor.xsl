@@ -48,6 +48,10 @@ exclude-result-prefixes="#all"
             <div class="offset2 span7">
                 <form class="form-horizontal">
                     <fieldset>
+                        <legend>
+                            <xsl:apply-templates select="key('resources', $constructor-uri, document(ac:document-uri($constructor-uri)))" mode="ac:label"/>
+                        </legend>
+                        
                         <xsl:apply-templates select="$construct-xml/json:map/json:array[@key = 'template']/json:map" mode="bs2:ConstructorTripleForm">
                             <xsl:sort select="json:string[@key = 'predicate']"/>
                         </xsl:apply-templates>
@@ -134,7 +138,7 @@ exclude-result-prefixes="#all"
 
         <div class="controls">
             <div class="btn-group pull-right">
-                <button type="button" class="btn btn-small pull-right btn-remove-property" title="Remove this statement">&#x2715;</button>
+                <button type="button" class="btn btn-small pull-right btn-remove-property" title="Remove this statement"></button>
             </div>
                     
             <label class="radio">
