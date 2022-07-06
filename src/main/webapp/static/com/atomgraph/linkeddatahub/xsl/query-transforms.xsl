@@ -679,7 +679,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="object-type"  as="xs:anyURI" tunnel="yes"/>
 
         <xsl:copy>
-            <xsl:apply-templates select="@*" mode="#current"/>
+            <xsl:apply-templates select="@* | node()" mode="#current"/>
 
             <json:map>
                 <json:string key="subject"><xsl:value-of select="$subject"/></json:string>
