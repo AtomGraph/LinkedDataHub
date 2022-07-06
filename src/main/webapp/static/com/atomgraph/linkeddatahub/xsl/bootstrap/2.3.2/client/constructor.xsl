@@ -133,6 +133,10 @@ exclude-result-prefixes="#all"
         <xsl:param name="object-type" select="../../json:map[json:string[@key = 'subject'] = $object-bnode-id]/json:string[@key = 'object']" as="xs:anyURI?"/>
 
         <div class="controls">
+            <div class="btn-group pull-right">
+                <button type="button" class="btn btn-small pull-right btn-remove-property" title="Remove this statement">&#x2715;</button>
+            </div>
+                    
             <label class="radio">
                 <input type="radio" class="object-kind" name="{generate-id()}-object-kind" value="&rdfs;Resource" checked="checked"/>
                 <xsl:text>Resource</xsl:text>
