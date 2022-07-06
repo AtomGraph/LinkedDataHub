@@ -238,7 +238,7 @@ exclude-result-prefixes="#all"
     <xsl:template match="input[@type = 'radio'][contains-token(@class, 'object-kind')]" mode="ixsl:onchange">
         <xsl:variable name="object-kind" select="ixsl:get(., 'value')" as="xs:anyURI"/>
         
-        <xsl:for-each select="ancestor::div[contains-token(@class, 'row-fluid')][1]/div[last()]">
+        <xsl:for-each select="ancestor::div[contains-token(@class, 'controls')]/span[@class = 'help-inline']">
             <xsl:result-document href="?." method="ixsl:replace-content">
                 <xsl:if test="$object-kind = '&rdfs;Resource'">
                     <xsl:call-template name="ldh:ConstructorResourceObject"/>
