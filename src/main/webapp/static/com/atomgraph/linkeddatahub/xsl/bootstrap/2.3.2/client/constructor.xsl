@@ -273,7 +273,7 @@ exclude-result-prefixes="#all"
     </xsl:template>
     
     <!-- appends new resource content instance to the content list -->
-    <xsl:template match="div[contains-token(@class, 'control-group')]/button[contains-token(@class, 'create-action')][contains-token(@class, 'add-triple-template')]" mode="ixsl:onclick">
+    <xsl:template match="div[contains-token(@class, 'control-group')]//button[contains-token(@class, 'create-action')][contains-token(@class, 'add-triple-template')]" mode="ixsl:onclick">
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'control-group')]" as="element()"/>
         <xsl:variable name="controls" as="node()*">
             <xsl:call-template name="ldh:ConstructorPredicate">
