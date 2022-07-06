@@ -129,8 +129,8 @@ exclude-result-prefixes="#all"
     </xsl:template>
     
     <xsl:template match="json:map/json:string[@key = 'object']" mode="ldh:ConstructorTripleFormControl" name="ldh:ConstructorObject">
-        <xsl:variable name="object-bnode-id" select="." as="xs:string"/>
-        <xsl:variable name="object-type" select="../../json:map[json:string[@key = 'subject'] = $object-bnode-id]/json:string[@key = 'object']" as="xs:anyURI"/>
+        <xsl:param name="object-bnode-id" select="." as="xs:string"/>
+        <xsl:param name="object-type" select="../../json:map[json:string[@key = 'subject'] = $object-bnode-id]/json:string[@key = 'object']" as="xs:anyURI"/>
 
         <div class="controls">
             <label class="radio">
