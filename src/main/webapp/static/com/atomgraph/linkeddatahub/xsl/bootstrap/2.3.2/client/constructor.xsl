@@ -340,7 +340,7 @@ exclude-result-prefixes="#all"
                 <xsl:next-iteration>
                     <xsl:with-param name="construct-xml">
                         <xsl:apply-templates select="$construct-xml" mode="ldh:add-constructor-triple">
-                            <xsl:with-param name="predicate" select="label/input[@name = 'ou']/@value/xs:anyURI(.)" tunnel="yes"/>
+                            <xsl:with-param name="predicate" select="label//input[@name = 'ou']/@value/xs:anyURI(.)" tunnel="yes"/>
                             <xsl:with-param name="object-type" select="./div[contains-token(@class, 'controls')]//input[@name = 'ou']/@value/xs:anyURI(.)" tunnel="yes"/>
                         </xsl:apply-templates>
                     </xsl:with-param>
