@@ -315,6 +315,9 @@ exclude-result-prefixes="#all"
     <!-- save constructor form onclick -->
     <xsl:template match="div[contains-token(@class, 'constructor-template')]//div[contains-token(@class, 'form-actions')]/button[contains-token(@class, 'btn-save')]" mode="ixsl:onclick">
         <xsl:variable name="form" select="ancestor::form" as="element()"/>
+        <xsl:message>
+            count(.control-group): <xsl:value-of select="count($form//div[contains-token(@class, 'control-group')][label/input[@name = 'ou']/@value][./div[contains-token(@class, 'controls')]//input[@name = 'ou']/@value])"/>
+        </xsl:message>
         <xsl:variable name="construct-xml" as="document-node()">
             <!-- not all controls might have value, filter to those that have -->
             <xsl:iterate select="$form//div[contains-token(@class, 'control-group')][label/input[@name = 'ou']/@value][./div[contains-token(@class, 'controls')]//input[@name = 'ou']/@value]">
@@ -329,8 +332,6 @@ exclude-result-prefixes="#all"
                         </json:map>
                     </xsl:document>
                 </xsl:param>
-                <xsl:param name="predicate" as="xs:anyURI?"/>
-                <xsl:param name="object-type" as="xs:anyURI?"/>
 
                 <xsl:on-completion>
                     <xsl:sequence select="$construct-xml"/>
