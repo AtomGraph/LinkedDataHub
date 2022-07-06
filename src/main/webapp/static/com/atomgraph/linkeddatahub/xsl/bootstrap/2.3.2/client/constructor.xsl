@@ -172,7 +172,7 @@ exclude-result-prefixes="#all"
     <xsl:template name="ldh:ConstructorLiteralObject">
         <xsl:param name="object-type" as="xs:anyURI?"/>
         
-        <select>
+        <select name="ou">
             <option value="&xsd;string">
                 <xsl:text>String</xsl:text>
             </option>
@@ -320,7 +320,7 @@ exclude-result-prefixes="#all"
         </xsl:message>
         <xsl:variable name="construct-xml" as="document-node()">
             <!-- not all controls might have value, filter to those that have -->
-            <xsl:iterate select="$form//div[contains-token(@class, 'control-group')][label//input[@name = 'ou']/@value][./div[contains-token(@class, 'controls')]//input[@name = 'ou']/@value]">
+            <xsl:iterate select="$form//div[contains-token(@class, 'control-group')][label//input[@name = 'ou']/@value][./div[contains-token(@class, 'controls')]//input[@name = 'ou']/@value or ./div[contains-token(@class, 'controls')]//select[@name = 'ou']]">
                 <xsl:param name="construct-xml" as="document-node()">
                     <xsl:document>
                         <json:map>
@@ -341,7 +341,7 @@ exclude-result-prefixes="#all"
                     <xsl:with-param name="construct-xml">
                         <xsl:apply-templates select="$construct-xml" mode="ldh:add-constructor-triple">
                             <xsl:with-param name="predicate" select="label//input[@name = 'ou']/@value/xs:anyURI(.)" tunnel="yes"/>
-                            <xsl:with-param name="object-type" select="./div[contains-token(@class, 'controls')]//input[@name = 'ou']/@value/xs:anyURI(.)" tunnel="yes"/>
+                            <xsl:with-param name="object-type" select="(./div[contains-token(@class, 'controls')]//input[@name = 'ou']/@value/xs:anyURI(.), ./div[contains-token(@class, 'controls')]//select[@name = 'ou']/ixsl:get(., 'value')/xs:anyURI(.))[1]" tunnel="yes"/>
                         </xsl:apply-templates>
                     </xsl:with-param>
                 </xsl:next-iteration>
