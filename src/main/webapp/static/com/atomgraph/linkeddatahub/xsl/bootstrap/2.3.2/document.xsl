@@ -856,7 +856,7 @@ extension-element-prefixes="ixsl"
 
     <!-- CONSTRUCTOR MODE -->
     
-    <xsl:template match="rdf:RDF" mode="bs2:ConstructorMode">
+<!--    <xsl:template match="rdf:RDF" mode="bs2:ConstructorMode">
         <xsl:param name="type" as="xs:anyURI"/>
         <xsl:param name="constructor-query" as="xs:string"/>
         <xsl:param name="constructors" select="spin:constructors($type, resolve-uri('ns', $ldt:base), $constructor-query)" as="document-node()"/>
@@ -866,6 +866,6 @@ extension-element-prefixes="ixsl"
                 <input type="hidden" name="construct-string" value="{key('resources', ., document(ac:document-uri(.)))/sp:text}"/>
             </div>
         </xsl:for-each>
-    </xsl:template>
+    </xsl:template>-->
     
 </xsl:stylesheet>
