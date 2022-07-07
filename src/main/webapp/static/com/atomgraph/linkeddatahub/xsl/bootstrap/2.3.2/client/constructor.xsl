@@ -6,6 +6,7 @@
     <!ENTITY rdfs       "http://www.w3.org/2000/01/rdf-schema#">
     <!ENTITY xsd        "http://www.w3.org/2001/XMLSchema#">
     <!ENTITY ldt        "https://www.w3.org/ns/ldt#">
+    <!ENTITY spin   "http://spinrdf.org/spin#">
 ]>
 <xsl:stylesheet version="3.0"
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
@@ -21,6 +22,7 @@ xmlns:ac="&ac;"
 xmlns:ldh="&ldh;"
 xmlns:rdf="&rdf;"
 xmlns:ldt="&ldt;"
+xmlns:spin="&spin;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 extension-element-prefixes="ixsl"
 exclude-result-prefixes="#all"
