@@ -63,62 +63,64 @@ exclude-result-prefixes="#all"
         <xsl:variable name="construct-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $construct-json ])" as="xs:string"/>
         <xsl:variable name="construct-xml" select="json-to-xml($construct-json-string)" as="document-node()"/>
         
-        <xsl:result-document href="ixsl:page()//body" method="ixsl:append-content">
-            <div class="modal modal-constructor fade in">
-                <div class="modal-header">
-                    <button type="button" class="close">&#215;</button>
-                    
-                    <h3>Modal header</h3>
-                </div>
-                <div class="modal-body">
-                    <form class="form-horizontal" about="{$constructor-uri}">
-                        <fieldset>
-                            <legend>
-                                <xsl:variable name="request-uri" select="ac:build-uri($ldt:base, map{ 'uri': ac:document-uri($constructor-uri), 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
+        <xsl:for-each select="ixsl:page()//body">
+            <xsl:result-document href="?." method="ixsl:append-content">
+                <div class="modal modal-constructor fade in">
+                    <div class="modal-header">
+                        <button type="button" class="close">&#215;</button>
 
-                                <xsl:apply-templates select="key('resources', $constructor-uri, document($request-uri))" mode="ac:label"/>
-                            </legend>
+                        <h3>Modal header</h3>
+                    </div>
+                    <div class="modal-body">
+                        <form class="form-horizontal" about="{$constructor-uri}">
+                            <fieldset>
+                                <legend>
+                                    <xsl:variable name="request-uri" select="ac:build-uri($ldt:base, map{ 'uri': ac:document-uri($constructor-uri), 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
 
-                            <xsl:apply-templates select="$construct-xml/json:map/json:array[@key = 'template']/json:map" mode="bs2:ConstructorTripleForm">
-                                <xsl:sort select="json:string[@key = 'predicate']"/>
-                            </xsl:apply-templates>
+                                    <xsl:apply-templates select="key('resources', $constructor-uri, document($request-uri))" mode="ac:label"/>
+                                </legend>
 
-                            <div class="control-group">
-                                <label class="control-label">
-                                    <button type="button" class="btn btn-primary create-action add-triple-template">Triple template</button>
-                                </label>
-                                <div class="controls"></div>
+                                <xsl:apply-templates select="$construct-xml/json:map/json:array[@key = 'template']/json:map" mode="bs2:ConstructorTripleForm">
+                                    <xsl:sort select="json:string[@key = 'predicate']"/>
+                                </xsl:apply-templates>
+
+                                <div class="control-group">
+                                    <label class="control-label">
+                                        <button type="button" class="btn btn-primary create-action add-triple-template">Triple template</button>
+                                    </label>
+                                    <div class="controls"></div>
+                                </div>
+                            </fieldset>
+
+                            <div class="form-actions">
+                                <button type="button" class="btn btn-primary btn-save">
+                                    <xsl:value-of>
+                                        <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                                    </xsl:value-of>
+                                </button>
+                                <button type="button" class="btn btn-delete">
+                                    <xsl:value-of>
+                                        <xsl:apply-templates select="key('resources', 'delete', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                                    </xsl:value-of>
+                                </button>
+                                <button type="button" class="btn btn-cancel">
+                                    <xsl:value-of>
+                                        <xsl:apply-templates select="key('resources', 'cancel', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                                    </xsl:value-of>
+                                </button>
                             </div>
-                        </fieldset>
-
-                        <div class="form-actions">
-                            <button type="button" class="btn btn-primary btn-save">
-                                <xsl:value-of>
-                                    <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                                </xsl:value-of>
-                            </button>
-                            <button type="button" class="btn btn-delete">
-                                <xsl:value-of>
-                                    <xsl:apply-templates select="key('resources', 'delete', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                                </xsl:value-of>
-                            </button>
-                            <button type="button" class="btn btn-cancel">
-                                <xsl:value-of>
-                                    <xsl:apply-templates select="key('resources', 'cancel', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                                </xsl:value-of>
-                            </button>
-                        </div>
-                    </form>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-close">
+                            <xsl:value-of>
+                                <xsl:apply-templates select="key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                            </xsl:value-of>
+                        </button>
+                    </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-close">
-                        <xsl:value-of>
-                            <xsl:apply-templates select="key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                        </xsl:value-of>
-                    </button>
-                </div>
-            </div>
-        </xsl:result-document>
+            </xsl:result-document>
+        </xsl:for-each>
     </xsl:template>
 
     <xsl:template match="json:array[@key = 'template']/json:map[json:string[@key = 'subject'] = '?this']" mode="bs2:ConstructorTripleForm" priority="1">
