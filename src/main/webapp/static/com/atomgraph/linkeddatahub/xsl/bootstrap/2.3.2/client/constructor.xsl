@@ -392,7 +392,6 @@ exclude-result-prefixes="#all"
             <ixsl:schedule-action http-request="map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string }">
                 <xsl:call-template name="onConstructorUpdate">
                     <xsl:with-param name="container" select="$container"/>
-                    <xsl:with-param name="content-value" select="$content-value"/>
                 </xsl:call-template>
             </ixsl:schedule-action>
         </xsl:variable>
