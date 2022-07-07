@@ -1022,10 +1022,11 @@ WHERE
             </xsl:message>
             <xsl:variable name="type" select="ldh:decode-uri(ldh:parse-query-params(substring-after(ac:document-uri($href), '?'))?class[1])" as="xs:anyURI"/>
 
-            <xsl:call-template name="ldh:ConstructorMode">
-                <xsl:with-param name="uri" select="$uri"/>
-                <xsl:with-param name="type" select="$type"/>
-            </xsl:call-template>
+            <xsl:for-each select="ixsl:page()//body">
+                <xsl:call-template name="ldh:ConstructorMode">
+                    <xsl:with-param name="type" select="$type"/>
+                </xsl:call-template>
+            </xsl:for-each>
         </xsl:if>
             
         <xsl:if test="$replace-content">
