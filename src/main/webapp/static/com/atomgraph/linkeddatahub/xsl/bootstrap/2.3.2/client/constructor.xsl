@@ -405,7 +405,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="construct-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $construct-json-string ])"/>
         <xsl:variable name="construct-string" select="ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'fromQuery', [ $construct-json ]), 'toString', [])" as="xs:string"/>
         <xsl:variable name="update-string" select="replace($constructor-update-string, '\$this', '&lt;' || $constructor-uri || '&gt;')" as="xs:string"/>
-        <xsl:variable name="update-string" select="replace($update-string, '\$text', '&quot;' || $construct-string)" as="xs:string"/>
+        <xsl:variable name="update-string" select="replace($update-string, '\$text', '&quot;&quot;&quot;' || $construct-string || '&quot;&quot;&quot;')" as="xs:string"/>
         <!-- what if the constructor URI is not relative to the document URI? -->
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ac:document-uri($constructor-uri))" as="xs:anyURI"/>
         <xsl:variable name="request" as="item()*">
