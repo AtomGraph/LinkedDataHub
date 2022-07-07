@@ -593,6 +593,10 @@ WHERE
 
             <!-- load constructor templates -->
             <xsl:if test="ac:mode() = '&ldh;ConstructorMode'">
+                <xsl:message>
+                    $uri: <xsl:value-of select="$uri"/>
+                    ldh:parse-query-params(substring-after(ac:document-uri($uri), '?')): <xsl:value-of select="serialize(ldh:parse-query-params(substring-after(ac:document-uri($uri), '?')))"/>
+                </xsl:message>
                 <xsl:variable name="type" select="ldh:decode-uri(ldh:parse-query-params(substring-after(ac:document-uri($uri), '?'))?class[1])" as="xs:anyURI"/>
 
                 <xsl:call-template name="ldh:LoadConstructors">
