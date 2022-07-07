@@ -315,9 +315,6 @@ exclude-result-prefixes="#all"
     <!-- save constructor form onclick -->
     <xsl:template match="div[contains-token(@class, 'constructor-template')]//div[contains-token(@class, 'form-actions')]/button[contains-token(@class, 'btn-save')]" mode="ixsl:onclick">
         <xsl:variable name="form" select="ancestor::form" as="element()"/>
-        <xsl:message>
-            count(.control-group): <xsl:value-of select="count($form//div[contains-token(@class, 'control-group')][label//input[@name = 'ou']/@value][./div[contains-token(@class, 'controls')]//input[@name = 'ou']/@value])"/>
-        </xsl:message>
         <xsl:variable name="construct-xml" as="document-node()">
             <!-- not all controls might have value, filter to those that have -->
             <xsl:iterate select="$form//div[contains-token(@class, 'control-group')][label//input[@name = 'ou']/@value][./div[contains-token(@class, 'controls')]//input[@name = 'ou']/@value or ./div[contains-token(@class, 'controls')]//select[@name = 'ou']]">
@@ -347,9 +344,12 @@ exclude-result-prefixes="#all"
                 </xsl:next-iteration>
             </xsl:iterate>
         </xsl:variable>
-        
+        <xsl:variable name="construct-json-string" select="xml-to-json($construct-xml)" as="xs:string"/>
+        <xsl:variable name="construct-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $construct-json-string ])"/>
+        <xsl:variable name="construct-string" select="ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'fromQuery', [ $construct-json ]), 'toString', [])" as="xs:string"/>
+
         <xsl:message>
-            $construct-xml: <xsl:value-of select="serialize($construct-xml)"/>
+            $construct-string: <xsl:value-of select="$construct-string"/>
         </xsl:message>
     </xsl:template>
     
