@@ -1018,9 +1018,9 @@ WHERE
         <!-- render constructor mode if requested -->
         <xsl:if test="ac:mode() = '&ldh;ConstructorMode'">
             <xsl:message>
-                ac:mode(): <xsl:value-of select="ac:mode()"/> $uri: <xsl:value-of select="$href"/>
+                ac:mode(): <xsl:value-of select="ac:mode()"/> $href: <xsl:value-of select="$href"/>
             </xsl:message>
-            <xsl:variable name="type" select="ldh:decode-uri(ldh:parse-query-params(substring-after(ac:document-uri($uri), '?'))?class[1])" as="xs:anyURI"/>
+            <xsl:variable name="type" select="ldh:decode-uri(ldh:parse-query-params(substring-after(ac:document-uri($href), '?'))?class[1])" as="xs:anyURI"/>
 
             <xsl:call-template name="ldh:ConstructorMode">
                 <xsl:with-param name="uri" select="$uri"/>
