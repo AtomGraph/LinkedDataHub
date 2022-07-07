@@ -26,6 +26,25 @@ extension-element-prefixes="ixsl"
 exclude-result-prefixes="#all"
 >
 
+    <xsl:variable name="constructor-update-string" as="xs:string">
+        <![CDATA[
+            PREFIX sp: <http://spinrdf.org/sp#>
+
+            DELETE
+            {
+                $this sp:text ?oldText .
+            }
+            INSERT
+            {
+                $this sp:text $text .
+            }
+            WHERE
+            {
+                $this sp:text ?oldText .
+            }
+        ]]>
+    </xsl:variable>
+    
     <!-- TEMPLATES -->
 
     <!-- render constructor template -->
@@ -44,46 +63,60 @@ exclude-result-prefixes="#all"
         <xsl:variable name="construct-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $construct-json ])" as="xs:string"/>
         <xsl:variable name="construct-xml" select="json-to-xml($construct-json-string)" as="document-node()"/>
         
-        <xsl:result-document href="?." method="ixsl:replace-content">
-            <div class="offset2 span7">
-                <form class="form-horizontal" about="{$constructor-uri}">
-                    <fieldset>
-                        <legend>
-                            <xsl:variable name="request-uri" select="ac:build-uri($ldt:base, map{ 'uri': ac:document-uri($constructor-uri), 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
+        <xsl:result-document href="ixsl:page()//body" method="ixsl:append-content">
+            <div class="modal modal-constructor fade in">
+                <div class="modal-header">
+                    <button type="button" class="close">&#215;</button>
+                    
+                    <h3>Modal header</h3>
+                </div>
+                <div class="modal-body">
+                    <form class="form-horizontal" about="{$constructor-uri}">
+                        <fieldset>
+                            <legend>
+                                <xsl:variable name="request-uri" select="ac:build-uri($ldt:base, map{ 'uri': ac:document-uri($constructor-uri), 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
 
-                            <xsl:apply-templates select="key('resources', $constructor-uri, document($request-uri))" mode="ac:label"/>
-                        </legend>
-                        
-                        <xsl:apply-templates select="$construct-xml/json:map/json:array[@key = 'template']/json:map" mode="bs2:ConstructorTripleForm">
-                            <xsl:sort select="json:string[@key = 'predicate']"/>
-                        </xsl:apply-templates>
+                                <xsl:apply-templates select="key('resources', $constructor-uri, document($request-uri))" mode="ac:label"/>
+                            </legend>
 
-                        <div class="control-group">
-                            <label class="control-label">
-                                <button type="button" class="btn btn-primary create-action add-triple-template">Triple template</button>
-                            </label>
-                            <div class="controls"></div>
+                            <xsl:apply-templates select="$construct-xml/json:map/json:array[@key = 'template']/json:map" mode="bs2:ConstructorTripleForm">
+                                <xsl:sort select="json:string[@key = 'predicate']"/>
+                            </xsl:apply-templates>
+
+                            <div class="control-group">
+                                <label class="control-label">
+                                    <button type="button" class="btn btn-primary create-action add-triple-template">Triple template</button>
+                                </label>
+                                <div class="controls"></div>
+                            </div>
+                        </fieldset>
+
+                        <div class="form-actions">
+                            <button type="button" class="btn btn-primary btn-save">
+                                <xsl:value-of>
+                                    <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                                </xsl:value-of>
+                            </button>
+                            <button type="button" class="btn btn-delete">
+                                <xsl:value-of>
+                                    <xsl:apply-templates select="key('resources', 'delete', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                                </xsl:value-of>
+                            </button>
+                            <button type="button" class="btn btn-cancel">
+                                <xsl:value-of>
+                                    <xsl:apply-templates select="key('resources', 'cancel', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                                </xsl:value-of>
+                            </button>
                         </div>
-                    </fieldset>
-
-                    <div class="form-actions">
-                        <button type="button" class="btn btn-primary btn-save">
-                            <xsl:value-of>
-                                <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                            </xsl:value-of>
-                        </button>
-                        <button type="button" class="btn btn-delete">
-                            <xsl:value-of>
-                                <xsl:apply-templates select="key('resources', 'delete', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                            </xsl:value-of>
-                        </button>
-                        <button type="button" class="btn btn-cancel">
-                            <xsl:value-of>
-                                <xsl:apply-templates select="key('resources', 'cancel', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                            </xsl:value-of>
-                        </button>
-                    </div>
-                </form>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-close">
+                        <xsl:value-of>
+                            <xsl:apply-templates select="key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                        </xsl:value-of>
+                    </button>
+                </div>
             </div>
         </xsl:result-document>
     </xsl:template>
@@ -314,10 +347,14 @@ exclude-result-prefixes="#all"
     
     <!-- save constructor form onclick -->
     <xsl:template match="div[contains-token(@class, 'constructor-template')]//div[contains-token(@class, 'form-actions')]/button[contains-token(@class, 'btn-save')]" mode="ixsl:onclick">
-        <xsl:variable name="form" select="ancestor::form" as="element()"/>
+        <xsl:variable name="container" select="ancestor::form" as="element()"/>
+        <xsl:variable name="constructor-uri" select="$container/@about" as="xs:anyURI"/>
+        
+        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+
         <xsl:variable name="construct-xml" as="document-node()">
             <!-- not all controls might have value, filter to those that have -->
-            <xsl:iterate select="$form//div[contains-token(@class, 'control-group')][label//input[@name = 'ou']/@value][./div[contains-token(@class, 'controls')]//input[@name = 'ou']/@value or ./div[contains-token(@class, 'controls')]//select[@name = 'ou']]">
+            <xsl:iterate select="$container//div[contains-token(@class, 'control-group')][label//input[@name = 'ou']/@value][./div[contains-token(@class, 'controls')]//input[@name = 'ou']/@value or ./div[contains-token(@class, 'controls')]//select[@name = 'ou']]">
                 <xsl:param name="construct-xml" as="document-node()">
                     <xsl:document>
                         <json:map>
@@ -347,10 +384,32 @@ exclude-result-prefixes="#all"
         <xsl:variable name="construct-json-string" select="xml-to-json($construct-xml)" as="xs:string"/>
         <xsl:variable name="construct-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $construct-json-string ])"/>
         <xsl:variable name="construct-string" select="ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'fromQuery', [ $construct-json ]), 'toString', [])" as="xs:string"/>
+        <xsl:variable name="update-string" select="replace($constructor-update-string, '\$this', '&lt;' || $constructor-uri || '&gt;')" as="xs:string"/>
+        <xsl:variable name="update-string" select="replace($update-string, '\$text', '&quot;' || $construct-string)" as="xs:string"/>
+        <!-- what if the constructor URI is not relative to the document URI? -->
+        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ac:document-uri($constructor-uri))" as="xs:anyURI"/>
+        <xsl:variable name="request" as="item()*">
+            <ixsl:schedule-action http-request="map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string }">
+                <xsl:call-template name="onConstructorUpdate">
+                    <xsl:with-param name="container" select="$container"/>
+                    <xsl:with-param name="content-value" select="$content-value"/>
+                </xsl:call-template>
+            </ixsl:schedule-action>
+        </xsl:variable>
+        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+    </xsl:template>
+    
+    <!-- CALLBACKS -->
+    
+    <xsl:template name="onConstructorUpdate">
+        <xsl:context-item as="map(*)" use="required"/>
+        <xsl:param name="container" as="element()"/>
 
-        <xsl:message>
-            $construct-string: <xsl:value-of select="$construct-string"/>
-        </xsl:message>
+        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
+
+        <xsl:if test="not(?status = 200)">
+            <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ 'Could not update constructor' ])[current-date() lt xs:date('2000-01-01')]"/>
+        </xsl:if>
     </xsl:template>
     
 </xsl:stylesheet>
