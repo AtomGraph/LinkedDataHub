@@ -90,7 +90,7 @@ exclude-result-prefixes="#all"
                         <xsl:variable name="construct-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $construct-json ])" as="xs:string"/>
                         <xsl:variable name="construct-xml" select="json-to-xml($construct-json-string)" as="document-node()"/>
 
-                        <form class="form-horizontal" about="{$constructor-uri}">
+                        <form class="form-horizontal constructor-template" about="{$constructor-uri}">
                             <fieldset>
                                 <legend>
                                     <xsl:variable name="request-uri" select="ac:build-uri($ldt:base, map{ 'uri': ac:document-uri($constructor-uri), 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
@@ -366,7 +366,7 @@ exclude-result-prefixes="#all"
     </xsl:template>
     
     <!-- save constructor form onclick -->
-    <xsl:template match="div[contains-token(@class, 'constructor-template')]//div[contains-token(@class, 'form-actions')]/button[contains-token(@class, 'btn-save')]" mode="ixsl:onclick">
+    <xsl:template match="form[contains-token(@class, 'constructor-template')]//div[contains-token(@class, 'form-actions')]/button[contains-token(@class, 'btn-save')]" mode="ixsl:onclick">
         <xsl:variable name="container" select="ancestor::form" as="element()"/>
         <xsl:variable name="constructor-uri" select="$container/@about" as="xs:anyURI"/>
         
