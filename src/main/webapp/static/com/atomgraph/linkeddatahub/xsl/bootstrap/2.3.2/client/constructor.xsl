@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xsl:stylesheet [
-    <!ENTITY ldh        "https://w3id.org/atomgraph/linkeddatahub#">
-    <!ENTITY ac         "https://w3id.org/atomgraph/client#">
-    <!ENTITY rdf        "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
-    <!ENTITY rdfs       "http://www.w3.org/2000/01/rdf-schema#">
-    <!ENTITY xsd        "http://www.w3.org/2001/XMLSchema#">
-    <!ENTITY ldt        "https://www.w3.org/ns/ldt#">
+    <!ENTITY ldh    "https://w3id.org/atomgraph/linkeddatahub#">
+    <!ENTITY ac     "https://w3id.org/atomgraph/client#">
+    <!ENTITY rdf    "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+    <!ENTITY rdfs   "http://www.w3.org/2000/01/rdf-schema#">
+    <!ENTITY xsd    "http://www.w3.org/2001/XMLSchema#">
+    <!ENTITY srx    "http://www.w3.org/2005/sparql-results#">
+    <!ENTITY ldt    "https://www.w3.org/ns/ldt#">
     <!ENTITY spin   "http://spinrdf.org/spin#">
 ]>
 <xsl:stylesheet version="3.0"
@@ -21,6 +22,7 @@ xmlns:array="http://www.w3.org/2005/xpath-functions/array"
 xmlns:ac="&ac;"
 xmlns:ldh="&ldh;"
 xmlns:rdf="&rdf;"
+xmlns:srx="&srx;"
 xmlns:ldt="&ldt;"
 xmlns:spin="&spin;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
