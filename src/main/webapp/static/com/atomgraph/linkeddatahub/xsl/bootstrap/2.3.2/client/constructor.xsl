@@ -66,7 +66,7 @@ exclude-result-prefixes="#all"
 
     <!-- render constructor template -->
 
-    <xsl:template name="ldh:LoadConstructors">
+    <xsl:template name="ldh:ConstructorMode">
         <xsl:context-item as="element()" use="required"/> <!-- container element -->
         <xsl:param name="uri" as="xs:anyURI"/> <!-- document URI -->
         <!--<xsl:param name="acl-modes" as="xs:anyURI*"/>-->

@@ -590,21 +590,6 @@ WHERE
                     </xsl:call-template>
                 </xsl:for-each>
             </xsl:if>
-
-            <!-- load constructor templates -->
-            <xsl:if test="ac:mode() = '&ldh;ConstructorMode'">
-                <xsl:message>
-                    $uri: <xsl:value-of select="$uri"/>
-                    ldh:parse-query-params(substring-after(ac:document-uri($uri), '?')): <xsl:value-of select="serialize(ldh:parse-query-params(substring-after(ac:document-uri($uri), '?')))"/>
-                </xsl:message>
-                <xsl:variable name="type" select="ldh:decode-uri(ldh:parse-query-params(substring-after(ac:document-uri($uri), '?'))?class[1])" as="xs:anyURI"/>
-
-                <xsl:call-template name="ldh:LoadConstructors">
-                    <xsl:with-param name="uri" select="$uri"/>
-                    <!--<xsl:with-param name="acl-modes" select="$acl-modes"/>-->
-                    <xsl:with-param name="type" select="$type"/>
-                </xsl:call-template>
-            </xsl:if>
             
             <!-- add "Edit" buttons to XHTML content -->
             <xsl:if test="acl:mode() = '&acl;Write'">
@@ -1030,6 +1015,19 @@ WHERE
             <ixsl:set-property name="endpoint" select="$endpoint" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
         </xsl:if>
 
+        <!-- render constructor mode if requested -->
+        <xsl:if test="ac:mode() = '&ldh;ConstructorMode'">
+            <xsl:message>
+                ac:mode(): <xsl:value-of select="ac:mode()"/> $uri: <xsl:value-of select="$href"/>
+            </xsl:message>
+            <xsl:variable name="type" select="ldh:decode-uri(ldh:parse-query-params(substring-after(ac:document-uri($uri), '?'))?class[1])" as="xs:anyURI"/>
+
+            <xsl:call-template name="ldh:ConstructorMode">
+                <xsl:with-param name="uri" select="$uri"/>
+                <xsl:with-param name="type" select="$type"/>
+            </xsl:call-template>
+        </xsl:if>
+            
         <xsl:if test="$replace-content">
             <!-- set document.title which history.pushState() does not do -->
             <ixsl:set-property name="title" select="string(/html/head/title)" object="ixsl:page()"/>
