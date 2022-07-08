@@ -611,14 +611,6 @@ exclude-result-prefixes="#all"
         </xsl:for-each>
     </xsl:template>
     
-    <!-- close modal form -->
-    
-    <xsl:template match="div[contains-token(@class, 'modal')]//button[tokenize(@class, ' ') = ('close', 'btn-close')]" mode="ixsl:onclick">
-        <xsl:for-each select="ancestor::div[contains-token(@class, 'modal')]">
-            <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
-        </xsl:for-each>
-    </xsl:template>
-    
     <!-- CALLBACKS -->
     
     <!-- the same logic as onFormLoad but handles only responses to multipart requests invoked via JS function fetchDispatchXML() -->

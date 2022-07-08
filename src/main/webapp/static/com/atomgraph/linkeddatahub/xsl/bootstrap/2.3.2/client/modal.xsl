@@ -375,6 +375,14 @@ exclude-result-prefixes="#all"
     
     <!-- EVENT HANDLERS -->
 
+    <!-- close modal dialog -->
+    
+    <xsl:template match="div[contains-token(@class, 'modal')]//button[tokenize(@class, ' ') = ('close', 'btn-close')]" mode="ixsl:onclick">
+        <xsl:for-each select="ancestor::div[contains-token(@class, 'modal')]">
+            <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
+        </xsl:for-each>
+    </xsl:template>
+
     <xsl:template match="button[contains-token(@class, 'btn-add-data')]" mode="ixsl:onclick">
         <xsl:call-template name="ldh:ShowAddDataForm">
             <xsl:with-param name="form" as="element()">
