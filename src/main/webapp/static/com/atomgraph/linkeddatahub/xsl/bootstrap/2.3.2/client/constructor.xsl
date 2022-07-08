@@ -80,7 +80,7 @@ exclude-result-prefixes="#all"
                         <h3>
                             <xsl:variable name="request-uri" select="ac:build-uri($ldt:base, map{ 'uri': ac:document-uri($type), 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
 
-                            <xsl:apply-templates select="key('resources', $type, document(ac:document-uri($request-uri)))"/>
+                            <xsl:apply-templates select="key('resources', $type, document(ac:document-uri($request-uri)))" mode="ac:label"/>
                         </h3>
                     </div>
                     <div class="modal-body">
