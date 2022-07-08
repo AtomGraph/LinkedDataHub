@@ -314,6 +314,17 @@ exclude-result-prefixes="#all"
     
     <!-- EVENT HANDLERS -->
     
+    <!-- open modal form with constructor editing mode -->
+    <xsl:template match="button[contains-token(@class, 'btn-edit-constructors')]" mode="ixsl:onclick">"
+        <xsl:variable name="type" select="ixsl:get(., 'dataset.resourceType')" as="xs:anyURI"/>
+
+        <xsl:for-each select="ixsl:page()//body">
+            <xsl:call-template name="ldh:ConstructorMode">
+                <xsl:with-param name="type" select="$type"/>
+            </xsl:call-template>
+        </xsl:for-each>
+    </xsl:template>
+    
     <!-- classes and properties are looked up in the <ns> endpoint -->
     <xsl:template match="input[contains-token(@class, 'class-typeahead')] | input[contains-token(@class, 'property-typeahead')]" mode="ixsl:onkeyup" priority="1">
         <xsl:next-match>

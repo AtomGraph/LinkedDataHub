@@ -1014,17 +1014,6 @@ WHERE
         <xsl:if test="$endpoint">
             <ixsl:set-property name="endpoint" select="$endpoint" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
         </xsl:if>
-
-        <!-- render constructor mode if requested -->
-        <xsl:if test="ac:mode() = '&ldh;ConstructorMode'">
-            <xsl:variable name="type" select="ldh:decode-uri(ldh:parse-query-params(substring-after(ac:document-uri($href), '?'))?class[1])" as="xs:anyURI"/>
-
-            <xsl:for-each select="ixsl:page()//body">
-                <xsl:call-template name="ldh:ConstructorMode">
-                    <xsl:with-param name="type" select="$type"/>
-                </xsl:call-template>
-            </xsl:for-each>
-        </xsl:if>
             
         <xsl:if test="$replace-content">
             <!-- set document.title which history.pushState() does not do -->
