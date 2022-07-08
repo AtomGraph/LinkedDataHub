@@ -123,7 +123,7 @@ exclude-result-prefixes="#all"
                                 <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
                             </xsl:value-of>
                         </button>
-                        <button type="button" class="btn btn-cancel">
+                        <button type="button" class="btn btn-close">
                             <xsl:value-of>
                                 <xsl:apply-templates select="key('resources', 'cancel', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
                             </xsl:value-of>
