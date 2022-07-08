@@ -121,11 +121,6 @@ exclude-result-prefixes="#all"
                                 <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
                             </xsl:value-of>
                         </button>
-                        <button type="button" class="btn btn-delete">
-                            <xsl:value-of>
-                                <xsl:apply-templates select="key('resources', 'delete', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                            </xsl:value-of>
-                        </button>
                         <button type="button" class="btn btn-cancel">
                             <xsl:value-of>
                                 <xsl:apply-templates select="key('resources', 'cancel', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
@@ -193,11 +188,19 @@ exclude-result-prefixes="#all"
             </div>
                     
             <label class="radio">
-                <input type="radio" class="object-kind" name="{generate-id()}-object-kind" value="&rdfs;Resource" checked="checked"/>
+                <input type="radio" class="object-kind" name="{generate-id()}-object-kind" value="&rdfs;Resource" checked="checked">
+                    <xsl:if test="not(starts-with($object-type, '&xsd;'))">
+                        <xsl:attribute name="checked" select="'checked'"/>
+                    </xsl:if>
+                </input>
                 <xsl:text>Resource</xsl:text>
             </label>
             <label class="radio">
-                <input type="radio" class="object-kind" name="{generate-id()}-object-kind" value="&rdfs;Literal"/>
+                <input type="radio" class="object-kind" name="{generate-id()}-object-kind" value="&rdfs;Literal">
+                    <xsl:if test="starts-with($object-type, '&xsd;')">
+                        <xsl:attribute name="checked" select="'checked'"/>
+                    </xsl:if>
+                </input>
                 <xsl:text>Literal</xsl:text>
             </label>
 
@@ -223,27 +226,59 @@ exclude-result-prefixes="#all"
         
         <select name="ou">
             <option value="&xsd;string">
+                <xsl:if test="$object-type = '&xsd;string'">
+                    <xsl:attribute name="selected" select="'selected'"/>
+                </xsl:if>
+                    
                 <xsl:text>String</xsl:text>
             </option>
             <option value="&xsd;boolean">
+                <xsl:if test="$object-type = '&xsd;boolean'">
+                    <xsl:attribute name="selected" select="'selected'"/>
+                </xsl:if>
+
                 <xsl:text>Boolean</xsl:text>
             </option>
             <option value="&xsd;date">
+                <xsl:if test="$object-type = '&xsd;date'">
+                    <xsl:attribute name="selected" select="'selected'"/>
+                </xsl:if>
+
                 <xsl:text>Date</xsl:text>
             </option>
             <option value="&xsd;dateTime">
+                <xsl:if test="$object-type = '&xsd;dateTime'">
+                    <xsl:attribute name="selected" select="'selected'"/>
+                </xsl:if>
+
                 <xsl:text>Datetime</xsl:text>
             </option>
             <option value="&xsd;integer">
+                <xsl:if test="$object-type = '&xsd;integer'">
+                    <xsl:attribute name="selected" select="'selected'"/>
+                </xsl:if>
+
                 <xsl:text>Integer</xsl:text>
             </option>
             <option value="&xsd;float">
+                <xsl:if test="$object-type = '&xsd;float'">
+                    <xsl:attribute name="selected" select="'selected'"/>
+                </xsl:if>
+
                 <xsl:text>Float</xsl:text>
             </option>
             <option value="&xsd;double">
+                <xsl:if test="$object-type = '&xsd;double'">
+                    <xsl:attribute name="selected" select="'selected'"/>
+                </xsl:if>
+
                 <xsl:text>Double</xsl:text>
             </option>
             <option value="&xsd;decimal">
+                <xsl:if test="$object-type = '&xsd;decimal'">
+                    <xsl:attribute name="selected" select="'selected'"/>
+                </xsl:if>
+
                 <xsl:text>Decimal</xsl:text>
             </option>
         </select>
