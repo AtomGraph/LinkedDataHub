@@ -658,18 +658,20 @@ extension-element-prefixes="ixsl"
 
         <!-- only admins have access to the ontologies with constructors in them -->
         <xsl:if test="$acl:mode = '&acl;Control' and rdf:type/@rdf:resource">
-            <div class="btn-group pull-right">
-                <button type="button" class="btn dropdown-toggle">
-                    Actions
-                    <span class="caret"></span>
-                </button>
-                <ul class="dropdown-menu">
-                    <li>
-                        <!-- TO-DO: support multiple types -->
-                        <button type="button" class="btn btn-edit-constructors" data-resource-type="{rdf:type/@rdf:resource[1]}">Edit constructors</button>
-                    </li>
-                </ul>
-            </div>
+            <xsl:if test="not(starts-with(rdf:type/@rdf:resource, '&dh;')) and not(starts-with(rdf:type/@rdf:resource, '&ldh;')) and not(starts-with(rdf:type/@rdf:resource, '&lapp;')) and not(starts-with(rdf:type/@rdf:resource, '&sp;')) and not(starts-with(rdf:type/@rdf:resource, '&nfo;'))">
+                <div class="btn-group pull-right">
+                    <button type="button" class="btn dropdown-toggle">
+                        Actions
+                        <span class="caret"></span>
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li>
+                            <!-- TO-DO: support multiple types -->
+                            <button type="button" class="btn btn-edit-constructors" data-resource-type="{rdf:type/@rdf:resource[1]}">Edit constructors</button>
+                        </li>
+                    </ul>
+                </div>
+            </xsl:if>
         </xsl:if>
     </xsl:template>
     
