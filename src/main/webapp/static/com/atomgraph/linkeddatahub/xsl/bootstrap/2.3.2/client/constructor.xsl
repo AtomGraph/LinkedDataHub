@@ -71,6 +71,8 @@ exclude-result-prefixes="#all"
         <xsl:param name="type" as="xs:anyURI"/> <!-- the URI of the class that constructors are attached to -->
         <xsl:param name="constructors" select="spin:constructors($type, resolve-uri('ns', $ldt:base), $constructor-query)" as="document-node()"/>
 
+        <ixsl:set-style name="cursor" select="'default'" object="."/>
+
         <xsl:result-document href="?." method="ixsl:append-content">
             <div class="modal modal-constructor fade in">
                 <form class="form-horizontal constructor-template">
@@ -317,6 +319,8 @@ exclude-result-prefixes="#all"
     <!-- open modal form with constructor editing mode -->
     <xsl:template match="button[contains-token(@class, 'btn-edit-constructors')]" mode="ixsl:onclick">"
         <xsl:variable name="type" select="ixsl:get(., 'dataset.resourceType')" as="xs:anyURI"/>
+
+        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
         <xsl:for-each select="ixsl:page()//body">
             <xsl:call-template name="ldh:ConstructorMode">

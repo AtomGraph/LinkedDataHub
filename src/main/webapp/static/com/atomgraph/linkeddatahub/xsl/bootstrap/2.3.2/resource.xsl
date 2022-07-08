@@ -654,23 +654,23 @@ extension-element-prefixes="ixsl"
                     <xsl:apply-templates select="key('resources', 'copy-uri', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
                 </xsl:value-of>
             </button>
-            
-            <!-- only admins have access to the ontologies with constructors in them -->
-            <xsl:if test="$acl:mode = '&acl;Control' and rdf:type/@rdf:resource">
-                <div class="btn-group pull-right">
-                    <button type="button" class="btn dropdown-toggle">
-                        Actions
-                        <span class="caret"></span>
-                    </button>
-                    <ul class="dropdown-menu">
-                        <li>
-                            <!-- TO-DO: support multiple types -->
-                            <button type="button" class="btn btn-edit-constructors" data-resource-type="{rdf:type/@rdf:resource[1]}">Edit constructors</button>
-                        </li>
-                    </ul>
-                </div>
-            </xsl:if>
         </div>
+
+        <!-- only admins have access to the ontologies with constructors in them -->
+        <xsl:if test="$acl:mode = '&acl;Control' and rdf:type/@rdf:resource">
+            <div class="btn-group pull-right">
+                <button type="button" class="btn dropdown-toggle">
+                    Actions
+                    <span class="caret"></span>
+                </button>
+                <ul class="dropdown-menu">
+                    <li>
+                        <!-- TO-DO: support multiple types -->
+                        <button type="button" class="btn btn-edit-constructors" data-resource-type="{rdf:type/@rdf:resource[1]}">Edit constructors</button>
+                    </li>
+                </ul>
+            </div>
+        </xsl:if>
     </xsl:template>
     
     <xsl:template match="*" mode="bs2:Actions"/>
