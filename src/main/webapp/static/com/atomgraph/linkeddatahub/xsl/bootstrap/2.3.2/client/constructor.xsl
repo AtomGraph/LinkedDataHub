@@ -476,11 +476,11 @@ exclude-result-prefixes="#all"
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
 
         <xsl:choose>
-            <xsl:if test="?status = 200">
+            <xsl:when test="?status = 200">
                 <xsl:for-each select="ancestor::div[contains-token(@class, 'modal')]">
                     <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
                 </xsl:for-each>
-            </xsl:if>
+            </xsl:when>
             <xsl:otherwise>
                 <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ 'Could not update constructor' ])[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:otherwise>
