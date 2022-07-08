@@ -377,7 +377,7 @@ exclude-result-prefixes="#all"
 
     <!-- close modal dialog -->
     
-    <xsl:template match="div[contains-token(@class, 'modal')]//button[tokenize(@class, ' ') = ('close', 'btn-close')]" mode="ixsl:onclick">
+    <xsl:template match="div[contains-token(@class, 'modal')]//button[tokenize(@class, ' ') = ('close', 'btn-close')]" mode="ixsl:onclick" name="ldh:CloseModal">
         <xsl:for-each select="ancestor::div[contains-token(@class, 'modal')]">
             <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>

@@ -477,8 +477,8 @@ exclude-result-prefixes="#all"
 
         <xsl:choose>
             <xsl:when test="?status = 200">
-                <xsl:for-each select="ancestor::div[contains-token(@class, 'modal')]">
-                    <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
+                <xsl:for-each select="$container">
+                    <xsl:call-template name="ldh:CloseModal"/>
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
