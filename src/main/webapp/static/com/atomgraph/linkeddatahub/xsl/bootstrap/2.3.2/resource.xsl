@@ -669,7 +669,7 @@ extension-element-prefixes="ixsl"
                             <xsl:if test="not(starts-with(., '&dh;') or starts-with(., '&ldh;') or starts-with(., '&lapp;') or starts-with(., '&sp;') or starts-with(., '&nfo;'))">
                                 <button type="button" class="btn btn-edit-constructors" data-resource-type="{.}">
                                     <xsl:text>Edit </xsl:text>
-                                    <xsl:apply-templates select="key('resources, ., document(ac:document-uri(.)))"/>
+                                    <xsl:apply-templates select="key('resources', ., document(ac:document-uri(.)))"/>
                                     <xsl:text> constructor(s)</xsl:text>
                                 </button>
                             </xsl:if>
