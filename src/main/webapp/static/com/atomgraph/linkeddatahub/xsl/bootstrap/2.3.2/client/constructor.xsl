@@ -487,12 +487,17 @@ exclude-result-prefixes="#all"
                 <xsl:variable name="form-data" select="ldh:new('FormData', [])"/>
                 <xsl:sequence select="ixsl:call($form-data, 'append', [ 'uri', $ontology-uri ])[current-date() lt xs:date('2000-01-01')]"/>
 
-                <ixsl:schedule-action http-request="map{ 'method': 'POST', 'href': resolve-uri('clear', ldt:base()), 'media-type': 'application/x-www-form-urlencoded', 'body': $form-data }"/>
+                <ixsl:schedule-action http-request="map{ 'method': 'POST', 'href': resolve-uri('clear', ldt:base()), 'media-type': 'application/x-www-form-urlencoded', 'body': $form-data }">
+                    <xsl:call-template name="whateverest"/>
+                </ixsl:schedule-action>
             </xsl:when>
             <xsl:otherwise>
                 <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ 'Could not update constructor' ])[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
+    
+    <!-- bogus template -->
+    <xsl:template name="whateverest"/>
     
 </xsl:stylesheet>
