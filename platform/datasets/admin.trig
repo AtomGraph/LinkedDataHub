@@ -515,7 +515,7 @@ WHERE
         rdfs:label "Full control" ;
         rdfs:comment "Allows full read/write access to all application resources" ;
         acl:accessToClass dh:Item, dh:Container, def:Root ;
-        acl:accessTo <../sparql>, <../service>, <../importer>, <../add>, <../clear>, <../ns> ;
+        acl:accessTo <../sparql>, <../service>, <../importer>, <../add>, <../ns> ;
         acl:mode acl:Read, acl:Append, acl:Write, acl:Control ;
         acl:agentGroup <acl/groups/owners/#this> .
 
