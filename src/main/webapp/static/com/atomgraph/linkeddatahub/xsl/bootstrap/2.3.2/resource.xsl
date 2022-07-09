@@ -658,20 +658,25 @@ extension-element-prefixes="ixsl"
 
         <!-- only admins have access to the ontologies with constructors in them -->
         <xsl:if test="$acl:mode = '&acl;Control' and rdf:type/@rdf:resource">
-            <xsl:if test="not(rdf:type/@rdf:resource[starts-with(., '&dh;') or starts-with(., '&ldh;') or starts-with(., '&lapp;') or starts-with(., '&sp;') or starts-with(., '&nfo;')])">
-                <div class="btn-group pull-right">
-                    <button type="button" class="btn dropdown-toggle">
-                        Actions
-                        <span class="caret"></span>
-                    </button>
-                    <ul class="dropdown-menu">
-                        <li>
-                            <!-- TO-DO: support multiple types -->
-                            <button type="button" class="btn btn-edit-constructors" data-resource-type="{rdf:type/@rdf:resource[1]}">Edit constructors</button>
-                        </li>
-                    </ul>
-                </div>
-            </xsl:if>
+            <div class="btn-group pull-right">
+                <button type="button" class="btn dropdown-toggle">
+                    Actions
+                    <span class="caret"></span>
+                </button>
+                <ul class="dropdown-menu">
+                    <li>
+                        <xsl:for-each select="rdf:type/@rdf:resource">
+                            <xsl:if test="not(starts-with(., '&dh;') or starts-with(., '&ldh;') or starts-with(., '&lapp;') or starts-with(., '&sp;') or starts-with(., '&nfo;'))">
+                                <button type="button" class="btn btn-edit-constructors" data-resource-type="{.}">
+                                    <xsl:text>Edit </xsl:text>
+                                    <xsl:apply-templates select="key('resources, ., document(ac:document-uri(.)))"/>
+                                    <xsl:text> constructor(s)</xsl:text>
+                                </button>
+                            </xsl:if>
+                        </xsl:for-each>
+                    </li>
+                </ul>
+            </div>
         </xsl:if>
     </xsl:template>
     
