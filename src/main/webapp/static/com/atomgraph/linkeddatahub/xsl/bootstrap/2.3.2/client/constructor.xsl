@@ -484,10 +484,11 @@ exclude-result-prefixes="#all"
                 <!-- clear the ontology. TO-DO: only clear after *all* constructors are saved: https://saxonica.plan.io/issues/5596 -->
                 <!-- TO-DO: make sure we're in the end-user application -->
                 <xsl:variable name="ontology-uri" select="resolve-uri('ns#', ldt:base())" as="xs:anyURI"/>
-                <xsl:variable name="form-data" select="ldh:new('FormData', [])"/>
+                <xsl:variable name="form-data" select="ldh:new('URLSearchParams', [ ldh:new('FormData', []) ])"/>
                 <xsl:sequence select="ixsl:call($form-data, 'append', [ 'uri', $ontology-uri ])[current-date() lt xs:date('2000-01-01')]"/>
 
-                <ixsl:schedule-action http-request="map{ 'method': 'POST', 'href': resolve-uri('clear', ldt:base()), 'media-type': 'application/x-www-form-urlencoded', 'body': $form-data }">
+                <ixsl:schedule-action http-request="map{ 'method': 'POST', 'href': resolve-uri('clear', ldt:base()), 'media-type': 'application/x-www-form-urlencoded', 'body': $form-data, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+                    <!-- bogus template call required because of Saxon-JS 2.4 bug: https://saxonica.plan.io/issues/5597 -->
                     <xsl:call-template name="whateverest"/>
                 </ixsl:schedule-action>
             </xsl:when>
@@ -497,7 +498,6 @@ exclude-result-prefixes="#all"
         </xsl:choose>
     </xsl:template>
     
-    <!-- bogus template -->
     <xsl:template name="whateverest"/>
     
 </xsl:stylesheet>
