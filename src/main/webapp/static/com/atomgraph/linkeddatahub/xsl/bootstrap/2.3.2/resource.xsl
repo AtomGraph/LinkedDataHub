@@ -658,7 +658,7 @@ extension-element-prefixes="ixsl"
 
         <!-- only admins have access to the ontologies with constructors in them -->
         <xsl:if test="$acl:mode = '&acl;Control' and rdf:type/@rdf:resource">
-            <xsl:if test="not(rdf:type/@rdf:resource[starts-with(., '&dh;') or starts-with(., '&ldh;') or starts-with(., '&lapp;') or starts-with(., '&sp;') or starts-with(., '&nfo;'))">
+            <xsl:if test="not(rdf:type/@rdf:resource[starts-with(., '&dh;') or starts-with(., '&ldh;') or starts-with(., '&lapp;') or starts-with(., '&sp;') or starts-with(., '&nfo;')])">
                 <div class="btn-group pull-right">
                     <button type="button" class="btn dropdown-toggle">
                         Actions
