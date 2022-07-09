@@ -110,7 +110,7 @@ exclude-result-prefixes="#all"
 
                                 <div class="control-group">
                                     <label class="control-label">
-                                        <button type="button" class="btn btn-primary create-action add-triple-template">Triple template</button>
+                                        <button type="button" class="btn btn-primary create-action add-triple-template">Property</button>
                                     </label>
                                     <div class="controls"></div>
                                 </div>

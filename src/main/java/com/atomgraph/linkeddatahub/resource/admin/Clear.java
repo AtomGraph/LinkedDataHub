@@ -34,6 +34,7 @@ import org.apache.jena.ontology.OntModel;
 import org.apache.jena.ontology.OntModelSpec;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.shared.Lock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -91,12 +92,21 @@ public class Clear
             ontModelSpec.setImportModelGetter(modelGetter);
             Model baseModel = modelGetter.getModel(ontologyURI);
             OntModel ontModel = ModelFactory.createOntologyModel(ontModelSpec, baseModel);
-            // materialize OntModel inferences to avoid invoking rules engine on every request
-            OntModel materializedModel = ModelFactory.createOntologyModel(OntModelSpec.OWL_MEM); // no inference
-            materializedModel.add(ontModel);
-            ontModel.getDocumentManager().addModel(ontologyURI, new OntModelReadOnly(materializedModel), true); // make immutable and add as OntModel so that imports do not need to be reloaded during retrieval
-            // make sure to cache imported models not only by ontology URI but also by document URI
-            ontModel.listImportedOntologyURIs(true).forEach((String importURI) -> addDocumentModel(ontModel.getDocumentManager(), importURI));
+            ontModel.enterCriticalSection(Lock.WRITE);
+            
+            try
+            {
+                // materialize OntModel inferences to avoid invoking rules engine on every request
+                OntModel materializedModel = ModelFactory.createOntologyModel(OntModelSpec.OWL_MEM); // no inference
+                materializedModel.add(ontModel);
+                ontModel.getDocumentManager().addModel(ontologyURI, new OntModelReadOnly(materializedModel), true); // make immutable and add as OntModel so that imports do not need to be reloaded during retrieval
+                // make sure to cache imported models not only by ontology URI but also by document URI
+                ontModel.listImportedOntologyURIs(true).forEach((String importURI) -> addDocumentModel(ontModel.getDocumentManager(), importURI));
+            }
+            finally
+            {
+                ontModel.leaveCriticalSection();
+            }
         }
         
         if (referer != null) return Response.seeOther(referer).build();
