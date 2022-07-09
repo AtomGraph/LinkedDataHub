@@ -480,6 +480,14 @@ exclude-result-prefixes="#all"
                 <xsl:for-each select="$container">
                     <xsl:call-template name="ldh:CloseModal"/>
                 </xsl:for-each>
+                
+                <!-- clear the ontology. TO-DO: only clear after *all* constructors are saved: https://saxonica.plan.io/issues/5596 -->
+                <!-- TO-DO: make sure we're in the end-user application -->
+                <xsl:variable name="ontology-uri" select="resolve-uri('ns#', ldt:base())" as="xs:anyURI"/>
+                <xsl:variable name="form-data" select="ldh:new('FormData', [])"/>
+                <xsl:sequence select="ixsl:call($form-data, 'append', [ 'uri', $ontology-uri ])[current-date() lt xs:date('2000-01-01')]"/>
+
+                <ixsl:schedule-action http-request="map{ 'method': 'POST', 'href': resolve-uri('clear', ldt:base()), 'media-type': 'application/x-www-form-urlencoded', 'body': $form-data }"/>
             </xsl:when>
             <xsl:otherwise>
                 <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ 'Could not update constructor' ])[current-date() lt xs:date('2000-01-01')]"/>
