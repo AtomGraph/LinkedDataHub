@@ -488,6 +488,7 @@ exclude-result-prefixes="#all"
                 <!-- clear the ontology. TO-DO: only clear after *all* constructors are saved: https://saxonica.plan.io/issues/5596 -->
                 <!-- TO-DO: make sure we're in the end-user application -->
                 <!-- attempt to retrieve the ontology URI from the class'es rdfs:isDefinedBy value. TO-DO: what's the fallback if it's missing? -->
+                <xsl:variable name="request-uri" select="ac:build-uri($ldt:base, map{ 'uri': ac:document-uri($type), 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
                 <xsl:variable name="ontology-uri" select="key('resources', $type, document(ac:document-uri($request-uri)))/rdfs:isDefinedBy/@rdf:resource" as="xs:anyURI?"/>
                 <xsl:if test="$ontology-uri">
                     <xsl:variable name="form-data" select="ldh:new('URLSearchParams', [ ldh:new('FormData', []) ])"/>
