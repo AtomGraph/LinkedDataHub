@@ -65,74 +65,95 @@ exclude-result-prefixes="#all"
     
     <!-- TEMPLATES -->
 
-    <!-- render constructor template -->
-
-    <xsl:template name="ldh:ConstructorMode">
+    <xsl:template name="ldh:LoadConstructors">
         <xsl:context-item as="element()" use="required"/> <!-- container element -->
         <xsl:param name="type" as="xs:anyURI"/> <!-- the URI of the class that constructors are attached to -->
-        <xsl:param name="constructors" select="spin:constructors($type, resolve-uri('ns', $ldt:base), $constructor-query)" as="document-node()"/>
+        <xsl:variable name="container" select="." as="element()"/>
+        
+        <ixsl:set-style name="cursor" select="'progress'" object="."/>
+
+        <xsl:variable name="query-string" select="replace($constructor-query, '\$Type', concat('&lt;', $type, '&gt;'))" as="xs:string"/>
+        <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': $query-string })" as="xs:anyURI"/>
+        <xsl:variable name="request" as="item()*">
+            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml' } }">
+                <xsl:call-template name="ldh:ConstructorMode">
+                    <xsl:with-param name="container" select="$container"/>
+                    <xsl:with-param name="type" select="$type"/>
+                </xsl:call-template>
+            </ixsl:schedule-action>
+        </xsl:variable>
+        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+    </xsl:template>
+    
+    <!-- render constructor template -->
+    <xsl:template name="ldh:ConstructorMode">
+        <xsl:context-item as="element()" use="required"/>
+        <xsl:param name="container" as="element()"/>
+        <xsl:param name="type" as="xs:anyURI"/> <!-- the URI of the class that constructors are attached to -->
+
+        <xsl:for-each select="$container">
+            <xsl:result-document href="?." method="ixsl:append-content">
+                <div class="modal modal-constructor fade in">
+                    <form class="form-horizontal constructor-template" about="{$type}">
+                        <div class="modal-header">
+                            <button type="button" class="close">&#215;</button>
+
+                            <h3>
+                                <xsl:variable name="request-uri" select="ac:build-uri($ldt:base, map{ 'uri': ac:document-uri($type), 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
+
+                                <xsl:apply-templates select="key('resources', $type, document(ac:document-uri($request-uri)))" mode="ac:label"/>
+                            </h3>
+                        </div>
+                        <div class="modal-body">
+                            <xsl:for-each select="$constructors//srx:result">
+                                <xsl:variable name="constructor-uri" select="srx:binding[@name = 'constructor']/srx:uri" as="xs:anyURI"/>
+                                <xsl:variable name="construct-string" select="srx:binding[@name = 'construct']/srx:literal" as="xs:string"/>
+                                <!--<xsl:message>$construct-string: <xsl:value-of select="serialize($construct-string)"/></xsl:message>-->
+                                <xsl:variable name="construct-json" as="item()">
+                                    <xsl:variable name="construct-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'fromString', [ $construct-string ])"/>
+                                    <xsl:sequence select="ixsl:call($construct-builder, 'build', [])"/>
+                                </xsl:variable>
+                                <xsl:variable name="construct-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $construct-json ])" as="xs:string"/>
+                                <xsl:variable name="construct-xml" select="json-to-xml($construct-json-string)" as="document-node()"/>
+
+                                <fieldset about="{$constructor-uri}">
+                                    <legend>
+                                        <xsl:variable name="request-uri" select="ac:build-uri($ldt:base, map{ 'uri': ac:document-uri($constructor-uri), 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
+
+                                        <xsl:apply-templates select="key('resources', $constructor-uri, document($request-uri))" mode="ac:label"/>
+                                    </legend>
+
+                                    <xsl:apply-templates select="$construct-xml/json:map/json:array[@key = 'template']/json:map" mode="bs2:ConstructorTripleForm">
+                                        <xsl:sort select="json:string[@key = 'predicate']"/>
+                                    </xsl:apply-templates>
+
+                                    <div class="control-group">
+                                        <label class="control-label">
+                                            <button type="button" class="btn btn-primary create-action add-triple-template">Property</button>
+                                        </label>
+                                        <div class="controls"></div>
+                                    </div>
+                                </fieldset>
+                            </xsl:for-each>
+                        </div>
+                        <div class="form-actions modal-footer">
+                            <button type="button" class="btn btn-primary btn-save">
+                                <xsl:value-of>
+                                    <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                                </xsl:value-of>
+                            </button>
+                            <button type="button" class="btn btn-close">
+                                <xsl:value-of>
+                                    <xsl:apply-templates select="key('resources', 'cancel', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                                </xsl:value-of>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </xsl:result-document>
+        </xsl:for-each>
 
         <ixsl:set-style name="cursor" select="'default'" object="."/>
-
-        <xsl:result-document href="?." method="ixsl:append-content">
-            <div class="modal modal-constructor fade in">
-                <form class="form-horizontal constructor-template" about="{$type}">
-                    <div class="modal-header">
-                        <button type="button" class="close">&#215;</button>
-
-                        <h3>
-                            <xsl:variable name="request-uri" select="ac:build-uri($ldt:base, map{ 'uri': ac:document-uri($type), 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
-
-                            <xsl:apply-templates select="key('resources', $type, document(ac:document-uri($request-uri)))" mode="ac:label"/>
-                        </h3>
-                    </div>
-                    <div class="modal-body">
-                        <xsl:for-each select="$constructors//srx:result">
-                            <xsl:variable name="constructor-uri" select="srx:binding[@name = 'constructor']/srx:uri" as="xs:anyURI"/>
-                            <xsl:variable name="construct-string" select="srx:binding[@name = 'construct']/srx:literal" as="xs:string"/>
-                            <!--<xsl:message>$construct-string: <xsl:value-of select="serialize($construct-string)"/></xsl:message>-->
-                            <xsl:variable name="construct-json" as="item()">
-                                <xsl:variable name="construct-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'fromString', [ $construct-string ])"/>
-                                <xsl:sequence select="ixsl:call($construct-builder, 'build', [])"/>
-                            </xsl:variable>
-                            <xsl:variable name="construct-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $construct-json ])" as="xs:string"/>
-                            <xsl:variable name="construct-xml" select="json-to-xml($construct-json-string)" as="document-node()"/>
-
-                            <fieldset about="{$constructor-uri}">
-                                <legend>
-                                    <xsl:variable name="request-uri" select="ac:build-uri($ldt:base, map{ 'uri': ac:document-uri($constructor-uri), 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
-
-                                    <xsl:apply-templates select="key('resources', $constructor-uri, document($request-uri))" mode="ac:label"/>
-                                </legend>
-
-                                <xsl:apply-templates select="$construct-xml/json:map/json:array[@key = 'template']/json:map" mode="bs2:ConstructorTripleForm">
-                                    <xsl:sort select="json:string[@key = 'predicate']"/>
-                                </xsl:apply-templates>
-
-                                <div class="control-group">
-                                    <label class="control-label">
-                                        <button type="button" class="btn btn-primary create-action add-triple-template">Property</button>
-                                    </label>
-                                    <div class="controls"></div>
-                                </div>
-                            </fieldset>
-                        </xsl:for-each>
-                    </div>
-                    <div class="form-actions modal-footer">
-                        <button type="button" class="btn btn-primary btn-save">
-                            <xsl:value-of>
-                                <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                            </xsl:value-of>
-                        </button>
-                        <button type="button" class="btn btn-close">
-                            <xsl:value-of>
-                                <xsl:apply-templates select="key('resources', 'cancel', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                            </xsl:value-of>
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </xsl:result-document>
     </xsl:template>
 
     <xsl:template match="json:array[@key = 'template']/json:map[json:string[@key = 'subject'] = '?this']" mode="bs2:ConstructorTripleForm" priority="1">
@@ -321,10 +342,8 @@ exclude-result-prefixes="#all"
     <xsl:template match="button[contains-token(@class, 'btn-edit-constructors')]" mode="ixsl:onclick">"
         <xsl:variable name="type" select="ixsl:get(., 'dataset.resourceType')" as="xs:anyURI"/>
 
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
-
         <xsl:for-each select="ixsl:page()//body">
-            <xsl:call-template name="ldh:ConstructorMode">
+            <xsl:call-template name="ldh:LoadConstructors">
                 <xsl:with-param name="type" select="$type"/>
             </xsl:call-template>
         </xsl:for-each>
