@@ -911,6 +911,7 @@ exclude-result-prefixes="#all"
     <!-- embed DESCRIBE/CONSTRUCT result -->
     
     <xsl:template name="onQueryContentLoad">
+        <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="container" as="element()"/>
         <xsl:param name="query-uri" as="xs:anyURI"/>
         <xsl:param name="mode" as="xs:anyURI?"/>
