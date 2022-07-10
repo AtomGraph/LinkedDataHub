@@ -94,7 +94,9 @@ exclude-result-prefixes="#all"
 
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = 'application/sparql-results+xml'">
-                <xsl:for-each select="?body">
+                <xsl:variable name="constructors" select="?body" as="document-node()"/>
+                
+                <xsl:for-each select="$container">
                     <xsl:result-document href="?." method="ixsl:append-content">
                         <div class="modal modal-constructor fade in">
                             <form class="form-horizontal constructor-template" about="{$type}">
@@ -108,7 +110,7 @@ exclude-result-prefixes="#all"
                                     </h3>
                                 </div>
                                 <div class="modal-body">
-                                    <xsl:for-each select="//srx:result">
+                                    <xsl:for-each select="$constructors//srx:result">
                                         <xsl:variable name="constructor-uri" select="srx:binding[@name = 'constructor']/srx:uri" as="xs:anyURI"/>
                                         <xsl:variable name="construct-string" select="srx:binding[@name = 'construct']/srx:literal" as="xs:string"/>
                                         <!--<xsl:message>$construct-string: <xsl:value-of select="serialize($construct-string)"/></xsl:message>-->
@@ -161,7 +163,7 @@ exclude-result-prefixes="#all"
             </xsl:otherwise>
         </xsl:choose>
         
-        <ixsl:set-style name="cursor" select="'default'" object="."/>
+        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
     </xsl:template>
 
     <xsl:template match="json:array[@key = 'template']/json:map[json:string[@key = 'subject'] = '?this']" mode="bs2:ConstructorTripleForm" priority="1">
