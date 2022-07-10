@@ -73,7 +73,8 @@ exclude-result-prefixes="#all"
         <ixsl:set-style name="cursor" select="'progress'" object="."/>
 
         <xsl:variable name="query-string" select="replace($constructor-query, '\$Type', concat('&lt;', $type, '&gt;'))" as="xs:string"/>
-        <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': $query-string })" as="xs:anyURI"/>
+        <!-- spin:constructors function does the same synchronously -->
+        <xsl:variable name="results-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': $query-string })" as="xs:anyURI"/>
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml' } }">
                 <xsl:call-template name="ldh:ConstructorMode">
@@ -150,10 +151,9 @@ exclude-result-prefixes="#all"
                         </div>
                     </form>
                 </div>
-            </xsl:result-document>
-        </xsl:for-each>
-
-        <ixsl:set-style name="cursor" select="'default'" object="."/>
+        </xsl:result-document>
+            </xsl:for-each>
+     <ixsl:set-style name="cursor" select="'default'" object="."/>
     </xsl:template>
 
     <xsl:template match="json:array[@key = 'template']/json:map[json:string[@key = 'subject'] = '?this']" mode="bs2:ConstructorTripleForm" priority="1">
