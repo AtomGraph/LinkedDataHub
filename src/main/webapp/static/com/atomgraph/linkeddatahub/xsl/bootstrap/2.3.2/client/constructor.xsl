@@ -22,6 +22,7 @@ xmlns:array="http://www.w3.org/2005/xpath-functions/array"
 xmlns:ac="&ac;"
 xmlns:ldh="&ldh;"
 xmlns:rdf="&rdf;"
+xmlns:rdfs="&rdfs;"
 xmlns:srx="&srx;"
 xmlns:ldt="&ldt;"
 xmlns:spin="&spin;"
@@ -75,7 +76,7 @@ exclude-result-prefixes="#all"
 
         <xsl:result-document href="?." method="ixsl:append-content">
             <div class="modal modal-constructor fade in">
-                <form class="form-horizontal constructor-template">
+                <form class="form-horizontal constructor-template" about="{$type}">
                     <div class="modal-header">
                         <button type="button" class="close">&#215;</button>
 
@@ -414,7 +415,8 @@ exclude-result-prefixes="#all"
     <!-- save constructor form onclick -->
     <xsl:template match="form[contains-token(@class, 'constructor-template')]//div[contains-token(@class, 'form-actions')]/button[contains-token(@class, 'btn-save')]" mode="ixsl:onclick">
         <xsl:variable name="form" select="ancestor::form" as="element()"/>
-        
+        <xsl:param name="type" select="$form/@about" as="xs:anyURI"/> <!-- the URI of the class that constructors are attached to -->
+
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
         <xsl:for-each select="$form//fieldset">
@@ -460,6 +462,7 @@ exclude-result-prefixes="#all"
                 <ixsl:schedule-action http-request="map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string }">
                     <xsl:call-template name="onConstructorUpdate">
                         <xsl:with-param name="container" select="$container"/>
+                        <xsl:with-param name="type" select="$type"/>
                     </xsl:call-template>
                 </ixsl:schedule-action>
             </xsl:variable>
@@ -472,6 +475,7 @@ exclude-result-prefixes="#all"
     <xsl:template name="onConstructorUpdate">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="container" as="element()"/>
+        <xsl:param name="type" as="xs:anyURI"/> <!-- the URI of the class that constructors are attached to -->
 
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
 
@@ -483,19 +487,33 @@ exclude-result-prefixes="#all"
                 
                 <!-- clear the ontology. TO-DO: only clear after *all* constructors are saved: https://saxonica.plan.io/issues/5596 -->
                 <!-- TO-DO: make sure we're in the end-user application -->
-                <xsl:variable name="ontology-uri" select="resolve-uri('ns#', ldt:base())" as="xs:anyURI"/>
-                <xsl:variable name="form-data" select="ldh:new('URLSearchParams', [ ldh:new('FormData', []) ])"/>
-                <xsl:sequence select="ixsl:call($form-data, 'append', [ 'uri', $ontology-uri ])[current-date() lt xs:date('2000-01-01')]"/>
+                <!-- attempt to retrieve the ontology URI from the class'es rdfs:isDefinedBy value. TO-DO: what's the fallback if it's missing? -->
+                <xsl:variable name="ontology-uri" select="key('resources', $type, document(ac:document-uri($request-uri)))/rdfs:isDefinedBy/@rdf:resource" as="xs:anyURI?"/>
+                <xsl:if test="$ontology-uri">
+                    <xsl:variable name="form-data" select="ldh:new('URLSearchParams', [ ldh:new('FormData', []) ])"/>
+                    <xsl:sequence select="ixsl:call($form-data, 'append', [ 'uri', $ontology-uri ])[current-date() lt xs:date('2000-01-01')]"/>
 
-                <ixsl:schedule-action http-request="map{ 'method': 'POST', 'href': resolve-uri('admin/clear', ldt:base()), 'media-type': 'application/x-www-form-urlencoded', 'body': $form-data, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-                    <!-- bogus template call required because of Saxon-JS 2.4 bug: https://saxonica.plan.io/issues/5597 -->
-                    <xsl:call-template name="whateverest"/>
-                </ixsl:schedule-action>
+                    <!-- clear this ontology first, then proceed to clear the namespace ontology -->
+                    <ixsl:schedule-action http-request="map{ 'method': 'POST', 'href': resolve-uri('admin/clear', ldt:base()), 'media-type': 'application/x-www-form-urlencoded', 'body': $form-data, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+                        <xsl:call-template name="ldh:ClearNamespace"/>
+                    </ixsl:schedule-action>
+                </xsl:if>
             </xsl:when>
             <xsl:otherwise>
                 <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ 'Could not update constructor' ])[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:otherwise>
         </xsl:choose>
+    </xsl:template>
+    
+    <xsl:template name="ldh:ClearNamespace">
+        <xsl:param name="ontology-uri" select="resolve-uri('ns#', ldt:base())" as="xs:anyURI"/>
+        <xsl:variable name="form-data" select="ldh:new('URLSearchParams', [ ldh:new('FormData', []) ])"/>
+        <xsl:sequence select="ixsl:call($form-data, 'append', [ 'uri', $ontology-uri ])[current-date() lt xs:date('2000-01-01')]"/>
+
+        <ixsl:schedule-action http-request="map{ 'method': 'POST', 'href': resolve-uri('admin/clear', ldt:base()), 'media-type': 'application/x-www-form-urlencoded', 'body': $form-data, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+            <!-- bogus template call required because of Saxon-JS 2.4 bug: https://saxonica.plan.io/issues/5597 -->
+            <xsl:call-template name="whateverest"/>
+        </ixsl:schedule-action>
     </xsl:template>
     
     <xsl:template name="whateverest"/>

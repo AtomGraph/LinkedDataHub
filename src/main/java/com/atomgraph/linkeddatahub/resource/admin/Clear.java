@@ -22,8 +22,8 @@ import static com.atomgraph.linkeddatahub.server.filter.request.OntologyFilter.a
 import com.atomgraph.linkeddatahub.server.util.OntologyModelGetter;
 import com.atomgraph.processor.util.OntModelReadOnly;
 import java.net.URI;
-import java.util.List;
 import javax.inject.Inject;
+import javax.ws.rs.BadRequestException;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.HeaderParam;
@@ -68,37 +68,36 @@ public class Clear
     /**
      * Clears the specified ontology from memory.
      * 
-     * @param ontologyURIs ontology URI
+     * @param ontologyURI ontology URI
      * @param referer the referring URL
      * @return JAX-RS response
      */
     @POST
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-    public Response post(@FormParam("uri") List<String> ontologyURIs, @HeaderParam("Referer") URI referer)
+    public Response post(@FormParam("uri") String ontologyURI, @HeaderParam("Referer") URI referer)
     {
-        ontologyURIs.forEach(ontologyURI -> 
-        {
-            EndUserApplication app = getApplication().as(AdminApplication.class).getEndUserApplication(); // we're assuming the current app is admin
-            OntModelSpec ontModelSpec = new OntModelSpec(getSystem().getOntModelSpec(app));
-            if (ontModelSpec.getDocumentManager().getFileManager().hasCachedModel(ontologyURI))
-            {
-                ontModelSpec.getDocumentManager().getFileManager().removeCacheModel(ontologyURI);
+        if (ontologyURI == null) throw new BadRequestException("Ontology URI not specified");
 
-                // !!! we need to reload the ontology model before returning a response, to make sure the next request already gets the new version !!!
-                // same logic as in OntologyFilter. TO-DO: encapsulate?
-                OntologyModelGetter modelGetter = new OntologyModelGetter(app,
-                        ontModelSpec, getSystem().getOntologyQuery(), getSystem().getNoCertClient(), getSystem().getMediaTypes());
-                ontModelSpec.setImportModelGetter(modelGetter);
-                Model baseModel = modelGetter.getModel(ontologyURI);
-                OntModel ontModel = ModelFactory.createOntologyModel(ontModelSpec, baseModel);
-                // materialize OntModel inferences to avoid invoking rules engine on every request
-                OntModel materializedModel = ModelFactory.createOntologyModel(OntModelSpec.OWL_MEM); // no inference
-                materializedModel.add(ontModel);
-                ontModel.getDocumentManager().addModel(ontologyURI, new OntModelReadOnly(materializedModel), true); // make immutable and add as OntModel so that imports do not need to be reloaded during retrieval
-                // make sure to cache imported models not only by ontology URI but also by document URI
-                ontModel.listImportedOntologyURIs(true).forEach((String importURI) -> addDocumentModel(ontModel.getDocumentManager(), importURI));
-            }
-        });
+        EndUserApplication app = getApplication().as(AdminApplication.class).getEndUserApplication(); // we're assuming the current app is admin
+        OntModelSpec ontModelSpec = new OntModelSpec(getSystem().getOntModelSpec(app));
+        if (ontModelSpec.getDocumentManager().getFileManager().hasCachedModel(ontologyURI))
+        {
+            ontModelSpec.getDocumentManager().getFileManager().removeCacheModel(ontologyURI);
+
+            // !!! we need to reload the ontology model before returning a response, to make sure the next request already gets the new version !!!
+            // same logic as in OntologyFilter. TO-DO: encapsulate?
+            OntologyModelGetter modelGetter = new OntologyModelGetter(app,
+                    ontModelSpec, getSystem().getOntologyQuery(), getSystem().getNoCertClient(), getSystem().getMediaTypes());
+            ontModelSpec.setImportModelGetter(modelGetter);
+            Model baseModel = modelGetter.getModel(ontologyURI);
+            OntModel ontModel = ModelFactory.createOntologyModel(ontModelSpec, baseModel);
+            // materialize OntModel inferences to avoid invoking rules engine on every request
+            OntModel materializedModel = ModelFactory.createOntologyModel(OntModelSpec.OWL_MEM); // no inference
+            materializedModel.add(ontModel);
+            ontModel.getDocumentManager().addModel(ontologyURI, new OntModelReadOnly(materializedModel), true); // make immutable and add as OntModel so that imports do not need to be reloaded during retrieval
+            // make sure to cache imported models not only by ontology URI but also by document URI
+            ontModel.listImportedOntologyURIs(true).forEach((String importURI) -> addDocumentModel(ontModel.getDocumentManager(), importURI));
+        }
         
         if (referer != null) return Response.seeOther(referer).build();
         else return Response.ok().build();
