@@ -415,7 +415,7 @@ exclude-result-prefixes="#all"
     <!-- save constructor form onclick -->
     <xsl:template match="form[contains-token(@class, 'constructor-template')]//div[contains-token(@class, 'form-actions')]/button[contains-token(@class, 'btn-save')]" mode="ixsl:onclick">
         <xsl:variable name="form" select="ancestor::form" as="element()"/>
-        <xsl:param name="type" select="$form/@about" as="xs:anyURI"/> <!-- the URI of the class that constructors are attached to -->
+        <xsl:variable name="type" select="$form/@about" as="xs:anyURI"/> <!-- the URI of the class that constructors are attached to -->
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
