@@ -1,5 +1,13 @@
 #!/usr/bin/env bash
 
+# SPDX-FileCopyrightText: 2017 Martynas Jusevicius <martynas@atomgraph.com> 
+# SPDX-FileCopyrightText: 2017 LinkedDataHub
+#
+# SPDX-License-Identifier: Apache-2.0
+
+# LinkedDataHub
+
+
 print_usage()
 {
     printf "Makes all documents of the end-user application publicly readable.\n"
@@ -85,6 +93,10 @@ INSERT
   <acl/authorizations/public/#this> acl:accessToClass def:Root, dh:Container, dh:Item, nfo:FileDataObject ;
       acl:accessTo <../sparql> .
 }
+<<<<<<< HEAD
+EOF
+=======
 WHERE
 {}
 EOF
+>>>>>>> d08c2ba5572686ff28f238c2db30871ba70caad4

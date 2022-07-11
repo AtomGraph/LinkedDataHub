@@ -1,5 +1,15 @@
 #!/usr/bin/env bash
+
+# SPDX-FileCopyrightText: 2017 Martynas Jusevicius <martynas@atomgraph.com> 
+# SPDX-FileCopyrightText: 2017 LinkedDataHub
+#
+# SPDX-License-Identifier: Apache-2.0
+
+# LinkedDataHub
+
+
 set -euo pipefail
+
 
 initialize_dataset "$END_USER_BASE_URL" "$TMP_END_USER_DATASET" "$END_USER_ENDPOINT_URL"
 initialize_dataset "$ADMIN_BASE_URL" "$TMP_ADMIN_DATASET" "$ADMIN_ENDPOINT_URL"

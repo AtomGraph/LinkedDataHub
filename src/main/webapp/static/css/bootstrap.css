@@ -1,13 +1,10 @@
 @import url('//fonts.googleapis.com/css?family=Open+Sans:400italic,700italic,400,700');
 
-/*!
- * Bootstrap v2.3.2
- *
+/*
  * Copyright 2013 Twitter, Inc
- * Licensed under the Apache License v2.0
- * http://www.apache.org/licenses/LICENSE-2.0
+ * SPDX-FileCopyrightText: 2017-2022 2017 Martynas Jusevicius, <martynas@atomgraph.com> et al.
  *
- * Designed and built with all the love in the world by @mdo and @fat.
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 .clearfix {

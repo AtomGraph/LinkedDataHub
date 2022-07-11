@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2017-2022 2017 Martynas Jusevicius, <martynas@atomgraph.com> et al.
+//
+// SPDX-License-Identifier: Apache-2.0
+
  (function(){// Input 0
 var ba;function la(a){var b=0;return function(){return b<a.length?{done:!1,value:a[b++]}:{done:!0}}}var pa="function"==typeof Object.defineProperties?Object.defineProperty:function(a,b,h){if(a==Array.prototype||a==Object.prototype)return a;a[b]=h.value;return a};
 function ta(a){a=["object"==typeof globalThis&&globalThis,a,"object"==typeof window&&window,"object"==typeof self&&self,"object"==typeof global&&global];for(var b=0;b<a.length;++b){var h=a[b];if(h&&h.Math==Math)return h}throw Error("Cannot find global object");}var ua=ta(this);function va(a,b){if(b)a:{var h=ua;a=a.split(".");for(var v=0;v<a.length-1;v++){var B=a[v];if(!(B in h))break a;h=h[B]}a=a[a.length-1];v=h[a];b=b(v);b!=v&&null!=b&&pa(h,a,{configurable:!0,writable:!0,value:b})}}

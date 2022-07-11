@@ -1,17 +1,9 @@
-/*!
- * jQuery Browser Plugin 0.0.8
- * https://github.com/gabceb/jquery-browser-plugin
- *
- * Original jquery-browser code Copyright 2005, 2015 jQuery Foundation, Inc. and other contributors
- * http://jquery.org/license
- *
- * Modifications Copyright 2015 Gabriel Cebrian
- * https://github.com/gabceb
- *
- * Released under the MIT license
- *
- * Date: 05-07-2015
- */
+// Copyright 2005, 2015 jQuery Foundation, Inc. and other contributors
+// Copyright 2015 Gabriel Cebrian
+// SPDX-FileCopyrightText: 2017-2022 2017 Martynas Jusevicius, <martynas@atomgraph.com> et al.
+//
+// SPDX-License-Identifier: Apache-2.0
+
 /*global window: false */
 
 (function (factory) {

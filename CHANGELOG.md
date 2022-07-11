@@ -1,3 +1,20 @@
+<!-- 
+SPDX-FileCopyrightText: 2017 Martynas Jusevicius <martynas@atomgraph.com>
+SPDX-FileCopyrightText: 2017 LinkedDataHub
+
+SPDX-License-Identifier: Apache-2.0
+
+LinkedDataHub
+-->
+
+
+
+
+<<<<<<< HEAD
+
+
+
+=======
 ## [3.2.3] - 2022-06-30
 ### Added
 - The persistent storage of `refresh_token`s allows long-lived sessions when authenticated with Google login
@@ -18,6 +35,7 @@
 - SPARQL updates submitted to the Graph Store via the `PATCH` method now have to use the default graph context, the `GRAPH` keyword is disallowed
 - Fixed caching of delegated WebID agents, eliminating an unnecessary request with each authentication
 - Multiple `Link` headers combined into a single one with concatenated values
+>>>>>>> d08c2ba5572686ff28f238c2db30871ba70caad4
 
 ## [3.1.9] - 2022-05-23
 ### Added

@@ -1,12 +1,7 @@
-/**
- * Copyright (c) 2011 PolicyStat LLC.
- * MIT licensed (MIT-license.txt)
- *
- * This plugin adds the ability to use tab and shift+tab to indent/outdent
- * lists, mimicking a user's expected behavior when inside an editor.
- *
- * @author Wes Winham (winhamwr@gmail.com)
- */
+// Copyright (c) 2011 PolicyStat LLC.
+// SPDX-FileCopyrightText: 2017-2022 2017 Martynas Jusevicius, <martynas@atomgraph.com> et al.
+//
+// SPDX-License-Identifier: Apache-2.0
 
 function ListPlugin(options, wym) {
     var listPlugin = this;

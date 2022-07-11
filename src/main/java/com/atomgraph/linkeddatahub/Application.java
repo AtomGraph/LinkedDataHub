@@ -1,3 +1,9 @@
+// Copyright 2019 Martynas Jusevičius <martynas@atomgraph.com>
+// SPDX-FileCopyrightText: 2017-2022 2017 Martynas Jusevicius, <martynas@atomgraph.com> et al.
+//
+// SPDX-License-Identifier: Apache-2.0
+
+
 /**
  *  Copyright 2019 Martynas Jusevičius <martynas@atomgraph.com>
  *
@@ -1907,6 +1913,9 @@ public class Application extends ResourceConfig
         return enableWebIDSignUp;
     }
     
+<<<<<<< HEAD
+}
+=======
     /**
      * Gets refresh token from persistent storage.
      * 
@@ -1936,3 +1945,4 @@ public class Application extends ResourceConfig
     }
     
 }
+>>>>>>> d08c2ba5572686ff28f238c2db30871ba70caad4

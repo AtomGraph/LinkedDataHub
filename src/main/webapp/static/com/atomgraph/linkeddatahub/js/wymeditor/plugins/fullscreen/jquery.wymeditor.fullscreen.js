@@ -1,22 +1,7 @@
-/*
- * WYMeditor : what you see is What You Mean web-based editor
- * Copyright (c) 2005 - 2009 Jean-Francois Hovinne, http://www.wymeditor.org/
- * Dual licensed under the MIT (MIT-license.txt)
- * and GPL (GPL-license.txt) licenses.
- *
- * For further information visit:
- *        http://www.wymeditor.org/
- *
- * File Name:
- *        jquery.wymeditor.fullscreen.js
- *        Fullscreen plugin for WYMeditor
- *
- * File Authors:
- *        Luis Santos (luis.santos a-t openquest dotpt)
- *        Jonatan Lundin (jonatan.lundin a-t gmail dotcom)
- *        Gerd Riesselmann (gerd a-t gyro-php dot org) : Fixed issue with new skin layout
- *        Philipp Cordes (pc a-t irgendware dotnet)
- */
+// Copyright (c) 2005 - 2009 Jean-Francois Hovinne, http://www.wymeditor.org/
+// SPDX-FileCopyrightText: 2017-2022 2017 Martynas Jusevicius, <martynas@atomgraph.com> et al.
+//
+// SPDX-License-Identifier: Apache-2.0
 
 //Extend WYMeditor
 WYMeditor.editor.prototype.fullscreen = function() {

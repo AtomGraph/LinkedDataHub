@@ -1,3 +1,12 @@
+<!-- 
+SPDX-FileCopyrightText: 2017 Martynas Jusevicius <martynas@atomgraph.com>
+SPDX-FileCopyrightText: 2017 LinkedDataHub
+
+SPDX-License-Identifier: Apache-2.0
+
+LinkedDataHub
+-->
+
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xsl:stylesheet [
     <!ENTITY def        "https://w3id.org/atomgraph/linkeddatahub/default#">

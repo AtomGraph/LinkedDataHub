@@ -1,5 +1,12 @@
 #!/usr/bin/env bash
 
+# SPDX-FileCopyrightText: 2017 Martynas Jusevicius <martynas@atomgraph.com> 
+# SPDX-FileCopyrightText: 2017 LinkedDataHub
+#
+# SPDX-License-Identifier: Apache-2.0
+
+# LinkedDataHub
+
 print_usage()
 {
     printf "Creates a SPARQL SELECT query.\n"

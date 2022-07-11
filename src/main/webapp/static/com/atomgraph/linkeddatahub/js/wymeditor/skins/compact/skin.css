@@ -1,21 +1,9 @@
 /*
- * WYMeditor : what you see is What You Mean web-based editor
  * Copyright (c) 2005 - 2009 Jean-Francois Hovinne, http://www.wymeditor.org/
- * Dual licensed under the MIT (MIT-license.txt)
- * and GPL (GPL-license.txt) licenses.
+ * SPDX-FileCopyrightText: 2017-2022 2017 Martynas Jusevicius, <martynas@atomgraph.com> et al.
  *
- * For further information visit:
- *      http://www.wymeditor.org/
- *
- * File Name:
- *      screen.css
- *      main stylesheet for the WYMeditor skin
- *      See the documentation for more info.
- *
- * File Authors:
- *      Daniel Reszka (d.reszka a-t wymeditor dotorg)
- *      Jean-Francois Hovinne (jf.hovinne a-t wymeditor dotorg)
-*/
+ * SPDX-License-Identifier: Apache-2.0
+ */
 
 /*TRYING TO RESET STYLES THAT MAY INTERFERE WITH WYMEDITOR*/
         .wym_skin_compact p, .wym_skin_compact h2, .wym_skin_compact h3,

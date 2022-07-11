@@ -1,3 +1,12 @@
+<!-- 
+SPDX-FileCopyrightText: 2017 Martynas Jusevicius <martynas@atomgraph.com>
+SPDX-FileCopyrightText: 2017 LinkedDataHub
+
+SPDX-License-Identifier: Apache-2.0
+
+LinkedDataHub
+-->
+
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xsl:stylesheet [
     <!ENTITY def    "https://w3id.org/atomgraph/linkeddatahub/default#">
@@ -208,6 +217,9 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="ixsl:eval(string($js-statement/@statement))"/>
     </xsl:function>
     
+<<<<<<< HEAD
+</xsl:stylesheet>
+=======
     <xsl:function name="ldh:parse-html" as="document-node()">
         <xsl:param name="string" as="xs:string"/>
         <xsl:param name="mime-type" as="xs:string"/>
@@ -216,3 +228,4 @@ exclude-result-prefixes="#all"
     </xsl:function>
 
 </xsl:stylesheet>
+>>>>>>> d08c2ba5572686ff28f238c2db30871ba70caad4

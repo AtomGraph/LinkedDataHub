@@ -1,21 +1,7 @@
-/**
- * WYMeditor : what you see is What You Mean web-based editor
- * Copyright (c) 2005 - 2009 Jean-Francois Hovinne, http://www.wymeditor.org/
- * Dual licensed under the MIT (MIT-license.txt)
- * and GPL (GPL-license.txt) licenses.
- *
- * For further information visit:
- *        http://www.wymeditor.org/
- *
- * File Name:
- *        jquery.wymeditor.embed.js
- *        Experimental embed plugin
- *
- * File Authors:
- *        Jonatan Lundin (jonatan.lundin a-t gmail dotcom)
- *        Roger Hu (roger.hu a-t gmail dotcom)
- *        Scott Nixon (citadelgrad a-t gmail dotcom)
- */
+// Copyright (c) 2005 - 2009 Jean-Francois Hovinne, http://www.wymeditor.org/
+// SPDX-FileCopyrightText: 2017-2022 2017 Martynas Jusevicius, <martynas@atomgraph.com> et al.
+//
+// SPDX-License-Identifier: Apache-2.0
 
 (function () {
     function removeItem(item, arr) {
