@@ -657,14 +657,14 @@ extension-element-prefixes="ixsl"
         </div>
 
         <!-- only admins have access to the ontologies with constructors in them -->
-        <xsl:if test="$acl:mode = '&acl;Control' and rdf:type/@rdf:resource[not(starts-with(., '&dh;') or starts-with(., '&ldh;') or starts-with(., '&lapp;') or starts-with(., '&sp;') or starts-with(., '&nfo;'))]">
+        <xsl:if test="$acl:mode = '&acl;Control' and rdf:type/@rdf:resource[not(starts-with(., '&dh;') or starts-with(., '&ldh;') or starts-with(., '&lapp;') or starts-with(., '&sp;') or starts-with(., '&nfo;'))][doc-available(ac:document-uri(.))]">
             <div class="btn-group pull-right">
                 <button type="button" class="btn dropdown-toggle">
                     Actions
                     <span class="caret"></span>
                 </button>
                 <ul class="dropdown-menu">
-                    <xsl:for-each select="rdf:type/@rdf:resource[not(starts-with(., '&dh;') or starts-with(., '&ldh;') or starts-with(., '&lapp;') or starts-with(., '&sp;') or starts-with(., '&nfo;'))]">
+                    <xsl:for-each select="rdf:type/@rdf:resource[not(starts-with(., '&dh;') or starts-with(., '&ldh;') or starts-with(., '&lapp;') or starts-with(., '&sp;') or starts-with(., '&nfo;'))][doc-available(ac:document-uri(.))]">
                         <li>
                             <button type="button" class="btn btn-edit-constructors" data-resource-type="{.}">
                                 <xsl:text>Edit </xsl:text>
