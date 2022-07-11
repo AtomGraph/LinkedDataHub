@@ -655,27 +655,6 @@ extension-element-prefixes="ixsl"
                 </xsl:value-of>
             </button>
         </div>
-
-        <!-- only admins have access to the ontologies with constructors in them -->
-        <xsl:if test="$acl:mode = '&acl;Control' and rdf:type/@rdf:resource[not(starts-with(., '&dh;') or starts-with(., '&ldh;') or starts-with(., '&lapp;') or starts-with(., '&sp;') or starts-with(., '&nfo;'))][doc-available(ac:document-uri(.))]">
-            <div class="btn-group pull-right">
-                <button type="button" class="btn dropdown-toggle">
-                    Actions
-                    <span class="caret"></span>
-                </button>
-                <ul class="dropdown-menu">
-                    <xsl:for-each select="rdf:type/@rdf:resource[not(starts-with(., '&dh;') or starts-with(., '&ldh;') or starts-with(., '&lapp;') or starts-with(., '&sp;') or starts-with(., '&nfo;'))][doc-available(ac:document-uri(.))]">
-                        <li>
-                            <button type="button" class="btn btn-edit-constructors" data-resource-type="{.}">
-                                <xsl:text>Edit </xsl:text>
-                                <xsl:apply-templates select="key('resources', ., document(ac:document-uri(.)))" mode="ac:label"/>
-                                <xsl:text> constructor(s)</xsl:text>
-                            </button>
-                        </li>
-                    </xsl:for-each>
-                </ul>
-            </div>
-        </xsl:if>
     </xsl:template>
     
     <xsl:template match="*" mode="bs2:Actions"/>
@@ -1009,6 +988,27 @@ extension-element-prefixes="ixsl"
                             <!-- the button has to be inside <legend> for it to float to the top/right corner properly -->
                             <div class="btn-group pull-right">
                                 <button type="button" class="btn btn-large pull-right btn-remove-resource" title="Remove this resource"></button>
+                            </div>
+                        </xsl:if>
+
+                        <!-- only admins have access to the ontologies with constructors in them -->
+                        <xsl:if test="$acl:mode = '&acl;Control' and rdf:type/@rdf:resource[not(starts-with(., '&dh;') or starts-with(., '&ldh;') or starts-with(., '&lapp;') or starts-with(., '&sp;') or starts-with(., '&nfo;'))][doc-available(ac:document-uri(.))]">
+                            <div class="btn-group pull-right">
+                                <button type="button" class="btn dropdown-toggle">
+                                    Actions
+                                    <span class="caret"></span>
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <xsl:for-each select="rdf:type/@rdf:resource[not(starts-with(., '&dh;') or starts-with(., '&ldh;') or starts-with(., '&lapp;') or starts-with(., '&sp;') or starts-with(., '&nfo;'))][doc-available(ac:document-uri(.))]">
+                                        <li>
+                                            <button type="button" class="btn btn-edit-constructors" data-resource-type="{.}">
+                                                <xsl:text>Edit </xsl:text>
+                                                <xsl:apply-templates select="key('resources', ., document(ac:document-uri(.)))" mode="ac:label"/>
+                                                <xsl:text> constructor(s)</xsl:text>
+                                            </button>
+                                        </li>
+                                    </xsl:for-each>
+                                </ul>
                             </div>
                         </xsl:if>
 
