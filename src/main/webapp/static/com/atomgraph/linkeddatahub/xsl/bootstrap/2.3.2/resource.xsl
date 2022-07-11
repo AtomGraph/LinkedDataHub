@@ -664,17 +664,15 @@ extension-element-prefixes="ixsl"
                     <span class="caret"></span>
                 </button>
                 <ul class="dropdown-menu">
-                    <li>
-                        <xsl:for-each select="rdf:type/@rdf:resource">
-                            <xsl:if test="not(starts-with(., '&dh;') or starts-with(., '&ldh;') or starts-with(., '&lapp;') or starts-with(., '&sp;') or starts-with(., '&nfo;'))">
-                                <button type="button" class="btn btn-edit-constructors" data-resource-type="{.}">
-                                    <xsl:text>Edit </xsl:text>
-                                    <xsl:apply-templates select="key('resources', ., document(ac:document-uri(.)))" mode="ac:label"/>
-                                    <xsl:text> constructor(s)</xsl:text>
-                                </button>
-                            </xsl:if>
-                        </xsl:for-each>
-                    </li>
+                    <xsl:for-each select="rdf:type/@rdf:resource[not(starts-with(., '&dh;') or starts-with(., '&ldh;') or starts-with(., '&lapp;') or starts-with(., '&sp;') or starts-with(., '&nfo;'))]">
+                        <li>
+                            <button type="button" class="btn btn-edit-constructors" data-resource-type="{.}">
+                                <xsl:text>Edit </xsl:text>
+                                <xsl:apply-templates select="key('resources', ., document(ac:document-uri(.)))" mode="ac:label"/>
+                                <xsl:text> constructor(s)</xsl:text>
+                            </button>
+                        </li>
+                    </xsl:for-each>
                 </ul>
             </div>
         </xsl:if>
