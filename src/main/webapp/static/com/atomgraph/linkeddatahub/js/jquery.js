@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2017-2022 2017 Martynas Jusevicius, <martynas@atomgraph.com> et al.
+//
+// SPDX-License-Identifier: Apache-2.0
+
 /* global contextUri, baseUri, requestUri, absolutePath, lang, xslt2proc, UriBuilder, SaxonJS, ontologyUri, contextUri */
 
 var fetchDispatchXML = function(url, method, headers, body, target, eventName)

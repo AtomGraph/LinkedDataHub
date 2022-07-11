@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2017-2022 2017 Martynas Jusevicius, <martynas@atomgraph.com> et al.
+#
+# SPDX-License-Identifier: Apache-2.0
+
 FROM maven:3.8.4-openjdk-17 as maven
 
 # download and extract Jena

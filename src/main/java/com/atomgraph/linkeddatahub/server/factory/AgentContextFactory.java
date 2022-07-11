@@ -1,3 +1,8 @@
+// Copyright 2019 Martynas Jusevičius <martynas@atomgraph.com>
+// SPDX-FileCopyrightText: 2017-2022 2017 Martynas Jusevicius, <martynas@atomgraph.com> et al.
+//
+// SPDX-License-Identifier: Apache-2.0
+
 /**
  *  Copyright 2022 Martynas Jusevičius <martynas@atomgraph.com>
  *

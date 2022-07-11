@@ -1,5 +1,14 @@
 #!/usr/bin/env bash
 
+
+# SPDX-FileCopyrightText: 2017 Martynas Jusevicius <martynas@atomgraph.com> 
+# SPDX-FileCopyrightText: 2017 LinkedDataHub
+#
+# SPDX-License-Identifier: Apache-2.0
+
+# LinkedDataHub
+
+
 if [ "$#" -ne 4 ]; then
   echo "Usage:   $0" '$owner_pem_file $owner_cert_password $secretary_pem_file $secretary_cert_password' >&2
   echo "Example: $0 $PWD/ssl/owner/cert.pem OwnerPassword $PWD/ssl/secretary/cert.pem SecretaryPassword" >&2

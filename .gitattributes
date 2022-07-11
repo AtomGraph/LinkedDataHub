@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2017-2022 2017 Martynas Jusevicius, <martynas@atomgraph.com> et al.
+#
+# SPDX-License-Identifier: Apache-2.0
+
 src/main/webapp/static/css/* linguist-vendored
 src/main/webapp/static/com/atomgraph/linkeddatahub/js/saxon-js/* linguist-vendored
 src/main/webapp/static/com/atomgraph/linkeddatahub/js/wymeditor/* linguist-vendored

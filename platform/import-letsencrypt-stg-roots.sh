@@ -1,5 +1,13 @@
 #!/usr/bin/env bash
 
+# SPDX-FileCopyrightText: 2017 Martynas Jusevicius <martynas@atomgraph.com> 
+# SPDX-FileCopyrightText: 2017 LinkedDataHub
+#
+# SPDX-License-Identifier: Apache-2.0
+
+# LinkedDataHub
+
+
 # LetsEncrypt staging certs from https://github.com/letsencrypt/website/tree/master/static/certs/staging TO-DO: put into an extending image
 
 for cert in 'letsencrypt-stg-int-e1.der' \

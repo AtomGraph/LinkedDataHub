@@ -1,3 +1,9 @@
+/*
+ * SPDX-FileCopyrightText: 2017-2022 2017 Martynas Jusevicius, <martynas@atomgraph.com> et al.
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 /*TRYING TO RESET STYLES THAT MAY INTERFERE WITH WYMEDITOR*/
         .wym_skin_legacy p, .wym_skin_legacy h2, .wym_skin_legacy h3,
         .wym_skin_legacy ul, .wym_skin_legacy li { background: transparent url(); margin: 0; padding: 0; border-width:0; list-style: none; }

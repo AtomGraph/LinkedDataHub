@@ -1,3 +1,13 @@
+<!-- 
+SPDX-FileCopyrightText: 2017 Martynas Jusevicius <martynas@atomgraph.com>
+SPDX-FileCopyrightText: 2017 LinkedDataHub
+
+SPDX-License-Identifier: Apache-2.0
+
+LinkedDataHub
+-->
+
+
 # The Knowledge Graph notebook
 
 **_LinkedDataHub_ (LDH) is open source software you can use to manage data, create visualizations and build apps on RDF Knowledge Graphs.**

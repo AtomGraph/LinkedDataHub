@@ -1,5 +1,13 @@
 #!/usr/bin/env bash
 
+# SPDX-FileCopyrightText: 2017 Martynas Jusevicius <martynas@atomgraph.com> 
+# SPDX-FileCopyrightText: 2017 LinkedDataHub
+#
+# SPDX-License-Identifier: Apache-2.0
+
+# LinkedDataHub
+
+
 [ -z "$JAVA_HOME" ] && echo "Need to set JAVA_HOME" && exit 1;
 
 if [ "$#" -ne 6 ]; then
