@@ -70,11 +70,9 @@ exclude-result-prefixes="#all">
             <xsl:apply-templates select="." mode="bs2:NavBar"/>
 
             <div id="content-body" class="container-fluid">
-                <xsl:for-each select="key('resources', ac:uri())">
-                    <xsl:apply-templates select="key('resources', ldh:content/@rdf:*)" mode="ldh:ContentList"/>
-                </xsl:for-each>
+                <xsl:apply-templates select="key('resources', ac:uri())" mode="ldh:ContentList"/>
 
-                <xsl:apply-templates select="." mode="bs2:RowBlock"/>
+                <xsl:apply-templates select="." mode="bs2:Row"/>
             </div>
 
             <xsl:apply-templates select="." mode="bs2:Footer"/>
@@ -86,7 +84,7 @@ exclude-result-prefixes="#all">
 
     <xsl:template match="rdf:RDF[doc-available(ac:uri())][key('resources', ac:uri(), document(ac:uri()))/rdf:type/@rdf:resource = '&adm;RequestAccess']" mode="bs2:ModeTabs" priority="2"/>
 
-    <xsl:template match="*[rdf:type/@rdf:resource = '&adm;RequestAccess'][$ac:method = 'GET']" mode="bs2:RowBlock" priority="2">
+    <xsl:template match="*[rdf:type/@rdf:resource = '&adm;RequestAccess'][$ac:method = 'GET']" mode="bs2:Row" priority="2">
         <xsl:variable name="constructor" as="document-node()">
             <xsl:document>
                 <!-- construct a combined graph of dh:Item and lacl:AuthorizationRequest instances -->
@@ -111,7 +109,7 @@ exclude-result-prefixes="#all">
 
     <!-- display stored AuthorizationRequest data after successful POST (without ConstraintViolations) -->
     <!-- match the first resource, whatever it is -->
-    <xsl:template match="*[doc-available(ac:uri())][key('resources', ac:uri(), document(ac:uri()))/rdf:type/@rdf:resource = '&adm;RequestAccess'][$ac:method = 'POST'][not(key('resources-by-type', '&http;Response'))][1]" mode="bs2:RowBlock" priority="3">
+    <xsl:template match="*[doc-available(ac:uri())][key('resources', ac:uri(), document(ac:uri()))/rdf:type/@rdf:resource = '&adm;RequestAccess'][$ac:method = 'POST'][not(key('resources-by-type', '&http;Response'))][1]" mode="bs2:Row" priority="3">
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" select="'offset2 span7'" as="xs:string?"/>
 
@@ -131,7 +129,7 @@ exclude-result-prefixes="#all">
     </xsl:template>
 
     <!-- suppress other resources -->
-    <xsl:template match="*[doc-available(ac:uri())][key('resources', ac:uri(), document(ac:uri()))/rdf:type/@rdf:resource = '&adm;RequestAccess'][$ac:method = 'POST'][not(key('resources-by-type', '&http;Response'))]" mode="bs2:RowBlock" priority="2"/>
+    <xsl:template match="*[doc-available(ac:uri())][key('resources', ac:uri(), document(ac:uri()))/rdf:type/@rdf:resource = '&adm;RequestAccess'][$ac:method = 'POST'][not(key('resources-by-type', '&http;Response'))]" mode="bs2:Row" priority="2"/>
 
     <!-- hide object blank nodes (that only have a single rdf:type property) from constructed models -->
     <xsl:template match="rdf:Description[$ac:method = 'GET'][@rdf:nodeID][not(rdf:type/@rdf:resource = ('&lacl;AuthorizationRequest', '&dh;Item'))][doc-available(ac:uri())][key('resources', ac:uri(), document(ac:uri()))/rdf:type/@rdf:resource = '&adm;RequestAccess']" mode="bs2:RowForm" priority="3"/>
@@ -193,9 +191,9 @@ exclude-result-prefixes="#all">
             </xsl:for-each>
         </select>
         
-        <xsl:apply-templates select="." mode="bs2:FormControlTypeLabel">
-            <xsl:with-param name="type-label" select="$type-label"/>
-        </xsl:apply-templates>
+        <xsl:if test="$type-label">
+            <xsl:apply-templates select="." mode="bs2:FormControlTypeLabel"/>
+        </xsl:if>
     </xsl:template>
     
     <xsl:template match="lacl:requestAgent[doc-available(ac:uri())][key('resources', ac:uri(), document(ac:uri()))/rdf:type/@rdf:resource = '&adm;RequestAccess']" mode="bs2:FormControl" priority="2">
@@ -256,7 +254,7 @@ exclude-result-prefixes="#all">
     </xsl:template>
 
     <!-- suppress properties -->
-    <xsl:template match="dct:title[doc-available(ac:uri())][key('resources', ac:uri(), document(ac:uri()))/rdf:type/@rdf:resource = '&adm;RequestAccess'] | dct:description[doc-available(ac:uri())][key('resources', ac:uri(), document(ac:uri()))/rdf:type/@rdf:resource = '&adm;RequestAccess'] | ldh:content[doc-available(ac:uri())][key('resources', ac:uri(), document(ac:uri()))/rdf:type/@rdf:resource = '&adm;RequestAccess']" mode="bs2:FormControl" priority="4"/>
+    <xsl:template match="dct:title[doc-available(ac:uri())][key('resources', ac:uri(), document(ac:uri()))/rdf:type/@rdf:resource = '&adm;RequestAccess'] | dct:description[doc-available(ac:uri())][key('resources', ac:uri(), document(ac:uri()))/rdf:type/@rdf:resource = '&adm;RequestAccess'] | rdf:_1[doc-available(ac:uri())][key('resources', ac:uri(), document(ac:uri()))/rdf:type/@rdf:resource = '&adm;RequestAccess']" mode="bs2:FormControl" priority="4"/>
 
     <!-- hide properties (including all of document resource properties) -->
     <xsl:template match="rdfs:label[doc-available(ac:uri())][key('resources', ac:uri(), document(ac:uri()))/rdf:type/@rdf:resource = '&adm;RequestAccess'] | foaf:isPrimaryTopicOf[doc-available(ac:uri())][key('resources', ac:uri(), document(ac:uri()))/rdf:type/@rdf:resource = '&adm;RequestAccess'] | *[foaf:primaryTopic][doc-available(ac:uri())][key('resources', ac:uri(), document(ac:uri()))/rdf:type/@rdf:resource = '&adm;RequestAccess']/*" mode="bs2:FormControl" priority="3">

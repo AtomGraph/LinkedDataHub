@@ -27,15 +27,17 @@ import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
 import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.writer.factory.xslt.XsltExecutableSupplier;
-import com.atomgraph.linkeddatahub.model.Agent;
+import com.atomgraph.linkeddatahub.model.auth.Agent;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
 import com.atomgraph.linkeddatahub.vocabulary.LDH;
 import com.atomgraph.linkeddatahub.vocabulary.LDHT;
 import com.atomgraph.linkeddatahub.vocabulary.Google;
 import com.atomgraph.linkeddatahub.vocabulary.LAPP;
 import com.atomgraph.client.vocabulary.LDT;
+import com.atomgraph.core.util.Link;
 import com.atomgraph.core.vocabulary.SD;
 import com.atomgraph.linkeddatahub.server.io.ValidatingModelProvider;
+import com.atomgraph.linkeddatahub.server.security.AuthorizationContext;
 import com.atomgraph.linkeddatahub.vocabulary.FOAF;
 import com.atomgraph.linkeddatahub.vocabulary.LDHC;
 import java.io.IOException;
@@ -68,8 +70,8 @@ import net.sf.saxon.s9api.XdmAtomicValue;
 import net.sf.saxon.s9api.XdmValue;
 import net.sf.saxon.s9api.XsltExecutable;
 import org.apache.http.HttpHeaders;
+import org.apache.jena.ontology.ObjectProperty;
 import org.apache.jena.ontology.OntModelSpec;
-import org.apache.jena.ontology.Ontology;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.StmtIterator;
@@ -99,11 +101,11 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
 
     @Inject com.atomgraph.linkeddatahub.Application system;
     @Inject javax.inject.Provider<com.atomgraph.linkeddatahub.apps.model.Application> application;
-    @Inject javax.inject.Provider<Optional<Ontology>> ontology;
     @Inject javax.inject.Provider<DataManager> dataManager;
     @Inject javax.inject.Provider<XsltExecutableSupplier> xsltExecSupplier;
     @Inject javax.inject.Provider<List<Mode>> modes;
     @Inject javax.inject.Provider<ContainerRequestContext> crc;
+    @Inject javax.inject.Provider<Optional<AuthorizationContext>> authorizationContext;
 
     private final MessageDigest messageDigest;
     
@@ -174,6 +176,9 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
                 params.put(new QName("foaf", FOAF.Agent.getNameSpace(), FOAF.Agent.getLocalName()),
                     getXsltExecutable().getProcessor().newDocumentBuilder().build(source));
             }
+            if (getAuthorizationContext().get().isPresent())
+                params.put(new QName("acl", ACL.mode.getNameSpace(), ACL.mode.getLocalName()),
+                    XdmValue.makeSequence(getAuthorizationContext().get().get().getModeURIs()));
 
             if (getUriInfo().getQueryParameters().containsKey(LDH.createGraph.getLocalName()))
                 params.put(new QName("ldh", LDH.createGraph.getNameSpace(), LDH.createGraph.getLocalName()),
@@ -266,6 +271,43 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
     }
 
     /**
+     * Override the Web-Client's implementation because LinkedDataHub concatenates <code>Link</code> headers into a single value.
+     * 
+     * @param headerMap response headers
+     * @param property rel property
+     * @return filtered headers
+     * @see com.atomgraph.linkeddatahub.server.filter.response.ResponseHeaderFilter
+     */
+    @Override
+    public URI getLinkURI(MultivaluedMap<String, Object> headerMap, ObjectProperty property)
+    {
+        if (headerMap.get(javax.ws.rs.core.HttpHeaders.LINK) == null) return null;
+        
+        List<String> linkTokens = Arrays.asList(headerMap.get(javax.ws.rs.core.HttpHeaders.LINK).get(0).toString().split(","));
+        
+        List<URI> baseLinks = linkTokens.stream().
+            map((String header) ->
+            {
+                try
+                {
+                    return Link.valueOf(header.trim());
+                }
+                catch (URISyntaxException ex)
+                {
+                    if (log.isWarnEnabled()) log.warn("Could not parse Link URI", ex);
+                    return null;
+                }
+            }).
+            filter(link -> link != null && link.getRel().equals(property.getURI())).
+            map(link -> link.getHref()).
+            collect(Collectors.toList());
+
+        if (!baseLinks.isEmpty()) return baseLinks.get(0);
+
+        return null;
+    }
+    
+    /**
      * Returns system application.
      * 
      * @return JAX-RS application
@@ -289,16 +331,6 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
     public SecurityContext getSecurityContext()
     {
         return securityContext;
-    }
-    
-    /**
-     * Returns provider of (optional) ontology of the current application.
-     * 
-     * @return provider
-     */
-    public javax.inject.Provider<Optional<Ontology>> getOntology()
-    {
-        return ontology;
     }
     
     @Override
@@ -370,6 +402,16 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
         return application;
     }
 
+    /**
+     * Returns optional ACL authorizationContext.
+     * 
+     * @return optional authorizationContext
+     */
+    public javax.inject.Provider<Optional<AuthorizationContext>> getAuthorizationContext()
+    {
+        return authorizationContext;
+    }
+    
     /**
      * Returns message digest.
      * 

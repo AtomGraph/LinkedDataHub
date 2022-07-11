@@ -21,7 +21,7 @@
  */
 package com.atomgraph.linkeddatahub.server.security;
 
-import com.atomgraph.linkeddatahub.model.Agent;
+import com.atomgraph.linkeddatahub.model.auth.Agent;
 
 /**
  * Security context that carries the OAuth ID token.

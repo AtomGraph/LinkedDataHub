@@ -40,9 +40,9 @@ exclude-result-prefixes="#all">
             <xsl:value-of select="."/>
         </textarea>
 
-        <xsl:apply-templates select="." mode="bs2:FormControlTypeLabel">
-            <xsl:with-param name="type-label" select="$type-label"/>
-        </xsl:apply-templates>
+        <xsl:if test="$type-label">
+            <xsl:apply-templates select="." mode="bs2:FormControlTypeLabel"/>
+        </xsl:if>
     </xsl:template>
 
 </xsl:stylesheet>

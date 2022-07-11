@@ -174,10 +174,10 @@ exclude-result-prefixes="#all"
     </xsl:template>
     
     <!-- chart content -->
-    <xsl:template match="*[@rdf:about][spin:query/@rdf:resource][ldh:chartType/@rdf:resource]" mode="ldh:Content" priority="1">
+    <xsl:template match="*[@rdf:about][spin:query/@rdf:resource][ldh:chartType/@rdf:resource]" mode="ldh:RenderContent" priority="1">
         <xsl:param name="container" as="element()"/>
-        <!-- replace dots with dashes to avoid Saxon-JS treating them as field separators: https://saxonica.plan.io/issues/5031 -->
-        <xsl:param name="content-uri" select="xs:anyURI(translate(@rdf:about, '.', '-'))" as="xs:anyURI"/>
+        <xsl:param name="content-uri" select="$container/@about" as="xs:anyURI"/>
+        <xsl:variable name="escaped-content-uri" select="xs:anyURI(translate($content-uri, '.', '-'))" as="xs:anyURI"/>
         <xsl:variable name="query-uri" select="xs:anyURI(spin:query/@rdf:resource)" as="xs:anyURI"/>
         <xsl:variable name="chart-type" select="xs:anyURI(ldh:chartType/@rdf:resource)" as="xs:anyURI?"/>
         <xsl:variable name="category" select="ldh:categoryProperty/@rdf:resource | ldh:categoryVarName" as="xs:string?"/>
@@ -218,15 +218,15 @@ exclude-result-prefixes="#all"
                 </xsl:for-each>
             </xsl:for-each>
         </xsl:variable>
-        <!-- $content-uri value comes from the @data-content-uri -->
-        <xsl:variable name="container" select="(ancestor::div[contains-token(@class, 'resource-content')], ancestor::div[contains-token(@class, 'sparql-results')])[1]" as="element()?"/>
-        <xsl:variable name="content-uri" select="xs:anyURI(translate(if ($container) then ixsl:get($container, 'dataset.contentUri') else ac:uri(), '.', '-'))" as="xs:anyURI"/>
+        <xsl:variable name="container" select="ancestor::div[@about][1]" as="element()?"/>
+        <xsl:variable name="content-uri" select="$container/@about" as="xs:anyURI"/>
+        <xsl:variable name="escaped-content-uri" select="xs:anyURI(translate($content-uri, '.', '-'))" as="xs:anyURI"/>
         <xsl:variable name="chart-canvas-id" select="ancestor::form/following-sibling::div/@id" as="xs:string"/>
-        <xsl:variable name="results" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $content-uri), 'results')" as="document-node()"/>
+        <xsl:variable name="results" select="if (ixsl:contains(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri), 'results')) then ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri), 'results') else root(ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri), 'content'))" as="document-node()"/>
                 
         <xsl:if test="$chart-type and ($category or $results/rdf:RDF) and exists($series)">
             <xsl:variable name="data-table" select="if ($results/rdf:RDF) then ac:rdf-data-table($results, $category, $series) else ac:sparql-results-data-table($results, $category, $series)"/>
-            <ixsl:set-property name="data-table" select="$data-table" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $content-uri)"/>
+            <ixsl:set-property name="data-table" select="$data-table" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri)"/>
 
             <xsl:call-template name="render-chart">
                 <xsl:with-param name="data-table" select="$data-table"/>
@@ -251,15 +251,15 @@ exclude-result-prefixes="#all"
                 </xsl:for-each>
             </xsl:for-each>
         </xsl:variable>
-        <!-- $content-uri value comes from the @data-content-uri -->
-        <xsl:variable name="container" select="(ancestor::div[contains-token(@class, 'resource-content')], ancestor::div[contains-token(@class, 'sparql-results')])[1]" as="element()?"/>
-        <xsl:variable name="content-uri" select="xs:anyURI(translate(if ($container) then ixsl:get($container, 'dataset.contentUri') else ac:uri(), '.', '-'))" as="xs:anyURI"/>
+        <xsl:variable name="container" select="ancestor::div[@about][1]" as="element()?"/>
+        <xsl:variable name="content-uri" select="$container/@about" as="xs:anyURI"/>
+        <xsl:variable name="escaped-content-uri" select="xs:anyURI(translate($content-uri, '.', '-'))" as="xs:anyURI"/>
         <xsl:variable name="chart-canvas-id" select="ancestor::form/following-sibling::div/@id" as="xs:string"/>
-        <xsl:variable name="results" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $content-uri), 'results')" as="document-node()"/>
+        <xsl:variable name="results" select="if (ixsl:contains(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri), 'results')) then ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri), 'results') else root(ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri), 'content'))" as="document-node()"/>
 
         <xsl:if test="$chart-type and ($category or $results/rdf:RDF) and exists($series)">
             <xsl:variable name="data-table" select="if ($results/rdf:RDF) then ac:rdf-data-table($results, $category, $series) else ac:sparql-results-data-table($results, $category, $series)"/>
-            <ixsl:set-property name="data-table" select="$data-table" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $content-uri)"/>
+            <ixsl:set-property name="data-table" select="$data-table" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri)"/>
 
             <xsl:call-template name="render-chart">
                 <xsl:with-param name="data-table" select="$data-table"/>
@@ -282,15 +282,15 @@ exclude-result-prefixes="#all"
                 <xsl:sequence select="ixsl:get(ixsl:call(ixsl:get($select, 'selectedOptions'), 'item', [ . ]), 'value')"/>
             </xsl:for-each>
         </xsl:variable>
-        <!-- $content-uri value comes from the @data-content-uri -->
-        <xsl:variable name="container" select="(ancestor::div[contains-token(@class, 'resource-content')], ancestor::div[contains-token(@class, 'sparql-results')])[1]" as="element()?"/>
-        <xsl:variable name="content-uri" select="xs:anyURI(translate(if ($container) then ixsl:get($container, 'dataset.contentUri') else ac:uri(), '.', '-'))" as="xs:anyURI"/>
+        <xsl:variable name="container" select="ancestor::div[@about][1]" as="element()?"/>
+        <xsl:variable name="content-uri" select="$container/@about" as="xs:anyURI"/>
+        <xsl:variable name="escaped-content-uri" select="xs:anyURI(translate($content-uri, '.', '-'))" as="xs:anyURI"/>
         <xsl:variable name="chart-canvas-id" select="ancestor::form/following-sibling::div/@id" as="xs:string"/>
-        <xsl:variable name="results" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $content-uri), 'results')" as="document-node()"/>
+        <xsl:variable name="results" select="if (ixsl:contains(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri), 'results')) then ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri), 'results') else root(ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri), 'content'))" as="document-node()"/>
 
         <xsl:if test="$chart-type and ($category or $results/rdf:RDF) and exists($series)">
             <xsl:variable name="data-table" select="if ($results/rdf:RDF) then ac:rdf-data-table($results, $category, $series) else ac:sparql-results-data-table($results, $category, $series)"/>
-            <ixsl:set-property name="data-table" select="$data-table" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $content-uri)"/>
+            <ixsl:set-property name="data-table" select="$data-table" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri)"/>
 
             <xsl:call-template name="render-chart">
                 <xsl:with-param name="data-table" select="$data-table"/>
@@ -345,8 +345,8 @@ exclude-result-prefixes="#all"
 
     <xsl:template name="onChartQueryLoad">
         <xsl:context-item as="map(*)" use="required"/>
-        <xsl:param name="content-uri" as="xs:anyURI"/>
         <xsl:param name="container" as="element()"/>
+        <xsl:param name="content-uri" as="xs:anyURI"/>
         <xsl:param name="query-uri" as="xs:anyURI"/>
         <xsl:param name="chart-type" as="xs:anyURI"/>
         <xsl:param name="category" as="xs:string?"/>
@@ -374,16 +374,17 @@ exclude-result-prefixes="#all"
                     <xsl:variable name="request" as="item()*">
                         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml,application/rdf+xml;q=0.9' } }">
                             <xsl:call-template name="onSPARQLResultsLoad">
+                                <xsl:with-param name="results-uri" select="$results-uri"/>
+                                <xsl:with-param name="container" select="$container"/>
+                                <xsl:with-param name="chart-canvas-id" select="$container/@id || '-chart-canvas'"/>
                                 <xsl:with-param name="content-uri" select="$content-uri"/>
-                                <!-- if  the container is full-width row (.row-fluid), render results in the middle column (.span7) -->
-                                <xsl:with-param name="container" select="if (contains-token($container/@class, 'row-fluid')) then $container/div[contains-token(@class, 'span7')] else $container"/>
-                                <xsl:with-param name="container-id" select="ixsl:get($container, 'id')"/>
                                 <xsl:with-param name="chart-type" select="$chart-type"/>
                                 <xsl:with-param name="category" select="$category"/>
                                 <xsl:with-param name="series" select="$series"/>
                                 <xsl:with-param name="show-editor" select="false()"/>
                                 <xsl:with-param name="content-method" select="xs:QName('ixsl:append-content')"/>
                                 <xsl:with-param name="push-state" select="false()"/>
+                                <xsl:with-param name="show-chart-save" select="false()"/>
                             </xsl:call-template>
                         </ixsl:schedule-action>
                     </xsl:variable>

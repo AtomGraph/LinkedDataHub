@@ -21,7 +21,7 @@
  */
 package com.atomgraph.linkeddatahub.server.security;
 
-import com.atomgraph.linkeddatahub.model.Agent;
+import com.atomgraph.linkeddatahub.model.auth.Agent;
 
 /**
  * Security context that uses WebID-TLS client certficates.
@@ -31,6 +31,12 @@ import com.atomgraph.linkeddatahub.model.Agent;
 public class WebIDSecurityContext extends AgentSecurityContext
 {
 
+    /**
+     * Constructs context from authentication scheme and agent instance.
+     * 
+     * @param authScheme auth scheme
+     * @param agent authenticated agent
+     */
     public WebIDSecurityContext(String authScheme, Agent agent)
     {
         super(authScheme, agent);

@@ -11,8 +11,8 @@ import com.atomgraph.core.util.Link;
 import com.atomgraph.core.vocabulary.SD;
 import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.apps.model.Dataset;
-import com.atomgraph.linkeddatahub.model.Agent;
-import com.atomgraph.linkeddatahub.server.filter.request.AuthorizationFilter;
+import com.atomgraph.linkeddatahub.model.auth.Agent;
+import com.atomgraph.linkeddatahub.server.security.AuthorizationContext;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
 import java.io.IOException;
 import java.net.URI;
@@ -27,11 +27,6 @@ import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerResponseContext;
 import javax.ws.rs.container.ContainerResponseFilter;
 import javax.ws.rs.core.HttpHeaders;
-import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.Property;
-import org.apache.jena.rdf.model.RDFNode;
-import org.apache.jena.rdf.model.ResIterator;
-import org.apache.jena.rdf.model.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,6 +43,7 @@ public class ResponseHeaderFilter implements ContainerResponseFilter
 
     @Inject javax.inject.Provider<Application> app;
     @Inject javax.inject.Provider<Optional<Dataset>> dataset;
+    @Inject javax.inject.Provider<Optional<AuthorizationContext>> authorizationContext;
 
     @Override
     public void filter(ContainerRequestContext request, ContainerResponseContext response)throws IOException
@@ -56,16 +52,10 @@ public class ResponseHeaderFilter implements ContainerResponseFilter
         {
             Agent agent = ((Agent)(request.getSecurityContext().getUserPrincipal()));
             response.getHeaders().add(HttpHeaders.LINK, new Link(URI.create(agent.getURI()), ACL.agent.getURI(), null));
-
-            Resource authorization = getResourceByPropertyValue(agent.getModel(), ACL.mode, null);
-            if (authorization != null)
-            {
-                Resource mode = authorization.getPropertyResourceValue(ACL.mode); // get access mode from authorization
-                response.getHeaders().add(HttpHeaders.LINK, new Link(URI.create(mode.getURI()), ACL.mode.getURI(), null));
-            }
-            else
-                if (log.isWarnEnabled()) log.warn("Authorization is null, cannot write response header. Is {} registered?", AuthorizationFilter.class);
         }
+        
+        if (getAuthorizationContext().isPresent())
+            getAuthorizationContext().get().getModeURIs().forEach(mode -> response.getHeaders().add(HttpHeaders.LINK, new Link(mode, ACL.mode.getURI(), null)));
         
         List<Object> linkValues = response.getHeaders().get(HttpHeaders.LINK);
         // check whether Link rel=ldt:base is not already set. Link headers might be forwarded by ProxyResourceBase
@@ -88,6 +78,13 @@ public class ResponseHeaderFilter implements ContainerResponseFilter
             // add Link rel=sd:endpoint.
             if (getLinksByRel(linkValues, SD.endpoint.getURI()).isEmpty() && getDataset().isPresent() && getDataset().get().getService() != null)
                 response.getHeaders().add(HttpHeaders.LINK, new Link(URI.create(getDataset().get().getService().getSPARQLEndpoint().getURI()), SD.endpoint.getURI(), null));
+        }
+        
+        if (response.getHeaders().get(HttpHeaders.LINK) != null)
+        {
+            // combine Link header values into a single value because Saxon-JS 2.x is not able to deal with duplicate header names: https://saxonica.plan.io/issues/5199
+            String linkValue = response.getHeaders().get(HttpHeaders.LINK).toString();
+            response.getHeaders().putSingle(HttpHeaders.LINK, linkValue.substring(1, linkValue.length() - 1)); // trim leading and trailing bracket added by toString()
         }
     }
 
@@ -118,34 +115,6 @@ public class ResponseHeaderFilter implements ContainerResponseFilter
     }
     
     /**
-     * Returns RDF resource from a model that has the specified property and value.
-     * If there are no such resources, null is returned.
-     * 
-     * @param model RDF model
-     * @param property property
-     * @param value value
-     * @return RDF resource or null
-     */
-    protected Resource getResourceByPropertyValue(Model model, Property property, RDFNode value)
-    {
-        if (model == null) throw new IllegalArgumentException("Model cannot be null");
-        if (property == null) throw new IllegalArgumentException("Property cannot be null");
-        
-        ResIterator it = model.listSubjectsWithProperty(property, value);
-        
-        try
-        {
-            if (it.hasNext()) return it.next();
-        }
-        finally
-        {
-            it.close();
-        }
-
-        return null;
-    }
-    
-    /**
      * Returns the current application.
      * 
      * @return application resource.
@@ -163,6 +132,16 @@ public class ResponseHeaderFilter implements ContainerResponseFilter
     public Optional<Dataset> getDataset()
     {
         return dataset.get();
+    }
+    
+    /**
+     * Returns the current (optional) authorization context.
+     * 
+     * @return optional authorization context
+     */
+    public Optional<AuthorizationContext> getAuthorizationContext()
+    {
+        return authorizationContext.get();
     }
     
 }

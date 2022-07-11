@@ -27,7 +27,9 @@ import com.atomgraph.core.riot.lang.RDFPostReader;
 import static com.atomgraph.linkeddatahub.apps.model.Application.UPLOADS_PATH;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.io.ValidatingModelProvider;
+import com.atomgraph.linkeddatahub.server.model.Patchable;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
+import com.atomgraph.linkeddatahub.server.util.PatchUpdateVisitor;
 import com.atomgraph.linkeddatahub.server.util.Skolemizer;
 import com.atomgraph.linkeddatahub.vocabulary.Default;
 import com.atomgraph.linkeddatahub.vocabulary.NFO;
@@ -68,6 +70,7 @@ import javax.ws.rs.PATCH;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Request;
@@ -81,6 +84,7 @@ import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.jena.atlas.RuntimeIOException;
 import org.apache.jena.datatypes.xsd.XSDDateTime;
+import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.ontology.Ontology;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ResIterator;
@@ -88,6 +92,7 @@ import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.rdf.model.StmtIterator;
+import org.apache.jena.sparql.modify.request.UpdateModify;
 import org.apache.jena.sparql.vocabulary.FOAF;
 import org.apache.jena.update.UpdateRequest;
 import org.apache.jena.util.ResourceUtils;
@@ -105,7 +110,7 @@ import org.slf4j.LoggerFactory;
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
+public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl implements Patchable
 {
     
     private static final Logger log = LoggerFactory.getLogger(GraphStoreImpl.class);
@@ -292,7 +297,7 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
     @Override
     public Response put(Model model, @QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
     {
-        if (graphUri == null) throw new InternalServerErrorException("Named graph not specified");
+        if (graphUri == null) throw new BadRequestException("Named graph not specified");
 
         if (getOwnerDocURI().equals(graphUri)) throw new BadRequestException("Cannot update application owner's document");
         if (getSecretaryDocURI().equals(graphUri)) throw new BadRequestException("Cannot update application secretary's document");
@@ -312,15 +317,36 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
 
     /**
      * Implements <code>PATCH</code> method of SPARQL Graph Store Protocol.
-     * Accepts SPARQL update as the request body.
+     * Accepts SPARQL update as the request body which is executed in the context of the specified graph.
+     * The <code>GRAPH</code> keyword is therefore not allowed in the update string.
      * 
      * @param updateRequest SPARQL update
-     * @return response
+     * @param graphUri named graph URI
+     * @return response response object
      */
     @PATCH
-    public Response patch(UpdateRequest updateRequest)
+    @Override
+    public Response patch(UpdateRequest updateRequest, @QueryParam("graph") URI graphUri)
     {
-        // TO-DO: do a check that the update only uses this named graph
+        if (updateRequest == null) throw new BadRequestException("SPARQL update not specified");
+        if (graphUri == null) throw new BadRequestException("Named graph not specified");
+
+        updateRequest.getOperations().forEach(update ->
+        {
+            // check for GRAPH keyword which is disallowed
+            PatchUpdateVisitor visitor = new PatchUpdateVisitor();
+            update.visit(visitor);
+            if (visitor.isContainsNamedGraph())
+            {
+                if (log.isWarnEnabled()) log.debug("SPARQL update used with PATCH method cannot contain the GRAPH keyword");
+                throw new WebApplicationException("SPARQL update used with PATCH method cannot contain the GRAPH keyword", 422); // Unprocessable Entity
+            }
+
+            // set WITH <graphUri>
+            if (!(update instanceof UpdateModify updateModify)) throw new WebApplicationException("Only UpdateModify form of SPARQL Update is supported", 422);
+            updateModify.setWithIRI(NodeFactory.createURI(graphUri.toString()));
+        });
+
         getService().getEndpointAccessor().update(updateRequest, Collections.<URI>emptyList(), Collections.<URI>emptyList());
         
         return Response.ok().build();

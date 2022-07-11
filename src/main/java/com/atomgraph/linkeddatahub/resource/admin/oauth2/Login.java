@@ -46,6 +46,7 @@ import com.atomgraph.processor.vocabulary.DH;
 import com.atomgraph.processor.vocabulary.SIOC;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -186,6 +187,19 @@ public class Login extends GraphStoreImpl
 
             String idToken = response.getString("id_token");
             DecodedJWT jwt = JWT.decode(idToken);
+            if (response.containsKey("refresh_token"))
+            {
+                String refreshToken = response.getString("refresh_token");
+                try
+                {
+                    getSystem().storeRefreshToken(getClientID(), refreshToken); // store for later use in IDTokenFilter
+                }
+                catch (IOException ex)
+                {
+                    if (log.isErrorEnabled()) log.error("Error storing OAuth refresh token", ex);
+                    throw new InternalServerErrorException(ex);
+                }
+            }
 
             ParameterizedSparqlString accountPss = new ParameterizedSparqlString(getUserAccountQuery().toString());
             accountPss.setLiteral(SIOC.ID.getLocalName(), jwt.getSubject());
@@ -412,7 +426,6 @@ public class Login extends GraphStoreImpl
             addProperty(RDF.type, ACL.Authorization).
             addLiteral(DH.slug, UUID.randomUUID().toString()). // TO-DO: get rid of slug properties!
             addProperty(ACL.accessTo, ResourceFactory.createResource(agentGraphURI.toString())).
-            //addProperty(ACL.accessTo, ResourceFactory.createResource(userAccountGraphURI.toString())).
             addProperty(ACL.mode, ACL.Read).
             addProperty(ACL.agentClass, FOAF.Agent).
             addProperty(ACL.agentClass, ACL.AuthenticatedAgent);

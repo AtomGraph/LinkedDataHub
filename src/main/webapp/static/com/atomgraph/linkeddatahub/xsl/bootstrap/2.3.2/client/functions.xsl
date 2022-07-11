@@ -15,6 +15,7 @@ LinkedDataHub
     <!ENTITY rdf    "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
     <!ENTITY xsd    "http://www.w3.org/2001/XMLSchema#">
     <!ENTITY srx    "http://www.w3.org/2005/sparql-results#">
+    <!ENTITY acl    "http://www.w3.org/ns/auth/acl#">
     <!ENTITY ldt    "https://www.w3.org/ns/ldt#">
     <!ENTITY sioc   "http://rdfs.org/sioc/ns#">
 ]>
@@ -31,6 +32,7 @@ xmlns:ac="&ac;"
 xmlns:ldh="&ldh;"
 xmlns:rdf="&rdf;"
 xmlns:srx="&srx;"
+xmlns:acl="&acl;"
 xmlns:ldt="&ldt;"
 xmlns:sioc="&sioc;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
@@ -56,6 +58,15 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="if (contains($href, '?')) then let $query-params := ldh:parse-query-params(substring-after($href, '?')) return ldh:decode-uri($query-params?mode) else ()"/> <!-- raw URL -->
     </xsl:function>
 
+    <xsl:function name="acl:mode" as="xs:anyURI*">
+        <xsl:sequence select="(
+            if (ixsl:contains(ixsl:window(), 'LinkedDataHub.acl-modes.read')) then xs:anyURI('&acl;Read') else (),
+            if (ixsl:contains(ixsl:window(), 'LinkedDataHub.acl-modes.append')) then xs:anyURI('&acl;Append') else (),
+            if (ixsl:contains(ixsl:window(), 'LinkedDataHub.acl-modes.write')) then xs:anyURI('&acl;Write') else (),
+            if (ixsl:contains(ixsl:window(), 'LinkedDataHub.acl-modes.control')) then xs:anyURI('&acl;Control') else ()
+        )"/>
+    </xsl:function>
+    
     <xsl:function name="sd:endpoint" as="xs:anyURI">
         <xsl:sequence select="xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.endpoint'))"/>
     </xsl:function>
@@ -206,4 +217,15 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="ixsl:eval(string($js-statement/@statement))"/>
     </xsl:function>
     
+<<<<<<< HEAD
 </xsl:stylesheet>
+=======
+    <xsl:function name="ldh:parse-html" as="document-node()">
+        <xsl:param name="string" as="xs:string"/>
+        <xsl:param name="mime-type" as="xs:string"/>
+        
+        <xsl:sequence select="ixsl:call(ldh:new('DOMParser', []), 'parseFromString', [ $string, $mime-type ])"/>
+    </xsl:function>
+
+</xsl:stylesheet>
+>>>>>>> d08c2ba5572686ff28f238c2db30871ba70caad4

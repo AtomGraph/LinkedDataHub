@@ -98,12 +98,6 @@
     rdfs:label "Series variable name" ;
     rdfs:isDefinedBy : .
 
-:content a owl:ObjectProperty ;
-    rdfs:domain foaf:Document ;
-    rdfs:range :Content ;
-    rdfs:label "Content" ;
-    rdfs:isDefinedBy : .
-
 # CLASSES
 
 # imports
@@ -244,19 +238,20 @@
     rdfs:subClassOf rdf:List ;
     rdfs:label "Content" ;
     spin:constructor :ContentInstanceConstructor ;
-    spin:constraint :MissingFirst, :MissingRest ;
+    spin:constraint :MissingValue ;
     rdfs:isDefinedBy : .
 
 :ContentInstanceConstructor a sp:Construct ;
   sp:text """
+      PREFIX ac:    <https://w3id.org/atomgraph/client#>
       PREFIX rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
       PREFIX rdfs:  <http://www.w3.org/2000/01/rdf-schema#>
-      PREFIX ac:    <https://w3id.org/atomgraph/client#>
+      PREFIX xsd:   <http://www.w3.org/2001/XMLSchema#>
 
       CONSTRUCT {
-          $this rdf:first [ a rdfs:Resource ] ;
-            rdf:rest rdf:nil ;
-            ac:mode [ a rdfs:Resource ] .
+          $this rdf:value [ a rdfs:Resource ] ;
+            ac:mode [ a rdfs:Resource ] ;
+            rdfs:label [ a xsd:string ] .
       }
       WHERE {}""" ;
     rdfs:label "Content constructor" ;
@@ -384,14 +379,9 @@ WHERE
     sp:arg1 :seriesVarName ;
     rdfs:isDefinedBy : .
 
-:MissingFirst a :MissingPropertyValue ;
-    rdfs:label "Missing first" ;
-    sp:arg1 rdf:first ;
-    rdfs:isDefinedBy : .
-
-:MissingRest a :MissingPropertyValue ;
-    rdfs:label "Missing first" ;
-    sp:arg1 rdf:rest ;
+:MissingValue a :MissingPropertyValue ;
+    rdfs:label "Missing value" ;
+    sp:arg1 rdf:value ;
     rdfs:isDefinedBy : .
 
 # CONTENTS
@@ -505,9 +495,10 @@ dh:Item spin:constructor :TitleConstructor, :DescriptionConstructor, :PrimaryTop
     rdfs:label "Content constructor" ;
     sp:text """
         PREFIX ldh:     <https://w3id.org/atomgraph/linkeddatahub#>
+        PREFIX rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 
         CONSTRUCT {
-          $this ldh:content [ a ldh:Content ] .
+          $this rdf:_1 [ a ldh:Content ] .
         }
         WHERE {}""" ;
     rdfs:isDefinedBy : .
@@ -519,9 +510,8 @@ dh:Item spin:constructor :TitleConstructor, :DescriptionConstructor, :PrimaryTop
         PREFIX rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 
         CONSTRUCT {
-            $this ldh:content [ a ldh:Content ;
-                rdf:first ldh:SelectChildren ;
-                rdf:rest rdf:nil
+            $this rdf:_1 [ a ldh:Content ;
+                rdf:value ldh:SelectChildren
             ] .
         }
         WHERE {}""" ;

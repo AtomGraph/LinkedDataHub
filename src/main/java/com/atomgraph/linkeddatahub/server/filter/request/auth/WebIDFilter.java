@@ -9,7 +9,7 @@ import com.atomgraph.linkeddatahub.server.filter.request.AuthenticationFilter;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.core.io.ModelProvider;
 import com.atomgraph.linkeddatahub.apps.model.Application;
-import com.atomgraph.linkeddatahub.model.Agent;
+import com.atomgraph.linkeddatahub.model.auth.Agent;
 import com.atomgraph.linkeddatahub.server.exception.auth.webid.InvalidWebIDPublicKeyException;
 import com.atomgraph.linkeddatahub.server.exception.auth.webid.WebIDLoadingException;
 import com.atomgraph.linkeddatahub.server.exception.auth.webid.WebIDDelegationException;
@@ -122,7 +122,7 @@ public class WebIDFilter extends AuthenticationFilter
                 if (log.isErrorEnabled()) log.error("Client certificate public key did not match WebID public key: {}", webID);
                 throw new InvalidWebIDPublicKeyException(publicKey, webID.toString());
             }
-            getSystem().getWebIDModelCache().put(webID, agent.getModel()); // now it's safe to cache the WebID Model
+            getSystem().getWebIDModelCache().put(webID, agent.getModel()); // now it's safe to cache the agent's Model
 
             String onBehalfOf = request.getHeaderString(ON_BEHALF_OF);
             if (onBehalfOf != null)
@@ -131,7 +131,11 @@ public class WebIDFilter extends AuthenticationFilter
                 Model principalWebIDModel = loadWebID(principalWebID);
                 Resource principal = principalWebIDModel.createResource(onBehalfOf);
                 // if we verify that the current agent is a secretary of the principal, that principal becomes current agent. Else throw error
-                if (agent.equals(principal) || principal.getModel().contains(agent, ACL.delegates, principal)) agent = principal;
+                if (agent.equals(principal) || principal.getModel().contains(agent, ACL.delegates, principal))
+                {
+                    agent = principal;
+                    getSystem().getWebIDModelCache().put(principalWebID, principal.getModel()); // now it's safe to cache the principal's Model
+                }
                 else throw new WebIDDelegationException(agent, principal);
             }
 

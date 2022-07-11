@@ -13,7 +13,7 @@ LinkedDataHub
 
     <groupId>com.atomgraph</groupId>
     <artifactId>linkeddatahub</artifactId>
-    <version>3.1.10-SNAPSHOT</version>
+    <version>3.2.4-SNAPSHOT</version>
     <packaging>${packaging.type}</packaging>
 
     <name>AtomGraph LinkedDataHub</name>
@@ -156,7 +156,7 @@ LinkedDataHub
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>client</artifactId>
-            <version>3.1.44</version>
+            <version>3.1.53</version>
             <classifier>classes</classifier>
             <exclusions>
                 <!-- exclude jakarta.json as its version clashes with Jersey's -->
@@ -169,7 +169,7 @@ LinkedDataHub
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>client</artifactId>
-            <version>3.1.44</version>
+            <version>3.1.53</version>
             <type>war</type>
             <exclusions>
                 <!-- exclude jakarta.json as its version clashes with Jersey's -->

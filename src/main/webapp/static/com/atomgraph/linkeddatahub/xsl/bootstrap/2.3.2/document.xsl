@@ -94,15 +94,13 @@ extension-element-prefixes="ixsl"
 
         <div class="row-fluid">
             <ul class="nav nav-tabs offset2 span7">
-                <xsl:if test="$has-content">
-                    <li class="content-mode{if ((empty($active-mode) and not($forClass)) or $active-mode = '&ldh;ContentMode') then ' active' else() }">
-                        <a href="{ac:build-uri(ac:uri(), map{ 'mode': '&ldh;ContentMode' })}">
-                            <xsl:value-of>
-                                <xsl:apply-templates select="key('resources', 'content', document('translations.rdf'))" mode="ac:label"/>
-                            </xsl:value-of>
-                        </a>
-                    </li>
-                </xsl:if>
+                <li class="content-mode{if ((empty($active-mode) and $has-content and not($forClass)) or $active-mode = '&ldh;ContentMode') then ' active' else() }">
+                    <a href="{ac:build-uri(ac:uri(), map{ 'mode': '&ldh;ContentMode' })}">
+                        <xsl:value-of>
+                            <xsl:apply-templates select="key('resources', 'content', document('translations.rdf'))" mode="ac:label"/>
+                        </xsl:value-of>
+                    </a>
+                </li>
 
                 <xsl:for-each select="key('resources', '&ac;ReadMode', document(ac:document-uri('&ac;')))">
                     <xsl:apply-templates select="." mode="bs2:ModeTabsItem">
@@ -130,34 +128,52 @@ extension-element-prefixes="ixsl"
         </div>
     </xsl:template>
     
+    <!-- CONTENT LIST -->
+    
+    <xsl:template match="rdf:RDF" mode="ldh:ContentList">
+        <xsl:apply-templates select="key('resources', ac:uri())" mode="#current"/>
+        
+        <!-- only show buttons to agents who have sufficient access to modify them -->
+        <xsl:if test="$acl:mode = '&acl;Append'">
+            <div class="row-fluid">
+                <div class="offset2 span7">
+                    <p>
+                        <button type="button" class="btn btn-primary create-action add-resource-content">
+                            <xsl:apply-templates select="key('resources', 'resource', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                        </button>
+                        <button type="button" class="btn btn-primary create-action add-xhtml-content">
+                            <xsl:apply-templates select="key('resources', 'html', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                        </button>
+                    </p>
+                </div>
+            </div>
+        </xsl:if>
+    </xsl:template>
+    
     <!-- ROW BLOCK -->
     
-    <xsl:template match="rdf:RDF" mode="bs2:RowBlock">
+    <xsl:template match="rdf:RDF" mode="bs2:Row">
         <!-- select elements explicitly, because Saxon-JS chokes on text nodes here -->
-        <xsl:apply-templates select="*" mode="#current">
+        <!-- hide the current document resource and the content resources -->
+        <xsl:apply-templates select="*[not(@rdf:about = ac:uri() and rdf:type/@rdf:resource = ('&def;Root', '&dh;Container', '&dh;Item')) and not(rdf:type/@rdf:resource = '&ldh;Content')]" mode="#current">
             <xsl:sort select="ac:label(.)"/>
         </xsl:apply-templates>
-    </xsl:template>
-        
-    <xsl:template match="rdf:RDF" mode="bs2:RowBlockContent">
-        <!-- select elements explicitly, because Saxon-JS chokes on text nodes here -->
-        <xsl:apply-templates select="*" mode="#current">
-            <xsl:sort select="ac:label(.)"/>
-        </xsl:apply-templates>
-    </xsl:template>
-    
-    <!-- CONTENT -->
-    
-    <xsl:template match="rdf:RDF" mode="ldh:Content">
-        <xsl:apply-templates mode="#current"/>
     </xsl:template>
 
     <!-- MAP -->
     
     <xsl:template match="rdf:RDF" mode="bs2:Map">
-        <xsl:param name="canvas-id" select="'map-canvas'" as="xs:string"/>
+        <xsl:param name="canvas-id" as="xs:string"/>
+        <xsl:param name="class" select="'map-canvas'" as="xs:string?"/>
 
-        <div id="{$canvas-id}"/>
+        <div>
+            <xsl:if test="$canvas-id">
+                <xsl:attribute name="id" select="$canvas-id"/>
+            </xsl:if>
+            <xsl:if test="$class">
+                <xsl:attribute name="class" select="$class"/>
+            </xsl:if>
+        </div>
     </xsl:template>
         
     <!-- CHART -->
@@ -165,18 +181,28 @@ extension-element-prefixes="ixsl"
     <!-- graph chart (for RDF/XML results) -->
 
     <xsl:template match="rdf:RDF" mode="bs2:Chart">
+        <xsl:param name="canvas-id" as="xs:string"/>
+        <xsl:param name="class" select="'chart-canvas'" as="xs:string?"/>
         <xsl:param name="chart-type" select="xs:anyURI('&ac;Table')" as="xs:anyURI?"/>
         <xsl:param name="category" as="xs:string?"/>
         <xsl:param name="series" select="distinct-values(*/*/concat(namespace-uri(), local-name()))" as="xs:string*"/>
-        <xsl:param name="canvas-id" select="'chart-canvas'" as="xs:string"/>
+        <xsl:param name="show-save" select="true()" as="xs:boolean"/>
 
         <xsl:apply-templates select="." mode="bs2:ChartForm">
             <xsl:with-param name="chart-type" select="$chart-type"/>
             <xsl:with-param name="category" select="$category"/>
             <xsl:with-param name="series" select="$series"/>
+            <xsl:with-param name="show-save" select="$show-save"/>
         </xsl:apply-templates>
 
-        <div id="{$canvas-id}"></div>
+        <div>
+            <xsl:if test="$canvas-id">
+                <xsl:attribute name="id" select="$canvas-id"/>
+            </xsl:if>
+            <xsl:if test="$class">
+                <xsl:attribute name="class" select="$class"/>
+            </xsl:if>
+        </div>
     </xsl:template>
 
     <xsl:template match="rdf:RDF" mode="bs2:ChartForm" priority="-1">
@@ -335,18 +361,28 @@ extension-element-prefixes="ixsl"
     <!-- table chart (for SPARQL XML results) -->
 
     <xsl:template match="srx:sparql" mode="bs2:Chart">
+        <xsl:param name="canvas-id" as="xs:string"/>
+        <xsl:param name="class" select="'chart-canvas'" as="xs:string?"/>
         <xsl:param name="chart-type" select="xs:anyURI('&ac;Table')" as="xs:anyURI?"/>
         <xsl:param name="category" select="srx:head/srx:variable[1]/@name" as="xs:string?"/>
         <xsl:param name="series" select="srx:head/srx:variable/@name" as="xs:string*"/>
-        <xsl:param name="canvas-id" select="'canvas-id'" as="xs:string"/>
+        <xsl:param name="show-save" select="true()" as="xs:boolean"/>
 
         <xsl:apply-templates select="." mode="bs2:ChartForm">
             <xsl:with-param name="chart-type" select="$chart-type"/>
             <xsl:with-param name="category" select="$category"/>
             <xsl:with-param name="series" select="$series"/>
+            <xsl:with-param name="show-save" select="$show-save"/>
         </xsl:apply-templates>
 
-        <div id="{$canvas-id}"></div>
+        <div>
+            <xsl:if test="$canvas-id">
+                <xsl:attribute name="id" select="$canvas-id"/>
+            </xsl:if>
+            <xsl:if test="$class">
+                <xsl:attribute name="class" select="$class"/>
+            </xsl:if>
+        </div>
     </xsl:template>
 
     <xsl:template match="srx:sparql" mode="bs2:ChartForm">
@@ -641,7 +677,12 @@ extension-element-prefixes="ixsl"
 
             <xsl:apply-templates mode="bs2:Exception"/>
 
-            <xsl:apply-templates select="*" mode="#current">
+            <!-- show the current document on the top -->
+            <xsl:apply-templates select="*[@rdf:about = ac:uri()]" mode="#current">
+                <xsl:with-param name="inline" select="false()" tunnel="yes"/>
+            </xsl:apply-templates>
+            <!-- show the rest of the resources (contents, instances) below it -->
+            <xsl:apply-templates select="*[not(@rdf:about = ac:uri())]" mode="#current">
                 <xsl:sort select="ac:label(.)"/>
                 <xsl:with-param name="inline" select="false()" tunnel="yes"/>
             </xsl:apply-templates>

@@ -61,11 +61,9 @@ exclude-result-prefixes="#all">
             <xsl:apply-templates select="." mode="bs2:NavBar"/>
 
             <div id="content-body" class="container-fluid">
-                <xsl:for-each select="key('resources', ac:uri())">
-                    <xsl:apply-templates select="key('resources', ldh:content/@rdf:*)" mode="ldh:ContentList"/>
-                </xsl:for-each>
+                <xsl:apply-templates select="key('resources', ac:uri())" mode="ldh:ContentList"/>
 
-                <xsl:apply-templates select="." mode="bs2:RowBlock"/>
+                <xsl:apply-templates select="." mode="bs2:Row"/>
             </div>
 
             <xsl:apply-templates select="." mode="bs2:Footer"/>
@@ -74,7 +72,7 @@ exclude-result-prefixes="#all">
     
     <xsl:template match="rdf:RDF[doc-available(ac:uri())][key('resources', ac:uri(), document(ac:uri()))/rdf:type/@rdf:resource = '&adm;SignUp']" mode="bs2:ModeTabs" priority="2"/>
 
-    <xsl:template match="*[rdf:type/@rdf:resource = '&adm;SignUp'][$ac:method = 'GET']" mode="bs2:RowBlock" priority="2">
+    <xsl:template match="*[rdf:type/@rdf:resource = '&adm;SignUp'][$ac:method = 'GET']" mode="bs2:Row" priority="2">
         <xsl:apply-templates select="ldh:construct(map{ xs:anyURI('&foaf;Person'): spin:constructors(xs:anyURI('&foaf;Person'), resolve-uri('ns', $ldt:base), $constructor-query)//srx:binding[@name = 'construct']/srx:literal/string(.) })" mode="bs2:RowForm">
             <xsl:with-param name="action" select="ac:uri()"/>
             <xsl:with-param name="enctype" select="()"/> <!-- don't use 'multipart/form-data' which is the default -->
@@ -84,7 +82,7 @@ exclude-result-prefixes="#all">
         </xsl:apply-templates>
     </xsl:template>
     
-    <xsl:template match="rdf:RDF[doc-available(ac:uri())][key('resources', ac:uri(), document(ac:uri()))/rdf:type/@rdf:resource = '&adm;SignUp'][$ac:method = 'POST'][key('resources-by-type', '&spin;ConstraintViolation')]" mode="bs2:RowBlock" priority="3">
+    <xsl:template match="rdf:RDF[doc-available(ac:uri())][key('resources', ac:uri(), document(ac:uri()))/rdf:type/@rdf:resource = '&adm;SignUp'][$ac:method = 'POST'][key('resources-by-type', '&spin;ConstraintViolation')]" mode="bs2:Row" priority="3">
         <xsl:apply-templates select="." mode="bs2:RowForm">
             <xsl:with-param name="action" select="ac:uri()"/>
             <xsl:with-param name="enctype" select="()"/>
@@ -95,7 +93,7 @@ exclude-result-prefixes="#all">
     </xsl:template>
     
     <!-- match the first resource, whatever it is -->
-    <xsl:template match="*[doc-available(ac:uri())][key('resources', ac:uri(), document(ac:uri()))/rdf:type/@rdf:resource = '&adm;SignUp'][$ac:method = 'POST'][not(key('resources-by-type', '&http;Response'))][1]" mode="bs2:RowBlock" priority="3">
+    <xsl:template match="*[doc-available(ac:uri())][key('resources', ac:uri(), document(ac:uri()))/rdf:type/@rdf:resource = '&adm;SignUp'][$ac:method = 'POST'][not(key('resources-by-type', '&http;Response'))][1]" mode="bs2:Row" priority="3">
         <div class="row-fluid">
             <div class="offset2 span7">
                 <div class="alert alert-success row-fluid">
@@ -117,7 +115,7 @@ exclude-result-prefixes="#all">
     </xsl:template>
     
     <!-- suppress resources other than foaf:Person and cert:PublicKey -->
-    <xsl:template match="*[doc-available(ac:uri())][key('resources', ac:uri(), document(ac:uri()))/rdf:type/@rdf:resource = '&adm;SignUp'][$ac:method = 'POST'][not(key('resources-by-type', '&http;Response'))][not(rdf:type/@rdf:resource = ('&foaf;Person', '&cert;PublicKey'))]" mode="bs2:RowBlock" priority="2"/>
+    <xsl:template match="*[doc-available(ac:uri())][key('resources', ac:uri(), document(ac:uri()))/rdf:type/@rdf:resource = '&adm;SignUp'][$ac:method = 'POST'][not(key('resources-by-type', '&http;Response'))][not(rdf:type/@rdf:resource = ('&foaf;Person', '&cert;PublicKey'))]" mode="bs2:Row" priority="2"/>
 
     <!-- disable the right nav (backlinks etc.) -->
     <xsl:template match="*[*][@rdf:about or @rdf:nodeID][doc-available(ac:uri())][key('resources', ac:uri(), document(ac:uri()))/rdf:type/@rdf:resource = '&adm;SignUp']" mode="bs2:Right"/>
@@ -171,9 +169,9 @@ exclude-result-prefixes="#all">
             </xsl:for-each>
         </select>
         
-        <xsl:apply-templates select="." mode="bs2:FormControlTypeLabel">
-            <xsl:with-param name="type-label" select="$type-label"/>
-        </xsl:apply-templates>
+        <xsl:if test="$type-label">
+            <xsl:apply-templates select="." mode="bs2:FormControlTypeLabel"/>
+        </xsl:if>
     </xsl:template>
         
     <!-- change foaf:mbox object type from resource to literal -->
@@ -192,17 +190,17 @@ exclude-result-prefixes="#all">
             <xsl:with-param name="value" select="substring-after(., 'mailto:')"/>
         </xsl:call-template>
 
-        <xsl:apply-templates select="." mode="bs2:FormControlTypeLabel">
-            <xsl:with-param name="type" select="$type"/>
-            <xsl:with-param name="type-label" select="$type-label"/>
-        </xsl:apply-templates>
+        <xsl:if test="$type-label">
+            <xsl:apply-templates select="." mode="bs2:FormControlTypeLabel">
+                <xsl:with-param name="type" select="$type"/>
+            </xsl:apply-templates>
+        </xsl:if>
     </xsl:template>
 
     <xsl:template match="foaf:mbox/@rdf:*" mode="bs2:FormControlTypeLabel">
         <xsl:param name="type" as="xs:string?"/>
-        <xsl:param name="type-label" select="true()" as="xs:boolean"/>
 
-        <xsl:if test="not($type = 'hidden') and $type-label">
+        <xsl:if test="not($type = 'hidden')">
             <span class="help-inline">Literal</span>
         </xsl:if>
     </xsl:template>
@@ -237,10 +235,11 @@ exclude-result-prefixes="#all">
                         <xsl:with-param name="disabled" select="$disabled"/>
                     </xsl:call-template>
 
-                    <xsl:apply-templates select="." mode="bs2:FormControlTypeLabel">
-                        <xsl:with-param name="type" select="$type"/>
-                        <xsl:with-param name="type-label" select="$type-label"/>
-                    </xsl:apply-templates>
+                    <xsl:if test="$type-label">
+                        <xsl:apply-templates select="." mode="bs2:FormControlTypeLabel">
+                            <xsl:with-param name="type" select="$type"/>
+                        </xsl:apply-templates>
+                    </xsl:if>
                 </div>
             </div>
         </fieldset>
@@ -253,9 +252,8 @@ exclude-result-prefixes="#all">
     
     <xsl:template match="foaf:member/@rdf:*[doc-available(ac:uri())][key('resources', ac:uri(), document(ac:uri()))/rdf:type/@rdf:resource = '&adm;SignUp']" mode="bs2:FormControlTypeLabel">
         <xsl:param name="type" as="xs:string?"/>
-        <xsl:param name="type-label" select="true()" as="xs:boolean"/>
 
-        <xsl:if test="not($type = 'hidden') and $type-label">
+        <xsl:if test="not($type = 'hidden')">
             <span class="help-inline">Literal</span>
         </xsl:if>
     </xsl:template>

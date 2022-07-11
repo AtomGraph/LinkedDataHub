@@ -147,4 +147,7 @@ public class LDHC
     /** Enable Linked Data proxy property */
     public static final DatatypeProperty enableLinkedDataProxy = m_model.createDatatypeProperty( NS + "enableLinkedDataProxy" );
 
+    /** OIDC refresh token properties property */
+    public static final DatatypeProperty oidcRefreshTokens = m_model.createDatatypeProperty( NS + "oidcRefreshTokens" );
+
 }

@@ -88,12 +88,15 @@ PREFIX  def: <https://w3id.org/atomgraph/linkeddatahub/default#>
 PREFIX  dh:  <https://www.w3.org/ns/ldt/document-hierarchy#>
 PREFIX  nfo: <http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#>
 
-INSERT DATA
+INSERT
 {
-  GRAPH <acl/authorizations/public/>
-  {
-    <acl/authorizations/public/#this> acl:accessToClass def:Root, dh:Container, dh:Item, nfo:FileDataObject ;
-        acl:accessTo <../sparql> .
-  }
+  <acl/authorizations/public/#this> acl:accessToClass def:Root, dh:Container, dh:Item, nfo:FileDataObject ;
+      acl:accessTo <../sparql> .
 }
+<<<<<<< HEAD
 EOF
+=======
+WHERE
+{}
+EOF
+>>>>>>> d08c2ba5572686ff28f238c2db30871ba70caad4

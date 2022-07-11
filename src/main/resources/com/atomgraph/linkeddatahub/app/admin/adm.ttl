@@ -202,8 +202,8 @@ acl:Authorization spin:constructor [
     ldh:template :AuthorizationAgents .
 
 :AuthorizationAgents a ldh:Content ;
-    rdf:first :SelectAuthorizationAgents ;
-    rdf:rest rdf:nil .
+    rdfs:label "Agents authorized by this authorization" ;
+    rdf:value :SelectAuthorizationAgents .
 
 :SelectAuthorizationAgents a sp:Select ;
     rdfs:label "Select agents" ;

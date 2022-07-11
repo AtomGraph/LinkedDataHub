@@ -54,7 +54,7 @@ import org.slf4j.LoggerFactory;
  * a <code>&lt;div&gt;</code> element and canonicalize the document.
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
- * @see com.atomgraph.linkeddatahub.server.filter.request.RDFPostCleanupFilter
+ * @see com.atomgraph.linkeddatahub.server.filter.request.MultipartRDFPostCleanupFilter
  */
 @Priority(Priorities.ENTITY_CODER)
 public class RDFPostCleanupInterceptor implements ReaderInterceptor
@@ -161,7 +161,7 @@ public class RDFPostCleanupInterceptor implements ReaderInterceptor
             // 1. ...pu=http://www.w3.org/1999/02/22-rdf-syntax-ns#first&ol=value&lt=http://...XMLLiteral...
             if (i >= 1 && i + 1 < keys.size() && // check bounds
                 keys.get(i - 1).equals(TokenizerRDFPost.URI_PRED) &&
-                values.get(i - 1) != null && values.get(i - 1).equals(RDF.first.getURI()) &&
+                values.get(i - 1) != null && values.get(i - 1).equals(RDF.value.getURI()) &&
                 keys.get(i).equals(TokenizerRDFPost.LITERAL_OBJ) &&
                 keys.get(i + 1).equals(TokenizerRDFPost.TYPE)&&
                 values.get(i + 1) != null && values.get(i + 1).equals(RDF.xmlLiteral.getURI()) &&
@@ -174,7 +174,7 @@ public class RDFPostCleanupInterceptor implements ReaderInterceptor
             // 2. ...pu=http://www.w3.org/1999/02/22-rdf-syntax-ns#first&lt=http://...XMLLiteral&ol=value...
             if (i >= 2 &&
                 keys.get(i - 2).equals(TokenizerRDFPost.URI_PRED) &&
-                values.get(i - 2) != null && values.get(i - 2).equals(RDF.first.getURI()) &&
+                values.get(i - 2) != null && values.get(i - 2).equals(RDF.value.getURI()) &&
                 keys.get(i - 1).equals(TokenizerRDFPost.TYPE) &&
                 values.get(i - 1) != null && values.get(i - 1).equals(RDF.xmlLiteral.getURI()) &&
                 keys.get(i).equals(TokenizerRDFPost.LITERAL_OBJ) &&

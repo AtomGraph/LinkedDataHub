@@ -44,6 +44,7 @@ exclude-result-prefixes="#all">
     </xsl:template>
     
     <xsl:template match="acl:mode/@rdf:resource | acl:mode/@rdf:nodeID" mode="bs2:FormControl" priority="1">
+        <xsl:param name="type-label" select="true()" as="xs:boolean"/>
         <xsl:variable name="this" select="../concat(namespace-uri(), local-name())" as="xs:string"/>
         <xsl:variable name="properties" select="../../*[concat(namespace-uri(), local-name()) = $this]" as="element()*"/>
 
@@ -57,7 +58,9 @@ exclude-result-prefixes="#all">
             </xsl:for-each>
         </select>
 
-        <xsl:apply-templates select="." mode="bs2:FormControlTypeLabel"/>
+        <xsl:if test="$type-label">
+            <xsl:apply-templates select="." mode="bs2:FormControlTypeLabel"/>
+        </xsl:if>
     </xsl:template>
 
     <xsl:template match="acl:mode[position() &gt; 1]" mode="bs2:FormControl" priority="2"/>
