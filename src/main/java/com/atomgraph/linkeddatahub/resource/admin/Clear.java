@@ -90,7 +90,7 @@ public class Clear
             OntologyModelGetter modelGetter = new OntologyModelGetter(app,
                     ontModelSpec, getSystem().getOntologyQuery(), getSystem().getNoCertClient(), getSystem().getMediaTypes());
             ontModelSpec.setImportModelGetter(modelGetter);
-            if (log.isDebugEnabled()) log.debug("Loading ontology with URI '{}' from the admin dataset", ontologyURI);
+            if (log.isDebugEnabled()) log.debug("Started loading ontology with URI '{}' from the admin dataset", ontologyURI);
             Model baseModel = modelGetter.getModel(ontologyURI);
             OntModel ontModel = ModelFactory.createOntologyModel(ontModelSpec, baseModel);
             // materialize OntModel inferences to avoid invoking rules engine on every request
@@ -99,6 +99,7 @@ public class Clear
             ontModel.getDocumentManager().addModel(ontologyURI, new OntModelReadOnly(materializedModel), true); // make immutable and add as OntModel so that imports do not need to be reloaded during retrieval
             // make sure to cache imported models not only by ontology URI but also by document URI
             ontModel.listImportedOntologyURIs(true).forEach((String importURI) -> addDocumentModel(ontModel.getDocumentManager(), importURI));
+            if (log.isDebugEnabled()) log.debug("Finished loading ontology with URI '{}' from the admin dataset", ontologyURI);
         }
         
         if (referer != null) return Response.seeOther(referer).build();
