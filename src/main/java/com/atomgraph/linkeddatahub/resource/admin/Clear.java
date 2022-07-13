@@ -82,6 +82,7 @@ public class Clear
         OntModelSpec ontModelSpec = new OntModelSpec(getSystem().getOntModelSpec(app));
         if (ontModelSpec.getDocumentManager().getFileManager().hasCachedModel(ontologyURI))
         {
+            if (log.isDebugEnabled()) log.debug("Clearing ontology with URI '{}' from memory", ontologyURI);
             ontModelSpec.getDocumentManager().getFileManager().removeCacheModel(ontologyURI);
 
             // !!! we need to reload the ontology model before returning a response, to make sure the next request already gets the new version !!!
@@ -89,6 +90,7 @@ public class Clear
             OntologyModelGetter modelGetter = new OntologyModelGetter(app,
                     ontModelSpec, getSystem().getOntologyQuery(), getSystem().getNoCertClient(), getSystem().getMediaTypes());
             ontModelSpec.setImportModelGetter(modelGetter);
+            if (log.isDebugEnabled()) log.debug("Loading ontology with URI '{}' from the admin dataset", ontologyURI);
             Model baseModel = modelGetter.getModel(ontologyURI);
             OntModel ontModel = ModelFactory.createOntologyModel(ontModelSpec, baseModel);
             // materialize OntModel inferences to avoid invoking rules engine on every request
