@@ -119,6 +119,7 @@ public class OntologyFilter implements ContainerRequestFilter
                 OntologyModelGetter modelGetter = new OntologyModelGetter(app.as(EndUserApplication.class),
                         ontModelSpec, getSystem().getOntologyQuery(), getSystem().getNoCertClient(), getSystem().getMediaTypes());
                 ontModelSpec.setImportModelGetter(modelGetter);
+                if (log.isDebugEnabled()) log.debug("Started loading ontology with URI '{}' from the admin dataset", uri);
                 Model baseModel = modelGetter.getModel(uri);
                 OntModel ontModel = ModelFactory.createOntologyModel(ontModelSpec, baseModel);
                 // materialize OntModel inferences to avoid invoking rules engine on every request
@@ -127,6 +128,7 @@ public class OntologyFilter implements ContainerRequestFilter
                 ontModel.getDocumentManager().addModel(uri, new OntModelReadOnly(materializedModel), true); // make immutable and add as OntModel so that imports do not need to be reloaded during retrieval
                 // make sure to cache imported models not only by ontology URI but also by document URI
                 ontModel.listImportedOntologyURIs(true).forEach((String importURI) -> addDocumentModel(ontModel.getDocumentManager(), importURI));
+                if (log.isDebugEnabled()) log.debug("Finished loading ontology with URI '{}' from the admin dataset", uri);
             }
         }
         else
