@@ -19,6 +19,7 @@ package com.atomgraph.linkeddatahub.resource.admin;
 import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import static com.atomgraph.linkeddatahub.server.filter.request.OntologyFilter.addDocumentModel;
+import com.atomgraph.linkeddatahub.server.filter.response.BackendInvalidationFilter;
 import com.atomgraph.linkeddatahub.server.util.OntologyModelGetter;
 import com.atomgraph.processor.util.OntModelReadOnly;
 import java.net.URI;
@@ -34,6 +35,8 @@ import org.apache.jena.ontology.OntModel;
 import org.apache.jena.ontology.OntModelSpec;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.rdf.model.Resource;
+import org.glassfish.jersey.uri.UriComponent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -84,7 +87,12 @@ public class Clear
         {
             if (log.isDebugEnabled()) log.debug("Clearing ontology with URI '{}' from memory", ontologyURI);
             ontModelSpec.getDocumentManager().getFileManager().removeCacheModel(ontologyURI);
-
+            if (getApplication().getService().getProxy() != null)
+            {
+                if (log.isDebugEnabled()) log.debug("Purge ontology with URI '{}' from proxy cache", ontologyURI);
+                ban(getApplication().getService().getProxy(), ontologyURI);
+            }
+                
             // !!! we need to reload the ontology model before returning a response, to make sure the next request already gets the new version !!!
             // same logic as in OntologyFilter. TO-DO: encapsulate?
             OntologyModelGetter modelGetter = new OntologyModelGetter(app,
@@ -104,6 +112,22 @@ public class Clear
         
         if (referer != null) return Response.seeOther(referer).build();
         else return Response.ok().build();
+    }
+    
+    /** 
+     * Bans URL from the backend proxy cache.
+     * 
+     * @param proxy proxy server URL
+     * @param url banned URL
+     * @return proxy server response
+     */
+    public Response ban(Resource proxy, String url)
+    {
+        if (url == null) throw new IllegalArgumentException("Resource cannot be null");
+        
+        return getSystem().getClient().target(proxy.getURI()).request().
+            header(BackendInvalidationFilter.HEADER_NAME, UriComponent.encode(url, UriComponent.Type.UNRESERVED)). // the value has to be URL-encoded in order to match request URLs in Varnish
+            method("BAN", Response.class);
     }
     
     /**
