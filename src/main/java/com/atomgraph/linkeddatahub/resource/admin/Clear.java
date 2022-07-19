@@ -21,7 +21,6 @@ import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import static com.atomgraph.linkeddatahub.server.filter.request.OntologyFilter.addDocumentModel;
 import com.atomgraph.linkeddatahub.server.filter.response.BackendInvalidationFilter;
 import com.atomgraph.linkeddatahub.server.util.OntologyModelGetter;
-import com.atomgraph.processor.util.OntModelReadOnly;
 import java.net.URI;
 import javax.inject.Inject;
 import javax.ws.rs.BadRequestException;
@@ -104,7 +103,7 @@ public class Clear
             // materialize OntModel inferences to avoid invoking rules engine on every request
             OntModel materializedModel = ModelFactory.createOntologyModel(OntModelSpec.OWL_MEM); // no inference
             materializedModel.add(ontModel);
-            ontModel.getDocumentManager().addModel(ontologyURI, new OntModelReadOnly(materializedModel), true); // make immutable and add as OntModel so that imports do not need to be reloaded during retrieval
+            ontModel.getDocumentManager().addModel(ontologyURI, materializedModel, true); // make immutable and add as OntModel so that imports do not need to be reloaded during retrieval
             // make sure to cache imported models not only by ontology URI but also by document URI
             ontModel.listImportedOntologyURIs(true).forEach((String importURI) -> addDocumentModel(ontModel.getDocumentManager(), importURI));
             if (log.isDebugEnabled()) log.debug("Finished loading ontology with URI '{}' from the admin dataset", ontologyURI);
