@@ -620,6 +620,8 @@ fi
 # create empty properties file if it doesn't exist
 
 if [ -n "$OIDC_REFRESH_TOKENS" ] && [ ! -f "$OIDC_REFRESH_TOKENS" ]; then
+    mkdir -p "$(dirname "$OIDC_REFRESH_TOKENS")"
+
     touch "$OIDC_REFRESH_TOKENS"
 fi
 
