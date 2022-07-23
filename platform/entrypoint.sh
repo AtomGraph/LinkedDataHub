@@ -620,7 +620,11 @@ fi
 # create empty properties file if it doesn't exist
 
 if [ -n "$OIDC_REFRESH_TOKENS" ] && [ ! -f "$OIDC_REFRESH_TOKENS" ]; then
+    ls -l /var/linkeddatahub
+
     mkdir -p "$(dirname "$OIDC_REFRESH_TOKENS")"
+
+    ls -l /var/linkeddatahub/oidc
 
     touch "$OIDC_REFRESH_TOKENS"
 fi
