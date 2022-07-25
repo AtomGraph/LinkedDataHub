@@ -186,7 +186,7 @@ public class Login extends GraphStoreImpl
                 String refreshToken = response.getString("refresh_token");
                 try
                 {
-                    getSystem().storeRefreshToken(getClientID(), refreshToken); // store for later use in IDTokenFilter
+                    getSystem().storeRefreshToken(jwt.getSubject(), refreshToken); // store for later use in IDTokenFilter
                 }
                 catch (IOException ex)
                 {
