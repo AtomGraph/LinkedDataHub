@@ -172,23 +172,14 @@ exclude-result-prefixes="#all"
         <xsl:choose>
             <!-- we need to handle multipart requests specially because of Saxon-JS 2 limitations: https://saxonica.plan.io/issues/4732 -->
             <xsl:when test="$enctype = 'multipart/form-data'">
-                <xsl:variable name="js-statement" as="element()">
-                    <root statement="new FormData(document.getElementById('{$id}'))"/>
-                </xsl:variable>
-                <xsl:variable name="form-data" select="ixsl:eval(string($js-statement/@statement))"/>
-                <xsl:variable name="js-statement" as="element()">
-                    <root statement="{{ 'Accept': '{$accept}' }}"/>
-                </xsl:variable>
-                <xsl:variable name="headers" select="ixsl:eval(string($js-statement/@statement))"/>
+                <xsl:variable name="form-data" select="ldh:new('FormData', [ id($id, ixsl:page()) ])"/>
+                <xsl:variable name="headers" select="ldh:new-object()"/>
+                <ixsl:set-property name="'Accept'" select="$accept" object="$headers"/>
                 
                 <xsl:sequence select="js:fetchDispatchXML($request-uri, $method, $headers, $form-data, ., 'multipartFormLoad')"/>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:variable name="js-statement" as="element()">
-                    <root statement="new URLSearchParams(new FormData(document.getElementById('{$id}')))"/>
-                </xsl:variable>
-                <xsl:variable name="form-data" select="ixsl:eval(string($js-statement/@statement))"/>
-
+                <xsl:variable name="form-data" select="ldh:new('URLSearchParams', [ ldh:new('FormData', [ id($id, ixsl:page()) ]) ])"/>
                 <xsl:variable name="request" as="item()*">
                     <ixsl:schedule-action http-request="map{ 'method': $method, 'href': $request-uri, 'media-type': $enctype, 'body': $form-data, 'headers': map{ 'Accept': $accept } }">
                         <xsl:call-template name="onFormLoad">
