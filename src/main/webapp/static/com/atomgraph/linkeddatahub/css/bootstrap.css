@@ -113,6 +113,7 @@ h2.item-logo { background-image: url('../icons/file.svg'); background-position: 
 .map-canvas { height: 35em; width: 100%; }
 fieldset { border: 1px outset #999; /* padding-top: 3%; */ }
 fieldset fieldset { margin-left: 3%; margin-bottom: 3%; }
+.constructor-template .control-label { text-align: left; }
 .constructor-triple .controls { margin-left: 250px; }
 .constructor-triple .controls label.radio { display: inline-block; padding-top: 10px; margin-right: 10px; }
 .constructor-triple .controls .help-inline { vertical-align: top; padding-top: 5px; }
