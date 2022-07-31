@@ -123,9 +123,10 @@ exclude-result-prefixes="#all"
 
                                         <fieldset about="{$constructor-uri}">
                                             <legend>
-                                                <xsl:variable name="request-uri" select="ac:build-uri($ldt:base, map{ 'uri': ac:document-uri($constructor-uri), 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
-
-                                                <xsl:apply-templates select="key('resources', $constructor-uri, document($request-uri))" mode="ac:label"/>
+                                                <a href="{$constructor-uri}" title="{$constructor-uri}" target="_blank">
+                                                    <xsl:variable name="request-uri" select="ac:build-uri($ldt:base, map{ 'uri': ac:document-uri($constructor-uri), 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
+                                                    <xsl:apply-templates select="key('resources', $constructor-uri, document($request-uri))" mode="ac:label"/>
+                                                </a>
                                             </legend>
 
                                             <xsl:apply-templates select="$construct-xml/json:map/json:array[@key = 'template']/json:map" mode="bs2:ConstructorTripleForm">
