@@ -195,7 +195,7 @@ WHERE
         <xsl:message>$ac:mode: <xsl:value-of select="$ac:mode"/></xsl:message>
         <xsl:message>$sd:endpoint: <xsl:value-of select="$sd:endpoint"/></xsl:message>
         <xsl:message>ixsl:query-params()?uri: <xsl:value-of select="ixsl:query-params()?uri"/></xsl:message>
-        <xsl:message>UTC offset: <xsl:value-of select="ixsl:call(ldh:new('Date', []), 'getTimezoneOffset', []) div 60 * -1"/></xsl:message>
+        <xsl:message>UTC offset: <xsl:value-of select="implicit-timezone()"/></xsl:message>
         
         <!-- create a LinkedDataHub namespace -->
         <ixsl:set-property name="LinkedDataHub" select="ldh:new-object()"/>
