@@ -88,7 +88,7 @@ exclude-result-prefixes="#all"
     </xsl:template>
     
     <!-- inject datetime-local inputs TO-DO: align structure of constructor and editing form controls -->
-    <xsl:template match="input[@name = 'ol'][@value][folowing-sibling::input[@name = 'lt'][@value = '&xsd;dateTime']] | input[@name = 'ol'][@value][../following-sibling::div/input[@name = 'lt'][@value = '&xsd;dateTime']]" mode="ldh:PostConstruct" priority="1">
+    <xsl:template match="input[@name = 'ol'][@value][following-sibling::input[@name = 'lt'][@value = '&xsd;dateTime']] | input[@name = 'ol'][@value][../following-sibling::div/input[@name = 'lt'][@value = '&xsd;dateTime']]" mode="ldh:PostConstruct" priority="1">
         <ixsl:set-attribute name="type" object="." select="'datetime-local'"/>
 
         <!-- adjust the datetime value to the implicit (user's) timezone and format it to make it a legal datetime-local value: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/datetime-local#value -->
