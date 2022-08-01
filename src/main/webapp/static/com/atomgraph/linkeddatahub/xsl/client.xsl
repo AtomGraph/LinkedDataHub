@@ -1620,7 +1620,7 @@ WHERE
     
     <!-- inject datetime-local inputs -->
     
-    <xsl:template match="input[@name = 'ol'][../div/folowing-sibling::div/input[@name = 'lt'][@value = '&xsd;dateTime']" mode="ldh:PostLoad" priority="1">
+    <xsl:template match="input[@name = 'ol'][../div/following-sibling::div/input[@name = 'lt'][@value = '&xsd;dateTime']" mode="ldh:PostLoad" priority="1">
         <input name="ol" id="{@id}" type="datetime-local" value="{@value}"/>
     </xsl:template>
 
