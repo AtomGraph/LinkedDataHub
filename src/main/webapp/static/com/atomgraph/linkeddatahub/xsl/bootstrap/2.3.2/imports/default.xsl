@@ -762,6 +762,17 @@ exclude-result-prefixes="#all"
         </xsl:choose>
     </xsl:template>
     
+    <!-- @rdf:datatype (hidden) -->
+    <xsl:template match="@rdf:datatype" mode="bs2:FormControl">
+        <xsl:param name="type" select="'hidden'" as="xs:string"/>
+        <xsl:param name="id" select="generate-id()" as="xs:string"/>
+
+        <xsl:apply-templates select="." mode="xhtml:Input">
+            <xsl:with-param name="type" select="$type"/>
+            <xsl:with-param name="id" select="$id"/>
+        </xsl:apply-templates>
+    </xsl:template>
+    
     <!-- blank nodes that only have rdf:type xsd:* and no other properties become literal inputs -->
     <!-- TO-DO: expand pattern to handle other XSD datatypes -->
     <!-- TO-DO: move to Web-Client -->
@@ -789,7 +800,17 @@ exclude-result-prefixes="#all"
         </xsl:call-template>
 
         <xsl:if test="$type-label">
-            <xsl:apply-templates select="." mode="bs2:FormControlTypeLabel">
+            <xsl:variable name="datatype" as="document-node()">
+                <xsl:document>
+                    <rdf:Description>
+                        <xsl:element name="{../name()}" namespace="{../namespace-uri()}">
+                            <xsl:attribute name="rdf:datatype" select="key('resources', .)/rdf:type/@rdf:resource"/>
+                        </xsl:element>
+                    </rdf:Description>
+                </xsl:document>
+            </xsl:variable>
+            
+            <xsl:apply-templates select="$datatype//@rdf:datatype">
                 <xsl:with-param name="type" select="$type"/>
             </xsl:apply-templates>
         </xsl:if>
@@ -936,6 +957,12 @@ exclude-result-prefixes="#all"
             <xsl:with-param name="class" select="$class"/>
             <xsl:with-param name="disabled" select="$disabled"/>
             <xsl:with-param name="value" select="format-number(., '#####.00000')"/>
+        </xsl:call-template>
+        
+        <xsl:call-template name="xhtml:Input">
+            <xsl:with-param name="type" select="'hidden'"/>
+            <xsl:with-param name="name" select="'lt'"/>
+            <xsl:with-param name="value" select="../@rdf:datatype"/>
         </xsl:call-template>
     </xsl:template>
 
