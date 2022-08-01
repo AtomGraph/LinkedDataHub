@@ -1620,18 +1620,4 @@ WHERE
         </xsl:if>
     </xsl:template>
     
-    <!-- inject datetime-local inputs -->
-    
-    <xsl:template match="input[@name = 'ol'][../following-sibling::div/input[@name = 'lt'][@value = '&xsd;dateTime']]" mode="ldh:PostLoad" priority="1">
-        <input name="ol" id="{@id}" type="datetime-local" value="{@value}"/>
-    </xsl:template>
-
-    <xsl:template match="@* | node()" mode="ldh:PostLoad">
-        <xsl:message>WTF? ldh:PostLoad</xsl:message>
-        
-        <xsl:copy>
-            <xsl:apply-templates select="@* | node()" mode="#current"/>
-        </xsl:copy>
-    </xsl:template>
-    
 </xsl:stylesheet>
