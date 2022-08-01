@@ -88,10 +88,14 @@ exclude-result-prefixes="#all"
     </xsl:template>
     
     <!-- inject datetime-local inputs -->
-    <xsl:template match="input[@name = 'ol'][../following-sibling::div/input[@name = 'lt'][@value = '&xsd;dateTime']]" mode="ldh:PostConstruct" priority="1">
+    <xsl:template match="input[@name = 'ol'][@value][../following-sibling::div/input[@name = 'lt'][@value = '&xsd;dateTime']]" mode="ldh:PostConstruct" priority="1">
         <xsl:message>WTF ldh:PostConstruct</xsl:message>
-        
+
         <ixsl:set-attribute name="type" object="." select="'datetime-local'"/>
+
+        <!-- adjust the datetime value to the implicit (user's) timezone and format it to make it a legal datetime-local value: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/datetime-local#value -->
+        <xsl:variable name="datetime-local" select="format-dateTime(adjust-dateTime-to-timezone(xs:dateTime(@value)), '[Y0001]-[M01]-[D01]T[H01]:[m01]:[s01]')" as="xs:string"/>
+        <ixsl:set-attribute name="value" object="." select="$datetime-local"/>
     </xsl:template>
     
     <!-- form identity transform -->
