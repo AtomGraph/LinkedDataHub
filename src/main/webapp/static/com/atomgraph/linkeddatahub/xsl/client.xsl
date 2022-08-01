@@ -1021,7 +1021,11 @@ WHERE
             <ixsl:set-property name="title" select="string(/html/head/title)" object="ixsl:page()"/>
 
             <xsl:variable name="results" select="." as="document-node()"/>
-
+            <!-- apply transforms before injecting the result -->
+            <xsl:variable name="results" as="document-node()">
+                <xsl:apply-templates select="$results" mode="ldh:PostLoad"/>
+            </xsl:variable>
+            
             <!-- replace content body with the loaded XHTML -->
             <xsl:for-each select="$container">
                 <xsl:result-document href="?." method="ixsl:replace-content">
@@ -1612,6 +1616,18 @@ WHERE
             <!-- show #doc-tree -->
             <ixsl:set-style name="display" select="'block'" object="id('doc-tree', ixsl:page())"/>
         </xsl:if>
+    </xsl:template>
+    
+    <!-- inject datetime-local inputs -->
+    
+    <xsl:template match="input[@name = 'ol'][../div/folowing-sibling::div/input[@name = 'lt'][@value = '&xsd;dateTime']" mode="ldh:PostLoad" priority="1">
+        <input name="ol" id="{@id}" type="datetime-local" value="{@value}"/>
+    </xsl:template>
+
+    <xsl:template match="@* | node()" mode="ldh:PostLoad">
+        <xsl:copy>
+            <xsl:apply-templates select="@* | node()" mode="#current"/>
+        </xsl:copy>
     </xsl:template>
     
 </xsl:stylesheet>
