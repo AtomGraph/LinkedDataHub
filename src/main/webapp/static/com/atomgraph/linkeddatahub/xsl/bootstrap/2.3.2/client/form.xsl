@@ -88,12 +88,10 @@ exclude-result-prefixes="#all"
     </xsl:template>
     
     <!-- inject datetime-local inputs -->
-    <xsl:template match="input[@name = 'ol']" mode="ldh:PostConstruct" priority="1">
+    <xsl:template match="input[@name = 'ol'][../following-sibling::div/input[@name = 'lt'][@value = '&xsd;dateTime']]" mode="ldh:PostConstruct" priority="1">
         <xsl:message>WTF ldh:PostConstruct</xsl:message>
         
-        <xsl:result-document href="?." method="ixsl:replace-content">
-            <input name="ol" id="{@id}" type="datetime-local" value="{@value}"/>
-        </xsl:result-document>
+        <ixsl:set-attribute name="type" object="." select="'datetime-local'"/>
     </xsl:template>
     
     <!-- form identity transform -->
