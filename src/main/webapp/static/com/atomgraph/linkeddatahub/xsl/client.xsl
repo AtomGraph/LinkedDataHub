@@ -1023,7 +1023,9 @@ WHERE
             <xsl:variable name="results" select="." as="document-node()"/>
             <!-- apply transforms before injecting the result -->
             <xsl:variable name="results" as="document-node()">
-                <xsl:apply-templates select="$results" mode="ldh:PostLoad"/>
+                <xsl:document>
+                    <xsl:apply-templates select="$results" mode="ldh:PostLoad"/>
+                </xsl:document>
             </xsl:variable>
             
             <!-- replace content body with the loaded XHTML -->
