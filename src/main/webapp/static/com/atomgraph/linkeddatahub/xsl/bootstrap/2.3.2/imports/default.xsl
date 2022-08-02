@@ -803,7 +803,7 @@ exclude-result-prefixes="#all"
             <xsl:variable name="datatype" as="document-node()">
                 <xsl:document>
                     <rdf:Description>
-                        <xsl:element name="{../name()}">
+                        <xsl:element name="{../name()}" namespace="{../namespace()}">
                             <xsl:attribute name="rdf:datatype" select="key('resources', .)/rdf:type/@rdf:resource"/>
                         </xsl:element>
                     </rdf:Description>
