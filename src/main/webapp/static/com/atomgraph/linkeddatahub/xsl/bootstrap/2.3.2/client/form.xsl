@@ -89,13 +89,13 @@ exclude-result-prefixes="#all"
     
     <!-- inject datetime-local inputs TO-DO: align structure of constructor and editing form controls -->
     <xsl:template match="input[@name = 'ol'][following-sibling::input[@name = 'lt'][@value = '&xsd;dateTime']] | input[@name = 'ol'][@value][../following-sibling::div/input[@name = 'lt'][@value = '&xsd;dateTime']]" mode="ldh:PostConstruct" priority="1">
-        <ixsl:set-attribute name="type" object="." select="'datetime-local'"/>
-        <ixsl:set-attribute name="step" object="." select="'1'"/>
+        <ixsl:set-attribute name="type" select="'datetime-local'"/>
+        <ixsl:set-attribute name="step" select="'1'"/>
 
         <xsl:if test="@value">
             <!-- adjust the datetime value to the implicit (user's) timezone and format it to make it a legal datetime-local value: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/datetime-local#value -->
             <xsl:variable name="datetime-local" select="format-dateTime(adjust-dateTime-to-timezone(xs:dateTime(@value)), '[Y0001]-[M01]-[D01]T[H01]:[m01]:[s01]')" as="xs:string"/>        
-            <ixsl:set-attribute name="value" object="." select="$datetime-local"/>
+            <ixsl:set-attribute name="value" select="$datetime-local"/>
         </xsl:if>
     </xsl:template>
     
@@ -179,6 +179,10 @@ exclude-result-prefixes="#all"
         <!-- remove names of RDF/POST inputs with empty values -->
         <xsl:for-each select=".//input[@name = ('ob', 'ou', 'ol')][not(ixsl:get(., 'value'))]">
             <ixsl:remove-attribute name="name"/>
+        </xsl:for-each>
+        <!-- adjust datetime-local values to the implicit timezone -->
+        <xsl:for-each select=".//input[@name = 'datetime-local'][@value]">
+            <ixsl:set-attribute name="value" select="adjust-dateTime-to-timezone(@value)"/>
         </xsl:for-each>
         
         <xsl:choose>
