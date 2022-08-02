@@ -810,7 +810,7 @@ exclude-result-prefixes="#all"
                 </xsl:document>
             </xsl:variable>
             
-            <xsl:apply-templates select="$datatype//@rdf:datatype" mode="bs2:FormControlTypeLabel">
+            <xsl:apply-templates select="$datatype//@rdf:datatype">
                 <xsl:with-param name="type" select="$type"/>
             </xsl:apply-templates>
         </xsl:if>
