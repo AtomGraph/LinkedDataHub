@@ -181,31 +181,17 @@ exclude-result-prefixes="#all"
             <ixsl:remove-attribute name="name"/>
         </xsl:for-each>
 
-        <xsl:message>
-            111AAA .: <xsl:value-of select="serialize(.)"/>
-            222AAA id($id, ixsl:page()): <xsl:value-of select="serialize(id($id, ixsl:page()))"/>
-        </xsl:message>
-
         <!-- adjust datetime-local values to the implicit timezone -->
         <xsl:for-each select=".//input[@type = 'datetime-local'][ixsl:get(., 'value')]">
-            <xsl:message>WTF: <xsl:value-of select="string(adjust-dateTime-to-timezone(ixsl:get(., 'value')))"/></xsl:message>
             <!-- set the input type back to 'text' because 'datetime-local' does not accept the timezoned value -->
             <ixsl:set-attribute name="type" select="'text'"/>
             <ixsl:set-property name="value" select="string(adjust-dateTime-to-timezone(ixsl:get(., 'value')))" object="."/>
         </xsl:for-each>
-        
-        <xsl:message>
-            111BBB .: <xsl:value-of select="serialize(.)"/>
-            222BBB id($id, ixsl:page()): <xsl:value-of select="serialize(id($id, ixsl:page()))"/>
-        </xsl:message>
             
         <xsl:choose>
             <!-- we need to handle multipart requests specially because of Saxon-JS 2 limitations: https://saxonica.plan.io/issues/4732 -->
             <xsl:when test="$enctype = 'multipart/form-data'">
                 <xsl:variable name="form-data" select="ldh:new('FormData', [ $form ])"/>
-                
-        <xsl:message>$form-data: <xsl:value-of select="ixsl:call(ldh:new('URLSearchParams', [ ldh:new('FormData', [ $form ]) ]), 'toString', [])"/></xsl:message>
-        
                 <xsl:variable name="headers" select="ldh:new-object()"/>
                 <ixsl:set-property name="'Accept'" select="$accept" object="$headers"/>
                 
