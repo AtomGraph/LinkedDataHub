@@ -183,7 +183,15 @@ exclude-result-prefixes="#all"
         <!-- adjust datetime-local values to the implicit timezone -->
         <xsl:for-each select=".//input[@type = 'datetime-local'][ixsl:get(., 'value')]">
             <xsl:message>WTF: <xsl:value-of select="string(adjust-dateTime-to-timezone(ixsl:get(., 'value')))"/></xsl:message>
+            <xsl:message>
+                111AAA .: <xsl:value-of select="serialize(.)"/>
+                222AAA id($id, ixsl:page()): <xsl:value-of select="id($id, ixsl:page())"/>
+            </xsl:message>
             <ixsl:set-attribute name="value" select="string(adjust-dateTime-to-timezone(ixsl:get(., 'value')))" object="."/>
+            <xsl:message>
+                111BBB .: <xsl:value-of select="serialize(.)"/>
+                222BBB id($id, ixsl:page()): <xsl:value-of select="id($id, ixsl:page())"/>
+            </xsl:message>
         </xsl:for-each>
         
         <xsl:choose>
