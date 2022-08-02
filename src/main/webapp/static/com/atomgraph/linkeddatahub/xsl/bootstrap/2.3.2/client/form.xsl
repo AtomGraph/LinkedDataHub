@@ -180,20 +180,23 @@ exclude-result-prefixes="#all"
         <xsl:for-each select=".//input[@name = ('ob', 'ou', 'ol')][not(ixsl:get(., 'value'))]">
             <ixsl:remove-attribute name="name"/>
         </xsl:for-each>
+
+        <xsl:message>
+            111AAA .: <xsl:value-of select="serialize(.)"/>
+            222AAA id($id, ixsl:page()): <xsl:value-of select="serialize(id($id, ixsl:page()))"/>
+        </xsl:message>
+
         <!-- adjust datetime-local values to the implicit timezone -->
         <xsl:for-each select=".//input[@type = 'datetime-local'][ixsl:get(., 'value')]">
             <xsl:message>WTF: <xsl:value-of select="string(adjust-dateTime-to-timezone(ixsl:get(., 'value')))"/></xsl:message>
-            <xsl:message>
-                111AAA .: <xsl:value-of select="serialize(.)"/>
-                222AAA id($id, ixsl:page()): <xsl:value-of select="id($id, ixsl:page())"/>
-            </xsl:message>
             <ixsl:set-attribute name="value" select="string(adjust-dateTime-to-timezone(ixsl:get(., 'value')))" object="."/>
-            <xsl:message>
-                111BBB .: <xsl:value-of select="serialize(.)"/>
-                222BBB id($id, ixsl:page()): <xsl:value-of select="id($id, ixsl:page())"/>
-            </xsl:message>
         </xsl:for-each>
         
+        <xsl:message>
+            111BBB .: <xsl:value-of select="serialize(.)"/>
+            222BBB id($id, ixsl:page()): <xsl:value-of select="serialize(id($id, ixsl:page()))"/>
+        </xsl:message>
+            
         <xsl:choose>
             <!-- we need to handle multipart requests specially because of Saxon-JS 2 limitations: https://saxonica.plan.io/issues/4732 -->
             <xsl:when test="$enctype = 'multipart/form-data'">
