@@ -189,7 +189,9 @@ exclude-result-prefixes="#all"
         <!-- adjust datetime-local values to the implicit timezone -->
         <xsl:for-each select=".//input[@type = 'datetime-local'][ixsl:get(., 'value')]">
             <xsl:message>WTF: <xsl:value-of select="string(adjust-dateTime-to-timezone(ixsl:get(., 'value')))"/></xsl:message>
-            <ixsl:set-attribute name="value" select="string(adjust-dateTime-to-timezone(ixsl:get(., 'value')))" object="."/>
+            <!-- set the input type back to 'text' because FormData does not seem to parse the timezoned value of 'datetime-local' -->
+            <ixsl:set-attribute name="type" select="'text'"/>
+            <ixsl:set-attribute name="value" select="string(adjust-dateTime-to-timezone(ixsl:get(., 'value')))"/>
         </xsl:for-each>
         
         <xsl:message>
