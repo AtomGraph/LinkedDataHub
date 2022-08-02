@@ -181,7 +181,7 @@ exclude-result-prefixes="#all"
             <ixsl:remove-attribute name="name"/>
         </xsl:for-each>
         <!-- adjust datetime-local values to the implicit timezone -->
-        <xsl:for-each select=".//input[@name = 'datetime-local'][@value]">
+        <xsl:for-each select=".//input[@type = 'datetime-local'][@value]">
             <ixsl:set-attribute name="value" select="adjust-dateTime-to-timezone(@value)"/>
         </xsl:for-each>
         
