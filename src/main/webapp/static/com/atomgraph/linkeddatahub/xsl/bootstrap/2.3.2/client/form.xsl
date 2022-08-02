@@ -202,7 +202,7 @@ exclude-result-prefixes="#all"
             <xsl:when test="$enctype = 'multipart/form-data'">
                 <xsl:variable name="form-data" select="ldh:new('FormData', [ $form ])"/>
                 
-        <xsl:message>$form-data: <xsl:value-of select="serialize($form-data)"/></xsl:message>
+        <xsl:message>$form-data: <xsl:value-of select="ixsl:call(ldh:new('URLSearchParams', [ ldh:new('FormData', [ $form ]) ]), 'toString', [])"/></xsl:message>
         
                 <xsl:variable name="headers" select="ldh:new-object()"/>
                 <ixsl:set-property name="'Accept'" select="$accept" object="$headers"/>
