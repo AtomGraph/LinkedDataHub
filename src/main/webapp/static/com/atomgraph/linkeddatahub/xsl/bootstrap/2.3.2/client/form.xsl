@@ -200,14 +200,17 @@ exclude-result-prefixes="#all"
         <xsl:choose>
             <!-- we need to handle multipart requests specially because of Saxon-JS 2 limitations: https://saxonica.plan.io/issues/4732 -->
             <xsl:when test="$enctype = 'multipart/form-data'">
-                <xsl:variable name="form-data" select="ldh:new('FormData', [ id($id, ixsl:page()) ])"/>
+                <xsl:variable name="form-data" select="ldh:new('FormData', [ $form ])"/>
+                
+        <xsl:message>$form-data: <xsl:value-of select="serialize($form-data)"/></xsl:message>
+        
                 <xsl:variable name="headers" select="ldh:new-object()"/>
                 <ixsl:set-property name="'Accept'" select="$accept" object="$headers"/>
                 
                 <xsl:sequence select="js:fetchDispatchXML($request-uri, $method, $headers, $form-data, ., 'multipartFormLoad')"/>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:variable name="form-data" select="ldh:new('URLSearchParams', [ ldh:new('FormData', [ id($id, ixsl:page()) ]) ])"/>
+                <xsl:variable name="form-data" select="ldh:new('URLSearchParams', [ ldh:new('FormData', [ $form ]) ])"/>
                 <xsl:variable name="request" as="item()*">
                     <ixsl:schedule-action http-request="map{ 'method': $method, 'href': $request-uri, 'media-type': $enctype, 'body': $form-data, 'headers': map{ 'Accept': $accept } }">
                         <xsl:call-template name="onFormLoad">
