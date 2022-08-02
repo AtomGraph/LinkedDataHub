@@ -800,7 +800,17 @@ exclude-result-prefixes="#all"
         </xsl:call-template>
 
         <xsl:if test="$type-label">
-            <xsl:apply-templates select="." mode="bs2:FormControlTypeLabel">
+            <xsl:variable name="datatype" as="document-node()">
+                <xsl:document>
+                    <rdf:Description>
+                        <xsl:element name="../name()">
+                            <xsl:attribute name="rdf:datatype" select="key('resources', .)/rdf:type/@rdf:resource"/>
+                        </xsl:element>
+                    </rdf:Description>
+                </xsl:document>
+            </xsl:variable>
+            
+            <xsl:apply-templates select="$datatype//@rdf:datatype" mode="bs2:FormControlTypeLabel">
                 <xsl:with-param name="type" select="$type"/>
             </xsl:apply-templates>
         </xsl:if>
