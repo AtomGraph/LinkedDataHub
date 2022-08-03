@@ -1074,7 +1074,7 @@ WHERE
             </xsl:call-template>
         </xsl:if>
         
-        <xsl:message>ac:mode() after push state</xsl:message>: <xsl:value-of select="ac:mode()"/></xsl:message>
+        <xsl:message>ac:mode() after push state: <xsl:value-of select="ac:mode()"/></xsl:message>
 
         <!-- activate the current URL in the document tree -->
         <xsl:for-each select="id('doc-tree', ixsl:page())">
