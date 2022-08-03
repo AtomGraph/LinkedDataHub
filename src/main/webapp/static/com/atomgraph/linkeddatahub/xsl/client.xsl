@@ -221,8 +221,10 @@ WHERE
                 <xsl:call-template name="first-time-message"/>
             </xsl:result-document>
         </xsl:if>-->
-        <!-- initialize wymeditor textareas -->
-        <xsl:apply-templates select="key('elements-by-class', 'wymeditor', ixsl:page())" mode="ldh:PostConstruct"/>
+        <!-- initialize form if we're in editing mode -->
+        <xsl:if test="ac:mode() = '&ac;EditMode'">
+            <xsl:apply-templates select="id('content-body', ixsl:page())" mode="ldh:PostConstruct"/>
+        </xsl:if>
         <!-- append typeahead list after the search/URI input -->
         <xsl:for-each select="id('uri', ixsl:page())/..">
             <xsl:result-document href="?." method="ixsl:append-content">
