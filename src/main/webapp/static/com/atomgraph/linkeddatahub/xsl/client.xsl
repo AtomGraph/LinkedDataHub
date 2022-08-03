@@ -1059,7 +1059,6 @@ WHERE
         <!-- !!! update button classes after state has been pushed, because button state might depend on the new state (e.g. new ac:mode) !!! -->
         <!-- enable .btn-edit if it's present -->
         <xsl:for-each select="ixsl:page()//div[contains-token(@class, 'action-bar')]//a[contains-token(@class, 'btn-edit')]">
-            <xsl:message>ac:mode(): <xsl:value-of select="ac:mode()"/></xsl:message>
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', ac:mode() = '&ac;EditMode' ])[current-date() lt xs:date('2000-01-01')]"/>
 
             <!-- update the a.btn-edit link if it is visible -->
