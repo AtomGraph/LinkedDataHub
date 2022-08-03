@@ -36,33 +36,10 @@ exclude-result-prefixes="#all"
 >
 
     <!-- TEMPLATES -->
-
-<!--    <xsl:template name="typeahead:xml-loaded">
-        <xsl:context-item as="map(*)" use="required"/>
-
-        <xsl:call-template name="xsl:original"/>
-
-        <xsl:if test="?status = 200 and ?media-type = 'application/rdf+xml'">
-            <ixsl:set-property name="LinkedDataHub.typeahead.rdfXml" select="?body"/>
-        </xsl:if>
-    </xsl:template>-->
-    
-    <!-- currently unused -->
-    <xsl:template name="add-value-listeners">
-        <xsl:param name="id" as="xs:string"/>
-        
-        <xsl:for-each select="id($id, ixsl:page())">
-            <xsl:apply-templates select="." mode="ldh:PostConstruct"/>
-            
-            <xsl:sequence select="ixsl:call(., 'focus', [])[current-date() lt xs:date('2000-01-01')]"/>
-        </xsl:for-each>
-    </xsl:template>
     
     <xsl:template match="*" mode="ldh:PostConstruct">
         <xsl:apply-templates mode="#current"/>
     </xsl:template>
-    
-    <!-- listener identity transform - binding event listeners to inputs -->
     
     <xsl:template match="text()" mode="ldh:PostConstruct"/>
 
@@ -162,6 +139,24 @@ exclude-result-prefixes="#all"
         </xsl:copy>
     </xsl:template>
     
+    <xsl:template match="*" mode="ldh:FormPreSubmit">
+        <xsl:apply-templates mode="#current"/>
+    </xsl:template>
+    
+    <xsl:template match="text()" mode="ldh:FormPreSubmit"/>
+    
+    <!-- remove names of RDF/POST inputs with empty values -->
+    <xsl:template match="input[@name = ('ob', 'ou', 'ol')][not(ixsl:get(., 'value'))]" mode="ldh:FormPreSubmit" priority="1">
+        <ixsl:remove-attribute name="name"/>
+    </xsl:template>
+    
+    <!-- adjust datetime-local values to the implicit timezone -->
+    <xsl:template match="input[@type = 'datetime-local'][ixsl:get(., 'value')]" mode="ldh:FormPreSubmit" priority="1">
+        <!-- set the input type back to 'text' because 'datetime-local' does not accept the timezoned value -->
+        <ixsl:set-attribute name="type" select="'text'"/>
+        <ixsl:set-property name="value" select="string(adjust-dateTime-to-timezone(ixsl:get(., 'value')))" object="."/>
+    </xsl:template>
+    
     <!-- EVENT HANDLERS -->
     
     <xsl:template match="form[contains-token(@class, 'form-horizontal')] | form[ancestor::div[contains-token(@class, 'modal')]]" mode="ixsl:onsubmit">
@@ -176,17 +171,8 @@ exclude-result-prefixes="#all"
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
         
-        <!-- remove names of RDF/POST inputs with empty values -->
-        <xsl:for-each select=".//input[@name = ('ob', 'ou', 'ol')][not(ixsl:get(., 'value'))]">
-            <ixsl:remove-attribute name="name"/>
-        </xsl:for-each>
-
-        <!-- adjust datetime-local values to the implicit timezone -->
-        <xsl:for-each select=".//input[@type = 'datetime-local'][ixsl:get(., 'value')]">
-            <!-- set the input type back to 'text' because 'datetime-local' does not accept the timezoned value -->
-            <ixsl:set-attribute name="type" select="'text'"/>
-            <ixsl:set-property name="value" select="string(adjust-dateTime-to-timezone(ixsl:get(., 'value')))" object="."/>
-        </xsl:for-each>
+        <!-- pre-process form before submitting it -->
+        <xsl:apply-templates select="." mode="ldh:FormPreSubmit"/>
             
         <xsl:choose>
             <!-- we need to handle multipart requests specially because of Saxon-JS 2 limitations: https://saxonica.plan.io/issues/4732 -->
