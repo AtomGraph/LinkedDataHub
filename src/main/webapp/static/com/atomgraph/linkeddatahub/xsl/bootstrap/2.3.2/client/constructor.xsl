@@ -130,29 +130,10 @@ exclude-result-prefixes="#all"
                                         <xsl:variable name="construct-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $construct-json ])" as="xs:string"/>
                                         <xsl:variable name="construct-xml" select="json-to-xml($construct-json-string)" as="document-node()"/>
 
-                                        <fieldset about="{$constructor-uri}">
-                                            <legend>
-                                                <a href="{$constructor-uri}" title="{$constructor-uri}" target="_blank">
-                                                    <xsl:variable name="request-uri" select="ac:build-uri($ldt:base, map{ 'uri': ac:document-uri($constructor-uri), 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
-                                                    <xsl:apply-templates select="key('resources', $constructor-uri, document($request-uri))" mode="ac:label"/>
-                                                </a>
-                                            </legend>
-
-                                            <xsl:apply-templates select="$construct-xml/json:map/json:array[@key = 'template']/json:map" mode="bs2:ConstructorTripleForm">
-                                                <xsl:sort select="json:string[@key = 'predicate']"/>
-                                            </xsl:apply-templates>
-
-                                            <div class="control-group">
-                                                <label class="control-label">
-                                                    <button type="button" class="btn btn-primary create-action add-triple-template">
-                                                        <xsl:value-of>
-                                                            <xsl:apply-templates select="key('resources', '&rdf;Property', document(ac:document-uri('&rdf;')))" mode="ac:label"/>
-                                                        </xsl:value-of>
-                                                    </button>
-                                                </label>
-                                                <div class="controls"></div>
-                                            </div>
-                                        </fieldset>
+                                        <xsl:call-template name="ldh:ConstructorFieldset">
+                                            <xsl:with-param name="constructor-uri" select="$constructor-uri"/>
+                                            <xsl:with-param name="construct-xml" select="$construct-xml"/>
+                                        </xsl:call-template>
                                     </xsl:for-each>
                                     
                                     <p>
@@ -273,6 +254,35 @@ exclude-result-prefixes="#all"
         </div>
     </xsl:template>
     
+    <xsl:template name="ldh:ConstructorFieldset">
+        <xsl:param name="constructor-uri" as="xs:anyURI"/>
+        <xsl:param name="construct-xml" as="document-node()?"/>
+
+        <fieldset about="{$constructor-uri}">
+            <legend>
+                <a href="{$constructor-uri}" title="{$constructor-uri}" target="_blank">
+                    <xsl:variable name="request-uri" select="ac:build-uri($ldt:base, map{ 'uri': ac:document-uri($constructor-uri), 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
+                    <xsl:apply-templates select="key('resources', $constructor-uri, document($request-uri))" mode="ac:label"/>
+                </a>
+            </legend>
+
+            <xsl:apply-templates select="$construct-xml/json:map/json:array[@key = 'template']/json:map" mode="bs2:ConstructorTripleForm">
+                <xsl:sort select="json:string[@key = 'predicate']"/>
+            </xsl:apply-templates>
+
+            <div class="control-group">
+                <label class="control-label">
+                    <button type="button" class="btn btn-primary create-action add-triple-template">
+                        <xsl:value-of>
+                            <xsl:apply-templates select="key('resources', '&rdf;Property', document(ac:document-uri('&rdf;')))" mode="ac:label"/>
+                        </xsl:value-of>
+                    </button>
+                </label>
+                <div class="controls"></div>
+            </div>
+        </fieldset>
+    </xsl:template>
+
     <xsl:template name="ldh:ConstructorLiteralObject">
         <xsl:param name="object-type" as="xs:anyURI?"/>
         
@@ -584,12 +594,14 @@ exclude-result-prefixes="#all"
                 <xsl:for-each select="?body">
                     <xsl:for-each select="//srx:result">
                         <xsl:variable name="graph" select="srx:binding[@name = 'graph']/srx:uri" as="xs:anyURI"/>
+                        <xsl:variable name="uuid" select="ixsl:call(ixsl:window(), 'generateUUID', [])" as="xs:string"/>
+                        <xsl:variable name="constructor-uri" select="xs:anyURI($graph || 'id' || $uuid)" as="xs:anyURI"/>
                         
                         <xsl:for-each select="$container">
                             <xsl:result-document href="?." method="ixsl:append-content">
-                                <fieldset>
-                                    <xsl:value-of select="$graph"/>
-                                </fieldset>
+                                <xsl:call-template name="ldh:ConstructorFieldset">
+                                    <xsl:with-param name="constructor-uri" select="$constructor-uri"/>
+                                </xsl:call-template>
                             </xsl:result-document>
                         </xsl:for-each>
                     </xsl:for-each>
