@@ -1057,11 +1057,14 @@ extension-element-prefixes="ixsl"
                 <xsl:with-param name="traversed-ids" select="$traversed-ids" tunnel="yes"/>
             </xsl:apply-templates>
 
-            <xsl:apply-templates select="." mode="bs2:PropertyControl">
-                <xsl:with-param name="template" select="$template"/>
-                <xsl:with-param name="forClass" select="$forClass"/>
-                <xsl:with-param name="required" select="true()"/>
-            </xsl:apply-templates>
+            <!-- do not show the controls if there's no constructor or no properties in it -->
+            <xsl:if test="$template/*">
+                <xsl:apply-templates select="." mode="bs2:PropertyControl">
+                    <xsl:with-param name="template" select="$template"/>
+                    <xsl:with-param name="forClass" select="$forClass"/>
+                    <xsl:with-param name="required" select="true()"/>
+                </xsl:apply-templates>
+            </xsl:if>
         </fieldset>
     </xsl:template>
     
