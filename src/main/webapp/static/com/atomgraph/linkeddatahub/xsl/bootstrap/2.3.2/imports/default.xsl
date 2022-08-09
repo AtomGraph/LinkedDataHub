@@ -590,7 +590,7 @@ exclude-result-prefixes="#all"
 
                         <xsl:if test="$constructor">
                             <xsl:text> </xsl:text>
-                            <xsl:variable name="forClass" select="key('resources', key('resources-by-type', ../../rdf:type/@rdf:resource, $constructor)/*[concat(namespace-uri(), local-name()) = current()/../concat(namespace-uri(), local-name())]/@rdf:nodeID, $constructor)/rdf:type/@rdf:resource[not(. = '&rdfs;Class')]" as="xs:anyURI?"/>
+                            <xsl:variable name="forClass" select="distinct-values(key('resources', key('resources-by-type', ../../rdf:type/@rdf:resource, $constructor)/*[concat(namespace-uri(), local-name()) = current()/../concat(namespace-uri(), local-name())]/@rdf:nodeID, $constructor)/rdf:type/@rdf:resource[not(. = '&rdfs;Class')])" as="xs:anyURI?"/>
                             <xsl:if test="$forClass">
                                 <!-- forClass input is required by typeahead's FILTER ($Type IN ()) in client.xsl -->
                                 <xsl:choose>
