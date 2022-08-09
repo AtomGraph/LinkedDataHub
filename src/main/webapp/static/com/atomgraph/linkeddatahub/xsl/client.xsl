@@ -1051,7 +1051,7 @@ WHERE
         
         <xsl:call-template name="ldh:PostHTMLDocumentLoad">
             <xsl:with-param name="href" select="$href"/>
-            <xsl:with-param name="$doc-uri" select="$doc-uri"/>
+            <xsl:with-param name="doc-uri" select="$doc-uri"/>
         </xsl:call-template>
         
         <xsl:call-template name="ldh:RDFDocumentLoad">
