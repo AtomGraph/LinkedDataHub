@@ -467,17 +467,15 @@ exclude-result-prefixes="#all"
         <xsl:variable name="results-uri" select="ac:build-uri(resolve-uri('admin/sparql', $ldt:base), map{ 'query': $query-string })" as="xs:anyURI"/>
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), $results-uri)" as="xs:anyURI"/>
 
-        <xsl:for-each select="$container">
-            <xsl:result-document href="?." method="ixsl:append-content">
-                <xsl:for-each select="document($request-uri)//srx:result">
-                    <xsl:variable name="graph" select="srx:binding[@name = 'graph']/srx:uri" as="xs:anyURI"/>
-                    
-                    <fieldset>
-                        <xsl:value-of select="$graph"/>
-                    </fieldset>
-                </xsl:for-each>
-            </xsl:result-document>
-        </xsl:for-each>
+        <xsl:variable name="request" as="item()*">
+            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml' } }">
+                <xsl:call-template name="onConstructorAppend">
+                    <xsl:with-param name="container" select="$container"/>
+                    <xsl:with-param name="type" select="$type"/>
+                </xsl:call-template>
+            </ixsl:schedule-action>
+        </xsl:variable>
+        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
     
     <!-- save constructor form onclick -->
@@ -570,6 +568,35 @@ exclude-result-prefixes="#all"
             </xsl:when>
             <xsl:otherwise>
                 <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ 'Could not update constructor' ])[current-date() lt xs:date('2000-01-01')]"/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:template>
+    
+    <xsl:template name="onConstructorAppend">
+        <xsl:context-item as="map(*)" use="required"/>
+        <xsl:param name="container" as="element()"/>
+        <xsl:param name="type" as="xs:anyURI"/> <!-- the URI of the class that constructors are attached to -->
+
+        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
+
+        <xsl:choose>
+            <xsl:when test="?status = 200 and ?media-type = 'application/sparql-results+xml'">
+                <xsl:for-each select="?body">
+                    <xsl:for-each select="//srx:result">
+                        <xsl:variable name="graph" select="srx:binding[@name = 'graph']/srx:uri" as="xs:anyURI"/>
+                        
+                        <xsl:for-each select="$container">
+                            <xsl:result-document href="?." method="ixsl:append-content">
+                                <fieldset>
+                                    <xsl:value-of select="$graph"/>
+                                </fieldset>
+                            </xsl:result-document>
+                        </xsl:for-each>
+                    </xsl:for-each>
+                </xsl:for-each>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ 'Could not append constructor' ])[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
