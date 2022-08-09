@@ -156,7 +156,7 @@ exclude-result-prefixes="#all"
                                     </xsl:for-each>
                                     
                                     <p>
-                                        <button class="btn btn-primary create-action add-constructor">Constructor</button>
+                                        <button type="button" class="btn btn-primary create-action add-constructor">Constructor</button>
                                     </p>
                                 </div>
                                 <div class="form-actions modal-footer">
