@@ -33,9 +33,9 @@ exclude-result-prefixes="#all"
 
     <xsl:variable name="constructor-query" as="xs:string">
         <![CDATA[
-            PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-            PREFIX  sp:   <http://spinrdf.org/sp#>
-            PREFIX  spin: <http://spinrdf.org/spin#>
+            PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+            PREFIX sp:   <http://spinrdf.org/sp#>
+            PREFIX spin: <http://spinrdf.org/spin#>
 
             SELECT  ?constructor ?construct
             WHERE
@@ -60,6 +60,15 @@ exclude-result-prefixes="#all"
             {
                 $this sp:text ?oldText .
             }
+        ]]>
+    </xsl:variable>
+    <xsl:variable name="type-graph-query" as="xs:string">
+        <![CDATA[
+            SELECT DISTINCT  ?graph
+            WHERE
+              { GRAPH ?graph
+                  { ?Type  ?p  ?o }
+              }
         ]]>
     </xsl:variable>
     
@@ -135,12 +144,20 @@ exclude-result-prefixes="#all"
 
                                             <div class="control-group">
                                                 <label class="control-label">
-                                                    <button type="button" class="btn btn-primary create-action add-triple-template">Property</button>
+                                                    <button type="button" class="btn btn-primary create-action add-triple-template">
+                                                        <xsl:value-of>
+                                                            <xsl:apply-templates select="key('resources', '&rdf;Property', document(ac:document-uri('&rdf;')))" mode="ac:label"/>
+                                                        </xsl:value-of>
+                                                    </button>
                                                 </label>
                                                 <div class="controls"></div>
                                             </div>
                                         </fieldset>
                                     </xsl:for-each>
+                                    
+                                    <p>
+                                        <button class="btn btn-primary create-action add-constructor">Constructor</button>
+                                    </p>
                                 </div>
                                 <div class="form-actions modal-footer">
                                     <button type="button" class="btn btn-primary btn-save">
@@ -412,7 +429,7 @@ exclude-result-prefixes="#all"
         </xsl:for-each>
     </xsl:template>
     
-    <!-- appends new resource content instance to the content list -->
+    <!-- appends new triple template -->
     <xsl:template match="div[contains-token(@class, 'control-group')]//button[contains-token(@class, 'create-action')][contains-token(@class, 'add-triple-template')]" mode="ixsl:onclick">
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'control-group')]" as="element()"/>
         <xsl:variable name="controls" as="node()*">
@@ -438,6 +455,27 @@ exclude-result-prefixes="#all"
 
             <xsl:result-document href="?." method="ixsl:replace-content">
                 <xsl:copy-of select="$controls"/>
+            </xsl:result-document>
+        </xsl:for-each>
+    </xsl:template>
+    
+    <!-- appends new constructor -->
+    <xsl:template match="div[contains-token(@class, 'modal-body')]//button[contains-token(@class, 'create-action')][contains-token(@class, 'add-constructor')]" mode="ixsl:onclick">
+        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'modal-body')]" as="element()"/>
+        <xsl:variable name="type" select="ancestor::form/@about" as="xs:anyURI"/> <!-- the URI of the class that constructors are attached to -->
+        <xsl:variable name="query-string" select="replace($type-graph-query, '\$Type', '&lt;' || $type || '&gt;')" as="xs:string"/>
+        <xsl:variable name="results-uri" select="ac:build-uri(resolve-uri('admin/sparql', $ldt:base), map{ 'query': $query-string })" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), $results-uri)" as="xs:anyURI"/>
+
+        <xsl:for-each select="$container">
+            <xsl:result-document href="?." method="ixsl:append-content">
+                <xsl:for-each select="document($request-uri)//srx:result">
+                    <xsl:variable name="graph" select="srx:binding[@name = 'graph']/srx:uri" as="xs:anyURI"/>
+                    
+                    <fieldset>
+                        <xsl:value-of select="$graph"/>
+                    </fieldset>
+                </xsl:for-each>
             </xsl:result-document>
         </xsl:for-each>
     </xsl:template>
