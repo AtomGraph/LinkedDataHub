@@ -78,9 +78,13 @@ exclude-result-prefixes="#all"
         <![CDATA[
             PREFIX spin: <http://spinrdf.org/spin#>
 
-            INSERT DATA
+            INSERT
             {
                 $Type spin:constructor $this .
+            }
+            WHERE
+            {
+                $Type ?p ?o .
             }
         ]]>
     </xsl:variable>
@@ -647,7 +651,7 @@ exclude-result-prefixes="#all"
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ 'Could not load ontology graph URI(s)' ])[current-date() lt xs:date('2000-01-01')]"/>
+                <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ 'Could not append constructor' ])[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:otherwise>
         </xsl:choose>
         
