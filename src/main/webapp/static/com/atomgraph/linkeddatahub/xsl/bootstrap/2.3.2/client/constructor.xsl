@@ -33,14 +33,23 @@ exclude-result-prefixes="#all"
 
     <xsl:variable name="constructor-query" as="xs:string">
         <![CDATA[
-            PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-            PREFIX  sp:   <http://spinrdf.org/sp#>
-            PREFIX  spin: <http://spinrdf.org/spin#>
+            PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+            PREFIX sp:   <http://spinrdf.org/sp#>
+            PREFIX spin: <http://spinrdf.org/spin#>
 
             SELECT  ?constructor ?construct
             WHERE
               { $Type (rdfs:subClassOf)*/spin:constructor  ?constructor .
                 ?constructor sp:text ?construct .
+              }
+        ]]>
+    </xsl:variable>
+    <xsl:variable name="type-graph-query" as="xs:string">
+        <![CDATA[
+            SELECT DISTINCT  ?graph
+            WHERE
+              { GRAPH ?graph
+                  { $Type  ?p  ?o }
               }
         ]]>
     </xsl:variable>
@@ -58,7 +67,24 @@ exclude-result-prefixes="#all"
             }
             WHERE
             {
-                $this sp:text ?oldText .
+                OPTIONAL
+                {
+                    $this sp:text ?oldText .
+                }
+            }
+        ]]>
+    </xsl:variable>
+    <xsl:variable name="constructor-insert-string" as="xs:string">
+        <![CDATA[
+            PREFIX spin: <http://spinrdf.org/spin#>
+
+            INSERT
+            {
+                $Type spin:constructor $this .
+            }
+            WHERE
+            {
+                $Type ?p ?o .
             }
         ]]>
     </xsl:variable>
@@ -72,7 +98,7 @@ exclude-result-prefixes="#all"
         
         <ixsl:set-style name="cursor" select="'progress'" object="."/>
 
-        <xsl:variable name="query-string" select="replace($constructor-query, '\$Type', concat('&lt;', $type, '&gt;'))" as="xs:string"/>
+        <xsl:variable name="query-string" select="replace($constructor-query, '\$Type', '&lt;' || $type || '&gt;')" as="xs:string"/>
         <!-- spin:constructors function does the same synchronously -->
         <xsl:variable name="results-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': $query-string })" as="xs:anyURI"/>
         <xsl:variable name="request" as="item()*">
@@ -121,26 +147,15 @@ exclude-result-prefixes="#all"
                                         <xsl:variable name="construct-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $construct-json ])" as="xs:string"/>
                                         <xsl:variable name="construct-xml" select="json-to-xml($construct-json-string)" as="document-node()"/>
 
-                                        <fieldset about="{$constructor-uri}">
-                                            <legend>
-                                                <a href="{$constructor-uri}" title="{$constructor-uri}" target="_blank">
-                                                    <xsl:variable name="request-uri" select="ac:build-uri($ldt:base, map{ 'uri': ac:document-uri($constructor-uri), 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
-                                                    <xsl:apply-templates select="key('resources', $constructor-uri, document($request-uri))" mode="ac:label"/>
-                                                </a>
-                                            </legend>
-
-                                            <xsl:apply-templates select="$construct-xml/json:map/json:array[@key = 'template']/json:map" mode="bs2:ConstructorTripleForm">
-                                                <xsl:sort select="json:string[@key = 'predicate']"/>
-                                            </xsl:apply-templates>
-
-                                            <div class="control-group">
-                                                <label class="control-label">
-                                                    <button type="button" class="btn btn-primary create-action add-triple-template">Property</button>
-                                                </label>
-                                                <div class="controls"></div>
-                                            </div>
-                                        </fieldset>
+                                        <xsl:call-template name="ldh:ConstructorFieldset">
+                                            <xsl:with-param name="constructor-uri" select="$constructor-uri"/>
+                                            <xsl:with-param name="construct-xml" select="$construct-xml"/>
+                                        </xsl:call-template>
                                     </xsl:for-each>
+                                    
+                                    <p>
+                                        <button type="button" class="btn btn-primary create-action add-constructor">Constructor</button>
+                                    </p>
                                 </div>
                                 <div class="form-actions modal-footer">
                                     <button type="button" class="btn btn-primary btn-save">
@@ -256,6 +271,35 @@ exclude-result-prefixes="#all"
         </div>
     </xsl:template>
     
+    <xsl:template name="ldh:ConstructorFieldset">
+        <xsl:param name="constructor-uri" as="xs:anyURI"/>
+        <xsl:param name="construct-xml" as="document-node()?"/>
+
+        <fieldset about="{$constructor-uri}">
+            <legend>
+                <a href="{$constructor-uri}" title="{$constructor-uri}" target="_blank">
+                    <xsl:variable name="request-uri" select="ac:build-uri($ldt:base, map{ 'uri': ac:document-uri($constructor-uri), 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
+                    <xsl:apply-templates select="key('resources', $constructor-uri, document($request-uri))" mode="ac:label"/>
+                </a>
+            </legend>
+
+            <xsl:apply-templates select="$construct-xml/json:map/json:array[@key = 'template']/json:map" mode="bs2:ConstructorTripleForm">
+                <xsl:sort select="json:string[@key = 'predicate']"/>
+            </xsl:apply-templates>
+
+            <div class="control-group">
+                <label class="control-label">
+                    <button type="button" class="btn btn-primary create-action add-triple-template">
+                        <xsl:value-of>
+                            <xsl:apply-templates select="key('resources', '&rdf;Property', document(ac:document-uri('&rdf;')))" mode="ac:label"/>
+                        </xsl:value-of>
+                    </button>
+                </label>
+                <div class="controls"></div>
+            </div>
+        </fieldset>
+    </xsl:template>
+
     <xsl:template name="ldh:ConstructorLiteralObject">
         <xsl:param name="object-type" as="xs:anyURI?"/>
         
@@ -412,7 +456,7 @@ exclude-result-prefixes="#all"
         </xsl:for-each>
     </xsl:template>
     
-    <!-- appends new resource content instance to the content list -->
+    <!-- appends new triple template -->
     <xsl:template match="div[contains-token(@class, 'control-group')]//button[contains-token(@class, 'create-action')][contains-token(@class, 'add-triple-template')]" mode="ixsl:onclick">
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'control-group')]" as="element()"/>
         <xsl:variable name="controls" as="node()*">
@@ -440,6 +484,29 @@ exclude-result-prefixes="#all"
                 <xsl:copy-of select="$controls"/>
             </xsl:result-document>
         </xsl:for-each>
+    </xsl:template>
+    
+    <!-- appends new constructor -->
+    <xsl:template match="div[contains-token(@class, 'modal-body')]//button[contains-token(@class, 'create-action')][contains-token(@class, 'add-constructor')]" mode="ixsl:onclick">
+        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'modal-body')]" as="element()"/>
+        <xsl:variable name="button-div" select=".." as="element()"/>
+        <xsl:variable name="type" select="ancestor::form/@about" as="xs:anyURI"/> <!-- the URI of the class that constructors are attached to -->
+        <xsl:variable name="query-string" select="replace($type-graph-query, '\$Type', '&lt;' || $type || '&gt;')" as="xs:string"/>
+        <xsl:variable name="results-uri" select="ac:build-uri(resolve-uri('admin/sparql', $ldt:base), map{ 'query': $query-string })" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), $results-uri)" as="xs:anyURI"/>
+
+        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
+
+        <xsl:variable name="request" as="item()*">
+            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml' } }">
+                <xsl:call-template name="onTypeGraphLoad">
+                    <xsl:with-param name="container" select="$container"/>
+                    <xsl:with-param name="type" select="$type"/>
+                    <xsl:with-param name="button-div" select="$button-div"/>
+                </xsl:call-template>
+            </ixsl:schedule-action>
+        </xsl:variable>
+        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
     
     <!-- save constructor form onclick -->
@@ -534,6 +601,74 @@ exclude-result-prefixes="#all"
                 <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ 'Could not update constructor' ])[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:otherwise>
         </xsl:choose>
+    </xsl:template>
+    
+    <xsl:template name="onTypeGraphLoad">
+        <xsl:context-item as="map(*)" use="required"/>
+        <xsl:param name="container" as="element()"/>
+        <xsl:param name="type" as="xs:anyURI"/> <!-- the URI of the class that constructors are attached to -->
+        <xsl:param name="button-div" as="element()"/>
+
+        <xsl:choose>
+            <xsl:when test="?status = 200 and ?media-type = 'application/sparql-results+xml'">
+                <xsl:for-each select="?body">
+                    <xsl:for-each select="//srx:result">
+                        <xsl:variable name="graph" select="srx:binding[@name = 'graph']/srx:uri" as="xs:anyURI"/>
+                        <xsl:variable name="uuid" select="ixsl:call(ixsl:window(), 'generateUUID', [])" as="xs:string"/>
+                        <xsl:variable name="constructor-uri" select="xs:anyURI($graph || '#id' || $uuid)" as="xs:anyURI"/>
+                        <xsl:variable name="update-string" select="replace($constructor-insert-string, '\$this', '&lt;' || $constructor-uri || '&gt;')" as="xs:string"/>
+                        <xsl:variable name="update-string" select="replace($update-string, '\$Type', '&lt;' || $type || '&gt;')" as="xs:string"/>
+                        <!-- what if the constructor URI is not relative to the document URI? -->
+                        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ac:document-uri($constructor-uri))" as="xs:anyURI"/>
+                        <xsl:variable name="request" as="item()*">
+                            <ixsl:schedule-action http-request="map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string }">
+                                <xsl:call-template name="onConstructorAppend">
+                                    <xsl:with-param name="container" select="$container"/>
+                                    <xsl:with-param name="button-div" select="$button-div"/>
+                                    <xsl:with-param name="constructor-uri" select="$constructor-uri"/>
+                                </xsl:call-template>
+                            </ixsl:schedule-action>
+                        </xsl:variable>
+                        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+                    </xsl:for-each>
+                </xsl:for-each>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ 'Could not load ontology graph URI(s)' ])[current-date() lt xs:date('2000-01-01')]"/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:template>
+    
+    <xsl:template name="onConstructorAppend">
+        <xsl:context-item as="map(*)" use="required"/>
+        <xsl:param name="container" as="element()"/>
+        <xsl:param name="button-div" as="element()"/>
+        <xsl:param name="constructor-uri" as="xs:anyURI"/>
+
+        <xsl:choose>
+            <xsl:when test="?status = 200">
+                <!-- remove the "Add constructor" button -->
+                <xsl:for-each select="$button-div">
+                    <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
+                </xsl:for-each>
+                
+                <xsl:for-each select="$container">
+                    <xsl:result-document href="?." method="ixsl:append-content">
+                        <xsl:call-template name="ldh:ConstructorFieldset">
+                            <xsl:with-param name="constructor-uri" select="$constructor-uri"/>
+                        </xsl:call-template>
+                        
+                        <!-- re-append the "Add constructor" button at the bottom of the form -->
+                        <xsl:copy-of select="$button-div"/>
+                    </xsl:result-document>
+                </xsl:for-each>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ 'Could not append constructor' ])[current-date() lt xs:date('2000-01-01')]"/>
+            </xsl:otherwise>
+        </xsl:choose>
+        
+        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
     </xsl:template>
     
     <xsl:template name="ldh:ClearNamespace">
