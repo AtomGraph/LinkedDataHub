@@ -44,6 +44,15 @@ exclude-result-prefixes="#all"
               }
         ]]>
     </xsl:variable>
+    <xsl:variable name="type-graph-query" as="xs:string">
+        <![CDATA[
+            SELECT DISTINCT  ?graph
+            WHERE
+              { GRAPH ?graph
+                  { $Type  ?p  ?o }
+              }
+        ]]>
+    </xsl:variable>
     <xsl:variable name="constructor-update-string" as="xs:string">
         <![CDATA[
             PREFIX sp: <http://spinrdf.org/sp#>
@@ -58,17 +67,21 @@ exclude-result-prefixes="#all"
             }
             WHERE
             {
-                $this sp:text ?oldText .
+                OPTIONAL
+                {
+                    $this sp:text ?oldText .
+                }
             }
         ]]>
     </xsl:variable>
-    <xsl:variable name="type-graph-query" as="xs:string">
+    <xsl:variable name="constructor-insert-string" as="xs:string">
         <![CDATA[
-            SELECT DISTINCT  ?graph
-            WHERE
-              { GRAPH ?graph
-                  { $Type  ?p  ?o }
-              }
+            PREFIX spin: <http://spinrdf.org/spin#>
+
+            INSERT DATA
+            {
+                $Type spin:constructor $this .
+            }
         ]]>
     </xsl:variable>
     
@@ -81,7 +94,7 @@ exclude-result-prefixes="#all"
         
         <ixsl:set-style name="cursor" select="'progress'" object="."/>
 
-        <xsl:variable name="query-string" select="replace($constructor-query, '\$Type', concat('&lt;', $type, '&gt;'))" as="xs:string"/>
+        <xsl:variable name="query-string" select="replace($constructor-query, '\$Type', '&lt;' || $type || '&gt;')" as="xs:string"/>
         <!-- spin:constructors function does the same synchronously -->
         <xsl:variable name="results-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': $query-string })" as="xs:anyURI"/>
         <xsl:variable name="request" as="item()*">
@@ -477,9 +490,11 @@ exclude-result-prefixes="#all"
         <xsl:variable name="results-uri" select="ac:build-uri(resolve-uri('admin/sparql', $ldt:base), map{ 'query': $query-string })" as="xs:anyURI"/>
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), $results-uri)" as="xs:anyURI"/>
 
+        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
+
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml' } }">
-                <xsl:call-template name="onConstructorAppend">
+                <xsl:call-template name="onTypeGraphLoad">
                     <xsl:with-param name="container" select="$container"/>
                     <xsl:with-param name="type" select="$type"/>
                 </xsl:call-template>
@@ -582,35 +597,62 @@ exclude-result-prefixes="#all"
         </xsl:choose>
     </xsl:template>
     
-    <xsl:template name="onConstructorAppend">
+    <xsl:template name="onTypeGraphLoad">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="container" as="element()"/>
         <xsl:param name="type" as="xs:anyURI"/> <!-- the URI of the class that constructors are attached to -->
-
-        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
-
+        <xsl:param name="constructor-uri" as="xs:anyURI"/>
+        
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = 'application/sparql-results+xml'">
                 <xsl:for-each select="?body">
                     <xsl:for-each select="//srx:result">
                         <xsl:variable name="graph" select="srx:binding[@name = 'graph']/srx:uri" as="xs:anyURI"/>
                         <xsl:variable name="uuid" select="ixsl:call(ixsl:window(), 'generateUUID', [])" as="xs:string"/>
-                        <xsl:variable name="constructor-uri" select="xs:anyURI($graph || 'id' || $uuid)" as="xs:anyURI"/>
-                        
-                        <xsl:for-each select="$container">
-                            <xsl:result-document href="?." method="ixsl:append-content">
-                                <xsl:call-template name="ldh:ConstructorFieldset">
+                        <xsl:variable name="constructor-uri" select="xs:anyURI($graph || '#id' || $uuid)" as="xs:anyURI"/>
+                        <xsl:variable name="update-string" select="replace($constructor-insert-string, '\$this', '&lt;' || $constructor-uri || '&gt;')" as="xs:string"/>
+                        <xsl:variable name="update-string" select="replace($update-string, '\$Type', '&lt;' || $type || '&gt;')" as="xs:string"/>
+                        <!-- what if the constructor URI is not relative to the document URI? -->
+                        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ac:document-uri($constructor-uri))" as="xs:anyURI"/>
+                        <xsl:variable name="request" as="item()*">
+                            <ixsl:schedule-action http-request="map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string }">
+                                <xsl:call-template name="onConstructorAppend">
+                                    <xsl:with-param name="container" select="$container"/>
                                     <xsl:with-param name="constructor-uri" select="$constructor-uri"/>
                                 </xsl:call-template>
-                            </xsl:result-document>
-                        </xsl:for-each>
+                            </ixsl:schedule-action>
+                        </xsl:variable>
+                        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
                     </xsl:for-each>
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ 'Could not append constructor' ])[current-date() lt xs:date('2000-01-01')]"/>
+                <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ 'Could not load ontology graph URI(s)' ])[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:otherwise>
         </xsl:choose>
+    </xsl:template>
+    
+    <xsl:template name="onConstructorAppend">
+        <xsl:context-item as="map(*)" use="required"/>
+        <xsl:param name="container" as="element()"/>
+        <xsl:param name="constructor-uri" as="xs:anyURI"/>
+
+        <xsl:choose>
+            <xsl:when test="?status = 200">
+                <xsl:for-each select="$container">
+                    <xsl:result-document href="?." method="ixsl:append-content">
+                        <xsl:call-template name="ldh:ConstructorFieldset">
+                            <xsl:with-param name="constructor-uri" select="$constructor-uri"/>
+                        </xsl:call-template>
+                    </xsl:result-document>
+                </xsl:for-each>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ 'Could not load ontology graph URI(s)' ])[current-date() lt xs:date('2000-01-01')]"/>
+            </xsl:otherwise>
+        </xsl:choose>
+        
+        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
     </xsl:template>
     
     <xsl:template name="ldh:ClearNamespace">
