@@ -1057,14 +1057,11 @@ extension-element-prefixes="ixsl"
                 <xsl:with-param name="traversed-ids" select="$traversed-ids" tunnel="yes"/>
             </xsl:apply-templates>
 
-            <!-- do not show the controls if there's no constructor or no properties in it -->
-            <xsl:if test="$template/*">
-                <xsl:apply-templates select="." mode="bs2:PropertyControl">
-                    <xsl:with-param name="template" select="$template"/>
-                    <xsl:with-param name="forClass" select="$forClass"/>
-                    <xsl:with-param name="required" select="true()"/>
-                </xsl:apply-templates>
-            </xsl:if>
+            <xsl:apply-templates select="." mode="bs2:PropertyControl">
+                <xsl:with-param name="template" select="$template"/>
+                <xsl:with-param name="forClass" select="$forClass"/>
+                <xsl:with-param name="required" select="true()"/>
+            </xsl:apply-templates>
         </fieldset>
     </xsl:template>
     
@@ -1106,6 +1103,8 @@ extension-element-prefixes="ixsl"
         <div class="control-group">
             <span class="control-label">
                 <select class="input-medium">
+                    <xsl:apply-templates select="key('resources', '&rdf;type', document(ac:document-uri('&rdf;')))" mode="xhtml:Option"/> <!-- rdf:type is shown by default -->
+                    
                     <!-- group properties by URI - there might be duplicates in the constructor -->
                     <xsl:for-each-group select="$template/*" group-by="concat(namespace-uri(), local-name())">
                         <xsl:sort select="ac:property-label(.)"/>

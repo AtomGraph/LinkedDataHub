@@ -1016,7 +1016,7 @@ exclude-result-prefixes="#all"
                     <xsl:variable name="new-fieldset" select="$form//fieldset" as="element()"/>
                     
                     <xsl:for-each select="$fieldset">
-                        <xsl:result-document href="?." method="ixsl:replace-content">
+                        <xsl:result-document href="?." method="ixsl:append-content">
                             <xsl:copy-of select="$new-fieldset/*"/>
                         </xsl:result-document>
                     </xsl:for-each>
@@ -1025,7 +1025,7 @@ exclude-result-prefixes="#all"
                 <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ ?message ])"/>
+                <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ 'Could not construct class instance' ])"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
