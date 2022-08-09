@@ -1026,13 +1026,6 @@ WHERE
                     <xsl:sequence select="ixsl:call(ixsl:window(), 'scrollTo', [ 0, 0 ])[current-date() lt xs:date('2000-01-01')]"/>
                 </xsl:otherwise>
             </xsl:choose>
-
-            <!-- update RDF download links to match the current URI -->
-            <xsl:for-each select="id('export-rdf', ixsl:page())/following-sibling::ul/li/a">
-                <!-- use @title attribute for the media type TO-DO: find a better way, a hidden input or smth -->
-                <xsl:variable name="href" select="ac:build-uri(ldh:absolute-path(ldh:href()), let $params := map{ 'accept': string(@title) } return if (not(starts-with($doc-uri, $ldt:base))) then map:merge(($params, map{ 'uri': $doc-uri })) else $params)" as="xs:anyURI"/>
-                <ixsl:set-attribute name="href" select="$href" object="."/>
-            </xsl:for-each>
         </xsl:if>
 
         <xsl:if test="$push-state">
@@ -1056,6 +1049,29 @@ WHERE
             </xsl:call-template>
         </xsl:if>
         
+        <xsl:call-template name="ldh:PostHTMLDocumentLoad">
+            <xsl:with-param name="href" select="$href"/>
+            <xsl:with-param name="$doc-uri" select="$doc-uri"/>
+        </xsl:call-template>
+        
+        <xsl:call-template name="ldh:RDFDocumentLoad">
+            <xsl:with-param name="uri" select="$uri"/>
+        </xsl:call-template>
+    </xsl:template>
+    
+    <!-- post-HTML load hook, mainly for navigation updates -->
+    
+    <xsl:template name="ldh:PostHTMLDocumentLoad">
+        <xsl:param name="href" as="xs:anyURI"/> <!-- possibly proxied URL -->
+        <xsl:param name="doc-uri" as="xs:anyURI"/>
+
+        <!-- update RDF download links to match the current URI -->
+        <xsl:for-each select="id('export-rdf', ixsl:page())/following-sibling::ul/li/a">
+            <!-- use @title attribute for the media type TO-DO: find a better way, a hidden input or smth -->
+            <xsl:variable name="href" select="ac:build-uri(ldh:absolute-path(ldh:href()), let $params := map{ 'accept': string(@title) } return if (not(starts-with($doc-uri, $ldt:base))) then map:merge(($params, map{ 'uri': $doc-uri })) else $params)" as="xs:anyURI"/>
+            <ixsl:set-attribute name="href" select="$href" object="."/>
+        </xsl:for-each>
+            
         <!-- !!! update button classes after state has been pushed, because button state might depend on the new state (e.g. new ac:mode) !!! -->
         <!-- enable .btn-edit if it's present -->
         <xsl:for-each select="ixsl:page()//div[contains-token(@class, 'action-bar')]//a[contains-token(@class, 'btn-edit')]">
@@ -1080,10 +1096,6 @@ WHERE
                 <xsl:with-param name="href" select="$href"/>
             </xsl:call-template>
         </xsl:for-each>
-        
-        <xsl:call-template name="ldh:RDFDocumentLoad">
-            <xsl:with-param name="uri" select="$uri"/>
-        </xsl:call-template>
     </xsl:template>
     
     <xsl:template name="ldt:AppChanged">
