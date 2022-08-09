@@ -67,7 +67,7 @@ exclude-result-prefixes="#all"
             SELECT DISTINCT  ?graph
             WHERE
               { GRAPH ?graph
-                  { ?Type  ?p  ?o }
+                  { $Type  ?p  ?o }
               }
         ]]>
     </xsl:variable>
