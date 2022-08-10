@@ -200,7 +200,7 @@ exclude-result-prefixes="#all"
     </xsl:template>
     
     <xsl:template match="button[contains-token(@class, 'add-value')]" mode="ixsl:onclick">
-        <xsl:variable name="control-group" select="../.." as="element()"/>
+        <xsl:variable name="property-control-group" select="../.." as="element()"/>
         <xsl:variable name="property" select="../preceding-sibling::*/select/option[ixsl:get(., 'selected') = true()]/ixsl:get(., 'value')" as="xs:anyURI"/>
         <xsl:variable name="forClass" select="preceding-sibling::input/@value" as="xs:anyURI*"/>
         <xsl:variable name="href" select="ac:build-uri(ldh:absolute-path(ldh:href()), map{ 'forClass': for $class in $forClass return string($class) })" as="xs:anyURI"/>
@@ -210,7 +210,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
                 <xsl:call-template name="onAddValue">
-                    <xsl:with-param name="control-group" select="$control-group"/>
+                    <xsl:with-param name="property-control-group" select="$property-control-group"/>
                     <xsl:with-param name="property" select="$property"/>
                 </xsl:call-template>
             </ixsl:schedule-action>
@@ -775,7 +775,7 @@ exclude-result-prefixes="#all"
     
     <xsl:template name="onAddValue">
         <xsl:context-item as="map(*)" use="required"/>
-        <xsl:param name="control-group" as="element()"/>
+        <xsl:param name="property-control-group" as="element()"/>
         <xsl:param name="property" as="xs:anyURI"/>
         <xsl:param name="seq-property" select="starts-with($property, '&rdf;_')" as="xs:boolean"/>
 
@@ -793,11 +793,12 @@ exclude-result-prefixes="#all"
                     <!-- the constructor might have duplicate properties, possibly with different object types -->
                     <xsl:variable name="new-control-group" select="$form//div[contains-token(@class, 'control-group')][input[@name = 'pu']/@value = $constructed-property]" as="element()*"/>
                     
-                    <xsl:for-each select="$control-group">
-                        <!-- move property creation control group down, by appending it to the parent fieldset -->
+                    <xsl:for-each select="$property-control-group">
+                        <!-- append the new constructed control groups as well as the current property control group to the parent fieldset -->
                         <xsl:for-each select="..">
                             <xsl:result-document href="?." method="ixsl:append-content">
-                                <xsl:copy-of select="$control-group"/>
+                                <xsl:copy-of select="$new-control-group"/>
+                                <xsl:copy-of select="$property-control-group"/>
                             </xsl:result-document>
                             
                             <xsl:if test="$seq-property">
@@ -822,14 +823,13 @@ exclude-result-prefixes="#all"
                             </xsl:if>
                         </xsl:for-each>
 
-                        <xsl:result-document href="?." method="ixsl:replace-content">
-                            <xsl:copy-of select="$new-control-group/*"/>
-                        </xsl:result-document>
+                        <!-- remove the current "old" property control group -->
+                        <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
                         
-                        <xsl:if test="$seq-property">
+<!--                        <xsl:if test="$seq-property">
                             <xsl:variable name="seq-index" select="xs:integer(substring-after($property, '&rdf;_'))" as="xs:integer"/>
                             <xsl:if test="$seq-index &gt; 1">
-                                <!-- fix up the rdf:_X sequence property URI and label -->
+                                 fix up the rdf:_X sequence property URI and label 
                                 <ixsl:set-attribute name="value" object="input[@name = 'pu']" select="$property"/>
 
                                 <xsl:for-each select="label">
@@ -838,7 +838,7 @@ exclude-result-prefixes="#all"
                                     </xsl:result-document>
                                 </xsl:for-each>
                             </xsl:if>
-                        </xsl:if>
+                        </xsl:if>-->
                     </xsl:for-each>
                 </xsl:for-each>
                 
