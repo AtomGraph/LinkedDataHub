@@ -179,7 +179,7 @@ exclude-result-prefixes="#all"
             <xsl:when test="$enctype = 'multipart/form-data'">
                 <xsl:variable name="form-data" select="ldh:new('FormData', [ $form ])"/>
                 <xsl:variable name="headers" select="ldh:new-object()"/>
-                <ixsl:set-property name="'Accept'" select="$accept" object="$headers"/>
+                <ixsl:set-property name="Accept" select="$accept" object="$headers"/>
                 
                 <xsl:sequence select="js:fetchDispatchXML($request-uri, $method, $headers, $form-data, ., 'multipartFormLoad')"/>
             </xsl:when>
@@ -859,8 +859,6 @@ exclude-result-prefixes="#all"
         <xsl:param name="target-id" as="xs:string?"/>
         <!-- $target-id is of the "Create" button, need to replace the preceding typeahead input instead -->
         <xsl:param name="typeahead-span" select="if ($target-id) then id($target-id, ixsl:page())/ancestor::div[@class = 'controls']//span[descendant::input[@name = 'ou']] else ()" as="element()?"/>
-
-<xsl:message>?status: <xsl:value-of select="?status"/> ?media-type: <xsl:value-of select="?media-type"/></xsl:message>
         
         <xsl:choose>
             <!-- special case for add/clone data forms: redirect to the container -->
