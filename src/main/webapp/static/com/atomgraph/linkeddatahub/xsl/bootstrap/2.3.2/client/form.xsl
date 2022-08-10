@@ -802,6 +802,20 @@ exclude-result-prefixes="#all"
                             </xsl:result-document>
                             
                             <xsl:if test="$seq-property">
+                                <xsl:for-each select="$new-control-group">
+                                    <xsl:variable name="seq-index" select="xs:integer(substring-after($property, '&rdf;_'))" as="xs:integer"/>
+                                    <xsl:if test="$seq-index &gt; 1">
+                                        <!-- fix up the rdf:_X sequence property URI and label -->
+                                        <ixsl:set-attribute name="value" object="input[@name = 'pu']" select="$property"/>
+
+                                        <xsl:for-each select="label">
+                                            <xsl:result-document href="?." method="ixsl:replace-content">
+                                                <xsl:value-of select="'_' || $seq-index"/>
+                                            </xsl:result-document>
+                                        </xsl:for-each>
+                                    </xsl:if>
+                                </xsl:for-each>
+                                
                                 <!-- switch context to the last div.control-group which now contains the property select -->
                                 <xsl:for-each select="./div[contains-token(@class, 'control-group')][./span[contains-token(@class, 'control-label')]/select]">
                                     <xsl:variable name="seq-properties" select="for $property in ancestor::fieldset//input[@name = 'pu']/@value[starts-with(., '&rdf;' || '_')] return xs:anyURI($property)" as="xs:anyURI*"/>
@@ -825,20 +839,6 @@ exclude-result-prefixes="#all"
 
                         <!-- remove the current "old" property control group -->
                         <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
-                        
-<!--                        <xsl:if test="$seq-property">
-                            <xsl:variable name="seq-index" select="xs:integer(substring-after($property, '&rdf;_'))" as="xs:integer"/>
-                            <xsl:if test="$seq-index &gt; 1">
-                                 fix up the rdf:_X sequence property URI and label 
-                                <ixsl:set-attribute name="value" object="input[@name = 'pu']" select="$property"/>
-
-                                <xsl:for-each select="label">
-                                    <xsl:result-document href="?." method="ixsl:replace-content">
-                                        <xsl:value-of select="'_' || $seq-index"/>
-                                    </xsl:result-document>
-                                </xsl:for-each>
-                            </xsl:if>
-                        </xsl:if>-->
                     </xsl:for-each>
                 </xsl:for-each>
                 
