@@ -85,7 +85,7 @@ extension-element-prefixes="ixsl"
         <div class="row-fluid">
             <ul class="nav nav-tabs offset2 span7">
                 <li class="content-mode{if ((empty($active-mode) and $has-content and not($forClass)) or $active-mode = '&ldh;ContentMode') then ' active' else() }">
-                    <a href="{ac:build-uri(ac:uri(), map{ 'mode': '&ldh;ContentMode' })}">
+                    <a href="{ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ac:build-uri(ac:uri(), map{ 'mode': '&ldh;ContentMode' }))}">
                         <xsl:value-of>
                             <xsl:apply-templates select="key('resources', 'content', document('translations.rdf'))" mode="ac:label"/>
                         </xsl:value-of>
