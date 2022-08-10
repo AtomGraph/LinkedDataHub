@@ -965,7 +965,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="violations" select="key('violations-by-value', */@rdf:resource) | key('violations-by-root', (@rdf:about, @rdf:nodeID))" as="element()*"/>
         <xsl:param name="forClass" select="rdf:type/@rdf:resource" as="xs:anyURI*"/>
         <xsl:param name="constructor-query" as="xs:string?" tunnel="yes"/>
-        <xsl:param name="constructor" select="if (exists($forClass)) then ldh:construct(map:merge(for $class in $forClass return map{ $class: spin:constructors($class, resolve-uri('ns', $ldt:base), $constructor-query)//srx:binding[@name = 'construct']/srx:literal/string(.) })) else ()" as="document-node()?"/>
+        <xsl:param name="constructor" select="if (exists($forClass)) then ldh:construct(map:merge(for $class in $forClass return map{ $class: spin:constructors($class, resolve-uri('ns', $ldt:base), $constructor-query)//srx:binding[@name = 'construct']/srx:literal/string() })) else ()" as="document-node()?"/>
         <xsl:param name="template" select="$constructor/rdf:RDF/*[@rdf:nodeID][every $type in rdf:type/@rdf:resource satisfies current()/rdf:type/@rdf:resource = $type][* except rdf:type]" as="element()*"/>
         <xsl:param name="template-properties" select="true()" as="xs:boolean" tunnel="yes"/>
         <xsl:param name="traversed-ids" select="@rdf:*" as="xs:string*" tunnel="yes"/>
@@ -1057,11 +1057,14 @@ extension-element-prefixes="ixsl"
                 <xsl:with-param name="traversed-ids" select="$traversed-ids" tunnel="yes"/>
             </xsl:apply-templates>
 
-            <xsl:apply-templates select="." mode="bs2:PropertyControl">
-                <xsl:with-param name="template" select="$template"/>
-                <xsl:with-param name="forClass" select="$forClass"/>
-                <xsl:with-param name="required" select="true()"/>
-            </xsl:apply-templates>
+            <!-- do not show property controls if there is no constructor or it has no properties -->
+            <xsl:if test="$template/*">
+                <xsl:apply-templates select="." mode="bs2:PropertyControl">
+                    <xsl:with-param name="template" select="$template"/>
+                    <xsl:with-param name="forClass" select="$forClass"/>
+                    <xsl:with-param name="required" select="true()"/>
+                </xsl:apply-templates>
+            </xsl:if>
         </fieldset>
     </xsl:template>
     
@@ -1103,8 +1106,6 @@ extension-element-prefixes="ixsl"
         <div class="control-group">
             <span class="control-label">
                 <select class="input-medium">
-                    <xsl:apply-templates select="key('resources', '&rdf;type', document(ac:document-uri('&rdf;')))" mode="xhtml:Option"/> <!-- rdf:type is shown by default -->
-                    
                     <!-- group properties by URI - there might be duplicates in the constructor -->
                     <xsl:for-each-group select="$template/*" group-by="concat(namespace-uri(), local-name())">
                         <xsl:sort select="ac:property-label(.)"/>
