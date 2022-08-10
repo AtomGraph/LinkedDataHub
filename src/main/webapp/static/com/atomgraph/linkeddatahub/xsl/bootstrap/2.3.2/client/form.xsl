@@ -65,7 +65,7 @@ exclude-result-prefixes="#all"
     </xsl:template>
     
     <!-- inject datetime-local inputs TO-DO: align structure of constructor and editing form controls -->
-    <xsl:template match="input[@name = 'ol'][following-sibling::input[@name = 'lt'][@value = '&xsd;dateTime']] | input[@name = 'ol'][@value][../following-sibling::div/input[@name = 'lt'][@value = '&xsd;dateTime']]" mode="ldh:PostConstruct" priority="1">
+    <xsl:template match="input[@name = 'ol'][following-sibling::input[@name = 'lt'][@value = '&xsd;dateTime']] | input[@name = 'ol'][@value][../following-sibling::div/input[@name = 'lt'][@value = '&xsd;dateTime']]" mode="ldh:PostConstruct" priority="2">
         <ixsl:set-attribute name="type" select="'datetime-local'"/>
         <ixsl:set-attribute name="step" select="'1'"/>
 
@@ -801,7 +801,7 @@ exclude-result-prefixes="#all"
                             <xsl:copy-of select="$property-control-group"/>
                         </xsl:result-document>
 
-                        <xsl:apply-templates select="ancestor::form" mode="ldh:PostConstruct"/>
+                        <xsl:apply-templates select="." mode="ldh:PostConstruct"/>
                     </xsl:for-each>
 
                     <!-- remove the current "old" property control group -->
