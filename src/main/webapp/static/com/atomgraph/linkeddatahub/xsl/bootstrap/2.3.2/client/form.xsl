@@ -778,7 +778,8 @@ exclude-result-prefixes="#all"
         <xsl:param name="property-control-group" as="element()"/>
         <xsl:param name="property" as="xs:anyURI"/>
         <xsl:param name="seq-property" select="starts-with($property, '&rdf;_')" as="xs:boolean"/>
-
+        <xsl:param name="fieldset" select="$property-control-group/.." as="element()"/>
+        
         <xsl:choose>
             <xsl:when test="?status = 200 and starts-with(?media-type, 'application/xhtml+xml')">
                 <xsl:for-each select="?body">
@@ -793,54 +794,53 @@ exclude-result-prefixes="#all"
                     <!-- the constructor might have duplicate properties, possibly with different object types -->
                     <xsl:variable name="new-control-group" select="$form//div[contains-token(@class, 'control-group')][input[@name = 'pu']/@value = $constructed-property]" as="element()*"/>
                     
-                    <xsl:for-each select="$property-control-group">
-                        <!-- append the new constructed control groups as well as the current property control group to the parent fieldset -->
-                        <xsl:for-each select="..">
-                            <xsl:result-document href="?." method="ixsl:append-content">
-                                <xsl:copy-of select="$new-control-group"/>
-                                <xsl:copy-of select="$property-control-group"/>
-                            </xsl:result-document>
-                            
-                            <xsl:if test="$seq-property">
-                                <xsl:for-each select="$new-control-group">
-                                    <xsl:variable name="seq-index" select="xs:integer(substring-after($property, '&rdf;_'))" as="xs:integer"/>
-                                    <xsl:if test="$seq-index &gt; 1">
-                                        <!-- fix up the rdf:_X sequence property URI and label -->
-                                        <ixsl:set-attribute name="value" object="input[@name = 'pu']" select="$property"/>
+                    <!-- append the new constructed control groups as well as the current property control group to the parent fieldset -->
+                    <xsl:for-each select="$fieldset">
+                        <xsl:result-document href="?." method="ixsl:append-content">
+                            <xsl:copy-of select="$new-control-group"/>
+                            <xsl:copy-of select="$property-control-group"/>
+                        </xsl:result-document>
+                    </xsl:for-each>
 
-                                        <xsl:for-each select="label">
-                                            <xsl:result-document href="?." method="ixsl:replace-content">
-                                                <xsl:value-of select="'_' || $seq-index"/>
-                                            </xsl:result-document>
-                                        </xsl:for-each>
-                                    </xsl:if>
-                                </xsl:for-each>
-                                
-                                <!-- switch context to the last div.control-group which now contains the property select -->
-                                <xsl:for-each select="./div[contains-token(@class, 'control-group')][./span[contains-token(@class, 'control-label')]/select]">
-                                    <xsl:variable name="seq-properties" select="for $property in ancestor::fieldset//input[@name = 'pu']/@value[starts-with(., '&rdf;' || '_')] return xs:anyURI($property)" as="xs:anyURI*"/>
-                                    <xsl:variable name="max-seq-index" select="if (empty($seq-properties)) then 0 else max(for $seq-property in $seq-properties return xs:integer(substring-after($seq-property, '&rdf;' || '_')))" as="xs:integer"/>
-                                    <xsl:variable name="next-property" select="xs:anyURI('&rdf;_' || ($max-seq-index + 1))" as="xs:anyURI"/>
+                    <!-- remove the current "old" property control group -->
+                    <xsl:sequence select="ixsl:call($property-control-group, 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
+                </xsl:for-each>
+                
+                <xsl:if test="$seq-property">
+                    <!-- switch context to the newly inserted control group -->
+                    <xsl:for-each select="$fieldset/div[contains-token(@class, 'control-group')][input[@name = 'pu']/@value = $property]">
+                        <xsl:variable name="seq-index" select="xs:integer(substring-after($property, '&rdf;_'))" as="xs:integer"/>
+                        <xsl:if test="$seq-index &gt; 1">
+                            <!-- fix up the rdf:_X sequence property URI and label -->
+                            <ixsl:set-attribute name="value" object="input[@name = 'pu']" select="$property"/>
 
-                                    <xsl:for-each select=".//select">
-                                        <!-- append new property to the dropdown with an incremented index (if it doesn't already exist) -->
-                                        <xsl:if test="not(option/@value = $next-property)">
-                                            <xsl:result-document href="?." method="ixsl:append-content">
-                                                <option value="{$next-property}">
-                                                    <xsl:text>_</xsl:text>
-                                                    <xsl:value-of select="$max-seq-index + 1"/>
-                                                </option>
-                                            </xsl:result-document>
-                                        </xsl:if>
-                                    </xsl:for-each>
-                                </xsl:for-each>
+                            <xsl:for-each select="label">
+                                <xsl:result-document href="?." method="ixsl:replace-content">
+                                    <xsl:value-of select="'_' || $seq-index"/>
+                                </xsl:result-document>
+                            </xsl:for-each>
+                        </xsl:if>
+                    </xsl:for-each>
+
+                    <!-- switch context to the last div.control-group which now contains the property select -->
+                    <xsl:for-each select="$fieldset/div[contains-token(@class, 'control-group')][./span[contains-token(@class, 'control-label')]/select]">
+                        <xsl:variable name="seq-properties" select="for $property in ancestor::fieldset//input[@name = 'pu']/@value[starts-with(., '&rdf;' || '_')] return xs:anyURI($property)" as="xs:anyURI*"/>
+                        <xsl:variable name="max-seq-index" select="if (empty($seq-properties)) then 0 else max(for $seq-property in $seq-properties return xs:integer(substring-after($seq-property, '&rdf;' || '_')))" as="xs:integer"/>
+                        <xsl:variable name="next-property" select="xs:anyURI('&rdf;_' || ($max-seq-index + 1))" as="xs:anyURI"/>
+
+                        <xsl:for-each select=".//select">
+                            <!-- append new property to the dropdown with an incremented index (if it doesn't already exist) -->
+                            <xsl:if test="not(option/@value = $next-property)">
+                                <xsl:result-document href="?." method="ixsl:append-content">
+                                    <option value="{$next-property}">
+                                        <xsl:text>_</xsl:text>
+                                        <xsl:value-of select="$max-seq-index + 1"/>
+                                    </option>
+                                </xsl:result-document>
                             </xsl:if>
                         </xsl:for-each>
-
-                        <!-- remove the current "old" property control group -->
-                        <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
                     </xsl:for-each>
-                </xsl:for-each>
+                </xsl:if>
                 
                 <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
             </xsl:when>
