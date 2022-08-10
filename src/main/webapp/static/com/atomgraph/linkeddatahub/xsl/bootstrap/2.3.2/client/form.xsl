@@ -805,6 +805,8 @@ exclude-result-prefixes="#all"
                     <!-- remove the current "old" property control group -->
                     <xsl:sequence select="ixsl:call($property-control-group, 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
 
+                    <xsl:apply-templates select="id($form/@id, ixsl:page())" mode="ldh:PostConstruct"/>
+
                     <xsl:if test="$seq-property">
                         <!-- switch context to the newly inserted control group -->
                         <xsl:for-each select="$fieldset/div[contains-token(@class, 'control-group')][input[@name = 'pu']/@value = $constructed-property][last()]">
