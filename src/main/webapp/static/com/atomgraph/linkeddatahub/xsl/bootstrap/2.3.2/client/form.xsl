@@ -800,12 +800,12 @@ exclude-result-prefixes="#all"
                             <xsl:copy-of select="$new-control-group"/>
                             <xsl:copy-of select="$property-control-group"/>
                         </xsl:result-document>
+
+                        <xsl:apply-templates select="ancestor::form" mode="ldh:PostConstruct"/>
                     </xsl:for-each>
 
                     <!-- remove the current "old" property control group -->
                     <xsl:sequence select="ixsl:call($property-control-group, 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
-
-                    <xsl:apply-templates select="ancestor::form" mode="ldh:PostConstruct"/>
 
                     <xsl:if test="$seq-property">
                         <!-- switch context to the newly inserted control group -->
