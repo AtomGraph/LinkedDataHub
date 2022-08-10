@@ -860,6 +860,8 @@ exclude-result-prefixes="#all"
         <!-- $target-id is of the "Create" button, need to replace the preceding typeahead input instead -->
         <xsl:param name="typeahead-span" select="if ($target-id) then id($target-id, ixsl:page())/ancestor::div[@class = 'controls']//span[descendant::input[@name = 'ou']] else ()" as="element()?"/>
 
+<xsl:message>?status: <xsl:value-of select="?status"/> ?media-type: <xsl:value-of select="?media-type"/></xsl:message>
+        
         <xsl:choose>
             <!-- special case for add/clone data forms: redirect to the container -->
             <xsl:when test="ixsl:get($form, 'id') = ('form-add-data', 'form-clone-data')">
