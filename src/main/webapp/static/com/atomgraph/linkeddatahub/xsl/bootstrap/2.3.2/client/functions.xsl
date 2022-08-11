@@ -133,7 +133,7 @@ exclude-result-prefixes="#all"
 
     <!-- format URLs in DataTable as HTML links. !!! Saxon-JS cannot intercept Google Charts events, therefore set a full proxied URL !!! -->
     <xsl:template match="@rdf:about[starts-with(., 'http://')] | @rdf:about[starts-with(., 'https://')] | @rdf:resource[starts-with(., 'http://')] | @rdf:resource[starts-with(., 'https://')] | srx:uri[starts-with(., 'http://')] | srx:uri[starts-with(., 'https://')]" mode="ac:DataTable">
-        "&lt;a href=\"<xsl:value-of select="{ldh:href($ldt:base, ldh:absolute-path(ldh:href()), xs:anyURI(.))}"/>\"&gt;<xsl:value-of select="."/>&lt;/a&gt;"
+        "&lt;a href=\"<xsl:value-of select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), xs:anyURI(.))"/>\"&gt;<xsl:value-of select="."/>&lt;/a&gt;"
     </xsl:template>
 
     <!-- in addition to JSON escaping, escape < > in literals so they don't get interpreted as HTML tags -->
