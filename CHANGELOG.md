@@ -1,4 +1,4 @@
-## [3.2.4] - 2022-08-11
+## [3.2.5] - 2022-08-11
 ### Added
 - "Actions" button in edit mode allows adding and editing constructors of ontology classes without switching to the admin app
 - `xsd:dateTime` literals are rendered as `datetime-local` inputs in edit mode
