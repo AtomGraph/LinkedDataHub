@@ -1018,11 +1018,13 @@ exclude-result-prefixes="#all"
                     </xsl:variable>
                     <xsl:variable name="new-fieldset" select="$form//fieldset" as="element()"/>
                     
-                    <xsl:for-each select="$fieldset">
+                    <xsl:for-each select="$fieldset/..">
                         <xsl:result-document href="?." method="ixsl:append-content">
-                            <xsl:copy-of select="$new-fieldset/*"/>
+                            <xsl:copy-of select="$new-fieldset"/>
                         </xsl:result-document>
                     </xsl:for-each>
+                    
+                    <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
                 </xsl:for-each>
                 
                 <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
