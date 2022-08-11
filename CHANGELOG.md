@@ -1,3 +1,15 @@
+## [3.2.4] - 2022-08-11
+### Added
+- "Actions" button in edit mode allows adding and editing constructors of ontology classes without switching to the admin app
+- `xsd:dateTime` literals are rendered as `datetime-local` inputs in edit mode
+
+### Changed
+- Fixed `refresh_token` cache to store a token per client ID
+- Improved edit mode support for instances that have multiple `rdf:type` properties
+
+### Removed
+- Usages of `OntModelReadOnly` which broke RDF/XML writing in Jena: https://github.com/apache/jena/issues/1450
+
 ## [3.2.3] - 2022-06-30
 ### Added
 - The persistent storage of `refresh_token`s allows long-lived sessions when authenticated with Google login
