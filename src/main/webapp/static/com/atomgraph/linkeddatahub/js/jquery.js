@@ -108,19 +108,23 @@ var onSubjectValueChange = function(event)
     oldSubject.val(newValue); // store value in the hidden input
 };
 
-var addGoogleMapsListener = function(object, type, options, templateName, map, marker, uri)
+//var ixslTemplateListener = function(stylesheetLocation, initialTemplate, stylesheetParams, templateParams, event)
+//{
+//    templateParams.event = event;
+//
+//    SaxonJS.transform({
+//        "stylesheetLocation": stylesheetLocation,
+//        "initialTemplate": initialTemplate,
+//        "stylesheetParams": stylesheetParams,
+//        "templateParams": templateParams
+//    });
+//};
+
+var ixslTemplateListener = function(eventName, map, olEvent)
 {
-    object.addListener(type, 
-        function (event)
-        {
-            SaxonJS.transform({
-                "stylesheetLocation": contextUri + "static/com/atomgraph/linkeddatahub/xsl/client.xsl.sef.json",
-                "initialTemplate": templateName,
-                "stylesheetParams": { "Q{https://www.w3.org/ns/ldt#}base": baseUri },
-                "templateParams": { "event": event, "marker": marker, "map": map, "uri": uri }
-            });
-        },
-        options);
+    let event = new CustomEvent(eventName, { "detail": { "ol-event": olEvent, "map": map } } );
+    // no need to add event listeners here, that is done by IXSL
+    document.dispatchEvent(event);
 };
 
 $(document).ready(function()

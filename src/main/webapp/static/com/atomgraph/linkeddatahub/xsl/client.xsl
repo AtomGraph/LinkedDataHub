@@ -26,7 +26,6 @@
     <!ENTITY schema1    "http://schema.org/">
     <!ENTITY schema2    "https://schema.org/">
     <!ENTITY dbpo       "http://dbpedia.org/ontology/">
-    <!ENTITY gm         "https://developers.google.com/maps#">
 ]>
 <xsl:stylesheet version="3.0"
 xmlns:xhtml="http://www.w3.org/1999/xhtml"
@@ -59,7 +58,6 @@ xmlns:dct="&dct;"
 xmlns:foaf="&foaf;"
 xmlns:sioc="&sioc;"
 xmlns:skos="&skos;"
-xmlns:gm="&gm;"
 xmlns:schema1="&schema1;"
 xmlns:schema2="&schema2;"
 xmlns:dbpo="&dbpo;"
@@ -82,6 +80,7 @@ extension-element-prefixes="ixsl"
     <xsl:import href="bootstrap/2.3.2/imports/ac.xsl"/>
     <xsl:import href="bootstrap/2.3.2/resource.xsl"/>
     <xsl:import href="bootstrap/2.3.2/document.xsl"/>
+    <xsl:import href="converters/RDFXML2GeoJSON.xsl"/>
     <xsl:import href="query-transforms.xsl"/>
     <xsl:import href="typeahead.xsl"/>
 
@@ -654,15 +653,14 @@ WHERE
                 <xsl:variable name="center-lat" select="56" as="xs:float"/>
                 <xsl:variable name="center-lng" select="10" as="xs:float"/>
                 <xsl:variable name="zoom" select="4" as="xs:integer"/>
-                <xsl:variable name="map" select="ac:create-map($canvas-id, $center-lat, $center-lng, $zoom)"/>
-                
+                <xsl:variable name="map" select="ldh:create-map($canvas-id, $center-lat, $center-lng, $zoom)"/>
+        
                 <ixsl:set-property name="map" select="$map" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
                 
-                <xsl:for-each select="$results//rdf:Description[geo:lat/text() castable as xs:float][geo:long/text() castable as xs:float]">
-                    <xsl:call-template name="gm:AddMarker">
-                        <xsl:with-param name="map" select="$map"/>
-                    </xsl:call-template>
-                </xsl:for-each>
+                <xsl:call-template name="ldh:AddMapMarkers">
+                    <xsl:with-param name="doc" select="$results"/>
+                    <xsl:with-param name="map" select="$map"/>
+                </xsl:call-template>
             </xsl:for-each>
             <!-- initialize chart -->
             <xsl:for-each select="key('elements-by-class', 'chart-canvas', ixsl:page())">

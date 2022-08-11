@@ -54,7 +54,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * JAX-RS endpoint that handles CSV data imports.
+ * JAX-RS endpoint that handles CSV and RDF data imports.
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
