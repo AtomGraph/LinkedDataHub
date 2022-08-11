@@ -1024,7 +1024,9 @@ exclude-result-prefixes="#all"
                         </xsl:result-document>
                     </xsl:for-each>
                     
-                    <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
+                    <xsl:for-each select="$fieldset">
+                        <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
+                    </xsl:for-each>
                 </xsl:for-each>
                 
                 <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
