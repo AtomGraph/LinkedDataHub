@@ -32,7 +32,7 @@ exclude-result-prefixes="#all"
 
     <!-- TO-DO: port SPARQLMap JS-based logic to native XSLT code -->
     
-    <!-- creates Google Maps object (for containers) -->
+    <!-- creates Google Maps object -->
     
     <xsl:function name="ac:create-map">
         <xsl:param name="canvas-id" as="xs:string"/>
@@ -40,10 +40,27 @@ exclude-result-prefixes="#all"
         <xsl:param name="lng" as="xs:float"/>
         <xsl:param name="zoom" as="xs:integer"/>
 
-        <xsl:variable name="js-statement" as="element()">
-            <root statement="new google.maps.Map(document.getElementById('{$canvas-id}'), {{ center: new google.maps.LatLng({$lat}, {$lng}), zoom: {$zoom} }})"/>
-        </xsl:variable>
-        <xsl:sequence select="ixsl:eval(string($js-statement/@statement))"/>
+        <xsl:variable name="tile-options" select="ldh:new-object()"/>
+        <ixsl:set-property name="source" select="ldh:new('ol.source.OSM', [])" object="$tile-options"/>
+        <xsl:variable name="tile" select="ldh:new('ol.layer.Tile', [ $tile-options ])"/>
+
+        <xsl:variable name="layers" select="ldh:new('Array', [])"/>
+        <xsl:sequence select="ixsl:call($layers, 'push', [ $tile ])"/>
+
+        <xsl:variable name="view-options" select="ldh:new-object()"/>
+        <xsl:variable name="lon-lat" select="ldh:new('Array', [])"/>
+        <xsl:sequence select="ixsl:call($lon-lat, 'push', [ $lng ])"/>
+        <xsl:sequence select="ixsl:call($lon-lat, 'push', [ $lat ])"/>
+        <ixsl:set-property name="center" select="ixsl:call(ixsl:get(ixsl:window(), 'ol.proj'), 'fromLonLat', [ $lon-lat ])" object="$view-options"/>
+        <ixsl:set-property name="zoom" select="$zoom" object="$view-options"/>
+        <xsl:variable name="view" select="ldh:new('ol.View', [ $view-options ])"/>
+
+        <xsl:variable name="map-options" select="ldh:new-object()"/>
+        <ixsl:set-property name="target" select="$canvas-id" object="$map-options"/>
+        <ixsl:set-property name="layers" select="$layers" object="$map-options"/>
+        <ixsl:set-property name="view" select="$view" object="$map-options"/>
+
+        <xsl:sequence select="ldh:new('ol.Map', [ $map-options ])"/>
     </xsl:function>
 
     <!-- creates SPARQLMap.Geo object (for containers) -->
@@ -81,23 +98,23 @@ exclude-result-prefixes="#all"
     
     <!-- add marker logic ported from SPARQLMap -->
     
-    <xsl:template name="gm:AddMarker">
+    <xsl:template name="ldh:AddMapMarker">
         <xsl:context-item as="element()" use="required"/> <!-- rdf:Description -->
         <xsl:param name="map" as="item()"/>
 
-        <xsl:variable name="lat-lng" select="ldh:new('google.maps.LatLng', [ xs:float(geo:lat/text()), xs:float(geo:long/text()) ])"/>
+<!--        <xsl:variable name="lat-lng" select="ldh:new('google.maps.LatLng', [ xs:float(geo:lat/text()), xs:float(geo:long/text()) ])"/>
         <xsl:variable name="marker-options" select="ldh:new-object()"/>
         <ixsl:set-property name="position" select="$lat-lng" object="$marker-options"/>
         <ixsl:set-property name="map" select="$map" object="$marker-options"/>
         <ixsl:set-property name="label" select="ac:label(.)" object="$marker-options"/>
         <xsl:variable name="marker" select="ldh:new('google.maps.Marker', [ $marker-options ])"/>
-        <!-- make sure $marker is evaluated -->
+         make sure $marker is evaluated 
         <xsl:sequence select="$marker[current-date() lt xs:date('2000-01-01')]"/>
         <xsl:if test="@rdf:about">
             <xsl:variable name="uri" select="string(@rdf:about)" as="xs:string"/>
-            <!-- addGoogleMapsListener() is defined in jquery.js -->
+             addGoogleMapsListener() is defined in jquery.js 
             <xsl:sequence select="ixsl:call(ixsl:window(), 'addGoogleMapsListener', [ $marker, 'click', (), 'onMarkerClick', $map, $marker, $uri ])[current-date() lt xs:date('2000-01-01')]"/>
-        </xsl:if>
+        </xsl:if>-->
     </xsl:template>
     
     <!-- CALLBACKS -->

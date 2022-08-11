@@ -864,7 +864,7 @@ exclude-result-prefixes="#all"
                     <xsl:variable name="map" select="ac:create-map($canvas-id, $center-lat, $center-lng, $zoom)"/>
 
                     <xsl:for-each select="$value">
-                        <xsl:call-template name="gm:AddMarker">
+                        <xsl:call-template name="ldh:AddMapMarker">
                             <xsl:with-param name="map" select="$map"/>
                         </xsl:call-template>
                     </xsl:for-each>
