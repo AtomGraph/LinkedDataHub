@@ -355,7 +355,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="resource-id" select="input[@name = ('ou', 'ob')]/ixsl:get(., 'value')" as="xs:string"/> <!-- can be URI resource or blank node ID -->
         <xsl:variable name="typeahead-doc" select="ixsl:get(ixsl:window(), 'LinkedDataHub.typeahead.rdfXml')" as="document-node()"/>
         <xsl:variable name="resource" select="key('resources', $resource-id, $typeahead-doc)" as="element()"/>
-        <xsl:variable name="fieldset" select="ancestor::fieldset" as="element()"/>
+        <xsl:variable name="control-group" select="ancestor::div[contains-token(@class, 'control-group')]" as="element()"/>
         <xsl:variable name="forClass" select="$resource/@rdf:about" as="xs:anyURI"/>
         <xsl:variable name="href" select="ac:build-uri(ldh:absolute-path(ldh:href()), map{ 'forClass': string($forClass) })" as="xs:anyURI"/>
         
@@ -372,7 +372,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
                 <xsl:call-template name="onAddConstructor">
-                    <xsl:with-param name="fieldset" select="$fieldset"/>
+                    <xsl:with-param name="control-group" select="$control-group"/>
                 </xsl:call-template>
             </ixsl:schedule-action>
         </xsl:variable>
@@ -1005,7 +1005,7 @@ exclude-result-prefixes="#all"
     
     <xsl:template name="onAddConstructor">
         <xsl:context-item as="map(*)" use="required"/>
-        <xsl:param name="fieldset" as="element()"/>
+        <xsl:param name="control-group" as="element()"/>
         
         <xsl:choose>
             <xsl:when test="?status = 200 and starts-with(?media-type, 'application/xhtml+xml')">
@@ -1018,14 +1018,13 @@ exclude-result-prefixes="#all"
                     </xsl:variable>
                     <xsl:variable name="new-fieldset" select="$form//fieldset" as="element()"/>
                     
-                    <xsl:for-each select="$fieldset/..">
+                    <xsl:for-each select="$control-group/ancestor::fieldset">
                         <xsl:result-document href="?." method="ixsl:append-content">
-                            <xsl:copy-of select="$new-fieldset"/>
+                            <xsl:copy-of select="$new-fieldset/*"/>
                         </xsl:result-document>
                     </xsl:for-each>
                     
-                    <!-- only remove this fieldset if it's the default "Instance" placeholder with a single rdf:type property -->
-                    <xsl:for-each select="$fieldset[not(.//input[@name = 'pu'] except .//input[@name = 'pu'][@value = '&rdf;type'])]">
+                    <xsl:for-each select="$control-group">
                         <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
                     </xsl:for-each>
                 </xsl:for-each>
