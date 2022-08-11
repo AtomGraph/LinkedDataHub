@@ -1020,7 +1020,7 @@ exclude-result-prefixes="#all"
                     
                     <xsl:for-each select="$control-group/ancestor::fieldset">
                         <xsl:result-document href="?." method="ixsl:append-content">
-                            <xsl:copy-of select="$new-fieldset/*"/>
+                            <xsl:copy-of select="$new-fieldset/div[contains-token(@class, 'control-group')]"/>
                         </xsl:result-document>
                     </xsl:for-each>
                     
