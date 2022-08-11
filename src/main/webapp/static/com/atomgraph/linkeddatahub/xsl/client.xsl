@@ -95,7 +95,8 @@ extension-element-prefixes="ixsl"
     <xsl:include href="bootstrap/2.3.2/client/map.xsl"/>
     <xsl:include href="bootstrap/2.3.2/client/graph.xsl"/>
     <xsl:include href="bootstrap/2.3.2/client/sparql.xsl"/>
-
+    <xsl:include href="bootstrap/2.3.2/client/constructor.xsl"/>
+    
     <xsl:param name="ac:contextUri" as="xs:anyURI"/>
     <xsl:param name="ldt:base" as="xs:anyURI"/>
     <xsl:param name="ldt:ontology" as="xs:anyURI"/> <!-- used in default.xsl -->
@@ -125,11 +126,20 @@ PREFIX  schema2: <https://schema.org/>
 
 SELECT DISTINCT  ?resource
 WHERE
-  { GRAPH ?graph
-      { ?resource  a  ?Type .
-        ?resource (((((((((rdfs:label|dc:title)|dct:title)|foaf:name)|foaf:givenName)|foaf:familyName)|sioc:name)|skos:prefLabel)|sioc:content)|schema1:name)|schema2:name ?label
+  {
+    {
+        GRAPH ?graph
+          { ?resource  a  $Type .
+            ?resource ((((((((rdfs:label|dc:title)|dct:title)|foaf:name)|foaf:givenName)|foaf:familyName)|sioc:name)|skos:prefLabel)|schema1:name)|schema2:name $label
+            FILTER isURI(?resource)
+          }
+    }
+    UNION
+    {
+        ?resource  a  $Type .
+        ?resource ((((((((rdfs:label|dc:title)|dct:title)|foaf:name)|foaf:givenName)|foaf:familyName)|sioc:name)|skos:prefLabel)|schema1:name)|schema2:name $label
         FILTER isURI(?resource)
-      }
+    }  
   }
 ]]>
     </xsl:param>
@@ -185,7 +195,8 @@ WHERE
         <xsl:message>$ac:mode: <xsl:value-of select="$ac:mode"/></xsl:message>
         <xsl:message>$sd:endpoint: <xsl:value-of select="$sd:endpoint"/></xsl:message>
         <xsl:message>ixsl:query-params()?uri: <xsl:value-of select="ixsl:query-params()?uri"/></xsl:message>
-
+        <xsl:message>UTC offset: <xsl:value-of select="implicit-timezone()"/></xsl:message>
+        
         <!-- create a LinkedDataHub namespace -->
         <ixsl:set-property name="LinkedDataHub" select="ldh:new-object()"/>
         <ixsl:set-property name="base" select="$ldt:base" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
@@ -210,8 +221,10 @@ WHERE
                 <xsl:call-template name="first-time-message"/>
             </xsl:result-document>
         </xsl:if>-->
-        <!-- initialize wymeditor textareas -->
-        <xsl:apply-templates select="key('elements-by-class', 'wymeditor', ixsl:page())" mode="ldh:PostConstruct"/>
+        <!-- initialize form if we're in editing mode -->
+        <xsl:if test="ac:mode() = '&ac;EditMode'">
+            <xsl:apply-templates select="id('content-body', ixsl:page())" mode="ldh:PostConstruct"/>
+        </xsl:if>
         <!-- append typeahead list after the search/URI input -->
         <xsl:for-each select="id('uri', ixsl:page())/..">
             <xsl:result-document href="?." method="ixsl:append-content">
@@ -498,7 +511,7 @@ WHERE
         <xsl:context-item as="map(*)" use="required"/>
 
         <xsl:for-each select="?status">
-            <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ . ])"/>
+            <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ . ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
     </xsl:template>-->
         
@@ -580,7 +593,7 @@ WHERE
                     </xsl:call-template>
                 </xsl:for-each>
             </xsl:if>
-
+            
             <!-- add "Edit" buttons to XHTML content -->
             <xsl:if test="acl:mode() = '&acl;Write'">
                 <!-- enable .btn-edit if it's present -->
@@ -982,35 +995,18 @@ WHERE
         <!--<xsl:message>ldh:LoadedHTMLDocument $href: <xsl:value-of select="$href"/> $uri: <xsl:value-of select="$uri"/> $doc-uri: <xsl:value-of select="$doc-uri"/> $fragment: <xsl:value-of select="$fragment"/> </xsl:message>-->
         
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
-        <!-- enable .btn-edit if it's present -->
-        <xsl:for-each select="ixsl:page()//div[contains-token(@class, 'action-bar')]//a[contains-token(@class, 'btn-edit')]">
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', false() ])[current-date() lt xs:date('2000-01-01')]"/>
-
-            <!-- update the a.btn-edit link if it is visible -->
-            <xsl:variable name="edit-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), $doc-uri, xs:anyURI('&ac;EditMode'))" as="xs:anyURI"/>
-            <ixsl:set-attribute name="href" select="$edit-uri" object="."/>
-        </xsl:for-each>
-        <xsl:for-each select="ixsl:page()//div[contains-token(@class, 'action-bar')]//button[contains-token(@class, 'btn-delete')]">
-            <!-- disable Delete button for the Root document -->
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'disabled', $doc-uri = $ldt:base ])[current-date() lt xs:date('2000-01-01')]"/>
-        </xsl:for-each>
-
-        <!-- enable .btn-save-as if it's present -->
-        <xsl:for-each select="ixsl:page()//div[contains-token(@class, 'action-bar')]//button[contains-token(@class, 'btn-save-as')]">
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'disabled', false() ])[current-date() lt xs:date('2000-01-01')]"/>
-        </xsl:for-each>
 
         <ixsl:set-property name="uri" select="$uri" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
         <xsl:if test="$endpoint">
             <ixsl:set-property name="endpoint" select="$endpoint" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
         </xsl:if>
-
+        
         <xsl:if test="$replace-content">
             <!-- set document.title which history.pushState() does not do -->
             <ixsl:set-property name="title" select="string(/html/head/title)" object="ixsl:page()"/>
 
             <xsl:variable name="results" select="." as="document-node()"/>
-
+            
             <!-- replace content body with the loaded XHTML -->
             <xsl:for-each select="$container">
                 <xsl:result-document href="?." method="ixsl:replace-content">
@@ -1030,13 +1026,6 @@ WHERE
                     <xsl:sequence select="ixsl:call(ixsl:window(), 'scrollTo', [ 0, 0 ])[current-date() lt xs:date('2000-01-01')]"/>
                 </xsl:otherwise>
             </xsl:choose>
-
-            <!-- update RDF download links to match the current URI -->
-            <xsl:for-each select="id('export-rdf', ixsl:page())/following-sibling::ul/li/a">
-                <!-- use @title attribute for the media type TO-DO: find a better way, a hidden input or smth -->
-                <xsl:variable name="href" select="ac:build-uri(ldh:absolute-path(ldh:href()), let $params := map{ 'accept': string(@title) } return if (not(starts-with($doc-uri, $ldt:base))) then map:merge(($params, map{ 'uri': $doc-uri })) else $params)" as="xs:anyURI"/>
-                <ixsl:set-attribute name="href" select="$href" object="."/>
-            </xsl:for-each>
         </xsl:if>
 
         <xsl:if test="$push-state">
@@ -1060,16 +1049,54 @@ WHERE
             </xsl:call-template>
         </xsl:if>
         
+        <xsl:call-template name="ldh:PostHTMLDocumentLoad">
+            <xsl:with-param name="href" select="$href"/>
+            <xsl:with-param name="doc-uri" select="$doc-uri"/>
+        </xsl:call-template>
+        
+        <xsl:call-template name="ldh:RDFDocumentLoad">
+            <xsl:with-param name="uri" select="$uri"/>
+        </xsl:call-template>
+    </xsl:template>
+    
+    <!-- post-HTML load hook, mainly for navigation updates -->
+    
+    <xsl:template name="ldh:PostHTMLDocumentLoad">
+        <xsl:param name="href" as="xs:anyURI"/> <!-- possibly proxied URL -->
+        <xsl:param name="doc-uri" as="xs:anyURI"/>
+
+        <!-- update RDF download links to match the current URI -->
+        <xsl:for-each select="id('export-rdf', ixsl:page())/following-sibling::ul/li/a">
+            <!-- use @title attribute for the media type TO-DO: find a better way, a hidden input or smth -->
+            <xsl:variable name="href" select="ac:build-uri($href, let $params := map{ 'accept': string(@title) } return if (not(starts-with($doc-uri, $ldt:base))) then map:merge(($params, map{ 'uri': $doc-uri })) else $params)" as="xs:anyURI"/>
+
+            <ixsl:set-attribute name="href" select="$href" object="."/>
+        </xsl:for-each>
+            
+        <!-- !!! update button classes after state has been pushed, because button state might depend on the new state (e.g. new ac:mode) !!! -->
+        <!-- enable .btn-edit if it's present -->
+        <xsl:for-each select="ixsl:page()//div[contains-token(@class, 'action-bar')]//a[contains-token(@class, 'btn-edit')]">
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', ac:mode() = '&ac;EditMode' ])[current-date() lt xs:date('2000-01-01')]"/>
+
+            <!-- update the a.btn-edit link if it is visible -->
+            <xsl:variable name="edit-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), $doc-uri, xs:anyURI('&ac;EditMode'))" as="xs:anyURI"/>
+            <ixsl:set-attribute name="href" select="$edit-uri" object="."/>
+        </xsl:for-each>
+        <xsl:for-each select="ixsl:page()//div[contains-token(@class, 'action-bar')]//button[contains-token(@class, 'btn-delete')]">
+            <!-- disable Delete button for the Root document -->
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'disabled', $doc-uri = $ldt:base ])[current-date() lt xs:date('2000-01-01')]"/>
+        </xsl:for-each>
+        <!-- enable .btn-save-as if it's present -->
+        <xsl:for-each select="ixsl:page()//div[contains-token(@class, 'action-bar')]//button[contains-token(@class, 'btn-save-as')]">
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'disabled', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+        </xsl:for-each>
+        
         <!-- activate the current URL in the document tree -->
         <xsl:for-each select="id('doc-tree', ixsl:page())">
             <xsl:call-template name="ldh:DocTreeActivateHref">
                 <xsl:with-param name="href" select="$href"/>
             </xsl:call-template>
         </xsl:for-each>
-        
-        <xsl:call-template name="ldh:RDFDocumentLoad">
-            <xsl:with-param name="uri" select="$uri"/>
-        </xsl:call-template>
     </xsl:template>
     
     <xsl:template name="ldt:AppChanged">
@@ -1105,7 +1132,7 @@ WHERE
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ ?message ])"/>
+                <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ ?message ])[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:otherwise>
         </xsl:choose>
         
@@ -1249,7 +1276,7 @@ WHERE
             </xsl:when>
             <xsl:otherwise>
                 <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
-                <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ ?message ])"/>
+                <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ ?message ])[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>

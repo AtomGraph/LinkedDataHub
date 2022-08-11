@@ -137,7 +137,7 @@ exclude-result-prefixes="#all">
         <xsl:param name="enctype" select="'multipart/form-data'" as="xs:string?"/>
         <xsl:param name="create-resource" select="true()" as="xs:boolean"/>
         <!-- TO-DO: generate ontology classes from the OWL vocabulary -->
-        <xsl:param name="ontology-classes" select="for $class-uri in ('&sp;Construct', '&owl;Class', '&owl;DatatypeProperty', '&owl;ObjectProperty', '&owl;Restriction') return key('resources', $class-uri, document(ac:document-uri($class-uri)))" as="element()*"/>
+        <xsl:param name="ontology-classes" select="for $class-uri in ('&ldh;Constructor', '&owl;Class', '&owl;DatatypeProperty', '&owl;ObjectProperty', '&owl;Restriction') return key('resources', $class-uri, document(ac:document-uri($class-uri)))" as="element()*"/>
 
         <xsl:next-match>
             <xsl:with-param name="classes" select="$ontology-classes"/>

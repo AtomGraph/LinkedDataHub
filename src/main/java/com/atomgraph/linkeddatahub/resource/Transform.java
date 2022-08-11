@@ -60,7 +60,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * JAX-RS resource that transforms uploaded RDF and then adds it..
+ * JAX-RS resource that transforms uploaded RDF and then adds it.
  * 
  * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
  */

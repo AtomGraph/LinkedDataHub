@@ -813,7 +813,7 @@ extension-element-prefixes="ixsl"
         <xsl:variable name="forClass" select="@rdf:about" as="xs:anyURI"/>
 
         <xsl:if test="doc-available(ac:document-uri($forClass))">
-            <!-- this is used for typeahead's FILTER ?Type -->
+            <!-- this is used for typeahead's FILTER $Type -->
             <input type="hidden" class="forClass" value="{$forClass}"/>
 
             <!-- if $forClass subclasses are provided, render a dropdown with multiple constructor choices. Otherwise, only render a single constructor button for $forClass -->
@@ -965,7 +965,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="violations" select="key('violations-by-value', */@rdf:resource) | key('violations-by-root', (@rdf:about, @rdf:nodeID))" as="element()*"/>
         <xsl:param name="forClass" select="rdf:type/@rdf:resource" as="xs:anyURI*"/>
         <xsl:param name="constructor-query" as="xs:string?" tunnel="yes"/>
-        <xsl:param name="constructor" select="if (exists($forClass)) then ldh:construct(map:merge(for $class in $forClass return map{ $class: spin:constructors($class, resolve-uri('ns', $ldt:base), $constructor-query)//srx:binding[@name = 'construct']/srx:literal/string(.) })) else ()" as="document-node()?"/>
+        <xsl:param name="constructor" select="if (exists($forClass)) then ldh:construct(map:merge(for $class in $forClass return map{ $class: spin:constructors($class, resolve-uri('ns', $ldt:base), $constructor-query)//srx:binding[@name = 'construct']/srx:literal/string() })) else ()" as="document-node()?"/>
         <xsl:param name="template" select="$constructor/rdf:RDF/*[@rdf:nodeID][every $type in rdf:type/@rdf:resource satisfies current()/rdf:type/@rdf:resource = $type][* except rdf:type]" as="element()*"/>
         <xsl:param name="template-properties" select="true()" as="xs:boolean" tunnel="yes"/>
         <xsl:param name="traversed-ids" select="@rdf:*" as="xs:string*" tunnel="yes"/>
@@ -988,6 +988,28 @@ extension-element-prefixes="ixsl"
                             <!-- the button has to be inside <legend> for it to float to the top/right corner properly -->
                             <div class="btn-group pull-right">
                                 <button type="button" class="btn btn-large pull-right btn-remove-resource" title="Remove this resource"></button>
+                            </div>
+                        </xsl:if>
+
+                        <!-- only admins have access to the ontologies with constructors in them -->
+                        <xsl:variable name="available-classes" select="rdf:type/@rdf:resource[not(starts-with(., '&dh;') or starts-with(., '&ldh;') or starts-with(., '&lapp;') or starts-with(., '&sp;') or starts-with(., '&nfo;'))][doc-available(ac:document-uri(.))][key('resources', ., document(ac:document-uri(.)))]" as="xs:anyURI*"/>
+                        <xsl:if test="$acl:mode = '&acl;Control' and exists($available-classes)">
+                            <div class="btn-group pull-right">
+                                <button type="button" class="btn dropdown-toggle">
+                                    Actions
+                                    <span class="caret"></span>
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <xsl:for-each select="$available-classes">
+                                        <li>
+                                            <button type="button" class="btn btn-edit-constructors" data-resource-type="{.}">
+                                                <xsl:text>Edit </xsl:text>
+                                                <xsl:apply-templates select="key('resources', ., document(ac:document-uri(.)))" mode="ac:label"/>
+                                                <xsl:text> constructor(s)</xsl:text>
+                                            </button>
+                                        </li>
+                                    </xsl:for-each>
+                                </ul>
                             </div>
                         </xsl:if>
 
@@ -1035,11 +1057,14 @@ extension-element-prefixes="ixsl"
                 <xsl:with-param name="traversed-ids" select="$traversed-ids" tunnel="yes"/>
             </xsl:apply-templates>
 
-            <xsl:apply-templates select="." mode="bs2:PropertyControl">
-                <xsl:with-param name="template" select="$template"/>
-                <xsl:with-param name="forClass" select="$forClass"/>
-                <xsl:with-param name="required" select="true()"/>
-            </xsl:apply-templates>
+            <!-- do not show property controls if there is no constructor or it has no properties -->
+            <xsl:if test="$template/*">
+                <xsl:apply-templates select="." mode="bs2:PropertyControl">
+                    <xsl:with-param name="template" select="$template"/>
+                    <xsl:with-param name="forClass" select="$forClass"/>
+                    <xsl:with-param name="required" select="true()"/>
+                </xsl:apply-templates>
+            </xsl:if>
         </fieldset>
     </xsl:template>
     

@@ -31,7 +31,7 @@ ul.dropdown-menu ul { margin: 0; }
 button.btn.create-action { height: 30px; }
 a.btn.create-action { height: 20px; }
 .btn-group.open .btn.dropdown-toggle.create-action { background-image: url('../icons/ic_note_add_black_24px.svg'); }
-li button.btn-add-data, li button.btn-add-ontology { text-align: left; width: 100%; background-color: inherit; }
+li button.btn-edit-constructors, li button.btn-add-data, li button.btn-add-ontology { text-align: left; width: 100%; background-color: inherit; }
 .btn-container { background-image: url('../icons/folder.svg'); }
 .btn-item { background-image: url('../icons/file.svg'); }
 .btn-app { background-image: url('../icons/apps_black_24dp.svg'); }
@@ -82,7 +82,7 @@ li button.btn-add-data, li button.btn-add-ontology { text-align: left; width: 10
 .faceted-nav input[type=checkbox]:checked + span { font-weight: bold; }
 .parallax-nav a { cursor: pointer; }
 #content-body { min-height: calc(100% - 14em); }
-.content.row-fluid { border-bottom: 2px solid rgb(223, 223, 223); }
+.content.row-fluid, .constructor-triple.row-fluid { border-bottom: 2px solid rgb(223, 223, 223); }
 .list-mode.active { background-image: url('../icons/ic_navigate_before_black_24px.svg'); }
 legend.create-action { background-image: url('../icons/ic_note_add_black_24px.svg'); background-position: 12px center; background-repeat: no-repeat; padding-left: 40px; }
 alert.violation { background-image: url('../icons/ic_error_white_24px.svg '); background-position: 12px center; background-repeat: no-repeat; padding-left: 40px; }
@@ -113,6 +113,10 @@ h2.item-logo { background-image: url('../icons/file.svg'); background-position: 
 .map-canvas { height: 35em; width: 100%; }
 fieldset { border: 1px outset #999; /* padding-top: 3%; */ }
 fieldset fieldset { margin-left: 3%; margin-bottom: 3%; }
+.constructor-template .control-label { text-align: left; }
+.constructor-triple .controls { margin-left: 250px; }
+.constructor-triple .controls label.radio { display: inline-block; padding-top: 10px; margin-right: 10px; }
+.constructor-triple .controls .help-inline { vertical-align: top; padding-top: 5px; }
 #uri { height: 24px; }
 #query-form fieldset { border: initial; margin: initial; }
 button.add-typeahead { width: 219px; }

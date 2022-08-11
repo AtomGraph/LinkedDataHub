@@ -10,6 +10,7 @@
     <!ENTITY ldt        "https://www.w3.org/ns/ldt#">
     <!ENTITY dh         "https://www.w3.org/ns/ldt/document-hierarchy#">
     <!ENTITY sd         "http://www.w3.org/ns/sparql-service-description#">
+    <!ENTITY sp         "http://spinrdf.org/sp#">
     <!ENTITY dct        "http://purl.org/dc/terms/">
 ]>
 <xsl:stylesheet version="3.0"
@@ -35,33 +36,10 @@ exclude-result-prefixes="#all"
 >
 
     <!-- TEMPLATES -->
-
-<!--    <xsl:template name="typeahead:xml-loaded">
-        <xsl:context-item as="map(*)" use="required"/>
-
-        <xsl:call-template name="xsl:original"/>
-
-        <xsl:if test="?status = 200 and ?media-type = 'application/rdf+xml'">
-            <ixsl:set-property name="LinkedDataHub.typeahead.rdfXml" select="?body"/>
-        </xsl:if>
-    </xsl:template>-->
-    
-    <!-- currently unused -->
-    <xsl:template name="add-value-listeners">
-        <xsl:param name="id" as="xs:string"/>
-        
-        <xsl:for-each select="id($id, ixsl:page())">
-            <xsl:apply-templates select="." mode="ldh:PostConstruct"/>
-            
-            <xsl:sequence select="ixsl:call(., 'focus', [])[current-date() lt xs:date('2000-01-01')]"/>
-        </xsl:for-each>
-    </xsl:template>
     
     <xsl:template match="*" mode="ldh:PostConstruct">
         <xsl:apply-templates mode="#current"/>
     </xsl:template>
-    
-    <!-- listener identity transform - binding event listeners to inputs -->
     
     <xsl:template match="text()" mode="ldh:PostConstruct"/>
 
@@ -84,6 +62,18 @@ exclude-result-prefixes="#all"
         
         <!-- TO-DO: move to a better place. Does not take effect if typeahead is reset -->
         <ixsl:set-property object="." name="autocomplete" select="'off'"/>
+    </xsl:template>
+    
+    <!-- inject datetime-local inputs TO-DO: align structure of constructor and editing form controls -->
+    <xsl:template match="input[@name = 'ol'][following-sibling::input[@name = 'lt'][@value = '&xsd;dateTime']] | input[@name = 'ol'][@value][../following-sibling::div/input[@name = 'lt'][@value = '&xsd;dateTime']]" mode="ldh:PostConstruct" priority="2">
+        <ixsl:set-attribute name="type" select="'datetime-local'"/>
+        <ixsl:set-attribute name="step" select="'1'"/>
+
+        <xsl:if test="@value">
+            <!-- adjust the datetime value to the implicit (user's) timezone and format it to make it a legal datetime-local value: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/datetime-local#value -->
+            <xsl:variable name="datetime-local" select="format-dateTime(adjust-dateTime-to-timezone(xs:dateTime(@value)), '[Y0001]-[M01]-[D01]T[H01]:[m01]:[s01]')" as="xs:string"/>        
+            <ixsl:set-attribute name="value" select="$datetime-local"/>
+        </xsl:if>
     </xsl:template>
     
     <!-- form identity transform -->
@@ -142,11 +132,29 @@ exclude-result-prefixes="#all"
             <xsl:attribute name="value" select="ixsl:call(ixsl:window(), 'generateUUID', [])"/>
         </xsl:copy>
     </xsl:template>
-    
+        
     <xsl:template match="@* | node()" mode="form">
         <xsl:copy>
             <xsl:apply-templates select="@* | node()" mode="#current"/>
         </xsl:copy>
+    </xsl:template>
+    
+    <xsl:template match="*" mode="ldh:FormPreSubmit">
+        <xsl:apply-templates mode="#current"/>
+    </xsl:template>
+    
+    <xsl:template match="text()" mode="ldh:FormPreSubmit"/>
+    
+    <!-- remove names of RDF/POST inputs with empty values -->
+    <xsl:template match="input[@name = ('ob', 'ou', 'ol')][not(ixsl:get(., 'value'))]" mode="ldh:FormPreSubmit" priority="1">
+        <ixsl:remove-attribute name="name"/>
+    </xsl:template>
+    
+    <!-- adjust datetime-local values to the implicit timezone -->
+    <xsl:template match="input[@type = 'datetime-local'][ixsl:get(., 'value')]" mode="ldh:FormPreSubmit" priority="1">
+        <!-- set the input type back to 'text' because 'datetime-local' does not accept the timezoned value -->
+        <ixsl:set-attribute name="type" select="'text'"/>
+        <ixsl:set-property name="value" select="string(adjust-dateTime-to-timezone(ixsl:get(., 'value')))" object="."/>
     </xsl:template>
     
     <!-- EVENT HANDLERS -->
@@ -163,31 +171,20 @@ exclude-result-prefixes="#all"
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
         
-        <!-- remove names of RDF/POST inputs with empty values -->
-        <xsl:for-each select=".//input[@name = ('ob', 'ou', 'ol')][not(ixsl:get(., 'value'))]">
-            <ixsl:remove-attribute name="name"/>
-        </xsl:for-each>
-        
+        <!-- pre-process form before submitting it -->
+        <xsl:apply-templates select="." mode="ldh:FormPreSubmit"/>
+            
         <xsl:choose>
             <!-- we need to handle multipart requests specially because of Saxon-JS 2 limitations: https://saxonica.plan.io/issues/4732 -->
             <xsl:when test="$enctype = 'multipart/form-data'">
-                <xsl:variable name="js-statement" as="element()">
-                    <root statement="new FormData(document.getElementById('{$id}'))"/>
-                </xsl:variable>
-                <xsl:variable name="form-data" select="ixsl:eval(string($js-statement/@statement))"/>
-                <xsl:variable name="js-statement" as="element()">
-                    <root statement="{{ 'Accept': '{$accept}' }}"/>
-                </xsl:variable>
-                <xsl:variable name="headers" select="ixsl:eval(string($js-statement/@statement))"/>
+                <xsl:variable name="form-data" select="ldh:new('FormData', [ $form ])"/>
+                <xsl:variable name="headers" select="ldh:new-object()"/>
+                <ixsl:set-property name="Accept" select="$accept" object="$headers"/>
                 
                 <xsl:sequence select="js:fetchDispatchXML($request-uri, $method, $headers, $form-data, ., 'multipartFormLoad')"/>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:variable name="js-statement" as="element()">
-                    <root statement="new URLSearchParams(new FormData(document.getElementById('{$id}')))"/>
-                </xsl:variable>
-                <xsl:variable name="form-data" select="ixsl:eval(string($js-statement/@statement))"/>
-
+                <xsl:variable name="form-data" select="ldh:new('URLSearchParams', [ ldh:new('FormData', [ $form ]) ])"/>
                 <xsl:variable name="request" as="item()*">
                     <ixsl:schedule-action http-request="map{ 'method': $method, 'href': $request-uri, 'media-type': $enctype, 'body': $form-data, 'headers': map{ 'Accept': $accept } }">
                         <xsl:call-template name="onFormLoad">
@@ -203,17 +200,17 @@ exclude-result-prefixes="#all"
     </xsl:template>
     
     <xsl:template match="button[contains-token(@class, 'add-value')]" mode="ixsl:onclick">
-        <xsl:variable name="control-group" select="../.." as="element()"/>
+        <xsl:variable name="property-control-group" select="../.." as="element()"/>
         <xsl:variable name="property" select="../preceding-sibling::*/select/option[ixsl:get(., 'selected') = true()]/ixsl:get(., 'value')" as="xs:anyURI"/>
         <xsl:variable name="forClass" select="preceding-sibling::input/@value" as="xs:anyURI*"/>
-        <xsl:variable name="href" select="ac:build-uri(ldh:absolute-path(ldh:href()), map{ 'forClass': string($forClass) })" as="xs:anyURI"/>
+        <xsl:variable name="href" select="ac:build-uri(ldh:absolute-path(ldh:href()), map{ 'forClass': for $class in $forClass return string($class) })" as="xs:anyURI"/>
         
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
         
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
                 <xsl:call-template name="onAddValue">
-                    <xsl:with-param name="control-group" select="$control-group"/>
+                    <xsl:with-param name="property-control-group" select="$property-control-group"/>
                     <xsl:with-param name="property" select="$property"/>
                 </xsl:call-template>
             </ixsl:schedule-action>
@@ -258,7 +255,7 @@ exclude-result-prefixes="#all"
         </xsl:if>
     </xsl:template>
     
-    <!-- types (Classes) are looked up in the <ns> endpoint -->
+    <!-- types (classes with constructors) are looked up in the <ns> endpoint -->
     <xsl:template match="input[contains-token(@class, 'type-typeahead')]" mode="ixsl:onkeyup" priority="1">
         <xsl:next-match>
             <xsl:with-param name="endpoint" select="resolve-uri('ns', $ldt:base)"/>
@@ -266,12 +263,12 @@ exclude-result-prefixes="#all"
         </xsl:next-match>
     </xsl:template>
     
-    <!-- lookup by ?label and optional ?Type using search SELECT -->
+    <!-- lookup by $label and optional $Type using search SELECT -->
     <xsl:template match="input[contains-token(@class, 'typeahead')]" mode="ixsl:onkeyup">
         <xsl:param name="menu" select="following-sibling::ul" as="element()"/>
         <xsl:param name="delay" select="400" as="xs:integer"/>
         <xsl:param name="endpoint" select="sd:endpoint()" as="xs:anyURI"/>
-        <xsl:param name="resource-types" select="ancestor::div[@class = 'controls']/input[@class = 'forClass']/@value" as="xs:anyURI*"/>
+        <xsl:param name="resource-types" select="(ancestor::div[@class = 'controls']//input[@class = 'forClass']/@value, ancestor::label//input[@class = 'forClass']/@value)[1]" as="xs:anyURI*"/>
         <xsl:param name="select-string" select="$select-labelled-string" as="xs:string?"/>
         <xsl:param name="limit" select="100" as="xs:integer?"/>
         <xsl:variable name="key-code" select="ixsl:get(ixsl:event(), 'code')" as="xs:string"/>
@@ -350,18 +347,12 @@ exclude-result-prefixes="#all"
             <xsl:with-param name="menu" select="$menu"/>
         </xsl:call-template>
     </xsl:template>
-    
-    <xsl:template match="ul[contains-token(@class, 'dropdown-menu')][contains-token(@class, 'type-typeahead')]/li" mode="ixsl:onmousedown" priority="1">
-        <xsl:next-match>
-            <xsl:with-param name="typeahead-class" select="'btn add-typeahead add-typetypeahead'"/>
-        </xsl:next-match>
-    </xsl:template>
-    
+
     <!-- select .type-typeahead item (priority over plain .typeahead) -->
     
     <xsl:template match="ul[contains-token(@class, 'dropdown-menu')][contains-token(@class, 'type-typeahead')]/li" mode="ixsl:onmousedown" priority="1">
+        <xsl:param name="typeahead-class" select="'btn add-typeahead add-type-typeahead'" as="xs:string"/>
         <xsl:variable name="resource-id" select="input[@name = ('ou', 'ob')]/ixsl:get(., 'value')" as="xs:string"/> <!-- can be URI resource or blank node ID -->
-        <xsl:variable name="typeahead-class" select="'btn add-typeahead add-typetypeahead'" as="xs:string"/>
         <xsl:variable name="typeahead-doc" select="ixsl:get(ixsl:window(), 'LinkedDataHub.typeahead.rdfXml')" as="document-node()"/>
         <xsl:variable name="resource" select="key('resources', $resource-id, $typeahead-doc)" as="element()"/>
         <xsl:variable name="fieldset" select="ancestor::fieldset" as="element()"/>
@@ -391,8 +382,8 @@ exclude-result-prefixes="#all"
     <!-- select typeahead item -->
     
     <xsl:template match="ul[contains-token(@class, 'dropdown-menu')][contains-token(@class, 'typeahead')]/li" mode="ixsl:onmousedown">
+        <xsl:param name="typeahead-class" select="'btn add-typeahead'" as="xs:string"/>
         <xsl:variable name="resource-id" select="input[@name = ('ou', 'ob')]/ixsl:get(., 'value')" as="xs:string"/> <!-- can be URI resource or blank node ID -->
-        <xsl:variable name="typeahead-class" select="'btn add-typeahead'" as="xs:string"/>
         <xsl:variable name="typeahead-doc" select="ixsl:get(ixsl:window(), 'LinkedDataHub.typeahead.rdfXml')" as="document-node()"/>
         <xsl:variable name="resource" select="key('resources', $resource-id, $typeahead-doc)" as="element()"/>
 
@@ -486,8 +477,8 @@ exclude-result-prefixes="#all"
         <xsl:for-each select="..">
             <xsl:result-document href="?." method="ixsl:replace-content">
                 <xsl:call-template name="bs2:Lookup">
-                    <xsl:with-param name="class" select="$lookup-class"/>
                     <xsl:with-param name="id" select="'input-' || $uuid"/>
+                    <xsl:with-param name="class" select="$lookup-class"/>
                     <xsl:with-param name="list-class" select="$lookup-list-class"/>
                 </xsl:call-template>
             </xsl:result-document>
@@ -503,8 +494,8 @@ exclude-result-prefixes="#all"
         </xsl:for-each>
     </xsl:template>
 
-    <!-- special case for rdf:type lookups -->
-    <xsl:template match="button[contains-token(@class, 'add-typetypeahead')]" mode="ixsl:onclick" priority="1">
+    <!-- special case for class (with constructor) lookups -->
+    <xsl:template match="button[contains-token(@class, 'add-type-typeahead')]" mode="ixsl:onclick" priority="1">
         <xsl:next-match>
             <xsl:with-param name="lookup-class" select="'type-typeahead typeahead'"/>
             <xsl:with-param name="lookup-list-class" select="'type-typeahead typeahead dropdown-menu'" as="xs:string"/>
@@ -613,14 +604,6 @@ exclude-result-prefixes="#all"
     <xsl:template match="fieldset//input" mode="ixsl:onmouseout">
         <xsl:for-each select="../div[contains-token(@class, 'tooltip')]">
             <ixsl:set-style name="display" select="'none'"/>
-        </xsl:for-each>
-    </xsl:template>
-    
-    <!-- close modal form -->
-    
-    <xsl:template match="div[contains-token(@class, 'modal')]//button[tokenize(@class, ' ') = ('close', 'btn-close')]" mode="ixsl:onclick">
-        <xsl:for-each select="ancestor::div[contains-token(@class, 'modal')]">
-            <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
     </xsl:template>
     
@@ -792,10 +775,11 @@ exclude-result-prefixes="#all"
     
     <xsl:template name="onAddValue">
         <xsl:context-item as="map(*)" use="required"/>
-        <xsl:param name="control-group" as="element()"/>
+        <xsl:param name="property-control-group" as="element()"/>
         <xsl:param name="property" as="xs:anyURI"/>
         <xsl:param name="seq-property" select="starts-with($property, '&rdf;_')" as="xs:boolean"/>
-
+        <xsl:param name="fieldset" select="$property-control-group/.." as="element()"/>
+        
         <xsl:choose>
             <xsl:when test="?status = 200 and starts-with(?media-type, 'application/xhtml+xml')">
                 <xsl:for-each select="?body">
@@ -807,42 +791,25 @@ exclude-result-prefixes="#all"
                     </xsl:variable>
                     <!-- if this is a rdf:Seq membership property, always revert to rdf:_1 (because that's the only one we have in the constructor) and fix the form inputs afterwards -->
                     <xsl:variable name="constructed-property" select="if ($seq-property) then xs:anyURI('&rdf;_1') else $property" as="xs:anyURI"/>
-                    <xsl:variable name="new-control-group" select="$form//div[contains-token(@class, 'control-group')][input[@name = 'pu']/@value = $constructed-property]" as="element()"/>
+                    <!-- the constructor might have duplicate properties, possibly with different object types -->
+                    <xsl:variable name="new-control-group" select="$form//div[contains-token(@class, 'control-group')][input[@name = 'pu']/@value = $constructed-property]" as="element()*"/>
                     
-                    <xsl:for-each select="$control-group">
-                        <!-- move property creation control group down, by appending it to the parent fieldset -->
-                        <xsl:for-each select="..">
-                            <xsl:result-document href="?." method="ixsl:append-content">
-                                <xsl:copy-of select="$control-group"/>
-                            </xsl:result-document>
-                            
-                            <xsl:if test="$seq-property">
-                                <!-- switch context to the last div.control-group which now contains the property select -->
-                                <xsl:for-each select="./div[contains-token(@class, 'control-group')][./span[contains-token(@class, 'control-label')]/select]">
-                                    <xsl:variable name="seq-properties" select="for $property in ancestor::fieldset//input[@name = 'pu']/@value[starts-with(., '&rdf;' || '_')] return xs:anyURI($property)" as="xs:anyURI*"/>
-                                    <xsl:variable name="max-seq-index" select="if (empty($seq-properties)) then 0 else max(for $seq-property in $seq-properties return xs:integer(substring-after($seq-property, '&rdf;' || '_')))" as="xs:integer"/>
-                                    <xsl:variable name="next-property" select="xs:anyURI('&rdf;_' || ($max-seq-index + 1))" as="xs:anyURI"/>
-
-                                    <xsl:for-each select=".//select">
-                                        <!-- append new property to the dropdown with an incremented index (if it doesn't already exist) -->
-                                        <xsl:if test="not(option/@value = $next-property)">
-                                            <xsl:result-document href="?." method="ixsl:append-content">
-                                                <option value="{$next-property}">
-                                                    <xsl:text>_</xsl:text>
-                                                    <xsl:value-of select="$max-seq-index + 1"/>
-                                                </option>
-                                            </xsl:result-document>
-                                        </xsl:if>
-                                    </xsl:for-each>
-                                </xsl:for-each>
-                            </xsl:if>
-                        </xsl:for-each>
-
-                        <xsl:result-document href="?." method="ixsl:replace-content">
-                            <xsl:copy-of select="$new-control-group/*"/>
+                    <!-- append the new constructed control groups as well as the current property control group to the parent fieldset -->
+                    <xsl:for-each select="$fieldset">
+                        <xsl:result-document href="?." method="ixsl:append-content">
+                            <xsl:copy-of select="$new-control-group"/>
+                            <xsl:copy-of select="$property-control-group"/>
                         </xsl:result-document>
-                        
-                        <xsl:if test="$seq-property">
+
+                        <xsl:apply-templates select="." mode="ldh:PostConstruct"/>
+                    </xsl:for-each>
+
+                    <!-- remove the current "old" property control group -->
+                    <xsl:sequence select="ixsl:call($property-control-group, 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
+
+                    <xsl:if test="$seq-property">
+                        <!-- switch context to the newly inserted control group -->
+                        <xsl:for-each select="$fieldset/div[contains-token(@class, 'control-group')][input[@name = 'pu']/@value = $constructed-property][last()]">
                             <xsl:variable name="seq-index" select="xs:integer(substring-after($property, '&rdf;_'))" as="xs:integer"/>
                             <xsl:if test="$seq-index &gt; 1">
                                 <!-- fix up the rdf:_X sequence property URI and label -->
@@ -854,8 +821,27 @@ exclude-result-prefixes="#all"
                                     </xsl:result-document>
                                 </xsl:for-each>
                             </xsl:if>
-                        </xsl:if>
-                    </xsl:for-each>
+                        </xsl:for-each>
+
+                        <!-- switch context to the last div.control-group which now contains the property select -->
+                        <xsl:for-each select="$fieldset/div[contains-token(@class, 'control-group')][./span[contains-token(@class, 'control-label')]/select]">
+                            <xsl:variable name="seq-properties" select="for $property in ancestor::fieldset//input[@name = 'pu']/@value[starts-with(., '&rdf;' || '_')] return xs:anyURI($property)" as="xs:anyURI*"/>
+                            <xsl:variable name="max-seq-index" select="if (empty($seq-properties)) then 0 else max(for $seq-property in $seq-properties return xs:integer(substring-after($seq-property, '&rdf;' || '_')))" as="xs:integer"/>
+                            <xsl:variable name="next-property" select="xs:anyURI('&rdf;_' || ($max-seq-index + 1))" as="xs:anyURI"/>
+
+                            <xsl:for-each select=".//select">
+                                <!-- append new property to the dropdown with an incremented index (if it doesn't already exist) -->
+                                <xsl:if test="not(option/@value = $next-property)">
+                                    <xsl:result-document href="?." method="ixsl:append-content">
+                                        <option value="{$next-property}">
+                                            <xsl:text>_</xsl:text>
+                                            <xsl:value-of select="$max-seq-index + 1"/>
+                                        </option>
+                                    </xsl:result-document>
+                                </xsl:if>
+                            </xsl:for-each>
+                        </xsl:for-each>
+                    </xsl:if>
                 </xsl:for-each>
                 
                 <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
@@ -875,7 +861,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="target-id" as="xs:string?"/>
         <!-- $target-id is of the "Create" button, need to replace the preceding typeahead input instead -->
         <xsl:param name="typeahead-span" select="if ($target-id) then id($target-id, ixsl:page())/ancestor::div[@class = 'controls']//span[descendant::input[@name = 'ou']] else ()" as="element()?"/>
-
+        
         <xsl:choose>
             <!-- special case for add/clone data forms: redirect to the container -->
             <xsl:when test="ixsl:get($form, 'id') = ('form-add-data', 'form-clone-data')">
@@ -1033,7 +1019,7 @@ exclude-result-prefixes="#all"
                     <xsl:variable name="new-fieldset" select="$form//fieldset" as="element()"/>
                     
                     <xsl:for-each select="$fieldset">
-                        <xsl:result-document href="?." method="ixsl:replace-content">
+                        <xsl:result-document href="?." method="ixsl:append-content">
                             <xsl:copy-of select="$new-fieldset/*"/>
                         </xsl:result-document>
                     </xsl:for-each>
@@ -1042,7 +1028,7 @@ exclude-result-prefixes="#all"
                 <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ ?message ])"/>
+                <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ 'Could not construct class instance' ])"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>

@@ -85,7 +85,7 @@ extension-element-prefixes="ixsl"
         <div class="row-fluid">
             <ul class="nav nav-tabs offset2 span7">
                 <li class="content-mode{if ((empty($active-mode) and $has-content and not($forClass)) or $active-mode = '&ldh;ContentMode') then ' active' else() }">
-                    <a href="{ac:build-uri(ac:uri(), map{ 'mode': '&ldh;ContentMode' })}">
+                    <a href="{ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ac:uri(), xs:anyURI('&ldh;ContentMode'))}">
                         <xsl:value-of>
                             <xsl:apply-templates select="key('resources', 'content', document('translations.rdf'))" mode="ac:label"/>
                         </xsl:value-of>
@@ -530,8 +530,8 @@ extension-element-prefixes="ixsl"
             <xsl:when test="$createGraph and not($forClass = ('&dh;Container', '&dh;Item', '&ldh;Content'))">
                 <xsl:document>
                     <!-- construct a combined graph of dh:Item and $forClass instances -->
-                    <xsl:for-each select="ldh:construct(map{ xs:anyURI('&dh;Item'): spin:constructors(xs:anyURI('&dh;Item'), resolve-uri('ns', $ldt:base), $constructor-query)//srx:binding[@name = 'construct']/srx:literal/string(.),
-                            $forClass: spin:constructors($forClass, resolve-uri('ns', $ldt:base), $constructor-query)//srx:binding[@name = 'construct']/srx:literal/string(.) })">
+                    <xsl:for-each select="ldh:construct(map{ xs:anyURI('&dh;Item'): spin:constructors(xs:anyURI('&dh;Item'), resolve-uri('ns', $ldt:base), $constructor-query)//srx:binding[@name = 'construct']/srx:literal/string(),
+                            $forClass: spin:constructors($forClass, resolve-uri('ns', $ldt:base), $constructor-query)//srx:binding[@name = 'construct']/srx:literal/string() })">
                         <xsl:apply-templates select="." mode="ldh:SetPrimaryTopic">
                             <!-- avoid selecting object blank nodes which only have rdf:type --> 
                             <xsl:with-param name="topic-id" select="key('resources-by-type', $forClass)[* except rdf:type]/@rdf:nodeID" tunnel="yes"/>
@@ -541,7 +541,7 @@ extension-element-prefixes="ixsl"
                 </xsl:document>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:sequence select="ldh:construct(map{ $forClass: spin:constructors($forClass, resolve-uri('ns', $ldt:base), $constructor-query)//srx:binding[@name = 'construct']/srx:literal/string(.) })"/>
+                <xsl:sequence select="ldh:construct(map{ $forClass: spin:constructors($forClass, resolve-uri('ns', $ldt:base), $constructor-query)//srx:binding[@name = 'construct']/srx:literal/string() })"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>

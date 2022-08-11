@@ -81,7 +81,7 @@
     rdfs:comment "An application represents a data space identified by its base URI, in which application resource URIs are relative to the base URI. The only application interface (API) is read-write RESTful Linked data, backed by an RDF dataset accessible as a SPARQL 1.1 service. Application structure is defined in an ontology, which can import other ontologies." ;
     rdfs:isDefinedBy : .
 
-:ApplicationConstructor a sp:Construct ;
+:ApplicationConstructor a ldh:Constructor ;
     sp:text """
       PREFIX ldh:     <https://w3id.org/atomgraph/linkeddatahub#>
       PREFIX ldt:     <https://www.w3.org/ns/ldt#>
@@ -108,7 +108,7 @@
     rdfs:comment "Application with a dynamic access control and sitemap" ;
     rdfs:isDefinedBy : .
 
-:EndUserApplicationConstructor a sp:Construct ;
+:EndUserApplicationConstructor a ldh:Constructor ;
     sp:text """
       PREFIX lapp:    <https://w3id.org/atomgraph/linkeddatahub/apps#>
       PREFIX ldh:     <https://w3id.org/atomgraph/linkeddatahub#>
@@ -140,7 +140,7 @@
     rdfs:comment "Meta-application that manages the access control and sitemap of the main end-user application" ;
     rdfs:isDefinedBy : .
 
-:AdminApplicationConstructor a sp:Construct ;
+:AdminApplicationConstructor a ldh:Constructor ;
     sp:text """
       PREFIX lapp:    <https://w3id.org/atomgraph/linkeddatahub/apps#>
       PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>

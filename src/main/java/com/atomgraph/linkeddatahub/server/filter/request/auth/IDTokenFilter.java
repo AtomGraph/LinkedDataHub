@@ -120,32 +120,32 @@ public class IDTokenFilter extends AuthenticationFilter
         String jwtString = getJWTToken(request);
         if (jwtString == null) return null;
         
-        DecodedJWT idToken = JWT.decode(jwtString);
-        if (idToken.getExpiresAt().before(new Date()))
+        DecodedJWT jwt = JWT.decode(jwtString);
+        if (jwt.getExpiresAt().before(new Date()))
         {
-            String refreshToken = getSystem().getRefreshToken(getClientID());
+            String refreshToken = getSystem().getRefreshToken(jwt.getSubject());
             if (refreshToken != null)
             {
-                if (log.isDebugEnabled()) log.debug("ID token for subject '{}' has expired at {}, refreshing it", idToken.getSubject(), idToken.getExpiresAt());
-                idToken = refreshIDToken(refreshToken);
+                if (log.isDebugEnabled()) log.debug("ID token for subject '{}' has expired at {}, refreshing it", jwt.getSubject(), jwt.getExpiresAt());
+                jwt = refreshIDToken(refreshToken);
             }
             else
             {
-                if (log.isDebugEnabled()) log.debug("ID token for subject '{}' has expired at {}, refresh token not found", idToken.getSubject(), idToken.getExpiresAt());
-                throw new TokenExpiredException("ID token for subject '"  + idToken.getSubject() + "' has expired at " + idToken.getExpiresAt());
+                if (log.isDebugEnabled()) log.debug("ID token for subject '{}' has expired at {}, refresh token not found", jwt.getSubject(), jwt.getExpiresAt());
+                throw new TokenExpiredException("ID token for subject '"  + jwt.getSubject() + "' has expired at " + jwt.getExpiresAt());
             }
         }
-        if (!verify(idToken)) return null;
+        if (!verify(jwt)) return null;
         
-        String cacheKey = idToken.getIssuer() + idToken.getSubject();
+        String cacheKey = jwt.getIssuer() + jwt.getSubject();
         final Model agentModel;
-        Literal userId = ResourceFactory.createStringLiteral(idToken.getSubject());
+        Literal userId = ResourceFactory.createStringLiteral(jwt.getSubject());
         if (getSystem().getOIDCModelCache().containsKey(cacheKey)) agentModel = getSystem().getOIDCModelCache().get(cacheKey);
         else
         {
             QuerySolutionMap qsm = new QuerySolutionMap();
             qsm.add(SIOC.ID.getLocalName(), userId);
-            qsm.add(LACL.issuer.getLocalName(), ResourceFactory.createStringLiteral(idToken.getIssuer()));
+            qsm.add(LACL.issuer.getLocalName(), ResourceFactory.createStringLiteral(jwt.getIssuer()));
 
             agentModel = loadModel(pss, qsm, getAgentService());
         }
@@ -158,7 +158,7 @@ public class IDTokenFilter extends AuthenticationFilter
         if (agent == null) throw new IllegalStateException("UserAccount is not attached to an agent (sioc:account_of property is missing)");
         
         // calculate ID token expiration in seconds and use it in the cache
-        long expiration = ChronoUnit.SECONDS.between(Instant.now(), idToken.getExpiresAt().toInstant());
+        long expiration = ChronoUnit.SECONDS.between(Instant.now(), jwt.getExpiresAt().toInstant());
         getSystem().getOIDCModelCache().put(cacheKey, agentModel, expiration, TimeUnit.SECONDS);
         
         // imitate type inference, otherwise we'll get Jena's polymorphism exception

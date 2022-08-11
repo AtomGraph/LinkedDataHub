@@ -19,8 +19,8 @@ package com.atomgraph.linkeddatahub.resource.admin;
 import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import static com.atomgraph.linkeddatahub.server.filter.request.OntologyFilter.addDocumentModel;
+import com.atomgraph.linkeddatahub.server.filter.response.BackendInvalidationFilter;
 import com.atomgraph.linkeddatahub.server.util.OntologyModelGetter;
-import com.atomgraph.processor.util.OntModelReadOnly;
 import java.net.URI;
 import javax.inject.Inject;
 import javax.ws.rs.BadRequestException;
@@ -34,6 +34,8 @@ import org.apache.jena.ontology.OntModel;
 import org.apache.jena.ontology.OntModelSpec;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.rdf.model.Resource;
+import org.glassfish.jersey.uri.UriComponent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -82,25 +84,49 @@ public class Clear
         OntModelSpec ontModelSpec = new OntModelSpec(getSystem().getOntModelSpec(app));
         if (ontModelSpec.getDocumentManager().getFileManager().hasCachedModel(ontologyURI))
         {
+            if (log.isDebugEnabled()) log.debug("Clearing ontology with URI '{}' from memory", ontologyURI);
             ontModelSpec.getDocumentManager().getFileManager().removeCacheModel(ontologyURI);
-
+            if (getApplication().getService().getProxy() != null)
+            {
+                if (log.isDebugEnabled()) log.debug("Purge ontology with URI '{}' from proxy cache", ontologyURI);
+                ban(getApplication().getService().getProxy(), ontologyURI);
+            }
+                
             // !!! we need to reload the ontology model before returning a response, to make sure the next request already gets the new version !!!
             // same logic as in OntologyFilter. TO-DO: encapsulate?
             OntologyModelGetter modelGetter = new OntologyModelGetter(app,
                     ontModelSpec, getSystem().getOntologyQuery(), getSystem().getNoCertClient(), getSystem().getMediaTypes());
             ontModelSpec.setImportModelGetter(modelGetter);
+            if (log.isDebugEnabled()) log.debug("Started loading ontology with URI '{}' from the admin dataset", ontologyURI);
             Model baseModel = modelGetter.getModel(ontologyURI);
             OntModel ontModel = ModelFactory.createOntologyModel(ontModelSpec, baseModel);
             // materialize OntModel inferences to avoid invoking rules engine on every request
             OntModel materializedModel = ModelFactory.createOntologyModel(OntModelSpec.OWL_MEM); // no inference
             materializedModel.add(ontModel);
-            ontModel.getDocumentManager().addModel(ontologyURI, new OntModelReadOnly(materializedModel), true); // make immutable and add as OntModel so that imports do not need to be reloaded during retrieval
+            ontModel.getDocumentManager().addModel(ontologyURI, materializedModel, true); // make immutable and add as OntModel so that imports do not need to be reloaded during retrieval
             // make sure to cache imported models not only by ontology URI but also by document URI
             ontModel.listImportedOntologyURIs(true).forEach((String importURI) -> addDocumentModel(ontModel.getDocumentManager(), importURI));
+            if (log.isDebugEnabled()) log.debug("Finished loading ontology with URI '{}' from the admin dataset", ontologyURI);
         }
         
         if (referer != null) return Response.seeOther(referer).build();
         else return Response.ok().build();
+    }
+    
+    /** 
+     * Bans URL from the backend proxy cache.
+     * 
+     * @param proxy proxy server URL
+     * @param url banned URL
+     * @return proxy server response
+     */
+    public Response ban(Resource proxy, String url)
+    {
+        if (url == null) throw new IllegalArgumentException("Resource cannot be null");
+        
+        return getSystem().getClient().target(proxy.getURI()).request().
+            header(BackendInvalidationFilter.HEADER_NAME, UriComponent.encode(url, UriComponent.Type.UNRESERVED)). // the value has to be URL-encoded in order to match request URLs in Varnish
+            method("BAN", Response.class);
     }
     
     /**
