@@ -122,8 +122,9 @@ extension-element-prefixes="ixsl"
     
     <xsl:template match="rdf:RDF" mode="ldh:ContentList">
         AAA<xsl:copy-of select="."/>/AAA
-        <xsl:message>ac:uri(): <xsl:value-of select="ac:uri()"/></xsl:message>
+        BBB ac:uri(): <xsl:value-of select="ac:uri()"/>/BBB
         XXXX<xsl:apply-templates select="key('resources', ac:uri())" mode="#current"/>XXXX
+        YYYY<xsl:copy-of select="key('resources', ac:uri())"/>YYYY
         
         <!-- only show buttons to agents who have sufficient access to modify them -->
         <xsl:if test="$acl:mode = '&acl;Append'">
