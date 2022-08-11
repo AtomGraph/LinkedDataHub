@@ -1021,10 +1021,14 @@ exclude-result-prefixes="#all"
                     <xsl:for-each select="$control-group/ancestor::fieldset">
                         <xsl:result-document href="?." method="ixsl:append-content">
                             <!-- hydrate with properties, filter out property controls -->
-                            <xsl:copy-of select="$new-fieldset/div[contains-token(@class, 'control-group')][not(.//button[contains-token(@class, 'add-value')])]"/>
+                            <xsl:copy-of select="$new-fieldset/div[contains-token(@class, 'control-group')]"/>
                         </xsl:result-document>
                     </xsl:for-each>
                     
+                    <!-- remove the preceding property controls -->
+                    <xsl:for-each select="$control-group/preceding-sibling::div[contains-token(@class, 'control-group')][.//button[contains-token(@class, 'add-value')]]">
+                        <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
+                    </xsl:for-each>
                     <xsl:for-each select="$control-group">
                         <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
                     </xsl:for-each>
