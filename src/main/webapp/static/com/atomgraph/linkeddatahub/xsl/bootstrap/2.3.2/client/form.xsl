@@ -1025,8 +1025,8 @@ exclude-result-prefixes="#all"
                         </xsl:result-document>
                     </xsl:for-each>
                     
-                    <!-- remove the preceding property controls -->
-                    <xsl:for-each select="$control-group/preceding-sibling::div[contains-token(@class, 'control-group')][.//button[contains-token(@class, 'add-value')]]">
+                    <!-- remove the following property controls -->
+                    <xsl:for-each select="$control-group/following-sibling::div[contains-token(@class, 'control-group')][1][.//button[contains-token(@class, 'add-value')]]">
                         <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
                     </xsl:for-each>
                     <xsl:for-each select="$control-group">

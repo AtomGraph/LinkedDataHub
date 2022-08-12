@@ -1,3 +1,8 @@
+## [3.2.6] - 2022-08-12
+
+### Changed
+- Fixed instance creation with multiple `rdf:type`s
+
 ## [3.2.5] - 2022-08-11
 ### Added
 - "Actions" button in edit mode allows adding and editing constructors of ontology classes without switching to the admin app
