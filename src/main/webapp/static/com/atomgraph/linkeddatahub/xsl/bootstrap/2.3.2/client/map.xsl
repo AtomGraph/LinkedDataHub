@@ -42,9 +42,9 @@ exclude-result-prefixes="#all"
 
         <xsl:variable name="tile-options" select="ldh:new-object()"/>
         <ixsl:set-property name="source" select="ldh:new('ol.source.OSM', [])" object="$tile-options"/>
-        <xsl:message>exists(ixsl:get(ixsl:window(), 'ol.source.OSM')): <xsl:value-of select="exists(ixsl:get(ixsl:window(), 'ol.source.OSM'))"/></xsl:message>
         <xsl:variable name="tile" select="ldh:new('ol.layer.Tile', [ $tile-options ])"/>
-        <xsl:message>exists($tile): <xsl:value-of select="exists($tile)"/> exists(ixsl:get(ixsl:window(), 'ol.layer.Tile')): <xsl:value-of select="exists(ixsl:get(ixsl:window(), 'ol.layer.Tile'))"/></xsl:message>
+
+        <xsl:message>exists(ixsl:get(ixsl:window(), 'Array')): <xsl:value-of select="exists(ixsl:get(ixsl:window(), 'Array'))"/></xsl:message>
 
         <xsl:variable name="layers" select="ldh:new('Array', [])"/>
         <xsl:sequence select="ixsl:call($layers, 'push', [ $tile ])"/>
