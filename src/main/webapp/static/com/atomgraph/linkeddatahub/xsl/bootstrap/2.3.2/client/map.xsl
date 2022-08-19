@@ -47,18 +47,17 @@ exclude-result-prefixes="#all"
 
         <xsl:variable name="view-options" select="ldh:new-object()"/>
         <xsl:variable name="lon-lat" select="[ $lng, $lat ]"/>
-        <xsl:message>exists($lon-lat): <xsl:value-of select="exists($lon-lat)"/></xsl:message>
 
         <ixsl:set-property name="center" select="ixsl:call(ixsl:get(ixsl:window(), 'ol.proj'), 'fromLonLat', [ $lon-lat ])" object="$view-options"/>
         <ixsl:set-property name="zoom" select="$zoom" object="$view-options"/>
         <xsl:variable name="view" select="ldh:new('ol.View', [ $view-options ])"/>
-        <xsl:message>exists($view): <xsl:value-of select="exists($view)"/> exists(ixsl:get(ixsl:window(), 'ol.View')): <xsl:value-of select="exists(ixsl:get(ixsl:window(), 'ol.View'))"/></xsl:message>
         
         <xsl:variable name="map-options" select="ldh:new-object()"/>
         <ixsl:set-property name="target" select="$canvas-id" object="$map-options"/>
         <ixsl:set-property name="layers" select="$layers" object="$map-options"/>
         <ixsl:set-property name="view" select="$view" object="$map-options"/>
 
+        <xsl:message>$map-options: <xsl:value-of select="serialize($map-options, { 'method': 'adaptive' } )"/></xsl:message>
         <xsl:sequence select="ldh:new('ol.Map', [ $map-options ])"/>
     </xsl:function>
 
