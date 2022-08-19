@@ -57,7 +57,7 @@ exclude-result-prefixes="#all"
         <ixsl:set-property name="layers" select="$layers" object="$map-options"/>
         <ixsl:set-property name="view" select="$view" object="$map-options"/>
 
-        <xsl:message>$map-options: <xsl:value-of select="serialize($map-options, { 'method': 'adaptive' } )"/></xsl:message>
+        <xsl:message>$map-options: <xsl:value-of select="serialize($map-options, map{ 'method': 'adaptive' } )"/></xsl:message>
         <xsl:sequence select="ldh:new('ol.Map', [ $map-options ])"/>
     </xsl:function>
 
