@@ -43,10 +43,10 @@ exclude-result-prefixes="#all"
         <xsl:variable name="tile-options" select="ldh:new-object()"/>
         <ixsl:set-property name="source" select="ldh:new('ol.source.OSM', [])" object="$tile-options"/>
         <xsl:variable name="tile" select="ldh:new('ol.layer.Tile', [ $tile-options ])"/>
-        <xsl:variable name="layers" select="$tile" as="item()?"/>
+        <xsl:variable name="layers" select="[ $tile ]" as="array(*)"/>
 
         <xsl:variable name="view-options" select="ldh:new-object()"/>
-        <xsl:variable name="lon-lat" select="($lng, $lat)" as="xs:float*"/>
+        <xsl:variable name="lon-lat" select="[ $lng, $lat ]" as="array(*)"/>
         <!--<xsl:message>exists($lon-lat): <xsl:value-of select="exists($lon-lat)"/> exists(ixsl:get(ixsl:window(), 'Array')): <xsl:value-of select="exists(ixsl:get(ixsl:window(), 'Array'))"/></xsl:message>-->
 
 <!--        <xsl:sequence select="ixsl:call($lon-lat, 'push', [ $lng ])"/>
