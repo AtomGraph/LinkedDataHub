@@ -430,25 +430,6 @@ LIMIT   100
                 <xsl:apply-templates select="." mode="ac:JSON-LD"/>
             </script>
         </xsl:if>
-        <script>
-            <![CDATA[
-            
-function createMap(target, x,y,z) {
-  return new ol.Map({
-    target: target,
-    layers: [
-      new ol.layer.Tile({
-        source: new ol.source.OSM()
-      })
-    ],
-    view: new ol.View({
-      center: ol.proj.fromLonLat([x, y]),
-      zoom: z
-    })
-  });
-}
-            ]]>
-        </script>
     </xsl:template>
     
     <!-- NAVBAR -->
