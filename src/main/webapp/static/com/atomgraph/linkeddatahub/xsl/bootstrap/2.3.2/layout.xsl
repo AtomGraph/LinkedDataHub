@@ -438,11 +438,11 @@ function createMap(target, x,y,z) {
     target: target,
     layers: [
       new ol.layer.Tile({
-        source: new  ol.source.OSM()
+        source: new ol.source.OSM()
       })
     ],
     view: new ol.View({
-      center: [x, y],
+      center: ol.proj.fromLonLat([x, y]),
       zoom: z
     })
   });
