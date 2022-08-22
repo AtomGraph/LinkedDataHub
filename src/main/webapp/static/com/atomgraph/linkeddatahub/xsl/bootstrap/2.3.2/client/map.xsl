@@ -40,7 +40,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="lng" as="xs:float"/>
         <xsl:param name="zoom" as="xs:integer"/>
 
-        <ixsl:sequence select="js:createMap($canvas-id, $lng, $lat, $zoom)"/>
+        <xsl:sequence select="js:createMap($canvas-id, $lng, $lat, $zoom)"/>
     </xsl:function>
 
     <!-- creates SPARQLMap.Geo object (for containers) -->

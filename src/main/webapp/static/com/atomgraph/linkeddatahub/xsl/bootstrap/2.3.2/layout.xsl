@@ -434,14 +434,14 @@ LIMIT   100
             <![CDATA[
             
 function createMap(target, x,y,z) {
-  return new Map({
+  return new ol.Map({
     target: target,
     layers: [
-      new TileLayer({
-        source: new OSM()
+      new ol.layer.Tile({
+        source: new  ol.source.OSM()
       })
     ],
-    view: new View({
+    view: new ol.View({
       center: [x, y],
       zoom: z
     })
