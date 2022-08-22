@@ -41,7 +41,26 @@ exclude-result-prefixes="#all"
         <xsl:param name="lng" as="xs:float"/>
         <xsl:param name="zoom" as="xs:integer"/>
 
-        <xsl:sequence select="js:createMap($canvas-id, $lng, $lat, $zoom)"/>
+        <!--<xsl:sequence select="js:createMap($canvas-id, $lng, $lat, $zoom)"/>-->
+        
+        <xsl:variable name="tile-options" select="ldh:new-object()"/>
+        <ixsl:set-property name="source" select="ldh:new('ol.source.OSM', [])" object="$tile-options"/>
+        <xsl:variable name="tile" select="ldh:new('ol.layer.Tile', [ $tile-options ])"/>
+        <xsl:variable name="layers" select="[ $tile ]" as="array(*)"/>
+
+        <xsl:variable name="view-options" select="ldh:new-object()"/>
+        <xsl:variable name="lon-lat" select="[ $lng, $lat ]" as="array(*)"/>
+        <ixsl:set-property name="center" select="ixsl:call(ixsl:get(ixsl:window(), 'ol.proj'), 'fromLonLat', [ $lon-lat ])" object="$view-options"/>
+        <!--<ixsl:set-property name="center" select="$lon-lat" object="$view-options"/>-->
+        <ixsl:set-property name="zoom" select="$zoom" object="$view-options"/>
+        <xsl:variable name="view" select="ldh:new('ol.View', [ $view-options ])"/>
+        
+        <xsl:variable name="map-options" select="ldh:new-object()"/>
+        <ixsl:set-property name="target" select="$canvas-id" object="$map-options"/>
+        <ixsl:set-property name="layers" select="$layers" object="$map-options"/>
+        <ixsl:set-property name="view" select="$view" object="$map-options"/>
+
+        <xsl:sequence select="ldh:new('ol.Map', [ $map-options ])"/>
     </xsl:function>
 
     <!-- creates SPARQLMap.Geo object (for containers) -->
