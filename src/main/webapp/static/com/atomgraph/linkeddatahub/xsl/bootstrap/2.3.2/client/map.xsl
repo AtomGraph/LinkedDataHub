@@ -43,23 +43,18 @@ exclude-result-prefixes="#all"
         <xsl:variable name="tile-options" select="ldh:new-object()"/>
         <ixsl:set-property name="source" select="ldh:new('ol.source.OSM', [])" object="$tile-options"/>
         <xsl:variable name="tile" select="ldh:new('ol.layer.Tile', [ $tile-options ])"/>
-
-        <xsl:variable name="layers" select="ldh:new('Array', [ [] ])"/>
-        <xsl:message>exists(ldh:new('Array', [])): <xsl:value-of select="exists(ldh:new('Array', [ [] ]))"/></xsl:message>
-
-        <xsl:sequence select="ixsl:call($layers, 'push', [ $tile ])"/>
-        <xsl:message>exists(ldh:new('Array', [])): <xsl:value-of select="exists(ldh:new('Array', [ [] ]))"/></xsl:message>
+        <xsl:variable name="layers" select="$tile" as="item()?"/>
 
         <xsl:variable name="view-options" select="ldh:new-object()"/>
-        <xsl:variable name="lon-lat" select="ldh:new('Array', [ [] ])"/>
-        <xsl:message>exists($lon-lat): <xsl:value-of select="exists($lon-lat)"/> exists(ixsl:get(ixsl:window(), 'Array')): <xsl:value-of select="exists(ixsl:get(ixsl:window(), 'Array'))"/></xsl:message>
+        <xsl:variable name="lon-lat" select="($lng, $lat)" as="xs:float*"/>
+        <!--<xsl:message>exists($lon-lat): <xsl:value-of select="exists($lon-lat)"/> exists(ixsl:get(ixsl:window(), 'Array')): <xsl:value-of select="exists(ixsl:get(ixsl:window(), 'Array'))"/></xsl:message>-->
 
-        <xsl:sequence select="ixsl:call($lon-lat, 'push', [ $lng ])"/>
-        <xsl:sequence select="ixsl:call($lon-lat, 'push', [ $lat ])"/>
+<!--        <xsl:sequence select="ixsl:call($lon-lat, 'push', [ $lng ])"/>
+        <xsl:sequence select="ixsl:call($lon-lat, 'push', [ $lat ])"/>-->
         <ixsl:set-property name="center" select="ixsl:call(ixsl:get(ixsl:window(), 'ol.proj'), 'fromLonLat', [ $lon-lat ])" object="$view-options"/>
         <ixsl:set-property name="zoom" select="$zoom" object="$view-options"/>
         <xsl:variable name="view" select="ldh:new('ol.View', [ $view-options ])"/>
-        <xsl:message>exists($view): <xsl:value-of select="exists($view)"/> exists(ixsl:get(ixsl:window(), 'ol.View')): <xsl:value-of select="exists(ixsl:get(ixsl:window(), 'ol.View'))"/></xsl:message>
+        <!--<xsl:message>exists($view): <xsl:value-of select="exists($view)"/> exists(ixsl:get(ixsl:window(), 'ol.View')): <xsl:value-of select="exists(ixsl:get(ixsl:window(), 'ol.View'))"/></xsl:message>-->
         
         <xsl:variable name="map-options" select="ldh:new-object()"/>
         <ixsl:set-property name="target" select="$canvas-id" object="$map-options"/>
