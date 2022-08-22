@@ -412,9 +412,8 @@ LIMIT   100
             <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/SPARQLBuilder.js', $ac:contextUri)}" defer="defer"></script>
         </xsl:if>
         <xsl:if test="$load-sparql-map">
-            <!--<script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key={$ac:googleMapsKey}" defer="defer"></script>-->
-            <!--<script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/SPARQLMap.js', $ac:contextUri)}" defer="defer"></script>-->
-            <script src="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.15.1/build/ol.js"></script>
+            <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/dist/en/v7.0.0/legacy/ol.css" type="text/css"></link>
+            <script src="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/dist/en/v7.0.0/legacy/ol.js"></script>
         </xsl:if>
         <xsl:if test="$load-google-charts">
             <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
