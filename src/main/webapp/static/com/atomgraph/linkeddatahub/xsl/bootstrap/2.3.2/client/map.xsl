@@ -49,6 +49,9 @@ exclude-result-prefixes="#all"
         <xsl:variable name="view-options" select="ldh:new-object()"/>
         <xsl:variable name="lon-lat" select="[ $lng, $lat ]" as="array(*)"/>
         <xsl:variable name="center" select="ixsl:call(ixsl:get(ixsl:window(), 'ol.proj'), 'fromLonLat', [ $lon-lat ])"/>
+        <xsl:message>
+            <xsl:value-of select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $center ])"/>
+        </xsl:message>
         <!--
         Saxon-JS issue: https://saxonica.plan.io/issues/5656#note-4 - call view.setCenter() instead
         <ixsl:set-property name="center" select="$center" object="$view-options"/>
