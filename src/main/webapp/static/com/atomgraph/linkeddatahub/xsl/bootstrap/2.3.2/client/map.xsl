@@ -41,8 +41,6 @@ exclude-result-prefixes="#all"
         <xsl:param name="lng" as="xs:float"/>
         <xsl:param name="zoom" as="xs:integer"/>
 
-        <!--<xsl:sequence select="js:createMap($canvas-id, $lng, $lat, $zoom)"/>-->
-        
         <xsl:variable name="tile-options" select="ldh:new-object()"/>
         <ixsl:set-property name="source" select="ldh:new('ol.source.OSM', [])" object="$tile-options"/>
         <xsl:variable name="tile" select="ldh:new('ol.layer.Tile', [ $tile-options ])"/>
