@@ -60,7 +60,7 @@ exclude-result-prefixes="#all"
         <xsl:message>
             string($js-statement/@statement): <xsl:value-of select="string($js-statement/@statement)"/>
             serialize($lon-lat): <xsl:value-of select="serialize($lon-lat)"/>
-            serialize($view-options): <xsl:value-of select="serialize($view-options)"/>
+            $view-options: <xsl:value-of select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $view-options ])"/>
         </xsl:message>
         <xsl:variable name="view" select="ldh:new('ol.View', [ $view-options ])"/>
         
