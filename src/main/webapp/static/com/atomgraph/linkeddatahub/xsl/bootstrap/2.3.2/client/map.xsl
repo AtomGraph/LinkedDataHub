@@ -49,12 +49,12 @@ exclude-result-prefixes="#all"
         <xsl:variable name="view-options" select="ldh:new-object()"/>
         <!--
         <xsl:variable name="lon-lat" select="[ $lng, $lat ]" as="array(*)"/>
-        <ixsl:set-property name="center" select="ixsl:call(ixsl:get(ixsl:window(), 'ol.proj'), 'fromLonLat', [ $lon-lat ])" object="$view-options"/>
+        <ixsl:set-property name="center" select="[ ixsl:call(ixsl:get(ixsl:window(), 'ol.proj'), 'fromLonLat', [ $lon-lat ]) ]" object="$view-options"/>
         -->
         <xsl:variable name="js-statement" as="element()">
             <root statement="ol.proj.fromLonLat([ {$lng}, {$lat} ])"/>
         </xsl:variable>
-        <xsl:variable name="lon-lat" select="ixsl:eval(string($js-statement/@statement))" as="array(*)"/>
+        <xsl:variable name="lon-lat" select="[ ixsl:eval(string($js-statement/@statement)) ]" as="array(*)"/>
         <ixsl:set-property name="center" select="$lon-lat" object="$view-options"/>
         <ixsl:set-property name="zoom" select="$zoom" object="$view-options"/>
         <xsl:message>
