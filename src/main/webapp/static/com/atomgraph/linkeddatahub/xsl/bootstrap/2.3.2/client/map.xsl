@@ -47,22 +47,14 @@ exclude-result-prefixes="#all"
         <xsl:variable name="layers" select="[ $tile ]" as="array(*)"/>
 
         <xsl:variable name="view-options" select="ldh:new-object()"/>
-        <!--
         <xsl:variable name="lon-lat" select="[ $lng, $lat ]" as="array(*)"/>
-        <ixsl:set-property name="center" select="ixsl:call(ixsl:get(ixsl:window(), 'ol.proj'), 'fromLonLat', [ $lon-lat ])" object="$view-options"/>
+        <xsl:variable name="center" select="ixsl:call(ixsl:get(ixsl:window(), 'ol.proj'), 'fromLonLat', [ $lon-lat ])" as="array(*)"/>
+        <!--
+        Saxon-JS issue: https://saxonica.plan.io/issues/5656#note-4 - call view.setCenter() instead
+        <ixsl:set-property name="center" select="$center" object="$view-options"/>
         -->
-        <xsl:variable name="js-statement" as="element()">
-            <root statement="ol.proj.fromLonLat([ {$lng}, {$lat} ])"/>
-        </xsl:variable>
-        <xsl:variable name="lon-lat" select="ixsl:eval(string($js-statement/@statement))"/>
-        <ixsl:set-property name="center" select="[ $lon-lat ]" object="$view-options"/>
-        <ixsl:set-property name="zoom" select="$zoom" object="$view-options"/>
-        <xsl:message>
-            string($js-statement/@statement): <xsl:value-of select="string($js-statement/@statement)"/>
-            serialize($lon-lat): <xsl:value-of select="serialize($lon-lat)"/>
-            $view-options: <xsl:value-of select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $view-options ])"/>
-        </xsl:message>
         <xsl:variable name="view" select="ldh:new('ol.View', [ $view-options ])"/>
+        <xsl:sequence select="ixsl:call($view, 'setCenter', [ $center ])[current-date() lt xs:date('2000-01-01')]"/>
         
         <xsl:variable name="map-options" select="ldh:new-object()"/>
         <ixsl:set-property name="target" select="$canvas-id" object="$map-options"/>
