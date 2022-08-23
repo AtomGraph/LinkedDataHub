@@ -652,8 +652,8 @@ WHERE
                 <xsl:variable name="center-lat" select="56" as="xs:float"/>
                 <xsl:variable name="center-lng" select="10" as="xs:float"/>
                 <xsl:variable name="zoom" select="4" as="xs:integer"/>
-                <xsl:variable name="map" select="ac:create-map($canvas-id, $center-lat, $center-lng, $zoom)"/>
-                
+                <xsl:variable name="map" select="ldh:create-map($canvas-id, $center-lat, $center-lng, $zoom)"/>
+
                 <ixsl:set-property name="map" select="$map" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
                 
                 <xsl:for-each select="$results//rdf:Description[geo:lat/text() castable as xs:float][geo:long/text() castable as xs:float]">

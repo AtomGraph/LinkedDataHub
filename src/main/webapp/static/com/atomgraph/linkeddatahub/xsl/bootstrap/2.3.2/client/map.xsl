@@ -35,7 +35,7 @@ exclude-result-prefixes="#all"
     
     <!-- creates Google Maps object -->
     
-    <xsl:function name="ac:create-map">
+    <xsl:function name="ldh:create-map">
         <xsl:param name="canvas-id" as="xs:string"/>
         <xsl:param name="lat" as="xs:float"/>
         <xsl:param name="lng" as="xs:float"/>
@@ -49,22 +49,20 @@ exclude-result-prefixes="#all"
         <xsl:variable name="view-options" select="ldh:new-object()"/>
         <xsl:variable name="lon-lat" select="[ $lng, $lat ]" as="array(*)"/>
         <xsl:variable name="center" select="ixsl:call(ixsl:get(ixsl:window(), 'ol.proj'), 'fromLonLat', [ $lon-lat ])"/>
-        <xsl:message>
-            <xsl:value-of select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $center ])"/>
-        </xsl:message>
         <!--
         Saxon-JS issue: https://saxonica.plan.io/issues/5656#note-4 - call view.setCenter() instead
         <ixsl:set-property name="center" select="$center" object="$view-options"/>
         -->
         <xsl:variable name="view" select="ldh:new('ol.View', [ $view-options ])"/>
-        <xsl:sequence select="ixsl:call($view, 'setCenter', [ $center ])[current-date() lt xs:date('2000-01-01')]"/>
         
         <xsl:variable name="map-options" select="ldh:new-object()"/>
         <ixsl:set-property name="target" select="$canvas-id" object="$map-options"/>
         <ixsl:set-property name="layers" select="$layers" object="$map-options"/>
         <ixsl:set-property name="view" select="$view" object="$map-options"/>
 
-        <xsl:sequence select="ldh:new('ol.Map', [ $map-options ])"/>
+        <xsl:variable name="map" select="ldh:new('ol.Map', [ $map-options ])"/>
+        <xsl:sequence select="ixsl:call($view, 'setCenter', [ $center ])[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:sequence select="$map"/>
     </xsl:function>
 
     <!-- creates SPARQLMap.Geo object (for containers) -->
