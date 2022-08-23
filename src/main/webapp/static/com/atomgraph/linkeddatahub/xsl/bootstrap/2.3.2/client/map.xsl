@@ -53,6 +53,7 @@ exclude-result-prefixes="#all"
         Saxon-JS issue: https://saxonica.plan.io/issues/5656#note-4 - call view.setCenter() instead
         <ixsl:set-property name="center" select="$center" object="$view-options"/>
         -->
+        <ixsl:set-property name="zoom" select="$zoom" object="$view-options"/>
         <xsl:variable name="view" select="ldh:new('ol.View', [ $view-options ])"/>
         
         <xsl:variable name="map-options" select="ldh:new-object()"/>
