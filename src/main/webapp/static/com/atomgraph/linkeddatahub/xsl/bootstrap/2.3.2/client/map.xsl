@@ -58,7 +58,7 @@ exclude-result-prefixes="#all"
         <ixsl:set-property name="center" select="$lon-lat" object="$view-options"/>-->
         <ixsl:set-property name="zoom" select="$zoom" object="$view-options"/>
         <xsl:message>
-            string($js-statement/@statement): <xsl:value-of select="string($js-statement/@statement)"/>
+            <!-- string($js-statement/@statement): <xsl:value-of select="string($js-statement/@statement)"/> -->
             serialize($lon-lat): <xsl:value-of select="serialize($lon-lat)"/>
             $view-options: <xsl:value-of select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $view-options ])"/>
         </xsl:message>
