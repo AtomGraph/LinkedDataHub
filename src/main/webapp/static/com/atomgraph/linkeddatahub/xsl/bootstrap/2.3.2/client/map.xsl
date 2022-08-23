@@ -54,10 +54,11 @@ exclude-result-prefixes="#all"
         <xsl:variable name="js-statement" as="element()">
             <root statement="ol.proj.fromLonLat([ {$lng}, {$lat} ])"/>
         </xsl:variable>
+        <xsl:variable name="lon-lat" select="ixsl:eval(string($js-statement/@statement))"/>
         <xsl:message>
             string($js-statement/@statement): <xsl:value-of select="string($js-statement/@statement)"/>
+            serialize($lon-lat): <xsl:value-of select="serialize($lon-lat)"/>
         </xsl:message>
-        <xsl:variable name="lon-lat" select="ixsl:eval(string($js-statement/@statement))"/>
         
         <ixsl:set-property name="center" select="$lon-lat" object="$view-options"/>
         <ixsl:set-property name="zoom" select="$zoom" object="$view-options"/>
