@@ -104,20 +104,23 @@ exclude-result-prefixes="#all"
     <xsl:template name="ldh:AddMapMarker">
         <xsl:context-item as="element()" use="required"/> <!-- rdf:Description -->
         <xsl:param name="map" as="item()"/>
-
-<!--        <xsl:variable name="lat-lng" select="ldh:new('google.maps.LatLng', [ xs:float(geo:lat/text()), xs:float(geo:long/text()) ])"/>
-        <xsl:variable name="marker-options" select="ldh:new-object()"/>
-        <ixsl:set-property name="position" select="$lat-lng" object="$marker-options"/>
-        <ixsl:set-property name="map" select="$map" object="$marker-options"/>
-        <ixsl:set-property name="label" select="ac:label(.)" object="$marker-options"/>
-        <xsl:variable name="marker" select="ldh:new('google.maps.Marker', [ $marker-options ])"/>
-         make sure $marker is evaluated 
-        <xsl:sequence select="$marker[current-date() lt xs:date('2000-01-01')]"/>
-        <xsl:if test="@rdf:about">
-            <xsl:variable name="uri" select="string(@rdf:about)" as="xs:string"/>
-             addGoogleMapsListener() is defined in jquery.js 
-            <xsl:sequence select="ixsl:call(ixsl:window(), 'addGoogleMapsListener', [ $marker, 'click', (), 'onMarkerClick', $map, $marker, $uri ])[current-date() lt xs:date('2000-01-01')]"/>
-        </xsl:if>-->
+        
+        <xsl:variable name="lon-lat" select="[ xs:float(geo:lat/text()), xs:float(geo:long/text()) ]" as="array(*)"/>
+        <xsl:variable name="coord" select="ixsl:call(ixsl:get(ixsl:window(), 'ol.proj'), 'fromLonLat', [ $lon-lat ])"/>
+        <xsl:variable name="geometry" select="ldh:new('ol.geom.Point', [ $coord ])"/>
+        <xsl:variable name="feature-options" select="ldh:new-object()"/>
+        <ixsl:set-property name="geometry" select="$geometry" object="$feature-options"/>
+        <xsl:variable name="feature" select="ldh:new('ol.Feature', [ $feature-options ])"/>
+        
+        <xsl:variable name="layer-options" select="ldh:new-object()"/>
+        <xsl:variable name="vector-options" select="ldh:new-object()"/>
+        <ixsl:set-property name="features" select="[ $features ]" object="$vector-options"/>
+        <xsl:variable name="source" select="ldh:new('ol.layer.Vector', [ $vector-options ])"/>
+        <ixsl:set-property name="source" select="$source" object="$layer-options"/>
+        <xsl:variable name="layer" select="ldh:new('ol.layer.Vector', [ $feature-options ])"/>
+        
+        <xsl:variable name="map" select="ixsl:get(ixsl:window(), 'LinkedDataHub.map')"/>
+        <xsl:sequence select="ixsl:call($map, 'addLayer', [ $layer ])"/>
     </xsl:template>
     
     <!-- CALLBACKS -->
