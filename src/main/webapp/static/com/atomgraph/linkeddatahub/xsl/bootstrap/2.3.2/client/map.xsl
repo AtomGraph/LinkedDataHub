@@ -126,10 +126,10 @@ exclude-result-prefixes="#all"
             $feature-options: <xsl:value-of select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $feature-options ])"/>
         </xsl:message>
 
-        <xsl:variable name="feature" select="ldh:new('ol.Feature', [ $feature-options ])"/>
+        <xsl:variable name="features" select="[ ldh:new('ol.Feature', [ $feature-options ]) ]" as="array(*)"/>
         
         <xsl:variable name="vector-options" select="ldh:new-object()"/>
-        <!--<ixsl:set-property name="features" select="[ $feature ]" object="$vector-options"/>-->
+        <!--<ixsl:set-property name="features" select="$features" object="$vector-options"/>-->
 
         <xsl:message>
             $vector-options: <xsl:value-of select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $vector-options ])"/>
@@ -140,7 +140,7 @@ exclude-result-prefixes="#all"
 
         <xsl:variable name="layer-options" select="ldh:new-object()"/>
         <ixsl:set-property name="source" select="$source" object="$layer-options"/>
-        <xsl:variable name="layer" select="ldh:new('ol.layer.Vector', [ $feature-options ])"/>
+        <xsl:variable name="layer" select="ldh:new('ol.layer.Vector', [ $layer-options ])"/>
         
         <xsl:message>
             $layer: <xsl:value-of select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $layer ])"/>
