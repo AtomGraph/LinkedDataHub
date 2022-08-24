@@ -114,7 +114,7 @@ exclude-result-prefixes="#all"
         
         <xsl:variable name="layer-options" select="ldh:new-object()"/>
         <xsl:variable name="vector-options" select="ldh:new-object()"/>
-        <ixsl:set-property name="features" select="[ $features ]" object="$vector-options"/>
+        <ixsl:set-property name="features" select="[ $feature ]" object="$vector-options"/>
         <xsl:variable name="source" select="ldh:new('ol.layer.Vector', [ $vector-options ])"/>
         <ixsl:set-property name="source" select="$source" object="$layer-options"/>
         <xsl:variable name="layer" select="ldh:new('ol.layer.Vector', [ $feature-options ])"/>
