@@ -128,15 +128,17 @@ exclude-result-prefixes="#all"
 
         <xsl:variable name="feature" select="ldh:new('ol.Feature', [ $feature-options ])"/>
         
-        <xsl:variable name="layer-options" select="ldh:new-object()"/>
         <xsl:variable name="vector-options" select="ldh:new-object()"/>
-        <ixsl:set-property name="features" select="[ $feature ]" object="$vector-options"/>
+        <!--<ixsl:set-property name="features" select="[ $feature ]" object="$vector-options"/>-->
 
         <xsl:message>
             $vector-options: <xsl:value-of select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $vector-options ])"/>
         </xsl:message>
 
         <xsl:variable name="source" select="ldh:new('ol.source.Vector', [ $vector-options ])"/>
+        <xsl:sequence select="ixsl:call($source, 'addFeatures', [ $features ])[current-date() lt xs:date('2000-01-01')]"/>
+
+        <xsl:variable name="layer-options" select="ldh:new-object()"/>
         <ixsl:set-property name="source" select="$source" object="$layer-options"/>
         <xsl:variable name="layer" select="ldh:new('ol.layer.Vector', [ $feature-options ])"/>
         
@@ -145,7 +147,7 @@ exclude-result-prefixes="#all"
         </xsl:message>
 
         <xsl:variable name="map" select="ixsl:get(ixsl:window(), 'LinkedDataHub.map')"/>
-        <xsl:sequence select="ixsl:call($map, 'addLayer', [ $layer ])"/>
+        <xsl:sequence select="ixsl:call($map, 'addLayer', [ $layer ])[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
     
     <!-- CALLBACKS -->
