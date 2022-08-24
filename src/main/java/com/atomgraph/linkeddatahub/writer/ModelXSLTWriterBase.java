@@ -293,7 +293,7 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
                     return null;
                 }
             }).
-            filter(link -> link != null && link.getRel().equals(property.getURI())).
+            filter(link -> link != null && link.getRel() != null && link.getRel().equals(property.getURI())).
             map(link -> link.getHref()).
             collect(Collectors.toList());
 
