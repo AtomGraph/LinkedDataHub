@@ -1008,7 +1008,7 @@ LIMIT   100
                 <xsl:apply-templates select="." mode="ac:label"/>
                 
                 <xsl:variable name="request-access-to" select="ac:build-uri(lacl:requestAccess/@rdf:resource, map{ 'access-to': string(ac:uri()) } )" as="xs:anyURI"/>
-                <a href="{ldh:href($ldt:base, ldh:absolute-path(ldh:href()), (), $request-access-to)}" class="btn btn-primary pull-right">
+                <a href="{ldh:href($ldt:base, ldh:absolute-path(ldh:href()), map{}, $request-access-to)}" class="btn btn-primary pull-right">
                     <xsl:value-of>
                         <xsl:apply-templates select="key('resources', 'request-access', document('translations.rdf'))" mode="ac:label"/>
                     </xsl:value-of>
