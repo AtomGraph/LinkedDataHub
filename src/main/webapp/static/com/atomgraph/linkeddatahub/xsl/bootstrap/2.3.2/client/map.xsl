@@ -106,21 +106,42 @@ exclude-result-prefixes="#all"
         <xsl:param name="map" as="item()"/>
         
         <xsl:variable name="lon-lat" select="[ xs:float(geo:lat/text()), xs:float(geo:long/text()) ]" as="array(*)"/>
+        <xsl:message>
+            $lon-lat: <xsl:value-of select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $lon-lat ])"/>
+        </xsl:message>
+
         <xsl:variable name="coord" select="ixsl:call(ixsl:get(ixsl:window(), 'ol.proj'), 'fromLonLat', [ $lon-lat ])"/>
+        <xsl:message>
+            $coord: <xsl:value-of select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $coord ])"/>
+        </xsl:message>
+
         <xsl:variable name="geometry" select="ldh:new('ol.geom.Point', [ $coord ])"/>
+        <xsl:message>
+            $geometry: <xsl:value-of select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $geometry ])"/>
+        </xsl:message>
+        
         <xsl:variable name="feature-options" select="ldh:new-object()"/>
         <ixsl:set-property name="geometry" select="$geometry" object="$feature-options"/>
+        <xsl:message>
+            $feature-options: <xsl:value-of select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $feature-options ])"/>
+        </xsl:message>
+
         <xsl:variable name="feature" select="ldh:new('ol.Feature', [ $feature-options ])"/>
         
         <xsl:variable name="layer-options" select="ldh:new-object()"/>
         <xsl:variable name="vector-options" select="ldh:new-object()"/>
         <ixsl:set-property name="features" select="[ $feature ]" object="$vector-options"/>
+
+        <xsl:message>
+            $vector-options: <xsl:value-of select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $vector-options ])"/>
+        </xsl:message>
+
         <xsl:variable name="source" select="ldh:new('ol.source.Vector', [ $vector-options ])"/>
         <ixsl:set-property name="source" select="$source" object="$layer-options"/>
         <xsl:variable name="layer" select="ldh:new('ol.layer.Vector', [ $feature-options ])"/>
         
         <xsl:message>
-            <xsl:value-of select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $layer ])"/>
+            $layer: <xsl:value-of select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $layer ])"/>
         </xsl:message>
 
         <xsl:variable name="map" select="ixsl:get(ixsl:window(), 'LinkedDataHub.map')"/>
