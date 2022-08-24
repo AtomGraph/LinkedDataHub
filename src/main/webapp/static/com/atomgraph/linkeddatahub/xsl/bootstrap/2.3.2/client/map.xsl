@@ -105,7 +105,7 @@ exclude-result-prefixes="#all"
         <xsl:context-item as="element()" use="required"/> <!-- rdf:Description -->
         <xsl:param name="map" as="item()"/>
         
-        <xsl:variable name="lon-lat" select="[ xs:float(geo:lat/text()), xs:float(geo:long/text()) ]" as="array(*)"/>
+        <xsl:variable name="lon-lat" select="[ xs:float(geo:long/text()), xs:float(geo:lat/text()) ]" as="array(*)"/>
         <xsl:message>
             $lon-lat: <xsl:value-of select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $lon-lat ])"/>
         </xsl:message>
