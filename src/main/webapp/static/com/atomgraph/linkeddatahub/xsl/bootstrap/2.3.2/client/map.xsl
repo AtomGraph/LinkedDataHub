@@ -119,6 +119,10 @@ exclude-result-prefixes="#all"
         <ixsl:set-property name="source" select="$source" object="$layer-options"/>
         <xsl:variable name="layer" select="ldh:new('ol.layer.Vector', [ $feature-options ])"/>
         
+        <xsl:message>
+            <xsl:value-of select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $layer ])"/>
+        </xsl:message>
+
         <xsl:variable name="map" select="ixsl:get(ixsl:window(), 'LinkedDataHub.map')"/>
         <xsl:sequence select="ixsl:call($map, 'addLayer', [ $layer ])"/>
     </xsl:template>
