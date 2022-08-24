@@ -493,7 +493,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="type" select="ancestor::form/@about" as="xs:anyURI"/> <!-- the URI of the class that constructors are attached to -->
         <xsl:variable name="query-string" select="replace($type-graph-query, '\$Type', '&lt;' || $type || '&gt;')" as="xs:string"/>
         <xsl:variable name="results-uri" select="ac:build-uri(resolve-uri('admin/sparql', $ldt:base), map{ 'query': $query-string })" as="xs:anyURI"/>
-        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), $results-uri)" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), (), $results-uri)" as="xs:anyURI"/>
 
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
 
@@ -554,7 +554,7 @@ exclude-result-prefixes="#all"
             <xsl:variable name="update-string" select="replace($constructor-update-string, '\$this', '&lt;' || $constructor-uri || '&gt;')" as="xs:string"/>
             <xsl:variable name="update-string" select="replace($update-string, '\$text', '&quot;&quot;&quot;' || $construct-string || '&quot;&quot;&quot;')" as="xs:string"/>
             <!-- what if the constructor URI is not relative to the document URI? -->
-            <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ac:document-uri($constructor-uri))" as="xs:anyURI"/>
+            <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), (), ac:document-uri($constructor-uri))" as="xs:anyURI"/>
             <xsl:variable name="request" as="item()*">
                 <ixsl:schedule-action http-request="map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string }">
                     <xsl:call-template name="onConstructorUpdate">
@@ -619,7 +619,7 @@ exclude-result-prefixes="#all"
                         <xsl:variable name="update-string" select="replace($constructor-insert-string, '\$this', '&lt;' || $constructor-uri || '&gt;')" as="xs:string"/>
                         <xsl:variable name="update-string" select="replace($update-string, '\$Type', '&lt;' || $type || '&gt;')" as="xs:string"/>
                         <!-- what if the constructor URI is not relative to the document URI? -->
-                        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ac:document-uri($constructor-uri))" as="xs:anyURI"/>
+                        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), (), ac:document-uri($constructor-uri))" as="xs:anyURI"/>
                         <xsl:variable name="request" as="item()*">
                             <ixsl:schedule-action http-request="map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string }">
                                 <xsl:call-template name="onConstructorAppend">

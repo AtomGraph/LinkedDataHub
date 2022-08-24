@@ -1008,7 +1008,7 @@ LIMIT   100
                 <xsl:apply-templates select="." mode="ac:label"/>
                 
                 <xsl:variable name="request-access-to" select="ac:build-uri(lacl:requestAccess/@rdf:resource, map{ 'access-to': string(ac:uri()) } )" as="xs:anyURI"/>
-                <a href="{ldh:href($ldt:base, ldh:absolute-path(ldh:href()), $request-access-to)}" class="btn btn-primary pull-right">
+                <a href="{ldh:href($ldt:base, ldh:absolute-path(ldh:href()), (), $request-access-to)}" class="btn btn-primary pull-right">
                     <xsl:value-of>
                         <xsl:apply-templates select="key('resources', 'request-access', document('translations.rdf'))" mode="ac:label"/>
                     </xsl:value-of>
@@ -1083,7 +1083,7 @@ LIMIT   100
             </div>
 
             <div class="pull-right">
-                <a href="{ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ac:uri(), xs:anyURI('&ac;EditMode'))}" title="{ac:label(key('resources', 'nav-bar-action-edit-graph-title', document('translations.rdf')))}">
+                <a href="{ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ldh:query-params(xs:anyURI('&ac;EditMode')),  ac:uri())}" title="{ac:label(key('resources', 'nav-bar-action-edit-graph-title', document('translations.rdf')))}">
                     <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="ldh:logo">
                         <xsl:with-param name="class" select="'btn' || (if ($ac:mode = '&ac;EditMode') then ' active' else ()) || (if (not($acl:mode = '&acl;Write')) then ' disabled' else ())"/>
                     </xsl:apply-templates>
