@@ -655,8 +655,11 @@ WHERE
                 <xsl:variable name="map" select="ldh:create-map($canvas-id, $center-lat, $center-lng, $zoom)"/>
 
                 <ixsl:set-property name="map" select="$map" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+                <xsl:message>YES $map</xsl:message>
                 
                 <xsl:for-each select="$results//rdf:Description[geo:lat/text() castable as xs:float][geo:long/text() castable as xs:float]">
+                    <xsl:message>YES lat/long</xsl:message>
+                    
                     <xsl:call-template name="ldh:AddMapMarker">
                         <xsl:with-param name="map" select="$map"/>
                     </xsl:call-template>
