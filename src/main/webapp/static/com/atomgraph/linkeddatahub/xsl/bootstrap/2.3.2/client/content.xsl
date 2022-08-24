@@ -240,7 +240,7 @@ exclude-result-prefixes="#all"
                 </xsl:for-each>
 
                 <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': $query-string })" as="xs:anyURI"/>
-                <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), (), $results-uri)" as="xs:anyURI"/>
+                <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), map{}, $results-uri)" as="xs:anyURI"/>
                 
                 <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                     <xsl:call-template name="onQueryContentLoad">
@@ -367,7 +367,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'resource-content')]" as="element()"/>
         <xsl:variable name="content-value" select="ixsl:get($container, 'dataset.contentValue')" as="xs:anyURI"/> <!-- get the value of the @data-content-value attribute -->
         <xsl:variable name="mode" select="if (ixsl:contains($container, 'dataset.contentMode')) then xs:anyURI(ixsl:get($container, 'dataset.contentMode')) else ()" as="xs:anyURI?"/> <!-- get the value of the @data-content-mode attribute -->
-        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), (), $content-value)"/>
+        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), map{}, $content-value)"/>
 
         <xsl:variable name="constructor" as="document-node()">
             <xsl:document>
@@ -463,7 +463,7 @@ exclude-result-prefixes="#all"
                 <xsl:variable name="update-string" select="replace($content-update-string, '\$this', '&lt;' || ac:uri() || '&gt;')" as="xs:string"/>
                 <xsl:variable name="update-string" select="replace($update-string, '\$content', '&lt;' || $content-uri || '&gt;')" as="xs:string"/>
                 <xsl:variable name="update-string" select="replace($update-string, '\$newValue', '&quot;' || $content-string || '&quot;^^&lt;&rdf;XMLLiteral&gt;')" as="xs:string"/>
-                <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), (), ac:uri())" as="xs:anyURI"/>
+                <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), map{}, ac:uri())" as="xs:anyURI"/>
                 <xsl:variable name="request" as="item()*">
                     <ixsl:schedule-action http-request="map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string }">
                         <xsl:call-template name="onXHTMLContentUpdate">
@@ -482,7 +482,7 @@ exclude-result-prefixes="#all"
                 <xsl:variable name="update-string" select="replace($content-append-string, '\$this', '&lt;' || ac:uri() || '&gt;')" as="xs:string"/>
                 <xsl:variable name="update-string" select="replace($update-string, '\$content', '&lt;' || $content-uri || '&gt;')" as="xs:string"/>
                 <xsl:variable name="update-string" select="replace($update-string, '\$value', '&quot;' || $content-string || '&quot;^^&lt;&rdf;XMLLiteral&gt;')" as="xs:string"/>
-                <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), (), ac:uri())" as="xs:anyURI"/>
+                <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), map{}, ac:uri())" as="xs:anyURI"/>
                 <xsl:variable name="request" as="item()*">
                     <ixsl:schedule-action http-request="map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string }">
                         <xsl:call-template name="onXHTMLContentUpdate">
@@ -514,7 +514,7 @@ exclude-result-prefixes="#all"
                 <xsl:variable name="update-string" select="replace($update-string, '\$content', '&lt;' || $content-uri || '&gt;')" as="xs:string"/>
                 <xsl:variable name="update-string" select="replace($update-string, '\$newValue', '&lt;' || $content-value || '&gt;')" as="xs:string"/>
                 <xsl:variable name="update-string" select="if ($mode) then replace($update-string, '\$newMode', '&lt;' || $mode || '&gt;') else $update-string" as="xs:string"/>
-                <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), (), ac:uri())" as="xs:anyURI"/>
+                <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), map{}, ac:uri())" as="xs:anyURI"/>
                 <xsl:variable name="request" as="item()*">
                     <ixsl:schedule-action http-request="map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string }">
                         <xsl:call-template name="onResourceContentUpdate">
@@ -536,7 +536,7 @@ exclude-result-prefixes="#all"
                 <xsl:variable name="update-string" select="replace($update-string, '\$content', '&lt;' || $content-uri || '&gt;')" as="xs:string"/>
                 <xsl:variable name="update-string" select="replace($update-string, '\$value', '&lt;' || $content-value || '&gt;')" as="xs:string"/>
                 <xsl:variable name="update-string" select="if ($mode) then replace($update-string, '\$mode', '&lt;' || $mode || '&gt;') else $update-string" as="xs:string"/>
-                <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), (), ac:uri())" as="xs:anyURI"/>
+                <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), map{}, ac:uri())" as="xs:anyURI"/>
                 <xsl:variable name="request" as="item()*">
                     <ixsl:schedule-action http-request="map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string }">
                         <xsl:call-template name="onResourceContentUpdate">
@@ -566,7 +566,7 @@ exclude-result-prefixes="#all"
                     <xsl:variable name="content-uri" select="$container/@about" as="xs:anyURI"/>
                     <xsl:variable name="update-string" select="replace($content-delete-string, '\$this', '&lt;' || ac:uri() || '&gt;')" as="xs:string"/>
                     <xsl:variable name="update-string" select="replace($update-string, '\$content', '&lt;' || $content-uri || '&gt;')" as="xs:string"/>
-                    <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), (), ac:uri())" as="xs:anyURI"/>
+                    <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), map{}, ac:uri())" as="xs:anyURI"/>
                     <xsl:variable name="request" as="item()*">
                         <ixsl:schedule-action http-request="map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string }">
                             <xsl:call-template name="onContentDelete">
@@ -803,7 +803,7 @@ exclude-result-prefixes="#all"
             </xsl:result-document>
         </xsl:for-each>
 
-        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), (), $content-value)" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), map{}, $content-value)" as="xs:anyURI"/>
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': ac:document-uri($request-uri), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                 <xsl:call-template name="onContentValueLoad">
