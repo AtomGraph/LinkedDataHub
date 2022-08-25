@@ -133,19 +133,18 @@ exclude-result-prefixes="#all"
 <xsl:message>
     $style-options: <xsl:value-of select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $style-options ])"/>
 </xsl:message>
-
         
-        <xsl:variable name="vector-options" select="ldh:new-object()"/>
-        <ixsl:set-property name="style" select="$style" object="$vector-options"/>
-        <!--<ixsl:set-property name="features" select="$features" object="$vector-options"/>-->
-        <xsl:variable name="source" select="ldh:new('ol.source.Vector', [ $vector-options ])"/>
+        <xsl:variable name="source-options" select="ldh:new-object()"/>
+        <!--<ixsl:set-property name="features" select="$features" object="$source-options"/>-->
+        <xsl:variable name="source" select="ldh:new('ol.source.Vector', [ $source-options ])"/>
         <xsl:sequence select="ixsl:call($source, 'addFeatures', [ $features ])[current-date() lt xs:date('2000-01-01')]"/>
 <xsl:message>
-    $vector-options: <xsl:value-of select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $vector-options ])"/>
+    $source-options: <xsl:value-of select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $source-options ])"/>
 </xsl:message>
 
         <xsl:variable name="layer-options" select="ldh:new-object()"/>
         <ixsl:set-property name="source" select="$source" object="$layer-options"/>
+        <ixsl:set-property name="style" select="$style" object="$layer-options"/>
         <xsl:variable name="layer" select="ldh:new('ol.layer.Vector', [ $layer-options ])"/>
         
         <xsl:variable name="map" select="ixsl:get(ixsl:window(), 'LinkedDataHub.map')"/>
