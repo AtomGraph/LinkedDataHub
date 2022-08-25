@@ -102,7 +102,7 @@ exclude-result-prefixes="#all"
     <!-- add marker logic ported from SPARQLMap -->
     
     <xsl:template name="ldh:AddMapMarkers">
-        <xsl:param name="resources" as="element()"/> <!-- rdf:Descriptions -->
+        <xsl:param name="resources" as="element()*"/> <!-- rdf:Descriptions -->
         <xsl:param name="map" as="item()"/>
 
         <xsl:variable name="feature-seq" as="item()*">
