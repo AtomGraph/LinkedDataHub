@@ -101,40 +101,25 @@ exclude-result-prefixes="#all"
     
     <!-- add marker logic ported from SPARQLMap -->
     
-    <xsl:template name="ldh:AddMapMarker">
-        <xsl:context-item as="element()" use="required"/> <!-- rdf:Description -->
+    <xsl:template name="ldh:AddMapMarkers">
+        <xsl:param name="resources" as="element()"/> <!-- rdf:Descriptions -->
         <xsl:param name="map" as="item()"/>
-        
-        <xsl:variable name="lon-lat" select="[ xs:float(geo:long/text()), xs:float(geo:lat/text()) ]" as="array(*)"/>
-        <xsl:message>
-            $lon-lat: <xsl:value-of select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $lon-lat ])"/>
-        </xsl:message>
 
-        <xsl:variable name="coord" select="ixsl:call(ixsl:get(ixsl:window(), 'ol.proj'), 'fromLonLat', [ $lon-lat ])"/>
-        <xsl:message>
-            $coord: <xsl:value-of select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $coord ])"/>
-        </xsl:message>
+        <xsl:variable name="feature-seq" as="item()*">
+            <xsl:for-each select="$resources">
+                <xsl:variable name="lon-lat" select="[ xs:float(geo:long/text()), xs:float(geo:lat/text()) ]" as="array(*)"/>
+                <xsl:variable name="coord" select="ixsl:call(ixsl:get(ixsl:window(), 'ol.proj'), 'fromLonLat', [ $lon-lat ])"/>
+                <xsl:variable name="geometry" select="ldh:new('ol.geom.Point', [ $coord ])"/>
 
-        <xsl:variable name="geometry" select="ldh:new('ol.geom.Point', [ $coord ])"/>
-        <xsl:message>
-            $geometry: <xsl:value-of select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $geometry ])"/>
-        </xsl:message>
-        
-        <xsl:variable name="feature-options" select="ldh:new-object()"/>
-        <ixsl:set-property name="geometry" select="$geometry" object="$feature-options"/>
-        <xsl:message>
-            $feature-options: <xsl:value-of select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $feature-options ])"/>
-        </xsl:message>
-
-        <xsl:variable name="features" select="[ ldh:new('ol.Feature', [ $feature-options ]) ]" as="array(*)"/>
+                <xsl:variable name="feature-options" select="ldh:new-object()"/>
+                <ixsl:set-property name="geometry" select="$geometry" object="$feature-options"/>
+                <xsl:sequence select="ldh:new('ol.Feature', [ $feature-options ])"/>
+            </xsl:for-each>
+        </xsl:variable>
+        <xsl:variable name="features" select="array{ $feature-seq }" as="array(*)"/>
         
         <xsl:variable name="vector-options" select="ldh:new-object()"/>
         <!--<ixsl:set-property name="features" select="$features" object="$vector-options"/>-->
-
-        <xsl:message>
-            $vector-options: <xsl:value-of select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $vector-options ])"/>
-        </xsl:message>
-
         <xsl:variable name="source" select="ldh:new('ol.source.Vector', [ $vector-options ])"/>
         <xsl:sequence select="ixsl:call($source, 'addFeatures', [ $features ])[current-date() lt xs:date('2000-01-01')]"/>
 
@@ -142,10 +127,6 @@ exclude-result-prefixes="#all"
         <ixsl:set-property name="source" select="$source" object="$layer-options"/>
         <xsl:variable name="layer" select="ldh:new('ol.layer.Vector', [ $layer-options ])"/>
         
-        <xsl:message>
-            $layer: <xsl:value-of select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $layer ])"/>
-        </xsl:message>
-
         <xsl:variable name="map" select="ixsl:get(ixsl:window(), 'LinkedDataHub.map')"/>
         <xsl:sequence select="ixsl:call($map, 'addLayer', [ $layer ])[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>

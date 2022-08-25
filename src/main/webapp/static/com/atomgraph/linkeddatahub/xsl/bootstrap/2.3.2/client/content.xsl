@@ -863,11 +863,10 @@ exclude-result-prefixes="#all"
                     <xsl:variable name="zoom" select="4" as="xs:integer"/>
                     <xsl:variable name="map" select="ldh:create-map($canvas-id, $center-lat, $center-lng, $zoom)"/>
 
-                    <xsl:for-each select="$value">
-                        <xsl:call-template name="ldh:AddMapMarker">
-                            <xsl:with-param name="map" select="$map"/>
-                        </xsl:call-template>
-                    </xsl:for-each>
+                    <xsl:call-template name="ldh:AddMapMarkers">
+                        <xsl:with-param name="resources" select="$value"/>
+                        <xsl:with-param name="map" select="$map"/>
+                    </xsl:call-template>
                 </xsl:for-each>
                 <!-- initialize chart -->
                 <xsl:for-each select="key('elements-by-class', 'chart-canvas', $container)">

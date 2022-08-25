@@ -656,11 +656,10 @@ WHERE
 
                 <ixsl:set-property name="map" select="$map" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
                 
-                <xsl:for-each select="$results//rdf:Description[geo:lat/text() castable as xs:float][geo:long/text() castable as xs:float]">
-                    <xsl:call-template name="ldh:AddMapMarker">
-                        <xsl:with-param name="map" select="$map"/>
-                    </xsl:call-template>
-                </xsl:for-each>
+                <xsl:call-template name="ldh:AddMapMarkers">
+                    <xsl:with-param name="resources" select="$results//rdf:Description[geo:lat/text() castable as xs:float][geo:long/text() castable as xs:float]"/>
+                    <xsl:with-param name="map" select="$map"/>
+                </xsl:call-template>
             </xsl:for-each>
             <!-- initialize chart -->
             <xsl:for-each select="key('elements-by-class', 'chart-canvas', ixsl:page())">
