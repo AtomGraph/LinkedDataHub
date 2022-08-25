@@ -117,8 +117,20 @@ exclude-result-prefixes="#all"
             </xsl:for-each>
         </xsl:variable>
         <xsl:variable name="features" select="array{ $feature-seq }" as="array(*)"/>
-        
+
+        <xsl:variable name="icon-options" select="ldh:new-object()"/>
+        <!-- <ixsl:set-property name="anchor" select="" object="$vector-options"/> -->
+        <ixsl:set-property name="anchorXUnits" select="'fraction'" object="$icon-options"/>
+        <ixsl:set-property name="anchorYUnits" select="'pixels'" object="$icon-options"/>
+        <ixsl:set-property name="src" select="'https://openlayers.org/en/latest/examples/data/icon.png'" object="$icon-options"/>
+        <xsl:variable name="icon" select="ldh:new('ol.style.Icon', [ $icon-options ])"/>
+
+        <xsl:variable name="style-options" select="ldh:new-object()"/>
+        <ixsl:set-property name="image" select="$icon" object="$style-options"/>
+        <xsl:variable name="style" select="ldh:new('ol.style.Style', [ $style-options ])"/>
+
         <xsl:variable name="vector-options" select="ldh:new-object()"/>
+        <ixsl:set-property name="style" select="$style" object="$vector-options"/>
         <!--<ixsl:set-property name="features" select="$features" object="$vector-options"/>-->
         <xsl:variable name="source" select="ldh:new('ol.source.Vector', [ $vector-options ])"/>
         <xsl:sequence select="ixsl:call($source, 'addFeatures', [ $features ])[current-date() lt xs:date('2000-01-01')]"/>
