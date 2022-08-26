@@ -120,27 +120,21 @@ exclude-result-prefixes="#all"
 
         <xsl:variable name="icon-options" select="ldh:new-object()"/>
         <!-- <ixsl:set-property name="anchor" select="" object="$icon-options"/> -->
+        <xsl:sequence select="ixsl:call($source, 'setAnchor', [ [0.5, 46] ])[current-date() lt xs:date('2000-01-01')]"/>
+         
         <ixsl:set-property name="anchorXUnits" select="'fraction'" object="$icon-options"/>
         <ixsl:set-property name="anchorYUnits" select="'pixels'" object="$icon-options"/>
-        <ixsl:set-property name="src" select="'https://openlayers.org/en/latest/examples/data/icon.png'" object="$icon-options"/>
+        <ixsl:set-property name="src" select="'https://upload.wikimedia.org/wikipedia/commons/thumb/9/93/Map_marker_font_awesome.svg/200px-Map_marker_font_awesome.svg.png'" object="$icon-options"/>
         <xsl:variable name="icon" select="ldh:new('ol.style.Icon', [ $icon-options ])"/>
-<xsl:message>
-    $icon-options: <xsl:value-of select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $icon-options ])"/>
-</xsl:message>
+
         <xsl:variable name="style-options" select="ldh:new-object()"/>
         <ixsl:set-property name="image" select="$icon" object="$style-options"/>
         <xsl:variable name="style" select="ldh:new('ol.style.Style', [ $style-options ])"/>
-<xsl:message>
-    $style-options: <xsl:value-of select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $style-options ])"/>
-</xsl:message>
         
         <xsl:variable name="source-options" select="ldh:new-object()"/>
         <!--<ixsl:set-property name="features" select="$features" object="$source-options"/>-->
         <xsl:variable name="source" select="ldh:new('ol.source.Vector', [ $source-options ])"/>
         <xsl:sequence select="ixsl:call($source, 'addFeatures', [ $features ])[current-date() lt xs:date('2000-01-01')]"/>
-<xsl:message>
-    $source-options: <xsl:value-of select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $source-options ])"/>
-</xsl:message>
 
         <xsl:variable name="layer-options" select="ldh:new-object()"/>
         <ixsl:set-property name="source" select="$source" object="$layer-options"/>
