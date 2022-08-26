@@ -120,12 +120,11 @@ exclude-result-prefixes="#all"
 
         <xsl:variable name="icon-options" select="ldh:new-object()"/>
         <!-- <ixsl:set-property name="anchor" select="" object="$icon-options"/> -->
-        <xsl:sequence select="ixsl:call($source, 'setAnchor', [ [0.5, 46] ])[current-date() lt xs:date('2000-01-01')]"/>
-         
         <ixsl:set-property name="anchorXUnits" select="'fraction'" object="$icon-options"/>
         <ixsl:set-property name="anchorYUnits" select="'pixels'" object="$icon-options"/>
         <ixsl:set-property name="src" select="'https://upload.wikimedia.org/wikipedia/commons/thumb/9/93/Map_marker_font_awesome.svg/200px-Map_marker_font_awesome.svg.png'" object="$icon-options"/>
         <xsl:variable name="icon" select="ldh:new('ol.style.Icon', [ $icon-options ])"/>
+        <xsl:sequence select="ixsl:call($icon, 'setAnchor', [ [0.5, 46] ])[current-date() lt xs:date('2000-01-01')]"/>
 
         <xsl:variable name="style-options" select="ldh:new-object()"/>
         <ixsl:set-property name="image" select="$icon" object="$style-options"/>
