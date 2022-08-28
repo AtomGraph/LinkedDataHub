@@ -497,20 +497,15 @@ exclude-result-prefixes="#all"
 
             <!--<ixsl:set-property name="geo" select="ac:create-geo-object($map, ac:uri(), $ldt:base, $endpoint, $select-string, $focus-var-name, $graph-var-name)" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri)"/>-->
             
-            <xsl:call-template name="ldh:AddMapMarkers">
-                <xsl:with-param name="resources">
-                    <xsl:call-template name="ldh:LoadGeoResources">
-                        <xsl:with-param name="container" select="$container"/>
-                        <xsl:with-param name="escaped-content-uri" select="$escaped-content-uri"/>
-                        <xsl:with-param name="content" select="$content"/>
-                        <xsl:with-param name="active-mode" select="$active-mode"/>
-                        <xsl:with-param name="select-string" select="$select-string"/>
-                        <xsl:with-param name="select-xml" select="$select-xml"/>
-                        <xsl:with-param name="focus-var-name" select="$focus-var-name"/>
-                        <xsl:with-param name="endpoint" select="$endpoint"/>
-                    </xsl:call-template>
-                </xsl:with-param>
-                <xsl:with-param name="map" select="$map"/>
+            <xsl:call-template name="ldh:LoadGeoResources">
+                <xsl:with-param name="container" select="$container"/>
+                <xsl:with-param name="escaped-content-uri" select="$escaped-content-uri"/>
+                <xsl:with-param name="content" select="$content"/>
+                <xsl:with-param name="active-mode" select="$active-mode"/>
+                <xsl:with-param name="select-string" select="$select-string"/>
+                <xsl:with-param name="select-xml" select="$select-xml"/>
+                <xsl:with-param name="focus-var-name" select="$focus-var-name"/>
+                <xsl:with-param name="endpoint" select="$endpoint"/>
             </xsl:call-template>
 
             <xsl:call-template name="ac:add-geo-listener">
