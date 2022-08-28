@@ -102,7 +102,6 @@ exclude-result-prefixes="#all"
     <!-- load geo resources with a given boundary -->
     
     <xsl:template name="ldh:LoadGeoResources">
-        <!--<xsl:param name="map" as="item()"/>-->
         <xsl:param name="container" as="element()"/>
         <xsl:param name="escaped-content-uri" as="xs:anyURI"/>
         <xsl:param name="content" as="element()?"/>
@@ -124,7 +123,6 @@ exclude-result-prefixes="#all"
 
         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
             <xsl:call-template name="onGeoResultsLoad">
-                <xsl:with-param name="map" select="$map"/>
                 <xsl:with-param name="container" select="$container"/>
                 <xsl:with-param name="escaped-content-uri" select="$escaped-content-uri"/>
                 <xsl:with-param name="content" select="$content"/>
@@ -187,7 +185,7 @@ exclude-result-prefixes="#all"
     <!-- when container RDF/XML results load, render them -->
     <xsl:template name="onGeoResultsLoad">
         <xsl:context-item as="map(*)" use="required"/>
-        <xsl:param name="map" as="item()"/>
+        <!--<xsl:param name="map" as="item()"/>-->
         <xsl:param name="container" as="element()"/>
         <xsl:param name="container-id" select="ixsl:get($container, 'id')" as="xs:string"/>
         <xsl:param name="escaped-content-uri" select="xs:anyURI(translate($container/@about, '.', '-'))" as="xs:anyURI"/>
