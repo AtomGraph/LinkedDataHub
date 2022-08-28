@@ -488,6 +488,7 @@ exclude-result-prefixes="#all"
 
             <xsl:call-template name="ldh:LoadGeoResources">
                 <xsl:with-param name="container" select="$container"/>
+                <xsl:with-param name="content-id" select="$content-id"/>
                 <xsl:with-param name="escaped-content-uri" select="$escaped-content-uri"/>
                 <xsl:with-param name="content" select="$content"/>
                 <xsl:with-param name="active-mode" select="$active-mode"/>
