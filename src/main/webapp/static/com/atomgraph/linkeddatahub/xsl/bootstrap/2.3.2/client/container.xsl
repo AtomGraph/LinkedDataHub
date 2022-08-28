@@ -486,19 +486,7 @@ exclude-result-prefixes="#all"
             <xsl:variable name="bgp-triples-map" select="$select-xml//json:map[json:string[@key = 'type'] = 'bgp']/json:array[@key = 'triples']/json:map[json:string[@key = 'subject'] = '?' || $focus-var-name][not(starts-with(json:string[@key = 'predicate'], '?'))][starts-with(json:string[@key = 'object'], '?')] | $select-xml//json:map[json:string[@key = 'type'] = 'bgp']/json:array[@key = 'triples']/json:map[starts-with(json:string[@key = 'subject'], '?')][not(starts-with(json:string[@key = 'predicate'], '?'))][json:string[@key = 'object'] = '?' || $focus-var-name]" as="element()*"/>
             <xsl:variable name="graph-var-name" select="$bgp-triples-map/ancestor::json:map[json:string[@key = 'type'] = 'graph'][1]/json:string[@key = 'name']/substring-after(., '?')" as="xs:string?"/>
 
-            <xsl:variable name="canvas-id" select="$content-id || '-map-canvas'" as="xs:string"/>
-            <xsl:variable name="initial-load" select="not(ixsl:contains(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri), 'map'))" as="xs:boolean"/>
-            <!-- reuse center and zoom if map object already exists, otherwise set defaults -->
-            <xsl:variable name="center-lat" select="if (not($initial-load)) then xs:float(ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri), 'map'), 'getCenter', []), 'lat', [])) else 56" as="xs:float"/>
-            <xsl:variable name="center-lng" select="if (not($initial-load)) then xs:float(ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri), 'map'), 'getCenter', []), 'lng', [])) else 10" as="xs:float"/>
-            <xsl:variable name="zoom" select="if (not($initial-load)) then xs:integer(ixsl:call(ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri), 'map'), 'getZoom', [])) else 4" as="xs:integer"/>
-            <xsl:variable name="map" select="ldh:create-map($canvas-id, $center-lat, $center-lng, $zoom)" as="item()"/>
-            <ixsl:set-property name="map" select="$map" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri)"/>
-
-            <!--<ixsl:set-property name="geo" select="ac:create-geo-object($map, ac:uri(), $ldt:base, $endpoint, $select-string, $focus-var-name, $graph-var-name)" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri)"/>-->
-            
             <xsl:call-template name="ldh:LoadGeoResources">
-                <xsl:with-param name="map" select="$map"/>
                 <xsl:with-param name="container" select="$container"/>
                 <xsl:with-param name="escaped-content-uri" select="$escaped-content-uri"/>
                 <xsl:with-param name="content" select="$content"/>
@@ -508,10 +496,6 @@ exclude-result-prefixes="#all"
                 <xsl:with-param name="focus-var-name" select="$focus-var-name"/>
                 <xsl:with-param name="endpoint" select="$endpoint"/>
             </xsl:call-template>
-
-<!--            <xsl:call-template name="ac:add-geo-listener">
-                <xsl:with-param name="escaped-content-uri" select="$escaped-content-uri"/>
-            </xsl:call-template>-->
         </xsl:if>
         <xsl:if test="$active-mode = '&ac;ChartMode'">
             <xsl:variable name="canvas-id" select="$content-id || '-chart-canvas'" as="xs:string"/>

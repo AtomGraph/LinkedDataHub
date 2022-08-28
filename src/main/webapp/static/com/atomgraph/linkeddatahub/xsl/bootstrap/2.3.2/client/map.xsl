@@ -102,7 +102,7 @@ exclude-result-prefixes="#all"
     <!-- load geo resources with a given boundary -->
     
     <xsl:template name="ldh:LoadGeoResources">
-        <xsl:param name="map" as="item()"/>
+        <!--<xsl:param name="map" as="item()"/>-->
         <xsl:param name="container" as="element()"/>
         <xsl:param name="escaped-content-uri" as="xs:anyURI"/>
         <xsl:param name="content" as="element()?"/>
@@ -206,10 +206,26 @@ exclude-result-prefixes="#all"
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
                 <xsl:for-each select="?body">
+                    <xsl:variable name="canvas-id" select="$content-id || '-map-canvas'" as="xs:string"/>
+                    <xsl:variable name="initial-load" select="not(ixsl:contains(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri), 'map'))" as="xs:boolean"/>
+                    <xsl:variable name="avg-lat" select="avg(rdf:RDF/rdf:Description/geo:lat/xs:float(.))" as="xs:float?"/>
+                    <xsl:variable name="avg-lng" select="avg(rdf:RDF/rdf:Description/geo:long/xs:float(.))" as="xs:float?"/>
+                    <!-- reuse center and zoom if map object already exists, otherwise set defaults -->
+                    <xsl:variable name="center-lat" select="if (not($initial-load)) then xs:float(ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri), 'map'), 'getView', []), 'getCenter', [])[1] else (if (exists($avg-lat)) then $avg-lat else 0))" as="xs:float"/>
+                    <xsl:variable name="center-lng" select="if (not($initial-load)) then xs:float(ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri), 'map'), 'getView', []), 'getCenter', [])[2] else (if (exists($avg-lng)) then $avg-lng else 0))" as="xs:float"/>
+                    <xsl:variable name="zoom" select="if (not($initial-load)) then xs:integer(ixsl:call(ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri), 'map'), 'getZoom', [])) else 4" as="xs:integer"/>
+                    <xsl:variable name="map" select="ldh:create-map($canvas-id, $center-lat, $center-lng, $zoom)" as="item()"/>
+                    
+                    <ixsl:set-property name="map" select="$map" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri)"/>
+
                     <xsl:call-template name="ldh:AddMapMarkers">
                         <xsl:with-param name="resources" select="rdf:RDF/rdf:Description[geo:lat/text() castable as xs:float][geo:long/text() castable as xs:float]"/>
                         <xsl:with-param name="map" select="$map"/>
                     </xsl:call-template>
+                    
+<!--            <xsl:call-template name="ac:add-geo-listener">
+                <xsl:with-param name="escaped-content-uri" select="$escaped-content-uri"/>
+            </xsl:call-template>-->
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
