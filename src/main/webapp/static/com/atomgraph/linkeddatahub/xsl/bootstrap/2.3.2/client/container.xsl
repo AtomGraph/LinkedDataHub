@@ -509,9 +509,9 @@ exclude-result-prefixes="#all"
                 <xsl:with-param name="endpoint" select="$endpoint"/>
             </xsl:call-template>
 
-            <xsl:call-template name="ac:add-geo-listener">
+<!--            <xsl:call-template name="ac:add-geo-listener">
                 <xsl:with-param name="escaped-content-uri" select="$escaped-content-uri"/>
-            </xsl:call-template>
+            </xsl:call-template>-->
         </xsl:if>
         <xsl:if test="$active-mode = '&ac;ChartMode'">
             <xsl:variable name="canvas-id" select="$content-id || '-chart-canvas'" as="xs:string"/>

@@ -179,7 +179,6 @@ exclude-result-prefixes="#all"
         <ixsl:set-property name="style" select="$style" object="$layer-options"/>
         <xsl:variable name="layer" select="ldh:new('ol.layer.Vector', [ $layer-options ])"/>
         
-        <xsl:variable name="map" select="ixsl:get(ixsl:window(), 'LinkedDataHub.map')"/>
         <xsl:sequence select="ixsl:call($map, 'addLayer', [ $layer ])[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
     
