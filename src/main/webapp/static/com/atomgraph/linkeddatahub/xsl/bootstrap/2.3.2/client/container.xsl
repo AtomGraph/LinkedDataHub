@@ -507,6 +507,7 @@ exclude-result-prefixes="#all"
                         <xsl:with-param name="select-string" select="$select-string"/>
                         <xsl:with-param name="select-xml" select="$select-xml"/>
                         <xsl:with-param name="focus-var-name" select="$focus-var-name"/>
+                        <xsl:with-param name="endpoint" select="$endpoint"/>
                     </xsl:call-template>
                 </xsl:with-param>
                 <xsl:with-param name="map" select="$map"/>
