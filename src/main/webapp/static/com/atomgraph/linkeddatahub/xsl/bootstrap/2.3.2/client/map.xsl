@@ -98,6 +98,40 @@ exclude-result-prefixes="#all"
         </xsl:variable>
         <xsl:sequence select="ixsl:eval(string($js-statement/@statement))"/>
     </xsl:template>
+
+    <!-- load geo resources with a given boundary -->
+    
+    <xsl:template name="ldh:LoadGeoResources">
+        <xsl:param name="container" as="element()"/>
+        <xsl:param name="escaped-content-uri" as="xs:anyURI"/>
+        <xsl:param name="content" as="element()?"/>
+        <xsl:param name="select-string" as="xs:string"/>
+        <xsl:param name="select-xml" as="document-node()"/>
+        <xsl:param name="focus-var-name" as="xs:string"/>
+        <xsl:param name="active-mode" as="xs:anyURI"/>
+        <!-- wrap SELECT into a DESCRIBE -->
+        <xsl:variable name="query-xml" as="element()">
+            <xsl:apply-templates select="$select-xml" mode="ldh:wrap-describe"/>
+        </xsl:variable>
+        <xsl:variable name="query-json-string" select="xml-to-json($query-xml)" as="xs:string"/>
+        <xsl:variable name="query-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $query-json-string ])"/>
+        <xsl:variable name="query-string" select="ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromQuery', [ $query-json ]), 'toString', [])" as="xs:string"/>
+        <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': $query-string })" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), map{}, $results-uri)" as="xs:anyURI"/>
+
+        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+            <xsl:call-template name="onContainerResultsLoad">
+                <xsl:with-param name="container" select="$container"/>
+                <xsl:with-param name="escaped-content-uri" select="$escaped-content-uri"/>
+                <xsl:with-param name="content" select="$content"/>
+                <xsl:with-param name="active-mode" select="$active-mode"/>
+                <xsl:with-param name="select-string" select="$select-string"/>
+                <xsl:with-param name="select-xml" select="$select-xml"/>
+                <xsl:with-param name="focus-var-name" select="$focus-var-name"/>
+                <xsl:with-param name="endpoint" select="$endpoint"/>
+            </xsl:call-template>
+        </ixsl:schedule-action>
+    </xsl:template>
     
     <!-- add marker logic ported from SPARQLMap -->
     
