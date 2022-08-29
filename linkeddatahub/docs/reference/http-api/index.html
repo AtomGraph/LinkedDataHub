@@ -128,7 +128,21 @@
                      
                      <h2 id="auth">Authentication</h2>
                      
-                     <p></p>
+                     <p>LinkedDataHub UI supports 2 authentication methods:</p>
+                     
+                     <ul>
+                        
+                        <li><a href="https://dvcs.w3.org/hg/WebID/raw-file/tip/spec/tls-respec.html" target="_blank">WebID-TLS</a> using TLS client certificates</li>
+                        
+                        <li><a href="https://developers.google.com/identity/protocols/oauth2/openid-connect" target="_blank">OpenID Connect using Google</a></li>
+                        </ul>
+                     
+                     <p>See how those authentication methods can be <a href="../configuration/">configured</a> or how to <a href="../../get-started/get-an-account/">get an account</a> on LinkedDataHub.</p>
+                     
+                     <div class="alert alert-info">
+                        
+                        <p>HTTP API access using <a href="../command-line-interface/">CLI scripts</a> or curl currently does not support the OIDC method.</p>
+                        </div>
                      </div>
                   
                   <div>
@@ -354,6 +368,41 @@
                      <p>Every LinkedDataHub application provides a SPARQL endpoint on <code>sparql</code> path (relative to the application's base URI). It supports the
                         <a href="https://www.w3.org/TR/sparql11-protocol/" target="_blank">SPARQL 1.1 Protocol</a> and serves as a proxy for the service endpoint of the
                         application.</p>
+                     </div>
+                  
+                  <div>
+                     
+                     <h2 id="system-endpoints">System endpoints</h2>
+                     
+                     <p></p>
+                     
+                     <h3>Admin and end-user apps</h3>
+                     
+                     <dl>
+                        
+                        <dd>add</dd>
+                        
+                        <dd>imported</dd>
+                        
+                        <dd>ns</dd>
+                        
+                        <dd>transform</dd>
+                        </dl>
+                     
+                     <h3>Admin app only</h3>
+                     
+                     <dl>
+                        
+                        <dd>admin/request%20accesss</dd>
+                        
+                        <dd>admin/sign%20up</dd>
+                        
+                        <dd>admin/oauth2/login</dd>
+                        
+                        <dd>oauth2/authorize/google</dd>
+                        
+                        <dt>admin/clear</dt>
+                        </dl>
                      </div>
                   
                   <div>
