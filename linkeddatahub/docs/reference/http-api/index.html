@@ -380,28 +380,49 @@
                      
                      <dl>
                         
-                        <dd>add</dd>
+                        <dt><samp>add</samp></dt>
                         
-                        <dd>imported</dd>
+                        <dd>Reads data from the specified URL location or uploaded file into the specified named
+                           graph</dd>
                         
-                        <dd>ns</dd>
+                        <dt><samp>importer</samp></dt>
                         
-                        <dd>transform</dd>
+                        <dd>Handles CSV and RDF imports</dd>
+                        
+                        <dt><samp>ns</samp></dt>
+                        
+                        <dd>In-memory namespace ontology as well as its SPARQL endpoint</dd>
+                        
+                        <dt><samp>transform</samp></dt>
+                        
+                        <dd>Reads data from the specified URL location or uploaded file, transforms it using the
+                           specified <code>CONSTRUCT</code> query, and stores the result into the specified named graph</dd>
                         </dl>
                      
                      <h3>Admin app only</h3>
                      
                      <dl>
                         
-                        <dd>admin/request%20accesss</dd>
+                        <dt><samp>admin/request%20accesss</samp></dt>
                         
-                        <dd>admin/sign%20up</dd>
+                        <dd>Access request</dd>
                         
-                        <dd>admin/oauth2/login</dd>
+                        <dt><samp>admin/sign%20up</samp></dt>
                         
-                        <dd>oauth2/authorize/google</dd>
+                        <dd>WebID-TLS agent signup</dd>
                         
-                        <dt>admin/clear</dt>
+                        <dt><samp>admin/oauth2/login</samp></dt>
+                        
+                        <dd>OpenID Connect with Google signup</dd>
+                        
+                        <dt><samp>oauth2/authorize/google</samp></dt>
+                        
+                        <dd>OpenID Connect callback</dd>
+                        
+                        <dt><samp>admin/clear</samp></dt>
+                        
+                        <dd>Clears the specified ontology from memory cache and reloads it from the admin SPARQL
+                           endpoint</dd>
                         </dl>
                      </div>
                   
