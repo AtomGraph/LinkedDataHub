@@ -85,10 +85,10 @@ exclude-result-prefixes="#all"
                 }}
             );
 
-            if (feature &amp;&amp; feature.get('type') == 'Point') {{
+            if (feature &amp;&amp; feature.get(''type'') == ''Point'') {{
                 var coord = evt.coord; //default projection is EPSG:3857 you may want to use ol.proj.transform
 
-                overlay.getElement().innerHTML = '&lt;h1&gt;Whateverest&lt;/h1&gt;';
+                overlay.getElement().innerHTML = ''&lt;h1&gt;Whateverest&lt;/h1&gt;'';
                 overlay.setPosition(coord);
             }}
             else {{
