@@ -67,7 +67,7 @@ exclude-result-prefixes="#all"
     <xsl:function name="ldh:map-marker-onclick">
         <xsl:param name="map" as="item()"/>
        
-        <xsl:variable name="container" select="ixsl:call(ixsl:page(), 'createElement', [ 'div' ])"/>
+        <xsl:variable name="container" select="ixsl:call(ixsl:page(), 'createElement', [ 'div' ])" as="element()"/>
         <xsl:sequence select="ixsl:call(ixsl:page()/html/body, 'appendChild', [ $container ])[current-date() lt xs:date('2000-01-01')]"/>
 
         <xsl:variable name="overlay-options" select="ldh:new-object()"/>
@@ -80,6 +80,8 @@ exclude-result-prefixes="#all"
         <xsl:variable name="js-statement" as="xs:string">
             <![CDATA[
                 function mapOnClick(map, overlay, evt) {
+                    console.log("WTF?");
+                    
                     var feature = map.forEachFeatureAtPixel(evt.pixel, function (feat, layer) {
                             return feat;
                         }
@@ -99,7 +101,6 @@ exclude-result-prefixes="#all"
         </xsl:variable>
         <xsl:variable name="js-function" select="ixsl:eval(normalize-space($js-statement))"/> <!-- need normalize-space() due to Saxon-JS 2.4 bug: https://saxonica.plan.io/issues/5667 -->
         <!-- bind map and overlay variables and return new bound function: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_objects/Function/bind#partially_applied_functions -->
-        <xsl:message>exists($js-function): <xsl:value-of select="exists($js-function)"/></xsl:message>
         <xsl:sequence select="ixsl:call($js-function, 'bind', [ (), $map, $overlay ])"/>
     </xsl:function>
     
