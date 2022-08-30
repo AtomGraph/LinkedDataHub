@@ -68,11 +68,10 @@ exclude-result-prefixes="#all"
 
     <xsl:function name="ldh:map-marker-onclick">
         <xsl:param name="map" as="item()"/>
-        <xsl:param name="page" select="ixsl:page()/html/body" as="document-node()"/>
-        
+       
         <xsl:variable name="container" select="ixsl:call(ixsl:page(), 'createElement', [ 'div' ])"/>
-        <xsl:message>exists($page/body): <xsl:value-of select="exists($page/body)"/></xsl:message>
-        <xsl:sequence select="ixsl:call($page/body, 'appendChild', [ $container ])[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:message>exists(ixsl:page()/html/body): <xsl:value-of select="exists(ixsl:page()/html/body)"/></xsl:message>
+        <xsl:sequence select="ixsl:call(ixsl:page()/html/body, 'appendChild', [ $container ])[current-date() lt xs:date('2000-01-01')]"/>
 
         <xsl:variable name="overlay-options" select="ldh:new-object()"/>
         <ixsl:set-property name="element" select="$container" object="$overlay-options"/>
