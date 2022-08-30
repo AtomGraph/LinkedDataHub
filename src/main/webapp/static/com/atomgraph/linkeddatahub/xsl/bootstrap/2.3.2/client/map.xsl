@@ -80,6 +80,8 @@ exclude-result-prefixes="#all"
         <xsl:variable name="js-statement" as="xs:string">
             <![CDATA[
                 function mapOnClick(map, overlay, evt) {
+                    console.log("map: " + map + " overlay: " + overlay);
+                
                     var feature = map.forEachFeatureAtPixel(evt.pixel, function (feat, layer) {
                             return feat;
                         }
