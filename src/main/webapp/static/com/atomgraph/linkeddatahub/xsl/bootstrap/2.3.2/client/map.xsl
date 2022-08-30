@@ -84,17 +84,18 @@ exclude-result-prefixes="#all"
                             return feat;
                         }
                     );
-                    console.log("feature: " + feature + " feature type: " + feature.get("type"));
 
-                    if (feature && feature.get("type") === "Point") {
-                        console.log("YES Point!");
-                        
+                    if (feature) {
+                        console.log("Feature!");
+                        if (feature.getGeometry() instanceof ol.geom.Point) console.log("Point!");
+
                         var coord = evt.coord;
 
                         overlay.getElement().innerHTML = "<h1>Whateverest</h1>";
                         overlay.setPosition(coord);
                     }
                     else {
+                        console.log("Not feature :(");
                         overlay.setPosition(undefined);
                     }
                 }
