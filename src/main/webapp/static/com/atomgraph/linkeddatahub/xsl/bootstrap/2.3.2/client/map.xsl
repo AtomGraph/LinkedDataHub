@@ -84,7 +84,7 @@ exclude-result-prefixes="#all"
                             return feat;
                         }
                     );
-                    console.log("feature: " + feature + " feature.get("type"): " + feature.get("type"));
+                    console.log("feature: " + feature + " feature type: " + feature.get("type"));
 
                     if (feature && feature.get("type") === "Point") {
                         console.log("YES Point!");
