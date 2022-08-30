@@ -70,7 +70,6 @@ exclude-result-prefixes="#all"
         <xsl:param name="map" as="item()"/>
        
         <xsl:variable name="container" select="ixsl:call(ixsl:page(), 'createElement', [ 'div' ])"/>
-        <xsl:message>exists(ixsl:page()/html/body): <xsl:value-of select="exists(ixsl:page()/html/body)"/></xsl:message>
         <xsl:sequence select="ixsl:call(ixsl:page()/html/body, 'appendChild', [ $container ])[current-date() lt xs:date('2000-01-01')]"/>
 
         <xsl:variable name="overlay-options" select="ldh:new-object()"/>
@@ -78,29 +77,26 @@ exclude-result-prefixes="#all"
         <ixsl:set-property name="autoPan" select="true()" object="$overlay-options"/>
         <!--<ixsl:set-property name="autoPanAnimation" select="" object="$overlay-options"/>-->
         <xsl:variable name="overlay" select="ldh:new('ol.Overlay', [ $overlay-options ])"/>
-        <xsl:message>exists($map): <xsl:value-of select="exists($map)"/></xsl:message>
-
         <xsl:sequence select="ixsl:call($map, 'addOverlay', [ $overlay ])[current-date() lt xs:date('2000-01-01')]"/>
 
-        <xsl:variable name="js-function" select="ixsl:eval('(function mapOnClick(map, overlay, evt) {{
-            var feature = map.forEachFeatureAtPixel(evt.pixel, function (feat, layer) {{
+        <xsl:variable name="js-function" select="ixsl:eval('(function mapOnClick(map, overlay, evt) {
+            var feature = map.forEachFeatureAtPixel(evt.pixel, function (feat, layer) {
                     return feat;
-                }}
+                }
             );
 
-            if (feature &amp;&amp; feature.get(''type'') == ''Point'') {{
+            if (feature &amp;&amp; feature.get(''type'') == ''Point'') {
                 var coord = evt.coord; //default projection is EPSG:3857 you may want to use ol.proj.transform
 
                 overlay.getElement().innerHTML = ''&lt;h1&gt;Whateverest&lt;/h1&gt;'';
                 overlay.setPosition(coord);
-            }}
-            else {{
+            }
+            else {
                 overlay.setPosition(undefined); // hide the overlay
-            }}
+            }
 
-        }})')"/>
+        })')"/>
         <!-- bind map and overlay variables and return new bound function: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_objects/Function/bind#partially_applied_functions -->
-        <xsl:message>exists($js-function): <xsl:value-of select="exists($js-function)"/></xsl:message>
         <xsl:sequence select="ixsl:call($js-function, 'bind', [ (), $map, $overlay ])"/>
     </xsl:function>
     
