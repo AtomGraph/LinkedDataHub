@@ -92,8 +92,8 @@ exclude-result-prefixes="#all"
                     if (feature && feature.getGeometry() instanceof ol.geom.Point) {
                         console.log("Point!");
 
-                        var coord = evt.coord;
-                        console.log(JSON.stringify(evt));
+                        var coord = evt.coordinate;
+                        console.log(JSON.stringify(coord));
 
                         overlay.getElement().innerHTML = "<h1>Whateverest</h1>";
                         overlay.setPosition(coord);
