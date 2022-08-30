@@ -86,13 +86,13 @@ exclude-result-prefixes="#all"
                     );
 
                     if (feature && feature.get("type") === "Point") {
-                        var coord = evt.coord; // default projection is EPSG:3857 you may want to use ol.proj.transform
+                        var coord = evt.coord;
 
                         overlay.getElement().innerHTML = "<h1>Whateverest</h1>";
                         overlay.setPosition(coord);
                     }
                     else {
-                        overlay.setPosition(undefined); // hide the overlay
+                        overlay.setPosition(undefined);
                     }
                 }
             ]]>
