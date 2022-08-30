@@ -70,7 +70,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="map" as="item()"/>
         
         <xsl:variable name="container" select="ixsl:call(ixsl:page(), 'createElement', [ 'div' ])"/>
-        <xsl:sequence select="ixsl:call(ixsl:page(), 'appendChild', [ $container ])[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:sequence select="ixsl:call(ixsl:page()/body, 'appendChild', [ $container ])[current-date() lt xs:date('2000-01-01')]"/>
 
         <xsl:variable name="overlay-options" select="ldh:new-object()"/>
         <ixsl:set-property name="element" select="$container" object="$overlay-options"/>
