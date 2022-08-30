@@ -97,7 +97,7 @@ exclude-result-prefixes="#all"
                 }}
             ]]>
         </xsl:variable>
-        <xsl:variable name="js-function" select="ixsl:eval($js-statement)"/>
+        <xsl:variable name="js-function" select="ixsl:eval(normalize-space($js-statement))"/> <!-- need normalize-space() due to Saxon-JS 2.4 bug: https://saxonica.plan.io/issues/5667 -->
         <!-- bind map and overlay variables and return new bound function: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_objects/Function/bind#partially_applied_functions -->
         <xsl:message>exists($js-function): <xsl:value-of select="exists($js-function)"/></xsl:message>
         <xsl:sequence select="ixsl:call($js-function, 'bind', [ (), $map, $overlay ])"/>
