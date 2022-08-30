@@ -84,9 +84,11 @@ exclude-result-prefixes="#all"
                             return feat;
                         }
                     );
-                    console.log("feature: " + feature);
+                    console.log("feature: " + feature + " feature.get("type"): " + feature.get("type"));
 
                     if (feature && feature.get("type") === "Point") {
+                        console.log("YES Point!");
+                        
                         var coord = evt.coord;
 
                         overlay.getElement().innerHTML = "<h1>Whateverest</h1>";
