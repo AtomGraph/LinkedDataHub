@@ -99,6 +99,7 @@ exclude-result-prefixes="#all"
         </xsl:variable>
         <xsl:variable name="js-function" select="ixsl:eval($js-statement)"/>
         <!-- bind map and overlay variables and return new bound function: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_objects/Function/bind#partially_applied_functions -->
+        <xsl:message>exists($js-function): <xsl:value-of select="exists($js-function)"/></xsl:message>
         <xsl:sequence select="ixsl:call($js-function, 'bind', [ (), $map, $overlay ])"/>
     </xsl:function>
     
