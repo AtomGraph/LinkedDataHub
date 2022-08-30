@@ -68,10 +68,11 @@ exclude-result-prefixes="#all"
 
     <xsl:function name="ldh:map-marker-onclick">
         <xsl:param name="map" as="item()"/>
+        <xsl:param name="page" as="document-node()"/>
         
         <xsl:variable name="container" select="ixsl:call(ixsl:page(), 'createElement', [ 'div' ])"/>
-        <xsl:message>exists(ixsl:page()/body): <xsl:value-of select="exists(ixsl:page()/body)"/></xsl:message>
-        <xsl:sequence select="ixsl:call(ixsl:page()/body, 'appendChild', [ $container ])[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:message>exists($page/body): <xsl:value-of select="exists($page/body)"/></xsl:message>
+        <xsl:sequence select="ixsl:call($page/body, 'appendChild', [ $container ])[current-date() lt xs:date('2000-01-01')]"/>
 
         <xsl:variable name="overlay-options" select="ldh:new-object()"/>
         <ixsl:set-property name="element" select="$container" object="$overlay-options"/>
@@ -259,7 +260,7 @@ exclude-result-prefixes="#all"
                     <xsl:variable name="center-lng" select="if (not($initial-load)) then xs:float(ixsl:call(ixsl:get(ixsl:window(), 'ol.proj'), 'toLonLat', [ ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri), 'map'), 'getView', []), 'getCenter', []) ])[1]) else (if (exists($avg-lng)) then $avg-lng else 0)" as="xs:float"/>
                     <xsl:variable name="zoom" select="if (not($initial-load)) then xs:integer(ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri), 'map'), 'getView', []), 'getZoom', [])) else 4" as="xs:integer"/>
                     <xsl:variable name="map" select="ldh:create-map($canvas-id, $center-lat, $center-lng, $zoom)" as="item()"/>
-                    <xsl:sequence select="ixsl:call($map, 'on', [ 'click', ldh:map-marker-onclick($map) ])[current-date() lt xs:date('2000-01-01')]"/>
+                    <xsl:sequence select="ixsl:call($map, 'on', [ 'click', ldh:map-marker-onclick($map, ixsl:page()) ])[current-date() lt xs:date('2000-01-01')]"/>
                     
                     <ixsl:set-property name="map" select="$map" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri)"/>
 

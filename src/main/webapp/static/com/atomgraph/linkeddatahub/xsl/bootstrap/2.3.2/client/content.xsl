@@ -862,7 +862,7 @@ exclude-result-prefixes="#all"
                     <xsl:variable name="center-lng" select="10" as="xs:float"/>
                     <xsl:variable name="zoom" select="4" as="xs:integer"/>
                     <xsl:variable name="map" select="ldh:create-map($canvas-id, $center-lat, $center-lng, $zoom)"/>
-                    <xsl:sequence select="ixsl:call($map, 'on', [ 'click', ldh:map-marker-onclick($map) ])[current-date() lt xs:date('2000-01-01')]"/>
+                    <xsl:sequence select="ixsl:call($map, 'on', [ 'click', ldh:map-marker-onclick($map, ixsl:page()) ])[current-date() lt xs:date('2000-01-01')]"/>
 
                     <xsl:call-template name="ldh:AddMapMarkers">
                         <xsl:with-param name="resources" select="$value"/>
