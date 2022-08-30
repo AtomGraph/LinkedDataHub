@@ -66,6 +66,40 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="$map"/>
     </xsl:function>
 
+    <xsl:function name="ldh:map-marker-onclick">
+        <xsl:param name="map" as="item()"/>
+        
+        <xsl:variable name="container" select="ixsl:call(ixsl:page(), 'createElement', [ 'div' ])"/>
+        <xsl:sequence select="ixsl:call(ixsl:page(), 'appendChild', [ $container ])[current-date() lt xs:date('2000-01-01')]"/>
+
+        <xsl:variable name="overlay-options" select="ldh:new-object()"/>
+        <ixsl:set-property name="element" select="$container" object="$overlay-options"/>
+        <ixsl:set-property name="autoPan" select="true()" object="$overlay-options"/>
+        <!--<ixsl:set-property name="autoPanAnimation" select="" object="$overlay-options"/>-->
+        <xsl:variable name="overlay" select="ldh:new('ol.Overlay', [ $overlay-options ])"/>
+        <xsl:sequence select="ixsl:call($map, 'addOverlay', [ $overlay ])[current-date() lt xs:date('2000-01-01')]"/>
+
+        <xsl:variable name="js-function" select="ixsl:eval('(function mapOnClick(map, overlay, evt) {{
+            var feature = map.forEachFeatureAtPixel(evt.pixel, function (feat, layer) {{
+                    return feat;
+                }}
+            );
+
+            if (feature &amp;&amp; feature.get('type') == 'Point') {{
+                var coord = evt.coord; //default projection is EPSG:3857 you may want to use ol.proj.transform
+
+                overlay.getElement().innerHTML = '&lt;h1&gt;Whateverest&lt;/h1&gt;';
+                overlay.setPosition(coord);
+            }}
+            else {{
+                overlay.setPosition(undefined); // hide the overlay
+            }}
+
+        }})')"/>
+        <!-- bind map and overlay variables and return new bound function: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_objects/Function/bind#partially_applied_functions -->
+        <xsl:sequence select="ixsl:call($js-function, 'bind', [ (), $map, $overlay ])"/>
+    </xsl:function>
+    
     <!-- creates SPARQLMap.Geo object (for containers) -->
     
     <xsl:function name="ac:create-geo-object">
@@ -151,7 +185,13 @@ exclude-result-prefixes="#all"
 
                 <xsl:variable name="feature-options" select="ldh:new-object()"/>
                 <ixsl:set-property name="geometry" select="$geometry" object="$feature-options"/>
-                <xsl:sequence select="ldh:new('ol.Feature', [ $feature-options ])"/>
+                <xsl:variable name="feature" select="ldh:new('ol.Feature', [ $feature-options ])"/>
+                
+                <xsl:if test="@rdf:about">
+                    <xsl:sequence select="ixsl:call($feature, 'setId', [ string(@rdf:about) ])[current-date() lt xs:date('2000-01-01')]"/>
+                </xsl:if>
+                
+                <xsl:sequence select="$feature"/>
             </xsl:for-each>
         </xsl:variable>
         <xsl:variable name="features" select="array{ $feature-seq }" as="array(*)"/>
@@ -214,10 +254,8 @@ exclude-result-prefixes="#all"
                     <xsl:variable name="center-lat" select="if (not($initial-load)) then xs:float(ixsl:call(ixsl:get(ixsl:window(), 'ol.proj'), 'toLonLat', [ ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri), 'map'), 'getView', []), 'getCenter', []) ])[2]) else (if (exists($avg-lat)) then $avg-lat else 0)" as="xs:float"/>
                     <xsl:variable name="center-lng" select="if (not($initial-load)) then xs:float(ixsl:call(ixsl:get(ixsl:window(), 'ol.proj'), 'toLonLat', [ ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri), 'map'), 'getView', []), 'getCenter', []) ])[1]) else (if (exists($avg-lng)) then $avg-lng else 0)" as="xs:float"/>
                     <xsl:variable name="zoom" select="if (not($initial-load)) then xs:integer(ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri), 'map'), 'getView', []), 'getZoom', [])) else 4" as="xs:integer"/>
-                    <xsl:message>$avg-lat: <xsl:value-of select="$avg-lat"/> $avg-lng: <xsl:value-of select="$avg-lng"/></xsl:message>
-                    <xsl:message>$center-lat: <xsl:value-of select="$center-lat"/> $center-lng: <xsl:value-of select="$center-lng"/></xsl:message>
-                    <xsl:message>$zoom: <xsl:value-of select="$zoom"/></xsl:message>
                     <xsl:variable name="map" select="ldh:create-map($canvas-id, $center-lat, $center-lng, $zoom)" as="item()"/>
+                    <xsl:sequence select="ixsl:call($map, 'on', [ 'click', ldh:map-marker-onclick($map) ])[current-date() lt xs:date('2000-01-01')]"/>
                     
                     <ixsl:set-property name="map" select="$map" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri)"/>
 
@@ -225,10 +263,6 @@ exclude-result-prefixes="#all"
                         <xsl:with-param name="resources" select="rdf:RDF/rdf:Description[geo:lat/text() castable as xs:float][geo:long/text() castable as xs:float]"/>
                         <xsl:with-param name="map" select="$map"/>
                     </xsl:call-template>
-                    
-<!--            <xsl:call-template name="ac:add-geo-listener">
-                <xsl:with-param name="escaped-content-uri" select="$escaped-content-uri"/>
-            </xsl:call-template>-->
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
