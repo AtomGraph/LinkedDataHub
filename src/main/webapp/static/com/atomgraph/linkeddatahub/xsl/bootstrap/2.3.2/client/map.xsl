@@ -79,23 +79,27 @@ exclude-result-prefixes="#all"
         <xsl:variable name="overlay" select="ldh:new('ol.Overlay', [ $overlay-options ])"/>
         <xsl:sequence select="ixsl:call($map, 'addOverlay', [ $overlay ])[current-date() lt xs:date('2000-01-01')]"/>
 
-        <xsl:variable name="js-function" select="ixsl:eval('(function mapOnClick(map, overlay, evt) {
-            var feature = map.forEachFeatureAtPixel(evt.pixel, function (feat, layer) {
-                    return feat;
-                }
-            );
+        <xsl:variable name="js-statement" as="xs:string">
+            <![CDATA[
+                (function mapOnClick(map, overlay, evt) {
+                    var feature = map.forEachFeatureAtPixel(evt.pixel, function (feat, layer) {
+                            return feat;
+                        }
+                    );
 
-            if (feature &amp;&amp; feature.get(''type'') == ''Point'') {
-                var coord = evt.coord; //default projection is EPSG:3857 you may want to use ol.proj.transform
+                    if (feature && feature.get('type') == 'Point') {
+                        var coord = evt.coord; //default projection is EPSG:3857 you may want to use ol.proj.transform
 
-                overlay.getElement().innerHTML = ''&lt;h1&gt;Whateverest&lt;/h1&gt;'';
-                overlay.setPosition(coord);
-            }
-            else {
-                overlay.setPosition(undefined); // hide the overlay
-            }
-
-        })')"/>
+                        overlay.getElement().innerHTML = '<h1>Whateverest</h1>';
+                        overlay.setPosition(coord);
+                    }
+                    else {
+                        overlay.setPosition(undefined); // hide the overlay
+                    }
+                })
+            ]]>
+        </xsl:variable>
+        <xsl:variable name="js-function" select="ixsl:eval($js-statement)"/>
         <!-- bind map and overlay variables and return new bound function: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_objects/Function/bind#partially_applied_functions -->
         <xsl:sequence select="ixsl:call($js-function, 'bind', [ (), $map, $overlay ])"/>
     </xsl:function>
