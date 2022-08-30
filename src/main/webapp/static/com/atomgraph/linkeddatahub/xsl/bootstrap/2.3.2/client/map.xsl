@@ -84,8 +84,6 @@ exclude-result-prefixes="#all"
         <xsl:variable name="js-statement" as="xs:string">
             <![CDATA[
                 function mapOnClick(map, overlay, evt) {
-                    console.log("map: " + map + " overlay: " + overlay);
-                
                     var feature = map.forEachFeatureAtPixel(evt.pixel, function (feat, layer) {
                             return feat;
                         }
@@ -95,6 +93,7 @@ exclude-result-prefixes="#all"
                         console.log("Point!");
 
                         var coord = evt.coord;
+                        console.log(JSON.stringify(coord));
 
                         overlay.getElement().innerHTML = "<h1>Whateverest</h1>";
                         overlay.setPosition(coord);
