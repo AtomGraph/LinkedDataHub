@@ -862,7 +862,6 @@ exclude-result-prefixes="#all"
                     <xsl:variable name="center-lng" select="10" as="xs:float"/>
                     <xsl:variable name="zoom" select="4" as="xs:integer"/>
                     <xsl:variable name="map" select="ldh:create-map($canvas-id, $center-lat, $center-lng, $zoom)"/>
-                    <xsl:message>exists(ldh:map-marker-onclick($map)): <xsl:value-of select="exists(ldh:map-marker-onclick($map))"/></xsl:message>
                     <xsl:sequence select="ixsl:call($map, 'on', [ 'click', ldh:map-marker-onclick($map) ])[current-date() lt xs:date('2000-01-01')]"/>
 
                     <xsl:call-template name="ldh:AddMapMarkers">

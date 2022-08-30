@@ -80,12 +80,11 @@ exclude-result-prefixes="#all"
         <xsl:variable name="js-statement" as="xs:string">
             <![CDATA[
                 function mapOnClick(map, overlay, evt) {
-                    console.log("WTF?");
-                    
                     var feature = map.forEachFeatureAtPixel(evt.pixel, function (feat, layer) {
                             return feat;
                         }
                     );
+                    console.log("feature: " + feature);
 
                     if (feature && feature.get("type") === "Point") {
                         var coord = evt.coord;
