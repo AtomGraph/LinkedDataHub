@@ -6,7 +6,6 @@
     <!ENTITY rdf    "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
     <!ENTITY geo    "http://www.w3.org/2003/01/geo/wgs84_pos#">
     <!ENTITY ldt    "https://www.w3.org/ns/ldt#">
-    <!ENTITY gm     "https://developers.google.com/maps#">
 ]>
 <xsl:stylesheet version="3.0"
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
@@ -23,7 +22,6 @@ xmlns:ldh="&ldh;"
 xmlns:rdf="&rdf;"
 xmlns:geo="&geo;"
 xmlns:ldt="&ldt;"
-xmlns:gm="&gm;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 extension-element-prefixes="ixsl"
 exclude-result-prefixes="#all"
@@ -81,22 +79,22 @@ exclude-result-prefixes="#all"
 
         <xsl:variable name="js-statement" as="xs:string">
             <![CDATA[
-                (function mapOnClick(map, overlay, evt) {
-                    var feature = map.forEachFeatureAtPixel(evt.pixel, function (feat, layer) {
+                function mapOnClick(map, overlay, evt) {{
+                    var feature = map.forEachFeatureAtPixel(evt.pixel, function (feat, layer) {{
                             return feat;
-                        }
+                        }}
                     );
 
-                    if (feature && feature.get('type') == 'Point') {
-                        var coord = evt.coord; //default projection is EPSG:3857 you may want to use ol.proj.transform
+                    if (feature && feature.get("type") === "Point") {{
+                        var coord = evt.coord; // default projection is EPSG:3857 you may want to use ol.proj.transform
 
-                        overlay.getElement().innerHTML = '<h1>Whateverest</h1>';
+                        overlay.getElement().innerHTML = "<h1>Whateverest</h1>";
                         overlay.setPosition(coord);
-                    }
-                    else {
+                    }}
+                    else {{
                         overlay.setPosition(undefined); // hide the overlay
-                    }
-                })
+                    }}
+                }}
             ]]>
         </xsl:variable>
         <xsl:variable name="js-function" select="ixsl:eval($js-statement)"/>
