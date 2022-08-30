@@ -77,6 +77,10 @@ exclude-result-prefixes="#all"
         <xsl:variable name="overlay" select="ldh:new('ol.Overlay', [ $overlay-options ])"/>
         <xsl:sequence select="ixsl:call($map, 'addOverlay', [ $overlay ])[current-date() lt xs:date('2000-01-01')]"/>
 
+        <xsl:message>
+            $container: <xsl:value-of select="serialize($container)"/> $container/..: <xsl:value-of select="serialize($container/..)"/>
+        </xsl:message>
+        
         <xsl:variable name="js-statement" as="xs:string">
             <![CDATA[
                 function mapOnClick(map, overlay, evt) {
