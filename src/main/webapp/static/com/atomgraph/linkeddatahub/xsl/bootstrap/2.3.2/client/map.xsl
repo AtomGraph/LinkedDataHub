@@ -85,9 +85,8 @@ exclude-result-prefixes="#all"
                         }
                     );
 
-                    if (feature) {
-                        console.log("Feature!");
-                        if (feature.getGeometry() instanceof ol.geom.Point) console.log("Point!");
+                    if (feature && feature.getGeometry() instanceof ol.geom.Point) {
+                        console.log("Point!");
 
                         var coord = evt.coord;
 
@@ -95,7 +94,6 @@ exclude-result-prefixes="#all"
                         overlay.setPosition(coord);
                     }
                     else {
-                        console.log("Not feature :(");
                         overlay.setPosition(undefined);
                     }
                 }
