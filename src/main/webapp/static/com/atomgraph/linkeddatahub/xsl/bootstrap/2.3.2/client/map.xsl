@@ -93,7 +93,7 @@ exclude-result-prefixes="#all"
                         console.log("Point!");
 
                         var coord = evt.coord;
-                        console.log(JSON.stringify(coord));
+                        console.log(JSON.stringify(evt));
 
                         overlay.getElement().innerHTML = "<h1>Whateverest</h1>";
                         overlay.setPosition(coord);
