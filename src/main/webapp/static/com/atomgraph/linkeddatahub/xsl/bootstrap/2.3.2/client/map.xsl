@@ -79,22 +79,22 @@ exclude-result-prefixes="#all"
 
         <xsl:variable name="js-statement" as="xs:string">
             <![CDATA[
-                function mapOnClick(map, overlay, evt) {{
-                    var feature = map.forEachFeatureAtPixel(evt.pixel, function (feat, layer) {{
+                function mapOnClick(map, overlay, evt) {
+                    var feature = map.forEachFeatureAtPixel(evt.pixel, function (feat, layer) {
                             return feat;
-                        }}
+                        }
                     );
 
-                    if (feature && feature.get("type") === "Point") {{
+                    if (feature && feature.get("type") === "Point") {
                         var coord = evt.coord; // default projection is EPSG:3857 you may want to use ol.proj.transform
 
                         overlay.getElement().innerHTML = "<h1>Whateverest</h1>";
                         overlay.setPosition(coord);
-                    }}
-                    else {{
+                    }
+                    else {
                         overlay.setPosition(undefined); // hide the overlay
-                    }}
-                }}
+                    }
+                }
             ]]>
         </xsl:variable>
         <xsl:variable name="js-function" select="ixsl:eval(normalize-space($js-statement))"/> <!-- need normalize-space() due to Saxon-JS 2.4 bug: https://saxonica.plan.io/issues/5667 -->
