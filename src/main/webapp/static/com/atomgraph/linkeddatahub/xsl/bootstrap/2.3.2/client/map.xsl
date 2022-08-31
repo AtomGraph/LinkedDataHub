@@ -271,7 +271,7 @@ exclude-result-prefixes="#all"
                     <xsl:variable name="info-window-options" select="ldh:new-object()"/>
                     <!-- render first child of <body> as InfoWindow content -->
                     <xsl:variable name="info-window-html" select="/html/body/*[1]" as="element()"/>
-                    <xsl:variable name="coord" select="ixsl:get($event, 'coordinate')"/>
+                    <xsl:variable name="coord" select="ixsl:get($event, 'coordinate')" as="array(*)"/>
                     <xsl:variable name="container" select="ixsl:call(ixsl:page(), 'createElement', [ 'div' ])" as="element()"/>
                     <xsl:variable name="overlay-options" select="ldh:new-object()"/>
                     <ixsl:set-property name="element" select="$container" object="$overlay-options"/>
