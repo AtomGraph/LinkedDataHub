@@ -282,7 +282,8 @@ exclude-result-prefixes="#all"
                     <ixsl:set-property name="autoPan" select="true()" object="$overlay-options"/>
                     <!--<ixsl:set-property name="autoPanAnimation" select="" object="$overlay-options"/>-->
                     <xsl:variable name="overlay" select="ldh:new('ol.Overlay', [ $overlay-options ])"/>
-                    
+                    <xsl:sequence select="ixsl:call($overlay, 'setPosition', [ $coord ])[current-date() lt xs:date('2000-01-01')]"/>
+
                     <xsl:for-each select="$container">
                         <xsl:result-document href="?." method="ixsl:replace-content">
                             <xsl:copy-of select="$info-window-html"/>
