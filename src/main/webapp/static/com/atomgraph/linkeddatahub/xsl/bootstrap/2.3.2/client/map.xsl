@@ -68,6 +68,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="map" as="item()"/>
        
         <xsl:variable name="container" select="ixsl:call(ixsl:page(), 'createElement', [ 'div' ])" as="element()"/>
+        <ixsl:set-property name="id" select="'id' || ixsl:call(ixsl:window(), 'generateUUID', [])" object="$container"/>
         <xsl:sequence select="ixsl:call(ixsl:page()/html/body, 'appendChild', [ $container ])[current-date() lt xs:date('2000-01-01')]"/>
 
         <xsl:variable name="overlay-options" select="ldh:new-object()"/>
@@ -77,10 +78,6 @@ exclude-result-prefixes="#all"
         <xsl:variable name="overlay" select="ldh:new('ol.Overlay', [ $overlay-options ])"/>
         <xsl:sequence select="ixsl:call($map, 'addOverlay', [ $overlay ])[current-date() lt xs:date('2000-01-01')]"/>
 
-        <xsl:message>
-            $container: <xsl:value-of select="serialize($container)"/> $container/..: <xsl:value-of select="serialize($container/..)"/>
-        </xsl:message>
-        
         <xsl:variable name="js-statement" as="xs:string">
             <![CDATA[
                 function mapOnClick(map, overlay, evt) {
@@ -90,8 +87,6 @@ exclude-result-prefixes="#all"
                     );
 
                     if (feature && feature.getGeometry() instanceof ol.geom.Point) {
-                        console.log("Point!");
-
                         var coord = evt.coordinate;
                         console.log(JSON.stringify(coord));
 
