@@ -62,8 +62,12 @@ exclude-result-prefixes="#all"
         <xsl:variable name="map" select="ldh:new('ol.Map', [ $map-options ])"/>
         <xsl:sequence select="ixsl:call($view, 'setCenter', [ $center ])[current-date() lt xs:date('2000-01-01')]"/>
         
-        <xsl:variable name="stylesheet-params" select="ldh:new-object()"/>
-        <ixsl:set-property name="Q{{&ldt;}}base" select="$ldt:base" object="$stylesheet-params"/>
+        <xsl:variable name="js-statement" as="element()">
+            <root statement="{{ &quot;Q{{&ldt;}}base&quot;: &quot;{$ldt:base}&quot; }}"/>
+        </xsl:variable>
+        <xsl:message>$js-statement: <xsl:value-of select="$js-statement"/></xsl:message>
+        <xsl:variable name="stylesheet-params" select="ixsl:eval(string($js-statement/@statement))"/>
+        <!-- <ixsl:set-property name="Q{{&ldt;}}base" select="$ldt:base" object="$stylesheet-params"/> cannot use due to Saxon-JS 2.4 bug: https://saxonica.plan.io/issues/5673 -->
         <xsl:variable name="template-params" select="ldh:new-object()"/>
         <ixsl:set-property name="map" select="$map" object="$template-params"/>
         <!--<ixsl:set-property name="feature" select="$map" object="$template-params"/>-->
