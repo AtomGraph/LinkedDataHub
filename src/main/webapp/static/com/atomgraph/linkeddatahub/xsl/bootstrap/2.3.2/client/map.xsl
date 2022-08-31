@@ -67,16 +67,6 @@ exclude-result-prefixes="#all"
     <xsl:function name="ldh:map-marker-onclick">
         <xsl:param name="map" as="item()"/>
        
-        <xsl:variable name="container" select="ixsl:call(ixsl:page(), 'createElement', [ 'div' ])" as="element()"/>
-        <ixsl:set-property name="id" select="'id' || ixsl:call(ixsl:window(), 'generateUUID', [])" object="$container"/>
-        <xsl:sequence select="ixsl:call(ixsl:page()/html/body, 'appendChild', [ $container ])[current-date() lt xs:date('2000-01-01')]"/>
-
-        <xsl:variable name="overlay-options" select="ldh:new-object()"/>
-        <ixsl:set-property name="element" select="$container" object="$overlay-options"/>
-        <ixsl:set-property name="autoPan" select="true()" object="$overlay-options"/>
-        <!--<ixsl:set-property name="autoPanAnimation" select="" object="$overlay-options"/>-->
-        <xsl:variable name="overlay" select="ldh:new('ol.Overlay', [ $overlay-options ])"/>
-        
         <xsl:variable name="js-statement" as="xs:string">
             <![CDATA[
                 function mapOnClick(map, overlay, evt) {
@@ -87,16 +77,14 @@ exclude-result-prefixes="#all"
 
                     if (feature && feature.getGeometry() instanceof ol.geom.Point) {
                         var coord = evt.coordinate;
-                        console.log(JSON.stringify(coord));
 
+                        var container = document.createElement("div");
+                        var overlay = new ol.Overlay({ element: container, autoPan: true });
                         overlay.getElement().innerHTML = "<h1>Whateverest</h1>";
                         overlay.setPosition(coord);
+                        
+                        map.addOverlay(overlay);
                     }
-                    else {
-                        overlay.setPosition(undefined);
-                    }
-                    
-                    map.addOverlay(overlay);
                 }
             ]]>
         </xsl:variable>
