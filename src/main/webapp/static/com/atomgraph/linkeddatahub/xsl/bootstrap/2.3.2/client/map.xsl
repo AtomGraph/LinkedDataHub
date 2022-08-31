@@ -264,9 +264,13 @@ exclude-result-prefixes="#all"
         <xsl:param name="map"/>
         <xsl:param name="feature"/>
         <xsl:param name="uri" as="xs:anyURI"/>
-
+        
+        <xsl:message>ixsl:get($event, 'coordinate'): <xsl:value-of select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ ixsl:get($event, 'coordinate') ])"/></xsl:message>
+        
         <xsl:choose>
             <xsl:when test="?status = 200 and starts-with(?media-type, 'text/html')">
+                <xsl:message>YES!!</xsl:message>
+                
                 <xsl:for-each select="?body">
                     <xsl:variable name="info-window-options" select="ldh:new-object()"/>
                     <!-- render first child of <body> as InfoWindow content -->
@@ -289,6 +293,7 @@ exclude-result-prefixes="#all"
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
+                <xsl:message>NO :(</xsl:message>
 <!--                <xsl:variable name="info-window-options" select="ldh:new-object()"/>
                 <xsl:variable name="info-window-html" as="element()">
                     <div class="alert alert-block">
