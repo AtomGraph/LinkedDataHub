@@ -61,69 +61,22 @@ exclude-result-prefixes="#all"
 
         <xsl:variable name="map" select="ldh:new('ol.Map', [ $map-options ])"/>
         <xsl:sequence select="ixsl:call($view, 'setCenter', [ $center ])[current-date() lt xs:date('2000-01-01')]"/>
+        
+        <xsl:variable name="stylesheet-params" select="ldh:new-object()"/>
+        <ixsl:set-property name="Q{{&ldt;}}base" select="$ldt:base" object="$stylesheet-params"/>
+        <xsl:variable name="template-params" select="ldh:new-object()"/>
+        <ixsl:set-property name="map" select="$map" object="$template-params"/>
+        <!--<ixsl:set-property name="feature" select="$map" object="$template-params"/>-->
+        
+        <xsl:message>static-base-uri(): <xsl:value-of select="static-base-uri()"/></xsl:message>
+        <xsl:message>$stylesheet-params: <xsl:value-of select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', $stylesheet-params)"/></xsl:message>
+        <xsl:message>$template-params: <xsl:value-of select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', $template-params)"/></xsl:message>
+        
+        <xsl:variable name="map-marker-onclick" select="ixsl:call(ixsl:get(ixsl:window(), 'ixslTemplateListener'), 'bind', [ (), static-base-uri(), 'onMapMarkerClick', $stylesheet-params, $template-params ])"/>
+        <xsl:sequence select="ixsl:call($map, 'on', [ 'click', $map-marker-onclick ])[current-date() lt xs:date('2000-01-01')]"/>
+
         <xsl:sequence select="$map"/>
     </xsl:function>
-
-    <xsl:function name="ldh:map-marker-onclick">
-        <xsl:param name="map" as="item()"/>
-       
-        <xsl:variable name="js-statement" as="xs:string">
-            <![CDATA[
-                function mapOnClick(map, evt) {
-                    var feature = map.forEachFeatureAtPixel(evt.pixel, function (feat, layer) {
-                            return feat;
-                        }
-                    );
-
-                    if (feature && feature.getGeometry() instanceof ol.geom.Point) {
-                        var coord = evt.coordinate;
-                        var container = document.createElement("div");
-                        var overlay = new ol.Overlay({ element: container, autoPan: true });
-                        overlay.getElement().innerHTML = "<h1>Whateverest</h1>";
-                        overlay.setPosition(coord);
-                        
-                        map.addOverlay(overlay);
-                    }
-                }
-            ]]>
-        </xsl:variable>
-        <xsl:variable name="js-function" select="ixsl:eval(normalize-space($js-statement))"/> <!-- need normalize-space() due to Saxon-JS 2.4 bug: https://saxonica.plan.io/issues/5667 -->
-        <!-- bind map and overlay variables and return new bound function: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_objects/Function/bind#partially_applied_functions -->
-        <xsl:sequence select="ixsl:call($js-function, 'bind', [ (), $map ])"/>
-    </xsl:function>
-    
-    <!-- creates SPARQLMap.Geo object (for containers) -->
-    
-    <xsl:function name="ac:create-geo-object">
-        <xsl:param name="map" as="item()"/>
-        <xsl:param name="uri" as="xs:anyURI"/>
-        <xsl:param name="base" as="xs:anyURI"/>
-        <xsl:param name="endpoint" as="xs:anyURI"/>
-        <xsl:param name="select-string" as="xs:string"/>
-        <xsl:param name="focus-var-name" as="xs:string"/>
-        <xsl:param name="graph-var-name" as="xs:string?"/>
-
-        <!-- set $this value -->
-        <xsl:variable name="select-string" select="replace($select-string, '\$this', '&lt;' || $uri || '&gt;')" as="xs:string"/>
-        <!-- TO-DO: move Geo under AtomGraph namespace -->
-        <xsl:choose>
-            <xsl:when test="$graph-var-name">
-                <xsl:sequence select="ldh:new('SPARQLMap.Geo', [ $map, ldh:new('URL', [ $base ]), ldh:new('URL', [ $endpoint ]), $select-string, $focus-var-name, $graph-var-name ])"/>
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:sequence select="ldh:new('SPARQLMap.Geo', [ $map, ldh:new('URL', [ $base ]), ldh:new('URL', [ $endpoint ]), $select-string, $focus-var-name ])"/>
-            </xsl:otherwise>
-        </xsl:choose>
-    </xsl:function>
-
-    <xsl:template name="ac:add-geo-listener">
-        <xsl:param name="escaped-content-uri" as="xs:anyURI"/>
-
-        <xsl:variable name="js-statement" as="element()">
-            <root statement="window.LinkedDataHub.contents['{$escaped-content-uri}'].map.addListener('idle', function() {{ window.LinkedDataHub.contents['{$escaped-content-uri}'].geo.loadMarkers(window.LinkedDataHub.contents['{$escaped-content-uri}'].geo.addMarkers); }})"/>
-        </xsl:variable>
-        <xsl:sequence select="ixsl:eval(string($js-statement/@statement))"/>
-    </xsl:template>
 
     <!-- load geo resources with a given boundary -->
     
@@ -247,7 +200,6 @@ exclude-result-prefixes="#all"
                     <xsl:variable name="center-lng" select="if (not($initial-load)) then xs:float(ixsl:call(ixsl:get(ixsl:window(), 'ol.proj'), 'toLonLat', [ ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri), 'map'), 'getView', []), 'getCenter', []) ])[1]) else (if (exists($avg-lng)) then $avg-lng else 0)" as="xs:float"/>
                     <xsl:variable name="zoom" select="if (not($initial-load)) then xs:integer(ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri), 'map'), 'getView', []), 'getZoom', [])) else 4" as="xs:integer"/>
                     <xsl:variable name="map" select="ldh:create-map($canvas-id, $center-lat, $center-lng, $zoom)" as="item()"/>
-                    <xsl:sequence select="ixsl:call($map, 'on', [ 'click', ldh:map-marker-onclick($map) ])[current-date() lt xs:date('2000-01-01')]"/>
                     
                     <ixsl:set-property name="map" select="$map" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri)"/>
 
@@ -270,34 +222,46 @@ exclude-result-prefixes="#all"
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
     </xsl:template>
     
-    <xsl:template name="onMarkerClick">
-        <xsl:param name="map"/>
-        <xsl:param name="marker"/>
-        <xsl:param name="uri" as="xs:anyURI"/>
-        
-        <!-- InfoWindowMode is handled as a special case in layout.xsl -->
-        <xsl:variable name="mode" select="'https://w3id.org/atomgraph/linkeddatahub/templates#InfoWindowMode'" as="xs:string"/>
-        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ldh:query-params(xs:anyURI($mode)), $uri)" as="xs:anyURI"/>
+    <xsl:template name="onMapMarkerClick">
+        <xsl:param name="event" as="item()"/>
+        <xsl:param name="map" as="item()"/>
 
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
-
-        <xsl:variable name="request" as="item()*">
-            <!-- request HTML instead of XHTML because Google Maps' InfoWindow doesn't support XHTML -->
-            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'text/html' } }">
-                <xsl:call-template name="onInfoWindowLoad">
-                    <xsl:with-param name="map" select="$map"/>
-                    <xsl:with-param name="marker" select="$marker"/>
-                    <xsl:with-param name="uri" select="$uri"/>
-                </xsl:call-template>
-            </ixsl:schedule-action>
+        <xsl:variable name="js-statement" as="xs:string">
+            <![CDATA[
+                function (feat, layer) {
+                    return feat;
+                }
+            ]]>
         </xsl:variable>
-        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:variable name="js-function" select="ixsl:eval(normalize-space($js-statement))"/> <!-- need normalize-space() due to Saxon-JS 2.4 bug: https://saxonica.plan.io/issues/5667 -->
+        <xsl:variable name="feature" select="ixsl:call($map, 'forEachFeatureAtPixel', [ ixsl:get($event, 'pixed'), $js-function])" as="item()"/>
+        
+        <xsl:if test="exists($feature)"> <!-- TO-DO: && feature.getGeometry() instanceof ol.geom.Point -->
+            <xsl:variable name="uri" select="xs:anyURI(ixsl:call($feature, 'getId', []))" as="xs:anyURI"/>
+            <!-- InfoWindowMode is handled as a special case in layout.xsl -->
+            <xsl:variable name="mode" select="'https://w3id.org/atomgraph/linkeddatahub/templates#InfoWindowMode'" as="xs:string"/>
+            <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ldh:query-params(xs:anyURI($mode)), $uri)" as="xs:anyURI"/>
+
+            <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+
+            <xsl:variable name="request" as="item()*">
+                <!-- request HTML instead of XHTML because Google Maps' InfoWindow doesn't support XHTML -->
+                <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'text/html' } }">
+                    <xsl:call-template name="onInfoWindowLoad">
+                        <xsl:with-param name="map" select="$map"/>
+                        <xsl:with-param name="feature" select="$feature"/>
+                        <xsl:with-param name="uri" select="$uri"/>
+                    </xsl:call-template>
+                </ixsl:schedule-action>
+            </xsl:variable>
+            <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+        </xsl:if>
     </xsl:template>
     
     <xsl:template name="onInfoWindowLoad">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="map"/>
-        <xsl:param name="marker"/>
+        <xsl:param name="feature"/>
         <xsl:param name="uri" as="xs:anyURI"/>
 
         <xsl:choose>
@@ -306,17 +270,18 @@ exclude-result-prefixes="#all"
                     <xsl:variable name="info-window-options" select="ldh:new-object()"/>
                     <!-- render first child of <body> as InfoWindow content -->
                     <xsl:variable name="info-window-html" select="/html/body/*[1]" as="element()"/>
-                    <ixsl:set-property name="content" select="$info-window-html" object="$info-window-options"/>
-                    <xsl:variable name="info-window" select="ldh:new('google.maps.InfoWindow', [ $info-window-options ])"/>
-                    <xsl:variable name="open-options" select="ldh:new-object()"/>
-                    <ixsl:set-property name="anchor" select="$marker" object="$open-options"/>
-                    <ixsl:set-property name="map" select="$map" object="$open-options"/>
-                    <ixsl:set-property name="shouldFocus" select="false()" object="$open-options"/>
-                    <xsl:sequence select="ixsl:call($info-window, 'open', [ $open-options ])[current-date() lt xs:date('2000-01-01')]"/>
+
+<!--                        var coord = evt.coordinate;
+                        var container = document.createElement("div");
+                        var overlay = new ol.Overlay({ element: container, autoPan: true });
+                        overlay.getElement().innerHTML = "<h1>Whateverest</h1>";
+                        overlay.setPosition(coord);
+                        
+                        map.addOverlay(overlay);-->
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:variable name="info-window-options" select="ldh:new-object()"/>
+<!--                <xsl:variable name="info-window-options" select="ldh:new-object()"/>
                 <xsl:variable name="info-window-html" as="element()">
                     <div class="alert alert-block">
                         <strong>Could not map resource: <a href="{$uri}"><xsl:value-of select="$uri"/></a></strong>
@@ -328,7 +293,7 @@ exclude-result-prefixes="#all"
                 <ixsl:set-property name="anchor" select="$marker" object="$open-options"/>
                 <ixsl:set-property name="map" select="$map" object="$open-options"/>
                 <ixsl:set-property name="shouldFocus" select="false()" object="$open-options"/>
-                <xsl:sequence select="ixsl:call($info-window, 'open', [ $open-options ])[current-date() lt xs:date('2000-01-01')]"/>
+                <xsl:sequence select="ixsl:call($info-window, 'open', [ $open-options ])[current-date() lt xs:date('2000-01-01')]"/>-->
             </xsl:otherwise>
         </xsl:choose>
         

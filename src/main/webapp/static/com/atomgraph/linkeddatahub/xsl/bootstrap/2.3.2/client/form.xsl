@@ -181,7 +181,7 @@ exclude-result-prefixes="#all"
                 <xsl:variable name="headers" select="ldh:new-object()"/>
                 <ixsl:set-property name="Accept" select="$accept" object="$headers"/>
                 
-                <xsl:sequence select="js:fetchDispatchXML($request-uri, $method, $headers, $form-data, ., 'multipartFormLoad')"/>
+                <xsl:sequence select="js:fetchDispatchXML($request-uri, $method, $headers, $form-data, ., 'multipartFormLoad')[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:when>
             <xsl:otherwise>
                 <xsl:variable name="form-data" select="ldh:new('URLSearchParams', [ ldh:new('FormData', [ $form ]) ])"/>

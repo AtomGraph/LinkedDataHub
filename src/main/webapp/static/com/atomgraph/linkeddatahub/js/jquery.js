@@ -108,19 +108,31 @@ var onSubjectValueChange = function(event)
     oldSubject.val(newValue); // store value in the hidden input
 };
 
-var addGoogleMapsListener = function(object, type, options, templateName, map, marker, uri)
+//var addGoogleMapsListener = function(object, type, options, templateName, map, marker, uri)
+//{
+//    object.addListener(type, 
+//        function (event)
+//        {
+//            SaxonJS.transform({
+//                "stylesheetLocation": contextUri + "static/com/atomgraph/linkeddatahub/xsl/client.xsl.sef.json",
+//                "initialTemplate": templateName,
+//                "stylesheetParams": { "Q{https://www.w3.org/ns/ldt#}base": baseUri },
+//                "templateParams": { "event": event, "marker": marker, "map": map, "uri": uri }
+//            });
+//        },
+//        options);
+//};
+
+var ixslTemplateListener = function(stylesheetLocation, initialTemplate, stylesheetParams, templateParams, event)
 {
-    object.addListener(type, 
-        function (event)
-        {
-            SaxonJS.transform({
-                "stylesheetLocation": contextUri + "static/com/atomgraph/linkeddatahub/xsl/client.xsl.sef.json",
-                "initialTemplate": templateName,
-                "stylesheetParams": { "Q{https://www.w3.org/ns/ldt#}base": baseUri },
-                "templateParams": { "event": event, "marker": marker, "map": map, "uri": uri }
-            });
-        },
-        options);
+    templateParams.event = event;
+
+    SaxonJS.transform({
+        "stylesheetLocation": stylesheetLocation,
+        "initialTemplate": initialTemplate,
+        "stylesheetParams": stylesheetParams,
+        "templateParams": templateParams
+    });
 };
 
 $(document).ready(function()
