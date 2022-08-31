@@ -69,7 +69,7 @@ exclude-result-prefixes="#all"
        
         <xsl:variable name="js-statement" as="xs:string">
             <![CDATA[
-                function mapOnClick(map, overlay, evt) {
+                function mapOnClick(map, evt) {
                     var feature = map.forEachFeatureAtPixel(evt.pixel, function (feat, layer) {
                             return feat;
                         }
@@ -77,7 +77,6 @@ exclude-result-prefixes="#all"
 
                     if (feature && feature.getGeometry() instanceof ol.geom.Point) {
                         var coord = evt.coordinate;
-
                         var container = document.createElement("div");
                         var overlay = new ol.Overlay({ element: container, autoPan: true });
                         overlay.getElement().innerHTML = "<h1>Whateverest</h1>";
@@ -90,7 +89,7 @@ exclude-result-prefixes="#all"
         </xsl:variable>
         <xsl:variable name="js-function" select="ixsl:eval(normalize-space($js-statement))"/> <!-- need normalize-space() due to Saxon-JS 2.4 bug: https://saxonica.plan.io/issues/5667 -->
         <!-- bind map and overlay variables and return new bound function: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_objects/Function/bind#partially_applied_functions -->
-        <xsl:sequence select="ixsl:call($js-function, 'bind', [ (), $map, $overlay ])"/>
+        <xsl:sequence select="ixsl:call($js-function, 'bind', [ (), $map ])"/>
     </xsl:function>
     
     <!-- creates SPARQLMap.Geo object (for containers) -->
