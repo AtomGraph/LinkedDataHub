@@ -65,16 +65,11 @@ exclude-result-prefixes="#all"
         <xsl:variable name="js-statement" as="element()">
             <root statement="{{ &quot;Q{{&ldt;}}base&quot;: &quot;{$ldt:base}&quot; }}"/>
         </xsl:variable>
-        <xsl:message>$js-statement: <xsl:value-of select="$js-statement"/></xsl:message>
         <xsl:variable name="stylesheet-params" select="ixsl:eval(string($js-statement/@statement))"/>
         <!-- <ixsl:set-property name="Q{{&ldt;}}base" select="$ldt:base" object="$stylesheet-params"/> cannot use due to Saxon-JS 2.4 bug: https://saxonica.plan.io/issues/5673 -->
         <xsl:variable name="template-params" select="ldh:new-object()"/>
         <ixsl:set-property name="map" select="$map" object="$template-params"/>
         <!--<ixsl:set-property name="feature" select="$map" object="$template-params"/>-->
-        
-        <xsl:message>static-base-uri(): <xsl:value-of select="static-base-uri()"/></xsl:message>
-        <xsl:message>$stylesheet-params: <xsl:value-of select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $stylesheet-params ])"/></xsl:message>
-        <xsl:message>$template-params: <xsl:value-of select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $template-params ])"/></xsl:message>
         
         <xsl:variable name="map-marker-onclick" select="ixsl:call(ixsl:get(ixsl:window(), 'ixslTemplateListener'), 'bind', [ (), static-base-uri(), 'onMapMarkerClick', $stylesheet-params, $template-params ])"/>
         <xsl:sequence select="ixsl:call($map, 'on', [ 'click', $map-marker-onclick ])[current-date() lt xs:date('2000-01-01')]"/>
@@ -252,6 +247,7 @@ exclude-result-prefixes="#all"
                 <!-- request HTML instead of XHTML because Google Maps' InfoWindow doesn't support XHTML -->
                 <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'text/html' } }">
                     <xsl:call-template name="onInfoWindowLoad">
+                        <xsl:with-param name="event" select="$event"/>
                         <xsl:with-param name="map" select="$map"/>
                         <xsl:with-param name="feature" select="$feature"/>
                         <xsl:with-param name="uri" select="$uri"/>
@@ -264,6 +260,7 @@ exclude-result-prefixes="#all"
     
     <xsl:template name="onInfoWindowLoad">
         <xsl:context-item as="map(*)" use="required"/>
+        <xsl:param name="event"/>
         <xsl:param name="map"/>
         <xsl:param name="feature"/>
         <xsl:param name="uri" as="xs:anyURI"/>
@@ -274,14 +271,21 @@ exclude-result-prefixes="#all"
                     <xsl:variable name="info-window-options" select="ldh:new-object()"/>
                     <!-- render first child of <body> as InfoWindow content -->
                     <xsl:variable name="info-window-html" select="/html/body/*[1]" as="element()"/>
-
-<!--                        var coord = evt.coordinate;
-                        var container = document.createElement("div");
-                        var overlay = new ol.Overlay({ element: container, autoPan: true });
-                        overlay.getElement().innerHTML = "<h1>Whateverest</h1>";
-                        overlay.setPosition(coord);
-                        
-                        map.addOverlay(overlay);-->
+                    <xsl:variable name="coord" select="ixsl:get($event, 'coordinate')"/>
+                    <xsl:variable name="container" select="ixsl:call(ixsl:page(), 'createElement', [ 'div' ])" as="element()"/>
+                    <xsl:variable name="overlay-options" select="ldh:new-object()"/>
+                    <ixsl:set-property name="element" select="$container" object="$overlay-options"/>
+                    <ixsl:set-property name="autoPan" select="true()" object="$overlay-options"/>
+                    <!--<ixsl:set-property name="autoPanAnimation" select="" object="$overlay-options"/>-->
+                    <xsl:variable name="overlay" select="ldh:new('ol.Overlay', [ $overlay-options ])"/>
+                    
+                    <xsl:for-each select="$container">
+                        <xsl:result-document href="?." method="ixsl:replace-content">
+                            <xsl:copy-of select="$info-window-html"/>
+                        </xsl:result-document>
+                    </xsl:for-each>
+                
+                    <xsl:sequence select="ixsl:call($map, 'addOverlay', [ $overlay ])[current-date() lt xs:date('2000-01-01')]"/>
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
