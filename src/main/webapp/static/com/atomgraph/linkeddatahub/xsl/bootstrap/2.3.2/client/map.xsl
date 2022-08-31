@@ -76,8 +76,6 @@ exclude-result-prefixes="#all"
         <ixsl:set-property name="autoPan" select="true()" object="$overlay-options"/>
         <!--<ixsl:set-property name="autoPanAnimation" select="" object="$overlay-options"/>-->
         <xsl:variable name="overlay" select="ldh:new('ol.Overlay', [ $overlay-options ])"/>
-        <xsl:sequence select="ixsl:call($map, 'addOverlay', [ $overlay ])[current-date() lt xs:date('2000-01-01')]"/>
-        <xsl:message>map.getOverlays().getArray().length: <xsl:value-of select="ixsl:get(ixsl:call(ixsl:call($map, 'getOverlays', []), 'getArray', []), 'length')"/></xsl:message>
         
         <xsl:variable name="js-statement" as="xs:string">
             <![CDATA[
@@ -97,6 +95,8 @@ exclude-result-prefixes="#all"
                     else {
                         overlay.setPosition(undefined);
                     }
+                    
+                    map.addOverlay(overlay);
                 }
             ]]>
         </xsl:variable>
