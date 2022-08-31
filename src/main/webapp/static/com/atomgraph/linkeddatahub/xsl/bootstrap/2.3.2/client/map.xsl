@@ -73,8 +73,8 @@ exclude-result-prefixes="#all"
         <!--<ixsl:set-property name="feature" select="$map" object="$template-params"/>-->
         
         <xsl:message>static-base-uri(): <xsl:value-of select="static-base-uri()"/></xsl:message>
-        <xsl:message>$stylesheet-params: <xsl:value-of select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', $stylesheet-params)"/></xsl:message>
-        <xsl:message>$template-params: <xsl:value-of select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', $template-params)"/></xsl:message>
+        <xsl:message>$stylesheet-params: <xsl:value-of select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $stylesheet-params ])"/></xsl:message>
+        <xsl:message>$template-params: <xsl:value-of select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $template-params ])"/></xsl:message>
         
         <xsl:variable name="map-marker-onclick" select="ixsl:call(ixsl:get(ixsl:window(), 'ixslTemplateListener'), 'bind', [ (), static-base-uri(), 'onMapMarkerClick', $stylesheet-params, $template-params ])"/>
         <xsl:sequence select="ixsl:call($map, 'on', [ 'click', $map-marker-onclick ])[current-date() lt xs:date('2000-01-01')]"/>
