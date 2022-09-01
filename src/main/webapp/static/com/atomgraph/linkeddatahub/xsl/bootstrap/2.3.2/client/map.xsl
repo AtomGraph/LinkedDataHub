@@ -63,7 +63,7 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="ixsl:call($view, 'setCenter', [ $center ])[current-date() lt xs:date('2000-01-01')]"/>
         
         <xsl:variable name="js-statement" as="element()">
-            <root statement="{{ &quot;Q{{&ldt;}}base&quot;: &quot;{$ldt:base}&quot; }}"/>
+            <root statement="{{ &quot;Q{{&ldt;}}base&quot;: &quot;{$ldt:base}&quot;, &quot;Q{{&ac;}}contextUri&quot;: &quot;{$ac:contextUri}&quot; }}"/>
         </xsl:variable>
         <xsl:variable name="stylesheet-params" select="ixsl:eval(string($js-statement/@statement))"/>
         <!-- <ixsl:set-property name="Q{{&ldt;}}base" select="$ldt:base" object="$stylesheet-params"/> cannot use due to Saxon-JS 2.4 bug: https://saxonica.plan.io/issues/5673 -->
@@ -277,14 +277,20 @@ exclude-result-prefixes="#all"
                     <ixsl:set-property name="element" select="$container" object="$overlay-options"/>
                     <ixsl:set-property name="autoPan" select="true()" object="$overlay-options"/>
                     <ixsl:set-property name="positioning" select="'bottom-center'" object="$overlay-options"/>
-                    <ixsl:set-property name="className" select="'ol-overlay-container ol-selectable well'" object="$overlay-options"/>
+                    <!--<ixsl:set-property name="className" select="'ol-overlay-container ol-selectable'" object="$overlay-options"/>-->
                     <!--<ixsl:set-property name="autoPanAnimation" select="" object="$overlay-options"/>-->
                     <xsl:variable name="overlay" select="ldh:new('ol.Overlay', [ $overlay-options ])"/>
                     <xsl:sequence select="ixsl:call($overlay, 'setPosition', [ $coord ])[current-date() lt xs:date('2000-01-01')]"/>
 
                     <xsl:for-each select="$container">
                         <xsl:result-document href="?." method="ixsl:replace-content">
-                            <xsl:copy-of select="$info-window-html"/>
+                            <div class="modal-header">
+                                <button type="button" class="close">&#215;</button>
+                            </div>
+                            
+                            <div class="modal-header">
+                                <xsl:copy-of select="$info-window-html"/>
+                            </div>
                         </xsl:result-document>
                     </xsl:for-each>
                 
