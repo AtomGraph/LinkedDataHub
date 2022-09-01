@@ -139,7 +139,7 @@ object { display: block; margin: auto; max-height: 400px; overflow: hidden; widt
 .cell { display: table-cell ; }
 .footer { background-color: rgba(0, 0, 0, 0.03); font-size: smaller; padding-bottom: 2em; height: 14em; }
 /* OpenLayers specific */
-.ol-overlay-container { width: 500px; }
+.ol-overlay-container { width: 50%; max-height: 75%; background-color: white; overflow: auto; }
 .ol-overlay-container img { max-width: 100%; }
 /* SVG graph specific */
 circle { cursor: move; }
