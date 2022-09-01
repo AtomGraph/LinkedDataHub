@@ -233,7 +233,7 @@ exclude-result-prefixes="#all"
             ]]>
         </xsl:variable>
         <xsl:variable name="js-function" select="ixsl:eval(normalize-space($js-statement))"/> <!-- need normalize-space() due to Saxon-JS 2.4 bug: https://saxonica.plan.io/issues/5667 -->
-        <xsl:variable name="feature" select="ixsl:call($map, 'forEachFeatureAtPixel', [ ixsl:get($event, 'pixel'), $js-function])" as="item()"/>
+        <xsl:variable name="feature" select="ixsl:call($map, 'forEachFeatureAtPixel', [ ixsl:get($event, 'pixel'), $js-function])" as="item()?"/>
         
         <xsl:if test="exists($feature)"> <!-- TO-DO: && feature.getGeometry() instanceof ol.geom.Point -->
             <xsl:variable name="uri" select="xs:anyURI(ixsl:call($feature, 'getId', []))" as="xs:anyURI"/>
