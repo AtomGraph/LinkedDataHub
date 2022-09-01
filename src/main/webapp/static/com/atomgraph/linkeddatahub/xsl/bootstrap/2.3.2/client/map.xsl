@@ -276,6 +276,7 @@ exclude-result-prefixes="#all"
                     <xsl:variable name="overlay-options" select="ldh:new-object()"/>
                     <ixsl:set-property name="element" select="$container" object="$overlay-options"/>
                     <ixsl:set-property name="autoPan" select="true()" object="$overlay-options"/>
+                    <ixsl:set-property name="positioning" select="'top-center'" object="$overlay-options"/>
                     <!--<ixsl:set-property name="autoPanAnimation" select="" object="$overlay-options"/>-->
                     <xsl:variable name="overlay" select="ldh:new('ol.Overlay', [ $overlay-options ])"/>
                     <xsl:sequence select="ixsl:call($overlay, 'setPosition', [ $coord ])[current-date() lt xs:date('2000-01-01')]"/>
