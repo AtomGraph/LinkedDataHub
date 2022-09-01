@@ -288,7 +288,7 @@ exclude-result-prefixes="#all"
                                 <button type="button" class="close">&#215;</button>
                             </div>
                             
-                            <div class="modal-header">
+                            <div class="modal-body">
                                 <xsl:copy-of select="$info-window-html"/>
                             </div>
                         </xsl:result-document>
