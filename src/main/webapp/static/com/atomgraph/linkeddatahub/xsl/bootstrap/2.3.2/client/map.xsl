@@ -273,9 +273,11 @@ exclude-result-prefixes="#all"
                     <xsl:variable name="info-window-html" select="/html/body/*[1]" as="element()"/>
                     <xsl:variable name="coord" select="ixsl:get($event, 'coordinate')"/>
                     <xsl:variable name="container" select="ixsl:call(ixsl:page(), 'createElement', [ 'div' ])" as="element()"/>
+                    <xsl:sequence select="ixsl:call(ixsl:call($map, 'getOverlayContainerStopEvent', []), 'appendChild', [ $container ])[current-date() lt xs:date('2000-01-01')]"/>
+                    <ixsl:set-attribute name="id" select="'whateverest'" object="$container"/>
+
                     <xsl:variable name="overlay-options" select="ldh:new-object()"/>
                     <ixsl:set-property name="element" select="$container" object="$overlay-options"/>
-                    <ixsl:set-property name="stopEvent" select="true()" object="$overlay-options"/>
                     <ixsl:set-property name="autoPan" select="true()" object="$overlay-options"/>
                     <ixsl:set-property name="positioning" select="'bottom-center'" object="$overlay-options"/>
                     <!--<ixsl:set-property name="className" select="'ol-overlay-container ol-selectable'" object="$overlay-options"/>-->
@@ -321,7 +323,7 @@ exclude-result-prefixes="#all"
     <!-- close popup overlay (info window) -->
     
     <xsl:template match="div[contains-token(@class, 'ol-overlay-container')]//div[contains-token(@class, 'modal-header')]/button[contains-token(@class, 'close')]" mode="ixsl:onclick" >
-        <xsl:message>HELLO??? path(): <xsl:value-of select="path()"/></xsl:message>
+        <xsl:message>HELLO??? path(): <xsl:value-of select="path()"/> ancestor::div[@id]/@id: <xsl:value-of select="ancestor::div[@id]/@id"/></xsl:message>
         <xsl:variable name="content-uri" select="ancestor::div[@about][1]/@about" as="xs:anyURI"/>
         <xsl:message>$content-uri: <xsl:value-of select="$content-uri"/></xsl:message>
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'ol-overlay-container')]/div" as="element()"/>
