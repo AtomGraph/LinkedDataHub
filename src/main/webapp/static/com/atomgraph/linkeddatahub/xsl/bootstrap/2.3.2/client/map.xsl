@@ -74,7 +74,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="map-marker-onclick" select="ixsl:call(ixsl:get(ixsl:window(), 'ixslTemplateListener'), 'bind', [ (), static-base-uri(), 'onMapMarkerClick', $stylesheet-params, $template-params ])"/>
         <xsl:sequence select="ixsl:call($map, 'on', [ 'click', $map-marker-onclick ])[current-date() lt xs:date('2000-01-01')]"/>
         <xsl:variable name="map-marker-pointermove" select="ixsl:call(ixsl:get(ixsl:window(), 'ixslTemplateListener'), 'bind', [ (), static-base-uri(), 'onMapPointerMove', $stylesheet-params, $template-params ])"/>
-        <xsl:sequence select="ixsl:call($map, 'on', [ 'pointermove', $map-marker-onclick ])[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:sequence select="ixsl:call($map, 'on', [ 'pointermove', $map-marker-pointermove ])[current-date() lt xs:date('2000-01-01')]"/>
 
         <xsl:sequence select="$map"/>
     </xsl:function>
