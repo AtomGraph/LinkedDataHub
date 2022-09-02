@@ -228,9 +228,9 @@ exclude-result-prefixes="#all"
         <xsl:param name="map" as="item()"/>
 
         <xsl:choose>
-            <xsl:if test="ixsl:call($map, 'hasFeatureAtPixel', [ ixsl:get($event, 'pixel') ])">
+            <xsl:when test="ixsl:call($map, 'hasFeatureAtPixel', [ ixsl:get($event, 'pixel') ])">
                 <ixsl:set-style name="cursor" select="'pointer'" object="ixsl:call($map, 'getViewport', [])"/>
-            </xsl:if>
+            </xsl:when>
             <xsl:otherwise>
                 <ixsl:set-style name="cursor" select="''" object="ixsl:call($map, 'getViewport', [])"/>
             </xsl:otherwise>
