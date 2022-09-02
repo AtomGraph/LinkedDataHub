@@ -72,6 +72,17 @@ exclude-result-prefixes="#all"
         
         <xsl:variable name="map-marker-onclick" select="ixsl:call(ixsl:get(ixsl:window(), 'ixslTemplateListener'), 'bind', [ (), static-base-uri(), 'onMapMarkerClick', $stylesheet-params, $template-params ])"/>
         <xsl:sequence select="ixsl:call($map, 'on', [ 'click', $map-marker-onclick ])[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:variable name="js-statement" as="xs:string">
+            <![CDATA[
+                function (map, evt) {
+                    if (!evt.dragging) {
+                        map.getTargetElement().style.cursor = map.hasFeatureAtPixel(map.getEventPixel(evt.originalEvent)) ? 'pointer' : '';
+                    }
+                }
+            ]]>
+        </xsl:variable>
+        <xsl:variable name="js-function" select="ixsl:eval(normalize-space($js-statement))"/> <!-- need normalize-space() due to Saxon-JS 2.4 bug: https://saxonica.plan.io/issues/5667 -->
+        <xsl:sequence select="ixsl:call($map, 'on', [ 'pointermove', ixsl:call($js-function, 'bind', [ (), $map ]) ])[current-date() lt xs:date('2000-01-01')]"/>-->
 
         <xsl:sequence select="$map"/>
     </xsl:function>
