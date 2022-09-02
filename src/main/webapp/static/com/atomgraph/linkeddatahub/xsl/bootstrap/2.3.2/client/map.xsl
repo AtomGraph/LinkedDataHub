@@ -327,8 +327,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="escaped-content-uri" select="xs:anyURI(translate($content-uri, '.', '-'))" as="xs:anyURI"/>
         <xsl:variable name="map" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri), 'map')"/> <!-- TO-DO: LinkedDataHub.map -->
         <xsl:variable name="overlay" select="ixsl:call(ixsl:call($map, 'getOverlays', []), 'getArray', [])[ ixsl:call(., 'getElement', []) is $container ]"/>
-        <!--<xsl:message>$map: <xsl:value-of select="$map"/> $overlay: <xsl:value-of select="$overlay"/></xsl:message>-->
-        <xsl:sequence select="ixsl:call($overlay, 'setMap', [])"/> <!-- remove overlay from map -->
+        <xsl:sequence select="ixsl:call($map, 'removeOverlay', [ $overlay ])[current-date() lt xs:date('2000-01-01')]"/> <!-- remove overlay from map -->
         <xsl:message>DONE!</xsl:message>
     </xsl:template>
     
