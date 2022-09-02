@@ -320,7 +320,7 @@ exclude-result-prefixes="#all"
     <!-- close popup overlay (info window) -->
     
     <xsl:template match="div[contains-token(@class, 'ol-overlay-container')]//div[contains-token(@class, 'modal-header')]/button[contains-token(@class, 'close')]" mode="ixsl:onclick" >
-        <xsl:message>HELLO???</xsl:message>
+        <xsl:message>HELLO??? path(): <xsl:value-of select="path()"/></xsl:message>
         <xsl:variable name="content-uri" select="ancestor::div[@about][1]/@about" as="xs:anyURI"/>
         <xsl:message>$content-uri: <xsl:value-of select="$content-uri"/></xsl:message>
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'ol-overlay-container')]/div" as="element()"/>
