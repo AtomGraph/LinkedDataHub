@@ -70,11 +70,8 @@ exclude-result-prefixes="#all"
         <xsl:variable name="template-params" select="ldh:new-object()"/>
         <ixsl:set-property name="map" select="$map" object="$template-params"/>
         
-        <xsl:variable name="map-marker-onclick" select="ixsl:call(ixsl:get(ixsl:window(), 'ixslTemplateListener'), 'bind', [ (), static-base-uri(), 'onMapMarkerClick', $stylesheet-params, $template-params ])"/>
-        <xsl:sequence select="ixsl:call($map, 'on', [ 'click', $map-marker-onclick ])[current-date() lt xs:date('2000-01-01')]"/>
-        <!-- template invocation is too slow, use native JS function instead -->
-        <!-- <xsl:variable name="map-marker-pointermove" select="ixsl:call(ixsl:get(ixsl:window(), 'ixslTemplateListener'), 'bind', [ (), static-base-uri(), 'onMapPointerMove', $stylesheet-params, $template-params ])"/>
-        <xsl:sequence select="ixsl:call($map, 'on', [ 'pointermove', $map-marker-pointermove ])[current-date() lt xs:date('2000-01-01')]"/>-->
+        <xsl:sequence select="ixsl:call($map, 'on', [ 'click', ixsl:get(ixsl:window(), 'ixslTemplateListener') ])[current-date() lt xs:date('2000-01-01')]"/>
+
         <xsl:variable name="js-statement" as="xs:string">
             <![CDATA[
                 function (map, evt) {
@@ -86,7 +83,6 @@ exclude-result-prefixes="#all"
         </xsl:variable>
         <xsl:variable name="js-function" select="ixsl:eval(normalize-space($js-statement))"/> <!-- need normalize-space() due to Saxon-JS 2.4 bug: https://saxonica.plan.io/issues/5667 -->
         <xsl:variable name="js-function" select="ixsl:call($js-function, 'bind', [ (), $map ])"/>
-
         <xsl:sequence select="ixsl:call($map, 'on', [ 'pointermove', $js-function ])[current-date() lt xs:date('2000-01-01')]"/>
 
         <xsl:sequence select="$map"/>
@@ -274,8 +270,9 @@ exclude-result-prefixes="#all"
     </xsl:template>-->
     
     <xsl:template name="onMapMarkerClick">
-        <xsl:param name="event" as="item()"/>
-        <xsl:param name="map" as="item()"/>
+        <xsl:param name="event" select="ixsl:event()"/>
+        <xsl:param name="map" select="ixsl:get(ixsl:get($event, 'detail'), 'action')"/>
+        <xsl:variable name="event" select="ixsl:get(ixsl:get($event, 'detail'), 'ol-event')"/> <!-- override the helper CustomEvent with the original OpenLayers event -->
 
         <xsl:variable name="js-statement" as="xs:string">
             <![CDATA[
