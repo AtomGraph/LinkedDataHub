@@ -69,7 +69,6 @@ exclude-result-prefixes="#all"
         <!-- <ixsl:set-property name="Q{{&ldt;}}base" select="$ldt:base" object="$stylesheet-params"/> cannot use due to Saxon-JS 2.4 bug: https://saxonica.plan.io/issues/5673 -->
         <xsl:variable name="template-params" select="ldh:new-object()"/>
         <ixsl:set-property name="map" select="$map" object="$template-params"/>
-        <!--<ixsl:set-property name="feature" select="$map" object="$template-params"/>-->
         
         <xsl:variable name="map-marker-onclick" select="ixsl:call(ixsl:get(ixsl:window(), 'ixslTemplateListener'), 'bind', [ (), static-base-uri(), 'onMapMarkerClick', $stylesheet-params, $template-params ])"/>
         <xsl:sequence select="ixsl:call($map, 'on', [ 'click', $map-marker-onclick ])[current-date() lt xs:date('2000-01-01')]"/>
@@ -86,7 +85,7 @@ exclude-result-prefixes="#all"
             ]]>
         </xsl:variable>
         <xsl:variable name="js-function" select="ixsl:eval(normalize-space($js-statement))"/> <!-- need normalize-space() due to Saxon-JS 2.4 bug: https://saxonica.plan.io/issues/5667 -->
-        <xsl:sequence select="ixsl:call($map, 'on', [ 'pointermove', ixsl:call($js-function, 'bind', [ (), $map ]) ])[current-date() lt xs:date('2000-01-01')]"/>-->
+        <!--<xsl:sequence select="ixsl:call($map, 'on', [ 'pointermove', ixsl:call($js-function, 'bind', [ (), $map ]) ])[current-date() lt xs:date('2000-01-01')]"/>-->-->
 
         <xsl:sequence select="$map"/>
     </xsl:function>
