@@ -325,13 +325,10 @@ exclude-result-prefixes="#all"
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'ol-overlay-container')]/div" as="element()"/>
         <xsl:variable name="escaped-content-uri" select="xs:anyURI(translate($content-uri, '.', '-'))" as="xs:anyURI"/>
         <xsl:variable name="map" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri), 'map')"/> <!-- TO-DO: LinkedDataHub.map -->
-        <!-- .map.getOverlays().getArray().filter(overlay => overlay.getElement().localName == "div") -->
         <xsl:variable name="overlay" select="ixsl:call(ixsl:call($map, 'getOverlays', []), 'getArray', [])[ ixsl:call(., 'getElement', []) is $container ]"/>
-        <xsl:message>$map: <xsl:value-of select="$map"/> $overlay: <xsl:value-of select="$overlay"/></xsl:message>
+        <!--<xsl:message>$map: <xsl:value-of select="$map"/> $overlay: <xsl:value-of select="$overlay"/></xsl:message>-->
         <xsl:sequence select="ixsl:call($overlay, 'setMap', [])"/> <!-- remove overlay from map -->
-<!--        <xsl:for-each select="">  overlay element 
-            <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
-        </xsl:for-each>-->
+        <xsl:message>DONE!</xsl:message>
     </xsl:template>
     
 </xsl:stylesheet>
