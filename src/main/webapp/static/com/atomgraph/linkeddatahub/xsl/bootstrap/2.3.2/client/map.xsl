@@ -272,7 +272,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="map" select="ixsl:get(ixsl:get($event, 'detail'), 'map')"/>
 
         <xsl:message>
-            <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ ixsl:call(ixsl:call($map, 'getLayers', [])[1], 'getExtent', []) ])"/>
+            <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ ixsl:call(ixsl:call(ixsl:call($map, 'getLayers', []), 'getArray', [])[1], 'getExtent', []) ])"/>
         </xsl:message>
     </xsl:template>
     
