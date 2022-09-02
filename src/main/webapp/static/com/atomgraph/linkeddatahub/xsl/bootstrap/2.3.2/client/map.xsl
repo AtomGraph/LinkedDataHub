@@ -170,6 +170,8 @@ exclude-result-prefixes="#all"
         <xsl:variable name="icon-style" select="ldh:new('ol.style.Style', [ $icon-style-options ])"/>
 
         <xsl:variable name="text-options" select="ldh:new-object()"/>
+        <ixsl:set-property name="font" select="'12px sans-serif'" object="$text-options"/>
+        <ixsl:set-property name="offsetY" select="10" object="$text-options"/>
         <ixsl:set-property name="overflow" select="true()" object="$text-options"/>
         <xsl:variable name="text" select="ldh:new('ol.style.Text', [ $text-options ])"/>
 
