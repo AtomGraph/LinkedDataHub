@@ -63,7 +63,7 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="ixsl:call($view, 'setCenter', [ $center ])[current-date() lt xs:date('2000-01-01')]"/>
         
         <xsl:variable name="js-function" select="ixsl:get(ixsl:window(), 'ixslTemplateListener')"/>
-        <xsl:variable name="js-function" select="ixsl:call($js-function, 'bind', [ (), 'mapMarkerClick', $map ])"/> <!-- will invoke template onmapMarkerClick -->
+        <xsl:variable name="js-function" select="ixsl:call($js-function, 'bind', [ (), 'MapMarkerClick', $map ])"/> <!-- will invoke template onMapMarkerClick -->
         <xsl:message>$js-function: <xsl:value-of select="$js-function"/></xsl:message>
         <xsl:sequence select="ixsl:call($map, 'on', [ 'click', $js-function ])[current-date() lt xs:date('2000-01-01')]"/>
 
@@ -264,7 +264,7 @@ exclude-result-prefixes="#all"
         </xsl:choose>
     </xsl:template>-->
     
-    <xsl:template match="." mode="onmapMarkerClick">
+    <xsl:template match="." mode="ixsl:onMapMarkerClick">
         <xsl:param name="event" select="ixsl:event()"/>
         <xsl:param name="map" select="ixsl:get(ixsl:get($event, 'detail'), 'map')"/>
         <xsl:message>$event: <xsl:value-of select="$event"/></xsl:message>
