@@ -275,6 +275,7 @@ exclude-result-prefixes="#all"
                     <xsl:variable name="container" select="ixsl:call(ixsl:page(), 'createElement', [ 'div' ])" as="element()"/>
                     <xsl:variable name="overlay-options" select="ldh:new-object()"/>
                     <ixsl:set-property name="element" select="$container" object="$overlay-options"/>
+                    <ixsl:set-property name="stopEvent" select="true()" object="$overlay-options"/>
                     <ixsl:set-property name="autoPan" select="true()" object="$overlay-options"/>
                     <ixsl:set-property name="positioning" select="'bottom-center'" object="$overlay-options"/>
                     <!--<ixsl:set-property name="className" select="'ol-overlay-container ol-selectable'" object="$overlay-options"/>-->
