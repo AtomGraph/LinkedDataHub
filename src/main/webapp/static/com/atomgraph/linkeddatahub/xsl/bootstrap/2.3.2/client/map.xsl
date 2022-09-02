@@ -265,6 +265,8 @@ exclude-result-prefixes="#all"
         <xsl:param name="feature"/>
         <xsl:param name="uri" as="xs:anyURI"/>
         
+        <xsl:sequence select="ixsl:call($event, 'stopPropagation', [])[current-date() lt xs:date('2000-01-01')]"/>
+
         <xsl:choose>
             <xsl:when test="?status = 200 and starts-with(?media-type, 'text/html')">
                 <xsl:for-each select="?body">
