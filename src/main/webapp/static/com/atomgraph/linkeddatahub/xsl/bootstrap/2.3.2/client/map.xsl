@@ -85,7 +85,9 @@ exclude-result-prefixes="#all"
             ]]>
         </xsl:variable>
         <xsl:variable name="js-function" select="ixsl:eval(normalize-space($js-statement))"/> <!-- need normalize-space() due to Saxon-JS 2.4 bug: https://saxonica.plan.io/issues/5667 -->
-        <xsl:sequence select="ixsl:call($map, 'on', [ 'pointermove', ixsl:call($js-function, 'bind', [ (), $map ]) ])[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:variable name="js-function" select="ixsl:call($js-function, 'bind', [ (), $map ])"/>
+
+        <xsl:sequence select="ixsl:call($map, 'on', [ 'pointermove', $js-function ])[current-date() lt xs:date('2000-01-01')]"/>
 
         <xsl:sequence select="$map"/>
     </xsl:function>
@@ -163,16 +165,30 @@ exclude-result-prefixes="#all"
         <xsl:variable name="icon" select="ldh:new('ol.style.Icon', [ $icon-options ])"/>
         <xsl:sequence select="ixsl:call($icon, 'setAnchor', [ [0.5, 30] ])[current-date() lt xs:date('2000-01-01')]"/>
 
+        <xsl:variable name="icon-style-options" select="ldh:new-object()"/>
+        <ixsl:set-property name="image" select="$icon" object="$icon-style-options"/>
+        <xsl:variable name="icon-style" select="ldh:new('ol.style.Style', [ $icon-style-options ])"/>
+
         <xsl:variable name="text-options" select="ldh:new-object()"/>
-        <ixsl:set-property name="text" select="'pixels'" object="$text-options"/>
         <ixsl:set-property name="overflow" select="true()" object="$text-options"/>
         <xsl:variable name="text" select="ldh:new('ol.style.Text', [ $text-options ])"/>
 
-        <xsl:variable name="style-options" select="ldh:new-object()"/>
-        <ixsl:set-property name="image" select="$icon" object="$style-options"/>
-        <ixsl:set-property name="text" select="$text" object="$style-options"/>
-        <xsl:variable name="style" select="ldh:new('ol.style.Style', [ $style-options ])"/>
-        
+        <xsl:variable name="label-style-options" select="ldh:new-object()"/>
+        <ixsl:set-property name="text" select="$text" object="$label-style-options"/>
+        <xsl:variable name="label-style" select="ldh:new('ol.style.Style', [ $label-style-options ])"/>
+
+        <xsl:variable name="style" select="[ $icon-style, $label-style ]"/>
+        <xsl:variable name="js-statement" as="xs:string">
+            <![CDATA[
+                function(style, labelStyle, feature) {
+                    labelStyle.getText().setText(feature.get('name'));
+                    return style;
+                  }
+            ]]>
+        </xsl:variable>
+        <xsl:variable name="js-function" select="ixsl:eval(normalize-space($js-statement))"/> <!-- need normalize-space() due to Saxon-JS 2.4 bug: https://saxonica.plan.io/issues/5667 -->
+        <xsl:variable name="js-function" select="ixsl:call($js-function, 'bind', [ (), $style, $label-style ])"/>
+
         <xsl:variable name="source-options" select="ldh:new-object()"/>
         <!--<ixsl:set-property name="features" select="$features" object="$source-options"/>-->
         <xsl:variable name="source" select="ldh:new('ol.source.Vector', [ $source-options ])"/>
@@ -180,9 +196,9 @@ exclude-result-prefixes="#all"
 
         <xsl:variable name="layer-options" select="ldh:new-object()"/>
         <ixsl:set-property name="source" select="$source" object="$layer-options"/>
-        <ixsl:set-property name="style" select="$style" object="$layer-options"/>
+        <ixsl:set-property name="style" select="$js-function" object="$layer-options"/>
         <xsl:variable name="layer" select="ldh:new('ol.layer.Vector', [ $layer-options ])"/>
-        
+
         <xsl:sequence select="ixsl:call($map, 'addLayer', [ $layer ])[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
     
