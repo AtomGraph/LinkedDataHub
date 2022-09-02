@@ -66,6 +66,10 @@ exclude-result-prefixes="#all"
         <xsl:variable name="js-function" select="ixsl:call($js-function, 'bind', [ (), 'MapMarkerClick', $map ])"/> <!-- will invoke template onMapMarkerClick -->
         <xsl:sequence select="ixsl:call($map, 'on', [ 'click', $js-function ])[current-date() lt xs:date('2000-01-01')]"/>
 
+        <xsl:variable name="js-function" select="ixsl:get(ixsl:window(), 'ixslTemplateListener')"/>
+        <xsl:variable name="js-function" select="ixsl:call($js-function, 'bind', [ (), 'MapMoveEnd', $map ])"/> <!-- will invoke template onMapMoveEnd -->
+        <xsl:sequence select="ixsl:call($map, 'on', [ 'moveend', $js-function ])[current-date() lt xs:date('2000-01-01')]"/>
+
         <xsl:variable name="js-statement" as="xs:string">
             <![CDATA[
                 function (map, evt) {
@@ -262,6 +266,15 @@ exclude-result-prefixes="#all"
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>-->
+    
+    <xsl:template match="." mode="ixsl:onMapMoveEnd">
+        <xsl:param name="event" select="ixsl:event()"/>
+        <xsl:param name="map" select="ixsl:get(ixsl:get($event, 'detail'), 'map')"/>
+
+        <xsl:message>
+            <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ ixsl:call(ixsl:call($map, 'getLayers', [])[1], 'getExtent', []) ])"/>
+        </xsl:message>
+    </xsl:template>
     
     <xsl:template match="." mode="ixsl:onMapMarkerClick">
         <xsl:param name="event" select="ixsl:event()"/>
