@@ -122,9 +122,7 @@ var onSubjectValueChange = function(event)
 
 var ixslTemplateListener = function(eventName, map, olEvent)
 {
-    console.log("eventName" + eventName + " map: " + map);
     let event = new CustomEvent(eventName, { "detail": { "ol-event": olEvent, "map": map } } );
-    console.log("CustomEvent: " + event);
     // no need to add event listeners here, that is done by IXSL
     document.dispatchEvent(event);
 };
