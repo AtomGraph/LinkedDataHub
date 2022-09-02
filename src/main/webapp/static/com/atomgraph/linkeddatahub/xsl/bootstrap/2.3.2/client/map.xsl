@@ -62,15 +62,9 @@ exclude-result-prefixes="#all"
         <xsl:variable name="map" select="ldh:new('ol.Map', [ $map-options ])"/>
         <xsl:sequence select="ixsl:call($view, 'setCenter', [ $center ])[current-date() lt xs:date('2000-01-01')]"/>
         
-        <xsl:variable name="js-statement" as="element()">
-            <root statement="{{ &quot;Q{{&ldt;}}base&quot;: &quot;{$ldt:base}&quot;, &quot;Q{{&ac;}}contextUri&quot;: &quot;{$ac:contextUri}&quot; }}"/>
-        </xsl:variable>
-        <xsl:variable name="stylesheet-params" select="ixsl:eval(string($js-statement/@statement))"/>
-        <!-- <ixsl:set-property name="Q{{&ldt;}}base" select="$ldt:base" object="$stylesheet-params"/> cannot use due to Saxon-JS 2.4 bug: https://saxonica.plan.io/issues/5673 -->
-        <xsl:variable name="template-params" select="ldh:new-object()"/>
-        <ixsl:set-property name="map" select="$map" object="$template-params"/>
-        
-        <xsl:sequence select="ixsl:call($map, 'on', [ 'click', ixsl:get(ixsl:window(), 'ixslTemplateListener') ])[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:variable name="js-function" select="ixsl:get(ixsl:window(), 'ixslTemplateListener')"/>
+        <xsl:variable name="js-function" select="ixsl:call($js-function, 'bind', [ (), 'MapMarkerClick', $map ])"/> <!-- will invoke template onMapMarkerClick -->
+        <xsl:sequence select="ixsl:call($map, 'on', [ 'click', $js-function ])[current-date() lt xs:date('2000-01-01')]"/>
 
         <xsl:variable name="js-statement" as="xs:string">
             <![CDATA[
