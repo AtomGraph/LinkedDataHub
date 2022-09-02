@@ -73,6 +73,8 @@ exclude-result-prefixes="#all"
         
         <xsl:variable name="map-marker-onclick" select="ixsl:call(ixsl:get(ixsl:window(), 'ixslTemplateListener'), 'bind', [ (), static-base-uri(), 'onMapMarkerClick', $stylesheet-params, $template-params ])"/>
         <xsl:sequence select="ixsl:call($map, 'on', [ 'click', $map-marker-onclick ])[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:variable name="map-marker-pointermove" select="ixsl:call(ixsl:get(ixsl:window(), 'ixslTemplateListener'), 'bind', [ (), static-base-uri(), 'onMapPointerMove', $stylesheet-params, $template-params ])"/>
+        <xsl:sequence select="ixsl:call($map, 'on', [ 'pointermove', $map-marker-onclick ])[current-date() lt xs:date('2000-01-01')]"/>
 
         <xsl:sequence select="$map"/>
     </xsl:function>
@@ -220,6 +222,20 @@ exclude-result-prefixes="#all"
         <!-- loading is done - restore the default mouse cursor -->
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
     </xsl:template>
+
+    <xsl:template name="onMapPointerMove">
+        <xsl:param name="event" as="item()"/>
+        <xsl:param name="map" as="item()"/>
+
+        <xsl:choose>
+            <xsl:if test="ixsl:call($map, 'hasFeatureAtPixel', [ ixsl:get($event, 'pixel') ])">
+                <ixsl:set-style name="cursor" select="'pointer'" object="ixsl:call($map, 'getViewport', [])"/>
+            </xsl:if>
+            <xsl:otherwise>
+                <ixsl:set-style name="cursor" select="''" object="ixsl:call($map, 'getViewport', [])"/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:template>
     
     <xsl:template name="onMapMarkerClick">
         <xsl:param name="event" as="item()"/>
@@ -324,15 +340,12 @@ exclude-result-prefixes="#all"
     <!-- there seems to be some glitch where this template propagates into an out-of-DOM copy of $container: https://github.com/openlayers/openlayers/issues/6948#issuecomment-1235416369 -->
     
     <xsl:template match="/html//div[contains-token(@class, 'ol-overlay-container')]//div[contains-token(@class, 'modal-header')]/button[contains-token(@class, 'close')]" mode="ixsl:onclick" >
-        <xsl:message>HELLO??? path(): <xsl:value-of select="path()"/> ancestor::div[@id]/@id: <xsl:value-of select="ancestor::div[@id]/@id"/></xsl:message>
         <xsl:variable name="content-uri" select="ancestor::div[@about][1]/@about" as="xs:anyURI"/>
-        <xsl:message>$content-uri: <xsl:value-of select="$content-uri"/></xsl:message>
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'ol-overlay-container')]/div" as="element()"/>
         <xsl:variable name="escaped-content-uri" select="xs:anyURI(translate($content-uri, '.', '-'))" as="xs:anyURI"/>
         <xsl:variable name="map" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri), 'map')"/> <!-- TO-DO: LinkedDataHub.map -->
         <xsl:variable name="overlay" select="ixsl:call(ixsl:call($map, 'getOverlays', []), 'getArray', [])[ ixsl:call(., 'getElement', []) is $container ]"/>
         <xsl:sequence select="ixsl:call($map, 'removeOverlay', [ $overlay ])[current-date() lt xs:date('2000-01-01')]"/> <!-- remove overlay from map -->
-        <xsl:message>DONE!</xsl:message>
     </xsl:template>
     
 </xsl:stylesheet>
