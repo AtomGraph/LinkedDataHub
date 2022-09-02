@@ -141,6 +141,7 @@ exclude-result-prefixes="#all"
                 <xsl:variable name="geometry" select="ldh:new('ol.geom.Point', [ $coord ])"/>
 
                 <xsl:variable name="feature-options" select="ldh:new-object()"/>
+                <ixsl:set-property name="name" select="ac:label(.)" object="$feature-options"/>
                 <ixsl:set-property name="geometry" select="$geometry" object="$feature-options"/>
                 <xsl:variable name="feature" select="ldh:new('ol.Feature', [ $feature-options ])"/>
                 
@@ -162,8 +163,14 @@ exclude-result-prefixes="#all"
         <xsl:variable name="icon" select="ldh:new('ol.style.Icon', [ $icon-options ])"/>
         <xsl:sequence select="ixsl:call($icon, 'setAnchor', [ [0.5, 30] ])[current-date() lt xs:date('2000-01-01')]"/>
 
+        <xsl:variable name="text-options" select="ldh:new-object()"/>
+        <ixsl:set-property name="text" select="'pixels'" object="$text-options"/>
+        <ixsl:set-property name="overflow" select="true()" object="$text-options"/>
+        <xsl:variable name="text" select="ldh:new('ol.style.Text', [ $text-options ])"/>
+
         <xsl:variable name="style-options" select="ldh:new-object()"/>
         <ixsl:set-property name="image" select="$icon" object="$style-options"/>
+        <ixsl:set-property name="text" select="$text" object="$style-options"/>
         <xsl:variable name="style" select="ldh:new('ol.style.Style', [ $style-options ])"/>
         
         <xsl:variable name="source-options" select="ldh:new-object()"/>
