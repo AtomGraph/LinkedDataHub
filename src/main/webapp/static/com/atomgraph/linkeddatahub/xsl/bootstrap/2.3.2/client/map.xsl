@@ -321,10 +321,9 @@ exclude-result-prefixes="#all"
     </xsl:template>
     
     <!-- close popup overlay (info window) -->
+    <!-- there seems to be some glitch where this template propagates into an out-of-DOM copy of $container: https://github.com/openlayers/openlayers/issues/6948#issuecomment-1235416369 -->
     
-    <xsl:template match="div[contains-token(@class, 'ol-overlay-container')]//div[contains-token(@class, 'modal-header')]/button[contains-token(@class, 'close')]" mode="ixsl:onclick" >
-        <xsl:sequence select="ixsl:call(ixsl:event(), 'stopPropagation', [])[current-date() lt xs:date('2000-01-01')]"/>
-        
+    <xsl:template match="/html//div[contains-token(@class, 'ol-overlay-container')]//div[contains-token(@class, 'modal-header')]/button[contains-token(@class, 'close')]" mode="ixsl:onclick" >
         <xsl:message>HELLO??? path(): <xsl:value-of select="path()"/> ancestor::div[@id]/@id: <xsl:value-of select="ancestor::div[@id]/@id"/></xsl:message>
         <xsl:variable name="content-uri" select="ancestor::div[@about][1]/@about" as="xs:anyURI"/>
         <xsl:message>$content-uri: <xsl:value-of select="$content-uri"/></xsl:message>
