@@ -323,7 +323,7 @@ exclude-result-prefixes="#all"
     <!-- close popup overlay (info window) -->
     
     <xsl:template match="div[contains-token(@class, 'ol-overlay-container')]//div[contains-token(@class, 'modal-header')]/button[contains-token(@class, 'close')]" mode="ixsl:onclick" >
-        <xsl:sequence select="ixsl:call($event, 'stopPropagation', [ $coord ])[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:sequence select="ixsl:call($event, 'stopPropagation', [])[current-date() lt xs:date('2000-01-01')]"/>
         
         <xsl:message>HELLO??? path(): <xsl:value-of select="path()"/> ancestor::div[@id]/@id: <xsl:value-of select="ancestor::div[@id]/@id"/></xsl:message>
         <xsl:variable name="content-uri" select="ancestor::div[@about][1]/@about" as="xs:anyURI"/>
