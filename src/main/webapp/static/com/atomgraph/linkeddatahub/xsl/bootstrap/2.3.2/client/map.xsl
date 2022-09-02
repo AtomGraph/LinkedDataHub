@@ -265,9 +265,10 @@ exclude-result-prefixes="#all"
     </xsl:template>-->
     
     <xsl:template match="." mode="onmapMarkerClick">
-        <xsl:message>$event: <xsl:value-of select="$event"/></xsl:message>
         <xsl:param name="event" select="ixsl:event()"/>
         <xsl:param name="map" select="ixsl:get(ixsl:get($event, 'detail'), 'map')"/>
+        <xsl:message>$event: <xsl:value-of select="$event"/></xsl:message>
+
         <xsl:variable name="event" select="ixsl:get(ixsl:get($event, 'detail'), 'ol-event')"/> <!-- override the helper CustomEvent with the original OpenLayers event -->
 
         <xsl:variable name="js-statement" as="xs:string">
