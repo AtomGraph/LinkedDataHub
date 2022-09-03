@@ -152,6 +152,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="geo-json-xml" as="element()">
             <xsl:apply-templates select="$doc" mode="ldh:GeoJSON"/>
         </xsl:variable>
+        <xsl:message>$geo-json-xml: <xsl:value-of select="$geo-json-xml"/></xsl:message>
         <xsl:variable name="geo-json-string" select="xml-to-json($geo-json-xml)"/>
         <xsl:variable name="geo-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $geo-json-string ])"/>
         <xsl:variable name="features" select="(ldh:new('ol.GeoJSON', []), 'readFeatures', [ $geo-json ])" as="array(*)"/>
