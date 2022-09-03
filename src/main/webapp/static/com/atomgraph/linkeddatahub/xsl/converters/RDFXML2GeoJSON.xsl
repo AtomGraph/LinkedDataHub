@@ -46,10 +46,10 @@ exclude-result-prefixes="#all"
                     <json:number><xsl:value-of select="geo:lat"/></json:number>
                 </json:array>
             </json:map>
-        </json:map>
-        
-        <json:map key="properties">
-            <xsl:apply-templates mode="#current"/>
+            
+            <json:map key="properties">
+                <xsl:apply-templates mode="#current"/>
+            </json:map>
         </json:map>
     </xsl:template>
     
