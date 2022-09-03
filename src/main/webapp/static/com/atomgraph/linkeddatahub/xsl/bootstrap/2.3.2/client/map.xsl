@@ -29,8 +29,6 @@ exclude-result-prefixes="#all"
     
     <!-- FUNCTIONS -->
 
-    <!-- TO-DO: port SPARQLMap JS-based logic to native XSLT code -->
-    
     <!-- creates Google Maps object -->
     
     <xsl:function name="ldh:create-map">
@@ -130,31 +128,13 @@ exclude-result-prefixes="#all"
         <xsl:param name="doc" as="document-node()"/>
         <xsl:param name="map" as="item()"/>
 
-<!--        <xsl:variable name="feature-seq" as="item()*">
-            <xsl:for-each select="$resources">
-                <xsl:variable name="lon-lat" select="[ xs:float(geo:long/text()), xs:float(geo:lat/text()) ]" as="array(*)"/>
-                <xsl:variable name="coord" select="ixsl:call(ixsl:get(ixsl:window(), 'ol.proj'), 'fromLonLat', [ $lon-lat ])"/>
-                <xsl:variable name="geometry" select="ldh:new('ol.geom.Point', [ $coord ])"/>
-
-                <xsl:variable name="feature-options" select="ldh:new-object()"/>
-                <ixsl:set-property name="name" select="ac:label(.)" object="$feature-options"/>
-                <ixsl:set-property name="geometry" select="$geometry" object="$feature-options"/>
-                <xsl:variable name="feature" select="ldh:new('ol.Feature', [ $feature-options ])"/>
-                
-                <xsl:if test="@rdf:about">
-                    <xsl:sequence select="ixsl:call($feature, 'setId', [ string(@rdf:about) ])[current-date() lt xs:date('2000-01-01')]"/>
-                </xsl:if>
-                
-                <xsl:sequence select="$feature"/>
-            </xsl:for-each>
-        </xsl:variable>
-        <xsl:variable name="features" select="array{ $feature-seq }" as="array(*)"/>-->
         <xsl:variable name="geo-json-xml" as="element()">
             <xsl:apply-templates select="$doc" mode="ldh:GeoJSON"/>
         </xsl:variable>
         <xsl:variable name="geo-json-string" select="xml-to-json($geo-json-xml)"/>
         <xsl:variable name="geo-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $geo-json-string ])"/>
         <xsl:variable name="features" select="array{ ixsl:call(ldh:new('ol.format.GeoJSON', []), 'readFeatures', [ $geo-json ]) }"/>
+        <xsl:message>$features: <xsl:value-of select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $features ])"/></xsl:message>
 
         <xsl:variable name="icon-options" select="ldh:new-object()"/>
         <!-- <ixsl:set-property name="anchor" select="" object="$icon-options"/> -->
