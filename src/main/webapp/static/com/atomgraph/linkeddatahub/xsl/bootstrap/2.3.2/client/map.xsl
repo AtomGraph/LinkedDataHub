@@ -199,7 +199,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="layer-options" select="ldh:new-object()"/>
         <ixsl:set-property name="source" select="$source" object="$layer-options"/>
         <ixsl:set-property name="style" select="$js-function" object="$layer-options"/>
-        <xsl:variable name="layer" select="ldh:new('ol.layer.Layer', [ $layer-options ])"/>
+        <xsl:variable name="layer" select="ldh:new('ol.layer.Vector', [ $layer-options ])"/>
 
         <xsl:sequence select="ixsl:call($map, 'addLayer', [ $layer ])[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
