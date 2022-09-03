@@ -29,7 +29,7 @@ exclude-result-prefixes="#all"
     
     <!-- FUNCTIONS -->
 
-    <!-- creates Google Maps object -->
+    <!-- creates OpenLayers map object -->
     
     <xsl:function name="ldh:create-map">
         <xsl:param name="canvas-id" as="xs:string"/>
@@ -84,6 +84,14 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="$map"/>
     </xsl:function>
 
+    <!-- TEMPLATES -->
+
+    <xsl:template match="rdf:Description" mode="ldh:GeoJSONProperties">
+        <json:string key="name">
+            <xsl:value-of select="ac:label(.)"/>
+        </json:string>
+    </xsl:template>
+    
     <!-- load geo resources with a given boundary -->
     
     <xsl:template name="ldh:LoadGeoResources">
@@ -136,7 +144,6 @@ exclude-result-prefixes="#all"
         <xsl:variable name="geo-json-options" select="ldh:new-object()"/>
         <ixsl:set-property name="featureProjection" select="'EPSG:3857'" object="$geo-json-options"/>
         <xsl:variable name="features" select="array{ ixsl:call(ldh:new('ol.format.GeoJSON', [ $geo-json-options ]), 'readFeatures', [ $geo-json ]) }"/>
-        <xsl:message>$features: <xsl:value-of select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $features ])"/></xsl:message>
 
         <xsl:variable name="icon-options" select="ldh:new-object()"/>
         <!-- <ixsl:set-property name="anchor" select="" object="$icon-options"/> -->

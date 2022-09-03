@@ -48,12 +48,16 @@ exclude-result-prefixes="#all"
             </json:map>
             
             <json:map key="properties">
-                <xsl:apply-templates mode="#current"/>
+                <xsl:apply-templates select="." mode="ldh:GeoJSONProperties"/>
             </json:map>
         </json:map>
     </xsl:template>
+
+    <xsl:template match="rdf:Description" mode="ldh:GeoJSONProperties">
+        <xsl:apply-templates mode="#current"/>
+    </xsl:template>
     
-    <xsl:template match="rdf:Description/*[local-name() = 'label'][1]" mode="ldh:GeoJSON">
+    <xsl:template match="rdf:Description/*[local-name() = 'label'][1]" mode="ldh:GeoJSONProperties">
         <json:string key="{local-name()}">
             <xsl:value-of select="."/>
         </json:string>
