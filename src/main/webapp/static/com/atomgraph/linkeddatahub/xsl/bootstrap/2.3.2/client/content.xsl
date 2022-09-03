@@ -864,7 +864,7 @@ exclude-result-prefixes="#all"
                     <xsl:variable name="map" select="ldh:create-map($canvas-id, $center-lat, $center-lng, $zoom)"/>
                     
                     <xsl:call-template name="ldh:AddMapMarkers">
-                        <xsl:with-param name="resources" select="$value"/>
+                        <xsl:with-param name="doc" select="?body"/>
                         <xsl:with-param name="map" select="$map"/>
                     </xsl:call-template>
                 </xsl:for-each>

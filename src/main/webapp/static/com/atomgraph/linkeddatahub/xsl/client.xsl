@@ -80,6 +80,7 @@ extension-element-prefixes="ixsl"
     <xsl:import href="bootstrap/2.3.2/imports/ac.xsl"/>
     <xsl:import href="bootstrap/2.3.2/resource.xsl"/>
     <xsl:import href="bootstrap/2.3.2/document.xsl"/>
+    <xsl:import href="converters/RDFXML2GeoJSON.xsl"/>
     <xsl:import href="query-transforms.xsl"/>
     <xsl:import href="typeahead.xsl"/>
 
@@ -657,7 +658,7 @@ WHERE
                 <ixsl:set-property name="map" select="$map" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
                 
                 <xsl:call-template name="ldh:AddMapMarkers">
-                    <xsl:with-param name="resources" select="$results//rdf:Description[geo:lat/text() castable as xs:float][geo:long/text() castable as xs:float]"/>
+                    <xsl:with-param name="doc" select="$results"/>
                     <xsl:with-param name="map" select="$map"/>
                 </xsl:call-template>
             </xsl:for-each>

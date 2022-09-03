@@ -127,10 +127,10 @@ exclude-result-prefixes="#all"
     <!-- add marker logic ported from SPARQLMap -->
     
     <xsl:template name="ldh:AddMapMarkers">
-        <xsl:param name="resources" as="element()*"/> <!-- rdf:Descriptions -->
+        <xsl:param name="doc" as="document-node()"/>
         <xsl:param name="map" as="item()"/>
 
-        <xsl:variable name="feature-seq" as="item()*">
+<!--        <xsl:variable name="feature-seq" as="item()*">
             <xsl:for-each select="$resources">
                 <xsl:variable name="lon-lat" select="[ xs:float(geo:long/text()), xs:float(geo:lat/text()) ]" as="array(*)"/>
                 <xsl:variable name="coord" select="ixsl:call(ixsl:get(ixsl:window(), 'ol.proj'), 'fromLonLat', [ $lon-lat ])"/>
@@ -148,7 +148,13 @@ exclude-result-prefixes="#all"
                 <xsl:sequence select="$feature"/>
             </xsl:for-each>
         </xsl:variable>
-        <xsl:variable name="features" select="array{ $feature-seq }" as="array(*)"/>
+        <xsl:variable name="features" select="array{ $feature-seq }" as="array(*)"/>-->
+        <xsl:variable name="geo-json-xml" as="element()">
+            <xsl:apply-templates select="$doc" mode="ldh:GeoJSON"/>
+        </xsl:variable>
+        <xsl:variable name="geo-json-string" select="xml-to-json($geo-json-xml)"/>
+        <xsl:variable name="geo-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $geo-json-string ])"/>
+        <xsl:variable name="features" select="(ldh:new('ol.GeoJSON'), 'readFeatures', [ $geo-json ])" as="array(*)"/>
 
         <xsl:variable name="icon-options" select="ldh:new-object()"/>
         <!-- <ixsl:set-property name="anchor" select="" object="$icon-options"/> -->
@@ -187,13 +193,13 @@ exclude-result-prefixes="#all"
 
         <xsl:variable name="source-options" select="ldh:new-object()"/>
         <!--<ixsl:set-property name="features" select="$features" object="$source-options"/>-->
-        <xsl:variable name="source" select="ldh:new('ol.source.Vector', [ $source-options ])"/>
+        <xsl:variable name="source" select="ldh:new('ol.source.VectorSource', [ $source-options ])"/>
         <xsl:sequence select="ixsl:call($source, 'addFeatures', [ $features ])[current-date() lt xs:date('2000-01-01')]"/>
 
         <xsl:variable name="layer-options" select="ldh:new-object()"/>
         <ixsl:set-property name="source" select="$source" object="$layer-options"/>
         <ixsl:set-property name="style" select="$js-function" object="$layer-options"/>
-        <xsl:variable name="layer" select="ldh:new('ol.layer.Vector', [ $layer-options ])"/>
+        <xsl:variable name="layer" select="ldh:new('ol.layer.VectorLayer', [ $layer-options ])"/>
 
         <xsl:sequence select="ixsl:call($map, 'addLayer', [ $layer ])[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
@@ -235,7 +241,7 @@ exclude-result-prefixes="#all"
                     <ixsl:set-property name="map" select="$map" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri)"/>
 
                     <xsl:call-template name="ldh:AddMapMarkers">
-                        <xsl:with-param name="resources" select="rdf:RDF/rdf:Description[geo:lat/text() castable as xs:float][geo:long/text() castable as xs:float]"/>
+                        <xsl:with-param name="doc" select="."/>
                         <xsl:with-param name="map" select="$map"/>
                     </xsl:call-template>
                 </xsl:for-each>
