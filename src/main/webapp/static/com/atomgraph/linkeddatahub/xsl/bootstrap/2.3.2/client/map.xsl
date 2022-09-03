@@ -133,7 +133,9 @@ exclude-result-prefixes="#all"
         </xsl:variable>
         <xsl:variable name="geo-json-string" select="xml-to-json($geo-json-xml)"/>
         <xsl:variable name="geo-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $geo-json-string ])"/>
-        <xsl:variable name="features" select="array{ ixsl:call(ldh:new('ol.format.GeoJSON', []), 'readFeatures', [ $geo-json ]) }"/>
+        <xsl:variable name="geo-json-options" select="ldh:new-object()"/>
+        <ixsl:set-property name="featureProjection" select="'EPSG:3857'" object="$geo-json-options"/>
+        <xsl:variable name="features" select="array{ ixsl:call(ldh:new('ol.format.GeoJSON', [ $geo-json-options ]), 'readFeatures', [ $geo-json ]) }"/>
         <xsl:message>$features: <xsl:value-of select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $features ])"/></xsl:message>
 
         <xsl:variable name="icon-options" select="ldh:new-object()"/>
