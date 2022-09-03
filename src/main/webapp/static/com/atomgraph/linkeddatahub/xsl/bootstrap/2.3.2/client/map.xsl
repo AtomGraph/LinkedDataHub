@@ -193,13 +193,13 @@ exclude-result-prefixes="#all"
 
         <xsl:variable name="source-options" select="ldh:new-object()"/>
         <!--<ixsl:set-property name="features" select="$features" object="$source-options"/>-->
-        <xsl:variable name="source" select="ldh:new('ol.source.VectorSource', [ $source-options ])"/>
+        <xsl:variable name="source" select="ldh:new('ol.source.Vector', [ $source-options ])"/>
         <xsl:sequence select="ixsl:call($source, 'addFeatures', [ $features ])[current-date() lt xs:date('2000-01-01')]"/>
 
         <xsl:variable name="layer-options" select="ldh:new-object()"/>
         <ixsl:set-property name="source" select="$source" object="$layer-options"/>
         <ixsl:set-property name="style" select="$js-function" object="$layer-options"/>
-        <xsl:variable name="layer" select="ldh:new('ol.layer.VectorLayer', [ $layer-options ])"/>
+        <xsl:variable name="layer" select="ldh:new('ol.layer.Layer', [ $layer-options ])"/>
 
         <xsl:sequence select="ixsl:call($map, 'addLayer', [ $layer ])[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
