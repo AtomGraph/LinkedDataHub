@@ -161,7 +161,8 @@ exclude-result-prefixes="#all"
         <ixsl:set-property name="anchorXUnits" select="'fraction'" object="$icon-options"/>
         <ixsl:set-property name="anchorYUnits" select="'pixels'" object="$icon-options"/>
         <!--<ixsl:set-property name="scale" select="0.2" object="$icon-options"/>-->
-        <!--<ixsl:set-property name="src" select="'https://upload.wikimedia.org/wikipedia/commons/thumb/9/93/Map_marker_font_awesome.svg/30px-Map_marker_font_awesome.svg.png'" object="$icon-options"/>-->
+        <!-- icon has to have an initial src, otherwise the ol.style.Icon constructor will throw an assertion error -->
+        <ixsl:set-property name="src" select="$icons[1]" object="$icon-options"/>
         <xsl:variable name="icon" select="ldh:new('ol.style.Icon', [ $icon-options ])"/>
         <xsl:sequence select="ixsl:call($icon, 'setAnchor', [ [0.5, 30] ])[current-date() lt xs:date('2000-01-01')]"/>
 
