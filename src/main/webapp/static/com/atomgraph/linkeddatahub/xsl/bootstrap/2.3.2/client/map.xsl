@@ -145,7 +145,7 @@ exclude-result-prefixes="#all"
     <xsl:template name="ldh:AddMapMarkers">
         <xsl:param name="doc" as="document-node()"/>
         <xsl:param name="map" as="item()"/>
-        <!--<xsl:param name="icons" select="(xs:anyURI('https://maps.google.com/mapfiles/ms/icons/blue-dot.png'), xs:anyURI('https://maps.google.com/mapfiles/ms/icons/red-dot.png'), xs:anyURI('https://maps.google.com/mapfiles/ms/icons/purple-dot.png'), xs:anyURI('https://maps.google.com/mapfiles/ms/icons/yellow-dot.png'), xs:anyURI('https://maps.google.com/mapfiles/ms/icons/green-dot.png'))" as="xs:anyURI*"/>-->
+        <xsl:param name="icons" select="('https://maps.google.com/mapfiles/ms/icons/blue-dot.png', 'https://maps.google.com/mapfiles/ms/icons/red-dot.png', 'https://maps.google.com/mapfiles/ms/icons/purple-dot.png', 'https://maps.google.com/mapfiles/ms/icons/yellow-dot.png', 'https://maps.google.com/mapfiles/ms/icons/green-dot.png')" as="xs:string*"/> <!-- https://saxonica.plan.io/issues/5677 -->
         
         <xsl:variable name="geo-json-xml" as="element()">
             <xsl:apply-templates select="$doc" mode="ldh:GeoJSON"/>
@@ -203,7 +203,7 @@ exclude-result-prefixes="#all"
             ]]>
         </xsl:variable>
         <xsl:variable name="js-function" select="ixsl:eval(normalize-space($js-statement))"/> <!-- need normalize-space() due to Saxon-JS 2.4 bug: https://saxonica.plan.io/issues/5667 -->
-        <xsl:variable name="js-function" select="ixsl:call($js-function, 'bind', [ (), $style, $label-style ])"/>
+        <xsl:variable name="js-function" select="ixsl:call($js-function, 'bind', [ (), $style, $label-style, $icon-style, $icons, ldh:new('Map') ])"/>
 
         <xsl:variable name="source-options" select="ldh:new-object()"/>
         <!--<ixsl:set-property name="features" select="$features" object="$source-options"/>-->
