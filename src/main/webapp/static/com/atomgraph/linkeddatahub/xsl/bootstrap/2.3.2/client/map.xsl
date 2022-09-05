@@ -145,11 +145,17 @@ exclude-result-prefixes="#all"
     <xsl:template name="ldh:AddMapMarkers">
         <xsl:param name="doc" as="document-node()"/>
         <xsl:param name="map" as="item()"/>
-
+        <xsl:param name="icons" select="(xs:anyURI('https://maps.google.com/mapfiles/ms/icons/blue-dot.png'),
+            xs:anyURI('https://maps.google.com/mapfiles/ms/icons/red-dot.png'),
+            xs:anyURI('https://maps.google.com/mapfiles/ms/icons/purple-dot.png'),
+            xs:anyURI('https://maps.google.com/mapfiles/ms/icons/yellow-dot.png'),
+            xs:anyURI('https://maps.google.com/mapfiles/ms/icons/green-dot.png'))" as="xs:anyURI*"/>
+        
         <xsl:variable name="geo-json-xml" as="element()">
             <xsl:apply-templates select="$doc" mode="ldh:GeoJSON"/>
         </xsl:variable>
         <xsl:variable name="geo-json-string" select="xml-to-json($geo-json-xml)"/>
+        <xsl:message>$geo-json-string: <xsl:value-of select="$geo-json-string"/></xsl:message>
         <xsl:variable name="geo-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $geo-json-string ])"/>
         <xsl:variable name="geo-json-options" select="ldh:new-object()"/>
         <ixsl:set-property name="featureProjection" select="'EPSG:3857'" object="$geo-json-options"/>
@@ -181,15 +187,29 @@ exclude-result-prefixes="#all"
         <xsl:variable name="style" select="[ $icon-style, $label-style ]"/>
         <xsl:variable name="js-statement" as="xs:string">
             <![CDATA[
-                function(style, labelStyle, feature) {
-                    labelStyle.getText().setText(feature.get('name'));
+                function(style, labelStyle, iconStyle, icons, typeIcons, feature) {
+                    if (feature.get('name')) labelStyle.getText().setText(feature.get('name'));
                     console.log("Types: ", feature.get('types'));
+                    if (feature.get('types')) {
+                        let newIcon = iconStyle.getImage();
+                        let type = feature.get('types')[0];
+                        
+                        if (!typeIcons.has(type)) {
+                            let iconIndex = typeIcons.size % icons.length;
+                            newIcon.src = icons[iconIndex];
+                            typeIcons.set(type, newIcon.src);
+                        } else {
+                            newIcon.src = typeIcons.get(type)
+                        }
+                        
+                        iconStyle.setImage(newIcon.src);
+                    }
                     return style;
                   }
             ]]>
         </xsl:variable>
         <xsl:variable name="js-function" select="ixsl:eval(normalize-space($js-statement))"/> <!-- need normalize-space() due to Saxon-JS 2.4 bug: https://saxonica.plan.io/issues/5667 -->
-        <xsl:variable name="js-function" select="ixsl:call($js-function, 'bind', [ (), $style, $label-style ])"/>
+        <xsl:variable name="js-function" select="ixsl:call($js-function, 'bind', [ (), $style, $label-style, $icon-style, $icons, ldh:new('Map') ])"/>
 
         <xsl:variable name="source-options" select="ldh:new-object()"/>
         <!--<ixsl:set-property name="features" select="$features" object="$source-options"/>-->
