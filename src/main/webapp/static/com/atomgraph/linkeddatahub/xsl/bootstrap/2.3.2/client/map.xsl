@@ -151,7 +151,6 @@ exclude-result-prefixes="#all"
             <xsl:apply-templates select="$doc" mode="ldh:GeoJSON"/>
         </xsl:variable>
         <xsl:variable name="geo-json-string" select="xml-to-json($geo-json-xml)"/>
-        <xsl:message>$geo-json-string: <xsl:value-of select="$geo-json-string"/></xsl:message>
         <xsl:variable name="geo-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $geo-json-string ])"/>
         <xsl:variable name="geo-json-options" select="ldh:new-object()"/>
         <ixsl:set-property name="featureProjection" select="'EPSG:3857'" object="$geo-json-options"/>
@@ -185,7 +184,6 @@ exclude-result-prefixes="#all"
             <![CDATA[
                 function(style, labelStyle, iconStyle, icons, typeIcons, feature) {
                     if (feature.get('name')) labelStyle.getText().setText(feature.get('name'));
-                    console.log("Types: ", feature.get('types'));
                     if (feature.get('types')) {
                         let newIcon = iconStyle.getImage();
                         let type = feature.get('types')[0];
@@ -198,14 +196,14 @@ exclude-result-prefixes="#all"
                             newIcon.src = typeIcons.get(type)
                         }
                         
-                        iconStyle.setImage(newIcon.src);
+                        iconStyle.setImage(newIcon);
                     }
                     return style;
                   }
             ]]>
         </xsl:variable>
         <xsl:variable name="js-function" select="ixsl:eval(normalize-space($js-statement))"/> <!-- need normalize-space() due to Saxon-JS 2.4 bug: https://saxonica.plan.io/issues/5667 -->
-        <xsl:variable name="js-function" select="ixsl:call($js-function, 'bind', [ (), $style, $label-style, $icon-style, $icons, ldh:new('Map') ])"/>
+        <xsl:variable name="js-function" select="ixsl:call($js-function, 'bind', [ (), $style, $label-style ])"/>
 
         <xsl:variable name="source-options" select="ldh:new-object()"/>
         <!--<ixsl:set-property name="features" select="$features" object="$source-options"/>-->
