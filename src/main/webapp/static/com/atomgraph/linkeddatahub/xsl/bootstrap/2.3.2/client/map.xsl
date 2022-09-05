@@ -145,7 +145,7 @@ exclude-result-prefixes="#all"
     <xsl:template name="ldh:AddMapMarkers">
         <xsl:param name="doc" as="document-node()"/>
         <xsl:param name="map" as="item()"/>
-        <xsl:param name="icons" select="(xs:anyURI('https://maps.google.com/mapfiles/ms/icons/blue-dot.png'), xs:anyURI('https://maps.google.com/mapfiles/ms/icons/red-dot.png'), xs:anyURI('https://maps.google.com/mapfiles/ms/icons/purple-dot.png'), xs:anyURI('https://maps.google.com/mapfiles/ms/icons/yellow-dot.png'), xs:anyURI('https://maps.google.com/mapfiles/ms/icons/green-dot.png'))" as="xs:anyURI*"/>
+        <!--<xsl:param name="icons" select="(xs:anyURI('https://maps.google.com/mapfiles/ms/icons/blue-dot.png'), xs:anyURI('https://maps.google.com/mapfiles/ms/icons/red-dot.png'), xs:anyURI('https://maps.google.com/mapfiles/ms/icons/purple-dot.png'), xs:anyURI('https://maps.google.com/mapfiles/ms/icons/yellow-dot.png'), xs:anyURI('https://maps.google.com/mapfiles/ms/icons/green-dot.png'))" as="xs:anyURI*"/>-->
         
         <xsl:variable name="geo-json-xml" as="element()">
             <xsl:apply-templates select="$doc" mode="ldh:GeoJSON"/>
