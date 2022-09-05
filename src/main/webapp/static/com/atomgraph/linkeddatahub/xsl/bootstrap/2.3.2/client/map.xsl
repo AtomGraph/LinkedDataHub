@@ -161,7 +161,7 @@ exclude-result-prefixes="#all"
         <ixsl:set-property name="anchorXUnits" select="'fraction'" object="$icon-options"/>
         <ixsl:set-property name="anchorYUnits" select="'pixels'" object="$icon-options"/>
         <!--<ixsl:set-property name="scale" select="0.2" object="$icon-options"/>-->
-        <ixsl:set-property name="src" select="'https://upload.wikimedia.org/wikipedia/commons/thumb/9/93/Map_marker_font_awesome.svg/30px-Map_marker_font_awesome.svg.png'" object="$icon-options"/>
+        <!--<ixsl:set-property name="src" select="'https://upload.wikimedia.org/wikipedia/commons/thumb/9/93/Map_marker_font_awesome.svg/30px-Map_marker_font_awesome.svg.png'" object="$icon-options"/>-->
         <xsl:variable name="icon" select="ldh:new('ol.style.Icon', [ $icon-options ])"/>
         <xsl:sequence select="ixsl:call($icon, 'setAnchor', [ [0.5, 30] ])[current-date() lt xs:date('2000-01-01')]"/>
 
@@ -192,8 +192,10 @@ exclude-result-prefixes="#all"
                             let iconIndex = typeIcons.size % icons.length;
                             newIcon.src = icons[iconIndex];
                             typeIcons.set(type, newIcon.src);
+                            console.log("YES!", typeIcons, newIcon);
                         } else {
                             newIcon.src = typeIcons.get(type)
+                            console.log("NO!", typeIcons, newIcon);
                         }
                         
                         iconStyle.setImage(newIcon);
