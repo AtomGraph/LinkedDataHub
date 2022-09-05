@@ -90,6 +90,16 @@ exclude-result-prefixes="#all"
         <json:string key="name">
             <xsl:value-of select="ac:label(.)"/>
         </json:string>
+        
+        <xsl:if test="rdf:type/@rdf:resource">
+            <json:array key="types">
+                <xsl:for-each select="rdf:type/@rdf:resource">
+                    <json:string>
+                        <xsl:value-of select="."/>
+                    </json:string>
+                </xsl:for-each>
+            </json:array>
+        </xsl:if>
     </xsl:template>
     
     <!-- load geo resources with a given boundary -->
@@ -173,6 +183,7 @@ exclude-result-prefixes="#all"
             <![CDATA[
                 function(style, labelStyle, feature) {
                     labelStyle.getText().setText(feature.get('name'));
+                    console.log("Types: ", feature.get('types'));
                     return style;
                   }
             ]]>
