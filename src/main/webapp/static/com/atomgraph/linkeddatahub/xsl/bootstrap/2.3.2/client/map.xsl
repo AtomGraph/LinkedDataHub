@@ -168,17 +168,11 @@ exclude-result-prefixes="#all"
             <xsl:apply-templates select="$doc" mode="ldh:GeoJSON"/>
         </xsl:variable>
         <xsl:variable name="geo-json-string" select="xml-to-json($geo-json-xml)"/>
+        <xsl:message>$geo-json-string: <xsl:value-of select="$geo-json-string"/></xsl:message>
         <xsl:variable name="geo-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $geo-json-string ])"/>
         <xsl:variable name="geo-json-options" select="ldh:new-object()"/>
         <ixsl:set-property name="featureProjection" select="'EPSG:3857'" object="$geo-json-options"/>
         <xsl:variable name="features" select="array{ ixsl:call(ldh:new('ol.format.GeoJSON', [ $geo-json-options ]), 'readFeatures', [ $geo-json ]) }"/>
-
-<!--        <xsl:variable name="js-statement" as="xs:string">
-            <![CDATA[
-                ['https://maps.google.com/mapfiles/ms/icons/blue-dot.png', 'https://maps.google.com/mapfiles/ms/icons/red-dot.png', 'https://maps.google.com/mapfiles/ms/icons/purple-dot.png', 'https://maps.google.com/mapfiles/ms/icons/yellow-dot.png', 'https://maps.google.com/mapfiles/ms/icons/green-dot.png'].map(iconUri => new ol.style.Style({ image: new ol.style.Icon({ src: iconUri }) }))
-            ]]>
-        </xsl:variable>
-        <xsl:variable name="icon-styles" select="ixsl:eval(normalize-space($js-statement))"/>-->
 
         <xsl:variable name="text-options" select="ldh:new-object()"/>
         <ixsl:set-property name="font" select="'12px sans-serif'" object="$text-options"/>
