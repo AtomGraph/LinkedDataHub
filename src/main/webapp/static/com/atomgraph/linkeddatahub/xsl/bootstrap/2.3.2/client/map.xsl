@@ -193,10 +193,12 @@ exclude-result-prefixes="#all"
                             let iconIndex = typeIcons.size % icons.length;
                             newIcon.src = icons[iconIndex];
                             typeIcons.set(type, newIcon.src);
-                            console.log("YES!", typeIcons, newIcon);
+                            console.log("YES!", feature.get('name'), type);
+                            console.log("YES!", typeIcons, newIcon.src);
                         } else {
                             newIcon.src = typeIcons.get(type);
-                            console.log("NO!", typeIcons, newIcon);
+                            console.log("NO!", feature.get('name'), type);
+                            console.log("NO!", typeIcons, newIcon.src);
                         }
                         
                         iconStyle.setImage(newIcon);
