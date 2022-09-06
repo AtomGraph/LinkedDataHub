@@ -381,19 +381,8 @@ exclude-result-prefixes="#all"
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
-<!--                <xsl:variable name="info-window-options" select="ldh:new-object()"/>
-                <xsl:variable name="info-window-html" as="element()">
-                    <div class="alert alert-block">
-                        <strong>Could not map resource: <a href="{$uri}"><xsl:value-of select="$uri"/></a></strong>
-                    </div>
-                </xsl:variable>
-                <ixsl:set-property name="content" select="$info-window-html" object="$info-window-options"/>
-                <xsl:variable name="info-window" select="ldh:new('google.maps.InfoWindow', [ $info-window-options ])"/>
-                <xsl:variable name="open-options" select="ldh:new-object()"/>
-                <ixsl:set-property name="anchor" select="$marker" object="$open-options"/>
-                <ixsl:set-property name="map" select="$map" object="$open-options"/>
-                <ixsl:set-property name="shouldFocus" select="false()" object="$open-options"/>
-                <xsl:sequence select="ixsl:call($info-window, 'open', [ $open-options ])[current-date() lt xs:date('2000-01-01')]"/>-->
+                <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
+                <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ ?message ])[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:otherwise>
         </xsl:choose>
         
