@@ -1,5 +1,8 @@
-## [3.2.6] - 2022-08-12
+## [3.2.7] - 2022-09-06
+### Changed
+- Google Maps and SPARQLMap dependencies replaced with OpenLayers 7.0. All functionality ported except bounding box-based feature loader.
 
+## [3.2.6] - 2022-08-12
 ### Changed
 - Fixed instance creation with multiple `rdf:type`s
 
