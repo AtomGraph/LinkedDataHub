@@ -315,9 +315,10 @@ exclude-result-prefixes="#all"
         <xsl:if test="exists($feature)"> <!-- TO-DO: && feature.getGeometry() instanceof ol.geom.Point -->
             <xsl:variable name="id" select="xs:anyURI(ixsl:call($feature, 'getId', []))" as="xs:string"/>
             <xsl:if test="starts-with($id, 'http://') or starts-with($id, 'https://')"> <!-- InfoWindow not possible for blank nodes -->
+                <xsl:variable name="uri" select="xs:anyURI($id)" as="xs:anyURI"/>
                 <!-- InfoWindowMode is handled as a special case in layout.xsl -->
                 <xsl:variable name="mode" select="'https://w3id.org/atomgraph/linkeddatahub/templates#InfoWindowMode'" as="xs:string"/>
-                <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ldh:query-params(xs:anyURI($mode)), $id)" as="xs:anyURI"/>
+                <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ldh:query-params(xs:anyURI($mode)), $uri)" as="xs:anyURI"/>
 
                 <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
@@ -328,7 +329,7 @@ exclude-result-prefixes="#all"
                             <xsl:with-param name="event" select="$event"/>
                             <xsl:with-param name="map" select="$map"/>
                             <xsl:with-param name="feature" select="$feature"/>
-                            <xsl:with-param name="uri" select="$id"/>
+                            <xsl:with-param name="uri" select="$uri"/>
                         </xsl:call-template>
                     </ixsl:schedule-action>
                 </xsl:variable>
