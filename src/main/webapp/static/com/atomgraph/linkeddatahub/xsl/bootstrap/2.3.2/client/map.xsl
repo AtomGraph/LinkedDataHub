@@ -146,6 +146,23 @@ exclude-result-prefixes="#all"
         <xsl:param name="doc" as="document-node()"/>
         <xsl:param name="map" as="item()"/>
         <xsl:param name="icons" select="('https://maps.google.com/mapfiles/ms/icons/blue-dot.png', 'https://maps.google.com/mapfiles/ms/icons/red-dot.png', 'https://maps.google.com/mapfiles/ms/icons/purple-dot.png', 'https://maps.google.com/mapfiles/ms/icons/yellow-dot.png', 'https://maps.google.com/mapfiles/ms/icons/green-dot.png')" as="xs:string*"/> <!-- https://saxonica.plan.io/issues/5677 -->
+        <xsl:param name="icon-styles" as="item()*">
+            <xsl:for-each select="$icons">
+                <xsl:variable name="icon-options" select="ldh:new-object()"/>
+                <!-- <ixsl:set-property name="anchor" select="" object="$icon-options"/> -->
+                <ixsl:set-property name="anchorXUnits" select="'fraction'" object="$icon-options"/>
+                <ixsl:set-property name="anchorYUnits" select="'pixels'" object="$icon-options"/>
+                <!--<ixsl:set-property name="scale" select="0.2" object="$icon-options"/>-->
+                <!-- icon has to have an initial src, otherwise the ol.style.Icon constructor will throw an assertion error -->
+                <ixsl:set-property name="src" select="." object="$icon-options"/>
+                <xsl:variable name="icon" select="ldh:new('ol.style.Icon', [ $icon-options ])"/>
+                <xsl:sequence select="ixsl:call($icon, 'setAnchor', [ [0.5, 30] ])[current-date() lt xs:date('2000-01-01')]"/>
+
+                <xsl:variable name="icon-style-options" select="ldh:new-object()"/>
+                <ixsl:set-property name="image" select="$icon" object="$icon-style-options"/>
+                <xsl:sequence select="ldh:new('ol.style.Style', [ $icon-style-options ])"/>
+            </xsl:for-each>
+        </xsl:param>
         
         <xsl:variable name="geo-json-xml" as="element()">
             <xsl:apply-templates select="$doc" mode="ldh:GeoJSON"/>
@@ -156,26 +173,12 @@ exclude-result-prefixes="#all"
         <ixsl:set-property name="featureProjection" select="'EPSG:3857'" object="$geo-json-options"/>
         <xsl:variable name="features" select="array{ ixsl:call(ldh:new('ol.format.GeoJSON', [ $geo-json-options ]), 'readFeatures', [ $geo-json ]) }"/>
 
-        <xsl:variable name="icon-options" select="ldh:new-object()"/>
-        <!-- <ixsl:set-property name="anchor" select="" object="$icon-options"/> -->
-        <ixsl:set-property name="anchorXUnits" select="'fraction'" object="$icon-options"/>
-        <ixsl:set-property name="anchorYUnits" select="'pixels'" object="$icon-options"/>
-        <!--<ixsl:set-property name="scale" select="0.2" object="$icon-options"/>-->
-        <!-- icon has to have an initial src, otherwise the ol.style.Icon constructor will throw an assertion error -->
-        <ixsl:set-property name="src" select="$icons[1]" object="$icon-options"/>
-        <xsl:variable name="icon" select="ldh:new('ol.style.Icon', [ $icon-options ])"/>
-        <xsl:sequence select="ixsl:call($icon, 'setAnchor', [ [0.5, 30] ])[current-date() lt xs:date('2000-01-01')]"/>
-
-        <xsl:variable name="icon-style-options" select="ldh:new-object()"/>
-        <ixsl:set-property name="image" select="$icon" object="$icon-style-options"/>
-        <xsl:variable name="icon-style" select="ldh:new('ol.style.Style', [ $icon-style-options ])"/>
-
-        <xsl:variable name="js-statement" as="xs:string">
+<!--        <xsl:variable name="js-statement" as="xs:string">
             <![CDATA[
                 ['https://maps.google.com/mapfiles/ms/icons/blue-dot.png', 'https://maps.google.com/mapfiles/ms/icons/red-dot.png', 'https://maps.google.com/mapfiles/ms/icons/purple-dot.png', 'https://maps.google.com/mapfiles/ms/icons/yellow-dot.png', 'https://maps.google.com/mapfiles/ms/icons/green-dot.png'].map(iconUri => new ol.style.Style({ image: new ol.style.Icon({ src: iconUri }) }))
             ]]>
         </xsl:variable>
-        <xsl:variable name="icon-styles" select="ixsl:eval(normalize-space($js-statement))"/>
+        <xsl:variable name="icon-styles" select="ixsl:eval(normalize-space($js-statement))"/>-->
 
         <xsl:variable name="text-options" select="ldh:new-object()"/>
         <ixsl:set-property name="font" select="'12px sans-serif'" object="$text-options"/>
@@ -187,37 +190,30 @@ exclude-result-prefixes="#all"
         <ixsl:set-property name="text" select="$text" object="$label-style-options"/>
         <xsl:variable name="label-style" select="ldh:new('ol.style.Style', [ $label-style-options ])"/>
 
-        <xsl:variable name="style" select="[ $icon-style, $label-style ]"/>
         <xsl:variable name="js-statement" as="xs:string">
             <![CDATA[
-                function(style, labelStyle, iconStyle, icons, iconStyles, typeIcons, feature) {
+                function(style, labelStyle, iconStyles, typeIcons, feature) {
                     if (feature.get('name')) labelStyle.getText().setText(feature.get('name'));
                     
-                    let featureIconStyle;
+                    let iconStyle;
                     if (feature.get('types')) {
                         let type = feature.get('types')[0];
                         
                         if (!typeIcons.has(type)) {
                             let iconIndex = typeIcons.size % iconStyles.length;
-                            featureIconStyle = iconStyles[iconIndex];
-                            typeIcons.set(type, featureIconStyle);
-                            console.log("YES! iconIndex: ", iconIndex, feature.get('name'), type);
+                            iconStyle = iconStyles[iconIndex];
+                            typeIcons.set(type, iconStyle);
                         } else {
-                            featureIconStyle = typeIcons.get(type);
-                            console.log("NO!", feature.get('name'), type);
+                            iconStyle = typeIcons.get(type);
                         }
-                        
-                        console.log("featureIconStyle.getImage() after", featureIconStyle.getImage());
                     }
                     
-                    let finalStyle = [ labelStyle, featureIconStyle ];
-                    console.log("Style: ", finalStyle);
-                    return finalStyle;
+                    return [ labelStyle, iconStyle ];
                   }
             ]]>
         </xsl:variable>
         <xsl:variable name="js-function" select="ixsl:eval(normalize-space($js-statement))"/> <!-- need normalize-space() due to Saxon-JS 2.4 bug: https://saxonica.plan.io/issues/5667 -->
-        <xsl:variable name="js-function" select="ixsl:call($js-function, 'bind', [ (), $style, $label-style, $icon-style, $icons, $icon-styles, ldh:new('Map', []) ])"/>
+        <xsl:variable name="js-function" select="ixsl:call($js-function, 'bind', [ (), $label-style, $icon-styles, ldh:new('Map', []) ])"/>
 
         <xsl:variable name="source-options" select="ldh:new-object()"/>
         <!--<ixsl:set-property name="features" select="$features" object="$source-options"/>-->
@@ -226,6 +222,7 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="ixsl:call($source, 'addFeatures', [ $features ])[current-date() lt xs:date('2000-01-01')]"/>
 
         <xsl:variable name="layer-options" select="ldh:new-object()"/>
+        <ixsl:set-property name="declutter" select="true()" object="$layer-options"/>
         <ixsl:set-property name="source" select="$source" object="$layer-options"/>
         <ixsl:set-property name="style" select="$js-function" object="$layer-options"/>
         <xsl:variable name="layer" select="ldh:new('ol.layer.Vector', [ $layer-options ])"/>
