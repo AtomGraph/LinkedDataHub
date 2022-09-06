@@ -207,9 +207,9 @@ exclude-result-prefixes="#all"
                         console.log("featureIconStyle.getImage() after", featureIconStyle.getImage());
                     }
                     
-                    let style = [ labelStyle, featureIconStyle ];
-                    console.log("Style: ", style);
-                    return style;
+                    let finalStyle = [ labelStyle, featureIconStyle ];
+                    console.log("Style: ", finalStyle);
+                    return finalStyle;
                   }
             ]]>
         </xsl:variable>
