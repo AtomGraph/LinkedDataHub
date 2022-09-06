@@ -251,17 +251,18 @@ exclude-result-prefixes="#all"
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
                 <xsl:for-each select="?body">
-                    <xsl:variable name="canvas-id" select="$content-id || '-map-canvas'" as="xs:string"/>
-                    <xsl:variable name="initial-load" select="not(ixsl:contains(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri), 'map'))" as="xs:boolean"/>
-                    <xsl:variable name="avg-lat" select="avg(distinct-values(rdf:RDF/rdf:Description/geo:lat/xs:float(.)))" as="xs:float?"/>
-                    <xsl:variable name="avg-lng" select="avg(distinct-values(rdf:RDF/rdf:Description/geo:long/xs:float(.)))" as="xs:float?"/>
-                    <!-- reuse center and zoom if map object already exists, otherwise set defaults -->
-                    <xsl:variable name="center-lat" select="if (not($initial-load)) then xs:float(ixsl:call(ixsl:get(ixsl:window(), 'ol.proj'), 'toLonLat', [ ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri), 'map'), 'getView', []), 'getCenter', []) ])[2]) else (if (exists($avg-lat)) then $avg-lat else 0)" as="xs:float"/>
-                    <xsl:variable name="center-lng" select="if (not($initial-load)) then xs:float(ixsl:call(ixsl:get(ixsl:window(), 'ol.proj'), 'toLonLat', [ ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri), 'map'), 'getView', []), 'getCenter', []) ])[1]) else (if (exists($avg-lng)) then $avg-lng else 0)" as="xs:float"/>
-                    <xsl:variable name="zoom" select="if (not($initial-load)) then xs:integer(ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri), 'map'), 'getView', []), 'getZoom', [])) else 4" as="xs:integer"/>
-                    <xsl:variable name="map" select="ldh:create-map($canvas-id, $center-lat, $center-lng, $zoom)" as="item()"/>
-                    
-                    <ixsl:set-property name="map" select="$map" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri)"/>
+                    <xsl:if test="not(ixsl:contains(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri), 'map'))">
+                        <xsl:variable name="avg-lat" select="avg(distinct-values(rdf:RDF/rdf:Description/geo:lat/xs:float(.)))" as="xs:float?"/>
+                        <xsl:variable name="avg-lng" select="avg(distinct-values(rdf:RDF/rdf:Description/geo:long/xs:float(.)))" as="xs:float?"/>
+                        <!-- reuse center and zoom if map object already exists, otherwise set defaults -->
+                        <xsl:variable name="center-lat" select="if (exists($avg-lat)) then $avg-lat else 0" as="xs:float"/>
+                        <xsl:variable name="center-lng" select="if (exists($avg-lng)) then $avg-lng else 0" as="xs:float"/>
+                        <xsl:variable name="zoom" select="4" as="xs:integer"/>
+                        <xsl:variable name="map" select="ldh:create-map($canvas-id, $center-lat, $center-lng, $zoom)" as="item()"/>
+
+                        <ixsl:set-property name="map" select="$map" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri)"/>
+                    </xsl:if>
+                    <xsl:variable name="map" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri), 'map')"/>
 
                     <xsl:call-template name="ldh:AddMapMarkers">
                         <xsl:with-param name="doc" select="."/>
@@ -401,9 +402,8 @@ exclude-result-prefixes="#all"
     </xsl:template>
     
     <!-- close popup overlay (info window) -->
-    <!-- there seems to be some glitch where this template propagates into an out-of-DOM copy of $container: https://github.com/openlayers/openlayers/issues/6948#issuecomment-1235416369 -->
     
-    <xsl:template match="/html//div[contains-token(@class, 'ol-overlay-container')]//div[contains-token(@class, 'modal-header')]/button[contains-token(@class, 'close')]" mode="ixsl:onclick" >
+    <xsl:template match="div[contains-token(@class, 'ol-overlay-container')]//div[contains-token(@class, 'modal-header')]/button[contains-token(@class, 'close')]" mode="ixsl:onclick" >
         <xsl:variable name="content-uri" select="ancestor::div[@about][1]/@about" as="xs:anyURI"/>
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'ol-overlay-container')]/div" as="element()"/>
         <xsl:variable name="escaped-content-uri" select="xs:anyURI(translate($content-uri, '.', '-'))" as="xs:anyURI"/>

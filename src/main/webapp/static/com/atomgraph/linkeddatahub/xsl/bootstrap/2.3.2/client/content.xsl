@@ -856,7 +856,7 @@ exclude-result-prefixes="#all"
                 <!-- initialize map -->
                 <xsl:for-each select="key('elements-by-class', 'map-canvas', $container)">
                     <xsl:variable name="canvas-id" select="@id" as="xs:string"/>
-                    <xsl:if test="not(ixsl:contains(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri), 'map'))" as="xs:boolean">
+                    <xsl:if test="not(ixsl:contains(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri), 'map'))">
                         <xsl:variable name="avg-lat" select="avg(distinct-values($results/rdf:RDF/rdf:Description/geo:lat/xs:float(.)))" as="xs:float?"/>
                         <xsl:variable name="avg-lng" select="avg(distinct-values($results/rdf:RDF/rdf:Description/geo:long/xs:float(.)))" as="xs:float?"/>
                         <!-- reuse center and zoom if map object already exists, otherwise set defaults -->
