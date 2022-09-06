@@ -191,11 +191,13 @@ exclude-result-prefixes="#all"
                         
                         let type = feature.get('types')[0];
                         
+                        console.log('typeIcons', typeIcons);
+                        
                         if (!typeIcons.has(type)) {
                             let iconIndex = typeIcons.size % icons.length;
                             newIcon.src = icons[iconIndex];
                             typeIcons.set(type, newIcon.src);
-                            console.log("YES!", feature.get('name'), type);
+                            console.log("YES! iconIndex: ", iconIndex, feature.get('name'), type);
                         } else {
                             newIcon.src = typeIcons.get(type);
                             console.log("NO!", feature.get('name'), type);
