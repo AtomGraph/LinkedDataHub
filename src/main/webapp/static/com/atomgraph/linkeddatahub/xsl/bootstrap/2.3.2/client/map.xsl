@@ -195,7 +195,7 @@ exclude-result-prefixes="#all"
                             typeIcons.set(type, newIcon.src);
                             console.log("YES!", typeIcons, newIcon);
                         } else {
-                            newIcon.src = typeIcons.get(type)
+                            newIcon.src = typeIcons.get(type);
                             console.log("NO!", typeIcons, newIcon);
                         }
                         
