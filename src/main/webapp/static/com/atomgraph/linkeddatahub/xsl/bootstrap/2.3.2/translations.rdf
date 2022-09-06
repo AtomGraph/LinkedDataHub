@@ -65,7 +65,7 @@
         <rdfs:label xml:lang="es-ES">Sustituir todos los identificadores de recursos anónimos por URIs</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="export">
-        <rdfs:label xml:lang="en-US">export</rdfs:label>
+        <rdfs:label xml:lang="en-US">Export</rdfs:label>
         <rdfs:label xml:lang="es-ES">Exportar</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="save">
