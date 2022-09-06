@@ -170,6 +170,13 @@ exclude-result-prefixes="#all"
         <ixsl:set-property name="image" select="$icon" object="$icon-style-options"/>
         <xsl:variable name="icon-style" select="ldh:new('ol.style.Style', [ $icon-style-options ])"/>
 
+        <xsl:variable name="js-statement" as="xs:string">
+            <![CDATA[
+                ['https://maps.google.com/mapfiles/ms/icons/blue-dot.png', 'https://maps.google.com/mapfiles/ms/icons/red-dot.png', 'https://maps.google.com/mapfiles/ms/icons/purple-dot.png', 'https://maps.google.com/mapfiles/ms/icons/yellow-dot.png', 'https://maps.google.com/mapfiles/ms/icons/green-dot.png'].forEach(iconUri => new ol.style.Style({ image: new ol.style.Icon({ src: iconUri }) }))
+            ]]>
+        </xsl:variable>
+        <xsl:variable name="icon-styles" select="ixsl:eval(normalize-space($js-statement))"/>
+
         <xsl:variable name="text-options" select="ldh:new-object()"/>
         <ixsl:set-property name="font" select="'12px sans-serif'" object="$text-options"/>
         <ixsl:set-property name="offsetY" select="10" object="$text-options"/>
@@ -183,27 +190,23 @@ exclude-result-prefixes="#all"
         <xsl:variable name="style" select="[ $icon-style, $label-style ]"/>
         <xsl:variable name="js-statement" as="xs:string">
             <![CDATA[
-                function(style, labelStyle, iconStyle, icons, typeIcons, feature) {
+                function(style, labelStyle, iconStyle, icons, iconStyles, typeIcons, feature) {
                     if (feature.get('name')) labelStyle.getText().setText(feature.get('name'));
                     
-                    let featureIconStyle = iconStyle.clone();
+                    let featureIconStyle;
                     if (feature.get('types')) {
-                        let newIcon = featureIconStyle.getImage();
-                        console.log("featureIconStyle.getImage() before", newIcon);
-                        
                         let type = feature.get('types')[0];
                         
                         if (!typeIcons.has(type)) {
-                            let iconIndex = typeIcons.size % icons.length;
-                            newIcon.src = icons[iconIndex];
-                            typeIcons.set(type, newIcon.src);
+                            let iconIndex = typeIcons.size % iconStyles.length;
+                            featureIconStyle = iconStyles[iconIndex];
+                            typeIcons.set(type, featureIconStyle);
                             console.log("YES! iconIndex: ", iconIndex, feature.get('name'), type);
                         } else {
-                            newIcon.src = typeIcons.get(type);
-                            console.log("NO!", feature.get('name'), type, newIcon.src);
+                            featureIconStyle = typeIcons.get(type);
+                            console.log("NO!", feature.get('name'), type);
                         }
                         
-                        featureIconStyle.setImage(newIcon);
                         console.log("featureIconStyle.getImage() after", featureIconStyle.getImage());
                     }
                     
@@ -214,7 +217,7 @@ exclude-result-prefixes="#all"
             ]]>
         </xsl:variable>
         <xsl:variable name="js-function" select="ixsl:eval(normalize-space($js-statement))"/> <!-- need normalize-space() due to Saxon-JS 2.4 bug: https://saxonica.plan.io/issues/5667 -->
-        <xsl:variable name="js-function" select="ixsl:call($js-function, 'bind', [ (), $style, $label-style, $icon-style, $icons, ldh:new('Map', []) ])"/>
+        <xsl:variable name="js-function" select="ixsl:call($js-function, 'bind', [ (), $style, $label-style, $icon-style, $icons, $icon-styles, ldh:new('Map', []) ])"/>
 
         <xsl:variable name="source-options" select="ldh:new-object()"/>
         <!--<ixsl:set-property name="features" select="$features" object="$source-options"/>-->
