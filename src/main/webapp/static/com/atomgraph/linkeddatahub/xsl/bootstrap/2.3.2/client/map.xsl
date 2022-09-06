@@ -186,14 +186,12 @@ exclude-result-prefixes="#all"
                 function(style, labelStyle, iconStyle, icons, typeIcons, feature) {
                     if (feature.get('name')) labelStyle.getText().setText(feature.get('name'));
                     
-                    var featureIconStyle = iconStyle.clone();
+                    let featureIconStyle = iconStyle.clone();
                     if (feature.get('types')) {
                         let newIcon = featureIconStyle.getImage();
                         console.log("featureIconStyle.getImage() before", newIcon);
                         
                         let type = feature.get('types')[0];
-                        
-                        console.log('typeIcons', typeIcons);
                         
                         if (!typeIcons.has(type)) {
                             let iconIndex = typeIcons.size % icons.length;
