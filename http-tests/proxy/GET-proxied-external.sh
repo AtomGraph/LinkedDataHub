@@ -32,6 +32,7 @@ proxied_triple_count=$(curl -k -f -s \
 # load the RDF vocabulary directly
 
 direct_triple_count=$(curl -f -s \
+  -L \
   -H "Accept: text/turtle" \
   "http://www.w3.org/1999/02/22-rdf-syntax-ns" \
 | rapper -q --input turtle --output ntriples /dev/stdin -\
