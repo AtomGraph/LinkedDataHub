@@ -187,7 +187,7 @@ exclude-result-prefixes="#all"
                     if (feature.get('name')) labelStyle.getText().setText(feature.get('name'));
                     if (feature.get('types')) {
                         let newIcon = iconStyle.getImage();
-                        console.log("newIcon", newIcon);
+                        console.log("newIcon before", newIcon);
                         
                         let type = feature.get('types')[0];
                         
@@ -196,14 +196,13 @@ exclude-result-prefixes="#all"
                             newIcon.src = icons[iconIndex];
                             typeIcons.set(type, newIcon.src);
                             console.log("YES!", feature.get('name'), type);
-                            console.log("YES!", typeIcons, newIcon.src);
                         } else {
                             newIcon.src = typeIcons.get(type);
                             console.log("NO!", feature.get('name'), type);
-                            console.log("NO!", typeIcons, newIcon.src);
                         }
                         
                         iconStyle.setImage(newIcon);
+                        console.log("newIcon after", iconStyle.getImage());
                     }
                     return style;
                   }
