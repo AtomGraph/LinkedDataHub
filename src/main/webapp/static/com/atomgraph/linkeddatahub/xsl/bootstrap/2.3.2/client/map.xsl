@@ -187,9 +187,12 @@ exclude-result-prefixes="#all"
                     if (feature.get('name')) labelStyle.getText().setText(feature.get('name'));
                     if (feature.get('types')) {
                         let newIcon = iconStyle.getImage();
+                        console.log("newIcon", newIcon);
+                        
                         let type = feature.get('types')[0];
                         
                         if (!typeIcons.has(type)) {
+                            // icons get recycled when # of different types in response > # of icons
                             let iconIndex = typeIcons.size % icons.length;
                             newIcon.src = icons[iconIndex];
                             typeIcons.set(type, newIcon.src);
