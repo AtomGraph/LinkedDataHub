@@ -192,7 +192,7 @@ exclude-result-prefixes="#all"
 
         <xsl:variable name="js-statement" as="xs:string">
             <![CDATA[
-                function(style, labelStyle, iconStyles, typeIcons, feature) {
+                function(labelStyle, iconStyles, typeIcons, feature) {
                     if (feature.get('name')) labelStyle.getText().setText(feature.get('name'));
                     
                     let iconStyle;
