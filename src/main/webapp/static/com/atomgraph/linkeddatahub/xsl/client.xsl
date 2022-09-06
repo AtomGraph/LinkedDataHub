@@ -648,14 +648,18 @@ WHERE
             <!-- initialize map -->
             <xsl:for-each select="key('elements-by-class', 'map-canvas', ixsl:page())">
                 <xsl:variable name="canvas-id" select="@id" as="xs:string"/>
-                <xsl:variable name="initial-load" select="true()" as="xs:boolean"/>
-                <!-- reuse center and zoom if map object already exists, otherwise set defaults -->
-                <xsl:variable name="center-lat" select="56" as="xs:float"/>
-                <xsl:variable name="center-lng" select="10" as="xs:float"/>
-                <xsl:variable name="zoom" select="4" as="xs:integer"/>
-                <xsl:variable name="map" select="ldh:create-map($canvas-id, $center-lat, $center-lng, $zoom)"/>
-        
-                <ixsl:set-property name="map" select="$map" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+                <xsl:if test="not(ixsl:contains(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri), 'map'))" as="xs:boolean">
+                    <xsl:variable name="avg-lat" select="avg(distinct-values($results/rdf:RDF/rdf:Description/geo:lat/xs:float(.)))" as="xs:float?"/>
+                    <xsl:variable name="avg-lng" select="avg(distinct-values($results/rdf:RDF/rdf:Description/geo:long/xs:float(.)))" as="xs:float?"/>
+                    <!-- reuse center and zoom if map object already exists, otherwise set defaults -->
+                    <xsl:variable name="center-lat" select="if (exists($avg-lat)) then $avg-lat else 0" as="xs:float"/>
+                    <xsl:variable name="center-lng" select="if (exists($avg-lng)) then $avg-lng else 0" as="xs:float"/>
+                    <xsl:variable name="zoom" select="4" as="xs:integer"/>
+                    <xsl:variable name="map" select="ldh:create-map($canvas-id, $center-lat, $center-lng, $zoom)" as="item()"/>
+
+                    <ixsl:set-property name="map" select="$map" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri)"/>
+                </xsl:if>
+                <xsl:variable name="map" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri), 'map')"/>
                 
                 <xsl:call-template name="ldh:AddMapMarkers">
                     <xsl:with-param name="doc" select="$results"/>
