@@ -163,6 +163,9 @@ exclude-result-prefixes="#all"
                 <xsl:sequence select="ldh:new('ol.style.Style', [ $icon-style-options ])"/>
             </xsl:for-each>
         </xsl:param>
+        <xsl:if test="count($icon-styles) = 0">
+            <xsl:message>There should be at least one ol.style.Style instance in the $icon-styles sequence</xsl:message>
+        </xsl:if>
         
         <xsl:variable name="geo-json-xml" as="element()">
             <xsl:apply-templates select="$doc" mode="ldh:GeoJSON"/>
@@ -201,6 +204,7 @@ exclude-result-prefixes="#all"
                             iconStyle = typeIcons.get(type);
                         }
                     }
+                    else iconStyle = iconStyles[0];
                     
                     return [ labelStyle, iconStyle ];
                   }
