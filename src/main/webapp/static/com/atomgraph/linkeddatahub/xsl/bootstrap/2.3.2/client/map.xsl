@@ -72,7 +72,15 @@ exclude-result-prefixes="#all"
             <![CDATA[
                 function (map, evt) {
                     if (!evt.dragging) {
-                        map.getTargetElement().style.cursor = map.hasFeatureAtPixel(map.getEventPixel(evt.originalEvent)) ? 'pointer' : '';
+                        var feature = map.forEachFeatureAtPixel(map.getEventPixel(evt.originalEvent), function(feature) {
+                                return feature;
+                            });
+                        if (feature && (feature.getId().startsWith('http://') || feature.getId().startsWith('https://'))) {
+                            map.getTargetElement().style.cursor = 'pointer';
+                        }
+                        else {
+                            map.getTargetElement().style.cursor = '';
+                        }
                     }
                 }
             ]]>
