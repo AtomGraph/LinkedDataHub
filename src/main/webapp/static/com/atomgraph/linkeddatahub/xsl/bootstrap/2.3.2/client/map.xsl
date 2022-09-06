@@ -172,7 +172,7 @@ exclude-result-prefixes="#all"
 
         <xsl:variable name="js-statement" as="xs:string">
             <![CDATA[
-                ['https://maps.google.com/mapfiles/ms/icons/blue-dot.png', 'https://maps.google.com/mapfiles/ms/icons/red-dot.png', 'https://maps.google.com/mapfiles/ms/icons/purple-dot.png', 'https://maps.google.com/mapfiles/ms/icons/yellow-dot.png', 'https://maps.google.com/mapfiles/ms/icons/green-dot.png'].forEach(iconUri => new ol.style.Style({ image: new ol.style.Icon({ src: iconUri }) }))
+                ['https://maps.google.com/mapfiles/ms/icons/blue-dot.png', 'https://maps.google.com/mapfiles/ms/icons/red-dot.png', 'https://maps.google.com/mapfiles/ms/icons/purple-dot.png', 'https://maps.google.com/mapfiles/ms/icons/yellow-dot.png', 'https://maps.google.com/mapfiles/ms/icons/green-dot.png'].map(iconUri => new ol.style.Style({ image: new ol.style.Icon({ src: iconUri }) }))
             ]]>
         </xsl:variable>
         <xsl:variable name="icon-styles" select="ixsl:eval(normalize-space($js-statement))"/>
