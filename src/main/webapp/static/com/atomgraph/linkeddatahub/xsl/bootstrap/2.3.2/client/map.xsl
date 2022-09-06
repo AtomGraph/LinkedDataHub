@@ -251,6 +251,7 @@ exclude-result-prefixes="#all"
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
                 <xsl:for-each select="?body">
+                    <xsl:variable name="canvas-id" select="$content-id || '-map-canvas'" as="xs:string"/>
                     <xsl:if test="not(ixsl:contains(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri), 'map'))">
                         <xsl:variable name="avg-lat" select="avg(distinct-values(rdf:RDF/rdf:Description/geo:lat/xs:float(.)))" as="xs:float?"/>
                         <xsl:variable name="avg-lng" select="avg(distinct-values(rdf:RDF/rdf:Description/geo:long/xs:float(.)))" as="xs:float?"/>
