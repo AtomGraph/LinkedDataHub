@@ -185,9 +185,11 @@ exclude-result-prefixes="#all"
             <![CDATA[
                 function(style, labelStyle, iconStyle, icons, typeIcons, feature) {
                     if (feature.get('name')) labelStyle.getText().setText(feature.get('name'));
+                    
+                    var featureIconStyle = iconStyle.clone();
                     if (feature.get('types')) {
-                        let newIcon = iconStyle.getImage();
-                        console.log("newIcon before", newIcon);
+                        let newIcon = featureIconStyle.getImage();
+                        console.log("featureIconStyle.getImage() before", newIcon);
                         
                         let type = feature.get('types')[0];
                         
@@ -200,13 +202,14 @@ exclude-result-prefixes="#all"
                             console.log("YES! iconIndex: ", iconIndex, feature.get('name'), type);
                         } else {
                             newIcon.src = typeIcons.get(type);
-                            console.log("NO!", feature.get('name'), type, typeIcons.get(type));
+                            console.log("NO!", feature.get('name'), type, newIcon.src);
                         }
                         
-                        iconStyle.setImage(newIcon);
-                        console.log("newIcon after", iconStyle.getImage());
+                        featureIconStyle.setImage(newIcon);
+                        console.log("featureIconStyle.getImage() after", featureIconStyle.getImage());
                     }
-                    return style;
+                    
+                    return [ labelStyle, featureIconStyle ];
                   }
             ]]>
         </xsl:variable>
