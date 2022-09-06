@@ -401,13 +401,12 @@ exclude-result-prefixes="#all"
     </xsl:template>
     
     <!-- close popup overlay (info window) -->
-    <!-- there seems to be some glitch where this template propagates into an out-of-DOM copy of $container: https://github.com/openlayers/openlayers/issues/6948#issuecomment-1235416369 -->
     
-    <xsl:template match="/html//div[contains-token(@class, 'ol-overlay-container')]//div[contains-token(@class, 'modal-header')]/button[contains-token(@class, 'close')]" mode="ixsl:onclick" >
+    <xsl:template match="div[contains-token(@class, 'ol-overlay-container')]//div[contains-token(@class, 'modal-header')]/button[contains-token(@class, 'close')]" mode="ixsl:onclick" >
         <xsl:variable name="content-uri" select="ancestor::div[@about][1]/@about" as="xs:anyURI"/>
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'ol-overlay-container')]/div" as="element()"/>
         <xsl:variable name="escaped-content-uri" select="xs:anyURI(translate($content-uri, '.', '-'))" as="xs:anyURI"/>
-        <xsl:variable name="map" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri), 'map')"/> <!-- TO-DO: LinkedDataHub.map -->
+        <xsl:variable name="map" select="(ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri), 'map'), ixsl:get(ixsl:window(), 'LinkedDataHub.map'))[1]"/>
         <xsl:variable name="overlay" select="ixsl:call(ixsl:call($map, 'getOverlays', []), 'getArray', [])[ ixsl:call(., 'getElement', []) is $container ]"/>
         <xsl:sequence select="ixsl:call($map, 'removeOverlay', [ $overlay ])[current-date() lt xs:date('2000-01-01')]"/> <!-- remove overlay from map -->
     </xsl:template>
