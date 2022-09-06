@@ -200,7 +200,7 @@ exclude-result-prefixes="#all"
                             console.log("YES! iconIndex: ", iconIndex, feature.get('name'), type);
                         } else {
                             newIcon.src = typeIcons.get(type);
-                            console.log("NO!", feature.get('name'), type);
+                            console.log("NO!", feature.get('name'), type, typeIcons.get(type));
                         }
                         
                         iconStyle.setImage(newIcon);
