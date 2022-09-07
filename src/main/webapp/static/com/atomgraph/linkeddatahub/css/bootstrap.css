@@ -132,9 +132,9 @@ button.add-typeahead { width: 219px; }
 .content .dl-horizontal { max-height: 35em; overflow: auto; }
 .content .btn.add-typeahead { margin-top: -10px; }
 object { display: block; margin: auto; max-height: 400px; overflow: hidden; width: 100%; }
-#chart-canvas { width: 100%; height: 400px; }
-#chart-canvas .google-visualization-table { width: 100%; }
-.table { display: table ; }
+.chart-canvas { width: 100%; height: 400px; }
+.chart-canvas .google-visualization-table { width: 100%; }
+.table { display: table; }
 .row { display: table-row ; }
 .cell { display: table-cell ; }
 .footer { background-color: rgba(0, 0, 0, 0.03); font-size: smaller; padding-bottom: 2em; height: 14em; }

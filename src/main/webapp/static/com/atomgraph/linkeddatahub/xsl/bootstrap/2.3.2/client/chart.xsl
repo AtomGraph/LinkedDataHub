@@ -42,8 +42,8 @@ exclude-result-prefixes="#all"
         <xsl:param name="chart-type" as="xs:anyURI"/>
         <xsl:param name="category" as="xs:string?"/>
         <xsl:param name="series" as="xs:string*"/>
-        <xsl:param name="width" as="xs:string?"/>
-        <xsl:param name="height" as="xs:string?"/>
+        <xsl:param name="width" as="xs:integer?"/>
+        <xsl:param name="height" as="xs:integer?"/>
 
         <xsl:variable name="chart-classes" as="map(xs:string, xs:string)">
             <xsl:map>
@@ -61,13 +61,15 @@ exclude-result-prefixes="#all"
             </xsl:message>
         </xsl:if>
         
-        <xsl:variable name="js-statement" as="element()">
-            <root statement="(new {$chart-class}(document.getElementById('{$canvas-id}')))"/>
-        </xsl:variable>
-        <xsl:variable name="chart" select="ixsl:eval(string($js-statement/@statement))"/>
-                
+        <xsl:variable name="chart" select="ldh:new($chart-class, [ id($canvas-id, ixsl:page()) ])"/>
         <xsl:variable name="options" as="map(xs:string, item())">
             <xsl:map>
+                <xsl:if test="exists($width)">
+                    <xsl:map-entry key="'width'" select="$width"/>
+                </xsl:if>
+                <xsl:if test="exists($height)">
+                    <xsl:map-entry key="'height'" select="$height"/>
+                </xsl:if>
                 <xsl:if test="$chart-type = '&ac;Table'">
                     <xsl:map-entry key="'allowHtml'" select="true()"/>
                 </xsl:if>
@@ -100,7 +102,7 @@ exclude-result-prefixes="#all"
             <xsl:with-param name="chart-type" select="$chart-type"/>
             <xsl:with-param name="category" select="$category"/>
             <xsl:with-param name="series" select="$series"/>
-            <xsl:with-param name="width" select="'100%'"/>
+            <xsl:with-param name="height" select="400"/>
         </xsl:call-template>
     </xsl:template>
     
