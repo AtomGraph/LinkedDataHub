@@ -63,6 +63,11 @@ do
         shift # past argument
         shift # past value
         ;;
+        --mode)
+        mode="$2"
+        shift # past argument
+        shift # past value
+        ;;
         --slug)
         slug="$2"
         shift # past argument
@@ -106,6 +111,7 @@ args+=("text/turtle")
 args+=("${base}service")
 
 turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy#> .\n"
+turtle+="@prefix ac:	<https://w3id.org/atomgraph/client#> .\n"
 turtle+="@prefix ldh:	<https://w3id.org/atomgraph/linkeddatahub#> .\n"
 turtle+="@prefix rdf:	<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
@@ -116,7 +122,11 @@ turtle+="_:container sioc:has_parent <${parent}> .\n"
 if [ -n "$content" ] ; then
     turtle+="_:container rdf:_1 <${content}> .\n"
 else
-    turtle+="_:container rdf:_1 [ a ldh:Content ; rdf:value ldh:SelectChildren ] .\n"
+    content_triples="a ldh:Content; rdf:value ldh:SelectChildren"
+    if [ -n "$mode" ] ; then
+        content_triples+="; ac:mode <${mode}> "
+    fi
+    turtle+="_:container rdf:_1 [ ${content_triples} ] .\n"
 fi
 if [ -n "$description" ] ; then
     turtle+="_:container dct:description \"${description}\" .\n"
