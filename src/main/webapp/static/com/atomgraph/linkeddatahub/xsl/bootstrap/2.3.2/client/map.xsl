@@ -278,7 +278,8 @@ exclude-result-prefixes="#all"
         <xsl:param name="container" as="element()"/>
         <!--<xsl:param name="container-id" select="ixsl:get($container, 'id')" as="xs:string"/>-->
         <xsl:param name="content-id" as="xs:string"/>
-        <xsl:param name="escaped-content-uri" select="xs:anyURI(translate($container/@about, '.', '-'))" as="xs:anyURI"/>
+        <xsl:param name="content-uri" select="$container/@about" as="xs:anyURI"/>
+        <xsl:param name="escaped-content-uri" select="xs:anyURI(translate($content-uri, '.', '-'))" as="xs:anyURI"/>
         <xsl:param name="content" as="element()?"/>
         <xsl:param name="active-mode" as="xs:anyURI"/>
         <xsl:param name="select-xml" as="document-node()"/>
