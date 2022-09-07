@@ -646,10 +646,12 @@ WHERE
             </xsl:if>
 
             <!-- initialize map -->
-            <xsl:call-template name="ldh:DrawMap">
-                <xsl:with-param name="escaped-content-uri" select="$escaped-content-uri"/>
-                <xsl:with-param name="canvas-id" select="key('elements-by-class', 'map-canvas', ixsl:page())/@id" />
-            </xsl:call-template>
+            <xsl:if test="key('elements-by-class', 'map-canvas', ixsl:page())">
+                <xsl:call-template name="ldh:DrawMap">
+                    <xsl:with-param name="escaped-content-uri" select="$escaped-content-uri"/>
+                    <xsl:with-param name="canvas-id" select="key('elements-by-class', 'map-canvas', ixsl:page())/@id" />
+                </xsl:call-template>
+            </xsl:if>
             
             <!-- initialize chart -->
             <xsl:for-each select="key('elements-by-class', 'chart-canvas', ixsl:page())">

@@ -155,7 +155,6 @@ exclude-result-prefixes="#all"
         <xsl:param name="escaped-content-uri" as="xs:anyURI"/>
         <xsl:param name="canvas-id" as="xs:string"/>
         <xsl:param name="initial-load" select="not(ixsl:contains(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri), 'map'))" as="xs:boolean"/>
-        <xsl:param name="padding-factor" select="1.05" as="xs:float"/>
         <xsl:variable name="lats" select="distinct-values(rdf:RDF/rdf:Description/geo:lat/xs:float(.))" as="xs:float*"/>
         <xsl:variable name="lngs" select="distinct-values(rdf:RDF/rdf:Description/geo:long/xs:float(.))" as="xs:float*"/>
         <xsl:variable name="max-lat" select="max($lats)" as="xs:float?"/>
@@ -164,10 +163,6 @@ exclude-result-prefixes="#all"
         <xsl:variable name="min-lng" select="min($lngs)" as="xs:float?"/>
         <xsl:variable name="avg-lat" select="avg($lats)" as="xs:float?"/>
         <xsl:variable name="avg-lng" select="avg($lngs)" as="xs:float?"/>
-        <xsl:message>
-            $lats: <xsl:value-of select="$lats"/> $lngs: <xsl:value-of select="$lngs"/>
-            $max-lat: <xsl:value-of select="$max-lat"/> $max-lng: <xsl:value-of select="$max-lng"/> $avg-lat: <xsl:value-of select="$avg-lat"/> $avg-lng: <xsl:value-of select="$avg-lng"/>
-        </xsl:message>
         <!-- reuse center and zoom if map object already exists, otherwise set defaults -->
         <xsl:variable name="center-lat" select="if (not($initial-load)) then xs:float(ixsl:call(ixsl:get(ixsl:window(), 'ol.proj'), 'toLonLat', [ ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri), 'map'), 'getView', []), 'getCenter', []) ])[2]) else (if (exists($avg-lat)) then $avg-lat else 0)" as="xs:float"/>
         <xsl:variable name="center-lng" select="if (not($initial-load)) then xs:float(ixsl:call(ixsl:get(ixsl:window(), 'ol.proj'), 'toLonLat', [ ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri), 'map'), 'getView', []), 'getCenter', []) ])[1]) else (if (exists($avg-lng)) then $avg-lng else 0)" as="xs:float"/>
@@ -175,7 +170,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="map" select="ldh:create-map($canvas-id, $center-lat, $center-lng, $zoom)" as="item()"/>
 
         <xsl:if test="$initial-load and exists($max-lat) and exists($min-lat) and exists($max-lng) and exists($max-lng)">
-            <xsl:variable name="extent" select="($min-lng * $padding-factor, $min-lat * $padding-factor, $max-lng * $padding-factor, $max-lat * $padding-factor)" as="xs:double*"/>
+            <xsl:variable name="extent" select="($min-lng, $min-lat, $max-lng, $max-lat)" as="xs:double*"/>
             <xsl:variable name="extent" select="ixsl:call(ixsl:get(ixsl:window(), 'ol.proj'), 'transformExtent', [ $extent, 'EPSG:4326','EPSG:3857' ])" as="xs:double*"/>
             <xsl:sequence select="ixsl:call(ixsl:call($map, 'getView', []), 'fit', [ $extent, ixsl:call($map, 'getSize', []) ])"/>
         </xsl:if>
