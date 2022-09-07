@@ -285,11 +285,8 @@ exclude-result-prefixes="#all"
         <xsl:param name="select-string" as="xs:string"/>
         <xsl:param name="endpoint" as="xs:anyURI"/>
         
-        <!-- update progress bar -->
-        <xsl:for-each select="$container//div[@class = 'bar']">
-            <ixsl:set-style name="width" select="'75%'" object="."/>
-        </xsl:for-each>
-
+        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
+        
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
                 <xsl:for-each select="?body">
