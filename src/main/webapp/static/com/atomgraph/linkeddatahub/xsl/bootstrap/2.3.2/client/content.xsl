@@ -857,7 +857,7 @@ exclude-result-prefixes="#all"
                 <xsl:for-each select="$results">
                     <xsl:call-template name="ldh:DrawMap">
                         <xsl:with-param name="escaped-content-uri" select="$escaped-content-uri"/>
-                        <xsl:with-param name="canvas-id" select="key('elements-by-class', 'map-canvas', $container)/@id || '-map-canvas'" />
+                        <xsl:with-param name="canvas-id" select="key('elements-by-class', 'map-canvas', $container)/@id" />
                     </xsl:call-template>
                 </xsl:for-each>
                 
