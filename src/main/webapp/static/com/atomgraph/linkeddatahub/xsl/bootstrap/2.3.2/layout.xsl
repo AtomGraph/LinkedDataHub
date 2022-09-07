@@ -1094,7 +1094,7 @@ LIMIT   100
             
             <xsl:if test="$ldh:ajaxRendering">
                 <div class="pull-right">
-                    <button type="button" title="{key('resources', 'save-as-title', document('translations.rdf'))}">
+                    <button type="button" title="{ac:label(key('resources', 'save-as-title', document('translations.rdf')))}">
                         <xsl:apply-templates select="key('resources', 'save-as', document('translations.rdf'))" mode="ldh:logo">
                             <xsl:with-param name="class" select="'btn'"/>
                         </xsl:apply-templates>
