@@ -148,10 +148,45 @@ exclude-result-prefixes="#all"
         </ixsl:schedule-action>
     </xsl:template>
     
+    <!-- create and render OpenLayers map -->
+    
+    <xsl:template name="ldh:DrawMap">
+        <xsl:context-item as="document-node()" use="required"/>
+        <xsl:param name="content-uri" as="xs:anyURI"/>
+        <xsl:param name="escaped-content-uri" select="xs:anyURI(translate($content-uri, '.', '-'))" as="xs:anyURI"/>
+        <xsl:param name="canvas-id" as="xs:string"/>
+        <xsl:param name="initial-load" select="not(ixsl:contains(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri), 'map'))" as="xs:boolean"/>
+        <xsl:variable name="lats" select="distinct-values(rdf:RDF/rdf:Description/geo:lat/xs:float(.))" as="xs:float*"/>
+        <xsl:variable name="lngs" select="distinct-values(rdf:RDF/rdf:Description/geo:long/xs:float(.))" as="xs:float*"/>
+        <xsl:variable name="max-lat" select="max($lats)" as="xs:float?"/>
+        <xsl:variable name="min-lat" select="min($lats)" as="xs:float?"/>
+        <xsl:variable name="max-lng" select="max($lngs)" as="xs:float?"/>
+        <xsl:variable name="min-lng" select="min($lngs)" as="xs:float?"/>
+        <xsl:variable name="avg-lat" select="avg($lats)" as="xs:float?"/>
+        <xsl:variable name="avg-lng" select="avg($lngs)" as="xs:float?"/>
+        <!-- reuse center and zoom if map object already exists, otherwise set defaults -->
+        <xsl:variable name="center-lat" select="if (not($initial-load)) then xs:float(ixsl:call(ixsl:get(ixsl:window(), 'ol.proj'), 'toLonLat', [ ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri), 'map'), 'getView', []), 'getCenter', []) ])[2]) else (if (exists($avg-lat)) then $avg-lat else 0)" as="xs:float"/>
+        <xsl:variable name="center-lng" select="if (not($initial-load)) then xs:float(ixsl:call(ixsl:get(ixsl:window(), 'ol.proj'), 'toLonLat', [ ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri), 'map'), 'getView', []), 'getCenter', []) ])[1]) else (if (exists($avg-lng)) then $avg-lng else 0)" as="xs:float"/>
+        <xsl:variable name="zoom" select="if (not($initial-load)) then xs:integer(ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri), 'map'), 'getView', []), 'getZoom', [])) else 4" as="xs:integer"/>
+        <xsl:variable name="map" select="ldh:create-map($canvas-id, $center-lat, $center-lng, $zoom)" as="item()"/>
+
+        <xsl:if test="$initial-load and exists($max-lat) and exists($min-lat) and exists($max-lng) and exists($max-lng)">
+            <xsl:variable name="extent" select="($min-lng, $min-lat, $max-lng, $max-lat)" as="xs:double*"/>
+            <xsl:variable name="extent" select="ixsl:call(ixsl:get(ixsl:window(), 'ol.proj'), 'transformExtent', [ $extent, 'EPSG:4326','EPSG:3857' ])" as="xs:double*"/>
+            <xsl:sequence select="ixsl:call(ixsl:call($map, 'getView', []), 'fit', [ $extent, ixsl:call($map, 'getSize', []) ])"/>
+        </xsl:if>
+
+        <ixsl:set-property name="map" select="$map" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri)"/>
+
+        <xsl:call-template name="ldh:AddMapMarkers">
+            <xsl:with-param name="map" select="$map"/>
+        </xsl:call-template>
+    </xsl:template>
+    
     <!-- add marker logic ported from SPARQLMap -->
     
     <xsl:template name="ldh:AddMapMarkers">
-        <xsl:param name="doc" as="document-node()"/>
+        <xsl:context-item as="document-node()" use="required"/>
         <xsl:param name="map" as="item()"/>
         <xsl:param name="icons" select="('https://maps.google.com/mapfiles/ms/icons/blue-dot.png', 'https://maps.google.com/mapfiles/ms/icons/red-dot.png', 'https://maps.google.com/mapfiles/ms/icons/purple-dot.png', 'https://maps.google.com/mapfiles/ms/icons/yellow-dot.png', 'https://maps.google.com/mapfiles/ms/icons/green-dot.png')" as="xs:string*"/> <!-- https://saxonica.plan.io/issues/5677 -->
         <xsl:param name="icon-styles" as="item()*">
@@ -176,7 +211,7 @@ exclude-result-prefixes="#all"
         </xsl:if>
         
         <xsl:variable name="geo-json-xml" as="element()">
-            <xsl:apply-templates select="$doc" mode="ldh:GeoJSON"/>
+            <xsl:apply-templates select="." mode="ldh:GeoJSON"/>
         </xsl:variable>
         <xsl:variable name="geo-json-string" select="xml-to-json($geo-json-xml)"/>
         <xsl:variable name="geo-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $geo-json-string ])"/>
@@ -259,33 +294,9 @@ exclude-result-prefixes="#all"
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
                 <xsl:for-each select="?body">
-                    <xsl:variable name="canvas-id" select="$content-id || '-map-canvas'" as="xs:string"/>
-                    <xsl:variable name="initial-load" select="not(ixsl:contains(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri), 'map'))" as="xs:boolean"/>
-                    <xsl:variable name="lats" select="distinct-values(rdf:RDF/rdf:Description/geo:lat/xs:float(.))" as="xs:float*"/>
-                    <xsl:variable name="lngs" select="distinct-values(rdf:RDF/rdf:Description/geo:long/xs:float(.))" as="xs:float*"/>
-                    <xsl:variable name="max-lat" select="max($lats)" as="xs:float?"/>
-                    <xsl:variable name="min-lat" select="min($lats)" as="xs:float?"/>
-                    <xsl:variable name="max-lng" select="max($lngs)" as="xs:float?"/>
-                    <xsl:variable name="min-lng" select="min($lngs)" as="xs:float?"/>
-                    <xsl:variable name="avg-lat" select="avg($lats)" as="xs:float?"/>
-                    <xsl:variable name="avg-lng" select="avg($lngs)" as="xs:float?"/>
-                    <!-- reuse center and zoom if map object already exists, otherwise set defaults -->
-                    <xsl:variable name="center-lat" select="if (not($initial-load)) then xs:float(ixsl:call(ixsl:get(ixsl:window(), 'ol.proj'), 'toLonLat', [ ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri), 'map'), 'getView', []), 'getCenter', []) ])[2]) else (if (exists($avg-lat)) then $avg-lat else 0)" as="xs:float"/>
-                    <xsl:variable name="center-lng" select="if (not($initial-load)) then xs:float(ixsl:call(ixsl:get(ixsl:window(), 'ol.proj'), 'toLonLat', [ ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri), 'map'), 'getView', []), 'getCenter', []) ])[1]) else (if (exists($avg-lng)) then $avg-lng else 0)" as="xs:float"/>
-                    <xsl:variable name="zoom" select="if (not($initial-load)) then xs:integer(ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri), 'map'), 'getView', []), 'getZoom', [])) else 4" as="xs:integer"/>
-                    <xsl:variable name="map" select="ldh:create-map($canvas-id, $center-lat, $center-lng, $zoom)" as="item()"/>
-
-                    <xsl:if test="exists($max-lat) and exists($min-lat) and exists($max-lng) and exists($max-lng)">
-                        <xsl:variable name="extent" select="($min-lng, $min-lat, $max-lng, $max-lat)" as="xs:double*"/>
-                        <xsl:variable name="extent" select="ixsl:call(ixsl:get(ixsl:window(), 'ol.proj'), 'transformExtent', [ $extent, 'EPSG:4326','EPSG:3857' ])" as="xs:double*"/>
-                        <xsl:sequence select="ixsl:call(ixsl:call($map, 'getView', []), 'fit', [ $extent, ixsl:call($map, 'getSize', []) ])"/>
-                    </xsl:if>
-
-                    <ixsl:set-property name="map" select="$map" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri)"/>
-
-                    <xsl:call-template name="ldh:AddMapMarkers">
-                        <xsl:with-param name="doc" select="."/>
-                        <xsl:with-param name="map" select="$map"/>
+                    <xsl:call-template name="ldh:DrawMap">
+                        <xsl:with-param name="content-uri" select="$content-uri"/>
+                        <xsl:with-param name="canvas-id" select="$content-id || '-map-canvas'" />
                     </xsl:call-template>
                 </xsl:for-each>
             </xsl:when>
