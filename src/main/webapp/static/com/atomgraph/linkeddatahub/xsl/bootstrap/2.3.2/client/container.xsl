@@ -900,8 +900,6 @@ exclude-result-prefixes="#all"
         <xsl:variable name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.apps'))" as="element()?"/>
         <xsl:variable name="endpoint" select="($service/sd:endpoint/@rdf:resource/xs:anyURI(.), sd:endpoint())[1]"/>
 
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
-
         <xsl:call-template name="render-container">
             <xsl:with-param name="container" select="$results-container"/>
             <xsl:with-param name="escaped-content-uri" select="$escaped-content-uri"/>
