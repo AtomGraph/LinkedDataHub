@@ -854,7 +854,7 @@ exclude-result-prefixes="#all"
                 </xsl:apply-templates>
             
                 <!-- initialize map -->
-                <xsl:if select="key('elements-by-class', 'map-canvas', $container)">
+                <xsl:if test="key('elements-by-class', 'map-canvas', $container)">
                     <xsl:for-each select="$results">
                         <xsl:call-template name="ldh:DrawMap">
                             <xsl:with-param name="escaped-content-uri" select="$escaped-content-uri"/>
