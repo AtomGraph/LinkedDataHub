@@ -647,7 +647,7 @@ WHERE
 
             <!-- initialize map -->
             <xsl:call-template name="ldh:DrawMap">
-                <xsl:with-param name="content-uri" select="$uri"/>
+                <xsl:with-param name="escaped-content-uri" select="$escaped-content-uri"/>
                 <xsl:with-param name="canvas-id" select="key('elements-by-class', 'map-canvas', ixsl:page())/@id || '-map-canvas'" />
             </xsl:call-template>
             

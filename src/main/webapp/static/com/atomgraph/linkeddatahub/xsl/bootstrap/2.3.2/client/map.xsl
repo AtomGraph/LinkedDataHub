@@ -152,7 +152,6 @@ exclude-result-prefixes="#all"
     
     <xsl:template name="ldh:DrawMap">
         <xsl:context-item as="document-node()" use="required"/>
-        <xsl:param name="content-uri" as="xs:anyURI"/>
         <xsl:param name="escaped-content-uri" select="xs:anyURI(translate($content-uri, '.', '-'))" as="xs:anyURI"/>
         <xsl:param name="canvas-id" as="xs:string"/>
         <xsl:param name="initial-load" select="not(ixsl:contains(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri), 'map'))" as="xs:boolean"/>
@@ -278,8 +277,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="container" as="element()"/>
         <!--<xsl:param name="container-id" select="ixsl:get($container, 'id')" as="xs:string"/>-->
         <xsl:param name="content-id" as="xs:string"/>
-        <xsl:param name="content-uri" select="$container/@about" as="xs:anyURI"/>
-        <xsl:param name="escaped-content-uri" select="xs:anyURI(translate($content-uri, '.', '-'))" as="xs:anyURI"/>
+        <xsl:param name="escaped-content-uri" select="xs:anyURI(translate($container/@about, '.', '-'))" as="xs:anyURI"/>
         <xsl:param name="content" as="element()?"/>
         <xsl:param name="active-mode" as="xs:anyURI"/>
         <xsl:param name="select-xml" as="document-node()"/>
@@ -296,7 +294,7 @@ exclude-result-prefixes="#all"
             <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
                 <xsl:for-each select="?body">
                     <xsl:call-template name="ldh:DrawMap">
-                        <xsl:with-param name="content-uri" select="$content-uri"/>
+                        <xsl:with-param name="escaped-content-uri" select="$escaped-content-uri"/>
                         <xsl:with-param name="canvas-id" select="$content-id || '-map-canvas'" />
                     </xsl:call-template>
                 </xsl:for-each>
