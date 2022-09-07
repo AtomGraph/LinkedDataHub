@@ -1,3 +1,7 @@
+## [3.2.8] - 2022-09-07
+### Changed
+- Fixed calculation of center coordinates correctly for all map usages
+
 ## [3.2.7] - 2022-09-06
 ### Changed
 - Google Maps and SPARQLMap dependencies replaced with OpenLayers 7.0. All functionality ported except bounding box-based feature loader.
