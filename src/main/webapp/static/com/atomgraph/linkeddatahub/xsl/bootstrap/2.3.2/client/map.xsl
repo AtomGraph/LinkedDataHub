@@ -155,6 +155,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="escaped-content-uri" as="xs:anyURI"/>
         <xsl:param name="canvas-id" as="xs:string"/>
         <xsl:param name="initial-load" select="not(ixsl:contains(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri), 'map'))" as="xs:boolean"/>
+        <xsl:param name="padding-factor" select="1.05" as="xs:float"/>
         <xsl:variable name="lats" select="distinct-values(rdf:RDF/rdf:Description/geo:lat/xs:float(.))" as="xs:float*"/>
         <xsl:variable name="lngs" select="distinct-values(rdf:RDF/rdf:Description/geo:long/xs:float(.))" as="xs:float*"/>
         <xsl:variable name="max-lat" select="max($lats)" as="xs:float?"/>
@@ -174,7 +175,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="map" select="ldh:create-map($canvas-id, $center-lat, $center-lng, $zoom)" as="item()"/>
 
         <xsl:if test="$initial-load and exists($max-lat) and exists($min-lat) and exists($max-lng) and exists($max-lng)">
-            <xsl:variable name="extent" select="($min-lng, $min-lat, $max-lng, $max-lat)" as="xs:double*"/>
+            <xsl:variable name="extent" select="($min-lng * $padding-factor, $min-lat * $padding-factor, $max-lng * $padding-factor, $max-lat * $padding-factor)" as="xs:double*"/>
             <xsl:variable name="extent" select="ixsl:call(ixsl:get(ixsl:window(), 'ol.proj'), 'transformExtent', [ $extent, 'EPSG:4326','EPSG:3857' ])" as="xs:double*"/>
             <xsl:sequence select="ixsl:call(ixsl:call($map, 'getView', []), 'fit', [ $extent, ixsl:call($map, 'getSize', []) ])"/>
         </xsl:if>
