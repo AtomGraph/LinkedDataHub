@@ -116,7 +116,8 @@ var onSubjectValueChange = function(event)
 //        "stylesheetLocation": stylesheetLocation,
 //        "initialTemplate": initialTemplate,
 //        "stylesheetParams": stylesheetParams,
-//        "templateParams": templateParams
+//        "templateParams": templateParams,
+//        "nonInteractive": true
 //    });
 //};
 
