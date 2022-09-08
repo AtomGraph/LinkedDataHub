@@ -156,7 +156,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="canvas-id" as="xs:string"/>
         <xsl:param name="initial-load" select="not(ixsl:contains(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri), 'map'))" as="xs:boolean"/>
         <xsl:param name="max-zoom" select="16" as="xs:integer"/>
-        <xsl:variable name="geo-resources" select="rdf:Description[geo:lat][geo:long]" as="element()*"/>
+        <xsl:variable name="geo-resources" select="rdf:RDF/rdf:Description[geo:lat][geo:long]" as="element()*"/>
         <xsl:variable name="lats" select="distinct-values($geo-resources/geo:lat/xs:float(.))" as="xs:float*"/>
         <xsl:variable name="lngs" select="distinct-values($geo-resources/geo:long/xs:float(.))" as="xs:float*"/>
         <xsl:variable name="max-lat" select="max($lats)" as="xs:float?"/>
@@ -166,6 +166,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="avg-lat" select="avg($lats)" as="xs:float?"/>
         <xsl:variable name="avg-lng" select="avg($lngs)" as="xs:float?"/>
         <xsl:message>
+            count($geo-resources): <xsl:value-of select="count($geo-resources)"/>
             $initial-load: <xsl:value-of select="$initial-load"/>
             $lats: <xsl:value-of select="$lats"/> $lngs: <xsl:value-of select="$lngs"/>
             $max-lat: <xsl:value-of select="$max-lat"/> $max-lng: <xsl:value-of select="$max-lng"/> $avg-lat: <xsl:value-of select="$avg-lat"/> $avg-lng: <xsl:value-of select="$avg-lng"/>
