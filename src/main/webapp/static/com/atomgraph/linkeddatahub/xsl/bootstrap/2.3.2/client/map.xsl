@@ -155,8 +155,10 @@ exclude-result-prefixes="#all"
         <xsl:param name="escaped-content-uri" as="xs:anyURI"/>
         <xsl:param name="canvas-id" as="xs:string"/>
         <xsl:param name="initial-load" select="not(ixsl:contains(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri), 'map'))" as="xs:boolean"/>
-        <xsl:variable name="lats" select="distinct-values(rdf:RDF/rdf:Description/geo:lat/xs:float(.))" as="xs:float*"/>
-        <xsl:variable name="lngs" select="distinct-values(rdf:RDF/rdf:Description/geo:long/xs:float(.))" as="xs:float*"/>
+        <xsl:param name="max-zoom" select="16" as="xs:integer"/>
+        <xsl:variable name="geo-resources" select="rdf:Description[geo:lat][geo:long]" as="element()*"/>
+        <xsl:variable name="lats" select="distinct-values($geo-resources/geo:lat/xs:float(.))" as="xs:float*"/>
+        <xsl:variable name="lngs" select="distinct-values($geo-resources/geo:long/xs:float(.))" as="xs:float*"/>
         <xsl:variable name="max-lat" select="max($lats)" as="xs:float?"/>
         <xsl:variable name="min-lat" select="min($lats)" as="xs:float?"/>
         <xsl:variable name="max-lng" select="max($lngs)" as="xs:float?"/>
@@ -172,7 +174,13 @@ exclude-result-prefixes="#all"
         <xsl:if test="$initial-load and exists($max-lat) and exists($min-lat) and exists($max-lng) and exists($max-lng)">
             <xsl:variable name="extent" select="($min-lng, $min-lat, $max-lng, $max-lat)" as="xs:double*"/>
             <xsl:variable name="extent" select="ixsl:call(ixsl:get(ixsl:window(), 'ol.proj'), 'transformExtent', [ $extent, 'EPSG:4326','EPSG:3857' ])" as="xs:double*"/>
-            <xsl:sequence select="ixsl:call(ixsl:call($map, 'getView', []), 'fit', [ $extent, ixsl:call($map, 'getSize', []) ])"/>
+            <xsl:variable name="fit-options" select="ldh:new-object()"/>
+            <ixsl:set-property name="size" select="ixsl:call($map, 'getSize', [])" object="$fit-options"/>
+            <!-- if there is only one feature in $geo-resources, limit the maxZoom -->
+            <xsl:if test="count($geo-resources) = 1">
+                <ixsl:set-property name="maxZoom" select="$max-zoom" object="$fit-options"/>
+            </xsl:if>
+            <xsl:sequence select="ixsl:call(ixsl:call($map, 'getView', []), 'fit', [ $extent, $fit-options ])"/>
         </xsl:if>
 
         <ixsl:set-property name="map" select="$map" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri)"/>
