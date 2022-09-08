@@ -176,7 +176,7 @@ exclude-result-prefixes="#all"
             <xsl:variable name="extent" select="ixsl:call(ixsl:get(ixsl:window(), 'ol.proj'), 'transformExtent', [ $extent, 'EPSG:4326','EPSG:3857' ])" as="xs:double*"/>
             <xsl:variable name="fit-options" select="ldh:new-object()"/>
             <ixsl:set-property name="size" select="ixsl:call($map, 'getSize', [])" object="$fit-options"/>
-            <ixsl:set-property name="maxZoom" select="$max-zoom" object="$fit-options"/>
+            <!--<ixsl:set-property name="maxZoom" select="$max-zoom" object="$fit-options"/>-->
             
             <xsl:sequence select="ixsl:call(ixsl:call($map, 'getView', []), 'fit', [ $extent, $fit-options ])"/>
         </xsl:if>
