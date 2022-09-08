@@ -175,11 +175,15 @@ exclude-result-prefixes="#all"
         <xsl:if test="$initial-load and exists($max-lat) and exists($min-lat) and exists($max-lng) and exists($max-lng)">
             <xsl:variable name="extent" select="($min-lng, $min-lat, $max-lng, $max-lat)" as="xs:double*"/>
             <xsl:variable name="extent" select="ixsl:call(ixsl:get(ixsl:window(), 'ol.proj'), 'transformExtent', [ $extent, 'EPSG:4326','EPSG:3857' ])" as="xs:double*"/>
-            <xsl:variable name="fit-options" select="ldh:new-object()"/>
-            <ixsl:set-property name="maxZoom" select="$max-zoom" object="$fit-options"/>
-            <ixsl:set-property name="padding" select="$padding" object="$fit-options"/>
+            <xsl:variable name="fit-options" as="map(xs:string, item())">
+                <xsl:map>
+                    <xsl:map-entry key="'maxZoom'" select="$max-zoom"/>
+                    <xsl:map-entry key="'padding'" select="array{ $padding }"/>
+                </xsl:map>
+            </xsl:variable>
+            <xsl:variable name="fit-options-obj" select="ixsl:call(ixsl:window(), 'JSON.parse', [ $options => serialize(map{ 'method': 'json' }) ])"/>
 
-            <xsl:sequence select="ixsl:call(ixsl:call($map, 'getView', []), 'fit', [ $extent, $fit-options ])"/>
+            <xsl:sequence select="ixsl:call(ixsl:call($map, 'getView', []), 'fit', [ $extent, $fit-options-obj ])"/>
         </xsl:if>
 
         <ixsl:set-property name="map" select="$map" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri)"/>
