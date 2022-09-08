@@ -165,6 +165,11 @@ exclude-result-prefixes="#all"
         <xsl:variable name="min-lng" select="min($lngs)" as="xs:float?"/>
         <xsl:variable name="avg-lat" select="avg($lats)" as="xs:float?"/>
         <xsl:variable name="avg-lng" select="avg($lngs)" as="xs:float?"/>
+        <xsl:message>
+            $initial-load: <xsl:value-of select="$initial-load"/>
+            $lats: <xsl:value-of select="$lats"/> $lngs: <xsl:value-of select="$lngs"/>
+            $max-lat: <xsl:value-of select="$max-lat"/> $max-lng: <xsl:value-of select="$max-lng"/> $avg-lat: <xsl:value-of select="$avg-lat"/> $avg-lng: <xsl:value-of select="$avg-lng"/>
+        </xsl:message>
         <!-- reuse center and zoom if map object already exists, otherwise set defaults -->
         <xsl:variable name="center-lat" select="if (not($initial-load)) then xs:float(ixsl:call(ixsl:get(ixsl:window(), 'ol.proj'), 'toLonLat', [ ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri), 'map'), 'getView', []), 'getCenter', []) ])[2]) else (if (exists($avg-lat)) then $avg-lat else 0)" as="xs:float"/>
         <xsl:variable name="center-lng" select="if (not($initial-load)) then xs:float(ixsl:call(ixsl:get(ixsl:window(), 'ol.proj'), 'toLonLat', [ ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri), 'map'), 'getView', []), 'getCenter', []) ])[1]) else (if (exists($avg-lng)) then $avg-lng else 0)" as="xs:float"/>
