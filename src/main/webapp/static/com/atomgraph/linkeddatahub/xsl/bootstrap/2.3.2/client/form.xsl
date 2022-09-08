@@ -145,20 +145,13 @@ exclude-result-prefixes="#all"
     
     <xsl:template match="text()" mode="ldh:FormPreSubmit"/>
     
-    <!-- trim whitespace in bnode/URI values -->
+    <!-- trim whitespace in bnode/URI values. TO-DO: has no effect, refactor using the formdata event: https://developer.mozilla.org/en-US/docs/Web/API/HTMLFormElement/formdata_event --> -->
     <xsl:template match="input[@name = ('ob', 'ou')][ixsl:get(., 'value')]" mode="ldh:FormPreSubmit" priority="1">
-        <xsl:message>AAAA</xsl:message>
         <ixsl:set-attribute name="value" select="normalize-space(ixsl:get(., 'value'))"/>
     </xsl:template>
     
-    <xsl:template match="input[@name = ('ob', 'ou')]" mode="ldh:FormPreSubmit" priority="0.5">
-        <xsl:message>BBBB</xsl:message>
-        <ixsl:set-attribute name="value" select="normalize-space(ixsl:get(., 'value'))"/>
-    </xsl:template>
-    
-    <!-- remove names of RDF/POST inputs with empty values -->
+    <!-- remove names of RDF/POST inputs with empty values. TO-DO: has no effect, refactor using the formdata event: https://developer.mozilla.org/en-US/docs/Web/API/HTMLFormElement/formdata_event -->
     <xsl:template match="input[@name = ('ob', 'ou', 'ol')][not(ixsl:get(., 'value'))]" mode="ldh:FormPreSubmit" priority="2">
-        <xsl:message>CCC</xsl:message>
         <ixsl:remove-attribute name="name"/>
     </xsl:template>
     
