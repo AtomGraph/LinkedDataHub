@@ -145,7 +145,7 @@ exclude-result-prefixes="#all"
     
     <xsl:template match="text()" mode="ldh:FormPreSubmit"/>
     
-    <!-- trim whitespace in bnode/URI values. TO-DO: has no effect, refactor using the formdata event: https://developer.mozilla.org/en-US/docs/Web/API/HTMLFormElement/formdata_event --> -->
+    <!-- trim whitespace in bnode/URI values. TO-DO: has no effect, refactor using the formdata event: https://developer.mozilla.org/en-US/docs/Web/API/HTMLFormElement/formdata_event -->
     <xsl:template match="input[@name = ('ob', 'ou')][ixsl:get(., 'value')]" mode="ldh:FormPreSubmit" priority="1">
         <ixsl:set-attribute name="value" select="normalize-space(ixsl:get(., 'value'))"/>
     </xsl:template>
