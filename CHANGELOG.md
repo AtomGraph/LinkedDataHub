@@ -1,3 +1,10 @@
+## [3.2.9] - 2022-09-08
+### Added
+- Map view is fit to the extent of loaded features
+
+### Changed
+- Fixed blank node resources rendered as empty elements in `bs2:Row` mode
+
 ## [3.2.8] - 2022-09-07
 ### Changed
 - Fixed calculation of center coordinates correctly for all map usages
