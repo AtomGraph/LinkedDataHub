@@ -147,7 +147,7 @@ exclude-result-prefixes="#all"
     
     <!-- trim whitespace in bnode/URI values -->
     <xsl:template match="input[@name = ('ob', 'ou')][ixsl:get(., 'value')]" mode="ldh:FormPreSubmit" priority="1">
-        <ixsl:set-attribute name="value" select="normalize-space(ixsl:get(., 'value'))"/>
+        <ixsl:set-property name="value" select="normalize-space(ixsl:get(., 'value'))"/>
     </xsl:template>
     
     <!-- remove names of RDF/POST inputs with empty values -->
