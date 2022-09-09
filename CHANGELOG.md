@@ -1,3 +1,7 @@
+## [3.2.10] - 2022-09-09
+### Changed
+- Web-Client upgrade fixes the RDF/XML to DataTable converter
+
 ## [3.2.9] - 2022-09-08
 ### Added
 - Map view is fit to the extent of loaded features
