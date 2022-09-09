@@ -379,7 +379,6 @@ exclude-result-prefixes="#all"
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
                 <xsl:call-template name="onAddConstructor">
                     <xsl:with-param name="control-group" select="$control-group"/>
-                    <xsl:with-param name="forClass" select="$forClass"/>
                 </xsl:call-template>
             </ixsl:schedule-action>
         </xsl:variable>
@@ -1013,7 +1012,6 @@ exclude-result-prefixes="#all"
     <xsl:template name="onAddConstructor">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="control-group" as="element()"/>
-        <xsl:param name="forClass" as="xs:anyURI"/>
 
         <xsl:choose>
             <xsl:when test="?status = 200 and starts-with(?media-type, 'application/xhtml+xml')">
@@ -1032,20 +1030,16 @@ exclude-result-prefixes="#all"
                             <xsl:copy-of select="$new-fieldset/div[contains-token(@class, 'control-group')]"/>
                         </xsl:result-document>
 
-                        <!-- replace the "Edit constructor(s)" buttons if $forClass is owl:NamedIndividual, append otherwise -->
                         <xsl:for-each select=".//ul[li/button[contains-token(@class, 'btn-edit-constructors')]]">
-                            <xsl:choose>
-                                <xsl:when test="$forClass = '&owl;NamedIndividual'">
-                                    <xsl:result-document href="?." method="ixsl:replace-content">
-                                        <xsl:copy-of select="$new-fieldset//ul/li[button[contains-token(@class, 'btn-edit-constructors')]]"/>
-                                    </xsl:result-document>
-                                </xsl:when>
-                                <xsl:otherwise>
-                                    <xsl:result-document href="?." method="ixsl:append-content">
-                                        <xsl:copy-of select="$new-fieldset//ul/li[button[contains-token(@class, 'btn-edit-constructors')]]"/>
-                                    </xsl:result-document>
-                                </xsl:otherwise>
-                            </xsl:choose>
+                            <!-- remove the list item for owl:NamedIndividual -->
+                            <xsl:for-each select="li[button[contains-token(@class, 'btn-edit-constructors')][ixsl:get(., 'dataset.resourceType') = '&owl;NamedIndividual']]">
+                                <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
+                            </xsl:for-each>
+                    
+                            <!-- append new "Edit constructor(s)" buttons -->
+                            <xsl:result-document href="?." method="ixsl:append-content">
+                                <xsl:copy-of select="$new-fieldset//ul/li[button[contains-token(@class, 'btn-edit-constructors')]]"/>
+                            </xsl:result-document>
                         </xsl:for-each>
                     </xsl:for-each>
                     
