@@ -245,9 +245,11 @@ PREFIX  sp:   <http://spinrdf.org/sp#>
 PREFIX  spin: <http://spinrdf.org/spin#>
 
 CONSTRUCT 
-  { 
+  {
+    ?class rdfs:isDefinedBy ?ontology .
     ?class spin:constructor ?constructor .
     ?constructor a ldh:Constructor .
+    ?constructor rdfs:isDefinedBy ?ontology .
     ?constructor rdfs:label ?constructorLabel .
     ?constructor sp:text ?constructorString .
   }
@@ -276,6 +278,10 @@ WHERE
       { ?class  rdfs:label  ?classLabel
         FILTER langMatches(lang(?classLabel), "en")
         BIND(concat(?classLabel, " constructor") AS ?constructorLabel)
+      }
+    OPTIONAL
+      {
+        ?ontology  a  owl:Ontology
       }
     BIND(bnode() AS ?constructor)
   }
