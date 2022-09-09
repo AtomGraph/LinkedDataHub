@@ -7,6 +7,7 @@
     <!ENTITY rdf        "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
     <!ENTITY rdfs       "http://www.w3.org/2000/01/rdf-schema#">
     <!ENTITY xsd        "http://www.w3.org/2001/XMLSchema#">
+    <!ENTITY owl        "http://www.w3.org/2002/07/owl#">
     <!ENTITY ldt        "https://www.w3.org/ns/ldt#">
     <!ENTITY dh         "https://www.w3.org/ns/ldt/document-hierarchy#">
     <!ENTITY sd         "http://www.w3.org/ns/sparql-service-description#">
@@ -378,6 +379,7 @@ exclude-result-prefixes="#all"
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
                 <xsl:call-template name="onAddConstructor">
                     <xsl:with-param name="control-group" select="$control-group"/>
+                    <xsl:with-param name="forClass" select="$forClass"/>
                 </xsl:call-template>
             </ixsl:schedule-action>
         </xsl:variable>
@@ -1011,7 +1013,8 @@ exclude-result-prefixes="#all"
     <xsl:template name="onAddConstructor">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="control-group" as="element()"/>
-        
+        <xsl:param name="forClass" as="xs:anyURI"/>
+
         <xsl:choose>
             <xsl:when test="?status = 200 and starts-with(?media-type, 'application/xhtml+xml')">
                 <xsl:for-each select="?body">
@@ -1029,11 +1032,20 @@ exclude-result-prefixes="#all"
                             <xsl:copy-of select="$new-fieldset/div[contains-token(@class, 'control-group')]"/>
                         </xsl:result-document>
 
-                        <!-- update the "Edit constructor(s)" buttons -->
+                        <!-- replace the "Edit constructor(s)" buttons if $forClass is owl:NamedIndividual, append otherwise -->
                         <xsl:for-each select=".//ul[li/button[contains-token(@class, 'btn-edit-constructors')]]">
-                            <xsl:result-document href="?." method="ixsl:replace-content">
-                                <xsl:copy-of select="$new-fieldset//ul/li[button[contains-token(@class, 'btn-edit-constructors')]]"/>
-                            </xsl:result-document>
+                            <xsl:choose>
+                                <xsl:when test="$forClass = '&owl;NamedIndividual'">
+                                    <xsl:result-document href="?." method="ixsl:replace-content">
+                                        <xsl:copy-of select="$new-fieldset//ul/li[button[contains-token(@class, 'btn-edit-constructors')]]"/>
+                                    </xsl:result-document>
+                                </xsl:when>
+                                <xsl:otherwise>
+                                    <xsl:result-document href="?." method="ixsl:append-content">
+                                        <xsl:copy-of select="$new-fieldset//ul/li[button[contains-token(@class, 'btn-edit-constructors')]]"/>
+                                    </xsl:result-document>
+                                </xsl:otherwise>
+                            </xsl:choose>
                         </xsl:for-each>
                     </xsl:for-each>
                     
