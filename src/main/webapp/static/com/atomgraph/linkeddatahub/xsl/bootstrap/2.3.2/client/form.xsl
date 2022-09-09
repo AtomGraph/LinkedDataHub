@@ -1028,6 +1028,13 @@ exclude-result-prefixes="#all"
                             <!-- hydrate with properties, filter out property controls -->
                             <xsl:copy-of select="$new-fieldset/div[contains-token(@class, 'control-group')]"/>
                         </xsl:result-document>
+                        
+                        <!-- update the "Edit constructor(s)" buttons -->
+                        <xsl:for-each select=".//ul[li/button[contains-token(@class, 'btn-edit-constructors')]]">
+                            <xsl:result-document href="?." method="ixsl:replace-content">
+                                <li>TEST</li>
+                            </xsl:result-document>
+                        </xsl:for-each>
                     </xsl:for-each>
                     
                     <!-- remove the following property controls -->
