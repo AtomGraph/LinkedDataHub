@@ -1,3 +1,8 @@
+## [3.2.11] - 2022-09-10
+### Changed
+- Fixed the `[Actions]` button in edit mode to update the constructor list when new types are added to the edited instance
+- The ontology import query now adds explicit `rdfs:isDefinedBy` triples that connect classes to the ontology
+
 ## [3.2.10] - 2022-09-09
 ### Changed
 - Web-Client upgrade fixes the RDF/XML to DataTable converter
