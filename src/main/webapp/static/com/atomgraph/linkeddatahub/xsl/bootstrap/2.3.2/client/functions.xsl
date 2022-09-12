@@ -170,6 +170,8 @@ exclude-result-prefixes="#all"
             </xsl:value-of>
         </xsl:variable>
         
+        <xsl:message>$json: <xsl:value-of select="$json"/></xsl:message>
+        
         <xsl:variable name="js-statement" as="element()">
             <root statement="new google.visualization.DataTable(JSON.parse(String.raw`{$json}`))"/>
         </xsl:variable>
