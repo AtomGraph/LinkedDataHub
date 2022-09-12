@@ -156,14 +156,14 @@ exclude-result-prefixes="#all"
                 <xsl:choose>
                     <xsl:when test="$category">
                         <xsl:apply-templates select="$results" mode="ac:DataTable">
-                            <xsl:with-param name="property-uris" select="xs:anyURI($category), for $i in $series return xs:anyURI($i)" tunnel="yes"/>
+                            <xsl:with-param name="properties" select="xs:anyURI($category), for $i in $series return xs:anyURI($i)" tunnel="yes"/>
                         </xsl:apply-templates>
                     </xsl:when>
                     <xsl:otherwise>
                         <!-- if no $category specified, show resource URI/ID as category -->
                         <xsl:apply-templates select="$results" mode="ac:DataTable">
                             <xsl:with-param name="resource-ids" select="true()" tunnel="yes"/>
-                            <xsl:with-param name="property-uris" select="xs:anyURI($category), for $i in $series return xs:anyURI($i)" tunnel="yes"/>
+                            <xsl:with-param name="properties" select="xs:anyURI($category), for $i in $series return xs:anyURI($i)" tunnel="yes"/>
                         </xsl:apply-templates>
                     </xsl:otherwise>
                 </xsl:choose>
