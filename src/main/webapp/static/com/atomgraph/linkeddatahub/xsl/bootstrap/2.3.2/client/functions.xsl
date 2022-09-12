@@ -133,18 +133,18 @@ exclude-result-prefixes="#all"
 
     <!-- format URLs in DataTable as HTML links. !!! Saxon-JS cannot intercept Google Charts events, therefore set a full proxied URL !!! -->
     <xsl:template match="@rdf:about[starts-with(., 'http://')] | @rdf:about[starts-with(., 'https://')] | @rdf:resource[starts-with(., 'http://')] | @rdf:resource[starts-with(., 'https://')] | srx:uri[starts-with(., 'http://')] | srx:uri[starts-with(., 'https://')]" mode="ac:DataTable">
-        "&lt;a href=\"<xsl:value-of select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), map{}, xs:anyURI(.))"/>\"&gt;<xsl:value-of select="."/>&lt;/a&gt;"
+        <json:string key="v">&lt;a href="<xsl:value-of select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), map{}, xs:anyURI(.))"/>"&gt;<xsl:value-of select="."/>&lt;/a&gt;</json:string>
     </xsl:template>
 
     <!-- in addition to JSON escaping, escape < > in literals so they don't get interpreted as HTML tags -->
-    <xsl:template match="srx:literal[@datatype = '&xsd;string' or not(@datatype)]" mode="ac:DataTable">
+<!--    <xsl:template match="srx:literal[@datatype = '&xsd;string' or not(@datatype)]" mode="ac:DataTable">
         "<xsl:value-of select="replace(replace(replace(replace(replace(replace(replace(replace(., '\\', '\\\\'), '&quot;', '\\&quot;'), '/', '\\/'), '&#xA;', '\\n'), '&#xD;', '\\r'), '&#x9;', '\\t'), '&lt;', '&amp;lt;'), '&gt;', '&amp;gt;')"/>"
-    </xsl:template>
+    </xsl:template>-->
 
     <!-- in addition to JSON escaping, escape < > in literals so they don't get interpreted as HTML tags -->
-    <xsl:template match="rdf:Description/*/text()[../@rdf:datatype = '&xsd;string' or not(../@rdf:datatype)]" mode="ac:DataTable">
+<!--    <xsl:template match="rdf:Description/*/text()[../@rdf:datatype = '&xsd;string' or not(../@rdf:datatype)]" mode="ac:DataTable">
         "<xsl:value-of select="replace(replace(replace(replace(replace(replace(replace(replace(., '\\', '\\\\'), '&quot;', '\\&quot;'), '/', '\\/'), '&#xA;', '\\n'), '&#xD;', '\\r'), '&#x9;', '\\t'), '&lt;', '&amp;lt;'), '&gt;', '&amp;gt;')"/>"
-    </xsl:template>
+    </xsl:template>-->
     
     <xsl:function name="ac:rdf-data-table">
         <xsl:param name="results" as="document-node()"/>
