@@ -1,3 +1,10 @@
+## [3.2.12] - 2022-09-13
+### Added
+- Moved RDFXML2DataTable.xsl and SPARQLXMLResults2DataTable.xsl converters from Web-Client
+
+### Changed
+- Refactored RDFXML2DataTable.xsl and SPARQLXMLResults2DataTable.xsl using XSLT 3.0 JSON/XML instructions and fixed support for repeating columns
+
 ## [3.2.11] - 2022-09-10
 ### Changed
 - Fixed the `[Actions]` button in edit mode to update the constructor list when new types are added to the edited instance

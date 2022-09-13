@@ -36,7 +36,6 @@ exclude-result-prefixes="#all">
     <xsl:strip-space elements="*"/>
 
     <xsl:key name="binding-by-name" match="srx:binding" use="@name"/> 
-    <xsl:variable name="numeric-variables" select="srx:variable[count(key('binding-by-name', @name)) = count(key('binding-by-name', @name)[string(number(srx:literal)) != 'NaN'])]"/> 
 
     <!-- 
     https://developers.google.com/chart/interactive/docs/reference#dataparam
