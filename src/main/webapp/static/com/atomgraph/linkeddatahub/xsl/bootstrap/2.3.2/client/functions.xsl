@@ -136,15 +136,10 @@ exclude-result-prefixes="#all"
         <json:string key="v">&lt;a href="<xsl:value-of select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), map{}, xs:anyURI(.))"/>"&gt;<xsl:value-of select="."/>&lt;/a&gt;</json:string>
     </xsl:template>
 
-    <!-- in addition to JSON escaping, escape < > in literals so they don't get interpreted as HTML tags -->
-<!--    <xsl:template match="srx:literal[@datatype = '&xsd;string' or not(@datatype)]" mode="ac:DataTable">
-        "<xsl:value-of select="replace(replace(replace(replace(replace(replace(replace(replace(., '\\', '\\\\'), '&quot;', '\\&quot;'), '/', '\\/'), '&#xA;', '\\n'), '&#xD;', '\\r'), '&#x9;', '\\t'), '&lt;', '&amp;lt;'), '&gt;', '&amp;gt;')"/>"
-    </xsl:template>-->
-
-    <!-- in addition to JSON escaping, escape < > in literals so they don't get interpreted as HTML tags -->
-<!--    <xsl:template match="rdf:Description/*/text()[../@rdf:datatype = '&xsd;string' or not(../@rdf:datatype)]" mode="ac:DataTable">
-        "<xsl:value-of select="replace(replace(replace(replace(replace(replace(replace(replace(., '\\', '\\\\'), '&quot;', '\\&quot;'), '/', '\\/'), '&#xA;', '\\n'), '&#xD;', '\\r'), '&#x9;', '\\t'), '&lt;', '&amp;lt;'), '&gt;', '&amp;gt;')"/>"
-    </xsl:template>-->
+    <!-- escape < > in literals so they don't get interpreted as HTML tags -->
+    <xsl:template match="rdf:Description/*/text()[../@rdf:datatype = '&xsd;string' or not(../@rdf:datatype)] | srx:literal[@datatype = '&xsd;string' or not(@datatype)] " mode="ac:DataTable">
+        <json:string key="v"><xsl:value-of select="replace(replace(., '&lt;', '&amp;lt;'), '&gt;', '&amp;gt;')"/></json:string>
+    </xsl:template>
     
     <xsl:function name="ac:rdf-data-table">
         <xsl:param name="results" as="document-node()"/>
@@ -169,8 +164,6 @@ exclude-result-prefixes="#all"
                 </xsl:choose>
             </xsl:value-of>
         </xsl:variable>
-        
-        <xsl:message>$json: <xsl:value-of select="$json"/></xsl:message>
         
         <xsl:variable name="js-statement" as="element()">
             <root statement="new google.visualization.DataTable(JSON.parse(String.raw`{$json}`))"/>
