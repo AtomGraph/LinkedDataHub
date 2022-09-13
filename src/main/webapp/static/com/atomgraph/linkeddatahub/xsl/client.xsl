@@ -68,8 +68,6 @@ extension-element-prefixes="ixsl"
 
     <xsl:import href="bootstrap/2.3.2/imports/xml-to-string.xsl"/>
     <xsl:import href="../../../../com/atomgraph/client/xsl/group-sort-triples.xsl"/>
-    <xsl:import href="../../../../com/atomgraph/client/xsl/converters/RDFXML2DataTable.xsl"/>
-    <xsl:import href="../../../../com/atomgraph/client/xsl/converters/SPARQLXMLResults2DataTable.xsl"/>
     <xsl:import href="../../../../com/atomgraph/client/xsl/converters/RDFXML2SVG.xsl"/>
     <xsl:import href="../../../../com/atomgraph/client/xsl/functions.xsl"/>
     <xsl:import href="../../../../com/atomgraph/client/xsl/imports/default.xsl"/>
@@ -80,6 +78,8 @@ extension-element-prefixes="ixsl"
     <xsl:import href="bootstrap/2.3.2/imports/ac.xsl"/>
     <xsl:import href="bootstrap/2.3.2/resource.xsl"/>
     <xsl:import href="bootstrap/2.3.2/document.xsl"/>
+    <xsl:import href="converters/RDFXML2DataTable.xsl"/>
+    <xsl:import href="converters/SPARQLXMLResults2DataTable.xsl"/>
     <xsl:import href="converters/RDFXML2GeoJSON.xsl"/>
     <xsl:import href="query-transforms.xsl"/>
     <xsl:import href="typeahead.xsl"/>
