@@ -357,7 +357,7 @@ extension-element-prefixes="ixsl"
     </xsl:template>
 
     <!-- append OPTIONAL pattern with ?label property paths inside the BGP with object var name -->
-    <xsl:template match="json:map[json:string[@key = 'type'] = 'bgp']" mode="ldh:bgp-value-counts" priority="1">
+    <xsl:template match="json:map[json:string[@key = 'type'] = 'bgp']/.." mode="ldh:bgp-value-counts" priority="1">
         <xsl:param name="bgp-triples-map" as="element()" tunnel="yes"/>
         <xsl:param name="object-var-name" as="xs:string" tunnel="yes"/>
         <xsl:param name="label-var-name" as="xs:string" tunnel="yes"/>
@@ -366,7 +366,7 @@ extension-element-prefixes="ixsl"
         <xsl:copy>
             <xsl:apply-templates select="@* | node()" mode="#current"/>
 
-            <xsl:if test="json:array[@key = 'triples']/json:map/json:string[@key = 'object'] = '?' || $object-var-name">
+            <xsl:if test="json:map[json:string[@key = 'type'] = 'bgp']/json:array[@key = 'triples']/json:map/json:string[@key = 'object'] = '?' || $object-var-name">
                 <json:map>
                     <json:string key="type">optional</json:string>
                     <json:array key="patterns">
