@@ -830,19 +830,6 @@ exclude-result-prefixes="#all"
             <xsl:with-param name="spring-length" select="100" tunnel="yes"/>
         </xsl:apply-templates>
     </xsl:template>
-
-    <!-- map -->
-
-<!--    <xsl:template match="rdf:RDF" mode="bs2:Map">
-        <xsl:param name="canvas-id" as="xs:string"/>
-        <xsl:param name="class" select="'map-canvas'" as="xs:string?"/>
-
-        <div id="{$canvas-id}">
-            <xsl:if test="$class">
-                <xsl:attribute name="class" select="$class"/>
-            </xsl:if>
-        </div>
-    </xsl:template>-->
     
     <!-- parallax -->
     
