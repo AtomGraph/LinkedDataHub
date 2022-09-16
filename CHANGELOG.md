@@ -1,3 +1,7 @@
+## [3.2.13] - 2022-09-16
+### Changed
+- Fixed query builder behind faceted search to generate a correct query that loads facet values
+
 ## [3.2.12] - 2022-09-13
 ### Added
 - Moved RDFXML2DataTable.xsl and SPARQLXMLResults2DataTable.xsl converters from Web-Client
