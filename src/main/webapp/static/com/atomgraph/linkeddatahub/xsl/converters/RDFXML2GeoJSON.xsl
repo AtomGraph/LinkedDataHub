@@ -3,6 +3,7 @@
         <!ENTITY ldh        "https://w3id.org/atomgraph/linkeddatahub#">
         <!ENTITY rdf        "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
         <!ENTITY geo        "http://www.w3.org/2003/01/geo/wgs84_pos#">
+        <!ENTITY gs         "http://www.opengis.net/ont/geosparql#">
 ]>
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 version="3.0"
@@ -30,6 +31,34 @@ exclude-result-prefixes="#all"
         </json:map>
     </xsl:template>
 
+    <xsl:template match="rdf:Description[gs:asWKT[starts-with(text(), 'POINT Z']]" mode="ldh:GeoJSON">
+        <xsl:variable name="coords" select="tokenize(translate(translate(normalize-space(substring-after(gs:asWKT/text(), 'POINT Z')), '(', ''), ')'), ' ')" as="xs:string*"/>
+        <xsl:variable name="lng" select="xs:float($coords[1])" as="xs:float"/>
+        <xsl:variable name="lat" select="xs:float($coords[2])" as="xs:float"/>
+        
+        <json:map>
+            <json:string key="type">Feature</json:string>
+            <json:string key="id"><xsl:value-of select="(@rdf:about, @rdf:nodeID)[1]"/></json:string>
+
+            <json:map key="geometry">
+                <json:string key="type">Point</json:string>
+
+                <json:array key="coordinates">
+                    <json:number><xsl:value-of select="$lng"/></json:number>
+                    <json:number><xsl:value-of select="$lat"/></json:number>
+                </json:array>
+            </json:map>
+            
+            <json:map key="properties">
+                <xsl:apply-templates select="." mode="ldh:GeoJSONProperties"/>
+            </json:map>
+        </json:map>
+    </xsl:template>
+
+<!--    <xsl:template match="rdf:Description[gs:asWKT[starts-with(text(), 'MULTIPOLYGON']]" mode="ldh:GeoJSON">
+
+    </xsl:template>-->
+    
     <xsl:template match="rdf:Description[geo:lat][geo:long]" mode="ldh:GeoJSON">
         <json:map>
             <json:string key="type">Feature</json:string>
