@@ -12,6 +12,7 @@ xmlns:json="http://www.w3.org/2005/xpath-functions"
 xmlns:ldh="&ldh;"
 xmlns:rdf="&rdf;"
 xmlns:geo="&geo;"
+xmlns:gs="&gs;"
 exclude-result-prefixes="#all"
 >
 
