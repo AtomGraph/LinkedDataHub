@@ -33,7 +33,7 @@ exclude-result-prefixes="#all"
     </xsl:template>
 
     <xsl:template match="rdf:Description[gs:asWKT[starts-with(text(), 'POINT Z')]]" mode="ldh:GeoJSON">
-        <xsl:variable name="coords" select="tokenize(translate(translate(normalize-space(substring-after(gs:asWKT/text(), 'POINT Z')), '(', ''), ')'), ' ')" as="xs:string*"/>
+        <xsl:variable name="coords" select="tokenize(translate(translate(normalize-space(substring-after(gs:asWKT/text(), 'POINT Z')), '(', ''), ')', ''), ' ')" as="xs:string*"/>
         <xsl:variable name="lng" select="xs:float($coords[1])" as="xs:float"/>
         <xsl:variable name="lat" select="xs:float($coords[2])" as="xs:float"/>
         
