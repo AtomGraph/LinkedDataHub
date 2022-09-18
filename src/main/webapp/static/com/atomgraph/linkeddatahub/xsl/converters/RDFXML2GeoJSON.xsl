@@ -16,10 +16,16 @@ xmlns:gs="&gs;"
 exclude-result-prefixes="#all"
 >
 
-    <xsl:mode name="ldh:GeoJSON" on-no-match="deep-skip"/>
+    <xsl:output indent="no" omit-xml-declaration="yes" method="text" encoding="UTF-8" media-type="application/json"/>
 
-    <xsl:template match="/">
-        <xsl:apply-templates mode="ldh:GeoJSON"/>
+    <xsl:mode name="ldh:GeoJSON" on-no-match="deep-skip"/>
+    <xsl:mode name="ldh:GeoJSONProperties" on-no-match="deep-skip"/>
+
+    <xsl:template match="/" mode="ldh:GeoJSON">
+        <xsl:variable name="json-xml" as="element()">
+            <xsl:apply-templates mode="#current"/>
+        </xsl:variable>
+        <xsl:sequence select="xml-to-json($json-xml)"/>
     </xsl:template>
     
     <xsl:template match="rdf:RDF" mode="ldh:GeoJSON">
@@ -34,7 +40,7 @@ exclude-result-prefixes="#all"
 
     <xsl:template match="rdf:Description[gs:asWKT[starts-with(text(), 'POINT Z')]]" mode="ldh:GeoJSON">
         <xsl:variable name="coord-string" select="normalize-space(substring-after(gs:asWKT/text(), 'POINT Z'))" as="xs:string"/>
-        <xsl:variable name="coords" select="tokenize(substring($coord-string, 2, string-length($coord-string) - 1), ' ')" as="xs:string*"/>
+        <xsl:variable name="coords" select="for $coord in tokenize(substring($coord-string, 2, string-length($coord-string) - 1), ' ') return normalize-space($coord)" as="xs:string*"/>
         <xsl:variable name="lng" select="xs:float($coords[1])" as="xs:float"/>
         <xsl:variable name="lat" select="xs:float($coords[2])" as="xs:float"/>
         
