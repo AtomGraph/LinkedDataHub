@@ -284,7 +284,7 @@ JSON.stringify($wkt-features): <xsl:value-of select="ixsl:call(ixsl:get(ixsl:win
         <xsl:variable name="source" select="ldh:new('ol.source.Vector', [ $source-options ])"/>
         <!--<ixsl:set-property name="loader" select="$loader-function" object="$source-options"/>-->
         <xsl:sequence select="ixsl:call($source, 'addFeatures', [ $geo-json-features ])[current-date() lt xs:date('2000-01-01')]"/>
-        <xsl:sequence select="ixsl:call($source, 'addFeatures', [ $wkt-features ])[current-date() lt xs:date('2000-01-01')]"/>
+        <!--<xsl:sequence select="ixsl:call($source, 'addFeatures', [ $wkt-features ])[current-date() lt xs:date('2000-01-01')]"/>-->
         
         <xsl:variable name="layer-options" select="ldh:new-object()"/>
         <ixsl:set-property name="declutter" select="true()" object="$layer-options"/>
