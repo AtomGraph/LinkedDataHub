@@ -233,7 +233,7 @@ exclude-result-prefixes="#all"
 
         <!-- read WKT features from gs:asWKT properties -->
         <xsl:variable name="wkt-options" select="ldh:new-object()"/>
-        <!--<ixsl:set-property name="dataProjection" select="'EPSG:4326'" object="$wkt-options"/>-->
+        <ixsl:set-property name="dataProjection" select="'EPSG:4326'" object="$wkt-options"/>
         <ixsl:set-property name="featureProjection" select="'EPSG:3857'" object="$wkt-options"/>
         <xsl:variable name="wkt-features" select="array{ if (exists(//gs:asWKT[1][@rdf:datatype = '&gs;wktLiteral']/text())) then ixsl:call(ldh:new('ol.format.WKT', [ $wkt-options ]), 'readFeatures', [ string(//gs:asWKT[1][@rdf:datatype = '&gs;wktLiteral']/text()) ]) else () }"/>
 <xsl:message>
@@ -281,20 +281,26 @@ JSON.stringify($wkt-features): <xsl:value-of select="ixsl:call(ixsl:get(ixsl:win
 
         <xsl:variable name="source-options" select="ldh:new-object()"/>
         <!--<ixsl:set-property name="features" select="$geo-json-features" object="$source-options"/>-->
-        <xsl:variable name="source" select="ldh:new('ol.source.Vector', [ $source-options ])"/>
+        <xsl:variable name="geo-json-source" select="ldh:new('ol.source.Vector', [ $source-options ])"/>
+        <xsl:variable name="wkt-source" select="ldh:new('ol.source.Vector', [ $source-options ])"/>
         <!--<ixsl:set-property name="loader" select="$loader-function" object="$source-options"/>-->
-        <xsl:sequence select="ixsl:call($source, 'addFeatures', [ $geo-json-features ])[current-date() lt xs:date('2000-01-01')]"/>
-        <xsl:if test="//gs:asWKT[1][@rdf:datatype = '&gs;wktLiteral']/text()">
-            <xsl:sequence select="ixsl:call($source, 'addFeatures', [ $wkt-features ])[current-date() lt xs:date('2000-01-01')]"/>
-        </xsl:if>
+        <xsl:sequence select="ixsl:call($geo-json-source, 'addFeatures', [ $geo-json-features ])[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:sequence select="ixsl:call($wkt-source, 'addFeatures', [ $wkt-features ])[current-date() lt xs:date('2000-01-01')]"/>
 
-        <xsl:variable name="layer-options" select="ldh:new-object()"/>
+        <xsl:variable name="geo-json-layer-options" select="ldh:new-object()"/>
         <ixsl:set-property name="declutter" select="true()" object="$layer-options"/>
-        <ixsl:set-property name="source" select="$source" object="$layer-options"/>
+        <ixsl:set-property name="source" select="$geo-json-source" object="$layer-options"/>
         <ixsl:set-property name="style" select="$js-function" object="$layer-options"/>
-        <xsl:variable name="layer" select="ldh:new('ol.layer.Vector', [ $layer-options ])"/>
+        <xsl:variable name="geo-json-layer" select="ldh:new('ol.layer.Vector', [ $geo-json-options ])"/>
 
-        <xsl:sequence select="ixsl:call($map, 'addLayer', [ $layer ])[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:variable name="wkt-layer-options" select="ldh:new-object()"/>
+        <ixsl:set-property name="declutter" select="true()" object="$layer-options"/>
+        <ixsl:set-property name="source" select="$wkt-source" object="$layer-options"/>
+        <ixsl:set-property name="style" select="$js-function" object="$layer-options"/>
+        <xsl:variable name="wkt-layer" select="ldh:new('ol.layer.Vector', [ $wkt-options ])"/>
+
+        <xsl:sequence select="ixsl:call($map, 'addLayer', [ $geo-json-layer ])[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:sequence select="ixsl:call($map, 'addLayer', [ $wkt-layer ])[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
     
     <!-- CALLBACKS -->
