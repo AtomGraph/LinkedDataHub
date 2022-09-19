@@ -235,7 +235,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="wkt-options" select="ldh:new-object()"/>
         <!--<ixsl:set-property name="dataProjection" select="'EPSG:4326'" object="$wkt-options"/>-->
         <ixsl:set-property name="featureProjection" select="'EPSG:3857'" object="$wkt-options"/>
-        <xsl:variable name="wkt-features" select="array{ ixsl:call(ldh:new('ol.format.WKT', [ $wkt-options ]), 'readFeatures', [ string(//gs:asWKT[1][@rdf:datatype = '&gs;wktLiteral']/text()) ]) }"/>
+        <xsl:variable name="wkt-features" select="array{ if (exists(//gs:asWKT[1][@rdf:datatype = '&gs;wktLiteral']/text())) then ixsl:call(ldh:new('ol.format.WKT', [ $wkt-options ]), 'readFeatures', [ string(//gs:asWKT[1][@rdf:datatype = '&gs;wktLiteral']/text()) else () ]) }"/>
 <xsl:message>
 <xsl:value-of select="ixsl:call(ixsl:get(ixsl:window(), 'Array'), 'isArray', [ $wkt-features ])"/>
 count(//gs:asWKT[@rdf:datatype = '&gs;wktLiteral']/text()): <xsl:value-of select="count(//gs:asWKT[@rdf:datatype = '&gs;wktLiteral']/text())"/>
@@ -284,7 +284,9 @@ JSON.stringify($wkt-features): <xsl:value-of select="ixsl:call(ixsl:get(ixsl:win
         <xsl:variable name="source" select="ldh:new('ol.source.Vector', [ $source-options ])"/>
         <!--<ixsl:set-property name="loader" select="$loader-function" object="$source-options"/>-->
         <xsl:sequence select="ixsl:call($source, 'addFeatures', [ $geo-json-features ])[current-date() lt xs:date('2000-01-01')]"/>
-        <xsl:sequence select="ixsl:call($source, 'addFeatures', [ $wkt-features ])[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:if test="//gs:asWKT[1][@rdf:datatype = '&gs;wktLiteral']/text()">
+            <xsl:sequence select="ixsl:call($source, 'addFeatures', [ $wkt-features ])[current-date() lt xs:date('2000-01-01')]"/>
+        </xsl:if>
 
         <xsl:variable name="layer-options" select="ldh:new-object()"/>
         <ixsl:set-property name="declutter" select="true()" object="$layer-options"/>
