@@ -291,13 +291,13 @@ JSON.stringify($wkt-features): <xsl:value-of select="ixsl:call(ixsl:get(ixsl:win
         <ixsl:set-property name="declutter" select="true()" object="$geo-json-layer-options"/>
         <ixsl:set-property name="source" select="$geo-json-source" object="$geo-json-layer-options"/>
         <ixsl:set-property name="style" select="$js-function" object="$geo-json-layer-options"/>
-        <xsl:variable name="geo-json-layer" select="ldh:new('ol.layer.Vector', [ $geo-json-options ])"/>
+        <xsl:variable name="geo-json-layer" select="ldh:new('ol.layer.Vector', [ $geo-json-layer-options ])"/>
 
         <xsl:variable name="wkt-layer-options" select="ldh:new-object()"/>
         <!--<ixsl:set-property name="declutter" select="true()" object="$wkt-layer-options"/>-->
         <ixsl:set-property name="source" select="$wkt-source" object="$wkt-layer-options"/>
         <!--<ixsl:set-property name="style" select="$js-function" object="$wkt-layer-options"/>-->
-        <xsl:variable name="wkt-layer" select="ldh:new('ol.layer.Vector', [ $wkt-options ])"/>
+        <xsl:variable name="wkt-layer" select="ldh:new('ol.layer.Vector', [ $wkt-layer-options ])"/>
 
         <xsl:sequence select="ixsl:call($map, 'addLayer', [ $geo-json-layer ])[current-date() lt xs:date('2000-01-01')]"/>
         <xsl:sequence select="ixsl:call($map, 'addLayer', [ $wkt-layer ])[current-date() lt xs:date('2000-01-01')]"/>
