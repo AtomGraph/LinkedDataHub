@@ -235,7 +235,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="wkt-options" select="ldh:new-object()"/>
         <ixsl:set-property name="dataProjection:" select="'EPSG:4326'" object="$wkt-options"/>
         <ixsl:set-property name="featureProjection" select="'EPSG:3857'" object="$wkt-options"/>
-        <xsl:variable name="wkt-features" select="array{ for $wkt in //gs:asWKT/text() ixsl:call(ldh:new('ol.format.WKT', [ $wkt-options ]), 'readFeatures', [ $wkt ]) }"/>
+        <xsl:variable name="wkt-features" select="array{ for $wkt in //gs:asWKT/text() return ixsl:call(ldh:new('ol.format.WKT', [ $wkt-options ]), 'readFeatures', [ $wkt ]) }"/>
         
         <xsl:variable name="text-options" select="ldh:new-object()"/>
         <ixsl:set-property name="font" select="'12px sans-serif'" object="$text-options"/>
