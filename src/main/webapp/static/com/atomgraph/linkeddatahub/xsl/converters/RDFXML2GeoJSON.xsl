@@ -16,10 +16,19 @@ xmlns:gs="&gs;"
 exclude-result-prefixes="#all"
 >
 
-    <xsl:mode name="ldh:GeoJSON" on-no-match="deep-skip"/>
+    <xsl:output indent="no" omit-xml-declaration="yes" method="text" encoding="UTF-8" media-type="application/json"/>
 
-    <xsl:template match="/">
-        <xsl:apply-templates mode="ldh:GeoJSON"/>
+    <xsl:include href="WKT-parser.xsl"/>
+
+    <xsl:mode name="ldh:GeoJSON" on-no-match="deep-skip"/>
+    <xsl:mode name="ldh:GeoJSONProperties" on-no-match="deep-skip"/>
+    <xsl:mode name="ldh:WKT2GeoJSON" on-no-match="deep-skip"/>
+
+    <xsl:template match="/" mode="ldh:GeoJSON">
+        <xsl:variable name="json-xml" as="element()">
+            <xsl:apply-templates mode="#current"/>
+        </xsl:variable>
+        <xsl:sequence select="xml-to-json($json-xml)"/>
     </xsl:template>
     
     <xsl:template match="rdf:RDF" mode="ldh:GeoJSON">
@@ -32,35 +41,69 @@ exclude-result-prefixes="#all"
         </json:map>
     </xsl:template>
 
-    <xsl:template match="rdf:Description[gs:asWKT[starts-with(text(), 'POINT Z')]]" mode="ldh:GeoJSON">
-        <xsl:variable name="coord-string" select="normalize-space(substring-after(gs:asWKT/text(), 'POINT Z'))" as="xs:string"/>
-        <xsl:variable name="coords" select="tokenize(substring($coord-string, 2, string-length($coord-string) - 1), ' ')" as="xs:string*"/>
-        <xsl:variable name="lng" select="xs:float($coords[1])" as="xs:float"/>
-        <xsl:variable name="lat" select="xs:float($coords[2])" as="xs:float"/>
-        
+    <xsl:template match="rdf:Description[gs:asWKT[starts-with(text(), 'POLYGON')]] | rdf:Description[gs:asWKT[starts-with(text(), 'MULTIPOLYGON')]]" mode="ldh:GeoJSON">
         <json:map>
             <json:string key="type">Feature</json:string>
             <json:string key="id"><xsl:value-of select="(@rdf:about, @rdf:nodeID)[1]"/></json:string>
 
             <json:map key="geometry">
-                <json:string key="type">Point</json:string>
+                <xsl:variable name="parsed-wkt" as="element()">
+                    <xsl:call-template name="ldh:WKTParser">
+                        <xsl:with-param name="input" select="'{' || gs:asWKT/text() || '}'"/> <!-- WKT parser expects input string wrapped into {}, otherwise treats it as filename -->
+                    </xsl:call-template>
+                </xsl:variable>
 
-                <json:array key="coordinates">
-                    <json:number><xsl:value-of select="$lng"/></json:number>
-                    <json:number><xsl:value-of select="$lat"/></json:number>
-                </json:array>
+                <xsl:apply-templates select="$parsed-wkt" mode="ldh:WKT2GeoJSON"/>
             </json:map>
-            
+
             <json:map key="properties">
                 <xsl:apply-templates select="." mode="ldh:GeoJSONProperties"/>
             </json:map>
         </json:map>
     </xsl:template>
 
-<!--    <xsl:template match="rdf:Description[gs:asWKT[starts-with(text(), 'MULTIPOLYGON']]" mode="ldh:GeoJSON">
+    <xsl:template match="well_known_text_representation | collection_text_representation | multisurface_text_representation | polygon_text_body | surface_text_representation | curvepolygon_text_representation" mode="ldh:WKT2GeoJSON" priority="1">
+        <xsl:apply-templates select="@* | node()" mode="#current"/>
+    </xsl:template>
 
-    </xsl:template>-->
-    
+    <xsl:template match="multipolygon_text_representation" mode="ldh:WKT2GeoJSON">
+        <json:string key="type">MultiPolygon</json:string>
+
+        <xsl:apply-templates mode="#current"/>
+    </xsl:template>
+
+    <xsl:template match="polygon_text_representation" mode="ldh:WKT2GeoJSON">
+        <json:string key="type">Polygon</json:string>
+
+        <xsl:apply-templates mode="#current"/>
+    </xsl:template>
+
+    <xsl:template match="multipolygon_text_representation/multipolygon_text | polygon_text_representation/polygon_text_body/polygon_text" mode="ldh:WKT2GeoJSON" priority="1">
+        <json:array key="coordinates">
+            <xsl:apply-templates mode="#current"/>
+        </json:array>
+    </xsl:template>
+
+    <xsl:template match="multipolygon_text | polygon_text | linestring_text" mode="ldh:WKT2GeoJSON">
+        <json:array>
+            <xsl:apply-templates mode="#current"/>
+        </json:array>
+    </xsl:template>
+
+    <xsl:template match="point[x][y]" mode="ldh:WKT2GeoJSON">
+        <json:array>
+            <json:number><xsl:value-of select="x"/></json:number>
+            <json:number><xsl:value-of select="y"/></json:number>
+
+            <xsl:if test="z">
+                <json:number><xsl:value-of select="z"/></json:number>
+            </xsl:if>
+            <xsl:if test="m">
+                <json:number><xsl:value-of select="m"/></json:number>
+            </xsl:if>
+        </json:array>
+    </xsl:template>
+
     <xsl:template match="rdf:Description[geo:lat][geo:long]" mode="ldh:GeoJSON">
         <json:map>
             <json:string key="type">Feature</json:string>
