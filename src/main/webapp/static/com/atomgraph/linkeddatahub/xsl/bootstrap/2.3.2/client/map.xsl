@@ -220,10 +220,9 @@ exclude-result-prefixes="#all"
             <xsl:message>There should be at least one ol.style.Style instance in the $icon-styles sequence</xsl:message>
         </xsl:if>
         
-        <xsl:variable name="geo-json-xml" as="element()">
+        <xsl:variable name="geo-json-string" as="xs:string">
             <xsl:apply-templates select="." mode="ldh:GeoJSON"/>
         </xsl:variable>
-        <xsl:variable name="geo-json-string" select="xml-to-json($geo-json-xml)"/>
         <xsl:message>$geo-json-string: <xsl:value-of select="$geo-json-string"/></xsl:message>
         
         <xsl:variable name="geo-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $geo-json-string ])"/>
