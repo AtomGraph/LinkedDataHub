@@ -235,7 +235,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="wkt-options" select="ldh:new-object()"/>
         <!--<ixsl:set-property name="dataProjection" select="'EPSG:4326'" object="$wkt-options"/>-->
         <ixsl:set-property name="featureProjection" select="'EPSG:3857'" object="$wkt-options"/>
-        <xsl:variable name="wkt-features" select="array{ if (exists(//gs:asWKT[1][@rdf:datatype = '&gs;wktLiteral']/text())) then ixsl:call(ldh:new('ol.format.WKT', [ $wkt-options ]), 'readFeatures', [ string(//gs:asWKT[1][@rdf:datatype = '&gs;wktLiteral']/text()) else () ]) }"/>
+        <xsl:variable name="wkt-features" select="array{ if (exists(//gs:asWKT[1][@rdf:datatype = '&gs;wktLiteral']/text())) then ixsl:call(ldh:new('ol.format.WKT', [ $wkt-options ]), 'readFeatures', [ string(//gs:asWKT[1][@rdf:datatype = '&gs;wktLiteral']/text()) ]) else () }"/>
 <xsl:message>
 <xsl:value-of select="ixsl:call(ixsl:get(ixsl:window(), 'Array'), 'isArray', [ $wkt-features ])"/>
 count(//gs:asWKT[@rdf:datatype = '&gs;wktLiteral']/text()): <xsl:value-of select="count(//gs:asWKT[@rdf:datatype = '&gs;wktLiteral']/text())"/>
