@@ -220,13 +220,26 @@ exclude-result-prefixes="#all"
             <xsl:message>There should be at least one ol.style.Style instance in the $icon-styles sequence</xsl:message>
         </xsl:if>
         
+        <!-- read geo:lat/geo:long features transformed using RDFXML2GeoJSON.xsl -->
         <xsl:variable name="geo-json-string" as="xs:string">
             <xsl:apply-templates select="." mode="ldh:GeoJSON"/>
         </xsl:variable>
         <xsl:variable name="geo-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $geo-json-string ])"/>
         <xsl:variable name="geo-json-options" select="ldh:new-object()"/>
         <ixsl:set-property name="featureProjection" select="'EPSG:3857'" object="$geo-json-options"/>
-        <xsl:variable name="features" select="array{ ixsl:call(ldh:new('ol.format.GeoJSON', [ $geo-json-options ]), 'readFeatures', [ $geo-json ]) }"/>
+        <xsl:variable name="geo-json-features" select="array{ ixsl:call(ldh:new('ol.format.GeoJSON', [ $geo-json-options ]), 'readFeatures', [ $geo-json ]) }"/>
+
+        <!-- read WKT features from gs:asWKT properties -->
+        <xsl:variable name="wkt-options" select="ldh:new-object()"/>
+        <!--<ixsl:set-property name="dataProjection" select="'EPSG:4326'" object="$wkt-options"/>-->
+        <ixsl:set-property name="featureProjection" select="'EPSG:3857'" object="$wkt-options"/>
+        <xsl:variable name="wkt-features" select="array{ ixsl:call(ldh:new('ol.format.WKT', [ $wkt-options ]), 'readFeatures', [ string(//gs:asWKT[1][@rdf:datatype = '&gs;wktLiteral']/text()) ]) }"/>
+<xsl:message>
+<xsl:value-of select="ixsl:call(ixsl:get(ixsl:window(), 'Array'), 'isArray', [ $wkt-features ])"/>
+count(//gs:asWKT[@rdf:datatype = '&gs;wktLiteral']/text()): <xsl:value-of select="count(//gs:asWKT[@rdf:datatype = '&gs;wktLiteral']/text())"/>
+Array.isArray($wkt-features): <xsl:value-of select="ixsl:call(ixsl:get(ixsl:window(), 'Array'), 'isArray', [ $wkt-features ])"/>
+JSON.stringify($wkt-features): <xsl:value-of select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $wkt-features ])"/>
+</xsl:message>
 
         <xsl:variable name="text-options" select="ldh:new-object()"/>
         <ixsl:set-property name="font" select="'12px sans-serif'" object="$text-options"/>
@@ -265,10 +278,11 @@ exclude-result-prefixes="#all"
         <xsl:variable name="js-function" select="ixsl:call($js-function, 'bind', [ (), $label-style, $icon-styles, ldh:new('Map', []) ])"/>
 
         <xsl:variable name="source-options" select="ldh:new-object()"/>
-        <!--<ixsl:set-property name="features" select="$features" object="$source-options"/>-->
+        <!--<ixsl:set-property name="features" select="$geo-json-features" object="$source-options"/>-->
         <xsl:variable name="source" select="ldh:new('ol.source.Vector', [ $source-options ])"/>
         <!--<ixsl:set-property name="loader" select="$loader-function" object="$source-options"/>-->
-        <xsl:sequence select="ixsl:call($source, 'addFeatures', [ $features ])[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:sequence select="ixsl:call($source, 'addFeatures', [ $geo-json-features ])[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:sequence select="ixsl:call($source, 'addFeatures', [ $wkt-features ])[current-date() lt xs:date('2000-01-01')]"/>
 
         <xsl:variable name="layer-options" select="ldh:new-object()"/>
         <ixsl:set-property name="declutter" select="true()" object="$layer-options"/>
