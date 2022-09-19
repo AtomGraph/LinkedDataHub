@@ -233,7 +233,7 @@ exclude-result-prefixes="#all"
 
         <!-- read WKT features from gs:asWKT properties -->
         <xsl:variable name="wkt-options" select="ldh:new-object()"/>
-        <ixsl:set-property name="dataProjection:" select="'EPSG:4326'" object="$wkt-options"/>
+        <ixsl:set-property name="dataProjection" select="'EPSG:4326'" object="$wkt-options"/>
         <ixsl:set-property name="featureProjection" select="'EPSG:3857'" object="$wkt-options"/>
         <xsl:variable name="wkt-features" select="array{ for $wkt in //gs:asWKT/text() return ixsl:call(ldh:new('ol.format.WKT', [ $wkt-options ]), 'readFeatures', [ $wkt ]) }"/>
         
