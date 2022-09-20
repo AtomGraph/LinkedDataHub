@@ -295,7 +295,7 @@ exclude-result-prefixes="#all"
 
                         return [ labelStyle, iconStyle ];
                     } else
-                        return [ feature.getStyle(), labelStyle ];
+                        return [ labelStyle ];
                 }
             ]]>
         </xsl:variable>
