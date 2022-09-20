@@ -243,7 +243,23 @@ exclude-result-prefixes="#all"
         <xsl:variable name="wkt-options" select="ldh:new-object()"/>
         <ixsl:set-property name="dataProjection" select="'EPSG:4326'" object="$wkt-options"/>
         <ixsl:set-property name="featureProjection" select="'EPSG:3857'" object="$wkt-options"/>
-        <xsl:variable name="wkt-features" select="array{ for $wkt in //gs:asWKT[@rdf:datatype = '&gs;wktLiteral']/text() return ixsl:call(ldh:new('ol.format.WKT', []), 'readFeatures', [ string($wkt), $wkt-options ]) }"/>
+        <!-- collect WKT features into an array -->
+        <xsl:variable name="wkt-features">
+            <xsl:iterate select="/rdf:RDF/rdf:Description[gs:asWKT[@rdf:datatype = '&gs;wktLiteral']/text()]">
+                <xsl:param name="features" select="array{}"/>
+
+                <xsl:on-completion>
+                    <xsl:sequence select="$features"/>
+                </xsl:on-completion>
+
+                <xsl:variable name="feature" select="ixsl:call(ldh:new('ol.format.WKT', []), 'readFeature', [ string(gs:asWKT[@rdf:datatype = '&gs;wktLiteral']/text()), $wkt-options ])"/>
+                <xsl:sequence select="ixsl:call($feature, 'setId', [ string((@rdf:about, @rdf:nodeID)[1]) ])[current-date() lt xs:date('2000-01-01')]"/>
+
+                <xsl:next-iteration>
+                    <xsl:with-param name="features" select="array:append($features, $feature)"/>
+                </xsl:next-iteration>
+            </xsl:iterate>
+        </xsl:variable>
 
         <xsl:variable name="text-options" select="ldh:new-object()"/>
         <ixsl:set-property name="font" select="'12px sans-serif'" object="$text-options"/>
