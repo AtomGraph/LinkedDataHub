@@ -175,14 +175,20 @@ exclude-result-prefixes="#all"
                 <![CDATA[
                     function (extent) {
                         this.getLayers().forEach(function(layer) {
-                            if (layer instanceof ol.layer.Vector)
+                            console.log("Layer: ", layer);
+                            
+                            if (layer instanceof ol.layer.Vector) {
+                                console.log("YES! layer.getSource().getExtent(): ", layer.getSource().getExtent());
                                 ol.extent.extend(extent, layer.getSource().getExtent());
+                            } else {
+                                console.log("NO :(");
+                            }
                         });
                     }
                 ]]>
             </xsl:variable>
             <xsl:variable name="js-function" select="ixsl:eval(normalize-space($js-statement))"/> <!-- need normalize-space() due to Saxon-JS 2.4 bug: https://saxonica.plan.io/issues/5667 -->
-<xsl:message>$js-function: <xsl:value-of select="$js-function"/></xsl:message>
+<!--<xsl:message>$js-function: <xsl:value-of select="$js-function"/></xsl:message>-->
 
             <xsl:sequence select="ixsl:call($js-function, 'call', [ $map, $extent ])[current-date() lt xs:date('2000-01-01')]"/>
 <xsl:message>$extent: <xsl:value-of select="$extent"/></xsl:message>
