@@ -295,7 +295,7 @@ exclude-result-prefixes="#all"
 
                         return [ labelStyle, iconStyle ];
                     } else
-                        return [ labelStyle ];
+                        new ol.layer.Vector().getStyleFunction()().concat(labelStyle); // append labelStyle to the default feature style
                 }
             ]]>
         </xsl:variable>
