@@ -278,22 +278,25 @@ exclude-result-prefixes="#all"
                 function(labelStyle, iconStyles, typeIcons, feature) {
                     if (feature.get('name')) labelStyle.getText().setText(feature.get('name'));
                     
-                    let iconStyle;
-                    if (feature.get('types')) {
-                        let type = feature.get('types')[0];
-                        
-                        if (!typeIcons.has(type)) {
-                            let iconIndex = typeIcons.size % iconStyles.length;
-                            iconStyle = iconStyles[iconIndex];
-                            typeIcons.set(type, iconStyle);
-                        } else {
-                            iconStyle = typeIcons.get(type);
+                    if (feature.getGeometry() instanceof ol.geom.Point) {
+                        let iconStyle;
+                        if (feature.get('types')) {
+                            let type = feature.get('types')[0];
+
+                            if (!typeIcons.has(type)) {
+                                let iconIndex = typeIcons.size % iconStyles.length;
+                                iconStyle = iconStyles[iconIndex];
+                                typeIcons.set(type, iconStyle);
+                            } else {
+                                iconStyle = typeIcons.get(type);
+                            }
                         }
-                    }
-                    else iconStyle = iconStyles[0];
-                    
-                    return [ labelStyle, iconStyle ];
-                  }
+                        else iconStyle = iconStyles[0];
+
+                        return [ labelStyle, iconStyle ];
+                    } else
+                        return [ labelStyle ];
+                }
             ]]>
         </xsl:variable>
         <xsl:variable name="js-function" select="ixsl:eval(normalize-space($js-statement))"/> <!-- need normalize-space() due to Saxon-JS 2.4 bug: https://saxonica.plan.io/issues/5667 -->
@@ -479,11 +482,6 @@ exclude-result-prefixes="#all"
         <xsl:variable name="escaped-content-uri" select="xs:anyURI(translate($content-uri, '.', '-'))" as="xs:anyURI"/>
         <xsl:variable name="map" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri), 'map')"/>
         <xsl:variable name="overlay" select="ixsl:call(ixsl:call($map, 'getOverlays', []), 'getArray', [])[ ixsl:call(., 'getElement', []) is $container ]"/>
-        <xsl:message>
-            $content-uri: <xsl:value-of select="$content-uri"/>
-            exists($map): <xsl:value-of select="exists($map)"/>
-            exists($overlay): <xsl:value-of select="exists($overlay)"/>
-        </xsl:message>
         <xsl:sequence select="ixsl:call($map, 'removeOverlay', [ $overlay ])[current-date() lt xs:date('2000-01-01')]"/> <!-- remove overlay from map -->
     </xsl:template>
     
