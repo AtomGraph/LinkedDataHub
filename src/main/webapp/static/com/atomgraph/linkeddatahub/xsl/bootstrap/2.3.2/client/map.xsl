@@ -173,8 +173,8 @@ exclude-result-prefixes="#all"
 
             <xsl:variable name="js-statement" as="xs:string">
                 <![CDATA[
-                    function (map, extent) {
-                        map.getLayers().forEach(function(layer) {
+                    function (extent) {
+                        this.getLayers().forEach(function(layer) {
                             if (layer instanceof ol.layer.Vector)
                                 ol.extent.extend(extent, layer.getSource().getExtent());
                         });
