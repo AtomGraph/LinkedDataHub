@@ -173,20 +173,14 @@ exclude-result-prefixes="#all"
         
         <xsl:if test="$initial-load">
             <xsl:variable name="extent" select="ixsl:call(ixsl:get(ixsl:window(), 'ol.extent'), 'createEmpty', [])" as="xs:double*"/>
-<xsl:message>$extent: <xsl:value-of select="$extent"/></xsl:message>
-
             <xsl:variable name="js-statement" as="xs:string">
                 <![CDATA[
                     function (extent) {
                         this.getLayers().forEach(function(layer) {
                             console.log("Layer: ", layer);
                             
-                            if (layer instanceof ol.layer.Vector) {
-                                console.log("YES! layer.getSource().getExtent(): ", layer.getSource().getExtent());
+                            if (layer instanceof ol.layer.Vector)
                                 ol.extent.extend(extent, layer.getSource().getExtent());
-                            } else {
-                                console.log("NO :(");
-                            }
                         });
                         
                         return extent;
@@ -194,11 +188,9 @@ exclude-result-prefixes="#all"
                 ]]>
             </xsl:variable>
             <xsl:variable name="js-function" select="ixsl:eval(normalize-space($js-statement))"/> <!-- need normalize-space() due to Saxon-JS 2.4 bug: https://saxonica.plan.io/issues/5667 -->
-<!--<xsl:message>$js-function: <xsl:value-of select="$js-function"/></xsl:message>-->
-
             <xsl:variable name="extent" select="ixsl:call($js-function, 'call', [ $map, $extent ])"/>
-<xsl:message>$extent: <xsl:value-of select="$extent"/></xsl:message>
             
+            <!-- only fit map view to $extent if it's not empty -->
             <xsl:if test="not(ixsl:call(ixsl:get(ixsl:window(), 'ol.extent'), 'isEmpty', [ $extent ]))">
                 <xsl:variable name="fit-options" as="map(xs:string, item())">
                     <xsl:map>
