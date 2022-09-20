@@ -244,7 +244,7 @@ exclude-result-prefixes="#all"
         <ixsl:set-property name="dataProjection" select="'EPSG:4326'" object="$wkt-options"/>
         <ixsl:set-property name="featureProjection" select="'EPSG:3857'" object="$wkt-options"/>
         <!-- collect WKT features into an array -->
-        <xsl:variable name="wkt-features">
+        <xsl:variable name="wkt-features" as="array(*)">
             <xsl:iterate select="/rdf:RDF/rdf:Description[gs:asWKT[@rdf:datatype = '&gs;wktLiteral']/text()]">
                 <xsl:param name="features" select="array{}"/>
 
@@ -260,7 +260,7 @@ exclude-result-prefixes="#all"
                 </xsl:next-iteration>
             </xsl:iterate>
         </xsl:variable>
-
+<xsl:message>$wkt-features: <xsl:value-of select="$wkt-features"/></xsl:message>
         <xsl:variable name="text-options" select="ldh:new-object()"/>
         <ixsl:set-property name="font" select="'12px sans-serif'" object="$text-options"/>
         <ixsl:set-property name="offsetY" select="10" object="$text-options"/>
