@@ -254,13 +254,15 @@ exclude-result-prefixes="#all"
 
                 <xsl:variable name="feature" select="ixsl:call(ldh:new('ol.format.WKT', []), 'readFeature', [ string(gs:asWKT[@rdf:datatype = '&gs;wktLiteral']/text()), $wkt-options ])"/>
                 <xsl:sequence select="ixsl:call($feature, 'setId', [ string((@rdf:about, @rdf:nodeID)[1]) ])[current-date() lt xs:date('2000-01-01')]"/>
+                <xsl:sequence select="ixsl:call($feature, 'set', [ 'name', ac:label(.) ])[current-date() lt xs:date('2000-01-01')]"/>
+                <xsl:sequence select="ixsl:call($feature, 'set', [ 'types', array{ rdf:type/@rdf:resource/string() } ])[current-date() lt xs:date('2000-01-01')]"/>
 
                 <xsl:next-iteration>
                     <xsl:with-param name="features" select="array:append($features, $feature)"/>
                 </xsl:next-iteration>
             </xsl:iterate>
         </xsl:variable>
-<xsl:message>$wkt-features: <xsl:value-of select="$wkt-features"/></xsl:message>
+
         <xsl:variable name="text-options" select="ldh:new-object()"/>
         <ixsl:set-property name="font" select="'12px sans-serif'" object="$text-options"/>
         <ixsl:set-property name="offsetY" select="10" object="$text-options"/>
@@ -314,7 +316,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="wkt-layer-options" select="ldh:new-object()"/>
         <!--<ixsl:set-property name="declutter" select="true()" object="$wkt-layer-options"/>-->
         <ixsl:set-property name="source" select="$wkt-source" object="$wkt-layer-options"/>
-        <!--<ixsl:set-property name="style" select="$js-function" object="$wkt-layer-options"/>-->
+        <ixsl:set-property name="style" select="$js-function" object="$wkt-layer-options"/>
         <xsl:variable name="wkt-layer" select="ldh:new('ol.layer.Vector', [ $wkt-layer-options ])"/>
 
         <xsl:sequence select="ixsl:call($map, 'addLayer', [ $geo-json-layer ])[current-date() lt xs:date('2000-01-01')]"/>
