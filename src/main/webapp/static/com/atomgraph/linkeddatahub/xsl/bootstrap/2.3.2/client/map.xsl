@@ -60,7 +60,7 @@ exclude-result-prefixes="#all"
         <ixsl:set-property name="view" select="$view" object="$map-options"/>
 
         <xsl:variable name="map" select="ldh:new('ol.Map', [ $map-options ])"/>
-        <xsl:if test="exists($lat) and exits($lng)">
+        <xsl:if test="exists($lat) and exists($lng)">
             <xsl:variable name="lon-lat" select="[ $lng, $lat ]" as="array(*)"/>
             <xsl:variable name="center" select="ixsl:call(ixsl:get(ixsl:window(), 'ol.proj'), 'fromLonLat', [ $lon-lat ])"/>
             <xsl:sequence select="ixsl:call($view, 'setCenter', [ $center ])[current-date() lt xs:date('2000-01-01')]"/>
