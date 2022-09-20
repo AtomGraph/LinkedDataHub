@@ -168,6 +168,8 @@ exclude-result-prefixes="#all"
 
         <xsl:if test="$initial-load">
             <xsl:variable name="extent" select="ixsl:call(ixsl:get(ixsl:window(), 'ol.extent'), 'createEmpty', [])" as="xs:double*"/>
+<xsl:message>$extent: <xsl:value-of select="$extent"/></xsl:message>
+
             <xsl:variable name="js-statement" as="xs:string">
                 <![CDATA[
                     function (map, extent) {
@@ -179,6 +181,8 @@ exclude-result-prefixes="#all"
                 ]]>
             </xsl:variable>
             <xsl:variable name="js-function" select="ixsl:eval(normalize-space($js-statement))"/> <!-- need normalize-space() due to Saxon-JS 2.4 bug: https://saxonica.plan.io/issues/5667 -->
+<xsl:message>$js-function: <xsl:copy-of select="$js-function"/></xsl:message>
+
             <xsl:sequence select="ixsl:call($js-function, 'call', [ $map, $extent ])[current-date() lt xs:date('2000-01-01')]"/>
 <xsl:message>$extent: <xsl:value-of select="$extent"/></xsl:message>
             
