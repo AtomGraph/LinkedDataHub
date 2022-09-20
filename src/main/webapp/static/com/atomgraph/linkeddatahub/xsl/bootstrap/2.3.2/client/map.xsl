@@ -188,24 +188,28 @@ exclude-result-prefixes="#all"
                                 console.log("NO :(");
                             }
                         });
+                        
+                        return extent;
                     }
                 ]]>
             </xsl:variable>
             <xsl:variable name="js-function" select="ixsl:eval(normalize-space($js-statement))"/> <!-- need normalize-space() due to Saxon-JS 2.4 bug: https://saxonica.plan.io/issues/5667 -->
 <!--<xsl:message>$js-function: <xsl:value-of select="$js-function"/></xsl:message>-->
 
-            <xsl:sequence select="ixsl:call($js-function, 'call', [ $map, $extent ])[current-date() lt xs:date('2000-01-01')]"/>
+            <xsl:variable name="extent" select="ixsl:call($js-function, 'call', [ $map, $extent ])"/>
 <xsl:message>$extent: <xsl:value-of select="$extent"/></xsl:message>
             
-            <xsl:variable name="fit-options" as="map(xs:string, item())">
-                <xsl:map>
-                    <xsl:map-entry key="'maxZoom'" select="$max-zoom"/>
-                    <xsl:map-entry key="'padding'" select="array{ $padding }"/>
-                </xsl:map>
-            </xsl:variable>
-            <xsl:variable name="fit-options-obj" select="ixsl:call(ixsl:window(), 'JSON.parse', [ $fit-options => serialize(map{ 'method': 'json' }) ])"/>
+            <xsl:if test="not(ixsl:call(ixsl:get(ixsl:window(), 'ol.extent'), 'isEmpty', [ $extent ]))">
+                <xsl:variable name="fit-options" as="map(xs:string, item())">
+                    <xsl:map>
+                        <xsl:map-entry key="'maxZoom'" select="$max-zoom"/>
+                        <xsl:map-entry key="'padding'" select="array{ $padding }"/>
+                    </xsl:map>
+                </xsl:variable>
+                <xsl:variable name="fit-options-obj" select="ixsl:call(ixsl:window(), 'JSON.parse', [ $fit-options => serialize(map{ 'method': 'json' }) ])"/>
 
-            <xsl:sequence select="ixsl:call(ixsl:call($map, 'getView', []), 'fit', [ $extent, $fit-options-obj ])[current-date() lt xs:date('2000-01-01')]"/>
+                <xsl:sequence select="ixsl:call(ixsl:call($map, 'getView', []), 'fit', [ $extent, $fit-options-obj ])[current-date() lt xs:date('2000-01-01')]"/>
+            </xsl:if>
         </xsl:if>
     </xsl:template>
     
