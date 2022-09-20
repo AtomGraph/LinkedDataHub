@@ -167,6 +167,10 @@ exclude-result-prefixes="#all"
         <xsl:variable name="map" select="ldh:create-map($canvas-id, 55, 12, $zoom)" as="item()"/>
         <ixsl:set-property name="map" select="$map" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri)"/>
 
+        <xsl:call-template name="ldh:AddMapLayers">
+            <xsl:with-param name="map" select="$map"/>
+        </xsl:call-template>
+        
         <xsl:if test="$initial-load">
             <xsl:variable name="extent" select="ixsl:call(ixsl:get(ixsl:window(), 'ol.extent'), 'createEmpty', [])" as="xs:double*"/>
 <xsl:message>$extent: <xsl:value-of select="$extent"/></xsl:message>
@@ -203,15 +207,11 @@ exclude-result-prefixes="#all"
 
             <xsl:sequence select="ixsl:call(ixsl:call($map, 'getView', []), 'fit', [ $extent, $fit-options-obj ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:if>
-
-        <xsl:call-template name="ldh:AddMapMarkers">
-            <xsl:with-param name="map" select="$map"/>
-        </xsl:call-template>
     </xsl:template>
     
     <!-- transforms geo resources in RDF/XML to GeoJSON and adds them to the map as a feature layer -->
     
-    <xsl:template name="ldh:AddMapMarkers">
+    <xsl:template name="ldh:AddMapLayers">
         <xsl:context-item as="document-node()" use="required"/>
         <xsl:param name="map" as="item()"/>
         <xsl:param name="icons" select="('https://maps.google.com/mapfiles/ms/icons/blue-dot.png', 'https://maps.google.com/mapfiles/ms/icons/red-dot.png', 'https://maps.google.com/mapfiles/ms/icons/purple-dot.png', 'https://maps.google.com/mapfiles/ms/icons/yellow-dot.png', 'https://maps.google.com/mapfiles/ms/icons/green-dot.png')" as="xs:string*"/> <!-- https://saxonica.plan.io/issues/5677 -->
