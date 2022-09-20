@@ -159,24 +159,24 @@ exclude-result-prefixes="#all"
         <xsl:param name="initial-load" select="not(ixsl:contains(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri), 'map'))" as="xs:boolean"/>
         <xsl:param name="max-zoom" select="16" as="xs:integer"/>
         <xsl:param name="padding" select="(10, 10, 10, 10)" as="xs:integer*"/>
-        <xsl:variable name="geo-resources" select="rdf:RDF/rdf:Description[geo:lat][geo:long]" as="element()*"/>
-        <xsl:variable name="lats" select="distinct-values($geo-resources/geo:lat/xs:float(.))" as="xs:float*"/>
-        <xsl:variable name="lngs" select="distinct-values($geo-resources/geo:long/xs:float(.))" as="xs:float*"/>
-        <xsl:variable name="max-lat" select="max($lats)" as="xs:float?"/>
-        <xsl:variable name="min-lat" select="min($lats)" as="xs:float?"/>
-        <xsl:variable name="max-lng" select="max($lngs)" as="xs:float?"/>
-        <xsl:variable name="min-lng" select="min($lngs)" as="xs:float?"/>
-        <xsl:variable name="avg-lat" select="avg($lats)" as="xs:float?"/>
-        <xsl:variable name="avg-lng" select="avg($lngs)" as="xs:float?"/>
-        <!-- reuse center and zoom if map object already exists, otherwise set defaults -->
-        <xsl:variable name="center-lat" select="if (not($initial-load)) then xs:float(ixsl:call(ixsl:get(ixsl:window(), 'ol.proj'), 'toLonLat', [ ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri), 'map'), 'getView', []), 'getCenter', []) ])[2]) else (if (exists($avg-lat)) then $avg-lat else 0)" as="xs:float"/>
-        <xsl:variable name="center-lng" select="if (not($initial-load)) then xs:float(ixsl:call(ixsl:get(ixsl:window(), 'ol.proj'), 'toLonLat', [ ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri), 'map'), 'getView', []), 'getCenter', []) ])[1]) else (if (exists($avg-lng)) then $avg-lng else 0)" as="xs:float"/>
-        <xsl:variable name="zoom" select="if (not($initial-load)) then xs:integer(ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri), 'map'), 'getView', []), 'getZoom', [])) else 4" as="xs:integer"/>
         <xsl:variable name="map" select="ldh:create-map($canvas-id, $center-lat, $center-lng, $zoom)" as="item()"/>
 
-        <xsl:if test="$initial-load and exists($max-lat) and exists($min-lat) and exists($max-lng) and exists($max-lng)">
-            <xsl:variable name="extent" select="($min-lng, $min-lat, $max-lng, $max-lat)" as="xs:double*"/>
-            <xsl:variable name="extent" select="ixsl:call(ixsl:get(ixsl:window(), 'ol.proj'), 'transformExtent', [ $extent, 'EPSG:4326','EPSG:3857' ])" as="xs:double*"/>
+        <xsl:if test="$initial-load">
+            <xsl:variable name="extent" select="ixsl:call(ixsl:get(ixsl:window(), 'ol.extent'), 'createEmpty', [])" as="xs:double*"/>
+            <xsl:variable name="js-statement" as="xs:string">
+                <![CDATA[
+                    function (map, extent) {
+                        map.getLayers().forEach(function(layer) {
+                            if (layer instanceof ol.layer.Vector)
+                                ol.extent.extend(extent, layer.getSource().getExtent());
+                        });
+                    }
+                ]]>
+            </xsl:variable>
+            <xsl:variable name="js-function" select="ixsl:eval(normalize-space($js-statement))"/> <!-- need normalize-space() due to Saxon-JS 2.4 bug: https://saxonica.plan.io/issues/5667 -->
+            <xsl:variable name="extent" select="ixsl:call($js-function, 'call', [ $map, $extent ])" as="xs:double*"/>
+<xsl:message>$extent: <xsl:value-of select="$extent"/></xsl:message>
+            
             <xsl:variable name="fit-options" as="map(xs:string, item())">
                 <xsl:map>
                     <xsl:map-entry key="'maxZoom'" select="$max-zoom"/>
@@ -185,7 +185,7 @@ exclude-result-prefixes="#all"
             </xsl:variable>
             <xsl:variable name="fit-options-obj" select="ixsl:call(ixsl:window(), 'JSON.parse', [ $fit-options => serialize(map{ 'method': 'json' }) ])"/>
 
-            <xsl:sequence select="ixsl:call(ixsl:call($map, 'getView', []), 'fit', [ $extent, $fit-options-obj ])"/>
+            <xsl:sequence select="ixsl:call(ixsl:call($map, 'getView', []), 'fit', [ $extent, $fit-options-obj ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:if>
 
         <ixsl:set-property name="map" select="$map" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri)"/>
