@@ -678,10 +678,10 @@ exclude-result-prefixes="#all"
 
         <ixsl:schedule-action http-request="map{ 'method': 'POST', 'href': resolve-uri('admin/clear', ldt:base()), 'media-type': 'application/x-www-form-urlencoded', 'body': $form-data, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
             <!-- bogus template call required because of Saxon-JS 2.4 bug: https://saxonica.plan.io/issues/5597 -->
-            <xsl:call-template name="whateverest"/>
+            <xsl:call-template name="ldh:NoOp"/>
         </ixsl:schedule-action>
     </xsl:template>
     
-    <xsl:template name="whateverest"/>
+    <xsl:template name="ldh:NoOp"/>
     
 </xsl:stylesheet>

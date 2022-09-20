@@ -164,7 +164,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="max-zoom" select="16" as="xs:integer"/>
         <xsl:param name="padding" select="(10, 10, 10, 10)" as="xs:integer*"/>
         <xsl:variable name="zoom" select="if (not($initial-load)) then xs:integer(ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri), 'map'), 'getView', []), 'getZoom', [])) else 4" as="xs:integer"/>
-        <xsl:variable name="map" select="ldh:create-map($canvas-id, 55, 12, $zoom)" as="item()"/>
+        <xsl:variable name="map" select="ldh:create-map($canvas-id, 0, 0, $zoom)" as="item()"/>
         <ixsl:set-property name="map" select="$map" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri)"/>
 
         <xsl:call-template name="ldh:AddMapLayers">
@@ -435,7 +435,8 @@ exclude-result-prefixes="#all"
                     <xsl:variable name="coord" select="ixsl:get($event, 'coordinate')"/>
                     <xsl:variable name="container" select="ixsl:call(ixsl:page(), 'createElement', [ 'div' ])" as="element()"/>
                     <xsl:sequence select="ixsl:call(ixsl:call($map, 'getOverlayContainerStopEvent', []), 'appendChild', [ $container ])[current-date() lt xs:date('2000-01-01')]"/>
-                    <ixsl:set-attribute name="id" select="'whateverest'" object="$container"/>
+                    <xsl:variable name="uuid" select="ixsl:call(ixsl:window(), 'generateUUID', [])" as="xs:string"/>
+                    <ixsl:set-attribute name="id" select="'id' || $uuid" object="$container"/>
 
                     <xsl:variable name="overlay-options" select="ldh:new-object()"/>
                     <ixsl:set-property name="element" select="$container" object="$overlay-options"/>
@@ -478,6 +479,11 @@ exclude-result-prefixes="#all"
         <xsl:variable name="escaped-content-uri" select="xs:anyURI(translate($content-uri, '.', '-'))" as="xs:anyURI"/>
         <xsl:variable name="map" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri), 'map')"/>
         <xsl:variable name="overlay" select="ixsl:call(ixsl:call($map, 'getOverlays', []), 'getArray', [])[ ixsl:call(., 'getElement', []) is $container ]"/>
+        <xsl:message>
+            $content-uri: <xsl:value-of select="$content-uri"/>
+            exists($map): <xsl:value-of select="exists($map)"/>
+            exists($overlay): <xsl:value-of select="exists($overlay)"/>
+        </xsl:message>
         <xsl:sequence select="ixsl:call($map, 'removeOverlay', [ $overlay ])[current-date() lt xs:date('2000-01-01')]"/> <!-- remove overlay from map -->
     </xsl:template>
     
