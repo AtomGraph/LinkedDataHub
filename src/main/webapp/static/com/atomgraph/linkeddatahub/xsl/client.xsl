@@ -1054,6 +1054,11 @@ WHERE
         <xsl:param name="href" as="xs:anyURI"/> <!-- possibly proxied URL -->
         <xsl:param name="doc-uri" as="xs:anyURI"/>
 
+        <!-- update the document-level @about -->
+        <xsl:for-each select="id('content-body', ixsl:page())">
+            <ixsl:set-attribute name="about" select="$doc-uri" object="."/>
+        </xsl:for-each>
+        
         <!-- update RDF download links to match the current URI -->
         <xsl:for-each select="id('export-rdf', ixsl:page())/following-sibling::ul/li/a">
             <!-- use @title attribute for the media type TO-DO: find a better way, a hidden input or smth -->
