@@ -166,7 +166,32 @@ exclude-result-prefixes="#all"
         <xsl:variable name="zoom" select="if (not($initial-load)) then xs:integer(ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri), 'map'), 'getView', []), 'getZoom', [])) else 4" as="xs:integer"/>
         <xsl:variable name="map" select="ldh:create-map($canvas-id, 55, 12, $zoom)" as="item()"/>
 
+        <xsl:if test="$initial-load">
+            <xsl:variable name="extent" select="ixsl:call(ixsl:get(ixsl:window(), 'ol.extent'), 'createEmpty', [])" as="xs:double*"/>
+            <xsl:variable name="js-statement" as="xs:string">
+                <![CDATA[
+                    function (map, extent) {
+                        map.getLayers().forEach(function(layer) {
+                            if (layer instanceof ol.layer.Vector)
+                                ol.extent.extend(extent, layer.getSource().getExtent());
+                        });
+                    }
+                ]]>
+            </xsl:variable>
+            <xsl:variable name="js-function" select="ixsl:eval(normalize-space($js-statement))"/> <!-- need normalize-space() due to Saxon-JS 2.4 bug: https://saxonica.plan.io/issues/5667 -->
+            <xsl:sequence select="ixsl:call($js-function, 'call', [ $map, $extent ])[current-date() lt xs:date('2000-01-01')]"/>
+<xsl:message>$extent: <xsl:value-of select="$extent"/></xsl:message>
+            
+            <xsl:variable name="fit-options" as="map(xs:string, item())">
+                <xsl:map>
+                    <xsl:map-entry key="'maxZoom'" select="$max-zoom"/>
+                    <xsl:map-entry key="'padding'" select="array{ $padding }"/>
+                </xsl:map>
+            </xsl:variable>
+            <xsl:variable name="fit-options-obj" select="ixsl:call(ixsl:window(), 'JSON.parse', [ $fit-options => serialize(map{ 'method': 'json' }) ])"/>
 
+            <xsl:sequence select="ixsl:call(ixsl:call($map, 'getView', []), 'fit', [ $extent, $fit-options-obj ])[current-date() lt xs:date('2000-01-01')]"/>
+        </xsl:if>
 
         <ixsl:set-property name="map" select="$map" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri)"/>
 
