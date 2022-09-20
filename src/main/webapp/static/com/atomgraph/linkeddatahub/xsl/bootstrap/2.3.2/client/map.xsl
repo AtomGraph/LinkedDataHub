@@ -35,9 +35,9 @@ exclude-result-prefixes="#all"
     
     <xsl:function name="ldh:create-map">
         <xsl:param name="canvas-id" as="xs:string"/>
-        <xsl:param name="lat" as="xs:float"/>
-        <xsl:param name="lng" as="xs:float"/>
-        <xsl:param name="zoom" as="xs:integer"/>
+        <xsl:param name="lat" as="xs:float?"/>
+        <xsl:param name="lng" as="xs:float?"/>
+        <xsl:param name="zoom" as="xs:integer?"/>
 
         <xsl:variable name="tile-options" select="ldh:new-object()"/>
         <ixsl:set-property name="source" select="ldh:new('ol.source.OSM', [])" object="$tile-options"/>
@@ -45,13 +45,13 @@ exclude-result-prefixes="#all"
         <xsl:variable name="layers" select="[ $tile ]" as="array(*)"/>
 
         <xsl:variable name="view-options" select="ldh:new-object()"/>
-        <xsl:variable name="lon-lat" select="[ $lng, $lat ]" as="array(*)"/>
-        <xsl:variable name="center" select="ixsl:call(ixsl:get(ixsl:window(), 'ol.proj'), 'fromLonLat', [ $lon-lat ])"/>
         <!--
         Saxon-JS issue: https://saxonica.plan.io/issues/5656#note-4 - call view.setCenter() instead
         <ixsl:set-property name="center" select="$center" object="$view-options"/>
         -->
-        <ixsl:set-property name="zoom" select="$zoom" object="$view-options"/>
+        <xsl:if test="exists($zoom)">
+            <ixsl:set-property name="zoom" select="$zoom" object="$view-options"/>
+        </xsl:if>
         <xsl:variable name="view" select="ldh:new('ol.View', [ $view-options ])"/>
         
         <xsl:variable name="map-options" select="ldh:new-object()"/>
@@ -60,7 +60,11 @@ exclude-result-prefixes="#all"
         <ixsl:set-property name="view" select="$view" object="$map-options"/>
 
         <xsl:variable name="map" select="ldh:new('ol.Map', [ $map-options ])"/>
-        <xsl:sequence select="ixsl:call($view, 'setCenter', [ $center ])[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:if test="exists($lat) and exits($lng)">
+            <xsl:variable name="lon-lat" select="[ $lng, $lat ]" as="array(*)"/>
+            <xsl:variable name="center" select="ixsl:call(ixsl:get(ixsl:window(), 'ol.proj'), 'fromLonLat', [ $lon-lat ])"/>
+            <xsl:sequence select="ixsl:call($view, 'setCenter', [ $center ])[current-date() lt xs:date('2000-01-01')]"/>
+        </xsl:if>
         
         <xsl:variable name="js-function" select="ixsl:get(ixsl:window(), 'ixslTemplateListener')"/>
         <xsl:variable name="js-function" select="ixsl:call($js-function, 'bind', [ (), 'MapMarkerClick', $map ])"/> <!-- will invoke template onMapMarkerClick -->
@@ -159,7 +163,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="initial-load" select="not(ixsl:contains(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri), 'map'))" as="xs:boolean"/>
         <xsl:param name="max-zoom" select="16" as="xs:integer"/>
         <xsl:param name="padding" select="(10, 10, 10, 10)" as="xs:integer*"/>
-        <xsl:variable name="map" select="ldh:create-map($canvas-id, $center-lat, $center-lng, $zoom)" as="item()"/>
+        <xsl:variable name="map" select="ldh:create-map($canvas-id, (), (), ())" as="item()"/>
 
         <xsl:if test="$initial-load">
             <xsl:variable name="extent" select="ixsl:call(ixsl:get(ixsl:window(), 'ol.extent'), 'createEmpty', [])" as="xs:double*"/>
