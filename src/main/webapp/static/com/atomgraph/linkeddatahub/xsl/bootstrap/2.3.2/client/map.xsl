@@ -178,7 +178,7 @@ exclude-result-prefixes="#all"
                 ]]>
             </xsl:variable>
             <xsl:variable name="js-function" select="ixsl:eval(normalize-space($js-statement))"/> <!-- need normalize-space() due to Saxon-JS 2.4 bug: https://saxonica.plan.io/issues/5667 -->
-            <xsl:variable name="extent" select="ixsl:call($js-function, 'call', [ $map, $extent ])" as="xs:double*"/>
+            <xsl:sequence select="ixsl:call($js-function, 'call', [ $map, $extent ])[current-date() lt xs:date('2000-01-01')]"/>
 <xsl:message>$extent: <xsl:value-of select="$extent"/></xsl:message>
             
             <xsl:variable name="fit-options" as="map(xs:string, item())">
