@@ -177,8 +177,6 @@ exclude-result-prefixes="#all"
                 <![CDATA[
                     function (extent) {
                         this.getLayers().forEach(function(layer) {
-                            console.log("Layer: ", layer);
-                            
                             if (layer instanceof ol.layer.Vector)
                                 ol.extent.extend(extent, layer.getSource().getExtent());
                         });
