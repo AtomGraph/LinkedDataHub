@@ -1,3 +1,7 @@
+## [3.2.14] - 2022-09-21
+### Added
+- WKT geometry support in map layout mode
+
 ## [3.2.13] - 2022-09-16
 ### Changed
 - Fixed query builder behind faceted search to generate a correct query that loads facet values
