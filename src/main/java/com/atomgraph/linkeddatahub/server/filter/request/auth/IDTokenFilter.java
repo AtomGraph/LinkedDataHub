@@ -34,7 +34,9 @@ import java.io.IOException;
 import java.net.URI;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.PostConstruct;
 import javax.annotation.Priority;
@@ -76,6 +78,8 @@ public class IDTokenFilter extends AuthenticationFilter
 
     /** ID of the JWT authentication scheme */
     public static final String AUTH_SCHEME = "JWT";
+    /** White-list of OIDC issuers */
+    public static final List<String> ISSUERS = Arrays.asList("https://accounts.google.com");
     /** Name of the cookie that stores the ID token */
     public static final String COOKIE_NAME = "LinkedDataHub.id_token";
     private String clientID, clientSecret;
@@ -121,6 +125,8 @@ public class IDTokenFilter extends AuthenticationFilter
         if (jwtString == null) return null;
         
         DecodedJWT jwt = JWT.decode(jwtString);
+        if (!jwt.getAudience().contains(getClientID()) || !ISSUERS.contains(jwt.getIssuer())) return null; // in Google's JWT tokens, "aud" is the client ID
+        
         if (jwt.getExpiresAt().before(new Date()))
         {
             String refreshToken = getSystem().getRefreshToken(jwt.getSubject());
