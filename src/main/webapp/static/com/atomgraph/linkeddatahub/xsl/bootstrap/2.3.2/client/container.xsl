@@ -531,7 +531,7 @@ exclude-result-prefixes="#all"
                 <xsl:with-param name="series" select="$series"/>
             </xsl:call-template>
         </xsl:if>
-<xsl:message terminate="yes">Z1 $container children count: <xsl:value-of select="ixsl:get(ixsl:get(id('select-children-container-order', ixsl:page()), 'children'), 'length')"/></xsl:message>
+<xsl:message>Z1 $container children count: <xsl:value-of select="ixsl:get(ixsl:get(id('select-children-container-order', ixsl:page()), 'children'), 'length')"/></xsl:message>
     </xsl:template>
     
     <xsl:template name="render-container-error">
@@ -1318,11 +1318,11 @@ exclude-result-prefixes="#all"
                         <xsl:with-param name="select-xml" select="$select-xml"/>
                         <xsl:with-param name="active-mode" select="$active-mode"/>
                     </xsl:call-template>
-
+<xsl:message>Z2 $container children count: <xsl:value-of select="ixsl:get(ixsl:get(id('select-children-container-order', ixsl:page()), 'children'), 'length')"/></xsl:message>
                     <xsl:call-template name="ldh:ContentLoaded">
                         <xsl:with-param name="container" select="$container"/>
                     </xsl:call-template>
-
+<xsl:message>Z3 $container children count: <xsl:value-of select="ixsl:get(ixsl:get(id('select-children-container-order', ixsl:page()), 'children'), 'length')"/></xsl:message>
                     <xsl:for-each select="$container/div[contains-token(@class, 'left-nav')]">
                         <!-- only append facets if they are not already present. TO-DO: more precise check? -->
                         <xsl:if test="not(*)">
@@ -1374,7 +1374,7 @@ exclude-result-prefixes="#all"
                             <xsl:with-param name="container" select="id($parallax-container-id, ixsl:page())"/>
                         </xsl:call-template>
                     </xsl:if>
-                    
+<xsl:message>Z4 $container children count: <xsl:value-of select="ixsl:get(ixsl:get(id('select-children-container-order', ixsl:page()), 'children'), 'length')"/></xsl:message>
                     <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
                 </xsl:for-each>
             </xsl:when>
