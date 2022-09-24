@@ -248,7 +248,7 @@ exclude-result-prefixes="#all"
                 </option>
             </xsl:result-document>
             
-<xsl:message>Y $container children count: <xsl:value-of select="ixsl:get(ixsl:get(id($order-by-container-id, ixsl:page()), 'children'), 'length')"/></xsl:message>
+<xsl:message>Y $container children count: <xsl:value-of select="ixsl:get(ixsl:get($container, 'children'), 'length')"/></xsl:message>
         </xsl:for-each>
     </xsl:template>
     
