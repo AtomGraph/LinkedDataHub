@@ -455,7 +455,7 @@ exclude-result-prefixes="#all"
                 <!-- use the BGPs where the predicate is a URI value and the subject and object are variables -->
                 <xsl:variable name="bgp-triples-map" select="$select-xml//json:map[json:string[@key = 'type'] = 'bgp']/json:array[@key = 'triples']/json:map[json:string[@key = 'subject'] = '?' || $focus-var-name][not(starts-with(json:string[@key = 'predicate'], '?'))][starts-with(json:string[@key = 'object'], '?')]" as="element()*"/>
 <xsl:message>X $container children count: <xsl:value-of select="ixsl:get(ixsl:get(id($order-by-container-id, ixsl:page()), 'children'), 'length')"/></xsl:message>
-                <xsl:for-each select="$bgp-triples-map[1]">
+                <xsl:for-each select="$bgp-triples-map">
                     <xsl:variable name="id" select="generate-id()" as="xs:string"/>
                     <xsl:variable name="predicate" select="json:string[@key = 'predicate']" as="xs:anyURI"/>
                     <xsl:variable name="results-uri" select="ac:build-uri($ldt:base, map{ 'uri': string($predicate), 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
@@ -1017,7 +1017,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="service-uri" select="if (ixsl:contains(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri), 'service-uri')) then ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri), 'service-uri') else ()" as="xs:anyURI?"/>
         <xsl:variable name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.apps'))" as="element()?"/>
         <xsl:variable name="endpoint" select="($service/sd:endpoint/@rdf:resource/xs:anyURI(.), sd:endpoint())[1]"/>
-
+<xsl:message>container-order ONCHANGE!</xsl:message>
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
         <xsl:variable name="select-xml" as="document-node()">
