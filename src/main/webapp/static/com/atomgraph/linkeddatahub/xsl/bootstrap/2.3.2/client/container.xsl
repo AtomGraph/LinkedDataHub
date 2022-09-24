@@ -471,7 +471,7 @@ exclude-result-prefixes="#all"
                         </ixsl:schedule-action>
                     </xsl:variable>
                     <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>-->
-                    <xsl:for-each select="$container">
+                    <xsl:for-each select="id($order-by-container-id, ixsl:page())">
                         <xsl:result-document href="?." method="ixsl:append-content">
                             <option><xsl:value-of select="$predicate"/></option>
                         </xsl:result-document>
