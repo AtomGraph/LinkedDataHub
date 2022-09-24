@@ -407,6 +407,8 @@ exclude-result-prefixes="#all"
                                                 </xsl:value-of>
                                             </option>
                                         </xsl:if>
+                                        <option>WTF</option>
+                                        <xsl:message>WTF</xsl:message>
                                     </select>
 
                                     <xsl:choose>
