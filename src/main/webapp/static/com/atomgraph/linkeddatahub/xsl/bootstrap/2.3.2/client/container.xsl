@@ -213,7 +213,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="order-by-predicate" as="xs:anyURI?"/>
         <xsl:variable name="results" select="if (?status = 200 and ?media-type = 'application/rdf+xml') then ?body else ()" as="document-node()?"/>
 
-        <xsl:for-each select="$container">
+        <xsl:for-each select="id('select-children-container-order', ixsl:page())">
 <xsl:message>bs2:OrderBy</xsl:message>
 
             <xsl:result-document href="?." method="ixsl:append-content">
