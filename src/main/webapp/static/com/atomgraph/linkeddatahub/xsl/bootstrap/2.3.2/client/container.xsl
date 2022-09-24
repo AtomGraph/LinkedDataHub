@@ -207,7 +207,6 @@ exclude-result-prefixes="#all"
     <xsl:template name="bs2:OrderBy">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="container" as="element()"/>
-        <!--<xsl:param name="container-id" as="xs:string"/>-->
         <xsl:param name="class" as="xs:string?"/>
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="predicate" as="xs:anyURI"/>
@@ -225,22 +224,27 @@ exclude-result-prefixes="#all"
                     <xsl:variable name="resource" select="if ($results) then key('resources', $predicate, $results) else ()" as="element()?"/>
                     <xsl:choose>
                         <xsl:when test="$resource">
+<xsl:message>A</xsl:message>
                             <xsl:value-of>
                                 <xsl:apply-templates select="$resource" mode="ac:label"/>
                             </xsl:value-of>
                         </xsl:when>
                         <!-- attempt to use the fragment as label -->
                         <xsl:when test="contains($predicate, '#') and not(ends-with($predicate, '#'))">
+<xsl:message>B</xsl:message>
                             <xsl:value-of select="substring-after($predicate, '#')"/>
                         </xsl:when>
                         <!-- attempt to use the last path segment as label -->
                         <xsl:when test="string-length(tokenize($predicate, '/')[last()]) &gt; 0">
+<xsl:message>C</xsl:message>
                             <xsl:value-of select="translate(tokenize($predicate, '/')[last()], '_', ' ')"/>
                         </xsl:when>
                         <xsl:otherwise>
+<xsl:message>D</xsl:message>
                             <xsl:value-of select="$predicate"/>
                         </xsl:otherwise>
                     </xsl:choose>
+                    <xsl:message>OPTION!</xsl:message>
                 </option>
             </xsl:result-document>
         </xsl:for-each>
@@ -452,10 +456,10 @@ exclude-result-prefixes="#all"
                     <xsl:variable name="request" as="item()*">
                         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                             <xsl:call-template name="bs2:OrderBy">
-                                <xsl:with-param name="container" select="id($order-by-container-id, ixsl:page())"/>
+                                <xsl:with-param name="container" select="id('search-service', ixsl:page())"/>
                                 <xsl:with-param name="id" select="$id"/>
                                 <xsl:with-param name="predicate" select="$predicate"/>
-                                <xsl:with-param name="order-by-predicate" select="$order-by-predicate" as="xs:anyURI?"/>
+                                <xsl:with-param name="order-by-predicate" select="$order-by-predicate"/>
                             </xsl:call-template>
                         </ixsl:schedule-action>
                     </xsl:variable>
