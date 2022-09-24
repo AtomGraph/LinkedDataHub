@@ -455,12 +455,12 @@ exclude-result-prefixes="#all"
                 <!-- use the BGPs where the predicate is a URI value and the subject and object are variables -->
                 <xsl:variable name="bgp-triples-map" select="$select-xml//json:map[json:string[@key = 'type'] = 'bgp']/json:array[@key = 'triples']/json:map[json:string[@key = 'subject'] = '?' || $focus-var-name][not(starts-with(json:string[@key = 'predicate'], '?'))][starts-with(json:string[@key = 'object'], '?')]" as="element()*"/>
 <xsl:message>X $container children count: <xsl:value-of select="ixsl:get(ixsl:get(id($order-by-container-id, ixsl:page()), 'children'), 'length')"/></xsl:message>
-                <xsl:for-each select="$bgp-triples-map">
+                <xsl:for-each select="$bgp-triples-map[1]">
                     <xsl:variable name="id" select="generate-id()" as="xs:string"/>
                     <xsl:variable name="predicate" select="json:string[@key = 'predicate']" as="xs:anyURI"/>
                     <xsl:variable name="results-uri" select="ac:build-uri($ldt:base, map{ 'uri': string($predicate), 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
 
-<!--                    <xsl:variable name="request" as="item()*">
+                    <xsl:variable name="request" as="item()*">
                         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                             <xsl:call-template name="bs2:OrderBy">
                                 <xsl:with-param name="container" select="id($order-by-container-id, ixsl:page())"/>
@@ -470,12 +470,7 @@ exclude-result-prefixes="#all"
                             </xsl:call-template>
                         </ixsl:schedule-action>
                     </xsl:variable>
-                    <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>-->
-                    <xsl:for-each select="id('select-children-container-order', ixsl:page())">
-                        <xsl:result-document href="?." method="ixsl:append-content">
-                            <option><xsl:value-of select="$predicate"/></option>
-                        </xsl:result-document>
-                    </xsl:for-each>
+                    <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
                 </xsl:for-each>
                 
 <xsl:message>Z $container children count: <xsl:value-of select="ixsl:get(ixsl:get(id('select-children-container-order', ixsl:page()), 'children'), 'length')"/></xsl:message>
