@@ -247,6 +247,8 @@ exclude-result-prefixes="#all"
                     <xsl:message>OPTION!</xsl:message>
                 </option>
             </xsl:result-document>
+            
+<xsl:message>Y $container children count: <xsl:value-of select="ixsl:get(ixsl:get(id($order-by-container-id, ixsl:page()), 'children'), 'length')"/></xsl:message>
         </xsl:for-each>
     </xsl:template>
     
@@ -407,8 +409,6 @@ exclude-result-prefixes="#all"
                                                 </xsl:value-of>
                                             </option>
                                         </xsl:if>
-                                        <option>WTF</option>
-                                        <xsl:message>WTF</xsl:message>
                                     </select>
 
                                     <xsl:choose>
@@ -449,7 +449,7 @@ exclude-result-prefixes="#all"
                 
                 <!-- use the BGPs where the predicate is a URI value and the subject and object are variables -->
                 <xsl:variable name="bgp-triples-map" select="$select-xml//json:map[json:string[@key = 'type'] = 'bgp']/json:array[@key = 'triples']/json:map[json:string[@key = 'subject'] = '?' || $focus-var-name][not(starts-with(json:string[@key = 'predicate'], '?'))][starts-with(json:string[@key = 'object'], '?')]" as="element()*"/>
-                
+<xsl:message>X $container children count: <xsl:value-of select="ixsl:get(ixsl:get(id($order-by-container-id, ixsl:page()), 'children'), 'length')"/></xsl:message>
                 <xsl:for-each select="$bgp-triples-map">
                     <xsl:variable name="id" select="generate-id()" as="xs:string"/>
                     <xsl:variable name="predicate" select="json:string[@key = 'predicate']" as="xs:anyURI"/>
@@ -458,7 +458,7 @@ exclude-result-prefixes="#all"
                     <xsl:variable name="request" as="item()*">
                         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                             <xsl:call-template name="bs2:OrderBy">
-                                <xsl:with-param name="container" select="id('search-service', ixsl:page())"/>
+                                <xsl:with-param name="container" select="id($order-by-container-id, ixsl:page())"/>
                                 <xsl:with-param name="id" select="$id"/>
                                 <xsl:with-param name="predicate" select="$predicate"/>
                                 <xsl:with-param name="order-by-predicate" select="$order-by-predicate"/>
