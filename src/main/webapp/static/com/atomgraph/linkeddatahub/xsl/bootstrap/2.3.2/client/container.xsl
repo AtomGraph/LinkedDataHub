@@ -375,6 +375,8 @@ exclude-result-prefixes="#all"
         <xsl:choose>
             <!-- container results are already rendered - replace the content of the div -->
             <xsl:when test="$container/div[ul]">
+<xsl:message>W $container children count: <xsl:value-of select="ixsl:get(ixsl:get(id('select-children-container-order', ixsl:page()), 'children'), 'length')"/></xsl:message>
+                
                 <xsl:for-each select="$container/div[ul]">
                     <xsl:result-document href="?." method="ixsl:replace-content">
                         <xsl:call-template name="container-mode">
@@ -470,6 +472,9 @@ exclude-result-prefixes="#all"
                     </xsl:variable>
                     <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
                 </xsl:for-each>
+                
+<xsl:message>Z $container children count: <xsl:value-of select="ixsl:get(ixsl:get(id('select-children-container-order', ixsl:page()), 'children'), 'length')"/></xsl:message>
+
             </xsl:otherwise>
         </xsl:choose>
 
