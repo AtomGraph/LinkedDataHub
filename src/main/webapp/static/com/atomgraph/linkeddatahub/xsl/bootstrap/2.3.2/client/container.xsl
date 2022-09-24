@@ -531,6 +531,7 @@ exclude-result-prefixes="#all"
                 <xsl:with-param name="series" select="$series"/>
             </xsl:call-template>
         </xsl:if>
+<xsl:message terminate="yes">Z1 $container children count: <xsl:value-of select="ixsl:get(ixsl:get(id('select-children-container-order', ixsl:page()), 'children'), 'length')"/></xsl:message>
     </xsl:template>
     
     <xsl:template name="render-container-error">
