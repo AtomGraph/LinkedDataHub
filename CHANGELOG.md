@@ -1,3 +1,7 @@
+## [3.2.15] - 2022-09-24
+### Changed
+- Fixed order by dropdown population for container content
+
 ## [3.2.14] - 2022-09-21
 ### Added
 - WKT geometry support in map layout mode
