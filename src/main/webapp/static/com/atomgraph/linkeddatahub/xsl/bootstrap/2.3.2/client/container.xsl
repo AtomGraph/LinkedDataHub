@@ -460,7 +460,7 @@ exclude-result-prefixes="#all"
                     <xsl:variable name="predicate" select="json:string[@key = 'predicate']" as="xs:anyURI"/>
                     <xsl:variable name="results-uri" select="ac:build-uri($ldt:base, map{ 'uri': string($predicate), 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
 
-                    <xsl:variable name="request" as="item()*">
+<!--                    <xsl:variable name="request" as="item()*">
                         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                             <xsl:call-template name="bs2:OrderBy">
                                 <xsl:with-param name="container" select="id($order-by-container-id, ixsl:page())"/>
@@ -470,7 +470,12 @@ exclude-result-prefixes="#all"
                             </xsl:call-template>
                         </ixsl:schedule-action>
                     </xsl:variable>
-                    <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+                    <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>-->
+                    <xsl:for-each select="$container">
+                        <xsl:result-document href="?." method="ixsl:append-content">
+                            <option><xsl:value-of select="$predicate"/></option>
+                        </xsl:result-document>
+                    </xsl:for-each>
                 </xsl:for-each>
                 
 <xsl:message>Z $container children count: <xsl:value-of select="ixsl:get(ixsl:get(id('select-children-container-order', ixsl:page()), 'children'), 'length')"/></xsl:message>
@@ -1017,7 +1022,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="service-uri" select="if (ixsl:contains(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri), 'service-uri')) then ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri), 'service-uri') else ()" as="xs:anyURI?"/>
         <xsl:variable name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.apps'))" as="element()?"/>
         <xsl:variable name="endpoint" select="($service/sd:endpoint/@rdf:resource/xs:anyURI(.), sd:endpoint())[1]"/>
-<xsl:message>container-order ONCHANGE!</xsl:message>
+
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
         <xsl:variable name="select-xml" as="document-node()">
