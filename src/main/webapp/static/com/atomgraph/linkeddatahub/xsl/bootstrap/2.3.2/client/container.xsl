@@ -214,6 +214,8 @@ exclude-result-prefixes="#all"
         <xsl:variable name="results" select="if (?status = 200 and ?media-type = 'application/rdf+xml') then ?body else ()" as="document-node()?"/>
 
         <xsl:for-each select="$container">
+<xsl:message>bs2:OrderBy</xsl:message>
+
             <xsl:result-document href="?." method="ixsl:append-content">
                 <!-- TO-DO: order options -->
                 <option value="{$predicate}">
@@ -249,6 +251,7 @@ exclude-result-prefixes="#all"
             </xsl:result-document>
             
 <xsl:message>Y $container children count: <xsl:value-of select="ixsl:get(ixsl:get($container, 'children'), 'length')"/></xsl:message>
+<xsl:message>$container parent: <xsl:value-of select="serialize($container/..)"/></xsl:message>
         </xsl:for-each>
     </xsl:template>
     
