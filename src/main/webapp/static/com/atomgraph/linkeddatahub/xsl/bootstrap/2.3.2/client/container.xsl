@@ -366,14 +366,14 @@ exclude-result-prefixes="#all"
             <xsl:result-document href="?." method="ixsl:replace-content">
                 <xsl:call-template name="container-mode">
                     <xsl:with-param name="container-id" select="$content-id"/>
-                    <xsl:with-param name="escaped-content-uri" select="$escaped-content-uri"/>
+                    <!--<xsl:with-param name="escaped-content-uri" select="$escaped-content-uri"/>-->
                     <xsl:with-param name="select-xml" select="$select-xml"/>
                     <xsl:with-param name="endpoint" select="$endpoint"/>
                     <xsl:with-param name="results" select="$results"/>
-                    <xsl:with-param name="order-by-predicate" select="$order-by-predicate"/>
+<!--                    <xsl:with-param name="order-by-predicate" select="$order-by-predicate"/>
                     <xsl:with-param name="desc" select="$desc"/>
                     <xsl:with-param name="default-order-by-predicate" select="$default-order-by-predicate"/>
-                    <xsl:with-param name="default-desc" select="$default-desc"/>
+                    <xsl:with-param name="default-desc" select="$default-desc"/>-->
                     <xsl:with-param name="active-mode" select="$active-mode"/>
                 </xsl:call-template>
             </xsl:result-document>
