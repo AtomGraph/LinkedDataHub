@@ -213,9 +213,10 @@ exclude-result-prefixes="#all"
         <xsl:param name="predicate" as="xs:anyURI"/>
         <xsl:param name="order-by-predicate" as="xs:anyURI?"/>
         <xsl:variable name="results" select="if (?status = 200 and ?media-type = 'application/rdf+xml') then ?body else ()" as="document-node()?"/>
-<xsl:message>ORDER BY</xsl:message>
+
         <xsl:for-each select="id($container-id, ixsl:page())">
             <xsl:result-document href="?." method="ixsl:append-content">
+<xsl:message>ORDER BY append</xsl:message>
                 <!-- TO-DO: order options -->
                 <option value="{$predicate}">
                     <xsl:if test="$predicate = $order-by-predicate">
