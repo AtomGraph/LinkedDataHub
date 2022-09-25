@@ -358,7 +358,7 @@ exclude-result-prefixes="#all"
         <xsl:for-each select="$container">
             <xsl:result-document href="?." method="ixsl:replace-content">
                 <xsl:call-template name="container-mode">
-                    <xsl:with-param name="container-id" select="ixsl:get($container, 'id')"/>
+                    <xsl:with-param name="container-id" select="$content-id"/>
                     <xsl:with-param name="select-xml" select="$select-xml"/>
                     <xsl:with-param name="endpoint" select="$endpoint"/>
                     <xsl:with-param name="results" select="$results"/>
