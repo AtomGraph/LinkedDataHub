@@ -1262,7 +1262,6 @@ if ($desc) then 'descending' else 'ascending': <xsl:value-of select="if ($desc) 
     <xsl:template name="onContainerResultsLoad">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="container" as="element()"/>
-        <xsl:param name="content-id" select="ixsl:get($container/.., 'id')" as="xs:string"/>
         <xsl:param name="container-id" select="ixsl:get($container, 'id')" as="xs:string"/>
         <xsl:param name="escaped-content-uri" select="xs:anyURI(translate($container/@about, '.', '-'))" as="xs:anyURI"/>
         <xsl:param name="content" as="element()?"/>
@@ -1271,7 +1270,11 @@ if ($desc) then 'descending' else 'ascending': <xsl:value-of select="if ($desc) 
         <xsl:param name="focus-var-name" as="xs:string"/>
         <xsl:param name="select-string" as="xs:string"/>
         <xsl:param name="endpoint" as="xs:anyURI"/>
+        <!-- if  the container is full-width row (.row-fluid), render results in the middle column (.span7) -->
+        <xsl:param name="content-container" select="if (contains-token($container/@class, 'row-fluid')) then $container/div[contains-token(@class, 'span7')] else $container" as="element()"/>
+        <xsl:param name="content-id" select="ixsl:get($content-container/.., 'id')" as="xs:string"/>
         <xsl:param name="order-by-container-id" select="$content-id || '-container-order'" as="xs:string?"/>
+        
 <xsl:message>onContainerResultsLoad $content-id: <xsl:value-of select="$content-id"/></xsl:message>
 <xsl:message>onContainerResultsLoad $order-by-container-id: <xsl:value-of select="$order-by-container-id"/></xsl:message>
         <!-- update progress bar -->
@@ -1310,8 +1313,7 @@ if ($desc) then 'descending' else 'ascending': <xsl:value-of select="if ($desc) 
                     <ixsl:set-property name="results" select="$sorted-results" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri)"/>
 
                     <xsl:call-template name="render-container">
-                        <!-- if  the container is full-width row (.row-fluid), render results in the middle column (.span7) -->
-                        <xsl:with-param name="container" select="if (contains-token($container/@class, 'row-fluid')) then $container/div[contains-token(@class, 'span7')] else $container"/>
+                        <xsl:with-param name="container" select="$content-container"/>
                         <xsl:with-param name="escaped-content-uri" select="$escaped-content-uri"/>
                         <xsl:with-param name="content" select="$content"/>
                         <xsl:with-param name="endpoint" select="$endpoint"/>
