@@ -359,6 +359,9 @@ exclude-result-prefixes="#all"
         <xsl:param name="select-xml" as="document-node()"/>
         <xsl:param name="order-by-container-id" select="$content-id || '-container-order'" as="xs:string?"/>
 
+<xsl:message>render-container $content-id: <xsl:value-of select="$content-id"/></xsl:message>
+<xsl:message>render-container $order-by-container-id: <xsl:value-of select="$order-by-container-id"/></xsl:message>
+
         <!-- hide progress bar -->
         <xsl:for-each select="$container//div[@class = 'progress-bar']">
             <ixsl:set-style name="display" select="'none'" object="."/>
@@ -1269,7 +1272,8 @@ if ($desc) then 'descending' else 'ascending': <xsl:value-of select="if ($desc) 
         <xsl:param name="select-string" as="xs:string"/>
         <xsl:param name="endpoint" as="xs:anyURI"/>
         <xsl:param name="order-by-container-id" select="$content-id || '-container-order'" as="xs:string?"/>
-
+<xsl:message>onContainerResultsLoad $content-id: <xsl:value-of select="$content-id"/></xsl:message>
+<xsl:message>onContainerResultsLoad $order-by-container-id: <xsl:value-of select="$order-by-container-id"/></xsl:message>
         <!-- update progress bar -->
         <xsl:for-each select="$container//div[@class = 'bar']">
             <ixsl:set-style name="width" select="'75%'" object="."/>
