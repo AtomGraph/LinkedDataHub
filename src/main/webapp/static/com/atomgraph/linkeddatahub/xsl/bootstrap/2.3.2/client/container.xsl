@@ -1258,6 +1258,7 @@ if ($desc) then 'descending' else 'ascending': <xsl:value-of select="if ($desc) 
     <xsl:template name="onContainerResultsLoad">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="container" as="element()"/>
+        <xsl:param name="content-id" select="ixsl:get($container/.., 'id')" as="xs:string"/>
         <xsl:param name="container-id" select="ixsl:get($container, 'id')" as="xs:string"/>
         <xsl:param name="escaped-content-uri" select="xs:anyURI(translate($container/@about, '.', '-'))" as="xs:anyURI"/>
         <xsl:param name="content" as="element()?"/>
@@ -1266,6 +1267,7 @@ if ($desc) then 'descending' else 'ascending': <xsl:value-of select="if ($desc) 
         <xsl:param name="focus-var-name" as="xs:string"/>
         <xsl:param name="select-string" as="xs:string"/>
         <xsl:param name="endpoint" as="xs:anyURI"/>
+        <xsl:param name="order-by-container-id" select="$content-id || '-container-order'" as="xs:string?"/>
 
         <!-- update progress bar -->
         <xsl:for-each select="$container//div[@class = 'bar']">
