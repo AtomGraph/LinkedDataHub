@@ -444,30 +444,6 @@ exclude-result-prefixes="#all"
                         </div>
                     </xsl:result-document>
                 </xsl:for-each>
-                
-                <!-- use the BGPs where the predicate is a URI value and the subject and object are variables -->
-                <xsl:variable name="bgp-triples-map" select="$select-xml//json:map[json:string[@key = 'type'] = 'bgp']/json:array[@key = 'triples']/json:map[json:string[@key = 'subject'] = '?' || $focus-var-name][not(starts-with(json:string[@key = 'predicate'], '?'))][starts-with(json:string[@key = 'object'], '?')]" as="element()*"/>
-                
-                <xsl:for-each select="$bgp-triples-map">
-                    <xsl:variable name="id" select="generate-id()" as="xs:string"/>
-                    <xsl:variable name="predicate" select="json:string[@key = 'predicate']" as="xs:anyURI"/>
-                    <xsl:variable name="results-uri" select="ac:build-uri($ldt:base, map{ 'uri': string($predicate), 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
-
-                    <xsl:message>THE HELL</xsl:message>
-
-                    <xsl:variable name="request" as="item()*">
-                        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-                            <xsl:call-template name="bs2:OrderBy">
-                                <!--<xsl:with-param name="container" select="id($order-by-container-id, ixsl:page())"/>--> <!-- does not work for some reason -->
-                                <xsl:with-param name="container-id" select="$order-by-container-id"/>
-                                <xsl:with-param name="id" select="$id"/>
-                                <xsl:with-param name="predicate" select="$predicate"/>
-                                <xsl:with-param name="order-by-predicate" select="$order-by-predicate" as="xs:anyURI?"/>
-                            </xsl:call-template>
-                        </ixsl:schedule-action>
-                    </xsl:variable>
-                    <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
-                </xsl:for-each>
             </xsl:otherwise>
         </xsl:choose>
 
@@ -1344,9 +1320,31 @@ if ($desc) then 'descending' else 'ascending': <xsl:value-of select="if ($desc) 
                     </xsl:call-template>
 
                     <xsl:call-template name="ldh:ContentLoaded">
-                        <xsl:with-param name="container" select="id($container-id, ixsl:page())"/> <!-- we need to get a fresh $container state here -->
+                        <xsl:with-param name="container" select="$container"/>
                     </xsl:call-template>
 
+                    <!-- make sure the asynchronous templates below execute after ldh:ContentLoaded -->
+                    <xsl:for-each select="$bgp-triples-map">
+                        <xsl:variable name="id" select="generate-id()" as="xs:string"/>
+                        <xsl:variable name="predicate" select="json:string[@key = 'predicate']" as="xs:anyURI"/>
+                        <xsl:variable name="results-uri" select="ac:build-uri($ldt:base, map{ 'uri': string($predicate), 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
+
+                        <xsl:message>THE HELL</xsl:message>
+
+                        <xsl:variable name="request" as="item()*">
+                            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+                                <xsl:call-template name="bs2:OrderBy">
+                                    <!--<xsl:with-param name="container" select="id($order-by-container-id, ixsl:page())"/>--> <!-- does not work for some reason -->
+                                    <xsl:with-param name="container-id" select="$order-by-container-id"/>
+                                    <xsl:with-param name="id" select="$id"/>
+                                    <xsl:with-param name="predicate" select="$predicate"/>
+                                    <xsl:with-param name="order-by-predicate" select="$order-by-predicate" as="xs:anyURI?"/>
+                                </xsl:call-template>
+                            </ixsl:schedule-action>
+                        </xsl:variable>
+                        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+                    </xsl:for-each>
+                
                     <xsl:for-each select="$container/div[contains-token(@class, 'left-nav')]">
                         <!-- only append facets if they are not already present. TO-DO: more precise check? -->
                         <xsl:if test="not(*)">
