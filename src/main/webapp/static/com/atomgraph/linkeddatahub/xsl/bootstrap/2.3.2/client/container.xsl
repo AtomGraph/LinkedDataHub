@@ -1337,7 +1337,7 @@ if ($desc) then 'descending' else 'ascending': <xsl:value-of select="if ($desc) 
                         <xsl:variable name="request" as="item()*">
                             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                                 <xsl:call-template name="bs2:OrderBy">
-                                    <xsl:with-param name="container" select="if (contains-token($container/@class, 'row-fluid')) then $container/div[contains-token(@class, 'span7')] else $container"/>
+                                    <xsl:with-param name="container" select="id($order-by-container-id, ixsl:page())"/>
                                     <!--<xsl:with-param name="container-id" select="$order-by-container-id"/>-->
                                     <xsl:with-param name="id" select="$id"/>
                                     <xsl:with-param name="predicate" select="$predicate"/>
