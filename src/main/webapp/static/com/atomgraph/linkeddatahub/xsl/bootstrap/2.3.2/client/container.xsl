@@ -1309,7 +1309,7 @@ if ($desc) then 'descending' else 'ascending': <xsl:value-of select="if ($desc) 
                     <xsl:variable name="default-desc" select="$select-xml/json:map/json:array[@key = 'order']/json:map[2]/json:boolean[@key = 'descending']" as="xs:boolean?"/>
                     <xsl:variable name="sorted-results" as="document-node()">
                         <xsl:document>
-                            <xsl:for-each select="$results/rdf:RDF">
+                            <xsl:for-each select="/rdf:RDF">
                                 <xsl:copy>
                                     <xsl:perform-sort select="*">
                                         <!-- sort by $order-by-predicate if it is set (multiple properties might match) -->
