@@ -331,6 +331,7 @@ exclude-result-prefixes="#all"
         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
             <xsl:call-template name="onContainerResultsLoad">
                 <xsl:with-param name="container" select="$container"/>
+                <xsl:with-param name="content-id" select="$container/@id"/>
                 <xsl:with-param name="escaped-content-uri" select="$escaped-content-uri"/>
                 <xsl:with-param name="content" select="$content"/>
                 <xsl:with-param name="active-mode" select="$active-mode"/>
@@ -1094,8 +1095,8 @@ exclude-result-prefixes="#all"
     <xsl:template name="onContainerResultsLoad">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="container" as="element()"/>
-        <xsl:param name="container-id" select="$container/@id" as="xs:string"/>
-        <xsl:param name="escaped-content-uri" select="xs:anyURI(translate($container/@about, '.', '-'))" as="xs:anyURI"/>
+        <xsl:param name="content-id" as="xs:string"/>
+        <xsl:param name="escaped-content-uri" as="xs:anyURI"/>
         <xsl:param name="content" as="element()?"/>
         <xsl:param name="active-mode" as="xs:anyURI"/>
         <xsl:param name="select-xml" as="document-node()"/>
@@ -1104,7 +1105,6 @@ exclude-result-prefixes="#all"
         <xsl:param name="endpoint" as="xs:anyURI"/>
         <!-- if  the container is full-width row (.row-fluid), render results in the middle column (.span7) -->
         <xsl:param name="content-container" select="if (contains-token($container/@class, 'row-fluid')) then $container/div[contains-token(@class, 'span7')] else $container" as="element()"/>
-        <xsl:param name="content-id" select="ixsl:get($content-container/.., 'id')" as="xs:string"/>
         <xsl:param name="order-by-container-id" select="$content-id || '-container-order'" as="xs:string?"/>
         
 <xsl:message>onContainerResultsLoad $content-id: <xsl:value-of select="$content-id"/></xsl:message>
@@ -1279,7 +1279,7 @@ if ($desc) then 'descending' else 'ascending': <xsl:value-of select="if ($desc) 
         
                     <xsl:call-template name="render-container">
                         <xsl:with-param name="container" select="$content-container//div[contains-token(@class, 'container-results')]"/>
-                        <xsl:with-param name="content-id" select="$container-id"/>
+                        <xsl:with-param name="content-id" select="$content-id"/>
                         <xsl:with-param name="escaped-content-uri" select="$escaped-content-uri"/>
                         <xsl:with-param name="content" select="$content"/>
                         <xsl:with-param name="endpoint" select="$endpoint"/>
@@ -1325,7 +1325,7 @@ if ($desc) then 'descending' else 'ascending': <xsl:value-of select="if ($desc) 
                     <xsl:for-each select="$container/div[contains-token(@class, 'left-nav')]">
                         <!-- only append facets if they are not already present. TO-DO: more precise check? -->
                         <xsl:if test="not(*)">
-                            <xsl:variable name="facet-container-id" select="$container-id || '-left-nav'" as="xs:string"/>
+                            <xsl:variable name="facet-container-id" select="$content-id || '-left-nav'" as="xs:string"/>
 
                             <xsl:result-document href="?." method="ixsl:append-content">
                                 <div id="{$facet-container-id}" class="well well-small"/>
@@ -1355,7 +1355,7 @@ if ($desc) then 'descending' else 'ascending': <xsl:value-of select="if ($desc) 
 
                     <!-- only show parallax navigation if the RDF result contains object resources -->
                     <xsl:if test="/rdf:RDF/*/*[@rdf:resource]">
-                        <xsl:variable name="parallax-container-id" select="$container-id || '-right-nav'" as="xs:string"/>
+                        <xsl:variable name="parallax-container-id" select="$content-id || '-right-nav'" as="xs:string"/>
 
                         <!-- create a container for parallax controls in the right-nav, if it doesn't exist yet -->
                         <xsl:if test="not($container/div[contains-token(@class, 'right-nav')]/*)">

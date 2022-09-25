@@ -366,20 +366,6 @@ exclude-result-prefixes="#all"
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
     </xsl:template>
 
-<!--    <xsl:template name="onMapPointerMove">
-        <xsl:param name="event" as="item()"/>
-        <xsl:param name="map" as="item()"/>
-
-        <xsl:choose>
-            <xsl:when test="ixsl:call($map, 'hasFeatureAtPixel', [ ixsl:get($event, 'pixel') ])">
-                <ixsl:set-style name="cursor" select="'pointer'" object="ixsl:call($map, 'getViewport', [])"/>
-            </xsl:when>
-            <xsl:otherwise>
-                <ixsl:set-style name="cursor" select="''" object="ixsl:call($map, 'getViewport', [])"/>
-            </xsl:otherwise>
-        </xsl:choose>
-    </xsl:template>-->
-    
     <xsl:template match="." mode="ixsl:onMapMarkerClick">
         <xsl:param name="event" select="ixsl:event()"/>
         <xsl:param name="map" select="ixsl:get(ixsl:get($event, 'detail'), 'map')"/>
