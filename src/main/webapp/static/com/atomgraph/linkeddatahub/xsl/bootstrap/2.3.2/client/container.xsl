@@ -206,15 +206,15 @@ exclude-result-prefixes="#all"
     
     <xsl:template name="bs2:OrderBy">
         <xsl:context-item as="map(*)" use="required"/>
-        <!--<xsl:param name="container" as="element()"/>-->
-        <xsl:param name="container-id" as="xs:string"/>
+        <xsl:param name="container" as="element()"/>
+        <!--<xsl:param name="container-id" as="xs:string"/>-->
         <xsl:param name="class" as="xs:string?"/>
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="predicate" as="xs:anyURI"/>
         <xsl:param name="order-by-predicate" as="xs:anyURI?"/>
         <xsl:variable name="results" select="if (?status = 200 and ?media-type = 'application/rdf+xml') then ?body else ()" as="document-node()?"/>
 
-        <xsl:for-each select="id($container-id, ixsl:page())">
+        <xsl:for-each select="$container">
             <xsl:result-document href="?." method="ixsl:append-content">
 <xsl:message>ORDER BY append</xsl:message>
                 <!-- TO-DO: order options -->
@@ -1337,8 +1337,8 @@ if ($desc) then 'descending' else 'ascending': <xsl:value-of select="if ($desc) 
                         <xsl:variable name="request" as="item()*">
                             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                                 <xsl:call-template name="bs2:OrderBy">
-                                    <!--<xsl:with-param name="container" select="id($order-by-container-id, ixsl:page())"/>--> <!-- does not work for some reason -->
-                                    <xsl:with-param name="container-id" select="$order-by-container-id"/>
+                                    <xsl:with-param name="container" select="if (contains-token($container/@class, 'row-fluid')) then $container/div[contains-token(@class, 'span7')] else $container"/>
+                                    <!--<xsl:with-param name="container-id" select="$order-by-container-id"/>-->
                                     <xsl:with-param name="id" select="$id"/>
                                     <xsl:with-param name="predicate" select="$predicate"/>
                                     <xsl:with-param name="order-by-predicate" select="$order-by-predicate" as="xs:anyURI?"/>
