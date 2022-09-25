@@ -716,11 +716,11 @@ exclude-result-prefixes="#all"
         
         <!-- deactivate other tabs -->
         <xsl:for-each select="../../li">
-            <ixsl:set-attribute name="class" select="string-join(tokenize(@class, ' ')[not(. = 'active')], ' ')"/>
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active' ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
         <!-- activate this tab -->
         <xsl:for-each select="..">
-            <ixsl:set-attribute name="class" select="'active'"/>
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active' ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
         
         <xsl:call-template name="render-container">
