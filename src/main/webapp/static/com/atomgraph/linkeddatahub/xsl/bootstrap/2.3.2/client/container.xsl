@@ -643,67 +643,44 @@ if ($desc) then 'descending' else 'ascending': <xsl:value-of select="if ($desc) 
 </xsl:message>
         
         <div class="container-results">
-            <xsl:variable name="sorted-results" as="document-node()">
-                <xsl:document>
-                    <xsl:for-each select="$results/rdf:RDF">
-                        <xsl:copy>
-                            <xsl:perform-sort select="*">
-                                <!-- sort by $order-by-predicate if it is set (multiple properties might match) -->
-                                <xsl:sort select="if ($order-by-predicate) then *[concat(namespace-uri(), local-name()) = $order-by-predicate][1]/(text(), @rdf:resource, @rdf:nodeID)[1]/string() else ()" order="{if ($desc) then 'descending' else 'ascending'}"/>
-                                <!-- sort by $default-order-by-predicate if it is set and not equal to $order-by-predicate (multiple properties might match) -->
-                                <xsl:sort select="if ($default-order-by-predicate and not($order-by-predicate = $default-order-by-predicate)) then *[concat(namespace-uri(), local-name()) = $default-order-by-predicate][1]/(text(), @rdf:resource, @rdf:nodeID)[1]/string() else ()" order="{if ($default-desc) then 'descending' else 'ascending'}"/>
-                                <!-- soft by URI/bnode ID otherwise -->
-                                <xsl:sort select="if (@rdf:about) then @rdf:about else @rdf:nodeID" order="{if ($default-desc) then 'descending' else 'ascending'}"/>
-                            </xsl:perform-sort>
-                        </xsl:copy>
-                    </xsl:for-each>
-                </xsl:document>
-            </xsl:variable>
-            <!-- store sorted results as the current container results -->
-            <ixsl:set-property name="results" select="$sorted-results" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri)"/>
-
-<xsl:message>
-$sorted-results/rdf:RDF/* predicates: <xsl:value-of select="$sorted-results/rdf:RDF/*/(if ($order-by-predicate) then *[concat(namespace-uri(), local-name()) = $order-by-predicate][1]/(text(), @rdf:resource, @rdf:nodeID)[1]/string() else ())"/>
-$sorted-results: <xsl:value-of select="serialize($sorted-results)"/>
-</xsl:message>
             <xsl:choose>
                 <xsl:when test="$active-mode = '&ac;ListMode'">
-                    <xsl:apply-templates select="$sorted-results" mode="bs2:ContainerBlockList">
+                    <xsl:apply-templates select="$results" mode="bs2:ContainerBlockList">
                         <xsl:with-param name="select-xml" select="$select-xml"/>
                         <xsl:with-param name="endpoint" select="if (not($endpoint = sd:endpoint())) then $endpoint else ()" tunnel="yes"/>
                     </xsl:apply-templates>
                 </xsl:when>
                 <xsl:when test="$active-mode = '&ac;TableMode'">
-                    <xsl:apply-templates select="$sorted-results" mode="bs2:ContainerTable">
+                    <xsl:apply-templates select="$results" mode="bs2:ContainerTable">
                         <xsl:with-param name="select-xml" select="$select-xml"/>
                         <xsl:with-param name="endpoint" select="if (not($endpoint = sd:endpoint())) then $endpoint else ()" tunnel="yes"/>
                     </xsl:apply-templates>
                 </xsl:when>
                 <xsl:when test="$active-mode = '&ac;GridMode'">
-                    <xsl:apply-templates select="$sorted-results" mode="bs2:ContainerGrid">
+                    <xsl:apply-templates select="$results" mode="bs2:ContainerGrid">
                         <xsl:with-param name="select-xml" select="$select-xml"/>
                         <xsl:with-param name="endpoint" select="if (not($endpoint = sd:endpoint())) then $endpoint else ()" tunnel="yes"/>
                     </xsl:apply-templates>
                 </xsl:when>
                 <xsl:when test="$active-mode = '&ac;ChartMode'">
-                    <xsl:apply-templates select="$sorted-results" mode="bs2:Chart">
+                    <xsl:apply-templates select="$results" mode="bs2:Chart">
                         <xsl:with-param name="canvas-id" select="$container-id || '-chart-canvas'"/>
                         <xsl:with-param name="endpoint" select="if (not($endpoint = sd:endpoint())) then $endpoint else ()" tunnel="yes"/>
                     </xsl:apply-templates>
                 </xsl:when>
                 <xsl:when test="$active-mode = '&ac;MapMode'">
-                    <xsl:apply-templates select="$sorted-results" mode="bs2:Map">
+                    <xsl:apply-templates select="$results" mode="bs2:Map">
                         <xsl:with-param name="canvas-id" select="$container-id || '-map-canvas'"/>
                         <xsl:with-param name="endpoint" select="if (not($endpoint = sd:endpoint())) then $endpoint else ()" tunnel="yes"/>
                     </xsl:apply-templates>
                 </xsl:when>
                 <xsl:when test="$active-mode = '&ac;GraphMode'">
-                    <xsl:apply-templates select="$sorted-results" mode="bs2:Graph">
+                    <xsl:apply-templates select="$results" mode="bs2:Graph">
                         <xsl:with-param name="endpoint" select="if (not($endpoint = sd:endpoint())) then $endpoint else ()" tunnel="yes"/>
                     </xsl:apply-templates>
                 </xsl:when>
                 <xsl:otherwise>
-                    <xsl:apply-templates select="$sorted-results" mode="bs2:Block">
+                    <xsl:apply-templates select="$results" mode="bs2:Block">
                         <xsl:with-param name="endpoint" select="if (not($endpoint = sd:endpoint())) then $endpoint else ()" tunnel="yes"/>
                     </xsl:apply-templates>
                 </xsl:otherwise>
@@ -1322,8 +1299,6 @@ $sorted-results: <xsl:value-of select="serialize($sorted-results)"/>
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
                 <xsl:for-each select="?body">
-                    <ixsl:set-property name="results" select="." object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri)"/>
-
                     <!-- use the BGPs where the predicate is a URI value and the subject and object are variables -->
                     <xsl:variable name="bgp-triples-map" select="$select-xml//json:map[json:string[@key = 'type'] = 'bgp']/json:array[@key = 'triples']/json:map[json:string[@key = 'subject'] = '?' || $focus-var-name][not(starts-with(json:string[@key = 'predicate'], '?'))][starts-with(json:string[@key = 'object'], '?')]" as="element()*"/>
                     <xsl:variable name="order-by-var-name" select="$select-xml/json:map/json:array[@key = 'order']/json:map[1]/json:string[@key = 'expression']/substring-after(., '?')" as="xs:string?"/>
@@ -1332,6 +1307,24 @@ $sorted-results: <xsl:value-of select="serialize($sorted-results)"/>
                     <xsl:variable name="default-order-by-var-name" select="$select-xml/json:map/json:array[@key = 'order']/json:map[2]/json:string[@key = 'expression']/substring-after(., '?')" as="xs:string?"/>
                     <xsl:variable name="default-order-by-predicate" select="$bgp-triples-map[json:string[@key = 'object'] = '?' || $default-order-by-var-name][1]/json:string[@key = 'predicate']" as="xs:anyURI?"/>
                     <xsl:variable name="default-desc" select="$select-xml/json:map/json:array[@key = 'order']/json:map[2]/json:boolean[@key = 'descending']" as="xs:boolean?"/>
+                    <xsl:variable name="sorted-results" as="document-node()">
+                        <xsl:document>
+                            <xsl:for-each select="$results/rdf:RDF">
+                                <xsl:copy>
+                                    <xsl:perform-sort select="*">
+                                        <!-- sort by $order-by-predicate if it is set (multiple properties might match) -->
+                                        <xsl:sort select="if ($order-by-predicate) then *[concat(namespace-uri(), local-name()) = $order-by-predicate][1]/(text(), @rdf:resource, @rdf:nodeID)[1]/string() else ()" order="{if ($desc) then 'descending' else 'ascending'}"/>
+                                        <!-- sort by $default-order-by-predicate if it is set and not equal to $order-by-predicate (multiple properties might match) -->
+                                        <xsl:sort select="if ($default-order-by-predicate and not($order-by-predicate = $default-order-by-predicate)) then *[concat(namespace-uri(), local-name()) = $default-order-by-predicate][1]/(text(), @rdf:resource, @rdf:nodeID)[1]/string() else ()" order="{if ($default-desc) then 'descending' else 'ascending'}"/>
+                                        <!-- soft by URI/bnode ID otherwise -->
+                                        <xsl:sort select="if (@rdf:about) then @rdf:about else @rdf:nodeID" order="{if ($default-desc) then 'descending' else 'ascending'}"/>
+                                    </xsl:perform-sort>
+                                </xsl:copy>
+                            </xsl:for-each>
+                        </xsl:document>
+                    </xsl:variable>
+                    <!-- store sorted results as the current container results -->
+                    <ixsl:set-property name="results" select="$sorted-results" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri)"/>
 
                     <xsl:call-template name="render-container">
                         <!-- if  the container is full-width row (.row-fluid), render results in the middle column (.span7) -->
@@ -1339,7 +1332,7 @@ $sorted-results: <xsl:value-of select="serialize($sorted-results)"/>
                         <xsl:with-param name="escaped-content-uri" select="$escaped-content-uri"/>
                         <xsl:with-param name="content" select="$content"/>
                         <xsl:with-param name="endpoint" select="$endpoint"/>
-                        <xsl:with-param name="results" select="."/>
+                        <xsl:with-param name="results" select="$sorted-results"/>
                         <xsl:with-param name="focus-var-name" select="$focus-var-name"/>
                         <xsl:with-param name="order-by-predicate" select="$order-by-predicate"/>
                         <xsl:with-param name="desc" select="$desc"/>
@@ -1399,7 +1392,7 @@ $sorted-results: <xsl:value-of select="serialize($sorted-results)"/>
                         </xsl:if>
 
                         <xsl:call-template name="bs2:Parallax">
-                            <xsl:with-param name="results" select="."/>
+                            <xsl:with-param name="results" select="$sorted-results"/>
                             <xsl:with-param name="select-xml" select="$select-xml"/>
                             <xsl:with-param name="endpoint" select="$endpoint"/>
                             <xsl:with-param name="container" select="id($parallax-container-id, ixsl:page())"/>
