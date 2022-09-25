@@ -344,28 +344,25 @@ exclude-result-prefixes="#all"
     
     <xsl:template name="render-container">
         <xsl:param name="container" as="element()"/>
-        <xsl:param name="content-id" select="ixsl:get($container/.., 'id')" as="xs:string"/>
+        <!--<xsl:param name="content-id" select="ixsl:get($container/.., 'id')" as="xs:string"/>-->
         <xsl:param name="escaped-content-uri" select="xs:anyURI(translate($container/@about, '.', '-'))" as="xs:anyURI"/>
         <xsl:param name="endpoint" as="xs:anyURI"/>
         <xsl:param name="content" as="element()?"/>
         <xsl:param name="results" as="document-node()"/>
         <xsl:param name="focus-var-name" as="xs:string"/>
-        <xsl:param name="order-by-predicate" as="xs:anyURI?"/>
+<!--        <xsl:param name="order-by-predicate" as="xs:anyURI?"/>
         <xsl:param name="desc" as="xs:boolean?"/>
         <xsl:param name="default-order-by-predicate" as="xs:anyURI?"/>
         <xsl:param name="default-order-by-var-name" as="xs:string?"/>
-        <xsl:param name="default-desc" as="xs:boolean?"/>
+        <xsl:param name="default-desc" as="xs:boolean?"/>-->
         <xsl:param name="active-mode" as="xs:anyURI"/>
         <xsl:param name="select-xml" as="document-node()"/>
-        <xsl:param name="order-by-container-id" select="$content-id || '-container-order'" as="xs:string?"/>
-
-<xsl:message>render-container $content-id: <xsl:value-of select="$content-id"/></xsl:message>
-<xsl:message>render-container $order-by-container-id: <xsl:value-of select="$order-by-container-id"/></xsl:message>
+        <!--<xsl:param name="order-by-container-id" select="$content-id || '-container-order'" as="xs:string?"/>-->
  
         <xsl:for-each select="$container">
             <xsl:result-document href="?." method="ixsl:replace-content">
                 <xsl:call-template name="container-mode">
-                    <xsl:with-param name="container-id" select="$content-id"/>
+                    <xsl:with-param name="container-id" select="ixsl:get($container, 'id')"/>
                     <!--<xsl:with-param name="escaped-content-uri" select="$escaped-content-uri"/>-->
                     <xsl:with-param name="select-xml" select="$select-xml"/>
                     <xsl:with-param name="endpoint" select="$endpoint"/>
@@ -1269,7 +1266,7 @@ exclude-result-prefixes="#all"
                                         </li>
                                     </ul>
                                     
-                                    <div class="container-results"></div>
+                                    <div id="{generate-id($container) || '-container-results'}" class="container-results"></div>
                                 </div>
                             </xsl:result-document>
                         </xsl:for-each>
@@ -1282,11 +1279,11 @@ exclude-result-prefixes="#all"
                         <xsl:with-param name="endpoint" select="$endpoint"/>
                         <xsl:with-param name="results" select="$sorted-results"/>
                         <xsl:with-param name="focus-var-name" select="$focus-var-name"/>
-                        <xsl:with-param name="order-by-predicate" select="$order-by-predicate"/>
+<!--                        <xsl:with-param name="order-by-predicate" select="$order-by-predicate"/>
                         <xsl:with-param name="desc" select="$desc"/>
                         <xsl:with-param name="default-order-by-var-name" select="$default-order-by-var-name"/>
                         <xsl:with-param name="default-order-by-predicate" select="$default-order-by-predicate"/>
-                        <xsl:with-param name="default-desc" select="$default-desc"/>
+                        <xsl:with-param name="default-desc" select="$default-desc"/>-->
                         <xsl:with-param name="select-xml" select="$select-xml"/>
                         <xsl:with-param name="active-mode" select="$active-mode"/>
                     </xsl:call-template>
