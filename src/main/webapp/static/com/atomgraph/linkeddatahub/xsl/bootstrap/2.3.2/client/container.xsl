@@ -206,15 +206,14 @@ exclude-result-prefixes="#all"
     
     <xsl:template name="bs2:OrderBy">
         <xsl:context-item as="map(*)" use="required"/>
-        <!--<xsl:param name="container" as="element()"/>-->
-        <xsl:param name="container-id" as="xs:string"/>
+        <xsl:param name="container" as="element()"/>
         <xsl:param name="class" as="xs:string?"/>
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="predicate" as="xs:anyURI"/>
         <xsl:param name="order-by-predicate" as="xs:anyURI?"/>
         <xsl:variable name="results" select="if (?status = 200 and ?media-type = 'application/rdf+xml') then ?body else ()" as="document-node()?"/>
 
-        <xsl:for-each select="id($container-id, ixsl:page())">
+        <xsl:for-each select="$container">
             <xsl:result-document href="?." method="ixsl:append-content">
                 <!-- TO-DO: order options -->
                 <option value="{$predicate}">
@@ -330,6 +329,7 @@ exclude-result-prefixes="#all"
         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
             <xsl:call-template name="onContainerResultsLoad">
                 <xsl:with-param name="container" select="$container"/>
+                <xsl:with-param name="content-id" select="$container/@id"/>
                 <xsl:with-param name="escaped-content-uri" select="$escaped-content-uri"/>
                 <xsl:with-param name="content" select="$content"/>
                 <xsl:with-param name="active-mode" select="$active-mode"/>
@@ -343,127 +343,26 @@ exclude-result-prefixes="#all"
     
     <xsl:template name="render-container">
         <xsl:param name="container" as="element()"/>
-        <xsl:param name="content-id" select="ixsl:get($container/.., 'id')" as="xs:string"/>
-        <xsl:param name="escaped-content-uri" select="xs:anyURI(translate($container/@about, '.', '-'))" as="xs:anyURI"/>
+        <xsl:param name="content-id" as="xs:string"/>
+        <xsl:param name="escaped-content-uri" as="xs:anyURI"/>
         <xsl:param name="endpoint" as="xs:anyURI"/>
         <xsl:param name="content" as="element()?"/>
         <xsl:param name="results" as="document-node()"/>
         <xsl:param name="focus-var-name" as="xs:string"/>
-        <xsl:param name="order-by-predicate" as="xs:anyURI?"/>
-        <xsl:param name="desc" as="xs:boolean?"/>
-        <xsl:param name="default-order-by-predicate" as="xs:anyURI?"/>
-        <xsl:param name="default-order-by-var-name" as="xs:string?"/>
-        <xsl:param name="default-desc" as="xs:boolean?"/>
         <xsl:param name="active-mode" as="xs:anyURI"/>
         <xsl:param name="select-xml" as="document-node()"/>
-        <xsl:param name="order-by-container-id" select="$content-id || '-container-order'" as="xs:string?"/>
 
-        <!-- hide progress bar -->
-        <xsl:for-each select="$container//div[@class = 'progress-bar']">
-            <ixsl:set-style name="display" select="'none'" object="."/>
+        <xsl:for-each select="$container">
+            <xsl:result-document href="?." method="ixsl:replace-content">
+                <xsl:call-template name="container-mode">
+                    <xsl:with-param name="container-id" select="$content-id"/>
+                    <xsl:with-param name="select-xml" select="$select-xml"/>
+                    <xsl:with-param name="endpoint" select="$endpoint"/>
+                    <xsl:with-param name="results" select="$results"/>
+                    <xsl:with-param name="active-mode" select="$active-mode"/>
+                </xsl:call-template>
+            </xsl:result-document>
         </xsl:for-each>
-                
-        <xsl:choose>
-            <!-- container results are already rendered - replace the content of the div -->
-            <xsl:when test="$container/div[ul]">
-                <xsl:for-each select="$container/div[ul]">
-                    <xsl:result-document href="?." method="ixsl:replace-content">
-                        <xsl:call-template name="container-mode">
-                            <xsl:with-param name="container-id" select="$content-id"/>
-                            <xsl:with-param name="select-xml" select="$select-xml"/>
-                            <xsl:with-param name="endpoint" select="$endpoint"/>
-                            <xsl:with-param name="results" select="$results"/>
-                            <xsl:with-param name="order-by-predicate" select="$order-by-predicate"/>
-                            <xsl:with-param name="desc" select="$desc"/>
-                            <xsl:with-param name="default-order-by-predicate" select="$default-order-by-predicate"/>
-                            <xsl:with-param name="default-desc" select="$default-desc"/>
-                            <xsl:with-param name="active-mode" select="$active-mode"/>
-                        </xsl:call-template>
-                    </xsl:result-document>
-                </xsl:for-each>
-            </xsl:when>
-            <!-- first time rendering the container results -->
-            <xsl:otherwise>
-                <xsl:for-each select="$container">
-                    <xsl:result-document href="?." method="ixsl:replace-content">
-                        <div class="pull-right">
-                            <form class="form-inline">
-                                <label for="{$order-by-container-id}">
-                                    <!-- currently no space for the label in the layout -->
-                                    <!--<xsl:text>Order by </xsl:text>-->
-
-                                    <select id="{$order-by-container-id}" name="order-by" class="input-medium container-order">
-                                        <!-- show the default option if the container query does not have an ORDER BY -->
-                                        <xsl:if test="not($select-xml/json:map/json:array[@key = 'order'])">
-                                            <option>
-                                                <xsl:value-of>
-                                                    <xsl:text>[</xsl:text>
-                                                    <xsl:apply-templates select="key('resources', 'none', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                                                    <xsl:text>]</xsl:text>
-                                                </xsl:value-of>
-                                            </option>
-                                        </xsl:if>
-                                    </select>
-
-                                    <xsl:choose>
-                                        <xsl:when test="not($desc)">
-                                            <button type="button" class="btn btn-order-by">
-                                                <xsl:value-of>
-                                                    <xsl:apply-templates select="key('resources', 'ascending', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                                                </xsl:value-of>
-                                            </button>
-                                        </xsl:when>
-                                        <xsl:otherwise>
-                                            <button type="button" class="btn btn-order-by btn-order-by-desc">
-                                                <xsl:value-of>
-                                                    <xsl:apply-templates select="key('resources', 'descending', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                                                </xsl:value-of>
-                                            </button>
-                                        </xsl:otherwise>
-                                    </xsl:choose>
-                                </label>
-                            </form>
-                        </div>
-
-                        <div>
-                            <xsl:call-template name="container-mode">
-                                <xsl:with-param name="container-id" select="$content-id"/>
-                                <xsl:with-param name="select-xml" select="$select-xml"/>
-                                <xsl:with-param name="endpoint" select="$endpoint"/>
-                                <xsl:with-param name="results" select="$results"/>
-                                <xsl:with-param name="order-by-predicate" select="$order-by-predicate"/>
-                                <xsl:with-param name="desc" select="$desc"/>
-                                <xsl:with-param name="default-order-by-predicate" select="$default-order-by-predicate"/>
-                                <xsl:with-param name="default-desc" select="$default-desc"/>
-                                <xsl:with-param name="active-mode" select="$active-mode"/>
-                            </xsl:call-template>
-                        </div>
-                    </xsl:result-document>
-                </xsl:for-each>
-                
-                <!-- use the BGPs where the predicate is a URI value and the subject and object are variables -->
-                <xsl:variable name="bgp-triples-map" select="$select-xml//json:map[json:string[@key = 'type'] = 'bgp']/json:array[@key = 'triples']/json:map[json:string[@key = 'subject'] = '?' || $focus-var-name][not(starts-with(json:string[@key = 'predicate'], '?'))][starts-with(json:string[@key = 'object'], '?')]" as="element()*"/>
-                
-                <xsl:for-each select="$bgp-triples-map">
-                    <xsl:variable name="id" select="generate-id()" as="xs:string"/>
-                    <xsl:variable name="predicate" select="json:string[@key = 'predicate']" as="xs:anyURI"/>
-                    <xsl:variable name="results-uri" select="ac:build-uri($ldt:base, map{ 'uri': string($predicate), 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
-
-                    <xsl:variable name="request" as="item()*">
-                        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-                            <xsl:call-template name="bs2:OrderBy">
-                                <!--<xsl:with-param name="container" select="id($order-by-container-id, ixsl:page())"/>--> <!-- does not work for some reason -->
-                                <xsl:with-param name="container-id" select="$order-by-container-id"/>
-                                <xsl:with-param name="id" select="$id"/>
-                                <xsl:with-param name="predicate" select="$predicate"/>
-                                <xsl:with-param name="order-by-predicate" select="$order-by-predicate" as="xs:anyURI?"/>
-                            </xsl:call-template>
-                        </ixsl:schedule-action>
-                    </xsl:variable>
-                    <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
-                </xsl:for-each>
-            </xsl:otherwise>
-        </xsl:choose>
 
         <!-- after we've created the map container element, create the JS objects using it -->
         <xsl:if test="$active-mode = '&ac;MapMode'">
@@ -546,145 +445,50 @@ exclude-result-prefixes="#all"
         <xsl:param name="select-xml" as="document-node()"/>
         <xsl:param name="endpoint" as="xs:anyURI"/>
         <xsl:param name="results" as="document-node()"/>
-        <xsl:param name="order-by-predicate" as="xs:anyURI?"/>
-        <xsl:param name="desc" as="xs:boolean?"/>
-        <xsl:param name="default-order-by-predicate" as="xs:anyURI?"/>
-        <xsl:param name="default-desc" as="xs:boolean?"/>
         <xsl:param name="active-mode" select="xs:anyURI('&ac;ListMode')" as="xs:anyURI"/>
         
-        <ul class="nav nav-tabs">
-            <li class="read-mode">
-                <xsl:if test="$active-mode = '&ac;ReadMode'">
-                    <xsl:attribute name="class" select="'read-mode active'"/>
-                </xsl:if>
-
-                <a>
-                    <xsl:apply-templates select="key('resources', '&ac;ReadMode', document(ac:document-uri('&ac;')))" mode="ldh:logo"/>
-                    <xsl:apply-templates select="key('resources', '&ac;ReadMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
-                </a>
-            </li>
-            <li class="list-mode">
-                <xsl:if test="$active-mode = '&ac;ListMode'">
-                    <xsl:attribute name="class" select="'list-mode active'"/>
-                </xsl:if>
-
-                <a>
-                    <xsl:apply-templates select="key('resources', '&ac;ListMode', document(ac:document-uri('&ac;')))" mode="ldh:logo"/>
-                    <xsl:apply-templates select="key('resources', '&ac;ListMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
-                </a>
-            </li>
-            <li class="table-mode">
-                <xsl:if test="$active-mode = '&ac;TableMode'">
-                    <xsl:attribute name="class" select="'table-mode active'"/>
-                </xsl:if>
-
-                <a>
-                    <xsl:apply-templates select="key('resources', '&ac;TableMode', document(ac:document-uri('&ac;')))" mode="ldh:logo"/>
-                    <xsl:apply-templates select="key('resources', '&ac;TableMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
-                </a>
-            </li>
-            <li class="grid-mode">
-                <xsl:if test="$active-mode = '&ac;GridMode'">
-                    <xsl:attribute name="class" select="'grid-mode active'"/>
-                </xsl:if>
-
-                <a>
-                    <xsl:apply-templates select="key('resources', '&ac;GridMode', document(ac:document-uri('&ac;')))" mode="ldh:logo"/>
-                    <xsl:apply-templates select="key('resources', '&ac;GridMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
-                </a>
-            </li>
-            <li class="chart-mode">
-                <xsl:if test="$active-mode = '&ac;ChartMode'">
-                    <xsl:attribute name="class" select="'chart-mode active'"/>
-                </xsl:if>
-
-                <a>
-                    <xsl:apply-templates select="key('resources', '&ac;ChartMode', document(ac:document-uri('&ac;')))" mode="ldh:logo"/>
-                    <xsl:apply-templates select="key('resources', '&ac;ChartMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
-                </a>
-            </li>
-            <li class="map-mode">
-                <xsl:if test="$active-mode = '&ac;MapMode'">
-                    <xsl:attribute name="class" select="'map-mode active'"/>
-                </xsl:if>
-
-                <a>
-                    <xsl:apply-templates select="key('resources', '&ac;MapMode', document(ac:document-uri('&ac;')))" mode="ldh:logo"/>
-                    <xsl:apply-templates select="key('resources', '&ac;MapMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
-                </a>
-            </li>
-            <li class="graph-mode">
-                <xsl:if test="$active-mode = '&ac;GraphMode'">
-                    <xsl:attribute name="class" select="'graph-mode active'"/>
-                </xsl:if>
-
-                <a>
-                    <xsl:apply-templates select="key('resources', '&ac;GraphMode', document(ac:document-uri('&ac;')))" mode="ldh:logo"/>
-                    <xsl:apply-templates select="key('resources', '&ac;GraphMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
-                </a>
-            </li>
-        </ul>
-
-        <div class="container-results">
-            <xsl:variable name="sorted-results" as="document-node()">
-                <xsl:document>
-                    <xsl:for-each select="$results/rdf:RDF">
-                        <xsl:copy>
-                            <xsl:perform-sort select="*">
-                                <!-- sort by $order-by-predicate if it is set (multiple properties might match) -->
-                                <xsl:sort select="if ($order-by-predicate) then *[concat(namespace-uri(), local-name()) = $order-by-predicate][1] else ()" order="{if ($desc) then 'descending' else 'ascending'}"/>
-                                <!-- sort by $default-order-by-predicate if it is set and not equal to $order-by-predicate (multiple properties might match) -->
-                                <xsl:sort select="if ($default-order-by-predicate and not($order-by-predicate = $default-order-by-predicate)) then *[concat(namespace-uri(), local-name()) = $default-order-by-predicate][1] else ()" order="{if ($default-desc) then 'descending' else 'ascending'}"/>
-                                <!-- soft by URI/bnode ID otherwise -->
-                                <xsl:sort select="if (@rdf:about) then @rdf:about else @rdf:nodeID"/>
-                            </xsl:perform-sort>
-                        </xsl:copy>
-                    </xsl:for-each>
-                </xsl:document>
-            </xsl:variable>
-            <xsl:choose>
-                <xsl:when test="$active-mode = '&ac;ListMode'">
-                    <xsl:apply-templates select="$sorted-results" mode="bs2:ContainerBlockList">
-                        <xsl:with-param name="select-xml" select="$select-xml"/>
-                        <xsl:with-param name="endpoint" select="if (not($endpoint = sd:endpoint())) then $endpoint else ()" tunnel="yes"/>
-                    </xsl:apply-templates>
-                </xsl:when>
-                <xsl:when test="$active-mode = '&ac;TableMode'">
-                    <xsl:apply-templates select="$sorted-results" mode="bs2:ContainerTable">
-                        <xsl:with-param name="select-xml" select="$select-xml"/>
-                        <xsl:with-param name="endpoint" select="if (not($endpoint = sd:endpoint())) then $endpoint else ()" tunnel="yes"/>
-                    </xsl:apply-templates>
-                </xsl:when>
-                <xsl:when test="$active-mode = '&ac;GridMode'">
-                    <xsl:apply-templates select="$sorted-results" mode="bs2:ContainerGrid">
-                        <xsl:with-param name="select-xml" select="$select-xml"/>
-                        <xsl:with-param name="endpoint" select="if (not($endpoint = sd:endpoint())) then $endpoint else ()" tunnel="yes"/>
-                    </xsl:apply-templates>
-                </xsl:when>
-                <xsl:when test="$active-mode = '&ac;ChartMode'">
-                    <xsl:apply-templates select="$sorted-results" mode="bs2:Chart">
-                        <xsl:with-param name="canvas-id" select="$container-id || '-chart-canvas'"/>
-                        <xsl:with-param name="endpoint" select="if (not($endpoint = sd:endpoint())) then $endpoint else ()" tunnel="yes"/>
-                    </xsl:apply-templates>
-                </xsl:when>
-                <xsl:when test="$active-mode = '&ac;MapMode'">
-                    <xsl:apply-templates select="$sorted-results" mode="bs2:Map">
-                        <xsl:with-param name="canvas-id" select="$container-id || '-map-canvas'"/>
-                        <xsl:with-param name="endpoint" select="if (not($endpoint = sd:endpoint())) then $endpoint else ()" tunnel="yes"/>
-                    </xsl:apply-templates>
-                </xsl:when>
-                <xsl:when test="$active-mode = '&ac;GraphMode'">
-                    <xsl:apply-templates select="$sorted-results" mode="bs2:Graph">
-                        <xsl:with-param name="endpoint" select="if (not($endpoint = sd:endpoint())) then $endpoint else ()" tunnel="yes"/>
-                    </xsl:apply-templates>
-                </xsl:when>
-                <xsl:otherwise>
-                    <xsl:apply-templates select="$sorted-results" mode="bs2:Block">
-                        <xsl:with-param name="endpoint" select="if (not($endpoint = sd:endpoint())) then $endpoint else ()" tunnel="yes"/>
-                    </xsl:apply-templates>
-                </xsl:otherwise>
-            </xsl:choose>
-        </div>
+        <xsl:choose>
+            <xsl:when test="$active-mode = '&ac;ListMode'">
+                <xsl:apply-templates select="$results" mode="bs2:ContainerBlockList">
+                    <xsl:with-param name="select-xml" select="$select-xml"/>
+                    <xsl:with-param name="endpoint" select="if (not($endpoint = sd:endpoint())) then $endpoint else ()" tunnel="yes"/>
+                </xsl:apply-templates>
+            </xsl:when>
+            <xsl:when test="$active-mode = '&ac;TableMode'">
+                <xsl:apply-templates select="$results" mode="bs2:ContainerTable">
+                    <xsl:with-param name="select-xml" select="$select-xml"/>
+                    <xsl:with-param name="endpoint" select="if (not($endpoint = sd:endpoint())) then $endpoint else ()" tunnel="yes"/>
+                </xsl:apply-templates>
+            </xsl:when>
+            <xsl:when test="$active-mode = '&ac;GridMode'">
+                <xsl:apply-templates select="$results" mode="bs2:ContainerGrid">
+                    <xsl:with-param name="select-xml" select="$select-xml"/>
+                    <xsl:with-param name="endpoint" select="if (not($endpoint = sd:endpoint())) then $endpoint else ()" tunnel="yes"/>
+                </xsl:apply-templates>
+            </xsl:when>
+            <xsl:when test="$active-mode = '&ac;ChartMode'">
+                <xsl:apply-templates select="$results" mode="bs2:Chart">
+                    <xsl:with-param name="canvas-id" select="$container-id || '-chart-canvas'"/>
+                    <xsl:with-param name="endpoint" select="if (not($endpoint = sd:endpoint())) then $endpoint else ()" tunnel="yes"/>
+                </xsl:apply-templates>
+            </xsl:when>
+            <xsl:when test="$active-mode = '&ac;MapMode'">
+                <xsl:apply-templates select="$results" mode="bs2:Map">
+                    <xsl:with-param name="canvas-id" select="$container-id || '-map-canvas'"/>
+                    <xsl:with-param name="endpoint" select="if (not($endpoint = sd:endpoint())) then $endpoint else ()" tunnel="yes"/>
+                </xsl:apply-templates>
+            </xsl:when>
+            <xsl:when test="$active-mode = '&ac;GraphMode'">
+                <xsl:apply-templates select="$results" mode="bs2:Graph">
+                    <xsl:with-param name="endpoint" select="if (not($endpoint = sd:endpoint())) then $endpoint else ()" tunnel="yes"/>
+                </xsl:apply-templates>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:apply-templates select="$results" mode="bs2:Block">
+                    <xsl:with-param name="endpoint" select="if (not($endpoint = sd:endpoint())) then $endpoint else ()" tunnel="yes"/>
+                </xsl:apply-templates>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:template>
     
     <!-- facets -->
@@ -780,6 +584,27 @@ exclude-result-prefixes="#all"
 
     <!-- grid -->
 
+    <!-- override Web-Client's template to avoid sort by ac:label() -->
+    <xsl:template match="rdf:RDF" mode="bs2:Grid">
+        <xsl:param name="thumbnails-per-row" select="2" as="xs:integer"/>
+        <xsl:param name="sort-property" as="xs:anyURI?"/>
+
+        <xsl:variable name="prelim-items" as="item()*">
+            <xsl:apply-templates mode="#current">
+                <xsl:with-param name="thumbnails-per-row" select="$thumbnails-per-row" tunnel="yes"/>
+            </xsl:apply-templates>
+        </xsl:variable>
+        <xsl:variable name="items" select="$prelim-items/self::*" as="element()*"/>
+        
+        <xsl:for-each-group select="$items" group-adjacent="(position() - 1) idiv $thumbnails-per-row">
+            <div class="row-fluid">
+                <ul class="thumbnails">
+                    <xsl:copy-of select="current-group()"/>
+                </ul>
+            </div>
+        </xsl:for-each-group>
+    </xsl:template>
+    
     <xsl:template match="rdf:RDF" mode="bs2:ContainerGrid" use-when="system-property('xsl:product-name') eq 'SaxonJS'">
         <xsl:param name="select-xml" as="document-node()"/>
         <xsl:variable name="result-count" select="count(rdf:Description)" as="xs:integer"/>
@@ -878,7 +703,7 @@ exclude-result-prefixes="#all"
     
     <xsl:template match="*[contains-token(@class, 'resource-content')]//div/ul[@class = 'nav nav-tabs']/li[not(contains-token(@class, 'active'))]/a" mode="ixsl:onclick">
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'resource-content')]" as="element()"/>
-        <xsl:variable name="results-container" select="$container/div[@class = 'span7']" as="element()"/> <!-- results in the middle column -->
+        <xsl:variable name="results-container" select="$container//div[contains-token(@class, 'container-results')]" as="element()"/> <!-- results in the middle column -->
         <xsl:variable name="escaped-content-uri" select="xs:anyURI(translate($container/@about, '.', '-'))" as="xs:anyURI"/>
         <xsl:variable name="content" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri), 'content')" as="element()"/>
         <xsl:variable name="active-class" select="../@class" as="xs:string"/>
@@ -887,9 +712,19 @@ exclude-result-prefixes="#all"
         <xsl:variable name="service-uri" select="if (ixsl:contains(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri), 'service-uri')) then ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri), 'service-uri') else ()" as="xs:anyURI?"/>
         <xsl:variable name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.apps'))" as="element()?"/>
         <xsl:variable name="endpoint" select="($service/sd:endpoint/@rdf:resource/xs:anyURI(.), sd:endpoint())[1]"/>
-
+        
+        <!-- deactivate other tabs -->
+        <xsl:for-each select="../../li">
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+        </xsl:for-each>
+        <!-- activate this tab -->
+        <xsl:for-each select="..">
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+        </xsl:for-each>
+        
         <xsl:call-template name="render-container">
             <xsl:with-param name="container" select="$results-container"/>
+            <xsl:with-param name="content-id" select="$container/@id"/>
             <xsl:with-param name="escaped-content-uri" select="$escaped-content-uri"/>
             <xsl:with-param name="content" select="$content"/>
             <xsl:with-param name="results" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri), 'results')"/>
@@ -1256,15 +1091,18 @@ exclude-result-prefixes="#all"
     <xsl:template name="onContainerResultsLoad">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="container" as="element()"/>
-        <xsl:param name="container-id" select="ixsl:get($container, 'id')" as="xs:string"/>
-        <xsl:param name="escaped-content-uri" select="xs:anyURI(translate($container/@about, '.', '-'))" as="xs:anyURI"/>
+        <xsl:param name="content-id" as="xs:string"/>
+        <xsl:param name="escaped-content-uri" as="xs:anyURI"/>
         <xsl:param name="content" as="element()?"/>
         <xsl:param name="active-mode" as="xs:anyURI"/>
         <xsl:param name="select-xml" as="document-node()"/>
         <xsl:param name="focus-var-name" as="xs:string"/>
         <xsl:param name="select-string" as="xs:string"/>
         <xsl:param name="endpoint" as="xs:anyURI"/>
-
+        <!-- if  the container is full-width row (.row-fluid), render results in the middle column (.span7) -->
+        <xsl:param name="content-container" select="if (contains-token($container/@class, 'row-fluid')) then $container/div[contains-token(@class, 'span7')] else $container" as="element()"/>
+        <xsl:param name="order-by-container-id" select="$content-id || '-container-order'" as="xs:string?"/>
+        
         <!-- update progress bar -->
         <xsl:for-each select="$container//div[@class = 'bar']">
             <ixsl:set-style name="width" select="'75%'" object="."/>
@@ -1273,12 +1111,6 @@ exclude-result-prefixes="#all"
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
                 <xsl:for-each select="?body">
-                    <!-- group descriptions by subject -->
-                    <xsl:variable name="grouped-results" as="document-node()">
-                        <xsl:apply-templates select="." mode="ac:GroupTriples"/>
-                    </xsl:variable>
-                    <ixsl:set-property name="results" select="$grouped-results" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri)"/>
-
                     <!-- use the BGPs where the predicate is a URI value and the subject and object are variables -->
                     <xsl:variable name="bgp-triples-map" select="$select-xml//json:map[json:string[@key = 'type'] = 'bgp']/json:array[@key = 'triples']/json:map[json:string[@key = 'subject'] = '?' || $focus-var-name][not(starts-with(json:string[@key = 'predicate'], '?'))][starts-with(json:string[@key = 'object'], '?')]" as="element()*"/>
                     <xsl:variable name="order-by-var-name" select="$select-xml/json:map/json:array[@key = 'order']/json:map[1]/json:string[@key = 'expression']/substring-after(., '?')" as="xs:string?"/>
@@ -1287,32 +1119,192 @@ exclude-result-prefixes="#all"
                     <xsl:variable name="default-order-by-var-name" select="$select-xml/json:map/json:array[@key = 'order']/json:map[2]/json:string[@key = 'expression']/substring-after(., '?')" as="xs:string?"/>
                     <xsl:variable name="default-order-by-predicate" select="$bgp-triples-map[json:string[@key = 'object'] = '?' || $default-order-by-var-name][1]/json:string[@key = 'predicate']" as="xs:anyURI?"/>
                     <xsl:variable name="default-desc" select="$select-xml/json:map/json:array[@key = 'order']/json:map[2]/json:boolean[@key = 'descending']" as="xs:boolean?"/>
+                    <xsl:variable name="sorted-results" as="document-node()">
+                        <xsl:document>
+                            <xsl:for-each select="/rdf:RDF">
+                                <xsl:copy>
+                                    <xsl:perform-sort select="*">
+                                        <!-- sort by $order-by-predicate if it is set (multiple properties might match) -->
+                                        <xsl:sort select="if ($order-by-predicate) then *[concat(namespace-uri(), local-name()) = $order-by-predicate][1]/(text(), @rdf:resource, @rdf:nodeID)[1]/string() else ()" order="{if ($desc) then 'descending' else 'ascending'}"/>
+                                        <!-- sort by $default-order-by-predicate if it is set and not equal to $order-by-predicate (multiple properties might match) -->
+                                        <xsl:sort select="if ($default-order-by-predicate and not($order-by-predicate = $default-order-by-predicate)) then *[concat(namespace-uri(), local-name()) = $default-order-by-predicate][1]/(text(), @rdf:resource, @rdf:nodeID)[1]/string() else ()" order="{if ($default-desc) then 'descending' else 'ascending'}"/>
+                                        <!-- soft by URI/bnode ID otherwise -->
+                                        <xsl:sort select="if (@rdf:about) then @rdf:about else @rdf:nodeID" order="{if ($default-desc) then 'descending' else 'ascending'}"/>
+                                    </xsl:perform-sort>
+                                </xsl:copy>
+                            </xsl:for-each>
+                        </xsl:document>
+                    </xsl:variable>
+                    <!-- store sorted results as the current container results -->
+                    <ixsl:set-property name="results" select="$sorted-results" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri)"/>
 
+                    <xsl:variable name="initial-load" select="empty($content-container/div[ul])" as="xs:boolean"/>
+                    <!-- first time rendering the container results -->
+                    <xsl:if test="$initial-load">
+                        <xsl:for-each select="$content-container">
+                            <xsl:result-document href="?." method="ixsl:replace-content">
+                                <div class="pull-right">
+                                    <form class="form-inline">
+                                        <label for="{$order-by-container-id}">
+                                            <!-- currently no space for the label in the layout -->
+                                            <!--<xsl:text>Order by </xsl:text>-->
+
+                                            <select id="{$order-by-container-id}" name="order-by" class="input-medium container-order">
+                                                <!-- show the default option if the container query does not have an ORDER BY -->
+                                                <xsl:if test="not($select-xml/json:map/json:array[@key = 'order'])">
+                                                    <option>
+                                                        <xsl:value-of>
+                                                            <xsl:text>[</xsl:text>
+                                                            <xsl:apply-templates select="key('resources', 'none', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                                                            <xsl:text>]</xsl:text>
+                                                        </xsl:value-of>
+                                                    </option>
+                                                </xsl:if>
+                                            </select>
+
+                                            <xsl:choose>
+                                                <xsl:when test="not($desc)">
+                                                    <button type="button" class="btn btn-order-by">
+                                                        <xsl:value-of>
+                                                            <xsl:apply-templates select="key('resources', 'ascending', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                                                        </xsl:value-of>
+                                                    </button>
+                                                </xsl:when>
+                                                <xsl:otherwise>
+                                                    <button type="button" class="btn btn-order-by btn-order-by-desc">
+                                                        <xsl:value-of>
+                                                            <xsl:apply-templates select="key('resources', 'descending', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                                                        </xsl:value-of>
+                                                    </button>
+                                                </xsl:otherwise>
+                                            </xsl:choose>
+                                        </label>
+                                    </form>
+                                </div>
+
+                                <div>
+                                    <ul class="nav nav-tabs">
+                                        <li class="read-mode">
+                                            <xsl:if test="$active-mode = '&ac;ReadMode'">
+                                                <xsl:attribute name="class" select="'read-mode active'"/>
+                                            </xsl:if>
+
+                                            <a>
+                                                <xsl:apply-templates select="key('resources', '&ac;ReadMode', document(ac:document-uri('&ac;')))" mode="ldh:logo"/>
+                                                <xsl:apply-templates select="key('resources', '&ac;ReadMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
+                                            </a>
+                                        </li>
+                                        <li class="list-mode">
+                                            <xsl:if test="$active-mode = '&ac;ListMode'">
+                                                <xsl:attribute name="class" select="'list-mode active'"/>
+                                            </xsl:if>
+
+                                            <a>
+                                                <xsl:apply-templates select="key('resources', '&ac;ListMode', document(ac:document-uri('&ac;')))" mode="ldh:logo"/>
+                                                <xsl:apply-templates select="key('resources', '&ac;ListMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
+                                            </a>
+                                        </li>
+                                        <li class="table-mode">
+                                            <xsl:if test="$active-mode = '&ac;TableMode'">
+                                                <xsl:attribute name="class" select="'table-mode active'"/>
+                                            </xsl:if>
+
+                                            <a>
+                                                <xsl:apply-templates select="key('resources', '&ac;TableMode', document(ac:document-uri('&ac;')))" mode="ldh:logo"/>
+                                                <xsl:apply-templates select="key('resources', '&ac;TableMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
+                                            </a>
+                                        </li>
+                                        <li class="grid-mode">
+                                            <xsl:if test="$active-mode = '&ac;GridMode'">
+                                                <xsl:attribute name="class" select="'grid-mode active'"/>
+                                            </xsl:if>
+
+                                            <a>
+                                                <xsl:apply-templates select="key('resources', '&ac;GridMode', document(ac:document-uri('&ac;')))" mode="ldh:logo"/>
+                                                <xsl:apply-templates select="key('resources', '&ac;GridMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
+                                            </a>
+                                        </li>
+                                        <li class="chart-mode">
+                                            <xsl:if test="$active-mode = '&ac;ChartMode'">
+                                                <xsl:attribute name="class" select="'chart-mode active'"/>
+                                            </xsl:if>
+
+                                            <a>
+                                                <xsl:apply-templates select="key('resources', '&ac;ChartMode', document(ac:document-uri('&ac;')))" mode="ldh:logo"/>
+                                                <xsl:apply-templates select="key('resources', '&ac;ChartMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
+                                            </a>
+                                        </li>
+                                        <li class="map-mode">
+                                            <xsl:if test="$active-mode = '&ac;MapMode'">
+                                                <xsl:attribute name="class" select="'map-mode active'"/>
+                                            </xsl:if>
+
+                                            <a>
+                                                <xsl:apply-templates select="key('resources', '&ac;MapMode', document(ac:document-uri('&ac;')))" mode="ldh:logo"/>
+                                                <xsl:apply-templates select="key('resources', '&ac;MapMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
+                                            </a>
+                                        </li>
+                                        <li class="graph-mode">
+                                            <xsl:if test="$active-mode = '&ac;GraphMode'">
+                                                <xsl:attribute name="class" select="'graph-mode active'"/>
+                                            </xsl:if>
+
+                                            <a>
+                                                <xsl:apply-templates select="key('resources', '&ac;GraphMode', document(ac:document-uri('&ac;')))" mode="ldh:logo"/>
+                                                <xsl:apply-templates select="key('resources', '&ac;GraphMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
+                                            </a>
+                                        </li>
+                                    </ul>
+                                    
+                                    <div id="{$content-id || '-container-results'}" class="container-results"></div>
+                                </div>
+                            </xsl:result-document>
+                        </xsl:for-each>
+                        
+                        <xsl:call-template name="ldh:ContentLoaded">
+                            <xsl:with-param name="container" select="$container"/>
+                        </xsl:call-template>
+
+                        <!-- make sure the asynchronous templates below execute after ldh:ContentLoaded -->
+                        <xsl:for-each select="$bgp-triples-map">
+                            <xsl:variable name="id" select="generate-id()" as="xs:string"/>
+                            <xsl:variable name="predicate" select="json:string[@key = 'predicate']" as="xs:anyURI"/>
+                            <xsl:variable name="results-uri" select="ac:build-uri($ldt:base, map{ 'uri': string($predicate), 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
+                            <xsl:variable name="request" as="item()*">
+                                <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+                                    <xsl:call-template name="bs2:OrderBy">
+                                        <xsl:with-param name="container" select="id($order-by-container-id, ixsl:page())"/>
+                                        <xsl:with-param name="id" select="$id"/>
+                                        <xsl:with-param name="predicate" select="$predicate"/>
+                                        <xsl:with-param name="order-by-predicate" select="$order-by-predicate" as="xs:anyURI?"/>
+                                    </xsl:call-template>
+                                </ixsl:schedule-action>
+                            </xsl:variable>
+                            <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+                        </xsl:for-each>
+                    </xsl:if>
+        
                     <xsl:call-template name="render-container">
-                        <!-- if  the container is full-width row (.row-fluid), render results in the middle column (.span7) -->
-                        <xsl:with-param name="container" select="if (contains-token($container/@class, 'row-fluid')) then $container/div[contains-token(@class, 'span7')] else $container"/>
+                        <xsl:with-param name="container" select="$content-container//div[contains-token(@class, 'container-results')]"/>
+                        <xsl:with-param name="content-id" select="$content-id"/>
                         <xsl:with-param name="escaped-content-uri" select="$escaped-content-uri"/>
                         <xsl:with-param name="content" select="$content"/>
                         <xsl:with-param name="endpoint" select="$endpoint"/>
-                        <xsl:with-param name="results" select="$grouped-results"/>
+                        <xsl:with-param name="results" select="$sorted-results"/>
                         <xsl:with-param name="focus-var-name" select="$focus-var-name"/>
-                        <xsl:with-param name="order-by-predicate" select="$order-by-predicate"/>
-                        <xsl:with-param name="desc" select="$desc"/>
-                        <xsl:with-param name="default-order-by-var-name" select="$default-order-by-var-name"/>
-                        <xsl:with-param name="default-order-by-predicate" select="$default-order-by-predicate"/>
-                        <xsl:with-param name="default-desc" select="$default-desc"/>
                         <xsl:with-param name="select-xml" select="$select-xml"/>
                         <xsl:with-param name="active-mode" select="$active-mode"/>
                     </xsl:call-template>
 
-                    <xsl:call-template name="ldh:ContentLoaded">
-                        <xsl:with-param name="container" select="$container"/>
-                    </xsl:call-template>
-
+                    <!-- hide progress bar -->
+                     <xsl:for-each select="$container//div[@class = 'progress-bar']">
+                         <ixsl:set-style name="display" select="'none'" object="."/>
+                     </xsl:for-each>
+                
                     <xsl:for-each select="$container/div[contains-token(@class, 'left-nav')]">
                         <!-- only append facets if they are not already present. TO-DO: more precise check? -->
                         <xsl:if test="not(*)">
-                            <xsl:variable name="facet-container-id" select="$container-id || '-left-nav'" as="xs:string"/>
+                            <xsl:variable name="facet-container-id" select="$content-id || '-left-nav'" as="xs:string"/>
 
                             <xsl:result-document href="?." method="ixsl:append-content">
                                 <div id="{$facet-container-id}" class="well well-small"/>
@@ -1341,8 +1333,8 @@ exclude-result-prefixes="#all"
                     </xsl:if> -->
 
                     <!-- only show parallax navigation if the RDF result contains object resources -->
-                    <xsl:if test="$grouped-results/rdf:RDF/*/*[@rdf:resource]">
-                        <xsl:variable name="parallax-container-id" select="$container-id || '-right-nav'" as="xs:string"/>
+                    <xsl:if test="/rdf:RDF/*/*[@rdf:resource]">
+                        <xsl:variable name="parallax-container-id" select="$content-id || '-right-nav'" as="xs:string"/>
 
                         <!-- create a container for parallax controls in the right-nav, if it doesn't exist yet -->
                         <xsl:if test="not($container/div[contains-token(@class, 'right-nav')]/*)">
@@ -1354,7 +1346,7 @@ exclude-result-prefixes="#all"
                         </xsl:if>
 
                         <xsl:call-template name="bs2:Parallax">
-                            <xsl:with-param name="results" select="$grouped-results"/>
+                            <xsl:with-param name="results" select="$sorted-results"/>
                             <xsl:with-param name="select-xml" select="$select-xml"/>
                             <xsl:with-param name="endpoint" select="$endpoint"/>
                             <xsl:with-param name="container" select="id($parallax-container-id, ixsl:page())"/>
