@@ -216,7 +216,7 @@ exclude-result-prefixes="#all"
 
         <xsl:for-each select="$container">
             <xsl:result-document href="?." method="ixsl:append-content">
-<xsl:message>ORDER BY append</xsl:message>
+
                 <!-- TO-DO: order options -->
                 <option value="{$predicate}">
                     <xsl:if test="$predicate = $order-by-predicate">
@@ -353,7 +353,6 @@ exclude-result-prefixes="#all"
         <xsl:param name="focus-var-name" as="xs:string"/>
         <xsl:param name="active-mode" as="xs:anyURI"/>
         <xsl:param name="select-xml" as="document-node()"/>
-<xsl:message>$content-id: <xsl:value-of select="$content-id"/></xsl:message>
 
         <xsl:for-each select="$container">
             <xsl:result-document href="?." method="ixsl:replace-content">
@@ -390,7 +389,7 @@ exclude-result-prefixes="#all"
             <xsl:variable name="graph-var-name" select="$bgp-triples-map/ancestor::json:map[json:string[@key = 'type'] = 'graph'][1]/json:string[@key = 'name']/substring-after(., '?')" as="xs:string?"/>
 
             <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
-<xsl:message>map $canvas-id: <xsl:value-of select="$content-id || '-map-canvas'"/></xsl:message>
+
             <xsl:call-template name="ldh:LoadGeoResources">
                 <xsl:with-param name="container" select="$container"/>
                 <xsl:with-param name="content-id" select="$content-id"/>
@@ -405,7 +404,6 @@ exclude-result-prefixes="#all"
         </xsl:if>
         <xsl:if test="$active-mode = '&ac;ChartMode'">
             <xsl:variable name="canvas-id" select="$content-id || '-chart-canvas'" as="xs:string"/>
-<xsl:message>chart $canvas-id: <xsl:value-of select="$canvas-id"/></xsl:message>
             <xsl:variable name="chart-type" select="xs:anyURI('&ac;Table')" as="xs:anyURI"/>
             <xsl:variable name="category" as="xs:string?"/>
             <xsl:variable name="series" select="distinct-values($results/*/*/concat(namespace-uri(), local-name()))" as="xs:string*"/>
@@ -1107,8 +1105,6 @@ exclude-result-prefixes="#all"
         <xsl:param name="content-container" select="if (contains-token($container/@class, 'row-fluid')) then $container/div[contains-token(@class, 'span7')] else $container" as="element()"/>
         <xsl:param name="order-by-container-id" select="$content-id || '-container-order'" as="xs:string?"/>
         
-<xsl:message>onContainerResultsLoad $content-id: <xsl:value-of select="$content-id"/></xsl:message>
-<xsl:message>onContainerResultsLoad $order-by-container-id: <xsl:value-of select="$order-by-container-id"/></xsl:message>
         <!-- update progress bar -->
         <xsl:for-each select="$container//div[@class = 'bar']">
             <ixsl:set-style name="width" select="'75%'" object="."/>
@@ -1143,19 +1139,10 @@ exclude-result-prefixes="#all"
                     </xsl:variable>
                     <!-- store sorted results as the current container results -->
                     <ixsl:set-property name="results" select="$sorted-results" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri)"/>
-<xsl:message>
-$order-by-predicate: <xsl:value-of select="$order-by-predicate"/>
-$default-order-by-predicate: <xsl:value-of select="$default-order-by-predicate"/>
-$desc: <xsl:value-of select="$desc"/>
-</xsl:message>
-<xsl:message>
-$sorted-results/rdf:RDF/* predicates: <xsl:value-of select="$sorted-results/rdf:RDF/*/(if ($order-by-predicate) then *[concat(namespace-uri(), local-name()) = $order-by-predicate][1]/(text(), @rdf:resource, @rdf:nodeID)[1]/string() else ())"/>
-if ($desc) then 'descending' else 'ascending': <xsl:value-of select="if ($desc) then 'descending' else 'ascending'"/>
-</xsl:message>
+
                     <xsl:variable name="initial-load" select="empty($content-container/div[ul])" as="xs:boolean"/>
                     <!-- first time rendering the container results -->
                     <xsl:if test="$initial-load">
-                        <xsl:message>CONTAINER FIRST TIME</xsl:message>
                         <xsl:for-each select="$content-container">
                             <xsl:result-document href="?." method="ixsl:replace-content">
                                 <div class="pull-right">
@@ -1285,9 +1272,6 @@ if ($desc) then 'descending' else 'ascending': <xsl:value-of select="if ($desc) 
                             <xsl:variable name="id" select="generate-id()" as="xs:string"/>
                             <xsl:variable name="predicate" select="json:string[@key = 'predicate']" as="xs:anyURI"/>
                             <xsl:variable name="results-uri" select="ac:build-uri($ldt:base, map{ 'uri': string($predicate), 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
-
-                            <xsl:message>THE HELL</xsl:message>
-
                             <xsl:variable name="request" as="item()*">
                                 <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                                     <xsl:call-template name="bs2:OrderBy">
