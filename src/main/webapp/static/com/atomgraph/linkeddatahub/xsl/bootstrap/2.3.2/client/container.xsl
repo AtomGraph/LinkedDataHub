@@ -443,14 +443,9 @@ exclude-result-prefixes="#all"
     
     <xsl:template name="container-mode">
         <xsl:param name="container-id" as="xs:string"/>
-        <!--<xsl:param name="escaped-content-uri" as="xs:anyURI"/>-->
         <xsl:param name="select-xml" as="document-node()"/>
         <xsl:param name="endpoint" as="xs:anyURI"/>
         <xsl:param name="results" as="document-node()"/>
-        <!--<xsl:param name="order-by-predicate" as="xs:anyURI?"/>-->
-        <!--<xsl:param name="desc" as="xs:boolean?"/>-->
-        <!--<xsl:param name="default-order-by-predicate" as="xs:anyURI?"/>-->
-        <!--<xsl:param name="default-desc" as="xs:boolean?"/>-->
         <xsl:param name="active-mode" select="xs:anyURI('&ac;ListMode')" as="xs:anyURI"/>
         
         <xsl:choose>
@@ -1155,8 +1150,9 @@ $desc: <xsl:value-of select="$desc"/>
 $sorted-results/rdf:RDF/* predicates: <xsl:value-of select="$sorted-results/rdf:RDF/*/(if ($order-by-predicate) then *[concat(namespace-uri(), local-name()) = $order-by-predicate][1]/(text(), @rdf:resource, @rdf:nodeID)[1]/string() else ())"/>
 if ($desc) then 'descending' else 'ascending': <xsl:value-of select="if ($desc) then 'descending' else 'ascending'"/>
 </xsl:message>
+                    <xsl:variable name="initial-load" select="empty($content-container/div[ul])" as="xs:boolean"/>
                     <!-- first time rendering the container results -->
-                    <xsl:if test="not($content-container/div[ul])">
+                    <xsl:if test="$initial-load">
                         <xsl:message>CONTAINER FIRST TIME</xsl:message>
                         <xsl:for-each select="$content-container">
                             <xsl:result-document href="?." method="ixsl:replace-content">
@@ -1302,7 +1298,7 @@ if ($desc) then 'descending' else 'ascending': <xsl:value-of select="if ($desc) 
 
                     <!-- append order-by properties when first time rendering the container results -->
                     <!-- make sure the asynchronous templates below execute after ldh:ContentLoaded -->
-                    <xsl:if test="not($content-container/div[ul])">
+                    <xsl:if test="$initial-load">
                         <xsl:for-each select="$bgp-triples-map">
                             <xsl:variable name="id" select="generate-id()" as="xs:string"/>
                             <xsl:variable name="predicate" select="json:string[@key = 'predicate']" as="xs:anyURI"/>
