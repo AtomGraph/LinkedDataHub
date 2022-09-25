@@ -352,7 +352,8 @@ exclude-result-prefixes="#all"
         <xsl:param name="focus-var-name" as="xs:string"/>
         <xsl:param name="active-mode" as="xs:anyURI"/>
         <xsl:param name="select-xml" as="document-node()"/>
- 
+<xsl:message>$content-id: <xsl:value-of select="$content-id"/></xsl:message>
+
         <xsl:for-each select="$container">
             <xsl:result-document href="?." method="ixsl:replace-content">
                 <xsl:call-template name="container-mode">
@@ -388,7 +389,7 @@ exclude-result-prefixes="#all"
             <xsl:variable name="graph-var-name" select="$bgp-triples-map/ancestor::json:map[json:string[@key = 'type'] = 'graph'][1]/json:string[@key = 'name']/substring-after(., '?')" as="xs:string?"/>
 
             <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
-
+<xsl:message>map $canvas-id: <xsl:value-of select="$content-id || '-map-canvas'"/></xsl:message>
             <xsl:call-template name="ldh:LoadGeoResources">
                 <xsl:with-param name="container" select="$container"/>
                 <xsl:with-param name="content-id" select="$content-id"/>
@@ -403,6 +404,7 @@ exclude-result-prefixes="#all"
         </xsl:if>
         <xsl:if test="$active-mode = '&ac;ChartMode'">
             <xsl:variable name="canvas-id" select="$content-id || '-chart-canvas'" as="xs:string"/>
+<xsl:message>chart $canvas-id: <xsl:value-of select="$canvas-id"/></xsl:message>
             <xsl:variable name="chart-type" select="xs:anyURI('&ac;Table')" as="xs:anyURI"/>
             <xsl:variable name="category" as="xs:string?"/>
             <xsl:variable name="series" select="distinct-values($results/*/*/concat(namespace-uri(), local-name()))" as="xs:string*"/>
