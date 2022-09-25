@@ -344,33 +344,22 @@ exclude-result-prefixes="#all"
     
     <xsl:template name="render-container">
         <xsl:param name="container" as="element()"/>
-        <!--<xsl:param name="content-id" select="ixsl:get($container/.., 'id')" as="xs:string"/>-->
-        <xsl:param name="escaped-content-uri" select="xs:anyURI(translate($container/@about, '.', '-'))" as="xs:anyURI"/>
+        <xsl:param name="content-id" as="xs:string"/>
+        <xsl:param name="escaped-content-uri" as="xs:anyURI"/>
         <xsl:param name="endpoint" as="xs:anyURI"/>
         <xsl:param name="content" as="element()?"/>
         <xsl:param name="results" as="document-node()"/>
         <xsl:param name="focus-var-name" as="xs:string"/>
-<!--        <xsl:param name="order-by-predicate" as="xs:anyURI?"/>
-        <xsl:param name="desc" as="xs:boolean?"/>
-        <xsl:param name="default-order-by-predicate" as="xs:anyURI?"/>
-        <xsl:param name="default-order-by-var-name" as="xs:string?"/>
-        <xsl:param name="default-desc" as="xs:boolean?"/>-->
         <xsl:param name="active-mode" as="xs:anyURI"/>
         <xsl:param name="select-xml" as="document-node()"/>
-        <!--<xsl:param name="order-by-container-id" select="$content-id || '-container-order'" as="xs:string?"/>-->
  
         <xsl:for-each select="$container">
             <xsl:result-document href="?." method="ixsl:replace-content">
                 <xsl:call-template name="container-mode">
                     <xsl:with-param name="container-id" select="ixsl:get($container, 'id')"/>
-                    <!--<xsl:with-param name="escaped-content-uri" select="$escaped-content-uri"/>-->
                     <xsl:with-param name="select-xml" select="$select-xml"/>
                     <xsl:with-param name="endpoint" select="$endpoint"/>
                     <xsl:with-param name="results" select="$results"/>
-<!--                    <xsl:with-param name="order-by-predicate" select="$order-by-predicate"/>
-                    <xsl:with-param name="desc" select="$desc"/>
-                    <xsl:with-param name="default-order-by-predicate" select="$default-order-by-predicate"/>
-                    <xsl:with-param name="default-desc" select="$default-desc"/>-->
                     <xsl:with-param name="active-mode" select="$active-mode"/>
                 </xsl:call-template>
             </xsl:result-document>
@@ -730,8 +719,18 @@ exclude-result-prefixes="#all"
         <xsl:variable name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.apps'))" as="element()?"/>
         <xsl:variable name="endpoint" select="($service/sd:endpoint/@rdf:resource/xs:anyURI(.), sd:endpoint())[1]"/>
         
+        <!-- deactivate other tabs -->
+        <xsl:for-each select="../../li">
+            <ixsl:set-attribute name="class" select="string-join(tokenize(@class, ' ')[not(. = 'active')], ' ')"/>
+        </xsl:for-each>
+        <!-- activate this tab -->
+        <xsl:for-each select="..">
+            <ixsl:set-attribute name="class" select="'active'"/>
+        </xsl:for-each>
+        
         <xsl:call-template name="render-container">
             <xsl:with-param name="container" select="$results-container"/>
+            <xsl:with-param name="content-id" select="$container/@id"/>
             <xsl:with-param name="escaped-content-uri" select="$escaped-content-uri"/>
             <xsl:with-param name="content" select="$content"/>
             <xsl:with-param name="results" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri), 'results')"/>
@@ -1098,7 +1097,7 @@ exclude-result-prefixes="#all"
     <xsl:template name="onContainerResultsLoad">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="container" as="element()"/>
-        <xsl:param name="container-id" select="ixsl:get($container, 'id')" as="xs:string"/>
+        <xsl:param name="container-id" select="$container/@id" as="xs:string"/>
         <xsl:param name="escaped-content-uri" select="xs:anyURI(translate($container/@about, '.', '-'))" as="xs:anyURI"/>
         <xsl:param name="content" as="element()?"/>
         <xsl:param name="active-mode" as="xs:anyURI"/>
@@ -1147,7 +1146,15 @@ exclude-result-prefixes="#all"
                     </xsl:variable>
                     <!-- store sorted results as the current container results -->
                     <ixsl:set-property name="results" select="$sorted-results" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri)"/>
-
+<xsl:message>
+$order-by-predicate: <xsl:value-of select="$order-by-predicate"/>
+$default-order-by-predicate: <xsl:value-of select="$default-order-by-predicate"/>
+$desc: <xsl:value-of select="$desc"/>
+</xsl:message>
+<xsl:message>
+$sorted-results/rdf:RDF/* predicates: <xsl:value-of select="$sorted-results/rdf:RDF/*/(if ($order-by-predicate) then *[concat(namespace-uri(), local-name()) = $order-by-predicate][1]/(text(), @rdf:resource, @rdf:nodeID)[1]/string() else ())"/>
+if ($desc) then 'descending' else 'ascending': <xsl:value-of select="if ($desc) then 'descending' else 'ascending'"/>
+</xsl:message>
                     <!-- first time rendering the container results -->
                     <xsl:if test="not($content-container/div[ul])">
                         <xsl:message>CONTAINER FIRST TIME</xsl:message>
@@ -1274,16 +1281,12 @@ exclude-result-prefixes="#all"
         
                     <xsl:call-template name="render-container">
                         <xsl:with-param name="container" select="$content-container//div[contains-token(@class, 'container-results')]"/>
+                        <xsl:with-param name="content-id" select="$container-id"/>
                         <xsl:with-param name="escaped-content-uri" select="$escaped-content-uri"/>
                         <xsl:with-param name="content" select="$content"/>
                         <xsl:with-param name="endpoint" select="$endpoint"/>
                         <xsl:with-param name="results" select="$sorted-results"/>
                         <xsl:with-param name="focus-var-name" select="$focus-var-name"/>
-<!--                        <xsl:with-param name="order-by-predicate" select="$order-by-predicate"/>
-                        <xsl:with-param name="desc" select="$desc"/>
-                        <xsl:with-param name="default-order-by-var-name" select="$default-order-by-var-name"/>
-                        <xsl:with-param name="default-order-by-predicate" select="$default-order-by-predicate"/>
-                        <xsl:with-param name="default-desc" select="$default-desc"/>-->
                         <xsl:with-param name="select-xml" select="$select-xml"/>
                         <xsl:with-param name="active-mode" select="$active-mode"/>
                     </xsl:call-template>
@@ -1297,27 +1300,29 @@ exclude-result-prefixes="#all"
                         <xsl:with-param name="container" select="$container"/>
                     </xsl:call-template>
 
+                    <!-- append order-by properties when first time rendering the container results -->
                     <!-- make sure the asynchronous templates below execute after ldh:ContentLoaded -->
-                    <xsl:for-each select="$bgp-triples-map">
-                        <xsl:variable name="id" select="generate-id()" as="xs:string"/>
-                        <xsl:variable name="predicate" select="json:string[@key = 'predicate']" as="xs:anyURI"/>
-                        <xsl:variable name="results-uri" select="ac:build-uri($ldt:base, map{ 'uri': string($predicate), 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
+                    <xsl:if test="not($content-container/div[ul])">
+                        <xsl:for-each select="$bgp-triples-map">
+                            <xsl:variable name="id" select="generate-id()" as="xs:string"/>
+                            <xsl:variable name="predicate" select="json:string[@key = 'predicate']" as="xs:anyURI"/>
+                            <xsl:variable name="results-uri" select="ac:build-uri($ldt:base, map{ 'uri': string($predicate), 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
 
-                        <xsl:message>THE HELL</xsl:message>
+                            <xsl:message>THE HELL</xsl:message>
 
-                        <xsl:variable name="request" as="item()*">
-                            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-                                <xsl:call-template name="bs2:OrderBy">
-                                    <xsl:with-param name="container" select="id($order-by-container-id, ixsl:page())"/>
-                                    <!--<xsl:with-param name="container-id" select="$order-by-container-id"/>-->
-                                    <xsl:with-param name="id" select="$id"/>
-                                    <xsl:with-param name="predicate" select="$predicate"/>
-                                    <xsl:with-param name="order-by-predicate" select="$order-by-predicate" as="xs:anyURI?"/>
-                                </xsl:call-template>
-                            </ixsl:schedule-action>
-                        </xsl:variable>
-                        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
-                    </xsl:for-each>
+                            <xsl:variable name="request" as="item()*">
+                                <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+                                    <xsl:call-template name="bs2:OrderBy">
+                                        <xsl:with-param name="container" select="id($order-by-container-id, ixsl:page())"/>
+                                        <xsl:with-param name="id" select="$id"/>
+                                        <xsl:with-param name="predicate" select="$predicate"/>
+                                        <xsl:with-param name="order-by-predicate" select="$order-by-predicate" as="xs:anyURI?"/>
+                                    </xsl:call-template>
+                                </ixsl:schedule-action>
+                            </xsl:variable>
+                            <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+                        </xsl:for-each>
+                    </xsl:if>
                 
                     <xsl:for-each select="$container/div[contains-token(@class, 'left-nav')]">
                         <!-- only append facets if they are not already present. TO-DO: more precise check? -->
