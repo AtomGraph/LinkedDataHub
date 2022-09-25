@@ -1271,7 +1271,7 @@ if ($desc) then 'descending' else 'ascending': <xsl:value-of select="if ($desc) 
                                         </li>
                                     </ul>
                                     
-                                    <div id="{generate-id($container) || '-container-results'}" class="container-results"></div>
+                                    <div id="{$content-id || '-container-results'}" class="container-results"></div>
                                 </div>
                             </xsl:result-document>
                         </xsl:for-each>
@@ -1294,9 +1294,9 @@ if ($desc) then 'descending' else 'ascending': <xsl:value-of select="if ($desc) 
                          <ixsl:set-style name="display" select="'none'" object="."/>
                      </xsl:for-each>
 
-                    <xsl:call-template name="ldh:ContentLoaded">
+<!--                    <xsl:call-template name="ldh:ContentLoaded">
                         <xsl:with-param name="container" select="$container"/>
-                    </xsl:call-template>
+                    </xsl:call-template>-->
 
                     <!-- append order-by properties when first time rendering the container results -->
                     <!-- make sure the asynchronous templates below execute after ldh:ContentLoaded -->
