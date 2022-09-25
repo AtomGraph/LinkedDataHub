@@ -1343,9 +1343,9 @@ if ($desc) then 'descending' else 'ascending': <xsl:value-of select="if ($desc) 
                         <xsl:with-param name="active-mode" select="$active-mode"/>
                     </xsl:call-template>
 
-                    <xsl:call-template name="ldh:ContentLoaded">
+<!--                    <xsl:call-template name="ldh:ContentLoaded">
                         <xsl:with-param name="container" select="$container"/>
-                    </xsl:call-template>
+                    </xsl:call-template>-->
 
                     <xsl:for-each select="$container/div[contains-token(@class, 'left-nav')]">
                         <!-- only append facets if they are not already present. TO-DO: more precise check? -->
