@@ -1275,32 +1275,12 @@ if ($desc) then 'descending' else 'ascending': <xsl:value-of select="if ($desc) 
                                 </div>
                             </xsl:result-document>
                         </xsl:for-each>
-                    </xsl:if>
-        
-                    <xsl:call-template name="render-container">
-                        <xsl:with-param name="container" select="$content-container//div[contains-token(@class, 'container-results')]"/>
-                        <xsl:with-param name="content-id" select="$content-id"/>
-                        <xsl:with-param name="escaped-content-uri" select="$escaped-content-uri"/>
-                        <xsl:with-param name="content" select="$content"/>
-                        <xsl:with-param name="endpoint" select="$endpoint"/>
-                        <xsl:with-param name="results" select="$sorted-results"/>
-                        <xsl:with-param name="focus-var-name" select="$focus-var-name"/>
-                        <xsl:with-param name="select-xml" select="$select-xml"/>
-                        <xsl:with-param name="active-mode" select="$active-mode"/>
-                    </xsl:call-template>
+                        
+                        <xsl:call-template name="ldh:ContentLoaded">
+                            <xsl:with-param name="container" select="$container"/>
+                        </xsl:call-template>
 
-                    <!-- hide progress bar -->
-                     <xsl:for-each select="$container//div[@class = 'progress-bar']">
-                         <ixsl:set-style name="display" select="'none'" object="."/>
-                     </xsl:for-each>
-
-<!--                    <xsl:call-template name="ldh:ContentLoaded">
-                        <xsl:with-param name="container" select="$container"/>
-                    </xsl:call-template>-->
-
-                    <!-- append order-by properties when first time rendering the container results -->
-                    <!-- make sure the asynchronous templates below execute after ldh:ContentLoaded -->
-                    <xsl:if test="$initial-load">
+                        <!-- make sure the asynchronous templates below execute after ldh:ContentLoaded -->
                         <xsl:for-each select="$bgp-triples-map">
                             <xsl:variable name="id" select="generate-id()" as="xs:string"/>
                             <xsl:variable name="predicate" select="json:string[@key = 'predicate']" as="xs:anyURI"/>
@@ -1321,6 +1301,23 @@ if ($desc) then 'descending' else 'ascending': <xsl:value-of select="if ($desc) 
                             <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
                         </xsl:for-each>
                     </xsl:if>
+        
+                    <xsl:call-template name="render-container">
+                        <xsl:with-param name="container" select="$content-container//div[contains-token(@class, 'container-results')]"/>
+                        <xsl:with-param name="content-id" select="$content-id"/>
+                        <xsl:with-param name="escaped-content-uri" select="$escaped-content-uri"/>
+                        <xsl:with-param name="content" select="$content"/>
+                        <xsl:with-param name="endpoint" select="$endpoint"/>
+                        <xsl:with-param name="results" select="$sorted-results"/>
+                        <xsl:with-param name="focus-var-name" select="$focus-var-name"/>
+                        <xsl:with-param name="select-xml" select="$select-xml"/>
+                        <xsl:with-param name="active-mode" select="$active-mode"/>
+                    </xsl:call-template>
+
+                    <!-- hide progress bar -->
+                     <xsl:for-each select="$container//div[@class = 'progress-bar']">
+                         <ixsl:set-style name="display" select="'none'" object="."/>
+                     </xsl:for-each>
                 
                     <xsl:for-each select="$container/div[contains-token(@class, 'left-nav')]">
                         <!-- only append facets if they are not already present. TO-DO: more precise check? -->
