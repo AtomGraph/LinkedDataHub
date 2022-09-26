@@ -445,7 +445,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="select-xml" as="document-node()"/>
         <xsl:param name="endpoint" as="xs:anyURI"/>
         <xsl:param name="results" as="document-node()"/>
-        <xsl:param name="active-mode" select="xs:anyURI('&ac;ListMode')" as="xs:anyURI"/>
+        <xsl:param name="active-mode" select="xs:anyURI('&ac;GridMode')" as="xs:anyURI"/>
         
         <xsl:choose>
             <xsl:when test="$active-mode = '&ac;ListMode'">
