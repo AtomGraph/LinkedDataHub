@@ -22,9 +22,12 @@ import javax.ws.rs.ext.Providers;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
+import java.io.File;
+import java.util.Date;
 import java.util.Optional;
 import javax.inject.Inject;
 import javax.ws.rs.core.EntityTag;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 import org.apache.jena.ontology.Ontology;
@@ -56,17 +59,25 @@ public class Item extends com.atomgraph.linkeddatahub.resource.upload.Item
      * @param agentContext authenticated agent's context
      * @param providers JAX-RS provider registry
      * @param system system application
+     * @param httpHeaders request headers
      */
     @Inject
     public Item(@Context Request request, @Context UriInfo uriInfo, MediaTypes mediaTypes,
             com.atomgraph.linkeddatahub.apps.model.Application application, Optional<Ontology> ontology, Optional<Service> service, 
             @Context SecurityContext securityContext, Optional<AgentContext> agentContext,
-            @Context Providers providers, com.atomgraph.linkeddatahub.Application system)
+            @Context Providers providers, com.atomgraph.linkeddatahub.Application system,
+            @Context HttpHeaders httpHeaders)
     {
-        super(request, uriInfo, mediaTypes, application, ontology, service, securityContext, agentContext, providers, system);
+        super(request, uriInfo, mediaTypes, application, ontology, service, securityContext, agentContext, providers, system, httpHeaders);
         if (log.isDebugEnabled()) log.debug("Constructing {}", getClass());
     }
     
+    @Override
+    protected Date getLastModified(File file)
+    {
+        return null; // disable Last-Modified because we're using ETag here
+    }
+
     @Override
     public EntityTag getEntityTag(Model model)
     {

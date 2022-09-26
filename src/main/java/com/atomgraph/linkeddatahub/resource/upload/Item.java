@@ -28,10 +28,12 @@ import javax.ws.rs.core.Variant;
 import javax.ws.rs.ext.Providers;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.model.Service;
+import com.atomgraph.linkeddatahub.server.io.FileRangeOutput;
 import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.Optional;
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
@@ -40,6 +42,10 @@ import javax.ws.rs.GET;
 import javax.ws.rs.NotAcceptableException;
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.EntityTag;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 import org.apache.jena.ontology.Ontology;
@@ -60,7 +66,15 @@ public class Item extends GraphStoreImpl
 {
     private static final Logger log = LoggerFactory.getLogger(Item.class);
     
+    private static final String ACCEPT_RANGES = "Accept-Ranges";
+    private static final String BYTES_RANGE = "bytes";
+    private static final String RANGE = "Range";
+    private static final String IF_RANGE = "If-Range";
+    private static final String CONTENT_RANGE = "Content-Range";
+    private static final int CHUNK_SIZE = 1024 * 1024; // 1MB chunks
+
     private final Resource resource;
+    private final HttpHeaders httpHeaders;
     
     /**
      * Constructs resource.
@@ -75,16 +89,19 @@ public class Item extends GraphStoreImpl
      * @param agentContext authenticated agent's context
      * @param providers JAX-RS provider registry
      * @param system system application
+     * @param httpHeaders request headers
      */
     @Inject
     public Item(@Context Request request, @Context UriInfo uriInfo, MediaTypes mediaTypes,
             com.atomgraph.linkeddatahub.apps.model.Application application, Optional<Ontology> ontology, Optional<Service> service,
             @Context SecurityContext securityContext, Optional<AgentContext> agentContext,
-            @Context Providers providers, com.atomgraph.linkeddatahub.Application system)
+            @Context Providers providers, com.atomgraph.linkeddatahub.Application system,
+            @Context HttpHeaders httpHeaders)
     {
         super(request, uriInfo, mediaTypes, application, ontology, service, securityContext, agentContext, providers, system);
         this.resource = ModelFactory.createDefaultModel().createResource(uriInfo.getAbsolutePath().toString());
         if (log.isDebugEnabled()) log.debug("Constructing {}", getClass());
+        this.httpHeaders = httpHeaders;
     }
 
     /**
@@ -124,12 +141,104 @@ public class Item extends GraphStoreImpl
 
             if (!file.exists()) throw new NotFoundException(new FileNotFoundException("File '" + getUriInfo().getPath() + "' not found"));
 
-            return super.getResponseBuilder(model, graphUri).entity(file).
-                    type(variant.getMediaType());
+            if (getHttpHeaders().getRequestHeaders().containsKey(RANGE))
+            {
+                String range = getHttpHeaders().getHeaderString(RANGE);
+                
+//                if (getHttpHeaders().getRequestHeaders().containsKey(IF_RANGE)) {
+//                    String ifRangeHeader = getHttpHeaders().getHeaderString(IF_RANGE);
+//
+//                    EntityTag tag = getEntityTag(model);
+//                    if (tag != null && tag.equals(EntityTag.valueOf(ifRangeHeader))) {
+//                        //this.applyFilter(requestContext, responseContext);
+//    //                    return;
+//                    }
+////                    Date lastModified = getLastModified(file);
+////                    if (lastModified != null && lastModified.equals(ifRangeHeader)) {
+////    //                    this.applyFilter(requestContext, responseContext);
+////    //                    return;
+////                    }
+//                }
+//                else
+                {
+    //                    this.applyFilter(requestContext, responseContext);
+                    FileRangeOutput rangeOutput = getFileRangeOutput(file, range);
+                    return super.getResponseBuilder(model, graphUri).
+                        status(Status.PARTIAL_CONTENT).
+                        entity(rangeOutput).
+                        type(variant.getMediaType()).
+                        lastModified(getLastModified(file)).
+                        header(HttpHeaders.CONTENT_LENGTH, file.length()). // should overwrite Transfer-Encoding: chunked
+                        header(ACCEPT_RANGES, BYTES_RANGE).
+                        header(CONTENT_RANGE, rangeOutput.getResponseHeaderValue());
+                }
+            }
+
+            return super.getResponseBuilder(model, graphUri).
+                entity(file).
+                type(variant.getMediaType()).
+                lastModified(getLastModified(file)).
+                header(HttpHeaders.CONTENT_LENGTH, file.length()). // should overwrite Transfer-Encoding: chunked
+                header(ACCEPT_RANGES, BYTES_RANGE);
             //header("Content-Disposition", "attachment; filename=\"" + getRequiredProperty(NFO.fileName).getString() + "\"").
         }
         
         return super.getResponseBuilder(model, graphUri);
+    }
+
+    public FileRangeOutput getFileRangeOutput(File file, String range)
+    {
+        final String[] ranges = range.split("=")[1].split("-");
+
+        final long from = Long.parseLong(ranges[0]);
+        if (from >= file.length())
+        {
+            if (log.isTraceEnabled()) log.trace("Content range '{}': start was after end of file, nothing to return", range);
+            throw new WebApplicationException(Response.status(Response.Status.REQUESTED_RANGE_NOT_SATISFIABLE).
+                    header(CONTENT_RANGE, "bytes */" + file.length()).
+                    build());
+        }
+
+        long to = 0;
+
+        if (ranges.length == 2)
+        {
+            // the header specifies that last included byte so we increase by one for easier handling
+            to = Long.parseLong(ranges[1]) + 1;
+
+            if (to < from)
+            {
+                if (log.isTraceEnabled()) log.trace("Content range '{}': to was smaller than from", range);
+                throw new WebApplicationException(Response.status(Response.Status.REQUESTED_RANGE_NOT_SATISFIABLE).
+                        header(CONTENT_RANGE, "bytes */" + file.length()).
+                        build());
+            }
+        } 
+        else
+        {
+            // use default range if the range upper bound is unspecified. Chrome sends "bytes=0-"
+            to = CHUNK_SIZE + from;
+        }
+
+        if (to > file.length())
+        {
+            if (log.isTraceEnabled()) log.trace("Content range '{}': to was greater than possible, limit to max length", range);
+            to = file.length();
+        }
+
+        final long length = to - from;
+        return new FileRangeOutput(file, from, length);
+    }
+    
+    @Override
+    public EntityTag getEntityTag(Model model)
+    {
+        return null; // disable ETag based on Model hash
+    }
+    
+    protected Date getLastModified(File file)
+    {
+        return new Date(file.lastModified());
     }
     
     /**
@@ -187,6 +296,16 @@ public class Item extends GraphStoreImpl
     public Resource getResource()
     {
         return resource;
+    }
+    
+    /**
+     * Returns HTTP headers of the current request.
+     * 
+     * @return header info
+     */
+    public HttpHeaders getHttpHeaders()
+    {
+        return httpHeaders;
     }
     
 }
