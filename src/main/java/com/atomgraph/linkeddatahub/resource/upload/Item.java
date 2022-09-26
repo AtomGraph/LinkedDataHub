@@ -168,7 +168,7 @@ public class Item extends GraphStoreImpl
                         entity(rangeOutput).
                         type(variant.getMediaType()).
                         lastModified(getLastModified(file)).
-                        header(HttpHeaders.CONTENT_LENGTH, file.length()). // should overwrite Transfer-Encoding: chunked
+                        header(HttpHeaders.CONTENT_LENGTH, rangeOutput.getLength()). // should overwrite Transfer-Encoding: chunked
                         header(ACCEPT_RANGES, BYTES_RANGE).
                         header(CONTENT_RANGE, rangeOutput.getResponseHeaderValue());
                 }

@@ -55,7 +55,8 @@ public class FileRangeOutput implements StreamingOutput
     @Override
     public void write(OutputStream outputStream) throws IOException, WebApplicationException
     {
-        try (FileInputStream fis = new FileInputStream(getFile())) {
+        try (FileInputStream fis = new FileInputStream(getFile()))
+        {
             fis.skip(getFrom());
 
             InputStream limit = ByteStreams.limit(fis, getLength());
