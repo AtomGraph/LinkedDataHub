@@ -1,6 +1,10 @@
-## [3.2.15] - 2022-09-24
+## [3.2.15] - 2022-09-26
 ### Changed
 - Fixed order by dropdown population for container content
+- Fixed and optimized container sorting
+
+### Removed
+- Usage of group-sort-triples.xsl because Jena RDF/XML writer takes care of grouping triples and they're sorted during container rendering anyway
 
 ## [3.2.14] - 2022-09-21
 ### Added
