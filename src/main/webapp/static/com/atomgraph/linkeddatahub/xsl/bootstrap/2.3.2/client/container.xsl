@@ -1123,7 +1123,7 @@ exclude-result-prefixes="#all"
                         <xsl:document>
                             <xsl:for-each select="/rdf:RDF">
                                 <xsl:copy>
-                                    <xsl:sequence select="* => sort(function($r) { if ($order-by-predicate) then $r/*[concat(namespace-uri(), local-name()) = $order-by-predicate][1]/(text(), @rdf:resource, @rdf:nodeID)[1]/string() else () })"/>
+                                    <xsl:sequence select="* => sort((), function($r) { if ($order-by-predicate) then $r/*[concat(namespace-uri(), local-name()) = $order-by-predicate][1]/(text(), @rdf:resource, @rdf:nodeID)[1]/string() else () })"/>
                                     <!-- cannot use xsl:perform-sort due to SaxonJS 2.4 bug: https://saxonica.plan.io/issues/5695 -->
 <!--                                    <xsl:perform-sort select="*">
                                          sort by $order-by-predicate if it is set (multiple properties might match) 
