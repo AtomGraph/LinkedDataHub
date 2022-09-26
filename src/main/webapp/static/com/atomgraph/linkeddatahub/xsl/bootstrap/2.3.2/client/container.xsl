@@ -297,7 +297,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="select-xml" as="document-node()"/>
         <xsl:param name="endpoint" select="xs:anyURI"/>
         <xsl:param name="focus-var-name" as="xs:string"/>
-        <xsl:param name="active-mode" as="xs:anyURI"/>
+        <xsl:param name="active-mode" select="xs:anyURI('&ac;ListMode')" as="xs:anyURI"/>
         <xsl:param name="replace-content" select="false()" as="xs:boolean"/>
 
         <xsl:if test="$replace-content">
@@ -445,7 +445,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="select-xml" as="document-node()"/>
         <xsl:param name="endpoint" as="xs:anyURI"/>
         <xsl:param name="results" as="document-node()"/>
-        <xsl:param name="active-mode" select="xs:anyURI('&ac;GridMode')" as="xs:anyURI"/>
+        <xsl:param name="active-mode" as="xs:anyURI"/>
         
         <xsl:choose>
             <xsl:when test="$active-mode = '&ac;ListMode'">
