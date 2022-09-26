@@ -722,7 +722,6 @@ exclude-result-prefixes="#all"
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', true() ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
         
-<xsl:message>$escaped-content-uri: <xsl:value-of select="$escaped-content-uri"/> $results: <xsl:value-of select="serialize(ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri), 'results'))"/></xsl:message>
         <xsl:call-template name="render-container">
             <xsl:with-param name="container" select="$results-container"/>
             <xsl:with-param name="content-id" select="$container/@id"/>
@@ -1140,7 +1139,6 @@ exclude-result-prefixes="#all"
                     </xsl:variable>
                     <!-- store sorted results as the current container results -->
                     <ixsl:set-property name="results" select="$sorted-results" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri)"/>
-<xsl:message>$escaped-content-uri: <xsl:value-of select="$escaped-content-uri"/> $sorted-results: <xsl:value-of select="serialize(ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri), 'results'))"/></xsl:message>
 
                     <xsl:variable name="initial-load" select="empty($content-container/div[ul])" as="xs:boolean"/>
                     <!-- first time rendering the container results -->
