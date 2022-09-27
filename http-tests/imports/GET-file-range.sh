@@ -8,57 +8,17 @@ purge_backend_cache "$ADMIN_VARNISH_SERVICE"
 
 pwd=$(realpath -s "$PWD")
 
-pushd . > /dev/null && cd "$SCRIPT_ROOT/admin/acl"
-
-# add agent to the writers group
-
-./add-agent-to-group.sh \
-  -f "$OWNER_CERT_FILE" \
-  -p "$OWNER_CERT_PWD" \
-  --agent "$AGENT_URI" \
-  "${ADMIN_BASE_URL}acl/groups/writers/"
-
-popd > /dev/null
-
-pushd . > /dev/null && cd "$SCRIPT_ROOT/imports"
-
-# create file
-
-filename="/tmp/random-file"
-time dd if=/dev/urandom of="$filename" bs=1 count=1024
-file_content_type="application/octet-stream"
-
-file_doc=$(./create-file.sh \
--f "$AGENT_CERT_FILE" \
--p "$AGENT_CERT_PWD" \
--b "$END_USER_BASE_URL" \
---title "Random file" \
---file "$filename" \
---file-content-type "${file_content_type}")
-
-popd > /dev/null
-
-pushd . > /dev/null && cd "$SCRIPT_ROOT"
-
-file_doc_ntriples=$(./get-document.sh \
-  -f "$AGENT_CERT_FILE" \
-  -p "$AGENT_CERT_PWD" \
-  --accept 'application/n-triples' \
-  "$file_doc")
-
-popd > /dev/null
-
-file=$(echo "$file_doc_ntriples" | sed -rn "s/<${file_doc//\//\\/}> <http:\/\/xmlns.com\/foaf\/0.1\/primaryTopic> <(.*)> \./\1/p")
+file=$(./create-file.sh)
 
 curl -k \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
-  --range 100-200 \
+  --range 10-15 \
   "$file" \
   > range1.bin
 
 # extract byte range
 
-dd skip=100 count=100 if="$filename" of=range2.bin bs=1
+dd skip=5 count=10 if="$filename" of=range2.bin bs=1
 
 # compare byte ranges
 
