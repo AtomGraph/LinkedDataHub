@@ -78,6 +78,7 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
     private final com.atomgraph.linkeddatahub.apps.model.Application application;
     private final Service service;
     private final DataManager dataManager;
+    private final Optional<AgentContext> agentContext;
     private final MediaType[] readableMediaTypes;
     private final Providers providers;
     private final com.atomgraph.linkeddatahub.Application system;
@@ -189,8 +190,8 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
             return getResponse(getDataManager().loadModel(target.getUri().toString()));
         }
 
-        // only lookup resource locally using DESCRIBE if it's external (not relative to the app's base URI)
-        if (getApplication().getBaseURI().relativize(target.getUri()).isAbsolute())
+        // only lookup resource locally using DESCRIBE if it's external (not relative to the app's base URI) and the agent is authenticated
+        if (getApplication().getBaseURI().relativize(target.getUri()).isAbsolute() && getAgentContext().isPresent())
         {
             final SPARQLClient sparqlClient;
             // if endpoint URI is provided as ?endpoint, use that; otherwise, default the local service endoint
@@ -330,6 +331,16 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
     public DataManager getDataManager()
     {
         return dataManager;
+    }
+    
+    /**
+     * Returns the context of authenticated agent.
+     * 
+     * @return agent context
+     */
+    public Optional<AgentContext> getAgentContext()
+    {
+        return agentContext;
     }
     
     /**
