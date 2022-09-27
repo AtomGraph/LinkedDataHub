@@ -50,8 +50,8 @@ popd > /dev/null
 
 file=$(echo "$file_doc_ntriples" | sed -rn "s/<${file_doc//\//\\/}> <http:\/\/xmlns.com\/foaf\/0.1\/primaryTopic> <(.*)> \./\1/p")
 
-from=10
-length=5
+from=100
+length=42
 to=$(($length + $from - 1))
 
 range1="$(mktemp)" || exit 1
@@ -69,4 +69,4 @@ dd skip="$from" count="$length" if="$filename" of="$range2" bs=1
 
 # compare byte ranges
 
-cmp "$range1" "$range2"
+cmp -s "$range1" "$range2"
