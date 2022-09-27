@@ -500,7 +500,7 @@ exclude-result-prefixes="#all"
     <xsl:template match="div[contains-token(@class, 'resource-content')]//button[contains-token(@class, 'btn-save')]" mode="ixsl:onclick">
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'resource-content')]" as="element()"/>
         <xsl:variable name="old-content-value" select="ixsl:get($container, 'dataset.contentValue')" as="xs:anyURI"/>
-        <xsl:variable name="content-value" select="ixsl:get($container//input[@name = 'ou'], 'value')" as="xs:anyURI"/>
+        <xsl:variable name="content-value" select="ixsl:get($container//button[contains-token(@class, 'add-typeahead')]/input[@name = 'ou'], 'value')" as="xs:anyURI"/>
         <xsl:variable name="mode" select="ixsl:get(key('elements-by-class', 'content-mode', $container), 'value')" as="xs:anyURI?"/>
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
