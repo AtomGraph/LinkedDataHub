@@ -298,23 +298,10 @@ exclude-result-prefixes="#all"
         <xsl:param name="endpoint" select="xs:anyURI"/>
         <xsl:param name="focus-var-name" as="xs:string"/>
         <xsl:param name="active-mode" select="xs:anyURI('&ac;ListMode')" as="xs:anyURI"/>
-        <xsl:param name="replace-content" select="false()" as="xs:boolean"/>
-<!--
-        <xsl:if test="$replace-content">
-            <xsl:for-each select="$container">
-                <xsl:result-document href="?." method="ixsl:replace-content">
-                    <div class="left-nav span2"></div>
-                    <div class="span7">
-                        <div class="progress-bar">
-                            <div class="progress progress-striped active">
-                                <div class="bar" style="width: 75%;"></div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="right-nav span3"></div>
-                </xsl:result-document>
-            </xsl:for-each>
-        </xsl:if>-->
+
+        <xsl:for-each select="$container//div[@class = 'bar']">
+            <ixsl:set-style name="width" select="'75%'" object="."/>
+        </xsl:for-each>
         
         <!-- wrap SELECT into a DESCRIBE -->
         <xsl:variable name="query-xml" as="element()">
