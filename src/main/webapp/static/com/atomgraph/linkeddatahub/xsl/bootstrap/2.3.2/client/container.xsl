@@ -1304,10 +1304,10 @@ exclude-result-prefixes="#all"
                      </xsl:for-each>
                 
                     <xsl:for-each select="$container/div[contains-token(@class, 'left-nav')]">
+                        <xsl:variable name="facet-container-id" select="$content-id || '-left-nav'" as="xs:string"/>
+
                         <!-- only append facets if they are not already present -->
                         <xsl:if test="not(id($facet-container-id, ixsl:page()))">
-                            <xsl:variable name="facet-container-id" select="$content-id || '-left-nav'" as="xs:string"/>
-
                             <xsl:result-document href="?." method="ixsl:append-content">
                                 <div id="{$facet-container-id}" class="well well-small"/>
                             </xsl:result-document>
