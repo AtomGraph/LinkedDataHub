@@ -10,15 +10,19 @@ pwd=$(realpath -s "$PWD")
 
 file=$(./create-file.sh)
 
+from=10
+length=5
+to=$(($length + $from - 1))
+
 curl -k \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
-  --range 10-15 \
+  --range "$from"-"$to" \
   "$file" \
   > range1.bin
 
 # extract byte range
 
-dd skip=10 count=5 if="$pwd/test.csv" of=range2.bin bs=1
+dd skip="$from" count="$length" if="$pwd/test.csv" of=range2.bin bs=1
 
 # compare byte ranges
 
