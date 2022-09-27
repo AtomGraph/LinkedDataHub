@@ -18,7 +18,7 @@ curl -k \
 
 # extract byte range
 
-dd skip=5 count=10 if="$pwd/test.csv" of=range2.bin bs=1
+dd skip=10 count=5 if="$pwd/test.csv" of=range2.bin bs=1
 
 # compare byte ranges
 
