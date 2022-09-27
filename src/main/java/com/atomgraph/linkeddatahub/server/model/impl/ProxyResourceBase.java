@@ -153,6 +153,7 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
         this.service = service.get();
         this.crc = crc;
         this.dataManager = dataManager;
+        this.agentContext = agentContext;
         this.providers = providers;
         this.system = system;
 
