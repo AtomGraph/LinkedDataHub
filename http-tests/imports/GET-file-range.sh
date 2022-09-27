@@ -50,11 +50,16 @@ popd > /dev/null
 
 file=$(echo "$file_doc_ntriples" | sed -rn "s/<${file_doc//\//\\/}> <http:\/\/xmlns.com\/foaf\/0.1\/primaryTopic> <(.*)> \./\1/p")
 
-server_sha1sum=$(echo "$file" | cut -d "/" -f 5) # cut the last URL path segment
+curl -k \
+  -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
+  --range 100-200 \
+  "$file" \
+  > range1.bin
 
-file_sha1sum=$(sha1sum "$filename" | cut -d " " -f 1) # cut the following filename
+# extract byte range
 
-if [ "$server_sha1sum" != "$file_sha1sum" ]; then
-    echo "Server SHA1 hash '${server_sha1sum}' does not match the sha1sum '${file_sha1sum}'"
-    exit 1
-fi
+dd skip=100 count=100 if="$filename" of=range2.bin bs=1
+
+# compare byte ranges
+
+cmp range1.bin range2.bin
