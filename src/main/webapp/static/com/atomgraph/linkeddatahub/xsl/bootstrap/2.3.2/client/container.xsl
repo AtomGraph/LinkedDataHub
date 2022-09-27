@@ -1336,7 +1336,7 @@ exclude-result-prefixes="#all"
 
                     <xsl:for-each select="$container/div[contains-token(@class, 'right-nav')]">
                         <!-- only show parallax navigation if the RDF result contains object resources -->
-                        <xsl:if test="/rdf:RDF/*/*[@rdf:resource]">
+                        <xsl:if test="$sorted-results/rdf:RDF/*/*[@rdf:resource]">
                             <xsl:variable name="parallax-container-id" select="$content-id || '-right-nav'" as="xs:string"/>
 
                             <!-- create a container for parallax controls in the right-nav, if it doesn't exist yet -->
