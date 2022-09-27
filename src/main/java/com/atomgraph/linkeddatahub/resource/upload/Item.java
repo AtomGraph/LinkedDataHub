@@ -161,16 +161,18 @@ public class Item extends GraphStoreImpl
 //                }
 //                else
                 {
-    //                    this.applyFilter(requestContext, responseContext);
                     FileRangeOutput rangeOutput = getFileRangeOutput(file, range);
+                    final long to = rangeOutput.getLength() + rangeOutput.getFrom();
+                    String contentRangeValue = String.format("bytes %d-%d/%d", rangeOutput.getFrom(), to - 1, rangeOutput.getFile().length());
+        
                     return super.getResponseBuilder(model, graphUri).
                         status(Status.PARTIAL_CONTENT).
                         entity(rangeOutput).
                         type(variant.getMediaType()).
                         lastModified(getLastModified(file)).
-                        header(HttpHeaders.CONTENT_LENGTH, rangeOutput.getLength()). // should overwrite Transfer-Encoding: chunked
+                        header(HttpHeaders.CONTENT_LENGTH, rangeOutput.getLength()). // should override Transfer-Encoding: chunked
                         header(ACCEPT_RANGES, BYTES_RANGE).
-                        header(CONTENT_RANGE, rangeOutput.getResponseHeaderValue());
+                        header(CONTENT_RANGE, contentRangeValue);
                 }
             }
 
@@ -178,7 +180,7 @@ public class Item extends GraphStoreImpl
                 entity(file).
                 type(variant.getMediaType()).
                 lastModified(getLastModified(file)).
-                header(HttpHeaders.CONTENT_LENGTH, file.length()). // should overwrite Transfer-Encoding: chunked
+                header(HttpHeaders.CONTENT_LENGTH, file.length()). // should override Transfer-Encoding: chunked
                 header(ACCEPT_RANGES, BYTES_RANGE);
             //header("Content-Disposition", "attachment; filename=\"" + getRequiredProperty(NFO.fileName).getString() + "\"").
         }

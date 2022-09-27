@@ -59,20 +59,11 @@ public class FileRangeOutput implements StreamingOutput
         {
             fis.skip(getFrom());
 
-            InputStream limit = ByteStreams.limit(fis, getLength());
-            ByteStreams.copy(limit, outputStream);
+            try (InputStream limit = ByteStreams.limit(fis, getLength()))
+            {
+                ByteStreams.copy(limit, outputStream);
+            }
         }
-    }
-    
-    /**
-     * Returns the <code>Content-Range</code> header value.
-     * 
-     * @return value string
-     */
-    public String getResponseHeaderValue()
-    {
-        final long to = getLength() + getFrom();
-        return String.format("bytes %d-%d/%d", getFrom(), to - 1, getFile().length());
     }
     
     /**
