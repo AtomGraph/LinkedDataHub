@@ -709,6 +709,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="id" select="generate-id()" as="xs:string?"/>
         <xsl:param name="class" select="'row-fluid content xhtml-content'" as="xs:string?"/>
         <xsl:param name="about" select="@rdf:about" as="xs:anyURI"/>
+        <xsl:param name="main-class" select="'span7 offset2'" as="xs:string?"/>
 
         <div>
             <xsl:if test="$id">
@@ -721,7 +722,11 @@ extension-element-prefixes="ixsl"
                 <xsl:attribute name="about" select="$about"/>
             </xsl:if>
             
-            <div class="span7 offset2">
+            <div>
+                <xsl:if test="$main-class">
+                    <xsl:attribute name="main-class" select="$main-class"/>
+                </xsl:if>
+
                 <xsl:apply-templates select="rdf:value[@rdf:parseType = 'Literal']/xhtml:div" mode="ldh:XHTMLContent"/>
             </div>
         </div>
@@ -732,6 +737,9 @@ extension-element-prefixes="ixsl"
         <xsl:param name="class" select="'row-fluid content resource-content'" as="xs:string?"/>
         <xsl:param name="about" select="@rdf:about" as="xs:anyURI"/>
         <xsl:param name="mode" select="ac:mode/@rdf:resource" as="xs:anyURI?"/>
+        <xsl:param name="left-class" select="'left-nav span2'" as="xs:string?"/>
+        <xsl:param name="main-class" select="'span7'" as="xs:string?"/>
+        <xsl:param name="right-class" select="'right-nav span3'" as="xs:string?"/>
         
         <xsl:apply-templates select="." mode="bs2:RowContentHeader"/>
         
@@ -750,11 +758,19 @@ extension-element-prefixes="ixsl"
                 <xsl:attribute name="data-content-mode" select="$mode"/>
             </xsl:if>
             
-            <xsl:apply-templates select="." mode="bs2:Left"/>
+            <xsl:apply-templates select="." mode="bs2:Left">
+                <xsl:with-param name="class" select="$left-class"/>
+            </xsl:apply-templates>
             
-            <div class="span7"></div>
+            <div>
+                <xsl:if test="$main-class">
+                    <xsl:attribute name="main-class" select="$main-class"/>
+                </xsl:if>
+            </div>
             
-            <xsl:apply-templates select="." mode="bs2:Right"/>
+            <xsl:apply-templates select="." mode="bs2:Right">
+                <xsl:with-param name="class" select="$right-class"/>
+            </xsl:apply-templates>
         </div>
     </xsl:template>
     
