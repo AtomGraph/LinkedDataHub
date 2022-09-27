@@ -724,7 +724,7 @@ extension-element-prefixes="ixsl"
             
             <div>
                 <xsl:if test="$main-class">
-                    <xsl:attribute name="main-class" select="$main-class"/>
+                    <xsl:attribute name="class" select="$main-class"/>
                 </xsl:if>
 
                 <xsl:apply-templates select="rdf:value[@rdf:parseType = 'Literal']/xhtml:div" mode="ldh:XHTMLContent"/>
@@ -764,7 +764,7 @@ extension-element-prefixes="ixsl"
             
             <div>
                 <xsl:if test="$main-class">
-                    <xsl:attribute name="main-class" select="$main-class"/>
+                    <xsl:attribute name="class" select="$main-class"/>
                 </xsl:if>
             </div>
             
