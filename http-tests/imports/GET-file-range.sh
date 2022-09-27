@@ -63,9 +63,9 @@ dd skip=100 count=100 if="$filename" of=range2.bin bs=1
 # compare byte ranges
 
 echo "========"
-echo range1.bin
+cat range1.bin
 echo "========"
-echo range2.bin
+cat range2.bin
 echo "========"
 
 cmp range1.bin range2.bin
