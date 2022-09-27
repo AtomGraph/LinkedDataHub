@@ -65,7 +65,7 @@ curl -k \
 
 # extract byte range
 
-dd skip="$from" count="$length" if="$range1" of="$range2" bs=1
+dd skip="$from" count="$length" if="$filename" of="$range2" bs=1
 
 # compare byte ranges
 
