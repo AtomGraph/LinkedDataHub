@@ -299,7 +299,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="focus-var-name" as="xs:string"/>
         <xsl:param name="active-mode" select="xs:anyURI('&ac;ListMode')" as="xs:anyURI"/>
         <xsl:param name="replace-content" select="false()" as="xs:boolean"/>
-
+<!--
         <xsl:if test="$replace-content">
             <xsl:for-each select="$container">
                 <xsl:result-document href="?." method="ixsl:replace-content">
@@ -314,7 +314,7 @@ exclude-result-prefixes="#all"
                     <div class="right-nav span3"></div>
                 </xsl:result-document>
             </xsl:for-each>
-        </xsl:if>
+        </xsl:if>-->
         
         <!-- wrap SELECT into a DESCRIBE -->
         <xsl:variable name="query-xml" as="element()">
@@ -1304,8 +1304,8 @@ exclude-result-prefixes="#all"
                      </xsl:for-each>
                 
                     <xsl:for-each select="$container/div[contains-token(@class, 'left-nav')]">
-                        <!-- only append facets if they are not already present. TO-DO: more precise check? -->
-                        <xsl:if test="not(*)">
+                        <!-- only append facets if they are not already present -->
+                        <xsl:if test="not(id($facet-container-id, ixsl:page()))">
                             <xsl:variable name="facet-container-id" select="$content-id || '-left-nav'" as="xs:string"/>
 
                             <xsl:result-document href="?." method="ixsl:append-content">
@@ -1334,26 +1334,26 @@ exclude-result-prefixes="#all"
                         </xsl:call-template>
                     </xsl:if> -->
 
-                    <!-- only show parallax navigation if the RDF result contains object resources -->
-                    <xsl:if test="/rdf:RDF/*/*[@rdf:resource]">
-                        <xsl:variable name="parallax-container-id" select="$content-id || '-right-nav'" as="xs:string"/>
+                    <xsl:for-each select="$container/div[contains-token(@class, 'right-nav')]">
+                        <!-- only show parallax navigation if the RDF result contains object resources -->
+                        <xsl:if test="/rdf:RDF/*/*[@rdf:resource]">
+                            <xsl:variable name="parallax-container-id" select="$content-id || '-right-nav'" as="xs:string"/>
 
-                        <!-- create a container for parallax controls in the right-nav, if it doesn't exist yet -->
-                        <xsl:if test="not($container/div[contains-token(@class, 'right-nav')]/*)">
-                            <xsl:for-each select="$container/div[contains-token(@class, 'right-nav')]">
+                            <!-- create a container for parallax controls in the right-nav, if it doesn't exist yet -->
+                            <xsl:if test="not(id($parallax-container-id, ixsl:page()))">
                                 <xsl:result-document href="?." method="ixsl:append-content">
                                     <div id="{$parallax-container-id}" class="well well-small sidebar-nav parallax-nav"/>
                                 </xsl:result-document>
-                            </xsl:for-each>
-                        </xsl:if>
+                            </xsl:if>
 
-                        <xsl:call-template name="bs2:Parallax">
-                            <xsl:with-param name="results" select="$sorted-results"/>
-                            <xsl:with-param name="select-xml" select="$select-xml"/>
-                            <xsl:with-param name="endpoint" select="$endpoint"/>
-                            <xsl:with-param name="container" select="id($parallax-container-id, ixsl:page())"/>
-                        </xsl:call-template>
-                    </xsl:if>
+                            <xsl:call-template name="bs2:Parallax">
+                                <xsl:with-param name="results" select="$sorted-results"/>
+                                <xsl:with-param name="select-xml" select="$select-xml"/>
+                                <xsl:with-param name="endpoint" select="$endpoint"/>
+                                <xsl:with-param name="container" select="id($parallax-container-id, ixsl:page())"/>
+                            </xsl:call-template>
+                        </xsl:if>
+                    </xsl:for-each>
                     
                     <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
                 </xsl:for-each>
