@@ -33,13 +33,23 @@ import org.apache.jena.vocabulary.RDF;
 public class AuthorizationContext
 {
 
-    public final Model authorizationModel;
+    private final Model authorizationModel;
     
+    /**
+     * Constructs authorization context from RDF model with WAC authorizations.
+     * 
+     * @param authorizationModel WAC authorization data
+     */
     public AuthorizationContext(Model authorizationModel)
     {
         this.authorizationModel = authorizationModel;
     }
     
+    /**
+     * Returns the URIs of all authorization modes in this context.
+     * 
+     * @return URIs of auth modes
+     */
     public Set<URI> getModeURIs()
     {
         Set<URI> modeURIs = new HashSet<>();

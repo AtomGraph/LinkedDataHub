@@ -1,4 +1,4 @@
-## [3.2.16] - 2022-09-28
+## [3.2.17] - 2022-09-28
 ### Added
 - Basic support for [HTTP range requests](https://developer.mozilla.org/en-US/docs/Web/HTTP/Range_requests) when serving uploded files (`uploads/{sha1sum}`)
 

@@ -188,6 +188,13 @@ public class Item extends GraphStoreImpl
         return super.getResponseBuilder(model, graphUri);
     }
 
+    /**
+     * Returns streaming output of a byte range from the given file.
+     * 
+     * @param file input file
+     * @param range range string (integers separated with a dash)
+     * @return file's RDF model
+     */
     public FileRangeOutput getFileRangeOutput(File file, String range)
     {
         final String[] ranges = range.split("=")[1].split("-");
@@ -201,7 +208,7 @@ public class Item extends GraphStoreImpl
                     build());
         }
 
-        long to = 0;
+        long to;
 
         if (ranges.length == 2)
         {
@@ -238,6 +245,12 @@ public class Item extends GraphStoreImpl
         return null; // disable ETag based on Model hash
     }
     
+    /**
+     * Returns the last modification date for the given file.
+     * 
+     * @param file input file
+     * @return last modification date
+     */
     protected Date getLastModified(File file)
     {
         return new Date(file.lastModified());

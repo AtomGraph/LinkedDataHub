@@ -29,7 +29,7 @@ import java.io.OutputStream;
 /**
  * Represents a byte range output from a file.
  * 
- * @author Martynas Jusevičius <martynas@atomgraph.com>
+ * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
  */
 public class FileRangeOutput implements StreamingOutput
 {
@@ -41,9 +41,9 @@ public class FileRangeOutput implements StreamingOutput
     /**
      * Constructs output from file, range start and length.
      * 
-     * @param file
-     * @param from
-     * @param length 
+     * @param file file that the byte range will be taken from
+     * @param from start byte
+     * @param length length in bytes
      */
     public FileRangeOutput(File file, long from, long length)
     {

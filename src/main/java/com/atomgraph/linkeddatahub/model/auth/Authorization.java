@@ -27,8 +27,18 @@ import org.apache.jena.rdf.model.Resource;
 public interface Authorization extends Resource
 {
     
+    /**
+     * Returns authorization modes.
+     * 
+     * @return mode resources
+     */
     Set<Resource> getModes();
     
+    /**
+     * Returns the URIs of authorization modes
+     * 
+     * @return mode resource URIs
+     */
     Set<URI> getModeURIs();
     
 }
