@@ -476,7 +476,7 @@ exclude-result-prefixes="#all"
             <!-- appending new content -->
             <xsl:otherwise>
                 <xsl:variable name="content-id" select="'id' || ac:uuid()" as="xs:string"/>
-                <xsl:variable name="content-uri" select="xs:anyURI(ac:uri() || '#' || $content-id))" as="xs:anyURI"/> <!-- build content URI -->
+                <xsl:variable name="content-uri" select="xs:anyURI(ac:uri() || '#' || $content-id)" as="xs:anyURI"/> <!-- build content URI -->
                 <ixsl:set-attribute name="id" select="$content-id" object="$container"/>
                 <ixsl:set-attribute name="about" select="$content-uri" object="$container"/>
 
@@ -531,7 +531,7 @@ exclude-result-prefixes="#all"
             <!-- appending new content -->
             <xsl:otherwise>
                 <xsl:variable name="content-id" select="'id' || ac:uuid()" as="xs:string"/>
-                <xsl:variable name="content-uri" select="xs:anyURI(ac:uri() || '#' || $content-id))" as="xs:anyURI"/> <!-- build content URI -->
+                <xsl:variable name="content-uri" select="xs:anyURI(ac:uri() || '#' || $content-id)" as="xs:anyURI"/> <!-- build content URI -->
                 <ixsl:set-attribute name="id" select="$content-id" object="$container"/>
                 <ixsl:set-attribute name="about" select="$content-uri" object="$container"/>
                 
