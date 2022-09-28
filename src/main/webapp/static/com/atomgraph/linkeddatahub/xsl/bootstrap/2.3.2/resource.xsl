@@ -470,7 +470,7 @@ extension-element-prefixes="ixsl"
             
             <xsl:apply-templates select="." mode="bs2:Left"/>
 
-            <div class="span7">
+            <div class="main span7">
                 <xsl:variable name="doc" as="document-node()">
                     <xsl:document>
                         <rdf:RDF>
@@ -709,7 +709,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="id" select="generate-id()" as="xs:string?"/>
         <xsl:param name="class" select="'row-fluid content xhtml-content'" as="xs:string?"/>
         <xsl:param name="about" select="@rdf:about" as="xs:anyURI"/>
-        <xsl:param name="main-class" select="'span7 offset2'" as="xs:string?"/>
+        <xsl:param name="main-class" select="'main span7 offset2'" as="xs:string?"/>
 
         <div>
             <xsl:if test="$id">
@@ -738,7 +738,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="about" select="@rdf:about" as="xs:anyURI"/>
         <xsl:param name="mode" select="ac:mode/@rdf:resource" as="xs:anyURI?"/>
         <xsl:param name="left-class" select="'left-nav span2'" as="xs:string?"/>
-        <xsl:param name="main-class" select="'span7'" as="xs:string?"/>
+        <xsl:param name="main-class" select="'main span7'" as="xs:string?"/>
         <xsl:param name="right-class" select="'right-nav span3'" as="xs:string?"/>
         
         <xsl:apply-templates select="." mode="bs2:RowContentHeader"/>

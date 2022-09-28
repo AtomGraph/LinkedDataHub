@@ -1086,8 +1086,8 @@ exclude-result-prefixes="#all"
         <xsl:param name="focus-var-name" as="xs:string"/>
         <xsl:param name="select-string" as="xs:string"/>
         <xsl:param name="endpoint" as="xs:anyURI"/>
-        <!-- if  the container is full-width row (.row-fluid), render results in the middle column (.span7) -->
-        <xsl:param name="content-container" select="if (contains-token($container/@class, 'row-fluid')) then $container/div[contains-token(@class, 'span7')] else $container" as="element()"/>
+        <!-- if  the container is full-width row (.row-fluid), render results in the middle column (.main) -->
+        <xsl:param name="content-container" select="if (contains-token($container/@class, 'row-fluid')) then $container/div[contains-token(@class, 'main')] else $container" as="element()"/>
         <xsl:param name="order-by-container-id" select="$content-id || '-container-order'" as="xs:string?"/>
         
         <!-- update progress bar -->

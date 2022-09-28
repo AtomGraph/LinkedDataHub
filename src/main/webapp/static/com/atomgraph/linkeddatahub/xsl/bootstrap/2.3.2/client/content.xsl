@@ -291,7 +291,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="container" as="element()"/>
 
         <!-- insert "Edit" button if the agent has acl:Write access -->
-        <xsl:for-each select="$container//div[contains-token(@class, 'span7')]">
+        <xsl:for-each select="$container//div[contains-token(@class, 'main')]">
             <xsl:if test="not(button[contains-token(@class, 'btn-edit')])">
                 <xsl:result-document href="?." method="ixsl:replace-content">
                     <xsl:if test="acl:mode() = '&acl;Write'">
@@ -300,7 +300,7 @@ exclude-result-prefixes="#all"
                         </button>
                     </xsl:if>
 
-                    <xsl:copy-of select="$container//div[contains-token(@class, 'span7')]/*"/>
+                    <xsl:copy-of select="$container//div[contains-token(@class, 'main')]/*"/>
                 </xsl:result-document>
             </xsl:if>
         </xsl:for-each>
@@ -312,7 +312,7 @@ exclude-result-prefixes="#all"
     
     <xsl:template match="div[contains-token(@class, 'xhtml-content')]//button[contains-token(@class, 'btn-edit')]" mode="ixsl:onclick">
         <xsl:variable name="button" select="." as="element()"/>
-        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'span7')]" as="element()"/>
+        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'main')]" as="element()"/>
 
         <xsl:variable name="constructor" as="document-node()">
             <xsl:document>
@@ -368,7 +368,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="mode" select="if (ixsl:contains($container, 'dataset.contentMode')) then xs:anyURI(ixsl:get($container, 'dataset.contentMode')) else ()" as="xs:anyURI?"/> <!-- get the value of the @data-content-mode attribute -->
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), map{}, $content-value)"/>
         <!-- redefine $container as the middle column -->
-        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'span7')]" as="element()"/>
+        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'main')]" as="element()"/>
 
         <xsl:variable name="constructor" as="document-node()">
             <xsl:document>
@@ -445,7 +445,7 @@ exclude-result-prefixes="#all"
     
     <xsl:template match="div[contains-token(@class, 'xhtml-content')]//button[contains-token(@class, 'btn-save')]" mode="ixsl:onclick">
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'xhtml-content')]" as="element()"/>
-        <xsl:variable name="textarea" select="ancestor::div[contains-token(@class, 'span7')]//textarea[contains-token(@class, 'wymeditor')]" as="element()"/>
+        <xsl:variable name="textarea" select="ancestor::div[contains-token(@class, 'main')]//textarea[contains-token(@class, 'wymeditor')]" as="element()"/>
         <xsl:variable name="old-content-string" select="string($textarea)" as="xs:string"/>
         <xsl:variable name="wymeditor" select="ixsl:call(ixsl:get(ixsl:window(), 'jQuery'), 'getWymeditorByTextarea', [ $textarea ])" as="item()"/>
         <!-- update the textarea with WYMEditor content -->
@@ -500,7 +500,7 @@ exclude-result-prefixes="#all"
     <xsl:template match="div[contains-token(@class, 'resource-content')]//button[contains-token(@class, 'btn-save')]" mode="ixsl:onclick">
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'resource-content')]" as="element()"/>
         <xsl:variable name="old-content-value" select="ixsl:get($container, 'dataset.contentValue')" as="xs:anyURI"/>
-        <xsl:variable name="content-value" select="ixsl:get($container//div[contains-token(@class, 'span7')]//input[@name = 'ou'], 'value')" as="xs:anyURI"/>
+        <xsl:variable name="content-value" select="ixsl:get($container//div[contains-token(@class, 'main')]//input[@name = 'ou'], 'value')" as="xs:anyURI"/>
         <xsl:variable name="mode" select="ixsl:get(key('elements-by-class', 'content-mode', $container), 'value')" as="xs:anyURI?"/>
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
@@ -593,11 +593,11 @@ exclude-result-prefixes="#all"
         <xsl:choose>
             <!-- restore existing content -->
             <xsl:when test="$container/@about">
-                <xsl:variable name="textarea" select="ancestor::div[contains-token(@class, 'span7')]//textarea[contains-token(@class, 'wymeditor')]" as="element()"/>
+                <xsl:variable name="textarea" select="ancestor::div[contains-token(@class, 'main')]//textarea[contains-token(@class, 'wymeditor')]" as="element()"/>
                 <xsl:variable name="old-content-string" select="string($textarea)" as="xs:string"/>
                 <xsl:variable name="content-value" select="ldh:parse-html('&lt;div&gt;' || $old-content-string || '&lt;/div&gt;', 'application/xhtml+xml')" as="document-node()"/>
 
-                <xsl:for-each select="$container/div[contains-token(@class, 'span7')]">
+                <xsl:for-each select="$container/div[contains-token(@class, 'main)]">
                     <xsl:result-document href="?." method="ixsl:replace-content">
                         <button type="button" class="btn btn-edit pull-right">
                             <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
@@ -689,7 +689,7 @@ exclude-result-prefixes="#all"
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'xhtml-content', true() ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
         
-        <xsl:for-each select="ancestor::div[contains-token(@class, 'span7')]">
+        <xsl:for-each select="ancestor::div[contains-token(@class, 'main')]">
             <xsl:result-document href="?." method="ixsl:replace-content">
                 <div>
                     <xsl:copy-of select="$controls"/>
@@ -755,7 +755,7 @@ exclude-result-prefixes="#all"
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'resource-content', true() ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
         
-        <xsl:for-each select="ancestor::div[contains-token(@class, 'span7')]">
+        <xsl:for-each select="ancestor::div[contains-token(@class, 'main')]">
             <xsl:result-document href="?." method="ixsl:replace-content">
                 <div>
                     <xsl:copy-of select="$controls"/>
@@ -789,7 +789,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="content-value" select="ixsl:get(., 'dataset.contentValue')" as="xs:anyURI"/> <!-- get the value of the @data-content-value attribute -->
         <xsl:variable name="mode" select="if (ixsl:contains(., 'dataset.contentMode')) then xs:anyURI(ixsl:get(., 'dataset.contentMode')) else ()" as="xs:anyURI?"/> <!-- get the value of the @data-content-mode attribute -->
         <xsl:variable name="container" select="." as="element()"/>
-        <xsl:variable name="progress-container" select="if (contains-token(@class, 'row-fluid')) then ./div[contains-token(@class, 'span7')] else ." as="element()"/>
+        <xsl:variable name="progress-container" select="if (contains-token(@class, 'row-fluid')) then ./div[contains-token(@class, 'main')] else ." as="element()"/>
 
         <!-- show progress bar in the middle column -->
         <xsl:for-each select="$progress-container">
@@ -883,7 +883,7 @@ exclude-result-prefixes="#all"
             <xsl:when test="?status = 406">
                 <xsl:for-each select="$container">
                     <xsl:result-document href="?." method="ixsl:replace-content">
-                        <div class="offset2 span7">
+                        <div class="offset2 span7 main">
                             <object data="{$content-value}"/>
                         </div>
                     </xsl:result-document>
@@ -955,7 +955,7 @@ exclude-result-prefixes="#all"
 
         <xsl:choose>
             <xsl:when test="?status = 200">
-                <xsl:for-each select="$container/div[contains-token(@class, 'span7')]">
+                <xsl:for-each select="$container/div[contains-token(@class, 'main')]">
                     <xsl:result-document href="?." method="ixsl:replace-content">
                         <button type="button" class="btn btn-edit pull-right">
                             <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>

@@ -814,7 +814,7 @@ WHERE
                     </xsl:if>
 
                     <!-- workaround until SPARQL editor is refactored as a content block -->
-                    <xsl:for-each select="if (contains-token($container/@class, 'row-fluid')) then $container/div[contains-token(@class, 'span7')] else $container">
+                    <xsl:for-each select="if (contains-token($container/@class, 'row-fluid')) then $container/div[contains-token(@class, 'main')] else $container">
                         <xsl:result-document href="?." method="ixsl:replace-content">
                             <xsl:apply-templates select="$results" mode="bs2:Chart">
                                 <xsl:with-param name="canvas-id" select="$chart-canvas-id"/>
