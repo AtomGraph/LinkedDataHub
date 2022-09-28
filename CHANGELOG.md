@@ -1,3 +1,13 @@
+## [3.2.16] - 2022-09-28
+### Added
+- Basic support for [HTTP range requests](https://developer.mozilla.org/en-US/docs/Web/HTTP/Range_requests) when serving uploded files (`uploads/{sha1sum}`)
+
+### Changed
+- Fixed infinite XSLT loop in the WebID signup flow
+- Container UI code only hydrates server-side HTML elements, does not create them if they don't exist
+- Parameterized CSS classes in `bs2:RowContent` mode
+- `ProxyResourceBase` guards against queries to the backend SPARQL service by requiring that agent is authorized
+
 ## [3.2.15] - 2022-09-26
 ### Changed
 - Fixed order by dropdown population for container content
