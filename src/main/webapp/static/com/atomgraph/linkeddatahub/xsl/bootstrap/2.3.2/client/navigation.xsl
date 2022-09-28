@@ -288,7 +288,7 @@ exclude-result-prefixes="#all"
             </xsl:when>
             <xsl:otherwise>
                 <xsl:message>
-                    Error loading breadcrumbs for URI :<xsl:value-of select="$uri"/>
+                    Error loading breadcrumbs for URI: <xsl:value-of select="$uri"/>
                 </xsl:message>
             </xsl:otherwise>
         </xsl:choose>

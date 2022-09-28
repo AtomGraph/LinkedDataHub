@@ -98,8 +98,7 @@ exclude-result-prefixes="#all">
     </xsl:template>
 
     <!-- display stored AuthorizationRequest data after successful POST (without ConstraintViolations) -->
-    <!-- match the first resource, whatever it is -->
-    <xsl:template match="*[doc-available(ac:uri())][key('resources', ac:uri(), document(ac:uri()))/rdf:type/@rdf:resource = '&adm;RequestAccess'][$ac:method = 'POST'][not(key('resources-by-type', '&http;Response'))][1]" mode="bs2:Row" priority="3">
+    <xsl:template match="rdf:RDF[doc-available(ac:uri())][key('resources', ac:uri(), document(ac:uri()))/rdf:type/@rdf:resource = '&adm;RequestAccess'][$ac:method = 'POST'][not(key('resources-by-type', '&http;Response'))][1]" mode="bs2:Row" priority="3">
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" select="'offset2 span7'" as="xs:string?"/>
 
