@@ -126,7 +126,7 @@ extension-element-prefixes="ixsl"
         <!-- only show buttons to agents who have sufficient access to modify them -->
         <xsl:if test="$acl:mode = '&acl;Append'">
             <div class="row-fluid">
-                <div class="offset2 span7">
+                <div class="main offset2 span7">
                     <p>
                         <button type="button" class="btn btn-primary create-action add-resource-content">
                             <xsl:apply-templates select="key('resources', 'resource', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
@@ -679,7 +679,7 @@ extension-element-prefixes="ixsl"
 
             <xsl:if test="$create-resource">
                 <div class="create-resource row-fluid">
-                    <div class="offset2 span7">
+                    <div class="main offset2 span7">
                         <xsl:apply-templates select="." mode="bs2:Create">
                             <xsl:with-param name="classes" select="$classes"/>
                             <xsl:with-param name="show-document-classes" select="false()"/>
@@ -750,7 +750,7 @@ extension-element-prefixes="ixsl"
                 <xsl:attribute name="class" select="$class"/>
             </xsl:if>
             
-            <div class="form-actions offset2 span7">
+            <div class="form-actions main offset2 span7">
                 <button type="submit" class="{$button-class}">
                     <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ldh:logo">
                         <xsl:with-param name="class" select="$button-class"/>

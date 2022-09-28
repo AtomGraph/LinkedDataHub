@@ -791,7 +791,7 @@ extension-element-prefixes="ixsl"
         
         <xsl:if test="exists($anchor)">
             <div class="row-fluid">
-                <div class="offset2 span7">
+                <div class="main offset2 span7">
                     <h2>
                         <xsl:sequence select="$anchor"/>
                     </h2>
@@ -950,7 +950,7 @@ extension-element-prefixes="ixsl"
 
             <!--<xsl:apply-templates select="." mode="bs2:Left"/>-->
 
-            <div class="span7 offset2">
+            <div class="main span7 offset2">
                 <xsl:apply-templates select="." mode="bs2:Form"/>
             </div>
 

@@ -84,7 +84,7 @@ exclude-result-prefixes="#all">
     <!-- match the first resource, whatever it is -->
     <xsl:template match="*[doc-available(ac:uri())][key('resources', ac:uri(), document(ac:uri()))/rdf:type/@rdf:resource = '&adm;SignUp'][$ac:method = 'POST'][not(key('resources-by-type', '&http;Response'))][1]" mode="bs2:Row" priority="3">
         <div class="row-fluid">
-            <div class="offset2 span7">
+            <div class="main offset2 span7">
                 <div class="alert alert-success row-fluid">
                     <div class="span1">
                         <img src="{resolve-uri('static/com/atomgraph/linkeddatahub/icons/baseline_done_white_48dp.png', $ac:contextUri)}" alt="Signup complete"/>
