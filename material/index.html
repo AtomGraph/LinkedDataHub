@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Material</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+		<link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Roboto:300,400,500,700" type="text/css">
+		<link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.indigo-pink.min.css">
+		<script defer src="https://code.getmdl.io/1.3.0/material.min.js"></script>
+		<style type="text/css">
+			dl { display: grid; grid-template-columns: 1fr 5fr; }
+			dt, dd { line-height: 2em; 
+.demo-layout-waterfall .mdl-layout__header-row .mdl-navigation__link:last-of-type  {
+  padding-right: 0;
+}
+		</style>
+    </head>
+    <body class="demo-layout-waterfall mdl-layout mdl-js-layout">
+  <header class="mdl-layout__header mdl-layout__header--waterfall">
+    <div class="mdl-layout__header-row">
+      <!-- Title -->
+      <span class="mdl-layout-title">LinkedDataHub</span>
+		<form action="#">
+		  <div class="mdl-textfield mdl-js-textfield">
+			<input class="mdl-textfield__input" type="text" id="sample1">
+			<label class="mdl-textfield__label" for="sample1">Text...</label>
+		  </div>
+		</form>
+      <!-- Add spacer, to align navigation to the right -->
+      <div class="mdl-layout-spacer"></div>
+      <!-- Navigation. We hide it in small screens. -->
+      <nav class="mdl-navigation mdl-layout--large-screen-only">
+
+        <a class="mdl-navigation__link" href="">SPARQL endpoint</a>
+      </nav>
+    </div>
+    <!-- Bottom row, not visible on scroll -->
+    <div class="mdl-layout__header-row">
+	<button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent">Create</button>
+	<div class="mdl-layout-spacer"></div>
+      <!-- Navigation -->
+      <nav class="mdl-navigation">
+		<button class="mdl-button mdl-js-button mdl-button--icon">
+		  <i class="material-icons">save_as</i>
+		</button>
+		<button class="mdl-button mdl-js-button mdl-button--icon">
+		  <i class="material-icons">edit</i>
+		</button>
+		<button class="mdl-button mdl-js-button mdl-button--icon">
+		  <i class="material-icons">delete_forever</i>
+		</button>
+		<button class="mdl-button mdl-js-button mdl-button--icon">
+		  <i class="material-icons">download</i>
+		</button>
+      </nav>
+    </div>
+  </header>
+
+  <main id="content" class="mdl-layout__content">
+			<div class="content mdl-grid">
+				<div class="left-nav mdl-cell mdl-cell--2-col">
+					
+				</div>
+				<div class="main mdl-cell mdl-cell--7-col mdl-card mdl-shadow--2dp">
+					<div style="background: url('map.png') center / cover; height: 600px; width: 100%; display: block;"></div>
+					<div class="mdl-card__title">
+						<h2 class="mdl-card__title-text">Copenhagen</h2>
+					</div>
+					<div class="mdl-card__supporting-text">
+Copenhagen (/ˌkoʊpənˈheɪɡən, -ˈhɑː-/ KOH-pən-HAY-gən, -⁠HAH- or /ˈkoʊpənheɪɡən, -hɑː-/ KOH-pən-hay-gən, -⁠hah-.; Danish: København [kʰøpm̩ˈhɑwˀn]) is the capital and most populous city of Denmark. As of 1 January 2022, the city had a population of 805,402 (644,431 in Copenhagen Municipality, 103,608 in Frederiksberg Municipality, 42,723 in Tårnby Municipality, and 14,640 in Dragør Municipality). It forms the core of the wider urban area of Copenhagen (population 1,336,982) and the Copenhagen metropolitan area (population 2,057,142). Copenhagen is situated on the eastern coast of the island of Zealand; another portion of the city is located on Amager, and it is separated from Malmö, Sweden, by the strait of Øresund. The Øresund Bridge connects the two cities by rail and road.
+					</div>
+					<div class="mdl-card__actions">
+						<!-- Deletable Chip -->
+						<span class="mdl-chip mdl-chip--deletable">
+							<span class="mdl-chip__text">City</span>
+							<button type="button" class="mdl-chip__action"><i class="material-icons">cancel</i></button>
+						</span>
+						<!-- Deletable Chip -->
+						<span class="mdl-chip mdl-chip--deletable">
+							<span class="mdl-chip__text">Location</span>
+							<button type="button" class="mdl-chip__action"><i class="material-icons">cancel</i></button>
+						</span>
+						<!-- Deletable Chip -->
+						<span class="mdl-chip mdl-chip--deletable">
+							<span class="mdl-chip__text">Place</span>
+							<button type="button" class="mdl-chip__action"><i class="material-icons">cancel</i></button>
+						</span>
+						<!-- Deletable Chip -->
+						<span class="mdl-chip mdl-chip--deletable">
+							<span class="mdl-chip__text">Thing</span>
+							<button type="button" class="mdl-chip__action"><i class="material-icons">cancel</i></button>
+						</span>
+					</div>
+					<dl class="mdl-card__supporting-text" style="border-top: 1px solid rgba(0,0,0,.1);">
+						 <dt><span title="http://schema.org/author">Author</span></dt>
+						 <dd><a href="https://localhost:4443/9929916c-52a7-4111-a36a-d36a5df450b6/#id0934a0c4-d8fb-43dc-b061-802fdee01f2d" title="https://localhost:4443/9929916c-52a7-4111-a36a-d36a5df450b6/#id0934a0c4-d8fb-43dc-b061-802fdee01f2d">nikolaosstr</a></dd>
+						 <dt><span title="http://schema.org/dateCreated">DateCreated</span></dt>
+						 <dd><span title="http://schema.org/Date">2021-10-05</span></dd>
+						 <dt><span title="http://schema.org/inLanguage">InLanguage</span></dt>
+						 <dd>English</dd>
+						 <dt><span title="http://schema.org/itemReviewed">ItemReviewed</span></dt>
+						 <dd><a href="https://localhost:4443/9929916c-52a7-4111-a36a-d36a5df450b6/#ida62c805c-6f71-41dd-866f-df923cb292cf" title="https://localhost:4443/9929916c-52a7-4111-a36a-d36a5df450b6/#ida62c805c-6f71-41dd-866f-df923cb292cf">ida62c805c-6f71-41dd-866f-df923cb292cf</a></dd>
+						 <dt><span title="http://schema.org/name">Name</span></dt>
+						 <dd>A visual and audio experience</dd>
+						 <dt><span title="http://schema.org/reviewBody">ReviewBody</span></dt>
+						 <dd>The cinematography and Hans Zimmer music. An experience that should be obtained by
+							all. Those spaceships accompanied with the music will remain for long time in my mind.
+							
+							Yes books are read but this movie gives a good impression of the worlds created in
+							our minds.</dd>
+						 <dt><span title="http://schema.org/reviewRating">ReviewRating</span></dt>
+						 <dd><a href="https://localhost:4443/9929916c-52a7-4111-a36a-d36a5df450b6/#id27042b72-fd39-4579-9480-a303266505f0" title="https://localhost:4443/9929916c-52a7-4111-a36a-d36a5df450b6/#id27042b72-fd39-4579-9480-a303266505f0">id27042b72-fd39-4579-9480-a303266505f0</a></dd>
+					  </dl>
+					<div class="mdl-card__actions mdl-card--border" style="background: url('graph.png') center / cover; height: 600px; width: 100%; display: block;"></div>
+				</div>
+				<div class="right-nav mdl-cell mdl-cell--3-col">
+					<div class="mdl-card mdl-shadow--2dp">
+						<div class="mdl-card__title">
+							<h2 class="mdl-card__title-text">Backlinks</h2>
+						</div>
+						  <div class="mdl-card__actions mdl-card--border">
+							<ul class="demo-list-item mdl-list">
+							  <li class="mdl-list__item">
+								<span class="mdl-list__item-primary-content">
+								  <!-- <i class="material-icons mdl-list__item-avatar">person</i> -->
+								  <a href="">Indre By</a>
+								  <span class="mdl-list__item-sub-title">
+									<span class="mdl-chip">
+										<span class="mdl-chip__text">Place</span>
+									</span>
+								  </span>
+								</span>
+							  </li>
+							  <li class="mdl-list__item">
+								<span class="mdl-list__item-primary-content">
+								  <!-- <i class="material-icons mdl-list__item-avatar">person</i> -->
+								  <a href="">Nørrebro</a>
+								  <span class="mdl-list__item-sub-title">
+									<span class="mdl-chip">
+										<span class="mdl-chip__text">Place</span>
+									</span>
+								  </span>
+								</span>
+							  </li>
+							  <li class="mdl-list__item">
+								<a href="">Vesterbro</a>
+							  </li>
+							  <li class="mdl-list__item">
+								<a href="">Østerbro</a>
+							  </li>
+							</ul>
+						</ul>
+					</div>
+				</div>
+			</div>
+		</main>
+
+		<footer class="mdl-mini-footer">
+		  <div class="mdl-mini-footer__left-section">
+			<div class="mdl-logo">Title</div>
+			<ul class="mdl-mini-footer__link-list">
+			  <li><a href="#">Help</a></li>
+			  <li><a href="#">Privacy & Terms</a></li>
+			</ul>
+		  </div>
+		</footer>
+    </body>
+</html>
