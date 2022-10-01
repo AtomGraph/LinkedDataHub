@@ -105,6 +105,12 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="xs:anyURI(if (contains($href, '?')) then substring-before($href, '?') else if (contains($href, '#')) then substring-before($href, '#') else $href)"/>
     </xsl:function>
     
+    <xsl:function name="ldh:escape-for-regex" as="xs:string">
+      <xsl:param name="arg" as="xs:string?"/>
+
+      <xsl:sequence select="replace($arg, '(\.|\[|\]|\\|\||\-|\^|\$|\?|\*|\+|\{|\}|\(|\))','\\$1')"/>
+    </xsl:function>
+
     <xsl:function name="ldh:query-result" as="document-node()" cache="yes">
         <xsl:param name="bindings" as="map(xs:string, xs:anyAtomicType)"/>
         <xsl:param name="endpoint" as="xs:anyURI"/>
@@ -123,7 +129,7 @@ exclude-result-prefixes="#all"
                 
                 <xsl:next-iteration>
                     <!-- wrap into <> if the value is URI, otherwise wrap into "" as a literal -->
-                    <xsl:with-param name="query" select="if ($value instance of xs:anyURI) then translate($query, $key, concat('&lt;', $value, '&gt;')) else translate($query, $key, concat('&quot;', $value, '&quot;'))"/>
+                    <xsl:with-param name="query" select="if ($value instance of xs:anyURI) then replace($query, ldh:escape-for-regex($key), concat('&lt;', $value, '&gt;')) else replace($query, ldh:escape-for-regex($key), concat('&quot;', $value, '&quot;'))"/>
                 </xsl:next-iteration>
             </xsl:iterate>
         </xsl:variable>
