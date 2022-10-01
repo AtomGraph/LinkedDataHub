@@ -668,6 +668,20 @@ WHERE
 
 }
 
+<model/shapes/>
+{
+
+    <model/shapes/> a dh:Container ;
+        sioc:has_parent <model/> ;
+        dct:title "Shapes" ;
+        dct:description "Manage shapes that describe and validate data" ;
+        rdf:_1 <model/shapes/#select-children> .
+
+    <model/shapes/#select-children> a ldh:Content ;
+        rdf:value ldh:SelectChildren .
+
+}
+
 # ONTOLOGIES
 
 # namespace
