@@ -510,7 +510,7 @@ extension-element-prefixes="ixsl"
         </div>
         
         <!-- render contents attached to the types of this resource using ldh:template -->
-        <xsl:variable name="content-values" select="rdf:type/@rdf:resource[doc-available(resolve-uri('ns?query=ASK%20%7B%7D', $ldt:base))]/ldh:query-result(map{ '$Type': . }, resolve-uri('ns', $ldt:base), $template-query)//srx:binding[@name = 'content']/srx:uri/xs:anyURI(.)" as="xs:anyURI*" use-when="system-property('xsl:product-name') = 'SAXON'"/>
+        <xsl:variable name="content-values" select="rdf:type/@rdf:resource[doc-available(resolve-uri('ns?query=ASK%20%7B%7D', $ldt:base))]/ldh:query-result(map{ '$Type': xs:anyURI(.) }, resolve-uri('ns', $ldt:base), $template-query)//srx:binding[@name = 'content']/srx:uri/xs:anyURI(.)" as="xs:anyURI*" use-when="system-property('xsl:product-name') = 'SAXON'"/>
         <xsl:for-each select="$content-values" use-when="system-property('xsl:product-name') = 'SAXON'">
             <xsl:if test="doc-available(ac:document-uri(.))">
                 <xsl:apply-templates select="key('resources', ., document(ac:document-uri(.)))" mode="bs2:RowContent"/>
