@@ -113,6 +113,11 @@ exclude-result-prefixes="#all"
         <xsl:variable name="query-string" as="xs:string">
             <xsl:iterate select="map:keys($bindings)">
                 <xsl:param name="query" select="$query" as="xs:string"/>
+                
+                <xsl:on-completion>
+                    <xsl:sequence select="$query"/>
+                </xsl:on-completion>
+                
                 <xsl:variable name="key" select="." as="xs:string"/>
                 <xsl:variable name="value" select="map:get($bindings, $key)" as="xs:anyAtomicType"/>
                 
