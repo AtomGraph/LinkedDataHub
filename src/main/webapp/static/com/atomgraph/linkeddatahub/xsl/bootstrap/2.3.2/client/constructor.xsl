@@ -99,7 +99,7 @@ exclude-result-prefixes="#all"
         <ixsl:set-style name="cursor" select="'progress'" object="."/>
 
         <xsl:variable name="query-string" select="replace($constructor-query, '\$Type', '&lt;' || $type || '&gt;')" as="xs:string"/>
-        <!-- spin:constructors function does the same synchronously -->
+        <!-- ldh:query-result function does the same synchronously -->
         <xsl:variable name="results-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': $query-string })" as="xs:anyURI"/>
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml' } }">
