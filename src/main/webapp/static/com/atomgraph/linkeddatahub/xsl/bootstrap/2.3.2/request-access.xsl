@@ -78,8 +78,8 @@ exclude-result-prefixes="#all">
         <xsl:variable name="constructor" as="document-node()">
             <xsl:document>
                 <!-- construct a combined graph of dh:Item and lacl:AuthorizationRequest instances -->
-                <xsl:for-each select="ldh:construct(map{ xs:anyURI('&dh;Item'): ldh:query-result(xs:anyURI('&dh;Item'), resolve-uri('ns', $ldt:base), $constructor-query)//srx:binding[@name = 'construct']/srx:literal/string(),
-                        xs:anyURI('&lacl;AuthorizationRequest'): ldh:query-result(xs:anyURI('&lacl;AuthorizationRequest'), resolve-uri('ns', $ldt:base), $constructor-query)//srx:binding[@name = 'construct']/srx:literal/string() })">
+                <xsl:for-each select="ldh:construct(map{ xs:anyURI('&dh;Item'): ldh:query-result(map{ '$Type': xs:anyURI('&dh;Item') }, resolve-uri('ns', $ldt:base), $constructor-query)//srx:binding[@name = 'construct']/srx:literal/string(),
+                        xs:anyURI('&lacl;AuthorizationRequest'): ldh:query-result(map{ '$Type': xs:anyURI('&lacl;AuthorizationRequest') }, resolve-uri('ns', $ldt:base), $constructor-query)//srx:binding[@name = 'construct']/srx:literal/string() })">
                     <xsl:apply-templates select="." mode="ldh:SetPrimaryTopic">
                         <xsl:with-param name="topic-id" select="key('resources-by-type', '&lacl;AuthorizationRequest')/@rdf:nodeID" tunnel="yes"/>
                         <xsl:with-param name="doc-id" select="key('resources-by-type', '&dh;Item')/@rdf:nodeID" tunnel="yes"/>

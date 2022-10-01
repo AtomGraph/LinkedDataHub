@@ -106,11 +106,22 @@ exclude-result-prefixes="#all"
     </xsl:function>
     
     <xsl:function name="ldh:query-result" as="document-node()" cache="yes">
-        <xsl:param name="class" as="xs:anyURI"/>
+        <xsl:param name="bindings" as="map(xs:string, xs:anyAtomicType)"/>
         <xsl:param name="endpoint" as="xs:anyURI"/>
         <xsl:param name="query" as="xs:string"/>
         
-        <xsl:variable name="query-string" select="replace($query, '\$Type', concat('&lt;', $class, '&gt;'))" as="xs:string"/>
+        <xsl:variable name="query-string" as="xs:string">
+            <xsl:iterate select="map:keys($bindings)">
+                <xsl:param name="query" select="$query" as="xs:string"/>
+                <xsl:variable name="key" select="." as="xs:string"/>
+                <xsl:variable name="value" select="map:get($bindings, $key)" as="xs:anyAtomicType"/>
+                
+                <xsl:next-iteration>
+                    <!-- wrap into <> if the value is URI, otherwise wrap into "" as a literal -->
+                    <xsl:with-param name="query" select="if ($value instance of xs:anyURI) then translate($query, $key, concat('&lt;', $value, '&gt;')) else translate($query, $key, concat('&quot;', $value, '&quot;'))"/>
+                </xsl:next-iteration>
+            </xsl:iterate>
+        </xsl:variable>
         <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': $query-string })" as="xs:anyURI"/>
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, $ldt:base, map{}, $results-uri)" as="xs:anyURI"/>
         <xsl:sequence select="document($request-uri)"/>
@@ -450,7 +461,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="types" select="../rdf:type/@rdf:resource" as="xs:anyURI*"/>
         <xsl:param name="constraint-query" as="xs:string?" tunnel="yes"/>
         <!-- only the first property that has a mandatory constraint is required, the following ones are not -->
-        <xsl:param name="required" select="if ($constraint-query) then (exists(for $type in $types return ldh:query-result($type, resolve-uri('ns', $ldt:base), $constraint-query)//srx:binding[@name = 'property'][srx:uri = $this]) and not(preceding-sibling::*[concat(namespace-uri(), local-name()) = $this])) else false()" as="xs:boolean"/>
+        <xsl:param name="required" select="if ($constraint-query) then (exists(for $type in $types return ldh:query-result(map{ '$Type': $type }, resolve-uri('ns', $ldt:base), $constraint-query)//srx:binding[@name = 'property'][srx:uri = $this]) and not(preceding-sibling::*[concat(namespace-uri(), local-name()) = $this])) else false()" as="xs:boolean"/>
         <xsl:param name="id" select="generate-id()" as="xs:string"/>
         <xsl:param name="for" select="generate-id((node() | @rdf:resource | @rdf:nodeID)[1])" as="xs:string"/>
         <xsl:param name="class" select="concat('control-group', if ($error) then ' error' else (), if ($required) then ' required' else ())" as="xs:string?"/>
