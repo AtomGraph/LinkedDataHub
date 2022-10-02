@@ -116,4 +116,8 @@ public class LDH
     /** Fragment property */
     public static final DatatypeProperty fragment = m_model.createDatatypeProperty( NS + "fragment" );
 
+    /**
+     * For shape property */
+    public static final ObjectProperty forShape = m_model.createObjectProperty( NS + "forShape" );
+
 }
