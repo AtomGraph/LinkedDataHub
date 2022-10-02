@@ -575,7 +575,7 @@ extension-element-prefixes="ixsl"
     <xsl:template match="sh:property[key('resources', (@rdf:resource, @rdf:nodeID)[1])[sh:path/@rdf:resource][sh:minCount or sh:minCount]]" mode="ldh:Shape">
         <xsl:for-each select="key('resources', (@rdf:resource, @rdf:nodeID)[1])">
             <xsl:variable name="property" select="." as="element()"/>
-            <xsl:variable name="namespace" select="if (contains(sh:path/@rdf:resource, '#')) then substring-before(sh:path/@rdf:resource, '#') || '#' else string-join(tokenize(sh:path/@rdf:resource, '/')[not(last())], '/') || '/'" as="xs:string"/>
+            <xsl:variable name="namespace" select="if (contains(sh:path/@rdf:resource, '#')) then substring-before(sh:path/@rdf:resource, '#') || '#' else string-join(tokenize(sh:path/@rdf:resource, '/')[not(position() = last())], '/') || '/'" as="xs:string"/>
             <xsl:variable name="local-name" select="if (contains(sh:path/@rdf:resource, '#')) then substring-after(sh:path/@rdf:resource, '#') else tokenize(sh:path/@rdf:resource, '/')[last()]" as="xs:string"/>
             <xsl:message>
                 $namespace: <xsl:value-of select="$namespace"/>
