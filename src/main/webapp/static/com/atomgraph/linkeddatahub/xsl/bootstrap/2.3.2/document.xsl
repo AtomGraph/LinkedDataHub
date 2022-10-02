@@ -582,7 +582,7 @@ extension-element-prefixes="ixsl"
         </xsl:message>
         
         <xsl:for-each select="(sh:minCount, 0)[1] to (sh:maxCount, 1)[1]">
-            <xsl:element namespace="$namespace" name="$local-name">
+            <xsl:element namespace="{$namespace}" name="{$local-name}">
                 <rdf:Description>
                     <xsl:choose>
                         <xsl:when test="$property/sh:class/@rdf:resource">
