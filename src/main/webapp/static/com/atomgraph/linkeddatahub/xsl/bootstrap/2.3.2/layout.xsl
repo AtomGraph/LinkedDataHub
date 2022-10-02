@@ -207,11 +207,9 @@ LIMIT   100
         <![CDATA[
             PREFIX  sh:   <http://www.w3.org/ns/shacl#>
 
-            DESCRIBE $Shape ?property
+            DESCRIBE  $Shape
             WHERE
-              { $Shape  sh:targetClass  ?Type
-                OPTIONAL
-                  { $Shape  sh:property  ?property }
+              { $Shape sh:targetClass ?Type .
               }
         ]]>
     </xsl:variable>
@@ -778,15 +776,11 @@ LIMIT   100
                         </xsl:choose>
                     </xsl:when>
                     <xsl:when test="$ldh:forShape and $ac:method = 'GET'">
-                        <xsl:variable name="shapes" select="ldh:query-result(map{ '$Shape': $ldh:forShape }, resolve-uri('ns', $ldt:base), $shape-query)" as="document-node()"/>
+                        <xsl:variable name="shapes" select="for $shape in $ldh:forShape return ldh:query-result(map{ '$Shape': $shape }, resolve-uri('ns', $ldt:base), $shape-query)//rdf:Description" as="element()"/>
                         <xsl:variable name="constructor" as="document-node()">
                             <xsl:apply-templates select="$shapes" mode="ldh:Shape"/>
                         </xsl:variable>
                         
-XXX
-<xsl:copy-of select="$constructor"/>
-/XXX
-
 <!--                        <xsl:choose>
                             <xsl:when test="$ac:mode = '&ac;ModalMode'">
                                 <xsl:apply-templates select="$constructor" mode="bs2:ModalForm">
