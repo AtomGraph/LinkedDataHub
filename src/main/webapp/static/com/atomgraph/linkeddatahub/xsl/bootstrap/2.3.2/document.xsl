@@ -15,6 +15,7 @@
     <!ENTITY acl    "http://www.w3.org/ns/auth/acl#">
     <!ENTITY ldt    "https://www.w3.org/ns/ldt#">
     <!ENTITY dh     "https://www.w3.org/ns/ldt/document-hierarchy#">
+    <!ENTITY sh     "http://www.w3.org/ns/shacl#">
     <!ENTITY dct    "http://purl.org/dc/terms/">
     <!ENTITY foaf   "http://xmlns.com/foaf/0.1/">
     <!ENTITY sioc   "http://rdfs.org/sioc/ns#">
@@ -37,6 +38,7 @@ xmlns:http="&http;"
 xmlns:acl="&acl;"
 xmlns:ldt="&ldt;"
 xmlns:dh="&dh;"
+xmlns:sh="&sh;"
 xmlns:dct="&dct;"
 xmlns:foaf="&foaf;"
 xmlns:sioc="&sioc;"
@@ -51,6 +53,8 @@ exclude-result-prefixes="#all"
 extension-element-prefixes="ixsl"
 >
     
+    <xsl:mode name="ldh:Shape" on-no-match="deep-skip"/>
+
     <xsl:param name="main-doc" select="/" as="document-node()"/>
     <xsl:param name="acl:Agent" as="document-node()?"/>
     <xsl:param name="acl:mode" select="$foaf:Agent//*[acl:accessToClass/@rdf:resource = (key('resources', ac:uri(), $main-doc)/rdf:type/@rdf:resource, key('resources', ac:uri(), $main-doc)/rdf:type/@rdf:resource/ldh:listSuperClasses(.))]/acl:mode/@rdf:resource" as="xs:anyURI*"/>
@@ -545,7 +549,57 @@ extension-element-prefixes="ixsl"
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
+
+    <!-- SHAPE -->
     
+    <!-- converts sh:NodeShape into an rdf:Description of the new instance -->
+    
+    <xsl:template match="rdf:RDF" mode="ldh:Shape" as="document-node()">
+        <xsl:document>
+            <rdf:RDF>
+                <xsl:apply-templates mode="#current"/>
+            </rdf:RDF>
+        </xsl:document>
+    </xsl:template>
+
+    <xsl:template match="*[rdf:type/@rdf:resource = '&sh;NodeShape']" mode="ldh:Shape">
+        <rdf:Description>
+            <xsl:apply-templates mode="#current"/>
+        </rdf:Description>
+    </xsl:template>
+
+    <xsl:template match="sh:targetClass[@rdf:resource]" mode="ldh:Shape">
+        <rdf:type rdf:resource="{@rdf:resource}"/>
+    </xsl:template>
+    
+    <xsl:template match="sh:property[sh:path/@rdf:resource][sh:minCount or sh:minCount]" mode="ldh:Shape">
+        <xsl:variable name="property" select="." as="element()"/>
+        <xsl:variable name="local-name" select="if (contains(sh:path/@rdf:resource, '#')) then substring-before(sh:path/@rdf:resource, '#') || '#' else string-join(tokenize(sh:path/@rdf:resource, '/')[not(last())], '/') || '/'" as="xs:string"/>
+        <xsl:variable name="namespace" select="if (contains(sh:path/@rdf:resource, '#')) then substring-after(sh:path/@rdf:resource, '#') else tokenize(sh:path/@rdf:resource, '/')[last()]" as="xs:string"/>
+        <xsl:message>
+            $local-name: <xsl:value-of select="$local-name"/>
+            $namespace: <xsl:value-of select="$namespace"/>
+        </xsl:message>
+        
+        <xsl:for-each select="(sh:minCount, 0)[1] to (sh:maxCount, 1)[1]">
+            <xsl:element name="$local-name" namespace="$namespace">
+                <rdf:Description>
+                    <xsl:choose>
+                        <xsl:when test="$property/and sh:class/@rdf:resource">
+                            <rdf:type rdf:resource="{sh:class/@rdf:resource}"/>
+                        </xsl:when>
+                        <xsl:when test="$property/sh:nodeKind/@rdf:resource = ('&sh;BlankNode', '&sh;IRI', '&sh;BlankNodeOrIRI')">
+                            <rdf:type rdf:resource="&rdfs;Resource"/>
+                        </xsl:when>
+                        <xsl:when test="$property/sh:nodeKind/@rdf:resource = '&sh;Literal'">
+                            <rdf:type rdf:resource="&rdfs;Literal"/>
+                        </xsl:when>
+                    </xsl:choose>
+                </rdf:Description>
+            </xsl:element>
+        </xsl:for-each>
+    </xsl:template>
+
     <!-- MODAL FORM -->
 
     <xsl:template match="rdf:RDF[$ac:forClass][$ac:method = 'GET']" mode="bs2:ModalForm" priority="1" use-when="system-property('xsl:product-name') = 'SAXON'">
