@@ -207,9 +207,11 @@ LIMIT   100
         <![CDATA[
             PREFIX  sh:   <http://www.w3.org/ns/shacl#>
 
-            DESCRIBE  $Shape
+            DESCRIBE $Shape ?property
             WHERE
-              { $Shape sh:targetClass ?Type .
+              { $Shape  sh:targetClass  ?Type
+                OPTIONAL
+                  { $Shape  sh:property  ?property }
               }
         ]]>
     </xsl:variable>
