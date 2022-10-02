@@ -776,7 +776,7 @@ LIMIT   100
                         </xsl:choose>
                     </xsl:when>
                     <xsl:when test="$ldh:forShape and $ac:method = 'GET'">
-                        <xsl:variable name="shapes" select="for $shape in $ldh:forShape return ldh:query-result(map{ '$Shape': $shape }, resolve-uri('ns', $ldt:base), $shape-query)//rdf:Description" as="element()"/>
+                        <xsl:variable name="shapes" select="for $shape in $ldh:forShape return ldh:query-result(map{ '$Shape': $shape }, resolve-uri('ns', $ldt:base), $shape-query)//rdf:Description" as="element()*"/>
                         <xsl:variable name="constructor" as="document-node()">
                             <xsl:apply-templates select="$shapes" mode="ldh:Shape"/>
                         </xsl:variable>
