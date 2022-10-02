@@ -111,6 +111,7 @@ exclude-result-prefixes="#all">
     <xsl:param name="ac:mode" as="xs:anyURI*"/> <!-- select="xs:anyURI('&ac;ReadMode')" -->
 <!--    <xsl:param name="ac:googleMapsKey" select="'AIzaSyCQ4rt3EnNCmGTpBN0qoZM1Z_jXhUnrTpQ'" as="xs:string"/>-->
     <xsl:param name="acl:mode" as="xs:anyURI*"/>
+    <xsl:param name="ldh:forShape" as="xs:anyURI?"/>
     <xsl:param name="ldh:createGraph" select="false()" as="xs:boolean"/>
     <xsl:param name="ldh:localGraph" as="document-node()?"/>
     <xsl:param name="ldh:originalGraph" as="document-node()?"/>
