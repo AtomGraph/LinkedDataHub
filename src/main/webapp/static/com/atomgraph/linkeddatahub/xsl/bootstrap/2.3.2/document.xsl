@@ -572,31 +572,33 @@ extension-element-prefixes="ixsl"
         <rdf:type rdf:resource="{@rdf:resource}"/>
     </xsl:template>
     
-    <xsl:template match="sh:property[sh:path/@rdf:resource][sh:minCount or sh:minCount]" mode="ldh:Shape">
-        <xsl:variable name="property" select="." as="element()"/>
-        <xsl:variable name="namespace" select="if (contains(sh:path/@rdf:resource, '#')) then substring-before(sh:path/@rdf:resource, '#') || '#' else string-join(tokenize(sh:path/@rdf:resource, '/')[not(last())], '/') || '/'" as="xs:string"/>
-        <xsl:variable name="local-name" select="if (contains(sh:path/@rdf:resource, '#')) then substring-after(sh:path/@rdf:resource, '#') else tokenize(sh:path/@rdf:resource, '/')[last()]" as="xs:string"/>
-        <xsl:message>
-            $namespace: <xsl:value-of select="$namespace"/>
-            $local-name: <xsl:value-of select="$local-name"/>
-        </xsl:message>
-        
-        <xsl:for-each select="(sh:minCount, 0)[1] to (sh:maxCount, 1)[1]">
-            <xsl:element namespace="{$namespace}" name="{$local-name}">
-                <rdf:Description>
-                    <xsl:choose>
-                        <xsl:when test="$property/sh:class/@rdf:resource">
-                            <rdf:type rdf:resource="{$property/sh:class/@rdf:resource}"/>
-                        </xsl:when>
-                        <xsl:when test="$property/sh:nodeKind/@rdf:resource = ('&sh;BlankNode', '&sh;IRI', '&sh;BlankNodeOrIRI')">
-                            <rdf:type rdf:resource="&rdfs;Resource"/>
-                        </xsl:when>
-                        <xsl:when test="$property/sh:nodeKind/@rdf:resource = '&sh;Literal'">
-                            <rdf:type rdf:resource="&rdfs;Literal"/>
-                        </xsl:when>
-                    </xsl:choose>
-                </rdf:Description>
-            </xsl:element>
+    <xsl:template match="sh:property[key('resources', (@rdf:resource, @rdf:nodeID)[1])[sh:path/@rdf:resource][sh:minCount or sh:minCount]]" mode="ldh:Shape">
+        <xsl:for-each select="key('resources', (@rdf:resource, @rdf:nodeID)[1])">
+            <xsl:variable name="property" select="." as="element()"/>
+            <xsl:variable name="namespace" select="if (contains(sh:path/@rdf:resource, '#')) then substring-before(sh:path/@rdf:resource, '#') || '#' else string-join(tokenize(sh:path/@rdf:resource, '/')[not(last())], '/') || '/'" as="xs:string"/>
+            <xsl:variable name="local-name" select="if (contains(sh:path/@rdf:resource, '#')) then substring-after(sh:path/@rdf:resource, '#') else tokenize(sh:path/@rdf:resource, '/')[last()]" as="xs:string"/>
+            <xsl:message>
+                $namespace: <xsl:value-of select="$namespace"/>
+                $local-name: <xsl:value-of select="$local-name"/>
+            </xsl:message>
+
+            <xsl:for-each select="(sh:minCount, 0)[1] to (sh:maxCount, 1)[1]">
+                <xsl:element namespace="{$namespace}" name="{$local-name}">
+                    <rdf:Description>
+                        <xsl:choose>
+                            <xsl:when test="$property/sh:class/@rdf:resource">
+                                <rdf:type rdf:resource="{$property/sh:class/@rdf:resource}"/>
+                            </xsl:when>
+                            <xsl:when test="$property/sh:nodeKind/@rdf:resource = ('&sh;BlankNode', '&sh;IRI', '&sh;BlankNodeOrIRI')">
+                                <rdf:type rdf:resource="&rdfs;Resource"/>
+                            </xsl:when>
+                            <xsl:when test="$property/sh:nodeKind/@rdf:resource = '&sh;Literal'">
+                                <rdf:type rdf:resource="&rdfs;Literal"/>
+                            </xsl:when>
+                        </xsl:choose>
+                    </rdf:Description>
+                </xsl:element>
+            </xsl:for-each>
         </xsl:for-each>
     </xsl:template>
 
