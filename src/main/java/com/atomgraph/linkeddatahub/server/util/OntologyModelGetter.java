@@ -20,8 +20,6 @@ import com.atomgraph.client.vocabulary.LDT;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.processor.exception.OntologyException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import javax.ws.rs.client.Client;
 import org.apache.jena.ontology.OntModelSpec;
 import org.apache.jena.query.ParameterizedSparqlString;
@@ -87,18 +85,8 @@ public class OntologyModelGetter implements org.apache.jena.rdf.model.ModelGette
         if (!model.isEmpty()) return model;
 
         // if SPARQL result model is empty, fallback to using FileManager
-        try
-        {
-            URI ontologyURI = URI.create(uri);
-            // remove fragment and normalize
-            URI ontDocURI = new URI(ontologyURI.getScheme(), ontologyURI.getSchemeSpecificPart(), null).normalize();
-            FileManager fileManager = getOntModelSpec().getDocumentManager().getFileManager();
-            return fileManager.loadModel(uri, ontDocURI.toString(), null);
-        }
-        catch (URISyntaxException ex)
-        {
-            throw new RuntimeException(ex);
-        }
+        FileManager fileManager = getOntModelSpec().getDocumentManager().getFileManager();
+        return fileManager.loadModel(uri);
     }
 
     @Override
