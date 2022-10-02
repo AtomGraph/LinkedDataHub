@@ -191,14 +191,19 @@ SELECT *
         <param-value><![CDATA[
 PREFIX  owl:  <http://www.w3.org/2002/07/owl#>
 
-CONSTRUCT
-  {
+CONSTRUCT 
+  { 
     ?s ?p ?o .
   }
 WHERE
-  { GRAPH ?g
-      { $ontology  a  owl:Ontology .
-        ?s        ?p  ?o
+  {   { GRAPH ?g
+          { $ontology  a  owl:Ontology .
+            ?s        ?p  ?o
+          }
+      }
+    UNION
+      { GRAPH $ontology
+          { ?s  ?p  ?o }
       }
   }
 ]]></param-value>
