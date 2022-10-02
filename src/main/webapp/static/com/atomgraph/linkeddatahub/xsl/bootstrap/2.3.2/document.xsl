@@ -574,15 +574,15 @@ extension-element-prefixes="ixsl"
     
     <xsl:template match="sh:property[sh:path/@rdf:resource][sh:minCount or sh:minCount]" mode="ldh:Shape">
         <xsl:variable name="property" select="." as="element()"/>
-        <xsl:variable name="local-name" select="if (contains(sh:path/@rdf:resource, '#')) then substring-before(sh:path/@rdf:resource, '#') || '#' else string-join(tokenize(sh:path/@rdf:resource, '/')[not(last())], '/') || '/'" as="xs:string"/>
-        <xsl:variable name="namespace" select="if (contains(sh:path/@rdf:resource, '#')) then substring-after(sh:path/@rdf:resource, '#') else tokenize(sh:path/@rdf:resource, '/')[last()]" as="xs:string"/>
+        <xsl:variable name="namespace" select="if (contains(sh:path/@rdf:resource, '#')) then substring-before(sh:path/@rdf:resource, '#') || '#' else string-join(tokenize(sh:path/@rdf:resource, '/')[not(last())], '/') || '/'" as="xs:string"/>
+        <xsl:variable name="local-name" select="if (contains(sh:path/@rdf:resource, '#')) then substring-after(sh:path/@rdf:resource, '#') else tokenize(sh:path/@rdf:resource, '/')[last()]" as="xs:string"/>
         <xsl:message>
-            $local-name: <xsl:value-of select="$local-name"/>
             $namespace: <xsl:value-of select="$namespace"/>
+            $local-name: <xsl:value-of select="$local-name"/>
         </xsl:message>
         
         <xsl:for-each select="(sh:minCount, 0)[1] to (sh:maxCount, 1)[1]">
-            <xsl:element name="$local-name" namespace="$namespace">
+            <xsl:element namespace="$namespace" name="$local-name">
                 <rdf:Description>
                     <xsl:choose>
                         <xsl:when test="$property/sh:class/@rdf:resource">
