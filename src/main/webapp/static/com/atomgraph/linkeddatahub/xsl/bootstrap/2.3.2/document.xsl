@@ -563,7 +563,7 @@ extension-element-prefixes="ixsl"
     </xsl:template>
 
     <xsl:template match="*[rdf:type/@rdf:resource = '&sh;NodeShape']" mode="ldh:Shape">
-        <rdf:Description>
+        <rdf:Description rdf:nodeID="{generate-id()}-instance">
             <xsl:apply-templates mode="#current"/>
         </rdf:Description>
     </xsl:template>
@@ -577,10 +577,6 @@ extension-element-prefixes="ixsl"
             <xsl:variable name="property" select="." as="element()"/>
             <xsl:variable name="namespace" select="if (contains(sh:path/@rdf:resource, '#')) then substring-before(sh:path/@rdf:resource, '#') || '#' else string-join(tokenize(sh:path/@rdf:resource, '/')[not(position() = last())], '/') || '/'" as="xs:string"/>
             <xsl:variable name="local-name" select="if (contains(sh:path/@rdf:resource, '#')) then substring-after(sh:path/@rdf:resource, '#') else tokenize(sh:path/@rdf:resource, '/')[last()]" as="xs:string"/>
-            <xsl:message>
-                $namespace: <xsl:value-of select="$namespace"/>
-                $local-name: <xsl:value-of select="$local-name"/>
-            </xsl:message>
 
             <xsl:for-each select="(sh:minCount, 0)[1] to (sh:maxCount, 1)[1]">
                 <xsl:element namespace="{$namespace}" name="{$local-name}">
