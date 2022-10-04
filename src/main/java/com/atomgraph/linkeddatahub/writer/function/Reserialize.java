@@ -29,6 +29,7 @@ import net.sf.saxon.s9api.Processor;
 import net.sf.saxon.s9api.QName;
 import net.sf.saxon.s9api.SaxonApiException;
 import net.sf.saxon.s9api.SequenceType;
+import net.sf.saxon.s9api.XdmNode;
 import net.sf.saxon.s9api.XdmValue;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
@@ -81,8 +82,9 @@ public class Reserialize implements ExtensionFunction
     public XdmValue call(XdmValue[] arguments) throws SaxonApiException
     {
         Model model = ModelFactory.createDefaultModel();
+        String rdfXmlString = getProcessor().newSerializer().serializeNodeToString((XdmNode)arguments[0].itemAt(0));
 
-        RDFParser parser = RDFParser.fromString(arguments[0].itemAt(0).getStringValue()).
+        RDFParser parser = RDFParser.fromString(rdfXmlString).
             lang(LANG).
 //            errorHandler(errorHandler).
 //            base(baseURI).
