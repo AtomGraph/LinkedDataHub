@@ -588,8 +588,11 @@ extension-element-prefixes="ixsl"
                             <xsl:when test="$property/sh:nodeKind/@rdf:resource = ('&sh;BlankNode', '&sh;IRI', '&sh;BlankNodeOrIRI')">
                                 <rdf:type rdf:resource="&rdfs;Resource"/>
                             </xsl:when>
-                            <xsl:when test="$property/sh:nodeKind/@rdf:resource = '&sh;Literal'">
+<!--                            <xsl:when test="$property/sh:nodeKind/@rdf:resource = '&sh;Literal'">
                                 <rdf:type rdf:resource="&rdfs;Literal"/>
+                            </xsl:when>-->
+                            <xsl:when test="$property/sh:datatype/@rdf:resource">
+                                <rdf:type rdf:resource="{$property/sh:datatype/@rdf:resource}"/>
                             </xsl:when>
                         </xsl:choose>
                     </rdf:Description>
