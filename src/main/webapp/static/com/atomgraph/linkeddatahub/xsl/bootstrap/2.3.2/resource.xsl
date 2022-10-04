@@ -933,7 +933,7 @@ extension-element-prefixes="ixsl"
     <xsl:template match="*[rdf:type/@rdf:resource = '&spin;ConstraintViolation'] | *[rdf:type/@rdf:resource = '&http;Response']" mode="bs2:RowForm" priority="3"/>
 
     <!-- hide object blank nodes that only have a single rdf:type property from constructed models, unless the type is owl:NamedIndividual -->
-    <xsl:template match="*[@rdf:nodeID][$ac:forClasso or $ldh:forShape][$ac:method = 'GET'][not(rdf:type/@rdf:resource = '&owl;NamedIndividual')][not(* except rdf:type)]" mode="bs2:RowForm" priority="2" use-when="system-property('xsl:product-name') = 'SAXON'"/>
+    <xsl:template match="*[@rdf:nodeID][$ac:forClass or $ldh:forShape][$ac:method = 'GET'][not(rdf:type/@rdf:resource = '&owl;NamedIndividual')][not(* except rdf:type)]" mode="bs2:RowForm" priority="2" use-when="system-property('xsl:product-name') = 'SAXON'"/>
         
     <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:RowForm">
         <xsl:param name="id" select="generate-id()" as="xs:string?"/>
