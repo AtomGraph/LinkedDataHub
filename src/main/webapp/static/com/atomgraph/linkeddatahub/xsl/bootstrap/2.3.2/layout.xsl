@@ -796,7 +796,7 @@ XXX
                                 </xsl:apply-templates>
                             </xsl:when>
                             <xsl:otherwise>-->
-                                <xsl:apply-templates select="$constructor" mode="bs2:RowForm">
+                                <xsl:apply-templates select="ldh:reserialize($constructor)" mode="bs2:RowForm">
                                     <xsl:with-param name="classes" select="$classes"/>
                                     <xsl:with-param name="constructor-query" select="$constructor-query" tunnel="yes"/>
                                     <xsl:with-param name="constraint-query" select="$constraint-query" tunnel="yes"/>
