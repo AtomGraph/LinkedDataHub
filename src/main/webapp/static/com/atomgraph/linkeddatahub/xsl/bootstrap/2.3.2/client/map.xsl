@@ -208,7 +208,7 @@ exclude-result-prefixes="#all"
     <xsl:template name="ldh:AddMapLayers">
         <xsl:context-item as="document-node()" use="required"/>
         <xsl:param name="map" as="item()"/>
-        <xsl:param name="icons" select="('https://maps.google.com/mapfiles/ms/icons/blue-dot.png', 'https://maps.google.com/mapfiles/ms/icons/red-dot.png', 'https://maps.google.com/mapfiles/ms/icons/purple-dot.png', 'https://maps.google.com/mapfiles/ms/icons/yellow-dot.png', 'https://maps.google.com/mapfiles/ms/icons/green-dot.png')" as="xs:string*"/> <!-- https://saxonica.plan.io/issues/5677 -->
+        <xsl:param name="icons" select="(xs:anyURI('https://maps.google.com/mapfiles/ms/icons/blue-dot.png'), xs:anyURI('https://maps.google.com/mapfiles/ms/icons/red-dot.png'), xs:anyURI('https://maps.google.com/mapfiles/ms/icons/purple-dot.png'), xs:anyURI('https://maps.google.com/mapfiles/ms/icons/yellow-dot.png'), xs:anyURI('https://maps.google.com/mapfiles/ms/icons/green-dot.png'))" as="xs:anyURI*"/>
         <xsl:param name="icon-styles" as="item()*">
             <xsl:for-each select="$icons">
                 <xsl:variable name="icon-options" select="ldh:new-object()"/>

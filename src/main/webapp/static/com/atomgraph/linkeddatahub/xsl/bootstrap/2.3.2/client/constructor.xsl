@@ -676,7 +676,12 @@ exclude-result-prefixes="#all"
         <xsl:variable name="form-data" select="ldh:new('URLSearchParams', [ ldh:new('FormData', []) ])"/>
         <xsl:sequence select="ixsl:call($form-data, 'append', [ 'uri', $ontology-uri ])[current-date() lt xs:date('2000-01-01')]"/>
 
-        <ixsl:schedule-action http-request="map{ 'method': 'POST', 'href': resolve-uri('admin/clear', ldt:base()), 'media-type': 'application/x-www-form-urlencoded', 'body': $form-data, 'headers': map{ 'Accept': 'application/rdf+xml' } }"/>
+        <ixsl:schedule-action http-request="map{ 'method': 'POST', 'href': resolve-uri('admin/clear', ldt:base()), 'media-type': 'application/x-www-form-urlencoded', 'body': $form-data, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+            <!-- bogus template call required because of Saxon-JS 2.4 bug: https://saxonica.plan.io/issues/5597 -->
+            <xsl:call-template name="ldh:NoOp"/>
+        </ixsl:schedule-action>
     </xsl:template>
+    
+    <xsl:template name="ldh:NoOp"/>
     
 </xsl:stylesheet>
