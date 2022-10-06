@@ -588,7 +588,7 @@ exclude-result-prefixes="#all"
                             <xsl:if test="$forClass">
                                 <!-- forClass input is required by typeahead's FILTER ($Type IN ()) in client.xsl -->
                                 <xsl:choose>
-                                    <xsl:when test="not($forClass = ('&rdfs;Resource', '&rdfs;Literal')) and doc-available(ac:document-uri($forClass))">
+                                    <xsl:when test="not($forClass = ('&rdfs;Resource', '&rdfs;Literal')) and doc-available(ac:document-uri($forClass)) and key('resources', $forClass, document(ac:document-uri($forClass)))/spin:constructor">
                                         <xsl:variable name="subclasses" select="ldh:listSubClasses($forClass, false(), $ldt:ontology)" as="attribute()*"/>
                                         <!-- add subclasses as forClass -->
                                         <xsl:for-each select="distinct-values(ldh:listSubClasses($forClass, false(), $ldt:ontology))[not(. = $forClass)]">
@@ -711,7 +711,7 @@ exclude-result-prefixes="#all"
                     <xsl:if test="$forClass">
                         <!-- forClass input is required by typeahead's FILTER ($Type IN ()) in client.xsl -->
                         <xsl:choose>
-                            <xsl:when test="not($forClass = ('&rdfs;Resource', '&rdfs;Literal')) and doc-available(ac:document-uri($forClass))">
+                            <xsl:when test="not($forClass = ('&rdfs;Resource', '&rdfs;Literal')) and doc-available(ac:document-uri($forClass)) and key('resources', $forClass, document(ac:document-uri($forClass)))/spin:constructor">
                                 <xsl:variable name="subclasses" select="ldh:listSubClasses($forClass, false(), $ldt:ontology)" as="attribute()*"/>
                                 <!-- add subclasses as forClass -->
                                 <xsl:for-each select="distinct-values(ldh:listSubClasses($forClass, false(), $ldt:ontology))[not(. = $forClass)]">
@@ -831,7 +831,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="forClass" select="key('resources', .)/rdf:type/@rdf:resource" as="xs:anyURI"/>
         <!-- forClass input is used by typeahead's FILTER ($Type IN ()) in client.xsl -->
         <xsl:choose>
-            <xsl:when test="not($forClass = '&rdfs;Resource') and doc-available(ac:document-uri($forClass))">
+            <xsl:when test="not($forClass = '&rdfs;Resource') and doc-available(ac:document-uri($forClass)) and key('resources', $forClass, document(ac:document-uri($forClass)))/spin:constructor">
                 <xsl:variable name="subclasses" select="ldh:listSubClasses($forClass, false(), $ldt:ontology)" as="attribute()*"/>
                 <!-- add subclasses as forClass -->
                 <xsl:for-each select="distinct-values($subclasses)[not(. = $forClass)]">
@@ -913,7 +913,7 @@ exclude-result-prefixes="#all"
                             <xsl:when test="doc-available(ac:document-uri($forClass))">
                                 <xsl:choose>
                                     <xsl:when test="$forClass = '&rdfs;Resource'">Resource</xsl:when>
-                                    <xsl:when test="doc-available(ac:document-uri($forClass)) and key('resources', $forClass, document(ac:document-uri($forClass)))">
+                                    <xsl:when test="key('resources', $forClass, document(ac:document-uri($forClass)))">
                                         <xsl:value-of>
                                             <xsl:apply-templates select="key('resources', $forClass, document(ac:document-uri($forClass)))" mode="ac:label"/>
                                         </xsl:value-of>
