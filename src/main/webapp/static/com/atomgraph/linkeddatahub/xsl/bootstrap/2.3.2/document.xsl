@@ -573,8 +573,12 @@ extension-element-prefixes="ixsl"
     </xsl:template>
     
     <xsl:template match="sh:property[key('resources', (@rdf:resource, @rdf:nodeID)[1])[sh:path/@rdf:resource][sh:minCount]]" mode="ldh:Shape" priority="1">
-        <xsl:for-each select="1 to key('resources', (@rdf:resource, @rdf:nodeID)[1])/sh:minCount">
+        <xsl:variable name="triple" as="element()*">
             <xsl:next-match/>
+        </xsl:variable>
+
+        <xsl:for-each select="1 to key('resources', (@rdf:resource, @rdf:nodeID)[1])/sh:minCount">
+            <xsl:copy-of select="$triple"/>
         </xsl:for-each>
     </xsl:template>
 
