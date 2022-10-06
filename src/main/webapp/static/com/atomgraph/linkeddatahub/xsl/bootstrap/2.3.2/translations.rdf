@@ -359,4 +359,7 @@
         <rdfs:label xml:lang="en-US">Cancel</rdfs:label>
         <rdfs:label xml:lang="es-ES">Cancelar</rdfs:label>
     </rdf:Description>
+    <rdf:Description rdf:about="constructor">
+        <rdfs:label xml:lang="en-US">Constructor</rdfs:label>
+    </rdf:Description>
 </rdf:RDF>

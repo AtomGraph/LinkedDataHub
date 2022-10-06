@@ -154,7 +154,11 @@ exclude-result-prefixes="#all"
                                     </xsl:for-each>
                                     
                                     <p>
-                                        <button type="button" class="btn btn-primary create-action add-constructor">Constructor</button>
+                                        <button type="button" class="btn btn-primary create-action add-constructor">
+                                            <xsl:value-of>
+                                                <xsl:apply-templates select="key('resources', 'constructor', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                                            </xsl:value-of>
+                                        </button>
                                     </p>
                                 </div>
                                 <div class="form-actions modal-footer">
