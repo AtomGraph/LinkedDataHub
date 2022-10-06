@@ -783,9 +783,9 @@ LIMIT   100
                             <xsl:apply-templates select="$shapes" mode="ldh:Shape"/>
                         </xsl:variable>
                         
-<xsl:message>
-$constructor: <xsl:value-of select="serialize($constructor)"/>
-</xsl:message>
+XXX
+<xsl:copy-of select="$constructor"/>
+/XXX
 
 <!--                        <xsl:choose>
                             <xsl:when test="$ac:mode = '&ac;ModalMode'">
