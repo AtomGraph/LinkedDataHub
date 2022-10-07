@@ -135,7 +135,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="uri" as="xs:anyURI"/>
         <xsl:param name="container" as="element()"/>
         <xsl:param name="mode" as="xs:anyURI?"/>
-        <xsl:variable name="escaped-content-uri" select="xs:anyURI(translate($container/@about, '.', '-'))" as="xs:anyURI"/>
+        <xsl:variable name="content-uri" select="xs:anyURI($container/@about)" as="xs:anyURI"/>
         <!-- set $this variable value unless getting the query string from state -->
         <xsl:variable name="select-string" select="replace(sp:text, '\$this', '&lt;' || $uri || '&gt;')" as="xs:string"/>
         <xsl:variable name="select-json" as="item()">
@@ -153,15 +153,15 @@ exclude-result-prefixes="#all"
         <xsl:choose>
             <!-- service URI is not specified or specified and can be loaded -->
             <xsl:when test="not($service-uri) or ($service-uri and exists($service))">
-                <!-- window.LinkedDataHub.contents[{$escaped-content-uri}] object is already created -->
+                <!-- window.LinkedDataHub.contents[{$content-uri}] object is already created -->
                 <!-- store the initial SELECT query (without modifiers) -->
-                <ixsl:set-property name="select-query" select="$select-string" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri)"/>
+                <ixsl:set-property name="select-query" select="$select-string" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`')"/>
                 <!-- store the first var name of the initial SELECT query -->
-                <ixsl:set-property name="focus-var-name" select="$focus-var-name" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri)"/>
+                <ixsl:set-property name="focus-var-name" select="$focus-var-name" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`')"/>
                 <xsl:if test="$service-uri">
                     <!-- store (the URI of) the service -->
-                    <ixsl:set-property name="service-uri" select="$service-uri" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri)"/>
-                    <ixsl:set-property name="service" select="$service" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri)"/>
+                    <ixsl:set-property name="service-uri" select="$service-uri" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`')"/>
+                    <ixsl:set-property name="service" select="$service" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`')"/>
                 </xsl:if>
 
                 <xsl:variable name="select-xml" as="document-node()">
@@ -180,7 +180,7 @@ exclude-result-prefixes="#all"
                 </xsl:variable>
 
                 <!-- store the transformed query XML -->
-                <ixsl:set-property name="select-xml" select="$select-xml" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri)"/>
+                <ixsl:set-property name="select-xml" select="$select-xml" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`')"/>
                 <!-- update progress bar -->
                 <xsl:for-each select="$container//div[@class = 'bar']">
                     <ixsl:set-style name="width" select="'75%'" object="."/>
@@ -188,7 +188,7 @@ exclude-result-prefixes="#all"
 
                 <xsl:call-template name="ldh:RenderContainer">
                     <xsl:with-param name="container" select="$container"/>
-                    <xsl:with-param name="escaped-content-uri" select="$escaped-content-uri"/>
+                    <xsl:with-param name="content-uri" select="$content-uri"/>
                     <xsl:with-param name="content" select="."/>
                     <xsl:with-param name="select-string" select="$select-string"/>
                     <xsl:with-param name="select-xml" select="$select-xml"/>
@@ -215,7 +215,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="uri" as="xs:anyURI"/>
         <xsl:param name="container" as="element()"/>
         <xsl:param name="mode" as="xs:anyURI?"/>
-        <xsl:variable name="escaped-content-uri" select="xs:anyURI(translate($container/@about, '.', '-'))" as="xs:anyURI"/>
+        <xsl:variable name="content-uri" select="xs:anyURI($container/@about)" as="xs:anyURI"/>
         <!-- set $this variable value unless getting the query string from state -->
         <xsl:variable name="query-string" select="replace(sp:text, '\$this', '&lt;' || $uri || '&gt;')" as="xs:string"/>
         <!-- service can be explicitly specified on content using ldh:service -->
@@ -226,11 +226,11 @@ exclude-result-prefixes="#all"
         <xsl:choose>
             <!-- service URI is not specified or specified and can be loaded -->
             <xsl:when test="not($service-uri) or ($service-uri and exists($service))">
-                <!-- window.LinkedDataHub.contents[{$escaped-content-uri}] object is already created -->
+                <!-- window.LinkedDataHub.contents[{$content-uri}] object is already created -->
                 <xsl:if test="$service-uri">
                     <!-- store (the URI of) the service -->
-                    <ixsl:set-property name="service-uri" select="$service-uri" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri)"/>
-                    <ixsl:set-property name="service" select="$service" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri)"/>
+                    <ixsl:set-property name="service-uri" select="$service-uri" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`')"/>
+                    <ixsl:set-property name="service" select="$service" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`')"/>
                 </xsl:if>
 
                 <!-- update progress bar -->
@@ -838,12 +838,10 @@ exclude-result-prefixes="#all"
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml' and $value">
                 <xsl:variable name="results" select="?body" as="document-node()"/>
-                <!-- replace dots which have a special meaning in Saxon-JS -->
-                <xsl:variable name="escaped-content-uri" select="xs:anyURI(translate($content-uri, '.', '-'))" as="xs:anyURI"/>
                 <!-- create new cache entry using content URI as key -->
-                <ixsl:set-property name="{$escaped-content-uri}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
+                <ixsl:set-property name="{'`' || $content-uri || '`'}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
                 <!-- store this content element -->
-                <ixsl:set-property name="content" select="$value" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri)"/>
+                <ixsl:set-property name="content" select="$value" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`')"/>
 
                 <xsl:for-each select="$container//div[@class = 'bar']">
                     <!-- update progress bar -->
@@ -860,7 +858,7 @@ exclude-result-prefixes="#all"
                 <xsl:if test="key('elements-by-class', 'map-canvas', $container)">
                     <xsl:for-each select="$results">
                         <xsl:call-template name="ldh:DrawMap">
-                            <xsl:with-param name="escaped-content-uri" select="$escaped-content-uri"/>
+                            <xsl:with-param name="content-uri" select="$content-uri"/>
                             <xsl:with-param name="canvas-id" select="key('elements-by-class', 'map-canvas', $container)/@id" />
                         </xsl:call-template>
                     </xsl:for-each>

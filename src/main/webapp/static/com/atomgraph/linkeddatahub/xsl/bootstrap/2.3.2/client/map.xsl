@@ -121,7 +121,7 @@ exclude-result-prefixes="#all"
     <xsl:template name="ldh:LoadGeoResources">
         <xsl:param name="container" as="element()"/>
         <xsl:param name="content-id" as="xs:string"/>
-        <xsl:param name="escaped-content-uri" as="xs:anyURI"/>
+        <xsl:param name="content-uri" as="xs:anyURI"/>
         <xsl:param name="content" as="element()?"/>
         <xsl:param name="select-string" as="xs:string"/>
         <xsl:param name="select-xml" as="document-node()"/>
@@ -143,7 +143,7 @@ exclude-result-prefixes="#all"
             <xsl:call-template name="onGeoResultsLoad">
                 <xsl:with-param name="container" select="$container"/>
                 <xsl:with-param name="content-id" select="$content-id"/>
-                <xsl:with-param name="escaped-content-uri" select="$escaped-content-uri"/>
+                <xsl:with-param name="content-uri" select="$content-uri"/>
                 <xsl:with-param name="content" select="$content"/>
                 <xsl:with-param name="active-mode" select="$active-mode"/>
                 <xsl:with-param name="select-string" select="$select-string"/>
@@ -158,14 +158,14 @@ exclude-result-prefixes="#all"
     
     <xsl:template name="ldh:DrawMap">
         <xsl:context-item as="document-node()" use="required"/>
-        <xsl:param name="escaped-content-uri" as="xs:anyURI"/>
+        <xsl:param name="content-uri" as="xs:anyURI"/>
         <xsl:param name="canvas-id" as="xs:string"/>
-        <xsl:param name="initial-load" select="not(ixsl:contains(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri), 'map'))" as="xs:boolean"/>
+        <xsl:param name="initial-load" select="not(ixsl:contains(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`'), 'map'))" as="xs:boolean"/>
         <xsl:param name="max-zoom" select="16" as="xs:integer"/>
         <xsl:param name="padding" select="(10, 10, 10, 10)" as="xs:integer*"/>
-        <xsl:variable name="zoom" select="if (not($initial-load)) then xs:integer(ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri), 'map'), 'getView', []), 'getZoom', [])) else 4" as="xs:integer"/>
+        <xsl:variable name="zoom" select="if (not($initial-load)) then xs:integer(ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`'), 'map'), 'getView', []), 'getZoom', [])) else 4" as="xs:integer"/>
         <xsl:variable name="map" select="ldh:create-map($canvas-id, 0, 0, $zoom)" as="item()"/>
-        <ixsl:set-property name="map" select="$map" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri)"/>
+        <ixsl:set-property name="map" select="$map" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`')"/>
 
         <xsl:call-template name="ldh:AddMapLayers">
             <xsl:with-param name="map" select="$map"/>
@@ -332,9 +332,8 @@ exclude-result-prefixes="#all"
     <xsl:template name="onGeoResultsLoad">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="container" as="element()"/>
-        <!--<xsl:param name="container-id" select="ixsl:get($container, 'id')" as="xs:string"/>-->
         <xsl:param name="content-id" as="xs:string"/>
-        <xsl:param name="escaped-content-uri" select="xs:anyURI(translate($container/@about, '.', '-'))" as="xs:anyURI"/>
+        <xsl:param name="content-uri" select="xs:anyURI($container/@about)" as="xs:anyURI"/>
         <xsl:param name="content" as="element()?"/>
         <xsl:param name="active-mode" as="xs:anyURI"/>
         <xsl:param name="select-xml" as="document-node()"/>
@@ -348,7 +347,7 @@ exclude-result-prefixes="#all"
             <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
                 <xsl:for-each select="?body">
                     <xsl:call-template name="ldh:DrawMap">
-                        <xsl:with-param name="escaped-content-uri" select="$escaped-content-uri"/>
+                        <xsl:with-param name="content-uri" select="$content-uri"/>
                         <xsl:with-param name="canvas-id" select="$content-id || '-map-canvas'" />
                     </xsl:call-template>
                 </xsl:for-each>
@@ -465,8 +464,7 @@ exclude-result-prefixes="#all"
     <xsl:template match="div[contains-token(@class, 'ol-overlay-container')]//div[contains-token(@class, 'modal-header')]/button[contains-token(@class, 'close')]" mode="ixsl:onclick" >
         <xsl:variable name="content-uri" select="ancestor::div[@about][1]/@about" as="xs:anyURI"/>
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'ol-overlay-container')]/div" as="element()"/>
-        <xsl:variable name="escaped-content-uri" select="xs:anyURI(translate($content-uri, '.', '-'))" as="xs:anyURI"/>
-        <xsl:variable name="map" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri), 'map')"/>
+        <xsl:variable name="map" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`'), 'map')"/>
         <xsl:variable name="overlay" select="ixsl:call(ixsl:call($map, 'getOverlays', []), 'getArray', [])[ ixsl:call(., 'getElement', []) is $container ]"/>
         <xsl:sequence select="ixsl:call($map, 'removeOverlay', [ $overlay ])[current-date() lt xs:date('2000-01-01')]"/> <!-- remove overlay from map -->
     </xsl:template>
