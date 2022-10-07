@@ -279,7 +279,7 @@ exclude-result-prefixes="#all"
 
         <xsl:if test="$chart-type and ($category or $results/rdf:RDF) and exists($series)">
             <xsl:variable name="data-table" select="if ($results/rdf:RDF) then ac:rdf-data-table($results, $category, $series) else ac:sparql-results-data-table($results, $category, $series)"/>
-            <ixsl:set-property name="data-table" select="$data-table" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`'"/>
+            <ixsl:set-property name="data-table" select="$data-table" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`')"/>
 
             <xsl:call-template name="render-chart">
                 <xsl:with-param name="data-table" select="$data-table"/>
