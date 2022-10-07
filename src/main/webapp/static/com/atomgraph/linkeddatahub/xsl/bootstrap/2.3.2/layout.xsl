@@ -782,12 +782,8 @@ LIMIT   100
                         <xsl:variable name="constructor" as="document-node()">
                             <xsl:apply-templates select="$shapes" mode="ldh:Shape"/>
                         </xsl:variable>
-                        
-XXX
-<xsl:copy-of select="$constructor"/>
-/XXX
 
-<!--                        <xsl:choose>
+                        <xsl:choose>
                             <xsl:when test="$ac:mode = '&ac;ModalMode'">
                                 <xsl:apply-templates select="$constructor" mode="bs2:ModalForm">
                                     <xsl:with-param name="constructor-query" select="$constructor-query" tunnel="yes"/>
@@ -795,15 +791,15 @@ XXX
                                     <xsl:sort select="ac:label(.)"/>
                                 </xsl:apply-templates>
                             </xsl:when>
-                            <xsl:otherwise>-->
+                            <xsl:otherwise>
                                 <xsl:apply-templates select="ldh:reserialize($constructor)" mode="bs2:RowForm">
                                     <xsl:with-param name="classes" select="$classes"/>
                                     <xsl:with-param name="constructor-query" select="$constructor-query" tunnel="yes"/>
                                     <xsl:with-param name="constraint-query" select="$constraint-query" tunnel="yes"/>
                                     <xsl:sort select="ac:label(.)"/>
                                 </xsl:apply-templates>
-<!--                            </xsl:otherwise>
-                        </xsl:choose>-->
+                            </xsl:otherwise>
+                        </xsl:choose>
                     </xsl:when>
                     <!-- check if the current document has content or its class has content -->
                     <xsl:when test="(empty($ac:mode) and $has-content) or $ac:mode = '&ldh;ContentMode'">
