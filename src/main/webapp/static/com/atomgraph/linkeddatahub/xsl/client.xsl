@@ -141,17 +141,24 @@ WHERE
   }
 ]]>
     </xsl:param>
-    <xsl:param name="select-labelled-class-string" as="xs:string">
+    <xsl:param name="select-labelled-class-or-shape-string" as="xs:string">
 <![CDATA[
 PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX  sh:   <http://www.w3.org/ns/shacl#>
 PREFIX  spin: <http://spinrdf.org/spin#>
 
-SELECT  ?class
+SELECT  ?classOrShape
 WHERE
-  { ?class (rdfs:subClassOf)*/spin:constructor  ?constructor .
-    ?class    rdfs:label        ?label
-    FILTER isURI(?class)
-    FILTER (!strstarts(str(?class), 'http://spinrdf.org/spin#'))
+  {   { ?classOrShape (rdfs:subClassOf)*/spin:constructor ?constructor
+        FILTER ( ! strstarts(str(?classOrShape), "http://spinrdf.org/spin#") )
+      }
+    UNION
+      { ?classOrShape
+                  a  sh:NodeShape
+      }
+    ?classOrShape
+              rdfs:label  ?label
+    FILTER isURI(?classOrShape)
   }
 ]]>
     </xsl:param>

@@ -14,6 +14,7 @@
     <!ENTITY http   "http://www.w3.org/2011/http#">
     <!ENTITY ldt    "https://www.w3.org/ns/ldt#">
     <!ENTITY dh     "https://www.w3.org/ns/ldt/document-hierarchy#">
+    <!ENTITY sh     "http://www.w3.org/ns/shacl#">
     <!ENTITY sp     "http://spinrdf.org/sp#">
     <!ENTITY spin   "http://spinrdf.org/spin#">
     <!ENTITY dct    "http://purl.org/dc/terms/">
@@ -34,6 +35,7 @@ xmlns:xsd="&xsd;"
 xmlns:srx="&srx;"
 xmlns:http="&http;"
 xmlns:ldt="&ldt;"
+xmlns:sh="&sh;"
 xmlns:sp="&sp;"
 xmlns:spin="&spin;"
 xmlns:dct="&dct;"
@@ -458,7 +460,7 @@ exclude-result-prefixes="#all"
     <xsl:template match="*[@rdf:about or @rdf:nodeID]/*" mode="bs2:FormControl">
         <xsl:param name="this" select="xs:anyURI(concat(namespace-uri(), local-name()))" as="xs:anyURI"/>
         <xsl:param name="violations" as="element()*"/>
-        <xsl:param name="error" select="@rdf:resource = $violations/ldh:violationValue or $violations/spin:violationPath/@rdf:resource = $this" as="xs:boolean"/>
+        <xsl:param name="error" select="@rdf:resource = $violations/ldh:violationValue or $violations/spin:violationPath/@rdf:resource = $this or $violations/sh:resultPath/@rdf:resource = $this" as="xs:boolean"/>
         <xsl:param name="label" select="true()" as="xs:boolean"/>
         <xsl:param name="constructor" as="document-node()?"/>
         <xsl:param name="template" as="element()*"/>
@@ -831,6 +833,14 @@ exclude-result-prefixes="#all"
         <xsl:variable name="forClass" select="key('resources', .)/rdf:type/@rdf:resource" as="xs:anyURI"/>
         <!-- forClass input is used by typeahead's FILTER ($Type IN ()) in client.xsl -->
         <xsl:choose>
+            <!-- SHACL shapes -->
+            <xsl:when test="not($forClass = '&rdfs;Resource') and ldh:query-result(map{ '$Type': $forClass }, resolve-uri('ns', $ldt:base), $shape-query)//rdf:Description[sh:targetClass/@rdf:resource = $forClass]">
+                <xsl:apply-templates select="ldh:query-result(map{ '$Type': $forClass }, resolve-uri('ns', $ldt:base), $shape-query)//rdf:Description[sh:targetClass/@rdf:resource = $forClass]" mode="bs2:ShapeConstructor">
+                    <xsl:with-param name="modal-form" select="true()"/>
+                    <xsl:with-param name="create-graph" select="true()"/>
+                </xsl:apply-templates>
+            </xsl:when>
+            <!-- SPIN constraints -->
             <xsl:when test="not($forClass = '&rdfs;Resource') and ldh:query-result(map{ '$Type': $forClass }, resolve-uri('ns', $ldt:base), $constructor-query)//srx:binding[@name = 'construct']/srx:literal">
                 <xsl:variable name="subclasses" select="ldh:listSubClasses($forClass, false(), $ldt:ontology)" as="attribute()*"/>
                 <!-- add subclasses as forClass -->

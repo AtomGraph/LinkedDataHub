@@ -22,6 +22,7 @@
     <!ENTITY acl    "http://www.w3.org/ns/auth/acl#">
     <!ENTITY cert   "http://www.w3.org/ns/auth/cert#">
     <!ENTITY sd     "http://www.w3.org/ns/sparql-service-description#">
+    <!ENTITY sh     "http://www.w3.org/ns/shacl#">
     <!ENTITY ldt    "https://www.w3.org/ns/ldt#">
     <!ENTITY c      "https://www.w3.org/ns/ldt/core/domain#">
     <!ENTITY ct     "https://www.w3.org/ns/ldt/core/templates#">
@@ -55,6 +56,7 @@ xmlns:http="&http;"
 xmlns:acl="&acl;"
 xmlns:cert="&cert;"
 xmlns:sd="&sd;"
+xmlns:sh="&sh;"
 xmlns:ldt="&ldt;"
 xmlns:core="&c;"
 xmlns:dh="&dh;"
@@ -209,7 +211,7 @@ LIMIT   100
 
             DESCRIBE $Shape ?property
             WHERE
-              { $Shape  sh:targetClass  ?Type
+              { $Shape  sh:targetClass  $Type
                 OPTIONAL
                   { $Shape  sh:property  ?property }
               }
@@ -217,8 +219,9 @@ LIMIT   100
     </xsl:variable>
     
     <xsl:key name="resources-by-primary-topic" match="*[@rdf:about] | *[@rdf:nodeID]" use="foaf:primaryTopic/@rdf:resource"/>
-    <xsl:key name="violations-by-root" match="*" use="spin:violationRoot/@rdf:resource"/>
+    <xsl:key name="violations-by-root" match="*[@rdf:about] | *[@rdf:nodeID]" use="spin:violationRoot/@rdf:resource | spin:violationRoot/@rdf:nodeID"/>
     <xsl:key name="violations-by-value" match="*" use="ldh:violationValue/text()"/>
+    <xsl:key name="violations-by-focus-node" match="*" use="sh:focusNode/@rdf:resource | sh:focusNode/@rdf:nodeID"/>
     <xsl:key name="resources-by-container" match="*[@rdf:about] | *[@rdf:nodeID]" use="sioc:has_parent/@rdf:resource | sioc:has_container/@rdf:resource"/>
     
     <rdf:Description rdf:about="">
@@ -744,7 +747,7 @@ LIMIT   100
             
                 <xsl:choose>
                     <!-- error responses always rendered in bs2:Row mode, no matter what $ac:mode specifies -->
-                    <xsl:when test="key('resources-by-type', '&http;Response') and not(key('resources-by-type', '&spin;ConstraintViolation'))">
+                    <xsl:when test="key('resources-by-type', '&http;Response') and not(key('resources-by-type', '&spin;ConstraintViolation')) and not(key('resources-by-type', '&sh;ValidationResult'))">
                         <xsl:apply-templates select="." mode="bs2:Row">
                             <xsl:with-param name="template-query" select="$template-query" tunnel="yes"/>
                             <xsl:sort select="ac:label(.)"/>
@@ -764,6 +767,7 @@ LIMIT   100
                                 <xsl:apply-templates select="$constructor" mode="bs2:ModalForm">
                                     <xsl:with-param name="constructor-query" select="$constructor-query" tunnel="yes"/>
                                     <xsl:with-param name="constraint-query" select="$constraint-query" tunnel="yes"/>
+                                    <xsl:with-param name="shape-query" select="$shape-query" tunnel="yes"/>
                                     <xsl:sort select="ac:label(.)"/>
                                 </xsl:apply-templates>
                             </xsl:when>
@@ -772,6 +776,7 @@ LIMIT   100
                                     <xsl:with-param name="classes" select="$classes"/>
                                     <xsl:with-param name="constructor-query" select="$constructor-query" tunnel="yes"/>
                                     <xsl:with-param name="constraint-query" select="$constraint-query" tunnel="yes"/>
+                                    <xsl:with-param name="shape-query" select="$shape-query" tunnel="yes"/>
                                     <xsl:sort select="ac:label(.)"/>
                                 </xsl:apply-templates>
                             </xsl:otherwise>
@@ -782,28 +787,26 @@ LIMIT   100
                         <xsl:variable name="constructor" as="document-node()">
                             <xsl:apply-templates select="$shapes" mode="ldh:Shape"/>
                         </xsl:variable>
-                        
-XXX
-<xsl:copy-of select="$constructor"/>
-/XXX
 
-<!--                        <xsl:choose>
+                        <xsl:choose>
                             <xsl:when test="$ac:mode = '&ac;ModalMode'">
-                                <xsl:apply-templates select="$constructor" mode="bs2:ModalForm">
+                                <xsl:apply-templates select="ldh:reserialize($constructor)" mode="bs2:ModalForm">
                                     <xsl:with-param name="constructor-query" select="$constructor-query" tunnel="yes"/>
                                     <xsl:with-param name="constraint-query" select="$constraint-query" tunnel="yes"/>
+                                    <xsl:with-param name="shape-query" select="$shape-query" tunnel="yes"/>
                                     <xsl:sort select="ac:label(.)"/>
                                 </xsl:apply-templates>
                             </xsl:when>
-                            <xsl:otherwise>-->
+                            <xsl:otherwise>
                                 <xsl:apply-templates select="ldh:reserialize($constructor)" mode="bs2:RowForm">
                                     <xsl:with-param name="classes" select="$classes"/>
                                     <xsl:with-param name="constructor-query" select="$constructor-query" tunnel="yes"/>
                                     <xsl:with-param name="constraint-query" select="$constraint-query" tunnel="yes"/>
+                                    <xsl:with-param name="shape-query" select="$shape-query" tunnel="yes"/>
                                     <xsl:sort select="ac:label(.)"/>
                                 </xsl:apply-templates>
-<!--                            </xsl:otherwise>
-                        </xsl:choose>-->
+                            </xsl:otherwise>
+                        </xsl:choose>
                     </xsl:when>
                     <!-- check if the current document has content or its class has content -->
                     <xsl:when test="(empty($ac:mode) and $has-content) or $ac:mode = '&ldh;ContentMode'">
@@ -837,6 +840,7 @@ XXX
                         <xsl:apply-templates select="." mode="bs2:ModalForm">
                             <xsl:with-param name="constructor-query" select="$constructor-query" tunnel="yes"/>
                             <xsl:with-param name="constraint-query" select="$constraint-query" tunnel="yes"/>
+                            <xsl:with-param name="shape-query" select="$shape-query" tunnel="yes"/>
                             <xsl:sort select="ac:label(.)"/>
                         </xsl:apply-templates>
                     </xsl:when>
@@ -845,6 +849,7 @@ XXX
                             <xsl:with-param name="classes" select="$classes"/>
                             <xsl:with-param name="constructor-query" select="$constructor-query" tunnel="yes"/>
                             <xsl:with-param name="constraint-query" select="$constraint-query" tunnel="yes"/>
+                            <xsl:with-param name="shape-query" select="$shape-query" tunnel="yes"/>
                             <xsl:sort select="ac:label(.)"/>
                         </xsl:apply-templates>
                     </xsl:when>
@@ -973,7 +978,7 @@ XXX
     
     <!-- MODE LIST -->
         
-    <xsl:template match="rdf:RDF[key('resources-by-type', '&http;Response')][not(key('resources-by-type', '&spin;ConstraintViolation'))]" mode="bs2:ModeList" priority="1"/>
+    <xsl:template match="rdf:RDF[key('resources-by-type', '&http;Response')][not(key('resources-by-type', '&spin;ConstraintViolation'))] | rdf:RDF[key('resources-by-type', '&http;Response')][not(key('resources-by-type', '&sh;ValidationResult'))]" mode="bs2:ModeList" priority="1"/>
 
     <xsl:template match="rdf:RDF[ac:uri()]" mode="bs2:ModeList">
         <div class="btn-group pull-right">

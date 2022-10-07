@@ -18,6 +18,7 @@
     <!ENTITY ldt    "https://www.w3.org/ns/ldt#">
     <!ENTITY dh     "https://www.w3.org/ns/ldt/document-hierarchy#">
     <!ENTITY sd     "http://www.w3.org/ns/sparql-service-description#">
+    <!ENTITY sh     "http://www.w3.org/ns/shacl#">
     <!ENTITY dct    "http://purl.org/dc/terms/">
     <!ENTITY foaf   "http://xmlns.com/foaf/0.1/">
     <!ENTITY sioc   "http://rdfs.org/sioc/ns#">
@@ -44,6 +45,7 @@ xmlns:acl="&acl;"
 xmlns:ldt="&ldt;"
 xmlns:dh="&dh;"
 xmlns:sd="&sd;"
+xmlns:sh="&sh;"
 xmlns:dct="&dct;"
 xmlns:foaf="&foaf;"
 xmlns:sioc="&sioc;"
@@ -134,7 +136,7 @@ extension-element-prefixes="ixsl"
         <xsl:attribute name="class" select="concat($class, ' ', 'btn-logo btn-chart')"/>
     </xsl:template>
 
-    <xsl:template match="*[@rdf:about = ('&ldh;URISyntaxViolation', '&spin;ConstraintViolation', '&ldh;ResourceExistsException')]" mode="ldh:logo">
+    <xsl:template match="*[@rdf:about = ('&ldh;URISyntaxViolation', '&spin;ConstraintViolation', '&sh;ValidationResult', '&sh;ValidationReport', '&ldh;ResourceExistsException')]" mode="ldh:logo">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'violation')"/>
@@ -802,9 +804,47 @@ extension-element-prefixes="ixsl"
     
     <xsl:template match="*[*][@rdf:about]" mode="bs2:RowContentHeader"/>
     
+    <!-- SHAPE CONSTRUCTOR -->
+
+    <xsl:template match="*[*][@rdf:about]" mode="bs2:ShapeConstructor" use-when="system-property('xsl:product-name') = 'SAXON'">
+        <xsl:param name="id" select="concat('constructor-', generate-id())" as="xs:string?"/>
+        <xsl:param name="with-label" select="false()" as="xs:boolean"/>
+        <xsl:param name="modal-form" select="false()" as="xs:boolean"/>
+        <xsl:param name="create-graph" select="false()" as="xs:boolean"/>
+        <xsl:variable name="forShape" select="@rdf:about" as="xs:anyURI"/>
+        <xsl:variable name="query-params" select="map:merge((map{ 'forShape': string($forShape) }, if ($modal-form) then map{ 'mode': '&ac;ModalMode' } else (), if ($create-graph) then map{ 'createGraph': string(true()) } else ()))" as="map(xs:string, xs:string*)"/>
+        <xsl:variable name="href" select="ac:build-uri(ac:uri(), $query-params)" as="xs:anyURI"/>
+        
+        <a href="{$href}" title="{@rdf:about}">
+            <xsl:if test="$id">
+                <xsl:attribute name="id" select="$id"/>
+            </xsl:if>
+
+            <xsl:choose>
+                <xsl:when test="$with-label">
+                    <xsl:apply-templates select="." mode="ldh:logo">
+                        <xsl:with-param name="class" select="'btn add-constructor'"/>
+                    </xsl:apply-templates>
+
+                    <xsl:value-of>
+                        <xsl:apply-templates select="." mode="ac:label"/>
+                    </xsl:value-of>
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:apply-templates select="key('resources', '&ac;ConstructMode', document(ac:document-uri('&ac;')))" mode="ldh:logo">
+                        <xsl:with-param name="class" select="'btn add-constructor'"/>
+                    </xsl:apply-templates>
+                </xsl:otherwise>
+            </xsl:choose>
+
+            <!-- we don't want to give a name to this input as it would be included in the RDF/POST payload -->
+            <input type="hidden" class="forShape" value="{@rdf:about}"/>
+        </a>
+    </xsl:template>
+    
     <!-- CONSTRUCTOR -->
 
-    <xsl:template match="*[*][@rdf:about]" mode="bs2:ConstructorListItem">
+    <xsl:template match="*[*][@rdf:about]" mode="bs2:ConstructorListItem" use-when="system-property('xsl:product-name') = 'SAXON'">
         <xsl:param name="with-label" select="true()" as="xs:boolean"/>
         <xsl:param name="create-graph" select="false()" as="xs:boolean"/>
 
@@ -820,7 +860,7 @@ extension-element-prefixes="ixsl"
         </xsl:if>
     </xsl:template>
     
-    <xsl:template match="*[*][@rdf:about]" mode="bs2:Constructor">
+    <xsl:template match="*[*][@rdf:about]" mode="bs2:Constructor" use-when="system-property('xsl:product-name') = 'SAXON'">
         <xsl:param name="id" select="concat('constructor-', generate-id())" as="xs:string?"/>
         <xsl:param name="subclasses" as="attribute()*"/>
         <xsl:param name="with-label" select="false()" as="xs:boolean"/>
@@ -918,24 +958,24 @@ extension-element-prefixes="ixsl"
     <!-- MODAL FORM -->
 
     <!-- hide constraint violations and HTTP responses in the form - they are displayed as errors on the edited resources -->
-    <xsl:template match="*[rdf:type/@rdf:resource = '&spin;ConstraintViolation'] | *[rdf:type/@rdf:resource = '&http;Response']" mode="bs2:ModalForm" priority="3"/>
+    <xsl:template match="*[rdf:type/@rdf:resource = ('&spin;ConstraintViolation', '&sh;ValidationResult', '&sh;ValidationReport', '&http;Response')]" mode="bs2:ModalForm" priority="3" use-when="system-property('xsl:product-name') = 'SAXON'"/>
 
     <!-- hide object blank nodes that only have a single rdf:type property from constructed models, unless the type is owl:NamedIndividual -->
     <xsl:template match="*[@rdf:nodeID][$ac:forClass or $ldh:forShape][$ac:method = 'GET'][not(rdf:type/@rdf:resource = '&owl;NamedIndividual')][not(* except rdf:type)]" mode="bs2:ModalForm" priority="2" use-when="system-property('xsl:product-name') = 'SAXON'"/>
 
-    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:ModalForm">
+    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:ModalForm" use-when="system-property('xsl:product-name') = 'SAXON'">
         <xsl:apply-templates select="." mode="bs2:Form"/>
     </xsl:template>
 
     <!-- ROW FORM -->
 
     <!-- hide constraint violations and HTTP responses in the form - they are displayed as errors on the edited resources -->
-    <xsl:template match="*[rdf:type/@rdf:resource = '&spin;ConstraintViolation'] | *[rdf:type/@rdf:resource = '&http;Response']" mode="bs2:RowForm" priority="3"/>
+    <xsl:template match="*[rdf:type/@rdf:resource = ('&spin;ConstraintViolation', '&sh;ValidationResult', '&sh;ValidationReport', '&http;Response')]" mode="bs2:RowForm" priority="3" use-when="system-property('xsl:product-name') = 'SAXON'"/>
 
     <!-- hide object blank nodes that only have a single rdf:type property from constructed models, unless the type is owl:NamedIndividual -->
     <xsl:template match="*[@rdf:nodeID][$ac:forClass or $ldh:forShape][$ac:method = 'GET'][not(rdf:type/@rdf:resource = '&owl;NamedIndividual')][not(* except rdf:type)]" mode="bs2:RowForm" priority="2" use-when="system-property('xsl:product-name') = 'SAXON'"/>
         
-    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:RowForm">
+    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:RowForm" use-when="system-property('xsl:product-name') = 'SAXON'">
         <xsl:param name="id" select="generate-id()" as="xs:string?"/>
         <xsl:param name="content-value" as="xs:anyURI?"/>
         <xsl:param name="class" select="'row-fluid'" as="xs:string?"/>
@@ -960,7 +1000,7 @@ extension-element-prefixes="ixsl"
     
     <!-- FORM -->
 
-    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:Form">
+    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:Form" use-when="system-property('xsl:product-name') = 'SAXON'">
         <xsl:apply-templates select="." mode="bs2:FormControl">
             <xsl:sort select="ac:label(.)"/>
         </xsl:apply-templates>
@@ -972,22 +1012,33 @@ extension-element-prefixes="ixsl"
     <xsl:template match="*[@rdf:nodeID][$ac:forClass or $ldh:forShape][rdf:type/starts-with(@rdf:resource, '&xsd;')] | *[@rdf:nodeID][$ac:forClass or $ldh:forShape][count(key('predicates-by-object', @rdf:nodeID)) &gt; 0][rdf:type/@rdf:resource = '&rdfs;Resource']" mode="bs2:FormControl" priority="2" use-when="system-property('xsl:product-name') = 'SAXON'"/>
 
     <!-- turn off default form controls for rdf:type as we are handling it specially with bs2:TypeControl -->
-    <xsl:template match="rdf:type[@rdf:resource]" mode="bs2:FormControl" priority="1"/>
+    <xsl:template match="rdf:type[@rdf:resource]" mode="bs2:FormControl" priority="1" use-when="system-property('xsl:product-name') = 'SAXON'"/>
     
-    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:FormControl">
+    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:FormControl" use-when="system-property('xsl:product-name') = 'SAXON'">
         <xsl:param name="id" select="concat('form-control-', generate-id())" as="xs:string?"/>
         <xsl:param name="class" as="xs:string?"/>
         <xsl:param name="legend" select="true()" as="xs:boolean"/>
-        <xsl:param name="violations" select="key('violations-by-value', */@rdf:resource) | key('violations-by-root', (@rdf:about, @rdf:nodeID))" as="element()*"/>
+        <xsl:param name="violations" select="key('violations-by-value', */@rdf:resource) | key('violations-by-root', (@rdf:about, @rdf:nodeID)) | key('violations-by-focus-node', (@rdf:about, @rdf:nodeID))" as="element()*"/>
         <xsl:param name="forClass" select="rdf:type/@rdf:resource" as="xs:anyURI*"/>
         <xsl:param name="constructor-query" as="xs:string?" tunnel="yes"/>
-        <xsl:param name="constructor" select="if (exists($forClass)) then ldh:construct(map:merge(for $class in $forClass return map{ $class: ldh:query-result(map{ '$Type': $class }, resolve-uri('ns', $ldt:base), $constructor-query)//srx:binding[@name = 'construct']/srx:literal/string() })) else ()" as="document-node()?"/>
+        <xsl:param name="shape-query" as="xs:string?" tunnel="yes"/>
+        <xsl:param name="shapes" select="for $class in $forClass return ldh:query-result(map{ '$Type': $class }, resolve-uri('ns', $ldt:base), $shape-query)" as="document-node()"/>
+        <xsl:param name="constructor" as="document-node()?">
+            <!-- SHACL shapes take priority over SPIN constructors -->
+            <xsl:choose>
+                <xsl:when test="exists($shapes/rdf:RDF/rdf:Description)">
+                    <xsl:variable name="constructor" as="document-node()">
+                        <xsl:apply-templates select="$shapes" mode="ldh:Shape"/>
+                    </xsl:variable>
+                    <xsl:sequence select="ldh:reserialize($constructor)"/>
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:sequence select="if (exists($forClass)) then ldh:construct(map:merge(for $class in $forClass return map{ $class: ldh:query-result(map{ '$Type': $class }, resolve-uri('ns', $ldt:base), $constructor-query)//srx:binding[@name = 'construct']/srx:literal/string() })) else ()"/>
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:param>
         <xsl:param name="template" select="$constructor/rdf:RDF/*[@rdf:nodeID][every $type in rdf:type/@rdf:resource satisfies current()/rdf:type/@rdf:resource = $type][* except rdf:type]" as="element()*"/>
         <xsl:param name="template-properties" select="true()" as="xs:boolean" tunnel="yes"/>
-<!--
-        <xsl:param name="shape-query" as="xs:string?" tunnel="yes"/>
-        <xsl:param name="shapes" select="for $class in $forClass return ldh:query-result(map{ '$Type': $class }, resolve-uri('ns', $ldt:base), $shape-query)//rdf:Description" as="element()*"/>
--->
         <xsl:param name="traversed-ids" select="@rdf:*" as="xs:string*" tunnel="yes"/>
         <xsl:param name="show-subject" select="false()" as="xs:boolean" tunnel="yes"/>
         <xsl:param name="required" select="false()" as="xs:boolean"/>
@@ -1091,13 +1142,13 @@ extension-element-prefixes="ixsl"
     <!-- TYPE CONTROL -->
 
     <!-- hide type control -->
-    <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;Content']" mode="bs2:TypeControl" priority="1">
+    <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;Content']" mode="bs2:TypeControl" priority="1" use-when="system-property('xsl:product-name') = 'SAXON'">
         <xsl:next-match>
             <xsl:with-param name="hidden" select="true()"/>
         </xsl:next-match>
     </xsl:template>
     
-    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:TypeControl">
+    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:TypeControl" use-when="system-property('xsl:product-name') = 'SAXON'">
         <xsl:param name="forClass" as="xs:anyURI?"/> <!-- allow subclasses of owl:Class? -->
         <xsl:param name="hidden" select="false()" as="xs:boolean"/>
 
@@ -1112,9 +1163,9 @@ extension-element-prefixes="ixsl"
     
     <!-- hide property dropdown for content instances -->
     
-    <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;Content']" mode="bs2:PropertyControl" priority="1"/>
+    <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;Content']" mode="bs2:PropertyControl" priority="1" use-when="system-property('xsl:product-name') = 'SAXON'"/>
     
-    <xsl:template match="*[@rdf:about or @rdf:nodeID]" mode="bs2:PropertyControl">
+    <xsl:template match="*[@rdf:about or @rdf:nodeID]" mode="bs2:PropertyControl" use-when="system-property('xsl:product-name') = 'SAXON'">
         <xsl:param name="class" as="xs:string?"/>
         <xsl:param name="label" select="true()" as="xs:boolean"/>
         <xsl:param name="template" as="element()*"/>
@@ -1184,6 +1235,69 @@ extension-element-prefixes="ixsl"
         </div>
     </xsl:template>
     
+    <!-- VIOLATION -->
+
+    <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;URISyntaxViolation']" mode="bs2:Violation" use-when="system-property('xsl:product-name') = 'SAXON'">
+        <xsl:param name="class" select="'alert alert-error'" as="xs:string?"/>
+
+        <div>
+            <xsl:if test="$class">
+                <xsl:attribute name="class" select="$class"/>
+            </xsl:if>
+
+            <xsl:apply-templates select="key('resources', '&ldh;URISyntaxViolation', document(ac:document-uri('&ldh;')))" mode="ldh:logo">
+                <xsl:with-param name="class" select="$class"/>
+            </xsl:apply-templates>
+            <xsl:text> </xsl:text>
+            <xsl:value-of select="rdfs:label"/>
+        </div>
+    </xsl:template>
+        
+    <!-- take constraint labels from sitemap instead of response, if possible -->
+    <xsl:template match="*[rdf:type/@rdf:resource = '&spin;ConstraintViolation']" mode="bs2:Violation" use-when="system-property('xsl:product-name') = 'SAXON'">
+        <xsl:param name="class" select="'alert alert-error'" as="xs:string?"/>
+
+        <div>
+            <xsl:if test="$class">
+                <xsl:attribute name="class" select="$class"/>
+            </xsl:if>
+
+            <xsl:apply-templates select="key('resources', rdf:type/@rdf:resource, document(ac:document-uri(rdf:type/@rdf:resource)))" mode="ldh:logo">
+                <xsl:with-param name="class" select="$class"/>
+            </xsl:apply-templates>
+            <xsl:text> </xsl:text>
+            <xsl:value-of>
+                <xsl:apply-templates select="." mode="ac:label"/>
+            </xsl:value-of>
+        </div>
+    </xsl:template>
+    
+    <xsl:template match="*[rdf:type/@rdf:resource = '&sh;ValidationResult']" mode="bs2:Violation" use-when="system-property('xsl:product-name') = 'SAXON'">
+        <xsl:param name="class" select="'alert alert-error'" as="xs:string?"/>
+
+        <div>
+            <xsl:if test="$class">
+                <xsl:attribute name="class" select="$class"/>
+            </xsl:if>
+
+            <xsl:apply-templates select="key('resources', rdf:type/@rdf:resource, document(ac:document-uri(rdf:type/@rdf:resource)))" mode="ldh:logo">
+                <xsl:with-param name="class" select="$class"/>
+            </xsl:apply-templates>
+            <xsl:text> </xsl:text>
+            <xsl:value-of select="sh:resultMessage"/>
+        </div>
+    </xsl:template>
+    
+    <!-- EXCEPTION -->
+    
+    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:Exception" use-when="system-property('xsl:product-name') = 'SAXON'"/>
+
+    <!-- OBJECT -->
+    
+    <xsl:template match="*[*][@rdf:about or @rdf:nodeID]" mode="bs2:Object" use-when="system-property('xsl:product-name') = 'SAXON'"/>
+
+    <!-- ### SHARED BETWEEN SERVER AND CLIENT -->
+    
     <!-- TYPEAHEAD -->
     
     <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="ldh:Typeahead">
@@ -1222,49 +1336,4 @@ extension-element-prefixes="ixsl"
         </button>
     </xsl:template>
     
-    <!-- VIOLATION -->
-
-    <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;URISyntaxViolation']" mode="bs2:Violation">
-        <xsl:param name="class" select="'alert alert-error'" as="xs:string?"/>
-
-        <div>
-            <xsl:if test="$class">
-                <xsl:attribute name="class" select="$class"/>
-            </xsl:if>
-
-            <xsl:apply-templates select="key('resources', '&ldh;URISyntaxViolation', document(ac:document-uri('&ldh;')))" mode="ldh:logo">
-                <xsl:with-param name="class" select="$class"/>
-            </xsl:apply-templates>
-            <xsl:text> </xsl:text>
-            <xsl:value-of select="rdfs:label"/>
-        </div>
-    </xsl:template>
-        
-    <!-- take constraint labels from sitemap instead of response, if possible -->
-    <xsl:template match="*[rdf:type/@rdf:resource = '&spin;ConstraintViolation']" mode="bs2:Violation">
-        <xsl:param name="class" select="'alert alert-error'" as="xs:string?"/>
-
-        <div>
-            <xsl:if test="$class">
-                <xsl:attribute name="class" select="$class"/>
-            </xsl:if>
-
-            <xsl:apply-templates select="key('resources', '&spin;ConstraintViolation', document(ac:document-uri('&spin;')))" mode="ldh:logo">
-                <xsl:with-param name="class" select="$class"/>
-            </xsl:apply-templates>
-            <xsl:text> </xsl:text>
-            <xsl:value-of>
-                <xsl:apply-templates select="." mode="ac:label"/>
-            </xsl:value-of>
-        </div>
-    </xsl:template>
-    
-    <!-- EXCEPTION -->
-    
-    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:Exception"/>
-
-    <!-- OBJECT -->
-    
-    <xsl:template match="*[*][@rdf:about or @rdf:nodeID]" mode="bs2:Object"/>
-
 </xsl:stylesheet>

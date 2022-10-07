@@ -29,14 +29,12 @@ import org.apache.jena.rdf.model.ResIterator;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.sparql.vocabulary.FOAF;
 import org.apache.jena.update.UpdateFactory;
-import org.apache.jena.update.UpdateRequest;
 import org.apache.jena.vocabulary.RDF;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.UriInfo;
-import javax.ws.rs.ext.Providers;
 import org.apache.jena.rdfxml.xmloutput.impl.Basic;
 import org.apache.jena.riot.Lang;
 import com.atomgraph.processor.vocabulary.SIOC;
@@ -79,7 +77,6 @@ public class ValidatingModelProvider extends com.atomgraph.server.io.ValidatingM
     private static final Logger log = LoggerFactory.getLogger(ValidatingModelProvider.class);
     
     @Context UriInfo uriInfo;
-    @Context Providers providers;
     @Context SecurityContext securityContext;
 
     @Inject javax.inject.Provider<com.atomgraph.linkeddatahub.apps.model.Application> application;
@@ -216,7 +213,7 @@ public class ValidatingModelProvider extends com.atomgraph.server.io.ValidatingM
             String updateString = resource.getProperty(SP.text).getString();
             try
             {
-                UpdateRequest update = UpdateFactory.create(updateString);
+                UpdateFactory.create(updateString);
                 Resource type = null;
                 if (type != null)
                 {

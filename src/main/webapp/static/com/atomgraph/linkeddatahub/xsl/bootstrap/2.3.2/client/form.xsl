@@ -11,6 +11,7 @@
     <!ENTITY ldt        "https://www.w3.org/ns/ldt#">
     <!ENTITY dh         "https://www.w3.org/ns/ldt/document-hierarchy#">
     <!ENTITY sd         "http://www.w3.org/ns/sparql-service-description#">
+    <!ENTITY sh         "http://www.w3.org/ns/shacl#">
     <!ENTITY sp         "http://spinrdf.org/sp#">
     <!ENTITY dct        "http://purl.org/dc/terms/">
 ]>
@@ -31,6 +32,7 @@ xmlns:dct="&dct;"
 xmlns:typeahead="&typeahead;"
 xmlns:ldt="&ldt;"
 xmlns:sd="&sd;"
+xmlns:sh="&sh;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 extension-element-prefixes="ixsl"
 exclude-result-prefixes="#all"
@@ -224,8 +226,8 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
     
-    <!-- appends new content instance to the form -->
-    <xsl:template match="a[contains-token(@class, 'add-constructor')]" mode="ixsl:onclick" priority="1">
+    <!-- appends new SPIN-constructed instance to the form -->
+    <xsl:template match="a[contains-token(@class, 'add-constructor')][input[@class = 'forClass']/@value]" mode="ixsl:onclick" priority="1">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="form" select="ancestor::form" as="element()?"/>
         <xsl:variable name="bnode-ids" select="distinct-values($form//input[@name = ('sb', 'ob')]/ixsl:get(., 'value')[starts-with(., 'A')])" as="xs:string*"/>
@@ -246,7 +248,42 @@ exclude-result-prefixes="#all"
                 <xsl:call-template name="onAddForm">
                     <xsl:with-param name="container" select="id('content-body', ixsl:page())"/>
                     <xsl:with-param name="max-bnode-id" select="$max-bnode-id"/>
-                    <xsl:with-param name="forClass" select="$forClass"/>
+                </xsl:call-template>
+            </ixsl:schedule-action>
+        </xsl:variable>
+        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+
+        <xsl:if test="not($modal-form)">
+            <xsl:call-template name="ldh:PushState">
+                <xsl:with-param name="href" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), map{}, $href)"/>
+                <!--<xsl:with-param name="title" select="/html/head/title"/>-->
+                <xsl:with-param name="container" select="id('content-body', ixsl:page())"/>
+            </xsl:call-template>
+        </xsl:if>
+    </xsl:template>
+    
+    <!-- appends new SHACL-constructed instance to the form -->
+    <xsl:template match="a[contains-token(@class, 'add-constructor')][input[@class = 'forShape']/@value]" mode="ixsl:onclick" priority="1">
+        <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
+        <xsl:variable name="form" select="ancestor::form" as="element()?"/>
+        <xsl:variable name="bnode-ids" select="distinct-values($form//input[@name = ('sb', 'ob')]/ixsl:get(., 'value')[starts-with(., 'A')])" as="xs:string*"/>
+         <!-- find the last bnode ID on the form so that we can change this resources ID to +1. Will only work with Jena's ID format A1, A2, ... -->
+        <xsl:variable name="max-bnode-id" select="if (empty($bnode-ids)) then 0 else max(for $bnode-id in $bnode-ids return xs:integer(substring-after($bnode-id, 'A')))" as="xs:integer"/>
+        <!--- show a modal form if this button is in a <fieldset>, meaning on a resource-level and not form level. Otherwise (e.g. for the "Create" button) show normal form -->
+        <xsl:variable name="modal-form" select="exists(ancestor::fieldset)" as="xs:boolean"/>
+        <xsl:variable name="forShape" select="input[@class = 'forShape']/@value" as="xs:anyURI"/>
+        <xsl:variable name="create-graph" select="empty($form) or $modal-form" as="xs:boolean"/>
+        <xsl:variable name="query-params" select="map:merge((map{ 'forShape': string($forShape) }, if ($modal-form) then map{ 'mode': '&ac;ModalMode' } else (), if ($create-graph) then map{ 'createGraph': string(true()) } else ()))" as="map(xs:string, xs:string*)"/>
+        <!-- do not use @href from the HTML because it does not update with AJAX document loads -->
+        <xsl:variable name="href" select="ac:build-uri(ldh:absolute-path(ldh:href()), $query-params)" as="xs:anyURI"/>
+
+        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+        
+        <xsl:variable name="request" as="item()*">
+            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
+                <xsl:call-template name="onAddForm">
+                    <xsl:with-param name="container" select="id('content-body', ixsl:page())"/>
+                    <xsl:with-param name="max-bnode-id" select="$max-bnode-id"/>
                 </xsl:call-template>
             </ixsl:schedule-action>
         </xsl:variable>
@@ -265,7 +302,7 @@ exclude-result-prefixes="#all"
     <xsl:template match="input[contains-token(@class, 'type-typeahead')]" mode="ixsl:onkeyup" priority="1">
         <xsl:next-match>
             <xsl:with-param name="endpoint" select="resolve-uri('ns', $ldt:base)"/>
-            <xsl:with-param name="select-string" select="$select-labelled-class-string"/>
+            <xsl:with-param name="select-string" select="$select-labelled-class-or-shape-string"/>
         </xsl:next-match>
     </xsl:template>
     
@@ -362,8 +399,6 @@ exclude-result-prefixes="#all"
         <xsl:variable name="typeahead-doc" select="ixsl:get(ixsl:window(), 'LinkedDataHub.typeahead.rdfXml')" as="document-node()"/>
         <xsl:variable name="resource" select="key('resources', $resource-id, $typeahead-doc)" as="element()"/>
         <xsl:variable name="control-group" select="ancestor::div[contains-token(@class, 'control-group')]" as="element()"/>
-        <xsl:variable name="forClass" select="$resource/@rdf:about" as="xs:anyURI"/>
-        <xsl:variable name="href" select="ac:build-uri(ldh:absolute-path(ldh:href()), map{ 'forClass': string($forClass) })" as="xs:anyURI"/>
         
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
@@ -375,14 +410,34 @@ exclude-result-prefixes="#all"
             </xsl:result-document>
         </xsl:for-each>
 
-        <xsl:variable name="request" as="item()*">
-            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
-                <xsl:call-template name="onAddConstructor">
-                    <xsl:with-param name="control-group" select="$control-group"/>
-                </xsl:call-template>
-            </ixsl:schedule-action>
-        </xsl:variable>
-        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:choose>
+            <!-- a node shape was selected -->
+            <xsl:when test="$resource/rdf:type/@rdf:resource = '&sh;NodeShape'">
+                <xsl:variable name="forShape" select="$resource/@rdf:about" as="xs:anyURI"/>
+                <xsl:variable name="href" select="ac:build-uri(ldh:absolute-path(ldh:href()), map{ 'forShape': string($forShape) })" as="xs:anyURI"/>
+                <xsl:variable name="request" as="item()*">
+                    <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
+                        <xsl:call-template name="onAddConstructor">
+                            <xsl:with-param name="control-group" select="$control-group"/>
+                        </xsl:call-template>
+                    </ixsl:schedule-action>
+                </xsl:variable>
+                <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+            </xsl:when>
+            <!-- a class with constructor was selected -->
+            <xsl:otherwise>
+                <xsl:variable name="forClass" select="$resource/@rdf:about" as="xs:anyURI"/>
+                <xsl:variable name="href" select="ac:build-uri(ldh:absolute-path(ldh:href()), map{ 'forClass': string($forClass) })" as="xs:anyURI"/>
+                <xsl:variable name="request" as="item()*">
+                    <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
+                        <xsl:call-template name="onAddConstructor">
+                            <xsl:with-param name="control-group" select="$control-group"/>
+                        </xsl:call-template>
+                    </ixsl:schedule-action>
+                </xsl:variable>
+                <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:template>
     
     <!-- select typeahead item -->
@@ -660,7 +715,6 @@ exclude-result-prefixes="#all"
         <xsl:param name="new-form-id" as="xs:string?"/>
         <xsl:param name="new-target-id" as="xs:string?"/>
         <xsl:param name="max-bnode-id" as="xs:integer?"/>
-        <xsl:param name="forClass" as="xs:anyURI?"/>
 
         <xsl:choose>
             <xsl:when test="?status = 200 and starts-with(?media-type, 'application/xhtml+xml')">
