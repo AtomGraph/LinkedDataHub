@@ -802,6 +802,44 @@ extension-element-prefixes="ixsl"
     
     <xsl:template match="*[*][@rdf:about]" mode="bs2:RowContentHeader"/>
     
+    <!-- SHAPE CONSTRUCTOR -->
+
+    <xsl:template match="*[*][@rdf:about]" mode="bs2:ShapeConstructor">
+        <xsl:param name="id" select="concat('constructor-', generate-id())" as="xs:string?"/>
+        <xsl:param name="with-label" select="false()" as="xs:boolean"/>
+        <xsl:param name="modal-form" select="false()" as="xs:boolean"/>
+        <xsl:param name="create-graph" select="false()" as="xs:boolean"/>
+        <xsl:variable name="forShape" select="@rdf:about" as="xs:anyURI"/>
+
+        <xsl:variable name="query-params" select="map:merge((map{ 'forShape': string($forShape) }, if ($modal-form) then map{ 'mode': '&ac;ModalMode' } else (), if ($create-graph) then map{ 'createGraph': string(true()) } else ()))" as="map(xs:string, xs:string*)"/>
+        <xsl:variable name="href" select="ac:build-uri(ac:uri(), $query-params)" as="xs:anyURI"/>
+        <a href="{$href}" title="{@rdf:about}">
+            <xsl:if test="$id">
+                <xsl:attribute name="id" select="$id"/>
+            </xsl:if>
+
+            <xsl:choose>
+                <xsl:when test="$with-label">
+                    <xsl:apply-templates select="." mode="ldh:logo">
+                        <xsl:with-param name="class" select="'btn add-constructor'"/>
+                    </xsl:apply-templates>
+
+                    <xsl:value-of>
+                        <xsl:apply-templates select="." mode="ac:label"/>
+                    </xsl:value-of>
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:apply-templates select="key('resources', '&ac;ConstructMode', document(ac:document-uri('&ac;')))" mode="ldh:logo">
+                        <xsl:with-param name="class" select="'btn add-constructor'"/>
+                    </xsl:apply-templates>
+                </xsl:otherwise>
+            </xsl:choose>
+
+            <!-- we don't want to give a name to this input as it would be included in the RDF/POST payload -->
+            <input type="hidden" class="forShape" value="{@rdf:about}"/>
+        </a>
+    </xsl:template>
+    
     <!-- CONSTRUCTOR -->
 
     <xsl:template match="*[*][@rdf:about]" mode="bs2:ConstructorListItem">

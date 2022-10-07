@@ -831,6 +831,14 @@ exclude-result-prefixes="#all"
         <xsl:variable name="forClass" select="key('resources', .)/rdf:type/@rdf:resource" as="xs:anyURI"/>
         <!-- forClass input is used by typeahead's FILTER ($Type IN ()) in client.xsl -->
         <xsl:choose>
+            <!-- SHACL shapes -->
+            <xsl:when test="not($forClass = '&rdfs;Resource') and ldh:query-result(map{ '$Type': $forClass }, resolve-uri('ns', $ldt:base), $shape-query)//rdf:Description[sh:targetClass/@rdf:resource = $forClass]">
+                <xsl:apply-templates select="ldh:query-result(map{ '$Type': $forClass }, resolve-uri('ns', $ldt:base), $shape-query)//rdf:Description[sh:targetClass/@rdf:resource = $forClass]" mode="bs2:ShapeConstructor">
+                    <xsl:with-param name="modal-form" select="true()"/>
+                    <xsl:with-param name="create-graph" select="true()"/>
+                </xsl:apply-templates>
+            </xsl:when>
+            <!-- SPIN constraints -->
             <xsl:when test="not($forClass = '&rdfs;Resource') and ldh:query-result(map{ '$Type': $forClass }, resolve-uri('ns', $ldt:base), $constructor-query)//srx:binding[@name = 'construct']/srx:literal">
                 <xsl:variable name="subclasses" select="ldh:listSubClasses($forClass, false(), $ldt:ontology)" as="attribute()*"/>
                 <!-- add subclasses as forClass -->

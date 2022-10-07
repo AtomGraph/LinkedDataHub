@@ -209,7 +209,7 @@ LIMIT   100
 
             DESCRIBE $Shape ?property
             WHERE
-              { $Shape  sh:targetClass  ?Type
+              { $Shape  sh:targetClass  $Type
                 OPTIONAL
                   { $Shape  sh:property  ?property }
               }
