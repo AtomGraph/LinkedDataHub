@@ -44,6 +44,18 @@ exclude-result-prefixes="#all"
               }
         ]]>
     </xsl:variable>
+    <xsl:variable name="shape-query" as="xs:string">
+        <![CDATA[
+            PREFIX  sh:   <http://www.w3.org/ns/shacl#>
+
+            DESCRIBE $Shape ?property
+            WHERE
+              { $Shape  sh:targetClass  $Type
+                OPTIONAL
+                  { $Shape  sh:property  ?property }
+              }
+        ]]>
+    </xsl:variable>
     <xsl:variable name="type-graph-query" as="xs:string">
         <![CDATA[
             SELECT DISTINCT  ?graph
