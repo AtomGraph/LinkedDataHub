@@ -785,7 +785,7 @@ LIMIT   100
 
                         <xsl:choose>
                             <xsl:when test="$ac:mode = '&ac;ModalMode'">
-                                <xsl:apply-templates select="$constructor" mode="bs2:ModalForm">
+                                <xsl:apply-templates select="ldh:reserialize($constructor)" mode="bs2:ModalForm">
                                     <xsl:with-param name="constructor-query" select="$constructor-query" tunnel="yes"/>
                                     <xsl:with-param name="constraint-query" select="$constraint-query" tunnel="yes"/>
                                     <xsl:sort select="ac:label(.)"/>
