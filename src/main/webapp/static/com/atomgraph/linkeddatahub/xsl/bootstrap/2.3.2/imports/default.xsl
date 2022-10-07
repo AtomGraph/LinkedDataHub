@@ -14,6 +14,7 @@
     <!ENTITY http   "http://www.w3.org/2011/http#">
     <!ENTITY ldt    "https://www.w3.org/ns/ldt#">
     <!ENTITY dh     "https://www.w3.org/ns/ldt/document-hierarchy#">
+    <!ENTITY sh     "http://www.w3.org/ns/shacl#">
     <!ENTITY sp     "http://spinrdf.org/sp#">
     <!ENTITY spin   "http://spinrdf.org/spin#">
     <!ENTITY dct    "http://purl.org/dc/terms/">
@@ -34,6 +35,7 @@ xmlns:xsd="&xsd;"
 xmlns:srx="&srx;"
 xmlns:http="&http;"
 xmlns:ldt="&ldt;"
+xmlns:sh="&sh;"
 xmlns:sp="&sp;"
 xmlns:spin="&spin;"
 xmlns:dct="&dct;"
