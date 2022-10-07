@@ -16,35 +16,38 @@
  */
 package com.atomgraph.linkeddatahub.writer.function;
 
-import com.atomgraph.client.vocabulary.SPIN;
 import com.atomgraph.linkeddatahub.vocabulary.LDH;
-import com.atomgraph.linkeddatahub.writer.ModelXSLTWriter;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import javax.xml.transform.stream.StreamSource;
 import net.sf.saxon.s9api.ExtensionFunction;
 import net.sf.saxon.s9api.ItemType;
-import net.sf.saxon.s9api.ItemTypeFactory;
 import net.sf.saxon.s9api.OccurrenceIndicator;
 import net.sf.saxon.s9api.Processor;
 import net.sf.saxon.s9api.QName;
 import net.sf.saxon.s9api.SaxonApiException;
 import net.sf.saxon.s9api.SequenceType;
+import net.sf.saxon.s9api.XdmNode;
 import net.sf.saxon.s9api.XdmValue;
-import org.apache.jena.query.QueryExecution;
-import org.apache.jena.query.QuerySolutionMap;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
-import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.rdf.model.ResourceFactory;
-import org.apache.jena.vocabulary.RDF;
+import org.apache.jena.riot.Lang;
+import org.apache.jena.riot.RDFParser;
+import org.apache.jena.riot.system.StreamRDFLib;
 
 /**
- * Constructs RDF instances from a given <code>forClass -&gt; constructor</code> map.
+ * Reads an RDF/XML document and re-serializes it using Jena's RDF/XML writer.
+ * The output then contains a predictable RDF/XML structure (no nesting, properties grouped into resource descriptions).
  * 
  * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
  */
-public class Construct implements ExtensionFunction
+public class Reserialize implements ExtensionFunction
 {
 
+    public static Lang LANG = Lang.RDFXML;
+    
     private final Processor processor;
 
     /**
@@ -52,7 +55,7 @@ public class Construct implements ExtensionFunction
      * 
      * @param processor processor
      */
-    public Construct(Processor processor)
+    public Reserialize(Processor processor)
     {
         this.processor = processor;
     }
@@ -60,7 +63,7 @@ public class Construct implements ExtensionFunction
     @Override
     public QName getName()
     {
-        return new QName(LDH.NS, "construct");
+        return new QName(LDH.NS, "reserialize");
     }
 
     @Override
@@ -72,47 +75,36 @@ public class Construct implements ExtensionFunction
     @Override
     public SequenceType[] getArgumentTypes()
     {
-        return new SequenceType[] /* map(xs:anyURI, xs:string*) */
-        {
-            SequenceType.makeSequenceType(new ItemTypeFactory(getProcessor()).getMapType(ItemType.ANY_URI,
-                SequenceType.makeSequenceType(ItemType.STRING, OccurrenceIndicator.ZERO_OR_MORE)), OccurrenceIndicator.ONE)
-        };
-        
+        return new SequenceType[] { SequenceType.makeSequenceType(ItemType.DOCUMENT_NODE, OccurrenceIndicator.ONE) };
     }
 
     @Override
     public XdmValue call(XdmValue[] arguments) throws SaxonApiException
     {
-        try
+        Model model = ModelFactory.createDefaultModel();
+        String rdfXmlString = getProcessor().newSerializer().serializeNodeToString((XdmNode)arguments[0].itemAt(0));
+
+        RDFParser parser = RDFParser.fromString(rdfXmlString).
+            lang(LANG).
+//            errorHandler(errorHandler).
+//            base(baseURI).
+            build();
+        
+        parser.parse(StreamRDFLib.graph(model.getGraph()));
+        
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        model.write(baos, LANG.getName());
+        
+        try (InputStream is = new ByteArrayInputStream(baos.toByteArray()))
         {
-            Model model = ModelFactory.createDefaultModel();
-            
-            if (!arguments[0].isEmpty())
-                arguments[0].itemAt(0).asMap().forEach((forClass, constructors) ->
-                    {
-                        Resource instance = model.createResource();
-                        QuerySolutionMap qsm = new QuerySolutionMap();
-                        qsm.add(SPIN.THIS_VAR_NAME, instance);
-
-                        instance.addProperty(RDF.type, ResourceFactory.createResource(forClass.getStringValue()));
-                        constructors.stream().forEach(constructor ->
-                        {
-                            try (QueryExecution qex = QueryExecution.model(model).query(constructor.getStringValue()).initialBinding(qsm).build())
-                            {
-                                qex.execConstruct(model);
-                            }
-                        });
-                    }
-                );
-
-            return getProcessor().newDocumentBuilder().build(ModelXSLTWriter.getSource(model));
+            return getProcessor().newDocumentBuilder().build(new StreamSource(is));
         }
         catch (IOException ex)
         {
             throw new SaxonApiException(ex);
         }
     }
-    
+
     /**
      * Returns the associated XSLT processor.
      * 
@@ -122,5 +114,5 @@ public class Construct implements ExtensionFunction
     {
         return processor;
     }
-
+    
 }

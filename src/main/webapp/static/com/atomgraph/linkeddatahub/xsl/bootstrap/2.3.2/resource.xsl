@@ -921,7 +921,7 @@ extension-element-prefixes="ixsl"
     <xsl:template match="*[rdf:type/@rdf:resource = '&spin;ConstraintViolation'] | *[rdf:type/@rdf:resource = '&http;Response']" mode="bs2:ModalForm" priority="3"/>
 
     <!-- hide object blank nodes that only have a single rdf:type property from constructed models, unless the type is owl:NamedIndividual -->
-    <xsl:template match="*[@rdf:nodeID][$ac:forClass][$ac:method = 'GET'][not(rdf:type/@rdf:resource = '&owl;NamedIndividual')][not(* except rdf:type)]" mode="bs2:ModalForm" priority="2" use-when="system-property('xsl:product-name') = 'SAXON'"/>
+    <xsl:template match="*[@rdf:nodeID][$ac:forClass or $ldh:forShape][$ac:method = 'GET'][not(rdf:type/@rdf:resource = '&owl;NamedIndividual')][not(* except rdf:type)]" mode="bs2:ModalForm" priority="2" use-when="system-property('xsl:product-name') = 'SAXON'"/>
 
     <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:ModalForm">
         <xsl:apply-templates select="." mode="bs2:Form"/>
@@ -933,7 +933,7 @@ extension-element-prefixes="ixsl"
     <xsl:template match="*[rdf:type/@rdf:resource = '&spin;ConstraintViolation'] | *[rdf:type/@rdf:resource = '&http;Response']" mode="bs2:RowForm" priority="3"/>
 
     <!-- hide object blank nodes that only have a single rdf:type property from constructed models, unless the type is owl:NamedIndividual -->
-    <xsl:template match="*[@rdf:nodeID][$ac:forClass][$ac:method = 'GET'][not(rdf:type/@rdf:resource = '&owl;NamedIndividual')][not(* except rdf:type)]" mode="bs2:RowForm" priority="2" use-when="system-property('xsl:product-name') = 'SAXON'"/>
+    <xsl:template match="*[@rdf:nodeID][$ac:forClass or $ldh:forShape][$ac:method = 'GET'][not(rdf:type/@rdf:resource = '&owl;NamedIndividual')][not(* except rdf:type)]" mode="bs2:RowForm" priority="2" use-when="system-property('xsl:product-name') = 'SAXON'"/>
         
     <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:RowForm">
         <xsl:param name="id" select="generate-id()" as="xs:string?"/>
@@ -969,7 +969,7 @@ extension-element-prefixes="ixsl"
     <!-- FORM CONTROL -->
 
     <!-- turn off blank node resources from constructor graph (only those that are objects) -->
-    <xsl:template match="*[@rdf:nodeID][$ac:forClass][rdf:type/starts-with(@rdf:resource, '&xsd;')] | *[@rdf:nodeID][$ac:forClass][count(key('predicates-by-object', @rdf:nodeID)) &gt; 0][rdf:type/@rdf:resource = '&rdfs;Resource']" mode="bs2:FormControl" priority="2" use-when="system-property('xsl:product-name') = 'SAXON'"/>
+    <xsl:template match="*[@rdf:nodeID][$ac:forClass or $ldh:forShape][rdf:type/starts-with(@rdf:resource, '&xsd;')] | *[@rdf:nodeID][$ac:forClass or $ldh:forShape][count(key('predicates-by-object', @rdf:nodeID)) &gt; 0][rdf:type/@rdf:resource = '&rdfs;Resource']" mode="bs2:FormControl" priority="2" use-when="system-property('xsl:product-name') = 'SAXON'"/>
 
     <!-- turn off default form controls for rdf:type as we are handling it specially with bs2:TypeControl -->
     <xsl:template match="rdf:type[@rdf:resource]" mode="bs2:FormControl" priority="1"/>
@@ -984,6 +984,10 @@ extension-element-prefixes="ixsl"
         <xsl:param name="constructor" select="if (exists($forClass)) then ldh:construct(map:merge(for $class in $forClass return map{ $class: ldh:query-result(map{ '$Type': $class }, resolve-uri('ns', $ldt:base), $constructor-query)//srx:binding[@name = 'construct']/srx:literal/string() })) else ()" as="document-node()?"/>
         <xsl:param name="template" select="$constructor/rdf:RDF/*[@rdf:nodeID][every $type in rdf:type/@rdf:resource satisfies current()/rdf:type/@rdf:resource = $type][* except rdf:type]" as="element()*"/>
         <xsl:param name="template-properties" select="true()" as="xs:boolean" tunnel="yes"/>
+<!--
+        <xsl:param name="shape-query" as="xs:string?" tunnel="yes"/>
+        <xsl:param name="shapes" select="for $class in $forClass return ldh:query-result(map{ '$Type': $class }, resolve-uri('ns', $ldt:base), $shape-query)//rdf:Description" as="element()*"/>
+-->
         <xsl:param name="traversed-ids" select="@rdf:*" as="xs:string*" tunnel="yes"/>
         <xsl:param name="show-subject" select="false()" as="xs:boolean" tunnel="yes"/>
         <xsl:param name="required" select="false()" as="xs:boolean"/>

@@ -111,6 +111,7 @@ exclude-result-prefixes="#all">
     <xsl:param name="ac:mode" as="xs:anyURI*"/> <!-- select="xs:anyURI('&ac;ReadMode')" -->
 <!--    <xsl:param name="ac:googleMapsKey" select="'AIzaSyCQ4rt3EnNCmGTpBN0qoZM1Z_jXhUnrTpQ'" as="xs:string"/>-->
     <xsl:param name="acl:mode" as="xs:anyURI*"/>
+    <xsl:param name="ldh:forShape" as="xs:anyURI?"/>
     <xsl:param name="ldh:createGraph" select="false()" as="xs:boolean"/>
     <xsl:param name="ldh:localGraph" as="document-node()?"/>
     <xsl:param name="ldh:originalGraph" as="document-node()?"/>
@@ -132,6 +133,19 @@ exclude-result-prefixes="#all">
             <xsl:map-entry key="'&ldh;ResultSetChart'" select="resolve-uri('charts/', $ldt:base)"/>
         </xsl:map>
     </xsl:param>
+    <xsl:param name="explore-service-query" as="xs:string">
+<![CDATA[SELECT DISTINCT  ?type (COUNT(?s) AS ?count) (SAMPLE(?s) AS ?sample)
+WHERE
+  {   { ?s  a  ?type }
+    UNION
+      { GRAPH ?g
+          { ?s  a  ?type }
+      }
+  }
+GROUP BY ?type
+ORDER BY DESC(COUNT(?s))
+LIMIT   100
+]]></xsl:param>
 
     <!-- the query has to support services that do not belong to any app. Use type URIs because that is what triggers Varnish invalidation. -->
     <xsl:variable name="app-query" as="xs:string">
@@ -189,19 +203,18 @@ exclude-result-prefixes="#all">
               }
         ]]>
     </xsl:variable>
-    <xsl:param name="explore-service-query" as="xs:string">
-<![CDATA[SELECT DISTINCT  ?type (COUNT(?s) AS ?count) (SAMPLE(?s) AS ?sample)
-WHERE
-  {   { ?s  a  ?type }
-    UNION
-      { GRAPH ?g
-          { ?s  a  ?type }
-      }
-  }
-GROUP BY ?type
-ORDER BY DESC(COUNT(?s))
-LIMIT   100
-]]></xsl:param>
+    <xsl:variable name="shape-query" as="xs:string">
+        <![CDATA[
+            PREFIX  sh:   <http://www.w3.org/ns/shacl#>
+
+            DESCRIBE $Shape ?property
+            WHERE
+              { $Shape  sh:targetClass  ?Type
+                OPTIONAL
+                  { $Shape  sh:property  ?property }
+              }
+        ]]>
+    </xsl:variable>
     
     <xsl:key name="resources-by-primary-topic" match="*[@rdf:about] | *[@rdf:nodeID]" use="foaf:primaryTopic/@rdf:resource"/>
     <xsl:key name="violations-by-root" match="*" use="spin:violationRoot/@rdf:resource"/>
@@ -763,6 +776,34 @@ LIMIT   100
                                 </xsl:apply-templates>
                             </xsl:otherwise>
                         </xsl:choose>
+                    </xsl:when>
+                    <xsl:when test="$ldh:forShape and $ac:method = 'GET'">
+                        <xsl:variable name="shapes" select="ldh:query-result(map{ '$Shape': $ldh:forShape }, resolve-uri('ns', $ldt:base), $shape-query)" as="document-node()"/>
+                        <xsl:variable name="constructor" as="document-node()">
+                            <xsl:apply-templates select="$shapes" mode="ldh:Shape"/>
+                        </xsl:variable>
+                        
+XXX
+<xsl:copy-of select="$constructor"/>
+/XXX
+
+<!--                        <xsl:choose>
+                            <xsl:when test="$ac:mode = '&ac;ModalMode'">
+                                <xsl:apply-templates select="$constructor" mode="bs2:ModalForm">
+                                    <xsl:with-param name="constructor-query" select="$constructor-query" tunnel="yes"/>
+                                    <xsl:with-param name="constraint-query" select="$constraint-query" tunnel="yes"/>
+                                    <xsl:sort select="ac:label(.)"/>
+                                </xsl:apply-templates>
+                            </xsl:when>
+                            <xsl:otherwise>-->
+                                <xsl:apply-templates select="ldh:reserialize($constructor)" mode="bs2:RowForm">
+                                    <xsl:with-param name="classes" select="$classes"/>
+                                    <xsl:with-param name="constructor-query" select="$constructor-query" tunnel="yes"/>
+                                    <xsl:with-param name="constraint-query" select="$constraint-query" tunnel="yes"/>
+                                    <xsl:sort select="ac:label(.)"/>
+                                </xsl:apply-templates>
+<!--                            </xsl:otherwise>
+                        </xsl:choose>-->
                     </xsl:when>
                     <!-- check if the current document has content or its class has content -->
                     <xsl:when test="(empty($ac:mode) and $has-content) or $ac:mode = '&ldh;ContentMode'">

@@ -15,6 +15,7 @@
     <!ENTITY acl    "http://www.w3.org/ns/auth/acl#">
     <!ENTITY ldt    "https://www.w3.org/ns/ldt#">
     <!ENTITY dh     "https://www.w3.org/ns/ldt/document-hierarchy#">
+    <!ENTITY sh     "http://www.w3.org/ns/shacl#">
     <!ENTITY dct    "http://purl.org/dc/terms/">
     <!ENTITY foaf   "http://xmlns.com/foaf/0.1/">
     <!ENTITY sioc   "http://rdfs.org/sioc/ns#">
@@ -37,6 +38,7 @@ xmlns:http="&http;"
 xmlns:acl="&acl;"
 xmlns:ldt="&ldt;"
 xmlns:dh="&dh;"
+xmlns:sh="&sh;"
 xmlns:dct="&dct;"
 xmlns:foaf="&foaf;"
 xmlns:sioc="&sioc;"
@@ -51,6 +53,8 @@ exclude-result-prefixes="#all"
 extension-element-prefixes="ixsl"
 >
     
+    <xsl:mode name="ldh:Shape" on-no-match="deep-skip"/>
+
     <xsl:param name="main-doc" select="/" as="document-node()"/>
     <xsl:param name="acl:Agent" as="document-node()?"/>
     <xsl:param name="acl:mode" select="$foaf:Agent//*[acl:accessToClass/@rdf:resource = (key('resources', ac:uri(), $main-doc)/rdf:type/@rdf:resource, key('resources', ac:uri(), $main-doc)/rdf:type/@rdf:resource/ldh:listSuperClasses(.))]/acl:mode/@rdf:resource" as="xs:anyURI*"/>
@@ -544,6 +548,65 @@ extension-element-prefixes="ixsl"
                 <xsl:sequence select="ldh:construct(map{ $forClass: ldh:query-result(map{ '$Type': $forClass }, resolve-uri('ns', $ldt:base), $constructor-query)//srx:binding[@name = 'construct']/srx:literal/string() })"/>
             </xsl:otherwise>
         </xsl:choose>
+    </xsl:template>
+
+    <!-- SHAPE -->
+    
+    <!-- converts sh:NodeShape into an rdf:Description of the new instance -->
+    
+    <xsl:template match="rdf:RDF" mode="ldh:Shape" as="document-node()">
+        <xsl:document>
+            <rdf:RDF>
+                <xsl:apply-templates mode="#current"/>
+            </rdf:RDF>
+        </xsl:document>
+    </xsl:template>
+
+    <xsl:template match="*[rdf:type/@rdf:resource = '&sh;NodeShape']" mode="ldh:Shape">
+        <rdf:Description rdf:nodeID="{generate-id()}-instance">
+            <xsl:apply-templates mode="#current"/>
+        </rdf:Description>
+    </xsl:template>
+
+    <xsl:template match="sh:targetClass[@rdf:resource]" mode="ldh:Shape">
+        <rdf:type rdf:resource="{@rdf:resource}"/>
+    </xsl:template>
+    
+    <xsl:template match="sh:property[key('resources', (@rdf:resource, @rdf:nodeID)[1])[sh:path/@rdf:resource][sh:minCount]]" mode="ldh:Shape" priority="1">
+        <xsl:variable name="triple" as="element()*">
+            <xsl:next-match/>
+        </xsl:variable>
+
+        <xsl:for-each select="1 to key('resources', (@rdf:resource, @rdf:nodeID)[1])/sh:minCount">
+            <xsl:copy-of select="$triple"/>
+        </xsl:for-each>
+    </xsl:template>
+
+    <xsl:template match="sh:property[key('resources', (@rdf:resource, @rdf:nodeID)[1])[sh:path/@rdf:resource]]" mode="ldh:Shape">
+        <xsl:for-each select="key('resources', (@rdf:resource, @rdf:nodeID)[1])">
+            <xsl:variable name="property" select="." as="element()"/>
+            <xsl:variable name="namespace" select="if (contains(sh:path/@rdf:resource, '#')) then substring-before(sh:path/@rdf:resource, '#') || '#' else string-join(tokenize(sh:path/@rdf:resource, '/')[not(position() = last())], '/') || '/'" as="xs:string"/>
+            <xsl:variable name="local-name" select="if (contains(sh:path/@rdf:resource, '#')) then substring-after(sh:path/@rdf:resource, '#') else tokenize(sh:path/@rdf:resource, '/')[last()]" as="xs:string"/>
+            
+            <xsl:element namespace="{$namespace}" name="{$local-name}">
+                <rdf:Description>
+                    <xsl:choose>
+                        <xsl:when test="$property/sh:class/@rdf:resource">
+                            <rdf:type rdf:resource="{$property/sh:class/@rdf:resource}"/>
+                        </xsl:when>
+                        <xsl:when test="$property/sh:nodeKind/@rdf:resource = ('&sh;BlankNode', '&sh;IRI', '&sh;BlankNodeOrIRI')">
+                            <rdf:type rdf:resource="&rdfs;Resource"/>
+                        </xsl:when>
+<!--                            <xsl:when test="$property/sh:nodeKind/@rdf:resource = '&sh;Literal'">
+                            <rdf:type rdf:resource="&rdfs;Literal"/>
+                        </xsl:when>-->
+                        <xsl:when test="$property/sh:datatype/@rdf:resource">
+                            <rdf:type rdf:resource="{$property/sh:datatype/@rdf:resource}"/>
+                        </xsl:when>
+                    </xsl:choose>
+                </rdf:Description>
+            </xsl:element>
+        </xsl:for-each>
     </xsl:template>
     
     <!-- MODAL FORM -->
