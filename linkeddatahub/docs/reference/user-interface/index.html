@@ -4,12 +4,13 @@
       <title>LinkedDataHub v3 - User interface</title>
       <meta name="description" content="A walk through the main features of application user interface"/>
       <link rel="up" href="../index.html"/>
-      <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/css/bootstrap.css" rel="stylesheet" type="text/css"/>
-      <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/css/bootstrap-responsive.css" rel="stylesheet" type="text/css"/>
+      <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/css/bootstrap.css" rel="stylesheet" type="text/css"/>
+      <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/css/bootstrap-responsive.css" rel="stylesheet" type="text/css"/>
+      <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/css/linkeddatahub-bootstrap.css" rel="stylesheet" type="text/css"/>
       <style type="text/css">
                 body { padding-top: 60px; }
                 object { width: 100%; min-height: 640px; }
-            </style><script type="text/javascript" src="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/js/jquery.min.js"></script><script type="text/javascript" src="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/js/bootstrap.min.js"></script><script type="text/javascript">
+            </style><script type="text/javascript" src="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/js/jquery.min.js"></script><script type="text/javascript" src="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/js/bootstrap.min.js"></script><script type="text/javascript">
                 $(document).ready(function()
                 {
 
@@ -162,9 +163,6 @@
                         have access to
                         different applications, depending on their authorizations.</p>
                      
-                     <p>Currently <a href="../../get-started/get-an-account/#log-in" title="Log in">logged-in user's</a> account is accessible via the icon on
-                        the right, which opens a drop-down. You can log out by clicking the <span class="btn">Logout</span> button.</p>
-                     
                      <div class="alert alert-info">
                         
                         <p><em>Due to current web browser limitations, it is not possible to logout using client
@@ -182,7 +180,7 @@
                         <img alt="Action bar" src="../../files/images/action.png"/>
                         </p>
                      
-                     <p>The <span class="btn btn-primary">Create</span> button invokes <a href="#create-edit">create dialog</a> through which
+                     <p>The <span class="btn btn-primary create-action">Create <span class="caret"></span></span> button invokes <a href="#create-edit">create dialog</a> through which
                         resources can be <a href="../documents/#create">created</a> as instances of the
                         <a href="../administration/model/#classes">classes</a> defined in the model.</p>
                      
@@ -326,7 +324,7 @@
                      
                      <h2 id="pagination">Pagination</h2>
                      
-                     <p>Pagination is only available for container resources. <span class="btn">Prev</span>/<span class="btn">Next</span>
+                     <p>Pagination is only available for container resources. <span class="btn" style="background-image: url('../icons/ic_navigate_before_black_24px.svg'); background-position: center center; background-repeat: no-repeat; width: 64px; height: 1em;"></span>/<span class="btn" style="background-image: url('../icons/ic_navigate_next_black_24px.svg'); background-position: center center; background-repeat: no-repeat; width: 64px; height: 1em;"></span>
                         pager buttons, located above and below the <a href="#main-content">main content</a>, link to the page before
                         the current one and after the current one, respectively.</p>
                      </div>
