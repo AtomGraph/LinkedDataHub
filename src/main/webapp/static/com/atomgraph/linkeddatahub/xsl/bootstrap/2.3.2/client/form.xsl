@@ -398,16 +398,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="resource-id" select="input[@name = ('ou', 'ob')]/ixsl:get(., 'value')" as="xs:string"/> <!-- can be URI resource or blank node ID -->
         <xsl:variable name="typeahead-doc" select="ixsl:get(ixsl:window(), 'LinkedDataHub.typeahead.rdfXml')" as="document-node()"/>
         <xsl:variable name="resource" select="key('resources', $resource-id, $typeahead-doc)" as="element()"/>
-<xsl:message>
-    <xsl:choose>
-        <xsl:when test="$resource/rdf:type/@rdf:resource = '&sh;NodeShape'">SHAPE</xsl:when>
-        <xsl:otherwise>CLASS</xsl:otherwise>
-    </xsl:choose>
-</xsl:message>
-        
         <xsl:variable name="control-group" select="ancestor::div[contains-token(@class, 'control-group')]" as="element()"/>
-        <xsl:variable name="forClass" select="$resource/@rdf:about" as="xs:anyURI"/>
-        <xsl:variable name="href" select="ac:build-uri(ldh:absolute-path(ldh:href()), map{ 'forClass': string($forClass) })" as="xs:anyURI"/>
         
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
@@ -419,14 +410,34 @@ exclude-result-prefixes="#all"
             </xsl:result-document>
         </xsl:for-each>
 
-        <xsl:variable name="request" as="item()*">
-            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
-                <xsl:call-template name="onAddConstructor">
-                    <xsl:with-param name="control-group" select="$control-group"/>
-                </xsl:call-template>
-            </ixsl:schedule-action>
-        </xsl:variable>
-        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:choose>
+            <!-- a node shape was selected -->
+            <xsl:when test="$resource/rdf:type/@rdf:resource = '&sh;NodeShape'">
+                <xsl:variable name="forShape" select="$resource/@rdf:about" as="xs:anyURI"/>
+                <xsl:variable name="href" select="ac:build-uri(ldh:absolute-path(ldh:href()), map{ 'forShape': string($forShape) })" as="xs:anyURI"/>
+                <xsl:variable name="request" as="item()*">
+                    <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
+                        <xsl:call-template name="onAddConstructor">
+                            <xsl:with-param name="control-group" select="$control-group"/>
+                        </xsl:call-template>
+                    </ixsl:schedule-action>
+                </xsl:variable>
+                <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+            </xsl:when>
+            <!-- a class with constructor was selected -->
+            <xsl:otherwise>
+                <xsl:variable name="forClass" select="$resource/@rdf:about" as="xs:anyURI"/>
+                <xsl:variable name="href" select="ac:build-uri(ldh:absolute-path(ldh:href()), map{ 'forClass': string($forClass) })" as="xs:anyURI"/>
+                <xsl:variable name="request" as="item()*">
+                    <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
+                        <xsl:call-template name="onAddConstructor">
+                            <xsl:with-param name="control-group" select="$control-group"/>
+                        </xsl:call-template>
+                    </ixsl:schedule-action>
+                </xsl:variable>
+                <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:template>
     
     <!-- select typeahead item -->
