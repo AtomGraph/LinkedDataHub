@@ -79,7 +79,6 @@ public class ValidatingModelProvider extends com.atomgraph.server.io.ValidatingM
     private static final Logger log = LoggerFactory.getLogger(ValidatingModelProvider.class);
     
     @Context UriInfo uriInfo;
-    @Context Providers providers;
     @Context SecurityContext securityContext;
 
     @Inject javax.inject.Provider<com.atomgraph.linkeddatahub.apps.model.Application> application;
@@ -216,7 +215,7 @@ public class ValidatingModelProvider extends com.atomgraph.server.io.ValidatingM
             String updateString = resource.getProperty(SP.text).getString();
             try
             {
-                UpdateRequest update = UpdateFactory.create(updateString);
+                UpdateFactory.create(updateString);
                 Resource type = null;
                 if (type != null)
                 {
