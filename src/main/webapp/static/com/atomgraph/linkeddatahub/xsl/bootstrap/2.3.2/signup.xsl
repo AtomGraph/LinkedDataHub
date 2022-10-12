@@ -69,6 +69,7 @@ exclude-result-prefixes="#all">
             <xsl:with-param name="create-resource" select="false()"/>
             <xsl:with-param name="constructor-query" select="$constructor-query" tunnel="yes"/>
             <xsl:with-param name="constraint-query" select="$constraint-query" tunnel="yes"/>
+            <xsl:with-param name="shape-query" select="$shape-query" tunnel="yes"/>
         </xsl:apply-templates>
     </xsl:template>
     
@@ -79,6 +80,7 @@ exclude-result-prefixes="#all">
             <xsl:with-param name="create-resource" select="false()"/>
             <xsl:with-param name="constructor-query" select="$constructor-query" tunnel="yes"/>
             <xsl:with-param name="constraint-query" select="$constraint-query" tunnel="yes"/>
+            <xsl:with-param name="shape-query" select="$shape-query" tunnel="yes"/>
         </xsl:apply-templates>
     </xsl:template>
     

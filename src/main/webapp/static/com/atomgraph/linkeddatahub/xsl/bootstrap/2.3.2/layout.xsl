@@ -838,6 +838,7 @@ LIMIT   100
                         <xsl:apply-templates select="." mode="bs2:ModalForm">
                             <xsl:with-param name="constructor-query" select="$constructor-query" tunnel="yes"/>
                             <xsl:with-param name="constraint-query" select="$constraint-query" tunnel="yes"/>
+                            <xsl:with-param name="shape-query" select="$shape-query" tunnel="yes"/>
                             <xsl:sort select="ac:label(.)"/>
                         </xsl:apply-templates>
                     </xsl:when>
@@ -846,6 +847,7 @@ LIMIT   100
                             <xsl:with-param name="classes" select="$classes"/>
                             <xsl:with-param name="constructor-query" select="$constructor-query" tunnel="yes"/>
                             <xsl:with-param name="constraint-query" select="$constraint-query" tunnel="yes"/>
+                            <xsl:with-param name="shape-query" select="$shape-query" tunnel="yes"/>
                             <xsl:sort select="ac:label(.)"/>
                         </xsl:apply-templates>
                     </xsl:when>
