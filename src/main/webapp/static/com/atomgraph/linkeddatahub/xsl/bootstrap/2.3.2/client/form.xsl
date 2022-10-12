@@ -11,6 +11,7 @@
     <!ENTITY ldt        "https://www.w3.org/ns/ldt#">
     <!ENTITY dh         "https://www.w3.org/ns/ldt/document-hierarchy#">
     <!ENTITY sd         "http://www.w3.org/ns/sparql-service-description#">
+    <!ENTITY sh         "http://www.w3.org/ns/shacl#">
     <!ENTITY sp         "http://spinrdf.org/sp#">
     <!ENTITY dct        "http://purl.org/dc/terms/">
 ]>
@@ -31,6 +32,7 @@ xmlns:dct="&dct;"
 xmlns:typeahead="&typeahead;"
 xmlns:ldt="&ldt;"
 xmlns:sd="&sd;"
+xmlns:sh="&sh;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 extension-element-prefixes="ixsl"
 exclude-result-prefixes="#all"
@@ -396,6 +398,13 @@ exclude-result-prefixes="#all"
         <xsl:variable name="resource-id" select="input[@name = ('ou', 'ob')]/ixsl:get(., 'value')" as="xs:string"/> <!-- can be URI resource or blank node ID -->
         <xsl:variable name="typeahead-doc" select="ixsl:get(ixsl:window(), 'LinkedDataHub.typeahead.rdfXml')" as="document-node()"/>
         <xsl:variable name="resource" select="key('resources', $resource-id, $typeahead-doc)" as="element()"/>
+<xsl:message>
+    <xsl:choose>
+        <xsl:when test="$resource/rdf:type/@rdf:resource = '&sh;NodeShape'">SHAPE</xsl:when>
+        <xsl:otherwise>CLASS</xsl:otherwise>
+    </xsl:choose>
+</xsl:message>
+        
         <xsl:variable name="control-group" select="ancestor::div[contains-token(@class, 'control-group')]" as="element()"/>
         <xsl:variable name="forClass" select="$resource/@rdf:about" as="xs:anyURI"/>
         <xsl:variable name="href" select="ac:build-uri(ldh:absolute-path(ldh:href()), map{ 'forClass': string($forClass) })" as="xs:anyURI"/>
