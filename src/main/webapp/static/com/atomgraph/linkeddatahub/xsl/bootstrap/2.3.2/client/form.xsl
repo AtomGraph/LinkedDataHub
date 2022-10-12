@@ -300,7 +300,7 @@ exclude-result-prefixes="#all"
     <xsl:template match="input[contains-token(@class, 'type-typeahead')]" mode="ixsl:onkeyup" priority="1">
         <xsl:next-match>
             <xsl:with-param name="endpoint" select="resolve-uri('ns', $ldt:base)"/>
-            <xsl:with-param name="select-string" select="$select-labelled-class-string"/>
+            <xsl:with-param name="select-string" select="$select-labelled-class-or-shape-string"/>
         </xsl:next-match>
     </xsl:template>
     
