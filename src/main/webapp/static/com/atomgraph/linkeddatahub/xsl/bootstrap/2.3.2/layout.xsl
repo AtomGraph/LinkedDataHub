@@ -22,6 +22,7 @@
     <!ENTITY acl    "http://www.w3.org/ns/auth/acl#">
     <!ENTITY cert   "http://www.w3.org/ns/auth/cert#">
     <!ENTITY sd     "http://www.w3.org/ns/sparql-service-description#">
+    <!ENTITY sh     "http://www.w3.org/ns/shacl#">
     <!ENTITY ldt    "https://www.w3.org/ns/ldt#">
     <!ENTITY c      "https://www.w3.org/ns/ldt/core/domain#">
     <!ENTITY ct     "https://www.w3.org/ns/ldt/core/templates#">
@@ -744,7 +745,7 @@ LIMIT   100
             
                 <xsl:choose>
                     <!-- error responses always rendered in bs2:Row mode, no matter what $ac:mode specifies -->
-                    <xsl:when test="key('resources-by-type', '&http;Response') and not(key('resources-by-type', '&spin;ConstraintViolation'))">
+                    <xsl:when test="key('resources-by-type', '&http;Response') and not(key('resources-by-type', ('&spin;ConstraintViolation', '&sh;Violation')))">
                         <xsl:apply-templates select="." mode="bs2:Row">
                             <xsl:with-param name="template-query" select="$template-query" tunnel="yes"/>
                             <xsl:sort select="ac:label(.)"/>
@@ -973,7 +974,7 @@ LIMIT   100
     
     <!-- MODE LIST -->
         
-    <xsl:template match="rdf:RDF[key('resources-by-type', '&http;Response')][not(key('resources-by-type', '&spin;ConstraintViolation'))]" mode="bs2:ModeList" priority="1"/>
+    <xsl:template match="rdf:RDF[key('resources-by-type', '&http;Response')][not(key('resources-by-type', ('&spin;ConstraintViolation', '&sh;Violation')))]" mode="bs2:ModeList" priority="1"/>
 
     <xsl:template match="rdf:RDF[ac:uri()]" mode="bs2:ModeList">
         <div class="btn-group pull-right">

@@ -14,6 +14,7 @@
     <!ENTITY acl    "http://www.w3.org/ns/auth/acl#">
     <!ENTITY ldt    "https://www.w3.org/ns/ldt#">
     <!ENTITY dh     "https://www.w3.org/ns/ldt/document-hierarchy#">
+    <!ENTITY sh     "http://www.w3.org/ns/shacl#">
     <!ENTITY foaf   "http://xmlns.com/foaf/0.1/">
     <!ENTITY sioc   "http://rdfs.org/sioc/ns#">
     <!ENTITY dct    "http://purl.org/dc/terms/">
@@ -45,7 +46,7 @@ exclude-result-prefixes="#all">
 
     <xsl:param name="ldh:access-to" as="xs:anyURI?"/>
 
-    <xsl:template match="rdf:RDF[if (doc-available(ac:uri())) then (key('resources', ac:uri(), document(ac:uri()))/rdf:type/@rdf:resource = '&adm;RequestAccess') else false()][$ac:method = 'POST'][key('resources-by-type', '&spin;ConstraintViolation')]" mode="xhtml:Body" priority="3">
+    <xsl:template match="rdf:RDF[if (doc-available(ac:uri())) then (key('resources', ac:uri(), document(ac:uri()))/rdf:type/@rdf:resource = '&adm;RequestAccess') else false()][$ac:method = 'POST'][key('resources-by-type', ('&spin;ConstraintViolation', '&sh;Violation'))]" mode="xhtml:Body" priority="3">
         <xsl:apply-templates select="." mode="bs2:RowForm">
             <xsl:with-param name="action" select="ac:uri()"/>
             <xsl:with-param name="enctype" select="()"/> <!-- don't use 'multipart/form-data' which is the default -->
