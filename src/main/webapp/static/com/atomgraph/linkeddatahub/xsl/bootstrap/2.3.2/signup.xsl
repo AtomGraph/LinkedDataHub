@@ -73,7 +73,7 @@ exclude-result-prefixes="#all">
         </xsl:apply-templates>
     </xsl:template>
     
-    <xsl:template match="rdf:RDF[if (doc-available(ac:uri())) then (key('resources', ac:uri(), document(ac:uri()))/rdf:type/@rdf:resource = '&adm;SignUp') else false()][$ac:method = 'POST'][key('resources-by-type', ('&spin;ConstraintViolation', '&sh;Violation'))]" mode="bs2:Row" priority="3">
+    <xsl:template match="rdf:RDF[if (doc-available(ac:uri())) then (key('resources', ac:uri(), document(ac:uri()))/rdf:type/@rdf:resource = '&adm;SignUp') else false()][$ac:method = 'POST'][key('resources-by-type', '&spin;ConstraintViolation') or key('resources-by-type', '&sh;Violation')]" mode="bs2:Row" priority="3">
         <xsl:apply-templates select="." mode="bs2:RowForm">
             <xsl:with-param name="action" select="ac:uri()"/>
             <xsl:with-param name="enctype" select="()"/>

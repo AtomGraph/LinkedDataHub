@@ -745,7 +745,7 @@ LIMIT   100
             
                 <xsl:choose>
                     <!-- error responses always rendered in bs2:Row mode, no matter what $ac:mode specifies -->
-                    <xsl:when test="key('resources-by-type', '&http;Response') and not(key('resources-by-type', ('&spin;ConstraintViolation', '&sh;Violation')))">
+                    <xsl:when test="key('resources-by-type', '&http;Response') and not(key('resources-by-type', '&spin;ConstraintViolation')) and not(key('resources-by-type', '&sh;Violation'))">
                         <xsl:apply-templates select="." mode="bs2:Row">
                             <xsl:with-param name="template-query" select="$template-query" tunnel="yes"/>
                             <xsl:sort select="ac:label(.)"/>
@@ -976,7 +976,7 @@ LIMIT   100
     
     <!-- MODE LIST -->
         
-    <xsl:template match="rdf:RDF[key('resources-by-type', '&http;Response')][not(key('resources-by-type', ('&spin;ConstraintViolation', '&sh;Violation')))]" mode="bs2:ModeList" priority="1"/>
+    <xsl:template match="rdf:RDF[key('resources-by-type', '&http;Response')][not(key('resources-by-type', '&spin;ConstraintViolation'))] | rdf:RDF[key('resources-by-type', '&http;Response')][not(key('resources-by-type', '&sh;Violation'))]" mode="bs2:ModeList" priority="1"/>
 
     <xsl:template match="rdf:RDF[ac:uri()]" mode="bs2:ModeList">
         <div class="btn-group pull-right">
