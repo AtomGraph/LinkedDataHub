@@ -1025,7 +1025,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="constructor" as="document-node()?">
             <!-- SHACL shapes take priority over SPIN constructors -->
             <xsl:choose>
-                <xsl:when test="exists($shapes)">
+                <xsl:when test="exists($shapes/rdf:RDF/rdf:Description)">
                     <xsl:apply-templates select="$shapes" mode="ldh:Shape"/>
                 </xsl:when>
                 <xsl:otherwise>
