@@ -811,9 +811,9 @@ extension-element-prefixes="ixsl"
         <xsl:param name="modal-form" select="false()" as="xs:boolean"/>
         <xsl:param name="create-graph" select="false()" as="xs:boolean"/>
         <xsl:variable name="forShape" select="@rdf:about" as="xs:anyURI"/>
-
         <xsl:variable name="query-params" select="map:merge((map{ 'forShape': string($forShape) }, if ($modal-form) then map{ 'mode': '&ac;ModalMode' } else (), if ($create-graph) then map{ 'createGraph': string(true()) } else ()))" as="map(xs:string, xs:string*)"/>
         <xsl:variable name="href" select="ac:build-uri(ac:uri(), $query-params)" as="xs:anyURI"/>
+        
         <a href="{$href}" title="{@rdf:about}">
             <xsl:if test="$id">
                 <xsl:attribute name="id" select="$id"/>
@@ -1026,7 +1026,10 @@ extension-element-prefixes="ixsl"
             <!-- SHACL shapes take priority over SPIN constructors -->
             <xsl:choose>
                 <xsl:when test="exists($shapes/rdf:RDF/rdf:Description)">
-                    <xsl:apply-templates select="$shapes" mode="ldh:Shape"/>
+                    <xsl:variable name="constructor" as="document-node()">
+                        <xsl:apply-templates select="$shapes" mode="ldh:Shape"/>
+                    </xsl:variable>
+                    <xsl:sequence select="ldh:reserialize($constructor)"/>
                 </xsl:when>
                 <xsl:otherwise>
                     <xsl:sequence select="if (exists($forClass)) then ldh:construct(map:merge(for $class in $forClass return map{ $class: ldh:query-result(map{ '$Type': $class }, resolve-uri('ns', $ldt:base), $constructor-query)//srx:binding[@name = 'construct']/srx:literal/string() })) else ()"/>
