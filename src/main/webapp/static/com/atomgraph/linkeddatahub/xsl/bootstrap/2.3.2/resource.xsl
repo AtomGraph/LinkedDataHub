@@ -1013,7 +1013,7 @@ extension-element-prefixes="ixsl"
     <!-- turn off default form controls for rdf:type as we are handling it specially with bs2:TypeControl -->
     <xsl:template match="rdf:type[@rdf:resource]" mode="bs2:FormControl" priority="1"/>
     
-    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:FormControl">
+    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:FormControl" use-when="system-property('xsl:product-name') = 'SAXON'">
         <xsl:param name="id" select="concat('form-control-', generate-id())" as="xs:string?"/>
         <xsl:param name="class" as="xs:string?"/>
         <xsl:param name="legend" select="true()" as="xs:boolean"/>
