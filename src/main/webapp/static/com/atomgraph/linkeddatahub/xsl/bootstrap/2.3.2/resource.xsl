@@ -1008,7 +1008,7 @@ extension-element-prefixes="ixsl"
     <!-- FORM CONTROL -->
 
     <!-- turn off blank node resources from constructor graph (only those that are objects) -->
-    <xsl:template match="*[@rdf:nodeID][$ac:forClass or $ldh:forShape][rdf:type/starts-with(@rdf:resource, '&xsd;')] | *[@rdf:nodeID][$ac:forClass or $ldh:forShape][count(key('predicates-by-object', @rdf:nodeID)) &gt; 0][rdf:type/@rdf:resource = '&rdfs;Resource']" mode="bs2:FormControl" priority="2" use-when="system-property('xsl:product-name') = 'SAXON'" use-when="system-property('xsl:product-name') = 'SAXON'"/>
+    <xsl:template match="*[@rdf:nodeID][$ac:forClass or $ldh:forShape][rdf:type/starts-with(@rdf:resource, '&xsd;')] | *[@rdf:nodeID][$ac:forClass or $ldh:forShape][count(key('predicates-by-object', @rdf:nodeID)) &gt; 0][rdf:type/@rdf:resource = '&rdfs;Resource']" mode="bs2:FormControl" priority="2" use-when="system-property('xsl:product-name') = 'SAXON'"/>
 
     <!-- turn off default form controls for rdf:type as we are handling it specially with bs2:TypeControl -->
     <xsl:template match="rdf:type[@rdf:resource]" mode="bs2:FormControl" priority="1" use-when="system-property('xsl:product-name') = 'SAXON'"/>
