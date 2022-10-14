@@ -460,7 +460,7 @@ exclude-result-prefixes="#all"
     <xsl:template match="*[@rdf:about or @rdf:nodeID]/*" mode="bs2:FormControl">
         <xsl:param name="this" select="xs:anyURI(concat(namespace-uri(), local-name()))" as="xs:anyURI"/>
         <xsl:param name="violations" as="element()*"/>
-        <xsl:param name="error" select="@rdf:resource = $violations/ldh:violationValue or $violations/spin:violationPath/@rdf:resource = $this" as="xs:boolean"/>
+        <xsl:param name="error" select="@rdf:resource = $violations/ldh:violationValue or $violations/spin:violationPath/@rdf:resource = $this or $violations/spin:resultPath/@rdf:resource = $this" as="xs:boolean"/>
         <xsl:param name="label" select="true()" as="xs:boolean"/>
         <xsl:param name="constructor" as="document-node()?"/>
         <xsl:param name="template" as="element()*"/>
