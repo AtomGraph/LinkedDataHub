@@ -365,7 +365,7 @@ exclude-result-prefixes="#all">
 
     <xsl:template match="*[@rdf:about = '&foaf;mbox'][if (doc-available(ac:uri())) then (key('resources', ac:uri(), document(ac:uri()))/rdf:type/@rdf:resource = '&adm;SignUp') else false()]" mode="ac:label" priority="1">
         <xsl:value-of>
-            <xsl:apply-templates select="key('resources', 'email', document('translations.rdf'))" mode="ac:label"/>
+            <xsl:apply-templates select="key('resources', 'email', document('../translations.rdf'))" mode="ac:label"/>
         </xsl:value-of>
     </xsl:template>
 
