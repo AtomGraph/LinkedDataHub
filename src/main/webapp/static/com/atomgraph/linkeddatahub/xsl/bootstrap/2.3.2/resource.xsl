@@ -1253,7 +1253,7 @@ extension-element-prefixes="ixsl"
     </xsl:template>
         
     <!-- take constraint labels from sitemap instead of response, if possible -->
-    <xsl:template match="*[rdf:type/@rdf:resource = ('&spin;ConstraintViolation', '&sh;ValidationResult')]" mode="bs2:Violation" use-when="system-property('xsl:product-name') = 'SAXON'">
+    <xsl:template match="*[rdf:type/@rdf:resource = '&spin;ConstraintViolation']" mode="bs2:Violation" use-when="system-property('xsl:product-name') = 'SAXON'">
         <xsl:param name="class" select="'alert alert-error'" as="xs:string?"/>
 
         <div>
@@ -1268,6 +1268,22 @@ extension-element-prefixes="ixsl"
             <xsl:value-of>
                 <xsl:apply-templates select="." mode="ac:label"/>
             </xsl:value-of>
+        </div>
+    </xsl:template>
+    
+    <xsl:template match="*[rdf:type/@rdf:resource = '&sh;ValidationResult']" mode="bs2:Violation" use-when="system-property('xsl:product-name') = 'SAXON'">
+        <xsl:param name="class" select="'alert alert-error'" as="xs:string?"/>
+
+        <div>
+            <xsl:if test="$class">
+                <xsl:attribute name="class" select="$class"/>
+            </xsl:if>
+
+            <xsl:apply-templates select="key('resources', rdf:type/@rdf:resource, document(ac:document-uri(rdf:type/@rdf:resource)))" mode="ldh:logo">
+                <xsl:with-param name="class" select="$class"/>
+            </xsl:apply-templates>
+            <xsl:text> </xsl:text>
+            <xsl:value-of select="sh:resultMessage"/>
         </div>
     </xsl:template>
     
