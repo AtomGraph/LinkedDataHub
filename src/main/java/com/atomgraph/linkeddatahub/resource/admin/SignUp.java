@@ -112,7 +112,7 @@ public class SignUp extends GraphStoreImpl
     /** Media type of the WebID client certificate */
     public static final MediaType PKCS12_MEDIA_TYPE = MediaType.valueOf("application/x-pkcs12");
     /** Relative URL to the RDF file with country metadata */
-    public static final String COUNTRY_DATASET_PATH = "/static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/countries.rdf";
+    public static final String COUNTRY_DATASET_PATH = "/static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/admin/countries.rdf";
     /** Relative URL of the agent container */
     public static final String AGENT_PATH = "acl/agents/";
     /** Relative URL of the public key container */
