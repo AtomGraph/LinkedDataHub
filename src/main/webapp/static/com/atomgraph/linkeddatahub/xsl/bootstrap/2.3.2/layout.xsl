@@ -91,9 +91,6 @@ exclude-result-prefixes="#all">
     
     <!--  To use xsl:import-schema, you need the schema-aware version of Saxon -->
     <!-- <xsl:import-schema namespace="http://www.w3.org/1999/xhtml" schema-location="http://www.w3.org/2002/08/xhtml/xhtml1-transitional.xsd"/> -->
-  
-    <xsl:include href="signup.xsl"/>
-    <xsl:include href="request-access.xsl"/>
 
     <xsl:output method="xhtml" encoding="UTF-8" indent="yes" omit-xml-declaration="yes" doctype-system="http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd" doctype-public="-//W3C//DTD XHTML 1.0 Strict//EN" media-type="application/xhtml+xml"/>
 

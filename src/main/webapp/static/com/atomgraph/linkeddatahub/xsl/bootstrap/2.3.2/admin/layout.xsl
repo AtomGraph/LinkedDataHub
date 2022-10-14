@@ -38,6 +38,8 @@ xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 exclude-result-prefixes="#all">
 
     <xsl:import href="../layout.xsl"/>
+    <xsl:include href="signup.xsl"/>
+    <xsl:include href="request-access.xsl"/>
     <xsl:include href="acl/layout.xsl"/>
 
     <xsl:param name="default-classes" as="map(xs:string, xs:anyURI)">
