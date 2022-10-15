@@ -259,7 +259,9 @@ exclude-result-prefixes="#all"
                         <xsl:attribute name="checked" select="'checked'"/>
                     </xsl:if>
                 </input>
-                <xsl:text>Resource</xsl:text>
+                <xsl:value-of>
+                    <xsl:apply-templates select="key('resources', '&rdfs;Resource', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                </xsl:value-of>
             </label>
             <label class="radio">
                 <input type="radio" class="object-kind" name="{generate-id()}-object-kind" value="&rdfs;Literal">
@@ -267,7 +269,9 @@ exclude-result-prefixes="#all"
                         <xsl:attribute name="checked" select="'checked'"/>
                     </xsl:if>
                 </input>
-                <xsl:text>Literal</xsl:text>
+                <xsl:value-of>
+                    <xsl:apply-templates select="key('resources', '&rdfs;Literal', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                </xsl:value-of>
             </label>
 
             <span class="help-inline">
@@ -525,62 +529,72 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
     
-    <!-- save constructor form onclick -->
+    <!-- save constructor form onclick. Validate it before update updating constructors -->
     <xsl:template match="form[contains-token(@class, 'constructor-template')]//div[contains-token(@class, 'form-actions')]/button[contains-token(@class, 'btn-save')]" mode="ixsl:onclick">
         <xsl:variable name="form" select="ancestor::form" as="element()"/>
         <xsl:variable name="type" select="$form/@about" as="xs:anyURI"/> <!-- the URI of the class that constructors are attached to -->
+        <xsl:variable name="control-groups" select="descendant::div[contains-token(@class, 'control-group')][input[@name = 'pu']" as="element()*"/>
 
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+        <xsl:choose>
+            <!-- input values missing, throw an error -->
+            <xsl:when test="exists($control-groups/descendant::input[@name = ('ol', 'ou')][not(ixsl:get($input, 'value'))])">
+                <xsl:sequence select="$control-groups[descendant::input[@name = ('ol', 'ou')][not(ixsl:get($input, 'value'))]]/ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'error', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+            </xsl:when>
+            <!-- all required values present, proceed to update the constructors -->
+            <xsl:otherwise>
+                <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
-        <xsl:for-each select="$form//fieldset">
-            <xsl:variable name="container" select="." as="element()"/>
-            <xsl:variable name="constructor-uri" select="@about" as="xs:anyURI"/>
-            <xsl:variable name="construct-xml" as="document-node()">
-                <!-- not all controls might have value, filter to those that have -->
-                <xsl:iterate select="./div[contains-token(@class, 'control-group')][label//input[@name = 'ou']/@value][./div[contains-token(@class, 'controls')]//input[@name = 'ou']/@value or ./div[contains-token(@class, 'controls')]//select[@name = 'ou']]">
-                    <xsl:param name="construct-xml" as="document-node()">
-                        <xsl:document>
-                            <json:map>
-                                <json:string key="queryType">CONSTRUCT</json:string>
-                                <json:array key="template"/>
-                                <json:array key="where"/>
-                                <json:string key="type">query</json:string>
-                                <json:map key="prefixes"/>
-                            </json:map>
-                        </xsl:document>
-                    </xsl:param>
+                <xsl:for-each select="$form//fieldset">
+                    <xsl:variable name="container" select="." as="element()"/>
+                    <xsl:variable name="constructor-uri" select="@about" as="xs:anyURI"/>
+                    <xsl:variable name="construct-xml" as="document-node()">
+                        <!-- not all controls might have value, filter to those that have -->
+                        <xsl:iterate select="./div[contains-token(@class, 'control-group')][label//input[@name = 'ou']/@value][./div[contains-token(@class, 'controls')]//input[@name = 'ou']/@value or ./div[contains-token(@class, 'controls')]//select[@name = 'ou']]">
+                            <xsl:param name="construct-xml" as="document-node()">
+                                <xsl:document>
+                                    <json:map>
+                                        <json:string key="queryType">CONSTRUCT</json:string>
+                                        <json:array key="template"/>
+                                        <json:array key="where"/>
+                                        <json:string key="type">query</json:string>
+                                        <json:map key="prefixes"/>
+                                    </json:map>
+                                </xsl:document>
+                            </xsl:param>
 
-                    <xsl:on-completion>
-                        <xsl:sequence select="$construct-xml"/>
-                    </xsl:on-completion>
+                            <xsl:on-completion>
+                                <xsl:sequence select="$construct-xml"/>
+                            </xsl:on-completion>
 
-                    <xsl:next-iteration>
-                        <xsl:with-param name="construct-xml">
-                            <xsl:apply-templates select="$construct-xml" mode="ldh:add-constructor-triple">
-                                <xsl:with-param name="predicate" select="label//input[@name = 'ou']/@value/xs:anyURI(.)" tunnel="yes"/>
-                                <xsl:with-param name="object-type" select="(./div[contains-token(@class, 'controls')]//input[@name = 'ou']/@value/xs:anyURI(.), xs:anyURI(./div[contains-token(@class, 'controls')]//select[@name = 'ou']/ixsl:get(., 'value')))[1]" tunnel="yes"/>
-                            </xsl:apply-templates>
-                        </xsl:with-param>
-                    </xsl:next-iteration>
-                </xsl:iterate>
-            </xsl:variable>
-            <xsl:variable name="construct-json-string" select="xml-to-json($construct-xml)" as="xs:string"/>
-            <xsl:variable name="construct-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $construct-json-string ])"/>
-            <xsl:variable name="construct-string" select="ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'fromQuery', [ $construct-json ]), 'toString', [])" as="xs:string"/>
-            <xsl:variable name="update-string" select="replace($constructor-update-string, '\$this', '&lt;' || $constructor-uri || '&gt;')" as="xs:string"/>
-            <xsl:variable name="update-string" select="replace($update-string, '\$text', '&quot;&quot;&quot;' || $construct-string || '&quot;&quot;&quot;')" as="xs:string"/>
-            <!-- what if the constructor URI is not relative to the document URI? -->
-            <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), map{}, ac:document-uri($constructor-uri))" as="xs:anyURI"/>
-            <xsl:variable name="request" as="item()*">
-                <ixsl:schedule-action http-request="map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string }">
-                    <xsl:call-template name="onConstructorUpdate">
-                        <xsl:with-param name="container" select="$container"/>
-                        <xsl:with-param name="type" select="$type"/>
-                    </xsl:call-template>
-                </ixsl:schedule-action>
-            </xsl:variable>
-            <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
-        </xsl:for-each>
+                            <xsl:next-iteration>
+                                <xsl:with-param name="construct-xml">
+                                    <xsl:apply-templates select="$construct-xml" mode="ldh:add-constructor-triple">
+                                        <xsl:with-param name="predicate" select="label//input[@name = 'ou']/@value/xs:anyURI(.)" tunnel="yes"/>
+                                        <xsl:with-param name="object-type" select="(./div[contains-token(@class, 'controls')]//input[@name = 'ou']/@value/xs:anyURI(.), xs:anyURI(./div[contains-token(@class, 'controls')]//select[@name = 'ou']/ixsl:get(., 'value')))[1]" tunnel="yes"/>
+                                    </xsl:apply-templates>
+                                </xsl:with-param>
+                            </xsl:next-iteration>
+                        </xsl:iterate>
+                    </xsl:variable>
+                    <xsl:variable name="construct-json-string" select="xml-to-json($construct-xml)" as="xs:string"/>
+                    <xsl:variable name="construct-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $construct-json-string ])"/>
+                    <xsl:variable name="construct-string" select="ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'fromQuery', [ $construct-json ]), 'toString', [])" as="xs:string"/>
+                    <xsl:variable name="update-string" select="replace($constructor-update-string, '\$this', '&lt;' || $constructor-uri || '&gt;')" as="xs:string"/>
+                    <xsl:variable name="update-string" select="replace($update-string, '\$text', '&quot;&quot;&quot;' || $construct-string || '&quot;&quot;&quot;')" as="xs:string"/>
+                    <!-- what if the constructor URI is not relative to the document URI? -->
+                    <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), map{}, ac:document-uri($constructor-uri))" as="xs:anyURI"/>
+                    <xsl:variable name="request" as="item()*">
+                        <ixsl:schedule-action http-request="map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string }">
+                            <xsl:call-template name="onConstructorUpdate">
+                                <xsl:with-param name="container" select="$container"/>
+                                <xsl:with-param name="type" select="$type"/>
+                            </xsl:call-template>
+                        </ixsl:schedule-action>
+                    </xsl:variable>
+                    <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+                </xsl:for-each>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:template>
     
     <!-- CALLBACKS -->
