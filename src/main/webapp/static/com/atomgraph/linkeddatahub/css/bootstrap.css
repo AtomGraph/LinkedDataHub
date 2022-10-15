@@ -117,6 +117,7 @@ fieldset fieldset { margin-left: 3%; margin-bottom: 3%; }
 .constructor-triple .controls { margin-left: 250px; }
 .constructor-triple .controls label.radio { display: inline-block; padding-top: 10px; margin-right: 10px; }
 .constructor-triple .controls .help-inline { vertical-align: top; padding-top: 5px; }
+.control-group.error .checkbox, .control-group.error .radio, .control-group.error input, .control-group.error select, .control-group.error textarea { color: unset; }
 #uri { height: 24px; }
 #query-form fieldset { border: initial; margin: initial; }
 button.add-typeahead { width: 219px; }
