@@ -260,7 +260,7 @@ exclude-result-prefixes="#all"
                     </xsl:if>
                 </input>
                 <xsl:value-of>
-                    <xsl:apply-templates select="key('resources', '&rdfs;Resource', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                    <xsl:apply-templates select="key('resources', 'resource', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
                 </xsl:value-of>
             </label>
             <label class="radio">
@@ -270,7 +270,7 @@ exclude-result-prefixes="#all"
                     </xsl:if>
                 </input>
                 <xsl:value-of>
-                    <xsl:apply-templates select="key('resources', '&rdfs;Literal', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                    <xsl:apply-templates select="key('resources', 'literal', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
                 </xsl:value-of>
             </label>
 
@@ -533,7 +533,7 @@ exclude-result-prefixes="#all"
     <xsl:template match="form[contains-token(@class, 'constructor-template')]//div[contains-token(@class, 'form-actions')]/button[contains-token(@class, 'btn-save')]" mode="ixsl:onclick">
         <xsl:variable name="form" select="ancestor::form" as="element()"/>
         <xsl:variable name="type" select="$form/@about" as="xs:anyURI"/> <!-- the URI of the class that constructors are attached to -->
-        <xsl:variable name="control-groups" select="$form/descendant::div[contains-token(@class, 'control-group')][input[@name = 'pu']]" as="element()*"/>
+        <xsl:variable name="control-groups" select="$form/descendant::div[contains-token(@class, 'control-group')]" as="element()*"/>
 
         <xsl:choose>
             <!-- input values missing, throw an error -->
