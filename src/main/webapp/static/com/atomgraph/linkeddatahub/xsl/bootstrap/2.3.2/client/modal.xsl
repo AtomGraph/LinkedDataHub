@@ -426,7 +426,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="control-groups" select="descendant::div[contains-token(@class, 'control-group')][input[@name = 'pu'][@value = ('&nfo;fileName', '&dct;source', '&sd;name')]]" as="element()*"/>
         <xsl:choose>
             <!-- input values missing, throw an error -->
-            <xsl:when test="exists($control-groups/descendant::input[@name = ('ol', 'ou')][not(ixsl:get($input, 'value'))])">
+            <xsl:when test="exists($control-groups/descendant::input[@name = ('ol', 'ou')][not(ixsl:get(., 'value'))])">
                 <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
                 <xsl:sequence select="$control-groups[descendant::input[@name = ('ol', 'ou')][not(ixsl:get($input, 'value'))]]/ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'error', true() ])[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:when>
