@@ -252,11 +252,31 @@ sh:NodeShape spin:constructor :NodeShapeConstructor .
         PREFIX owl:     <http://www.w3.org/2002/07/owl#>
         PREFIX sh:      <http://www.w3.org/ns/shacl#>
 
-
         CONSTRUCT {
             $this rdfs:label [ a xsd:string ] ;
                 sh:targetClass [ a owl:Class ] ;
-                sh:property [ a rdf:Property ] .
+                sh:property [ a sh:PropertyShape ] .
+        }
+        WHERE {}""" .
+
+sh:PropertyShape spin:constructor :PropertyShapeConstructor .
+
+:PropertyShapeConstructor a ldh:Constructor ;
+    rdfs:label "Property shape constructor" ;
+    sp:text """
+        PREFIX rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+        PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
+        PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
+        PREFIX owl:     <http://www.w3.org/2002/07/owl#>
+        PREFIX sh:      <http://www.w3.org/ns/shacl#>
+
+
+        CONSTRUCT {
+            $this sh:name [ a xsd:string ] ;
+                sh:path [ a rdf:Property ] ;
+                sh:minCount [ a xsd:integer ] ;
+                sh:maxCount [ a xsd:integer ] ;
+                sh:datatype [ a rdfs:Resource ] .
         }
         WHERE {}""" .
 

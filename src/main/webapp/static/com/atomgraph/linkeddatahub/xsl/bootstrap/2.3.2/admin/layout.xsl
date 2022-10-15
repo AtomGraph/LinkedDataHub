@@ -47,6 +47,7 @@ exclude-result-prefixes="#all">
         <xsl:map>
             <xsl:map-entry key="'&owl;Ontology'" select="resolve-uri('model/ontologies/', $ldt:base)"/>
             <xsl:map-entry key="'&sh;NodeShape'" select="resolve-uri('model/shapes/', $ldt:base)"/>
+            <xsl:map-entry key="'&sh;PropertyShape'" select="resolve-uri('model/shapes/', $ldt:base)"/>
             <xsl:map-entry key="'&acl;Authorization'" select="resolve-uri('acl/authorizations/', $ldt:base)"/>
             <xsl:map-entry key="'&foaf;Person'" select="resolve-uri('acl/agents/', $ldt:base)"/>
             <xsl:map-entry key="'&cert;PublicKey'" select="resolve-uri('acl/public-keys/', $ldt:base)"/>
