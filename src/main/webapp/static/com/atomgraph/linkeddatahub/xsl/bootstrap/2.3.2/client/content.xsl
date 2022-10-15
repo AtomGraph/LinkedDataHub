@@ -505,14 +505,14 @@ exclude-result-prefixes="#all"
         <xsl:variable name="content-value" select="ixsl:get($container//div[contains-token(@class, 'main')]//input[@name = 'ou'], 'value')" as="xs:anyURI"/>
         <xsl:variable name="mode" select="ixsl:get(key('elements-by-class', 'content-mode', $container), 'value')" as="xs:anyURI?"/>
 
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
-
         <xsl:choose>
             <!-- input values missing, throw an error -->
             <xsl:when test="exists($container/descendant::input[contains-token(@class, 'resource-typeahead')][@name = 'ou'][not(ixsl:get(., 'value'))])">
                 <ixsl:set-style name="border-color" select="'#ff0039'" object="$container/descendant::input[contains-token(@class, 'resource-typeahead')][@name = 'ou'][not(ixsl:get(., 'value'))]"/>
             </xsl:when>
             <xsl:otherwise>
+                <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+
                 <xsl:choose>
                     <!-- updating existing content -->
                     <xsl:when test="$container/@about">
