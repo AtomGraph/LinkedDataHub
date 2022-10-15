@@ -533,7 +533,7 @@ exclude-result-prefixes="#all"
     <xsl:template match="form[contains-token(@class, 'constructor-template')]//div[contains-token(@class, 'form-actions')]/button[contains-token(@class, 'btn-save')]" mode="ixsl:onclick">
         <xsl:variable name="form" select="ancestor::form" as="element()"/>
         <xsl:variable name="type" select="$form/@about" as="xs:anyURI"/> <!-- the URI of the class that constructors are attached to -->
-        <xsl:variable name="control-groups" select="descendant::div[contains-token(@class, 'control-group')][input[@name = 'pu']]" as="element()*"/>
+        <xsl:variable name="control-groups" select="$form/descendant::div[contains-token(@class, 'control-group')][input[@name = 'pu']]" as="element()*"/>
 
         <xsl:choose>
             <!-- input values missing, throw an error -->
