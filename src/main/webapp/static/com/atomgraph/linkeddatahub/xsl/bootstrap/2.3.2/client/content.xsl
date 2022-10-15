@@ -508,49 +508,57 @@ exclude-result-prefixes="#all"
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
         <xsl:choose>
-            <!-- updating existing content -->
-            <xsl:when test="$container/@about">
-                <xsl:variable name="content-uri" select="$container/@about" as="xs:anyURI"/>
-                <xsl:variable name="update-string" select="replace($content-update-string, '\$this', '&lt;' || ac:uri() || '&gt;')" as="xs:string"/>
-                <xsl:variable name="update-string" select="replace($update-string, '\$content', '&lt;' || $content-uri || '&gt;')" as="xs:string"/>
-                <xsl:variable name="update-string" select="replace($update-string, '\$newValue', '&lt;' || $content-value || '&gt;')" as="xs:string"/>
-                <xsl:variable name="update-string" select="if ($mode) then replace($update-string, '\$newMode', '&lt;' || $mode || '&gt;') else $update-string" as="xs:string"/>
-                <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), map{}, ac:uri())" as="xs:anyURI"/>
-                <xsl:variable name="request" as="item()*">
-                    <ixsl:schedule-action http-request="map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string }">
-                        <xsl:call-template name="onResourceContentUpdate">
-                            <xsl:with-param name="container" select="$container"/>
-                            <xsl:with-param name="uri" select="ac:uri()"/>
-                            <xsl:with-param name="content-value" select="$content-value"/>
-                            <xsl:with-param name="mode" select="$mode"/>
-                        </xsl:call-template>
-                    </ixsl:schedule-action>
-                </xsl:variable>
-                <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
-            </xsl:when> 
-            <!-- appending new content -->
+            <!-- input values missing, throw an error -->
+            <xsl:when test="exists($container/descendant::input[contains-token(@class, 'resource-typeahead')][@name = 'ou'][not(ixsl:get(., 'value'))])">
+                <ixsl:set-style name="border-color" select="'#ff0039'" object="$container/descendant::input[contains-token(@class, 'resource-typeahead')][@name = 'ou'][not(ixsl:get(., 'value'))]"/>
+            </xsl:when>
             <xsl:otherwise>
-                <xsl:variable name="content-id" select="'id' || ac:uuid()" as="xs:string"/>
-                <xsl:variable name="content-uri" select="xs:anyURI(ac:uri() || '#' || $content-id)" as="xs:anyURI"/> <!-- build content URI -->
-                <ixsl:set-attribute name="id" select="$content-id" object="$container"/>
-                <ixsl:set-attribute name="about" select="$content-uri" object="$container"/>
-                
-                <xsl:variable name="update-string" select="replace($content-append-string, '\$this', '&lt;' || ac:uri() || '&gt;')" as="xs:string"/>
-                <xsl:variable name="update-string" select="replace($update-string, '\$content', '&lt;' || $content-uri || '&gt;')" as="xs:string"/>
-                <xsl:variable name="update-string" select="replace($update-string, '\$value', '&lt;' || $content-value || '&gt;')" as="xs:string"/>
-                <xsl:variable name="update-string" select="if ($mode) then replace($update-string, '\$mode', '&lt;' || $mode || '&gt;') else $update-string" as="xs:string"/>
-                <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), map{}, ac:uri())" as="xs:anyURI"/>
-                <xsl:variable name="request" as="item()*">
-                    <ixsl:schedule-action http-request="map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string }">
-                        <xsl:call-template name="onResourceContentUpdate">
-                            <xsl:with-param name="container" select="$container"/>
-                            <xsl:with-param name="uri" select="ac:uri()"/>
-                            <xsl:with-param name="content-value" select="$content-value"/>
-                            <xsl:with-param name="mode" select="$mode"/>
-                        </xsl:call-template>
-                    </ixsl:schedule-action>
-                </xsl:variable>
-                <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+                <xsl:choose>
+                    <!-- updating existing content -->
+                    <xsl:when test="$container/@about">
+                        <xsl:variable name="content-uri" select="$container/@about" as="xs:anyURI"/>
+                        <xsl:variable name="update-string" select="replace($content-update-string, '\$this', '&lt;' || ac:uri() || '&gt;')" as="xs:string"/>
+                        <xsl:variable name="update-string" select="replace($update-string, '\$content', '&lt;' || $content-uri || '&gt;')" as="xs:string"/>
+                        <xsl:variable name="update-string" select="replace($update-string, '\$newValue', '&lt;' || $content-value || '&gt;')" as="xs:string"/>
+                        <xsl:variable name="update-string" select="if ($mode) then replace($update-string, '\$newMode', '&lt;' || $mode || '&gt;') else $update-string" as="xs:string"/>
+                        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), map{}, ac:uri())" as="xs:anyURI"/>
+                        <xsl:variable name="request" as="item()*">
+                            <ixsl:schedule-action http-request="map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string }">
+                                <xsl:call-template name="onResourceContentUpdate">
+                                    <xsl:with-param name="container" select="$container"/>
+                                    <xsl:with-param name="uri" select="ac:uri()"/>
+                                    <xsl:with-param name="content-value" select="$content-value"/>
+                                    <xsl:with-param name="mode" select="$mode"/>
+                                </xsl:call-template>
+                            </ixsl:schedule-action>
+                        </xsl:variable>
+                        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+                    </xsl:when> 
+                    <!-- appending new content -->
+                    <xsl:otherwise>
+                        <xsl:variable name="content-id" select="'id' || ac:uuid()" as="xs:string"/>
+                        <xsl:variable name="content-uri" select="xs:anyURI(ac:uri() || '#' || $content-id)" as="xs:anyURI"/> <!-- build content URI -->
+                        <ixsl:set-attribute name="id" select="$content-id" object="$container"/>
+                        <ixsl:set-attribute name="about" select="$content-uri" object="$container"/>
+
+                        <xsl:variable name="update-string" select="replace($content-append-string, '\$this', '&lt;' || ac:uri() || '&gt;')" as="xs:string"/>
+                        <xsl:variable name="update-string" select="replace($update-string, '\$content', '&lt;' || $content-uri || '&gt;')" as="xs:string"/>
+                        <xsl:variable name="update-string" select="replace($update-string, '\$value', '&lt;' || $content-value || '&gt;')" as="xs:string"/>
+                        <xsl:variable name="update-string" select="if ($mode) then replace($update-string, '\$mode', '&lt;' || $mode || '&gt;') else $update-string" as="xs:string"/>
+                        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), map{}, ac:uri())" as="xs:anyURI"/>
+                        <xsl:variable name="request" as="item()*">
+                            <ixsl:schedule-action http-request="map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string }">
+                                <xsl:call-template name="onResourceContentUpdate">
+                                    <xsl:with-param name="container" select="$container"/>
+                                    <xsl:with-param name="uri" select="ac:uri()"/>
+                                    <xsl:with-param name="content-value" select="$content-value"/>
+                                    <xsl:with-param name="mode" select="$mode"/>
+                                </xsl:call-template>
+                            </ixsl:schedule-action>
+                        </xsl:variable>
+                        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+                    </xsl:otherwise>
+                </xsl:choose>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
