@@ -13,6 +13,7 @@
     <!ENTITY cert   "http://www.w3.org/ns/auth/cert#">
     <!ENTITY ldt    "https://www.w3.org/ns/ldt#">
     <!ENTITY dh     "https://www.w3.org/ns/ldt/document-hierarchy#">
+    <!ENTITY sh     "http://www.w3.org/ns/shacl#">
     <!ENTITY sp     "http://spinrdf.org/sp#">
     <!ENTITY sioc   "http://rdfs.org/sioc/ns#">
     <!ENTITY foaf   "http://xmlns.com/foaf/0.1/">
@@ -45,6 +46,7 @@ exclude-result-prefixes="#all">
     <xsl:param name="default-classes" as="map(xs:string, xs:anyURI)">
         <xsl:map>
             <xsl:map-entry key="'&owl;Ontology'" select="resolve-uri('model/ontologies/', $ldt:base)"/>
+            <xsl:map-entry key="'&sh;NodeShape'" select="resolve-uri('model/shapes/', $ldt:base)"/>
             <xsl:map-entry key="'&acl;Authorization'" select="resolve-uri('acl/authorizations/', $ldt:base)"/>
             <xsl:map-entry key="'&foaf;Person'" select="resolve-uri('acl/agents/', $ldt:base)"/>
             <xsl:map-entry key="'&cert;PublicKey'" select="resolve-uri('acl/public-keys/', $ldt:base)"/>

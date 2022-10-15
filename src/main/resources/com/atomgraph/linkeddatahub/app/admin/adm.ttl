@@ -9,6 +9,7 @@
 @prefix cert:	<http://www.w3.org/ns/auth/cert#> .
 @prefix ldt:	<https://www.w3.org/ns/ldt#> .
 @prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy#> .
+@prefix sh:     <http://www.w3.org/ns/shacl#> .
 @prefix sp:	<http://spinrdf.org/sp#> .
 @prefix spin:	<http://spinrdf.org/spin#> .
 @prefix sioc:	<http://rdfs.org/sioc/ns#> .
@@ -237,6 +238,27 @@ cert:PublicKey spin:constructor [
         rdfs:label "Missing cert:exponent" ;
         sp:arg1 cert:exponent
     ] .
+
+# http://www.w3.org/ns/shacl
+
+sh:NodeShape spin:constructor :NodeShapeConstructor .
+
+:NodeShapeConstructor a ldh:Constructor ;
+    rdfs:label "Node shape constructor" ;
+    sp:text """
+        PREFIX rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+        PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
+        PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
+        PREFIX owl:     <http://www.w3.org/2002/07/owl#>
+        PREFIX sh:      <http://www.w3.org/ns/shacl#>
+
+
+        CONSTRUCT {
+            $this rdfs:label [ a xsd:string ] ;
+                sh:targetClass [ a owl:Class ] ;
+                sh:property [ a rdf:Property ] .
+        }
+        WHERE {}""" .
 
 # http://rdfs.org/sioc/ns
 
