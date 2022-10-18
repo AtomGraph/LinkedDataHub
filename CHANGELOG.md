@@ -1,3 +1,11 @@
+## [3.2.18] - 2022-10-18
+### Added
+- SHACL node shape and property shape creation in the admin app
+- Basic support instance construction from SHACL node shapes
+
+### Changed
+- Improved validation of "Add data" and inline content editing forms
+
 ## [3.2.17] - 2022-09-28
 ### Added
 - Basic support for [HTTP range requests](https://developer.mozilla.org/en-US/docs/Web/HTTP/Range_requests) when serving uploded files (`uploads/{sha1sum}`)
