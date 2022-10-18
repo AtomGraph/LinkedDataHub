@@ -480,7 +480,7 @@ exclude-result-prefixes="#all"
         <xsl:for-each select="$fieldset">
             <xsl:result-document href="?." method="ixsl:replace-content">
                 <!-- don't insert a new <fieldset>, only its children -->
-                <xsl:copy-of select="$new-fieldset/*"/>
+                <xsl:copy-of select="$new-fieldset"/>
             </xsl:result-document>
         </xsl:for-each>
     </xsl:template>
@@ -507,7 +507,7 @@ exclude-result-prefixes="#all"
         <xsl:for-each select="$fieldset">
             <xsl:result-document href="?." method="ixsl:replace-content">
                 <!-- don't insert a new <fieldset>, only its children -->
-                <xsl:copy-of select="$new-fieldset/*"/>
+                <xsl:copy-of select="$new-fieldset"/>
             </xsl:result-document>
 
             <!-- initialize wymeditor textarea -->
