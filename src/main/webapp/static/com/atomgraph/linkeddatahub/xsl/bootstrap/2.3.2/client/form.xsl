@@ -40,6 +40,13 @@ exclude-result-prefixes="#all"
 
     <!-- TEMPLATES -->
 
+    <!-- provide a property label which otherwise would default to local-name() client-side -->
+    <xsl:template match="*[@rdf:about or @rdf:nodeID]/*[concat(namespace-uri(), local-name()) = ('&rdf;value', '&rdfs;label', '&ac;mode')]" mode="bs2:FormControl">
+        <xsl:next-match>
+            <xsl:with-param name="label" select="ac:property-label(.)"/>
+        </xsl:next-match>
+    </xsl:template>
+
     <!-- hide content type input (template borrowed from rdf.xsl which is not included client-side) -->
     <xsl:template match="rdf:type[@rdf:resource = '&ldh;Content']" mode="bs2:TypeControl">
         <xsl:apply-templates select="." mode="xhtml:Input">
