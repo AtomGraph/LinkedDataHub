@@ -715,6 +715,9 @@ exclude-result-prefixes="#all"
             </xsl:result-document>
         </xsl:for-each>
         
+        <!-- initialize wymeditor textarea -->
+        <xsl:apply-templates select="key('elements-by-class', 'wymeditor', ancestor::div[1])" mode="ldh:PostConstruct"/>
+            
         <xsl:sequence select="ixsl:call(ixsl:get($container, 'classList'), 'replace', [ 'resource-content', 'xhtml-content' ])[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
 
