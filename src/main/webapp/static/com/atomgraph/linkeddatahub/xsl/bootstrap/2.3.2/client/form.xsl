@@ -41,7 +41,7 @@ exclude-result-prefixes="#all"
     <!-- TEMPLATES -->
 
     <!-- hide content type input (template borrowed from rdf.xsl which is not included client-side) -->
-    <xsl:template match="rdf:type[@rdf:resource = '&ldh;Content']" mode="bs2:TypeControl">
+    <xsl:template match="rdf:type[@rdf:resource = '&ldh;Content']" mode="bs2:FormControl">
         <xsl:apply-templates select="." mode="xhtml:Input">
             <xsl:with-param name="type" select="'hidden'"/>
         </xsl:apply-templates>
