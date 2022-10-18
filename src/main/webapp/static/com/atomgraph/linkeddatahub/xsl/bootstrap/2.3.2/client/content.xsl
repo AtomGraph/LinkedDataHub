@@ -674,7 +674,10 @@ exclude-result-prefixes="#all"
         </xsl:variable>
         <xsl:variable name="new-controls" as="node()*">
             <xsl:apply-templates select="$constructor//rdf:value/@rdf:*" mode="bs2:FormControl"/>
-            <xsl:apply-templates select="$constructor//ac:mode/@rdf:*" mode="bs2:FormControl"/>
+            <xsl:apply-templates select="$constructor//ac:mode/@rdf:*" mode="bs2:FormControl">
+                <xsl:with-param name="class" select="'content-mode'"/>
+                <xsl:with-param name="type-label" select="false()"/>
+            </xsl:apply-templates>
         </xsl:variable>
         
         <xsl:for-each select="..">
@@ -703,7 +706,7 @@ exclude-result-prefixes="#all"
             </xsl:document>
         </xsl:variable>
         <xsl:variable name="new-controls" as="node()*">
-            <xsl:apply-templates select="$constructor//rdf:value/@rdf:*" mode="bs2:FormControl"/>
+            <xsl:apply-templates select="$constructor//rdf:value/xhtml:*" mode="bs2:FormControl"/>
         </xsl:variable>
         
         <xsl:for-each select="..">
@@ -718,6 +721,7 @@ exclude-result-prefixes="#all"
     <!-- appends new XHTML content instance to the content list -->
     <xsl:template match="div[contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'create-action')][contains-token(@class, 'add-xhtml-content')]" mode="ixsl:onclick">
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'row-fluid')]" as="element()"/>
+        <!-- TO-DO: reuse identical constructor from form.xsl -->
         <xsl:variable name="constructor" as="document-node()">
             <xsl:document>
                 <rdf:RDF>
@@ -775,6 +779,7 @@ exclude-result-prefixes="#all"
     <!-- appends new resource content instance to the content list -->
     <xsl:template match="div[contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'create-action')][contains-token(@class, 'add-resource-content')]" mode="ixsl:onclick">
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'row-fluid')]" as="element()"/>
+        <!-- TO-DO: reuse identical constructor from form.xsl -->
         <xsl:variable name="constructor" as="document-node()">
             <xsl:document>
                 <rdf:RDF>
