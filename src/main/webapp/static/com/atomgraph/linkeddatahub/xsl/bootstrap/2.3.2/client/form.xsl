@@ -39,8 +39,21 @@ exclude-result-prefixes="#all"
 >
 
     <!-- TEMPLATES -->
+
+    <!-- hide content type input (template borrowed from rdf.xsl which is not included client-side) -->
+    <xsl:template match="rdf:type[@rdf:resource = '&ldh;Content']" mode="bs2:TypeControl">
+        <xsl:apply-templates select="." mode="xhtml:Input">
+            <xsl:with-param name="type" select="'hidden'"/>
+        </xsl:apply-templates>
+        <xsl:apply-templates select="node() | @rdf:resource | @rdf:nodeID" mode="xhtml:Input">
+            <xsl:with-param name="type" select="'hidden'"/>
+        </xsl:apply-templates>
+        <xsl:apply-templates select="@xml:lang | @rdf:datatype" mode="xhtml:Input">
+            <xsl:with-param name="type" select="'hidden'"/>
+        </xsl:apply-templates>
+    </xsl:template>
     
-    <!-- make sure content value is shown as required -->
+    <!-- make sure content value input is shown as required -->
     <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;Content']/rdf:value" mode="bs2:FormControl">
         <xsl:next-match>
             <xsl:with-param name="required" select="true()"/>
@@ -473,8 +486,12 @@ exclude-result-prefixes="#all"
                     <rdf:Description rdf:nodeID="A1">
                         <rdf:type rdf:resource="&ldh;Content"/>
                         <rdf:value rdf:nodeID="A2"/>
+                        <ac:mode rdf:nodeID="A3"/>
                     </rdf:Description>
                     <rdf:Description rdf:nodeID="A2">
+                        <rdf:type rdf:resource="&rdfs;Resource"/>
+                    </rdf:Description>
+                    <rdf:Description rdf:nodeID="A3">
                         <rdf:type rdf:resource="&rdfs;Resource"/>
                     </rdf:Description>
                 </rdf:RDF>

@@ -1150,13 +1150,13 @@ extension-element-prefixes="ixsl"
     <!-- TYPE CONTROL -->
 
     <!-- hide type control -->
-    <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;Content']" mode="bs2:TypeControl" priority="1">
+    <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;Content']" mode="bs2:TypeControl" priority="1" use-when="system-property('xsl:product-name') = 'SAXON'">
         <xsl:next-match>
             <xsl:with-param name="hidden" select="true()"/>
         </xsl:next-match>
     </xsl:template>
     
-    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:TypeControl">
+    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:TypeControl" use-when="system-property('xsl:product-name') = 'SAXON'">
         <xsl:param name="forClass" as="xs:anyURI?"/> <!-- allow subclasses of owl:Class? -->
         <xsl:param name="hidden" select="false()" as="xs:boolean"/>
 
