@@ -446,7 +446,7 @@ exclude-result-prefixes="#all"
                 <xsl:variable name="href" select="ac:build-uri(ldh:absolute-path(ldh:href()), map{ 'forShape': string($forShape) })" as="xs:anyURI"/>
                 <xsl:variable name="request" as="item()*">
                     <!-- use Control-Cache: no-cache to get fresh HTML -->
-                    <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml', 'Cache-Control: 'no-cache' } }">
+                    <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml', 'Cache-Control': 'no-cache' } }">
                         <xsl:call-template name="onAddConstructor">
                             <xsl:with-param name="control-group" select="$control-group"/>
                         </xsl:call-template>
@@ -460,7 +460,7 @@ exclude-result-prefixes="#all"
                 <xsl:variable name="href" select="ac:build-uri(ldh:absolute-path(ldh:href()), map{ 'forClass': string($forClass) })" as="xs:anyURI"/>
                 <xsl:variable name="request" as="item()*">
                     <!-- use Control-Cache: no-cache to get fresh HTML -->
-                    <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml', 'Cache-Control: 'no-cache' } }">
+                    <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml', 'Cache-Control': 'no-cache' } }">
                         <xsl:call-template name="onAddConstructor">
                             <xsl:with-param name="control-group" select="$control-group"/>
                         </xsl:call-template>
