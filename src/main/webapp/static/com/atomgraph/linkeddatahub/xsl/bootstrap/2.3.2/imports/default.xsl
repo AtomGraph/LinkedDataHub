@@ -496,7 +496,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="constraints" as="document-node()*"/>
         <xsl:param name="shapes" as="document-node()?"/>
         <!-- only the first property that has a mandatory constraint is required, the following ones are not -->
-        <xsl:param name="required" select="if ($shapes//rdf:Description[sh:path/@rdf:resource = $this][sh:minCount &gt;= count(preceding-sibling::*[concat(namespace-uri(), local-name()) = $this])]) or $constraints//srx:binding[@name = 'property'][srx:uri = $this]) and not(preceding-sibling::*[concat(namespace-uri(), local-name()) = $this])) else false()" as="xs:boolean"/>
+        <xsl:param name="required" select="($shapes//rdf:Description[sh:path/@rdf:resource = $this][sh:minCount &gt;= count(preceding-sibling::*[concat(namespace-uri(), local-name()) = $this])]) or ($constraints//srx:binding[@name = 'property'][srx:uri = $this] and not(preceding-sibling::*[concat(namespace-uri(), local-name()) = $this]))" as="xs:boolean"/>
         <xsl:param name="id" select="generate-id()" as="xs:string"/>
         <xsl:param name="for" select="generate-id((node() | @rdf:resource | @rdf:nodeID)[1])" as="xs:string"/>
         <xsl:param name="class" select="concat('control-group', if ($error) then ' error' else (), if ($required) then ' required' else ())" as="xs:string?"/>
