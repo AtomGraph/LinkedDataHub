@@ -1021,11 +1021,9 @@ extension-element-prefixes="ixsl"
         <xsl:param name="violations" select="key('violations-by-value', */@rdf:resource) | key('violations-by-root', (@rdf:about, @rdf:nodeID)) | key('violations-by-focus-node', (@rdf:about, @rdf:nodeID))" as="element()*"/>
         <xsl:param name="forClass" select="rdf:type/@rdf:resource" as="xs:anyURI*"/>
         <xsl:param name="constraint-query" as="xs:string?" tunnel="yes"/>
-        <xsl:param name="constraints" select="for $type in $forClass return ldh:query-result(map{ '$Type': $type }, resolve-uri('ns', $ldt:base), $constraint-query)" as="document-node()*"/>
+        <xsl:param name="constraints" select="if ($constraint-query) then (for $type in $forClass return ldh:query-result(map{ '$Type': $type }, resolve-uri('ns', $ldt:base), $constraint-query)) else ()" as="document-node()*"/>
         <xsl:param name="shape-query" as="xs:string?" tunnel="yes"/>
-        <xsl:param name="shapes" as="document-node()?">
-            <xsl:sequence select="for $class in $forClass return ldh:query-result(map{ '$Type': $class }, resolve-uri('ns', $ldt:base), $shape-query)" use-when="system-property('xsl:product-name') = 'SAXON'"/>
-        </xsl:param>
+        <xsl:param name="shapes" select="if ($shape-query) then (for $class in $forClass return ldh:query-result(map{ '$Type': $class }, resolve-uri('ns', $ldt:base), $shape-query)) else ()" as="document-node()?"/>
         <xsl:param name="constructor-query" as="xs:string?" tunnel="yes"/>
         <xsl:param name="constructor" as="document-node()?">
             <!-- SHACL shapes take priority over SPIN constructors -->
