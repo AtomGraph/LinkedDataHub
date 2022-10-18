@@ -1020,11 +1020,13 @@ extension-element-prefixes="ixsl"
         <xsl:param name="legend" select="true()" as="xs:boolean"/>
         <xsl:param name="violations" select="key('violations-by-value', */@rdf:resource) | key('violations-by-root', (@rdf:about, @rdf:nodeID)) | key('violations-by-focus-node', (@rdf:about, @rdf:nodeID))" as="element()*"/>
         <xsl:param name="forClass" select="rdf:type/@rdf:resource" as="xs:anyURI*"/>
-        <xsl:param name="constructor-query" as="xs:string?" tunnel="yes"/>
+        <xsl:param name="constraint-query" as="xs:string?" tunnel="yes"/>
+        <xsl:param name="constraints" select="for $type in $forClass return ldh:query-result(map{ '$Type': $type }, resolve-uri('ns', $ldt:base), $constraint-query)" as="document-node()*"/>
         <xsl:param name="shape-query" as="xs:string?" tunnel="yes"/>
         <xsl:param name="shapes" as="document-node()?">
             <xsl:sequence select="for $class in $forClass return ldh:query-result(map{ '$Type': $class }, resolve-uri('ns', $ldt:base), $shape-query)" use-when="system-property('xsl:product-name') = 'SAXON'"/>
         </xsl:param>
+        <xsl:param name="constructor-query" as="xs:string?" tunnel="yes"/>
         <xsl:param name="constructor" as="document-node()?">
             <!-- SHACL shapes take priority over SPIN constructors -->
             <xsl:choose use-when="system-property('xsl:product-name') = 'SAXON'">
@@ -1044,7 +1046,6 @@ extension-element-prefixes="ixsl"
         <xsl:param name="traversed-ids" select="@rdf:*" as="xs:string*" tunnel="yes"/>
         <xsl:param name="show-subject" select="false()" as="xs:boolean" tunnel="yes"/>
         <xsl:param name="required" select="false()" as="xs:boolean"/>
-        <xsl:param name="constraint-query" as="xs:string?" tunnel="yes"/>
 
         <fieldset>
             <xsl:if test="$id">
@@ -1135,6 +1136,8 @@ extension-element-prefixes="ixsl"
                 <xsl:sort select="ac:property-label(.)"/>
                 <xsl:with-param name="violations" select="$violations"/>
                 <xsl:with-param name="constructor" select="$constructor"/>
+                <xsl:with-param name="constraints" select="$constraints"/>
+                <xsl:with-param name="shapes" select="$shapes"/>
                 <xsl:with-param name="traversed-ids" select="$traversed-ids" tunnel="yes"/>
             </xsl:apply-templates>
 
