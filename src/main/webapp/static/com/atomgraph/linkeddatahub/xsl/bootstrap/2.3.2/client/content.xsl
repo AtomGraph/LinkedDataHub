@@ -654,18 +654,64 @@ exclude-result-prefixes="#all"
     <!-- toggle between Content as HTML (rdf:XMLLiteral) and URI resource in inline editing mode (increased priority to take precedence over the template in form.xsl) -->
     <xsl:template match="div[contains-token(@class, 'xhtml-content')]//select[contains-token(@class, 'content-type')][ixsl:get(., 'value') = '&rdfs;Resource']" mode="ixsl:onchange" priority="1">
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'xhtml-content')]" as="element()"/>
-
-        <xsl:next-match/>
-
+        <!-- TO-DO: reuse identical constructor from form.xsl -->
+        <xsl:variable name="constructor" as="document-node()">
+            <xsl:document>
+                <rdf:RDF>
+                    <rdf:Description rdf:nodeID="A1">
+                        <rdf:type rdf:resource="&ldh;Content"/>
+                        <rdf:value rdf:nodeID="A2"/>
+                        <ac:mode rdf:nodeID="A3"/>
+                    </rdf:Description>
+                    <rdf:Description rdf:nodeID="A2">
+                        <rdf:type rdf:resource="&rdfs;Resource"/>
+                    </rdf:Description>
+                    <rdf:Description rdf:nodeID="A3">
+                        <rdf:type rdf:resource="&rdfs;Resource"/>
+                    </rdf:Description>
+                </rdf:RDF>
+            </xsl:document>
+        </xsl:variable>
+        <xsl:variable name="new-controls" as="node()*">
+            <xsl:apply-templates select="$constructor//rdf:value/@rdf:*" mode="bs2:FormControl"/>
+            <xsl:apply-templates select="$constructor//ac:mode/@rdf:*" mode="bs2:FormControl"/>
+        </xsl:variable>
+        
+        <xsl:for-each select="..">
+            <xsl:result-document href="?." method="ixsl:replace-content">
+                <xsl:copy-of select="$new-controls"/>
+            </xsl:result-document>
+        </xsl:for-each>
+        
         <xsl:sequence select="ixsl:call(ixsl:get($container, 'classList'), 'replace', [ 'xhtml-content', 'resource-content' ])[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
 
     <!-- toggle between Content as URI resource and HTML (rdf:XMLLiteral) in inline editing mode (increased priority to take precedence over the template in form.xsl) -->
     <xsl:template match="div[contains-token(@class, 'resource-content')]//select[contains-token(@class, 'content-type')][ixsl:get(., 'value') = '&rdf;XMLLiteral']" mode="ixsl:onchange" priority="1">
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'resource-content')]" as="element()"/>
-
-        <xsl:next-match/>
-
+        <!-- TO-DO: reuse identical constructor from form.xsl -->
+        <xsl:variable name="constructor" as="document-node()">
+            <xsl:document>
+                <rdf:RDF>
+                    <rdf:Description rdf:nodeID="A1">
+                        <rdf:type rdf:resource="&ldh;Content"/>
+                        <rdf:value rdf:parseType="Literal">
+                            <xhtml:div/>
+                        </rdf:value>
+                    </rdf:Description>
+                </rdf:RDF>
+            </xsl:document>
+        </xsl:variable>
+        <xsl:variable name="new-controls" as="node()*">
+            <xsl:apply-templates select="$constructor//rdf:value/@rdf:*" mode="bs2:FormControl"/>
+        </xsl:variable>
+        
+        <xsl:for-each select="..">
+            <xsl:result-document href="?." method="ixsl:replace-content">
+                <xsl:copy-of select="$new-controls"/>
+            </xsl:result-document>
+        </xsl:for-each>
+        
         <xsl:sequence select="ixsl:call(ixsl:get($container, 'classList'), 'replace', [ 'resource-content', 'xhtml-content' ])[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
 
