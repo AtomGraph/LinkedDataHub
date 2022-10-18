@@ -40,6 +40,13 @@ exclude-result-prefixes="#all"
 
     <!-- TEMPLATES -->
     
+    <!-- make sure content value is shown as required -->
+    <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;Content']/rdf:value" mode="bs2:FormControl">
+        <xsl:next-match>
+            <xsl:with-param name="required" select="true()"/>
+        </xsl:next-match>
+    </xsl:template>
+
     <xsl:template match="*" mode="ldh:PostConstruct">
         <xsl:apply-templates mode="#current"/>
     </xsl:template>
