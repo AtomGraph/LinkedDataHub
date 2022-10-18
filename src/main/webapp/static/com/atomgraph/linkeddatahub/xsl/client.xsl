@@ -18,6 +18,7 @@
     <!ENTITY ldt        "https://www.w3.org/ns/ldt#">
     <!ENTITY dh         "https://www.w3.org/ns/ldt/document-hierarchy#">
     <!ENTITY sd         "http://www.w3.org/ns/sparql-service-description#">
+    <!ENTITY sh         "http://www.w3.org/ns/shacl#">
     <!ENTITY sp         "http://spinrdf.org/sp#">
     <!ENTITY dct        "http://purl.org/dc/terms/">
     <!ENTITY foaf       "http://xmlns.com/foaf/0.1/">
@@ -53,6 +54,7 @@ xmlns:ldt="&ldt;"
 xmlns:dh="&dh;"
 xmlns:srx="&srx;"
 xmlns:sd="&sd;"
+xmlns:sh="&sh;"
 xmlns:sp="&sp;"
 xmlns:dct="&dct;"
 xmlns:foaf="&foaf;"
