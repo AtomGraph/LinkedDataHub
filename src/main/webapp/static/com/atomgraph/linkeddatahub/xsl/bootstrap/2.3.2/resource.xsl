@@ -1025,7 +1025,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="shapes" select="for $class in $forClass return ldh:query-result(map{ '$Type': $class }, resolve-uri('ns', $ldt:base), $shape-query)" as="document-node()"/>
         <xsl:param name="constructor" as="document-node()?">
             <!-- SHACL shapes take priority over SPIN constructors -->
-            <xsl:choose>
+            <xsl:choose use-when="system-property('xsl:product-name') = 'SAXON'">
                 <xsl:when test="exists($shapes/rdf:RDF/rdf:Description)">
                     <xsl:variable name="constructor" as="document-node()">
                         <xsl:apply-templates select="$shapes" mode="ldh:Shape"/>
