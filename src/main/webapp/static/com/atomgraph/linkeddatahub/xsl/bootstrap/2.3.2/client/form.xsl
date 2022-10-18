@@ -459,7 +459,7 @@ exclude-result-prefixes="#all"
 
     <!-- toggle between Content as HTML (rdf:XMLLiteral) and URI resource -->
     <xsl:template match="select[contains-token(@class, 'content-type')][ixsl:get(., 'value') = '&rdfs;Resource']" mode="ixsl:onchange">
-        <xsl:variable name="controls" select=".." as="element()"/>
+        <xsl:variable name="fieldset" select="../../.." as="element()"/>
         <xsl:variable name="constructor" as="document-node()">
             <xsl:document>
                 <rdf:RDF>
@@ -473,21 +473,21 @@ exclude-result-prefixes="#all"
                 </rdf:RDF>
             </xsl:document>
         </xsl:variable>
-        <xsl:variable name="new-controls" as="node()*">
-            <xsl:apply-templates select="$constructor//rdf:value/@rdf:*" mode="bs2:FormControl"/>
+        <xsl:variable name="new-fieldset" as="node()*">
+            <xsl:apply-templates select="$constructor//rdf:Description[@rdf:nodeID = 'A1']" mode="bs2:FormControl"/>
         </xsl:variable>
 
-        <xsl:for-each select="$controls">
+        <xsl:for-each select="$fieldset">
             <xsl:result-document href="?." method="ixsl:replace-content">
-                <!-- don't insert a new <div class="controls">, only its children -->
-                <xsl:copy-of select="$new-controls"/>
+                <!-- don't insert a new <fieldset>, only its children -->
+                <xsl:copy-of select="$new-fieldset/*"/>
             </xsl:result-document>
         </xsl:for-each>
     </xsl:template>
 
     <!-- toggle between Content as URI resource and HTML (rdf:XMLLiteral) -->
     <xsl:template match="select[contains-token(@class, 'content-type')][ixsl:get(., 'value') = '&rdf;XMLLiteral']" mode="ixsl:onchange">
-        <xsl:variable name="controls" select=".." as="element()"/>
+        <xsl:variable name="fieldset" select="../../.." as="element()"/>
         <xsl:variable name="constructor" as="document-node()">
             <xsl:document>
                 <rdf:RDF>
@@ -501,13 +501,13 @@ exclude-result-prefixes="#all"
             </xsl:document>
         </xsl:variable>
         <xsl:variable name="new-controls" as="node()*">
-            <xsl:apply-templates select="$constructor//rdf:value/xhtml:*" mode="bs2:FormControl"/>
+            <xsl:apply-templates select="$constructor//rdf:Description[@rdf:nodeID = 'A1']" mode="bs2:FormControl"/>
         </xsl:variable>
 
-        <xsl:for-each select="$controls">
+        <xsl:for-each select="$fieldset">
             <xsl:result-document href="?." method="ixsl:replace-content">
-                <!-- don't insert a new <div class="controls">, only its children -->
-                <xsl:copy-of select="$new-controls"/>
+                <!-- don't insert a new <fieldset>, only its children -->
+                <xsl:copy-of select="$new-fieldset/*"/>
             </xsl:result-document>
 
             <!-- initialize wymeditor textarea -->
