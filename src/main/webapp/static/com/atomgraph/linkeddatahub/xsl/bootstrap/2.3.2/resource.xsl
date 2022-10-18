@@ -1000,7 +1000,7 @@ extension-element-prefixes="ixsl"
     
     <!-- FORM -->
 
-    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:Form" use-when="system-property('xsl:product-name') = 'SAXON'">
+    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:Form">
         <xsl:apply-templates select="." mode="bs2:FormControl">
             <xsl:sort select="ac:label(.)"/>
         </xsl:apply-templates>
@@ -1009,12 +1009,12 @@ extension-element-prefixes="ixsl"
     <!-- FORM CONTROL -->
 
     <!-- turn off blank node resources from constructor graph (only those that are objects) -->
-    <xsl:template match="*[@rdf:nodeID][$ac:forClass or $ldh:forShape][rdf:type/starts-with(@rdf:resource, '&xsd;')] | *[@rdf:nodeID][$ac:forClass or $ldh:forShape][count(key('predicates-by-object', @rdf:nodeID)) &gt; 0][rdf:type/@rdf:resource = '&rdfs;Resource']" mode="bs2:FormControl" priority="2" use-when="system-property('xsl:product-name') = 'SAXON'"/>
+    <xsl:template match="*[@rdf:nodeID][$ac:forClass or $ldh:forShape][rdf:type/starts-with(@rdf:resource, '&xsd;')] | *[@rdf:nodeID][$ac:forClass or $ldh:forShape][count(key('predicates-by-object', @rdf:nodeID)) &gt; 0][rdf:type/@rdf:resource = '&rdfs;Resource']" mode="bs2:FormControl" priority="2"/>
 
     <!-- turn off default form controls for rdf:type as we are handling it specially with bs2:TypeControl -->
-    <xsl:template match="rdf:type[@rdf:resource]" mode="bs2:FormControl" priority="1" use-when="system-property('xsl:product-name') = 'SAXON'"/>
+    <xsl:template match="rdf:type[@rdf:resource]" mode="bs2:FormControl" priority="1"/>
     
-    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:FormControl" use-when="system-property('xsl:product-name') = 'SAXON'">
+    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:FormControl">
         <xsl:param name="id" select="concat('form-control-', generate-id())" as="xs:string?"/>
         <xsl:param name="class" as="xs:string?"/>
         <xsl:param name="legend" select="true()" as="xs:boolean"/>
@@ -1150,13 +1150,13 @@ extension-element-prefixes="ixsl"
     <!-- TYPE CONTROL -->
 
     <!-- hide type control -->
-    <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;Content']" mode="bs2:TypeControl" priority="1" use-when="system-property('xsl:product-name') = 'SAXON'">
+    <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;Content']" mode="bs2:TypeControl" priority="1">
         <xsl:next-match>
             <xsl:with-param name="hidden" select="true()"/>
         </xsl:next-match>
     </xsl:template>
     
-    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:TypeControl" use-when="system-property('xsl:product-name') = 'SAXON'">
+    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:TypeControl">
         <xsl:param name="forClass" as="xs:anyURI?"/> <!-- allow subclasses of owl:Class? -->
         <xsl:param name="hidden" select="false()" as="xs:boolean"/>
 
@@ -1171,9 +1171,9 @@ extension-element-prefixes="ixsl"
     
     <!-- hide property dropdown for content instances -->
     
-    <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;Content']" mode="bs2:PropertyControl" priority="1" use-when="system-property('xsl:product-name') = 'SAXON'"/>
+    <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;Content']" mode="bs2:PropertyControl" priority="1"/>
     
-    <xsl:template match="*[@rdf:about or @rdf:nodeID]" mode="bs2:PropertyControl" use-when="system-property('xsl:product-name') = 'SAXON'">
+    <xsl:template match="*[@rdf:about or @rdf:nodeID]" mode="bs2:PropertyControl">
         <xsl:param name="class" as="xs:string?"/>
         <xsl:param name="label" select="true()" as="xs:boolean"/>
         <xsl:param name="template" as="element()*"/>
