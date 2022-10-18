@@ -1177,7 +1177,7 @@ extension-element-prefixes="ixsl"
     
     <xsl:template match="*[@rdf:about or @rdf:nodeID]" mode="bs2:PropertyControl">
         <xsl:param name="class" as="xs:string?"/>
-        <xsl:param name="label" select="true()" as="xs:boolean"/>
+        <!--<xsl:param name="label" select="true()" as="xs:boolean"/>-->
         <xsl:param name="template" as="element()*"/>
         <xsl:param name="id" select="generate-id()" as="xs:string"/>
         <xsl:param name="forClass" as="xs:anyURI*"/>

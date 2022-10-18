@@ -461,7 +461,34 @@ exclude-result-prefixes="#all"
         <xsl:param name="this" select="xs:anyURI(concat(namespace-uri(), local-name()))" as="xs:anyURI"/>
         <xsl:param name="violations" as="element()*"/>
         <xsl:param name="error" select="@rdf:resource = $violations/ldh:violationValue or $violations/spin:violationPath/@rdf:resource = $this or $violations/sh:resultPath/@rdf:resource = $this" as="xs:boolean"/>
-        <xsl:param name="label" select="true()" as="xs:boolean"/>
+        <xsl:param name="label" as="xs:string?">
+            <xsl:choose use-when="system-property('xsl:product-name') = 'SAXON'">
+                <xsl:when test="doc-available(ac:document-uri(xs:anyURI($this)))">
+                    <xsl:choose>
+                        <xsl:when test="key('resources', $this, document(ac:document-uri(xs:anyURI($this))))">
+                            <xsl:for-each select="key('resources', $this, document(ac:document-uri(xs:anyURI($this))))">
+                                <xsl:sequence select="ac:label(.)"/> <!-- uppercase first letter -->
+
+                                <xsl:if test="ac:description(.)">
+                                    <span class="description">
+                                        <xsl:sequence select="ac:description(.)"/>
+                                    </span>
+                                </xsl:if>
+                            </xsl:for-each>
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <xsl:sequence select="local-name()"/>
+                        </xsl:otherwise>
+                    </xsl:choose>
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:sequence select="local-name()"/>
+                </xsl:otherwise>
+            </xsl:choose>
+
+            <xsl:sequence use-when="system-property('xsl:product-name') eq 'SaxonJS'" select="local-name()"/>
+        </xsl:param>
+        <xsl:param name="show-label" select="true()" as="xs:boolean"/>
         <xsl:param name="constructor" as="document-node()?"/>
         <xsl:param name="template" as="element()*"/>
         <xsl:param name="cloneable" select="false()" as="xs:boolean"/>
@@ -481,33 +508,9 @@ exclude-result-prefixes="#all"
             <xsl:apply-templates select="." mode="xhtml:Input">
                 <xsl:with-param name="type" select="'hidden'"/>
             </xsl:apply-templates>
-            <xsl:if test="$label">
+            <xsl:if test="$show-label">
                 <label class="control-label" for="{$for}" title="{$this}">
-                    <xsl:choose use-when="system-property('xsl:product-name') = 'SAXON'">
-                        <xsl:when test="doc-available(ac:document-uri(xs:anyURI($this)))">
-                            <xsl:choose>
-                                <xsl:when test="key('resources', $this, document(ac:document-uri(xs:anyURI($this))))">
-                                    <xsl:for-each select="key('resources', $this, document(ac:document-uri(xs:anyURI($this))))">
-                                        <xsl:value-of select="ac:label(.)"/> <!-- uppercase first letter -->
-                                        
-                                        <xsl:if test="ac:description(.)">
-                                            <span class="description">
-                                                <xsl:value-of select="ac:description(.)"/>
-                                            </span>
-                                        </xsl:if>
-                                    </xsl:for-each>
-                                </xsl:when>
-                                <xsl:otherwise>
-                                    <xsl:value-of select="local-name()"/>
-                                </xsl:otherwise>
-                            </xsl:choose>
-                        </xsl:when>
-                        <xsl:otherwise>
-                            <xsl:value-of select="local-name()"/>
-                        </xsl:otherwise>
-                    </xsl:choose>
-
-                    <xsl:value-of use-when="system-property('xsl:product-name') eq 'SaxonJS'" select="local-name()"/>
+                    <xsl:sequence select="$label"/>
                 </label>
             </xsl:if>
             
