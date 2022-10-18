@@ -5,6 +5,7 @@
 
 ### Changed
 - Improved validation of "Add data" and inline content editing forms
+- SaxonJS upgraded to v2.5. Client-side XSLT code updated to take advantage of the latest bugfixes.
 
 ## [3.2.17] - 2022-09-28
 ### Added
