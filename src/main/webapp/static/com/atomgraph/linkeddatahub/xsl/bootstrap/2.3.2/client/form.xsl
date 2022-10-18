@@ -500,7 +500,7 @@ exclude-result-prefixes="#all"
                 </rdf:RDF>
             </xsl:document>
         </xsl:variable>
-        <xsl:variable name="new-controls" as="node()*">
+        <xsl:variable name="new-fieldset" as="node()*">
             <xsl:apply-templates select="$constructor//rdf:Description[@rdf:nodeID = 'A1']" mode="bs2:FormControl"/>
         </xsl:variable>
 
