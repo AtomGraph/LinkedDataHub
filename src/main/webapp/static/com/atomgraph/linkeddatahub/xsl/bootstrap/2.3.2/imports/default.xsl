@@ -468,12 +468,6 @@ exclude-result-prefixes="#all"
                         <xsl:when test="key('resources', $this, document(ac:document-uri(xs:anyURI($this))))">
                             <xsl:for-each select="key('resources', $this, document(ac:document-uri(xs:anyURI($this))))">
                                 <xsl:sequence select="ac:label(.)"/> <!-- uppercase first letter -->
-
-                                <xsl:if test="ac:description(.)">
-                                    <span class="description">
-                                        <xsl:sequence select="ac:description(.)"/>
-                                    </span>
-                                </xsl:if>
                             </xsl:for-each>
                         </xsl:when>
                         <xsl:otherwise>
@@ -487,6 +481,13 @@ exclude-result-prefixes="#all"
             </xsl:choose>
 
             <xsl:sequence use-when="system-property('xsl:product-name') eq 'SaxonJS'" select="local-name()"/>
+        </xsl:param>
+        <xsl:param name="description" as="xs:string?">
+            <xsl:if test="doc-available(ac:document-uri(xs:anyURI($this)))" use-when="system-property('xsl:product-name') = 'SAXON'">
+                <xsl:for-each select="key('resources', $this, document(ac:document-uri(xs:anyURI($this))))">
+                    <xsl:sequence select="ac:description(.)"/> <!-- uppercase first letter -->
+                </xsl:for-each>
+            </xsl:if>
         </xsl:param>
         <xsl:param name="show-label" select="true()" as="xs:boolean"/>
         <xsl:param name="constructor" as="document-node()?"/>
@@ -511,6 +512,12 @@ exclude-result-prefixes="#all"
             <xsl:if test="$show-label">
                 <label class="control-label" for="{$for}" title="{$this}">
                     <xsl:sequence select="$label"/>
+                    
+                    <xsl:if test="$description">
+                        <span class="description">
+                            <xsl:sequence select="$description"/>
+                        </span>
+                    </xsl:if>
                 </label>
             </xsl:if>
             
