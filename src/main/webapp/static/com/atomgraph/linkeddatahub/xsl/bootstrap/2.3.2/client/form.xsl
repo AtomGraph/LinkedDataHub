@@ -1119,6 +1119,11 @@ exclude-result-prefixes="#all"
                             <xsl:copy-of select="$new-fieldset/div[contains-token(@class, 'control-group')]"/>
                         </xsl:result-document>
 
+                        <!-- show the "Actions" button -->
+                        <xsl:for-each select=".//button[contains-token(@class, 'btn-edit-actions')]">
+                            <ixsl:set-style name="display" select="'block'" object="."/>
+                        </xsl:for-each>
+                        
                         <xsl:for-each select=".//ul[li/button[contains-token(@class, 'btn-edit-constructors')]]">
                             <!-- remove the list item for owl:NamedIndividual -->
                             <xsl:for-each select="li[button[contains-token(@class, 'btn-edit-constructors')][ixsl:get(., 'dataset.resourceType') = '&owl;NamedIndividual']]">
