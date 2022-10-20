@@ -1124,7 +1124,8 @@ exclude-result-prefixes="#all"
                             <ixsl:set-style name="display" select="'block'" object="."/>
                         </xsl:for-each>
                         
-                        <xsl:for-each select=".//ul[li/button[contains-token(@class, 'btn-edit-constructors')]]">
+                        <!-- update the constructor/shape list -->
+                        <xsl:for-each select=".//button[contains-token(@class, 'btn-edit-actions')]/following-sibling::ul">
                             <!-- remove the list item for owl:NamedIndividual -->
                             <xsl:for-each select="li[button[contains-token(@class, 'btn-edit-constructors')][ixsl:get(., 'dataset.resourceType') = '&owl;NamedIndividual']]">
                                 <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
