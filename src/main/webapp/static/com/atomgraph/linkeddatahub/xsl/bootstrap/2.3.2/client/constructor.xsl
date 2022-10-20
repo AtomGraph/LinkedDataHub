@@ -614,18 +614,17 @@ exclude-result-prefixes="#all"
                 
                 <!-- clear the ontology. TO-DO: only clear after *all* constructors are saved: https://saxonica.plan.io/issues/5596 -->
                 <!-- TO-DO: make sure we're in the end-user application -->
-                <!-- attempt to retrieve the ontology URI from the class'es rdfs:isDefinedBy value. TO-DO: what's the fallback if it's missing? -->
+                <xsl:variable name="namespace" select="if (contains($type, '#')) then substring-before($type, '#') || '#' else string-join(tokenize($type, '/')[not(position() = last())], '/') || '/'" as="xs:string"/>
+                <!-- attempt to retrieve the ontology URI from the class'es rdfs:isDefinedBy value. Fallback to the assumed $type's namespace URI -->
                 <xsl:variable name="request-uri" select="ac:build-uri($ldt:base, map{ 'uri': ac:document-uri($type), 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
-                <xsl:variable name="ontology-uri" select="key('resources', $type, document(ac:document-uri($request-uri)))/rdfs:isDefinedBy/@rdf:resource" as="xs:anyURI?"/>
-                <xsl:if test="$ontology-uri">
-                    <xsl:variable name="form-data" select="ldh:new('URLSearchParams', [ ldh:new('FormData', []) ])"/>
-                    <xsl:sequence select="ixsl:call($form-data, 'append', [ 'uri', $ontology-uri ])[current-date() lt xs:date('2000-01-01')]"/>
+                <xsl:variable name="ontology-uri" select="(key('resources', $type, document(ac:document-uri($request-uri)))/rdfs:isDefinedBy/@rdf:resource, $namespace)[1]" as="xs:anyURI"/>
+                <xsl:variable name="form-data" select="ldh:new('URLSearchParams', [ ldh:new('FormData', []) ])"/>
+                <xsl:sequence select="ixsl:call($form-data, 'append', [ 'uri', $ontology-uri ])[current-date() lt xs:date('2000-01-01')]"/>
 
-                    <!-- clear this ontology first, then proceed to clear the namespace ontology -->
-                    <ixsl:schedule-action http-request="map{ 'method': 'POST', 'href': resolve-uri('admin/clear', ldt:base()), 'media-type': 'application/x-www-form-urlencoded', 'body': $form-data, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-                        <xsl:call-template name="ldh:ClearNamespace"/>
-                    </ixsl:schedule-action>
-                </xsl:if>
+                <!-- clear this ontology first, then proceed to clear the namespace ontology -->
+                <ixsl:schedule-action http-request="map{ 'method': 'POST', 'href': resolve-uri('admin/clear', ldt:base()), 'media-type': 'application/x-www-form-urlencoded', 'body': $form-data, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+                    <xsl:call-template name="ldh:ClearNamespace"/>
+                </ixsl:schedule-action>
             </xsl:when>
             <xsl:otherwise>
                 <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ 'Could not update constructor' ])[current-date() lt xs:date('2000-01-01')]"/>
