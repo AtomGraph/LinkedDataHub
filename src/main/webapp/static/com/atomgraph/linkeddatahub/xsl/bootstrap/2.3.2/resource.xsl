@@ -1068,7 +1068,7 @@ extension-element-prefixes="ixsl"
                         <div class="btn-group pull-right">
                             <button type="button" class="btn dropdown-toggle btn-edit-actions">
                                 <!-- only admins should see the button as only they have access to the ontologies with constructors in them -->
-                                <xsl:if test="($acl:mode = '&acl;Control' and $constructor-classes)">
+                                <xsl:if test="not($acl:mode = '&acl;Control' and exists($constructor-classes))">
                                     <xsl:attribute name="display" select="'none'"/>
                                 </xsl:if>
                                 
