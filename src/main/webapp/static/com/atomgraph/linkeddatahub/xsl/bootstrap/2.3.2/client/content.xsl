@@ -261,6 +261,31 @@ exclude-result-prefixes="#all"
         </xsl:choose>
     </xsl:template>
     
+    <!-- content within content (recursive) -->
+    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;Content']" mode="ldh:RenderContent" priority="1">
+        <xsl:param name="container" as="element()"/>
+        <xsl:param name="mode" as="xs:anyURI?"/>
+
+        <!-- hide progress bar -->
+        <ixsl:set-style name="display" select="'none'" object="$container//div[@class = 'progress-bar']"/>
+
+        <xsl:variable name="row" as="node()*">
+            <xsl:apply-templates select="." mode="bs2:RowContent">
+                <xsl:with-param name="mode" select="$mode"/>
+            </xsl:apply-templates>
+        </xsl:variable>
+
+        <xsl:for-each select="$container">
+            <xsl:result-document href="?." method="ixsl:replace-content">
+                <xsl:copy-of select="$row/*"/> <!-- inject the content of div.row-fluid -->
+            </xsl:result-document>
+        </xsl:for-each>
+
+        <xsl:call-template name="ldh:ContentLoaded">
+            <xsl:with-param name="container" select="$container"/>
+        </xsl:call-template>
+    </xsl:template>
+    
     <!-- default content (RDF resource) -->
     
     <xsl:template match="*[*][@rdf:about]" mode="ldh:RenderContent">

@@ -1,7 +1,7 @@
 ## [3.2.18] - 2022-10-19
 ### Added
 - SHACL node shape and property shape creation in the admin app
-- Basic support instance construction from SHACL node shapes
+- Basic support for instance construction from SHACL node shapes
 
 ### Changed
 - Improved validation of "Add data" and inline content editing forms
