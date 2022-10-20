@@ -614,7 +614,7 @@ exclude-result-prefixes="#all"
                 
                 <!-- clear the ontology. TO-DO: only clear after *all* constructors are saved: https://saxonica.plan.io/issues/5596 -->
                 <!-- TO-DO: make sure we're in the end-user application -->
-                <xsl:variable name="namespace" select="if (contains($type, '#')) then substring-before($type, '#') || '#' else string-join(tokenize($type, '/')[not(position() = last())], '/') || '/'" as="xs:string"/>
+                <xsl:variable name="namespace" select="xs:anyURI(if (contains($type, '#')) then substring-before($type, '#') || '#' else string-join(tokenize($type, '/')[not(position() = last())], '/') || '/')" as="xs:anyURI"/>
                 <!-- attempt to retrieve the ontology URI from the class'es rdfs:isDefinedBy value. Fallback to the assumed $type's namespace URI -->
                 <xsl:variable name="request-uri" select="ac:build-uri($ldt:base, map{ 'uri': ac:document-uri($type), 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
                 <xsl:variable name="ontology-uri" select="(key('resources', $type, document(ac:document-uri($request-uri)))/rdfs:isDefinedBy/@rdf:resource, $namespace)[1]" as="xs:anyURI"/>
