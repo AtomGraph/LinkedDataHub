@@ -1063,9 +1063,10 @@ extension-element-prefixes="ixsl"
                             </div>
                         </xsl:if>
 
-                        <xsl:variable name="available-classes" select="for $type in rdf:type/@rdf:resource[not(starts-with(., '&dh;') or starts-with(., '&ldh;') or starts-with(., '&def;') or starts-with(., '&lapp;') or starts-with(., '&sp;') or starts-with(., '&nfo;'))] return (let $query-string := replace($constructor-query, '\$Type', '&lt;' || $type || '&gt;'), $results-uri := ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': $query-string }) return if (doc-available($results-uri)) then (if (exists(document($results-uri)//srx:result/srx:binding[@name = 'constructor'])) then $type else ()) else ())" as="xs:anyURI*"/>
+                        <!-- iterate resource types, query the ontology for each of them to check whether they have constructors, and return those that have -->
+                        <xsl:variable name="constructor-classes" select="for $type in rdf:type/@rdf:resource[not(starts-with(., '&dh;') or starts-with(., '&ldh;') or starts-with(., '&def;') or starts-with(., '&lapp;') or starts-with(., '&sp;') or starts-with(., '&nfo;'))] return (let $query-string := replace($constructor-query, '\$Type', '&lt;' || $type || '&gt;'), $results-uri := ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': $query-string }) return if (doc-available($results-uri)) then (if (exists(document($results-uri)//srx:result/srx:binding[@name = 'constructor'])) then $type else ()) else ())" as="xs:anyURI*"/>
                         <!-- only admins have access to the ontologies with constructors in them -->
-                        <xsl:if test="$acl:mode = '&acl;Control' and $available-classes">
+                        <xsl:if test="$acl:mode = '&acl;Control' and $constructor-classes">
                             <div class="btn-group pull-right">
                                 <button type="button" class="btn dropdown-toggle">
                                     <xsl:value-of>
@@ -1074,7 +1075,7 @@ extension-element-prefixes="ixsl"
                                     <span class="caret"></span>
                                 </button>
                                 <ul class="dropdown-menu">
-                                    <xsl:for-each select="$available-classes">
+                                    <xsl:for-each select="$constructor-classes">
                                         <li>
                                             <button type="button" class="btn btn-edit-constructors" data-resource-type="{.}">
                                                 <xsl:value-of>
