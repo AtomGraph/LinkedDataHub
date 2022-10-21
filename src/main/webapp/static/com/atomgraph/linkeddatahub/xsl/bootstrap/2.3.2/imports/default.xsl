@@ -493,7 +493,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="violations" as="element()*"/>
         <xsl:param name="error" select="@rdf:resource = $violations/ldh:violationValue or $violations/spin:violationPath/@rdf:resource = $this or $violations/sh:resultPath/@rdf:resource = $this" as="xs:boolean"/>
         <xsl:param name="label" as="xs:string?">
-            <xsl:sequence select="ac:label(.)"/> <!-- function upper-cases first letter, unlike mode="ac:label" -->
+            <xsl:sequence select="ac:property-label(.)"/> <!-- function upper-cases first letter, unlike mode="ac:label" -->
         </xsl:param>
         <xsl:param name="description" as="xs:string?">
             <xsl:variable name="query-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': 'DESCRIBE &lt;' || $this || '&gt;' })" as="xs:anyURI" use-when="system-property('xsl:product-name') = 'SAXON'"/>
