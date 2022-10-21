@@ -298,7 +298,7 @@ exclude-result-prefixes="#all"
         <fieldset about="{$constructor-uri}">
             <legend>
                 <a href="{$constructor-uri}" title="{$constructor-uri}" target="_blank">
-                    <xsl:variable name="request-uri" select="ac:build-uri($ldt:base, map{ 'uri': ac:document-uri($constructor-uri), 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
+                    <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': 'DESCRIBE &lt;' || $constructor-uri || '&gt;', 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
                     <xsl:apply-templates select="key('resources', $constructor-uri, document($request-uri))" mode="ac:label"/>
                 </a>
             </legend>
@@ -389,7 +389,7 @@ exclude-result-prefixes="#all"
         <span>
             <xsl:choose>
                 <xsl:when test="$object-type">
-                    <xsl:variable name="request-uri" select="ac:build-uri($ldt:base, map{ 'uri': ac:document-uri($object-type), 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
+                    <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': 'DESCRIBE &lt;' || $object-type || '&gt;', 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
 
                     <xsl:apply-templates select="key('resources', $object-type, document($request-uri))" mode="ldh:Typeahead">
                         <xsl:with-param name="class" select="'btn add-typeahead add-class-typeahead'"/>
