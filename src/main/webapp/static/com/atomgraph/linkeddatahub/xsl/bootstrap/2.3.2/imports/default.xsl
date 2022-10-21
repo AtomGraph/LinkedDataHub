@@ -267,6 +267,35 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="$images"/>
     </xsl:function>
     
+    <!-- override makes NS ontology lookup take precedence over Linked Data -->
+    <xsl:template match="*[@rdf:about or @rdf:nodeID]/*" mode="ac:property-label">
+        <xsl:param name="endpoint" select="resolve-uri('ns', $ldt:base)" as="xs:anyURI"/>
+        <xsl:variable name="this" select="concat(namespace-uri(), local-name())"/>
+        <xsl:variable name="query-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': 'DESCRIBE &lt;' || $this || '&gt;' })" as="xs:anyURI"/>
+        
+        <xsl:choose>
+            <xsl:when test="key('resources', $this)">
+                <xsl:apply-templates select="key('resources', $this)" mode="ac:label"/>
+            </xsl:when>
+            <xsl:when test="doc-available($query-uri) and key('resources', $this, document($query-uri))" use-when="system-property('xsl:product-name') = 'SAXON'" >
+                <xsl:apply-templates select="key('resources', $this, document($query-uri))" mode="ac:label"/>
+            </xsl:when>
+            <xsl:when test="doc-available(namespace-uri()) and key('resources', $this, document(namespace-uri()))" use-when="system-property('xsl:product-name') = 'SAXON'" >
+                <xsl:apply-templates select="key('resources', $this, document(namespace-uri()))" mode="ac:label"/>
+            </xsl:when>
+            <xsl:when test="contains($this, '#') and not(ends-with($this, '#'))">
+                <xsl:sequence select="substring-after($this, '#')"/>
+            </xsl:when>
+            <xsl:when test="string-length(tokenize($this, '/')[last()]) &gt; 0">
+                <xsl:sequence use-when="function-available('url:decode')" select="translate(url:decode(tokenize($this, '/')[last()], 'UTF-8'), '_', ' ')"/>
+                <xsl:sequence use-when="not(function-available('url:decode'))" select="translate(tokenize($this, '/')[last()], '_', ' ')"/>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:sequence select="$this"/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:template>
+    
     <!-- SET PRIMARY TOPIC -->
 
     <xsl:template match="rdf:Description/foaf:primaryTopic[@rdf:nodeID]" mode="ldh:SetPrimaryTopic" priority="1">
