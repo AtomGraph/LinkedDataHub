@@ -285,15 +285,15 @@ exclude-result-prefixes="#all"
             <xsl:when test="doc-available(namespace-uri()) and key('resources', $this, document(namespace-uri()))" use-when="system-property('xsl:product-name') = 'SAXON'" >
                 <xsl:apply-templates select="key('resources', $this, document(namespace-uri()))" mode="ac:label"/>
             </xsl:when>
-            <xsl:when test="contains($this, '#') and not(ends-with($this, '#'))">
+<!--            <xsl:when test="contains($this, '#') and not(ends-with($this, '#'))">
                 <xsl:sequence select="substring-after($this, '#')"/>
             </xsl:when>
             <xsl:when test="string-length(tokenize($this, '/')[last()]) &gt; 0">
                 <xsl:sequence use-when="function-available('url:decode')" select="translate(url:decode(tokenize($this, '/')[last()], 'UTF-8'), '_', ' ')"/>
                 <xsl:sequence use-when="not(function-available('url:decode'))" select="translate(tokenize($this, '/')[last()], '_', ' ')"/>
-            </xsl:when>
+            </xsl:when>-->
             <xsl:otherwise>
-                <xsl:sequence select="$this"/>
+                <xsl:sequence select="local-name()"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
@@ -493,31 +493,12 @@ exclude-result-prefixes="#all"
         <xsl:param name="violations" as="element()*"/>
         <xsl:param name="error" select="@rdf:resource = $violations/ldh:violationValue or $violations/spin:violationPath/@rdf:resource = $this or $violations/sh:resultPath/@rdf:resource = $this" as="xs:boolean"/>
         <xsl:param name="label" as="xs:string?">
-            <xsl:choose use-when="system-property('xsl:product-name') = 'SAXON'">
-                <xsl:when test="doc-available(ac:document-uri(xs:anyURI($this)))">
-                    <xsl:choose>
-                        <xsl:when test="key('resources', $this, document(ac:document-uri(xs:anyURI($this))))">
-                            <xsl:for-each select="key('resources', $this, document(ac:document-uri(xs:anyURI($this))))">
-                                <xsl:sequence select="ac:label(.)"/> <!-- uppercase first letter -->
-                            </xsl:for-each>
-                        </xsl:when>
-                        <xsl:otherwise>
-                            <xsl:sequence select="local-name()"/>
-                        </xsl:otherwise>
-                    </xsl:choose>
-                </xsl:when>
-                <xsl:otherwise>
-                    <xsl:sequence select="local-name()"/>
-                </xsl:otherwise>
-            </xsl:choose>
-
-            <xsl:sequence use-when="system-property('xsl:product-name') eq 'SaxonJS'" select="local-name()"/>
+            <xsl:apply-templates select="." mode="ac:property-label"/>
         </xsl:param>
         <xsl:param name="description" as="xs:string?">
-            <xsl:if test="doc-available(ac:document-uri(xs:anyURI($this)))" use-when="system-property('xsl:product-name') = 'SAXON'">
-                <xsl:for-each select="key('resources', $this, document(ac:document-uri(xs:anyURI($this))))">
-                    <xsl:sequence select="ac:description(.)"/> <!-- uppercase first letter -->
-                </xsl:for-each>
+            <xsl:variable name="query-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': 'DESCRIBE &lt;' || $this || '&gt;' })" as="xs:anyURI" use-when="system-property('xsl:product-name') = 'SAXON'"/>
+            <xsl:if test="doc-available(ac:document-uri($query-uri))" use-when="system-property('xsl:product-name') = 'SAXON'">
+                <xsl:apply-templates select="key('resources', $this, document(ac:document-uri($query-uri)))" mode="ac:description"/>
             </xsl:if>
         </xsl:param>
         <xsl:param name="show-label" select="true()" as="xs:boolean"/>
