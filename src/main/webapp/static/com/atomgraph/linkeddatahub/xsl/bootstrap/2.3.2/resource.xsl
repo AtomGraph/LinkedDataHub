@@ -1023,7 +1023,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="constraint-query" as="xs:string?" tunnel="yes"/>
         <xsl:param name="constraints" select="if ($constraint-query) then (for $type in $forClass return ldh:query-result(map{ '$Type': $type }, resolve-uri('ns', $ldt:base), $constraint-query)) else ()" as="document-node()*"/>
         <xsl:param name="shape-query" as="xs:string?" tunnel="yes"/>
-        <xsl:param name="shapes" select="if ($shape-query) then (for $class in $forClass return ldh:query-result(map{ '$Type': $class }, resolve-uri('ns', $ldt:base), $shape-query)) else ()" as="document-node()?"/>
+        <xsl:param name="shapes" select="if ($shape-query) then (for $class in $forClass return ldh:query-result(map{ '$Type': $class }, resolve-uri('ns', $ldt:base), $shape-query)) else ()" as="document-node()*"/>
         <xsl:param name="constructor-query" as="xs:string?" tunnel="yes"/>
         <xsl:param name="constructor" as="document-node()?">
             <!-- SHACL shapes take priority over SPIN constructors -->
