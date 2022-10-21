@@ -215,7 +215,7 @@ exclude-result-prefixes="#all"
     <xsl:template match="*" mode="bs2:ConstructorTripleForm"/>
     
     <xsl:template match="json:map/json:string[@key = 'predicate']" mode="ldh:ConstructorTripleFormControl" name="ldh:ConstructorPredicate">
-        <xsl:param name="predicate" select="." as="xs:anyURI"/>
+        <xsl:param name="predicate" select="." as="xs:anyURI?"/>
 
         <label class="control-label">
             <xsl:choose>
