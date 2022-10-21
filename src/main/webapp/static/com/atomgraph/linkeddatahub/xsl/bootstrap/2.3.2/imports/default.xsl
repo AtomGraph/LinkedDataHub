@@ -508,7 +508,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="template" as="element()*"/>
         <xsl:param name="cloneable" select="false()" as="xs:boolean"/>
         <xsl:param name="constraints" as="document-node()*"/>
-        <xsl:param name="shapes" as="document-node()?"/>
+        <xsl:param name="shapes" as="document-node()*"/>
         <!-- only the first property that has a mandatory constraint is required, the following ones are not -->
         <xsl:param name="required" select="($shapes//rdf:Description[sh:path/@rdf:resource = $this][sh:minCount &gt;= count(preceding-sibling::*[concat(namespace-uri(), local-name()) = $this])]) or ($constraints//srx:binding[@name = 'property'][srx:uri = $this] and not(preceding-sibling::*[concat(namespace-uri(), local-name()) = $this]))" as="xs:boolean"/>
         <xsl:param name="id" select="generate-id()" as="xs:string"/>
