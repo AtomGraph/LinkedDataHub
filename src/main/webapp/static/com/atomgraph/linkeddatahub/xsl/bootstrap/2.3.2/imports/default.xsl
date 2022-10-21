@@ -498,7 +498,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="description" as="xs:string?">
             <xsl:variable name="query-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': 'DESCRIBE &lt;' || $this || '&gt;' })" as="xs:anyURI" use-when="system-property('xsl:product-name') = 'SAXON'"/>
             <xsl:if test="doc-available(ac:document-uri($query-uri))" use-when="system-property('xsl:product-name') = 'SAXON'">
-                <xsl:for-each select="key('resources', $this, document(ac:document-uri($query-uri)))" mode="ac:description">
+                <xsl:for-each select="key('resources', $this, document(ac:document-uri($query-uri)))">
                     <xsl:sequence select="ac:description(.)"/> <!-- use function instead of mode="ac:description" as there might be multiple descriptions -->
                 </xsl:for-each>
             </xsl:if>
