@@ -491,9 +491,6 @@ exclude-result-prefixes="#all"
     <!-- toggle between Content as HTML (rdf:XMLLiteral) and URI resource -->
     <xsl:template match="select[contains-token(@class, 'content-type')][ixsl:get(., 'value') = '&rdfs;Resource']" mode="ixsl:onchange">
         <xsl:variable name="fieldset" select="../../.." as="element()"/>
-        <xsl:variable name="id-input" select="$fieldset//input[@name = ('sb', 'su')][1]" as="element()"/>
-        <xsl:variable name="id-type" select="$id-input/@name" as="xs:string"/>
-        <xsl:variable name="id-value" select="$id-input/ixsl:get(., 'value')" as="xs:string"/>
         <xsl:variable name="constructor" as="document-node()">
             <xsl:document>
                 <rdf:RDF>
@@ -517,25 +514,18 @@ exclude-result-prefixes="#all"
 
         <xsl:for-each select="$fieldset">
             <xsl:result-document href="?." method="ixsl:replace-content">
-                <!-- don't insert a new <fieldset>, only its children -->
-                <xsl:copy-of select="$new-fieldset/*"/>
+                <!-- reinsert legend -->
+                <xsl:copy-of select="$fieldset/legend"/>
+                <!-- don't insert a new <fieldset>, only its children (except legend) -->
+                <xsl:copy-of select="$new-fieldset/*[not(self::legend)]"/>
             </xsl:result-document>
-            
-            <!-- restore the sb/su input values -->
-            <xsl:for-each select=".//input[@name = ('sb', 'su')][1]">
-                <xsl:set-property name="name" select="$id-type" object="."/>
-                <xsl:set-property name="value" select="$id-value" object="."/>
-            </xsl:for-each>
         </xsl:for-each>
     </xsl:template>
 
     <!-- toggle between Content as URI resource and HTML (rdf:XMLLiteral) -->
     <xsl:template match="select[contains-token(@class, 'content-type')][ixsl:get(., 'value') = '&rdf;XMLLiteral']" mode="ixsl:onchange">
         <xsl:variable name="fieldset" select="../../.." as="element()"/>
-        <xsl:variable name="id-input" select="$fieldset//input[@name = ('sb', 'su')][1]" as="element()"/>
-        <xsl:variable name="id-type" select="$id-input/@name" as="xs:string"/>
-        <xsl:variable name="id-value" select="$id-input/ixsl:get(., 'value')" as="xs:string"/>
-        <xsl:variable name="constructor" as="document-node()">
+       <xsl:variable name="constructor" as="document-node()">
             <xsl:document>
                 <rdf:RDF>
                     <rdf:Description rdf:nodeID="A1">
@@ -553,18 +543,14 @@ exclude-result-prefixes="#all"
 
         <xsl:for-each select="$fieldset">
             <xsl:result-document href="?." method="ixsl:replace-content">
-                <!-- don't insert a new <fieldset>, only its children -->
-                <xsl:copy-of select="$new-fieldset/*"/>
+                <!-- reinsert legend -->
+                <xsl:copy-of select="$fieldset/legend"/>
+                <!-- don't insert a new <fieldset>, only its children (except legend) -->
+                <xsl:copy-of select="$new-fieldset/*[not(self::legend)]"/>
             </xsl:result-document>
 
             <!-- initialize wymeditor textarea -->
             <xsl:apply-templates select="key('elements-by-class', 'wymeditor', ancestor::div[1])" mode="ldh:PostConstruct"/>
-
-            <!-- restore the sb/su input values -->
-            <xsl:for-each select=".//input[@name = ('sb', 'su')][1]">
-                <xsl:set-property name="name" select="$id-type" object="."/>
-                <xsl:set-property name="value" select="$id-value" object="."/>
-            </xsl:for-each>
         </xsl:for-each>
     </xsl:template>
     
