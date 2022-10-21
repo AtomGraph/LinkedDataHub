@@ -19,6 +19,7 @@
     <!ENTITY spin   "http://spinrdf.org/spin#">
     <!ENTITY dct    "http://purl.org/dc/terms/">
     <!ENTITY foaf   "http://xmlns.com/foaf/0.1/">
+    <!ENTITY java   "http://xml.apache.org/xalan/java/">
 ]>
 <xsl:stylesheet version="3.0"
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
