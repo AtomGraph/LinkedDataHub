@@ -514,10 +514,10 @@ exclude-result-prefixes="#all"
 
         <xsl:for-each select="$fieldset">
             <xsl:result-document href="?." method="ixsl:replace-content">
-                <!-- reinsert legend -->
-                <xsl:copy-of select="$fieldset/legend"/>
-                <!-- don't insert a new <fieldset>, only its children (except legend) -->
-                <xsl:copy-of select="$new-fieldset/*[not(self::legend)]"/>
+                <!-- reinsert all children except control groups -->
+                <xsl:copy-of select="$fieldset/*[not(contains-token(@class, 'control-group'))]"/>
+                <!-- insert new control groups -->
+                <xsl:copy-of select="$new-fieldset/*[contains-token(@class, 'control-group')]"/>
             </xsl:result-document>
         </xsl:for-each>
     </xsl:template>
@@ -543,10 +543,10 @@ exclude-result-prefixes="#all"
 
         <xsl:for-each select="$fieldset">
             <xsl:result-document href="?." method="ixsl:replace-content">
-                <!-- reinsert legend -->
-                <xsl:copy-of select="$fieldset/legend"/>
-                <!-- don't insert a new <fieldset>, only its children (except legend) -->
-                <xsl:copy-of select="$new-fieldset/*[not(self::legend)]"/>
+                <!-- reinsert all children except control groups -->
+                <xsl:copy-of select="$fieldset/*[not(contains-token(@class, 'control-group'))]"/>
+                <!-- insert new control groups -->
+                <xsl:copy-of select="$new-fieldset/*[contains-token(@class, 'control-group')]"/>
             </xsl:result-document>
 
             <!-- initialize wymeditor textarea -->
