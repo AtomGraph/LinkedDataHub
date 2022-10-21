@@ -142,7 +142,7 @@ exclude-result-prefixes="#all"
                                     <button type="button" class="close">&#215;</button>
 
                                     <h3>
-                                        <xsl:variable name="request-uri" select="ac:build-uri($ldt:base, map{ 'uri': ac:document-uri($type), 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
+                                        <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': 'DESCRIBE &lt;' || $type || '&gt;', 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
 
                                         <xsl:apply-templates select="key('resources', $type, document(ac:document-uri($request-uri)))" mode="ac:label"/>
                                     </h3>
@@ -215,12 +215,12 @@ exclude-result-prefixes="#all"
     <xsl:template match="*" mode="bs2:ConstructorTripleForm"/>
     
     <xsl:template match="json:map/json:string[@key = 'predicate']" mode="ldh:ConstructorTripleFormControl" name="ldh:ConstructorPredicate">
-        <xsl:param name="predicate" select="." as="xs:anyURI?"/>
+        <xsl:param name="predicate" select="." as="xs:anyURI"/>
 
         <label class="control-label">
             <xsl:choose>
                 <xsl:when test="$predicate">
-                    <xsl:variable name="request-uri" select="ac:build-uri($ldt:base, map{ 'uri': ac:document-uri($predicate), 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
+                    <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': 'DESCRIBE &lt;' || $predicate || '&gt;', 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
 
                     <span>
                         <xsl:apply-templates select="key('resources', $predicate, document($request-uri))" mode="ldh:Typeahead">
