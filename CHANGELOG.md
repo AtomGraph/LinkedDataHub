@@ -1,3 +1,11 @@
+## [3.2.19] - 2022-10-22
+### Added
+- Support for recursive content blocks
+
+### Changed
+- Loading class and property descriptions from the namespace ontology before falling back to Linked Data
+- Fixed shapes support for resources with multiple RDF types
+
 ## [3.2.18] - 2022-10-19
 ### Added
 - SHACL node shape and property shape creation in the admin app
