@@ -160,6 +160,7 @@ public class Login extends GraphStoreImpl
         String code = getUriInfo().getQueryParameters().getFirst("code");
         String state = getUriInfo().getQueryParameters().getFirst("state"); // TO-DO: verify by matching against state generated in Authorize
         Cookie stateCookie = getHttpHeaders().getCookies().get(Authorize.COOKIE_NAME);
+        if (stateCookie == null) throw new BadRequestException("OAuth 'state' parameter not set");
         if (!state.equals(stateCookie.getValue())) throw new BadRequestException("OAuth 'state' parameter failed to validate");
         
         Form form = new Form().
