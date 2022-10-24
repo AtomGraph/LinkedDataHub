@@ -1118,7 +1118,7 @@ LIMIT   100
             <div class="pull-right">
                 <button type="button" title="{ac:label(key('resources', 'nav-bar-action-delete-title', document('translations.rdf')))}">
                     <xsl:apply-templates select="key('resources', '&ac;Delete', document(ac:document-uri('&ac;')))" mode="ldh:logo">
-                        <xsl:with-param name="class" select="'btn'"/>
+                        <xsl:with-param name="class" select="'btn' || (if (not($acl:mode = '&acl;Write')) then ' disabled' else ())"/>
                     </xsl:apply-templates>
                     
                     <xsl:apply-templates select="key('resources', '&ac;Delete', document(ac:document-uri('&ac;')))" mode="ac:label"/>
@@ -1139,7 +1139,7 @@ LIMIT   100
                 <div class="pull-right">
                     <button type="button" title="{ac:label(key('resources', 'save-as-title', document('translations.rdf')))}">
                         <xsl:apply-templates select="key('resources', 'save-as', document('translations.rdf'))" mode="ldh:logo">
-                            <xsl:with-param name="class" select="'btn'"/>
+                        <xsl:with-param name="class" select="'btn' || (if (not($acl:mode = '&acl;Write')) then ' disabled' else ())"/>
                         </xsl:apply-templates>
 
                         <xsl:value-of>
