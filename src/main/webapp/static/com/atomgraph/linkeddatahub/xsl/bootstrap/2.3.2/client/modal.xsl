@@ -40,11 +40,12 @@ exclude-result-prefixes="#all"
         <div class="modal modal-first-time-message">
             <div class="hero-unit">
                 <button type="button" class="close">×</button>
-                <h1>Your app is ready</h1>
-                <h2>Deploy structured data, <em>without coding</em></h2>
-                <p>Manage and publish RDF graph data, import CSV, create custom views and visualizations within minutes. Change app structure and API logic without writing code.</p>
-                <p class="">
-                    <a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/" class="float-left btn btn-primary btn-large" target="_blank">Learn more</a>
+                <h1>Your LinkedDataHub is ready!</h1>
+                <h2>Unlock the value of your Knowledge Graph with data-driven content and low code apps.</h2>
+                <p>Create structured content backed by live data, intuitively explore graph datasets, model and manage RDF data, control data quality and more. <em>Without writing code</em>.</p>
+                <p>
+                    <a class="btn btn-primary btn-large" href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/get-started/" target="_blank">Get started</a>
+                    <a class="btn btn-large" href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/" target="_blank">Learn more</a>
                 </p>
             </div>
         </div>
