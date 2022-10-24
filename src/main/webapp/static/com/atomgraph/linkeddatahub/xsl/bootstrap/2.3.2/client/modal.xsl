@@ -391,7 +391,7 @@ exclude-result-prefixes="#all"
 
     <!-- close modal first time message -->
     
-    <xsl:template match="div[contains-token(@class, 'modal-first-time-message')]/button[contains-token(@class, 'close')]" mode="ixsl:onclick" priority="1">
+    <xsl:template match="div[contains-token(@class, 'modal-first-time-message')]//button[contains-token(@class, 'close')]" mode="ixsl:onclick" priority="1">
         <xsl:next-match/>
         
         <!-- set a cookie to never show it again -->
