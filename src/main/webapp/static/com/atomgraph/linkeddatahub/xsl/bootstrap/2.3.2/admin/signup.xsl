@@ -61,10 +61,10 @@ exclude-result-prefixes="#all">
     </xsl:template>
     
     <!-- hide "Create" button which otherwise would be shown because acl:Append is allowed for signup -->
-    <xsl:template match="rdf:RDF[if (doc-available(ac:uri())) then (key('resources', ac:uri(), document(ac:uri()))/rdf:type/@rdf:resource = '&adm;SignUp') else false()]" mode="bs2:Create" priority="1"/>
+    <xsl:template match="rdf:RDF[if (doc-available(ac:uri())) then (key('resources', ac:uri(), document(ac:uri()))/rdf:type/@rdf:resource = '&adm;SignUp') else false()]" mode="bs2:Create" priority="2"/>
 
     <!-- hide "Add data" button which otherwise would be shown because acl:Append is allowed for signup -->
-    <xsl:template match="rdf:RDF[if (doc-available(ac:uri())) then (key('resources', ac:uri(), document(ac:uri()))/rdf:type/@rdf:resource = '&adm;SignUp') else false()]" mode="bs2:AddData" priority="1"/>
+    <xsl:template match="rdf:RDF[if (doc-available(ac:uri())) then (key('resources', ac:uri(), document(ac:uri()))/rdf:type/@rdf:resource = '&adm;SignUp') else false()]" mode="bs2:AddData" priority="2"/>
     
     <xsl:template match="rdf:RDF[if (doc-available(ac:uri())) then (key('resources', ac:uri(), document(ac:uri()))/rdf:type/@rdf:resource = '&adm;SignUp') else false()]" mode="bs2:ModeTabs" priority="2"/>
 
