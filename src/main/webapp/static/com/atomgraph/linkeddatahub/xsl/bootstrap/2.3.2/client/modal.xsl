@@ -36,6 +36,20 @@ exclude-result-prefixes="#all"
 
     <!-- TEMPLATES -->
     
+    <xsl:template name="ldh:FirstTimeMessage">
+        <div class="modal modal-first-time-message">
+            <div class="hero-unit">
+                <button type="button" class="close">×</button>
+                <h1>Your app is ready</h1>
+                <h2>Deploy structured data, <em>without coding</em></h2>
+                <p>Manage and publish RDF graph data, import CSV, create custom views and visualizations within minutes. Change app structure and API logic without writing code.</p>
+                <p class="">
+                    <a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/" class="float-left btn btn-primary btn-large" target="_blank">Learn more</a>
+                </p>
+            </div>
+        </div>
+    </xsl:template>
+    
     <xsl:template name="ldh:AddDataForm">
         <xsl:param name="id" select="'add-data'" as="xs:string?"/>
         <xsl:param name="button-class" select="'btn btn-primary btn-save'" as="xs:string?"/>
@@ -375,8 +389,17 @@ exclude-result-prefixes="#all"
     
     <!-- EVENT HANDLERS -->
 
-    <!-- close modal dialog -->
+    <!-- close modal first time message -->
     
+    <xsl:template match="div[contains-token(@class, 'modal-first-time-message')]/button[contains-token(@class, 'close')]" mode="ixsl:onclick" priority="1">
+        <xsl:next-match/>
+        
+        <!-- set a cookie to never show it again -->
+        <ixsl:set-property name="cookie" select="concat('LinkedDataHub.first-time-message=true; path=/', substring-after($ldt:base, $ac:contextUri), '; expires=Fri, 31 Dec 9999 23:59:59 GMT')" object="ixsl:page()"/>
+    </xsl:template>
+
+    <!-- close modal dialog -->
+
     <xsl:template match="div[contains-token(@class, 'modal')]//button[tokenize(@class, ' ') = ('close', 'btn-close')]" mode="ixsl:onclick" name="ldh:CloseModal">
         <xsl:for-each select="ancestor::div[contains-token(@class, 'modal')]">
             <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>

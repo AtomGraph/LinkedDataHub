@@ -226,11 +226,13 @@ WHERE
             <ixsl:set-attribute name="type" select="'button'"/> <!-- instead of "submit" -->
         </xsl:for-each>
         <!-- only show first time message for authenticated agents -->
-<!--        <xsl:if test="id('content-body', ixsl:page()) and not(contains(ixsl:get(ixsl:page(), 'cookie'), 'LinkedDataHub.first-time-message'))">
-            <xsl:result-document href="#content-body" method="ixsl:append-content">
-                <xsl:call-template name="first-time-message"/>
-            </xsl:result-document>
-        </xsl:if>-->
+        <xsl:if test="$acl:agent and not(contains(ixsl:get(ixsl:page(), 'cookie'), 'LinkedDataHub.first-time-message'))">
+            <xsl:for-each select="ixsl:page()//body">
+                <xsl:result-document href="?." method="ixsl:append-content">
+                    <xsl:call-template name="ldh:FirstTimeMessage"/>
+                </xsl:result-document>
+            </xsl:for-each>
+        </xsl:if>
         <!-- initialize form if we're in editing mode -->
         <xsl:if test="ac:mode() = '&ac;EditMode'">
             <xsl:apply-templates select="id('content-body', ixsl:page())" mode="ldh:PostConstruct"/>
@@ -500,18 +502,6 @@ WHERE
                 <span class="divider">/</span>
             </xsl:if>
         </li>
-    </xsl:template>
-    
-    <xsl:template name="first-time-message">
-        <div class="hero-unit">
-            <button type="button" class="close">×</button>
-            <h1>Your app is ready</h1>
-            <h2>Deploy structured data, <em>without coding</em></h2>
-            <p>Manage and publish RDF graph data, import CSV, create custom views and visualizations within minutes. Change app structure and API logic without writing code.</p>
-            <p class="">
-                <a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/" class="float-left btn btn-primary btn-large" target="_blank">Learn more</a>
-            </p>
-        </div>
     </xsl:template>
     
     <!-- CALLBACKS -->
@@ -1296,17 +1286,6 @@ WHERE
 
     <xsl:template match="*[contains-token(@class, 'btn-group')][*[contains-token(@class, 'dropdown-toggle')]]" mode="ixsl:onclick">
         <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'open' ])[current-date() lt xs:date('2000-01-01')]"/>
-    </xsl:template>
-    
-    <xsl:template match="div[contains-token(@class, 'hero-unit')]/button[contains-token(@class, 'close')]" mode="ixsl:onclick" priority="1">
-        <!-- remove the hero-unit -->
-        <xsl:for-each select="..">
-            <xsl:message>
-                <xsl:value-of select="ixsl:call(., 'remove', [])"/>
-            </xsl:message>
-        </xsl:for-each>
-        <!-- set a cookie to never show it again -->
-        <ixsl:set-property name="cookie" select="concat('LinkedDataHub.first-time-message=true; path=/', substring-after($ldt:base, $ac:contextUri), '; expires=Fri, 31 Dec 9999 23:59:59 GMT')" object="ixsl:page()"/>
     </xsl:template>
     
     <!-- trigger typeahead in the search bar -->
