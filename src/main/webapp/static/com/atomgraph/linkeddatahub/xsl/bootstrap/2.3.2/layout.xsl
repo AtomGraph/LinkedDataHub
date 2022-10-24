@@ -108,7 +108,6 @@ exclude-result-prefixes="#all">
     <xsl:param name="ac:method" as="xs:string"/>
     <xsl:param name="ac:uri" as="xs:anyURI"/>
     <xsl:param name="ac:mode" as="xs:anyURI*"/> <!-- select="xs:anyURI('&ac;ReadMode')" -->
-<!--    <xsl:param name="ac:googleMapsKey" select="'AIzaSyCQ4rt3EnNCmGTpBN0qoZM1Z_jXhUnrTpQ'" as="xs:string"/>-->
     <xsl:param name="acl:mode" as="xs:anyURI*"/>
     <xsl:param name="ldh:forShape" as="xs:anyURI?"/>
     <xsl:param name="ldh:createGraph" select="false()" as="xs:boolean"/>
@@ -343,6 +342,7 @@ LIMIT   100
                 var ontologyUri = ]]><xsl:value-of select="'&quot;' || $ldt:ontology || '&quot;'"/><![CDATA[;
                 var endpointUri = ]]><xsl:value-of select="if ($sd:endpoint) then '&quot;' || $sd:endpoint || '&quot;'  else 'null'"/><![CDATA[;
                 var contextUri = ]]><xsl:value-of select="if ($ac:contextUri) then '&quot;' || $ac:contextUri || '&quot;'  else 'null'"/><![CDATA[;
+                var agentUri = []]><xsl:value-of select="if ($acl:agent) then '&quot;' || $acl:agent || '&quot;'  else 'null'"/><![CDATA[];
                 var accessModeUri = []]><xsl:value-of select="string-join(for $mode in $acl:mode return '&quot;' || $mode || '&quot;', ', ')"/><![CDATA[];
             ]]>
         </script>
@@ -392,6 +392,7 @@ LIMIT   100
                             "Q{https://www.w3.org/ns/ldt#}ontology": ontologyUri,
                             "Q{http://www.w3.org/ns/sparql-service-description#}endpoint": endpointUri,
                             "Q{https://w3id.org/atomgraph/linkeddatahub#}absolutePath": absolutePath,
+                            "Q{http://www.w3.org/ns/auth/acl#}agent": agentUri,
                             "Q{http://www.w3.org/ns/auth/acl#}mode": accessModeUri,
                             "Q{}app-request-uri": servicesRequestUri
                             };
