@@ -1,3 +1,12 @@
+## [3.2.20] - 2022-10-22
+### Added
+- An onboarding message show the first time LinkedDataHub starts
+- ACL agent URI is passed to the client-side stylesheet as an `$acl:agent` param
+
+### Changed
+- Fixed minor signup and request-access UI issues
+- Disabling "Save as" and "Delete" action buttons when the agent does not have a write permission
+
 ## [3.2.19] - 2022-10-22
 ### Added
 - Support for recursive content blocks
