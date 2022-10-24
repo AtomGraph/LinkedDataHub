@@ -1,4 +1,8 @@
-## [3.2.20] - 2022-10-22
+## [3.2.21] - 2022-10-24
+### Changed
+- Fixed map initialization regression
+
+## [3.2.20] - 2022-10-24
 ### Added
 - An onboarding message show the first time LinkedDataHub starts
 - ACL agent URI is passed to the client-side stylesheet as an `$acl:agent` param
