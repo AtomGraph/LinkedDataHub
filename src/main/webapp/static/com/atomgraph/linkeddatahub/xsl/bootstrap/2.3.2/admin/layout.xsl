@@ -153,9 +153,16 @@ exclude-result-prefixes="#all">
     </xsl:template>
     
     <!-- allow subject editing in admin EditMode -->
+    <!-- there are templates (e.g. in signup.xsl and request-access.xsl overriding this so we need to pass the params through -->
     <xsl:template match="*[*][@rdf:about or @rdf:nodeID]" mode="bs2:FormControl">
+        <xsl:param name="legend" select="true()" as="xs:boolean"/>
+        <xsl:param name="show-subject" select="not(rdf:type/@rdf:resource = ('&dh;Item', '&dh;Container'))" as="xs:boolean" tunnel="yes"/>
+        <xsl:param name="required" select="false()" as="xs:boolean"/>
+
         <xsl:apply-imports>
-            <xsl:with-param name="show-subject" select="not(rdf:type/@rdf:resource = ('&dh;Item', '&dh;Container'))" tunnel="yes"/>
+            <xsl:with-param name="legend" select="$legend"/>
+            <xsl:with-param name="show-subject" select="$show-subject" tunnel="yes"/>
+            <xsl:with-param name="required" select="$required"/>
         </xsl:apply-imports>
     </xsl:template>
     
