@@ -599,14 +599,21 @@ WHERE
                     </xsl:call-template>
                 </xsl:for-each>
             </xsl:if>
-            
-            <!-- add "Edit" buttons to XHTML content -->
+
             <xsl:if test="acl:mode() = '&acl;Write'">
                 <!-- enable .btn-edit if it's present -->
                 <xsl:for-each select="ixsl:page()//div[contains-token(@class, 'action-bar')]//a[contains-token(@class, 'btn-edit')]">
                     <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'disabled', false() ])[current-date() lt xs:date('2000-01-01')]"/>
                 </xsl:for-each>
-
+                <!-- enable .btn-delete button if document is not Root -->
+                <xsl:for-each select="ixsl:page()//div[contains-token(@class, 'action-bar')]//button[contains-token(@class, 'btn-delete')]">
+                    <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'disabled', $doc-uri = ldt:base() ])[current-date() lt xs:date('2000-01-01')]"/>
+                </xsl:for-each>
+                <!-- enable .btn-save-as if it's present -->
+                <xsl:for-each select="ixsl:page()//div[contains-token(@class, 'action-bar')]//button[contains-token(@class, 'btn-save-as')]">
+                    <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'disabled', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+                </xsl:for-each>
+        
                 <xsl:variable name="xhtml-content-ids" select="key('elements-by-class', 'xhtml-content', ixsl:page())/@id" as="xs:string*"/>
                 <xsl:if test="not(empty($xhtml-content-ids))">
                     <xsl:variable name="containers" select="id($xhtml-content-ids, ixsl:page())" as="element()*"/>
@@ -622,6 +629,14 @@ WHERE
             <xsl:if test="not(acl:mode() = '&acl;Write')">
                 <!-- disable .btn-edit if it's present -->
                 <xsl:for-each select="ixsl:page()//div[contains-token(@class, 'action-bar')]//a[contains-token(@class, 'btn-edit')]">
+                    <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'disabled', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+                </xsl:for-each>
+                <!-- disable .btn-delete button -->
+                <xsl:for-each select="ixsl:page()//div[contains-token(@class, 'action-bar')]//button[contains-token(@class, 'btn-delete')]">
+                    <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'disabled', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+                </xsl:for-each>
+                <!-- disable .btn-save-as if it's present -->
+                <xsl:for-each select="ixsl:page()//div[contains-token(@class, 'action-bar')]//button[contains-token(@class, 'btn-save-as')]">
                     <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'disabled', true() ])[current-date() lt xs:date('2000-01-01')]"/>
                 </xsl:for-each>
             </xsl:if>
@@ -650,14 +665,6 @@ WHERE
                     </ixsl:schedule-action>
                 </xsl:variable>
                 <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
-            </xsl:if>
-
-            <!-- initialize map -->
-            <xsl:if test="key('elements-by-class', 'map-canvas', ixsl:page())">
-                <xsl:call-template name="ldh:DrawMap">
-                    <xsl:with-param name="content-uri" select="$uri"/>
-                    <xsl:with-param name="canvas-id" select="key('elements-by-class', 'map-canvas', ixsl:page())/@id" />
-                </xsl:call-template>
             </xsl:if>
             
             <!-- initialize chart -->
@@ -1047,6 +1054,7 @@ WHERE
         <xsl:call-template name="ldh:PostHTMLDocumentLoad">
             <xsl:with-param name="href" select="$href"/>
             <xsl:with-param name="doc-uri" select="$doc-uri"/>
+            <xsl:with-param name="uri" select="$uri"/>
         </xsl:call-template>
         
         <xsl:call-template name="ldh:RDFDocumentLoad">
@@ -1059,6 +1067,7 @@ WHERE
     <xsl:template name="ldh:PostHTMLDocumentLoad">
         <xsl:param name="href" as="xs:anyURI"/> <!-- possibly proxied URL -->
         <xsl:param name="doc-uri" as="xs:anyURI"/>
+        <xsl:param name="uri" as="xs:anyURI"/>
 
         <!-- update the document-level @about -->
         <xsl:for-each select="id('content-body', ixsl:page())">
@@ -1082,15 +1091,15 @@ WHERE
             <xsl:variable name="edit-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ldh:query-params(xs:anyURI('&ac;EditMode')), $doc-uri)" as="xs:anyURI"/>
             <ixsl:set-attribute name="href" select="$edit-uri" object="."/>
         </xsl:for-each>
-        <xsl:for-each select="ixsl:page()//div[contains-token(@class, 'action-bar')]//button[contains-token(@class, 'btn-delete')]">
-            <!-- disable Delete button for the Root document -->
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'disabled', $doc-uri = $ldt:base ])[current-date() lt xs:date('2000-01-01')]"/>
-        </xsl:for-each>
-        <!-- enable .btn-save-as if it's present -->
-        <xsl:for-each select="ixsl:page()//div[contains-token(@class, 'action-bar')]//button[contains-token(@class, 'btn-save-as')]">
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'disabled', false() ])[current-date() lt xs:date('2000-01-01')]"/>
-        </xsl:for-each>
-        
+
+        <!-- initialize map -->
+        <xsl:if test="key('elements-by-class', 'map-canvas', ixsl:page())">
+            <xsl:call-template name="ldh:DrawMap">
+                <xsl:with-param name="content-uri" select="$uri"/>
+                <xsl:with-param name="canvas-id" select="key('elements-by-class', 'map-canvas', ixsl:page())/@id" />
+            </xsl:call-template>
+        </xsl:if>
+            
         <!-- activate the current URL in the document tree -->
         <xsl:for-each select="id('doc-tree', ixsl:page())">
             <xsl:call-template name="ldh:DocTreeActivateHref">
