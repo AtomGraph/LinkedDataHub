@@ -607,7 +607,7 @@ WHERE
                 </xsl:for-each>
                 <!-- enable .btn-delete button if document is not Root -->
                 <xsl:for-each select="ixsl:page()//div[contains-token(@class, 'action-bar')]//button[contains-token(@class, 'btn-delete')]">
-                    <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'disabled', $doc-uri = ldt:base() ])[current-date() lt xs:date('2000-01-01')]"/>
+                    <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'disabled', $uri = ldt:base() ])[current-date() lt xs:date('2000-01-01')]"/>
                 </xsl:for-each>
                 <!-- enable .btn-save-as if it's present -->
                 <xsl:for-each select="ixsl:page()//div[contains-token(@class, 'action-bar')]//button[contains-token(@class, 'btn-save-as')]">
