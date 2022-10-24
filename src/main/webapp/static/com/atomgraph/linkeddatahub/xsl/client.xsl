@@ -659,6 +659,14 @@ WHERE
                 <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:if>
             
+            <!-- initialize map -->
+            <xsl:if test="key('elements-by-class', 'map-canvas', ixsl:page())">
+                <xsl:call-template name="ldh:DrawMap">
+                    <xsl:with-param name="content-uri" select="$uri"/>
+                    <xsl:with-param name="canvas-id" select="key('elements-by-class', 'map-canvas', ixsl:page())/@id" />
+                </xsl:call-template>
+            </xsl:if>
+            
             <!-- initialize chart -->
             <xsl:for-each select="key('elements-by-class', 'chart-canvas', ixsl:page())">
                 <xsl:variable name="canvas-id" select="@id" as="xs:string"/>
@@ -1046,7 +1054,6 @@ WHERE
         <xsl:call-template name="ldh:PostHTMLDocumentLoad">
             <xsl:with-param name="href" select="$href"/>
             <xsl:with-param name="doc-uri" select="$doc-uri"/>
-            <xsl:with-param name="uri" select="$uri"/>
         </xsl:call-template>
         
         <xsl:call-template name="ldh:RDFDocumentLoad">
@@ -1059,7 +1066,6 @@ WHERE
     <xsl:template name="ldh:PostHTMLDocumentLoad">
         <xsl:param name="href" as="xs:anyURI"/> <!-- possibly proxied URL -->
         <xsl:param name="doc-uri" as="xs:anyURI"/>
-        <xsl:param name="uri" as="xs:anyURI"/>
 
         <!-- update the document-level @about -->
         <xsl:for-each select="id('content-body', ixsl:page())">
@@ -1083,14 +1089,6 @@ WHERE
             <xsl:variable name="edit-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ldh:query-params(xs:anyURI('&ac;EditMode')), $doc-uri)" as="xs:anyURI"/>
             <ixsl:set-attribute name="href" select="$edit-uri" object="."/>
         </xsl:for-each>
-
-        <!-- initialize map -->
-        <xsl:if test="key('elements-by-class', 'map-canvas', ixsl:page())">
-            <xsl:call-template name="ldh:DrawMap">
-                <xsl:with-param name="content-uri" select="$uri"/>
-                <xsl:with-param name="canvas-id" select="key('elements-by-class', 'map-canvas', ixsl:page())/@id" />
-            </xsl:call-template>
-        </xsl:if>
             
         <!-- activate the current URL in the document tree -->
         <xsl:for-each select="id('doc-tree', ixsl:page())">
