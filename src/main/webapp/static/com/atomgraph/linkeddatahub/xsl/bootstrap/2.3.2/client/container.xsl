@@ -688,9 +688,9 @@ exclude-result-prefixes="#all"
 
     <!-- container mode tabs -->
     
-    <xsl:template match="*[contains-token(@class, 'resource-content')]//div/ul[@class = 'nav nav-tabs']/li[not(contains-token(@class, 'active'))]/a" mode="ixsl:onclick">
+<!--    <xsl:template match="*[contains-token(@class, 'resource-content')]//div/ul[@class = 'nav nav-tabs']/li[not(contains-token(@class, 'active'))]/a" mode="ixsl:onclick">
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'resource-content')]" as="element()"/>
-        <xsl:variable name="results-container" select="$container//div[contains-token(@class, 'container-results')]" as="element()"/> <!-- results in the middle column -->
+        <xsl:variable name="results-container" select="$container//div[contains-token(@class, 'container-results')]" as="element()"/>  results in the middle column 
         <xsl:variable name="content-uri" select="xs:anyURI($container/@about)" as="xs:anyURI"/>
         <xsl:variable name="content" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`'), 'content')" as="element()"/>
         <xsl:variable name="active-class" select="../@class" as="xs:string"/>
@@ -700,11 +700,11 @@ exclude-result-prefixes="#all"
         <xsl:variable name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.apps'))" as="element()?"/>
         <xsl:variable name="endpoint" select="($service/sd:endpoint/@rdf:resource/xs:anyURI(.), sd:endpoint())[1]"/>
         
-        <!-- deactivate other tabs -->
+         deactivate other tabs 
         <xsl:for-each select="../../li">
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', false() ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
-        <!-- activate this tab -->
+         activate this tab 
         <xsl:for-each select="..">
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', true() ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
@@ -720,7 +720,7 @@ exclude-result-prefixes="#all"
             <xsl:with-param name="active-mode" select="map:get($class-modes, $active-class)"/>
             <xsl:with-param name="endpoint" select="$endpoint"/>
         </xsl:call-template>
-    </xsl:template>
+    </xsl:template>-->
 
     <!-- pager prev links -->
 
@@ -1170,7 +1170,7 @@ exclude-result-prefixes="#all"
                                 </div>
 
                                 <div>
-                                    <ul class="nav nav-tabs">
+<!--                                    <ul class="nav nav-tabs">
                                         <li class="read-mode">
                                             <xsl:if test="$active-mode = '&ac;ReadMode'">
                                                 <xsl:attribute name="class" select="'read-mode active'"/>
@@ -1241,7 +1241,7 @@ exclude-result-prefixes="#all"
                                                 <xsl:apply-templates select="key('resources', '&ac;GraphMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
                                             </a>
                                         </li>
-                                    </ul>
+                                    </ul>-->
                                     
                                     <div id="{$content-id || '-container-results'}" class="container-results"></div>
                                 </div>
