@@ -154,7 +154,8 @@ exclude-result-prefixes="#all"
 
     <!-- result counts -->
     
-    <xsl:template name="ldh:ResultCounts">
+    <xsl:template name="ldh:ResultCount">
+        <xsl:param name="container" as="element()"/>
         <xsl:param name="count-var-name" select="'count'" as="xs:string"/>
         <xsl:param name="select-xml" as="document-node()"/>
         <xsl:param name="focus-var-name" as="xs:string"/>
@@ -194,7 +195,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml' } }">
                 <xsl:call-template name="ldh:ResultCountResultsLoad">
-                    <xsl:with-param name="container-id" select="'result-counts'"/>
+                    <xsl:with-param name="container" select="$container"/>
                     <xsl:with-param name="count-var-name" select="$count-var-name"/>
                 </xsl:call-template>
             </ixsl:schedule-action>
@@ -1088,7 +1089,8 @@ exclude-result-prefixes="#all"
         <xsl:param name="endpoint" as="xs:anyURI"/>
         <!-- if  the container is full-width row (.row-fluid), render results in the middle column (.main) -->
         <xsl:param name="content-container" select="if (contains-token($container/@class, 'row-fluid')) then $container/div[contains-token(@class, 'main')] else $container" as="element()"/>
-        <xsl:param name="order-by-container-id" select="$content-id || '-container-order'" as="xs:string?"/>
+        <xsl:param name="order-by-container-id" select="$content-id || '-container-order'" as="xs:string"/>
+        <xsl:param name="result-count-container-id" select="$content-id || '-result-count'" as="xs:string"/>
         
         <!-- update progress bar -->
         <xsl:for-each select="$container//div[@class = 'bar']">
@@ -1170,79 +1172,8 @@ exclude-result-prefixes="#all"
                                 </div>
 
                                 <div>
-<!--                                    <ul class="nav nav-tabs">
-                                        <li class="read-mode">
-                                            <xsl:if test="$active-mode = '&ac;ReadMode'">
-                                                <xsl:attribute name="class" select="'read-mode active'"/>
-                                            </xsl:if>
+                                    <p id="{$result-count-container-id}" class="result-count"/>
 
-                                            <a>
-                                                <xsl:apply-templates select="key('resources', '&ac;ReadMode', document(ac:document-uri('&ac;')))" mode="ldh:logo"/>
-                                                <xsl:apply-templates select="key('resources', '&ac;ReadMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
-                                            </a>
-                                        </li>
-                                        <li class="list-mode">
-                                            <xsl:if test="$active-mode = '&ac;ListMode'">
-                                                <xsl:attribute name="class" select="'list-mode active'"/>
-                                            </xsl:if>
-
-                                            <a>
-                                                <xsl:apply-templates select="key('resources', '&ac;ListMode', document(ac:document-uri('&ac;')))" mode="ldh:logo"/>
-                                                <xsl:apply-templates select="key('resources', '&ac;ListMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
-                                            </a>
-                                        </li>
-                                        <li class="table-mode">
-                                            <xsl:if test="$active-mode = '&ac;TableMode'">
-                                                <xsl:attribute name="class" select="'table-mode active'"/>
-                                            </xsl:if>
-
-                                            <a>
-                                                <xsl:apply-templates select="key('resources', '&ac;TableMode', document(ac:document-uri('&ac;')))" mode="ldh:logo"/>
-                                                <xsl:apply-templates select="key('resources', '&ac;TableMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
-                                            </a>
-                                        </li>
-                                        <li class="grid-mode">
-                                            <xsl:if test="$active-mode = '&ac;GridMode'">
-                                                <xsl:attribute name="class" select="'grid-mode active'"/>
-                                            </xsl:if>
-
-                                            <a>
-                                                <xsl:apply-templates select="key('resources', '&ac;GridMode', document(ac:document-uri('&ac;')))" mode="ldh:logo"/>
-                                                <xsl:apply-templates select="key('resources', '&ac;GridMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
-                                            </a>
-                                        </li>
-                                        <li class="chart-mode">
-                                            <xsl:if test="$active-mode = '&ac;ChartMode'">
-                                                <xsl:attribute name="class" select="'chart-mode active'"/>
-                                            </xsl:if>
-
-                                            <a>
-                                                <xsl:apply-templates select="key('resources', '&ac;ChartMode', document(ac:document-uri('&ac;')))" mode="ldh:logo"/>
-                                                <xsl:apply-templates select="key('resources', '&ac;ChartMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
-                                            </a>
-                                        </li>
-                                        <li class="map-mode">
-                                            <xsl:if test="$active-mode = '&ac;MapMode'">
-                                                <xsl:attribute name="class" select="'map-mode active'"/>
-                                            </xsl:if>
-
-                                            <a>
-                                                <xsl:apply-templates select="key('resources', '&ac;MapMode', document(ac:document-uri('&ac;')))" mode="ldh:logo"/>
-                                                <xsl:apply-templates select="key('resources', '&ac;MapMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
-                                            </a>
-                                        </li>
-                                        <li class="graph-mode">
-                                            <xsl:if test="$active-mode = '&ac;GraphMode'">
-                                                <xsl:attribute name="class" select="'graph-mode active'"/>
-                                            </xsl:if>
-
-                                            <a>
-                                                <xsl:apply-templates select="key('resources', '&ac;GraphMode', document(ac:document-uri('&ac;')))" mode="ldh:logo"/>
-                                                <xsl:apply-templates select="key('resources', '&ac;GraphMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
-                                            </a>
-                                        </li>
-                                    </ul>-->
-                                    
                                     <div id="{$content-id || '-container-results'}" class="container-results"></div>
                                 </div>
                             </xsl:result-document>
@@ -1312,12 +1243,11 @@ exclude-result-prefixes="#all"
                     </xsl:for-each>
 
                     <!-- result counts -->
-                    <!-- <xsl:if test="id('result-counts', ixsl:page())">
-                        <xsl:call-template name="ldh:ResultCounts">
+                        <xsl:call-template name="ldh:ResultCount">
                             <xsl:with-param name="focus-var-name" select="$focus-var-name"/>
                             <xsl:with-param name="select-xml" select="$select-xml"/>
+                            <xsl:with-param name="container" select="id($result-count-container-id, ixsl:page())"/>
                         </xsl:call-template>
-                    </xsl:if> -->
 
                     <xsl:for-each select="$container/div[contains-token(@class, 'right-nav')]">
                         <!-- only show parallax navigation if the RDF result contains object resources -->
@@ -1587,27 +1517,31 @@ exclude-result-prefixes="#all"
     
     <xsl:template name="ldh:ResultCountResultsLoad">
         <xsl:context-item as="map(*)" use="required"/>
-        <xsl:param name="container-id" as="xs:string"/>
+        <xsl:param name="container" as="element()"/>
         <xsl:param name="count-var-name" as="xs:string"/>
 
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = 'application/sparql-results+xml'">
                 <xsl:for-each select="?body">
                     <xsl:variable name="results" select="." as="document-node()"/>
-                    <xsl:result-document href="#{$container-id}" method="ixsl:replace-content">
-                        <p>
-                            <xsl:text>Total results </xsl:text>
-                            <span class="badge badge-inverse">
-                                <xsl:value-of select="$results//srx:binding[@name = $count-var-name]/srx:literal"/>
-                            </span>
-                        </p>
-                    </xsl:result-document>
+                    <xsl:for-each select="$container">
+                        <xsl:result-document href="?." method="ixsl:replace-content">
+                            <strong>
+                                <xsl:text>Total results </xsl:text>
+                                <span class="badge badge-inverse">
+                                    <xsl:value-of select="$results//srx:binding[@name = $count-var-name]/srx:literal"/>
+                                </span>
+                            </strong>
+                        </xsl:result-document>
+                    </xsl:for-each>
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:result-document href="#{$container-id}" method="ixsl:replace-content">
-                    <p class="alert">Error loading result count</p>
-                </xsl:result-document>
+                <xsl:for-each select="$container">
+                    <xsl:result-document href="?." method="ixsl:replace-content">
+                        <span class="alert">Error loading result count</span>
+                    </xsl:result-document>
+                </xsl:for-each>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
