@@ -687,42 +687,6 @@ exclude-result-prefixes="#all"
 
     <!-- EVENT LISTENERS -->
 
-    <!-- container mode tabs -->
-    
-<!--    <xsl:template match="*[contains-token(@class, 'resource-content')]//div/ul[@class = 'nav nav-tabs']/li[not(contains-token(@class, 'active'))]/a" mode="ixsl:onclick">
-        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'resource-content')]" as="element()"/>
-        <xsl:variable name="results-container" select="$container//div[contains-token(@class, 'container-results')]" as="element()"/>  results in the middle column 
-        <xsl:variable name="content-uri" select="xs:anyURI($container/@about)" as="xs:anyURI"/>
-        <xsl:variable name="content" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`'), 'content')" as="element()"/>
-        <xsl:variable name="active-class" select="../@class" as="xs:string"/>
-        <xsl:variable name="select-xml" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`'), 'select-xml')" as="document-node()"/>
-        <xsl:variable name="focus-var-name" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`'), 'focus-var-name')" as="xs:string"/>
-        <xsl:variable name="service-uri" select="if (ixsl:contains(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`'), 'service-uri')) then ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`'), 'service-uri') else ()" as="xs:anyURI?"/>
-        <xsl:variable name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.apps'))" as="element()?"/>
-        <xsl:variable name="endpoint" select="($service/sd:endpoint/@rdf:resource/xs:anyURI(.), sd:endpoint())[1]"/>
-        
-         deactivate other tabs 
-        <xsl:for-each select="../../li">
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', false() ])[current-date() lt xs:date('2000-01-01')]"/>
-        </xsl:for-each>
-         activate this tab 
-        <xsl:for-each select="..">
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', true() ])[current-date() lt xs:date('2000-01-01')]"/>
-        </xsl:for-each>
-        
-        <xsl:call-template name="render-container">
-            <xsl:with-param name="container" select="$results-container"/>
-            <xsl:with-param name="content-id" select="$container/@id"/>
-            <xsl:with-param name="content-uri" select="$content-uri"/>
-            <xsl:with-param name="content" select="$content"/>
-            <xsl:with-param name="results" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`'), 'results')"/>
-            <xsl:with-param name="select-xml" select="$select-xml"/>
-            <xsl:with-param name="focus-var-name" select="$focus-var-name"/>
-            <xsl:with-param name="active-mode" select="map:get($class-modes, $active-class)"/>
-            <xsl:with-param name="endpoint" select="$endpoint"/>
-        </xsl:call-template>
-    </xsl:template>-->
-
     <!-- pager prev links -->
 
     <xsl:template match="*[contains-token(@class, 'resource-content')]//ul[@class = 'pager']/li[@class = 'previous']/a[@class = 'active']" mode="ixsl:onclick">
@@ -1089,6 +1053,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="endpoint" as="xs:anyURI"/>
         <!-- if  the container is full-width row (.row-fluid), render results in the middle column (.main) -->
         <xsl:param name="content-container" select="if (contains-token($container/@class, 'row-fluid')) then $container/div[contains-token(@class, 'main')] else $container" as="element()"/>
+        <xsl:param name="container-results-id" select="$content-id || '-container-results'" as="xs:string"/>
         <xsl:param name="order-by-container-id" select="$content-id || '-container-order'" as="xs:string"/>
         <xsl:param name="result-count-container-id" select="$content-id || '-result-count'" as="xs:string"/>
         
@@ -1127,7 +1092,7 @@ exclude-result-prefixes="#all"
                     <!-- store sorted results as the current container results -->
                     <ixsl:set-property name="results" select="$sorted-results" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`')"/>
 
-                    <xsl:variable name="initial-load" select="empty($content-container/div[ul])" as="xs:boolean"/>
+                    <xsl:variable name="initial-load" select="empty($content-container//div[@id = 'container-results-id'])" as="xs:boolean"/>
                     <!-- first time rendering the container results -->
                     <xsl:if test="$initial-load">
                         <xsl:for-each select="$content-container">
@@ -1174,7 +1139,7 @@ exclude-result-prefixes="#all"
                                 <div>
                                     <p id="{$result-count-container-id}" class="result-count"/>
 
-                                    <div id="{$content-id || '-container-results'}" class="container-results"></div>
+                                    <div id="{$container-results-id}" class="container-results"></div>
                                 </div>
                             </xsl:result-document>
                         </xsl:for-each>
@@ -1242,12 +1207,12 @@ exclude-result-prefixes="#all"
                         </xsl:if>
                     </xsl:for-each>
 
-                    <!-- result counts -->
-                        <xsl:call-template name="ldh:ResultCount">
-                            <xsl:with-param name="focus-var-name" select="$focus-var-name"/>
-                            <xsl:with-param name="select-xml" select="$select-xml"/>
-                            <xsl:with-param name="container" select="id($result-count-container-id, ixsl:page())"/>
-                        </xsl:call-template>
+                    <!-- result count -->
+                    <xsl:call-template name="ldh:ResultCount">
+                        <xsl:with-param name="focus-var-name" select="$focus-var-name"/>
+                        <xsl:with-param name="select-xml" select="$select-xml"/>
+                        <xsl:with-param name="container" select="id($result-count-container-id, ixsl:page())"/>
+                    </xsl:call-template>
 
                     <xsl:for-each select="$container/div[contains-token(@class, 'right-nav')]">
                         <!-- only show parallax navigation if the RDF result contains object resources -->
