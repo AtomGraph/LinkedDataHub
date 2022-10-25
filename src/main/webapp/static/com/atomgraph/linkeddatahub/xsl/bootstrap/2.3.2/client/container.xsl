@@ -35,17 +35,7 @@ exclude-result-prefixes="#all"
 
     <xsl:key name="resources-by-primary-topic" match="*[@rdf:about] | *[@rdf:nodeID]" use="foaf:primaryTopic/@rdf:resource"/>
     
-    <xsl:param name="class-modes" as="map(xs:string, xs:anyURI)">
-        <xsl:map>
-            <xsl:map-entry key="'read-mode'" select="xs:anyURI('&ac;ReadMode')"/>
-            <xsl:map-entry key="'list-mode'" select="xs:anyURI('&ac;ListMode')"/>
-            <xsl:map-entry key="'table-mode'" select="xs:anyURI('&ac;TableMode')"/>
-            <xsl:map-entry key="'grid-mode'" select="xs:anyURI('&ac;GridMode')"/>
-            <xsl:map-entry key="'chart-mode'" select="xs:anyURI('&ac;ChartMode')"/>
-            <xsl:map-entry key="'map-mode'" select="xs:anyURI('&ac;MapMode')"/>
-            <xsl:map-entry key="'graph-mode'" select="xs:anyURI('&ac;GraphMode')"/>
-        </xsl:map>
-    </xsl:param>
+    <xsl:param name="default-container-mode" select="xs:anyURI('&ac;ListMode')" as="xs:anyURI"/>
     
     <!-- TEMPLATES -->
 
@@ -154,7 +144,8 @@ exclude-result-prefixes="#all"
 
     <!-- result counts -->
     
-    <xsl:template name="ldh:ResultCounts">
+    <xsl:template name="ldh:ResultCount">
+        <xsl:param name="container" as="element()"/>
         <xsl:param name="count-var-name" select="'count'" as="xs:string"/>
         <xsl:param name="select-xml" as="document-node()"/>
         <xsl:param name="focus-var-name" as="xs:string"/>
@@ -194,7 +185,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml' } }">
                 <xsl:call-template name="ldh:ResultCountResultsLoad">
-                    <xsl:with-param name="container-id" select="'result-counts'"/>
+                    <xsl:with-param name="container" select="$container"/>
                     <xsl:with-param name="count-var-name" select="$count-var-name"/>
                 </xsl:call-template>
             </ixsl:schedule-action>
@@ -297,7 +288,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="select-xml" as="document-node()"/>
         <xsl:param name="endpoint" select="xs:anyURI"/>
         <xsl:param name="focus-var-name" as="xs:string"/>
-        <xsl:param name="active-mode" select="xs:anyURI('&ac;ListMode')" as="xs:anyURI"/>
+        <xsl:param name="active-mode" as="xs:anyURI"/>
 
         <xsl:for-each select="$container//div[@class = 'bar']">
             <ixsl:set-style name="width" select="'75%'" object="."/>
@@ -686,42 +677,6 @@ exclude-result-prefixes="#all"
 
     <!-- EVENT LISTENERS -->
 
-    <!-- container mode tabs -->
-    
-    <xsl:template match="*[contains-token(@class, 'resource-content')]//div/ul[@class = 'nav nav-tabs']/li[not(contains-token(@class, 'active'))]/a" mode="ixsl:onclick">
-        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'resource-content')]" as="element()"/>
-        <xsl:variable name="results-container" select="$container//div[contains-token(@class, 'container-results')]" as="element()"/> <!-- results in the middle column -->
-        <xsl:variable name="content-uri" select="xs:anyURI($container/@about)" as="xs:anyURI"/>
-        <xsl:variable name="content" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`'), 'content')" as="element()"/>
-        <xsl:variable name="active-class" select="../@class" as="xs:string"/>
-        <xsl:variable name="select-xml" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`'), 'select-xml')" as="document-node()"/>
-        <xsl:variable name="focus-var-name" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`'), 'focus-var-name')" as="xs:string"/>
-        <xsl:variable name="service-uri" select="if (ixsl:contains(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`'), 'service-uri')) then ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`'), 'service-uri') else ()" as="xs:anyURI?"/>
-        <xsl:variable name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.apps'))" as="element()?"/>
-        <xsl:variable name="endpoint" select="($service/sd:endpoint/@rdf:resource/xs:anyURI(.), sd:endpoint())[1]"/>
-        
-        <!-- deactivate other tabs -->
-        <xsl:for-each select="../../li">
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', false() ])[current-date() lt xs:date('2000-01-01')]"/>
-        </xsl:for-each>
-        <!-- activate this tab -->
-        <xsl:for-each select="..">
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', true() ])[current-date() lt xs:date('2000-01-01')]"/>
-        </xsl:for-each>
-        
-        <xsl:call-template name="render-container">
-            <xsl:with-param name="container" select="$results-container"/>
-            <xsl:with-param name="content-id" select="$container/@id"/>
-            <xsl:with-param name="content-uri" select="$content-uri"/>
-            <xsl:with-param name="content" select="$content"/>
-            <xsl:with-param name="results" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`'), 'results')"/>
-            <xsl:with-param name="select-xml" select="$select-xml"/>
-            <xsl:with-param name="focus-var-name" select="$focus-var-name"/>
-            <xsl:with-param name="active-mode" select="map:get($class-modes, $active-class)"/>
-            <xsl:with-param name="endpoint" select="$endpoint"/>
-        </xsl:call-template>
-    </xsl:template>
-
     <!-- pager prev links -->
 
     <xsl:template match="*[contains-token(@class, 'resource-content')]//ul[@class = 'pager']/li[@class = 'previous']/a[@class = 'active']" mode="ixsl:onclick">
@@ -729,8 +684,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'resource-content')]" as="element()"/>
         <xsl:variable name="content-uri" select="xs:anyURI($container/@about)" as="xs:anyURI"/>
         <xsl:variable name="content" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`'), 'content')" as="element()"/>
-        <xsl:variable name="active-class" select="$container//ul[@class = 'nav nav-tabs']/li[contains-token(@class, 'active')]/tokenize(@class, ' ')[not(. = 'active')][1]" as="xs:string"/>
-        <xsl:variable name="active-mode" select="map:get($class-modes, $active-class)" as="xs:anyURI"/>
+        <xsl:variable name="active-mode" select="if (ixsl:contains($container, 'dataset.contentMode')) then xs:anyURI(ixsl:get($container, 'dataset.contentMode')) else $default-container-mode" as="xs:anyURI"/>
         <xsl:variable name="select-string" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`'), 'select-query')" as="xs:string"/>
         <xsl:variable name="select-xml" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`'), 'select-xml')" as="document-node()"/>
         <xsl:variable name="offset" select="if ($select-xml/json:map/json:number[@key = 'offset']) then xs:integer($select-xml/json:map/json:number[@key = 'offset']) else 0" as="xs:integer"/>
@@ -772,8 +726,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'resource-content')]" as="element()"/>
         <xsl:variable name="content-uri" select="xs:anyURI($container/@about)" as="xs:anyURI"/>
         <xsl:variable name="content" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`'), 'content')" as="element()"/>
-        <xsl:variable name="active-class" select="$container//ul[@class = 'nav nav-tabs']/li[contains-token(@class, 'active')]/tokenize(@class, ' ')[not(. = 'active')][1]" as="xs:string"/>
-        <xsl:variable name="active-mode" select="map:get($class-modes, $active-class)" as="xs:anyURI"/>
+        <xsl:variable name="active-mode" select="if (ixsl:contains($container, 'dataset.contentMode')) then xs:anyURI(ixsl:get($container, 'dataset.contentMode')) else $default-container-mode" as="xs:anyURI"/>
         <xsl:variable name="select-string" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`'), 'select-query')" as="xs:string"/>
         <xsl:variable name="select-xml" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`'), 'select-xml')" as="document-node()"/>
         <xsl:variable name="offset" select="if ($select-xml/json:map/json:number[@key = 'offset']) then xs:integer($select-xml/json:map/json:number[@key = 'offset']) else 0" as="xs:integer"/>
@@ -814,8 +767,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'resource-content')]" as="element()"/>
         <xsl:variable name="content-uri" select="xs:anyURI($container/@about)" as="xs:anyURI"/>
         <xsl:variable name="content" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`'), 'content')" as="element()"/>
-        <xsl:variable name="active-class" select="$container//ul[@class = 'nav nav-tabs']/li[contains-token(@class, 'active')]/tokenize(@class, ' ')[not(. = 'active')][1]" as="xs:string"/>
-        <xsl:variable name="active-mode" select="map:get($class-modes, $active-class)" as="xs:anyURI"/>
+        <xsl:variable name="active-mode" select="if (ixsl:contains($container, 'dataset.contentMode')) then xs:anyURI(ixsl:get($container, 'dataset.contentMode')) else $default-container-mode" as="xs:anyURI"/>
         <xsl:variable name="predicate" select="ixsl:get(., 'value')" as="xs:anyURI?"/>
         <xsl:variable name="select-string" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`'), 'select-query')" as="xs:string"/>
         <xsl:variable name="select-xml" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`'), 'select-xml')" as="document-node()"/>
@@ -857,8 +809,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'resource-content')]" as="element()"/>
         <xsl:variable name="content-uri" select="xs:anyURI($container/@about)" as="xs:anyURI"/>
         <xsl:variable name="content" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`'), 'content')" as="element()"/>
-        <xsl:variable name="active-class" select="$container//ul[@class = 'nav nav-tabs']/li[contains-token(@class, 'active')]/tokenize(@class, ' ')[not(. = 'active')][1]" as="xs:string"/>
-        <xsl:variable name="active-mode" select="map:get($class-modes, $active-class)" as="xs:anyURI"/>
+        <xsl:variable name="active-mode" select="if (ixsl:contains($container, 'dataset.contentMode')) then xs:anyURI(ixsl:get($container, 'dataset.contentMode')) else $default-container-mode" as="xs:anyURI"/>
         <xsl:variable name="desc" select="contains(@class, 'btn-order-by-desc')" as="xs:boolean"/>
         <xsl:variable name="select-string" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`'), 'select-query')" as="xs:string"/>
         <xsl:variable name="select-xml" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`'), 'select-xml')" as="document-node()"/>
@@ -994,8 +945,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'resource-content')]" as="element()"/>
         <xsl:variable name="content-uri" select="xs:anyURI($container/@about)" as="xs:anyURI"/>
         <xsl:variable name="content" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`'), 'content')" as="element()"/>
-        <xsl:variable name="active-class" select="$container//ul[@class = 'nav nav-tabs']/li[contains-token(@class, 'active')]/tokenize(@class, ' ')[not(. = 'active')][1]" as="xs:string"/>
-        <xsl:variable name="active-mode" select="map:get($class-modes, $active-class)" as="xs:anyURI"/>
+        <xsl:variable name="active-mode" select="if (ixsl:contains($container, 'dataset.contentMode')) then xs:anyURI(ixsl:get($container, 'dataset.contentMode')) else $default-container-mode" as="xs:anyURI"/>
         <xsl:variable name="var-name" select="@name" as="xs:string"/>
         <!-- collect the values/types/datatypes of all checked inputs within this facet and build an array of maps -->
         <xsl:variable name="labels" select="ancestor::ul//label[input[@type = 'checkbox'][ixsl:get(., 'checked')]]" as="element()*"/>
@@ -1038,8 +988,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'resource-content')]" as="element()"/>
         <xsl:variable name="content-uri" select="xs:anyURI($container/@about)" as="xs:anyURI"/>
         <xsl:variable name="content" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`'), 'content')" as="element()"/>
-        <xsl:variable name="active-class" select="$container//ul[@class = 'nav nav-tabs']/li[contains-token(@class, 'active')]/tokenize(@class, ' ')[not(. = 'active')][1]" as="xs:string"/>
-        <xsl:variable name="active-mode" select="map:get($class-modes, $active-class)" as="xs:anyURI"/>
+        <xsl:variable name="active-mode" select="if (ixsl:contains($container, 'dataset.contentMode')) then xs:anyURI(ixsl:get($container, 'dataset.contentMode')) else $default-container-mode" as="xs:anyURI"/>
         <xsl:variable name="predicate" select="input/@value" as="xs:anyURI"/>
         <xsl:variable name="select-string" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`'), 'select-query')" as="xs:string"/>
         <xsl:variable name="select-xml" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`'), 'select-xml')" as="document-node()"/>
@@ -1088,7 +1037,9 @@ exclude-result-prefixes="#all"
         <xsl:param name="endpoint" as="xs:anyURI"/>
         <!-- if  the container is full-width row (.row-fluid), render results in the middle column (.main) -->
         <xsl:param name="content-container" select="if (contains-token($container/@class, 'row-fluid')) then $container/div[contains-token(@class, 'main')] else $container" as="element()"/>
-        <xsl:param name="order-by-container-id" select="$content-id || '-container-order'" as="xs:string?"/>
+        <xsl:param name="container-results-id" select="$content-id || '-container-results'" as="xs:string"/>
+        <xsl:param name="order-by-container-id" select="$content-id || '-container-order'" as="xs:string"/>
+        <xsl:param name="result-count-container-id" select="$content-id || '-result-count'" as="xs:string"/>
         
         <!-- update progress bar -->
         <xsl:for-each select="$container//div[@class = 'bar']">
@@ -1125,7 +1076,7 @@ exclude-result-prefixes="#all"
                     <!-- store sorted results as the current container results -->
                     <ixsl:set-property name="results" select="$sorted-results" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`')"/>
 
-                    <xsl:variable name="initial-load" select="empty($content-container/div[ul])" as="xs:boolean"/>
+                    <xsl:variable name="initial-load" select="empty($content-container//div[@id = $container-results-id])" as="xs:boolean"/>
                     <!-- first time rendering the container results -->
                     <xsl:if test="$initial-load">
                         <xsl:for-each select="$content-container">
@@ -1170,80 +1121,9 @@ exclude-result-prefixes="#all"
                                 </div>
 
                                 <div>
-                                    <ul class="nav nav-tabs">
-                                        <li class="read-mode">
-                                            <xsl:if test="$active-mode = '&ac;ReadMode'">
-                                                <xsl:attribute name="class" select="'read-mode active'"/>
-                                            </xsl:if>
+                                    <p id="{$result-count-container-id}" class="result-count"/>
 
-                                            <a>
-                                                <xsl:apply-templates select="key('resources', '&ac;ReadMode', document(ac:document-uri('&ac;')))" mode="ldh:logo"/>
-                                                <xsl:apply-templates select="key('resources', '&ac;ReadMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
-                                            </a>
-                                        </li>
-                                        <li class="list-mode">
-                                            <xsl:if test="$active-mode = '&ac;ListMode'">
-                                                <xsl:attribute name="class" select="'list-mode active'"/>
-                                            </xsl:if>
-
-                                            <a>
-                                                <xsl:apply-templates select="key('resources', '&ac;ListMode', document(ac:document-uri('&ac;')))" mode="ldh:logo"/>
-                                                <xsl:apply-templates select="key('resources', '&ac;ListMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
-                                            </a>
-                                        </li>
-                                        <li class="table-mode">
-                                            <xsl:if test="$active-mode = '&ac;TableMode'">
-                                                <xsl:attribute name="class" select="'table-mode active'"/>
-                                            </xsl:if>
-
-                                            <a>
-                                                <xsl:apply-templates select="key('resources', '&ac;TableMode', document(ac:document-uri('&ac;')))" mode="ldh:logo"/>
-                                                <xsl:apply-templates select="key('resources', '&ac;TableMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
-                                            </a>
-                                        </li>
-                                        <li class="grid-mode">
-                                            <xsl:if test="$active-mode = '&ac;GridMode'">
-                                                <xsl:attribute name="class" select="'grid-mode active'"/>
-                                            </xsl:if>
-
-                                            <a>
-                                                <xsl:apply-templates select="key('resources', '&ac;GridMode', document(ac:document-uri('&ac;')))" mode="ldh:logo"/>
-                                                <xsl:apply-templates select="key('resources', '&ac;GridMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
-                                            </a>
-                                        </li>
-                                        <li class="chart-mode">
-                                            <xsl:if test="$active-mode = '&ac;ChartMode'">
-                                                <xsl:attribute name="class" select="'chart-mode active'"/>
-                                            </xsl:if>
-
-                                            <a>
-                                                <xsl:apply-templates select="key('resources', '&ac;ChartMode', document(ac:document-uri('&ac;')))" mode="ldh:logo"/>
-                                                <xsl:apply-templates select="key('resources', '&ac;ChartMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
-                                            </a>
-                                        </li>
-                                        <li class="map-mode">
-                                            <xsl:if test="$active-mode = '&ac;MapMode'">
-                                                <xsl:attribute name="class" select="'map-mode active'"/>
-                                            </xsl:if>
-
-                                            <a>
-                                                <xsl:apply-templates select="key('resources', '&ac;MapMode', document(ac:document-uri('&ac;')))" mode="ldh:logo"/>
-                                                <xsl:apply-templates select="key('resources', '&ac;MapMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
-                                            </a>
-                                        </li>
-                                        <li class="graph-mode">
-                                            <xsl:if test="$active-mode = '&ac;GraphMode'">
-                                                <xsl:attribute name="class" select="'graph-mode active'"/>
-                                            </xsl:if>
-
-                                            <a>
-                                                <xsl:apply-templates select="key('resources', '&ac;GraphMode', document(ac:document-uri('&ac;')))" mode="ldh:logo"/>
-                                                <xsl:apply-templates select="key('resources', '&ac;GraphMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
-                                            </a>
-                                        </li>
-                                    </ul>
-                                    
-                                    <div id="{$content-id || '-container-results'}" class="container-results"></div>
+                                    <div id="{$container-results-id}" class="container-results"></div>
                                 </div>
                             </xsl:result-document>
                         </xsl:for-each>
@@ -1311,13 +1191,12 @@ exclude-result-prefixes="#all"
                         </xsl:if>
                     </xsl:for-each>
 
-                    <!-- result counts -->
-                    <!-- <xsl:if test="id('result-counts', ixsl:page())">
-                        <xsl:call-template name="ldh:ResultCounts">
-                            <xsl:with-param name="focus-var-name" select="$focus-var-name"/>
-                            <xsl:with-param name="select-xml" select="$select-xml"/>
-                        </xsl:call-template>
-                    </xsl:if> -->
+                    <!-- result count -->
+                    <xsl:call-template name="ldh:ResultCount">
+                        <xsl:with-param name="focus-var-name" select="$focus-var-name"/>
+                        <xsl:with-param name="select-xml" select="$select-xml"/>
+                        <xsl:with-param name="container" select="id($result-count-container-id, ixsl:page())"/>
+                    </xsl:call-template>
 
                     <xsl:for-each select="$container/div[contains-token(@class, 'right-nav')]">
                         <!-- only show parallax navigation if the RDF result contains object resources -->
@@ -1587,27 +1466,32 @@ exclude-result-prefixes="#all"
     
     <xsl:template name="ldh:ResultCountResultsLoad">
         <xsl:context-item as="map(*)" use="required"/>
-        <xsl:param name="container-id" as="xs:string"/>
+        <xsl:param name="container" as="element()"/>
         <xsl:param name="count-var-name" as="xs:string"/>
 
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = 'application/sparql-results+xml'">
                 <xsl:for-each select="?body">
                     <xsl:variable name="results" select="." as="document-node()"/>
-                    <xsl:result-document href="#{$container-id}" method="ixsl:replace-content">
-                        <p>
-                            <xsl:text>Total results </xsl:text>
-                            <span class="badge badge-inverse">
-                                <xsl:value-of select="$results//srx:binding[@name = $count-var-name]/srx:literal"/>
-                            </span>
-                        </p>
-                    </xsl:result-document>
+                    <xsl:for-each select="$container">
+                        <xsl:result-document href="?." method="ixsl:replace-content">
+                            <strong>
+                                <xsl:apply-templates select="key('resources', 'total-results', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                                <xsl:text> </xsl:text>
+                                <span class="badge badge-inverse">
+                                    <xsl:value-of select="$results//srx:binding[@name = $count-var-name]/srx:literal"/>
+                                </span>
+                            </strong>
+                        </xsl:result-document>
+                    </xsl:for-each>
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:result-document href="#{$container-id}" method="ixsl:replace-content">
-                    <p class="alert">Error loading result count</p>
-                </xsl:result-document>
+                <xsl:for-each select="$container">
+                    <xsl:result-document href="?." method="ixsl:replace-content">
+                        <span class="alert">Error loading result count</span>
+                    </xsl:result-document>
+                </xsl:for-each>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
