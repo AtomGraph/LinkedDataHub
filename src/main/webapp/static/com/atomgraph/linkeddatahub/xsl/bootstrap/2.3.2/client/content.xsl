@@ -144,7 +144,7 @@ exclude-result-prefixes="#all"
         </xsl:variable>
         <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $select-json ])" as="xs:string"/>
         <xsl:variable name="select-xml" select="json-to-xml($select-json-string)" as="document-node()"/>
-        <xsl:variable name="focus-var-name" select="$select-xml/json:map/json:array[@key = 'variables']/json:string[1]/substring-after(., '?')" as="xs:string"/>
+        <xsl:variable name="initial-var-name" select="$select-xml/json:map/json:array[@key = 'variables']/json:string[1]/substring-after(., '?')" as="xs:string"/>
         <!-- service can be explicitly specified on content using ldh:service -->
         <xsl:variable name="service-uri" select="xs:anyURI(ldh:service/@rdf:resource)" as="xs:anyURI?"/>
         <xsl:variable name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.apps'))" as="element()?"/>
@@ -157,7 +157,7 @@ exclude-result-prefixes="#all"
                 <!-- store the initial SELECT query (without modifiers) -->
                 <ixsl:set-property name="select-query" select="$select-string" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`')"/>
                 <!-- store the first var name of the initial SELECT query -->
-                <ixsl:set-property name="focus-var-name" select="$focus-var-name" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`')"/>
+                <ixsl:set-property name="initial-var-name" select="$initial-var-name" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`')"/>
                 <xsl:if test="$service-uri">
                     <!-- store (the URI of) the service -->
                     <ixsl:set-property name="service-uri" select="$service-uri" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`')"/>
@@ -193,7 +193,7 @@ exclude-result-prefixes="#all"
                     <xsl:with-param name="select-string" select="$select-string"/>
                     <xsl:with-param name="select-xml" select="$select-xml"/>
                     <xsl:with-param name="endpoint" select="$endpoint"/>
-                    <xsl:with-param name="focus-var-name" select="$focus-var-name"/>
+                    <xsl:with-param name="initial-var-name" select="$initial-var-name"/>
                     <xsl:with-param name="active-mode" select="if ($mode) then $mode else xs:anyURI('&ac;ListMode')"/>
                 </xsl:call-template>
             </xsl:when>
