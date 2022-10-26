@@ -1178,7 +1178,7 @@ WHERE
                         <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'LinkedDataHub.request'), 'abort', [])"/>
                     </xsl:if>
 
-                    <xsl:variable name="request-uri" select="ac:build-uri($href, ldh:query-params(xs:anyURI('&ldh;HydrationMode')))" as="xs:anyURI"/>
+                    <xsl:variable name="request-uri" select="ac:build-uri($href, map:merge(ldh:parse-query-params(substring-after($href, '?')), ldh:query-params(xs:anyURI('&ldh;HydrationMode'))))" as="xs:anyURI"/>
                     <xsl:variable name="request" as="item()*">
                         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
                             <xsl:call-template name="onDocumentLoad">
@@ -1213,7 +1213,7 @@ WHERE
             <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'LinkedDataHub.request'), 'abort', [])"/>
         </xsl:if>
         
-        <xsl:variable name="request-uri" select="ac:build-uri($href, ldh:query-params(xs:anyURI('&ldh;HydrationMode')))" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="ac:build-uri($href, map:merge(ldh:parse-query-params(substring-after($href, '?')), ldh:query-params(xs:anyURI('&ldh;HydrationMode'))))" as="xs:anyURI"/>
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
                 <xsl:call-template name="onDocumentLoad">
@@ -1243,7 +1243,7 @@ WHERE
                 <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'LinkedDataHub.request'), 'abort', [])"/>
             </xsl:if>
 
-            <xsl:variable name="request-uri" select="ac:build-uri($href, ldh:query-params(xs:anyURI('&ldh;HydrationMode')))" as="xs:anyURI"/>
+            <xsl:variable name="request-uri" select="ac:build-uri($href, map:merge(ldh:parse-query-params(substring-after($href, '?')), ldh:query-params(xs:anyURI('&ldh;HydrationMode'))))" as="xs:anyURI"/>
             <xsl:variable name="request" as="item()*">
                 <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
                     <xsl:call-template name="onDocumentLoad">
@@ -1450,7 +1450,7 @@ WHERE
             <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'LinkedDataHub.request'), 'abort', [])"/>
         </xsl:if>
 
-        <xsl:variable name="request-uri" select="ac:build-uri($href, ldh:query-params(xs:anyURI('&ldh;HydrationMode')))" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="ac:build-uri($href, map:merge(ldh:parse-query-params(substring-after($href, '?')), ldh:query-params(xs:anyURI('&ldh;HydrationMode'))))" as="xs:anyURI"/>
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
                 <xsl:call-template name="onAddForm">
@@ -1553,7 +1553,7 @@ WHERE
             <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'LinkedDataHub.request'), 'abort', [])"/>
         </xsl:if>
 
-        <xsl:variable name="request-uri" select="ac:build-uri($href, ldh:query-params(xs:anyURI('&ldh;HydrationMode')))" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="ac:build-uri($href, map:merge(ldh:parse-query-params(substring-after($href, '?')), ldh:query-params(xs:anyURI('&ldh;HydrationMode'))))" as="xs:anyURI"/>
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
                 <xsl:call-template name="onDocumentLoad">
