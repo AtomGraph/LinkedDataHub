@@ -1077,10 +1077,16 @@ exclude-result-prefixes="#all"
                     <!-- update @data-content-value value -->
                     <ixsl:set-property name="dataset.contentValue" select="$content-value" object="."/>
 
-                    <xsl:if test="$mode">
-                        <!-- update @data-content-mode value -->
-                        <ixsl:set-property name="dataset.contentMode" select="$mode" object="."/>
-                    </xsl:if>
+                    <xsl:choose>
+                        <xsl:when test="$mode">
+                            <!-- update @data-content-mode value -->
+                            <ixsl:set-property name="dataset.contentMode" select="$mode" object="."/>
+                        </xsl:when>
+                        <xsl:when test="ixsl:contains(., 'dataset.contentMode')">
+                            <!-- remove @data-content-mode -->
+                            <ixsl:remove-property name="dataset.contentMode" object="."/>
+                        </xsl:when>
+                    </xsl:choose>
                     
                     <xsl:call-template name="ldh:LoadContent">
                         <xsl:with-param name="uri" select="$uri"/> <!-- content value gets read from dataset.contentValue -->
