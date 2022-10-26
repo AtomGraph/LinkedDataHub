@@ -5,7 +5,6 @@
     <!ENTITY lacl   "https://w3id.org/atomgraph/linkeddatahub/admin/acl#">
     <!ENTITY def    "https://w3id.org/atomgraph/linkeddatahub/default#">
     <!ENTITY ldh    "https://w3id.org/atomgraph/linkeddatahub#">
-    <!ENTITY ldht   "https://w3id.org/atomgraph/linkeddatahub/templates#">
     <!ENTITY ldhc   "https://w3id.org/atomgraph/linkeddatahub/config#">
     <!ENTITY google "https://w3id.org/atomgraph/linkeddatahub/services/google#">
     <!ENTITY ac     "https://w3id.org/atomgraph/client#">
@@ -47,7 +46,6 @@ xmlns:lapp="&lapp;"
 xmlns:lacl="&lacl;"
 xmlns:ldh="&ldh;"
 xmlns:ldhc="&ldhc;"
-xmlns:ldht="&ldht;"
 xmlns:rdf="&rdf;"
 xmlns:xhv="&xhv;"
 xmlns:rdfs="&rdfs;"
@@ -321,12 +319,12 @@ LIMIT   100
     <xsl:template match="rdf:RDF" mode="xhtml:Script">
         <xsl:param name="client-stylesheet" select="resolve-uri('static/com/atomgraph/linkeddatahub/xsl/client.xsl.sef.json', $ac:contextUri)" as="xs:anyURI"/>
         <xsl:param name="saxon-js-log-level" select="10" as="xs:integer"/>
-        <xsl:param name="load-wymeditor" select="not($ac:mode = ('&ac;ModalMode', '&ldht;InfoWindowMode'))" as="xs:boolean"/>
-        <xsl:param name="load-yasqe" select="not($ac:mode = ('&ac;ModalMode', '&ldht;InfoWindowMode'))" as="xs:boolean"/>
-        <xsl:param name="load-saxon-js" select="$ldh:ajaxRendering and not($ac:mode = ('&ac;ModalMode', '&ldht;InfoWindowMode'))" as="xs:boolean"/>
-        <xsl:param name="load-sparql-builder" select="not($ac:mode = ('&ac;ModalMode', '&ldht;InfoWindowMode'))" as="xs:boolean"/>
-        <xsl:param name="load-sparql-map" select="not($ac:mode = ('&ac;ModalMode', '&ldht;InfoWindowMode'))" as="xs:boolean"/>
-        <xsl:param name="load-google-charts" select="not($ac:mode = ('&ac;ModalMode', '&ldht;InfoWindowMode'))" as="xs:boolean"/>
+        <xsl:param name="load-wymeditor" select="not($ac:mode = ('&ac;ModalMode', '&ldh;InfoWindowMode'))" as="xs:boolean"/>
+        <xsl:param name="load-yasqe" select="not($ac:mode = ('&ac;ModalMode', '&ldh;InfoWindowMode'))" as="xs:boolean"/>
+        <xsl:param name="load-saxon-js" select="$ldh:ajaxRendering and not($ac:mode = ('&ac;ModalMode', '&ldh;InfoWindowMode'))" as="xs:boolean"/>
+        <xsl:param name="load-sparql-builder" select="not($ac:mode = ('&ac;ModalMode', '&ldh;InfoWindowMode'))" as="xs:boolean"/>
+        <xsl:param name="load-sparql-map" select="not($ac:mode = ('&ac;ModalMode', '&ldh;InfoWindowMode'))" as="xs:boolean"/>
+        <xsl:param name="load-google-charts" select="not($ac:mode = ('&ac;ModalMode', '&ldh;InfoWindowMode'))" as="xs:boolean"/>
         <xsl:param name="output-json-ld" select="false()" as="xs:boolean"/>
 
         <!-- Web-Client scripts -->
@@ -707,7 +705,7 @@ LIMIT   100
     
     <!-- BODY -->
 
-    <xsl:template match="rdf:RDF[key('resources', ac:uri())][$ac:mode = '&ldht;InfoWindowMode']" mode="xhtml:Body" priority="1">
+    <xsl:template match="rdf:RDF[key('resources', ac:uri())][$ac:mode = '&ldh;InfoWindowMode']" mode="xhtml:Body" priority="1">
         <body>
             <div> <!-- SPARQLMap renders the first child of <body> as InfoWindow -->
                 <xsl:apply-templates select="." mode="bs2:Block">
@@ -717,7 +715,7 @@ LIMIT   100
         </body>
     </xsl:template>
 
-    <xsl:template match="rdf:RDF[key('resources', ac:uri())][$ac:mode = '&ldht;ObjectMode']" mode="xhtml:Body" priority="2">
+<!--    <xsl:template match="rdf:RDF[key('resources', ac:uri())][$ac:mode = '&ldh;ObjectMode']" mode="xhtml:Body" priority="2">
         <body class="embed">
             <div>
                 <xsl:apply-templates select="." mode="bs2:Object">
@@ -725,139 +723,17 @@ LIMIT   100
                 </xsl:apply-templates>
             </div>
         </body>
+    </xsl:template>-->
+
+    <xsl:template match="rdf:RDF[$ac:mode = '&ldh;HydrationMode']" mode="xhtml:Body" priority="1">
+        <xsl:apply-templates select="." mode="bs2:ContentBody"/>
     </xsl:template>
 
     <xsl:template match="rdf:RDF" mode="xhtml:Body">
-        <xsl:param name="classes" select="for $class-uri in map:keys($default-classes) return key('resources', $class-uri, document(ac:document-uri($class-uri)))" as="element()*"/>
-        <xsl:param name="content-values" select="key('resources', ac:uri())/rdf:type/@rdf:resource[ . = ('&def;Root', '&dh;Container', '&dh;Item')][doc-available(resolve-uri('ns?query=ASK%20%7B%7D', $ldt:base))]/ldh:query-result(map{ '$Type': xs:anyURI(.) }, resolve-uri('ns', $ldt:base), $template-query)//srx:binding[@name = 'content']/srx:uri/xs:anyURI(.)" as="xs:anyURI*"/>
-        <xsl:param name="has-content" select="key('resources', key('resources', ac:uri())/rdf:*[starts-with(local-name(), '_')]/@rdf:resource) or exists($content-values)" as="xs:boolean"/>
-
         <body>
             <xsl:apply-templates select="." mode="bs2:NavBar"/>
 
-            <div about="{ac:uri()}" id="content-body" class="container-fluid">
-                <xsl:apply-templates select="." mode="bs2:ModeTabs">
-                    <xsl:with-param name="has-content" select="$has-content"/>
-                    <xsl:with-param name="active-mode" select="$ac:mode"/>
-                    <xsl:with-param name="forClass" select="$ac:forClass"/>
-                    <xsl:with-param name="ajax-rendering" select="$ldh:ajaxRendering"/>
-                </xsl:apply-templates>
-            
-                <xsl:choose>
-                    <!-- error responses always rendered in bs2:Row mode, no matter what $ac:mode specifies -->
-                    <xsl:when test="key('resources-by-type', '&http;Response') and not(key('resources-by-type', '&spin;ConstraintViolation')) and not(key('resources-by-type', '&sh;ValidationResult'))">
-                        <xsl:apply-templates select="." mode="bs2:Row">
-                            <xsl:with-param name="template-query" select="$template-query" tunnel="yes"/>
-                            <xsl:sort select="ac:label(.)"/>
-                        </xsl:apply-templates>
-                    </xsl:when>
-                    <xsl:when test="$ac:forClass and $ac:method = 'GET'">
-                        <xsl:variable name="constructor" as="document-node()">
-                            <xsl:apply-templates select="." mode="ldh:Constructor">
-                                <xsl:with-param name="forClass" select="$ac:forClass"/>
-                                <xsl:with-param name="createGraph" select="$ldh:createGraph"/>
-                                <xsl:with-param name="constructor-query" select="$constructor-query"/>
-                            </xsl:apply-templates>
-                        </xsl:variable>
-                        
-                        <xsl:choose>
-                            <xsl:when test="$ac:mode = '&ac;ModalMode'">
-                                <xsl:apply-templates select="$constructor" mode="bs2:ModalForm">
-                                    <xsl:with-param name="constructor-query" select="$constructor-query" tunnel="yes"/>
-                                    <xsl:with-param name="constraint-query" select="$constraint-query" tunnel="yes"/>
-                                    <xsl:with-param name="shape-query" select="$shape-query" tunnel="yes"/>
-                                    <xsl:sort select="ac:label(.)"/>
-                                </xsl:apply-templates>
-                            </xsl:when>
-                            <xsl:otherwise>
-                                <xsl:apply-templates select="$constructor" mode="bs2:RowForm">
-                                    <xsl:with-param name="classes" select="$classes"/>
-                                    <xsl:with-param name="constructor-query" select="$constructor-query" tunnel="yes"/>
-                                    <xsl:with-param name="constraint-query" select="$constraint-query" tunnel="yes"/>
-                                    <xsl:with-param name="shape-query" select="$shape-query" tunnel="yes"/>
-                                    <xsl:sort select="ac:label(.)"/>
-                                </xsl:apply-templates>
-                            </xsl:otherwise>
-                        </xsl:choose>
-                    </xsl:when>
-                    <xsl:when test="$ldh:forShape and $ac:method = 'GET'">
-                        <xsl:variable name="shapes" select="ldh:query-result(map{ '$Shape': $ldh:forShape }, resolve-uri('ns', $ldt:base), $shape-query)" as="document-node()"/>
-                        <xsl:variable name="constructor" as="document-node()">
-                            <xsl:apply-templates select="$shapes" mode="ldh:Shape"/>
-                        </xsl:variable>
-
-                        <xsl:choose>
-                            <xsl:when test="$ac:mode = '&ac;ModalMode'">
-                                <xsl:apply-templates select="ldh:reserialize($constructor)" mode="bs2:ModalForm">
-                                    <xsl:with-param name="constructor-query" select="$constructor-query" tunnel="yes"/>
-                                    <xsl:with-param name="constraint-query" select="$constraint-query" tunnel="yes"/>
-                                    <xsl:with-param name="shape-query" select="$shape-query" tunnel="yes"/>
-                                    <xsl:sort select="ac:label(.)"/>
-                                </xsl:apply-templates>
-                            </xsl:when>
-                            <xsl:otherwise>
-                                <xsl:apply-templates select="ldh:reserialize($constructor)" mode="bs2:RowForm">
-                                    <xsl:with-param name="classes" select="$classes"/>
-                                    <xsl:with-param name="constructor-query" select="$constructor-query" tunnel="yes"/>
-                                    <xsl:with-param name="constraint-query" select="$constraint-query" tunnel="yes"/>
-                                    <xsl:with-param name="shape-query" select="$shape-query" tunnel="yes"/>
-                                    <xsl:sort select="ac:label(.)"/>
-                                </xsl:apply-templates>
-                            </xsl:otherwise>
-                        </xsl:choose>
-                    </xsl:when>
-                    <!-- check if the current document has content or its class has content -->
-                    <xsl:when test="(empty($ac:mode) and $has-content) or $ac:mode = '&ldh;ContentMode'">
-                        <xsl:apply-templates select="." mode="ldh:ContentList"/>
-
-                        <xsl:for-each select="$content-values">
-                            <xsl:if test="doc-available(ac:document-uri(.))">
-                                <xsl:apply-templates select="key('resources', ., document(ac:document-uri(.)))" mode="bs2:RowContent"/>
-                            </xsl:if>
-                        </xsl:for-each>
-                    </xsl:when>
-                    <xsl:when test="$ac:mode = '&ac;MapMode'">
-                        <xsl:apply-templates select="." mode="bs2:Map">
-                            <xsl:with-param name="canvas-id" select="generate-id() || '-map-canvas'"/>
-                            <xsl:sort select="ac:label(.)"/>
-                        </xsl:apply-templates>
-                    </xsl:when>
-                    <xsl:when test="$ac:mode = '&ac;ChartMode'">
-                        <xsl:apply-templates select="." mode="bs2:Chart">
-                            <xsl:with-param name="canvas-id" select="generate-id() || '-chart-canvas'"/>
-                            <xsl:with-param name="show-save" select="false()"/>
-                            <xsl:sort select="ac:label(.)"/>
-                        </xsl:apply-templates>
-                    </xsl:when>
-                    <xsl:when test="$ac:mode = '&ac;GraphMode'">
-                        <xsl:apply-templates select="." mode="bs2:Graph">
-                            <xsl:sort select="ac:label(.)"/>
-                        </xsl:apply-templates>
-                    </xsl:when>
-                    <xsl:when test="$ac:mode = '&ac;EditMode' and $ac:mode = '&ac;ModalMode'">
-                        <xsl:apply-templates select="." mode="bs2:ModalForm">
-                            <xsl:with-param name="constructor-query" select="$constructor-query" tunnel="yes"/>
-                            <xsl:with-param name="constraint-query" select="$constraint-query" tunnel="yes"/>
-                            <xsl:with-param name="shape-query" select="$shape-query" tunnel="yes"/>
-                            <xsl:sort select="ac:label(.)"/>
-                        </xsl:apply-templates>
-                    </xsl:when>
-                    <xsl:when test="$ac:mode = '&ac;EditMode'">
-                        <xsl:apply-templates select="." mode="bs2:RowForm">
-                            <xsl:with-param name="classes" select="$classes"/>
-                            <xsl:with-param name="constructor-query" select="$constructor-query" tunnel="yes"/>
-                            <xsl:with-param name="constraint-query" select="$constraint-query" tunnel="yes"/>
-                            <xsl:with-param name="shape-query" select="$shape-query" tunnel="yes"/>
-                            <xsl:sort select="ac:label(.)"/>
-                        </xsl:apply-templates>
-                    </xsl:when>
-                    <xsl:otherwise>
-                        <xsl:apply-templates select="." mode="bs2:Row">
-                            <xsl:sort select="ac:label(.)"/>
-                        </xsl:apply-templates>
-                    </xsl:otherwise>
-                </xsl:choose>
-            </div>
+            <xsl:apply-templates select="." mode="bs2:ContentBody"/>
 
             <xsl:apply-templates select="." mode="bs2:DocumentTree"/>
             
@@ -865,6 +741,136 @@ LIMIT   100
         </body>
     </xsl:template>
 
+    <xsl:template match="rdf:RDF" mode="bs2:ContentBody">
+        <xsl:param name="classes" select="for $class-uri in map:keys($default-classes) return key('resources', $class-uri, document(ac:document-uri($class-uri)))" as="element()*"/>
+        <xsl:param name="content-values" select="key('resources', ac:uri())/rdf:type/@rdf:resource[ . = ('&def;Root', '&dh;Container', '&dh;Item')][doc-available(resolve-uri('ns?query=ASK%20%7B%7D', $ldt:base))]/ldh:query-result(map{ '$Type': xs:anyURI(.) }, resolve-uri('ns', $ldt:base), $template-query)//srx:binding[@name = 'content']/srx:uri/xs:anyURI(.)" as="xs:anyURI*"/>
+        <xsl:param name="has-content" select="key('resources', key('resources', ac:uri())/rdf:*[starts-with(local-name(), '_')]/@rdf:resource) or exists($content-values)" as="xs:boolean"/>
+
+        <div about="{ac:uri()}" id="content-body" class="container-fluid">
+            <xsl:apply-templates select="." mode="bs2:ModeTabs">
+                <xsl:with-param name="has-content" select="$has-content"/>
+                <xsl:with-param name="active-mode" select="$ac:mode"/>
+                <xsl:with-param name="forClass" select="$ac:forClass"/>
+                <xsl:with-param name="ajax-rendering" select="$ldh:ajaxRendering"/>
+            </xsl:apply-templates>
+
+            <xsl:choose>
+                <!-- error responses always rendered in bs2:Row mode, no matter what $ac:mode specifies -->
+                <xsl:when test="key('resources-by-type', '&http;Response') and not(key('resources-by-type', '&spin;ConstraintViolation')) and not(key('resources-by-type', '&sh;ValidationResult'))">
+                    <xsl:apply-templates select="." mode="bs2:Row">
+                        <xsl:with-param name="template-query" select="$template-query" tunnel="yes"/>
+                        <xsl:sort select="ac:label(.)"/>
+                    </xsl:apply-templates>
+                </xsl:when>
+                <xsl:when test="$ac:forClass and $ac:method = 'GET'">
+                    <xsl:variable name="constructor" as="document-node()">
+                        <xsl:apply-templates select="." mode="ldh:Constructor">
+                            <xsl:with-param name="forClass" select="$ac:forClass"/>
+                            <xsl:with-param name="createGraph" select="$ldh:createGraph"/>
+                            <xsl:with-param name="constructor-query" select="$constructor-query"/>
+                        </xsl:apply-templates>
+                    </xsl:variable>
+
+                    <xsl:choose>
+                        <xsl:when test="$ac:mode = '&ac;ModalMode'">
+                            <xsl:apply-templates select="$constructor" mode="bs2:ModalForm">
+                                <xsl:with-param name="constructor-query" select="$constructor-query" tunnel="yes"/>
+                                <xsl:with-param name="constraint-query" select="$constraint-query" tunnel="yes"/>
+                                <xsl:with-param name="shape-query" select="$shape-query" tunnel="yes"/>
+                                <xsl:sort select="ac:label(.)"/>
+                            </xsl:apply-templates>
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <xsl:apply-templates select="$constructor" mode="bs2:RowForm">
+                                <xsl:with-param name="classes" select="$classes"/>
+                                <xsl:with-param name="constructor-query" select="$constructor-query" tunnel="yes"/>
+                                <xsl:with-param name="constraint-query" select="$constraint-query" tunnel="yes"/>
+                                <xsl:with-param name="shape-query" select="$shape-query" tunnel="yes"/>
+                                <xsl:sort select="ac:label(.)"/>
+                            </xsl:apply-templates>
+                        </xsl:otherwise>
+                    </xsl:choose>
+                </xsl:when>
+                <xsl:when test="$ldh:forShape and $ac:method = 'GET'">
+                    <xsl:variable name="shapes" select="ldh:query-result(map{ '$Shape': $ldh:forShape }, resolve-uri('ns', $ldt:base), $shape-query)" as="document-node()"/>
+                    <xsl:variable name="constructor" as="document-node()">
+                        <xsl:apply-templates select="$shapes" mode="ldh:Shape"/>
+                    </xsl:variable>
+
+                    <xsl:choose>
+                        <xsl:when test="$ac:mode = '&ac;ModalMode'">
+                            <xsl:apply-templates select="ldh:reserialize($constructor)" mode="bs2:ModalForm">
+                                <xsl:with-param name="constructor-query" select="$constructor-query" tunnel="yes"/>
+                                <xsl:with-param name="constraint-query" select="$constraint-query" tunnel="yes"/>
+                                <xsl:with-param name="shape-query" select="$shape-query" tunnel="yes"/>
+                                <xsl:sort select="ac:label(.)"/>
+                            </xsl:apply-templates>
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <xsl:apply-templates select="ldh:reserialize($constructor)" mode="bs2:RowForm">
+                                <xsl:with-param name="classes" select="$classes"/>
+                                <xsl:with-param name="constructor-query" select="$constructor-query" tunnel="yes"/>
+                                <xsl:with-param name="constraint-query" select="$constraint-query" tunnel="yes"/>
+                                <xsl:with-param name="shape-query" select="$shape-query" tunnel="yes"/>
+                                <xsl:sort select="ac:label(.)"/>
+                            </xsl:apply-templates>
+                        </xsl:otherwise>
+                    </xsl:choose>
+                </xsl:when>
+                <!-- check if the current document has content or its class has content -->
+                <xsl:when test="(empty($ac:mode) and $has-content) or $ac:mode = '&ldh;ContentMode'">
+                    <xsl:apply-templates select="." mode="ldh:ContentList"/>
+
+                    <xsl:for-each select="$content-values">
+                        <xsl:if test="doc-available(ac:document-uri(.))">
+                            <xsl:apply-templates select="key('resources', ., document(ac:document-uri(.)))" mode="bs2:RowContent"/>
+                        </xsl:if>
+                    </xsl:for-each>
+                </xsl:when>
+                <xsl:when test="$ac:mode = '&ac;MapMode'">
+                    <xsl:apply-templates select="." mode="bs2:Map">
+                        <xsl:with-param name="canvas-id" select="generate-id() || '-map-canvas'"/>
+                        <xsl:sort select="ac:label(.)"/>
+                    </xsl:apply-templates>
+                </xsl:when>
+                <xsl:when test="$ac:mode = '&ac;ChartMode'">
+                    <xsl:apply-templates select="." mode="bs2:Chart">
+                        <xsl:with-param name="canvas-id" select="generate-id() || '-chart-canvas'"/>
+                        <xsl:with-param name="show-save" select="false()"/>
+                        <xsl:sort select="ac:label(.)"/>
+                    </xsl:apply-templates>
+                </xsl:when>
+                <xsl:when test="$ac:mode = '&ac;GraphMode'">
+                    <xsl:apply-templates select="." mode="bs2:Graph">
+                        <xsl:sort select="ac:label(.)"/>
+                    </xsl:apply-templates>
+                </xsl:when>
+                <xsl:when test="$ac:mode = '&ac;EditMode' and $ac:mode = '&ac;ModalMode'">
+                    <xsl:apply-templates select="." mode="bs2:ModalForm">
+                        <xsl:with-param name="constructor-query" select="$constructor-query" tunnel="yes"/>
+                        <xsl:with-param name="constraint-query" select="$constraint-query" tunnel="yes"/>
+                        <xsl:with-param name="shape-query" select="$shape-query" tunnel="yes"/>
+                        <xsl:sort select="ac:label(.)"/>
+                    </xsl:apply-templates>
+                </xsl:when>
+                <xsl:when test="$ac:mode = '&ac;EditMode'">
+                    <xsl:apply-templates select="." mode="bs2:RowForm">
+                        <xsl:with-param name="classes" select="$classes"/>
+                        <xsl:with-param name="constructor-query" select="$constructor-query" tunnel="yes"/>
+                        <xsl:with-param name="constraint-query" select="$constraint-query" tunnel="yes"/>
+                        <xsl:with-param name="shape-query" select="$shape-query" tunnel="yes"/>
+                        <xsl:sort select="ac:label(.)"/>
+                    </xsl:apply-templates>
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:apply-templates select="." mode="bs2:Row">
+                        <xsl:sort select="ac:label(.)"/>
+                    </xsl:apply-templates>
+                </xsl:otherwise>
+            </xsl:choose>
+        </div>
+    </xsl:template>
+    
     <!-- don't show document-level tabs if the response returned an error or if we're in EditMode -->
     <xsl:template match="rdf:RDF[key('resources-by-type', '&http;Response')] | rdf:RDF[$ac:forClass or $ac:mode = '&ac;EditMode']" mode="bs2:ModeTabs" priority="1"/>
     

@@ -373,7 +373,7 @@ exclude-result-prefixes="#all"
             <xsl:if test="starts-with($id, 'http://') or starts-with($id, 'https://')"> <!-- InfoWindow not possible for blank nodes -->
                 <xsl:variable name="uri" select="xs:anyURI($id)" as="xs:anyURI"/>
                 <!-- InfoWindowMode is handled as a special case in layout.xsl -->
-                <xsl:variable name="mode" select="'https://w3id.org/atomgraph/linkeddatahub/templates#InfoWindowMode'" as="xs:string"/>
+                <xsl:variable name="mode" select="'&ldh;InfoWindowMode'" as="xs:string"/>
                 <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ldh:query-params(xs:anyURI($mode)), $uri)" as="xs:anyURI"/>
 
                 <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
