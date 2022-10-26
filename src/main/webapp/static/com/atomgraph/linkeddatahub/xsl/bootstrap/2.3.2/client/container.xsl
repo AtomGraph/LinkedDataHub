@@ -675,13 +675,24 @@ exclude-result-prefixes="#all"
         <xsl:variable name="results-container" select="$container//div[contains-token(@class, 'container-results')]" as="element()"/> <!-- results in the middle column -->
         <xsl:variable name="content-uri" select="xs:anyURI($container/@about)" as="xs:anyURI"/>
         <xsl:variable name="content" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`'), 'content')" as="element()"/>
-        <xsl:variable name="active-mode" select="if (ixsl:contains($container, 'dataset.contentMode')) then xs:anyURI(ixsl:get($container, 'dataset.contentMode')) else $default-container-mode" as="xs:anyURI"/>
+        <xsl:variable name="active-class" select="../@class" as="xs:string"/>
         <xsl:variable name="select-xml" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`'), 'select-xml')" as="document-node()"/>
         <xsl:variable name="initial-var-name" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`'), 'initial-var-name')" as="xs:string"/>
         <xsl:variable name="service-uri" select="if (ixsl:contains(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`'), 'service-uri')) then ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`'), 'service-uri') else ()" as="xs:anyURI?"/>
         <xsl:variable name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.apps'))" as="element()?"/>
         <xsl:variable name="endpoint" select="($service/sd:endpoint/@rdf:resource/xs:anyURI(.), sd:endpoint())[1]"/>
-        
+        <xsl:variable name="class-modes" as="map(xs:string, xs:anyURI)">
+            <xsl:map>
+                <xsl:map-entry key="'read-mode'" select="xs:anyURI('&ac;ReadMode')"/>
+                <xsl:map-entry key="'list-mode'" select="xs:anyURI('&ac;ListMode')"/>
+                <xsl:map-entry key="'table-mode'" select="xs:anyURI('&ac;TableMode')"/>
+                <xsl:map-entry key="'grid-mode'" select="xs:anyURI('&ac;GridMode')"/>
+                <xsl:map-entry key="'chart-mode'" select="xs:anyURI('&ac;ChartMode')"/>
+                <xsl:map-entry key="'map-mode'" select="xs:anyURI('&ac;MapMode')"/>
+                <xsl:map-entry key="'graph-mode'" select="xs:anyURI('&ac;GraphMode')"/>
+            </xsl:map>
+        </xsl:variable>
+            
         <!-- deactivate other tabs -->
         <xsl:for-each select="../../li">
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', false() ])[current-date() lt xs:date('2000-01-01')]"/>
@@ -696,7 +707,7 @@ exclude-result-prefixes="#all"
             <xsl:with-param name="content-id" select="$container/@id"/>
             <xsl:with-param name="content-uri" select="$content-uri"/>
             <xsl:with-param name="content" select="$content"/>
-            <xsl:with-param name="active-mode" select="$active-mode"/>
+            <xsl:with-param name="active-mode" select="map:get($class-modes, $active-class)"/>
             <xsl:with-param name="results" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`'), 'results')"/>
             <xsl:with-param name="select-xml" select="$select-xml"/>
             <xsl:with-param name="endpoint" select="$endpoint"/>
