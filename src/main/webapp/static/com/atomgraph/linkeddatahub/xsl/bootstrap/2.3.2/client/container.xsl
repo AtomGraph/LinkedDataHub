@@ -650,8 +650,6 @@ exclude-result-prefixes="#all"
             </xsl:result-document>
         </xsl:for-each>
 
-    <xsl:message>bs2:Parallax $query-string: <xsl:value-of select="$query-string"/></xsl:message>
-
         <!-- only render parallax if the RDF result contains object resources -->
         <xsl:if test="$results/rdf:RDF/*/*[@rdf:resource]">
             <xsl:variable name="query-json-string" select="xml-to-json($select-xml)" as="xs:string"/>
