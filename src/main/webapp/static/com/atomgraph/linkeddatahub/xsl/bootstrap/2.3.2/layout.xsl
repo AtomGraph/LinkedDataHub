@@ -229,6 +229,10 @@ LIMIT   100
         <xsl:sequence select="$ldh:requestUri"/>
     </xsl:function>
     
+    <!-- HEAD -->
+
+    <xsl:template match="rdf:RDF[$ac:mode = ('&ldh;InfoWindowMode', '&ldh;HydrationMode')]" mode="xhtml:Head" priority="1"/>
+
     <!-- TITLE -->
 
     <xsl:template match="rdf:RDF" mode="xhtml:Title">

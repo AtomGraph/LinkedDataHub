@@ -240,7 +240,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="property-control-group" select="../.." as="element()"/>
         <xsl:variable name="property" select="../preceding-sibling::*/select/option[ixsl:get(., 'selected') = true()]/ixsl:get(., 'value')" as="xs:anyURI"/>
         <xsl:variable name="forClass" select="preceding-sibling::input/@value" as="xs:anyURI*"/>
-        <xsl:variable name="href" select="ac:build-uri(ldh:absolute-path(ldh:href()), map{ 'forClass': for $class in $forClass return string($class) })" as="xs:anyURI"/>
+        <xsl:variable name="href" select="ac:build-uri(ldh:absolute-path(ldh:href()), map{ 'forClass': for $class in $forClass return string($class), 'mode': '&ldh;HydrationMode' })" as="xs:anyURI"/>
         
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
         
@@ -266,7 +266,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="modal-form" select="exists(ancestor::fieldset)" as="xs:boolean"/>
         <xsl:variable name="forClass" select="input[@class = 'forClass']/@value" as="xs:anyURI"/>
         <xsl:variable name="create-graph" select="empty($form) or $modal-form" as="xs:boolean"/>
-        <xsl:variable name="query-params" select="map:merge((map{ 'forClass': string($forClass) }, if ($modal-form) then map{ 'mode': '&ac;ModalMode' } else (), if ($create-graph) then map{ 'createGraph': string(true()) } else ()))" as="map(xs:string, xs:string*)"/>
+        <xsl:variable name="query-params" select="map:merge((map{ 'forClass': string($forClass), 'mode': '&ldh;HydrationMode' }, if ($modal-form) then map{ 'mode': '&ac;ModalMode' } else (), if ($create-graph) then map{ 'createGraph': string(true()) } else ()))" as="map(xs:string, xs:string*)"/>
         <!-- do not use @href from the HTML because it does not update with AJAX document loads -->
         <xsl:variable name="href" select="ac:build-uri(ldh:absolute-path(ldh:href()), $query-params)" as="xs:anyURI"/>
 
@@ -302,7 +302,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="modal-form" select="exists(ancestor::fieldset)" as="xs:boolean"/>
         <xsl:variable name="forShape" select="input[@class = 'forShape']/@value" as="xs:anyURI"/>
         <xsl:variable name="create-graph" select="empty($form) or $modal-form" as="xs:boolean"/>
-        <xsl:variable name="query-params" select="map:merge((map{ 'forShape': string($forShape) }, if ($modal-form) then map{ 'mode': '&ac;ModalMode' } else (), if ($create-graph) then map{ 'createGraph': string(true()) } else ()))" as="map(xs:string, xs:string*)"/>
+        <xsl:variable name="query-params" select="map:merge((map{ 'forShape': string($forShape), 'mode': '&ldh;HydrationMode' }, if ($modal-form) then map{ 'mode': '&ac;ModalMode' } else (), if ($create-graph) then map{ 'createGraph': string(true()) } else ()))" as="map(xs:string, xs:string*)"/>
         <!-- do not use @href from the HTML because it does not update with AJAX document loads -->
         <xsl:variable name="href" select="ac:build-uri(ldh:absolute-path(ldh:href()), $query-params)" as="xs:anyURI"/>
 
@@ -443,7 +443,7 @@ exclude-result-prefixes="#all"
             <!-- a node shape was selected -->
             <xsl:when test="$resource/rdf:type/@rdf:resource = '&sh;NodeShape'">
                 <xsl:variable name="forShape" select="$resource/@rdf:about" as="xs:anyURI"/>
-                <xsl:variable name="href" select="ac:build-uri(ldh:absolute-path(ldh:href()), map{ 'forShape': string($forShape) })" as="xs:anyURI"/>
+                <xsl:variable name="href" select="ac:build-uri(ldh:absolute-path(ldh:href()), map{ 'forShape': string($forShape), 'mode': '&ldh;HydrationMode' })" as="xs:anyURI"/>
                 <xsl:variable name="request" as="item()*">
                     <!-- use Control-Cache: no-cache to get fresh HTML -->
                     <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml', 'Cache-Control': 'no-cache' } }">
@@ -457,7 +457,7 @@ exclude-result-prefixes="#all"
             <!-- a class with constructor was selected -->
             <xsl:otherwise>
                 <xsl:variable name="forClass" select="$resource/@rdf:about" as="xs:anyURI"/>
-                <xsl:variable name="href" select="ac:build-uri(ldh:absolute-path(ldh:href()), map{ 'forClass': string($forClass) })" as="xs:anyURI"/>
+                <xsl:variable name="href" select="ac:build-uri(ldh:absolute-path(ldh:href()), map{ 'forClass': string($forClass), 'mode': '&ldh;HydrationMode' })" as="xs:anyURI"/>
                 <xsl:variable name="request" as="item()*">
                     <!-- use Control-Cache: no-cache to get fresh HTML -->
                     <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml', 'Cache-Control': 'no-cache' } }">
@@ -962,16 +962,17 @@ exclude-result-prefixes="#all"
         <xsl:param name="typeahead-span" select="if ($target-id) then id($target-id, ixsl:page())/ancestor::div[@class = 'controls']//span[descendant::input[@name = 'ou']] else ()" as="element()?"/>
         
         <xsl:choose>
-            <!-- special case for add/clone data forms: redirect to the container -->
+            <!-- special case for add/clone data forms: redirect to the target document -->
             <xsl:when test="ixsl:get($form, 'id') = ('form-add-data', 'form-clone-data')">
                 <xsl:variable name="control-group" select="$form/descendant::div[contains-token(@class, 'control-group')][input[@name = 'pu'][@value = '&sd;name']]" as="element()*"/>
                 <xsl:variable name="uri" select="$control-group/descendant::input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
+                <xsl:variable name="href" select="ac:build-uri(ldh:absolute-path($uri), map{ 'mode': '&ldh;HydrationMode' })" as="xs:anyURI"/>
                 
                 <!-- load document -->
                 <xsl:variable name="request" as="item()*">
                     <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
                         <xsl:call-template name="onDocumentLoad">
-                            <xsl:with-param name="href" select="ldh:absolute-path($uri)"/>
+                            <xsl:with-param name="href" select="$href"/>
                         </xsl:call-template>
                     </ixsl:schedule-action>
                 </xsl:variable>
@@ -991,13 +992,13 @@ exclude-result-prefixes="#all"
                     </xsl:when>
                     <xsl:otherwise>
                         <!-- trim the query string if it's present --> 
-                        <xsl:variable name="uri" select="ldh:absolute-path($action)" as="xs:anyURI"/>
-                        
+                        <xsl:variable name="href" select="ac:build-uri(ldh:absolute-path($action), map{ 'mode': '&ldh;HydrationMode' })" as="xs:anyURI"/>
+
                         <!--reload resource--> 
                         <xsl:variable name="request" as="item()*">
                             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
                                 <xsl:call-template name="onDocumentLoad">
-                                    <xsl:with-param name="href" select="$uri"/>
+                                    <xsl:with-param name="href" select="$href"/>
                                 </xsl:call-template>
                             </ixsl:schedule-action>
                         </xsl:variable>
@@ -1009,7 +1010,7 @@ exclude-result-prefixes="#all"
             <xsl:when test="?status = 201 and ?headers?location">
                 <xsl:variable name="created-uri" select="?headers?location" as="xs:anyURI"/>
                 <xsl:choose>
-                    <!-- special case for "Save query/chart" forms: simpy hide the modal form -->
+                    <!-- special case for "Save query/chart" forms: simply hide the modal form -->
                     <xsl:when test="tokenize($form/@class, ' ') = ('form-save-query', 'form-save-chart')">
                         <!-- remove the modal div -->
                         <xsl:sequence select="ixsl:call($form/ancestor::div[contains-token(@class, 'modal')], 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
