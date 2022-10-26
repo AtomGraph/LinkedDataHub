@@ -112,6 +112,7 @@ h2.item-logo { background-image: url('../icons/file.svg'); background-position: 
 .nav-tabs > li > a, .pager > li > a.active { cursor: pointer; }
 .pager > li.previous > a { text-align: right; font-size: 0; color: transparent; background-image: url('../icons/ic_navigate_before_black_24px.svg'); background-position: center center; background-repeat: no-repeat; width: 64px; height: 24px; }
 .pager > li.next > a { text-align: right; font-size: 0; color: transparent; background-image: url('../icons/ic_navigate_next_black_24px.svg'); background-position: center center; background-repeat: no-repeat; width: 64px; height: 24px; }
+.result-count { padding-top: 8px; padding-bottom: 8px; height: 20px; }
 #container-results { overflow-y: auto; }
 .map-canvas { height: 45em; width: 100%; }
 fieldset { border: 1px outset #999; /* padding-top: 3%; */ }

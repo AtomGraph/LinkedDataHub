@@ -123,10 +123,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="content-id" as="xs:string"/>
         <xsl:param name="content-uri" as="xs:anyURI"/>
         <xsl:param name="content" as="element()?"/>
-        <xsl:param name="select-string" as="xs:string"/>
         <xsl:param name="select-xml" as="document-node()"/>
-        <xsl:param name="focus-var-name" as="xs:string"/>
-        <xsl:param name="active-mode" as="xs:anyURI"/>
         <xsl:param name="endpoint" as="xs:anyURI"/>
         
         <!-- wrap SELECT into a DESCRIBE -->
@@ -145,11 +142,6 @@ exclude-result-prefixes="#all"
                 <xsl:with-param name="content-id" select="$content-id"/>
                 <xsl:with-param name="content-uri" select="$content-uri"/>
                 <xsl:with-param name="content" select="$content"/>
-                <xsl:with-param name="active-mode" select="$active-mode"/>
-                <xsl:with-param name="select-string" select="$select-string"/>
-                <xsl:with-param name="select-xml" select="$select-xml"/>
-                <xsl:with-param name="focus-var-name" select="$focus-var-name"/>
-                <xsl:with-param name="endpoint" select="$endpoint"/>
             </xsl:call-template>
         </ixsl:schedule-action>
     </xsl:template>
@@ -335,11 +327,6 @@ exclude-result-prefixes="#all"
         <xsl:param name="content-id" as="xs:string"/>
         <xsl:param name="content-uri" select="xs:anyURI($container/@about)" as="xs:anyURI"/>
         <xsl:param name="content" as="element()?"/>
-        <xsl:param name="active-mode" as="xs:anyURI"/>
-        <xsl:param name="select-xml" as="document-node()"/>
-        <xsl:param name="focus-var-name" as="xs:string"/>
-        <xsl:param name="select-string" as="xs:string"/>
-        <xsl:param name="endpoint" as="xs:anyURI"/>
         
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
         
