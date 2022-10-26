@@ -500,7 +500,7 @@ extension-element-prefixes="ixsl"
                         </xsl:apply-templates>
                     </xsl:when>
                     <xsl:when test="$mode = '&ac;GraphMode'">
-                        <xsl:apply-templates select="$doc" mode="bs2:Graph"/>
+                        <xsl:apply-templates select=".." mode="bs2:Graph"/>
                     </xsl:when>
                     <xsl:otherwise>
                         <xsl:apply-templates select="." mode="bs2:Block"/>
