@@ -327,7 +327,6 @@ exclude-result-prefixes="#all"
         <xsl:param name="content-id" as="xs:string"/>
         <xsl:param name="content-uri" select="xs:anyURI($container/@about)" as="xs:anyURI"/>
         <xsl:param name="content" as="element()?"/>
-        <xsl:param name="active-mode" as="xs:anyURI"/>
         
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
         

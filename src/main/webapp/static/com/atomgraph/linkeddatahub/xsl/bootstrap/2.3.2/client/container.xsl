@@ -655,6 +655,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="query-string" select="ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromQuery', [ $query-json ]), 'toString', [])" as="xs:string"/>
         <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': $query-string })" as="xs:anyURI"/>
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), map{}, $results-uri)" as="xs:anyURI"/>
+<xsl:message>bs2:Parallax $query-string: <xsl:value-of select="$query-string"/></xsl:message>
 
         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml' } }">
             <xsl:call-template name="onParallaxSelectLoad">
@@ -1240,10 +1241,14 @@ exclude-result-prefixes="#all"
                 <xsl:for-each select="?body">
                     <xsl:variable name="var-name-resources" select="//srx:binding[@name = $var-name]/srx:uri" as="xs:anyURI*"/>
 
+<xsl:message>onParallaxSelectLoad $var-name: <xsl:value-of select="$var-name"/> </xsl:message>
+<xsl:message>onParallaxSelectLoad $var-name-resources: <xsl:value-of select="$var-name-resources"/> </xsl:message>
+
+
                     <xsl:for-each-group select="$results/rdf:RDF/*[@rdf:about = $var-name-resources]/*[@rdf:resource or @rdf:nodeID]" group-by="concat(namespace-uri(), local-name())">
                         <xsl:variable name="predicate" select="xs:anyURI(namespace-uri() || local-name())" as="xs:anyURI"/>
                         <xsl:variable name="results-uri" select="ac:build-uri($ldt:base, map{ 'uri': $predicate, 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
-
+<xsl:message>onParallaxSelectLoad onParallaxPropertyLoad</xsl:message>
                         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                             <xsl:call-template name="onParallaxPropertyLoad">
                                 <xsl:with-param name="container" select="$container"/>
