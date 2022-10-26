@@ -970,7 +970,7 @@ exclude-result-prefixes="#all"
                 
                 <!-- load document -->
                 <xsl:variable name="request" as="item()*">
-                    <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
+                    <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
                         <xsl:call-template name="onDocumentLoad">
                             <xsl:with-param name="href" select="$href"/>
                         </xsl:call-template>
@@ -996,7 +996,7 @@ exclude-result-prefixes="#all"
 
                         <!--reload resource--> 
                         <xsl:variable name="request" as="item()*">
-                            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
+                            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
                                 <xsl:call-template name="onDocumentLoad">
                                     <xsl:with-param name="href" select="$href"/>
                                 </xsl:call-template>
