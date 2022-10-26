@@ -1,3 +1,7 @@
+## [3.2.22] - 2022-10-26
+### Added
+- Result count widget for container content
+
 ## [3.2.21] - 2022-10-24
 ### Changed
 - Fixed map initialization regression
