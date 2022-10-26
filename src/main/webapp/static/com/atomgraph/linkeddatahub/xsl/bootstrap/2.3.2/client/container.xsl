@@ -1476,7 +1476,8 @@ exclude-result-prefixes="#all"
                     <xsl:for-each select="$container">
                         <xsl:result-document href="?." method="ixsl:replace-content">
                             <strong>
-                                <xsl:text>Total results </xsl:text>
+                                <xsl:apply-templates select="key('resources', 'total-results', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                                <xsl:text> </xsl:text>
                                 <span class="badge badge-inverse">
                                     <xsl:value-of select="$results//srx:binding[@name = $count-var-name]/srx:literal"/>
                                 </span>
