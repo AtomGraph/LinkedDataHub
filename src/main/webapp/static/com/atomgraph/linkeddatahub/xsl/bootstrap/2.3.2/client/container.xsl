@@ -1184,7 +1184,7 @@ exclude-result-prefixes="#all"
 
                     <!-- result count -->
                     <xsl:call-template name="ldh:ResultCount">
-                        <xsl:with-param name="focus-var-name" select="$initial-var-name"/>
+                        <xsl:with-param name="focus-var-name" select="$focus-var-name"/>
                         <xsl:with-param name="select-xml" select="$select-xml"/>
                         <xsl:with-param name="container" select="id($result-count-container-id, ixsl:page())"/>
                     </xsl:call-template>
