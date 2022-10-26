@@ -650,20 +650,26 @@ exclude-result-prefixes="#all"
             </xsl:result-document>
         </xsl:for-each>
 
-        <xsl:variable name="query-json-string" select="xml-to-json($select-xml)" as="xs:string"/>
-        <xsl:variable name="query-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $query-json-string ])"/>
-        <xsl:variable name="query-string" select="ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromQuery', [ $query-json ]), 'toString', [])" as="xs:string"/>
-        <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': $query-string })" as="xs:anyURI"/>
-        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), map{}, $results-uri)" as="xs:anyURI"/>
-<xsl:message>bs2:Parallax $query-string: <xsl:value-of select="$query-string"/></xsl:message>
+    <xsl:message>bs2:Parallax $query-string: <xsl:value-of select="$query-string"/></xsl:message>
 
-        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml' } }">
-            <xsl:call-template name="onParallaxSelectLoad">
-                <xsl:with-param name="container" select="id($properties-container-id, ixsl:page())"/>
-                <xsl:with-param name="var-name" select="$focus-var-name"/>
-                <xsl:with-param name="results" select="$results"/>
-            </xsl:call-template>
-        </ixsl:schedule-action>
+        <!-- only render parallax if the RDF result contains object resources -->
+        <xsl:if test="$results/rdf:RDF/*/*[@rdf:resource]">
+            <xsl:variable name="query-json-string" select="xml-to-json($select-xml)" as="xs:string"/>
+            <xsl:variable name="query-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $query-json-string ])"/>
+            <xsl:variable name="query-string" select="ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromQuery', [ $query-json ]), 'toString', [])" as="xs:string"/>
+            <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': $query-string })" as="xs:anyURI"/>
+            <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), map{}, $results-uri)" as="xs:anyURI"/>
+
+    <xsl:message>YEAH!</xsl:message>
+
+            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml' } }">
+                <xsl:call-template name="onParallaxSelectLoad">
+                    <xsl:with-param name="container" select="id($properties-container-id, ixsl:page())"/>
+                    <xsl:with-param name="var-name" select="$focus-var-name"/>
+                    <xsl:with-param name="results" select="$results"/>
+                </xsl:call-template>
+            </ixsl:schedule-action>
+        </xsl:if>
     </xsl:template>
 
     <!-- EVENT LISTENERS -->
@@ -1191,25 +1197,22 @@ exclude-result-prefixes="#all"
                     </xsl:call-template>
 
                     <xsl:for-each select="$container/div[contains-token(@class, 'right-nav')]">
-                        <!-- only show parallax navigation if the RDF result contains object resources -->
-                        <xsl:if test="$sorted-results/rdf:RDF/*/*[@rdf:resource]">
-                            <xsl:variable name="parallax-container-id" select="$content-id || '-right-nav'" as="xs:string"/>
+                        <xsl:variable name="parallax-container-id" select="$content-id || '-right-nav'" as="xs:string"/>
 
-                            <!-- create a container for parallax controls in the right-nav, if it doesn't exist yet -->
-                            <xsl:if test="not(id($parallax-container-id, ixsl:page()))">
-                                <xsl:result-document href="?." method="ixsl:append-content">
-                                    <div id="{$parallax-container-id}" class="well well-small sidebar-nav parallax-nav"/>
-                                </xsl:result-document>
-                            </xsl:if>
-
-                            <xsl:call-template name="bs2:Parallax">
-                                <xsl:with-param name="results" select="$sorted-results"/>
-                                <xsl:with-param name="select-xml" select="$select-xml"/>
-                                <xsl:with-param name="endpoint" select="$endpoint"/>
-                                <xsl:with-param name="container" select="id($parallax-container-id, ixsl:page())"/>
-                                <xsl:with-param name="focus-var-name" select="$focus-var-name"/>
-                            </xsl:call-template>
+                        <!-- create a container for parallax controls in the right-nav, if it doesn't exist yet -->
+                        <xsl:if test="not(id($parallax-container-id, ixsl:page()))">
+                            <xsl:result-document href="?." method="ixsl:append-content">
+                                <div id="{$parallax-container-id}" class="well well-small sidebar-nav parallax-nav"/>
+                            </xsl:result-document>
                         </xsl:if>
+
+                        <xsl:call-template name="bs2:Parallax">
+                            <xsl:with-param name="results" select="$sorted-results"/>
+                            <xsl:with-param name="select-xml" select="$select-xml"/>
+                            <xsl:with-param name="endpoint" select="$endpoint"/>
+                            <xsl:with-param name="container" select="id($parallax-container-id, ixsl:page())"/>
+                            <xsl:with-param name="focus-var-name" select="$focus-var-name"/>
+                        </xsl:call-template>
                     </xsl:for-each>
                     
                     <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
