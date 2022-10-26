@@ -966,11 +966,12 @@ exclude-result-prefixes="#all"
             <xsl:when test="ixsl:get($form, 'id') = ('form-add-data', 'form-clone-data')">
                 <xsl:variable name="control-group" select="$form/descendant::div[contains-token(@class, 'control-group')][input[@name = 'pu'][@value = '&sd;name']]" as="element()*"/>
                 <xsl:variable name="uri" select="$control-group/descendant::input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
-                <xsl:variable name="href" select="ac:build-uri(ldh:absolute-path($uri), map{ 'mode': '&ldh;HydrationMode' })" as="xs:anyURI"/>
+                <xsl:variable name="href" select="ldh:absolute-path($uri)" as="xs:anyURI"/>
+                <xsl:variable name="request-uri" select="ac:build-uri($href, ldh:query-params(xs:anyURI('&ldh;HydrationMode')))" as="xs:anyURI"/>
                 
                 <!-- load document -->
                 <xsl:variable name="request" as="item()*">
-                    <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
+                    <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
                         <xsl:call-template name="onDocumentLoad">
                             <xsl:with-param name="href" select="$href"/>
                         </xsl:call-template>
@@ -992,11 +993,12 @@ exclude-result-prefixes="#all"
                     </xsl:when>
                     <xsl:otherwise>
                         <!-- trim the query string if it's present --> 
-                        <xsl:variable name="href" select="ac:build-uri(ldh:absolute-path($action), map{ 'mode': '&ldh;HydrationMode' })" as="xs:anyURI"/>
+                        <xsl:variable name="href" select="ldh:absolute-path($action)" as="xs:anyURI"/>
+                        <xsl:variable name="request-uri" select="ac:build-uri($href, ldh:query-params(xs:anyURI('&ldh;HydrationMode')))" as="xs:anyURI"/>
 
                         <!--reload resource--> 
                         <xsl:variable name="request" as="item()*">
-                            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
+                            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
                                 <xsl:call-template name="onDocumentLoad">
                                     <xsl:with-param name="href" select="$href"/>
                                 </xsl:call-template>
