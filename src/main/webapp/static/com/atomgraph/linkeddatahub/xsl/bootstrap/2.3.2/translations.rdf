@@ -374,4 +374,7 @@
     <rdf:Description rdf:nodeID="constructors">
         <rdfs:label xml:lang="en-US">constructor(s)</rdfs:label>
     </rdf:Description>
+    <rdf:Description rdf:nodeID="total-results">
+        <rdfs:label xml:lang="en-US">Total results</rdfs:label>
+    </rdf:Description>
 </rdf:RDF>
