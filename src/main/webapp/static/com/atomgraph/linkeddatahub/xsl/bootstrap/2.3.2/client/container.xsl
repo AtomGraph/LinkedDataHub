@@ -699,7 +699,6 @@ exclude-result-prefixes="#all"
             <xsl:with-param name="active-mode" select="$active-mode"/>
             <xsl:with-param name="results" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`'), 'results')"/>
             <xsl:with-param name="select-xml" select="$select-xml"/>
-            <xsl:with-param name="initial-var-name" select="$initial-var-name"/>
             <xsl:with-param name="endpoint" select="$endpoint"/>
         </xsl:call-template>
     </xsl:template>
