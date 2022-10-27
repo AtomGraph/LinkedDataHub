@@ -388,9 +388,10 @@ exclude-result-prefixes="#all"
                                 <fieldset>
                                     <div class="control-group required">
                                         <label class="control-label">
-                                            <xsl:value-of>
+<!--                                            <xsl:value-of>
                                                 <xsl:apply-templates select="key('resources', '&sd;Service', document(ac:document-uri('&sd;')))" mode="ac:label"/>
-                                            </xsl:value-of>
+                                            </xsl:value-of>-->
+                                            Service
                                         </label>
                                         <div class="controls">
                                             <span>
@@ -401,17 +402,19 @@ exclude-result-prefixes="#all"
                                             <input type="hidden" class="forClass" value="&sd;Service" autocomplete="off"/>
 
                                             <a href="{ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ldh:query-params(xs:anyURI('&ac;ModalMode'), xs:anyURI('&sd;Service')), ldh:absolute-path(ldh:href()))}" class="btn add-constructor" title="&dh;Container" id="{generate-id()}-upload-rdf-container">
-                                                <xsl:value-of>
+<!--                                                <xsl:value-of>
                                                     <xsl:apply-templates select="key('resources', '&sd;Service', document(ac:document-uri('&sd;')))" mode="ac:label"/>
-                                                </xsl:value-of>
+                                                </xsl:value-of>-->
+                                                Service
 
                                                 <input type="hidden" class="forClass" value="&sd;Service"/>
                                             </a>
 
                                             <span class="help-inline">
-                                                <xsl:value-of>
+<!--                                                <xsl:value-of>
                                                     <xsl:apply-templates select="key('resources', '&sd;Service', document(ac:document-uri('&sd;')))" mode="ac:label"/>
-                                                </xsl:value-of>
+                                                </xsl:value-of>-->
+                                                Service
                                             </span>
                                         </div>
                                     </div>
