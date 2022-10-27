@@ -964,11 +964,30 @@ LIMIT   100
     
     <xsl:template match="rdf:RDF[$acl:mode = '&acl;Append']" mode="bs2:AddData" priority="1">
         <div class="btn-group pull-left">
-            <button type="button" title="{ac:label(key('resources', 'add-data-title', document('translations.rdf')))}" class="btn btn-primary btn-add-data">
+            <button type="button" class="btn btn-primary dropdown-toggle" title="{ac:label(key('resources', 'add', document('translations.rdf')))}">
                 <xsl:value-of>
-                    <xsl:apply-templates select="key('resources', 'add-data', document('translations.rdf'))" mode="ac:label"/>
+                    <xsl:apply-templates select="key('resources', 'add', document('translations.rdf'))" mode="ac:label"/>
                 </xsl:value-of>
+                <xsl:text> </xsl:text>
+                <span class="caret"></span>
             </button>
+            
+            <ul class="dropdown-menu">
+                <li>
+                    <button type="button" title="{ac:label(key('resources', 'add-data-title', document('translations.rdf')))}" class="btn btn-add-data">
+                        <xsl:value-of>
+                            <xsl:apply-templates select="key('resources', 'add-data', document('translations.rdf'))" mode="ac:label"/>
+                        </xsl:value-of>
+                    </button>
+                </li>
+                <li>
+                    <button type="button" title="{ac:label(key('resources', 'generate-containers-title', document('translations.rdf')))}" class="btn btn-generate-containers">
+                        <xsl:value-of>
+                            <xsl:apply-templates select="key('resources', 'generate-containers', document('translations.rdf'))" mode="ac:label"/>
+                        </xsl:value-of>
+                    </button>
+                </li>
+            </ul>
         </div>
     </xsl:template>
     

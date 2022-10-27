@@ -643,7 +643,7 @@ extension-element-prefixes="ixsl"
                     <xsl:attribute name="enctype" select="$enctype"/>
                 </xsl:if>
 
-                <xsl:comment>This form uses RDF/POST encoding: http://www.lsrn.org/semweb/rdfpost.html</xsl:comment>
+                <xsl:comment>This form uses RDF/POST encoding: https://atomgraph.github.io/RDF-POST/</xsl:comment>
                 <xsl:call-template name="xhtml:Input">
                     <xsl:with-param name="name" select="'rdf'"/>
                     <xsl:with-param name="type" select="'hidden'"/>
@@ -720,7 +720,7 @@ extension-element-prefixes="ixsl"
                 <xsl:attribute name="enctype" select="$enctype"/>
             </xsl:if>
 
-            <xsl:comment>This form uses RDF/POST encoding: http://www.lsrn.org/semweb/rdfpost.html</xsl:comment>
+            <xsl:comment>This form uses RDF/POST encoding: https://atomgraph.github.io/RDF-POST/</xsl:comment>
             <xsl:call-template name="xhtml:Input">
                 <xsl:with-param name="name" select="'rdf'"/>
                 <xsl:with-param name="type" select="'hidden'"/>
