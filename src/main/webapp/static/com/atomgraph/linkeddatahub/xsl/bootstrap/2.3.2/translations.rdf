@@ -377,4 +377,13 @@
     <rdf:Description rdf:nodeID="total-results">
         <rdfs:label xml:lang="en-US">Total results</rdfs:label>
     </rdf:Description>
+    <rdf:Description rdf:nodeID="discover-schema">
+        <rdfs:label xml:lang="en-US">Discover schema</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="generate-containers">
+        <rdfs:label xml:lang="en-US">Generate containers</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="generate-containers-title">
+        <rdfs:label xml:lang="en-US">Create containers for the most populated classes in a SPARQL endpoint</rdfs:label>
+    </rdf:Description>
 </rdf:RDF>

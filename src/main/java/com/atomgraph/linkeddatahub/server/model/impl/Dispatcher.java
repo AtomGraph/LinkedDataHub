@@ -19,6 +19,7 @@ package com.atomgraph.linkeddatahub.server.model.impl;
 import com.atomgraph.client.vocabulary.AC;
 import com.atomgraph.linkeddatahub.apps.model.Dataset;
 import com.atomgraph.linkeddatahub.resource.Add;
+import com.atomgraph.linkeddatahub.resource.Generate;
 import com.atomgraph.linkeddatahub.resource.Importer;
 import com.atomgraph.linkeddatahub.resource.Namespace;
 import com.atomgraph.linkeddatahub.resource.Transform;
@@ -203,6 +204,17 @@ public class Dispatcher
     public Object getTransformEndpoint()
     {
         return Transform.class;
+    }
+    
+    /**
+     * Returns the endpoint for container generation.
+     *
+     * @return endpoint resource
+     */
+    @Path("generate")
+    public Object getGenerateEndpoint()
+    {
+        return Generate.class;
     }
     
     /**

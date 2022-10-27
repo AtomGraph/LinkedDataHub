@@ -31,7 +31,7 @@ ul.dropdown-menu ul { margin: 0; }
 button.btn.create-action { height: 30px; }
 a.btn.create-action { height: 20px; }
 .btn-group.open .btn.dropdown-toggle.create-action { background-image: url('../icons/ic_note_add_black_24px.svg'); }
-li button.btn-edit-constructors, li button.btn-add-data, li button.btn-add-ontology { text-align: left; width: 100%; background-color: inherit; }
+li button.btn-edit-constructors, li button.btn-add-data, li button.btn-add-ontology, li button.btn-generate-containers { text-align: left; width: 100%; background-color: inherit; }
 .btn-container { background-image: url('../icons/folder.svg'); }
 .btn-item { background-image: url('../icons/file.svg'); }
 .btn-app { background-image: url('../icons/apps_black_24dp.svg'); }
@@ -109,6 +109,7 @@ h2.item-logo { background-image: url('../icons/file.svg'); background-position: 
 .modal-footer { position: sticky; bottom: 0; background-color: white; z-index: 1060; }
 .modal-first-time-message { margin-left: 0; width: 80%; left: 10%; }
 .modal-first-time-message .hero-unit { margin-bottom: 0; }
+.control-group.endpoint-classes ul { max-height: 20em; overflow: auto; }
 .nav-tabs > li > a, .pager > li > a.active { cursor: pointer; }
 .pager > li.previous > a { text-align: right; font-size: 0; color: transparent; background-image: url('../icons/ic_navigate_before_black_24px.svg'); background-position: center center; background-repeat: no-repeat; width: 64px; height: 24px; }
 .pager > li.next > a { text-align: right; font-size: 0; color: transparent; background-image: url('../icons/ic_navigate_next_black_24px.svg'); background-position: center center; background-repeat: no-repeat; width: 64px; height: 24px; }

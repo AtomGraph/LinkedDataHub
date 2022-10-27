@@ -12,6 +12,7 @@
     <!ENTITY dh         "https://www.w3.org/ns/ldt/document-hierarchy#">
     <!ENTITY sd         "http://www.w3.org/ns/sparql-service-description#">
     <!ENTITY sh         "http://www.w3.org/ns/shacl#">
+    <!ENTITY sioc       "http://rdfs.org/sioc/ns#">
     <!ENTITY sp         "http://spinrdf.org/sp#">
     <!ENTITY dct        "http://purl.org/dc/terms/">
 ]>
@@ -38,6 +39,28 @@ xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 extension-element-prefixes="ixsl"
 exclude-result-prefixes="#all"
 >
+
+    <xsl:param name="select-labelled-class-or-shape-string" as="xs:string">
+<![CDATA[
+PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX  sh:   <http://www.w3.org/ns/shacl#>
+PREFIX  spin: <http://spinrdf.org/spin#>
+
+SELECT  ?classOrShape
+WHERE
+  {   { ?classOrShape (rdfs:subClassOf)*/spin:constructor ?constructor
+        FILTER ( ! strstarts(str(?classOrShape), "http://spinrdf.org/spin#") )
+      }
+    UNION
+      { ?classOrShape
+                  a  sh:NodeShape
+      }
+    ?classOrShape
+              rdfs:label  ?label
+    FILTER isURI(?classOrShape)
+  }
+]]>
+    </xsl:param>
 
     <!-- TEMPLATES -->
 
@@ -340,7 +363,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="menu" select="following-sibling::ul" as="element()"/>
         <xsl:param name="delay" select="400" as="xs:integer"/>
         <xsl:param name="endpoint" select="sd:endpoint()" as="xs:anyURI"/>
-        <xsl:param name="resource-types" select="(ancestor::div[@class = 'controls']//input[@class = 'forClass']/@value, ancestor::label//input[@class = 'forClass']/@value)[1]" as="xs:anyURI*"/>
+        <xsl:param name="resource-types" select="if (ancestor::div[@class = 'controls']//input[@class = 'forClass']/@value) then ancestor::div[@class = 'controls']//input[@class = 'forClass']/@value else ancestor::label//input[@class = 'forClass']/@value" as="xs:anyURI*"/>
         <xsl:param name="select-string" select="$select-labelled-string" as="xs:string?"/>
         <xsl:param name="limit" select="100" as="xs:integer?"/>
         <xsl:variable name="key-code" select="ixsl:get(ixsl:event(), 'code')" as="xs:string"/>
@@ -965,6 +988,24 @@ exclude-result-prefixes="#all"
             <!-- special case for add/clone data forms: redirect to the container -->
             <xsl:when test="ixsl:get($form, 'id') = ('form-add-data', 'form-clone-data')">
                 <xsl:variable name="control-group" select="$form/descendant::div[contains-token(@class, 'control-group')][input[@name = 'pu'][@value = '&sd;name']]" as="element()*"/>
+                <xsl:variable name="uri" select="$control-group/descendant::input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
+                
+                <!-- load document -->
+                <xsl:variable name="request" as="item()*">
+                    <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
+                        <xsl:call-template name="onDocumentLoad">
+                            <xsl:with-param name="href" select="ldh:absolute-path($uri)"/>
+                        </xsl:call-template>
+                    </ixsl:schedule-action>
+                </xsl:variable>
+                <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+                
+                <!-- remove the modal div -->
+                <xsl:sequence select="ixsl:call($form/ancestor::div[contains-token(@class, 'modal')], 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
+            </xsl:when>
+            <!-- special case for generate containers form: redirect to the parent container -->
+            <xsl:when test="ixsl:get($form, 'id') = ('form-generate-containers')">
+                <xsl:variable name="control-group" select="$form/descendant::div[contains-token(@class, 'control-group')][input[@name = 'pu'][@value = '&sioc;has_parent']]" as="element()*"/>
                 <xsl:variable name="uri" select="$control-group/descendant::input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
                 
                 <!-- load document -->
