@@ -626,7 +626,7 @@ exclude-result-prefixes="#all"
     
     <xsl:template match="form//input[contains-token(@class, 'resource-typeahead')]" mode="ixsl:onfocusin">
         <xsl:variable name="menu" select="following-sibling::ul" as="element()"/>
-        <xsl:variable name="forClass" select="../following-sibling::input[@class = 'forClass']/@value/xs:anyURI(.)" as="xs:anyURI?"/>
+        <xsl:variable name="forClass" select="../following-sibling::input[@class = 'forClass']/@value/xs:anyURI(.)" as="xs:anyURI*"/>
         <xsl:variable name="item-doc" as="document-node()">
             <xsl:document>
                 <rdf:RDF>
