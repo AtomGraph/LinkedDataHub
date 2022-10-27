@@ -396,7 +396,7 @@ exclude-result-prefixes="#all"
                                         <div class="controls">
                                             <span>
                                                 <input type="text" name="ou" class="resource-typeahead typeahead" autocomplete="off"/>
-                                                <ul class="resource-typeahead typeahead dropdown-menu" style="display: none;"></ul>
+                                                <ul class="resource-typeahead typeahead dropdown-menu" id="ul-source-service" style="display: none;"></ul>
                                             </span>
 
                                             <input type="hidden" class="forClass" value="&sd;Service" autocomplete="off"/>
