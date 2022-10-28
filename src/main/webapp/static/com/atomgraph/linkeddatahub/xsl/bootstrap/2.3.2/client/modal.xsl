@@ -6,6 +6,7 @@
     <!ENTITY rdf    "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
     <!ENTITY xsd    "http://www.w3.org/2001/XMLSchema#">
     <!ENTITY owl    "http://www.w3.org/2002/07/owl#">
+    <!ENTITY srx    "http://www.w3.org/2005/sparql-results#">
     <!ENTITY ldt    "https://www.w3.org/ns/ldt#">
     <!ENTITY dh     "https://www.w3.org/ns/ldt/document-hierarchy#">
     <!ENTITY sd     "http://www.w3.org/ns/sparql-service-description#">
@@ -27,6 +28,7 @@ xmlns:array="http://www.w3.org/2005/xpath-functions/array"
 xmlns:ac="&ac;"
 xmlns:ldh="&ldh;"
 xmlns:rdf="&rdf;"
+xmlns:srx="&srx;"
 xmlns:ldt="&ldt;"
 xmlns:sioc="&sioc;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
@@ -34,6 +36,22 @@ extension-element-prefixes="ixsl"
 exclude-result-prefixes="#all"
 >
 
+    <xsl:param name="endpoint-classes-string" as="xs:string">
+<![CDATA[
+SELECT DISTINCT  ?type (COUNT(?s) AS ?count)
+WHERE
+  {   { ?s  a  ?type }
+    UNION
+      { GRAPH ?g
+          { ?s  a  ?type }
+      }
+  }
+GROUP BY ?type
+ORDER BY DESC(COUNT(?s))
+LIMIT   10
+]]>
+    </xsl:param>
+    
     <!-- TEMPLATES -->
     
     <xsl:template name="ldh:FirstTimeMessage">
@@ -337,7 +355,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="action" select="resolve-uri('generate', $ldt:base)" as="xs:anyURI"/>
         <xsl:param name="source" as="xs:anyURI?"/>
         <xsl:param name="query" as="xs:anyURI?"/>
-        <xsl:param name="legend-label" select="ac:label(key('resources', 'add-rdf-data', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri))))" as="xs:string"/>
+        <xsl:param name="legend-label" select="ac:label(key('resources', 'generate-containers', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri))))" as="xs:string"/>
 
         <div class="modal modal-constructor fade in">
             <xsl:if test="$id">
@@ -447,7 +465,7 @@ exclude-result-prefixes="#all"
                             <xsl:attribute name="class" select="'tab-pane ' || (if ($source) then 'active' else ())"/>
 
                             <form id="form-clone-data" method="POST" action="{$action}">
-                                <xsl:comment>This form uses RDF/POST encoding: document('translations.rdf'))</xsl:comment>
+                                <xsl:comment>This form uses RDF/POST encoding: https://atomgraph.github.io/RDF-POST/</xsl:comment>
                                 <xsl:call-template name="xhtml:Input">
                                     <xsl:with-param name="name" select="'rdf'"/>
                                     <xsl:with-param name="type" select="'hidden'"/>
@@ -699,6 +717,21 @@ exclude-result-prefixes="#all"
         </xsl:choose>
     </xsl:template>
 
+    <xsl:template match="button[contains-token(@class, 'btn-discover-schema')]" mode="ixsl:onclick">
+        <xsl:variable name="service-uri" select="..//input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
+        <xsl:variable name="endpoint" select="document($service-uri)//sd:endpoint/@rdf:resource" as="xs:anyURI"/> <!-- TO-DO: replace with <ixsl:schedule-action> -->
+        <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': $endpoint-classes-string })" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="ldh:href($ldt:base, $ldt:base, map{}, $results-uri)" as="xs:anyURI"/>
+
+        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+        
+        <xsl:variable name="request" as="item()*">
+            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml' } }">
+                <xsl:call-template name="onEndpointClassesLoad"/>
+            </ixsl:schedule-action>
+        </xsl:variable>
+    </xsl:template>
+    
     <!-- CALLBACKS -->
     
     <!-- show "Add data"/"Save as" form -->
@@ -751,6 +784,49 @@ exclude-result-prefixes="#all"
                 <ixsl:set-style name="cursor" select="'default'"/>
             </xsl:for-each>
         </xsl:if>
+    </xsl:template>
+    
+    <xsl:template name="onEndpointClassesLoad">
+        <xsl:variable name="ancestor::form" as="element()"/>
+        
+        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
+
+        <xsl:choose>
+            <xsl:when test="?status = 200 and ?media-type = 'application/sparql-results+xml'">
+                <xsl:for-each select="?body">
+                    <xsl:variable name="results" select="." as="document-node()"/>
+                    <xsl:for-each select="$form">
+                        <xsl:result-document href="?." method="ixsl:append-content">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <xsl:for-each select="$results/srx:sparql/srx:head/srx:variable">
+                                            <td>
+                                                <xsl:value-of select="@name"/>
+                                            </td>
+                                        </xsl:for-each>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <xsl:for-each select="$results/srx:sparql/srx:results/srx:result">
+                                        <tr>
+                                            <xsl:for-each select="srx:binding">
+                                                <td>
+                                                    <xsl:value-of select="srx:literal"/>
+                                                </td>
+                                            </xsl:for-each>
+                                        </tr>
+                                    </xsl:for-each>
+                                </tbody>
+                            </table>
+                        </xsl:result-document>
+                    </xsl:for-each>
+                </xsl:for-each>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:message>Error loading schema from endpoint</xsl:message>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:template>
     
 </xsl:stylesheet>
