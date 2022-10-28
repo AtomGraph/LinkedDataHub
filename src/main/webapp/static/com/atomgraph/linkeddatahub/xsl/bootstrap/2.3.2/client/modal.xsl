@@ -386,18 +386,6 @@ LIMIT   10
                                 From SPARQL endpoint
                             </a>
                         </li>
-                        <li>
-                            <xsl:if test="$source">
-                                <xsl:attribute name="class" select="'active'"/>
-                            </xsl:if>
-
-                            <a>
-<!--                                <xsl:value-of>
-                                    <xsl:apply-templates select="key('resources', 'from-uri', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                                </xsl:value-of>-->
-                                From ontology
-                            </a>
-                        </li>
                     </ul>
                     <div class="tab-content">
                         <div>
