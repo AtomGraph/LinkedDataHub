@@ -724,7 +724,7 @@ LIMIT   10
                             <ul class="unstyled">
                                 <xsl:for-each select="$results/srx:sparql/srx:results/srx:result">
                                     <li>
-                                        <input type="hidden" name="sb" value="dataset"/>
+                                        <input type="hidden" name="sb" value="dataset-{position()}"/> <!-- unique bnode ID for each item -->
                                         <input type="hidden" name="pu" value="&rdf;type"/>
                                         <input type="hidden" name="ou" value="&void;Dataset"/>
                                         <input type="hidden" name="pu" value="&void;class"/>
