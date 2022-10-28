@@ -383,7 +383,7 @@ LIMIT   10
 <!--                                <xsl:value-of>
                                     <xsl:apply-templates select="key('resources', 'upload-file', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
                                 </xsl:value-of>-->
-                                From SPARQL endpoint
+                                From SPARQL service
                             </a>
                         </li>
                     </ul>
@@ -400,6 +400,7 @@ LIMIT   10
                                 
                                 <fieldset>
                                     <div class="control-group required">
+                                        <input name="pu" type="hidden" value="&ldh;service"/>
                                         <label class="control-label">
 <!--                                            <xsl:value-of>
                                                 <xsl:apply-templates select="key('resources', '&sd;Service', document(ac:document-uri('&sd;')))" mode="ac:label"/>
@@ -592,6 +593,23 @@ LIMIT   10
     <!-- validate form before submitting it and show errors on control-groups where input values are missing -->
     <xsl:template match="form[@id = 'form-add-data'] | form[@id = 'form-clone-data']" mode="ixsl:onsubmit" priority="1">
         <xsl:variable name="control-groups" select="descendant::div[contains-token(@class, 'control-group')][input[@name = 'pu'][@value = ('&nfo;fileName', '&dct;source', '&sd;name')]]" as="element()*"/>
+        <xsl:choose>
+            <!-- input values missing, throw an error -->
+            <xsl:when test="exists($control-groups/descendant::input[@name = ('ol', 'ou')][not(ixsl:get(., 'value'))])">
+                <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
+                <xsl:sequence select="$control-groups[descendant::input[@name = ('ol', 'ou')][not(ixsl:get(., 'value'))]]/ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'error', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+            </xsl:when>
+            <!-- all required values present, apply the default form onsubmit -->
+            <xsl:otherwise>
+                <xsl:sequence select="$control-groups/ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'error', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+                <xsl:next-match/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:template>
+
+    <!-- validate form before submitting it and show errors on control-groups where input values are missing -->
+    <xsl:template match="form[@id = 'form-generate-containers']" mode="ixsl:onsubmit" priority="1">
+        <xsl:variable name="control-groups" select="descendant::div[contains-token(@class, 'control-group')][input[@name = 'pu'][@value = ('&ldh;service')]]" as="element()*"/>
         <xsl:choose>
             <!-- input values missing, throw an error -->
             <xsl:when test="exists($control-groups/descendant::input[@name = ('ol', 'ou')][not(ixsl:get(., 'value'))])">
