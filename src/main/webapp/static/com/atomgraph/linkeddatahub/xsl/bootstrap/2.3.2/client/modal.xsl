@@ -805,18 +805,23 @@ LIMIT   10
                     <xsl:variable name="results" select="." as="document-node()"/>
                     <xsl:for-each select="$container">
                         <xsl:result-document href="?." method="ixsl:append-content">
-                            <ul class="unstyled">
-                                <xsl:for-each select="$results/srx:sparql/srx:results/srx:result">
-                                    <li>
-                                        <label class="checkbox">
-                                            <input type="checkbox" checked="checked"/>
-                                            <samp>
-                                                <xsl:value-of select="srx:binding[@name = 'type']/srx:uri"/>
-                                            </samp>
-                                        </label>
-                                    </li>
-                                </xsl:for-each>
-                            </ul>
+                            <div class="control-group required">
+                                <label class="control-label">Classes</label>
+                                <div class="controls">
+                                    <ul class="unstyled">
+                                        <xsl:for-each select="$results/srx:sparql/srx:results/srx:result">
+                                            <li>
+                                                <label class="checkbox">
+                                                    <input type="checkbox" checked="checked"/>
+                                                    <samp>
+                                                        <xsl:value-of select="srx:binding[@name = 'type']/srx:uri"/>
+                                                    </samp>
+                                                </label>
+                                            </li>
+                                        </xsl:for-each>
+                                    </ul>
+                                </div>
+                            </div>
                         </xsl:result-document>
                     </xsl:for-each>
                 </xsl:for-each>
