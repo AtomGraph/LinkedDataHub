@@ -445,9 +445,10 @@ LIMIT   10
 
                                 <div class="form-actions modal-footer">
                                     <button type="submit" class="{$button-class}">
-                                        <xsl:value-of>
+<!--                                        <xsl:value-of>
                                             <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                                        </xsl:value-of>
+                                        </xsl:value-of>-->
+                                        Generate
                                     </button>
                                     <button type="button" class="btn btn-close">
                                         <xsl:value-of>
@@ -719,7 +720,7 @@ LIMIT   10
     </xsl:template>
 
     <xsl:template match="button[contains-token(@class, 'btn-discover-schema')]" mode="ixsl:onclick">
-        <xsl:variable name="form" select="ancestor::form" as="element()"/>
+        <xsl:variable name="fieldset" select="ancestor::fieldset" as="element()"/>
         <xsl:variable name="service-uri" select="..//input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
@@ -731,7 +732,7 @@ LIMIT   10
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml' } }">
                 <xsl:call-template name="onEndpointClassesLoad">
-                    <xsl:with-param name="form" select="$form"/>
+                    <xsl:with-param name="container" select="$form"/>
                 </xsl:call-template>
             </ixsl:schedule-action>
         </xsl:variable>
@@ -794,7 +795,7 @@ LIMIT   10
     
     <xsl:template name="onEndpointClassesLoad">
         <xsl:context-item as="map(*)" use="required"/>
-        <xsl:param name="form" as="element()"/>
+        <xsl:param name="container" as="element()"/>
         
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
 
@@ -804,7 +805,7 @@ LIMIT   10
                     <xsl:variable name="results" select="." as="document-node()"/>
                     <xsl:for-each select="$form">
                         <xsl:result-document href="?." method="ixsl:append-content">
-                            <ul>
+                            <ul class="unstyled">
                                 <xsl:for-each select="$results/srx:sparql/srx:results/srx:result">
                                     <li>
                                         <label class="checkbox">
