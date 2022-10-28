@@ -803,25 +803,31 @@ LIMIT   10
             <xsl:when test="?status = 200 and ?media-type = 'application/sparql-results+xml'">
                 <xsl:for-each select="?body">
                     <xsl:variable name="results" select="." as="document-node()"/>
-                    <xsl:for-each select="$container">
+                    <!-- append the controls for the class list if they don't exist -->
+                    <xsl:for-each select="$container[not(div[contains-token(@class, 'endpoint-classes')])]">
                         <xsl:result-document href="?." method="ixsl:append-content">
-                            <div class="control-group required">
+                            <div class="control-group required endpoint-classes">
                                 <label class="control-label">Classes</label>
-                                <div class="controls">
-                                    <ul class="unstyled">
-                                        <xsl:for-each select="$results/srx:sparql/srx:results/srx:result">
-                                            <li>
-                                                <label class="checkbox">
-                                                    <input type="checkbox" checked="checked"/>
-                                                    <samp>
-                                                        <xsl:value-of select="srx:binding[@name = 'type']/srx:uri"/>
-                                                    </samp>
-                                                </label>
-                                            </li>
-                                        </xsl:for-each>
-                                    </ul>
-                                </div>
+                                <div class="controls"></div>
                             </div>
+                        </xsl:result-document>
+                    </xsl:for-each>
+                    
+                    <!-- populate the class list -->
+                    <xsl:for-each select="$container//div[contains-token(@class, 'endpoint-classes')]">
+                        <xsl:result-document href="?." method="ixsl:replace-content">
+                            <ul class="unstyled">
+                                <xsl:for-each select="$results/srx:sparql/srx:results/srx:result">
+                                    <li>
+                                        <label class="checkbox">
+                                            <input type="checkbox" checked="checked"/>
+                                            <samp>
+                                                <xsl:value-of select="srx:binding[@name = 'type']/srx:uri"/>
+                                            </samp>
+                                        </label>
+                                    </li>
+                                </xsl:for-each>
+                            </ul>
                         </xsl:result-document>
                     </xsl:for-each>
                 </xsl:for-each>
