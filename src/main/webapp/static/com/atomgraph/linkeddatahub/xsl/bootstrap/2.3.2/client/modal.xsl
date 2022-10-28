@@ -694,8 +694,8 @@ LIMIT   10
                         </xsl:result-document>
                     </xsl:for-each>
                     
-                    <!-- populate the class list -->
-                    <xsl:for-each select="$container//div[contains-token(@class, 'endpoint-classes')]">
+                    <!-- populate the class list within div.controls -->
+                    <xsl:for-each select="$container//div[contains-token(@class, 'endpoint-classes')]/div">
                         <xsl:result-document href="?." method="ixsl:replace-content">
                             <ul class="unstyled">
                                 <xsl:for-each select="$results/srx:sparql/srx:results/srx:result">
