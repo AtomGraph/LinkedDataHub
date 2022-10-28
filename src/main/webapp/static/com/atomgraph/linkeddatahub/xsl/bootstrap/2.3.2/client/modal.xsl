@@ -416,14 +416,28 @@ exclude-result-prefixes="#all"
                                                 </xsl:value-of>-->
                                                 Service
                                             </span>
+                                            
+                                            <button type="button" class="btn btn-primary btn-discover-schema">
+                                                Discover schema
+                                            </button>
                                         </div>
                                     </div>
                                 </fieldset>
 
                                 <div class="form-actions modal-footer">
-                                    <button type="button" class="{$button-class}">
+                                    <button type="submit" class="{$button-class}">
                                         <xsl:value-of>
-                                            <xsl:apply-templates select="key('resources', 'discover-schema', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                                            <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                                        </xsl:value-of>
+                                    </button>
+                                    <button type="button" class="btn btn-close">
+                                        <xsl:value-of>
+                                            <xsl:apply-templates select="key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                                        </xsl:value-of>
+                                    </button>
+                                    <button type="reset" class="btn btn-reset">
+                                        <xsl:value-of>
+                                            <xsl:apply-templates select="key('resources', 'reset', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
                                         </xsl:value-of>
                                     </button>
                                 </div>
