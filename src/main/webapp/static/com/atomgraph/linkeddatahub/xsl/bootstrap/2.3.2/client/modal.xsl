@@ -721,12 +721,13 @@ LIMIT   10
     <xsl:template match="button[contains-token(@class, 'btn-discover-schema')]" mode="ixsl:onclick">
         <xsl:variable name="form" select="ancestor::form" as="element()"/>
         <xsl:variable name="service-uri" select="..//input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
+
+        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+
         <xsl:variable name="endpoint" select="document(ac:build-uri($ldt:base, map{ 'uri': ac:document-uri($service-uri), 'accept': 'application/rdf+xml' }))//sd:endpoint/@rdf:resource" as="xs:anyURI"/> <!-- TO-DO: replace with <ixsl:schedule-action> -->
         <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': $endpoint-classes-string })" as="xs:anyURI"/>
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, $ldt:base, map{}, $results-uri)" as="xs:anyURI"/>
 
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
-        
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml' } }">
                 <xsl:call-template name="onEndpointClassesLoad">
@@ -806,9 +807,12 @@ LIMIT   10
                             <ul>
                                 <xsl:for-each select="$results/srx:sparql/srx:results/srx:result">
                                     <li>
-                                        <input type="checkbox" checked="checked"/>
-                                        <xsl:text> </xsl:text>
-                                        <xsl:value-of select="srx:binding[@name = 'type']/srx:uri"/>
+                                        <label class="checkbox">
+                                            <input type="checkbox" checked="checked"/>
+                                            <samp>
+                                                <xsl:value-of select="srx:binding[@name = 'type']/srx:uri"/>
+                                            </samp>
+                                        </label>
                                     </li>
                                 </xsl:for-each>
                             </ul>
