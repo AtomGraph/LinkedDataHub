@@ -420,12 +420,10 @@ LIMIT   10
 
                                             <input type="hidden" class="forClass" value="&sd;Service" autocomplete="off"/>
 
-                                            <a href="{ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ldh:query-params(xs:anyURI('&ac;ModalMode'), xs:anyURI('&sd;Service')), ldh:absolute-path(ldh:href()))}" class="btn add-constructor" title="&dh;Container" id="{generate-id()}-upload-rdf-container">
+                                            <a href="{ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ldh:query-params(xs:anyURI('&ac;ModalMode'), xs:anyURI('&sd;Service')), ldh:absolute-path(ldh:href()))}" class="btn add-constructor create-action" title="&sd;Service" id="{generate-id()}-generate-containers-service">
 <!--                                                <xsl:value-of>
                                                     <xsl:apply-templates select="key('resources', '&sd;Service', document(ac:document-uri('&sd;')))" mode="ac:label"/>
                                                 </xsl:value-of>-->
-                                                Service
-
                                                 <input type="hidden" class="forClass" value="&sd;Service"/>
                                             </a>
 
