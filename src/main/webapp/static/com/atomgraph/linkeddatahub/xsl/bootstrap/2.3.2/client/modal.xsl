@@ -732,7 +732,7 @@ LIMIT   10
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml' } }">
                 <xsl:call-template name="onEndpointClassesLoad">
-                    <xsl:with-param name="container" select="$form"/>
+                    <xsl:with-param name="container" select="$fieldset"/>
                 </xsl:call-template>
             </ixsl:schedule-action>
         </xsl:variable>
