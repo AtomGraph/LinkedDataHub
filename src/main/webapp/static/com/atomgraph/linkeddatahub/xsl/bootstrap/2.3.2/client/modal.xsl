@@ -719,6 +719,7 @@ LIMIT   10
     </xsl:template>
 
     <xsl:template match="button[contains-token(@class, 'btn-discover-schema')]" mode="ixsl:onclick">
+        <xsl:variable name="form" select="ancestor::form" as="element()"/>
         <xsl:variable name="service-uri" select="..//input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
         <xsl:variable name="endpoint" select="document(ac:build-uri($ldt:base, map{ 'uri': ac:document-uri($service-uri), 'accept': 'application/rdf+xml' }))//sd:endpoint/@rdf:resource" as="xs:anyURI"/> <!-- TO-DO: replace with <ixsl:schedule-action> -->
         <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': $endpoint-classes-string })" as="xs:anyURI"/>
@@ -728,7 +729,9 @@ LIMIT   10
         
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml' } }">
-                <xsl:call-template name="onEndpointClassesLoad"/>
+                <xsl:call-template name="onEndpointClassesLoad">
+                    <xsl:with-param name="form" select="$form"/>
+                </xsl:call-template>
             </ixsl:schedule-action>
         </xsl:variable>
         <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
@@ -789,7 +792,8 @@ LIMIT   10
     </xsl:template>
     
     <xsl:template name="onEndpointClassesLoad">
-        <xsl:variable name="form" select="ancestor::form" as="element()"/>
+        <xsl:context-item as="map(*)" use="required"/>
+        <xsl:param name="form" as="element()"/>
         
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
 
