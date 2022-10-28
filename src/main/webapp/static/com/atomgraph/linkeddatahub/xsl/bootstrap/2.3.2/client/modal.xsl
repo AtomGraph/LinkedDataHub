@@ -11,7 +11,7 @@
     <!ENTITY dh     "https://www.w3.org/ns/ldt/document-hierarchy#">
     <!ENTITY sd     "http://www.w3.org/ns/sparql-service-description#">
     <!ENTITY sioc   "http://rdfs.org/sioc/ns#">
-    <!ENTITY sp     "http://spinrdf.org/sp#">
+    <!ENTITY void   "http://rdfs.org/ns/void#">
     <!ENTITY spin   "http://spinrdf.org/spin#">
     <!ENTITY dct    "http://purl.org/dc/terms/">
     <!ENTITY nfo    "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#">
@@ -391,7 +391,13 @@ LIMIT   10
                         <div>
                             <xsl:attribute name="class" select="'tab-pane ' || (if (not($source)) then 'active' else ())"/>
 
-                            <form>
+                            <form id="form-generate-containers" method="POST" action="{$action}">
+                                <xsl:comment>This form uses RDF/POST encoding: https://atomgraph.github.io/RDF-POST/</xsl:comment>
+                                <xsl:call-template name="xhtml:Input">
+                                    <xsl:with-param name="name" select="'rdf'"/>
+                                    <xsl:with-param name="type" select="'hidden'"/>
+                                </xsl:call-template>
+                                
                                 <fieldset>
                                     <div class="control-group required">
                                         <label class="control-label">
@@ -483,7 +489,7 @@ LIMIT   10
             </div>
 
             <div class="modal-body">
-                <form id="form-clone-data" method="POST" action="{$action}">
+                <form id="form-reconcile" method="POST" action="{$action}">
                     <xsl:comment>This form uses RDF/POST encoding: https://atomgraph.github.io/RDF-POST/</xsl:comment>
                     <xsl:call-template name="xhtml:Input">
                         <xsl:with-param name="name" select="'rdf'"/>
@@ -700,8 +706,13 @@ LIMIT   10
                             <ul class="unstyled">
                                 <xsl:for-each select="$results/srx:sparql/srx:results/srx:result">
                                     <li>
+                                        <input type="hidden" name="sb" value="dataset"/>
+                                        <input type="hidden" name="pu" value="&rdf;type"/>
+                                        <input type="hidden" name="ou" value="&void;Dataset"/>
+                                        <input type="hidden" name="pu" value="&void;class"/>
+
                                         <label class="checkbox">
-                                            <input type="checkbox" checked="checked"/>
+                                            <input type="checkbox" checked="checked" name="ou" value="{srx:binding[@name = 'type']/srx:uri}"/>
                                             <samp>
                                                 <xsl:value-of select="srx:binding[@name = 'type']/srx:uri"/>
                                             </samp>
