@@ -720,7 +720,7 @@ LIMIT   10
 
     <xsl:template match="button[contains-token(@class, 'btn-discover-schema')]" mode="ixsl:onclick">
         <xsl:variable name="service-uri" select="..//input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
-        <xsl:variable name="endpoint" select="document(ac:document-uri($service-uri))//sd:endpoint/@rdf:resource" as="xs:anyURI"/> <!-- TO-DO: replace with <ixsl:schedule-action> -->
+        <xsl:variable name="endpoint" select="document(ac:build-uri($ldt:base, map{ 'uri': ac:document-uri($service-uri), 'accept': 'application/rdf+xml' }))//sd:endpoint/@rdf:resource" as="xs:anyURI"/> <!-- TO-DO: replace with <ixsl:schedule-action> -->
         <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': $endpoint-classes-string })" as="xs:anyURI"/>
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, $ldt:base, map{}, $results-uri)" as="xs:anyURI"/>
 
