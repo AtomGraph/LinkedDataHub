@@ -803,7 +803,7 @@ LIMIT   10
             <xsl:when test="?status = 200 and ?media-type = 'application/sparql-results+xml'">
                 <xsl:for-each select="?body">
                     <xsl:variable name="results" select="." as="document-node()"/>
-                    <xsl:for-each select="$form">
+                    <xsl:for-each select="$container">
                         <xsl:result-document href="?." method="ixsl:append-content">
                             <ul class="unstyled">
                                 <xsl:for-each select="$results/srx:sparql/srx:results/srx:result">
