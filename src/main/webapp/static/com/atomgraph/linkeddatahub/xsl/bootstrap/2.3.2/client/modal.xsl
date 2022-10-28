@@ -787,7 +787,7 @@ LIMIT   10
     </xsl:template>
     
     <xsl:template name="onEndpointClassesLoad">
-        <xsl:variable name="ancestor::form" as="element()"/>
+        <xsl:variable name="form" select="ancestor::form" as="element()"/>
         
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
 
