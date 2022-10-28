@@ -433,7 +433,7 @@ LIMIT   10
                                                 </xsl:value-of>-->
                                                 Service
                                             </span>
-                                            
+                                            <xsl:text> </xsl:text>
                                             <button type="button" class="btn btn-primary btn-discover-schema">
                                                 Discover schema
                                             </button>
@@ -447,111 +447,6 @@ LIMIT   10
                                             <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
                                         </xsl:value-of>-->
                                         Generate
-                                    </button>
-                                    <button type="button" class="btn btn-close">
-                                        <xsl:value-of>
-                                            <xsl:apply-templates select="key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                                        </xsl:value-of>
-                                    </button>
-                                    <button type="reset" class="btn btn-reset">
-                                        <xsl:value-of>
-                                            <xsl:apply-templates select="key('resources', 'reset', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                                        </xsl:value-of>
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                        <div>
-                            <xsl:attribute name="class" select="'tab-pane ' || (if ($source) then 'active' else ())"/>
-
-                            <form id="form-clone-data" method="POST" action="{$action}">
-                                <xsl:comment>This form uses RDF/POST encoding: https://atomgraph.github.io/RDF-POST/</xsl:comment>
-                                <xsl:call-template name="xhtml:Input">
-                                    <xsl:with-param name="name" select="'rdf'"/>
-                                    <xsl:with-param name="type" select="'hidden'"/>
-                                </xsl:call-template>
-
-                                <fieldset>
-                                    <input type="hidden" name="sb" value="clone"/>
-
-                                    <div class="control-group required">
-                                        <input type="hidden" name="pu" value="&dct;source"/>
-                                        <!-- TO-DO: localize label -->
-                                        <label class="control-label" for="remote-rdf-source">
-                                            <xsl:value-of>
-                                                <xsl:apply-templates select="key('resources', 'source', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                                            </xsl:value-of>
-                                        </label>
-                                        <div class="controls">
-                                            <input type="text" id="remote-rdf-source" name="ou" class="input-xxlarge">
-                                                <xsl:if test="$source">
-                                                    <xsl:attribute name="value" select="$source"/>
-                                                </xsl:if>
-                                            </input>
-                                            <span class="help-inline">
-                                                <xsl:value-of>
-                                                    <xsl:apply-templates select="key('resources', 'resource', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                                                </xsl:value-of>
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <div class="control-group required">
-                                        <input type="hidden" name="pu" value="&sd;name"/>
-                                        <label class="control-label" for="remote-rdf-doc">
-                                            <xsl:value-of>
-                                                <xsl:apply-templates select="key('resources', 'graph', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                                            </xsl:value-of>
-                                        </label>
-                                        <div class="controls">
-                                            <span>
-                                                <input type="text" name="ou" id="remote-rdf-doc" class="resource-typeahead typeahead"/>
-                                                <ul class="resource-typeahead typeahead dropdown-menu" id="ul-upload-rdf-doc" style="display: none;"></ul>
-                                            </span>
-
-                                            <input type="hidden" class="forClass" value="&dh;Container" autocomplete="off"/>
-                                            <input type="hidden" class="forClass" value="&dh;Item" autocomplete="off"/>
-                                            <div class="btn-group">
-                                                <button type="button" class="btn dropdown-toggle create-action"></button>
-                                                <ul class="dropdown-menu">
-                                                    <li>
-                                                        <a href="{ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ldh:query-params(xs:anyURI('&ac;ModalMode'), xs:anyURI('&dh;Container')), ldh:absolute-path(ldh:href()))}" class="btn add-constructor" title="&dh;Container" id="{generate-id()}-remote-rdf-container">
-                                                            <xsl:value-of>
-                                                                <xsl:apply-templates select="key('resources', '&dh;Container', document(ac:document-uri('&dh;')))" mode="ac:label"/>
-                                                            </xsl:value-of>
-
-                                                            <input type="hidden" class="forClass" value="&dh;Container"/>
-                                                        </a>
-                                                    </li>
-                                                    <li>
-                                                        <a href="{ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ldh:query-params(xs:anyURI('&ac;ModalMode'), xs:anyURI('&dh;Item')), ldh:absolute-path(ldh:href()))}" type="button" class="btn add-constructor" title="&dh;Item" id="{generate-id()}-remote-rdf-item">
-                                                            <xsl:value-of>
-                                                                <xsl:apply-templates select="key('resources', '&dh;Item', document(ac:document-uri('&dh;')))" mode="ac:label"/>
-                                                            </xsl:value-of>
-
-                                                            <input type="hidden" class="forClass" value="&dh;Item"/>
-                                                        </a>
-                                                    </li>
-                                                </ul>
-                                            </div>
-                                            <span class="help-inline">
-                                                <xsl:value-of>
-                                                    <xsl:apply-templates select="key('resources', '&dh;Document', document(ac:document-uri('&dh;')))" mode="ac:label"/>
-                                                </xsl:value-of>
-                                            </span>
-                                        </div>
-                                    </div>
-
-                                    <xsl:if test="$query">
-                                        <input type="hidden" name="pu" value="&spin;query"/>
-                                        <input type="hidden" name="ou" value="{$query}"/>
-                                    </xsl:if>
-                                </fieldset>
-
-                                <div class="form-actions modal-footer">
-                                    <button type="submit" class="{$button-class}">
-                                        <xsl:value-of>
-                                            <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                                        </xsl:value-of>
                                     </button>
                                     <button type="button" class="btn btn-close">
                                         <xsl:value-of>
