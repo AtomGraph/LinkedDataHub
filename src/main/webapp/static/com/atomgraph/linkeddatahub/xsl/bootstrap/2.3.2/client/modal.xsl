@@ -373,10 +373,6 @@ LIMIT   10
                 <div class="tabbable">
                     <ul class="nav nav-tabs">
                         <li>
-                            <xsl:if test="not($source)">
-                                <xsl:attribute name="class" select="'active'"/>
-                            </xsl:if>
-
                             <a>
 <!--                                <xsl:value-of>
                                     <xsl:apply-templates select="key('resources', 'upload-file', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
