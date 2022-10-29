@@ -355,7 +355,8 @@ LIMIT   10
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
         <xsl:param name="action" select="resolve-uri('generate', $ldt:base)" as="xs:anyURI"/>
         <xsl:param name="legend-label" select="ac:label(key('resources', 'generate-containers', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri))))" as="xs:string"/>
-
+        <xsl:param name="arg-bnode-id" select="'generate'" as="xs:string"/>
+        
         <div class="modal modal-constructor fade in">
             <xsl:if test="$id">
                 <xsl:attribute name="id" select="$id"/>
@@ -393,7 +394,7 @@ LIMIT   10
                                 </xsl:call-template>
                                 
                                 <fieldset>
-                                    <input type="hidden" name="sb" value="generate"/>
+                                    <input type="hidden" name="sb" value="{$arg-bnode-id}"/>
 
                                     <div class="control-group required">
                                         <input name="pu" type="hidden" value="&sioc;has_parent"/>
@@ -486,10 +487,9 @@ LIMIT   10
                         </div>
                     </div>
                 </div>
-
-                <div class="alert alert-info">
+<!--                <div class="alert alert-info">
                     <p>Adding data this way will cause a blocking request, so use it for small amounts of data only (e.g. a few thousands of RDF triples). For larger data, use asynchronous <a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/reference/imports/rdf/" target="_blank">RDF imports</a>.</p>
-                </div>
+                </div>-->
             </div>
         </div>
     </xsl:template>
@@ -729,6 +729,7 @@ LIMIT   10
     <xsl:template name="onEndpointClassesLoad">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="container" as="element()"/>
+        <xsl:param name="arg-bnode-id" select="'generate'" as="xs:string"/>
         
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
 
@@ -752,6 +753,7 @@ LIMIT   10
                             <ul class="unstyled">
                                 <xsl:for-each select="$results/srx:sparql/srx:results/srx:result">
                                     <li>
+                                        <input type="hidden" name="sb" value="{$arg-bnode-id}"/>
                                         <input type="hidden" name="pu" value="&dct;hasPart"/>
                                         <input type="hidden" name="ob" value="dataset-{position()}"/> <!-- unique bnode ID for each item -->
                                         <input type="hidden" name="sb" value="dataset-{position()}"/> <!-- unique bnode ID for each item -->

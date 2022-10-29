@@ -120,8 +120,8 @@ public class Generate extends Add
                 {
                     Resource part = partIt.next();
                     Resource cls = part.getPropertyResourceValue(VoID._class);
-                    Resource queryRes = arg.getPropertyResourceValue(SPIN.query);
-                    if (queryRes == null) throw new BadRequestException("Transformation query string (spin:query) not provided");
+                    Resource queryRes = part.getPropertyResourceValue(SPIN.query);
+                    if (queryRes == null) throw new BadRequestException("Container query string (spin:query) not provided");
 
                     LinkedDataClient ldc = LinkedDataClient.create(getSystem().getClient(), getSystem().getMediaTypes()).
                         delegation(getUriInfo().getBaseUri(), getAgentContext().orElse(null));
