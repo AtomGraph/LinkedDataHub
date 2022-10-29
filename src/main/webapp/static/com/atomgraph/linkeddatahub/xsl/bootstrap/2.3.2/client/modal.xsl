@@ -383,7 +383,7 @@ LIMIT   10
                     </ul>
                     <div class="tab-content">
                         <div>
-                            <xsl:attribute name="class" select="'tab-pane ' || (if (not($source)) then 'active' else ())"/>
+                            <!--<xsl:attribute name="class" select="'tab-pane ' || (if (not($source)) then 'active' else ())"/>-->
 
                             <form id="form-generate-containers" method="POST" action="{$action}">
                                 <xsl:comment>This form uses RDF/POST encoding: https://atomgraph.github.io/RDF-POST/</xsl:comment>
