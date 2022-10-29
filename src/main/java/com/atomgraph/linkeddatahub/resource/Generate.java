@@ -113,7 +113,7 @@ public class Generate extends Add
             Resource parent = arg.getPropertyResourceValue(SIOC.HAS_PARENT);
             if (parent == null) throw new BadRequestException("Parent container (sioc:has_parent) not provided");
 
-            ResIterator partIt = model.listSubjectsWithProperty(DCTerms.hasPart);
+            ResIterator partIt = model.listSubjectsWithProperty(VoID._class);
             try
             {
                 while (partIt.hasNext())
