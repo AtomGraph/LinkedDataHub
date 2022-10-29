@@ -761,10 +761,10 @@ LIMIT   10
                                         
                                         <xsl:choose>
                                             <xsl:when test="srx:binding[@name = 'namedGraph']/srx:uri">
-                                                <input type="hidden" name="ou" value="{resolve-uri('queries/select-instances/#this', $ldt:base)}"/>
+                                                <input type="hidden" name="ou" value="{resolve-uri('queries/select-instances-in-graphs/#this', $ldt:base)}"/>
                                             </xsl:when>
                                             <xsl:otherwise>
-                                                <input type="hidden" name="ou" value="{resolve-uri('queries/select-instances-in-graphs/#this', $ldt:base)}"/>
+                                                <input type="hidden" name="ou" value="{resolve-uri('queries/select-instances/#this', $ldt:base)}"/>
                                             </xsl:otherwise>
                                         </xsl:choose>
                                         
