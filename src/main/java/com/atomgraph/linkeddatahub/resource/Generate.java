@@ -140,7 +140,8 @@ public class Generate extends GraphStoreImpl
                         containerQueryGraphURI,
                         containerQueryModel.createResource(getUriInfo().getBaseUri().resolve(QUERY_PATH).toString()),
                         "Select " + cls.getLocalName(),
-                        pss.asQuery());
+                        pss.asQuery(),
+                        service);
                     new Skolemizer(containerQueryGraphURI.toString()).apply(containerQueryModel);
                     
                     Response queryResponse = super.post(containerQueryModel, false, containerQueryGraphURI);
@@ -180,7 +181,7 @@ public class Generate extends GraphStoreImpl
         }
     }
     
-     public Resource createContainerQuery(Model model, URI graphURI, Resource container, String title, Query query)
+     public Resource createContainerQuery(Model model, URI graphURI, Resource container, String title, Query query, Resource service)
     {
         Resource item = model.createResource(graphURI.toString()).
             addProperty(RDF.type, DH.Item).
@@ -191,7 +192,8 @@ public class Generate extends GraphStoreImpl
         Resource queryRes = model.createResource().
             addProperty(RDF.type, SP.Select).
             addLiteral(DCTerms.title, title).
-            addProperty(SP.text, query.toString());
+            addProperty(SP.text, query.toString()).
+            addProperty(LDH.service, service);
         
         item.addProperty(FOAF.primaryTopic, queryRes);
         
