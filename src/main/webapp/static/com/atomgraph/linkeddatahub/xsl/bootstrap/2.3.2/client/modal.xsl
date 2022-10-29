@@ -737,7 +737,7 @@ LIMIT   10
                 <xsl:for-each select="?body">
                     <xsl:variable name="results" select="." as="document-node()"/>
                     <!-- append the controls for the class list if they don't exist -->
-                    <xsl:for-each select="$container[not(div[contains-token(@class, 'endpoint-classes')])]">
+                    <xsl:for-each select="$container[not(./div[contains-token(@class, 'endpoint-classes')])]">
                         <xsl:result-document href="?." method="ixsl:append-content">
                             <div class="control-group required endpoint-classes">
                                 <label class="control-label">Classes</label>
