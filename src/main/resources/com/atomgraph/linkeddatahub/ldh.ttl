@@ -408,28 +408,6 @@ WHERE
 ORDER BY ?title
 """ .
 
-:SelectInstances a sp:Select ;
-    rdfs:label "Select instances" ;
-    sp:text """
-SELECT  ?s
-WHERE
-  { ?s  a   $type ;
-        ?p  ?o
-  }
-""" .
-
-:SelectInstancesInGraphs a sp:Select ;
-    rdfs:label "Select instances in named graphs" ;
-    sp:text """
-SELECT  ?s
-WHERE
-  { GRAPH ?g
-      { ?s  a   $type ;
-            ?p  ?o
-      }
-  }
-""" .
-
 # CLIENT TERMS. TO-DO: move to a separate Web-Client ontology?
 
 ac:Chart a rdfs:Class, owl:Class ;
