@@ -44,6 +44,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
+import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.Providers;
 import org.apache.jena.ontology.Ontology;
@@ -150,7 +151,7 @@ public class Generate extends GraphStoreImpl
                     }
 
                     Model containerModel = ModelFactory.createDefaultModel();
-                    URI containerGraphURI = getUriInfo().getBaseUriBuilder().path(parent.getURI()).path("{slug}/").build(UUID.randomUUID().toString());
+                    URI containerGraphURI = UriBuilder.fromUri(parent.getURI()).path("{slug}/").build(UUID.randomUUID().toString());
                     createContainer(containerModel,
                         containerGraphURI, parent,
                         cls.getLocalName() + "s",
