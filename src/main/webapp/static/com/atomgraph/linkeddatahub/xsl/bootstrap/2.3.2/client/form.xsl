@@ -1005,7 +1005,7 @@ WHERE
             </xsl:when>
             <!-- special case for generate containers form: redirect to the parent container -->
             <xsl:when test="ixsl:get($form, 'id') = ('form-generate-containers')">
-                <xsl:variable name="control-group" select="$form/descendant::div[contains-token(@class, 'control-group')][input[@name = 'pu'][@value = '&sioc;has_container']]" as="element()*"/>
+                <xsl:variable name="control-group" select="$form/descendant::div[contains-token(@class, 'control-group')][input[@name = 'pu'][@value = '&sioc;has_parent']]" as="element()*"/>
                 <xsl:variable name="uri" select="$control-group/descendant::input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
                 
                 <!-- load document -->
