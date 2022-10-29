@@ -362,7 +362,7 @@ WHERE
         <xsl:param name="menu" select="following-sibling::ul" as="element()"/>
         <xsl:param name="delay" select="400" as="xs:integer"/>
         <xsl:param name="endpoint" select="sd:endpoint()" as="xs:anyURI"/>
-        <xsl:param name="resource-types" select="(ancestor::div[@class = 'controls']//input[@class = 'forClass']/@value, ancestor::label//input[@class = 'forClass']/@value)[1]" as="xs:anyURI*"/>
+        <xsl:param name="resource-types" select="if (ancestor::div[@class = 'controls']//input[@class = 'forClass']/@value) then ancestor::div[@class = 'controls']//input[@class = 'forClass']/@value else ancestor::label//input[@class = 'forClass']/@value" as="xs:anyURI*"/>
         <xsl:param name="select-string" select="$select-labelled-string" as="xs:string?"/>
         <xsl:param name="limit" select="100" as="xs:integer?"/>
         <xsl:variable name="key-code" select="ixsl:get(ixsl:event(), 'code')" as="xs:string"/>

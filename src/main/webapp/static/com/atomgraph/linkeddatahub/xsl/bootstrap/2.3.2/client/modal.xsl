@@ -372,7 +372,7 @@ LIMIT   10
             <div class="modal-body">
                 <div class="tabbable">
                     <ul class="nav nav-tabs">
-                        <li>
+                        <li class="active">
                             <a>
 <!--                                <xsl:value-of>
                                     <xsl:apply-templates select="key('resources', 'upload-file', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
