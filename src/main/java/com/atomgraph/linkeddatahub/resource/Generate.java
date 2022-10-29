@@ -134,22 +134,23 @@ public class Generate extends GraphStoreImpl
                     ParameterizedSparqlString pss = new ParameterizedSparqlString(query.toString());
                     pss.setIri(RDF.type.getLocalName(), cls.getURI()); // inject $type value
                     
-                    Model queryModel = ModelFactory.createDefaultModel();
-                    URI queryGraphURI = getUriInfo().getBaseUriBuilder().path(QUERY_PATH).path("{slug}/").build(UUID.randomUUID().toString());
-                    Resource containerQuery = createContainerQuery(queryModel,
-                        queryGraphURI,
-                        queryModel.createResource(getUriInfo().getBaseUri().resolve(QUERY_PATH).toString()),
+                    Model containerQueryModel = ModelFactory.createDefaultModel();
+                    URI containerQueryGraphURI = getUriInfo().getBaseUriBuilder().path(QUERY_PATH).path("{slug}/").build(UUID.randomUUID().toString());
+                    createContainerQuery(containerQueryModel,
+                        containerQueryGraphURI,
+                        containerQueryModel.createResource(getUriInfo().getBaseUri().resolve(QUERY_PATH).toString()),
                         "Select " + cls.getLocalName(),
                         pss.asQuery());
-                    new Skolemizer(queryGraphURI.toString()).apply(queryModel);
+                    new Skolemizer(containerQueryGraphURI.toString()).apply(containerQueryModel);
                     
-                    Response queryResponse = super.post(queryModel, false, queryGraphURI);
+                    Response queryResponse = super.post(containerQueryModel, false, containerQueryGraphURI);
                     if (queryResponse.getStatus() != Response.Status.CREATED.getStatusCode())
                     {
                         if (log.isErrorEnabled()) log.error("Cannot create Query");
                         throw new InternalServerErrorException("Cannot create Query");
                     }
 
+                    Resource containerQuery = containerQueryModel.createResource(containerQueryGraphURI.toString()).getPropertyResourceValue(FOAF.primaryTopic);
                     Model containerModel = ModelFactory.createDefaultModel();
                     URI containerGraphURI = UriBuilder.fromUri(parent.getURI()).path("{slug}/").build(UUID.randomUUID().toString());
                     createContainer(containerModel,
