@@ -39,7 +39,7 @@ exclude-result-prefixes="#all"
 
     <xsl:param name="endpoint-classes-string" as="xs:string">
 <![CDATA[
-SELECT DISTINCT  ?type (COUNT(?s) AS ?count)
+SELECT DISTINCT  ?type (COUNT(?s) AS ?count) (SAMPLE(?g) AS ?namedGraph)
 WHERE
   {   { ?s  a  ?type }
     UNION
@@ -134,6 +134,11 @@ LIMIT   10
                                     <input type="hidden" name="pu" value="&rdf;type"/>
                                     <input type="hidden" name="ou" value="&nfo;FileDataObject"/>
 
+                                    <xsl:if test="$query">
+                                        <input type="hidden" name="pu" value="&spin;query"/>
+                                        <input type="hidden" name="ou" value="{$query}"/>
+                                    </xsl:if>
+                                    
                                     <!-- file title is unused, just needed to pass the ldh:File constraints -->
                                     <input type="hidden" name="pu" value="&dct;title"/>
                                     <input id="upload-rdf-title" type="hidden" name="ol" value="RDF upload"/>
@@ -208,11 +213,6 @@ LIMIT   10
                                             </span>
                                         </div>
                                     </div>
-
-                                    <xsl:if test="$query">
-                                        <input type="hidden" name="pu" value="&spin;query"/>
-                                        <input type="hidden" name="ou" value="{$query}"/>
-                                    </xsl:if>
                                 </fieldset>
 
                                 <div class="form-actions modal-footer">
@@ -246,7 +246,12 @@ LIMIT   10
 
                                 <fieldset>
                                     <input type="hidden" name="sb" value="clone"/>
-
+                                    
+                                    <xsl:if test="$query">
+                                        <input type="hidden" name="pu" value="&spin;query"/>
+                                        <input type="hidden" name="ou" value="{$query}"/>
+                                    </xsl:if>
+                                    
                                     <div class="control-group required">
                                         <input type="hidden" name="pu" value="&dct;source"/>
                                         <!-- TO-DO: localize label -->
@@ -313,11 +318,6 @@ LIMIT   10
                                             </span>
                                         </div>
                                     </div>
-
-                                    <xsl:if test="$query">
-                                        <input type="hidden" name="pu" value="&spin;query"/>
-                                        <input type="hidden" name="ou" value="{$query}"/>
-                                    </xsl:if>
                                 </fieldset>
 
                                 <div class="form-actions modal-footer">
@@ -354,8 +354,6 @@ LIMIT   10
         <xsl:param name="button-class" select="'btn btn-primary btn-save'" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
         <xsl:param name="action" select="resolve-uri('generate', $ldt:base)" as="xs:anyURI"/>
-        <xsl:param name="source" as="xs:anyURI?"/>
-        <xsl:param name="query" as="xs:anyURI?"/>
         <xsl:param name="legend-label" select="ac:label(key('resources', 'generate-containers', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri))))" as="xs:string"/>
 
         <div class="modal modal-constructor fade in">
@@ -399,6 +397,40 @@ LIMIT   10
                                 </xsl:call-template>
                                 
                                 <fieldset>
+                                    <input type="hidden" name="sb" value="generate"/>
+
+                                    <div class="control-group required">
+                                        <input name="pu" type="hidden" value="&sioc;has_parent"/>
+                                        <label class="control-label">
+<!--                                            <xsl:value-of>
+                                                <xsl:apply-templates select="key('resources', '&sd;Service', document(ac:document-uri('&sd;')))" mode="ac:label"/>
+                                            </xsl:value-of>-->
+                                            Has parent
+                                        </label>
+                                        <div class="controls">
+                                            <span>
+                                                <input type="text" name="ou" class="resource-typeahead typeahead" autocomplete="off"/>
+                                                <ul class="resource-typeahead typeahead dropdown-menu" id="ul-parent-container" style="display: none;"></ul>
+                                            </span>
+
+                                            <input type="hidden" class="forClass" value="&def;Root" autocomplete="off"/>
+                                            <input type="hidden" class="forClass" value="&dh;Container" autocomplete="off"/>
+
+                                            <a href="{ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ldh:query-params(xs:anyURI('&ac;ModalMode'), xs:anyURI('&dh;Container')), ldh:absolute-path(ldh:href()))}" class="btn add-constructor create-action" title="&dh;Container" id="{generate-id()}-generate-containers-service">
+<!--                                                <xsl:value-of>
+                                                    <xsl:apply-templates select="key('resources', '&dh;Container', document(ac:document-uri('&sd;')))" mode="ac:label"/>
+                                                </xsl:value-of>-->
+                                                <input type="hidden" class="forClass" value="&dh;Container"/>
+                                            </a>
+
+                                            <span class="help-inline">
+<!--                                                <xsl:value-of>
+                                                    <xsl:apply-templates select="key('resources', '&dh;Container', document(ac:document-uri('&sd;')))" mode="ac:label"/>
+                                                </xsl:value-of>-->
+                                                Container
+                                            </span>
+                                        </div>
+                                    </div>
                                     <div class="control-group required">
                                         <input name="pu" type="hidden" value="&ldh;service"/>
                                         <label class="control-label">
@@ -724,9 +756,20 @@ LIMIT   10
                             <ul class="unstyled">
                                 <xsl:for-each select="$results/srx:sparql/srx:results/srx:result">
                                     <li>
+                                        <input type="hidden" name="pu" value="&dct;hasPart"/>
+                                        <input type="hidden" name="ob" value="dataset-{position()}"/> <!-- unique bnode ID for each item -->
                                         <input type="hidden" name="sb" value="dataset-{position()}"/> <!-- unique bnode ID for each item -->
-                                        <input type="hidden" name="pu" value="&rdf;type"/>
-                                        <input type="hidden" name="ou" value="&void;Dataset"/>
+                                        <input type="hidden" name="pu" value="&spin;query"/>
+                                        
+                                        <xsl:choose>
+                                            <xsl:when test="srx:binding[@name = 'namedGraph']/srx:uri">
+                                                <input type="hidden" name="ou" value="&ldh;SelectInstances"/>
+                                            </xsl:when>
+                                            <xsl:otherwise>
+                                                <input type="hidden" name="ou" value="&ldh;SelectInstancesInGraphs"/>
+                                            </xsl:otherwise>
+                                        </xsl:choose>
+                                        
                                         <input type="hidden" name="pu" value="&void;class"/>
 
                                         <label class="checkbox">

@@ -55,12 +55,15 @@ public class VoID {
     public static final OntClass Dataset = m_model.createClass( NS + "Dataset" );
 
     /** Triples property */
-    public static final DatatypeProperty triples = m_model.createDatatypeProperty( NS + "triples" );    
+    public static final DatatypeProperty triples = m_model.createDatatypeProperty( NS + "triples" );
     
     /** Distinct subject property */
-    public static final DatatypeProperty distinctSubjects = m_model.createDatatypeProperty( NS + "distinctSubjects" );    
+    public static final DatatypeProperty distinctSubjects = m_model.createDatatypeProperty( NS + "distinctSubjects" );
 
     /** In dataset property */
-    public static final ObjectProperty inDataset = m_model.createObjectProperty( NS + "inDataset" );    
+    public static final ObjectProperty inDataset = m_model.createObjectProperty( NS + "inDataset" );
+
+    /** Class property */
+    public static final ObjectProperty _class = m_model.createObjectProperty( NS + "class" );
 
 }
