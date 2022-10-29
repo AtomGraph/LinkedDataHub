@@ -12,6 +12,7 @@
     <!ENTITY dh         "https://www.w3.org/ns/ldt/document-hierarchy#">
     <!ENTITY sd         "http://www.w3.org/ns/sparql-service-description#">
     <!ENTITY sh         "http://www.w3.org/ns/shacl#">
+    <!ENTITY sioc       "http://rdfs.org/sioc/ns#">
     <!ENTITY sp         "http://spinrdf.org/sp#">
     <!ENTITY dct        "http://purl.org/dc/terms/">
 ]>
@@ -987,6 +988,24 @@ WHERE
             <!-- special case for add/clone data forms: redirect to the container -->
             <xsl:when test="ixsl:get($form, 'id') = ('form-add-data', 'form-clone-data')">
                 <xsl:variable name="control-group" select="$form/descendant::div[contains-token(@class, 'control-group')][input[@name = 'pu'][@value = '&sd;name']]" as="element()*"/>
+                <xsl:variable name="uri" select="$control-group/descendant::input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
+                
+                <!-- load document -->
+                <xsl:variable name="request" as="item()*">
+                    <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
+                        <xsl:call-template name="onDocumentLoad">
+                            <xsl:with-param name="href" select="ldh:absolute-path($uri)"/>
+                        </xsl:call-template>
+                    </ixsl:schedule-action>
+                </xsl:variable>
+                <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+                
+                <!-- remove the modal div -->
+                <xsl:sequence select="ixsl:call($form/ancestor::div[contains-token(@class, 'modal')], 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
+            </xsl:when>
+            <!-- special case for generate containers form: redirect to the parent container -->
+            <xsl:when test="ixsl:get($form, 'id') = ('form-generate-containers')">
+                <xsl:variable name="control-group" select="$form/descendant::div[contains-token(@class, 'control-group')][input[@name = 'pu'][@value = '&sioc;has_container']]" as="element()*"/>
                 <xsl:variable name="uri" select="$control-group/descendant::input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
                 
                 <!-- load document -->

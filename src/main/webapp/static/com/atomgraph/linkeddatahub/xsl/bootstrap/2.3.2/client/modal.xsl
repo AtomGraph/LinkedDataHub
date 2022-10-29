@@ -458,8 +458,8 @@ LIMIT   10
                                                 Service
                                             </span>
                                             <xsl:text> </xsl:text>
-                                            <button type="button" class="btn btn-primary btn-discover-schema">
-                                                Discover schema
+                                            <button type="button" class="btn btn-primary btn-load-endpoint-schema">
+                                                Load schema
                                             </button>
                                         </div>
                                     </div>
@@ -637,7 +637,7 @@ LIMIT   10
 
     <!-- validate form before submitting it and show errors on control-groups where input values are missing -->
     <xsl:template match="form[@id = 'form-generate-containers']" mode="ixsl:onsubmit" priority="1">
-        <xsl:variable name="control-groups" select="descendant::div[contains-token(@class, 'control-group')][input[@name = 'pu'][@value = ('&ldh;service')]]" as="element()*"/>
+        <xsl:variable name="control-groups" select="descendant::div[contains-token(@class, 'control-group')][input[@name = 'pu'][@value = ('&sioc;has_parent', '&ldh;service')]]" as="element()*"/>
         <xsl:choose>
             <!-- input values missing, throw an error -->
             <xsl:when test="exists($control-groups/descendant::input[@name = ('ol', 'ou')][not(ixsl:get(., 'value'))])">
@@ -652,8 +652,8 @@ LIMIT   10
         </xsl:choose>
     </xsl:template>
 
-    <xsl:template match="button[contains-token(@class, 'btn-discover-schema')]" mode="ixsl:onclick">
-        <xsl:variable name="fieldset" select="ancestor::fieldset" as="element()"/>
+    <xsl:template match="button[contains-token(@class, 'btn-load-endpoint-schema')]" mode="ixsl:onclick">
+        <xsl:variable name="fieldset" select="ancestor::form/fieldset" as="element()"/>
         <xsl:variable name="service-uri" select="..//input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
