@@ -49,7 +49,7 @@
         dct:title "Select instances" ;
         dct:description "Selects instances of type from the default graph" ;
         sp:text """
-SELECT  ?s
+SELECT DISTINCT ?s
 WHERE
   { ?s  a   $type ;
         ?p  ?o
@@ -70,7 +70,7 @@ WHERE
         dct:title "Select instances in graphs" ;
         dct:description "Selects instances of type from named graphs" ;
         sp:text """
-SELECT  ?s
+SELECT DISTINCT ?s
 WHERE
   { GRAPH ?g
       { ?s  a   $type ;
