@@ -46,8 +46,8 @@
         foaf:primaryTopic <queries/select-instances/#this> .
 
     <queries/select-instances/#this> a sp:Select ;
-        rdfs:label "Select instances" ;
-        rdfs:comment "Selects instances of type from the default graph" ;
+        dct:title "Select instances" ;
+        dct:description "Selects instances of type from the default graph" ;
         sp:text """
 SELECT  ?s
 WHERE
@@ -67,8 +67,8 @@ WHERE
         foaf:primaryTopic <queries/select-instances-in-graphs/#this> .
 
     <queries/select-instances-in-graphs/#this> a sp:Select ;
-        rdfs:label "Select instances in graphs" ;
-        rdfs:comment "Selects instances of type from named graphs" ;
+        dct:title "Select instances in graphs" ;
+        dct:description "Selects instances of type from named graphs" ;
         sp:text """
 SELECT  ?s
 WHERE
