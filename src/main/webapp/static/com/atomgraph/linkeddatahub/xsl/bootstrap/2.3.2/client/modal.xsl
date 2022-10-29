@@ -406,7 +406,7 @@ LIMIT   10
                                         </label>
                                         <div class="controls">
                                             <span>
-                                                <input type="text" name="ou" class="resource-typeahead typeahead" autocomplete="off"/>
+                                                <input type="text" name="ou" class="resource-typeahead typeahead" id="generate-containers-parent" autocomplete="off"/>
                                                 <ul class="resource-typeahead typeahead dropdown-menu" id="ul-parent-container" style="display: none;"></ul>
                                             </span>
 
