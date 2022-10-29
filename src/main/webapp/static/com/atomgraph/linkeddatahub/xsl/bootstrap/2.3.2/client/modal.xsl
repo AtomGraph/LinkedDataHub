@@ -652,7 +652,7 @@ LIMIT   10
     </xsl:template>
 
     <xsl:template match="button[contains-token(@class, 'btn-load-endpoint-schema')]" mode="ixsl:onclick">
-        <xsl:variable name="fieldset" select="ancestor::fieldset" as="element()"/>
+        <xsl:variable name="fieldset" select="ancestor::form/fieldset" as="element()"/>
         <xsl:variable name="service-uri" select="$fieldset/descendant::div[contains-token(@class, 'control-group')][input[@name = 'pu'][@value = '&ldh;service']]/descendant::input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
