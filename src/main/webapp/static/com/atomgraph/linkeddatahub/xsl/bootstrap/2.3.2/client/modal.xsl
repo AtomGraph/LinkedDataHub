@@ -653,22 +653,32 @@ LIMIT   10
 
     <xsl:template match="button[contains-token(@class, 'btn-load-endpoint-schema')]" mode="ixsl:onclick">
         <xsl:variable name="fieldset" select="ancestor::form/fieldset" as="element()"/>
-        <xsl:variable name="service-uri" select="$fieldset/descendant::div[contains-token(@class, 'control-group')][input[@name = 'pu'][@value = '&ldh;service']]/descendant::input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
+        <xsl:variable name="control-group" select="$fieldset/descendant::div[contains-token(@class, 'control-group')][input[@name = 'pu'][@value = '&ldh;service']]" as="element()*"/>
+        <xsl:variable name="service-uri" select="$control-group/descendant::input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
 
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+        <xsl:choose>
+            <!-- input value missing, throw an error -->
+            <xsl:when test="not($service-uri)">
+                <xsl:sequence select="$control-group[descendant::input[@name = 'ou'][not(ixsl:get(., 'value'))]]/ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'error', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+            </xsl:when>
+            <!-- all required values present, load schema -->
+            <xsl:otherwise>
+                <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
-        <xsl:variable name="endpoint" select="document(ac:build-uri($ldt:base, map{ 'uri': ac:document-uri($service-uri), 'accept': 'application/rdf+xml' }))//sd:endpoint/@rdf:resource" as="xs:anyURI"/> <!-- TO-DO: replace with <ixsl:schedule-action> -->
-        <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': $endpoint-classes-string })" as="xs:anyURI"/>
-        <xsl:variable name="request-uri" select="ldh:href($ldt:base, $ldt:base, map{}, $results-uri)" as="xs:anyURI"/>
+                <xsl:variable name="endpoint" select="document(ac:build-uri($ldt:base, map{ 'uri': ac:document-uri($service-uri), 'accept': 'application/rdf+xml' }))//sd:endpoint/@rdf:resource" as="xs:anyURI"/> <!-- TO-DO: replace with <ixsl:schedule-action> -->
+                <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': $endpoint-classes-string })" as="xs:anyURI"/>
+                <xsl:variable name="request-uri" select="ldh:href($ldt:base, $ldt:base, map{}, $results-uri)" as="xs:anyURI"/>
 
-        <xsl:variable name="request" as="item()*">
-            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml' } }">
-                <xsl:call-template name="onEndpointClassesLoad">
-                    <xsl:with-param name="container" select="$fieldset"/>
-                </xsl:call-template>
-            </ixsl:schedule-action>
-        </xsl:variable>
-        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+                <xsl:variable name="request" as="item()*">
+                    <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml' } }">
+                        <xsl:call-template name="onEndpointClassesLoad">
+                            <xsl:with-param name="container" select="$fieldset"/>
+                        </xsl:call-template>
+                    </ixsl:schedule-action>
+                </xsl:variable>
+                <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:template>
     
     <!-- CALLBACKS -->
