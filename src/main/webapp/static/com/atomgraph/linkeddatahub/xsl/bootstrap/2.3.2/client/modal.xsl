@@ -457,15 +457,14 @@ LIMIT   10
                                                 </xsl:value-of>-->
                                                 Service
                                             </span>
-                                            <xsl:text> </xsl:text>
-                                            <button type="button" class="btn btn-primary btn-load-endpoint-schema">
-                                                Load schema
-                                            </button>
                                         </div>
                                     </div>
                                 </fieldset>
 
                                 <div class="form-actions modal-footer">
+                                    <button type="button" class="btn btn-primary btn-load-endpoint-schema">
+                                        Load schema
+                                    </button>
                                     <button type="submit" class="{$button-class}">
 <!--                                        <xsl:value-of>
                                             <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
