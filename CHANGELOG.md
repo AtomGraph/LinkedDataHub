@@ -4,6 +4,8 @@
 
 ### Changed
 - Fixed regression of multiple RDF type support in the typeahead component
+- Fixed container result count widget to support remote SPARQL endpoints
+- Fixed regression of created/modified timestaps not rendered on documents
 
 ## [3.2.22] - 2022-10-26
 ### Added
