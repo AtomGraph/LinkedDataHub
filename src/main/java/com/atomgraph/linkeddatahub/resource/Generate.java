@@ -32,6 +32,7 @@ import com.atomgraph.processor.vocabulary.SIOC;
 import com.atomgraph.spinrdf.vocabulary.SP;
 import com.atomgraph.spinrdf.vocabulary.SPIN;
 import java.net.URI;
+import java.util.Date;
 import java.util.Optional;
 import java.util.UUID;
 import javax.inject.Inject;
@@ -187,7 +188,8 @@ public class Generate extends GraphStoreImpl
             addProperty(RDF.type, DH.Item).
             addProperty(SIOC.HAS_CONTAINER, container).
             addLiteral(DCTerms.title, title).
-            addLiteral(DH.slug, UUID.randomUUID().toString());
+            addLiteral(DH.slug, UUID.randomUUID().toString()).
+            addLiteral(DCTerms.created, new Date());
         
         Resource queryRes = model.createResource().
             addProperty(RDF.type, SP.Select).
@@ -207,6 +209,7 @@ public class Generate extends GraphStoreImpl
             addProperty(SIOC.HAS_PARENT, parent).
             addLiteral(DCTerms.title, title).
             addLiteral(DH.slug, UUID.randomUUID().toString()).
+            addLiteral(DCTerms.created, new Date()).
             addProperty(ResourceFactory.createProperty(RDF.getURI(), "_1"), content);
     }
     
