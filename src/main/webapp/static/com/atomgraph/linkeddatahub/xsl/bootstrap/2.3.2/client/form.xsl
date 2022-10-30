@@ -119,8 +119,8 @@ WHERE
         <ixsl:set-property object="." name="autocomplete" select="'off'"/>
     </xsl:template>
     
-    <!-- inject datetime-local inputs TO-DO: align structure of constructor and editing form controls -->
-    <xsl:template match="input[@name = 'ol'][following-sibling::input[@name = 'lt'][@value = '&xsd;dateTime']] | input[@name = 'ol'][@value][../following-sibling::div/input[@name = 'lt'][@value = '&xsd;dateTime']]" mode="ldh:PostConstruct" priority="2">
+    <!-- inject datetime-local inputs (only if the input is visible) TO-DO: align structure of constructor and editing form controls -->
+    <xsl:template match="input[not(@type = 'hidden')][@name = 'ol'][following-sibling::input[@name = 'lt'][@value = '&xsd;dateTime']] | input[@name = 'ol'][@value][../following-sibling::div/input[@name = 'lt'][@value = '&xsd;dateTime']]" mode="ldh:PostConstruct" priority="2">
         <ixsl:set-attribute name="type" select="'datetime-local'"/>
         <ixsl:set-attribute name="step" select="'1'"/>
 
