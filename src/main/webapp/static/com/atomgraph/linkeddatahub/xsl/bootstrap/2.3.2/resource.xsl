@@ -665,10 +665,10 @@ extension-element-prefixes="ixsl"
     
     <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:Timestamp">
         <!-- TO-DO: property labels? -->
-        <xsl:variable name="min-created-datetime" select="min((../../dct:created/text()[. castable as xs:date]/xs:date(.), ../../dct:created/text()[. castable as xs:dateTime]/xs:dateTime(.)))" as="item()?"/>
+        <xsl:variable name="min-created-datetime" select="min((dct:created/text()[. castable as xs:date]/xs:date(.), dct:created/text()[. castable as xs:dateTime]/xs:dateTime(.)))" as="item()?"/>
         <xsl:apply-templates select="dct:created/text()[. = $min-created-datetime]"/>
         <xsl:text> </xsl:text>
-        <xsl:variable name="max-modified-datetime" select="max((../../dct:modified/text()[. castable as xs:date]/xs:date(.), ../../dct:modified/text()[. castable as xs:dateTime]/xs:dateTime(.)))" as="item()?"/>
+        <xsl:variable name="max-modified-datetime" select="max((dct:modified/text()[. castable as xs:date]/xs:date(.), dct:modified/text()[. castable as xs:dateTime]/xs:dateTime(.)))" as="item()?"/>
         <xsl:apply-templates select="dct:modified/text()[. = $max-modified-datetime]"/>
     </xsl:template>
     
