@@ -559,7 +559,7 @@ LIMIT   100
                 <xsl:attribute name="class" select="$class"/>
             </xsl:if>
             
-            <div id="result-counts">
+            <div id="created-modified-date" class="pull-right">
                 <!-- placeholder for client.xsl callbacks -->
             </div>
 

@@ -526,6 +526,7 @@ WHERE
                 </ul>
             </xsl:result-document>
 
+            <!-- passing response map(*) as the context here! -->
             <xsl:call-template name="ldh:BreadCrumbResourceLoaded">
                 <xsl:with-param name="container" select="id('breadcrumb-nav', ixsl:page())"/>
                 <!-- strip the query string if it's present -->
@@ -558,6 +559,13 @@ WHERE
             <!-- store document under window.LinkedDataHub[$content-uri].results -->
             <ixsl:set-property name="results" select="." object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $uri || '`')"/>
 
+            <!-- render current document's created/modified datetime -->
+            <xsl:for-each select="id('created-modified-date', ixsl:page())">
+                <xsl:result-document href="?." method="ixsl:replace-content">
+                    <xsl:apply-templates select="key('resources', $uri, $results)" mode="bs2:Timestamp"/>
+                </xsl:result-document>
+            </xsl:for-each>
+        
             <!-- this has to go after <xsl:result-document href="#{$container-id}"> because otherwise new elements will be injected and the $resource-content-ids lookup will not work anymore -->
             <!-- load resource contents -->
             <xsl:variable name="resource-content-ids" select="key('elements-by-class', 'resource-content', ixsl:page())/@id" as="xs:string*"/>
