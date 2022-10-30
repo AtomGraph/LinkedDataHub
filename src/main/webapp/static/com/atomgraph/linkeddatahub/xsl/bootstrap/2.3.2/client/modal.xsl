@@ -688,10 +688,12 @@ LIMIT   10
             </xsl:when>
             <!-- limit value missing, throw an error -->
             <xsl:when test="not($limit-string)">
+                <xsl:message>AAA</xsl:message>
                 <xsl:sequence select="$limit-control-group[descendant::input[@name = 'ol'][not(ixsl:get(., 'value'))]]/ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'error', true() ])[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:when>
             <!-- limit value not an integer, throw an error -->
             <xsl:when test="not($limit-string castable as xs:integer)">
+                <xsl:message>BBB</xsl:message>
                 <xsl:sequence select="$limit-control-group[descendant::input[@name = 'ol'][not(ixsl:get(., 'value'))]]/ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'error', true() ])[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:when>
             <!-- all required values present/valid, load schema -->
