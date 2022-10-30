@@ -12,6 +12,7 @@
     <!ENTITY sd     "http://www.w3.org/ns/sparql-service-description#">
     <!ENTITY sioc   "http://rdfs.org/sioc/ns#">
     <!ENTITY void   "http://rdfs.org/ns/void#">
+    <!ENTITY sp     "http://spinrdf.org/sp#">
     <!ENTITY spin   "http://spinrdf.org/spin#">
     <!ENTITY dct    "http://purl.org/dc/terms/">
     <!ENTITY nfo    "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#">
@@ -356,6 +357,7 @@ LIMIT   10
         <xsl:param name="action" select="resolve-uri('generate', $ldt:base)" as="xs:anyURI"/>
         <xsl:param name="legend-label" select="ac:label(key('resources', 'generate-containers', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri))))" as="xs:string"/>
         <xsl:param name="arg-bnode-id" select="'generate'" as="xs:string"/>
+        <xsl:param name="default-limit" select="10" as="xs:integer"/>
         
         <div class="modal modal-constructor fade in">
             <xsl:if test="$id">
@@ -398,7 +400,7 @@ LIMIT   10
 
                                     <div class="control-group required">
                                         <input name="pu" type="hidden" value="&sioc;has_parent"/>
-                                        <label class="control-label">
+                                        <label class="control-label" for="generate-containers-parent">
 <!--                                            <xsl:value-of>
                                                 <xsl:apply-templates select="key('resources', '&sd;Service', document(ac:document-uri('&sd;')))" mode="ac:label"/>
                                             </xsl:value-of>-->
@@ -428,9 +430,29 @@ LIMIT   10
                                             </span>
                                         </div>
                                     </div>
+                                    <div class="control-group">
+                                        <input name="pu" type="hidden" value="&sp;limit"/>
+                                        <label class="control-label" for="schema-class-limit">
+<!--                                            <xsl:value-of>
+                                                <xsl:apply-templates select="key('resources', '&sd;Service', document(ac:document-uri('&sd;')))" mode="ac:label"/>
+                                            </xsl:value-of>-->
+                                            Limit
+                                        </label>
+                                        <div class="controls">
+                                            <input type="text" name="ol" id="schema-class-limit" value="{$default-limit}"/>
+                                            <input type="hidden" name="lt" value="&xsd;integer"/>
+                                            
+                                            <span class="help-inline">
+<!--                                                <xsl:value-of>
+                                                    <xsl:apply-templates select="key('resources', '&sd;Service', document(ac:document-uri('&sd;')))" mode="ac:label"/>
+                                                </xsl:value-of>-->
+                                                xsd:integer
+                                            </span>
+                                        </div>
+                                    </div>
                                     <div class="control-group required">
                                         <input name="pu" type="hidden" value="&ldh;service"/>
-                                        <label class="control-label">
+                                        <label class="control-label" for="source-service">
 <!--                                            <xsl:value-of>
                                                 <xsl:apply-templates select="key('resources', '&sd;Service', document(ac:document-uri('&sd;')))" mode="ac:label"/>
                                             </xsl:value-of>-->
@@ -438,7 +460,7 @@ LIMIT   10
                                         </label>
                                         <div class="controls">
                                             <span>
-                                                <input type="text" name="ou" class="resource-typeahead typeahead" autocomplete="off"/>
+                                                <input type="text" name="ou" class="resource-typeahead typeahead" id="source-service" autocomplete="off"/>
                                                 <ul class="resource-typeahead typeahead dropdown-menu" id="ul-source-service" style="display: none;"></ul>
                                             </span>
 
@@ -619,7 +641,7 @@ LIMIT   10
     
     <!-- validate form before submitting it and show errors on control-groups where input values are missing -->
     <xsl:template match="form[@id = 'form-add-data'] | form[@id = 'form-clone-data']" mode="ixsl:onsubmit" priority="1">
-        <xsl:variable name="control-groups" select="descendant::div[contains-token(@class, 'control-group')][input[@name = 'pu'][@value = ('&nfo;fileName', '&dct;source', '&sd;name')]]" as="element()*"/>
+        <xsl:variable name="control-groups" select="descendant::div[contains-token(@class, 'control-group')][contains-token(@class, 'required')]" as="element()*"/>
         <xsl:choose>
             <!-- input values missing, throw an error -->
             <xsl:when test="exists($control-groups/descendant::input[@name = ('ol', 'ou')][not(ixsl:get(., 'value'))])">
@@ -636,7 +658,7 @@ LIMIT   10
 
     <!-- validate form before submitting it and show errors on control-groups where input values are missing -->
     <xsl:template match="form[@id = 'form-generate-containers']" mode="ixsl:onsubmit" priority="1">
-        <xsl:variable name="control-groups" select="descendant::div[contains-token(@class, 'control-group')][input[@name = 'pu'][@value = ('&sioc;has_parent', '&ldh;service')]]" as="element()*"/>
+        <xsl:variable name="control-groups" select="descendant::div[contains-token(@class, 'control-group')][contains-token(@class, 'required')]" as="element()*"/>
         <xsl:choose>
             <!-- input values missing, throw an error -->
             <xsl:when test="exists($control-groups/descendant::input[@name = ('ol', 'ou')][not(ixsl:get(., 'value'))])">
@@ -653,20 +675,45 @@ LIMIT   10
 
     <xsl:template match="button[contains-token(@class, 'btn-load-endpoint-schema')]" mode="ixsl:onclick">
         <xsl:variable name="fieldset" select="ancestor::form/fieldset" as="element()"/>
-        <xsl:variable name="control-group" select="$fieldset/descendant::div[contains-token(@class, 'control-group')][input[@name = 'pu'][@value = '&ldh;service']]" as="element()*"/>
-        <xsl:variable name="service-uri" select="$control-group/descendant::input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
+        <xsl:variable name="service-control-group" select="$fieldset/descendant::div[contains-token(@class, 'control-group')][input[@name = 'pu'][@value = '&ldh;service']]" as="element()"/>
+        <xsl:variable name="service-uri" select="$service-control-group/descendant::input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
+        <xsl:variable name="limit-control-group" select="$fieldset/descendant::div[contains-token(@class, 'control-group')][input[@name = 'pu'][@value = '&sp;limit']]" as="element()"/>
+        <xsl:variable name="limit-string" select="$limit-control-group/descendant::input[@name = 'ol']/ixsl:get(., 'value')" as="xs:string"/>
 
         <xsl:choose>
-            <!-- input value missing, throw an error -->
+            <!-- service value missing, throw an error -->
             <xsl:when test="not($service-uri)">
-                <xsl:sequence select="$control-group[descendant::input[@name = 'ou'][not(ixsl:get(., 'value'))]]/ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'error', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+                <xsl:sequence select="$service-control-group[descendant::input[@name = 'ou'][not(ixsl:get(., 'value'))]]/ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'error', true() ])[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:when>
-            <!-- all required values present, load schema -->
+            <!-- limit value not an integer, throw an error -->
+            <xsl:when test="exists($limit-string) and not($limit-string castable as xs:integer)">
+                <xsl:sequence select="$limit-control-group[descendant::input[@name = 'ol'][not(ixsl:get(., 'value'))]]/ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'error', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+            </xsl:when>
+            <!-- all required values present/valid, load schema -->
             <xsl:otherwise>
                 <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
-
+                
+                <xsl:variable name="limit" select="xs:integer($limit-string)" as="xs:integer"/>
+                <xsl:variable name="select-string" select="$endpoint-classes-string" as="xs:string"/>
+                <xsl:variable name="select-json" as="item()">
+                    <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', [ $select-string ])"/>
+                    <xsl:sequence select="ixsl:call($select-builder, 'build', [])"/>
+                </xsl:variable>
+                <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $select-json ])" as="xs:string"/>
+                <xsl:variable name="select-xml" select="json-to-xml($select-json-string)" as="document-node()"/>
+                <!-- set LIMIT $limit -->
+                <xsl:variable name="select-xml" as="document-node()">
+                    <xsl:document>
+                        <xsl:apply-templates select="$select-xml" mode="ldh:replace-limit">
+                            <xsl:with-param name="limit" select="$limit" tunnel="yes"/>
+                        </xsl:apply-templates>
+                    </xsl:document>
+                </xsl:variable>
+                <xsl:variable name="query-json-string" select="xml-to-json($select-xml)" as="xs:string"/>
+                <xsl:variable name="query-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $query-json-string ])"/>
+                <xsl:variable name="query-string" select="ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromQuery', [ $query-json ]), 'toString', [])" as="xs:string"/>
                 <xsl:variable name="endpoint" select="document(ac:build-uri($ldt:base, map{ 'uri': ac:document-uri($service-uri), 'accept': 'application/rdf+xml' }))//sd:endpoint/@rdf:resource" as="xs:anyURI"/> <!-- TO-DO: replace with <ixsl:schedule-action> -->
-                <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': $endpoint-classes-string })" as="xs:anyURI"/>
+                <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': $query-string })" as="xs:anyURI"/>
                 <xsl:variable name="request-uri" select="ldh:href($ldt:base, $ldt:base, map{}, $results-uri)" as="xs:anyURI"/>
 
                 <xsl:variable name="request" as="item()*">
