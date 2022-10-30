@@ -158,6 +158,7 @@ exclude-result-prefixes="#all"
     <xsl:template name="ldh:ResultCount">
         <xsl:param name="container" as="element()"/>
         <xsl:param name="count-var-name" select="'count'" as="xs:string"/>
+        <xsl:param name="endpoint" as="xs:anyURI"/>
         <xsl:param name="select-xml" as="document-node()"/>
         <xsl:param name="focus-var-name" as="xs:string"/>
         <xsl:variable name="select-xml" as="document-node()">
@@ -188,7 +189,6 @@ exclude-result-prefixes="#all"
         <xsl:variable name="select-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $select-json-string ])"/>
         <xsl:variable name="query-string" select="ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromQuery', [ $select-json ]), 'toString', [])" as="xs:string"/>
         <xsl:variable name="service" select="if (ixsl:contains(ixsl:window(), 'LinkedDataHub.service')) then ixsl:get(ixsl:window(), 'LinkedDataHub.service') else ()" as="element()?"/>
-        <xsl:variable name="endpoint" select="($service/sd:endpoint/@rdf:resource/xs:anyURI(.), sd:endpoint())[1]" as="xs:anyURI"/>
         <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': $query-string })" as="xs:anyURI"/>
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), map{}, $results-uri)" as="xs:anyURI"/>
 
@@ -1311,6 +1311,7 @@ exclude-result-prefixes="#all"
                     <!-- result count -->
                     <xsl:call-template name="ldh:ResultCount">
                         <xsl:with-param name="focus-var-name" select="$focus-var-name"/>
+                        <xsl:with-param name="endpoint" select="$endpoint"/>
                         <xsl:with-param name="select-xml" select="$select-xml"/>
                         <xsl:with-param name="container" select="id($result-count-container-id, ixsl:page())"/>
                     </xsl:call-template>
