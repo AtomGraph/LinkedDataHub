@@ -1,3 +1,10 @@
+## [3.2.23] - 2022-10-31
+### Added
+- New "Generate containers" feature that loads a schema from a SPARQL service and then generates a container for each class
+
+### Changed
+- Fixed regression of multiple RDF type support in the typeahead component
+
 ## [3.2.22] - 2022-10-26
 ### Added
 - Result count widget for container content
