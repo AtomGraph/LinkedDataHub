@@ -684,22 +684,20 @@ LIMIT   10
         <xsl:choose>
             <!-- service value missing, throw an error -->
             <xsl:when test="not($service-uri)">
-                <xsl:sequence select="$service-control-group[descendant::input[@name = 'ou'][not(ixsl:get(., 'value'))]]/ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'error', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+                <xsl:sequence select="$service-control-group/ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'error', true() ])[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:when>
             <!-- limit value missing, throw an error -->
-            <xsl:when test="not($limit-string)">
-                <xsl:message>AAA</xsl:message>
-                <xsl:sequence select="$limit-control-group[descendant::input[@name = 'ol'][not(ixsl:get(., 'value'))]]/ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'error', true() ])[current-date() lt xs:date('2000-01-01')]"/>
-            </xsl:when>
-            <!-- limit value not an integer, throw an error -->
-            <xsl:when test="not($limit-string castable as xs:integer)">
-                <xsl:message>BBB</xsl:message>
-                <xsl:sequence select="$limit-control-group[descendant::input[@name = 'ol'][not(ixsl:get(., 'value'))]]/ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'error', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+            <xsl:when test="not($limit-string) or not($limit-string castable as xs:integer)">
+                <xsl:sequence select="$service-control-group/ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'error', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+                <xsl:sequence select="$limit-control-group/ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'error', true() ])[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:when>
             <!-- all required values present/valid, load schema -->
             <xsl:otherwise>
                 <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
-                
+
+                <xsl:sequence select="$service-control-group/ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'error', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+                <xsl:sequence select="$limit-control-group/ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'error', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+
                 <xsl:variable name="limit" select="xs:integer($limit-string)" as="xs:integer"/>
                 <xsl:variable name="select-string" select="$endpoint-classes-string" as="xs:string"/>
                 <xsl:variable name="select-json" as="item()">
