@@ -676,18 +676,18 @@ LIMIT   10
     <xsl:template match="button[contains-token(@class, 'btn-load-endpoint-schema')]" mode="ixsl:onclick">
         <xsl:variable name="fieldset" select="ancestor::form/fieldset" as="element()"/>
         <xsl:variable name="service-control-group" select="$fieldset/descendant::div[contains-token(@class, 'control-group')][input[@name = 'pu'][@value = '&ldh;service']]" as="element()"/>
-        <xsl:variable name="service-uri" select="$service-control-group/descendant::input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI?"/>
+        <xsl:variable name="service-uri" select="$service-control-group/descendant::input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
         <xsl:variable name="limit-control-group" select="$fieldset/descendant::div[contains-token(@class, 'control-group')][input[@name = 'pu'][@value = '&sp;limit']]" as="element()"/>
-        <xsl:variable name="limit-string" select="$limit-control-group/descendant::input[@name = 'ol']/ixsl:get(., 'value')" as="xs:string?"/>
+        <xsl:variable name="limit-string" select="$limit-control-group/descendant::input[@name = 'ol']/ixsl:get(., 'value')" as="xs:string"/>
         <xsl:variable name="timeout" select="5000" as="xs:integer"/> <!-- schema load query timeout in milliseconds -->
 
         <xsl:choose>
             <!-- service value missing, throw an error -->
-            <xsl:when test="empty($service-uri)">
+            <xsl:when test="not($service-uri)">
                 <xsl:sequence select="$service-control-group[descendant::input[@name = 'ou'][not(ixsl:get(., 'value'))]]/ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'error', true() ])[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:when>
             <!-- limit value missing or not an integer, throw an error -->
-            <xsl:when test="empty($limit-string) or (exists($limit-string) and not($limit-string castable as xs:integer))">
+            <xsl:when test="not($limit-string) or not($limit-string castable as xs:integer)">
                 <xsl:sequence select="$limit-control-group[descendant::input[@name = 'ol'][not(ixsl:get(., 'value'))]]/ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'error', true() ])[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:when>
             <!-- all required values present/valid, load schema -->
@@ -788,21 +788,22 @@ LIMIT   10
         <xsl:param name="container" as="element()"/>
         <xsl:param name="arg-bnode-id" select="'generate'" as="xs:string"/>
         
+        <!-- append the controls for the class list if they don't exist -->
+        <xsl:for-each select="$container[not(./div[contains-token(@class, 'endpoint-classes')])]">
+            <xsl:result-document href="?." method="ixsl:append-content">
+                <div class="control-group required endpoint-classes">
+                    <label class="control-label">Classes</label>
+                    <div class="controls"></div>
+                </div>
+            </xsl:result-document>
+        </xsl:for-each>
+
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
 
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = 'application/sparql-results+xml'">
                 <xsl:for-each select="?body">
                     <xsl:variable name="results" select="." as="document-node()"/>
-                    <!-- append the controls for the class list if they don't exist -->
-                    <xsl:for-each select="$container[not(./div[contains-token(@class, 'endpoint-classes')])]">
-                        <xsl:result-document href="?." method="ixsl:append-content">
-                            <div class="control-group required endpoint-classes">
-                                <label class="control-label">Classes</label>
-                                <div class="controls"></div>
-                            </div>
-                        </xsl:result-document>
-                    </xsl:for-each>
                     
                     <!-- populate the class list within div.controls -->
                     <xsl:for-each select="$container//div[contains-token(@class, 'endpoint-classes')]/div">
@@ -841,7 +842,16 @@ LIMIT   10
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:message>Error loading schema from endpoint</xsl:message>
+                <xsl:for-each select="$container//div[contains-token(@class, 'endpoint-classes')]/div">
+                    <xsl:result-document href="?." method="ixsl:replace-content">
+                        <div class="alert alert-block">
+                            <strong>Error during query execution:</strong>
+                            <pre>
+                                <xsl:value-of select="?message"/>
+                            </pre>
+                        </div>
+                    </xsl:result-document>
+                </xsl:for-each>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
