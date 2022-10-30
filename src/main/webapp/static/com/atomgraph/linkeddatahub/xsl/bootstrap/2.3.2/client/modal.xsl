@@ -430,7 +430,7 @@ LIMIT   10
                                             </span>
                                         </div>
                                     </div>
-                                    <div class="control-group">
+                                    <div class="control-group required">
                                         <input name="pu" type="hidden" value="&sp;limit"/>
                                         <label class="control-label" for="schema-class-limit">
 <!--                                            <xsl:value-of>
@@ -676,17 +676,18 @@ LIMIT   10
     <xsl:template match="button[contains-token(@class, 'btn-load-endpoint-schema')]" mode="ixsl:onclick">
         <xsl:variable name="fieldset" select="ancestor::form/fieldset" as="element()"/>
         <xsl:variable name="service-control-group" select="$fieldset/descendant::div[contains-token(@class, 'control-group')][input[@name = 'pu'][@value = '&ldh;service']]" as="element()"/>
-        <xsl:variable name="service-uri" select="$service-control-group/descendant::input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
+        <xsl:variable name="service-uri" select="$service-control-group/descendant::input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI?"/>
         <xsl:variable name="limit-control-group" select="$fieldset/descendant::div[contains-token(@class, 'control-group')][input[@name = 'pu'][@value = '&sp;limit']]" as="element()"/>
-        <xsl:variable name="limit-string" select="$limit-control-group/descendant::input[@name = 'ol']/ixsl:get(., 'value')" as="xs:string"/>
+        <xsl:variable name="limit-string" select="$limit-control-group/descendant::input[@name = 'ol']/ixsl:get(., 'value')" as="xs:string?"/>
+        <xsl:variable name="timeout" select="5000" as="xs:integer"/> <!-- schema load query timeout in milliseconds -->
 
         <xsl:choose>
             <!-- service value missing, throw an error -->
-            <xsl:when test="not($service-uri)">
+            <xsl:when test="empty($service-uri)">
                 <xsl:sequence select="$service-control-group[descendant::input[@name = 'ou'][not(ixsl:get(., 'value'))]]/ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'error', true() ])[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:when>
-            <!-- limit value not an integer, throw an error -->
-            <xsl:when test="exists($limit-string) and not($limit-string castable as xs:integer)">
+            <!-- limit value missing or not an integer, throw an error -->
+            <xsl:when test="empty($limit-string) or (exists($limit-string) and not($limit-string castable as xs:integer))">
                 <xsl:sequence select="$limit-control-group[descendant::input[@name = 'ol'][not(ixsl:get(., 'value'))]]/ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'error', true() ])[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:when>
             <!-- all required values present/valid, load schema -->
@@ -717,7 +718,7 @@ LIMIT   10
                 <xsl:variable name="request-uri" select="ldh:href($ldt:base, $ldt:base, map{}, $results-uri)" as="xs:anyURI"/>
 
                 <xsl:variable name="request" as="item()*">
-                    <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml' } }">
+                    <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml' } }" wait="$timeout">
                         <xsl:call-template name="onEndpointClassesLoad">
                             <xsl:with-param name="container" select="$fieldset"/>
                         </xsl:call-template>
