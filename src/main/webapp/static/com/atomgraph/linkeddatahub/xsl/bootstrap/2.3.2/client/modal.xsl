@@ -623,25 +623,8 @@ LIMIT   10
         </xsl:call-template>
     </xsl:template>
     
-    <!-- validate form before submitting it and show errors on control-groups where input values are missing -->
-    <xsl:template match="form[@id = 'form-add-data'] | form[@id = 'form-clone-data']" mode="ixsl:onsubmit" priority="1">
-        <xsl:variable name="control-groups" select="descendant::div[contains-token(@class, 'control-group')][contains-token(@class, 'required')]" as="element()*"/>
-        <xsl:choose>
-            <!-- input values missing, throw an error -->
-            <xsl:when test="exists($control-groups/descendant::input[@name = ('ol', 'ou')][not(ixsl:get(., 'value'))])">
-                <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
-                <xsl:sequence select="$control-groups[descendant::input[@name = ('ol', 'ou')][not(ixsl:get(., 'value'))]]/ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'error', true() ])[current-date() lt xs:date('2000-01-01')]"/>
-            </xsl:when>
-            <!-- all required values present, apply the default form onsubmit -->
-            <xsl:otherwise>
-                <xsl:sequence select="$control-groups/ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'error', false() ])[current-date() lt xs:date('2000-01-01')]"/>
-                <xsl:next-match/>
-            </xsl:otherwise>
-        </xsl:choose>
-    </xsl:template>
-
-    <!-- validate form before submitting it and show errors on control-groups where input values are missing -->
-    <xsl:template match="form[@id = 'form-generate-containers']" mode="ixsl:onsubmit" priority="1">
+    <!-- validate form before submitting it and show errors on required control-groups where input values are missing -->
+    <xsl:template match="form[@id = 'form-add-data'] | form[@id = 'form-clone-data'] | form[@id = 'form-generate-containers']" mode="ixsl:onsubmit" priority="1">
         <xsl:variable name="control-groups" select="descendant::div[contains-token(@class, 'control-group')][contains-token(@class, 'required')]" as="element()*"/>
         <xsl:choose>
             <!-- input values missing, throw an error -->
