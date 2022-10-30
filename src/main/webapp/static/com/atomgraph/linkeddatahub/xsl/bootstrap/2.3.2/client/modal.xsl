@@ -679,8 +679,9 @@ LIMIT   10
         <xsl:variable name="service-uri" select="$service-control-group/descendant::input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
         <xsl:variable name="limit-control-group" select="$fieldset/descendant::div[contains-token(@class, 'control-group')][input[@name = 'pu'][@value = '&sp;limit']]" as="element()"/>
         <xsl:variable name="limit-string" select="$limit-control-group/descendant::input[@name = 'ol']/ixsl:get(., 'value')" as="xs:string"/>
-        <xsl:variable name="timeout" select="5000" as="xs:integer"/> <!-- schema load query timeout in milliseconds -->
+        <xsl:variable name="timeout" select="30000" as="xs:integer"/> <!-- schema load query timeout in milliseconds -->
 
+        <xsl:message>$limit-string: '<xsl:value-of select="$limit-string"/>' not($limit-string): <xsl:value-of select="not($limit-string)"/> not($limit-string castable as xs:integer): <xsl:value-of select="not($limit-string castable as xs:integer)"/></xsl:message>
         <xsl:choose>
             <!-- service value missing, throw an error -->
             <xsl:when test="not($service-uri)">
