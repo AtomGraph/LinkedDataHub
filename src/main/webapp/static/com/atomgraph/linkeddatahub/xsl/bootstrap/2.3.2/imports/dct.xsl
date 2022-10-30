@@ -42,8 +42,18 @@ exclude-result-prefixes="#all">
         </xsl:next-match>
     </xsl:template>-->
     
-    <!-- hide the dct:created/dct:modified properties of graph resources - those are managed automatically by the Graph Store -->
-    <xsl:template match="*[rdf:type/@rdf:resource = ('&def;Root', '&dh;Container', '&dh;Item')]/dct:created | *[rdf:type/@rdf:resource = ('&def;Root', '&dh;Container', '&dh;Item')]/dct:modified | *[rdf:type/@rdf:resource = ('&adm;Root', '&dh;Container', '&dh;Item')]/dct:created | *[rdf:type/@rdf:resource = ('&adm;Root', '&dh;Container', '&dh;Item')]/dct:modified" mode="bs2:FormControl" priority="1"/>
+    <!-- hide the dct:created/dct:modified properties of graph resources (dct:modified is set automatically by the Graph Store) -->
+    <xsl:template match="*[rdf:type/@rdf:resource = ('&def;Root', '&dh;Container', '&dh;Item')]/dct:created | *[rdf:type/@rdf:resource = ('&def;Root', '&dh;Container', '&dh;Item')]/dct:modified | *[rdf:type/@rdf:resource = ('&adm;Root', '&dh;Container', '&dh;Item')]/dct:created | *[rdf:type/@rdf:resource = ('&adm;Root', '&dh;Container', '&dh;Item')]/dct:modified" mode="bs2:FormControl" priority="1">
+        <xsl:apply-templates select="." mode="xhtml:Input">
+            <xsl:with-param name="type" select="'hidden'"/>
+        </xsl:apply-templates>
+        <xsl:apply-templates select="node() | @rdf:resource | @rdf:nodeID" mode="xhtml:Input">
+            <xsl:with-param name="type" select="'hidden'"/>
+        </xsl:apply-templates>
+        <xsl:apply-templates select="@xml:lang | @rdf:datatype" mode="xhtml:Input">
+            <xsl:with-param name="type" select="'hidden'"/>
+        </xsl:apply-templates>
+    </xsl:template>
 
     <xsl:template match="dct:format/@rdf:nodeID" mode="bs2:FormControl">
         <xsl:param name="id" select="generate-id()" as="xs:string"/>
