@@ -681,14 +681,17 @@ LIMIT   10
         <xsl:variable name="limit-string" select="$limit-control-group/descendant::input[@name = 'ol']/ixsl:get(., 'value')" as="xs:string"/>
         <xsl:variable name="timeout" select="30000" as="xs:integer"/> <!-- schema load query timeout in milliseconds -->
 
-        <xsl:message>$limit-string: '<xsl:value-of select="$limit-string"/>' not($limit-string): <xsl:value-of select="not($limit-string)"/> not($limit-string castable as xs:integer): <xsl:value-of select="not($limit-string castable as xs:integer)"/></xsl:message>
         <xsl:choose>
             <!-- service value missing, throw an error -->
             <xsl:when test="not($service-uri)">
                 <xsl:sequence select="$service-control-group[descendant::input[@name = 'ou'][not(ixsl:get(., 'value'))]]/ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'error', true() ])[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:when>
-            <!-- limit value missing or not an integer, throw an error -->
-            <xsl:when test="not($limit-string) or not($limit-string castable as xs:integer)">
+            <!-- limit value missing, throw an error -->
+            <xsl:when test="not($limit-string)">
+                <xsl:sequence select="$limit-control-group[descendant::input[@name = 'ol'][not(ixsl:get(., 'value'))]]/ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'error', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+            </xsl:when>
+            <!-- limit value not an integer, throw an error -->
+            <xsl:when test="not($limit-string castable as xs:integer)">
                 <xsl:sequence select="$limit-control-group[descendant::input[@name = 'ol'][not(ixsl:get(., 'value'))]]/ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'error', true() ])[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:when>
             <!-- all required values present/valid, load schema -->
