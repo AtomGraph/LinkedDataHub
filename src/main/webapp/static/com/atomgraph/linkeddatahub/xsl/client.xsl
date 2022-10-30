@@ -559,7 +559,6 @@ WHERE
             <!-- store document under window.LinkedDataHub[$content-uri].results -->
             <ixsl:set-property name="results" select="." object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $uri || '`')"/>
 
-            <xsl:message>$uri: <xsl:value-of select="$uri"/> exists(key('resources', $uri, $results)): <xsl:value-of select="exists(key('resources', $uri, $results))"/></xsl:message>
             <!-- render current document's created/modified datetime -->
             <xsl:for-each select="id('created-modified-date', ixsl:page())">
                 <xsl:result-document href="?." method="ixsl:replace-content">
