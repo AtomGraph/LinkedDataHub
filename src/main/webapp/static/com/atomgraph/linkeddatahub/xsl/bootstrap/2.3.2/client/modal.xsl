@@ -842,12 +842,14 @@ LIMIT   10
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
+                <xsl:variable name="message" select="?message" as="xs:string?"/>
+                
                 <xsl:for-each select="$container//div[contains-token(@class, 'endpoint-classes')]/div">
                     <xsl:result-document href="?." method="ixsl:replace-content">
                         <div class="alert alert-block">
                             <strong>Error during query execution:</strong>
                             <pre>
-                                <xsl:value-of select="?message"/>
+                                <xsl:value-of select="$message"/>
                             </pre>
                         </div>
                     </xsl:result-document>
