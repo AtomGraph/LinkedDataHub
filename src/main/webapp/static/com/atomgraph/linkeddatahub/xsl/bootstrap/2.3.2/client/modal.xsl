@@ -377,10 +377,9 @@ LIMIT   10
                     <ul class="nav nav-tabs">
                         <li class="active">
                             <a>
-<!--                                <xsl:value-of>
-                                    <xsl:apply-templates select="key('resources', 'upload-file', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                                </xsl:value-of>-->
-                                From SPARQL service
+                                <xsl:value-of>
+                                    <xsl:apply-templates select="key('resources', 'from-sparql-service', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                                </xsl:value-of>
                             </a>
                         </li>
                     </ul>
@@ -401,10 +400,9 @@ LIMIT   10
                                     <div class="control-group required">
                                         <input name="pu" type="hidden" value="&sioc;has_parent"/>
                                         <label class="control-label" for="generate-containers-parent">
-<!--                                            <xsl:value-of>
-                                                <xsl:apply-templates select="key('resources', '&sd;Service', document(ac:document-uri('&sd;')))" mode="ac:label"/>
-                                            </xsl:value-of>-->
-                                            Has parent
+                                            <xsl:value-of>
+                                                <xsl:apply-templates select="key('resources', 'has-parent', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                                            </xsl:value-of>
                                         </label>
                                         <div class="controls">
                                             <span>
@@ -416,47 +414,36 @@ LIMIT   10
                                             <input type="hidden" class="forClass" value="&dh;Container" autocomplete="off"/>
 
                                             <a href="{ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ldh:query-params(xs:anyURI('&ac;ModalMode'), xs:anyURI('&dh;Container')), ldh:absolute-path(ldh:href()))}" class="btn add-constructor create-action" title="&dh;Container" id="{generate-id()}-generate-containers-parent">
-<!--                                                <xsl:value-of>
-                                                    <xsl:apply-templates select="key('resources', '&dh;Container', document(ac:document-uri('&sd;')))" mode="ac:label"/>
-                                                </xsl:value-of>-->
                                                 <input type="hidden" class="forClass" value="&dh;Container"/>
                                             </a>
 
                                             <span class="help-inline">
-<!--                                                <xsl:value-of>
-                                                    <xsl:apply-templates select="key('resources', '&dh;Container', document(ac:document-uri('&sd;')))" mode="ac:label"/>
-                                                </xsl:value-of>-->
-                                                Container
+                                                <xsl:value-of>
+                                                    <xsl:apply-templates select="key('resources', '&dh;Container', document(ac:document-uri('&dh;')))" mode="ac:label"/>
+                                                </xsl:value-of>
                                             </span>
                                         </div>
                                     </div>
                                     <div class="control-group required">
                                         <input name="pu" type="hidden" value="&sp;limit"/>
                                         <label class="control-label" for="schema-class-limit">
-<!--                                            <xsl:value-of>
-                                                <xsl:apply-templates select="key('resources', '&sd;Service', document(ac:document-uri('&sd;')))" mode="ac:label"/>
-                                            </xsl:value-of>-->
-                                            Limit
+                                            <xsl:value-of>
+                                                <xsl:apply-templates select="key('resources', 'limit', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                                            </xsl:value-of>
                                         </label>
                                         <div class="controls">
                                             <input type="text" name="ol" id="schema-class-limit" value="{$default-limit}"/>
                                             <input type="hidden" name="lt" value="&xsd;integer"/>
                                             
-                                            <span class="help-inline">
-<!--                                                <xsl:value-of>
-                                                    <xsl:apply-templates select="key('resources', '&sd;Service', document(ac:document-uri('&sd;')))" mode="ac:label"/>
-                                                </xsl:value-of>-->
-                                                xsd:integer
-                                            </span>
+                                            <span class="help-inline">xsd:integer</span>
                                         </div>
                                     </div>
                                     <div class="control-group required">
                                         <input name="pu" type="hidden" value="&ldh;service"/>
                                         <label class="control-label" for="source-service">
-<!--                                            <xsl:value-of>
-                                                <xsl:apply-templates select="key('resources', '&sd;Service', document(ac:document-uri('&sd;')))" mode="ac:label"/>
-                                            </xsl:value-of>-->
-                                            Service
+                                            <xsl:value-of>
+                                                <xsl:apply-templates select="key('resources', 'service', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                                            </xsl:value-of>
                                         </label>
                                         <div class="controls">
                                             <span>
@@ -467,17 +454,13 @@ LIMIT   10
                                             <input type="hidden" class="forClass" value="&sd;Service" autocomplete="off"/>
 
                                             <a href="{ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ldh:query-params(xs:anyURI('&ac;ModalMode'), xs:anyURI('&sd;Service')), ldh:absolute-path(ldh:href()))}" class="btn add-constructor create-action" title="&sd;Service" id="{generate-id()}-generate-containers-service">
-<!--                                                <xsl:value-of>
-                                                    <xsl:apply-templates select="key('resources', '&sd;Service', document(ac:document-uri('&sd;')))" mode="ac:label"/>
-                                                </xsl:value-of>-->
                                                 <input type="hidden" class="forClass" value="&sd;Service"/>
                                             </a>
 
                                             <span class="help-inline">
-<!--                                                <xsl:value-of>
-                                                    <xsl:apply-templates select="key('resources', '&sd;Service', document(ac:document-uri('&sd;')))" mode="ac:label"/>
-                                                </xsl:value-of>-->
-                                                Service
+                                                <xsl:value-of>
+                                                    <xsl:apply-templates select="key('resources', 'service', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                                                </xsl:value-of>
                                             </span>
                                         </div>
                                     </div>
@@ -485,13 +468,14 @@ LIMIT   10
 
                                 <div class="form-actions modal-footer">
                                     <button type="button" class="btn btn-primary btn-load-endpoint-schema">
-                                        Load schema
+                                        <xsl:value-of>
+                                            <xsl:apply-templates select="key('resources', 'load-schema', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                                        </xsl:value-of>
                                     </button>
                                     <button type="submit" class="{$button-class}">
-<!--                                        <xsl:value-of>
-                                            <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                                        </xsl:value-of>-->
-                                        Generate
+                                        <xsl:value-of>
+                                            <xsl:apply-templates select="key('resources', 'generate', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                                        </xsl:value-of>
                                     </button>
                                     <button type="button" class="btn btn-close">
                                         <xsl:value-of>
