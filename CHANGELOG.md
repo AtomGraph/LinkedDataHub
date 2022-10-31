@@ -3,7 +3,7 @@
 - New "Generate containers" feature that loads a schema from a SPARQL service and then generates a container for each class
 
 ### Changed
-- Fixed regression of multiple RDF type support in the typeahead component
+- Fixed regression of multiple RDF types in the typeahead component
 - Fixed container result count widget to support remote SPARQL endpoints
 - Fixed regression of created/modified timestaps not rendered on documents
 
