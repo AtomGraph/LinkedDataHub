@@ -24,7 +24,6 @@ import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.server.util.Skolemizer;
-import com.atomgraph.linkeddatahub.vocabulary.FOAF;
 import com.atomgraph.linkeddatahub.vocabulary.LDH;
 import com.atomgraph.linkeddatahub.vocabulary.VoID;
 import com.atomgraph.processor.vocabulary.DH;
@@ -72,9 +71,6 @@ public class Generate extends GraphStoreImpl
 
     private static final Logger log = LoggerFactory.getLogger(Generate.class);
     
-    /** Relative URL of the query container */
-    public static final String QUERY_PATH = "queries/";
-
     /**
      * Constructs endpoint for synchronous RDF data imports.
      * 
@@ -135,30 +131,16 @@ public class Generate extends GraphStoreImpl
                     ParameterizedSparqlString pss = new ParameterizedSparqlString(query.toString());
                     pss.setIri(RDF.type.getLocalName(), cls.getURI()); // inject $type value
                     
-                    Model containerQueryModel = ModelFactory.createDefaultModel();
-                    URI containerQueryGraphURI = getUriInfo().getBaseUriBuilder().path(QUERY_PATH).path("{slug}/").build(UUID.randomUUID().toString());
-                    createContainerQuery(containerQueryModel,
-                        containerQueryGraphURI,
-                        containerQueryModel.createResource(getUriInfo().getBaseUri().resolve(QUERY_PATH).toString()),
-                        "Select " + cls.getLocalName(),
-                        pss.asQuery(),
-                        service);
-                    new Skolemizer(containerQueryGraphURI.toString()).apply(containerQueryModel);
-                    
-                    Response queryResponse = super.post(containerQueryModel, false, containerQueryGraphURI);
-                    if (queryResponse.getStatus() != Response.Status.CREATED.getStatusCode())
-                    {
-                        if (log.isErrorEnabled()) log.error("Cannot create Query");
-                        throw new InternalServerErrorException("Cannot create Query");
-                    }
-
-                    Resource containerQuery = containerQueryModel.createResource(containerQueryGraphURI.toString()).getPropertyResourceValue(FOAF.primaryTopic);
-                    Model containerModel = ModelFactory.createDefaultModel();
                     URI containerGraphURI = UriBuilder.fromUri(parent.getURI()).path("{slug}/").build(UUID.randomUUID().toString());
+                    Model containerModel = ModelFactory.createDefaultModel();
+                    
                     createContainer(containerModel,
                         containerGraphURI, parent,
                         cls.getLocalName() + "s",
-                        createContent(containerModel, containerQuery));
+                        createContent(containerModel, createContainerSelect(containerModel,
+                            "Select " + cls.getLocalName(),
+                            pss.asQuery(),
+                            service)));
                     new Skolemizer(containerGraphURI.toString()).apply(containerModel);
 
                     Response containerResponse = super.post(containerModel, false, containerGraphURI);
@@ -182,24 +164,13 @@ public class Generate extends GraphStoreImpl
         }
     }
     
-     public Resource createContainerQuery(Model model, URI graphURI, Resource container, String title, Query query, Resource service)
+     public Resource createContainerSelect(Model model, String title, Query query, Resource service)
     {
-        Resource item = model.createResource(graphURI.toString()).
-            addProperty(RDF.type, DH.Item).
-            addProperty(SIOC.HAS_CONTAINER, container).
-            addLiteral(DCTerms.title, title).
-            addLiteral(DH.slug, UUID.randomUUID().toString()).
-            addLiteral(DCTerms.created, Calendar.getInstance());
-        
-        Resource queryRes = model.createResource().
+        return model.createResource().
             addProperty(RDF.type, SP.Select).
             addLiteral(DCTerms.title, title).
             addProperty(SP.text, query.toString()).
             addProperty(LDH.service, service);
-        
-        item.addProperty(FOAF.primaryTopic, queryRes);
-        
-        return queryRes;
     }
     
     public Resource createContainer(Model model, URI graphURI, Resource parent, String title, Resource content)
