@@ -72,7 +72,7 @@ public class Generate extends GraphStoreImpl
     private static final Logger log = LoggerFactory.getLogger(Generate.class);
     
     /**
-     * Constructs endpoint for synchronous RDF data imports.
+     * Constructs endpoint for container generation.
      * 
      * @param request current request
      * @param uriInfo current URI info
