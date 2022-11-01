@@ -101,8 +101,9 @@ exclude-result-prefixes="#all">
                     <xsl:when test="count($bindings/srx:uri) = $binding-count">string</xsl:when>
                     <xsl:when test="count($bindings/srx:bnode) = $binding-count">string</xsl:when>
                     <xsl:when test="count($bindings/srx:literal[@datatype = ('&xsd;integer', '&xsd;decimal', '&xsd;double', '&xsd;float')]) = $binding-count">number</xsl:when>
-                    <xsl:when test="count($bindings/srx:literal[@datatype = ('&xsd;dateTime', '&xsd;date')]) = $binding-count">date</xsl:when>
-                    <xsl:when test="count($bindings/srx:literal[@datatype = ('&xsd;time')]) = $binding-count">timeofday</xsl:when>
+                    <xsl:when test="count($bindings/srx:literal[@datatype = '&xsd;dateTime']) = $binding-count">datetime</xsl:when>
+                    <xsl:when test="count($bindings/srx:literal[@datatype = '&xsd;date']) = $binding-count">date</xsl:when>
+                    <xsl:when test="count($bindings/srx:literal[@datatype = '&xsd;time']) = $binding-count">timeofday</xsl:when>
                     <xsl:otherwise>string</xsl:otherwise>
                 </xsl:choose>
             </json:string>

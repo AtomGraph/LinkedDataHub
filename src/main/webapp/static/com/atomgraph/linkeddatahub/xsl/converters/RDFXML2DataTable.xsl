@@ -135,8 +135,9 @@ exclude-result-prefixes="xs">
                 <xsl:variable name="same-property-count" select="count($same-properties)" as="xs:integer"/>
                 <xsl:choose>
                     <xsl:when test="count($same-properties[@rdf:datatype = ('&xsd;integer', '&xsd;decimal', '&xsd;double', '&xsd;float')]) = $same-property-count">number</xsl:when>
-                    <xsl:when test="count($same-properties[@rdf:datatype = ('&xsd;dateTime', '&xsd;date')]) = $same-property-count">date</xsl:when>
-                    <xsl:when test="count($same-properties[@rdf:datatype = ('&xsd;time')]) = $same-property-count">timeofday</xsl:when>
+                    <xsl:when test="count($same-properties[@rdf:datatype = '&xsd;dateTime']) = $same-property-count">datetime</xsl:when>
+                    <xsl:when test="count($same-properties[@rdf:datatype = '&xsd;date']) = $same-property-count">date</xsl:when>
+                    <xsl:when test="count($same-properties[@rdf:datatype = '&xsd;time']) = $same-property-count">timeofday</xsl:when>
                     <xsl:otherwise>string</xsl:otherwise>
                 </xsl:choose>
             </json:string>
