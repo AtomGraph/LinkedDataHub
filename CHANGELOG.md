@@ -1,3 +1,7 @@
+## [3.2.24] - 2022-11-01
+### Changed
+- Fixed datetime literal conversion from RDF/XML and SPARQL Results XML to Google Chart's `DataTable`
+
 ## [3.2.23] - 2022-10-31
 ### Added
 - New "Generate containers" feature that loads a schema from a SPARQL service and then generates a container for each class
