@@ -205,7 +205,7 @@ exclude-result-prefixes="xs">
     </xsl:template>
 
     <xsl:template match="text()[../@rdf:datatype = '&xsd;dateTime']" mode="ac:DataTable">
-        <json:string key="v">Date(<xsl:value-of select="year-from-dateTime(.)"/>, <xsl:value-of select="month-from-dateTime(.) - 1"/>, <xsl:value-of select="day-from-dateTime(.)"/>, <xsl:value-of select="hours-from-dateTime(.)"/>, <xsl:value-of select="minutes-from-dateTime(.)"/>, <xsl:value-of select="seconds-from-dateTime(.)"/>)</json:string>
+        <json:string key="v">Date(<xsl:value-of select="year-from-dateTime(.)"/>, <xsl:value-of select="month-from-dateTime(.) - 1"/>, <xsl:value-of select="day-from-dateTime(.)"/>, <xsl:value-of select="hours-from-dateTime(.)"/>, <xsl:value-of select="minutes-from-dateTime(.)"/>, <xsl:value-of select="floor(seconds-from-dateTime(.))"/>, <xsl:value-of select="(seconds-from-dateTime(.) - floor(seconds-from-dateTime(.))) * 1000"/>)</json:string>
     </xsl:template>
 
     <xsl:template match="text()[../@rdf:datatype = '&xsd;time']" mode="ac:DataTable">
