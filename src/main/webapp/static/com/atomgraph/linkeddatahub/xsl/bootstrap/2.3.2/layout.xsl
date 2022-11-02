@@ -192,7 +192,7 @@ LIMIT   100
             PREFIX  sp:   <http://spinrdf.org/sp#>
             PREFIX  spin: <http://spinrdf.org/spin#>
 
-            SELECT  ?constructor ?construct
+            SELECT  $Type ?constructor ?construct
             WHERE
               { $Type (rdfs:subClassOf)*/spin:constructor  ?constructor .
                 ?constructor sp:text ?construct .
