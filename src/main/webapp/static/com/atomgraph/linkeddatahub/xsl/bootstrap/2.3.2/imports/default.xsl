@@ -270,7 +270,7 @@ exclude-result-prefixes="#all"
     </xsl:function>
 
     <!-- function stub so that Saxon-EE doesn't complain when compiling SEF -->
-    <xsl:function name="ldh:send-request" as="document-node()?">
+    <xsl:function name="ldh:send-request" as="document-node()?" override-extension-function="no" cache="yes">
         <xsl:param name="href" as="xs:anyURI"/>
         <xsl:param name="method" as="xs:string"/>
         <xsl:param name="media-type" as="xs:string?"/>
@@ -285,7 +285,7 @@ exclude-result-prefixes="#all"
     <!-- SHARED FUNCTIONS -->
 
     <!-- TO-DO: move down to Web-Client -->
-    <xsl:function name="ac:image" as="attribute()*" override-extension-function="no" cache="yes">
+    <xsl:function name="ac:image" as="attribute()*">
         <xsl:param name="resource" as="element()"/>
 
         <xsl:variable name="images" as="attribute()*">
