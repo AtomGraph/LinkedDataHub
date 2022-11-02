@@ -284,7 +284,7 @@ exclude-result-prefixes="#all"
     <!-- override makes NS ontology lookup take precedence over Linked Data -->
     <xsl:template match="*[@rdf:about or @rdf:nodeID]/*" mode="ac:property-label">
         <xsl:param name="endpoint" select="resolve-uri('ns', $ldt:base)" as="xs:anyURI"/>
-        <xsl:param name="lookup-in-ns" select="true()" as="xs:boolean"/>
+        <xsl:param name="lookup-in-ns" select="false()" as="xs:boolean"/>
         <xsl:variable name="this" select="concat(namespace-uri(), local-name())"/>
         <xsl:variable name="query-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': 'DESCRIBE &lt;' || $this || '&gt;' })" as="xs:anyURI"/>
         
