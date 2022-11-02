@@ -802,6 +802,7 @@ public class Application extends ResourceConfig
         
         register(new ValidatingModelProvider(getMessageDigest()));
         register(new ResultSetProvider());
+        register(new QueryProvider());
         register(new QueryParamProvider());
         register(new UpdateRequestProvider());
         register(new ModelXSLTWriter(getXsltExecutable(), getOntModelSpec(), getDataManager(), getMessageDigest())); // writes (X)HTML responses
