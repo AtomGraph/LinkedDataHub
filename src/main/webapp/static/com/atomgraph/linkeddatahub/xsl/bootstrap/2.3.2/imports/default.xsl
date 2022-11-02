@@ -293,7 +293,7 @@ exclude-result-prefixes="#all"
                 <xsl:apply-templates select="key('resources', $this)" mode="ac:label"/>
             </xsl:when>
             <!-- make sure doc-available() and document() are not evaluated if $lookup-in-ns = false() -->
-            <xsl:when test="$query-uri[$lookup-in-ns] ! (doc-available(.) and key('resources', $this, document(.))" use-when="system-property('xsl:product-name') = 'SAXON'">
+            <xsl:when test="$query-uri[$lookup-in-ns] ! (doc-available(.) and key('resources', $this, document(.)))" use-when="system-property('xsl:product-name') = 'SAXON'">
                 <xsl:apply-templates select="key('resources', $this, document($query-uri))" mode="ac:label"/>
             </xsl:when>
             <xsl:when test="doc-available(namespace-uri()) and key('resources', $this, document(namespace-uri()))" use-when="system-property('xsl:product-name') = 'SAXON'">
