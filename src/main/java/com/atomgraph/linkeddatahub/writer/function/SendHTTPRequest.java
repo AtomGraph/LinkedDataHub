@@ -17,6 +17,7 @@
 package com.atomgraph.linkeddatahub.writer.function;
 
 import com.atomgraph.linkeddatahub.vocabulary.LDH;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.stream.Collectors;
 import javax.ws.rs.client.Client;
@@ -35,6 +36,8 @@ import net.sf.saxon.s9api.SaxonApiException;
 import net.sf.saxon.s9api.SequenceType;
 import net.sf.saxon.s9api.XdmEmptySequence;
 import net.sf.saxon.s9api.XdmValue;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Executes an HTTP request.
@@ -43,6 +46,8 @@ import net.sf.saxon.s9api.XdmValue;
  */
 public class SendHTTPRequest implements ExtensionFunction
 {
+
+    private static final Logger log = LoggerFactory.getLogger(SendHTTPRequest.class);
 
     private final Processor processor;
     private final Client client;
@@ -94,20 +99,25 @@ public class SendHTTPRequest implements ExtensionFunction
 
         try
         {
-            final Response response;
+            final Response cr;
             if (arguments[2].isEmpty() || arguments[3].isEmpty()) // no media-type or body
-                response = getClient().target(href).request().headers(headers).build(method).invoke();
+                cr = getClient().target(href).request().headers(headers).build(method).invoke();
             else
             {
                 String mediaType = arguments[2].itemAt(0).getStringValue();
                 Entity entity = Entity.entity(arguments[3].itemAt(0).getStringValue(), mediaType);
-                response = getClient().target(href).request().headers(headers).build(method, entity).invoke();
+                cr = getClient().target(href).request().headers(headers).build(method, entity).invoke();
             }
-            if (response.hasEntity()) return getProcessor().newDocumentBuilder().build(new StreamSource(response.readEntity(InputStream.class)));
+            if (!cr.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
+            {
+                if (log.isDebugEnabled()) log.debug("Could not execute ldh:send-request function. href: '{}' method: '{}'", href, method);
+                throw new IOException("Could not execut ldh:send-request function. href: '" + href + "' method: '" + method + "'");
+            }
+            if (cr.hasEntity()) return getProcessor().newDocumentBuilder().build(new StreamSource(cr.readEntity(InputStream.class)));
             
             return XdmEmptySequence.getInstance();
         }
-        catch (SaxonApiException ex)
+        catch (IOException ex)
         {
             throw new SaxonApiException(ex);
         }
