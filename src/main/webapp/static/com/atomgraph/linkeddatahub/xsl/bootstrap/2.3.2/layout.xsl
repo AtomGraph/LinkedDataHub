@@ -866,6 +866,127 @@ LIMIT   100
     <!-- don't show document-level tabs if the response returned an error or if we're in EditMode -->
     <xsl:template match="rdf:RDF[key('resources-by-type', '&http;Response')] | rdf:RDF[$ac:forClass or $ac:mode = '&ac;EditMode']" mode="bs2:ModeTabs" priority="1"/>
     
+    <!-- only lookup resource locally using DESCRIBE if it's external (not relative to the app's base URI) and the agent is authenticated -->
+    <xsl:template match="*[*][@rdf:about = ac:uri()][not(starts-with(@rdf:about, $ldt:base))][$foaf:Agent//@rdf:about]" mode="bs2:PropertyList">
+        <xsl:param name="endpoint" select="($sd:endpoint, $ac:endpoint)[1]" as="xs:anyURI"/>
+        <xsl:param name="property-uris" select="distinct-values(*/concat(namespace-uri(), local-name()))" as="xs:anyURI*"/>
+        <xsl:param name="property-metadata" select="ldh:send-request(resolve-uri('ns', $ldt:base), 'POST', 'application/sparql-query', 'DESCRIBE ' || string-join(for $uri in distinct-values(/rdf:RDF/*/*/concat(namespace-uri(), local-name())) return '&lt;' || $uri || '&gt;', ' '), map{ 'Accept': 'application/rdf+xml' })" as="document-node()"/>
+        <xsl:variable name="local-doc" select="ldh:query-result(map{}, $endpoint, 'DESCRIBE &lt;' || @rdf:about || '&gt;')" as="document-node()"/>
+        <xsl:variable name="original-doc" as="document-node()">
+            <xsl:try>
+                <!-- try loading resource by deferencing its URI -->
+                <xsl:variable name="full-doc" select="document(ac:document-uri(@rdf:about))" as="document-node()"/>
+                <xsl:choose>
+                    <!-- this is not a document resource (contains a hash in the URI), extract it from the full document -->
+                    <xsl:when test="not(@rdf:about = ac:document-uri(@rdf:about))">
+                        <xsl:document>
+                            <rdf:RDF>
+                                <xsl:copy-of select="key('resources', @rdf:about, $full-doc)"/>
+                            </rdf:RDF>
+                        </xsl:document>
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <xsl:sequence select="$full-doc"/>
+                    </xsl:otherwise>
+                </xsl:choose>
+                <!-- fallback to the $local-doc -->
+                <xsl:catch>
+                    <xsl:sequence select="$local-doc"/>
+                </xsl:catch>
+            </xsl:try>
+        </xsl:variable>
+
+        <xsl:variable name="triples-original" as="map(xs:string, element())">
+            <xsl:map>
+                <xsl:for-each select="$original-doc/rdf:RDF/rdf:Description/*">
+                    <xsl:map-entry key="concat(../@rdf:about, '|', ../@rdf:nodeID, '|', namespace-uri(), local-name(), '|', @rdf:resource, @rdf:nodeID, if (text() castable as xs:float) then xs:float(text()) else text(), '|', @rdf:datatype, @xml:lang)" select="."/>
+                </xsl:for-each>
+            </xsl:map>
+        </xsl:variable>
+        <xsl:variable name="triples-local" as="map(xs:string, element())">
+            <xsl:map>
+                <xsl:for-each select="$local-doc/rdf:RDF/rdf:Description/*">
+                    <xsl:map-entry key="concat(../@rdf:about, '|', ../@rdf:nodeID, '|', namespace-uri(), local-name(), '|', @rdf:resource, @rdf:nodeID, if (text() castable as xs:float) then xs:float(text()) else text(), '|', @rdf:datatype, @xml:lang)" select="."/>
+                </xsl:for-each>
+            </xsl:map>
+        </xsl:variable>
+
+        <xsl:variable name="properties-original" select="for $triple-key in ac:value-except(map:keys($triples-original), map:keys($triples-local)) return map:get($triples-original, $triple-key)" as="element()*"/>
+        <xsl:if test="exists($properties-original)">
+            <div>
+                <h2 class="nav-header btn">
+                    <xsl:value-of>
+                        <xsl:apply-templates select="key('resources', 'from-origin', document('translations.rdf'))" mode="ac:label"/>
+                    </xsl:value-of>
+                </h2>
+
+                <xsl:variable name="definitions" as="document-node()">
+                    <xsl:document>
+                        <dl class="dl-horizontal">
+                            <xsl:apply-templates select="$properties-original" mode="#current">
+                                <xsl:sort select="ac:property-label(., $property-metadata)" order="ascending" lang="{$ldt:lang}"/>
+                                <xsl:sort select="if (exists((text(), @rdf:resource, @rdf:nodeID))) then ac:object-label((text(), @rdf:resource, @rdf:nodeID)[1]) else()" order="ascending" lang="{$ldt:lang}"/>
+                                <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/>
+                            </xsl:apply-templates>
+                        </dl>
+                    </xsl:document>
+                </xsl:variable>
+
+                <xsl:apply-templates select="$definitions" mode="bs2:PropertyListIdentity"/>
+            </div>
+        </xsl:if>
+
+        <xsl:variable name="properties-local" select="for $triple-key in ac:value-except(map:keys($triples-local), map:keys($triples-original)) return map:get($triples-local, $triple-key)" as="element()*"/>
+        <xsl:if test="exists($properties-local)">
+            <div>
+                <h2 class="nav-header btn">
+                    <xsl:value-of>
+                        <xsl:apply-templates select="key('resources', 'local', document('translations.rdf'))" mode="ac:label"/>
+                    </xsl:value-of>
+                </h2>
+                
+                <xsl:variable name="definitions" as="document-node()">
+                    <xsl:document>
+                        <dl class="dl-horizontal">
+                            <xsl:apply-templates select="$properties-local" mode="#current">
+                                <xsl:sort select="ac:property-label(., $property-metadata)" order="ascending" lang="{$ldt:lang}"/>
+                                <xsl:sort select="if (exists((text(), @rdf:resource, @rdf:nodeID))) then ac:object-label((text(), @rdf:resource, @rdf:nodeID)[1]) else()" order="ascending" lang="{$ldt:lang}"/>
+                                <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/>
+                            </xsl:apply-templates>
+                        </dl>
+                    </xsl:document>
+                </xsl:variable>
+
+                <xsl:apply-templates select="$definitions" mode="bs2:PropertyListIdentity"/>
+            </div>
+        </xsl:if>
+        
+        <xsl:variable name="properties-common" select="for $triple-key in ac:value-intersect(map:keys($triples-original), map:keys($triples-local)) return map:get($triples-original, $triple-key)" as="element()*"/>
+        <xsl:if test="exists($properties-common)">
+            <div>
+                <h2 class="nav-header btn">
+                    <xsl:value-of>
+                        <xsl:apply-templates select="key('resources', 'common', document('translations.rdf'))" mode="ac:label"/>
+                    </xsl:value-of>
+                </h2>
+
+                <xsl:variable name="definitions" as="document-node()">
+                    <xsl:document>
+                        <dl class="dl-horizontal">
+                            <xsl:apply-templates select="$properties-common" mode="#current">
+                                <xsl:sort select="ac:property-label(., $property-metadata)" order="ascending" lang="{$ldt:lang}"/>
+                                <xsl:sort select="if (exists((text(), @rdf:resource, @rdf:nodeID))) then ac:object-label((text(), @rdf:resource, @rdf:nodeID)[1]) else()" order="ascending" lang="{$ldt:lang}"/>
+                                <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/>
+                            </xsl:apply-templates>
+                        </dl>
+                    </xsl:document>
+                </xsl:variable>
+
+                <xsl:apply-templates select="$definitions" mode="bs2:PropertyListIdentity"/>
+            </div>
+        </xsl:if>
+    </xsl:template>
+    
     <!-- ADD DATA -->
     
     <xsl:template match="rdf:RDF[$acl:mode = '&acl;Append']" mode="bs2:AddData" priority="1">
