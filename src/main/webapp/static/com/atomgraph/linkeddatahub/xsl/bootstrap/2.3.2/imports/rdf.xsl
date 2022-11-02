@@ -97,13 +97,12 @@ exclude-result-prefixes="#all">
         <xsl:param name="class" select="'subject input-xxlarge'" as="xs:string?"/>
         <xsl:param name="disabled" select="false()" as="xs:boolean"/>
         <xsl:param name="auto" select="local-name() = 'nodeID' or starts-with(., $ldt:base)" as="xs:boolean"/>
-        <!-- load type description from the namespace ontology instead of Linked Data -->
-        <xsl:param name="doc-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': 'DESCRIBE &lt;' || . || '&gt;' })" as="xs:anyURI"/>
+        <xsl:param name="type-metadata" as="document-node()" tunnel="yes"/>
 
         <xsl:choose>
-            <xsl:when test="doc-available($doc-uri) and key('resources', ., document($doc-uri))">
+            <xsl:when test="key('resources', ., $type-metadata)">
                 <span>
-                    <xsl:apply-templates select="key('resources', ., document($doc-uri))" mode="ldh:Typeahead">
+                    <xsl:apply-templates select="key('resources', ., $type-metadata)" mode="ldh:Typeahead">
                         <xsl:with-param name="class" select="'btn add-typeahead add-type-typeahead'"/>
                     </xsl:apply-templates>
                 </span>

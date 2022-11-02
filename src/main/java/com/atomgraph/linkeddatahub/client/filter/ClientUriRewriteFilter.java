@@ -18,9 +18,9 @@ package com.atomgraph.linkeddatahub.client.filter;
 
 import java.io.IOException;
 import java.net.URI;
-import java.net.URISyntaxException;
 import javax.ws.rs.client.ClientRequestContext;
 import javax.ws.rs.client.ClientRequestFilter;
+import javax.ws.rs.core.UriBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,21 +59,14 @@ public class ClientUriRewriteFilter implements ClientRequestFilter
     {
         if (getBaseURI().relativize(cr.getUri()).isAbsolute()) return; // don't rewrite URIs that are not relative to the base URI (e.g. SPARQL Protocol URLs)
 
-        try
-        {
-            String newScheme = cr.getUri().getScheme();
-            if (getScheme() != null) newScheme  = getScheme();
-            
-            URI newUri = new URI(newScheme, cr.getUri().getUserInfo(), getHostname(), getPort(),
-                    cr.getUri().getPath(), cr.getUri().getQuery(), cr.getUri().getFragment());
-        
-            if (log.isDebugEnabled()) log.debug("Rewriting client request URI from '{}' to '{}'", cr.getUri(), newUri);
-            cr.setUri(newUri);
-        }
-        catch (URISyntaxException ex)
-        {
-            // shouldn't happen
-        }
+        String newScheme = cr.getUri().getScheme();
+        if (getScheme() != null) newScheme  = getScheme();
+
+        // cannot use the URI class because query string with special chars such as '+' gets decoded
+        URI newUri = UriBuilder.fromUri(cr.getUri()).scheme(newScheme).host(getHostname()).port(getPort()).build();
+
+        if (log.isDebugEnabled()) log.debug("Rewriting client request URI from '{}' to '{}'", cr.getUri(), newUri);
+        cr.setUri(newUri);
     }
     
     /**

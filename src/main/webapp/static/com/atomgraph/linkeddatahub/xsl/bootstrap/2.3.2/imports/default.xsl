@@ -54,6 +54,18 @@ exclude-result-prefixes="#all"
 
     <xsl:param name="ac:contextUri" as="xs:anyURI?"/>
 
+    <xsl:function name="ac:property-label" as="xs:string?">
+        <xsl:param name="property" as="element()"/>
+        <xsl:param name="property-metadata" as="document-node()"/>
+
+        <xsl:variable name="labels" as="xs:string*">
+            <xsl:apply-templates select="$property" mode="ac:property-label">
+                <xsl:with-param name="property-metadata" select="$property-metadata"/>
+            </xsl:apply-templates>
+        </xsl:variable>
+        <xsl:sequence select="upper-case(substring($labels[1], 1, 1)) || substring($labels[1], 2)"/>
+    </xsl:function>
+    
     <xsl:function name="ldh:href" as="xs:anyURI">
         <xsl:param name="base" as="xs:anyURI"/>
         <xsl:param name="absolute-path" as="xs:anyURI"/>
@@ -257,6 +269,19 @@ exclude-result-prefixes="#all"
         )"/>
     </xsl:function>
 
+    <!-- function stub so that Saxon-EE doesn't complain when compiling SEF -->
+    <xsl:function name="ldh:send-request" as="document-node()?" override-extension-function="no" cache="yes">
+        <xsl:param name="href" as="xs:anyURI"/>
+        <xsl:param name="method" as="xs:string"/>
+        <xsl:param name="media-type" as="xs:string?"/>
+        <xsl:param name="body" as="item()?"/>
+        <xsl:param name="headers" as="map(xs:string, xs:string)"/>
+        
+        <xsl:message use-when="system-property('xsl:product-name') = 'SAXON'" terminate="yes">
+            Not implemented -- com.atomgraph.linkeddatahub.writer.function.SendHTTPRequest needs to be registered as an extension function
+        </xsl:message>
+    </xsl:function>
+    
     <!-- SHARED FUNCTIONS -->
 
     <!-- TO-DO: move down to Web-Client -->
@@ -269,29 +294,21 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="$images"/>
     </xsl:function>
     
-    <!-- override makes NS ontology lookup take precedence over Linked Data -->
+    <!-- override makes $property-metadata lookup take precedence over Linked Data -->
     <xsl:template match="*[@rdf:about or @rdf:nodeID]/*" mode="ac:property-label">
-        <xsl:param name="endpoint" select="resolve-uri('ns', $ldt:base)" as="xs:anyURI"/>
+        <xsl:param name="property-metadata" as="document-node()?"/>
         <xsl:variable name="this" select="concat(namespace-uri(), local-name())"/>
-        <xsl:variable name="query-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': 'DESCRIBE &lt;' || $this || '&gt;' })" as="xs:anyURI"/>
         
         <xsl:choose>
             <xsl:when test="key('resources', $this)">
                 <xsl:apply-templates select="key('resources', $this)" mode="ac:label"/>
             </xsl:when>
-            <xsl:when test="doc-available($query-uri) and key('resources', $this, document($query-uri))" use-when="system-property('xsl:product-name') = 'SAXON'" >
-                <xsl:apply-templates select="key('resources', $this, document($query-uri))" mode="ac:label"/>
+            <xsl:when test="$property-metadata/key('resources', $this, .)" use-when="system-property('xsl:product-name') = 'SAXON'" >
+                <xsl:apply-templates select="$property-metadata/key('resources', $this, .)" mode="ac:label"/>
             </xsl:when>
             <xsl:when test="doc-available(namespace-uri()) and key('resources', $this, document(namespace-uri()))" use-when="system-property('xsl:product-name') = 'SAXON'" >
                 <xsl:apply-templates select="key('resources', $this, document(namespace-uri()))" mode="ac:label"/>
             </xsl:when>
-<!--            <xsl:when test="contains($this, '#') and not(ends-with($this, '#'))">
-                <xsl:sequence select="substring-after($this, '#')"/>
-            </xsl:when>
-            <xsl:when test="string-length(tokenize($this, '/')[last()]) &gt; 0">
-                <xsl:sequence use-when="function-available('url:decode')" select="translate(url:decode(tokenize($this, '/')[last()], 'UTF-8'), '_', ' ')"/>
-                <xsl:sequence use-when="not(function-available('url:decode'))" select="translate(tokenize($this, '/')[last()], '_', ' ')"/>
-            </xsl:when>-->
             <xsl:otherwise>
                 <xsl:sequence select="local-name()"/>
             </xsl:otherwise>
@@ -323,6 +340,37 @@ exclude-result-prefixes="#all"
         <xsl:copy>
             <xsl:apply-templates select="@* | node()" mode="#current"/>
         </xsl:copy>
+    </xsl:template>
+    
+    <!-- DEFAULT -->
+    
+    <!-- property -->
+    <xsl:template match="*[@rdf:about or @rdf:nodeID]/*">
+        <xsl:param name="id" as="xs:string?"/>
+        <xsl:param name="title" select="concat(namespace-uri(), local-name())" as="xs:string?"/>
+        <xsl:param name="class" as="xs:string?"/>
+        <xsl:param name="property-metadata" as="document-node()?" tunnel="yes"/>
+
+        <span>
+            <xsl:if test="$id">
+                <xsl:attribute name="id" select="$id"/>
+            </xsl:if>
+            <xsl:if test="$title">
+                <xsl:attribute name="title" select="$title"/>
+            </xsl:if>
+            <xsl:if test="$class">
+                <xsl:attribute name="class" select="$class"/>
+            </xsl:if>
+            
+            <xsl:choose>
+                <xsl:when test="$property-metadata">
+                    <xsl:sequence select="ac:property-label(., $property-metadata)"/>
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:sequence select="ac:property-label(.)"/>
+                </xsl:otherwise>
+            </xsl:choose>
+        </span>
     </xsl:template>
     
     <!-- ANCHOR -->
@@ -492,16 +540,16 @@ exclude-result-prefixes="#all"
         <xsl:param name="this" select="xs:anyURI(concat(namespace-uri(), local-name()))" as="xs:anyURI"/>
         <xsl:param name="violations" as="element()*"/>
         <xsl:param name="error" select="@rdf:resource = $violations/ldh:violationValue or $violations/spin:violationPath/@rdf:resource = $this or $violations/sh:resultPath/@rdf:resource = $this" as="xs:boolean"/>
+        <xsl:param name="property-metadata" as="document-node()" tunnel="yes"/>
         <xsl:param name="label" as="xs:string?">
-            <xsl:sequence select="ac:property-label(.)"/> <!-- function upper-cases first letter, unlike mode="ac:label" -->
+            <xsl:sequence select="ac:property-label(., $property-metadata)"/> <!-- function upper-cases first letter, unlike mode="ac:label" -->
         </xsl:param>
         <xsl:param name="description" as="xs:string?">
-            <xsl:variable name="query-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': 'DESCRIBE &lt;' || $this || '&gt;' })" as="xs:anyURI" use-when="system-property('xsl:product-name') = 'SAXON'"/>
-            <xsl:if test="doc-available(ac:document-uri($query-uri))" use-when="system-property('xsl:product-name') = 'SAXON'">
-                <xsl:for-each select="key('resources', $this, document(ac:document-uri($query-uri)))">
+            <!--<xsl:if test="doc-available(ac:document-uri($query-uri))" use-when="system-property('xsl:product-name') = 'SAXON'">-->
+                <xsl:for-each select="key('resources', $this, $property-metadata)">
                     <xsl:sequence select="ac:description(.)"/> <!-- use function instead of mode="ac:description" as there might be multiple descriptions -->
                 </xsl:for-each>
-            </xsl:if>
+            <!--</xsl:if>-->
         </xsl:param>
         <xsl:param name="show-label" select="true()" as="xs:boolean"/>
         <xsl:param name="constructor" as="document-node()?"/>
@@ -614,7 +662,7 @@ exclude-result-prefixes="#all"
                             <xsl:if test="$forClass">
                                 <!-- forClass input is required by typeahead's FILTER ($Type IN ()) in client.xsl -->
                                 <xsl:choose>
-                                    <xsl:when test="not($forClass = ('&rdfs;Resource', '&rdfs;Literal')) and ldh:query-result(map{ '$Type': $forClass }, resolve-uri('ns', $ldt:base), $constructor-query)//srx:binding[@name = 'construct']/srx:literal">
+                                    <xsl:when test="not($forClass = ('&rdfs;Resource', '&rdfs;Literal')) and ldh:query-result(map{}, resolve-uri('ns', $ldt:base), $constructor-query || ' VALUES $Type { ' || string-join(for $type in $forClass return '&lt;' || $type || '&gt;', ' ') || ' }')//srx:binding[@name = 'construct']/srx:literal">
                                         <xsl:variable name="subclasses" select="ldh:listSubClasses($forClass, false(), $ldt:ontology)" as="attribute()*"/>
                                         <!-- add subclasses as forClass -->
                                         <xsl:for-each select="distinct-values(ldh:listSubClasses($forClass, false(), $ldt:ontology))[not(. = $forClass)]">
@@ -737,7 +785,7 @@ exclude-result-prefixes="#all"
                     <xsl:if test="$forClass">
                         <!-- forClass input is required by typeahead's FILTER ($Type IN ()) in client.xsl -->
                         <xsl:choose>
-                            <xsl:when test="not($forClass = ('&rdfs;Resource', '&rdfs;Literal')) and ldh:query-result(map{ '$Type': $forClass }, resolve-uri('ns', $ldt:base), $constructor-query)//srx:binding[@name = 'construct']/srx:literal">
+                            <xsl:when test="not($forClass = ('&rdfs;Resource', '&rdfs;Literal')) and ldh:query-result(map{}, resolve-uri('ns', $ldt:base), $constructor-query || ' VALUES $Type { ' || string-join(for $type in $forClass return '&lt;' || $type || '&gt;', ' ') || ' }')//srx:binding[@name = 'construct']/srx:literal">
                                 <xsl:variable name="subclasses" select="ldh:listSubClasses($forClass, false(), $ldt:ontology)" as="attribute()*"/>
                                 <!-- add subclasses as forClass -->
                                 <xsl:for-each select="distinct-values(ldh:listSubClasses($forClass, false(), $ldt:ontology))[not(. = $forClass)]">
@@ -855,17 +903,18 @@ exclude-result-prefixes="#all"
         <xsl:text> </xsl:text>
 
         <xsl:variable name="forClass" select="key('resources', .)/rdf:type/@rdf:resource" as="xs:anyURI"/>
+        <xsl:variable name="forClass-shapes" select="ldh:query-result(map{}, resolve-uri('ns', $ldt:base), $shape-query || ' VALUES $Type { ' || string-join(for $type in $forClass return '&lt;' || $type || '&gt;', ' ') || ' }')" as="document-node()"/>
         <!-- forClass input is used by typeahead's FILTER ($Type IN ()) in client.xsl -->
         <xsl:choose>
             <!-- SHACL shapes -->
-            <xsl:when test="not($forClass = '&rdfs;Resource') and ldh:query-result(map{ '$Type': $forClass }, resolve-uri('ns', $ldt:base), $shape-query)//rdf:Description[sh:targetClass/@rdf:resource = $forClass]">
-                <xsl:apply-templates select="ldh:query-result(map{ '$Type': $forClass }, resolve-uri('ns', $ldt:base), $shape-query)//rdf:Description[sh:targetClass/@rdf:resource = $forClass]" mode="bs2:ShapeConstructor">
+            <xsl:when test="not($forClass = '&rdfs;Resource') and $forClass-shapes//rdf:Description[sh:targetClass/@rdf:resource = $forClass]">
+                <xsl:apply-templates select="$forClass-shapes//rdf:Description[sh:targetClass/@rdf:resource = $forClass]" mode="bs2:ShapeConstructor">
                     <xsl:with-param name="modal-form" select="true()"/>
                     <xsl:with-param name="create-graph" select="true()"/>
                 </xsl:apply-templates>
             </xsl:when>
             <!-- SPIN constraints -->
-            <xsl:when test="not($forClass = '&rdfs;Resource') and ldh:query-result(map{ '$Type': $forClass }, resolve-uri('ns', $ldt:base), $constructor-query)//srx:binding[@name = 'construct']/srx:literal">
+            <xsl:when test="not($forClass = '&rdfs;Resource') and ldh:query-result(map{}, resolve-uri('ns', $ldt:base), $constructor-query || ' VALUES $Type { ' || string-join(for $type in $forClass return '&lt;' || $type || '&gt;', ' ') || ' }')//srx:binding[@name = 'construct']/srx:literal">
                 <xsl:variable name="subclasses" select="ldh:listSubClasses($forClass, false(), $ldt:ontology)" as="attribute()*"/>
                 <!-- add subclasses as forClass -->
                 <xsl:for-each select="distinct-values($subclasses)[not(. = $forClass)]">

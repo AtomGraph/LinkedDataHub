@@ -193,15 +193,6 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
                 if (log.isDebugEnabled()) log.debug("Passing $Referer URI to XSLT: {}", referer);
                 params.put(new QName("", "", "Referer"), new XdmAtomicValue(referer)); // TO-DO: move to ac: namespace
             }
-
-            Object localModel = getContainerRequestContext().getProperty(LDH.localGraph.getURI());
-            if (localModel instanceof Model model)
-                params.put(new QName("ldh", LDH.localGraph.getNameSpace(), LDH.localGraph.getLocalName()),
-                    getXsltExecutable().getProcessor().newDocumentBuilder().build(getSource(model)));
-            Object originalModel = getContainerRequestContext().getProperty(LDH.originalGraph.getURI());
-            if (originalModel instanceof Model model)
-                params.put(new QName("ldh", LDH.originalGraph.getNameSpace(), LDH.originalGraph.getLocalName()),
-                    getXsltExecutable().getProcessor().newDocumentBuilder().build(getSource(model)));
             
             params.put(new QName("ldhc", LDHC.enableWebIDSignUp.getNameSpace(), LDHC.enableWebIDSignUp.getLocalName()), new XdmAtomicValue(getSystem().isEnableWebIDSignUp()));
             if (getSystem().getProperty(Google.clientID.getURI()) != null)

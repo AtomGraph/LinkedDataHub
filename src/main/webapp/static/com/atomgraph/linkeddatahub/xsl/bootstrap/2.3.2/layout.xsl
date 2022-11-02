@@ -111,8 +111,6 @@ exclude-result-prefixes="#all">
     <xsl:param name="acl:mode" as="xs:anyURI*"/>
     <xsl:param name="ldh:forShape" as="xs:anyURI?"/>
     <xsl:param name="ldh:createGraph" select="false()" as="xs:boolean"/>
-    <xsl:param name="ldh:localGraph" as="document-node()?"/>
-    <xsl:param name="ldh:originalGraph" as="document-node()?"/>
     <xsl:param name="ldh:ajaxRendering" select="true()" as="xs:boolean"/> <!-- TO-DO: rename to ldhc:ajaxRendering? -->
     <xsl:param name="ldhc:enableWebIDSignUp" as="xs:boolean"/>
     <xsl:param name="google:clientID" as="xs:string?"/>
@@ -172,6 +170,7 @@ LIMIT   100
                 $Type  ldh:template  ?content
               }
         ]]>
+        <!-- VALUES $Type goes here -->
     </xsl:variable>
     <xsl:variable name="constraint-query" as="xs:string">
         <![CDATA[
@@ -187,6 +186,7 @@ LIMIT   100
                           sp:arg1          ?property
               }
         ]]>
+        <!-- VALUES $Type goes here -->
     </xsl:variable>
     <xsl:variable name="constructor-query" as="xs:string">
         <![CDATA[
@@ -194,12 +194,13 @@ LIMIT   100
             PREFIX  sp:   <http://spinrdf.org/sp#>
             PREFIX  spin: <http://spinrdf.org/spin#>
 
-            SELECT  ?constructor ?construct
+            SELECT  $Type ?constructor ?construct
             WHERE
               { $Type (rdfs:subClassOf)*/spin:constructor  ?constructor .
                 ?constructor sp:text ?construct .
               }
         ]]>
+        <!-- VALUES $Type goes here -->
     </xsl:variable>
     <xsl:variable name="shape-query" as="xs:string">
         <![CDATA[
@@ -212,6 +213,7 @@ LIMIT   100
                   { $Shape  sh:property  ?property }
               }
         ]]>
+        <!-- VALUES $Type goes here -->
     </xsl:variable>
     
     <xsl:key name="resources-by-primary-topic" match="*[@rdf:about] | *[@rdf:nodeID]" use="foaf:primaryTopic/@rdf:resource"/>
@@ -729,7 +731,7 @@ LIMIT   100
 
     <xsl:template match="rdf:RDF" mode="xhtml:Body">
         <xsl:param name="classes" select="for $class-uri in map:keys($default-classes) return key('resources', $class-uri, document(ac:document-uri($class-uri)))" as="element()*"/>
-        <xsl:param name="content-values" select="key('resources', ac:uri())/rdf:type/@rdf:resource[ . = ('&def;Root', '&dh;Container', '&dh;Item')][doc-available(resolve-uri('ns?query=ASK%20%7B%7D', $ldt:base))]/ldh:query-result(map{ '$Type': xs:anyURI(.) }, resolve-uri('ns', $ldt:base), $template-query)//srx:binding[@name = 'content']/srx:uri/xs:anyURI(.)" as="xs:anyURI*"/>
+        <xsl:param name="content-values" select="if (doc-available(resolve-uri('ns?query=ASK%20%7B%7D', $ldt:base))) then (ldh:query-result(map{}, resolve-uri('ns', $ldt:base), $template-query || ' VALUES $Type { ' || string-join(for $type in key('resources', ac:uri())/rdf:type/@rdf:resource[ . = ('&def;Root', '&dh;Container', '&dh;Item')] return '&lt;' || $type || '&gt;', ' ') || ' }')//srx:binding[@name = 'content']/srx:uri/xs:anyURI(.)) else ()" as="xs:anyURI*"/>
         <xsl:param name="has-content" select="key('resources', key('resources', ac:uri())/rdf:*[starts-with(local-name(), '_')]/@rdf:resource) or exists($content-values)" as="xs:boolean"/>
 
         <body>
@@ -868,9 +870,35 @@ LIMIT   100
     <!-- don't show document-level tabs if the response returned an error or if we're in EditMode -->
     <xsl:template match="rdf:RDF[key('resources-by-type', '&http;Response')] | rdf:RDF[$ac:forClass or $ac:mode = '&ac;EditMode']" mode="bs2:ModeTabs" priority="1"/>
     
-    <xsl:template match="*[*][@rdf:about = ac:uri()][$ldh:originalGraph][$ldh:localGraph]" mode="bs2:PropertyList">
-        <xsl:variable name="original-doc" select="$ldh:originalGraph"/>
-        <xsl:variable name="local-doc" select="$ldh:localGraph"/>
+    <!-- only lookup resource locally using DESCRIBE if it's external (not relative to the app's base URI) and the agent is authenticated -->
+    <xsl:template match="*[*][@rdf:about = ac:uri()][not(starts-with(@rdf:about, $ldt:base))][$foaf:Agent//@rdf:about]" mode="bs2:PropertyList">
+        <xsl:param name="endpoint" select="($sd:endpoint, $ac:endpoint)[1]" as="xs:anyURI"/>
+        <xsl:param name="property-uris" select="distinct-values(*/concat(namespace-uri(), local-name()))" as="xs:anyURI*"/>
+        <xsl:param name="property-metadata" select="ldh:send-request(resolve-uri('ns', $ldt:base), 'POST', 'application/sparql-query', 'DESCRIBE ' || string-join(for $uri in distinct-values(/rdf:RDF/*/*/concat(namespace-uri(), local-name())) return '&lt;' || $uri || '&gt;', ' '), map{ 'Accept': 'application/rdf+xml' })" as="document-node()"/>
+        <xsl:variable name="local-doc" select="ldh:query-result(map{}, $endpoint, 'DESCRIBE &lt;' || @rdf:about || '&gt;')" as="document-node()"/>
+        <xsl:variable name="original-doc" as="document-node()">
+            <xsl:try>
+                <!-- try loading resource by deferencing its URI -->
+                <xsl:variable name="full-doc" select="document(ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(@rdf:about)), 'accept': 'application/rdf+xml' }))" as="document-node()"/>
+                <xsl:choose>
+                    <!-- this is not a document resource (contains a hash in the URI), extract it from the full document -->
+                    <xsl:when test="not(@rdf:about = ac:document-uri(@rdf:about))">
+                        <xsl:document>
+                            <rdf:RDF>
+                                <xsl:copy-of select="key('resources', @rdf:about, $full-doc)"/>
+                            </rdf:RDF>
+                        </xsl:document>
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <xsl:sequence select="$full-doc"/>
+                    </xsl:otherwise>
+                </xsl:choose>
+                <!-- fallback to the $local-doc -->
+                <xsl:catch>
+                    <xsl:sequence select="$local-doc"/>
+                </xsl:catch>
+            </xsl:try>
+        </xsl:variable>
 
         <xsl:variable name="triples-original" as="map(xs:string, element())">
             <xsl:map>
@@ -900,8 +928,9 @@ LIMIT   100
                     <xsl:document>
                         <dl class="dl-horizontal">
                             <xsl:apply-templates select="$properties-original" mode="#current">
-                                <xsl:sort select="ac:property-label(.)" order="ascending" lang="{$ldt:lang}"/>
+                                <xsl:sort select="ac:property-label(., $property-metadata)" order="ascending" lang="{$ldt:lang}"/>
                                 <xsl:sort select="if (exists((text(), @rdf:resource, @rdf:nodeID))) then ac:object-label((text(), @rdf:resource, @rdf:nodeID)[1]) else()" order="ascending" lang="{$ldt:lang}"/>
+                                <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/>
                             </xsl:apply-templates>
                         </dl>
                     </xsl:document>
@@ -924,8 +953,9 @@ LIMIT   100
                     <xsl:document>
                         <dl class="dl-horizontal">
                             <xsl:apply-templates select="$properties-local" mode="#current">
-                                <xsl:sort select="ac:property-label(.)" order="ascending" lang="{$ldt:lang}"/>
+                                <xsl:sort select="ac:property-label(., $property-metadata)" order="ascending" lang="{$ldt:lang}"/>
                                 <xsl:sort select="if (exists((text(), @rdf:resource, @rdf:nodeID))) then ac:object-label((text(), @rdf:resource, @rdf:nodeID)[1]) else()" order="ascending" lang="{$ldt:lang}"/>
+                                <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/>
                             </xsl:apply-templates>
                         </dl>
                     </xsl:document>
@@ -948,8 +978,9 @@ LIMIT   100
                     <xsl:document>
                         <dl class="dl-horizontal">
                             <xsl:apply-templates select="$properties-common" mode="#current">
-                                <xsl:sort select="ac:property-label(.)" order="ascending" lang="{$ldt:lang}"/>
+                                <xsl:sort select="ac:property-label(., $property-metadata)" order="ascending" lang="{$ldt:lang}"/>
                                 <xsl:sort select="if (exists((text(), @rdf:resource, @rdf:nodeID))) then ac:object-label((text(), @rdf:resource, @rdf:nodeID)[1]) else()" order="ascending" lang="{$ldt:lang}"/>
+                                <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/>
                             </xsl:apply-templates>
                         </dl>
                     </xsl:document>

@@ -107,12 +107,6 @@ public class LDH
     /** Create graph property */
     public static final DatatypeProperty createGraph = m_model.createDatatypeProperty( NS + "createGraph" );
     
-    /** Local graph property */
-    public static final DatatypeProperty localGraph = m_model.createDatatypeProperty( NS + "localGraph" );
-
-    /** Original graph property */
-    public static final DatatypeProperty originalGraph = m_model.createDatatypeProperty( NS + "originalGraph" );
-
     /** Fragment property */
     public static final DatatypeProperty fragment = m_model.createDatatypeProperty( NS + "fragment" );
 
