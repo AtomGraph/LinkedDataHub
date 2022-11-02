@@ -885,7 +885,9 @@ LIMIT   100
                             </rdf:RDF>
                         </xsl:document>
                     </xsl:when>
-                    <xsl:sequence select="$full-doc"/>
+                    <xsl:otherwise>
+                        <xsl:sequence select="$full-doc"/>
+                    </xsl:otherwise>
                 </xsl:choose>
                 <!-- fallback to the $local-doc -->
                 <xsl:catch>
