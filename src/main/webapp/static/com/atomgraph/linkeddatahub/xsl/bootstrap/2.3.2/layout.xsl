@@ -881,7 +881,7 @@ LIMIT   100
                     <xsl:when test="not(@rdf:about = ac:document-uri(@rdf:about))">
                         <xsl:document>
                             <rdf:RDF>
-                                <xsl:copy-of select="key('resources, @rdf:about, $full-doc)"/>
+                                <xsl:copy-of select="key('resources', @rdf:about, $full-doc)"/>
                             </rdf:RDF>
                         </xsl:document>
                     </xsl:when>
