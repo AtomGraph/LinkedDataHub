@@ -1131,7 +1131,7 @@ extension-element-prefixes="ixsl"
             <xsl:apply-templates select="* | $template/*[not(concat(namespace-uri(), local-name()) = current()/*/concat(namespace-uri(), local-name()))][not(self::rdf:type)]" mode="#current">
                 <!-- move required properties up -->
                 <xsl:sort select="if ($constraint-query) then exists(for $type in $types return ldh:query-result(map{ '$Type': $type }, resolve-uri('ns', $ldt:base), $constraint-query)//srx:binding[@name = 'property'][srx:uri = current()/concat(namespace-uri(), local-name())]) else false()" order="descending"/>
-                <xsl:sort select="ac:property-label(.)"/>
+                <xsl:sort select="ac:property-label(., starts-with(ac:uri(), $ldt:base))"/>
                 <xsl:with-param name="violations" select="$violations"/>
                 <xsl:with-param name="constructor" select="$constructor"/>
                 <xsl:with-param name="constraints" select="$constraints"/>
@@ -1190,7 +1190,7 @@ extension-element-prefixes="ixsl"
                 <select class="input-medium">
                     <!-- group properties by URI - there might be duplicates in the constructor -->
                     <xsl:for-each-group select="$template/*" group-by="concat(namespace-uri(), local-name())">
-                        <xsl:sort select="ac:property-label(.)"/>
+                        <xsl:sort select="ac:property-label(., starts-with(ac:uri(), $ldt:base))"/>
                         <xsl:variable name="this" select="xs:anyURI(current-grouping-key())" as="xs:anyURI"/>
                         <xsl:variable name="available" select="doc-available(ac:document-uri($this))" as="xs:boolean"/>
                         <xsl:choose use-when="system-property('xsl:product-name') = 'SAXON'">

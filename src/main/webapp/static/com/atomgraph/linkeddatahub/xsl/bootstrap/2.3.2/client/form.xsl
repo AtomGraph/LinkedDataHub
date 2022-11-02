@@ -67,14 +67,14 @@ WHERE
     <!-- provide a property label which otherwise would default to local-name() client-side -->
     <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;Content']/rdfs:label | *[rdf:type/@rdf:resource = '&ldh;Content']/ac:mode" mode="bs2:FormControl">
         <xsl:next-match>
-            <xsl:with-param name="label" select="ac:property-label(.)"/>
+            <xsl:with-param name="label" select="ac:property-label(., starts-with(ac:uri(), $ldt:base))"/>
         </xsl:next-match>
     </xsl:template>
 
     <!-- make sure content value input is shown as required -->
     <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;Content']/rdf:value" mode="bs2:FormControl">
         <xsl:next-match>
-            <xsl:with-param name="label" select="ac:property-label(.)"/>
+            <xsl:with-param name="label" select="ac:property-label(., starts-with(ac:uri(), $ldt:base))"/>
             <xsl:with-param name="required" select="true()"/>
         </xsl:next-match>
     </xsl:template>

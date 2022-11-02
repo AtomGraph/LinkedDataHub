@@ -111,8 +111,6 @@ exclude-result-prefixes="#all">
     <xsl:param name="acl:mode" as="xs:anyURI*"/>
     <xsl:param name="ldh:forShape" as="xs:anyURI?"/>
     <xsl:param name="ldh:createGraph" select="false()" as="xs:boolean"/>
-    <!--<xsl:param name="ldh:localGraph" as="document-node()?"/>-->
-    <!--<xsl:param name="ldh:originalGraph" as="document-node()?"/>-->
     <xsl:param name="ldh:ajaxRendering" select="true()" as="xs:boolean"/> <!-- TO-DO: rename to ldhc:ajaxRendering? -->
     <xsl:param name="ldhc:enableWebIDSignUp" as="xs:boolean"/>
     <xsl:param name="google:clientID" as="xs:string?"/>
@@ -924,7 +922,7 @@ LIMIT   100
                     <xsl:document>
                         <dl class="dl-horizontal">
                             <xsl:apply-templates select="$properties-original" mode="#current">
-                                <xsl:sort select="ac:property-label(.)" order="ascending" lang="{$ldt:lang}"/>
+                                <xsl:sort select="ac:property-label(., starts-with(ac:uri(), $ldt:base))" order="ascending" lang="{$ldt:lang}"/>
                                 <xsl:sort select="if (exists((text(), @rdf:resource, @rdf:nodeID))) then ac:object-label((text(), @rdf:resource, @rdf:nodeID)[1]) else()" order="ascending" lang="{$ldt:lang}"/>
                             </xsl:apply-templates>
                         </dl>
@@ -948,7 +946,7 @@ LIMIT   100
                     <xsl:document>
                         <dl class="dl-horizontal">
                             <xsl:apply-templates select="$properties-local" mode="#current">
-                                <xsl:sort select="ac:property-label(.)" order="ascending" lang="{$ldt:lang}"/>
+                                <xsl:sort select="ac:property-label(., starts-with(ac:uri(), $ldt:base))" order="ascending" lang="{$ldt:lang}"/>
                                 <xsl:sort select="if (exists((text(), @rdf:resource, @rdf:nodeID))) then ac:object-label((text(), @rdf:resource, @rdf:nodeID)[1]) else()" order="ascending" lang="{$ldt:lang}"/>
                             </xsl:apply-templates>
                         </dl>
@@ -972,7 +970,7 @@ LIMIT   100
                     <xsl:document>
                         <dl class="dl-horizontal">
                             <xsl:apply-templates select="$properties-common" mode="#current">
-                                <xsl:sort select="ac:property-label(.)" order="ascending" lang="{$ldt:lang}"/>
+                                <xsl:sort select="ac:property-label(., starts-with(ac:uri(), $ldt:base))" order="ascending" lang="{$ldt:lang}"/>
                                 <xsl:sort select="if (exists((text(), @rdf:resource, @rdf:nodeID))) then ac:object-label((text(), @rdf:resource, @rdf:nodeID)[1]) else()" order="ascending" lang="{$ldt:lang}"/>
                             </xsl:apply-templates>
                         </dl>

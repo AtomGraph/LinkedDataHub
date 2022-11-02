@@ -299,8 +299,8 @@ extension-element-prefixes="ixsl"
                                 </option>
 
                                 <xsl:for-each-group select="*/*" group-by="concat(namespace-uri(), local-name())">
-                                    <xsl:sort select="ac:property-label(.)" order="ascending" lang="{$ldt:lang}" use-when="system-property('xsl:product-name') = 'SAXON'"/>
-                                    <xsl:sort select="ac:property-label(.)" order="ascending" use-when="system-property('xsl:product-name') eq 'SaxonJS'"/>
+                                    <xsl:sort select="ac:property-label(., starts-with(ac:uri(), $ldt:base))" order="ascending" lang="{$ldt:lang}" use-when="system-property('xsl:product-name') = 'SAXON'"/>
+                                    <xsl:sort select="ac:property-label(., starts-with(ac:uri(), $ldt:base))" order="ascending" use-when="system-property('xsl:product-name') eq 'SaxonJS'"/>
 
                                     <option value="{current-grouping-key()}">
                                         <xsl:if test="$category = current-grouping-key()">
@@ -308,7 +308,9 @@ extension-element-prefixes="ixsl"
                                         </xsl:if>
 
                                         <xsl:value-of>
-                                            <xsl:apply-templates select="current-group()[1]" mode="ac:property-label"/>
+                                            <xsl:apply-templates select="current-group()[1]" mode="ac:property-label">
+                                                <xsl:with-param name="lookup-in-ns" select="starts-with(ac:uri(), $ldt:base)"/>
+                                            </xsl:apply-templates>
                                         </xsl:value-of>
                                     </option>
                                 </xsl:for-each-group>
@@ -319,8 +321,8 @@ extension-element-prefixes="ixsl"
                             <br/>
                             <select id="{$series-id}" name="ou" multiple="multiple" class="input-large chart-series">
                                 <xsl:for-each-group select="*/*" group-by="concat(namespace-uri(), local-name())">
-                                    <xsl:sort select="ac:property-label(.)" order="ascending" lang="{$ldt:lang}" use-when="system-property('xsl:product-name') = 'SAXON'"/>
-                                    <xsl:sort select="ac:property-label(.)" order="ascending" use-when="system-property('xsl:product-name') eq 'SaxonJS'"/>
+                                    <xsl:sort select="ac:property-label(., starts-with(ac:uri(), $ldt:base))" order="ascending" lang="{$ldt:lang}" use-when="system-property('xsl:product-name') = 'SAXON'"/>
+                                    <xsl:sort select="ac:property-label(., starts-with(ac:uri(), $ldt:base))" order="ascending" use-when="system-property('xsl:product-name') eq 'SaxonJS'"/>
 
                                     <option value="{current-grouping-key()}">
                                         <xsl:if test="$series = current-grouping-key()">
