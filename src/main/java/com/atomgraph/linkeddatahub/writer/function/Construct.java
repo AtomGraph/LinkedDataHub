@@ -50,7 +50,7 @@ public class Construct implements ExtensionFunction
     /**
      * Constructs function from the specified XSLT processor.
      * 
-     * @param processor processor
+     * @param processor Saxon processor
      */
     public Construct(Processor processor)
     {

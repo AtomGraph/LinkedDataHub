@@ -53,7 +53,7 @@ public class Reserialize implements ExtensionFunction
     /**
      * Constructs function from the specified XSLT processor.
      * 
-     * @param processor processor
+     * @param processor Saxon processor
      */
     public Reserialize(Processor processor)
     {

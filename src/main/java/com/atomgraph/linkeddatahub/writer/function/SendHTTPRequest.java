@@ -52,6 +52,12 @@ public class SendHTTPRequest implements ExtensionFunction
     private final Processor processor;
     private final Client client;
 
+    /**
+     * Constructs function from the specified XSLT processor and HTTP client
+     * 
+     * @param processor Saxon processor
+     * @param client Jersey client
+     */
     public SendHTTPRequest(Processor processor, Client client)
     {
         this.processor = processor;
