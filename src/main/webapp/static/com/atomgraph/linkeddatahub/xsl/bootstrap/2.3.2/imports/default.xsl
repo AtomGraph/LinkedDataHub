@@ -339,6 +339,29 @@ exclude-result-prefixes="#all"
         </xsl:copy>
     </xsl:template>
     
+    <!-- DEFAULT -->
+    
+    <!-- property -->
+    <xsl:template match="*[@rdf:about or @rdf:nodeID]/*">
+        <xsl:param name="id" as="xs:string?"/>
+        <xsl:param name="title" select="concat(namespace-uri(), local-name())" as="xs:string?"/>
+        <xsl:param name="class" as="xs:string?"/>
+        
+        <span>
+            <xsl:if test="$id">
+                <xsl:attribute name="id" select="$id"/>
+            </xsl:if>
+            <xsl:if test="$title">
+                <xsl:attribute name="title" select="$title"/>
+            </xsl:if>
+            <xsl:if test="$class">
+                <xsl:attribute name="class" select="$class"/>
+            </xsl:if>
+            
+            <xsl:sequence select="ac:property-label(., starts-with(ac:uri(), $ldt:base))"/>
+        </span>
+    </xsl:template>
+    
     <!-- ANCHOR -->
     
     <!-- subject resource -->
