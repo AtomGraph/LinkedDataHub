@@ -350,7 +350,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="title" select="concat(namespace-uri(), local-name())" as="xs:string?"/>
         <xsl:param name="class" as="xs:string?"/>
-        <xsl:param name="property-metadata" as="document-node()" tunnel="yes"/>
+        <xsl:param name="property-metadata" as="document-node()?" tunnel="yes"/>
 
         <span>
             <xsl:if test="$id">
@@ -363,7 +363,14 @@ exclude-result-prefixes="#all"
                 <xsl:attribute name="class" select="$class"/>
             </xsl:if>
             
-            <xsl:sequence select="ac:property-label(., $property-metadata)"/>
+            <xsl:choose>
+                <xsl:when test="$property-metadata">
+                    <xsl:sequence select="ac:property-label(., $property-metadata)"/>
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:sequence select="ac:property-label(.)"/>
+                </xsl:otherwise>
+            </xsl:choose>
         </span>
     </xsl:template>
     
