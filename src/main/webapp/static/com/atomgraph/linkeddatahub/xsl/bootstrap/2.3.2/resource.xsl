@@ -561,7 +561,7 @@ extension-element-prefixes="ixsl"
     <!-- PROPERTY LIST -->
     
     <!-- only lookup resource locally using DESCRIBE if it's external (not relative to the app's base URI) and the agent is authenticated -->
-    <xsl:template match="*[*][@rdf:about = ac:uri()][not(starts-with(@rdf:about, $ldt:base))][$foaf:Agent//@rdf:about]" mode="bs2:PropertyList" priority="1">
+    <xsl:template match="*[*][@rdf:about = ac:uri()][not(starts-with(@rdf:about, $ldt:base))][$foaf:Agent//@rdf:about]" mode="bs2:PropertyList" priority="1" use-when="system-property('xsl:product-name') = 'SAXON'">
         <xsl:param name="endpoint" select="($sd:endpoint, $ac:endpoint)[1]" as="xs:anyURI"/>
         <xsl:param name="property-uris" select="distinct-values(*/concat(namespace-uri(), local-name()))" as="xs:anyURI*"/>
         <xsl:param name="property-metadata" select="ldh:send-request(resolve-uri('ns', $ldt:base), 'POST', 'application/sparql-query', 'DESCRIBE ' || string-join(for $uri in distinct-values(/rdf:RDF/*/*/concat(namespace-uri(), local-name())) return '&lt;' || $uri || '&gt;', ' '), map{ 'Accept': 'application/rdf+xml' })" as="document-node()"/>
