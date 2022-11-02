@@ -560,6 +560,127 @@ extension-element-prefixes="ixsl"
 
     <!-- PROPERTY LIST -->
     
+    <!-- only lookup resource locally using DESCRIBE if it's external (not relative to the app's base URI) and the agent is authenticated -->
+    <xsl:template match="*[*][@rdf:about = ac:uri()][not(starts-with(@rdf:about, $ldt:base))][$foaf:Agent//@rdf:about]" mode="bs2:PropertyList" priority="1">
+        <xsl:param name="endpoint" select="($sd:endpoint, $ac:endpoint)[1]" as="xs:anyURI"/>
+        <xsl:param name="property-uris" select="distinct-values(*/concat(namespace-uri(), local-name()))" as="xs:anyURI*"/>
+        <xsl:param name="property-metadata" select="ldh:send-request(resolve-uri('ns', $ldt:base), 'POST', 'application/sparql-query', 'DESCRIBE ' || string-join(for $uri in distinct-values(/rdf:RDF/*/*/concat(namespace-uri(), local-name())) return '&lt;' || $uri || '&gt;', ' '), map{ 'Accept': 'application/rdf+xml' })" as="document-node()"/>
+        <xsl:variable name="local-doc" select="ldh:query-result(map{}, $endpoint, 'DESCRIBE &lt;' || @rdf:about || '&gt;')" as="document-node()"/>
+        <xsl:variable name="original-doc" as="document-node()">
+            <xsl:try>
+                <!-- try loading resource by deferencing its URI -->
+                <xsl:variable name="full-doc" select="document(ac:document-uri(@rdf:about))" as="document-node()"/>
+                <xsl:choose>
+                    <!-- this is not a document resource (contains a hash in the URI), extract it from the full document -->
+                    <xsl:when test="not(@rdf:about = ac:document-uri(@rdf:about))">
+                        <xsl:document>
+                            <rdf:RDF>
+                                <xsl:copy-of select="key('resources', @rdf:about, $full-doc)"/>
+                            </rdf:RDF>
+                        </xsl:document>
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <xsl:sequence select="$full-doc"/>
+                    </xsl:otherwise>
+                </xsl:choose>
+                <!-- fallback to the $local-doc -->
+                <xsl:catch>
+                    <xsl:sequence select="$local-doc"/>
+                </xsl:catch>
+            </xsl:try>
+        </xsl:variable>
+
+        <xsl:variable name="triples-original" as="map(xs:string, element())">
+            <xsl:map>
+                <xsl:for-each select="$original-doc/rdf:RDF/rdf:Description/*">
+                    <xsl:map-entry key="concat(../@rdf:about, '|', ../@rdf:nodeID, '|', namespace-uri(), local-name(), '|', @rdf:resource, @rdf:nodeID, if (text() castable as xs:float) then xs:float(text()) else text(), '|', @rdf:datatype, @xml:lang)" select="."/>
+                </xsl:for-each>
+            </xsl:map>
+        </xsl:variable>
+        <xsl:variable name="triples-local" as="map(xs:string, element())">
+            <xsl:map>
+                <xsl:for-each select="$local-doc/rdf:RDF/rdf:Description/*">
+                    <xsl:map-entry key="concat(../@rdf:about, '|', ../@rdf:nodeID, '|', namespace-uri(), local-name(), '|', @rdf:resource, @rdf:nodeID, if (text() castable as xs:float) then xs:float(text()) else text(), '|', @rdf:datatype, @xml:lang)" select="."/>
+                </xsl:for-each>
+            </xsl:map>
+        </xsl:variable>
+
+        <xsl:variable name="properties-original" select="for $triple-key in ac:value-except(map:keys($triples-original), map:keys($triples-local)) return map:get($triples-original, $triple-key)" as="element()*"/>
+        <xsl:if test="exists($properties-original)">
+            <div>
+                <h2 class="nav-header btn">
+                    <xsl:value-of>
+                        <xsl:apply-templates select="key('resources', 'from-origin', document('translations.rdf'))" mode="ac:label"/>
+                    </xsl:value-of>
+                </h2>
+
+                <xsl:variable name="definitions" as="document-node()">
+                    <xsl:document>
+                        <dl class="dl-horizontal">
+                            <xsl:apply-templates select="$properties-original" mode="#current">
+                                <xsl:sort select="ac:property-label(., $property-metadata)" order="ascending" lang="{$ldt:lang}"/>
+                                <xsl:sort select="if (exists((text(), @rdf:resource, @rdf:nodeID))) then ac:object-label((text(), @rdf:resource, @rdf:nodeID)[1]) else()" order="ascending" lang="{$ldt:lang}"/>
+                                <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/>
+                            </xsl:apply-templates>
+                        </dl>
+                    </xsl:document>
+                </xsl:variable>
+
+                <xsl:apply-templates select="$definitions" mode="bs2:PropertyListIdentity"/>
+            </div>
+        </xsl:if>
+
+        <xsl:variable name="properties-local" select="for $triple-key in ac:value-except(map:keys($triples-local), map:keys($triples-original)) return map:get($triples-local, $triple-key)" as="element()*"/>
+        <xsl:if test="exists($properties-local)">
+            <div>
+                <h2 class="nav-header btn">
+                    <xsl:value-of>
+                        <xsl:apply-templates select="key('resources', 'local', document('translations.rdf'))" mode="ac:label"/>
+                    </xsl:value-of>
+                </h2>
+                
+                <xsl:variable name="definitions" as="document-node()">
+                    <xsl:document>
+                        <dl class="dl-horizontal">
+                            <xsl:apply-templates select="$properties-local" mode="#current">
+                                <xsl:sort select="ac:property-label(., $property-metadata)" order="ascending" lang="{$ldt:lang}"/>
+                                <xsl:sort select="if (exists((text(), @rdf:resource, @rdf:nodeID))) then ac:object-label((text(), @rdf:resource, @rdf:nodeID)[1]) else()" order="ascending" lang="{$ldt:lang}"/>
+                                <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/>
+                            </xsl:apply-templates>
+                        </dl>
+                    </xsl:document>
+                </xsl:variable>
+
+                <xsl:apply-templates select="$definitions" mode="bs2:PropertyListIdentity"/>
+            </div>
+        </xsl:if>
+        
+        <xsl:variable name="properties-common" select="for $triple-key in ac:value-intersect(map:keys($triples-original), map:keys($triples-local)) return map:get($triples-original, $triple-key)" as="element()*"/>
+        <xsl:if test="exists($properties-common)">
+            <div>
+                <h2 class="nav-header btn">
+                    <xsl:value-of>
+                        <xsl:apply-templates select="key('resources', 'common', document('translations.rdf'))" mode="ac:label"/>
+                    </xsl:value-of>
+                </h2>
+
+                <xsl:variable name="definitions" as="document-node()">
+                    <xsl:document>
+                        <dl class="dl-horizontal">
+                            <xsl:apply-templates select="$properties-common" mode="#current">
+                                <xsl:sort select="ac:property-label(., $property-metadata)" order="ascending" lang="{$ldt:lang}"/>
+                                <xsl:sort select="if (exists((text(), @rdf:resource, @rdf:nodeID))) then ac:object-label((text(), @rdf:resource, @rdf:nodeID)[1]) else()" order="ascending" lang="{$ldt:lang}"/>
+                                <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/>
+                            </xsl:apply-templates>
+                        </dl>
+                    </xsl:document>
+                </xsl:variable>
+
+                <xsl:apply-templates select="$definitions" mode="bs2:PropertyListIdentity"/>
+            </div>
+        </xsl:if>
+    </xsl:template>
+    
     <!-- suppress types in property list - we show them in the bs2:Header instead -->
     <xsl:template match="rdf:type[@rdf:resource]" mode="bs2:PropertyList"/>
 
@@ -1014,6 +1135,8 @@ extension-element-prefixes="ixsl"
         <xsl:param name="id" select="concat('form-control-', generate-id())" as="xs:string?"/>
         <xsl:param name="class" as="xs:string?"/>
         <xsl:param name="legend" select="true()" as="xs:boolean"/>
+        <xsl:param name="property-uris" select="distinct-values(*/concat(namespace-uri(), local-name()))" as="xs:anyURI*"/>
+        <xsl:param name="property-metadata" select="ldh:send-request(resolve-uri('ns', $ldt:base), 'POST', 'application/sparql-query', 'DESCRIBE ' || string-join(for $uri in distinct-values(/rdf:RDF/*/*/concat(namespace-uri(), local-name())) return '&lt;' || $uri || '&gt;', ' '), map{ 'Accept': 'application/rdf+xml' })" as="document-node()"/>
         <xsl:param name="violations" select="key('violations-by-value', */@rdf:resource) | key('violations-by-root', (@rdf:about, @rdf:nodeID)) | key('violations-by-focus-node', (@rdf:about, @rdf:nodeID))" as="element()*"/>
         <xsl:param name="forClass" select="rdf:type/@rdf:resource" as="xs:anyURI*"/>
         <xsl:param name="constraint-query" as="xs:string?" tunnel="yes"/>
@@ -1131,12 +1254,13 @@ extension-element-prefixes="ixsl"
             <xsl:apply-templates select="* | $template/*[not(concat(namespace-uri(), local-name()) = current()/*/concat(namespace-uri(), local-name()))][not(self::rdf:type)]" mode="#current">
                 <!-- move required properties up -->
                 <xsl:sort select="if ($constraint-query) then exists(for $type in $types return ldh:query-result(map{ '$Type': $type }, resolve-uri('ns', $ldt:base), $constraint-query)//srx:binding[@name = 'property'][srx:uri = current()/concat(namespace-uri(), local-name())]) else false()" order="descending"/>
-                <xsl:sort select="ac:property-label(., starts-with(ac:uri(), $ldt:base))"/>
+                <xsl:sort select="ac:property-label(., $property-metadata)"/>
                 <xsl:with-param name="violations" select="$violations"/>
                 <xsl:with-param name="constructor" select="$constructor"/>
                 <xsl:with-param name="constraints" select="$constraints"/>
                 <xsl:with-param name="shapes" select="$shapes"/>
                 <xsl:with-param name="traversed-ids" select="$traversed-ids" tunnel="yes"/>
+                <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/>
             </xsl:apply-templates>
 
             <!-- do not show property controls if there is no constructor or it has no properties -->
@@ -1145,6 +1269,7 @@ extension-element-prefixes="ixsl"
                     <xsl:with-param name="template" select="$template"/>
                     <xsl:with-param name="forClass" select="$forClass"/>
                     <xsl:with-param name="required" select="true()"/>
+                    <xsl:with-param name="property-metadata" select="$property-metadata"/>
                 </xsl:apply-templates>
             </xsl:if>
         </fieldset>
@@ -1182,6 +1307,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="template" as="element()*"/>
         <xsl:param name="id" select="generate-id()" as="xs:string"/>
         <xsl:param name="forClass" as="xs:anyURI*"/>
+        <xsl:param name="property-metadata" as="document-node()"/>
         <xsl:variable name="seq-properties" select="for $property in ../rdf:Description/*/concat(namespace-uri(), local-name())[starts-with(., '&rdf;' || '_')] return xs:anyURI($property)" as="xs:anyURI*"/>
         <xsl:variable name="max-seq-index" select="if (empty($seq-properties)) then 0 else max(for $seq-property in $seq-properties return xs:integer(substring-after($seq-property, '&rdf;' || '_')))" as="xs:integer"/>
 
@@ -1190,7 +1316,7 @@ extension-element-prefixes="ixsl"
                 <select class="input-medium">
                     <!-- group properties by URI - there might be duplicates in the constructor -->
                     <xsl:for-each-group select="$template/*" group-by="concat(namespace-uri(), local-name())">
-                        <xsl:sort select="ac:property-label(., starts-with(ac:uri(), $ldt:base))"/>
+                        <xsl:sort select="ac:property-label(., $property-metadata)"/>
                         <xsl:variable name="this" select="xs:anyURI(current-grouping-key())" as="xs:anyURI"/>
                         <xsl:variable name="available" select="doc-available(ac:document-uri($this))" as="xs:boolean"/>
                         <xsl:choose use-when="system-property('xsl:product-name') = 'SAXON'">

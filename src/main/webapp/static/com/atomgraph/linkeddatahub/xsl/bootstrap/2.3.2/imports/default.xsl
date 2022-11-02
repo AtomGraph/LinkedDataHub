@@ -56,11 +56,11 @@ exclude-result-prefixes="#all"
 
     <xsl:function name="ac:property-label" as="xs:string?">
         <xsl:param name="property" as="element()"/>
-        <xsl:param name="lookup-in-ns" as="xs:boolean"/>
+        <xsl:param name="property-metadata" as="document-node()"/>
 
         <xsl:variable name="labels" as="xs:string*">
             <xsl:apply-templates select="$property" mode="ac:property-label">
-                <xsl:with-param name="lookup-in-ns" select="$lookup-in-ns"/>
+                <xsl:with-param name="property-metadata" select="$property-metadata"/>
             </xsl:apply-templates>
         </xsl:variable>
         <xsl:sequence select="upper-case(substring($labels[1], 1, 1)) || substring($labels[1], 2)"/>
@@ -269,10 +269,23 @@ exclude-result-prefixes="#all"
         )"/>
     </xsl:function>
 
+    <!-- function stub so that Saxon-EE doesn't complain when compiling SEF -->
+    <xsl:function name="ldh:send-request" as="document-node()?">
+        <xsl:param name="href" as="xs:anyURI"/>
+        <xsl:param name="method" as="xs:string"/>
+        <xsl:param name="media-type" as="xs:string?"/>
+        <xsl:param name="body" as="item()?"/>
+        <xsl:param name="headers" as="map(xs:string, xs:string)"/>
+        
+        <xsl:message use-when="system-property('xsl:product-name') = 'SAXON'" terminate="yes">
+            Not implemented -- com.atomgraph.linkeddatahub.writer.function.SendHTTPRequest needs to be registered as an extension function
+        </xsl:message>
+    </xsl:function>
+    
     <!-- SHARED FUNCTIONS -->
 
     <!-- TO-DO: move down to Web-Client -->
-    <xsl:function name="ac:image" as="attribute()*">
+    <xsl:function name="ac:image" as="attribute()*" override-extension-function="no" cache="yes">
         <xsl:param name="resource" as="element()"/>
 
         <xsl:variable name="images" as="attribute()*">
@@ -281,10 +294,9 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="$images"/>
     </xsl:function>
     
-    <!-- override makes NS ontology lookup take precedence over Linked Data -->
+    <!-- override makes $property-metadata lookup take precedence over Linked Data -->
     <xsl:template match="*[@rdf:about or @rdf:nodeID]/*" mode="ac:property-label">
-        <xsl:param name="endpoint" select="resolve-uri('ns', $ldt:base)" as="xs:anyURI"/>
-        <xsl:param name="lookup-in-ns" select="false()" as="xs:boolean"/>
+        <xsl:param name="property-metadata" as="document-node()?"/>
         <xsl:variable name="this" select="concat(namespace-uri(), local-name())"/>
         <xsl:variable name="query-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': 'DESCRIBE &lt;' || $this || '&gt;' })" as="xs:anyURI"/>
         
@@ -292,20 +304,12 @@ exclude-result-prefixes="#all"
             <xsl:when test="key('resources', $this)">
                 <xsl:apply-templates select="key('resources', $this)" mode="ac:label"/>
             </xsl:when>
-            <!-- make sure doc-available() and document() are not evaluated if $lookup-in-ns = false() -->
-            <xsl:when test="$query-uri[$lookup-in-ns] ! (doc-available(.) and key('resources', $this, document(.)))" use-when="system-property('xsl:product-name') = 'SAXON'">
-                <xsl:apply-templates select="key('resources', $this, document($query-uri))" mode="ac:label"/>
+            <xsl:when test="key('resources', $this, $property-metadata)" use-when="system-property('xsl:product-name') = 'SAXON'" >
+                <xsl:apply-templates select="key('resources', $this, $property-metadata)" mode="ac:label"/>
             </xsl:when>
-            <xsl:when test="doc-available(namespace-uri()) and key('resources', $this, document(namespace-uri()))" use-when="system-property('xsl:product-name') = 'SAXON'">
+            <xsl:when test="doc-available(namespace-uri()) and key('resources', $this, document(namespace-uri()))" use-when="system-property('xsl:product-name') = 'SAXON'" >
                 <xsl:apply-templates select="key('resources', $this, document(namespace-uri()))" mode="ac:label"/>
             </xsl:when>
-<!--            <xsl:when test="contains($this, '#') and not(ends-with($this, '#'))">
-                <xsl:sequence select="substring-after($this, '#')"/>
-            </xsl:when>
-            <xsl:when test="string-length(tokenize($this, '/')[last()]) &gt; 0">
-                <xsl:sequence use-when="function-available('url:decode')" select="translate(url:decode(tokenize($this, '/')[last()], 'UTF-8'), '_', ' ')"/>
-                <xsl:sequence use-when="not(function-available('url:decode'))" select="translate(tokenize($this, '/')[last()], '_', ' ')"/>
-            </xsl:when>-->
             <xsl:otherwise>
                 <xsl:sequence select="local-name()"/>
             </xsl:otherwise>
@@ -529,8 +533,9 @@ exclude-result-prefixes="#all"
         <xsl:param name="this" select="xs:anyURI(concat(namespace-uri(), local-name()))" as="xs:anyURI"/>
         <xsl:param name="violations" as="element()*"/>
         <xsl:param name="error" select="@rdf:resource = $violations/ldh:violationValue or $violations/spin:violationPath/@rdf:resource = $this or $violations/sh:resultPath/@rdf:resource = $this" as="xs:boolean"/>
+        <xsl:param name="property-metadata" as="document-node()" tunnel="yes"/>
         <xsl:param name="label" as="xs:string?">
-            <xsl:sequence select="ac:property-label(., starts-with(ac:uri(), $ldt:base))"/> <!-- function upper-cases first letter, unlike mode="ac:label" -->
+            <xsl:sequence select="ac:property-label(., $property-metadata)"/> <!-- function upper-cases first letter, unlike mode="ac:label" -->
         </xsl:param>
         <xsl:param name="description" as="xs:string?">
             <xsl:variable name="query-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': 'DESCRIBE &lt;' || $this || '&gt;' })" as="xs:anyURI" use-when="system-property('xsl:product-name') = 'SAXON'"/>
