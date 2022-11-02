@@ -111,8 +111,8 @@ exclude-result-prefixes="#all">
     <xsl:param name="acl:mode" as="xs:anyURI*"/>
     <xsl:param name="ldh:forShape" as="xs:anyURI?"/>
     <xsl:param name="ldh:createGraph" select="false()" as="xs:boolean"/>
-    <xsl:param name="ldh:localGraph" as="document-node()?"/>
-    <xsl:param name="ldh:originalGraph" as="document-node()?"/>
+    <!--<xsl:param name="ldh:localGraph" as="document-node()?"/>-->
+    <!--<xsl:param name="ldh:originalGraph" as="document-node()?"/>-->
     <xsl:param name="ldh:ajaxRendering" select="true()" as="xs:boolean"/> <!-- TO-DO: rename to ldhc:ajaxRendering? -->
     <xsl:param name="ldhc:enableWebIDSignUp" as="xs:boolean"/>
     <xsl:param name="google:clientID" as="xs:string?"/>
@@ -868,9 +868,31 @@ LIMIT   100
     <!-- don't show document-level tabs if the response returned an error or if we're in EditMode -->
     <xsl:template match="rdf:RDF[key('resources-by-type', '&http;Response')] | rdf:RDF[$ac:forClass or $ac:mode = '&ac;EditMode']" mode="bs2:ModeTabs" priority="1"/>
     
-    <xsl:template match="*[*][@rdf:about = ac:uri()][$ldh:originalGraph][$ldh:localGraph]" mode="bs2:PropertyList">
-        <xsl:variable name="original-doc" select="$ldh:originalGraph"/>
-        <xsl:variable name="local-doc" select="$ldh:localGraph"/>
+    <!-- only lookup resource locally using DESCRIBE if it's external (not relative to the app's base URI) and the agent is authenticated -->
+    <xsl:template match="*[*][@rdf:about = ac:uri()][not(starts-with(@rdf:about, $ldt:base))][$foaf:Agent//@rdf:about]" mode="bs2:PropertyList">
+        <xsl:param name="endpoint" select="($sd:endpoint, $ac:endpoint)[1]" as="xs:anyURI"/>
+        <xsl:variable name="local-doc" select="ldh:query-result(map{}, $endpoint, 'DESCRIBE &lt;' || @rdf:about || '&gt;')" as="document-node()"/>
+        <xsl:variable name="original-doc" as="document-node()">
+            <xsl:try>
+                <!-- try loading resource by deferencing its URI -->
+                <xsl:variable name="full-doc" select="document(ac:document-uri(@rdf:about))" as="document-node()"/>
+                <xsl:choose>
+                    <!-- this is not a document resource (contains a hash in the URI), extract it from the full document -->
+                    <xsl:when test="not(@rdf:about = ac:document-uri(@rdf:about))">
+                        <xsl:document>
+                            <rdf:RDF>
+                                <xsl:copy-of select="key('resources, @rdf:about, $full-doc)"/>
+                            </rdf:RDF>
+                        </xsl:document>
+                    </xsl:when>
+                    <xsl:sequence select="$full-doc"/>
+                </xsl:choose>
+                <!-- fallback to the $local-doc -->
+                <xsl:catch>
+                    <xsl:sequence select="$local-doc"/>
+                </xsl:catch>
+            </xsl:try>
+        </xsl:variable>
 
         <xsl:variable name="triples-original" as="map(xs:string, element())">
             <xsl:map>

@@ -192,41 +192,41 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
         }
 
         // only lookup resource locally using DESCRIBE if it's external (not relative to the app's base URI) and the agent is authenticated
-        if (getApplication().getBaseURI().relativize(target.getUri()).isAbsolute() && getAgentContext().isPresent())
-        {
-            final SPARQLClient sparqlClient;
-            // if endpoint URI is provided as ?endpoint, use that; otherwise, default the local service endoint
-            if (getUriInfo().getQueryParameters().containsKey(AC.endpoint.getLocalName()))
-            {
-                String endpointURI = getUriInfo().getQueryParameters().getFirst(AC.endpoint.getLocalName());
-                sparqlClient = SPARQLClient.create(getClient().target(endpointURI));
-            }
-            else sparqlClient = getService().getSPARQLClient();
-            
-            Query query = QueryFactory.create("DESCRIBE <" + target.getUri() + ">");
-            Model localModel = sparqlClient.loadModel(query);
-            getContainerRequestContext().setProperty(LDH.localGraph.getURI(), localModel);
-
-            try
-            {
-                Response response = super.get(target);
-                
-                if (response.getEntity() instanceof Model model)
-                {
-                    // do not return the whole document if only a single resource (fragment) is requested
-                    if (target.getUri().getFragment() != null) model = ModelFactory.createDefaultModel().add(model.getResource(target.getUri().toString()).listProperties());
-                    
-                    getContainerRequestContext().setProperty(LDH.originalGraph.getURI(), ModelFactory.createDefaultModel().add(model)); // local model without the remote model
-                    model.add(localModel); // append the local model to the remote model
-                }
-            }
-            catch (BadGatewayException ex) // fallback to the local model in case of error
-            {
-                getContainerRequestContext().setProperty(LDH.originalGraph.getURI(), ModelFactory.createDefaultModel());
-                if (!localModel.isEmpty()) return getResponse(localModel);
-                else throw ex;
-            }
-        }
+//        if (getApplication().getBaseURI().relativize(target.getUri()).isAbsolute() && getAgentContext().isPresent())
+//        {
+//            final SPARQLClient sparqlClient;
+//            // if endpoint URI is provided as ?endpoint, use that; otherwise, default the local service endoint
+//            if (getUriInfo().getQueryParameters().containsKey(AC.endpoint.getLocalName()))
+//            {
+//                String endpointURI = getUriInfo().getQueryParameters().getFirst(AC.endpoint.getLocalName());
+//                sparqlClient = SPARQLClient.create(getClient().target(endpointURI));
+//            }
+//            else sparqlClient = getService().getSPARQLClient();
+//            
+//            Query query = QueryFactory.create("DESCRIBE <" + target.getUri() + ">");
+//            Model localModel = sparqlClient.loadModel(query);
+//            getContainerRequestContext().setProperty(LDH.localGraph.getURI(), localModel);
+//
+//            try
+//            {
+//                Response response = super.get(target);
+//                
+//                if (response.getEntity() instanceof Model model)
+//                {
+//                    // do not return the whole document if only a single resource (fragment) is requested
+//                    if (target.getUri().getFragment() != null) model = ModelFactory.createDefaultModel().add(model.getResource(target.getUri().toString()).listProperties());
+//                    
+//                    getContainerRequestContext().setProperty(LDH.originalGraph.getURI(), ModelFactory.createDefaultModel().add(model)); // local model without the remote model
+//                    model.add(localModel); // append the local model to the remote model
+//                }
+//            }
+//            catch (BadGatewayException ex) // fallback to the local model in case of error
+//            {
+//                getContainerRequestContext().setProperty(LDH.originalGraph.getURI(), ModelFactory.createDefaultModel());
+//                if (!localModel.isEmpty()) return getResponse(localModel);
+//                else throw ex;
+//            }
+//        }
         
         return super.get(target);
     }
