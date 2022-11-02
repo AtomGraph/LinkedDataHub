@@ -304,8 +304,8 @@ exclude-result-prefixes="#all"
             <xsl:when test="key('resources', $this)">
                 <xsl:apply-templates select="key('resources', $this)" mode="ac:label"/>
             </xsl:when>
-            <xsl:when test="key('resources', $this, $property-metadata)" use-when="system-property('xsl:product-name') = 'SAXON'" >
-                <xsl:apply-templates select="key('resources', $this, $property-metadata)" mode="ac:label"/>
+            <xsl:when test="$property-metadata/key('resources', $this, .)" use-when="system-property('xsl:product-name') = 'SAXON'" >
+                <xsl:apply-templates select="$property-metadata/key('resources', $this, .)" mode="ac:label"/>
             </xsl:when>
             <xsl:when test="doc-available(namespace-uri()) and key('resources', $this, document(namespace-uri()))" use-when="system-property('xsl:product-name') = 'SAXON'" >
                 <xsl:apply-templates select="key('resources', $this, document(namespace-uri()))" mode="ac:label"/>
