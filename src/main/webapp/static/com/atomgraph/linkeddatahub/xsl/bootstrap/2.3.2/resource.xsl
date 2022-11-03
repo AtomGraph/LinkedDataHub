@@ -512,7 +512,7 @@ extension-element-prefixes="ixsl"
         </div>
         
         <!-- render contents attached to the types of this resource using ldh:template -->
-        <xsl:variable name="content-values" select="rdf:type/@rdf:resource[doc-available(resolve-uri('ns?query=ASK%20%7B%7D', $ldt:base))]/ldh:query-result(map{ '$Type': xs:anyURI(.) }, resolve-uri('ns', $ldt:base), $template-query)//srx:binding[@name = 'content']/srx:uri/xs:anyURI(.)" as="xs:anyURI*" use-when="system-property('xsl:product-name') = 'SAXON'"/>
+        <xsl:variable name="content-values" select="if (doc-available(resolve-uri('ns?query=ASK%20%7B%7D', $ldt:base)) then (ldh:query-result(map{}, resolve-uri('ns', $ldt:base), $template-query || ' VALUES $Type { ' || string-join(for $type in rdf:type/@rdf:resource return '&lt;' || $type || '&gt;', ' ') || ' }')//srx:binding[@name = 'content']/srx:uri/xs:anyURI(.)) else ()" as="xs:anyURI*" use-when="system-property('xsl:product-name') = 'SAXON'"/>
         <xsl:for-each select="$content-values" use-when="system-property('xsl:product-name') = 'SAXON'">
             <xsl:if test="doc-available(ac:document-uri(.))">
                 <xsl:apply-templates select="key('resources', ., document(ac:document-uri(.)))" mode="bs2:RowContent"/>
@@ -1019,10 +1019,11 @@ extension-element-prefixes="ixsl"
         <xsl:param name="violations" select="key('violations-by-value', */@rdf:resource) | key('violations-by-root', (@rdf:about, @rdf:nodeID)) | key('violations-by-focus-node', (@rdf:about, @rdf:nodeID))" as="element()*"/>
         <xsl:param name="forClass" select="rdf:type/@rdf:resource" as="xs:anyURI*"/>
         <xsl:param name="constraint-query" as="xs:string?" tunnel="yes"/>
-        <xsl:param name="constraints" select="if ($constraint-query) then (ldh:query-result(map{}, resolve-uri('ns', $ldt:base), $constraint-query || ' VALUES $Type { ' || string-join(for $type in $forClass return '&lt;' || $type || '&gt;', ' ') || ' }')) else ()" as="document-node()*"/>
+        <xsl:param name="constraints" select="if ($constraint-query) then (ldh:query-result(map{}, resolve-uri('ns', $ldt:base), $constraint-query || ' VALUES $Type { ' || string-join(for $type in $forClass return '&lt;' || $type || '&gt;', ' ') || ' }')) else ()" as="document-node()?"/>
         <xsl:param name="shape-query" as="xs:string?" tunnel="yes"/>
-        <xsl:param name="shapes" select="if ($shape-query) then (ldh:query-result(map{}, resolve-uri('ns', $ldt:base), $shape-query || ' VALUES $Type { ' || string-join(for $type in $forClass return '&lt;' || $type || '&gt;', ' ') || ' }')) else ()" as="document-node()*"/>
+        <xsl:param name="shapes" select="if ($shape-query) then (ldh:query-result(map{}, resolve-uri('ns', $ldt:base), $shape-query || ' VALUES $Type { ' || string-join(for $type in $forClass return '&lt;' || $type || '&gt;', ' ') || ' }')) else ()" as="document-node()?"/>
         <xsl:param name="constructor-query" as="xs:string?" tunnel="yes"/>
+        <xsl:param name="constructors" select="if ($constructor-query) then (ldh:query-result(map{}, resolve-uri('ns', $ldt:base), $constructor-query || ' VALUES $Type { ' || string-join(for $type in $forClass return '&lt;' || $type || '&gt;', ' ') || ' }')) else ()" as="document-node()?"/>
         <xsl:param name="constructor" as="document-node()?">
             <!-- SHACL shapes take priority over SPIN constructors -->
             <xsl:choose use-when="system-property('xsl:product-name') = 'SAXON'">
@@ -1034,7 +1035,7 @@ extension-element-prefixes="ixsl"
                 </xsl:when>
                 <xsl:otherwise>
                     <!-- ldh:construct() expects ($forClass, $constructor) map as the first argument -->
-                    <xsl:sequence select="if (exists($forClass)) then ldh:construct(map:merge(for $result in ldh:query-result(map{}, resolve-uri('ns', $ldt:base), $constructor-query || ' VALUES $Type { ' || string-join(for $type in $forClass return '&lt;' || $type || '&gt;', ' ') || ' }')//srx:result return map{ $result/srx:binding[@name = 'Type']/srx:uri/xs:anyURI(.) : $result/srx:binding[@name = 'construct']/srx:literal/string() })) else ()"/>
+                    <xsl:sequence select="ldh:construct(map:merge(for $result in $constructors//srx:result return map{ $result/srx:binding[@name = 'Type']/srx:uri/xs:anyURI(.) : $result/srx:binding[@name = 'construct']/srx:literal/string() }))"/>
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:param>
@@ -1063,7 +1064,7 @@ extension-element-prefixes="ixsl"
                         </xsl:if>
 
                         <!-- iterate resource types, query the ontology for each of them to check whether they have constructors, and return those that have -->
-                        <xsl:variable name="constructor-classes" select="for $type in rdf:type/@rdf:resource[not(starts-with(., '&dh;') or starts-with(., '&ldh;') or starts-with(., '&def;') or starts-with(., '&lapp;') or starts-with(., '&sp;') or starts-with(., '&nfo;'))] return (let $query-string := replace($constructor-query, '\$Type', '&lt;' || $type || '&gt;'), $results-uri := ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': $query-string }) return if (doc-available($results-uri)) then (if (exists(document($results-uri)//srx:result/srx:binding[@name = 'constructor'])) then $type else ()) else ())" as="xs:anyURI*"/>
+                        <xsl:variable name="constructor-classes" select="rdf:type/@rdf:resource[not(starts-with(., '&dh;') or starts-with(., '&ldh;') or starts-with(., '&def;') or starts-with(., '&lapp;') or starts-with(., '&sp;') or starts-with(., '&nfo;'))][$constructors//srx:result[srx:binding[@name = 'Type'] = .]/srx:binding[@name = 'constructor']]" as="xs:anyURI*"/>
                         <div class="btn-group pull-right">
                             <button type="button" class="btn dropdown-toggle btn-edit-actions">
                                 <!-- only admins should see the button as only they have access to the ontologies with constructors in them -->
@@ -1129,11 +1130,10 @@ extension-element-prefixes="ixsl"
 
             <xsl:apply-templates select="$violations" mode="bs2:Violation"/>
             
-            <xsl:variable name="types" select="rdf:type/@rdf:resource" as="xs:anyURI*"/>
             <!-- create inputs for both resource description and constructor template properties -->
             <xsl:apply-templates select="* | $template/*[not(concat(namespace-uri(), local-name()) = current()/*/concat(namespace-uri(), local-name()))][not(self::rdf:type)]" mode="#current">
                 <!-- move required properties up -->
-                <xsl:sort select="if ($constraint-query) then exists(for $type in $types return ldh:query-result(map{ '$Type': $type }, resolve-uri('ns', $ldt:base), $constraint-query)//srx:binding[@name = 'property'][srx:uri = current()/concat(namespace-uri(), local-name())]) else false()" order="descending"/>
+                <xsl:sort select="exists($constraints//srx:binding[@name = 'property'][srx:uri = current()/concat(namespace-uri(), local-name())])" order="descending"/>
                 <xsl:sort select="ac:property-label(., $property-metadata)"/>
                 <xsl:with-param name="violations" select="$violations"/>
                 <xsl:with-param name="constructor" select="$constructor"/>

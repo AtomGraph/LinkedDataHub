@@ -170,6 +170,7 @@ LIMIT   100
                 $Type  ldh:template  ?content
               }
         ]]>
+        <!-- VALUES $Type goes here -->
     </xsl:variable>
     <xsl:variable name="constraint-query" as="xs:string">
         <![CDATA[
@@ -185,6 +186,7 @@ LIMIT   100
                           sp:arg1          ?property
               }
         ]]>
+        <!-- VALUES $Type goes here -->
     </xsl:variable>
     <xsl:variable name="constructor-query" as="xs:string">
         <![CDATA[
@@ -198,6 +200,7 @@ LIMIT   100
                 ?constructor sp:text ?construct .
               }
         ]]>
+        <!-- VALUES $Type goes here -->
     </xsl:variable>
     <xsl:variable name="shape-query" as="xs:string">
         <![CDATA[
@@ -210,6 +213,7 @@ LIMIT   100
                   { $Shape  sh:property  ?property }
               }
         ]]>
+        <!-- VALUES $Type goes here -->
     </xsl:variable>
     
     <xsl:key name="resources-by-primary-topic" match="*[@rdf:about] | *[@rdf:nodeID]" use="foaf:primaryTopic/@rdf:resource"/>
@@ -727,7 +731,7 @@ LIMIT   100
 
     <xsl:template match="rdf:RDF" mode="xhtml:Body">
         <xsl:param name="classes" select="for $class-uri in map:keys($default-classes) return key('resources', $class-uri, document(ac:document-uri($class-uri)))" as="element()*"/>
-        <xsl:param name="content-values" select="key('resources', ac:uri())/rdf:type/@rdf:resource[ . = ('&def;Root', '&dh;Container', '&dh;Item')][doc-available(resolve-uri('ns?query=ASK%20%7B%7D', $ldt:base))]/ldh:query-result(map{ '$Type': xs:anyURI(.) }, resolve-uri('ns', $ldt:base), $template-query)//srx:binding[@name = 'content']/srx:uri/xs:anyURI(.)" as="xs:anyURI*"/>
+        <xsl:param name="content-values" select="if (doc-available(resolve-uri('ns?query=ASK%20%7B%7D', $ldt:base))) then (ldh:query-result(map{}, resolve-uri('ns', $ldt:base), $template-query || ' VALUES $Type { ' || string-join(for $type in key('resources', ac:uri())/rdf:type/@rdf:resource[ . = ('&def;Root', '&dh;Container', '&dh;Item')] return '&lt;' || $type || '&gt;', ' ') || ' }')//srx:binding[@name = 'content']/srx:uri/xs:anyURI(.))" as="xs:anyURI*"/>
         <xsl:param name="has-content" select="key('resources', key('resources', ac:uri())/rdf:*[starts-with(local-name(), '_')]/@rdf:resource) or exists($content-values)" as="xs:boolean"/>
 
         <body>
