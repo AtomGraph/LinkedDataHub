@@ -69,7 +69,8 @@ exclude-result-prefixes="#all">
     <xsl:template match="rdf:RDF[if (doc-available(ac:uri())) then (key('resources', ac:uri(), document(ac:uri()))/rdf:type/@rdf:resource = '&adm;SignUp') else false()]" mode="bs2:ModeTabs" priority="2"/>
 
     <xsl:template match="*[rdf:type/@rdf:resource = '&adm;SignUp'][$ac:method = 'GET']" mode="bs2:Row" priority="2">
-        <xsl:apply-templates select="ldh:construct(map{ xs:anyURI('&foaf;Person'): ldh:query-result(map{ '$Type': xs:anyURI('&foaf;Person') }, resolve-uri('ns', $ldt:base), $constructor-query)//srx:binding[@name = 'construct']/srx:literal/string() })" mode="bs2:RowForm">
+        <xsl:variable name="constructors" select="ldh:query-result(map{}, resolve-uri('ns', $ldt:base), $constructor-query || ' VALUES $Type { ' || string-join(for $type in '&foaf;Person' return '&lt;' || $type || '&gt;', ' ') || ' }')" as="document-node()?"/>
+        <xsl:apply-templates select="ldh:construct(map{ xs:anyURI('&foaf;Person'): $constructors//srx:result[srx:binding[@name = 'Type'] = '&foaf;Person']/srx:binding[@name = 'construct']/srx:literal/string() })" mode="bs2:RowForm">
             <xsl:with-param name="action" select="ac:uri()"/>
             <xsl:with-param name="enctype" select="()"/> <!-- don't use 'multipart/form-data' which is the default -->
             <xsl:with-param name="create-resource" select="false()"/>
