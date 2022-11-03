@@ -79,7 +79,7 @@ exclude-result-prefixes="#all">
     <xsl:template match="*[rdf:type/@rdf:resource = '&adm;RequestAccess'][$ac:method = 'GET']" mode="bs2:Row" priority="2">
         <xsl:variable name="constructor" as="document-node()">
             <xsl:document>
-                <xsl:variable name="constructors" select="ldh:query-result(map{}, resolve-uri('ns', $ldt:base), $constructor-query || ' VALUES $Type { ' || string-join(for $type in ('&dh;Item', $forClass) return '&lt;' || $type || '&gt;', ' ') || ' }')" as="document-node()?"/>
+                <xsl:variable name="constructors" select="ldh:query-result(map{}, resolve-uri('ns', $ldt:base), $constructor-query || ' VALUES $Type { ' || string-join(for $type in ('&dh;Item', '&lacl;AuthorizationRequest') return '&lt;' || $type || '&gt;', ' ') || ' }')" as="document-node()?"/>
                 <!-- construct a combined graph of dh:Item and lacl:AuthorizationRequest instances -->
                 <xsl:for-each select="ldh:construct(map{ xs:anyURI('&dh;Item'): $constructors//srx:result[srx:binding[@name = 'Type'] = '&dh;Item']/srx:binding[@name = 'construct']/srx:literal/string(),
                         xs:anyURI('&lacl;AuthorizationRequest'): $constructors//srx:result[srx:binding[@name = 'Type'] = '&lacl;AuthorizationRequest']/srx:binding[@name = 'construct']/srx:literal/string() })">
