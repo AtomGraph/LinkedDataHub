@@ -1127,7 +1127,9 @@ extension-element-prefixes="ixsl"
                 <xsl:with-param name="type" select="if ($show-subject) then 'text' else 'hidden'"/>
             </xsl:apply-templates>
     
-            <xsl:apply-templates select="." mode="bs2:TypeControl"/>
+            <xsl:apply-templates select="." mode="bs2:TypeControl">
+                <xsl:with-param name="type-metadata" select="$type-metadata" tunnel="yes"/>
+            </xsl:apply-templates>
 
             <xsl:apply-templates select="$violations" mode="bs2:Violation"/>
             
@@ -1141,7 +1143,6 @@ extension-element-prefixes="ixsl"
                 <xsl:with-param name="constraints" select="$constraints"/>
                 <xsl:with-param name="shapes" select="$shapes"/>
                 <xsl:with-param name="traversed-ids" select="$traversed-ids" tunnel="yes"/>
-                <xsl:with-param name="type-metadata" select="$type-metadata" tunnel="yes"/>
                 <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/>
             </xsl:apply-templates>
 
