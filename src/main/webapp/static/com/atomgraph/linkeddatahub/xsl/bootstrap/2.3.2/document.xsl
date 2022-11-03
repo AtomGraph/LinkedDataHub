@@ -532,10 +532,10 @@ extension-element-prefixes="ixsl"
         <xsl:choose>
             <!-- if $forClass is not a document class or content, then pair the instance with a document instance -->
             <xsl:when test="$createGraph and not($forClass = ('&dh;Container', '&dh;Item', '&ldh;Content'))">
+                <xsl:variable name="constructors" select="ldh:query-result(map{}, resolve-uri('ns', $ldt:base), $constructor-query || ' VALUES $Type { ' || string-join(for $type in ('&dh;Item', $forClass) return '&lt;' || $type || '&gt;', ' ') || ' }')" as="document-node()?"/>
                 <xsl:document>
                     <!-- construct a combined graph of dh:Item and $forClass instances -->
-                    <xsl:for-each select="ldh:construct(map{ xs:anyURI('&dh;Item'): ldh:query-result(map{ '$Type': xs:anyURI('&dh;Item') }, resolve-uri('ns', $ldt:base), $constructor-query)//srx:binding[@name = 'construct']/srx:literal/string(),
-                            $forClass: ldh:query-result(map{ '$Type': $forClass }, resolve-uri('ns', $ldt:base), $constructor-query)//srx:binding[@name = 'construct']/srx:literal/string() })">
+                    <xsl:for-each select="ldh:construct(map:merge(for $result in $constructors//srx:result return map{ $result/srx:binding[@name = 'Type']/srx:uri/xs:anyURI(.) : $result/srx:binding[@name = 'construct']/srx:literal/string() }))">
                         <xsl:apply-templates select="." mode="ldh:SetPrimaryTopic">
                             <!-- avoid selecting object blank nodes which only have rdf:type --> 
                             <xsl:with-param name="topic-id" select="key('resources-by-type', $forClass)[* except rdf:type]/@rdf:nodeID" tunnel="yes"/>
@@ -545,7 +545,9 @@ extension-element-prefixes="ixsl"
                 </xsl:document>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:sequence select="ldh:construct(map{ $forClass: ldh:query-result(map{ '$Type': $forClass }, resolve-uri('ns', $ldt:base), $constructor-query)//srx:binding[@name = 'construct']/srx:literal/string() })"/>
+                <xsl:variable name="constructors" select="ldh:query-result(map{}, resolve-uri('ns', $ldt:base), $constructor-query || ' VALUES $Type { ' || string-join(for $type in $forClass return '&lt;' || $type || '&gt;', ' ') || ' }')" as="document-node()?"/>
+                <!-- ldh:construct() expects ($forClass, $constructor) map as the first argument -->
+                <xsl:sequence select="ldh:construct(map:merge(for $result in $constructors//srx:result return map{ $result/srx:binding[@name = 'Type']/srx:uri/xs:anyURI(.) : $result/srx:binding[@name = 'construct']/srx:literal/string() }))"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>

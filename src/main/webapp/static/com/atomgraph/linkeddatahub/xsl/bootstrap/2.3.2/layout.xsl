@@ -879,7 +879,7 @@ LIMIT   100
         <xsl:variable name="original-doc" as="document-node()">
             <xsl:try>
                 <!-- try loading resource by deferencing its URI -->
-                <xsl:variable name="full-doc" select="document(ac:document-uri(@rdf:about))" as="document-node()"/>
+                <xsl:variable name="full-doc" select="document(ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(@rdf:about)), 'accept': 'application/rdf+xml' }))" as="document-node()"/>
                 <xsl:choose>
                     <!-- this is not a document resource (contains a hash in the URI), extract it from the full document -->
                     <xsl:when test="not(@rdf:about = ac:document-uri(@rdf:about))">
