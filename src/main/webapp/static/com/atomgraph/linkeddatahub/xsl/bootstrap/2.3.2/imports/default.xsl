@@ -298,7 +298,6 @@ exclude-result-prefixes="#all"
     <xsl:template match="*[@rdf:about or @rdf:nodeID]/*" mode="ac:property-label">
         <xsl:param name="property-metadata" as="document-node()?"/>
         <xsl:variable name="this" select="concat(namespace-uri(), local-name())"/>
-        <xsl:variable name="query-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': 'DESCRIBE &lt;' || $this || '&gt;' })" as="xs:anyURI"/>
         
         <xsl:choose>
             <xsl:when test="key('resources', $this)">
@@ -546,12 +545,11 @@ exclude-result-prefixes="#all"
             <xsl:sequence select="ac:property-label(., $property-metadata)"/> <!-- function upper-cases first letter, unlike mode="ac:label" -->
         </xsl:param>
         <xsl:param name="description" as="xs:string?">
-            <xsl:variable name="query-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': 'DESCRIBE &lt;' || $this || '&gt;' })" as="xs:anyURI" use-when="system-property('xsl:product-name') = 'SAXON'"/>
-            <xsl:if test="doc-available(ac:document-uri($query-uri))" use-when="system-property('xsl:product-name') = 'SAXON'">
-                <xsl:for-each select="key('resources', $this, document(ac:document-uri($query-uri)))">
+            <!--<xsl:if test="doc-available(ac:document-uri($query-uri))" use-when="system-property('xsl:product-name') = 'SAXON'">-->
+                <xsl:for-each select="key('resources', $this, $property-metadata)">
                     <xsl:sequence select="ac:description(.)"/> <!-- use function instead of mode="ac:description" as there might be multiple descriptions -->
                 </xsl:for-each>
-            </xsl:if>
+            <!--</xsl:if>-->
         </xsl:param>
         <xsl:param name="show-label" select="true()" as="xs:boolean"/>
         <xsl:param name="constructor" as="document-node()?"/>

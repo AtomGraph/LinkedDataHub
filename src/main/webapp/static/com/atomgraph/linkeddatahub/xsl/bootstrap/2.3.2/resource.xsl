@@ -1018,6 +1018,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="property-metadata" select="ldh:send-request(resolve-uri('ns', $ldt:base), 'POST', 'application/sparql-query', 'DESCRIBE ' || string-join(for $uri in $property-uris return '&lt;' || $uri || '&gt;', ' '), map{ 'Accept': 'application/rdf+xml' })" as="document-node()"/>
         <xsl:param name="violations" select="key('violations-by-value', */@rdf:resource) | key('violations-by-root', (@rdf:about, @rdf:nodeID)) | key('violations-by-focus-node', (@rdf:about, @rdf:nodeID))" as="element()*"/>
         <xsl:param name="forClass" select="rdf:type/@rdf:resource" as="xs:anyURI*"/>
+        <xsl:param name="type-metadata" select="ldh:send-request(resolve-uri('ns', $ldt:base), 'POST', 'application/sparql-query', 'DESCRIBE ' || string-join(for $uri in $forClass return '&lt;' || $uri || '&gt;', ' '), map{ 'Accept': 'application/rdf+xml' })" as="document-node()"/>
         <xsl:param name="constraint-query" as="xs:string?" tunnel="yes"/>
         <xsl:param name="constraints" select="if ($constraint-query) then (ldh:query-result(map{}, resolve-uri('ns', $ldt:base), $constraint-query || ' VALUES $Type { ' || string-join(for $type in $forClass return '&lt;' || $type || '&gt;', ' ') || ' }')) else ()" as="document-node()?"/>
         <xsl:param name="shape-query" as="xs:string?" tunnel="yes"/>
@@ -1086,7 +1087,7 @@ extension-element-prefixes="ixsl"
                                             </xsl:value-of>
                                             <xsl:text> </xsl:text>
                                             <!-- query class description from the namespace ontology (because it might not be available as Linked Data) -->
-                                            <xsl:apply-templates select="key('resources', ., document(ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': 'DESCRIBE &lt;' || . || '&gt;' })))" mode="ac:label"/>
+                                            <xsl:apply-templates select="key('resources', ., $type-metadata)" mode="ac:label"/>
                                             <xsl:text> </xsl:text>
                                             <xsl:value-of>
                                                 <xsl:apply-templates select="key('resources', 'constructors', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
@@ -1140,6 +1141,7 @@ extension-element-prefixes="ixsl"
                 <xsl:with-param name="constraints" select="$constraints"/>
                 <xsl:with-param name="shapes" select="$shapes"/>
                 <xsl:with-param name="traversed-ids" select="$traversed-ids" tunnel="yes"/>
+                <xsl:with-param name="type-metadata" select="$type-metadata" tunnel="yes"/>
                 <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/>
             </xsl:apply-templates>
 
