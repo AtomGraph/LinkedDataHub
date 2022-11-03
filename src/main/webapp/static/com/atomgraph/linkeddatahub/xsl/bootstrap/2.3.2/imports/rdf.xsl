@@ -100,7 +100,7 @@ exclude-result-prefixes="#all">
         <xsl:param name="type-metadata" as="document-node()" tunnel="yes"/>
 
         <xsl:choose>
-            <xsl:when test="doc-available($doc-uri) and key('resources', ., $type-metadata)">
+            <xsl:when test="key('resources', ., $type-metadata)">
                 <span>
                     <xsl:apply-templates select="key('resources', ., $type-metadata)" mode="ldh:Typeahead">
                         <xsl:with-param name="class" select="'btn add-typeahead add-type-typeahead'"/>
