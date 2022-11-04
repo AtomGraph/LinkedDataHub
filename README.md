@@ -238,6 +238,7 @@ Commercial consulting, development, and support are available from [AtomGraph](h
 ## Community
 
 * [linkeddatahub@groups.io](https://groups.io/g/linkeddatahub) (mailing list)
+* [linkeddatahub/Lobby](https://gitter.im/linkeddatahub/Lobby) on gitter
 * [@atomgraphhq](https://twitter.com/atomgraphhq) on Twitter
 * [AtomGraph](https://www.linkedin.com/company/atomgraph/) on LinkedIn
 * W3C [Declarative Linked Data Apps Community Group](http://www.w3.org/community/declarative-apps/)

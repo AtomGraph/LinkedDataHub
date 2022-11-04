@@ -545,11 +545,9 @@ exclude-result-prefixes="#all"
             <xsl:sequence select="ac:property-label(., $property-metadata)"/> <!-- function upper-cases first letter, unlike mode="ac:label" -->
         </xsl:param>
         <xsl:param name="description" as="xs:string?">
-            <!--<xsl:if test="doc-available(ac:document-uri($query-uri))" use-when="system-property('xsl:product-name') = 'SAXON'">-->
-                <xsl:for-each select="key('resources', $this, $property-metadata)">
-                    <xsl:sequence select="ac:description(.)"/> <!-- use function instead of mode="ac:description" as there might be multiple descriptions -->
-                </xsl:for-each>
-            <!--</xsl:if>-->
+            <xsl:for-each select="key('resources', $this, $property-metadata)">
+                <xsl:sequence select="ac:description(.)"/> <!-- use function instead of mode="ac:description" as there might be multiple descriptions -->
+            </xsl:for-each>
         </xsl:param>
         <xsl:param name="show-label" select="true()" as="xs:boolean"/>
         <xsl:param name="constructor" as="document-node()?"/>

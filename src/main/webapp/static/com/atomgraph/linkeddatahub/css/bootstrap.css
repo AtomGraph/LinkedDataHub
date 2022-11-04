@@ -71,6 +71,7 @@ li button.btn-edit-constructors, li button.btn-add-data, li button.btn-add-ontol
 }
 #doc-tree .nav-list > li > a { margin-left: 0; margin-right: 0; }
 #doc-tree .nav-list > li > a.btn-container, #doc-tree .nav-list > li > a.btn-app, #doc-tree .nav-list > li > a.btn-chart, #doc-tree .nav-list > li > a.btn-file, #doc-tree .nav-list > li > a.btn-geo, #doc-tree .nav-list > li > a.btn-import, #doc-tree .nav-list > li > a.btn-latest, #doc-tree .nav-list > li > a.btn-query, #doc-tree .nav-list > li > a.btn-service { padding-left: 24px; }
+#doc-tree li { max-height: 20em; overflow: auto; }
 #doc-tree li > a { display: inline-block; }
 .btn.btn-expand-tree { height: 24px; width: 24px; background-image: url('../icons/expand_more_black_24dp.svg'); }
 .btn.btn-expand-tree:hover, .btn.btn-expand-tree:focus { background-position: 0 0; }
