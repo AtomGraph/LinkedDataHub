@@ -26,7 +26,7 @@ http {
         ssl_verify_client $SSL_VERIFY_CLIENT;
 
         location / {
-            proxy_pass http://linkeddatahub$request_uri;
+            proxy_pass http://linkeddatahub;
             #proxy_cache backcache;
             limit_req zone=linked_data burst=20 nodelay;
 
@@ -35,7 +35,7 @@ http {
         }
 
         location ^~ /static/ {
-            proxy_pass http://linkeddatahub$request_uri;
+            proxy_pass http://linkeddatahub;
             limit_req zone=static_files burst=20 nodelay;
         }
     }
@@ -51,7 +51,7 @@ http {
         ssl_verify_client optional_no_ca;
 
         location / {
-            proxy_pass http://linkeddatahub$request_uri;
+            proxy_pass http://linkeddatahub;
             #proxy_cache backcache;
             limit_req zone=linked_data burst=20 nodelay;
 
@@ -60,7 +60,7 @@ http {
         }
 
         location ^~ /static/ {
-            proxy_pass http://linkeddatahub$request_uri;
+            proxy_pass http://linkeddatahub;
             limit_req zone=static_files burst=20 nodelay;
         }
     }
