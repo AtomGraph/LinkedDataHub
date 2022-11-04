@@ -1,6 +1,15 @@
-## [3.2.24] - 2022-11-01
+## [3.2.24] - 2022-11-05
+### Added
+- `ldh:send-request` XSLT extension function which allows stylesheets to execute HTTP `POST` requests (e.g. if the query string is too long for `GET`).
+
 ### Changed
 - Fixed datetime literal conversion from RDF/XML and SPARQL Results XML to Google Chart's `DataTable`
+- Fixed encoding of URIs with special characters in HTTP client requests
+- Optimized resource-level XSLT modes by consolidating HTTP requests for type/property/constructor/constraint/shape metadata using SPARQL `VALUES`
+
+### Removed
+- Fallback to a `DESCRIBE` request in `ProxyResourceBase`
+- `$ldh:localGraph`/`$ldh:original` XSLT parameters. XSLT stylesheet now loads the same data over HTTP without the need for special parameters.
 
 ## [3.2.23] - 2022-10-31
 ### Added
