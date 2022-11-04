@@ -63,7 +63,7 @@ public class ClientUriRewriteFilter implements ClientRequestFilter
         if (getScheme() != null) newScheme  = getScheme();
 
         // cannot use the URI class because query string with special chars such as '+' gets decoded
-        URI newUri = UriBuilder.fromUri(cr.getUri()).scheme(newScheme).host(getHostname()).build();
+        URI newUri = UriBuilder.fromUri(cr.getUri()).scheme(newScheme).host(getHostname()).port(getPort()).build();
 
         if (log.isDebugEnabled()) log.debug("Rewriting client request URI from '{}' to '{}'", cr.getUri(), newUri);
         cr.setUri(newUri);
