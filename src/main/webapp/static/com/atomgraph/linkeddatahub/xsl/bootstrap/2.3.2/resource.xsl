@@ -1015,7 +1015,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="class" as="xs:string?"/>
         <xsl:param name="legend" select="true()" as="xs:boolean"/>
         <xsl:param name="property-uris" select="distinct-values(*/concat(namespace-uri(), local-name()))" as="xs:string*"/>
-        <xsl:param name="property-metadata" select="ldh:send-request(resolve-uri('ns', $ldt:base), 'POST', 'application/sparql-query', 'DESCRIBE ' || string-join(for $uri in $property-uris return '&lt;' || $uri || '&gt;', ' '), map{ 'Accept': 'application/rdf+xml' })" as="document-node()"/>
+        <xsl:param name="property-metadata" select="ldh:send-request(resolve-uri('ns', $ldt:base), 'POST', 'application/sparql-query', 'DESCRIBE ' || string-join(for $uri in $property-uris return '&lt;' || $uri || '&gt;', ' '), map{ 'Accept': 'application/rdf+xml' })" as="document-node()?"/>
         <xsl:param name="violations" select="key('violations-by-value', */@rdf:resource) | key('violations-by-root', (@rdf:about, @rdf:nodeID)) | key('violations-by-focus-node', (@rdf:about, @rdf:nodeID))" as="element()*"/>
         <xsl:param name="forClass" select="rdf:type/@rdf:resource" as="xs:anyURI*"/>
         <xsl:param name="type-metadata" select="ldh:send-request(resolve-uri('ns', $ldt:base), 'POST', 'application/sparql-query', 'DESCRIBE ' || string-join(for $uri in $forClass return '&lt;' || $uri || '&gt;', ' '), map{ 'Accept': 'application/rdf+xml' })" as="document-node()"/>
@@ -1137,7 +1137,7 @@ extension-element-prefixes="ixsl"
             <xsl:apply-templates select="* | $template/*[not(concat(namespace-uri(), local-name()) = current()/*/concat(namespace-uri(), local-name()))][not(self::rdf:type)]" mode="#current">
                 <!-- move required properties up -->
                 <xsl:sort select="exists($constraints//srx:binding[@name = 'property'][srx:uri = current()/concat(namespace-uri(), local-name())])" order="descending"/>
-                <xsl:sort select="ac:property-label(., $property-metadata)"/>
+                <xsl:sort select="if ($property-metadata) then ac:property-label(., $property-metadata) else ac:property-label(.)"/>
                 <xsl:with-param name="violations" select="$violations"/>
                 <xsl:with-param name="constructor" select="$constructor"/>
                 <xsl:with-param name="constraints" select="$constraints"/>
@@ -1190,7 +1190,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="template" as="element()*"/>
         <xsl:param name="id" select="generate-id()" as="xs:string"/>
         <xsl:param name="forClass" as="xs:anyURI*"/>
-        <xsl:param name="property-metadata" as="document-node()"/>
+        <xsl:param name="property-metadata" as="document-node()?"/>
         <xsl:variable name="seq-properties" select="for $property in ../rdf:Description/*/concat(namespace-uri(), local-name())[starts-with(., '&rdf;' || '_')] return xs:anyURI($property)" as="xs:anyURI*"/>
         <xsl:variable name="max-seq-index" select="if (empty($seq-properties)) then 0 else max(for $seq-property in $seq-properties return xs:integer(substring-after($seq-property, '&rdf;' || '_')))" as="xs:integer"/>
 
@@ -1199,7 +1199,7 @@ extension-element-prefixes="ixsl"
                 <select class="input-medium">
                     <!-- group properties by URI - there might be duplicates in the constructor -->
                     <xsl:for-each-group select="$template/*" group-by="concat(namespace-uri(), local-name())">
-                        <xsl:sort select="ac:property-label(., $property-metadata)"/>
+                        <xsl:sort select="if ($property-metadata) then ac:property-label(., $property-metadata) else ac:property-label(.)"/>
                         <xsl:variable name="this" select="xs:anyURI(current-grouping-key())" as="xs:anyURI"/>
                         <xsl:variable name="available" select="doc-available(ac:document-uri($this))" as="xs:boolean"/>
                         <xsl:choose use-when="system-property('xsl:product-name') = 'SAXON'">

@@ -540,12 +540,12 @@ exclude-result-prefixes="#all"
         <xsl:param name="this" select="xs:anyURI(concat(namespace-uri(), local-name()))" as="xs:anyURI"/>
         <xsl:param name="violations" as="element()*"/>
         <xsl:param name="error" select="@rdf:resource = $violations/ldh:violationValue or $violations/spin:violationPath/@rdf:resource = $this or $violations/sh:resultPath/@rdf:resource = $this" as="xs:boolean"/>
-        <xsl:param name="property-metadata" as="document-node()" tunnel="yes"/>
+        <xsl:param name="property-metadata" as="document-node()?" tunnel="yes"/>
         <xsl:param name="label" as="xs:string?">
-            <xsl:sequence select="ac:property-label(., $property-metadata)"/> <!-- function upper-cases first letter, unlike mode="ac:label" -->
+            <xsl:sequence select="if ($property-metadata) then ac:property-label(., $property-metadata) else ac:property-label(.)"/> <!-- function upper-cases first letter, unlike mode="ac:label" -->
         </xsl:param>
         <xsl:param name="description" as="xs:string?">
-            <xsl:for-each select="key('resources', $this, $property-metadata)">
+            <xsl:for-each select="$property-metadata/key('resources', $this)">
                 <xsl:sequence select="ac:description(.)"/> <!-- use function instead of mode="ac:description" as there might be multiple descriptions -->
             </xsl:for-each>
         </xsl:param>
