@@ -97,12 +97,12 @@ exclude-result-prefixes="#all">
         <xsl:param name="class" select="'subject input-xxlarge'" as="xs:string?"/>
         <xsl:param name="disabled" select="false()" as="xs:boolean"/>
         <xsl:param name="auto" select="local-name() = 'nodeID' or starts-with(., $ldt:base)" as="xs:boolean"/>
-        <xsl:param name="type-metadata" as="document-node()" tunnel="yes"/>
+        <xsl:param name="type-metadata" as="document-node()?" tunnel="yes"/>
 
         <xsl:choose>
-            <xsl:when test="key('resources', ., $type-metadata)">
+            <xsl:when test="$type-metadata/key('resources', .)">
                 <span>
-                    <xsl:apply-templates select="key('resources', ., $type-metadata)" mode="ldh:Typeahead">
+                    <xsl:apply-templates select="$type-metadata/key('resources', .)" mode="ldh:Typeahead">
                         <xsl:with-param name="class" select="'btn add-typeahead add-type-typeahead'"/>
                     </xsl:apply-templates>
                 </span>
