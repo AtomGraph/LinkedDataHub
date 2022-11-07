@@ -448,7 +448,7 @@ WHERE
         rdfs:label "Public access" ;
         rdfs:comment "Allows non-authenticated access" ;
         acl:accessTo <../ns> ; # end-user ontologies are public
-        acl:mode acl:Read ;
+        acl:mode acl:Read, acl:Append ; # allow queries over GET as well as POST
         acl:agentClass foaf:Agent, acl:AuthenticatedAgent .
 
 }

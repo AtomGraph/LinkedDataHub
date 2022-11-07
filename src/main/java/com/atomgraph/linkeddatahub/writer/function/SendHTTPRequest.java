@@ -41,6 +41,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Executes an HTTP request.
+ * This function currently only works for public URLs as it does not delegate the authenticated agent.
  * 
  * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
  */
@@ -117,7 +118,7 @@ public class SendHTTPRequest implements ExtensionFunction
             if (!cr.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
             {
                 if (log.isDebugEnabled()) log.debug("Could not execute ldh:send-request function. href: '{}' method: '{}'", href, method);
-                throw new IOException("Could not execut ldh:send-request function. href: '" + href + "' method: '" + method + "'");
+                throw new IOException("Could not execute ldh:send-request function. href: '" + href + "' method: '" + method + "'");
             }
             if (cr.hasEntity()) return getProcessor().newDocumentBuilder().build(new StreamSource(cr.readEntity(InputStream.class)));
             
