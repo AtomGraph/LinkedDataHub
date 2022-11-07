@@ -1065,7 +1065,7 @@ extension-element-prefixes="ixsl"
                         </xsl:if>
 
                         <xsl:if test="exists($type-metadata)">
-                            <!-- show list of types that have constructors -->
+                            <!-- show list of types that have constructors (excluding built-in system classes) -->
                             <xsl:variable name="constructor-classes" select="distinct-values($constructors//srx:binding[@name = 'Type']/srx:uri)[not(starts-with(., '&dh;') or starts-with(., '&ldh;') or starts-with(., '&def;') or starts-with(., '&lapp;') or starts-with(., '&sp;') or starts-with(., '&nfo;'))]" as="xs:anyURI*"/>
                             <div class="btn-group pull-right">
                                 <button type="button" class="btn dropdown-toggle btn-edit-actions">
