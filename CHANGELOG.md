@@ -1,4 +1,4 @@
-## [3.2.24] - 2022-11-05
+## [3.2.24] - 2022-11-07
 ### Added
 - `ldh:send-request` XSLT extension function which allows stylesheets to execute HTTP `POST` requests (e.g. if the query string is too long for `GET`).
 
