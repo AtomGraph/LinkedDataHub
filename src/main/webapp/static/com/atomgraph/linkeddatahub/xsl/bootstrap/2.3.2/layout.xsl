@@ -561,19 +561,21 @@ LIMIT   100
                 <xsl:attribute name="class" select="$class"/>
             </xsl:if>
             
-            <div id="created-modified-date" class="pull-right">
-                <!-- placeholder for client.xsl callbacks -->
-            </div>
+            <div class="row-fluid">
+                <div id="breadcrumb-nav" class="span9">
+                    <!-- placeholder for client.xsl callbacks -->
 
-            <div id="breadcrumb-nav">
-                <!-- placeholder for client.xsl callbacks -->
+                    <xsl:if test="not($ldh:ajaxRendering)">
+                        <ul class="breadcrumb pull-left">
+                            <!-- render breadcrumbs server-side -->
+                            <xsl:apply-templates select="key('resources', ac:uri())" mode="bs2:BreadCrumbListItem"/>
+                        </ul>
+                    </xsl:if>
+                </div>
 
-                <xsl:if test="not($ldh:ajaxRendering)">
-                    <ul class="breadcrumb pull-left">
-                        <!-- render breadcrumbs server-side -->
-                        <xsl:apply-templates select="key('resources', ac:uri())" mode="bs2:BreadCrumbListItem"/>
-                    </ul>
-                </xsl:if>
+                <div id="created-modified-date" class="span3">
+                    <!-- placeholder for client.xsl callbacks -->
+                </div>
             </div>
         </div>
     </xsl:template>
