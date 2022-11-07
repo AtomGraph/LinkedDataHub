@@ -1,3 +1,7 @@
+## [3.2.25] - 2022-11-07
+### Changed
+- Public `acl:Append` access to the namespace ontology which is required because the `ldh:send-request` function sends unauthenticated SPARQL Protocol `POST` requests
+
 ## [3.2.24] - 2022-11-07
 ### Added
 - `ldh:send-request` XSLT extension function which allows stylesheets to execute HTTP `POST` requests (e.g. if the query string is too long for `GET`).
