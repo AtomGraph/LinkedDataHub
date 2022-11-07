@@ -1065,8 +1065,8 @@ extension-element-prefixes="ixsl"
                         </xsl:if>
 
                         <xsl:if test="exists($type-metadata)">
-                            <!-- iterate resource types, query the ontology for each of them to check whether they have constructors, and return those that have -->
-                            <xsl:variable name="constructor-classes" select="rdf:type/@rdf:resource[not(starts-with(., '&dh;') or starts-with(., '&ldh;') or starts-with(., '&def;') or starts-with(., '&lapp;') or starts-with(., '&sp;') or starts-with(., '&nfo;'))][$constructors//srx:result[srx:binding[@name = 'Type'] = .]/srx:binding[@name = 'constructor']]" as="xs:anyURI*"/>
+                            <!-- show list of types that have constructors -->
+                            <xsl:variable name="constructor-classes" select="distinct-values($constructors//srx:binding[@name = 'Type']/srx:uri)[not(starts-with(., '&dh;') or starts-with(., '&ldh;') or starts-with(., '&def;') or starts-with(., '&lapp;') or starts-with(., '&sp;') or starts-with(., '&nfo;'))]" as="xs:anyURI*"/>
                             <div class="btn-group pull-right">
                                 <button type="button" class="btn dropdown-toggle btn-edit-actions">
                                     <!-- only admins should see the button as only they have access to the ontologies with constructors in them -->
