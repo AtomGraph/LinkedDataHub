@@ -406,7 +406,8 @@ WHERE
   }
 }
 ORDER BY ?title
-""" .
+""" ;
+    rdfs:isDefinedBy : .
 
 # CLIENT TERMS. TO-DO: move to a separate Web-Client ontology?
 
@@ -555,7 +556,8 @@ sp:Query spin:constructor [
 
 :MissingSPText a :MissingPropertyValue ;
     rdfs:label "Missing sp:text" ;
-    sp:arg1 sp:text .
+    sp:arg1 sp:text ;
+    rdfs:isDefinedBy : .
 
 # http://www.semanticdesktop.org/ontologies/2007/03/22/nfo
 
