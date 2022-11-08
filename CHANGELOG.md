@@ -1,3 +1,7 @@
+## [3.2.26] - 2022-11-09
+### Changed
+- Disabled SPARQL updates on the namespace ontology endpoint `/ns`
+
 ## [3.2.25] - 2022-11-07
 ### Changed
 - Public `acl:Append` access to the namespace ontology which is required because the `ldh:send-request` function sends unauthenticated SPARQL Protocol `POST` requests
