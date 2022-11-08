@@ -8,7 +8,7 @@ purge_backend_cache "$ADMIN_VARNISH_SERVICE"
 
 # SPARQL query on the <ns> endpoint should succeed
 
-curl -k -w "%{http_code}\n" -f -s -G \
+curl -k -w "%{http_code}\n" -f -s -o /dev/null -G \
   -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
   -H "Accept: application/sparql-results+xml" \
   "${END_USER_BASE_URL}ns" \
