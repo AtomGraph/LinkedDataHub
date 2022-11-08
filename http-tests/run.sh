@@ -27,6 +27,7 @@ export STATUS_BAD_REQUEST=400
 export STATUS_UNAUTHORIZED=401
 export STATUS_FORBIDDEN=403
 export STATUS_NOT_FOUND=404
+export STATUS_METHOD_NOT_ALLOWED=404
 export STATUS_NOT_ACCEPTABLE=406
 export STATUS_REQUEST_ENTITY_TOO_LARGE=413
 export STATUS_UNSUPPORTED_MEDIA=415
@@ -133,6 +134,8 @@ run_tests $(find ./graph-store-protocol/ -type f -name '*.sh')
 run_tests $(find ./misc/ -type f -name '*.sh')
 (( error_count += $? ))
 run_tests $(find ./proxy/ -type f -name '*.sh')
+(( error_count += $? ))
+run_tests $(find ./sparql-protocol/ -type f -name '*.sh')
 (( error_count += $? ))
 
 end_time=$(date +%s)
