@@ -13,7 +13,7 @@ curl -w "%{http_code}\n" -f -s \
   -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
   -H "Content-Type: application/sparql-update" \
   -H "Accept: application/n-triples" \
-  "${BASE_URL}ns" \
+  "${END_USER_BASE_URL}ns" \
   --data-binary @- <<EOF
 DELETE WHERE 
 {
