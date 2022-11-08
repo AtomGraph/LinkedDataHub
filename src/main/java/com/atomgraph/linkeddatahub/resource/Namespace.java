@@ -20,10 +20,13 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
 import com.atomgraph.core.MediaTypes;
-import com.atomgraph.linkeddatahub.model.Service;
 import static com.atomgraph.core.model.SPARQLEndpoint.DEFAULT_GRAPH_URI;
 import static com.atomgraph.core.model.SPARQLEndpoint.NAMED_GRAPH_URI;
+import com.atomgraph.linkeddatahub.model.Service;
 import static com.atomgraph.core.model.SPARQLEndpoint.QUERY;
+import static com.atomgraph.core.model.SPARQLEndpoint.UPDATE;
+import static com.atomgraph.core.model.SPARQLEndpoint.USING_GRAPH_URI;
+import static com.atomgraph.core.model.SPARQLEndpoint.USING_NAMED_GRAPH_URI;
 import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.server.model.impl.SPARQLEndpointImpl;
@@ -33,8 +36,13 @@ import java.util.List;
 import java.util.Optional;
 import javax.inject.Inject;
 import javax.ws.rs.BadRequestException;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 import org.apache.jena.ontology.Ontology;
@@ -45,6 +53,7 @@ import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.sparql.resultset.ResultSetMem;
 import org.apache.jena.sparql.vocabulary.ResultSetGraphVocab;
+import org.apache.jena.update.UpdateRequest;
 import org.apache.jena.vocabulary.RDF;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -146,6 +155,27 @@ public class Namespace extends SPARQLEndpointImpl
         
         if (log.isWarnEnabled()) log.warn("SPARQL endpoint received unknown type of query: {}", query);
         throw new BadRequestException("Unknown query type");
+    }
+    
+    
+    @Override
+    @POST
+    @Consumes(com.atomgraph.core.MediaType.APPLICATION_FORM_URLENCODED)
+    public Response post(@FormParam(QUERY) String queryString, @FormParam(UPDATE) String updateString,
+            @FormParam(DEFAULT_GRAPH_URI) List<URI> defaultGraphUris, @FormParam(NAMED_GRAPH_URI) List<URI> namedGraphUris,
+            @FormParam(USING_GRAPH_URI) List<URI> usingGraphUris, @FormParam(USING_NAMED_GRAPH_URI) List<URI> usingNamedGraphUris)
+    {
+        if (updateString != null) throw new WebApplicationException("SPARQL updates are not allowed on the <ns> endpoint", Status.METHOD_NOT_ALLOWED);
+
+        return super.post(queryString, updateString, defaultGraphUris, namedGraphUris, usingGraphUris, usingNamedGraphUris);
+    }
+    
+    @Override
+    @POST
+    @Consumes(com.atomgraph.core.MediaType.APPLICATION_SPARQL_UPDATE)
+    public Response post(UpdateRequest update, @QueryParam(USING_GRAPH_URI) List<URI> usingGraphUris, @QueryParam(USING_NAMED_GRAPH_URI) List<URI> usingNamedGraphUris)
+    {
+        throw new WebApplicationException("SPARQL updates are not allowed on the <ns> endpoint", Status.METHOD_NOT_ALLOWED);
     }
     
     /**
