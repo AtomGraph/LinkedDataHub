@@ -6,9 +6,8 @@ initialize_dataset "$ADMIN_BASE_URL" "$TMP_ADMIN_DATASET" "$ADMIN_ENDPOINT_URL"
 purge_backend_cache "$END_USER_VARNISH_SERVICE"
 purge_backend_cache "$ADMIN_VARNISH_SERVICE"
 
-# SPARQL update on the <ns> endpoint should not be allowed
+# SPARQL query on the <ns> endpoint should succeed
 
-(
 curl -k "%{http_code}\n" -f -s -G \
   -H "Accept: application/n-triples" \
   "${END_USER_BASE_URL}sparql" \
