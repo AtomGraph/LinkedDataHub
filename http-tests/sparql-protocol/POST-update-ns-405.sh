@@ -9,7 +9,7 @@ purge_backend_cache "$ADMIN_VARNISH_SERVICE"
 # SPARQL update on the <ns> endpoint should not be allowed
 
 (
-curl -w "%{http_code}\n" -f -s \
+curl -k -w "%{http_code}\n" -f -s \
   -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
   -H "Content-Type: application/sparql-update" \
   -H "Accept: application/n-triples" \
