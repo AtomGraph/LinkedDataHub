@@ -8,9 +8,17 @@ purge_backend_cache "$ADMIN_VARNISH_SERVICE"
 
 # SPARQL update on the <ns> endpoint should not be allowed
 
+(
 curl -k -w "%{http_code}\n" -s \
   -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
+  -H "Content-Type: application/sparql-update" \
   -H "Accept: application/n-triples" \
   "${END_USER_BASE_URL}ns" \
-  --data-urlencode "update=DELETE WHERE { ?s ?p ?o . }" \
+  --data-binary @- <<EOF
+DELETE WHERE 
+{
+  ?s ?p ?o .
+}
+EOF
+) \
 | grep -q "$STATUS_METHOD_NOT_ALLOWED"
