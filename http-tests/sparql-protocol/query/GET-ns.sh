@@ -9,7 +9,8 @@ purge_backend_cache "$ADMIN_VARNISH_SERVICE"
 # SPARQL query on the <ns> endpoint should succeed
 
 curl -k "%{http_code}\n" -f -s -G \
+  -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
   -H "Accept: application/n-triples" \
-  "${END_USER_BASE_URL}sparql" \
+  "${END_USER_BASE_URL}ns" \
   --data-urlencode "query=SELECT * { ?s ?p ?o }" \
-| grep -q "${STATUS_OK}"
+| grep -q "$STATUS_OK"
