@@ -45,11 +45,13 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 import javax.inject.Inject;
@@ -69,6 +71,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
@@ -128,10 +131,10 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
             if (model == null) throw new IllegalArgumentException("Model cannot be null");
 
             Resource doc = getDocument(model);
-            if (doc == null) throw new BadRequestException("Cannot create a new named graph, no Container or Item instance found in request body");
+            if (doc == null) throw new WebApplicationException("Cannot create a new named graph, no Container or Item instance found in request body", 422); // 422 Unprocessable Entity
 
             Resource parent = getParent(doc);
-            if (parent == null) throw new BadRequestException("Graph URI is not specified and no document (with sioc:has_parent or sioc:has_container) found in request body");
+            if (parent == null) throw new WebApplicationException("Graph URI is not specified and no document (with sioc:has_parent or sioc:has_container) found in request body", 422);
 
             // hardcoded hierarchical URL building logic
             final String slug;
@@ -285,7 +288,6 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
         if (created) return Response.created(graphUri).build();
         else return response;
     }
-
     
     @PUT
     @Override
@@ -293,12 +295,14 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
     {
         if (graphUri == null) throw new BadRequestException("Named graph not specified");
 
-        if (getOwnerDocURI().equals(graphUri)) throw new BadRequestException("Cannot update application owner's document");
-        if (getSecretaryDocURI().equals(graphUri)) throw new BadRequestException("Cannot update application secretary's document");
+        Set<String> allowedMethods = getAllowedMethods(graphUri);
+        if (!allowedMethods.contains(HttpMethod.PUT))
+            throw new WebApplicationException("Cannot update document", Response.status(Status.METHOD_NOT_ALLOWED).allow(allowedMethods).build());
+        
         if (!model.createResource(graphUri.toString()).hasProperty(RDF.type, Default.Root) &&
             !model.createResource(graphUri.toString()).hasProperty(RDF.type, DH.Container) &&
             !model.createResource(graphUri.toString()).hasProperty(RDF.type, DH.Item))
-            throw new BadRequestException("Named graph <" + graphUri + "> must contain a document resource (instance of dh:Container or dh:Item)");
+            throw new WebApplicationException("Named graph <" + graphUri + "> must contain a document resource (instance of dh:Container or dh:Item)", 422); // 422 Unprocessable Entity
 
         model.createResource(graphUri.toString()).
             removeAll(DCTerms.modified).
@@ -333,11 +337,11 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
             if (visitor.isContainsNamedGraph())
             {
                 if (log.isWarnEnabled()) log.debug("SPARQL update used with PATCH method cannot contain the GRAPH keyword");
-                throw new WebApplicationException("SPARQL update used with PATCH method cannot contain the GRAPH keyword", 422); // Unprocessable Entity
+                throw new WebApplicationException("SPARQL update used with PATCH method cannot contain the GRAPH keyword", 422); // 422 Unprocessable Entity
             }
 
             // set WITH <graphUri>
-            if (!(update instanceof UpdateModify updateModify)) throw new WebApplicationException("Only UpdateModify form of SPARQL Update is supported", 422);
+            if (!(update instanceof UpdateModify updateModify)) throw new WebApplicationException("Only UpdateModify form of SPARQL Update is supported", 422); // 422 Unprocessable Entity
             updateModify.setWithIRI(NodeFactory.createURI(graphUri.toString()));
         });
 
@@ -347,25 +351,22 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
     }
     
     /**
-     * Overrides <code>OPTIONS</code> HTTP header values.
-     * Specifies allowed methods.
-     * 
+     * Overrides <code>OPTIONS</code> HTTP header values.Specifies allowed methods.
+     *
+     * @param graphUri graph URI
      * @return HTTP response
      */
     @OPTIONS
-    public Response options()
+    public Response options(@QueryParam("graph") URI graphUri)
     {
-        Response.ResponseBuilder rb = Response.ok().
-            allow(HttpMethod.GET).
-            allow(HttpMethod.POST).
-            allow(HttpMethod.PUT).
-            allow(HttpMethod.DELETE);
+        Response.ResponseBuilder rb = Response.ok();
+        
+        if (graphUri != null) rb.allow(getAllowedMethods(graphUri)); // do not return Allow for the default graph
         
         String acceptWritable = StringUtils.join(getWritableMediaTypes(Model.class), ",");
         rb.header("Accept-Post", acceptWritable);
         
         return rb.build();
-        
     }
     
     /**
@@ -438,7 +439,7 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     public Response putMultipart(FormDataMultiPart multiPart, @QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
     {
-        if (graphUri == null) throw new InternalServerErrorException("Named graph not specified");
+        if (graphUri == null) throw new BadRequestException("Named graph not specified");
         if (log.isDebugEnabled()) log.debug("MultiPart fields: {} body parts: {}", multiPart.getFields(), multiPart.getBodyParts());
 
         try
@@ -478,11 +479,36 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
     @Override
     public Response delete(@QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
     {
-        if (getApplication().getBaseURI().equals(graphUri)) throw new BadRequestException("Cannot delete Root document at application's base URI");
-        if (getOwnerDocURI().equals(graphUri)) throw new BadRequestException("Cannot delete application owner's document");
-        if (getSecretaryDocURI().equals(graphUri)) throw new BadRequestException("Cannot delete application secretary's document");
+        Set<String> allowedMethods = getAllowedMethods(graphUri);
+        if (!allowedMethods.contains(HttpMethod.DELETE))
+            throw new WebApplicationException("Cannot delete document", Response.status(Status.METHOD_NOT_ALLOWED).allow(allowedMethods).build());
         
         return super.delete(false, graphUri);
+    }
+    
+    /**
+     * List allowed HTTP methods for the given graph URI.
+     * Exceptions apply to the application's Root document, owner's WebID document, and secretary's WebID document.
+     * 
+     * @param graphUri
+     * @return 
+     */
+    public Set<String> getAllowedMethods(URI graphUri)
+    {
+        Set<String> methods = new HashSet<>();
+        methods.add(HttpMethod.GET);
+        methods.add(HttpMethod.POST);
+        
+        if (!getOwnerDocURI().equals(graphUri) &&
+            !getSecretaryDocURI().equals(graphUri))
+            methods.add(HttpMethod.PUT);
+
+        if (!getApplication().getBaseURI().equals(graphUri) &&
+            !getOwnerDocURI().equals(graphUri) &&
+            !getSecretaryDocURI().equals(graphUri))
+            methods.add(HttpMethod.DELETE);
+
+        return methods;
     }
     
     /**

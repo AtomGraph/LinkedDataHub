@@ -1084,8 +1084,8 @@ WHERE
                     </xsl:otherwise>
                 </xsl:choose>
             </xsl:when>
-            <!-- POST or PUT constraint violation response is 400 Bad Request -->
-            <xsl:when test="?status = 400 and starts-with(?media-type, 'application/xhtml+xml')"> <!-- allow 'application/xhtml+xml;charset=UTF-8' as well -->
+            <!-- POST or PUT constraint violation response is 422 Unprocessable Entity, bad RDF syntax is 400 Bad Request -->
+            <xsl:when test="?status = (400, 422) and starts-with(?media-type, 'application/xhtml+xml')"> <!-- allow 'application/xhtml+xml;charset=UTF-8' as well -->
                 <xsl:for-each select="?body">
                     <xsl:variable name="form-id" select="ixsl:get($form, 'id')" as="xs:string"/>
                     <xsl:variable name="doc-id" select="concat('id', ixsl:call(ixsl:window(), 'generateUUID', []))" as="xs:string"/>

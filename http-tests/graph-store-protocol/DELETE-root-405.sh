@@ -18,13 +18,11 @@ pushd . > /dev/null && cd "$SCRIPT_ROOT/admin/acl"
 
 popd > /dev/null
 
-# check that it's not possible to update the root document
-
-secretary_doc=$(echo "$SECRETARY_URI" | cut -d '#' -f 1)
+# check that it's not possible to delete the root document
 
 curl -k -w "%{http_code}\n" -o /dev/null -s \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
-  -X PUT \
+  -X DELETE \
   -H "Accept: application/n-triples" \
-  "$secretary_doc" \
-| grep -q "$STATUS_BAD_REQUEST"
+  "$END_USER_BASE_URL" \
+| grep -q "$STATUS_METHOD_NOT_ALLOWED"

@@ -35,4 +35,4 @@ curl -k -w "%{http_code}\n" -o /dev/null -s \
 <${END_USER_BASE_URL}> <http://example.com/default-predicate> "named object PUT" .
 EOF
 ) \
-| grep -q "$STATUS_BAD_REQUEST"
+| grep -q "$STATUS_UNPROCESSABLE_ENTITY"

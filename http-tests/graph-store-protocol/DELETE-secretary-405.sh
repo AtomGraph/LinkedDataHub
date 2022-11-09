@@ -27,4 +27,4 @@ curl -k -w "%{http_code}\n" -o /dev/null -s \
   -X DELETE \
   -H "Accept: application/n-triples" \
   "$secretary_doc" \
-| grep -q "$STATUS_BAD_REQUEST"
+| grep -q "$STATUS_METHOD_NOT_ALLOWED"

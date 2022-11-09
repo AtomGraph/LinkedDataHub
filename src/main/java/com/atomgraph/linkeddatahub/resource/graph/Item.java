@@ -32,6 +32,7 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
+import javax.ws.rs.OPTIONS;
 import javax.ws.rs.PATCH;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
@@ -129,6 +130,13 @@ public class Item extends GraphStoreImpl
     public Response patch(UpdateRequest updateRequest, @QueryParam("graph") URI graphUri)
     {
         return super.patch(updateRequest, getURI());
+    }
+    
+    @OPTIONS
+    @Override
+    public Response options(@QueryParam("graph") URI graphUri)
+    {
+        return super.options(getURI());
     }
     
     /**
