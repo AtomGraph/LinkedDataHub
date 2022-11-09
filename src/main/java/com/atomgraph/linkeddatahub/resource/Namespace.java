@@ -47,14 +47,7 @@ import javax.ws.rs.core.UriInfo;
 import org.apache.jena.ontology.Ontology;
 import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.query.Query;
-import org.apache.jena.query.QueryExecution;
-import org.apache.jena.query.ResultSetFactory;
-import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.ModelFactory;
-import org.apache.jena.sparql.resultset.ResultSetMem;
-import org.apache.jena.sparql.vocabulary.ResultSetGraphVocab;
 import org.apache.jena.update.UpdateRequest;
-import org.apache.jena.vocabulary.RDF;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -70,12 +63,10 @@ public class Namespace extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
 
     private final URI uri;
     private final Application application;
-    private final Ontology ontology;
-    private final SecurityContext securityContext;
     private final com.atomgraph.linkeddatahub.Application system;
 
     /**
-     * Constructs endpoint.
+     * Constructs endpoint from the in-memory ontology model.
      * 
      * @param request current request
      * @param uriInfo current request's URI info
@@ -93,8 +84,6 @@ public class Namespace extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
         super(request, new ServiceImpl(DatasetFactory.create(ontology.get().getOntModel()), mediaTypes), mediaTypes);
         this.uri = uriInfo.getAbsolutePath();
         this.application = application;
-        this.ontology = ontology.get();
-        this.securityContext = securityContext;
         this.system = system;
     }
 
@@ -119,56 +108,6 @@ public class Namespace extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
         
         return super.get(query, defaultGraphUris, namedGraphUris);
     }
-    
-//    @Override
-//    public Response.ResponseBuilder getResponseBuilder(Query query, List<URI> defaultGraphUris, List<URI> namedGraphUris)
-//    {
-//        // if query param is not provided and the app is end-user, return the namespace ontology associated with this document
-//        if (query == null)
-//        {
-//            if (getApplication().canAs(EndUserApplication.class))
-//            {
-//                String ontologyURI = getURI().toString() + "#"; // TO-DO: hard-coding "#" is not great. Replace with RDF property lookup.
-//                if (log.isDebugEnabled()) log.debug("Returning namespace ontology from OntDocumentManager: {}", ontologyURI);
-//                OntologyModelGetter modelGetter = new OntologyModelGetter(getApplication().as(EndUserApplication.class),
-//                        getSystem().getOntModelSpec(), getSystem().getOntologyQuery(), getSystem().getClient(), getSystem().getMediaTypes());
-//                return getResponseBuilder(modelGetter.getModel(ontologyURI));
-//            }
-//            else throw new BadRequestException("SPARQL query string not provided");
-//        }
-//
-//       return super.getResponseBuilder(query, defaultGraphUris, namedGraphUris);
-//        if (query.isSelectType())
-//        {
-//            if (log.isDebugEnabled()) log.debug("Loading ResultSet using SELECT/ASK query: {}", query);
-//            return getResponseBuilder(new ResultSetMem(QueryExecution.create(query, getOntology().getOntModel()).execSelect()));
-//        }
-//        if (query.isAskType())
-//        {
-//            Model model = ModelFactory.createDefaultModel();
-//            model.createResource().
-//                addProperty(RDF.type, ResultSetGraphVocab.ResultSet).
-//                addLiteral(ResultSetGraphVocab.p_boolean, QueryExecution.create(query, getOntology().getOntModel()).execAsk());
-//                
-//            if (log.isDebugEnabled()) log.debug("Loading ResultSet using SELECT/ASK query: {}", query);
-//            return getResponseBuilder(ResultSetFactory.copyResults(ResultSetFactory.makeResults(model)));
-//        }
-//
-//        if (query.isDescribeType())
-//        {
-//            if (log.isDebugEnabled()) log.debug("Loading Model using CONSTRUCT/DESCRIBE query: {}", query);
-//            return getResponseBuilder(QueryExecution.create(query, getOntology().getOntModel()).execDescribe());
-//        }
-//        
-//        if (query.isConstructType())
-//        {
-//            if (log.isDebugEnabled()) log.debug("Loading Model using CONSTRUCT/DESCRIBE query: {}", query);
-//            return getResponseBuilder(QueryExecution.create(query, getOntology().getOntModel()).execConstruct());
-//        }
-//        
-//        if (log.isWarnEnabled()) log.warn("SPARQL endpoint received unknown type of query: {}", query);
-//        throw new BadRequestException("Unknown query type");
-//    }
     
     @Override
     @POST
@@ -208,26 +147,6 @@ public class Namespace extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
     public Application getApplication()
     {
         return application;
-    }
-    
-    /**
-     * Returns application ontology.
-     * 
-     * @return ontology resource
-     */
-    public Ontology getOntology()
-    {
-        return ontology;
-    }
-    
-    /**
-     * Returns JAX-RS security context.
-     * 
-     * @return security context
-     */
-    public SecurityContext getSecurityContext()
-    {
-        return securityContext;
     }
     
     /**
