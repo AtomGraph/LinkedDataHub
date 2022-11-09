@@ -22,9 +22,16 @@ popd > /dev/null
 
 owner_doc=$(echo "$OWNER_URI" | cut -d '#' -f 1)
 
+(
 curl -k -w "%{http_code}\n" -o /dev/null -s \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -X PUT \
   -H "Accept: application/n-triples" \
-  "$owner_doc" \
+  -H "Content-Type: application/n-triples" \
+  --data-binary @- \
+  "$owner_doc" <<EOF
+<http://a> <http://b> <http://c> .
+EOF
+) \
+
 | grep -q "$STATUS_METHOD_NOT_ALLOWED"

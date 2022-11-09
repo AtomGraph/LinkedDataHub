@@ -22,9 +22,15 @@ popd > /dev/null
 
 secretary_doc=$(echo "$SECRETARY_URI" | cut -d '#' -f 1)
 
+(
 curl -k -w "%{http_code}\n" -o /dev/null -s \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -X PUT \
   -H "Accept: application/n-triples" \
-  "$secretary_doc" \
+  -H "Content-Type: application/n-triples" \
+  --data-binary @- \
+  "$secretary_doc" <<EOF
+<http://a> <http://b> <http://c> .
+EOF
+)
 | grep -q "$STATUS_METHOD_NOT_ALLOWED"
