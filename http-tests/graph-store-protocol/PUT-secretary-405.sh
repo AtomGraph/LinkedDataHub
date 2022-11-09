@@ -32,5 +32,5 @@ curl -k -w "%{http_code}\n" -o /dev/null -s \
   "$secretary_doc" <<EOF
 <http://a> <http://b> <http://c> .
 EOF
-)
+) \
 | grep -q "$STATUS_METHOD_NOT_ALLOWED"
