@@ -22,14 +22,13 @@ import javax.ws.rs.core.Response;
 import com.atomgraph.core.MediaTypes;
 import static com.atomgraph.core.model.SPARQLEndpoint.DEFAULT_GRAPH_URI;
 import static com.atomgraph.core.model.SPARQLEndpoint.NAMED_GRAPH_URI;
-import com.atomgraph.linkeddatahub.model.Service;
 import static com.atomgraph.core.model.SPARQLEndpoint.QUERY;
 import static com.atomgraph.core.model.SPARQLEndpoint.UPDATE;
 import static com.atomgraph.core.model.SPARQLEndpoint.USING_GRAPH_URI;
 import static com.atomgraph.core.model.SPARQLEndpoint.USING_NAMED_GRAPH_URI;
+import com.atomgraph.core.model.impl.dataset.ServiceImpl;
 import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
-import com.atomgraph.linkeddatahub.server.model.impl.SPARQLEndpointImpl;
 import com.atomgraph.linkeddatahub.server.util.OntologyModelGetter;
 import java.net.URI;
 import java.util.List;
@@ -46,6 +45,7 @@ import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 import org.apache.jena.ontology.Ontology;
+import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryExecution;
 import org.apache.jena.query.ResultSetFactory;
@@ -63,7 +63,7 @@ import org.slf4j.LoggerFactory;
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-public class Namespace extends SPARQLEndpointImpl
+public class Namespace extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
 {
 
     private static final Logger log = LoggerFactory.getLogger(Namespace.class);
@@ -79,8 +79,7 @@ public class Namespace extends SPARQLEndpointImpl
      * 
      * @param request current request
      * @param uriInfo current request's URI info
-     * @param application current end-use rapplication
-     * @param service application's SPARQL service
+     * @param application current end-user application
      * @param ontology application's ontology
      * @param mediaTypes registry of readable/writable media types
      * @param securityContext JAX-RS security context
@@ -88,10 +87,10 @@ public class Namespace extends SPARQLEndpointImpl
      */
     @Inject
     public Namespace(@Context Request request, @Context UriInfo uriInfo, 
-            Application application, Optional<Service> service, Optional<Ontology> ontology, MediaTypes mediaTypes,
+            Application application, Optional<Ontology> ontology, MediaTypes mediaTypes,
             @Context SecurityContext securityContext, com.atomgraph.linkeddatahub.Application system)
     {
-        super(request, service, mediaTypes);
+        super(request, new ServiceImpl(DatasetFactory.create(ontology.get().getOntModel()), mediaTypes), mediaTypes);
         this.uri = uriInfo.getAbsolutePath();
         this.application = application;
         this.ontology = ontology.get();
@@ -104,12 +103,6 @@ public class Namespace extends SPARQLEndpointImpl
     public Response get(@QueryParam(QUERY) Query query,
             @QueryParam(DEFAULT_GRAPH_URI) List<URI> defaultGraphUris, @QueryParam(NAMED_GRAPH_URI) List<URI> namedGraphUris)
     {
-        return getResponseBuilder(query, defaultGraphUris, namedGraphUris).build();
-    }
-    
-    @Override
-    public Response.ResponseBuilder getResponseBuilder(Query query, List<URI> defaultGraphUris, List<URI> namedGraphUris)
-    {
         // if query param is not provided and the app is end-user, return the namespace ontology associated with this document
         if (query == null)
         {
@@ -119,44 +112,63 @@ public class Namespace extends SPARQLEndpointImpl
                 if (log.isDebugEnabled()) log.debug("Returning namespace ontology from OntDocumentManager: {}", ontologyURI);
                 OntologyModelGetter modelGetter = new OntologyModelGetter(getApplication().as(EndUserApplication.class),
                         getSystem().getOntModelSpec(), getSystem().getOntologyQuery(), getSystem().getClient(), getSystem().getMediaTypes());
-                return getResponseBuilder(modelGetter.getModel(ontologyURI));
+                return getResponseBuilder(modelGetter.getModel(ontologyURI)).build();
             }
             else throw new BadRequestException("SPARQL query string not provided");
         }
-
-       
-        if (query.isSelectType())
-        {
-            if (log.isDebugEnabled()) log.debug("Loading ResultSet using SELECT/ASK query: {}", query);
-            return getResponseBuilder(new ResultSetMem(QueryExecution.create(query, getOntology().getOntModel()).execSelect()));
-        }
-        if (query.isAskType())
-        {
-            Model model = ModelFactory.createDefaultModel();
-            model.createResource().
-                addProperty(RDF.type, ResultSetGraphVocab.ResultSet).
-                addLiteral(ResultSetGraphVocab.p_boolean, QueryExecution.create(query, getOntology().getOntModel()).execAsk());
-                
-            if (log.isDebugEnabled()) log.debug("Loading ResultSet using SELECT/ASK query: {}", query);
-            return getResponseBuilder(ResultSetFactory.copyResults(ResultSetFactory.makeResults(model)));
-        }
-
-        if (query.isDescribeType())
-        {
-            if (log.isDebugEnabled()) log.debug("Loading Model using CONSTRUCT/DESCRIBE query: {}", query);
-            return getResponseBuilder(QueryExecution.create(query, getOntology().getOntModel()).execDescribe());
-        }
         
-        if (query.isConstructType())
-        {
-            if (log.isDebugEnabled()) log.debug("Loading Model using CONSTRUCT/DESCRIBE query: {}", query);
-            return getResponseBuilder(QueryExecution.create(query, getOntology().getOntModel()).execConstruct());
-        }
-        
-        if (log.isWarnEnabled()) log.warn("SPARQL endpoint received unknown type of query: {}", query);
-        throw new BadRequestException("Unknown query type");
+        return super.get(query, defaultGraphUris, namedGraphUris);
     }
     
+//    @Override
+//    public Response.ResponseBuilder getResponseBuilder(Query query, List<URI> defaultGraphUris, List<URI> namedGraphUris)
+//    {
+//        // if query param is not provided and the app is end-user, return the namespace ontology associated with this document
+//        if (query == null)
+//        {
+//            if (getApplication().canAs(EndUserApplication.class))
+//            {
+//                String ontologyURI = getURI().toString() + "#"; // TO-DO: hard-coding "#" is not great. Replace with RDF property lookup.
+//                if (log.isDebugEnabled()) log.debug("Returning namespace ontology from OntDocumentManager: {}", ontologyURI);
+//                OntologyModelGetter modelGetter = new OntologyModelGetter(getApplication().as(EndUserApplication.class),
+//                        getSystem().getOntModelSpec(), getSystem().getOntologyQuery(), getSystem().getClient(), getSystem().getMediaTypes());
+//                return getResponseBuilder(modelGetter.getModel(ontologyURI));
+//            }
+//            else throw new BadRequestException("SPARQL query string not provided");
+//        }
+//
+//       return super.getResponseBuilder(query, defaultGraphUris, namedGraphUris);
+//        if (query.isSelectType())
+//        {
+//            if (log.isDebugEnabled()) log.debug("Loading ResultSet using SELECT/ASK query: {}", query);
+//            return getResponseBuilder(new ResultSetMem(QueryExecution.create(query, getOntology().getOntModel()).execSelect()));
+//        }
+//        if (query.isAskType())
+//        {
+//            Model model = ModelFactory.createDefaultModel();
+//            model.createResource().
+//                addProperty(RDF.type, ResultSetGraphVocab.ResultSet).
+//                addLiteral(ResultSetGraphVocab.p_boolean, QueryExecution.create(query, getOntology().getOntModel()).execAsk());
+//                
+//            if (log.isDebugEnabled()) log.debug("Loading ResultSet using SELECT/ASK query: {}", query);
+//            return getResponseBuilder(ResultSetFactory.copyResults(ResultSetFactory.makeResults(model)));
+//        }
+//
+//        if (query.isDescribeType())
+//        {
+//            if (log.isDebugEnabled()) log.debug("Loading Model using CONSTRUCT/DESCRIBE query: {}", query);
+//            return getResponseBuilder(QueryExecution.create(query, getOntology().getOntModel()).execDescribe());
+//        }
+//        
+//        if (query.isConstructType())
+//        {
+//            if (log.isDebugEnabled()) log.debug("Loading Model using CONSTRUCT/DESCRIBE query: {}", query);
+//            return getResponseBuilder(QueryExecution.create(query, getOntology().getOntModel()).execConstruct());
+//        }
+//        
+//        if (log.isWarnEnabled()) log.warn("SPARQL endpoint received unknown type of query: {}", query);
+//        throw new BadRequestException("Unknown query type");
+//    }
     
     @Override
     @POST
