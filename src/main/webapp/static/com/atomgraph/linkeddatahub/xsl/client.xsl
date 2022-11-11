@@ -14,6 +14,7 @@
     <!ENTITY geo        "http://www.w3.org/2003/01/geo/wgs84_pos#">
     <!ENTITY skos       "http://www.w3.org/2004/02/skos/core#">
     <!ENTITY srx        "http://www.w3.org/2005/sparql-results#">
+    <!ENTITY http       "http://www.w3.org/2011/http#">
     <!ENTITY acl        "http://www.w3.org/ns/auth/acl#">
     <!ENTITY ldt        "https://www.w3.org/ns/ldt#">
     <!ENTITY dh         "https://www.w3.org/ns/ldt/document-hierarchy#">
@@ -53,6 +54,7 @@ xmlns:acl="&acl;"
 xmlns:ldt="&ldt;"
 xmlns:dh="&dh;"
 xmlns:srx="&srx;"
+xmlns:http="&http;"
 xmlns:sd="&sd;"
 xmlns:sh="&sh;"
 xmlns:sp="&sp;"
@@ -167,6 +169,7 @@ WHERE
     <xsl:key name="violations-by-value" match="*" use="ldh:violationValue/text()"/>
     <xsl:key name="violations-by-focus-node" match="*" use="sh:focusNode/@rdf:resource | sh:focusNode/@rdf:nodeID"/>
     <xsl:key name="resources-by-container" match="*[@rdf:about] | *[@rdf:nodeID]" use="sioc:has_parent/@rdf:resource | sioc:has_container/@rdf:resource"/>
+    <xsl:key name="status-by-code" match="*[@rdf:about] | *[@rdf:nodeID]" use="http:statusCodeNumber"/>
 
     <xsl:strip-space elements="*"/>
 

@@ -1006,14 +1006,21 @@ WHERE
                         <xsl:sequence select="ixsl:call($form/ancestor::div[contains-token(@class, 'modal')], 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
                     </xsl:when>
                     <xsl:otherwise>
-                        <xsl:variable name="message" select="?message" as="xs:string"/>
+                        <xsl:variable name="status-code" select="?status" as="xs:integer"/>
+                        <xsl:variable name="message" select="?message" as="xs:string?"/>
                         <!-- render error message -->
                         <xsl:for-each select="$form//fieldset">
                             <xsl:result-document href="?." method="ixsl:append-content">
                                 <div class="alert">
                                     <p>
-                                        <xsl:value-of select="$message"/>
+                                        <!-- lookup status message by code because Tomcat does not send any -->
+                                        <xsl:apply-templates select="key('status-by-code', $status-code, document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/http-statusCodes.rdf', $ac:contextUri)))" mode="ac:label"/>
                                     </p>
+                                    <xsl:if test="$message">
+                                        <p>
+                                            <xsl:value-of select="$message"/>
+                                        </p>
+                                    </xsl:if>
                                 </div>
                             </xsl:result-document>
                         </xsl:for-each>
