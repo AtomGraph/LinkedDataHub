@@ -1006,6 +1006,8 @@ WHERE
                         <xsl:sequence select="ixsl:call($form/ancestor::div[contains-token(@class, 'modal')], 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
                     </xsl:when>
                     <xsl:otherwise>
+                        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
+                        
                         <xsl:variable name="status-code" select="xs:integer(?status)" as="xs:integer"/>
                         <xsl:variable name="message" select="?message" as="xs:string?"/>
                         <!-- render error message -->

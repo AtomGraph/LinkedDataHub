@@ -169,7 +169,7 @@ WHERE
     <xsl:key name="violations-by-value" match="*" use="ldh:violationValue/text()"/>
     <xsl:key name="violations-by-focus-node" match="*" use="sh:focusNode/@rdf:resource | sh:focusNode/@rdf:nodeID"/>
     <xsl:key name="resources-by-container" match="*[@rdf:about] | *[@rdf:nodeID]" use="sioc:has_parent/@rdf:resource | sioc:has_container/@rdf:resource"/>
-    <xsl:key name="status-by-code" match="*[@rdf:about] | *[@rdf:nodeID]" use="http:statusCodeNumber"/>
+    <xsl:key name="status-by-code" match="*[@rdf:about] | *[@rdf:nodeID]" use="http:statusCodeNumber/xs:integer(.)"/>
 
     <xsl:strip-space elements="*"/>
 
