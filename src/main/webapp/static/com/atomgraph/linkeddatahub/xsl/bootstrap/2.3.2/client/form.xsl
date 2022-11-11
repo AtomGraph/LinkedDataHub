@@ -990,18 +990,35 @@ WHERE
                 <xsl:variable name="control-group" select="$form/descendant::div[contains-token(@class, 'control-group')][input[@name = 'pu'][@value = '&sd;name']]" as="element()*"/>
                 <xsl:variable name="uri" select="$control-group/descendant::input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
                 
-                <!-- load document -->
-                <xsl:variable name="request" as="item()*">
-                    <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
-                        <xsl:call-template name="onDocumentLoad">
-                            <xsl:with-param name="href" select="ldh:absolute-path($uri)"/>
-                        </xsl:call-template>
-                    </ixsl:schedule-action>
-                </xsl:variable>
-                <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
-                
-                <!-- remove the modal div -->
-                <xsl:sequence select="ixsl:call($form/ancestor::div[contains-token(@class, 'modal')], 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
+                <xsl:choose>
+                    <xsl:when test="?status = 200">
+                        <!-- load document -->
+                        <xsl:variable name="request" as="item()*">
+                            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
+                                <xsl:call-template name="onDocumentLoad">
+                                    <xsl:with-param name="href" select="ldh:absolute-path($uri)"/>
+                                </xsl:call-template>
+                            </ixsl:schedule-action>
+                        </xsl:variable>
+                        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+
+                        <!-- remove the modal div -->
+                        <xsl:sequence select="ixsl:call($form/ancestor::div[contains-token(@class, 'modal')], 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <xsl:variable name="message" select="?message" as="xs:string"/>
+                        <!-- render error message -->
+                        <xsl:for-each select="$form//fieldset">
+                            <xsl:result-document href="?." method="ixsl:append-content">
+                                <div class="alert">
+                                    <p>
+                                        <xsl:value-of select="$message"/>
+                                    </p>
+                                </div>
+                            </xsl:result-document>
+                        </xsl:for-each>
+                    </xsl:otherwise>
+                </xsl:choose>
             </xsl:when>
             <!-- special case for generate containers form: redirect to the parent container -->
             <xsl:when test="ixsl:get($form, 'id') = ('form-generate-containers')">
