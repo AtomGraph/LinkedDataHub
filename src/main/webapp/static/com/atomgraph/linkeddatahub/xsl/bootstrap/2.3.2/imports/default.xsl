@@ -80,7 +80,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="query-params" as="map(xs:string, xs:string*)"/>
         <xsl:param name="uri" as="xs:anyURI?"/>
         
-        <xsl:sequence select="ldh:href($base, $absolute-path, $query-params, (), ())"/>
+        <xsl:sequence select="ldh:href($base, $absolute-path, $query-params, $uri, ())"/>
     </xsl:function>
 
     <xsl:function name="ldh:href" as="xs:anyURI">
