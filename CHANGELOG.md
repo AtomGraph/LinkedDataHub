@@ -1,10 +1,11 @@
-## [3.2.26] - 2022-11-11
+## [3.2.26] - 2022-11-13
 ### Changed
 - Disabled SPARQL updates on the namespace ontology endpoint `/ns`
 - Better aligned document's timestamp and breadcrumbs in the navbar
 - Constraint violation responses return `422 Unprocessable Entity` instead of `400 Bad Request` (same change in Processor)
 - `PUT`/`DELETE` restrictions on root/owner/secretary documents return `405 Method Not Allowed` instead of `400 Bad Request`
 - Improved error handling in the modal "Add data" form
+- Resources in containers with remote endpoints get `DESCRIBE` query links instead of plain resource URI which would be attempted to load as Linked Data
 
 ## [3.2.25] - 2022-11-07
 ### Changed
