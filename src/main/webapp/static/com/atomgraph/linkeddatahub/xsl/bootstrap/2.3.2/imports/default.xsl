@@ -80,20 +80,30 @@ exclude-result-prefixes="#all"
         <xsl:param name="query-params" as="map(xs:string, xs:string*)"/>
         <xsl:param name="uri" as="xs:anyURI?"/>
         
+        <xsl:sequence select="ldh:href($base, $absolute-path, $query-params, (), ())"/>
+    </xsl:function>
+
+    <xsl:function name="ldh:href" as="xs:anyURI">
+        <xsl:param name="base" as="xs:anyURI"/>
+        <xsl:param name="absolute-path" as="xs:anyURI"/>
+        <xsl:param name="query-params" as="map(xs:string, xs:string*)"/>
+        <xsl:param name="uri" as="xs:anyURI?"/>
+        <xsl:param name="fragment" select="if (contains($uri, '#')) then substring-after($uri, '#') else ()" as="xs:string?"/>
+
         <xsl:choose>
             <!-- do not proxy $uri via ?uri= if it is relative to the $base -->
             <xsl:when test="$uri and starts-with($uri, $base)">
                 <xsl:variable name="absolute-path" select="xs:anyURI(if (contains($uri, '#')) then substring-before($uri, '#') else $uri)" as="xs:anyURI"/>
-                <xsl:variable name="fragment" select="if (contains($uri, '#')) then substring-after($uri, '#') else ()" as="xs:string?"/>
+                <xsl:variable name="fragment" select="if ($fragment) then $fragment else if (contains($uri, '#')) then substring-after($uri, '#') else ()" as="xs:string?"/>
                 <xsl:sequence select="xs:anyURI(ac:build-uri($absolute-path, $query-params) || (if ($fragment) then '#' || $fragment else ()))"/>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:variable name="fragment" select="'#' || encode-for-uri($uri)" as="xs:string?"/>
+                <xsl:variable name="fragment" select="if ($fragment) then $fragment else '#' || encode-for-uri($uri)" as="xs:string?"/>
                 <xsl:sequence select="xs:anyURI(ac:build-uri($absolute-path, map:merge((map{ 'uri': string($uri) }, $query-params))) || $fragment)"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:function>
-
+    
     <xsl:function name="ldh:query-params" as="map(xs:string, xs:string*)">
         <xsl:param name="mode" as="xs:anyURI*"/>
         
@@ -379,7 +389,7 @@ exclude-result-prefixes="#all"
     <xsl:template match="@rdf:about" mode="xhtml:Anchor">
         <xsl:param name="endpoint" as="xs:anyURI?" tunnel="yes"/>
         <xsl:param name="query-string" select="'DESCRIBE &lt;' || . || '&gt;'" as="xs:string"/>
-        <xsl:param name="href" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), map{}, if ($endpoint) then xs:anyURI($endpoint || '?query=' || encode-for-uri($query-string)) else xs:anyURI(.))" as="xs:anyURI"/>
+        <xsl:param name="href" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), map{}, if ($endpoint) then xs:anyURI($endpoint || '?query=' || encode-for-uri($query-string)) else xs:anyURI(.), encode-for-uri(.))" as="xs:anyURI"/>
         <xsl:param name="id" select="if (starts-with(., $ldt:base)) then (if (contains(., '#')) then substring-after(., '#') else ()) else encode-for-uri(.)" as="xs:string?"/>
         <xsl:param name="title" select="." as="xs:string?"/>
         <xsl:param name="class" as="xs:string?"/>
