@@ -363,6 +363,7 @@ exclude-result-prefixes="#all"
                     <xsl:variable name="request" as="item()*">
                         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml,application/rdf+xml;q=0.9' } }">
                             <xsl:call-template name="onSPARQLResultsLoad">
+                                <xsl:with-param name="endpoint" select="$endpoint"/>
                                 <xsl:with-param name="results-uri" select="$results-uri"/>
                                 <xsl:with-param name="container" select="$container"/>
                                 <xsl:with-param name="chart-canvas-id" select="$container/@id || '-chart-canvas'"/>

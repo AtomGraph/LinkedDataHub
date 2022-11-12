@@ -706,7 +706,7 @@ WHERE
         <xsl:param name="container" as="element()"/>
         <xsl:param name="query" as="xs:string?"/>
         <xsl:param name="sparql" select="false()" as="xs:boolean"/>
-        <xsl:param name="service-uri" as="xs:anyURI?"/>
+        <xsl:param name="endpoint" as="xs:anyURI?"/>
         
         <xsl:variable name="state" as="map(xs:string, item())">
             <xsl:map>
@@ -714,6 +714,9 @@ WHERE
                 <xsl:map-entry key="'container-id'" select="ixsl:get($container, 'id')"/>
                 <xsl:map-entry key="'query-string'" select="$query"/>
                 <xsl:map-entry key="'sparql'" select="$sparql"/>
+                <xsl:if test="$endpoint">
+                    <xsl:map-entry key="'endpoint'" select="$endpoint"/>
+                </xsl:if>
             </xsl:map>
         </xsl:variable>
         <xsl:variable name="state-obj" select="ixsl:call(ixsl:window(), 'JSON.parse', [ $state => serialize(map{ 'method': 'json' }) ])"/>
@@ -782,6 +785,7 @@ WHERE
         <xsl:param name="push-state" select="true()" as="xs:boolean"/>
         <xsl:param name="textarea-id" select="'query-string'" as="xs:string"/>
         <xsl:param name="query" as="xs:string?"/>
+        <xsl:param name="endpoint" as="xs:anyURI?"/>
         <xsl:param name="content-method" select="xs:QName('ixsl:replace-content')" as="xs:QName"/>
         <xsl:param name="show-editor" select="true()" as="xs:boolean"/>
         <xsl:param name="show-chart-save" select="true()" as="xs:boolean"/>
@@ -823,6 +827,7 @@ WHERE
                     <xsl:for-each select="if (contains-token($container/@class, 'row-fluid')) then $container/div[contains-token(@class, 'main')] else $container">
                         <xsl:result-document href="?." method="ixsl:replace-content">
                             <xsl:apply-templates select="$results" mode="bs2:Chart">
+                                <xsl:with-param name="endpoint" select="if (not($endpoint = sd:endpoint())) then $endpoint else ()" tunnel="yes"/>
                                 <xsl:with-param name="canvas-id" select="$chart-canvas-id"/>
                                 <xsl:with-param name="chart-type" select="$chart-type"/>
                                 <xsl:with-param name="category" select="$category"/>
@@ -1040,6 +1045,7 @@ WHERE
                 <xsl:with-param name="href" select="$href"/>
                 <xsl:with-param name="title" select="/html/head/title"/>
                 <xsl:with-param name="container" select="$container"/>
+                <xsl:with-param name="endpoint" select="$endpoint"/>
             </xsl:call-template>
         </xsl:if>
         
@@ -1141,6 +1147,7 @@ WHERE
             <xsl:variable name="container-id" select="if (map:contains($state, 'container-id')) then map:get($state, 'container-id') else ()" as="xs:anyURI?"/>
             <xsl:variable name="query-string" select="map:get($state, 'query-string')" as="xs:string?"/>
             <xsl:variable name="sparql" select="false()" as="xs:boolean"/>
+            <xsl:variable name="endpoint" select="map:get($state, 'endpoint')" as="xs:anyURI?"/>
 
             <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
@@ -1158,6 +1165,7 @@ WHERE
                                 <!-- we don't want to push a state that was just popped -->
                                 <xsl:with-param name="push-state" select="false()"/>
                                 <xsl:with-param name="query" select="$query-string"/>
+                                <xsl:with-param name="endpoint" select="$endpoint"/>
                             </xsl:call-template>
                         </ixsl:schedule-action>
                     </xsl:variable>
