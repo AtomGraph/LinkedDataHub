@@ -88,7 +88,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="absolute-path" as="xs:anyURI"/>
         <xsl:param name="query-params" as="map(xs:string, xs:string*)"/>
         <xsl:param name="uri" as="xs:anyURI?"/>
-        <xsl:param name="fragment" select="if (contains($uri, '#')) then substring-after($uri, '#') else ()" as="xs:string?"/>
+        <xsl:param name="fragment" as="xs:string?"/>
 
         <xsl:choose>
             <!-- do not proxy $uri via ?uri= if it is relative to the $base -->
