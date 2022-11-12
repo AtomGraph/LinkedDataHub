@@ -92,7 +92,7 @@ exclude-result-prefixes="#all"
 
         <xsl:choose>
             <!-- do not proxy $uri via ?uri= if it is relative to the $base -->
-            <xsl:when test="$uri and starts-with($absolute-path, $base)">
+            <xsl:when test="$uri and starts-with($uri, $base)">
                 <xsl:variable name="absolute-path" select="xs:anyURI(if (contains($uri, '#')) then substring-before($uri, '#') else $uri)" as="xs:anyURI"/>
                 <xsl:variable name="fragment" select="if ($fragment) then '#' || $fragment else if (contains($uri, '#')) then substring-after($uri, '#') else ()" as="xs:string?"/>
                 <xsl:sequence select="xs:anyURI(ac:build-uri($absolute-path, $query-params) || (if ($fragment) then '#' || $fragment else ()))"/>
