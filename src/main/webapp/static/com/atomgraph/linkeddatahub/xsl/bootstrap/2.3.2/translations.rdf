@@ -405,4 +405,7 @@
     <rdf:Description rdf:nodeID="instance">
         <rdfs:label xml:lang="en-US">Instance</rdfs:label>
     </rdf:Description>
+    <rdf:Description rdf:nodeID="remove-stmt">
+        <rdfs:label xml:lang="en-US">Remove this statement</rdfs:label>
+    </rdf:Description>
 </rdf:RDF>

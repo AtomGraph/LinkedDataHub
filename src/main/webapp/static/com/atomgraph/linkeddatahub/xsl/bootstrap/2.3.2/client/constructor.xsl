@@ -250,7 +250,13 @@ exclude-result-prefixes="#all"
 
         <div class="controls">
             <div class="btn-group pull-right">
-                <button type="button" class="btn btn-small pull-right btn-remove-property" title="Remove this statement"></button>
+                <button type="button" class="btn btn-small pull-right btn-remove-property">
+                    <xsl:attribute name="title">
+                        <xsl:value-of>
+                            <xsl:apply-templates select="key('resources', 'remove-stmt', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                        </xsl:value-of>
+                    </xsl:attribute>
+                </button>
             </div>
                     
             <label class="radio">

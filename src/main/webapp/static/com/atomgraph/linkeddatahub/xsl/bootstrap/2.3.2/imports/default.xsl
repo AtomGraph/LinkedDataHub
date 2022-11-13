@@ -606,7 +606,13 @@ exclude-result-prefixes="#all"
             <div class="controls">
                 <xsl:if test="not($required)">
                     <div class="btn-group pull-right">
-                        <button type="button" title="Remove this statement">
+                        <button type="button">
+                            <xsl:attribute name="title">
+                                <xsl:value-of>
+                                    <xsl:apply-templates select="key('resources', 'remove-stmt', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                                </xsl:value-of>
+                            </xsl:attribute>
+                            
                             <xsl:apply-templates select="key('resources', 'remove', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ldh:logo">
                                 <xsl:with-param name="class" select="'btn btn-small pull-right'"/>
                             </xsl:apply-templates>

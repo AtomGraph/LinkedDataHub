@@ -44,6 +44,8 @@ exclude-result-prefixes="#all">
     <xsl:template match="rdf:type[@rdf:resource]" mode="bs2:TypeControl">
         <xsl:param name="forClass" as="xs:anyURI?"/> 
         <xsl:param name="hidden" select="false()" as="xs:boolean"/>
+        <!-- types are required on document instances -->
+        <xsl:param name="required" select="@rdf:resource = ('&def;Root', '&dh;Container', '&dh;Item')" as="xs:boolean"/>
 
         <xsl:choose>
             <xsl:when test="$hidden"> <!-- can't apply bs2:FormControl on @rdf:resource here as that pattern/mode is off -->
@@ -70,6 +72,22 @@ exclude-result-prefixes="#all">
                     </label>
 
                     <div class="controls">
+                        <xsl:if test="not($required)">
+                            <div class="btn-group pull-right">
+                                <button type="button">
+                                    <xsl:attribute name="title">
+                                        <xsl:value-of>
+                                            <xsl:apply-templates select="key('resources', 'remove-stmt', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                                        </xsl:value-of>
+                                    </xsl:attribute>
+
+                                    <xsl:apply-templates select="key('resources', 'remove', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ldh:logo">
+                                        <xsl:with-param name="class" select="'btn btn-small pull-right'"/>
+                                    </xsl:apply-templates>
+                                </button>
+                            </div>
+                        </xsl:if>
+
                         <xsl:if test="$forClass">
                             <input type="hidden" class="forClass" value="{$forClass}"/>
                         </xsl:if>
