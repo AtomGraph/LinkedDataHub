@@ -1024,7 +1024,8 @@ extension-element-prefixes="ixsl"
         <xsl:param name="shape-query" as="xs:string?" tunnel="yes"/>
         <xsl:param name="shapes" select="if ($shape-query) then (ldh:query-result(map{}, resolve-uri('ns', $ldt:base), $shape-query || ' VALUES $Type { ' || string-join(for $type in $forClass return '&lt;' || $type || '&gt;', ' ') || ' }')) else ()" as="document-node()?"/>
         <xsl:param name="constructor-query" as="xs:string?" tunnel="yes"/>
-        <xsl:param name="constructors" select="if ($constructor-query) then (ldh:query-result(map{}, resolve-uri('ns', $ldt:base), $constructor-query || ' VALUES $Type { ' || string-join(for $type in $forClass return '&lt;' || $type || '&gt;', ' ') || ' }')) else ()" as="document-node()?"/>
+        <!-- add constructor of owl:NamedIndividual so that all instances get rdf:type controls -->
+        <xsl:param name="constructors" select="if ($constructor-query) then (ldh:query-result(map{}, resolve-uri('ns', $ldt:base), $constructor-query || ' VALUES $Type { ' || string-join(for $type in ($forClass, '&owl;NamedIndividual') return '&lt;' || $type || '&gt;', ' ') || ' }')) else ()" as="document-node()?"/>
         <xsl:param name="constructor" as="document-node()?">
             <!-- SHACL shapes take priority over SPIN constructors -->
             <xsl:choose use-when="system-property('xsl:product-name') = 'SAXON'">
