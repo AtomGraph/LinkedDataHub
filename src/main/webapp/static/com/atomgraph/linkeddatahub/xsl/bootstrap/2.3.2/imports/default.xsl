@@ -114,15 +114,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="mode" as="xs:anyURI*"/>
         <xsl:param name="forClass" as="xs:anyURI?"/>
         
-        <xsl:sequence select="ldh:query-params($mode, $forClass, ())"/>
-    </xsl:function>
-    
-    <xsl:function name="ldh:query-params" as="map(xs:string, xs:string*)">
-        <xsl:param name="mode" as="xs:anyURI*"/>
-        <xsl:param name="forClass" as="xs:anyURI?"/>
-        <xsl:param name="endpoint" as="xs:anyURI?"/>
-        
-        <xsl:sequence select="map:merge((if (exists($mode)) then map{ 'mode': for $m in $mode return string($m) } else (), if ($forClass) then map{ 'forClass': string($forClass) } else (), if ($endpoint) then map{ 'endpoint': string($endpoint) } else ()))"/>
+        <xsl:sequence select="map:merge((if (exists($mode)) then map{ 'mode': for $m in $mode return string($m) } else (), if ($forClass) then map{ 'forClass': string($forClass) } else ()))"/>
     </xsl:function>
     
     <xsl:function name="ldh:absolute-path" as="xs:anyURI">
