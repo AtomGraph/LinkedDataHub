@@ -107,7 +107,7 @@ exclude-result-prefixes="#all"
     <xsl:function name="ldh:query-params" as="map(xs:string, xs:string*)">
         <xsl:param name="mode" as="xs:anyURI*"/>
         
-        <xsl:sequence select="ldh:query-params($mode, (), ())"/>
+        <xsl:sequence select="ldh:query-params($mode, ())"/>
     </xsl:function>
 
     <xsl:function name="ldh:query-params" as="map(xs:string, xs:string*)">
