@@ -402,4 +402,7 @@
     <rdf:Description rdf:nodeID="from-sparql-service">
         <rdfs:label xml:lang="en-US">From SPARQL service</rdfs:label>
     </rdf:Description>
+    <rdf:Description rdf:nodeID="instance">
+        <rdfs:label xml:lang="en-US">Instance</rdfs:label>
+    </rdf:Description>
 </rdf:RDF>

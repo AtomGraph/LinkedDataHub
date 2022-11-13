@@ -65,7 +65,7 @@ extension-element-prefixes="ixsl"
 
     <!-- TO-DO: move to owl.xsl -->
     <xsl:template match="*[@rdf:about = '&owl;NamedIndividual']" mode="ac:label">
-        <xsl:text>Instance</xsl:text>
+        <xsl:apply-templates select="key('resources', 'instance', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
     </xsl:template>
     
     <!-- LOGO -->
@@ -1024,8 +1024,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="shape-query" as="xs:string?" tunnel="yes"/>
         <xsl:param name="shapes" select="if ($shape-query) then (ldh:query-result(map{}, resolve-uri('ns', $ldt:base), $shape-query || ' VALUES $Type { ' || string-join(for $type in $forClass return '&lt;' || $type || '&gt;', ' ') || ' }')) else ()" as="document-node()?"/>
         <xsl:param name="constructor-query" as="xs:string?" tunnel="yes"/>
-        <!-- add constructor of owl:NamedIndividual so that all instances get rdf:type controls -->
-        <xsl:param name="constructors" select="if ($constructor-query) then (ldh:query-result(map{}, resolve-uri('ns', $ldt:base), $constructor-query || ' VALUES $Type { ' || string-join(for $type in ($forClass, '&owl;NamedIndividual') return '&lt;' || $type || '&gt;', ' ') || ' }')) else ()" as="document-node()?"/>
+        <xsl:param name="constructors" select="if ($constructor-query) then (ldh:query-result(map{}, resolve-uri('ns', $ldt:base), $constructor-query || ' VALUES $Type { ' || string-join(for $type in $forClass return '&lt;' || $type || '&gt;', ' ') || ' }')) else ()" as="document-node()?"/>
         <xsl:param name="constructor" as="document-node()?">
             <!-- SHACL shapes take priority over SPIN constructors -->
             <xsl:choose use-when="system-property('xsl:product-name') = 'SAXON'">
@@ -1150,13 +1149,13 @@ extension-element-prefixes="ixsl"
             </xsl:apply-templates>
 
             <!-- do not show property controls if there is no constructor or it has no properties -->
-            <xsl:if test="$template/*">
+<!--            <xsl:if test="$template/*">-->
                 <xsl:apply-templates select="." mode="bs2:PropertyControl">
                     <xsl:with-param name="template" select="$template"/>
                     <xsl:with-param name="forClass" select="$forClass"/>
                     <xsl:with-param name="required" select="true()"/>
                     <xsl:with-param name="property-metadata" select="$property-metadata"/>
-                </xsl:apply-templates>
+                <!--</xsl:apply-templates>-->
             </xsl:if>
         </fieldset>
     </xsl:template>
@@ -1200,6 +1199,8 @@ extension-element-prefixes="ixsl"
         <div class="control-group">
             <span class="control-label">
                 <select class="input-medium">
+                    <xsl:apply-templates select="key('resources', '&rdf;type', document(ac:document-uri('&rdf;type')))" mode="xhtml:Option"/>
+                    
                     <!-- group properties by URI - there might be duplicates in the constructor -->
                     <xsl:for-each-group select="$template/*" group-by="concat(namespace-uri(), local-name())">
                         <xsl:sort select="if ($property-metadata) then ac:property-label(., $property-metadata) else ac:property-label(.)"/>
