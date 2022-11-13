@@ -344,7 +344,7 @@ exclude-result-prefixes="#all"
 
         <!-- check if the bnode ID of this resource equals the foaf:primaryTopic/@rdf:nodeID of the document instance -->
         <xsl:if test="not(@rdf:nodeID = key('resources', $doc-id)/foaf:primaryTopic/@rdf:nodeID)">
-            <xsl:apply-templates select="@* | node()" mode="#current"/>
+            <xsl:next-match/>
         </xsl:if>
     </xsl:template>
     
