@@ -1155,8 +1155,8 @@ extension-element-prefixes="ixsl"
                     <xsl:with-param name="forClass" select="$forClass"/>
                     <xsl:with-param name="required" select="true()"/>
                     <xsl:with-param name="property-metadata" select="$property-metadata"/>
-                <!--</xsl:apply-templates>-->
-            </xsl:if>
+                </xsl:apply-templates>
+            <!--</xsl:if>-->
         </fieldset>
     </xsl:template>
     
