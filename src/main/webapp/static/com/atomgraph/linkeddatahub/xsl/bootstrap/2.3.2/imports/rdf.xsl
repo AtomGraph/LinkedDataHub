@@ -75,16 +75,6 @@ exclude-result-prefixes="#all">
                         </xsl:if>
 
                         <xsl:apply-templates select="@rdf:resource" mode="#current"/>
-
-                        <!-- adding more types is disabled at this point -->
-                        <!--
-                        <span>
-                            <button type="button" class="btn add-type">
-                                <xsl:apply-templates use-when="system-property('xsl:product-name') = 'SAXON'" select="key('resources', 'add', document('translations.rdf'))" mode="ldh:logo"/>
-                                <xsl:text use-when="system-property('xsl:product-name') eq 'SaxonJS'">&#x2715;</xsl:text>
-                            </button>
-                        </span>
-                        -->
                     </div>
                 </div>
             </xsl:otherwise>
@@ -105,6 +95,10 @@ exclude-result-prefixes="#all">
                     <xsl:apply-templates select="key('resources', ., $type-metadata)" mode="ldh:Typeahead">
                         <xsl:with-param name="class" select="'btn add-typeahead add-type-typeahead'"/>
                     </xsl:apply-templates>
+                </span>
+                
+                <span class="help-inline">
+                    <xsl:value-of select="ac:label(key('resources', '&owl;Class', document(ac:document-uri('&owl;'))))"/>
                 </span>
             </xsl:when>
             <xsl:otherwise>
