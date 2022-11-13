@@ -339,7 +339,7 @@ exclude-result-prefixes="#all"
     </xsl:template>
 
     <!-- suppress the old foaf:primaryTopic object resource which is not used anymore -->
-    <xsl:template match="*[@rdf:nodeID]" mode="ldh:SetPrimaryTopic" priority="1">
+    <xsl:template match="rdf:Description[@rdf:nodeID]" mode="ldh:SetPrimaryTopic" priority="1">
         <xsl:param name="doc-id" as="xs:string" tunnel="yes"/>
 
         <!-- check if the bnode ID of this resource equals the foaf:primaryTopic/@rdf:nodeID of the document instance -->
