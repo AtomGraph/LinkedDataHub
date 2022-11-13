@@ -319,6 +319,7 @@ exclude-result-prefixes="#all"
     
     <!-- SET PRIMARY TOPIC -->
 
+    <!-- link document instance to the topic instance using foaf:primaryTopic -->
     <xsl:template match="rdf:Description/foaf:primaryTopic[@rdf:nodeID]" mode="ldh:SetPrimaryTopic" priority="1">
         <xsl:param name="topic-id" as="xs:string?" tunnel="yes"/>
         <xsl:param name="doc-id" as="xs:string" tunnel="yes"/>
@@ -337,6 +338,16 @@ exclude-result-prefixes="#all"
         </xsl:copy>
     </xsl:template>
 
+    <!-- suppress the old foaf:primaryTopic object resource which is not used anymore -->
+    <xsl:template match="*[@rdf:nodeID]" mode="ldh:SetPrimaryTopic" priority="1">
+        <xsl:param name="doc-id" as="xs:string" tunnel="yes"/>
+
+        <!-- check if the bnode ID of this resource equals the foaf:primaryTopic/@rdf:nodeID of the document instance -->
+        <xsl:if test="not(@rdf:nodeID = key('resources', $doc-id)/foaf:primaryTopic/@rdf:nodeID)">
+            <xsl:apply-templates select="@* | node()" mode="#current"/>
+        </xsl:if>
+    </xsl:template>
+    
     <!-- identity transform -->
     <xsl:template match="@* | node()" mode="ldh:SetPrimaryTopic">
         <xsl:copy>
