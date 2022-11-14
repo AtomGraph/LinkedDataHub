@@ -25,9 +25,7 @@ Documentation is kept and published via a git repository:
 
 ### Github issues
 
-The project uses GitHub issues to track work. Please create a GitHub issue so that we can track a contribution.
-
-Github issue:
+The project uses GitHub issues to track work. Please create a GitHub issue so that we can track a contribution:
 
     https://github.com/AtomGraph/LinkedDataHub/issues
 

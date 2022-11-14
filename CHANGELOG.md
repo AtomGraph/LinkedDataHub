@@ -6,6 +6,7 @@
 - `PUT`/`DELETE` restrictions on root/owner/secretary documents return `405 Method Not Allowed` instead of `400 Bad Request`
 - Improved error handling in the modal "Add data" form
 - Resources in containers with remote endpoints get `DESCRIBE` query links instead of plain resource URI which would be attempted to load as Linked Data
+- Improved `rdf:type` controls in editing mode to enable adding/removing types on instances (except document instances where types are required)
 
 ## [3.2.25] - 2022-11-07
 ### Changed
