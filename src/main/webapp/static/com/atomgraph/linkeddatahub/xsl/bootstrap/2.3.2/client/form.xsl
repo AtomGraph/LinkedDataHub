@@ -967,15 +967,22 @@ WHERE
                     
                     <xsl:if test="$property = '&rdf;type'">
                         <xsl:for-each select="$fieldset/div[contains-token(@class, 'control-group')][input[@name = 'pu']/@value = $property][last()]">
-                            <xsl:variable name="uuid" select="ixsl:call(ixsl:window(), 'generateUUID', [])" as="xs:string"/>
+                            <xsl:variable name="id" select="'input-' || ixsl:call(ixsl:window(), 'generateUUID', [])" as="xs:string"/>
+
+                            <!-- reset label's @for value with the new $id -->
+                            <xsl:for-each select="./label[contains-token(@class, 'control-label')]">
+                                <ixsl:set-attribute name="for" object="." select="$id"/>
+                            </xsl:for-each>
 
                             <!-- replace existing typeahead with an empty typeahead input (bs2:Lookup) -->
-                            <xsl:for-each select="div[contains-token(@class, 'controls')]/span">
-                                <xsl:call-template name="bs2:Lookup">
-                                    <xsl:with-param name="class" select="'type-typeahead typeahead'"/>
-                                    <xsl:with-param name="id" select="'input-' || $uuid"/>
-                                    <xsl:with-param name="list-class" select="'type-typeahead typeahead dropdown-menu'"/>
-                                </xsl:call-template>
+                            <xsl:for-each select="./div[contains-token(@class, 'controls')]">
+                                <xsl:result-document href="?." method="ixsl:replace-content">
+                                    <xsl:call-template name="bs2:Lookup">
+                                        <xsl:with-param name="class" select="'type-typeahead typeahead'"/>
+                                        <xsl:with-param name="id" select="$id"/>
+                                        <xsl:with-param name="list-class" select="'type-typeahead typeahead dropdown-menu'"/>
+                                    </xsl:call-template>
+                                </xsl:result-document>
                             </xsl:for-each>
                         </xsl:for-each>
                     </xsl:if>
