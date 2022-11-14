@@ -113,23 +113,23 @@ exclude-result-prefixes="#all">
         <xsl:param name="lookup-class" select="'type-typeahead typeahead'" as="xs:string"/>
         <xsl:param name="lookup-list-class" select="'type-typeahead typeahead dropdown-menu'" as="xs:string"/>
 
-        <xsl:choose>
-            <xsl:when test="if ($type-metadata) then key('resources', ., $type-metadata) else false()">
-                <span>
+        <span>
+            <xsl:choose>
+                <xsl:when test="if ($type-metadata) then key('resources', ., $type-metadata) else false()">
                     <xsl:apply-templates select="key('resources', ., $type-metadata)" mode="ldh:Typeahead">
                         <xsl:with-param name="class" select="'btn add-typeahead add-type-typeahead'"/>
                     </xsl:apply-templates>
-                </span>
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:call-template name="bs2:Lookup">
-                    <xsl:with-param name="class" select="$lookup-class"/>
-                    <xsl:with-param name="id" select="$id"/>
-                    <xsl:with-param name="value" select="."/>
-                    <xsl:with-param name="list-class" select="$lookup-list-class"/>
-                </xsl:call-template>
-            </xsl:otherwise>
-        </xsl:choose>
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:call-template name="bs2:Lookup">
+                        <xsl:with-param name="class" select="$lookup-class"/>
+                        <xsl:with-param name="id" select="$id"/>
+                        <xsl:with-param name="value" select="."/>
+                        <xsl:with-param name="list-class" select="$lookup-list-class"/>
+                    </xsl:call-template>
+                </xsl:otherwise>
+            </xsl:choose>
+        </span>
         
         <span class="help-inline">
             <xsl:value-of select="ac:label(key('resources', '&owl;Class', document(ac:document-uri('&owl;'))))"/>

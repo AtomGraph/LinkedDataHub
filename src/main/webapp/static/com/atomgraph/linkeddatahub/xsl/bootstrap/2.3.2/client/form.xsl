@@ -975,7 +975,7 @@ WHERE
                             </xsl:for-each>
 
                             <!-- replace existing typeahead with an empty typeahead input (bs2:Lookup) -->
-                            <xsl:for-each select="./div[contains-token(@class, 'controls')]">
+                            <xsl:for-each select="./div[contains-token(@class, 'controls')]/span[1]"> <!-- make sure not to select span.help-inline -->
                                 <xsl:result-document href="?." method="ixsl:replace-content">
                                     <xsl:call-template name="bs2:Lookup">
                                         <xsl:with-param name="class" select="'type-typeahead typeahead'"/>
