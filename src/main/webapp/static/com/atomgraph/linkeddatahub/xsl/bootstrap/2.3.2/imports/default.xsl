@@ -454,6 +454,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="type" select="'text'" as="xs:string"/>
         <xsl:param name="id" select="generate-id()" as="xs:string"/>
         <xsl:param name="class" select="'resource-typeahead typeahead'" as="xs:string?"/>
+        <xsl:param name="value" as="xs:string?"/>
         <xsl:param name="list-class" select="'resource-typeahead typeahead dropdown-menu'" as="xs:string"/>
         <xsl:param name="list-id" select="concat('ul-', $id)" as="xs:string"/>
 
@@ -462,6 +463,7 @@ exclude-result-prefixes="#all"
             <xsl:with-param name="type" select="$type"/>
             <xsl:with-param name="id" select="$id"/>
             <xsl:with-param name="class" select="$class"/>
+            <xsl:with-param name="value" select="$value"/>
             <xsl:with-param name="autocomplete" select="false()"/>
         </xsl:call-template>
         

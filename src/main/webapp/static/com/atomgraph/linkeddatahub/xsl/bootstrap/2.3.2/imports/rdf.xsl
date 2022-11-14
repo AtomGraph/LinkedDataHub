@@ -44,10 +44,12 @@ exclude-result-prefixes="#all">
 
     <!-- shortened version of @rdf:resource bs2:FormControl -->
     <xsl:template match="rdf:type[@rdf:resource]" mode="bs2:TypeControl">
+        <xsl:param name="this" select="xs:anyURI(concat(namespace-uri(), local-name()))" as="xs:anyURI"/>
         <xsl:param name="forClass" as="xs:anyURI?"/> 
         <xsl:param name="hidden" select="false()" as="xs:boolean"/>
         <!-- types are required on document instances -->
         <xsl:param name="required" select="@rdf:resource = ('&def;Root', '&dh;Container', '&dh;Item')" as="xs:boolean"/>
+        <xsl:param name="for" select="generate-id((node() | @rdf:resource | @rdf:nodeID)[1])" as="xs:string"/>
 
         <xsl:choose>
             <xsl:when test="$hidden"> <!-- can't apply bs2:FormControl on @rdf:resource here as that pattern/mode is off -->
@@ -69,7 +71,7 @@ exclude-result-prefixes="#all">
                         <xsl:with-param name="value" select="'&rdf;type'"/>
                     </xsl:call-template>
 
-                    <label class="control-label">
+                    <label class="control-label" for="{$for}" title="{$this}">
                         <xsl:value-of select="ac:label(key('resources', '&rdf;type', document(ac:document-uri('&rdf;'))))"/>
                     </label>
 
@@ -108,6 +110,8 @@ exclude-result-prefixes="#all">
         <xsl:param name="disabled" select="false()" as="xs:boolean"/>
         <xsl:param name="auto" select="local-name() = 'nodeID' or starts-with(., $ldt:base)" as="xs:boolean"/>
         <xsl:param name="type-metadata" as="document-node()?" tunnel="yes"/>
+        <xsl:param name="lookup-class" select="'type-typeahead typeahead'" as="xs:string"/>
+        <xsl:param name="lookup-list-class" select="'type-typeahead typeahead dropdown-menu'" as="xs:string"/>
 
         <xsl:choose>
             <xsl:when test="if ($type-metadata) then key('resources', ., $type-metadata) else false()">
@@ -122,13 +126,19 @@ exclude-result-prefixes="#all">
                 </span>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:apply-templates select="." mode="bs2:FormControl">
+<!--                <xsl:apply-templates select="." mode="bs2:FormControl">
                     <xsl:with-param name="type" select="$type"/>
                     <xsl:with-param name="id" select="$id"/>
                     <xsl:with-param name="class" select="$class"/>
                     <xsl:with-param name="disabled" select="$disabled"/>
                     <xsl:with-param name="auto" select="$auto"/>
-                </xsl:apply-templates>
+                </xsl:apply-templates>-->
+                <xsl:call-template name="bs2:Lookup">
+                    <xsl:with-param name="class" select="$lookup-class"/>
+                    <xsl:with-param name="id" select="$id"/>
+                    <xsl:with-param name="value" select="."/>
+                    <xsl:with-param name="list-class" select="$lookup-list-class"/>
+                </xsl:call-template>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
