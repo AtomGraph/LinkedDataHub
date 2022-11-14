@@ -120,10 +120,6 @@ exclude-result-prefixes="#all">
                         <xsl:with-param name="class" select="'btn add-typeahead add-type-typeahead'"/>
                     </xsl:apply-templates>
                 </span>
-                
-                <span class="help-inline">
-                    <xsl:value-of select="ac:label(key('resources', '&owl;Class', document(ac:document-uri('&owl;'))))"/>
-                </span>
             </xsl:when>
             <xsl:otherwise>
                 <xsl:call-template name="bs2:Lookup">
@@ -134,6 +130,10 @@ exclude-result-prefixes="#all">
                 </xsl:call-template>
             </xsl:otherwise>
         </xsl:choose>
+        
+        <span class="help-inline">
+            <xsl:value-of select="ac:label(key('resources', '&owl;Class', document(ac:document-uri('&owl;'))))"/>
+        </span>
     </xsl:template>
     
 </xsl:stylesheet>
