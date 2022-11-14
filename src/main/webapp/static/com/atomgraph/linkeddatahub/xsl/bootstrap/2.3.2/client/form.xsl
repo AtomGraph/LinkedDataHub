@@ -964,6 +964,21 @@ WHERE
                             </xsl:for-each>
                         </xsl:for-each>
                     </xsl:if>
+                    
+                    <xsl:if test="$property = '&rdf;type'">
+                        <xsl:for-each select="$fieldset/div[contains-token(@class, 'control-group')][input[@name = 'pu']/@value = $property][last()]">
+                            <xsl:variable name="uuid" select="ixsl:call(ixsl:window(), 'generateUUID', [])" as="xs:string"/>
+
+                            <!-- replace existing typeahead with an empty typeahead input (bs2:Lookup) -->
+                            <xsl:for-each select="div[contains-token(@class, 'controls')]/span">
+                                <xsl:call-template name="bs2:Lookup">
+                                    <xsl:with-param name="class" select="'type-typeahead typeahead'"/>
+                                    <xsl:with-param name="id" select="'input-' || $uuid"/>
+                                    <xsl:with-param name="list-class" select="'type-typeahead typeahead dropdown-menu'"/>
+                                </xsl:call-template>
+                            </xsl:for-each>
+                        </xsl:for-each>
+                    </xsl:if>
                 </xsl:for-each>
                 
                 <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>

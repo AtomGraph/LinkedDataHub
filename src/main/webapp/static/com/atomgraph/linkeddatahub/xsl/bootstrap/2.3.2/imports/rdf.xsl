@@ -126,13 +126,6 @@ exclude-result-prefixes="#all">
                 </span>
             </xsl:when>
             <xsl:otherwise>
-<!--                <xsl:apply-templates select="." mode="bs2:FormControl">
-                    <xsl:with-param name="type" select="$type"/>
-                    <xsl:with-param name="id" select="$id"/>
-                    <xsl:with-param name="class" select="$class"/>
-                    <xsl:with-param name="disabled" select="$disabled"/>
-                    <xsl:with-param name="auto" select="$auto"/>
-                </xsl:apply-templates>-->
                 <xsl:call-template name="bs2:Lookup">
                     <xsl:with-param name="class" select="$lookup-class"/>
                     <xsl:with-param name="id" select="$id"/>
