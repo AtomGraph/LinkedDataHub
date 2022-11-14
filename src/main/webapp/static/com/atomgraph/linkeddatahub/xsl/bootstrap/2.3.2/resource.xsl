@@ -1201,8 +1201,8 @@ extension-element-prefixes="ixsl"
                 <select class="input-medium">
                     <xsl:apply-templates select="key('resources', '&rdf;type', document(ac:document-uri('&rdf;type')))" mode="xhtml:Option"/>
                     
-                    <!-- group properties by URI - there might be duplicates in the constructor -->
-                    <xsl:for-each-group select="$template/*" group-by="concat(namespace-uri(), local-name())">
+                    <!-- group properties by URI - there might be duplicates in the constructor; filter out rdf:type because it's included by default -->
+                    <xsl:for-each-group select="$template/*[not(concat(namespace-uri(), local-name()) = '&rdf;type')]" group-by="concat(namespace-uri(), local-name())">
                         <xsl:sort select="if ($property-metadata) then ac:property-label(., $property-metadata) else ac:property-label(.)"/>
                         <xsl:variable name="this" select="xs:anyURI(current-grouping-key())" as="xs:anyURI"/>
                         <xsl:variable name="available" select="doc-available(ac:document-uri($this))" as="xs:boolean"/>
