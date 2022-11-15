@@ -1,4 +1,7 @@
-## [3.2.26] - 2022-11-13
+## [3.2.26] - 2022-11-15
+### Added
+- If content resource cannot be loaded from Linked Data, fallback to a `DESCRIBE` query over the local endpoint
+
 ### Changed
 - Disabled SPARQL updates on the namespace ontology endpoint `/ns`
 - Better aligned document's timestamp and breadcrumbs in the navbar
