@@ -968,6 +968,24 @@ exclude-result-prefixes="#all"
                     </xsl:call-template>
                 </xsl:for-each>
             </xsl:when>
+            <!-- content could not be loaded from Linked Data, attempt a fallback to a DESCRIBE query over the local endpoint -->
+            <xsl:when test="?status = 502">
+                <xsl:variable name="query-string" select="'DESCRIBE &lt;' || $content-value || '&gt;'" as="xs:string"/>
+                <xsl:variable name="results-uri" select="ac:build-uri($sd:endpoint, map{ 'query': $query-string })" as="xs:anyURI"/>
+                <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), map{}, $results-uri)" as="xs:anyURI"/>
+                <xsl:variable name="request" as="item()*">
+                    <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': ac:document-uri($request-uri), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+                        <xsl:call-template name="onContentValueLoad">
+                            <xsl:with-param name="uri" select="$uri"/>
+                            <xsl:with-param name="content-value" select="$content-value"/>
+                            <xsl:with-param name="container" select="$container"/>
+                            <xsl:with-param name="mode" select="$mode"/>
+                            <xsl:with-param name="acl-modes" select="$acl-modes"/>
+                        </xsl:call-template>
+                    </ixsl:schedule-action>
+                </xsl:variable>
+                <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+            </xsl:when>
             <!-- content could not be loaded as RDF (e.g. binary file) -->
             <xsl:when test="?status = 406">
                 <xsl:for-each select="$container">
