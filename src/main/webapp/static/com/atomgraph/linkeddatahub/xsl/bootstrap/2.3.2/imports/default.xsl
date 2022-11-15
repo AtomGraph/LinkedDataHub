@@ -392,8 +392,8 @@ exclude-result-prefixes="#all"
     <xsl:template match="@rdf:about" mode="xhtml:Anchor">
         <xsl:param name="endpoint" as="xs:anyURI?" tunnel="yes"/>
         <xsl:param name="query-string" select="'DESCRIBE &lt;' || . || '&gt;'" as="xs:string"/>
-        <xsl:param name="href" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), map{}, if ($endpoint) then xs:anyURI($endpoint || '?query=' || encode-for-uri($query-string)) else xs:anyURI(.), encode-for-uri(.))" as="xs:anyURI"/>
         <xsl:param name="id" select="if (starts-with(., ldh:absolute-path(ldh:href()))) then (if (contains(., '#')) then substring-after(., '#') else ()) else encode-for-uri(.)" as="xs:string?"/>
+        <xsl:param name="href" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), map{}, if ($endpoint) then xs:anyURI($endpoint || '?query=' || encode-for-uri($query-string)) else xs:anyURI(.), $id)" as="xs:anyURI"/>
         <xsl:param name="title" select="." as="xs:string?"/>
         <xsl:param name="class" as="xs:string?"/>
         <xsl:param name="target" as="xs:string?"/>
