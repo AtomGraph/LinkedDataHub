@@ -970,7 +970,7 @@ exclude-result-prefixes="#all"
             </xsl:when>
             <!-- content could not be loaded from Linked Data, attempt a fallback to a DESCRIBE query over the local endpoint -->
             <xsl:when test="?status = 502">
-                <xsl:param name="query-string" select="'DESCRIBE &lt;' || $content-value || '&gt;'" as="xs:string"/>
+                <xsl:variable name="query-string" select="'DESCRIBE &lt;' || $content-value || '&gt;'" as="xs:string"/>
                 <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': $query-string })" as="xs:anyURI"/>
                 <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), map{}, $results-uri)" as="xs:anyURI"/>
                 <xsl:variable name="request" as="item()*">
