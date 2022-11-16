@@ -993,6 +993,7 @@ WHERE
         <xsl:param name="push-state" select="true()" as="xs:boolean"/>
         <xsl:param name="endpoint" as="xs:anyURI?"/>
         <xsl:param name="replace-content" select="true()" as="xs:boolean"/>
+        <xsl:param name="cache-control" as="xs:string?"/>
         <!-- decode raw document URL (without fragment) from the ?uri query param, if it's present -->
         <xsl:variable name="uri" select="if (contains($href, '?')) then let $query-params := ldh:parse-query-params(substring-after(ac:document-uri($href), '?')) return if (exists($query-params?uri)) then ldh:decode-uri($query-params?uri[1]) else ldh:absolute-path($href) else ldh:absolute-path($href)" as="xs:anyURI"/>
         <xsl:variable name="doc-uri" select="ac:document-uri($uri)" as="xs:anyURI"/>
