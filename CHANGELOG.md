@@ -1,4 +1,4 @@
-## [3.2.26] - 2022-11-16
+## [3.3.0] - 2022-11-16
 ### Added
 - If content resource cannot be loaded from Linked Data, fallback to a `DESCRIBE` query over the local endpoint
 
