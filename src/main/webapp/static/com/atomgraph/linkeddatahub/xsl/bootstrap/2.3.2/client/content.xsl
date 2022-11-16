@@ -922,7 +922,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="uri" as="xs:anyURI"/>
         <xsl:param name="container" as="element()"/>
         <xsl:param name="container-id" select="ixsl:get($container, 'id')" as="xs:string"/>
-        <xsl:param name="content-uri" select="ixsl:get(($container, 'dataset.contentUri')" as="xs:anyURI"/>
+        <xsl:param name="content-uri" select="ixsl:get($container, 'dataset.contentUri')" as="xs:anyURI"/>
         <xsl:param name="content-value" as="xs:anyURI"/>
         <xsl:param name="mode" as="xs:anyURI?"/>
         <xsl:param name="acl-modes" as="xs:anyURI*"/>
