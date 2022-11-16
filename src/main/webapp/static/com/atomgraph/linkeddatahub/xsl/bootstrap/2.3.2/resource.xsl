@@ -509,15 +509,15 @@ extension-element-prefixes="ixsl"
             </div>
 
             <xsl:apply-templates select="." mode="bs2:Right"/>
+                    
+            <!-- render contents attached to the types of this resource using ldh:template -->
+            <xsl:variable name="content-values" select="if (doc-available(resolve-uri('ns?query=ASK%20%7B%7D', $ldt:base))) then (ldh:query-result(map{}, resolve-uri('ns', $ldt:base), $template-query || ' VALUES $Type { ' || string-join(for $type in rdf:type/@rdf:resource return '&lt;' || $type || '&gt;', ' ') || ' }')//srx:binding[@name = 'content']/srx:uri/xs:anyURI(.)) else ()" as="xs:anyURI*" use-when="system-property('xsl:product-name') = 'SAXON'"/>
+            <xsl:for-each select="$content-values" use-when="system-property('xsl:product-name') = 'SAXON'">
+                <xsl:if test="doc-available(ac:document-uri(.))">
+                    <xsl:apply-templates select="key('resources', ., document(ac:document-uri(.)))" mode="bs2:RowContent"/>
+                </xsl:if>
+            </xsl:for-each>
         </div>
-        
-        <!-- render contents attached to the types of this resource using ldh:template -->
-        <xsl:variable name="content-values" select="if (doc-available(resolve-uri('ns?query=ASK%20%7B%7D', $ldt:base))) then (ldh:query-result(map{}, resolve-uri('ns', $ldt:base), $template-query || ' VALUES $Type { ' || string-join(for $type in rdf:type/@rdf:resource return '&lt;' || $type || '&gt;', ' ') || ' }')//srx:binding[@name = 'content']/srx:uri/xs:anyURI(.)) else ()" as="xs:anyURI*" use-when="system-property('xsl:product-name') = 'SAXON'"/>
-        <xsl:for-each select="$content-values" use-when="system-property('xsl:product-name') = 'SAXON'">
-            <xsl:if test="doc-available(ac:document-uri(.))">
-                <xsl:apply-templates select="key('resources', ., document(ac:document-uri(.)))" mode="bs2:RowContent"/>
-            </xsl:if>
-        </xsl:for-each>
     </xsl:template>
     
     <!-- HEADER -->
