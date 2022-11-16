@@ -876,7 +876,7 @@ exclude-result-prefixes="#all"
     
     <xsl:template name="ldh:LoadContent">
         <xsl:context-item as="element()" use="required"/> <!-- container element -->
-        <xsl:param name="uri" as="xs:anyURI"/> <!-- document URI -->
+<!--        <xsl:param name="uri" as="xs:anyURI"/>  document URI -->
         <xsl:param name="acl-modes" as="xs:anyURI*"/>
         <xsl:variable name="about" select="ancestor::div[@about][1]/@about" as="xs:anyURI"/>
         <xsl:variable name="content-uri" select="ixsl:get(., 'dataset.contentUri')" as="xs:anyURI"/>
@@ -901,7 +901,7 @@ exclude-result-prefixes="#all"
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': ac:document-uri($request-uri), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                 <xsl:call-template name="onContentValueLoad">
                     <xsl:with-param name="about" select="$about"/>
-                    <xsl:with-param name="uri" select="$uri"/>
+                    <!--<xsl:with-param name="uri" select="$uri"/>-->
                     <xsl:with-param name="content-value" select="$content-value"/>
                     <xsl:with-param name="container" select="$container"/>
                     <xsl:with-param name="mode" select="$mode"/>
@@ -942,7 +942,7 @@ exclude-result-prefixes="#all"
 
                 <xsl:apply-templates select="$value" mode="ldh:RenderContent">
                     <xsl:with-param name="about" select="$about"/>
-                    <xsl:with-param name="uri" select="$uri"/>
+                    <!--<xsl:with-param name="uri" select="$uri"/>-->
                     <xsl:with-param name="container" select="$container"/>
                     <xsl:with-param name="mode" select="$mode"/>
                 </xsl:apply-templates>
@@ -982,7 +982,7 @@ exclude-result-prefixes="#all"
                 <xsl:variable name="request" as="item()*">
                     <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': ac:document-uri($request-uri), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                         <xsl:call-template name="onContentValueLoad">
-                            <xsl:with-param name="uri" select="$uri"/>
+                            <!--<xsl:with-param name="uri" select="$uri"/>-->
                             <xsl:with-param name="about" select="$about"/>
                             <xsl:with-param name="content-value" select="$content-value"/>
                             <xsl:with-param name="container" select="$container"/>
@@ -1114,7 +1114,7 @@ exclude-result-prefixes="#all"
                     </xsl:choose>
                     
                     <xsl:call-template name="ldh:LoadContent">
-                        <xsl:with-param name="uri" select="$uri"/> <!-- content value gets read from dataset.contentValue -->
+<!--                        <xsl:with-param name="uri" select="$uri"/>  content value gets read from dataset.contentValue -->
                     </xsl:call-template>
                 </xsl:for-each>
             </xsl:when>
