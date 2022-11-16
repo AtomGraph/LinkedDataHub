@@ -228,11 +228,9 @@ PREFIX  acl:  <http://www.w3.org/ns/auth/acl#>
 
 SELECT DISTINCT  ?agent
 WHERE
-{ GRAPH ?authGraph
-  { $this  foaf:primaryTopic  ?auth .
-    ?auth  acl:agent          ?agent
+  { GRAPH ?authGraph
+      { $this  acl:agent  ?agent }
   }
-}
 """ .
 
 # http://www.w3.org/ns/auth/cert

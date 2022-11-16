@@ -923,7 +923,7 @@ exclude-result-prefixes="#all"
     
     <xsl:template name="onContentValueLoad">
         <xsl:context-item as="map(*)" use="required"/>
-        <xsl:param name="uri" as="xs:anyURI"/>
+        <!--<xsl:param name="uri" as="xs:anyURI"/>-->
         <xsl:param name="about" as="xs:anyURI"/>
         <xsl:param name="container" as="element()"/>
         <xsl:param name="container-id" select="ixsl:get($container, 'id')" as="xs:string"/>
