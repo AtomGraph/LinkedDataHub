@@ -133,12 +133,13 @@ exclude-result-prefixes="#all"
     
     <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&sp;Select'][sp:text]" mode="ldh:RenderContent" priority="1">
         <xsl:param name="uri" as="xs:anyURI"/>
+        <xsl:param name="about" as="xs:anyURI"/>
         <xsl:param name="container" as="element()"/>
         <xsl:param name="mode" as="xs:anyURI?"/>
         <xsl:param name="refresh-content" as="xs:boolean?"/>
         <xsl:variable name="content-uri" select="xs:anyURI(ixsl:get($container, 'dataset.contentUri'))" as="xs:anyURI"/>
         <!-- set $this variable value unless getting the query string from state -->
-        <xsl:variable name="select-string" select="replace(sp:text, '\$this', '&lt;' || $uri || '&gt;')" as="xs:string"/>
+        <xsl:variable name="select-string" select="replace(sp:text, '\$this', '&lt;' || $about || '&gt;')" as="xs:string"/>
         <xsl:variable name="select-json" as="item()">
             <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', [ $select-string ])"/>
             <xsl:sequence select="ixsl:call($select-builder, 'build', [])"/>
@@ -215,12 +216,13 @@ exclude-result-prefixes="#all"
     
     <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = ('&sp;Describe', '&sp;Construct')][sp:text]" mode="ldh:RenderContent" priority="1">
         <xsl:param name="uri" as="xs:anyURI"/>
+        <xsl:param name="about" as="xs:anyURI"/>
         <xsl:param name="container" as="element()"/>
         <xsl:param name="mode" as="xs:anyURI?"/>
         <xsl:param name="refresh-content" as="xs:boolean?"/>
         <xsl:variable name="content-uri" select="xs:anyURI(ixsl:get($container, 'dataset.contentUri'))" as="xs:anyURI"/>
         <!-- set $this variable value unless getting the query string from state -->
-        <xsl:variable name="query-string" select="replace(sp:text, '\$this', '&lt;' || $uri || '&gt;')" as="xs:string"/>
+        <xsl:variable name="query-string" select="replace(sp:text, '\$this', '&lt;' || $about || '&gt;')" as="xs:string"/>
         <!-- service can be explicitly specified on content using ldh:service -->
         <xsl:variable name="service-uri" select="xs:anyURI(ldh:service/@rdf:resource)" as="xs:anyURI?"/>
         <xsl:variable name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.apps'))" as="element()?"/>
@@ -882,6 +884,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="uri" as="xs:anyURI"/> <!-- document URI -->
         <xsl:param name="acl-modes" as="xs:anyURI*"/>
         <xsl:param name="refresh-content" as="xs:boolean?"/>
+        <xsl:variable name="about" select="ancestor::div[@about][1]/@about" as="xs:anyURI"/>
         <xsl:variable name="content-uri" select="ixsl:get(., 'dataset.contentUri')" as="xs:anyURI"/>
         <xsl:variable name="content-value" select="ixsl:get(., 'dataset.contentValue')" as="xs:anyURI"/> <!-- get the value of the @data-content-value attribute -->
         <xsl:variable name="mode" select="if (ixsl:contains(., 'dataset.contentMode')) then xs:anyURI(ixsl:get(., 'dataset.contentMode')) else ()" as="xs:anyURI?"/> <!-- get the value of the @data-content-mode attribute -->
@@ -903,6 +906,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': ac:document-uri($request-uri), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                 <xsl:call-template name="onContentValueLoad">
+                    <xsl:with-param name="about" select="$about"/>
                     <xsl:with-param name="uri" select="$uri"/>
                     <xsl:with-param name="content-value" select="$content-value"/>
                     <xsl:with-param name="container" select="$container"/>
@@ -920,6 +924,7 @@ exclude-result-prefixes="#all"
     <xsl:template name="onContentValueLoad">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="uri" as="xs:anyURI"/>
+        <xsl:param name="about" as="xs:anyURI"/>
         <xsl:param name="container" as="element()"/>
         <xsl:param name="container-id" select="ixsl:get($container, 'id')" as="xs:string"/>
         <xsl:param name="content-uri" select="ixsl:get($container, 'dataset.contentUri')" as="xs:anyURI"/>
@@ -944,6 +949,7 @@ exclude-result-prefixes="#all"
                 </xsl:for-each>
 
                 <xsl:apply-templates select="$value" mode="ldh:RenderContent">
+                    <xsl:with-param name="about" select="$about"/>
                     <xsl:with-param name="uri" select="$uri"/>
                     <xsl:with-param name="container" select="$container"/>
                     <xsl:with-param name="mode" select="$mode"/>
@@ -986,6 +992,7 @@ exclude-result-prefixes="#all"
                     <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': ac:document-uri($request-uri), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                         <xsl:call-template name="onContentValueLoad">
                             <xsl:with-param name="uri" select="$uri"/>
+                            <xsl:with-param name="about" select="$about"/>
                             <xsl:with-param name="content-value" select="$content-value"/>
                             <xsl:with-param name="container" select="$container"/>
                             <xsl:with-param name="mode" select="$mode"/>
