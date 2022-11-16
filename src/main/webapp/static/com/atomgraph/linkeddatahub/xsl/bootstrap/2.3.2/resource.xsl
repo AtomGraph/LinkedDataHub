@@ -706,19 +706,19 @@ extension-element-prefixes="ixsl"
     <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;Content'][rdf:value[@rdf:parseType = 'Literal']/xhtml:div]" mode="bs2:RowContent" priority="2">
         <xsl:param name="id" select="generate-id()" as="xs:string?"/>
         <xsl:param name="class" select="'row-fluid content xhtml-content'" as="xs:string?"/>
-        <xsl:param name="about" select="@rdf:about" as="xs:anyURI"/>
+<!--        <xsl:param name="about" select="@rdf:about" as="xs:anyURI"/>-->
         <xsl:param name="main-class" select="'main span7 offset2'" as="xs:string?"/>
 
-        <div>
+        <div data-content-uri="{@rdf:about}">
             <xsl:if test="$id">
                 <xsl:attribute name="id" select="$id"/>
             </xsl:if>
             <xsl:if test="$class">
                 <xsl:attribute name="class" select="$class"/>
             </xsl:if>
-            <xsl:if test="$about">
+<!--            <xsl:if test="$about">
                 <xsl:attribute name="about" select="$about"/>
-            </xsl:if>
+            </xsl:if>-->
             
             <div>
                 <xsl:if test="$main-class">
@@ -733,7 +733,7 @@ extension-element-prefixes="ixsl"
     <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;Content'][rdf:value/@rdf:resource]" mode="bs2:RowContent" priority="2">
         <xsl:param name="id" select="if (contains(@rdf:about, ac:uri() || '#')) then substring-after(@rdf:about, ac:uri() || '#') else generate-id()" as="xs:string?"/>
         <xsl:param name="class" select="'row-fluid content resource-content'" as="xs:string?"/>
-        <xsl:param name="about" select="@rdf:about" as="xs:anyURI"/>
+        <!--<xsl:param name="about" select="@rdf:about" as="xs:anyURI"/>-->
         <xsl:param name="mode" select="ac:mode/@rdf:resource" as="xs:anyURI?"/>
         <xsl:param name="left-class" select="'left-nav span2'" as="xs:string?"/>
         <xsl:param name="main-class" select="'main span7'" as="xs:string?"/>
@@ -742,16 +742,16 @@ extension-element-prefixes="ixsl"
         <xsl:apply-templates select="." mode="bs2:RowContentHeader"/>
         
         <!-- @data-content-value is used to retrieve $content-value in client.xsl -->
-        <div data-content-value="{rdf:value/@rdf:resource}">
+        <div data-content-uri="{@rdf:about}" data-content-value="{rdf:value/@rdf:resource}">
             <xsl:if test="$id">
                 <xsl:attribute name="id" select="$id"/>
             </xsl:if>
             <xsl:if test="$class">
                 <xsl:attribute name="class" select="$class"/>
             </xsl:if>
-            <xsl:if test="$about">
+<!--            <xsl:if test="$about">
                 <xsl:attribute name="about" select="$about"/>
-            </xsl:if>
+            </xsl:if>-->
             <xsl:if test="$mode">
                 <xsl:attribute name="data-content-mode" select="$mode"/>
             </xsl:if>

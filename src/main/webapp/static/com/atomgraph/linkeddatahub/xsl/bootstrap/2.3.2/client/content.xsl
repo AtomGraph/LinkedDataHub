@@ -135,7 +135,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="uri" as="xs:anyURI"/>
         <xsl:param name="container" as="element()"/>
         <xsl:param name="mode" as="xs:anyURI?"/>
-        <xsl:variable name="content-uri" select="xs:anyURI($container/@about)" as="xs:anyURI"/>
+        <xsl:variable name="content-uri" select="xs:anyURI(ixsl:get($container, 'dataset.contentUri'))" as="xs:anyURI"/>
         <!-- set $this variable value unless getting the query string from state -->
         <xsl:variable name="select-string" select="replace(sp:text, '\$this', '&lt;' || $uri || '&gt;')" as="xs:string"/>
         <xsl:variable name="select-json" as="item()">
@@ -215,7 +215,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="uri" as="xs:anyURI"/>
         <xsl:param name="container" as="element()"/>
         <xsl:param name="mode" as="xs:anyURI?"/>
-        <xsl:variable name="content-uri" select="xs:anyURI($container/@about)" as="xs:anyURI"/>
+        <xsl:variable name="content-uri" select="xs:anyURI(ixsl:get($container, 'dataset.contentUri'))" as="xs:anyURI"/>
         <!-- set $this variable value unless getting the query string from state -->
         <xsl:variable name="query-string" select="replace(sp:text, '\$this', '&lt;' || $uri || '&gt;')" as="xs:string"/>
         <!-- service can be explicitly specified on content using ldh:service -->
@@ -482,8 +482,8 @@ exclude-result-prefixes="#all"
 
         <xsl:choose>
             <!-- updating existing content -->
-            <xsl:when test="$container/@about">
-                <xsl:variable name="content-uri" select="$container/@about" as="xs:anyURI"/>
+            <xsl:when test="ixsl:contains($container, 'dataset.contentUri')">
+                <xsl:variable name="content-uri" select="ixsl:get($container, 'dataset.contentUri')" as="xs:anyURI"/>
                 <xsl:variable name="update-string" select="replace($content-update-string, '\$this', '&lt;' || ac:uri() || '&gt;')" as="xs:string"/>
                 <xsl:variable name="update-string" select="replace($update-string, '\$content', '&lt;' || $content-uri || '&gt;')" as="xs:string"/>
                 <xsl:variable name="update-string" select="replace($update-string, '\$newValue', '&quot;' || $content-string || '&quot;^^&lt;&rdf;XMLLiteral&gt;')" as="xs:string"/>
@@ -540,8 +540,8 @@ exclude-result-prefixes="#all"
 
                 <xsl:choose>
                     <!-- updating existing content -->
-                    <xsl:when test="$container/@about">
-                        <xsl:variable name="content-uri" select="$container/@about" as="xs:anyURI"/>
+                    <xsl:when test="ixsl:contains($container, 'dataset.contentUri')">
+                        <xsl:variable name="content-uri" select="ixsl:get($container, 'dataset.contentUri')" as="xs:anyURI"/>
                         <xsl:variable name="update-string" select="replace($content-update-string, '\$this', '&lt;' || ac:uri() || '&gt;')" as="xs:string"/>
                         <xsl:variable name="update-string" select="replace($update-string, '\$content', '&lt;' || $content-uri || '&gt;')" as="xs:string"/>
                         <xsl:variable name="update-string" select="replace($update-string, '\$newValue', '&lt;' || $content-value || '&gt;')" as="xs:string"/>
@@ -596,10 +596,10 @@ exclude-result-prefixes="#all"
         <xsl:if test="ixsl:call(ixsl:window(), 'confirm', [ ac:label(key('resources', 'are-you-sure', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))) ])">
             <xsl:choose>
                 <!-- delete existing content -->
-                <xsl:when test="$container/@about">
+                <xsl:when test="ixsl:contains($container, 'dataset.contentUri')">
                     <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
-                    <xsl:variable name="content-uri" select="$container/@about" as="xs:anyURI"/>
+                    <xsl:variable name="content-uri" select="ixsl:get($container, 'dataset.contentUri')" as="xs:anyURI"/>
                     <xsl:variable name="update-string" select="replace($content-delete-string, '\$this', '&lt;' || ac:uri() || '&gt;')" as="xs:string"/>
                     <xsl:variable name="update-string" select="replace($update-string, '\$content', '&lt;' || $content-uri || '&gt;')" as="xs:string"/>
                     <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), map{}, ac:uri())" as="xs:anyURI"/>
@@ -629,7 +629,7 @@ exclude-result-prefixes="#all"
 
         <xsl:choose>
             <!-- restore existing content -->
-            <xsl:when test="$container/@about">
+            <xsl:when test="ixsl:contains($container, 'dataset.contentUri')">
                 <xsl:variable name="textarea" select="ancestor::div[contains-token(@class, 'main')]//textarea[contains-token(@class, 'wymeditor')]" as="element()"/>
                 <xsl:variable name="old-content-string" select="string($textarea)" as="xs:string"/>
                 <xsl:variable name="content-value" select="ldh:parse-html('&lt;div&gt;' || $old-content-string || '&lt;/div&gt;', 'application/xhtml+xml')" as="document-node()"/>
@@ -660,7 +660,7 @@ exclude-result-prefixes="#all"
 
         <xsl:choose>
             <!-- updating existing content -->
-            <xsl:when test="$container/@about">
+            <xsl:when test="ixsl:contains($container, 'dataset.contentUri')">
                 <xsl:for-each select="$container">
                     <xsl:call-template name="ldh:LoadContent">
                         <xsl:with-param name="uri" select="ac:uri()"/> <!-- content value gets read from dataset.contentValue -->
@@ -876,7 +876,7 @@ exclude-result-prefixes="#all"
         <xsl:context-item as="element()" use="required"/> <!-- container element -->
         <xsl:param name="uri" as="xs:anyURI"/> <!-- document URI -->
         <xsl:param name="acl-modes" as="xs:anyURI*"/>
-        <xsl:variable name="content-uri" select="@about" as="xs:anyURI"/>
+        <xsl:variable name="content-uri" select="ixsl:get(., 'dataset.contentUri')" as="xs:anyURI"/>
         <xsl:variable name="content-value" select="ixsl:get(., 'dataset.contentValue')" as="xs:anyURI"/> <!-- get the value of the @data-content-value attribute -->
         <xsl:variable name="mode" select="if (ixsl:contains(., 'dataset.contentMode')) then xs:anyURI(ixsl:get(., 'dataset.contentMode')) else ()" as="xs:anyURI?"/> <!-- get the value of the @data-content-mode attribute -->
         <xsl:variable name="container" select="." as="element()"/>
@@ -915,7 +915,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="uri" as="xs:anyURI"/>
         <xsl:param name="container" as="element()"/>
         <xsl:param name="container-id" select="ixsl:get($container, 'id')" as="xs:string"/>
-        <xsl:param name="content-uri" select="$container/@about" as="xs:anyURI"/>
+        <xsl:param name="content-uri" select="ixsl:get(., 'dataset.contentUri')" as="xs:anyURI"/>
         <xsl:param name="content-value" as="xs:anyURI"/>
         <xsl:param name="mode" as="xs:anyURI?"/>
         <xsl:param name="acl-modes" as="xs:anyURI*"/>
