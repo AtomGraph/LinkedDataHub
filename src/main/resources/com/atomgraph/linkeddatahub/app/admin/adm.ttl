@@ -83,11 +83,10 @@ PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
 SELECT DISTINCT  ?class
 WHERE
   { GRAPH ?classGraph
-      { ?this  foaf:primaryTopic  ?ontology
-          { ?class  a  owl:Class }
+      {   { ?class  a  owl:Class }
         UNION
           { ?class  a  rdfs:Class }
-        ?class  rdfs:isDefinedBy  ?ontology
+        ?class  rdfs:isDefinedBy  $this
       }
   }
 """ .
