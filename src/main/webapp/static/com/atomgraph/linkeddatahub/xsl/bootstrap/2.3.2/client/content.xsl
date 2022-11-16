@@ -132,7 +132,7 @@ exclude-result-prefixes="#all"
     <!-- SELECT query -->
     
     <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&sp;Select'][sp:text]" mode="ldh:RenderContent" priority="1">
-        <xsl:param name="uri" as="xs:anyURI"/>
+        <!--<xsl:param name="uri" as="xs:anyURI"/>-->
         <xsl:param name="about" as="xs:anyURI"/>
         <xsl:param name="container" as="element()"/>
         <xsl:param name="mode" as="xs:anyURI?"/>
@@ -213,7 +213,7 @@ exclude-result-prefixes="#all"
     <!-- DESCRIBE/CONSTRUCT queries -->
     
     <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = ('&sp;Describe', '&sp;Construct')][sp:text]" mode="ldh:RenderContent" priority="1">
-        <xsl:param name="uri" as="xs:anyURI"/>
+        <!--<xsl:param name="uri" as="xs:anyURI"/>-->
         <xsl:param name="about" as="xs:anyURI"/>
         <xsl:param name="container" as="element()"/>
         <xsl:param name="mode" as="xs:anyURI?"/>
