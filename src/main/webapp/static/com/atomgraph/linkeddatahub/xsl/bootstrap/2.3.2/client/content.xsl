@@ -665,7 +665,7 @@ exclude-result-prefixes="#all"
             <xsl:when test="ixsl:contains($container, 'dataset.contentUri')">
                 <xsl:for-each select="$container">
                     <xsl:call-template name="ldh:LoadContent">
-                        <xsl:with-param name="uri" select="ac:uri()"/> <!-- content value gets read from dataset.contentValue -->
+<!--                        <xsl:with-param name="uri" select="ac:uri()"/>  content value gets read from dataset.contentValue -->
                     </xsl:call-template>
                 </xsl:for-each>
             </xsl:when> 
