@@ -902,7 +902,7 @@ exclude-result-prefixes="#all"
         
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), map{}, $content-value)" as="xs:anyURI"/>
         <xsl:variable name="request" as="item()*">
-            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': ac:document-uri($request-uri), 'headers': $headers } }">
+            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': ac:document-uri($request-uri), 'headers': $headers }">
                 <xsl:call-template name="onContentValueLoad">
                     <xsl:with-param name="uri" select="$uri"/>
                     <xsl:with-param name="content-value" select="$content-value"/>
