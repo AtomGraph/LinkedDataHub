@@ -139,20 +139,20 @@ WHERE
         <xsl:attribute name="{name()}" select="concat($doc-id, .)"/>
     </xsl:template>
     
-    <!-- increase bnode ID counters to avoid clashes with existing IDs. Only works with Jena's A1, A2, ... naming scheme -->
-<!--    <xsl:template match="input[@name = ('sb', 'ob')]/@value[starts-with(., 'A')]" mode="form" priority="1">
+    <!-- required when adding multiple new instances to the form: increase bnode ID counters to avoid clashes with existing IDs. Only works with Jena's A1, A2, ... naming scheme -->
+    <xsl:template match="input[@name = ('sb', 'ob')]/@value[starts-with(., 'A')]" mode="form" priority="1">
         <xsl:param name="bnode-number" select="number(substring-after(., 'A'))" as="xs:double"/>
         <xsl:param name="max-bnode-id" as="xs:integer?" tunnel="yes"/>
         
         <xsl:choose>
             <xsl:when test="exists($max-bnode-id)">
-                <xsl:attribute name="value" select="'A' || ($bnode-number + $max-bnode-id + 1)"/>  increase the counter 
+                <xsl:attribute name="value" select="'A' || ($bnode-number + $max-bnode-id + 1)"/> <!-- increase the counter -->
             </xsl:when>
             <xsl:otherwise>
                 <xsl:copy-of select="."/>
             </xsl:otherwise>
         </xsl:choose>
-    </xsl:template>-->
+    </xsl:template>
     
     <!-- also replace <legend> text to match the updated bnode label -->
     <xsl:template match="fieldset/legend/text()[starts-with(., 'A')][../following-sibling::input[@name = 'sb']/@value = .]" mode="form" priority="1">
@@ -793,7 +793,7 @@ WHERE
                                 <xsl:apply-templates select="id($container/@id)//div[contains-token(@class, 'modal-constructor')]" mode="form">
                                     <xsl:with-param name="target-id" select="$target-id" tunnel="yes"/>
                                     <xsl:with-param name="doc-id" select="$doc-id" tunnel="yes"/>
-                                    <xsl:with-param name="max-bnode-id" select="$max-bnode-id" tunnel="yes"/>
+<!--                                    <xsl:with-param name="max-bnode-id" select="$max-bnode-id" tunnel="yes"/>-->
                                 </xsl:apply-templates>
                             </xsl:variable>
                             <xsl:variable name="form-id" select="$modal-div//form/@id" as="xs:string"/>
@@ -830,7 +830,8 @@ WHERE
                                 <xsl:apply-templates select="id($container/@id)//form" mode="form">
                                     <xsl:with-param name="target-id" select="$target-id" tunnel="yes"/>
                                     <xsl:with-param name="doc-id" select="$doc-id" tunnel="yes"/>
-                                    <xsl:with-param name="max-bnode-id" select="$max-bnode-id" tunnel="yes"/>
+                                    <!-- only rewrite bnode labels if "Create" button was called within <form> -->
+                                    <xsl:with-param name="max-bnode-id" select="if ($target/ancestor::form[contains-token(@class, 'form-horizontal')]) then $max-bnode-id else ()" tunnel="yes"/>
                                 </xsl:apply-templates>
                             </xsl:variable>
                             <xsl:variable name="form-id" select="$form/@id" as="xs:string"/>
