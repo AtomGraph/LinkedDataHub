@@ -140,19 +140,19 @@ WHERE
     </xsl:template>
     
     <!-- increase bnode ID counters to avoid clashes with existing IDs. Only works with Jena's A1, A2, ... naming scheme -->
-    <xsl:template match="input[@name = ('sb', 'ob')]/@value[starts-with(., 'A')]" mode="form" priority="1">
+<!--    <xsl:template match="input[@name = ('sb', 'ob')]/@value[starts-with(., 'A')]" mode="form" priority="1">
         <xsl:param name="bnode-number" select="number(substring-after(., 'A'))" as="xs:double"/>
         <xsl:param name="max-bnode-id" as="xs:integer?" tunnel="yes"/>
         
         <xsl:choose>
             <xsl:when test="exists($max-bnode-id)">
-                <xsl:attribute name="value" select="'A' || ($bnode-number + $max-bnode-id + 1)"/> <!-- increase the counter -->
+                <xsl:attribute name="value" select="'A' || ($bnode-number + $max-bnode-id + 1)"/>  increase the counter 
             </xsl:when>
             <xsl:otherwise>
                 <xsl:copy-of select="."/>
             </xsl:otherwise>
         </xsl:choose>
-    </xsl:template>
+    </xsl:template>-->
     
     <!-- also replace <legend> text to match the updated bnode label -->
     <xsl:template match="fieldset/legend/text()[starts-with(., 'A')][../following-sibling::input[@name = 'sb']/@value = .]" mode="form" priority="1">
