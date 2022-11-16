@@ -65,8 +65,32 @@ owl:Ontology spin:constructor [
             owl:versionInfo "1.0-SNAPSHOT" .
     }
     WHERE {}"""
-    ] .
+    ] ;
 #    spin:constraint :MissingRDFSLabel .
+    ldh:template :OntologyClasses .
+
+:OntologyClasses a ldh:Content ;
+    rdfs:label "Classes defined by this ontology" ;
+    rdf:value :SelectOntologyClasses .
+
+:SelectOntologyClasses a sp:Select ;
+    rdfs:label "Select classes" ;
+    sp:text """
+PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX  owl:  <http://www.w3.org/2002/07/owl#>
+PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
+
+SELECT DISTINCT  ?class
+WHERE
+  { GRAPH ?classGraph
+      { ?this  foaf:primaryTopic  ?ontology
+          { ?class  a  owl:Class }
+        UNION
+          { ?class  a  rdfs:Class }
+        ?class  rdfs:isDefinedBy  ?ontology
+      }
+  }
+""" .
 
 # CLASS
 
