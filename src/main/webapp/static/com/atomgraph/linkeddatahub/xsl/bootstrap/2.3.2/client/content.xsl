@@ -876,6 +876,7 @@ exclude-result-prefixes="#all"
         <xsl:context-item as="element()" use="required"/> <!-- container element -->
         <xsl:param name="uri" as="xs:anyURI"/> <!-- document URI -->
         <xsl:param name="acl-modes" as="xs:anyURI*"/>
+        <xsl:param name="cache-control" as="xs:string?"/>
         <xsl:variable name="content-uri" select="@about" as="xs:anyURI"/>
         <xsl:variable name="content-value" select="ixsl:get(., 'dataset.contentValue')" as="xs:anyURI"/> <!-- get the value of the @data-content-value attribute -->
         <xsl:variable name="mode" select="if (ixsl:contains(., 'dataset.contentMode')) then xs:anyURI(ixsl:get(., 'dataset.contentMode')) else ()" as="xs:anyURI?"/> <!-- get the value of the @data-content-mode attribute -->
@@ -893,9 +894,15 @@ exclude-result-prefixes="#all"
             </xsl:result-document>
         </xsl:for-each>
 
+        <xsl:variable name="headers" select="ldh:new-object()"/>
+        <ixsl:set-property name="Accept" select="'application/rdf+xml'" object="$headers"/>
+        <xsl:if test="$cache-control">
+            <ixsl:set-property name="Cache-Control" select="$cache-control" object="$headers"/>
+        </xsl:if>
+        
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), map{}, $content-value)" as="xs:anyURI"/>
         <xsl:variable name="request" as="item()*">
-            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': ac:document-uri($request-uri), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': ac:document-uri($request-uri), 'headers': $headers } }">
                 <xsl:call-template name="onContentValueLoad">
                     <xsl:with-param name="uri" select="$uri"/>
                     <xsl:with-param name="content-value" select="$content-value"/>
