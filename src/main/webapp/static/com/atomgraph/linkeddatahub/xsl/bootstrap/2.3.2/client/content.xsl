@@ -135,7 +135,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="uri" as="xs:anyURI"/>
         <xsl:param name="container" as="element()"/>
         <xsl:param name="mode" as="xs:anyURI?"/>
-        <xsl:param name="refresh-content" as="xs:boolean"/>
+        <xsl:param name="refresh-content" as="xs:boolean?"/>
         <xsl:variable name="content-uri" select="xs:anyURI($container/@about)" as="xs:anyURI"/>
         <!-- set $this variable value unless getting the query string from state -->
         <xsl:variable name="select-string" select="replace(sp:text, '\$this', '&lt;' || $uri || '&gt;')" as="xs:string"/>
@@ -217,7 +217,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="uri" as="xs:anyURI"/>
         <xsl:param name="container" as="element()"/>
         <xsl:param name="mode" as="xs:anyURI?"/>
-        <xsl:param name="refresh-content" as="xs:boolean"/>
+        <xsl:param name="refresh-content" as="xs:boolean?"/>
         <xsl:variable name="content-uri" select="xs:anyURI($container/@about)" as="xs:anyURI"/>
         <!-- set $this variable value unless getting the query string from state -->
         <xsl:variable name="query-string" select="replace(sp:text, '\$this', '&lt;' || $uri || '&gt;')" as="xs:string"/>
@@ -268,7 +268,7 @@ exclude-result-prefixes="#all"
     <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;Content']" mode="ldh:RenderContent" priority="1">
         <xsl:param name="container" as="element()"/>
         <xsl:param name="mode" as="xs:anyURI?"/>
-        <xsl:param name="refresh-content" as="xs:boolean"/>
+        <xsl:param name="refresh-content" as="xs:boolean?"/>
 
         <!-- hide progress bar -->
         <ixsl:set-style name="display" select="'none'" object="$container//div[@class = 'progress-bar']"/>
@@ -295,7 +295,7 @@ exclude-result-prefixes="#all"
     <xsl:template match="*[*][@rdf:about]" mode="ldh:RenderContent">
         <xsl:param name="container" as="element()"/>
         <xsl:param name="mode" as="xs:anyURI?"/>
-        <xsl:param name="refresh-content" as="xs:boolean"/>
+        <xsl:param name="refresh-content" as="xs:boolean?"/>
 
         <!-- hide progress bar -->
         <ixsl:set-style name="display" select="'none'" object="$container//div[@class = 'progress-bar']"/>
@@ -881,7 +881,7 @@ exclude-result-prefixes="#all"
         <xsl:context-item as="element()" use="required"/> <!-- container element -->
         <xsl:param name="uri" as="xs:anyURI"/> <!-- document URI -->
         <xsl:param name="acl-modes" as="xs:anyURI*"/>
-        <xsl:param name="refresh-content" as="xs:boolean"/>
+        <xsl:param name="refresh-content" as="xs:boolean?"/>
         <xsl:variable name="content-uri" select="@about" as="xs:anyURI"/>
         <xsl:variable name="content-value" select="ixsl:get(., 'dataset.contentValue')" as="xs:anyURI"/> <!-- get the value of the @data-content-value attribute -->
         <xsl:variable name="mode" select="if (ixsl:contains(., 'dataset.contentMode')) then xs:anyURI(ixsl:get(., 'dataset.contentMode')) else ()" as="xs:anyURI?"/> <!-- get the value of the @data-content-mode attribute -->
@@ -926,7 +926,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="content-value" as="xs:anyURI"/>
         <xsl:param name="mode" as="xs:anyURI?"/>
         <xsl:param name="acl-modes" as="xs:anyURI*"/>
-        <xsl:param name="refresh-content" as="xs:boolean"/>
+        <xsl:param name="refresh-content" as="xs:boolean?"/>
         
         <!-- for some reason Saxon-JS 2.3 does not see this variable if it's inside <xsl:when> -->
         <xsl:variable name="value" select="key('resources', $content-value, ?body)" as="element()?"/>
