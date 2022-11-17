@@ -319,8 +319,8 @@ exclude-result-prefixes="#all"
             <xsl:map>
                 <xsl:map-entry key="'Accept'" select="'application/rdf+xml'"/>
                 
-                <xsl:if test="$cache-control">
-                    <xsl:map-entry key="'Cache-Control'" select="$cache-control"/>
+                <xsl:if test="$refresh-content">
+                    <xsl:map-entry key="'Cache-Control'" select="$refresh-content"/>
                 </xsl:if>
             </xsl:map>
         </xsl:variable>
