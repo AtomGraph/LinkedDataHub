@@ -170,7 +170,7 @@ exclude-result-prefixes="#all"
     <xsl:template match="*[@rdf:about][spin:query/@rdf:resource][ldh:chartType/@rdf:resource]" mode="ldh:RenderContent" priority="1">
         <xsl:param name="container" as="element()"/>
         <xsl:param name="about" as="xs:anyURI"/>
-        <xsl:param name="content-uri" select="xs:anyURI(ixsl:get($container, 'dataset.contentUri'))" as="xs:anyURI"/>
+        <xsl:param name="content-uri" select="xs:anyURI(($container/@about, ixsl:get($container, 'dataset.contentUri'))[1])" as="xs:anyURI"/>
         <xsl:variable name="query-uri" select="xs:anyURI(spin:query/@rdf:resource)" as="xs:anyURI"/>
         <xsl:variable name="chart-type" select="xs:anyURI(ldh:chartType/@rdf:resource)" as="xs:anyURI?"/>
         <xsl:variable name="category" select="ldh:categoryProperty/@rdf:resource | ldh:categoryVarName" as="xs:string?"/>
@@ -212,7 +212,7 @@ exclude-result-prefixes="#all"
             </xsl:for-each>
         </xsl:variable>
         <xsl:variable name="container" select="ancestor::div[@about][1]" as="element()?"/>
-        <xsl:variable name="content-uri" select="xs:anyURI(ixsl:get($container, 'dataset.contentUri'))" as="xs:anyURI"/>
+        <xsl:variable name="content-uri" select="xs:anyURI(($container/@about, ixsl:get($container, 'dataset.contentUri'))[1])" as="xs:anyURI"/>
         <xsl:variable name="chart-canvas-id" select="ancestor::form/following-sibling::div/@id" as="xs:string"/>
         <xsl:variable name="results" select="if (ixsl:contains(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`'), 'results')) then ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`'), 'results') else root(ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`'), 'content'))" as="document-node()"/>
                 
@@ -244,7 +244,7 @@ exclude-result-prefixes="#all"
             </xsl:for-each>
         </xsl:variable>
         <xsl:variable name="container" select="ancestor::div[@about][1]" as="element()?"/>
-        <xsl:variable name="content-uri" select="xs:anyURI(ixsl:get($container, 'dataset.contentUri'))" as="xs:anyURI"/>
+        <xsl:variable name="content-uri" select="xs:anyURI(($container/@about, ixsl:get($container, 'dataset.contentUri'))[1])" as="xs:anyURI"/>
         <xsl:variable name="chart-canvas-id" select="ancestor::form/following-sibling::div/@id" as="xs:string"/>
         <xsl:variable name="results" select="if (ixsl:contains(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`'), 'results')) then ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`'), 'results') else root(ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`'), 'content'))" as="document-node()"/>
 
@@ -274,7 +274,7 @@ exclude-result-prefixes="#all"
             </xsl:for-each>
         </xsl:variable>
         <xsl:variable name="container" select="ancestor::div[@about][1]" as="element()?"/>
-        <xsl:variable name="content-uri" select="xs:anyURI(ixsl:get($container, 'dataset.contentUri'))" as="xs:anyURI"/>
+        <xsl:variable name="content-uri" select="xs:anyURI(($container/@about, ixsl:get($container, 'dataset.contentUri'))[1])" as="xs:anyURI"/>
         <xsl:variable name="chart-canvas-id" select="ancestor::form/following-sibling::div/@id" as="xs:string"/>
         <xsl:variable name="results" select="if (ixsl:contains(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`'), 'results')) then ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`'), 'results') else root(ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`'), 'content'))" as="document-node()"/>
 
