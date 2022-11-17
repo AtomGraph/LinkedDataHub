@@ -579,7 +579,6 @@ WHERE
                 <xsl:variable name="containers" select="id($resource-content-ids, ixsl:page())" as="element()*"/>
                 <xsl:for-each select="$containers">
                     <xsl:call-template name="ldh:LoadContent">
-                        <!--<xsl:with-param name="uri" select="$uri"/>-->
                         <xsl:with-param name="acl-modes" select="$acl-modes"/>
                         <xsl:with-param name="refresh-content" select="$refresh-content"/>
                     </xsl:call-template>
