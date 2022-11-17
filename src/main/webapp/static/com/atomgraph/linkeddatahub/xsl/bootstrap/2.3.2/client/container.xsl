@@ -320,7 +320,7 @@ exclude-result-prefixes="#all"
                 <xsl:map-entry key="'Accept'" select="'application/rdf+xml'"/>
                 
                 <xsl:if test="$refresh-content">
-                    <xsl:map-entry key="'Cache-Control'" select="'no-cache'"/>
+                    <xsl:map-entry key="'Cache-Control'" select="'no-cache, no-store, must-revalidate'"/>
                 </xsl:if>
             </xsl:map>
         </xsl:variable>
