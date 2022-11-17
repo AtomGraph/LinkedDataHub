@@ -300,6 +300,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="initial-var-name" as="xs:string"/>
         <xsl:param name="focus-var-name" select="$select-xml/json:map/json:array[@key = 'variables']/json:string[1]/substring-after(., '?')" as="xs:string"/>
         <xsl:param name="active-mode" as="xs:anyURI"/>
+        <xsl:param name="refresh-content" as="xs:boolean"/>
 
         <xsl:for-each select="$container//div[@class = 'bar']">
             <ixsl:set-style name="width" select="'75%'" object="."/>
@@ -314,8 +315,17 @@ exclude-result-prefixes="#all"
         <xsl:variable name="query-string" select="ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromQuery', [ $query-json ]), 'toString', [])" as="xs:string"/>
         <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': $query-string })" as="xs:anyURI"/>
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), map{}, $results-uri)" as="xs:anyURI"/>
-
-        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+        <xsl:variable name="headers" as="map(xs:string, xs:string)">
+            <xsl:map>
+                <xsl:map-entry key="'Accept'" select="'application/rdf+xml'"/>
+                
+                <xsl:if test="$cache-control">
+                    <xsl:map-entry key="'Cache-Control'" select="$cache-control"/>
+                </xsl:if>
+            </xsl:map>
+        </xsl:variable>
+        
+        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': $headers }">
             <xsl:call-template name="onContainerResultsLoad">
                 <xsl:with-param name="container" select="$container"/>
                 <xsl:with-param name="content-id" select="$container/@id"/>

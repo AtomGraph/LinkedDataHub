@@ -500,7 +500,7 @@ WHERE
     <xsl:template name="ldh:RDFDocumentLoaded">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="uri" as="xs:anyURI"/>
-        <xsl:param name="cache-control" as="xs:string?"/>
+        <xsl:param name="refresh-content" as="xs:boolean"/>
 
         <!-- load breadcrumbs -->
         <xsl:if test="id('breadcrumb-nav', ixsl:page())">
@@ -581,7 +581,7 @@ WHERE
                     <xsl:call-template name="ldh:LoadContent">
                         <xsl:with-param name="uri" select="$uri"/>
                         <xsl:with-param name="acl-modes" select="$acl-modes"/>
-                        <xsl:with-param name="cache-control" select="$cache-control"/>
+                        <xsl:with-param name="refresh-content" select="$refresh-content"/>
                     </xsl:call-template>
                 </xsl:for-each>
             </xsl:if>
@@ -731,7 +731,7 @@ WHERE
     
     <xsl:template name="ldh:RDFDocumentLoad">
         <xsl:param name="uri" as="xs:anyURI"/>
-        <xsl:param name="cache-control" as="xs:string?"/>
+        <xsl:param name="refresh-content" as="xs:boolean"/>
         <!-- if the URI is external, dereference it through the proxy -->
         <!-- add a bogus query parameter to give the RDF/XML document a different URL in the browser cache, otherwise it will clash with the HTML representation -->
         <!-- this is due to broken browser behavior re. Vary and conditional requests: https://stackoverflow.com/questions/60799116/firefox-if-none-match-headers-ignore-content-type-and-vary/60802443 -->
@@ -741,7 +741,7 @@ WHERE
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                 <xsl:call-template name="ldh:RDFDocumentLoaded">
                     <xsl:with-param name="uri" select="$uri"/>
-                    <xsl:with-param name="cache-control" select="$cache-control"/>
+                    <xsl:with-param name="refresh-content" select="$refresh-content"/>
                 </xsl:call-template>
             </ixsl:schedule-action>
         </xsl:variable>
@@ -896,7 +896,7 @@ WHERE
         <xsl:param name="service-uri" select="if (id('search-service', ixsl:page())) then xs:anyURI(ixsl:get(id('search-service', ixsl:page()), 'value')) else ()" as="xs:anyURI?"/>
         <xsl:param name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.apps'))" as="element()?"/>
         <xsl:param name="push-state" select="true()" as="xs:boolean"/>
-        <xsl:param name="cache-control" as="xs:string?"/>
+        <xsl:param name="refresh-content" as="xs:boolean"/>
         <!-- decode raw document URL (without fragment) from the ?uri query param, if it's present -->
         <xsl:variable name="uri" select="if (contains($href, '?')) then let $query-params := ldh:parse-query-params(substring-after(ac:document-uri($href), '?')) return if (exists($query-params?uri)) then ldh:decode-uri($query-params?uri[1]) else ldh:absolute-path($href) else ldh:absolute-path($href)" as="xs:anyURI"/>
         <xsl:variable name="doc-uri" select="ac:document-uri($uri)" as="xs:anyURI"/>
@@ -953,7 +953,7 @@ WHERE
                     <xsl:with-param name="endpoint" select="$endpoint"/>
                     <xsl:with-param name="container" select="$container"/>
                     <xsl:with-param name="push-state" select="$push-state"/>
-                    <xsl:with-param name="cache-control" select="$cache-control"/>
+                    <xsl:with-param name="refresh-content" select="$refresh-content"/>
                 </xsl:apply-templates>
             </xsl:when>
             <xsl:when test="?status = 0">
@@ -993,7 +993,7 @@ WHERE
         <xsl:param name="push-state" select="true()" as="xs:boolean"/>
         <xsl:param name="endpoint" as="xs:anyURI?"/>
         <xsl:param name="replace-content" select="true()" as="xs:boolean"/>
-        <xsl:param name="cache-control" as="xs:string?"/>
+        <xsl:param name="refresh-content" as="xs:boolean"/>
         <!-- decode raw document URL (without fragment) from the ?uri query param, if it's present -->
         <xsl:variable name="uri" select="if (contains($href, '?')) then let $query-params := ldh:parse-query-params(substring-after(ac:document-uri($href), '?')) return if (exists($query-params?uri)) then ldh:decode-uri($query-params?uri[1]) else ldh:absolute-path($href) else ldh:absolute-path($href)" as="xs:anyURI"/>
         <xsl:variable name="doc-uri" select="ac:document-uri($uri)" as="xs:anyURI"/>
@@ -1063,7 +1063,7 @@ WHERE
         
         <xsl:call-template name="ldh:RDFDocumentLoad">
             <xsl:with-param name="uri" select="$uri"/>
-            <xsl:with-param name="cache-control" select="$cache-control"/>
+            <xsl:with-param name="refresh-content" select="$refresh-content"/>
         </xsl:call-template>
     </xsl:template>
     

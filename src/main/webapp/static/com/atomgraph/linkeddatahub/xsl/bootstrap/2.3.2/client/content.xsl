@@ -135,6 +135,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="uri" as="xs:anyURI"/>
         <xsl:param name="container" as="element()"/>
         <xsl:param name="mode" as="xs:anyURI?"/>
+        <xsl:param name="refresh-content" as="xs:boolean"/>
         <xsl:variable name="content-uri" select="xs:anyURI($container/@about)" as="xs:anyURI"/>
         <!-- set $this variable value unless getting the query string from state -->
         <xsl:variable name="select-string" select="replace(sp:text, '\$this', '&lt;' || $uri || '&gt;')" as="xs:string"/>
@@ -195,6 +196,7 @@ exclude-result-prefixes="#all"
                     <xsl:with-param name="endpoint" select="$endpoint"/>
                     <xsl:with-param name="initial-var-name" select="$initial-var-name"/>
                     <xsl:with-param name="active-mode" select="if ($mode) then $mode else xs:anyURI('&ac;ListMode')"/>
+                    <xsl:with-param name="refresh-content" select="$refresh-content"/>
                 </xsl:call-template>
             </xsl:when>
             <xsl:otherwise>
@@ -215,6 +217,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="uri" as="xs:anyURI"/>
         <xsl:param name="container" as="element()"/>
         <xsl:param name="mode" as="xs:anyURI?"/>
+        <xsl:param name="refresh-content" as="xs:boolean"/>
         <xsl:variable name="content-uri" select="xs:anyURI($container/@about)" as="xs:anyURI"/>
         <!-- set $this variable value unless getting the query string from state -->
         <xsl:variable name="query-string" select="replace(sp:text, '\$this', '&lt;' || $uri || '&gt;')" as="xs:string"/>
@@ -265,6 +268,7 @@ exclude-result-prefixes="#all"
     <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;Content']" mode="ldh:RenderContent" priority="1">
         <xsl:param name="container" as="element()"/>
         <xsl:param name="mode" as="xs:anyURI?"/>
+        <xsl:param name="refresh-content" as="xs:boolean"/>
 
         <!-- hide progress bar -->
         <ixsl:set-style name="display" select="'none'" object="$container//div[@class = 'progress-bar']"/>
@@ -291,6 +295,7 @@ exclude-result-prefixes="#all"
     <xsl:template match="*[*][@rdf:about]" mode="ldh:RenderContent">
         <xsl:param name="container" as="element()"/>
         <xsl:param name="mode" as="xs:anyURI?"/>
+        <xsl:param name="refresh-content" as="xs:boolean"/>
 
         <!-- hide progress bar -->
         <ixsl:set-style name="display" select="'none'" object="$container//div[@class = 'progress-bar']"/>
@@ -876,7 +881,7 @@ exclude-result-prefixes="#all"
         <xsl:context-item as="element()" use="required"/> <!-- container element -->
         <xsl:param name="uri" as="xs:anyURI"/> <!-- document URI -->
         <xsl:param name="acl-modes" as="xs:anyURI*"/>
-        <xsl:param name="cache-control" as="xs:string?"/>
+        <xsl:param name="refresh-content" as="xs:boolean"/>
         <xsl:variable name="content-uri" select="@about" as="xs:anyURI"/>
         <xsl:variable name="content-value" select="ixsl:get(., 'dataset.contentValue')" as="xs:anyURI"/> <!-- get the value of the @data-content-value attribute -->
         <xsl:variable name="mode" select="if (ixsl:contains(., 'dataset.contentMode')) then xs:anyURI(ixsl:get(., 'dataset.contentMode')) else ()" as="xs:anyURI?"/> <!-- get the value of the @data-content-mode attribute -->
@@ -894,21 +899,16 @@ exclude-result-prefixes="#all"
             </xsl:result-document>
         </xsl:for-each>
 
-        <xsl:variable name="headers" select="ldh:new-object()"/>
-        <ixsl:set-property name="Accept" select="'application/rdf+xml'" object="$headers"/>
-        <xsl:if test="$cache-control">
-            <ixsl:set-property name="Cache-Control" select="$cache-control" object="$headers"/>
-        </xsl:if>
-        
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), map{}, $content-value)" as="xs:anyURI"/>
         <xsl:variable name="request" as="item()*">
-            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': ac:document-uri($request-uri), 'headers': $headers }">
+            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': ac:document-uri($request-uri), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                 <xsl:call-template name="onContentValueLoad">
                     <xsl:with-param name="uri" select="$uri"/>
                     <xsl:with-param name="content-value" select="$content-value"/>
                     <xsl:with-param name="container" select="$container"/>
                     <xsl:with-param name="mode" select="$mode"/>
                     <xsl:with-param name="acl-modes" select="$acl-modes"/>
+                    <xsl:with-param name="refresh-content" select="$refresh-content"/>
                 </xsl:call-template>
             </ixsl:schedule-action>
         </xsl:variable>
@@ -926,6 +926,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="content-value" as="xs:anyURI"/>
         <xsl:param name="mode" as="xs:anyURI?"/>
         <xsl:param name="acl-modes" as="xs:anyURI*"/>
+        <xsl:param name="refresh-content" as="xs:boolean"/>
         
         <!-- for some reason Saxon-JS 2.3 does not see this variable if it's inside <xsl:when> -->
         <xsl:variable name="value" select="key('resources', $content-value, ?body)" as="element()?"/>
@@ -946,6 +947,7 @@ exclude-result-prefixes="#all"
                     <xsl:with-param name="uri" select="$uri"/>
                     <xsl:with-param name="container" select="$container"/>
                     <xsl:with-param name="mode" select="$mode"/>
+                    <xsl:with-param name="refresh-content" select="$refresh-content"/>
                 </xsl:apply-templates>
             
                 <!-- initialize map -->

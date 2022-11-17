@@ -1062,7 +1062,7 @@ WHERE
                     <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
                         <xsl:call-template name="onDocumentLoad">
                             <xsl:with-param name="href" select="ldh:absolute-path($uri)"/>
-                            <xsl:with-param name="cache-control" select="'no-cache'"/> <!-- make sure content (e.g. containers) do not use a stale response -->
+                            <xsl:with-param name="refresh-content" select="true()"/> <!-- make sure content (e.g. containers) do not use a stale response -->
                         </xsl:call-template>
                     </ixsl:schedule-action>
                 </xsl:variable>
