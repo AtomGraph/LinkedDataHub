@@ -21,6 +21,7 @@ import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.client.LinkedDataClient;
 import com.atomgraph.linkeddatahub.imports.QueryLoader;
 import com.atomgraph.linkeddatahub.model.Service;
+import com.atomgraph.linkeddatahub.server.filter.response.BackendInvalidationFilter;
 import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.server.util.Skolemizer;
@@ -58,6 +59,7 @@ import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.vocabulary.DCTerms;
 import org.apache.jena.vocabulary.RDF;
+import org.glassfish.jersey.uri.UriComponent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -156,6 +158,9 @@ public class Generate extends GraphStoreImpl
                 partIt.close();
             }
             
+            // ban the parent container URI from proxy cache to make sure the next query using it will be fresh (e.g. SELECT that loads children)
+            ban(getApplication().getService().getProxy(), parent.getURI());
+            
             return Response.ok().build();
         }
         finally
@@ -189,6 +194,22 @@ public class Generate extends GraphStoreImpl
         return model.createResource().
             addProperty(RDF.type, LDH.Content).
             addProperty(RDF.value, query);
+    }
+    
+    /** 
+     * Bans URL from the backend proxy cache.
+     * 
+     * @param proxy proxy server URL
+     * @param url banned URL
+     * @return proxy server response
+     */
+    public Response ban(Resource proxy, String url)
+    {
+        if (url == null) throw new IllegalArgumentException("Resource cannot be null");
+        
+        return getSystem().getClient().target(proxy.getURI()).request().
+            header(BackendInvalidationFilter.HEADER_NAME, UriComponent.encode(url, UriComponent.Type.UNRESERVED)). // the value has to be URL-encoded in order to match request URLs in Varnish
+            method("BAN", Response.class);
     }
     
 }
