@@ -106,21 +106,30 @@ public class SendHTTPRequest implements ExtensionFunction
 
         try
         {
-            final Response cr;
             if (arguments[2].isEmpty() || arguments[3].isEmpty()) // no media-type or body
-                cr = getClient().target(href).request().headers(headers).build(method).invoke();
+                try (Response cr = getClient().target(href).request().headers(headers).build(method).invoke())
+                {
+                    if (!cr.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
+                    {
+                        if (log.isDebugEnabled()) log.debug("Could not execute ldh:send-request function. href: '{}' method: '{}'", href, method);
+                        throw new IOException("Could not execute ldh:send-request function. href: '" + href + "' method: '" + method + "'");
+                    }
+                    if (cr.hasEntity()) return getProcessor().newDocumentBuilder().build(new StreamSource(cr.readEntity(InputStream.class)));
+                }
             else
             {
                 String mediaType = arguments[2].itemAt(0).getStringValue();
                 Entity entity = Entity.entity(arguments[3].itemAt(0).getStringValue(), mediaType);
-                cr = getClient().target(href).request().headers(headers).build(method, entity).invoke();
+                try (Response cr = getClient().target(href).request().headers(headers).build(method, entity).invoke())
+                {
+                    if (!cr.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
+                    {
+                        if (log.isDebugEnabled()) log.debug("Could not execute ldh:send-request function. href: '{}' method: '{}'", href, method);
+                        throw new IOException("Could not execute ldh:send-request function. href: '" + href + "' method: '" + method + "'");
+                    }
+                    if (cr.hasEntity()) return getProcessor().newDocumentBuilder().build(new StreamSource(cr.readEntity(InputStream.class)));
+                }
             }
-            if (!cr.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
-            {
-                if (log.isDebugEnabled()) log.debug("Could not execute ldh:send-request function. href: '{}' method: '{}'", href, method);
-                throw new IOException("Could not execute ldh:send-request function. href: '" + href + "' method: '" + method + "'");
-            }
-            if (cr.hasEntity()) return getProcessor().newDocumentBuilder().build(new StreamSource(cr.readEntity(InputStream.class)));
             
             return XdmEmptySequence.getInstance();
         }
