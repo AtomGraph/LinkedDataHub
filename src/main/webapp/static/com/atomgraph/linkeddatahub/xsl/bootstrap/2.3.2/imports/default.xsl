@@ -909,8 +909,8 @@ exclude-result-prefixes="#all"
         </xsl:if>
     </xsl:template>
     
-    <!-- blank nodes that only have non-XSD rdf:type and no other properties become resource typeaheads -->
-    <xsl:template match="*[@rdf:nodeID]/*/@rdf:nodeID[key('resources', .)[not(* except rdf:type[not(starts-with(@rdf:resource, '&xsd;'))])]]" mode="bs2:FormControl" priority="1">
+    <!-- blank nodes that only have non-XSD rdf:type and no other properties, or have rdf:type owl:NamedIndividual, become resource typeaheads -->
+    <xsl:template match="*[@rdf:nodeID]/*/@rdf:nodeID[key('resources', .)[not(* except rdf:type[not(starts-with(@rdf:resource, '&xsd;'))]) or rdf:type/@rdf:resource = '&owl;NamedIndividual']]" mode="bs2:FormControl" priority="1">
         <xsl:param name="type" select="'text'" as="xs:string"/>
         <xsl:param name="id" select="generate-id()" as="xs:string"/>
         <xsl:param name="class" select="'resource-typeahead typeahead'" as="xs:string?"/>
@@ -919,11 +919,12 @@ exclude-result-prefixes="#all"
         <xsl:param name="type-label" select="true()" as="xs:boolean"/>
 
         <span>
-            <xsl:call-template name="bs2:Lookup">
+<!--            <xsl:call-template name="bs2:Lookup">
                 <xsl:with-param name="type" select="$type"/>
                 <xsl:with-param name="id" select="$id"/>
                 <xsl:with-param name="class" select="$class"/>
-            </xsl:call-template>
+            </xsl:call-template>-->
+            <xsl:apply-templates select="key('resources', .)" mode="ldh:Typeahead"/>
         </span>
         <xsl:text> </xsl:text>
 
