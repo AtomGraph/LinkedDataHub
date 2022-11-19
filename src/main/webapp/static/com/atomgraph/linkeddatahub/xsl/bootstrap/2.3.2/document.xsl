@@ -538,8 +538,8 @@ extension-element-prefixes="ixsl"
                     <xsl:for-each select="ldh:construct(map{ xs:anyURI('&dh;Item'): $constructors//srx:result[srx:binding[@name = 'Type'] = '&dh;Item']/srx:binding[@name = 'construct']/srx:literal/string(),
                             $forClass: $constructors//srx:result[srx:binding[@name = 'Type'] = $forClass]/srx:binding[@name = 'construct']/srx:literal/string() })">
                         <xsl:apply-templates select="." mode="ldh:SetPrimaryTopic">
-                            <!-- avoid selecting object blank nodes which only have rdf:type --> 
-                            <xsl:with-param name="topic-id" select="key('resources-by-type', $forClass)[* except rdf:type]/@rdf:nodeID" tunnel="yes"/>
+                            <!-- avoid selecting object blank nodes which only have rdf:type, unless the rdf:type is owl:NamedIndividual --> 
+                            <xsl:with-param name="topic-id" select="key('resources-by-type', $forClass)[* except rdf:type or rdf:type/@rdf:resource = '&owl;NamedIndividual']/@rdf:nodeID" tunnel="yes"/>
                             <xsl:with-param name="doc-id" select="key('resources-by-type', '&dh;Item')/@rdf:nodeID" tunnel="yes"/>
                         </xsl:apply-templates>
                     </xsl:for-each>
