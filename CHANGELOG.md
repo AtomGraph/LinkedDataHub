@@ -1,7 +1,7 @@
 ## [3.3.1] - 2022-11-19
 ### Changed
 - Fixed HTTP connection leak in the `ldh:send-request` function
-- Fixed blank node labels in instance creation forms
+- Fixed blank node labels and typeaheads in instance creation forms
 - Fixed response caching in the container generation logic to make sure fresh content with the new containers is loaded after redirect
 
 ## [3.3.0] - 2022-11-16

@@ -656,7 +656,7 @@ WHERE
                     <!-- convert instances in the RDF/POST form to RDF/XML -->
                     <xsl:for-each select="ancestor::form//input[@name = ('sb', 'su')][@value]">
                         <!-- filter resources by type if $forClass is provided -->
-                        <xsl:if test="empty($forClass) or following-sibling::input[@name = 'pu'][@value = '&rdf;type']/following-sibling::input[@name = 'ou']/@value = $forClass">
+                        <xsl:if test="empty($forClass) or $forClass = '&rdfs;Resource' or following-sibling::div[input[@name = 'pu'][@value = '&rdf;type']]//input[@name = 'ou']/@value = $forClass">
                             <rdf:Description>
                                 <xsl:if test="@name = 'sb'">
                                      <xsl:attribute name="rdf:nodeID" select="@value"/>
