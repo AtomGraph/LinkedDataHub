@@ -579,7 +579,6 @@ WHERE
                 <xsl:variable name="containers" select="id($resource-content-ids, ixsl:page())" as="element()*"/>
                 <xsl:for-each select="$containers">
                     <xsl:call-template name="ldh:LoadContent">
-                        <xsl:with-param name="uri" select="$uri"/>
                         <xsl:with-param name="acl-modes" select="$acl-modes"/>
                         <xsl:with-param name="refresh-content" select="$refresh-content"/>
                     </xsl:call-template>
@@ -1573,8 +1572,8 @@ WHERE
     
     <xsl:template match="div[contains-token(@class, 'backlinks-nav')]//*[contains-token(@class, 'nav-header')]" mode="ixsl:onclick">
         <xsl:variable name="backlinks-container" select="ancestor::div[contains-token(@class, 'backlinks-nav')]" as="element()"/>
-        <xsl:variable name="container" select="ancestor::div[@about][1]" as="element()"/>
-        <xsl:variable name="content-uri" select="$container/@about" as="xs:anyURI"/>
+        <xsl:variable name="container" select="ancestor::div[ixsl:contains(., 'dataset.contentUri')][1]" as="element()"/>
+        <xsl:variable name="content-uri" select="ixsl:get($container, 'dataset.contentUri')" as="xs:anyURI"/>
         <xsl:variable name="content-value" select="if (ixsl:contains($container, 'dataset.contentValue')) then ixsl:get($container, 'dataset.contentValue') else $content-uri" as="xs:anyURI"/>
         <xsl:variable name="query-string" select="replace($backlinks-string, '\$this', '&lt;' || $content-value || '&gt;')" as="xs:string"/>
         <xsl:variable name="service-uri" select="if (ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`')) then (if (ixsl:contains(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`'), 'service-uri')) then ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`'), 'service-uri') else ()) else ()" as="xs:anyURI?"/>
