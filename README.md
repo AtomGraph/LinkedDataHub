@@ -17,7 +17,7 @@ What makes LinkedDataHub unique is its completely _data-driven architecture_: ap
 
 **Follow the [Get started](https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/get-started/) guide to LinkedDataHub.** The setup and basic configuration sections are provided below and should get you running.
 
-**LinkedDataHub is also available as a free AWS Marketplace product!** [![AWS Marketplace](AWS Marketplace.svg)](https://aws.amazon.com/marketplace/pp/prodview-vqbeztc3f2nni)
+**LinkedDataHub is also available as a free AWS Marketplace product!** [![AWS Marketplace](https://github.com/AtomGraph/LinkedDataHub/raw/master/AWS%20Marketplace.svg)](https://aws.amazon.com/marketplace/pp/prodview-vqbeztc3f2nni)
 It takes a few clicks and filling out a form to install the product into your own AWS account. No manual setup or configuration necessary!
 
 ## Setup
