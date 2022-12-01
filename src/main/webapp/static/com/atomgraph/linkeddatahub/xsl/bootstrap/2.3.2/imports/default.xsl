@@ -1154,4 +1154,33 @@ exclude-result-prefixes="#all"
         </xsl:copy>
     </xsl:template>
     
+    <!-- rewrite @ids so they don't class with the parent document's when transcluded -->
+    <xsl:template match="@id" mode="ldh:XHTMLContent" priority="1">
+        <xsl:param name="transclude" select="false()" as="xs:boolean" tunnel="yes"/>
+        
+        <xsl:choose>
+            <xsl:when test="$transclude">
+                <xsl:attribute name="{name()}" select="generate-id()"/>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:copy/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:template>
+
+    <!-- resolve relative @href URIs against base when transcluding -->
+    <xsl:template match="@href[starts-with(., '.')]" mode="ldh:XHTMLContent" priority="1">
+        <xsl:param name="transclude" select="false()" as="xs:boolean" tunnel="yes"/>
+        <xsl:param name="base" select="document-uri()" as="xs:anyURI"/>
+        
+        <xsl:choose>
+            <xsl:when test="$transclude">
+                <xsl:attribute name="{name()}" select="resolve-uri(., $base)"/>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:copy/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:template>
+    
 </xsl:stylesheet>

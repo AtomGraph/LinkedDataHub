@@ -706,8 +706,8 @@ extension-element-prefixes="ixsl"
     <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;Content'][rdf:value[@rdf:parseType = 'Literal']/xhtml:div]" mode="bs2:RowContent" priority="2">
         <xsl:param name="id" select="generate-id()" as="xs:string?"/>
         <xsl:param name="class" select="'row-fluid content xhtml-content'" as="xs:string?"/>
-<!--        <xsl:param name="about" select="@rdf:about" as="xs:anyURI"/>-->
         <xsl:param name="main-class" select="'main span7 offset2'" as="xs:string?"/>
+        <xsl:param name="transclude" select="false()" as="xs:boolean"/>
 
         <div data-content-uri="{@rdf:about}">
             <xsl:if test="$id">
@@ -716,16 +716,15 @@ extension-element-prefixes="ixsl"
             <xsl:if test="$class">
                 <xsl:attribute name="class" select="$class"/>
             </xsl:if>
-<!--            <xsl:if test="$about">
-                <xsl:attribute name="about" select="$about"/>
-            </xsl:if>-->
             
             <div>
                 <xsl:if test="$main-class">
                     <xsl:attribute name="class" select="$main-class"/>
                 </xsl:if>
 
-                <xsl:apply-templates select="rdf:value[@rdf:parseType = 'Literal']/xhtml:div" mode="ldh:XHTMLContent"/>
+                <xsl:apply-templates select="rdf:value[@rdf:parseType = 'Literal']/xhtml:div" mode="ldh:XHTMLContent">
+                    <xsl:with-param name="transclude" select="$transclude" tunnel="yes"/>
+                </xsl:apply-templates>
             </div>
         </div>
     </xsl:template>

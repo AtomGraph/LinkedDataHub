@@ -264,7 +264,8 @@ exclude-result-prefixes="#all"
         </xsl:choose>
     </xsl:template>
     
-    <!-- content within content (recursive) -->
+    <!-- content within content (transclusion) -->
+    
     <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;Content']" mode="ldh:RenderContent" priority="1">
         <xsl:param name="container" as="element()"/>
         <xsl:param name="mode" as="xs:anyURI?"/>
@@ -276,6 +277,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="row" as="node()*">
             <xsl:apply-templates select="." mode="bs2:RowContent">
                 <xsl:with-param name="mode" select="$mode"/>
+                <xsl:with-param name="transclude" select="true()"/>
             </xsl:apply-templates>
         </xsl:variable>
 
