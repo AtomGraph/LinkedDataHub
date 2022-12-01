@@ -1171,7 +1171,7 @@ exclude-result-prefixes="#all"
     <!-- resolve relative @href URIs against base when transcluding -->
     <xsl:template match="@href[starts-with(., '.')]" mode="ldh:XHTMLContent" priority="1">
         <xsl:param name="transclude" select="false()" as="xs:boolean" tunnel="yes"/>
-        <xsl:param name="base" select="base-uri()" as="xs:anyURI"/>
+        <xsl:param name="base" as="xs:anyURI?" tunnel="yes"/>
         
         <xsl:choose>
             <xsl:when test="$transclude">
