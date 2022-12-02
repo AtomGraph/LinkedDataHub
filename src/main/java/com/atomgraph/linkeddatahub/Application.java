@@ -257,7 +257,7 @@ public class Application extends ResourceConfig
     private final DataManager dataManager;
     private final Map<String, OntModelSpec> endUserOntModelSpecs;
     private final MediaTypes mediaTypes;
-    private final Client client, importClient, noCertClient;
+    private final Client client, externalClient, importClient, noCertClient;
     private final Query authQuery, ownerAuthQuery, webIDQuery, agentQuery, userAccountQuery, ontologyQuery; // no relative URIs
     private final Integer maxGetRequestSize;
     private final boolean preemptiveAuth;
@@ -616,6 +616,7 @@ public class Application extends ResourceConfig
             trustStore.load(new FileInputStream(new java.io.File(new URI(clientTrustStoreURIString))), clientTrustStorePassword.toCharArray());
             
             client = getClient(keyStore, clientKeyStorePassword, trustStore, maxConnPerRoute, maxTotalConn, null);
+            externalClient = getClient(keyStore, clientKeyStorePassword, trustStore, maxConnPerRoute, maxTotalConn, null);
             importClient = getClient(keyStore, clientKeyStorePassword, trustStore, maxConnPerRoute, maxTotalConn, importKeepAliveStrategy);
             noCertClient = getNoCertClient(trustStore, maxConnPerRoute, maxTotalConn);
             
@@ -1562,6 +1563,17 @@ public class Application extends ResourceConfig
         return client;
     }
     
+    /**
+     * Returns the external HTTP client.
+     * It is used by the Linked Data browser to avoid sharing the connection pool with the system client.
+     * 
+     * @return client object
+     */
+    public Client getExternalClient()
+    {
+        return externalClient;
+    }
+
     /**
      * Returns the system base URI.
      * 

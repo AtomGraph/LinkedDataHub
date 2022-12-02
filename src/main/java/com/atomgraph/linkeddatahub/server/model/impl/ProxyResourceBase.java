@@ -141,7 +141,7 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
             com.atomgraph.linkeddatahub.Application system, @Context HttpServletRequest httpServletRequest, DataManager dataManager, Optional<AgentContext> agentContext,
             @Context Providers providers)
     {
-        super(uriInfo, request, httpHeaders, mediaTypes, uri, endpoint, accept, mode, system.getClient(), httpServletRequest);
+        super(uriInfo, request, httpHeaders, mediaTypes, uri, endpoint, accept, mode, system.getExternalClient(), httpServletRequest);
         this.uriInfo = uriInfo;
         this.application = application;
         this.service = service.get();
