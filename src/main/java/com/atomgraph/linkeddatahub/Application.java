@@ -625,6 +625,7 @@ public class Application extends ResourceConfig
                 ClientRequestFilter rewriteFilter = new ClientUriRewriteFilter(baseURI, proxyScheme, proxyHostname, proxyPort); // proxyPort can be null
                 
                 client.register(rewriteFilter);
+                externalClient.register(rewriteFilter);
                 importClient.register(rewriteFilter);
                 noCertClient.register(rewriteFilter);
             }
