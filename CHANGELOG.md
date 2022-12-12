@@ -1,4 +1,4 @@
-## [3.3.2] - 2022-12-05
+## [3.3.2] - 2022-12-12
 ### Added
 - A separate HTTP client used only by the Linked Data client, to avoid sharing the connection pool with the main system client
 - Linked Data client now sends a `User-Agent` request header impersonating the Firefox browser
