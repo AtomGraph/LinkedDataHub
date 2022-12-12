@@ -1,3 +1,11 @@
+## [3.3.2] - 2022-12-12
+### Added
+- A separate HTTP client used only by the Linked Data client, to avoid sharing the connection pool with the main system client
+- Linked Data client now sends a `User-Agent` request header impersonating the Firefox browser
+
+### Changed
+- `@id` attributes are rewritten and `@href` attributes are resolved against base URI when XHTML content is being transcluded
+
 ## [3.3.1] - 2022-11-19
 ### Changed
 - Fixed HTTP connection leak in the `ldh:send-request` function

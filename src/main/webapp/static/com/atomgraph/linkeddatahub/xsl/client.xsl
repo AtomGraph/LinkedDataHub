@@ -579,7 +579,6 @@ WHERE
                 <xsl:variable name="containers" select="id($resource-content-ids, ixsl:page())" as="element()*"/>
                 <xsl:for-each select="$containers">
                     <xsl:call-template name="ldh:LoadContent">
-                        <xsl:with-param name="uri" select="$uri"/>
                         <xsl:with-param name="acl-modes" select="$acl-modes"/>
                         <xsl:with-param name="refresh-content" select="$refresh-content"/>
                     </xsl:call-template>
@@ -891,7 +890,7 @@ WHERE
     
     <xsl:template name="onDocumentLoad">
         <xsl:context-item as="map(*)" use="required"/>
-        <xsl:param name="href" as="xs:anyURI?"/>
+        <xsl:param name="href" as="xs:anyURI?"/> <!-- absolute URI! -->
         <xsl:param name="container" select="id('content-body', ixsl:page())" as="element()"/>
         <xsl:param name="service-uri" select="if (id('search-service', ixsl:page())) then xs:anyURI(ixsl:get(id('search-service', ixsl:page()), 'value')) else ()" as="xs:anyURI?"/>
         <xsl:param name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.apps'))" as="element()?"/>
@@ -1210,7 +1209,7 @@ WHERE
     <!-- resolve URLs against the current document URL because they can be relative -->
     <xsl:template match="a[not(@target)][starts-with(resolve-uri(@href, ac:uri()), 'http://') or starts-with(resolve-uri(@href, ac:uri()), 'https://')][not(starts-with(resolve-uri(@href, ac:uri()), resolve-uri('uploads/', $ldt:base)))][ancestor::div[@id = 'breadcrumb-nav'] or not(ancestor::div[tokenize(@class, ' ') = ('navbar', 'footer')])] | a[contains-token(@class, 'brand')] | div[button[contains-token(@class, 'btn-apps')]]/ul//a | svg:a[not(@target)][starts-with(resolve-uri(@href, ac:uri()), 'http://') or starts-with(resolve-uri(@href, ac:uri()), 'https://')][not(starts-with(resolve-uri(@href, ac:uri()), resolve-uri('uploads/', $ldt:base)))]" mode="ixsl:onclick">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
-        <xsl:variable name="href" select="@href" as="xs:anyURI"/> <!-- already proxied server-side -->
+        <xsl:variable name="href" select="resolve-uri(@href, ac:uri())" as="xs:anyURI"/> <!-- resolve relative URIs -->
         
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
         

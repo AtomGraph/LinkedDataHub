@@ -509,15 +509,15 @@ extension-element-prefixes="ixsl"
             </div>
 
             <xsl:apply-templates select="." mode="bs2:Right"/>
+                    
+            <!-- render contents attached to the types of this resource using ldh:template -->
+            <xsl:variable name="content-values" select="if (doc-available(resolve-uri('ns?query=ASK%20%7B%7D', $ldt:base))) then (ldh:query-result(map{}, resolve-uri('ns', $ldt:base), $template-query || ' VALUES $Type { ' || string-join(for $type in rdf:type/@rdf:resource return '&lt;' || $type || '&gt;', ' ') || ' }')//srx:binding[@name = 'content']/srx:uri/xs:anyURI(.)) else ()" as="xs:anyURI*" use-when="system-property('xsl:product-name') = 'SAXON'"/>
+            <xsl:for-each select="$content-values" use-when="system-property('xsl:product-name') = 'SAXON'">
+                <xsl:if test="doc-available(ac:document-uri(.))">
+                    <xsl:apply-templates select="key('resources', ., document(ac:document-uri(.)))" mode="bs2:RowContent"/>
+                </xsl:if>
+            </xsl:for-each>
         </div>
-        
-        <!-- render contents attached to the types of this resource using ldh:template -->
-        <xsl:variable name="content-values" select="if (doc-available(resolve-uri('ns?query=ASK%20%7B%7D', $ldt:base))) then (ldh:query-result(map{}, resolve-uri('ns', $ldt:base), $template-query || ' VALUES $Type { ' || string-join(for $type in rdf:type/@rdf:resource return '&lt;' || $type || '&gt;', ' ') || ' }')//srx:binding[@name = 'content']/srx:uri/xs:anyURI(.)) else ()" as="xs:anyURI*" use-when="system-property('xsl:product-name') = 'SAXON'"/>
-        <xsl:for-each select="$content-values" use-when="system-property('xsl:product-name') = 'SAXON'">
-            <xsl:if test="doc-available(ac:document-uri(.))">
-                <xsl:apply-templates select="key('resources', ., document(ac:document-uri(.)))" mode="bs2:RowContent"/>
-            </xsl:if>
-        </xsl:for-each>
     </xsl:template>
     
     <!-- HEADER -->
@@ -706,18 +706,16 @@ extension-element-prefixes="ixsl"
     <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;Content'][rdf:value[@rdf:parseType = 'Literal']/xhtml:div]" mode="bs2:RowContent" priority="2">
         <xsl:param name="id" select="generate-id()" as="xs:string?"/>
         <xsl:param name="class" select="'row-fluid content xhtml-content'" as="xs:string?"/>
-        <xsl:param name="about" select="@rdf:about" as="xs:anyURI"/>
         <xsl:param name="main-class" select="'main span7 offset2'" as="xs:string?"/>
+        <xsl:param name="transclude" select="false()" as="xs:boolean"/>
+        <xsl:param name="base" as="xs:anyURI?"/>
 
-        <div>
+        <div data-content-uri="{@rdf:about}">
             <xsl:if test="$id">
                 <xsl:attribute name="id" select="$id"/>
             </xsl:if>
             <xsl:if test="$class">
                 <xsl:attribute name="class" select="$class"/>
-            </xsl:if>
-            <xsl:if test="$about">
-                <xsl:attribute name="about" select="$about"/>
             </xsl:if>
             
             <div>
@@ -725,7 +723,10 @@ extension-element-prefixes="ixsl"
                     <xsl:attribute name="class" select="$main-class"/>
                 </xsl:if>
 
-                <xsl:apply-templates select="rdf:value[@rdf:parseType = 'Literal']/xhtml:div" mode="ldh:XHTMLContent"/>
+                <xsl:apply-templates select="rdf:value[@rdf:parseType = 'Literal']/xhtml:div" mode="ldh:XHTMLContent">
+                    <xsl:with-param name="transclude" select="$transclude" tunnel="yes"/>
+                    <xsl:with-param name="base" select="$base" tunnel="yes"/>
+                </xsl:apply-templates>
             </div>
         </div>
     </xsl:template>
@@ -733,7 +734,6 @@ extension-element-prefixes="ixsl"
     <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;Content'][rdf:value/@rdf:resource]" mode="bs2:RowContent" priority="2">
         <xsl:param name="id" select="if (contains(@rdf:about, ac:uri() || '#')) then substring-after(@rdf:about, ac:uri() || '#') else generate-id()" as="xs:string?"/>
         <xsl:param name="class" select="'row-fluid content resource-content'" as="xs:string?"/>
-        <xsl:param name="about" select="@rdf:about" as="xs:anyURI"/>
         <xsl:param name="mode" select="ac:mode/@rdf:resource" as="xs:anyURI?"/>
         <xsl:param name="left-class" select="'left-nav span2'" as="xs:string?"/>
         <xsl:param name="main-class" select="'main span7'" as="xs:string?"/>
@@ -742,15 +742,12 @@ extension-element-prefixes="ixsl"
         <xsl:apply-templates select="." mode="bs2:RowContentHeader"/>
         
         <!-- @data-content-value is used to retrieve $content-value in client.xsl -->
-        <div data-content-value="{rdf:value/@rdf:resource}">
+        <div data-content-uri="{@rdf:about}" data-content-value="{rdf:value/@rdf:resource}">
             <xsl:if test="$id">
                 <xsl:attribute name="id" select="$id"/>
             </xsl:if>
             <xsl:if test="$class">
                 <xsl:attribute name="class" select="$class"/>
-            </xsl:if>
-            <xsl:if test="$about">
-                <xsl:attribute name="about" select="$about"/>
             </xsl:if>
             <xsl:if test="$mode">
                 <xsl:attribute name="data-content-mode" select="$mode"/>

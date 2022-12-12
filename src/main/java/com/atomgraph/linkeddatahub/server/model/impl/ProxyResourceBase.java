@@ -39,6 +39,7 @@ import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.Invocation;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.Context;
@@ -66,6 +67,8 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
 {
 
     private static final Logger log = LoggerFactory.getLogger(ProxyResourceBase.class);
+
+    private final static String USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:107.0) Gecko/20100101 Firefox/107.0"; // impersonate Firefox
 
     private final UriInfo uriInfo;
     private final ContainerRequestContext crc;
@@ -141,7 +144,7 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
             com.atomgraph.linkeddatahub.Application system, @Context HttpServletRequest httpServletRequest, DataManager dataManager, Optional<AgentContext> agentContext,
             @Context Providers providers)
     {
-        super(uriInfo, request, httpHeaders, mediaTypes, uri, endpoint, accept, mode, system.getClient(), httpServletRequest);
+        super(uriInfo, request, httpHeaders, mediaTypes, uri, endpoint, accept, mode, system.getExternalClient(), httpServletRequest);
         this.uriInfo = uriInfo;
         this.application = application;
         this.service = service.get();
@@ -168,13 +171,27 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
     }
     
     /**
+     * Gets a request invocation builder for the given target.
+     * 
+     * @param target web target
+     * @return invocation builder
+     */
+    @Override
+    public Invocation.Builder getBuilder(WebTarget target)
+    {
+        return target.request(getReadableMediaTypes()).
+            header(HttpHeaders.USER_AGENT, getUserAgentHeaderValue());
+    }
+    
+    /**
      * Forwards <code>GET</code> request and returns response from remote resource.
      * 
      * @param target target URI
+     * @param builder invocation builder
      * @return response
      */
     @Override
-    public Response get(WebTarget target)
+    public Response get(WebTarget target, Invocation.Builder builder)
     {
         // check if we have the model in the cache first and if yes, return it from there instead making an HTTP request
         if (((FileManager)getDataManager()).hasCachedModel(target.getUri().toString()) ||
@@ -185,7 +202,7 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
             return getResponse(getDataManager().loadModel(target.getUri().toString()));
         }
 
-        return super.get(target);
+        return super.get(target, builder);
     }
     
     /**
@@ -330,6 +347,16 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
     public com.atomgraph.linkeddatahub.Application getSystem()
     {
         return system;
+    }
+    
+    /**
+     * Returns the value of the <code>User-Agent</code> request header.
+     * 
+     * @return header value
+     */
+    public String getUserAgentHeaderValue()
+    {
+        return USER_AGENT;
     }
     
 }
