@@ -180,7 +180,7 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
     public Invocation.Builder getBuilder(WebTarget target)
     {
         return target.request(getReadableMediaTypes()).
-            header(HttpHeaders.USER_AGENT, USER_AGENT);
+            header(HttpHeaders.USER_AGENT, getUserAgentHeaderValue());
     }
     
     /**
@@ -347,6 +347,16 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
     public com.atomgraph.linkeddatahub.Application getSystem()
     {
         return system;
+    }
+    
+    /**
+     * Returns the value of the <code>User-Agent</code> request header.
+     * 
+     * @return header value
+     */
+    public String getUserAgentHeaderValue()
+    {
+        return USER_AGENT;
     }
     
 }
