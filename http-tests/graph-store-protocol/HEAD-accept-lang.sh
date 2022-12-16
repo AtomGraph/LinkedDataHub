@@ -26,6 +26,6 @@ content_lang=$(curl -G --head -k -f -s -o /dev/null -D - \
   -H 'Accept-Language: es-ES,es;q=0.9,en-US;q=0.8,en;q=0.7' \
   --data-urlencode "accept=text/turtle" \
   "$END_USER_BASE_URL"\
-| tr -d '\r' | sed -En 's/^Content-Language: (.*)[^\n]$/\1/p')
+| tr -d '\r' | sed -En 's/^Content-Language: (.*)$/\1/p')
 
 [ "$content_lang" = 'es' ] || exit 1
