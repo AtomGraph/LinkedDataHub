@@ -113,7 +113,7 @@ public class Transform extends Add
             Resource queryRes = arg.getPropertyResourceValue(SPIN.query);
             if (queryRes == null) throw new BadRequestException("Transformation query string (spin:query) not provided");
 
-            LinkedDataClient ldc = LinkedDataClient.create(getSystem().getExternalClient(), getSystem().getMediaTypes()).
+            LinkedDataClient ldc = LinkedDataClient.create(getSystem().getClient(), getSystem().getMediaTypes()).
                 delegation(getUriInfo().getBaseUri(), getAgentContext().orElse(null));
             QueryLoader queryLoader = new QueryLoader(URI.create(queryRes.getURI()), getApplication().getBase().getURI(), Syntax.syntaxARQ, ldc);
             Query query = queryLoader.get();

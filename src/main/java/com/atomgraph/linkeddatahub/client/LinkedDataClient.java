@@ -25,6 +25,8 @@ import com.atomgraph.linkeddatahub.server.security.WebIDSecurityContext;
 import java.net.URI;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,6 +39,8 @@ public class LinkedDataClient extends com.atomgraph.core.client.LinkedDataClient
 {
 
     private static final Logger log = LoggerFactory.getLogger(LinkedDataClient.class);
+
+    public final static String USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:107.0) Gecko/20100101 Firefox/107.0"; // impersonate Firefox
 
     private URI baseURI;
     private AgentContext agentContext;
@@ -111,6 +115,22 @@ public class LinkedDataClient extends com.atomgraph.core.client.LinkedDataClient
     }
     
     /**
+     * Executes HTTP <code>GET</code> request.
+     * Sends <code>User-Agent</code> header to impersonate a web browser.
+     * 
+     * @param uri request URI
+     * @param acceptedTypes accepted media types
+     * @return response
+     */
+    @Override
+    public Response get(URI uri, javax.ws.rs.core.MediaType[] acceptedTypes)
+    {
+        return getWebTarget(uri).request(acceptedTypes).
+            header(HttpHeaders.USER_AGENT, getUserAgentHeaderValue()).
+            get();
+    }
+    
+    /**
      * Returns the application's base URI.
      * 
      * @return base URI
@@ -128,6 +148,16 @@ public class LinkedDataClient extends com.atomgraph.core.client.LinkedDataClient
     public AgentContext getAgentContext()
     {
         return agentContext;
+    }
+    
+    /**
+     * Returns the value of the <code>User-Agent</code> request header.
+     * 
+     * @return header value
+     */
+    public String getUserAgentHeaderValue()
+    {
+        return USER_AGENT;
     }
     
 }

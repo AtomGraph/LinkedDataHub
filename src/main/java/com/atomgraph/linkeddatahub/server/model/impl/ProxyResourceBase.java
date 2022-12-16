@@ -20,6 +20,7 @@ import com.atomgraph.client.MediaTypes;
 import com.atomgraph.client.util.DataManager;
 import com.atomgraph.client.vocabulary.AC;
 import com.atomgraph.linkeddatahub.apps.model.Dataset;
+import com.atomgraph.linkeddatahub.client.LinkedDataClient;
 import com.atomgraph.linkeddatahub.client.filter.auth.IDTokenDelegationFilter;
 import com.atomgraph.linkeddatahub.client.filter.auth.WebIDDelegationFilter;
 import com.atomgraph.linkeddatahub.model.Service;
@@ -67,8 +68,6 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
 {
 
     private static final Logger log = LoggerFactory.getLogger(ProxyResourceBase.class);
-
-    private final static String USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:107.0) Gecko/20100101 Firefox/107.0"; // impersonate Firefox
 
     private final UriInfo uriInfo;
     private final ContainerRequestContext crc;
@@ -356,7 +355,7 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
      */
     public String getUserAgentHeaderValue()
     {
-        return USER_AGENT;
+        return LinkedDataClient.USER_AGENT;
     }
     
 }
