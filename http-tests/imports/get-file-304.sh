@@ -16,7 +16,7 @@ etag=$(
     -H "Accept: text/csv" \
   "$file" \
 | grep 'ETag' \
-| sed -En 's/^ETag: (.*)/\1/p')
+| sed -En 's/^ETag: (.*)[^\n]$/\1/p')
 
 popd > /dev/null
 

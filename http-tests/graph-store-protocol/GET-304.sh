@@ -26,7 +26,7 @@ curl -k -f -s -I -G \
   -H "Accept: application/n-triples" \
   "$END_USER_BASE_URL" \
 | grep 'ETag' \
-| sed -En 's/^ETag: (.*)/\1/p')
+| sed -En 's/^ETag: (.*)[^\n]$/\1/p')
 
 curl -k -w "%{http_code}\n" -o /dev/null -f -s -G \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
