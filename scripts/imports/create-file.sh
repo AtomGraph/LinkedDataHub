@@ -167,7 +167,4 @@ if [ -n "$file_slug" ] ; then
 fi
 
 # POST RDF/POST multipart form from stdin to the server
-location=$(echo -e "$rdf_post" | curl -s -k -H "Accept: text/turtle" -E "$cert_pem_file":"$cert_password" --config - "$target" -v -D - | tr -d '\r' | sed -En 's/^Location: (.*)$/\1/p')
-echo "====================="
-echo "$location" | cat -v
-echo "====================="
+echo -e "$rdf_post" | curl -s -k -H "Accept: text/turtle" -E "$cert_pem_file":"$cert_password" --config - "$target" -v -D - | tr -d '\r' | sed -En 's/^Location: (.*)$/\1/p'
