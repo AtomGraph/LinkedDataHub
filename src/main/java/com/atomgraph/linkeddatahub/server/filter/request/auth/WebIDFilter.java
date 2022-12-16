@@ -36,8 +36,8 @@ import java.security.cert.X509Certificate;
 import java.security.interfaces.RSAPublicKey;
 import java.util.ArrayList;
 import java.util.List;
-import javax.annotation.PostConstruct;
-import javax.annotation.Priority;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.Priority;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.ws.rs.Priorities;
 import jakarta.ws.rs.ProcessingException;
@@ -184,7 +184,7 @@ public class WebIDFilter extends AuthenticationFilter
      */
     public X509Certificate getWebIDCertificate(ContainerRequestContext request) throws URISyntaxException, CertificateException, CertificateParsingException
     {
-        X509Certificate[] certs = (X509Certificate[])getHttpServletRequest().getAttribute("javax.servlet.request.X509Certificate");
+        X509Certificate[] certs = (X509Certificate[])getHttpServletRequest().getAttribute("jakarta.servlet.request.X509Certificate");
 
         for (X509Certificate cert : certs)
             if (getWebIDURI(cert) != null) return cert;

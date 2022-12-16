@@ -19,7 +19,7 @@ package com.atomgraph.linkeddatahub.server.filter.request;
 import com.atomgraph.linkeddatahub.server.exception.PayloadTooLargeException;
 import com.atomgraph.linkeddatahub.server.util.stream.RejectTooLargeInputStream;
 import java.io.IOException;
-import javax.annotation.Priority;
+import jakarta.annotation.Priority;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.HttpMethod;
 import jakarta.ws.rs.container.ContainerRequestContext;

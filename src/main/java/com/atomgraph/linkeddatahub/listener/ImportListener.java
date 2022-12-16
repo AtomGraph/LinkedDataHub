@@ -18,8 +18,8 @@ package com.atomgraph.linkeddatahub.listener;
 
 import com.atomgraph.linkeddatahub.vocabulary.LDHC;
 import java.util.concurrent.ExecutorService;
-import javax.servlet.ServletContextEvent;
-import javax.servlet.ServletContextListener;
+import jakarta.servlet.ServletContextEvent;
+import jakarta.servlet.ServletContextListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

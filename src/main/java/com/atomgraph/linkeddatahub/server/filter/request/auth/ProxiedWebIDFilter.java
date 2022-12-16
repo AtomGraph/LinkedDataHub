@@ -24,7 +24,7 @@ import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.CertificateParsingException;
 import java.security.cert.X509Certificate;
-import javax.annotation.Priority;
+import jakarta.annotation.Priority;
 import jakarta.ws.rs.InternalServerErrorException;
 import jakarta.ws.rs.Priorities;
 import jakarta.ws.rs.container.ContainerRequestContext;

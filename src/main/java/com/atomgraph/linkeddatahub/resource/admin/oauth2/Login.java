@@ -52,7 +52,7 @@ import java.util.regex.Pattern;
 import jakarta.inject.Inject;
 import jakarta.json.JsonObject;
 import jakarta.mail.MessagingException;
-import javax.servlet.ServletConfig;
+import jakarta.servlet.ServletConfig;
 import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.DefaultValue;
 import jakarta.ws.rs.GET;

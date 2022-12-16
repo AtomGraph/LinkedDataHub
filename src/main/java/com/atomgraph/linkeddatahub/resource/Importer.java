@@ -32,7 +32,7 @@ import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import java.net.URI;
 import java.util.Optional;
 import jakarta.inject.Inject;
-import javax.servlet.ServletConfig;
+import jakarta.servlet.ServletConfig;
 import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.DefaultValue;
 import jakarta.ws.rs.GET;

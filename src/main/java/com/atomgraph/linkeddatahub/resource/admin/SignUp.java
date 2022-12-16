@@ -62,7 +62,7 @@ import java.util.Optional;
 import java.util.UUID;
 import jakarta.inject.Inject;
 import jakarta.mail.MessagingException;
-import javax.servlet.ServletConfig;
+import jakarta.servlet.ServletConfig;
 import jakarta.ws.rs.DefaultValue;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;

@@ -24,7 +24,7 @@ import java.io.IOException;
 import java.util.GregorianCalendar;
 import java.util.Optional;
 import java.util.UUID;
-import javax.annotation.Priority;
+import jakarta.annotation.Priority;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.HttpMethod;
 import jakarta.ws.rs.Priorities;
