@@ -16,8 +16,8 @@
  */
 package com.atomgraph.linkeddatahub.server.exception;
 
-import javax.ws.rs.ClientErrorException;
-import javax.ws.rs.core.Response;
+import jakarta.ws.rs.ClientErrorException;
+import jakarta.ws.rs.core.Response;
 
 /**
  * Exception thrown when the request body is larger than the configured maximum limit.

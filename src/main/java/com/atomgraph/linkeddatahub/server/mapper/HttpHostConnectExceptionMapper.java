@@ -18,9 +18,9 @@ package com.atomgraph.linkeddatahub.server.mapper;
 
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.server.mapper.ExceptionMapperBase;
-import javax.inject.Inject;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.ext.ExceptionMapper;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.ext.ExceptionMapper;
 import org.apache.http.conn.HttpHostConnectException;
 import org.apache.jena.rdf.model.ResourceFactory;
 

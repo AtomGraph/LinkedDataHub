@@ -16,13 +16,13 @@
  */
 package com.atomgraph.linkeddatahub.server.mapper;
 
-import javax.ws.rs.core.Response;
-import javax.ws.rs.ext.ExceptionMapper;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.ext.ExceptionMapper;
 import org.apache.jena.rdf.model.ResourceFactory;
 import com.atomgraph.server.mapper.ExceptionMapperBase;
 import com.atomgraph.client.exception.OntClassNotFoundException;
 import com.atomgraph.core.MediaTypes;
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 /**
  * JAX-RS mapper for missing ontology class exceptions.

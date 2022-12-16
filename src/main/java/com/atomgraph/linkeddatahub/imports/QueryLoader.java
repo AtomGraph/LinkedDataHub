@@ -20,7 +20,7 @@ import com.atomgraph.core.client.LinkedDataClient;
 import com.atomgraph.spinrdf.vocabulary.SP;
 import java.net.URI;
 import java.util.function.Supplier;
-import javax.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response;
 import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryFactory;
 import org.apache.jena.query.Syntax;

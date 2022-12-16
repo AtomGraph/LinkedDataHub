@@ -19,9 +19,9 @@ package com.atomgraph.linkeddatahub.server.model.impl;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.model.Service;
 import java.util.Optional;
-import javax.inject.Inject;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.Request;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.Request;
 
 /**
  * LinkedDataHub SPARQL endpoint implementation.

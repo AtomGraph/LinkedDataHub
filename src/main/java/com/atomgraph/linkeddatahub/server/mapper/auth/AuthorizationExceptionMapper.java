@@ -21,19 +21,19 @@ import static com.atomgraph.linkeddatahub.apps.model.AdminApplication.REQUEST_AC
 import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import org.apache.jena.rdf.model.ResourceFactory;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.ext.ExceptionMapper;
-import javax.ws.rs.ext.Provider;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.ext.ExceptionMapper;
+import jakarta.ws.rs.ext.Provider;
 import com.atomgraph.linkeddatahub.server.exception.auth.AuthorizationException;
 import com.atomgraph.linkeddatahub.vocabulary.LACL;
 import com.atomgraph.server.mapper.ExceptionMapperBase;
 import com.atomgraph.server.vocabulary.HTTP;
 import java.net.URI;
-import javax.inject.Inject;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.EntityTag;
-import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.core.UriBuilder;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.EntityTag;
+import jakarta.ws.rs.core.SecurityContext;
+import jakarta.ws.rs.core.UriBuilder;
 import org.apache.jena.rdf.model.Resource;
 
 /**
@@ -46,7 +46,7 @@ public class AuthorizationExceptionMapper extends ExceptionMapperBase implements
 {
     
     @Context SecurityContext securityContext;
-    @Inject javax.inject.Provider<com.atomgraph.linkeddatahub.apps.model.Application> application;
+    @Inject jakarta.inject.Provider<com.atomgraph.linkeddatahub.apps.model.Application> application;
 
     /**
      * Constructs mapper from media types.

@@ -38,15 +38,15 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.PostConstruct;
 import javax.annotation.Priority;
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.Priorities;
-import javax.ws.rs.ProcessingException;
-import javax.ws.rs.client.Client;
-import javax.ws.rs.container.ContainerRequestContext;
-import javax.ws.rs.container.PreMatching;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.ws.rs.Priorities;
+import jakarta.ws.rs.ProcessingException;
+import jakarta.ws.rs.client.Client;
+import jakarta.ws.rs.container.ContainerRequestContext;
+import jakarta.ws.rs.container.PreMatching;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.SecurityContext;
 import org.apache.jena.datatypes.xsd.XSDDatatype;
 import org.apache.jena.query.ParameterizedSparqlString;
 import org.apache.jena.query.QueryExecution;
@@ -76,7 +76,7 @@ public class WebIDFilter extends AuthenticationFilter
     public static final int SAN_URI_NAME = 6;
     
     private final MediaTypes mediaTypes = new MediaTypes();
-    private final javax.ws.rs.core.MediaType[] acceptedTypes;
+    private final jakarta.ws.rs.core.MediaType[] acceptedTypes;
     
     @Context HttpServletRequest httpServletRequest;
 
@@ -88,9 +88,9 @@ public class WebIDFilter extends AuthenticationFilter
     public WebIDFilter()
     {
         super();
-        List<javax.ws.rs.core.MediaType> acceptedTypeList = new ArrayList();
+        List<jakarta.ws.rs.core.MediaType> acceptedTypeList = new ArrayList();
         acceptedTypeList.addAll(mediaTypes.getReadable(Model.class));
-        acceptedTypes = acceptedTypeList.toArray(javax.ws.rs.core.MediaType[]::new); 
+        acceptedTypes = acceptedTypeList.toArray(jakarta.ws.rs.core.MediaType[]::new); 
     }
     
     /**
@@ -360,7 +360,7 @@ public class WebIDFilter extends AuthenticationFilter
      * 
      * @return readable media types
      */
-    public javax.ws.rs.core.MediaType[] getAcceptableMediaTypes()
+    public jakarta.ws.rs.core.MediaType[] getAcceptableMediaTypes()
     {
         return acceptedTypes;
     }

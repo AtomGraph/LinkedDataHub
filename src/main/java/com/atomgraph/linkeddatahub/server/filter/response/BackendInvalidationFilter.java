@@ -22,15 +22,15 @@ import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import java.io.IOException;
 import java.net.URI;
 import javax.annotation.Priority;
-import javax.inject.Inject;
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.Priorities;
-import javax.ws.rs.client.Client;
-import javax.ws.rs.container.ContainerRequestContext;
-import javax.ws.rs.container.ContainerResponseContext;
-import javax.ws.rs.container.ContainerResponseFilter;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.Response;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.HttpMethod;
+import jakarta.ws.rs.Priorities;
+import jakarta.ws.rs.client.Client;
+import jakarta.ws.rs.container.ContainerRequestContext;
+import jakarta.ws.rs.container.ContainerResponseContext;
+import jakarta.ws.rs.container.ContainerResponseFilter;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.Response;
 import org.apache.jena.rdf.model.Resource;
 import org.glassfish.jersey.uri.UriComponent;
 
@@ -50,7 +50,7 @@ public class BackendInvalidationFilter implements ContainerResponseFilter
     public static final String HEADER_NAME = "X-Escaped-Request-URI";
     
     @Inject com.atomgraph.linkeddatahub.Application system;
-    @Inject javax.inject.Provider<com.atomgraph.linkeddatahub.apps.model.Application> app;
+    @Inject jakarta.inject.Provider<com.atomgraph.linkeddatahub.apps.model.Application> app;
     
     @Override
     public void filter(ContainerRequestContext req, ContainerResponseContext resp) throws IOException

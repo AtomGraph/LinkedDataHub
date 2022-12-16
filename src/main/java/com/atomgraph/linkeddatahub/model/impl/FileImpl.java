@@ -18,7 +18,7 @@ package com.atomgraph.linkeddatahub.model.impl;
 
 import com.atomgraph.linkeddatahub.model.File;
 import com.atomgraph.linkeddatahub.vocabulary.NFO;
-import javax.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MediaType;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.enhanced.EnhNode;
 import org.apache.jena.enhanced.Implementation;

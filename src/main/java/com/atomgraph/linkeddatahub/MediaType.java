@@ -115,7 +115,7 @@ public class MediaType extends com.atomgraph.client.MediaType
      * @param mediaType media type
      * @return RDF resource
      */
-    public static Resource toResource(javax.ws.rs.core.MediaType mediaType)
+    public static Resource toResource(jakarta.ws.rs.core.MediaType mediaType)
     {
         return ResourceFactory.createResource(toURI(mediaType).toString());
     }
@@ -126,7 +126,7 @@ public class MediaType extends com.atomgraph.client.MediaType
      * @param mediaType media type
      * @return media type URI
      */
-    public static URI toURI(javax.ws.rs.core.MediaType mediaType)
+    public static URI toURI(jakarta.ws.rs.core.MediaType mediaType)
     {
         return URI.create(NS).resolve(URI.create(mediaType.toString()));
     }
@@ -137,7 +137,7 @@ public class MediaType extends com.atomgraph.client.MediaType
      * @param resource RDF resource
      * @return JAX-RS media type
      */
-    public static javax.ws.rs.core.MediaType valueOf(Resource resource)
+    public static jakarta.ws.rs.core.MediaType valueOf(Resource resource)
     {
         return valueOf(URI.create(resource.getURI()));
     }
@@ -148,7 +148,7 @@ public class MediaType extends com.atomgraph.client.MediaType
      * @param uri media type's URI
      * @return JAX-RS media type
      */
-    public static javax.ws.rs.core.MediaType valueOf(URI uri)
+    public static jakarta.ws.rs.core.MediaType valueOf(URI uri)
     {
         return valueOf(URI.create(NS).relativize(uri).toString());
     }

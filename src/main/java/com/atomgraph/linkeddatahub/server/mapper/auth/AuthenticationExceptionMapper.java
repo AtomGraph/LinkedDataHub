@@ -19,14 +19,14 @@ package com.atomgraph.linkeddatahub.server.mapper.auth;
 import com.atomgraph.core.MediaTypes;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ResourceFactory;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.ResponseBuilder;
-import javax.ws.rs.core.Response.Status;
-import javax.ws.rs.ext.ExceptionMapper;
-import javax.ws.rs.ext.Provider;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response.ResponseBuilder;
+import jakarta.ws.rs.core.Response.Status;
+import jakarta.ws.rs.ext.ExceptionMapper;
+import jakarta.ws.rs.ext.Provider;
 import com.atomgraph.server.mapper.ExceptionMapperBase;
-import javax.inject.Inject;
-import javax.ws.rs.NotAuthorizedException;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.NotAuthorizedException;
 
 /**
  * JAX-RS mapper for authentication exceptions.

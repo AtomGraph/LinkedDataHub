@@ -25,11 +25,11 @@ import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import java.io.IOException;
 import java.util.Optional;
 import javax.annotation.Nullable;
-import javax.inject.Inject;
-import javax.ws.rs.container.ContainerRequestContext;
-import javax.ws.rs.container.ContainerRequestFilter;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.container.ContainerRequestContext;
+import jakarta.ws.rs.container.ContainerRequestFilter;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.SecurityContext;
 import org.apache.jena.query.ParameterizedSparqlString;
 import org.apache.jena.query.QuerySolutionMap;
 import org.apache.jena.rdf.model.Model;
@@ -54,8 +54,8 @@ public abstract class AuthenticationFilter implements ContainerRequestFilter
     public static final String ON_BEHALF_OF = "On-Behalf-Of";
     
     @Inject com.atomgraph.linkeddatahub.Application system;
-    @Inject javax.inject.Provider<com.atomgraph.linkeddatahub.apps.model.Application> app;
-    @Inject javax.inject.Provider<Optional<com.atomgraph.linkeddatahub.apps.model.Dataset>> dataset;
+    @Inject jakarta.inject.Provider<com.atomgraph.linkeddatahub.apps.model.Application> app;
+    @Inject jakarta.inject.Provider<Optional<com.atomgraph.linkeddatahub.apps.model.Dataset>> dataset;
 
     /**
      * Returns authentication scheme ID.

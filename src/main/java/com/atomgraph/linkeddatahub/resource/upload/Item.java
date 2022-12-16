@@ -20,12 +20,12 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.net.URI;
 import java.util.List;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.Request;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.ResponseBuilder;
-import javax.ws.rs.core.Variant;
-import javax.ws.rs.ext.Providers;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.Request;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response.ResponseBuilder;
+import jakarta.ws.rs.core.Variant;
+import jakarta.ws.rs.ext.Providers;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.io.FileRangeOutput;
@@ -36,18 +36,18 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.Optional;
 import javax.annotation.PostConstruct;
-import javax.inject.Inject;
-import javax.ws.rs.DefaultValue;
-import javax.ws.rs.GET;
-import javax.ws.rs.NotAcceptableException;
-import javax.ws.rs.NotFoundException;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.EntityTag;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.Response.Status;
-import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.core.UriInfo;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.DefaultValue;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.NotAcceptableException;
+import jakarta.ws.rs.NotFoundException;
+import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.core.EntityTag;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.Response.Status;
+import jakarta.ws.rs.core.SecurityContext;
+import jakarta.ws.rs.core.UriInfo;
 import org.apache.jena.ontology.Ontology;
 import org.apache.jena.query.QueryFactory;
 import org.apache.jena.rdf.model.Model;
@@ -261,7 +261,7 @@ public class Item extends GraphStoreImpl
      * 
      * @return media type
      */
-    public javax.ws.rs.core.MediaType getMediaType()
+    public jakarta.ws.rs.core.MediaType getMediaType()
     {
         Resource format = getResource().getPropertyResourceValue(DCTerms.format);
         if (format == null)
@@ -274,9 +274,9 @@ public class Item extends GraphStoreImpl
     }
     
     @Override
-    public List<javax.ws.rs.core.MediaType> getWritableMediaTypes(Class clazz)
+    public List<jakarta.ws.rs.core.MediaType> getWritableMediaTypes(Class clazz)
     {
-        List<javax.ws.rs.core.MediaType> list = new ArrayList<>();
+        List<jakarta.ws.rs.core.MediaType> list = new ArrayList<>();
         list.add(getMediaType());
 
         return list;

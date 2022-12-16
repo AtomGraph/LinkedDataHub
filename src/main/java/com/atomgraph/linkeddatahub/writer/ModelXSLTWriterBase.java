@@ -50,13 +50,13 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import javax.inject.Inject;
-import javax.ws.rs.container.ContainerRequestContext;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.EntityTag;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.SecurityContext;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.container.ContainerRequestContext;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.EntityTag;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.core.SecurityContext;
 import javax.xml.transform.Source;
 import javax.xml.transform.TransformerException;
 import net.sf.saxon.s9api.QName;
@@ -95,12 +95,12 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
     @Context SecurityContext securityContext;
 
     @Inject com.atomgraph.linkeddatahub.Application system;
-    @Inject javax.inject.Provider<com.atomgraph.linkeddatahub.apps.model.Application> application;
-    @Inject javax.inject.Provider<DataManager> dataManager;
-    @Inject javax.inject.Provider<XsltExecutableSupplier> xsltExecSupplier;
-    @Inject javax.inject.Provider<List<Mode>> modes;
-    @Inject javax.inject.Provider<ContainerRequestContext> crc;
-    @Inject javax.inject.Provider<Optional<AuthorizationContext>> authorizationContext;
+    @Inject jakarta.inject.Provider<com.atomgraph.linkeddatahub.apps.model.Application> application;
+    @Inject jakarta.inject.Provider<DataManager> dataManager;
+    @Inject jakarta.inject.Provider<XsltExecutableSupplier> xsltExecSupplier;
+    @Inject jakarta.inject.Provider<List<Mode>> modes;
+    @Inject jakarta.inject.Provider<ContainerRequestContext> crc;
+    @Inject jakarta.inject.Provider<Optional<AuthorizationContext>> authorizationContext;
 
     private final MessageDigest messageDigest;
     
@@ -270,9 +270,9 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
     @Override
     public URI getLinkURI(MultivaluedMap<String, Object> headerMap, ObjectProperty property)
     {
-        if (headerMap.get(javax.ws.rs.core.HttpHeaders.LINK) == null) return null;
+        if (headerMap.get(jakarta.ws.rs.core.HttpHeaders.LINK) == null) return null;
         
-        List<String> linkTokens = Arrays.asList(headerMap.get(javax.ws.rs.core.HttpHeaders.LINK).get(0).toString().split(","));
+        List<String> linkTokens = Arrays.asList(headerMap.get(jakarta.ws.rs.core.HttpHeaders.LINK).get(0).toString().split(","));
         
         List<URI> baseLinks = linkTokens.stream().
             map((String header) ->
@@ -333,7 +333,7 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
      * 
      * @return provider
      */
-    public javax.inject.Provider<DataManager> getDataManagerProvider()
+    public jakarta.inject.Provider<DataManager> getDataManagerProvider()
     {
         return dataManager;
     }
@@ -386,7 +386,7 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
      * 
      * @return provider
      */
-    public javax.inject.Provider<com.atomgraph.linkeddatahub.apps.model.Application> getApplication()
+    public jakarta.inject.Provider<com.atomgraph.linkeddatahub.apps.model.Application> getApplication()
     {
         return application;
     }
@@ -396,7 +396,7 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
      * 
      * @return optional authorizationContext
      */
-    public javax.inject.Provider<Optional<AuthorizationContext>> getAuthorizationContext()
+    public jakarta.inject.Provider<Optional<AuthorizationContext>> getAuthorizationContext()
     {
         return authorizationContext;
     }

@@ -19,7 +19,7 @@ package com.atomgraph.linkeddatahub.imports.stream.csv;
 import com.atomgraph.core.client.LinkedDataClient;
 import java.net.URI;
 import java.util.function.Supplier;
-import javax.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,7 +36,7 @@ public class ClientResponseSupplier implements Supplier<Response>
     private static final Logger log = LoggerFactory.getLogger(ClientResponseSupplier.class);
    
     private final LinkedDataClient ldc;
-    private final javax.ws.rs.core.MediaType[] mediaTypes;
+    private final jakarta.ws.rs.core.MediaType[] mediaTypes;
     private final URI uri;
 
     /**
@@ -46,7 +46,7 @@ public class ClientResponseSupplier implements Supplier<Response>
      * @param mediaTypes registry of media types
      * @param ldc Linked Data client
      */
-    public ClientResponseSupplier(LinkedDataClient ldc, javax.ws.rs.core.MediaType[] mediaTypes, URI uri)
+    public ClientResponseSupplier(LinkedDataClient ldc, jakarta.ws.rs.core.MediaType[] mediaTypes, URI uri)
     {
         this.ldc = ldc;
         this.mediaTypes = mediaTypes;
@@ -87,7 +87,7 @@ public class ClientResponseSupplier implements Supplier<Response>
      * 
      * @return media type array or null
      */
-    public javax.ws.rs.core.MediaType[] getMediaTypes()
+    public jakarta.ws.rs.core.MediaType[] getMediaTypes()
     {
         return mediaTypes;
     }

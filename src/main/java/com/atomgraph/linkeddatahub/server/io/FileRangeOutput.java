@@ -18,8 +18,8 @@ package com.atomgraph.linkeddatahub.server.io;
 
 import com.google.common.io.ByteStreams;
 
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.StreamingOutput;
+import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.core.StreamingOutput;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;

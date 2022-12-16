@@ -25,12 +25,12 @@ import java.util.GregorianCalendar;
 import java.util.Optional;
 import java.util.UUID;
 import javax.annotation.Priority;
-import javax.inject.Inject;
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.Priorities;
-import javax.ws.rs.container.ContainerRequestContext;
-import javax.ws.rs.container.ContainerResponseContext;
-import javax.ws.rs.container.ContainerResponseFilter;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.HttpMethod;
+import jakarta.ws.rs.Priorities;
+import jakarta.ws.rs.container.ContainerRequestContext;
+import jakarta.ws.rs.container.ContainerResponseContext;
+import jakarta.ws.rs.container.ContainerResponseFilter;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Resource;
@@ -50,7 +50,7 @@ public class ProvenanceFilter implements ContainerResponseFilter
     
     private static final Logger log = LoggerFactory.getLogger(ProvenanceFilter.class);
 
-    @Inject javax.inject.Provider<Optional<Service>> service;
+    @Inject jakarta.inject.Provider<Optional<Service>> service;
 
     @Override
     public void filter(ContainerRequestContext request, ContainerResponseContext response)throws IOException

@@ -17,7 +17,7 @@
 package com.atomgraph.linkeddatahub.server.security;
 
 import com.atomgraph.linkeddatahub.model.auth.Agent;
-import javax.ws.rs.core.SecurityContext;
+import jakarta.ws.rs.core.SecurityContext;
 import java.security.Principal;
 import org.apache.jena.sparql.vocabulary.FOAF;
 import org.slf4j.Logger;

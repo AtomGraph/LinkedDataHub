@@ -23,10 +23,10 @@ import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.server.security.IDTokenSecurityContext;
 import com.atomgraph.linkeddatahub.server.security.WebIDSecurityContext;
 import java.net.URI;
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.Response;
+import jakarta.ws.rs.client.Client;
+import jakarta.ws.rs.client.WebTarget;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -123,7 +123,7 @@ public class LinkedDataClient extends com.atomgraph.core.client.LinkedDataClient
      * @return response
      */
     @Override
-    public Response get(URI uri, javax.ws.rs.core.MediaType[] acceptedTypes)
+    public Response get(URI uri, jakarta.ws.rs.core.MediaType[] acceptedTypes)
     {
         return getWebTarget(uri).request(acceptedTypes).
             header(HttpHeaders.USER_AGENT, getUserAgentHeaderValue()).

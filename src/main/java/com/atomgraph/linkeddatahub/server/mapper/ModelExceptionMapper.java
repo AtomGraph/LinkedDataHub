@@ -17,12 +17,12 @@
 package com.atomgraph.linkeddatahub.server.mapper;
 
 import com.atomgraph.core.MediaTypes;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.Response;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.Response;
 import com.atomgraph.server.exception.ModelException;
 import com.atomgraph.server.model.QueriedResource;
-import javax.inject.Inject;
-import javax.ws.rs.container.ResourceContext;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.container.ResourceContext;
 
 /**
  * JAX-RS mapper for model exceptions.

@@ -33,8 +33,8 @@ import org.apache.jena.vocabulary.RDF;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.UriInfo;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.UriInfo;
 import org.apache.jena.rdfxml.xmloutput.impl.Basic;
 import org.apache.jena.riot.Lang;
 import com.atomgraph.processor.vocabulary.SIOC;
@@ -53,9 +53,9 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import javax.inject.Inject;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.SecurityContext;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.SecurityContext;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.jena.rdf.model.RDFWriterI;
 import org.apache.jena.rdf.model.Statement;
@@ -79,9 +79,9 @@ public class ValidatingModelProvider extends com.atomgraph.server.io.ValidatingM
     @Context UriInfo uriInfo;
     @Context SecurityContext securityContext;
 
-    @Inject javax.inject.Provider<com.atomgraph.linkeddatahub.apps.model.Application> application;
+    @Inject jakarta.inject.Provider<com.atomgraph.linkeddatahub.apps.model.Application> application;
     @Inject com.atomgraph.linkeddatahub.Application system;
-    @Inject javax.inject.Provider<Optional<AgentContext>> agentContextProvider;
+    @Inject jakarta.inject.Provider<Optional<AgentContext>> agentContextProvider;
 
     private final MessageDigest messageDigest;
 
@@ -372,7 +372,7 @@ public class ValidatingModelProvider extends com.atomgraph.server.io.ValidatingM
      * 
      * @return provider
      */
-    public javax.inject.Provider<Optional<AgentContext>> getAgentContextProvider()
+    public jakarta.inject.Provider<Optional<AgentContext>> getAgentContextProvider()
     {
         return agentContextProvider;
     }

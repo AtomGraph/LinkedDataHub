@@ -20,7 +20,7 @@ import com.atomgraph.client.vocabulary.LDT;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.processor.exception.OntologyException;
-import javax.ws.rs.client.Client;
+import jakarta.ws.rs.client.Client;
 import org.apache.jena.ontology.OntModelSpec;
 import org.apache.jena.query.ParameterizedSparqlString;
 import org.apache.jena.query.Query;

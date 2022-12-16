@@ -17,7 +17,7 @@
 package com.atomgraph.linkeddatahub.server.exception.auth.webid;
 
 import java.net.URI;
-import javax.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response;
 
 /**
  * 

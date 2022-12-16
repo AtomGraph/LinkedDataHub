@@ -32,12 +32,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import javax.annotation.Priority;
-import javax.inject.Inject;
-import javax.ws.rs.Priorities;
-import javax.ws.rs.container.ContainerRequestContext;
-import javax.ws.rs.container.ContainerResponseContext;
-import javax.ws.rs.container.ContainerResponseFilter;
-import javax.ws.rs.core.HttpHeaders;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.Priorities;
+import jakarta.ws.rs.container.ContainerRequestContext;
+import jakarta.ws.rs.container.ContainerResponseContext;
+import jakarta.ws.rs.container.ContainerResponseFilter;
+import jakarta.ws.rs.core.HttpHeaders;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,9 +52,9 @@ public class ResponseHeaderFilter implements ContainerResponseFilter
 
     private static final Logger log = LoggerFactory.getLogger(ResponseHeaderFilter.class);
 
-    @Inject javax.inject.Provider<Application> app;
-    @Inject javax.inject.Provider<Optional<Dataset>> dataset;
-    @Inject javax.inject.Provider<Optional<AuthorizationContext>> authorizationContext;
+    @Inject jakarta.inject.Provider<Application> app;
+    @Inject jakarta.inject.Provider<Optional<Dataset>> dataset;
+    @Inject jakarta.inject.Provider<Optional<AuthorizationContext>> authorizationContext;
 
     @Override
     public void filter(ContainerRequestContext request, ContainerResponseContext response)throws IOException

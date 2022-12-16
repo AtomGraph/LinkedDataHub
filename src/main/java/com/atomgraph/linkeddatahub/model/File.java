@@ -16,7 +16,7 @@
  */
 package com.atomgraph.linkeddatahub.model;
 
-import javax.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MediaType;
 import org.apache.jena.rdf.model.Resource;
 
 /**
