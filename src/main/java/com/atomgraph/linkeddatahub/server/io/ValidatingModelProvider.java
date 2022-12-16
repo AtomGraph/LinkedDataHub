@@ -35,7 +35,6 @@ import java.util.ArrayList;
 import java.util.List;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.UriInfo;
-import org.apache.jena.rdfxml.xmloutput.impl.Basic;
 import org.apache.jena.riot.Lang;
 import com.atomgraph.processor.vocabulary.SIOC;
 import com.atomgraph.server.exception.SPINConstraintViolationException;
@@ -56,10 +55,14 @@ import java.util.stream.Collectors;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.SecurityContext;
+import java.util.HashMap;
+import java.util.Map;
 import org.apache.commons.codec.binary.Hex;
-import org.apache.jena.rdf.model.RDFWriterI;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.rdf.model.StmtIterator;
+import org.apache.jena.riot.RDFFormat;
+import org.apache.jena.riot.RDFWriter;
+import org.apache.jena.riot.SysRIOT;
 import org.apache.jena.vocabulary.DCTerms;
 import org.apache.jena.vocabulary.OWL;
 import org.slf4j.Logger;
@@ -120,10 +123,16 @@ public class ValidatingModelProvider extends com.atomgraph.server.io.ValidatingM
         
         if (lang.equals(Lang.RDFXML)) // round-tripping RDF/XML with user input may contain invalid URIs
         {
-            //RDFWriter writer = model.getWriter(RDFLanguages.RDFXML.getName());
-            RDFWriterI writer = new Basic(); // workaround for Jena 3.0.1 bug: https://issues.apache.org/jira/browse/JENA-1168
-            writer.setProperty("allowBadURIs", true);
-            writer.write(model, os, null);
+            Map<String, Object> properties = new HashMap<>() ;
+            properties.put("allowBadURIs", "true"); // round-tripping RDF/POST with user input may contain invalid URIs
+            org.apache.jena.sparql.util.Context cxt = new org.apache.jena.sparql.util.Context();
+            cxt.set(SysRIOT.sysRdfWriterProperties, properties);
+        
+            RDFWriter.create().
+                format(RDFFormat.RDFXML_PLAIN).
+                context(cxt).
+                source(model).
+                output(os);
 
             return model;
         }
