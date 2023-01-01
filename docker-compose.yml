@@ -1,7 +1,7 @@
 version: "2.3"
 services:
   nginx:
-    image: atomgraph/nginx:d329ba2207773d849c41894408fc073dbe27e3b8
+    image: atomgraph/nginx:1.23.3
     mem_limit: 128m
     command: /bin/bash -c "envsubst '$$HTTPS_PORT $$UPSTREAM_SERVER $$UPSTREAM_HTTP_PORT $$SERVER_NAME $$SERVER_HTTPS_PORT $$SERVER_HTTP_PORT $$SERVER_CERT_FILE $$SERVER_KEY_FILE $$SSL_VERIFY_CLIENT $$MAX_BODY_SIZE $$SERVER_CLIENT_CERT_HTTPS_PORT' < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf && nginx -g 'daemon off;'"
     ports:
@@ -69,7 +69,7 @@ services:
       - ./src/main/webapp/static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2:/usr/local/tomcat/webapps/ROOT/static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2:ro
       - ./src/main/webapp/static/com/atomgraph/linkeddatahub/css/bootstrap.css:/usr/local/tomcat/webapps/ROOT/static/com/atomgraph/linkeddatahub/css/bootstrap.css
   fuseki-admin:
-    image: atomgraph/fuseki:9985c4edd850c9277d241f6edc0d883013713ad3
+    image: atomgraph/fuseki:4.6.1
     user: root # otherwise fuseki user does not have permissions to the mounted folder which is owner by root
     expose:
       - 3030
@@ -78,7 +78,7 @@ services:
       - ./data/admin:/fuseki/databases
     command: [ "--config", "/fuseki/config.ttl" ]
   fuseki-end-user:
-    image: atomgraph/fuseki:9985c4edd850c9277d241f6edc0d883013713ad3
+    image: atomgraph/fuseki:4.6.1
     user: root # otherwise the fuseki user does not have permissions to the mounted folder which is owner by root
     expose:
       - 3030
