@@ -310,6 +310,12 @@ WHERE
             <xsl:when test="dct:description">
                 <xsl:sequence select="dct:description/text()"/>
             </xsl:when>
+            <xsl:when test="schema1:description">
+                <xsl:sequence select="schema1:description/text()"/>
+            </xsl:when>
+            <xsl:when test="schema2:description">
+                <xsl:sequence select="schema2:description/text()"/>
+            </xsl:when>
         </xsl:choose>
     </xsl:template>
 
