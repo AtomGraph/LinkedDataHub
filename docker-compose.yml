@@ -66,8 +66,6 @@ services:
       - ./config/system-varnish.trig:/var/linkeddatahub/datasets/system.trig:ro
       - ./platform/datasets/admin.trig:/var/linkeddatahub/datasets/admin.trig:ro
       - ./platform/datasets/end-user.trig:/var/linkeddatahub/datasets/end-user.trig:ro
-      - ./src/main/webapp/static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2:/usr/local/tomcat/webapps/ROOT/static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2:ro
-      - ./src/main/webapp/static/com/atomgraph/linkeddatahub/css/bootstrap.css:/usr/local/tomcat/webapps/ROOT/static/com/atomgraph/linkeddatahub/css/bootstrap.css
   fuseki-admin:
     image: atomgraph/fuseki:4.6.1
     user: root # otherwise fuseki user does not have permissions to the mounted folder which is owner by root
