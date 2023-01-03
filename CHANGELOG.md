@@ -1,3 +1,11 @@
+## [4.0.0] - 2023-01-04
+### Changed
+- Upgraded dependencies to use Jersey 3.x and the Servlet 5 API. That required replacing `javax.*` dependencies with `jakarta.*`
+- Upgraded `atomgraph/nginx`, `atomgraph/letsencrypt-tomcat` and `atomgraph/varnish` base images
+- `docker-compose.yml` now uses image versions instead of hashes
+- Refactored `RDFXML2JSON-LD.xsl` converter uses the XSLT 3.0 JSON instructions instead of string concatenation
+- New `<acl/authorizations/public-namespace/#this>` authorization, separate from `<acl/authorizations/public/#this>`
+
 ## [3.3.2] - 2022-12-12
 ### Added
 - A separate HTTP client used only by the Linked Data client, to avoid sharing the connection pool with the main system client

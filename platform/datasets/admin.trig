@@ -447,6 +447,24 @@ WHERE
     <acl/authorizations/public/#this> a acl:Authorization ;
         rdfs:label "Public access" ;
         rdfs:comment "Allows non-authenticated access" ;
+        acl:mode acl:Read ;
+        acl:agentClass foaf:Agent, acl:AuthenticatedAgent .
+
+}
+
+# public namespace
+
+<acl/authorizations/public-namespace/>
+{
+
+    <acl/authorizations/public-namespace/> a dh:Item ;
+        sioc:has_container <acl/authorizations/> ;
+        dct:title "Public namespace access" ;
+        foaf:primaryTopic <acl/authorizations/public-namespace/#this> .
+
+    <acl/authorizations/public-namespace/#this> a acl:Authorization ;
+        rdfs:label "Public namespace access" ;
+        rdfs:comment "Allows non-authenticated access" ;
         acl:accessTo <../ns> ; # end-user ontologies are public
         acl:mode acl:Read, acl:Append ; # allow queries over GET as well as POST
         acl:agentClass foaf:Agent, acl:AuthenticatedAgent .
