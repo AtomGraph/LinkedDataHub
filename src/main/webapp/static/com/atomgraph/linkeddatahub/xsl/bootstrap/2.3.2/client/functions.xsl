@@ -8,6 +8,7 @@
     <!ENTITY srx    "http://www.w3.org/2005/sparql-results#">
     <!ENTITY acl    "http://www.w3.org/ns/auth/acl#">
     <!ENTITY ldt    "https://www.w3.org/ns/ldt#">
+    <!ENTITY sd     "http://www.w3.org/ns/sparql-service-description#">
     <!ENTITY sioc   "http://rdfs.org/sioc/ns#">
 ]>
 <xsl:stylesheet version="3.0"
@@ -25,6 +26,7 @@ xmlns:rdf="&rdf;"
 xmlns:srx="&srx;"
 xmlns:acl="&acl;"
 xmlns:ldt="&ldt;"
+xmlns:sd="&sd;"
 xmlns:sioc="&sioc;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 extension-element-prefixes="ixsl"
