@@ -99,39 +99,6 @@ exclude-result-prefixes="#all"
 
         <xsl:sequence select="ixsl:call(ixsl:window(), 'Reflect.construct', [ ixsl:get(ixsl:window(), $target), $arguments ] )"/>
     </xsl:function>
-    
-    <xsl:function name="ac:build-describe" as="xs:string">
-        <xsl:param name="select-string" as="xs:string"/> <!-- already with $this value set -->
-        <xsl:param name="limit" as="xs:integer?"/>
-        <xsl:param name="offset" as="xs:integer?"/>
-        <xsl:param name="order-by" as="xs:string?"/>
-        <xsl:param name="desc" as="xs:boolean"/>
-
-        <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', [ $select-string ])"/>
-        <!-- ignore ORDER BY variable name if it's not present in the query -->
-        <xsl:variable name="order-by" select="if (ixsl:call($select-builder, 'isVariable', [ ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'var', [ $order-by ]) ])) then $order-by else ()" as="xs:string?"/>
-        <xsl:variable name="select-builder" select="ac:paginate($select-builder, $limit, $offset, $order-by, $desc)"/>
-        <xsl:variable name="describe-builder" select="ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'DescribeBuilder'), 'new', []), 'wherePattern', [ ixsl:call($select-builder, 'build', []) ])"/>
-        <xsl:sequence select="ixsl:call($describe-builder, 'toString', [ ])"/>
-    </xsl:function>
-    
-    <!-- accepts and returns SelectBuilder. Use ixsl:call(ac:paginate(...), 'toString', []) to get SPARQL string -->
-    <xsl:function name="ac:paginate">
-        <xsl:param name="select-builder"/> <!-- as SelectBuilder -->
-        <xsl:param name="limit" as="xs:integer?"/>
-        <xsl:param name="offset" as="xs:integer?"/>
-        <xsl:param name="order-by" as="xs:string?"/>
-        <xsl:param name="desc" as="xs:boolean?"/>
-
-        <xsl:choose>
-            <xsl:when test="$order-by and exists($desc)">
-                <xsl:sequence select="ixsl:call(ixsl:call(ixsl:call($select-builder, 'limit', [ $limit ]), 'offset', [ $offset ]), 'orderBy', [ ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'ordering',  [ ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'var', [ $order-by ]), $desc ]) ])"/>
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:sequence select="ixsl:call(ixsl:call($select-builder, 'limit', [ $limit ]), 'offset', [ $offset ])"/>
-            </xsl:otherwise>
-        </xsl:choose>
-    </xsl:function>
 
     <!-- format URLs in DataTable as HTML links. !!! Saxon-JS cannot intercept Google Charts events, therefore set a full proxied URL !!! -->
     <xsl:template match="@rdf:about[starts-with(., 'http://')] | @rdf:about[starts-with(., 'https://')] | @rdf:resource[starts-with(., 'http://')] | @rdf:resource[starts-with(., 'https://')] | srx:uri[starts-with(., 'http://')] | srx:uri[starts-with(., 'https://')]" mode="ac:DataTable">
