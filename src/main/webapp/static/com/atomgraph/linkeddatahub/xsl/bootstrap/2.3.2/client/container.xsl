@@ -1261,20 +1261,23 @@ exclude-result-prefixes="#all"
 
                         <!-- make sure the asynchronous templates below execute after ldh:ContentLoaded -->
                         <xsl:for-each select="$bgp-triples-map">
-                            <xsl:variable name="id" select="generate-id()" as="xs:string"/>
-                            <xsl:variable name="predicate" select="json:string[@key = 'predicate']" as="xs:anyURI"/>
-                            <xsl:variable name="results-uri" select="ac:build-uri($ldt:base, map{ 'uri': string($predicate), 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
-                            <xsl:variable name="request" as="item()*">
-                                <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-                                    <xsl:call-template name="bs2:OrderBy">
-                                        <xsl:with-param name="container" select="id($order-by-container-id, ixsl:page())"/>
-                                        <xsl:with-param name="id" select="$id"/>
-                                        <xsl:with-param name="predicate" select="$predicate"/>
-                                        <xsl:with-param name="order-by-predicate" select="$order-by-predicate" as="xs:anyURI?"/>
-                                    </xsl:call-template>
-                                </ixsl:schedule-action>
-                            </xsl:variable>
-                            <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+                            <!-- only simple properties in the BGP are supported, not property paths etc. -->
+                            <xsl:if test="json:string[@key = 'predicate']">
+                                <xsl:variable name="id" select="generate-id()" as="xs:string"/>
+                                <xsl:variable name="predicate" select="json:string[@key = 'predicate']" as="xs:anyURI"/>
+                                <xsl:variable name="results-uri" select="ac:build-uri($ldt:base, map{ 'uri': string($predicate), 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
+                                <xsl:variable name="request" as="item()*">
+                                    <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+                                        <xsl:call-template name="bs2:OrderBy">
+                                            <xsl:with-param name="container" select="id($order-by-container-id, ixsl:page())"/>
+                                            <xsl:with-param name="id" select="$id"/>
+                                            <xsl:with-param name="predicate" select="$predicate"/>
+                                            <xsl:with-param name="order-by-predicate" select="$order-by-predicate" as="xs:anyURI?"/>
+                                        </xsl:call-template>
+                                    </ixsl:schedule-action>
+                                </xsl:variable>
+                                <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+                            </xsl:if>
                         </xsl:for-each>
                     </xsl:if>
         

@@ -3,7 +3,7 @@ set -e
 
 # set timezone
 
-if [ -n "$TZ" ] ; then
+if [ -n "$TZ" ]; then
     export CATALINA_OPTS="$CATALINA_OPTS -Duser.timezone=$TZ -Dorg.apache.tomcat.util.buf.UDecoder.ALLOW_ENCODED_SLASH=true"
 fi
 
@@ -12,40 +12,40 @@ fi
 
 # change server configuration
 
-if [ -n "$HTTP" ] ; then
+if [ -n "$HTTP" ]; then
     HTTP_PARAM="--stringparam http $HTTP "
 fi
 
-if [ -n "$HTTP_SCHEME" ] ; then
+if [ -n "$HTTP_SCHEME" ]; then
     HTTP_SCHEME_PARAM="--stringparam http.scheme $HTTP_SCHEME "
 fi
 
-if [ -n "$HTTP_PORT" ] ; then
+if [ -n "$HTTP_PORT" ]; then
     HTTP_PORT_PARAM="--stringparam http.port $HTTP_PORT "
 fi
 
-if [ -n "$HTTP_PROXY_NAME" ] ; then
+if [ -n "$HTTP_PROXY_NAME" ]; then
     lc_proxy_name=$(echo "$HTTP_PROXY_NAME" | tr '[:upper:]' '[:lower:]') # make sure it's lower-case
     HTTP_PROXY_NAME_PARAM="--stringparam http.proxyName $lc_proxy_name "
 fi
 
-if [ -n "$HTTP_PROXY_PORT" ] ; then
+if [ -n "$HTTP_PROXY_PORT" ]; then
     HTTP_PROXY_PORT_PARAM="--stringparam http.proxyPort $HTTP_PROXY_PORT "
 fi
 
-if [ -n "$HTTP_REDIRECT_PORT" ] ; then
+if [ -n "$HTTP_REDIRECT_PORT" ]; then
     HTTP_REDIRECT_PORT_PARAM="--stringparam http.redirectPort $HTTP_REDIRECT_PORT "
 fi
 
-if [ -n "$HTTP_CONNECTION_TIMEOUT" ] ; then
+if [ -n "$HTTP_CONNECTION_TIMEOUT" ]; then
     HTTP_CONNECTION_TIMEOUT_PARAM="--stringparam http.connectionTimeout $HTTP_CONNECTION_TIMEOUT "
 fi
 
-if [ -n "$HTTP_COMPRESSION" ] ; then
+if [ -n "$HTTP_COMPRESSION" ]; then
     HTTP_COMPRESSION_PARAM="--stringparam http.compression $HTTP_COMPRESSION "
 fi
 
-if [ -n "$HTTPS" ] ; then
+if [ -n "$HTTPS" ]; then
     HTTPS_PARAM="--stringparam https $HTTPS "
 fi
 
@@ -69,112 +69,112 @@ eval "$transform"
 
 # check mandatory environmental variables (which are used in conf/ROOT.xml)
 
-if [ -z "$TIMEOUT" ] ; then
+if [ -z "$TIMEOUT" ]; then
     echo '$TIMEOUT not set'
     exit 1
 fi
 
-if [ -z "$PROTOCOL" ] ; then
+if [ -z "$PROTOCOL" ]; then
     echo '$PROTOCOL not set'
     exit 1
 fi
 
-if [ -z "$HTTP_PROXY_PORT" ] ; then
+if [ -z "$HTTP_PROXY_PORT" ]; then
     echo '$HTTP_PROXY_PORT not set'
     exit 1
 fi
 
-if [ -z "$HTTPS_PROXY_PORT" ] ; then
+if [ -z "$HTTPS_PROXY_PORT" ]; then
     echo '$HTTPS_PROXY_PORT not set'
     exit 1
 fi
 
-if [ -z "$HOST" ] ; then
+if [ -z "$HOST" ]; then
     echo '$HOST not set'
     exit 1
 fi
 
-if [ -z "$ABS_PATH" ] ; then
+if [ -z "$ABS_PATH" ]; then
     echo '$ABS_PATH not set'
     exit 1
 fi
 
-if [ -z "$OWNER_MBOX" ] ; then
+if [ -z "$OWNER_MBOX" ]; then
     echo '$OWNER_MBOX not set'
     exit 1
 fi
 
-if [ -z "$OWNER_PUBLIC_KEY" ] ; then
+if [ -z "$OWNER_PUBLIC_KEY" ]; then
     echo '$OWNER_PUBLIC_KEY not set'
     exit 1
 fi
 
-if [ -z "$CLIENT_KEYSTORE" ] ; then
+if [ -z "$CLIENT_KEYSTORE" ]; then
     echo '$CLIENT_KEYSTORE not set'
     exit 1
 fi
 
-if [ -z "$CLIENT_KEYSTORE_MOUNT" ] ; then
+if [ -z "$CLIENT_KEYSTORE_MOUNT" ]; then
     echo '$CLIENT_KEYSTORE_MOUNT not set'
     exit 1
 fi
 
-if [ -z "$SECRETARY_CERT_ALIAS" ] ; then
+if [ -z "$SECRETARY_CERT_ALIAS" ]; then
     echo '$SECRETARY_CERT_ALIAS not set'
     exit 1
 fi
 
-if [ -z "$CLIENT_TRUSTSTORE" ] ; then
+if [ -z "$CLIENT_TRUSTSTORE" ]; then
     echo '$CLIENT_TRUSTSTORE not set'
     exit 1
 fi
 
-if [ -z "$CLIENT_KEYSTORE_PASSWORD" ] ; then
+if [ -z "$CLIENT_KEYSTORE_PASSWORD" ]; then
     echo '$CLIENT_KEYSTORE_PASSWORD not set'
     exit 1
 fi
 
-if [ -z "$CLIENT_TRUSTSTORE_PASSWORD" ] ; then
+if [ -z "$CLIENT_TRUSTSTORE_PASSWORD" ]; then
     echo '$CLIENT_TRUSTSTORE_PASSWORD not set'
     exit 1
 fi
 
-if [ -z "$UPLOAD_ROOT" ] ; then
+if [ -z "$UPLOAD_ROOT" ]; then
     echo '$UPLOAD_ROOT not set'
     exit 1
 fi
 
-if [ -z "$SIGN_UP_CERT_VALIDITY" ] ; then
+if [ -z "$SIGN_UP_CERT_VALIDITY" ]; then
     echo '$SIGN_UP_CERT_VALIDITY not set'
     exit 1
 fi
 
-if [ -z "$CONTEXT_DATASET_URL" ] ; then
+if [ -z "$CONTEXT_DATASET_URL" ]; then
     echo '$CONTEXT_DATASET_URL not set'
     exit 1
 fi
 
-if [ -z "$END_USER_DATASET_URL" ] ; then
+if [ -z "$END_USER_DATASET_URL" ]; then
     echo '$END_USER_DATASET_URL not set'
     exit 1
 fi
 
-if [ -z "$ADMIN_DATASET_URL" ] ; then
+if [ -z "$ADMIN_DATASET_URL" ]; then
     echo '$ADMIN_DATASET_URL not set'
     exit 1
 fi
 
-if [ -z "$MAIL_SMTP_HOST" ] ; then
+if [ -z "$MAIL_SMTP_HOST" ]; then
     echo '$MAIL_SMTP_HOST not set'
     exit 1
 fi
 
-if [ -z "$MAIL_SMTP_PORT" ] ; then
+if [ -z "$MAIL_SMTP_PORT" ]; then
     echo '$MAIL_SMTP_PORT not set'
     exit 1
 fi
 
-if [ -z "$MAIL_USER" ] ; then
+if [ -z "$MAIL_USER" ]; then
     echo '$MAIL_USER not set'
     exit 1
 fi
@@ -231,7 +231,7 @@ wait_for_url()
     i=1
 
     # use HTTP Basic auth if username/password are provided
-    if [ -n "$auth_user" ] && [ -n "$auth_pwd" ] ; then
+    if [ -n "$auth_user" ] && [ -n "$auth_pwd" ]; then
         while [ "$i" -le "$counter" ] && ! curl -s -f -X OPTIONS "$url" --user "$auth_user":"$auth_pwd" -H "Accept: ${accept}" >/dev/null 2>&1
         do
             sleep 1 ;
@@ -271,7 +271,7 @@ append_quads()
     local content_type="$5"
 
     # use HTTP Basic auth if username/password are provided
-    if [ -n "$auth_user" ] && [ -n "$auth_pwd" ] ; then
+    if [ -n "$auth_user" ] && [ -n "$auth_pwd" ]; then
         curl \
             -f \
             --basic \
@@ -315,14 +315,14 @@ get_webid_uri()
 
 OWNER_COMMON_NAME=$(get_common_name "$OWNER_PUBLIC_KEY")
 
-if [ -z "$OWNER_COMMON_NAME" ] ; then
+if [ -z "$OWNER_COMMON_NAME" ]; then
     echo "Owner's public key does not contain CN (commonName) metadata"
     exit 1
 fi
 
 OWNER_URI=$(get_webid_uri "$OWNER_PUBLIC_KEY")
 
-if [ -z "$OWNER_URI" ] ; then
+if [ -z "$OWNER_URI" ]; then
     echo "Owner's public key does not contain a SAN:URI (subjectAlternativeName) extension with a WebID URI"
     exit 1
 fi
@@ -345,7 +345,7 @@ export OWNER_COMMON_NAME OWNER_URI OWNER_DOC_URI OWNER_CERT_MODULUS OWNER_KEY_UU
 
 SECRETARY_URI=$(get_webid_uri "$SECRETARY_CERT")
 
-if [ -z "$SECRETARY_URI" ] ; then
+if [ -z "$SECRETARY_URI" ]; then
     echo "Secretary's public key does not contain a SAN:URI (subjectAlternativeName) extension with a WebID URI"
     exit 1
 fi
@@ -445,29 +445,29 @@ for app in "${apps[@]}"; do
 
     printf "\n### Processing dataspace. End-user app: %s Admin app: %s\n" "$end_user_app" "$admin_app"
 
-    if [ -z "$end_user_app" ] ; then
+    if [ -z "$end_user_app" ]; then
         printf "\nEnd-user app URI could not be extracted from %s. Exiting...\n" "$CONTEXT_DATASET"
         exit 1
     fi
-    if [ -z "$end_user_quad_store_url" ] ; then
+    if [ -z "$end_user_quad_store_url" ]; then
         printf "\nEnd-user quad store URL could not be extracted for the <%s> app. Exiting...\n" "$end_user_app"
         exit 1
     fi
-    if [ -z "$admin_app" ] ; then
+    if [ -z "$admin_app" ]; then
         printf "\nAdmin app URI could not be extracted for the <%s> app. Exiting...\n" "$end_user_app"
         exit 1
     fi
-    if [ -z "$admin_base_uri" ] ; then
+    if [ -z "$admin_base_uri" ]; then
         printf "\nAdmin base URI extracted for the <%s> app. Exiting...\n" "$end_user_app"
         exit 1
     fi
-    if [ -z "$admin_quad_store_url" ] ; then
+    if [ -z "$admin_quad_store_url" ]; then
         printf "\nAdmin quad store URL could not be extracted for the <%s> app. Exiting...\n" "$end_user_app"
         exit 1
     fi
 
     # check if this app is the root app
-    if [ "$end_user_base_uri" = "$BASE_URI" ] ; then
+    if [ "$end_user_base_uri" = "$BASE_URI" ]; then
         root_end_user_app="$end_user_app"
         root_end_user_quad_store_url="$end_user_quad_store_url"
         root_end_user_service_auth_user="$end_user_service_auth_user"
@@ -480,10 +480,10 @@ for app in "${apps[@]}"; do
 
     # append ownership metadata to apps if it's not present (apps have to be URI resources!)
 
-    if [ -z "$end_user_owner" ] ; then
+    if [ -z "$end_user_owner" ]; then
         echo "<${end_user_app}> <http://xmlns.com/foaf/0.1/maker> <${OWNER_URI}> ." >> "$based_context_dataset"
     fi
-    if [ -z "$admin_owner" ] ; then
+    if [ -z "$admin_owner" ]; then
         echo "<${admin_app}> <http://xmlns.com/foaf/0.1/maker> <${OWNER_URI}> ." >> "$based_context_dataset"
     fi
 
@@ -589,7 +589,7 @@ cp -f "$CLIENT_KEYSTORE_MOUNT" "$(dirname "$CLIENT_KEYSTORE")"
 if [ ! -f "$CLIENT_TRUSTSTORE" ]; then
     # if server certificate is self-signed, import it into client truststore
 
-    if [ "$SELF_SIGNED_CERT" = true ] ; then
+    if [ "$SELF_SIGNED_CERT" = true ]; then
         printf "\n### Importing server certificate into the client truststore\n\n"
 
         mkdir -p "$(dirname "$CLIENT_TRUSTSTORE")"
@@ -640,84 +640,84 @@ MAIL_SMTP_HOST_PARAM="--stringparam mail.smtp.host '$MAIL_SMTP_HOST' "
 MAIL_SMTP_PORT_PARAM="--stringparam mail.smtp.port '$MAIL_SMTP_PORT' "
 MAIL_USER_PARAM="--stringparam mail.user '$MAIL_USER' "
 
-if [ -n "$PROXY_SCHEME" ] ; then
+if [ -n "$PROXY_SCHEME" ]; then
     PROXY_SCHEME_PARAM="--stringparam ldhc:proxyScheme '$PROXY_SCHEME' "
 fi
 
-if [ -n "$PROXY_HOST" ] ; then
+if [ -n "$PROXY_HOST" ]; then
     PROXY_HOST_PARAM="--stringparam ldhc:proxyHost '$PROXY_HOST' "
 fi
 
-if [ -n "$PROXY_PORT" ] ; then
+if [ -n "$PROXY_PORT" ]; then
     PROXY_PORT_PARAM="--stringparam ldhc:proxyPort '$PROXY_PORT' "
 fi
 
-if [ -n "$CACHE_MODEL_LOADS" ] ; then
+if [ -n "$CACHE_MODEL_LOADS" ]; then
     CACHE_MODEL_LOADS_PARAM="--stringparam a:cacheModelLoads '$CACHE_MODEL_LOADS' "
 fi
 
 # stylesheet URL must be relative to the base context URL
-if [ -n "$STYLESHEET" ] ; then
+if [ -n "$STYLESHEET" ]; then
     STYLESHEET_PARAM="--stringparam ac:stylesheet '$STYLESHEET' "
 fi
 
-if [ -n "$CACHE_STYLESHEET" ] ; then
+if [ -n "$CACHE_STYLESHEET" ]; then
     CACHE_STYLESHEET_PARAM="--stringparam ac:cacheStylesheet '$CACHE_STYLESHEET' "
 fi
 
-if [ -n "$RESOLVING_UNCACHED" ] ; then
+if [ -n "$RESOLVING_UNCACHED" ]; then
     RESOLVING_UNCACHED_PARAM="--stringparam ac:resolvingUncached '$RESOLVING_UNCACHED' "
 fi
 
-if [ -n "$AUTH_QUERY" ] ; then
+if [ -n "$AUTH_QUERY" ]; then
     AUTH_QUERY_PARAM="--stringparam ldhc:authQuery '$AUTH_QUERY' "
 fi
 
-if [ -n "$OWNER_AUTH_QUERY" ] ; then
+if [ -n "$OWNER_AUTH_QUERY" ]; then
     OWNER_AUTH_QUERY_PARAM="--stringparam ldhc:ownerAuthQuery '$OWNER_AUTH_QUERY' "
 fi
 
-if [ -n "$ENABLE_LINKED_DATA_PROXY" ] ; then
+if [ -n "$ENABLE_LINKED_DATA_PROXY" ]; then
     ENABLE_LINKED_DATA_PROXY_PARAM="--stringparam ldhc:enableLinkedDataProxy '$ENABLE_LINKED_DATA_PROXY' "
 fi
 
-if [ -n "$MAX_CONTENT_LENGTH" ] ; then
+if [ -n "$MAX_CONTENT_LENGTH" ]; then
     MAX_CONTENT_LENGTH_PARAM="--stringparam ldhc:maxContentLength '$MAX_CONTENT_LENGTH' "
 fi
 
-if [ -n "$MAX_CONN_PER_ROUTE" ] ; then
+if [ -n "$MAX_CONN_PER_ROUTE" ]; then
     MAX_CONN_PER_ROUTE_PARAM="--stringparam ldhc:maxConnPerRoute '$MAX_CONN_PER_ROUTE' "
 fi
 
-if [ -n "$MAX_TOTAL_CONN" ] ; then
+if [ -n "$MAX_TOTAL_CONN" ]; then
     MAX_TOTAL_CONN_PARAM="--stringparam ldhc:maxTotalConn '$MAX_TOTAL_CONN' "
 fi
 
-if [ -n "$IMPORT_KEEPALIVE" ] ; then
+if [ -n "$IMPORT_KEEPALIVE" ]; then
     IMPORT_KEEPALIVE_PARAM="--stringparam ldhc:importKeepAlive '$IMPORT_KEEPALIVE' "
 fi
 
-if [ -n "$NOTIFICATION_ADDRESS" ] ; then
+if [ -n "$NOTIFICATION_ADDRESS" ]; then
     NOTIFICATION_ADDRESS_PARAM="--stringparam ldhc:notificationAddress '$NOTIFICATION_ADDRESS' "
 fi
 
-if [ -n "$ENABLE_WEBID_SIGNUP" ] ; then
+if [ -n "$ENABLE_WEBID_SIGNUP" ]; then
     ENABLE_WEBID_SIGNUP_PARAM="--stringparam ldhc:enableWebIDSignUp '$ENABLE_WEBID_SIGNUP' "
 fi
 
-if [ -n "$OIDC_REFRESH_TOKENS" ] ; then
+if [ -n "$OIDC_REFRESH_TOKENS" ]; then
     OIDC_REFRESH_TOKENS_PARAM="--stringparam ldhc:oidcRefreshTokens '$OIDC_REFRESH_TOKENS' "
 fi
 
-if [ -n "$MAIL_PASSWORD" ] ; then
+if [ -n "$MAIL_PASSWORD" ]; then
     MAIL_PASSWORD_PARAM="--stringparam mail.password '$MAIL_PASSWORD' "
 fi
 
-if [ -n "$GOOGLE_CLIENT_ID" ] ; then
+if [ -n "$GOOGLE_CLIENT_ID" ]; then
     GOOGLE_CLIENT_ID_PARAM="--stringparam google:clientID '$GOOGLE_CLIENT_ID' "
 fi
 
-if [ -n "$GOOGLE_CLIENT_SECRET" ] ; then
+if [ -n "$GOOGLE_CLIENT_SECRET" ]; then
     GOOGLE_CLIENT_SECRET_PARAM="--stringparam google:clientSecret '$GOOGLE_CLIENT_SECRET' "
 fi
 
@@ -778,7 +778,7 @@ wait_for_url "$root_admin_quad_store_url" "$root_admin_service_auth_user" "$root
 
 # run Tomcat (in debug mode if $JPDA_ADDRESS is defined)
 
-if [ -z "$JPDA_ADDRESS" ] ; then
+if [ -z "$JPDA_ADDRESS" ]; then
     catalina.sh run
 else
     catalina.sh jpda run
