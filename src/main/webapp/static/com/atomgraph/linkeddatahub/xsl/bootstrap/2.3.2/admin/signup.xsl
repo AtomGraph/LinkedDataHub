@@ -46,18 +46,12 @@ xmlns:spin="&spin;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 exclude-result-prefixes="#all">
 
-    <xsl:template match="rdf:RDF[if (doc-available(ac:uri())) then (key('resources', ac:uri(), document(ac:uri()))/rdf:type/@rdf:resource = '&adm;SignUp') else false()]" mode="xhtml:Body" priority="2">
-        <body>
-            <xsl:apply-templates select="." mode="bs2:NavBar"/>
+    <xsl:template match="rdf:RDF[if (doc-available(ac:uri())) then (key('resources', ac:uri(), document(ac:uri()))/rdf:type/@rdf:resource = '&adm;SignUp') else false()]" mode="bs2:ContentBody" priority="2">
+        <div about="{ac:uri()}" id="content-body" class="container-fluid">
+            <xsl:apply-templates select="key('resources', ac:uri())" mode="ldh:ContentList"/>
 
-            <div id="content-body" class="container-fluid">
-                <xsl:apply-templates select="key('resources', ac:uri())" mode="ldh:ContentList"/>
-
-                <xsl:apply-templates select="." mode="bs2:Row"/>
-            </div>
-
-            <xsl:apply-templates select="." mode="bs2:Footer"/>
-        </body>
+            <xsl:apply-templates select="." mode="bs2:Row"/>
+        </div>
     </xsl:template>
     
     <!-- hide "Create" button which otherwise would be shown because acl:Append is allowed for signup -->
