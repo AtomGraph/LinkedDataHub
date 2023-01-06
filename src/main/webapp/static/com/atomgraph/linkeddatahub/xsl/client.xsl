@@ -1641,7 +1641,7 @@ WHERE
     
     <!-- left-side document tree -->
     
-    <xsl:template match="body" mode="ixsl:onmousemove">
+    <xsl:template match="body[id('doc-tree', ixsl:page())]" mode="ixsl:onmousemove">
         <xsl:variable name="x" select="ixsl:get(ixsl:event(), 'clientX')"/>
         
         <!-- check that the mouse is on the left edge -->
