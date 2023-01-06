@@ -338,6 +338,10 @@ support@atomgraph.com]]></param-value>
     </context-param>
     <servlet>
         <servlet-name>com.atomgraph.linkeddatahub.Application</servlet-name>
+        <init-param>
+            <param-name>jersey.config.server.wadl.disableWadl</param-name>
+            <param-value>true</param-value>
+        </init-param>
     </servlet>
     <listener>
         <listener-class>com.atomgraph.core.util.jena.StartupListener</listener-class>
