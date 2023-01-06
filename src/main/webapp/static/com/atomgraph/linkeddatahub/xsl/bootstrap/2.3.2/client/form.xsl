@@ -376,7 +376,7 @@ WHERE
         <xsl:variable name="select-xml" as="document-node()">
             <xsl:document>
                 <xsl:apply-templates select="$select-xml" mode="ldh:add-regex-filter">
-                    <xsl:with-param name="var-name" select="$var-name" tunnel="yes"/>
+                    <xsl:with-param name="var-name" select="$label-var-name" tunnel="yes"/>
                     <xsl:with-param name="pattern" select="$text" tunnel="yes"/>
                     <xsl:with-param name="flags" select="'iq'" tunnel="yes"/> <!-- case insensitive, ignore meta-characters: https://www.w3.org/TR/xpath-functions-31/#flags -->
                 </xsl:apply-templates>
@@ -392,7 +392,7 @@ WHERE
                     </xsl:when>
                     <xsl:otherwise>
                         <xsl:apply-templates select="$select-xml" mode="ldh:add-filter-in">
-                            <xsl:with-param name="var-name" select="$var-name" tunnel="yes"/>
+                            <xsl:with-param name="var-name" select="$type-var-name" tunnel="yes"/>
                             <xsl:with-param name="values" select="$resource-types" tunnel="yes"/>
                         </xsl:apply-templates>
                     </xsl:otherwise>
