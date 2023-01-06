@@ -491,24 +491,27 @@ exclude-result-prefixes="#all"
         <xsl:variable name="bgp-triples-map" select="$select-xml//json:map[json:string[@key = 'type'] = 'bgp']/json:array[@key = 'triples']/json:map[json:string[@key = 'subject'] = '?' || $initial-var-name][not(starts-with(json:string[@key = 'predicate'], '?'))][starts-with(json:string[@key = 'object'], '?')]" as="element()*"/>
 
         <xsl:for-each select="$bgp-triples-map">
-            <xsl:variable name="id" select="generate-id()" as="xs:string"/>
-            <xsl:variable name="subject-var-name" select="json:string[@key = 'subject']/substring-after(., '?')" as="xs:string"/>
-            <xsl:variable name="predicate" select="json:string[@key = 'predicate']" as="xs:anyURI"/>
-            <xsl:variable name="object-var-name" select="json:string[@key = 'object']/substring-after(., '?')" as="xs:string"/>
-            <xsl:variable name="results-uri" select="ac:build-uri($ldt:base, map{ 'uri': string($predicate), 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
+            <!-- only simple properties in the BGP are supported, not property paths etc. -->
+            <xsl:if test="json:string[@key = 'predicate']">
+                <xsl:variable name="id" select="generate-id()" as="xs:string"/>
+                <xsl:variable name="subject-var-name" select="json:string[@key = 'subject']/substring-after(., '?')" as="xs:string"/>
+                <xsl:variable name="predicate" select="json:string[@key = 'predicate']" as="xs:anyURI"/>
+                <xsl:variable name="object-var-name" select="json:string[@key = 'object']/substring-after(., '?')" as="xs:string"/>
+                <xsl:variable name="results-uri" select="ac:build-uri($ldt:base, map{ 'uri': string($predicate), 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
 
-            <xsl:variable name="request" as="item()*">
-                <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-                    <xsl:call-template name="bs2:FilterIn">
-                        <xsl:with-param name="container" select="$container"/>
-                        <xsl:with-param name="id" select="$id"/>
-                        <xsl:with-param name="subject-var-name" select="$subject-var-name"/>
-                        <xsl:with-param name="predicate" select="$predicate"/>
-                        <xsl:with-param name="object-var-name" select="$object-var-name"/>
-                    </xsl:call-template>
-                </ixsl:schedule-action>
-            </xsl:variable>
-            <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+                <xsl:variable name="request" as="item()*">
+                    <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+                        <xsl:call-template name="bs2:FilterIn">
+                            <xsl:with-param name="container" select="$container"/>
+                            <xsl:with-param name="id" select="$id"/>
+                            <xsl:with-param name="subject-var-name" select="$subject-var-name"/>
+                            <xsl:with-param name="predicate" select="$predicate"/>
+                            <xsl:with-param name="object-var-name" select="$object-var-name"/>
+                        </xsl:call-template>
+                    </ixsl:schedule-action>
+                </xsl:variable>
+                <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+            </xsl:if>
         </xsl:for-each>
     </xsl:template>
     
