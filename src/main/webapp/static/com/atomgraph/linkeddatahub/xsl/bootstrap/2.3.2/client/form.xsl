@@ -366,16 +366,52 @@ WHERE
         <xsl:param name="resource-types" select="if (ancestor::div[@class = 'controls']//input[@class = 'forClass']/@value) then ancestor::div[@class = 'controls']//input[@class = 'forClass']/@value else ancestor::label//input[@class = 'forClass']/@value" as="xs:anyURI*"/>
         <xsl:param name="select-string" select="$select-labelled-string" as="xs:string?"/>
         <xsl:param name="limit" select="100" as="xs:integer?"/>
+        <xsl:param name="label-var-name" select="'label'" as="xs:string"/>
+        <xsl:param name="type-var-name" select="'Type'" as="xs:string"/>
         <xsl:variable name="key-code" select="ixsl:get(ixsl:event(), 'code')" as="xs:string"/>
-        <!-- convert resource type URIs to SPARQLBuilder URIs -->
-        <xsl:variable name="value-uris" select="array { for $uri in $resource-types[not(. = '&rdfs;Resource')] return ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'uri', [ $uri ]) }"/>
         <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', [ $select-string ])"/>
-        <!-- pseudo JS code: SPARQLBuilder.SelectBuilder.fromString(select-builder).wherePattern(SPARQLBuilder.QueryBuilder.filter(SPARQLBuilder.QueryBuilder.regex(QueryBuilder.var("label"), QueryBuilder.term($value)))) -->
-        <xsl:variable name="select-builder" select="ixsl:call($select-builder, 'wherePattern', [ ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'filter', [ ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'regex', [ ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'str', [ ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'var', [ 'label' ]) ]), ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'term', [ ac:escape-regex(ixsl:get(., 'value')) ]), true() ]) ]) ])"/>
-        <!-- pseudo JS code: SPARQLBuilder.SelectBuilder.fromString(select-builder).wherePattern(SPARQLBuilder.QueryBuilder.filter(SPARQLBuilder.QueryBuilder.in(QueryBuilder.var("Type"), [ $value ]))) -->
-        <xsl:variable name="select-builder" select="if (empty($resource-types[not(. = '&rdfs;Resource')])) then $select-builder else ixsl:call($select-builder, 'wherePattern', [ ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'filter', [ ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'in', [ ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'var', [ 'Type' ]), $value-uris ]) ]) ])"/>
-        <xsl:variable name="select-string" select="ixsl:call($select-builder, 'toString', [])" as="xs:string?"/>
-        <xsl:variable name="query-string" select="ac:build-describe($select-string, $limit, (), (), true())" as="xs:string?"/>
+        <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ ixsl:call($select-builder, 'build', []) ])" as="xs:string"/>
+        <xsl:variable name="select-xml" select="json-to-xml($select-json-string)" as="document-node()"/>
+        <!-- append FILTER(regex()) -->
+        <xsl:variable name="select-xml" as="document-node()">
+            <xsl:document>
+                <xsl:apply-templates select="$select-xml" mode="ldh:add-regex-filter">
+                    <xsl:with-param name="var-name" select="$var-name" tunnel="yes"/>
+                    <xsl:with-param name="pattern" select="$text" tunnel="yes"/>
+                    <xsl:with-param name="flags" select="'iq'" tunnel="yes"/> <!-- case insensitive, ignore meta-characters: https://www.w3.org/TR/xpath-functions-31/#flags -->
+                </xsl:apply-templates>
+            </xsl:document>
+        </xsl:variable>
+        <!-- append FILTER($var IN ()) -->
+        <xsl:variable name="select-xml" as="document-node()">
+            <xsl:document>
+                <xsl:choose>
+                    <!-- do not FILTER by $resource-types if the only type is rdfs:Resource -->
+                    <xsl:when test="empty($resource-types[not(. = '&rdfs;Resource')])">
+                        <xsl:sequence select="$select-xml"/>
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <xsl:apply-templates select="$select-xml" mode="ldh:add-filter-in">
+                            <xsl:with-param name="var-name" select="$var-name" tunnel="yes"/>
+                            <xsl:with-param name="values" select="$resource-types" tunnel="yes"/>
+                        </xsl:apply-templates>
+                    </xsl:otherwise>
+                </xsl:choose>
+            </xsl:document>
+        </xsl:variable>
+        <!-- set LIMIT -->
+        <xsl:variable name="select-xml" as="document-node()">
+            <xsl:document>
+                <xsl:apply-templates select="$select-xml" mode="ldh:replace-limit"/>
+            </xsl:document>
+        </xsl:variable>
+        <!-- wrap SELECT into a DESCRIBE -->
+        <xsl:variable name="query-xml" as="element()">
+            <xsl:apply-templates select="$select-xml" mode="ldh:wrap-describe"/>
+        </xsl:variable>
+        <xsl:variable name="query-json-string" select="xml-to-json($query-xml)" as="xs:string"/>
+        <xsl:variable name="query-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $query-json-string ])"/>
+        <xsl:variable name="query-string" select="ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromQuery', [ $query-json ]), 'toString', [])" as="xs:string"/>
         <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': string($query-string) })" as="xs:anyURI"/>
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), map{}, $results-uri)" as="xs:anyURI"/> <!-- proxy the results -->
         <!-- TO-DO: use <ixsl:schedule-action> instead of document() -->

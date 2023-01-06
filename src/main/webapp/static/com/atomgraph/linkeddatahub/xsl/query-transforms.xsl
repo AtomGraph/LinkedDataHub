@@ -2,6 +2,7 @@
 <!DOCTYPE xsl:stylesheet [
     <!ENTITY ldh        "https://w3id.org/atomgraph/linkeddatahub#">
     <!ENTITY rdf        "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+    <!ENTITY xsd        "http://www.w3.org/2001/XMLSchema#">
 ]>
 <xsl:stylesheet version="3.0"
 xmlns:xhtml="http://www.w3.org/1999/xhtml"
@@ -732,4 +733,65 @@ extension-element-prefixes="ixsl"
         </xsl:copy>
     </xsl:template>
 
+    <!-- FILTER($var IN ()) -->
+    
+    <!-- identity transform -->
+    <xsl:template match="@* | node()" mode="ldh:add-filter-in">
+        <xsl:copy>
+            <xsl:apply-templates select="@* | node()" mode="#current"/>
+        </xsl:copy>
+    </xsl:template>
+    
+    <!-- append FILTER($var IN ()) to WHERE -->
+    <xsl:template match="json:array[@key = 'where']" mode="ldh:add-filter-in" priority="1">
+        <xsl:param name="var-name" as="xs:string" tunnel="yes"/>
+        <xsl:param name="values" as="xs:anyAtomicType*" tunnel="yes"/>
+
+        <xsl:copy>
+            <xsl:apply-templates select="@* | node()" mode="#current"/>
+
+                <json:map>
+                    <json:string key="type">filter</json:string>
+                    <json:map key="expression">
+                        <json:string key="type">operation</json:string>
+                        <json:string key="operator">in</json:string>
+                        <json:array key="args">
+                            <json:string>?<xsl:value-of select="$var-name"/></json:string>
+                            <json:array>
+                                <xsl:for-each select="$values">
+                                    <xsl:choose>
+                                        <xsl:when test=". instance of xs:anyURI">
+                                            <json:string><xsl:value-of select="."/></json:string>
+                                        </xsl:when>
+                                        <xsl:when test=". instance of xs:string">
+                                            <json:string>"<xsl:value-of select="."/>"</json:string>
+                                        </xsl:when>
+                                        <xsl:when test=". instance of xs:integer">
+                                            <json:string>"<xsl:value-of select="."/>"^^&xsd;integer</json:string>
+                                        </xsl:when>
+                                        <xsl:when test=". instance of xs:float">
+                                            <json:string>"<xsl:value-of select="."/>"^^&xsd;float</json:string>
+                                        </xsl:when>
+                                        <xsl:when test=". instance of xs:boolean">
+                                            <json:string>"<xsl:value-of select="."/>"^^&xsd;boolean</json:string>
+                                        </xsl:when>
+                                        <xsl:when test=". instance of xs:date">
+                                            <json:string>"<xsl:value-of select="."/>"^^&xsd;date</json:string>
+                                        </xsl:when>
+                                        <xsl:when test=". instance of xs:dateTime">
+                                            <json:string>"<xsl:value-of select="."/>"^^&xsd;dateTime</json:string>
+                                        </xsl:when>
+                                        <!-- TO-DO: support more XSD types -->
+                                        <xsl:otherwise>
+                                            <xsl:message>Value type not recognized</xsl:message>
+                                        </xsl:otherwise>
+                                    </xsl:choose>
+                                </xsl:for-each>
+                            </json:array>
+                        </json:array>
+                    </json:map>
+                </json:map>
+            </xsl:copy>
+    </xsl:template>
+    
 </xsl:stylesheet>
