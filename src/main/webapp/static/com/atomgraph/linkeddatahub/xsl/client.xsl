@@ -1302,6 +1302,7 @@ WHERE
     <!-- trigger typeahead in the search bar -->
     
     <xsl:template match="input[@id = 'uri']" mode="ixsl:onkeyup" priority="1">
+        <xsl:param name="var-name" select="'label'" as="xs:string"/>
         <xsl:param name="text" select="ixsl:get(., 'value')" as="xs:string?"/>
         <xsl:param name="menu" select="following-sibling::ul" as="element()"/>
         <xsl:param name="delay" select="400" as="xs:integer"/>
@@ -1353,14 +1354,40 @@ WHERE
                     <xsl:with-param name="menu" select="$menu"/>
                 </xsl:call-template>
             </xsl:when>
-            <!-- if the input is not a URI,  execute a keyword search with SPARQL regex() -->
+            <!-- if the input is not a URI, execute a keyword search with SPARQL regex() -->
             <xsl:when test="not(starts-with(ixsl:get(., 'value'), 'http://')) and not(starts-with(ixsl:get(., 'value'), 'https://'))">
-                <!-- TO-DO: refactor query building using XSLT -->
                 <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', [ $select-string ])"/>
-                <!-- pseudo JS code: SPARQLBuilder.SelectBuilder.fromString(select-builder).wherePattern(SPARQLBuilder.QueryBuilder.filter(SPARQLBuilder.QueryBuilder.regex(QueryBuilder.var("label"), QueryBuilder.term(QueryBuilder.str($text))))) -->
+                <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ ixsl:call($select-builder, 'build', []) ])" as="xs:string"/>
+                <xsl:variable name="select-xml" select="json-to-xml($select-json-string)" as="document-node()"/>
+                <!-- append FILTER(regex()) -->
+                <xsl:variable name="select-xml" as="document-node()">
+                    <xsl:document>
+                        <xsl:apply-templates select="$select-xml" mode="ldh:add-regex-filter">
+                            <xsl:with-param name="var-name" select="$var-name" tunnel="yes"/>
+                            <xsl:with-param name="pattern" select="$text" tunnel="yes"/>
+                            <xsl:with-param name="flags" select="'iq'" tunnel="yes"/> <!-- case insensitive, ignore meta-characters: https://www.w3.org/TR/xpath-functions-31/#flags -->
+                        </xsl:apply-templates>
+                    </xsl:document>
+                </xsl:variable>
+                <!-- set LIMIT -->
+                <xsl:variable name="select-xml" as="document-node()">
+                    <xsl:document>
+                        <xsl:apply-templates select="$select-xml" mode="ldh:replace-limit"/>
+                    </xsl:document>
+                </xsl:variable>
+                <!-- wrap SELECT into a DESCRIBE -->
+                <xsl:variable name="query-xml" as="element()">
+                    <xsl:apply-templates select="$select-xml" mode="ldh:wrap-describe"/>
+                </xsl:variable>
+                <xsl:variable name="query-json-string" select="xml-to-json($query-xml)" as="xs:string"/>
+                <xsl:variable name="query-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $query-json-string ])"/>
+                <xsl:variable name="query-string" select="ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromQuery', [ $query-json ]), 'toString', [])" as="xs:string"/>
+                <!--
+                <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', [ $select-string ])"/>
                 <xsl:variable name="select-builder" select="ixsl:call($select-builder, 'wherePattern', [ ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'filter', [ ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'regex', [ ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'str', [ ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'var', [ 'label' ]) ]), ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'term', [ ac:escape-regex($text) ]), true() ] ) ] ) ])"/>
                 <xsl:variable name="select-string" select="ixsl:call($select-builder, 'toString', [])" as="xs:string"/>
                 <xsl:variable name="query-string" select="ac:build-describe($select-string, $limit, (), (), true())" as="xs:string"/>
+                -->
                 <xsl:variable name="service-uri" select="xs:anyURI(ixsl:get(id('search-service'), 'value'))" as="xs:anyURI?"/>
                 <xsl:variable name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.apps'))" as="element()?"/>
                 <xsl:variable name="endpoint" select="($service/sd:endpoint/@rdf:resource/xs:anyURI(.), resolve-uri('sparql', $ldt:base))[1]" as="xs:anyURI"/>

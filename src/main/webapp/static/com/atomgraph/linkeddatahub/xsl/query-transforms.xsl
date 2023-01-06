@@ -696,4 +696,40 @@ extension-element-prefixes="ixsl"
         </xsl:copy>
     </xsl:template>
     
+    <!-- FILTER(regex()) -->
+    
+    <!-- identity transform -->
+    <xsl:template match="@* | node()" mode="ldh:add-regex-filter">
+        <xsl:copy>
+            <xsl:apply-templates select="@* | node()" mode="#current"/>
+        </xsl:copy>
+    </xsl:template>
+    
+    <!-- append FILTER(regex()) to WHERE -->
+    <xsl:template match="json:array[@key = 'where']" mode="ldh:add-regex-filter" priority="1">
+        <xsl:param name="var-name" as="xs:string" tunnel="yes"/>
+        <xsl:param name="pattern" as="xs:string" tunnel="yes"/>
+        <xsl:param name="flags" as="xs:string?" tunnel="yes"/>
+
+        <xsl:copy>
+            <xsl:apply-templates select="@* | node()" mode="#current"/>
+
+            <json:map>
+                <json:string key="type">filter</json:string>
+                <json:map key="expression">
+                    <json:string key="type">operation</json:string>
+                    <json:string key="operator">regex</json:string>
+                    <json:array key="args">
+                        <json:string>?<xsl:value-of select="$var-name"/></json:string>
+                        <json:string>"<xsl:value-of select="$pattern"/>"</json:string>
+                        
+                        <xsl:if test="$flags">
+                            <json:string>"<xsl:value-of select="$flags"/>"</json:string>
+                        </xsl:if>
+                    </json:array>
+                </json:map>
+            </json:map>
+        </xsl:copy>
+    </xsl:template>
+
 </xsl:stylesheet>
