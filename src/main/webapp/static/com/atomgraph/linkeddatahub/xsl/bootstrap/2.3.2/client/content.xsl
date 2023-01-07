@@ -276,9 +276,7 @@ exclude-result-prefixes="#all"
 
         <xsl:variable name="row" as="node()*">
             <xsl:apply-templates select="." mode="bs2:RowContent">
-                <xsl:with-param name="content-uri" select="()"/>
-                <xsl:with-param name="class" select="'xhtml-content'"/>
-                <xsl:with-param name="main-class" select="()"/>
+                <!--<xsl:with-param name="content-uri" select="()"/>-->
                 <xsl:with-param name="mode" select="$mode"/>
                 <xsl:with-param name="transclude" select="true()"/>
                 <xsl:with-param name="base" select="ac:document-uri(@rdf:about)"/>
