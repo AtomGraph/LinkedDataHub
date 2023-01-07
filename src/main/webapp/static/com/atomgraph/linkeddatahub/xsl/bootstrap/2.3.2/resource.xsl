@@ -704,13 +704,17 @@ extension-element-prefixes="ixsl"
     <!-- ROW CONTENT -->
     
     <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;Content'][rdf:value[@rdf:parseType = 'Literal']/xhtml:div]" mode="bs2:RowContent" priority="2">
+        <xsl:param name="content-uri" select="@rdf:about" as="xs:string?"/>
         <xsl:param name="id" select="generate-id()" as="xs:string?"/>
         <xsl:param name="class" select="'row-fluid content xhtml-content'" as="xs:string?"/>
         <xsl:param name="main-class" select="'main span7 offset2'" as="xs:string?"/>
         <xsl:param name="transclude" select="false()" as="xs:boolean"/>
         <xsl:param name="base" as="xs:anyURI?"/>
 
-        <div data-content-uri="{@rdf:about}">
+        <div>
+            <xsl:if test="$content-uri">
+                <xsl:attribute name="content-uri" select="$content-uri"/>
+            </xsl:if>
             <xsl:if test="$id">
                 <xsl:attribute name="id" select="$id"/>
             </xsl:if>
@@ -732,6 +736,7 @@ extension-element-prefixes="ixsl"
     </xsl:template>
 
     <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;Content'][rdf:value/@rdf:resource]" mode="bs2:RowContent" priority="2">
+        <xsl:param name="content-uri" select="@rdf:about" as="xs:string?"/>
         <xsl:param name="id" select="if (contains(@rdf:about, ac:uri() || '#')) then substring-after(@rdf:about, ac:uri() || '#') else generate-id()" as="xs:string?"/>
         <xsl:param name="class" select="'row-fluid content resource-content'" as="xs:string?"/>
         <xsl:param name="mode" select="ac:mode/@rdf:resource" as="xs:anyURI?"/>
@@ -742,7 +747,10 @@ extension-element-prefixes="ixsl"
         <xsl:apply-templates select="." mode="bs2:RowContentHeader"/>
         
         <!-- @data-content-value is used to retrieve $content-value in client.xsl -->
-        <div data-content-uri="{@rdf:about}" data-content-value="{rdf:value/@rdf:resource}">
+        <div data-content-value="{rdf:value/@rdf:resource}">
+            <xsl:if test="$content-uri">
+                <xsl:attribute name="content-uri" select="$content-uri"/>
+            </xsl:if>
             <xsl:if test="$id">
                 <xsl:attribute name="id" select="$id"/>
             </xsl:if>

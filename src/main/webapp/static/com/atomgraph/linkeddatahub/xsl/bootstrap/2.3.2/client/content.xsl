@@ -264,9 +264,9 @@ exclude-result-prefixes="#all"
         </xsl:choose>
     </xsl:template>
     
-    <!-- content within content (transclusion) -->
+    <!-- .xhtml-content referenced from .resource-content (XHTML transclusion) -->
     
-    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;Content']" mode="ldh:RenderContent" priority="1">
+    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;Content'][rdf:value[@rdf:parseType = 'Literal']/xhtml:div]" mode="ldh:RenderContent" priority="1">
         <xsl:param name="container" as="element()"/>
         <xsl:param name="mode" as="xs:anyURI?"/>
         <xsl:param name="refresh-content" as="xs:boolean?"/>
@@ -274,19 +274,22 @@ exclude-result-prefixes="#all"
         <!-- hide progress bar -->
         <ixsl:set-style name="display" select="'none'" object="$container//div[@class = 'progress-bar']"/>
 
-        <xsl:variable name="row" as="node()*">
+<!--        <xsl:variable name="row" as="node()*">-->
             <xsl:apply-templates select="." mode="bs2:RowContent">
+                <xsl:with-param name="content-uri" select="()"/>
+                <xsl:with-param name="class" select="'xhtml-content'"/>
+                <xsl:with-param name="main-class" select="()"/>
                 <xsl:with-param name="mode" select="$mode"/>
                 <xsl:with-param name="transclude" select="true()"/>
                 <xsl:with-param name="base" select="ac:document-uri(@rdf:about)"/>
             </xsl:apply-templates>
-        </xsl:variable>
+<!--        </xsl:variable>-->
 
-        <xsl:for-each select="$container">
+<!--        <xsl:for-each select="$container">
             <xsl:result-document href="?." method="ixsl:replace-content">
-                <xsl:copy-of select="$row/*"/> <!-- inject the content of div.row-fluid -->
+                <xsl:copy-of select="$row/*"/>  inject the content of div.row-fluid 
             </xsl:result-document>
-        </xsl:for-each>
+        </xsl:for-each>-->
 
         <xsl:call-template name="ldh:ContentLoaded">
             <xsl:with-param name="container" select="$container"/>
