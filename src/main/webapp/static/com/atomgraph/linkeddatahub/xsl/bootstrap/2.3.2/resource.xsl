@@ -713,7 +713,7 @@ extension-element-prefixes="ixsl"
 
         <div>
             <xsl:if test="$content-uri">
-                <xsl:attribute name="content-uri" select="$content-uri"/>
+                <xsl:attribute name="data-content-uri" select="$content-uri"/>
             </xsl:if>
             <xsl:if test="$id">
                 <xsl:attribute name="id" select="$id"/>
@@ -749,7 +749,7 @@ extension-element-prefixes="ixsl"
         <!-- @data-content-value is used to retrieve $content-value in client.xsl -->
         <div data-content-value="{rdf:value/@rdf:resource}">
             <xsl:if test="$content-uri">
-                <xsl:attribute name="content-uri" select="$content-uri"/>
+                <xsl:attribute name="data-content-uri" select="$content-uri"/>
             </xsl:if>
             <xsl:if test="$id">
                 <xsl:attribute name="id" select="$id"/>
