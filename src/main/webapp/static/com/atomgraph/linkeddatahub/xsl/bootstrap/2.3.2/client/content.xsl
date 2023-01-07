@@ -266,7 +266,7 @@ exclude-result-prefixes="#all"
     
     <!-- .xhtml-content referenced from .resource-content (XHTML transclusion) -->
     
-    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;Content'][rdf:value[@rdf:parseType = 'Literal']/xhtml:div]" mode="ldh:RenderContent" priority="1">
+    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;Content'][rdf:value/@rdf:resource]" mode="ldh:RenderContent" priority="1">
         <xsl:param name="container" as="element()"/>
         <xsl:param name="mode" as="xs:anyURI?"/>
         <xsl:param name="refresh-content" as="xs:boolean?"/>
