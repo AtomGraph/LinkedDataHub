@@ -372,27 +372,31 @@ exclude-result-prefixes="#all"
                 </xsl:for-each>
                 
                 <xsl:for-each select="$container/div[contains-token(@class, 'main')]">
-                    <div>
-                        <xsl:copy-of select="$controls"/>
-                    </div>
+                    <xsl:copy>
+                        <xsl:copy-of select="@*"/>
 
-                    <div class="form-actions">
-                        <button type="button" class="btn btn-primary btn-save">
-                            <xsl:value-of>
-                                <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                            </xsl:value-of>
-                        </button>
-                        <button type="button" class="btn btn-delete">
-                            <xsl:value-of>
-                                <xsl:apply-templates select="key('resources', 'delete', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                            </xsl:value-of>
-                        </button>
-                        <button type="button" class="btn btn-cancel">
-                            <xsl:value-of>
-                                <xsl:apply-templates select="key('resources', 'cancel', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                            </xsl:value-of>
-                        </button>
-                    </div>
+                        <div>
+                            <xsl:copy-of select="$controls"/>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="button" class="btn btn-primary btn-save">
+                                <xsl:value-of>
+                                    <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                                </xsl:value-of>
+                            </button>
+                            <button type="button" class="btn btn-delete">
+                                <xsl:value-of>
+                                    <xsl:apply-templates select="key('resources', 'delete', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                                </xsl:value-of>
+                            </button>
+                            <button type="button" class="btn btn-cancel">
+                                <xsl:value-of>
+                                    <xsl:apply-templates select="key('resources', 'cancel', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                                </xsl:value-of>
+                            </button>
+                        </div>
+                    </xsl:copy>
                 </xsl:for-each>
                 
                 <xsl:for-each select="$container/div[contains-token(@class, 'right-nav')]">
@@ -447,6 +451,8 @@ exclude-result-prefixes="#all"
 
                 <xsl:for-each select="$container/div[contains-token(@class, 'main')]">
                     <xsl:copy>
+                        <xsl:copy-of select="@*"/>
+                        
                         <div>
                             <xsl:copy-of select="$controls"/>
                         </div>
