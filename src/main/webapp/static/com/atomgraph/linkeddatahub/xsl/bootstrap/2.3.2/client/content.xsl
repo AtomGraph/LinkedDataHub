@@ -276,7 +276,7 @@ exclude-result-prefixes="#all"
 
         <xsl:variable name="row" as="node()*">
             <xsl:apply-templates select="." mode="bs2:RowContent">
-                <!--<xsl:with-param name="content-uri" select="()"/>-->
+                <xsl:with-param name="class" select="'content xhtml-content'"/> <!-- no .row-fluid -->
                 <xsl:with-param name="mode" select="$mode"/>
                 <xsl:with-param name="transclude" select="true()"/>
                 <xsl:with-param name="base" select="ac:document-uri(@rdf:about)"/>
@@ -343,10 +343,11 @@ exclude-result-prefixes="#all"
     <!-- EVENT LISTENERS -->
     
     <!-- XHTML content edit button onclick -->
+    <!-- Should not be triggered for embedded XHTML (.resource-content .xhtml-content), that's why we check we're at .row-fluid level -->
     
-    <xsl:template match="div[contains-token(@class, 'xhtml-content')]//button[contains-token(@class, 'btn-edit')]" mode="ixsl:onclick">
+    <xsl:template match="div[contains-token(@class, 'xhtml-content')][contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'btn-edit')]" mode="ixsl:onclick">
         <xsl:variable name="button" select="." as="element()"/>
-        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'main')]" as="element()"/>
+        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'xhtml-content')][contains-token(@class, 'row-fluid')]" as="element()"/>
 
         <xsl:variable name="constructor" as="document-node()">
             <xsl:document>
@@ -366,26 +367,28 @@ exclude-result-prefixes="#all"
         
         <xsl:for-each select="$container">
             <xsl:result-document href="?." method="ixsl:replace-content">
-                <div>
-                    <xsl:copy-of select="$controls"/>
-                </div>
-                
-                <div class="form-actions">
-                    <button type="button" class="btn btn-primary btn-save">
-                        <xsl:value-of>
-                            <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                        </xsl:value-of>
-                    </button>
-                    <button type="button" class="btn btn-delete">
-                        <xsl:value-of>
-                            <xsl:apply-templates select="key('resources', 'delete', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                        </xsl:value-of>
-                    </button>
-                    <button type="button" class="btn btn-cancel">
-                        <xsl:value-of>
-                            <xsl:apply-templates select="key('resources', 'cancel', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                        </xsl:value-of>
-                    </button>
+                <div class="main span7 offset2">
+                    <div>
+                        <xsl:copy-of select="$controls"/>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-primary btn-save">
+                            <xsl:value-of>
+                                <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                            </xsl:value-of>
+                        </button>
+                        <button type="button" class="btn btn-delete">
+                            <xsl:value-of>
+                                <xsl:apply-templates select="key('resources', 'delete', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                            </xsl:value-of>
+                        </button>
+                        <button type="button" class="btn btn-cancel">
+                            <xsl:value-of>
+                                <xsl:apply-templates select="key('resources', 'cancel', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                            </xsl:value-of>
+                        </button>
+                    </div>
                 </div>
             </xsl:result-document>
             
@@ -396,13 +399,13 @@ exclude-result-prefixes="#all"
     
     <!-- resource content edit button onclick -->
     
-    <xsl:template match="div[contains-token(@class, 'resource-content')]//button[contains-token(@class, 'btn-edit')]" mode="ixsl:onclick">
-        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'resource-content')]" as="element()"/>
+    <xsl:template match="div[contains-token(@class, 'resource-content')][contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'btn-edit')]" mode="ixsl:onclick">
+        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'resource-content')][contains-token(@class, 'row-fluid')]" as="element()"/>
         <xsl:variable name="content-value" select="ixsl:get($container, 'dataset.contentValue')" as="xs:anyURI"/> <!-- get the value of the @data-content-value attribute -->
         <xsl:variable name="mode" select="if (ixsl:contains($container, 'dataset.contentMode')) then xs:anyURI(ixsl:get($container, 'dataset.contentMode')) else ()" as="xs:anyURI?"/> <!-- get the value of the @data-content-mode attribute -->
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), map{}, $content-value)"/>
         <!-- redefine $container as the middle column -->
-        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'main')]" as="element()"/>
+<!--        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'main')]" as="element()"/>-->
 
         <xsl:variable name="constructor" as="document-node()">
             <xsl:document>
@@ -432,26 +435,28 @@ exclude-result-prefixes="#all"
         <!-- replace the middle column only -->
         <xsl:for-each select="$container">
             <xsl:result-document href="?." method="ixsl:replace-content">
-                <div>
-                    <xsl:copy-of select="$controls"/>
-                </div>
+                <div class="main span7 offset2">
+                    <div>
+                        <xsl:copy-of select="$controls"/>
+                    </div>
 
-                <div class="form-actions">
-                    <button type="button" class="btn btn-primary btn-save">
-                        <xsl:value-of>
-                            <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                        </xsl:value-of>
-                    </button>
-                    <button type="button" class="btn btn-delete">
-                        <xsl:value-of>
-                            <xsl:apply-templates select="key('resources', 'delete', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                        </xsl:value-of>
-                    </button>
-                    <button type="button" class="btn btn-cancel">
-                        <xsl:value-of>
-                            <xsl:apply-templates select="key('resources', 'cancel', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                        </xsl:value-of>
-                    </button>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-primary btn-save">
+                            <xsl:value-of>
+                                <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                            </xsl:value-of>
+                        </button>
+                        <button type="button" class="btn btn-delete">
+                            <xsl:value-of>
+                                <xsl:apply-templates select="key('resources', 'delete', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                            </xsl:value-of>
+                        </button>
+                        <button type="button" class="btn btn-cancel">
+                            <xsl:value-of>
+                                <xsl:apply-templates select="key('resources', 'cancel', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                            </xsl:value-of>
+                        </button>
+                    </div>
                 </div>
             </xsl:result-document>
         </xsl:for-each>
@@ -477,8 +482,8 @@ exclude-result-prefixes="#all"
 
     <!-- save XHTML content onclick -->
     
-    <xsl:template match="div[contains-token(@class, 'xhtml-content')]//button[contains-token(@class, 'btn-save')]" mode="ixsl:onclick">
-        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'xhtml-content')]" as="element()"/>
+    <xsl:template match="div[contains-token(@class, 'xhtml-content')][contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'btn-save')]" mode="ixsl:onclick">
+        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'xhtml-content')][contains-token(@class, 'row-fluid')]" as="element()"/>
         <xsl:variable name="textarea" select="ancestor::div[contains-token(@class, 'main')]//textarea[contains-token(@class, 'wymeditor')]" as="element()"/>
         <xsl:variable name="old-content-string" select="string($textarea)" as="xs:string"/>
         <xsl:variable name="wymeditor" select="ixsl:call(ixsl:get(ixsl:window(), 'jQuery'), 'getWymeditorByTextarea', [ $textarea ])" as="item()"/>
@@ -533,8 +538,8 @@ exclude-result-prefixes="#all"
 
     <!-- save resource-content onclick -->
     
-    <xsl:template match="div[contains-token(@class, 'resource-content')]//button[contains-token(@class, 'btn-save')]" mode="ixsl:onclick">
-        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'resource-content')]" as="element()"/>
+    <xsl:template match="div[contains-token(@class, 'resource-content')][contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'btn-save')]" mode="ixsl:onclick">
+        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'resource-content')][contains-token(@class, 'row-fluid')]" as="element()"/>
         <xsl:variable name="old-content-value" select="ixsl:get($container, 'dataset.contentValue')" as="xs:anyURI"/>
         <xsl:variable name="content-value" select="ixsl:get($container//div[contains-token(@class, 'main')]//input[@name = 'ou'], 'value')" as="xs:anyURI"/>
         <xsl:variable name="mode" select="ixsl:get(key('elements-by-class', 'content-mode', $container), 'value')" as="xs:anyURI?"/>
