@@ -416,8 +416,8 @@ exclude-result-prefixes="#all"
         <xsl:variable name="content-value" select="ixsl:get($container, 'dataset.contentValue')" as="xs:anyURI"/> <!-- get the value of the @data-content-value attribute -->
         <xsl:variable name="mode" select="if (ixsl:contains($container, 'dataset.contentMode')) then xs:anyURI(ixsl:get($container, 'dataset.contentMode')) else ()" as="xs:anyURI?"/> <!-- get the value of the @data-content-mode attribute -->
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), map{}, $content-value)"/>
-        <!-- if this .resource-content transcludes .xhtml-content, redefine $container as the inner .xhtml-content -->
-        <xsl:variable name="container" select="if ($container/div[contains-token(@class, 'xhtml-content')]) then $container/div[contains-token(@class, 'xhtml-content')] else $container" as="element()"/>
+        <!-- if this .resource-content transcludes .xhtml-content, redefine content container as the inner .xhtml-content -->
+        <xsl:variable name="content-container" select="if ($container/div[contains-token(@class, 'xhtml-content')]) then $container/div[contains-token(@class, 'xhtml-content')] else $container" as="element()"/>
 
         <xsl:variable name="constructor" as="document-node()">
             <xsl:document>
@@ -444,14 +444,13 @@ exclude-result-prefixes="#all"
             </xsl:apply-templates>
         </xsl:variable>
         
-        <!-- replace the middle column only -->s
         <xsl:for-each select="$container">
             <xsl:result-document href="?." method="ixsl:replace-content">
-                <xsl:for-each select="$container/div[contains-token(@class, 'left-nav')]">
+                <xsl:for-each select="$content-container/div[contains-token(@class, 'left-nav')]">
                     <xsl:copy-of select="."/>
                 </xsl:for-each>
 
-                <xsl:for-each select="$container/div[contains-token(@class, 'main')]">
+                <xsl:for-each select="$content-container/div[contains-token(@class, 'main')]">
                     <xsl:copy>
                         <xsl:copy-of select="@*"/>
                         
@@ -478,7 +477,7 @@ exclude-result-prefixes="#all"
                         </div>
                     </xsl:copy>
                     
-                    <xsl:for-each select="$container/div[contains-token(@class, 'right-nav')]">
+                    <xsl:for-each select="$content-container/div[contains-token(@class, 'right-nav')]">
                         <xsl:copy-of select="."/>
                     </xsl:for-each>
                 </xsl:for-each>
