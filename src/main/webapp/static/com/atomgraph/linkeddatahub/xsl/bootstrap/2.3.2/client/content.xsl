@@ -495,7 +495,7 @@ exclude-result-prefixes="#all"
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                 <xsl:call-template name="onTypeaheadResourceLoad">
                     <xsl:with-param name="resource-uri" select="$content-value"/>
-                    <xsl:with-param name="typeahead-span" select="$container//div[contains-token(@class, 'main')]/span[1]"/>
+                    <xsl:with-param name="typeahead-span" select="$container/div[contains-token(@class, 'main')]//span[1]"/>
                 </xsl:call-template>
             </ixsl:schedule-action>
         </xsl:variable>
