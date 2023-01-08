@@ -355,7 +355,7 @@ exclude-result-prefixes="#all"
                     <rdf:Description>
                         <rdf:type rdf:resource="&ldh;Content"/>
                         <rdf:value rdf:parseType="Literal">
-                            <xsl:copy-of select="$container/div[contains-token(@class, 'main')][not(. is $button)]"/> <!-- filter out the "Edit" button -->
+                            <xsl:copy-of select="$container/div[contains-token(@class, 'main')]/*[not(. is $button)]"/> <!-- filter out the "Edit" button -->
                         </rdf:value>
                     </rdf:Description>
                 </rdf:RDF>
