@@ -367,7 +367,11 @@ exclude-result-prefixes="#all"
         
         <xsl:for-each select="$container">
             <xsl:result-document href="?." method="ixsl:replace-content">
-                <div class="main span7 offset2">
+                <xsl:for-each select="$container/div[contains-token(@class, 'left-nav')]">
+                    <xsl:copy-of select="."/>
+                </xsl:for-each>
+                
+                <xsl:for-each select="$container/div[contains-token(@class, 'main')]">
                     <div>
                         <xsl:copy-of select="$controls"/>
                     </div>
@@ -389,7 +393,11 @@ exclude-result-prefixes="#all"
                             </xsl:value-of>
                         </button>
                     </div>
-                </div>
+                </xsl:for-each>
+                
+                <xsl:for-each select="$container/div[contains-token(@class, 'right-nav')]">
+                    <xsl:copy-of select="."/>
+                </xsl:for-each>
             </xsl:result-document>
             
             <!-- initialize wymeditor textarea -->
@@ -404,8 +412,6 @@ exclude-result-prefixes="#all"
         <xsl:variable name="content-value" select="ixsl:get($container, 'dataset.contentValue')" as="xs:anyURI"/> <!-- get the value of the @data-content-value attribute -->
         <xsl:variable name="mode" select="if (ixsl:contains($container, 'dataset.contentMode')) then xs:anyURI(ixsl:get($container, 'dataset.contentMode')) else ()" as="xs:anyURI?"/> <!-- get the value of the @data-content-mode attribute -->
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), map{}, $content-value)"/>
-        <!-- redefine $container as the middle column -->
-<!--        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'main')]" as="element()"/>-->
 
         <xsl:variable name="constructor" as="document-node()">
             <xsl:document>
@@ -435,29 +441,39 @@ exclude-result-prefixes="#all"
         <!-- replace the middle column only -->
         <xsl:for-each select="$container">
             <xsl:result-document href="?." method="ixsl:replace-content">
-                <div class="main span7 offset2">
-                    <div>
-                        <xsl:copy-of select="$controls"/>
-                    </div>
+                <xsl:for-each select="$container/div[contains-token(@class, 'left-nav')]">
+                    <xsl:copy-of select="."/>
+                </xsl:for-each>
 
-                    <div class="form-actions">
-                        <button type="button" class="btn btn-primary btn-save">
-                            <xsl:value-of>
-                                <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                            </xsl:value-of>
-                        </button>
-                        <button type="button" class="btn btn-delete">
-                            <xsl:value-of>
-                                <xsl:apply-templates select="key('resources', 'delete', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                            </xsl:value-of>
-                        </button>
-                        <button type="button" class="btn btn-cancel">
-                            <xsl:value-of>
-                                <xsl:apply-templates select="key('resources', 'cancel', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                            </xsl:value-of>
-                        </button>
-                    </div>
-                </div>
+                <xsl:for-each select="$container/div[contains-token(@class, 'main')]">
+                    <xsl:copy>
+                        <div>
+                            <xsl:copy-of select="$controls"/>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="button" class="btn btn-primary btn-save">
+                                <xsl:value-of>
+                                    <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                                </xsl:value-of>
+                            </button>
+                            <button type="button" class="btn btn-delete">
+                                <xsl:value-of>
+                                    <xsl:apply-templates select="key('resources', 'delete', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                                </xsl:value-of>
+                            </button>
+                            <button type="button" class="btn btn-cancel">
+                                <xsl:value-of>
+                                    <xsl:apply-templates select="key('resources', 'cancel', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                                </xsl:value-of>
+                            </button>
+                        </div>
+                    </xsl:copy>
+                    
+                    <xsl:for-each select="$container/div[contains-token(@class, 'right-nav')]">
+                        <xsl:copy-of select="."/>
+                    </xsl:for-each>
+                </xsl:for-each>
             </xsl:result-document>
         </xsl:for-each>
         
