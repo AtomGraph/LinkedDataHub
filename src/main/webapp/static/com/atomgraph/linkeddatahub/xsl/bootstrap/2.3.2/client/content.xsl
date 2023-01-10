@@ -137,9 +137,9 @@ exclude-result-prefixes="#all"
         <xsl:param name="mode" as="xs:anyURI?"/>
         <xsl:param name="refresh-content" as="xs:boolean?"/>
         <xsl:param name="content-uri" select="xs:anyURI(ixsl:get($container, 'dataset.contentUri'))" as="xs:anyURI"/>
+        <!-- set $this variable value unless getting the query string from state -->
+        <xsl:param name="select-string" select="replace(sp:text, '\$this', '&lt;' || $about || '&gt;')" as="xs:string"/>
         <xsl:param name="select-xml" as="document-node()">
-            <!-- set $this variable value unless getting the query string from state -->
-            <xsl:variable name="select-string" select="replace(sp:text, '\$this', '&lt;' || $about || '&gt;')" as="xs:string"/>
             <xsl:variable name="select-json" as="item()">
                 <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', [ $select-string ])"/>
                 <xsl:sequence select="ixsl:call($select-builder, 'build', [])"/>
