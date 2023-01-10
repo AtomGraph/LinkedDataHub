@@ -894,7 +894,7 @@ WHERE
 
     <!-- Linked Data browser -->
     
-    <xsl:template name="onDocumentLoad">
+    <xsl:template name="ldh:DocumentLoaded">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="href" as="xs:anyURI?"/> <!-- absolute URI! -->
         <xsl:param name="container" select="id('content-body', ixsl:page())" as="element()"/>
@@ -1193,7 +1193,7 @@ WHERE
 
                     <xsl:variable name="request" as="item()*">
                         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
-                            <xsl:call-template name="onDocumentLoad">
+                            <xsl:call-template name="ldh:DocumentLoaded">
                                 <xsl:with-param name="href" select="$href"/>
                                 <!-- we don't want to push the same state we just popped back to -->
                                 <xsl:with-param name="push-state" select="false()"/>
@@ -1227,7 +1227,7 @@ WHERE
         
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
-                <xsl:call-template name="onDocumentLoad">
+                <xsl:call-template name="ldh:DocumentLoaded">
                     <xsl:with-param name="href" select="$href"/>
                 </xsl:call-template>
             </ixsl:schedule-action>
@@ -1256,7 +1256,7 @@ WHERE
 
             <xsl:variable name="request" as="item()*">
                 <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
-                    <xsl:call-template name="onDocumentLoad">
+                    <xsl:call-template name="ldh:DocumentLoaded">
                         <xsl:with-param name="href" select="$href"/>
                     </xsl:call-template>
                 </ixsl:schedule-action>
@@ -1279,7 +1279,7 @@ WHERE
 
                 <xsl:variable name="request" as="item()*">
                     <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
-                        <xsl:call-template name="onDocumentLoad">
+                        <xsl:call-template name="ldh:DocumentLoaded">
                             <xsl:with-param name="href" select="$href"/>
                         </xsl:call-template>
                     </ixsl:schedule-action>
@@ -1334,7 +1334,7 @@ WHERE
 
                     <xsl:variable name="request" as="item()*">
                         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
-                            <xsl:call-template name="onDocumentLoad">
+                            <xsl:call-template name="ldh:DocumentLoaded">
                                 <xsl:with-param name="href" select="$uri"/>
                             </xsl:call-template>
                         </ixsl:schedule-action>
@@ -1422,7 +1422,7 @@ WHERE
 
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
-                <xsl:call-template name="onDocumentLoad">
+                <xsl:call-template name="ldh:DocumentLoaded">
                     <xsl:with-param name="href" select="$uri"/>
                 </xsl:call-template>
             </ixsl:schedule-action>
@@ -1585,7 +1585,7 @@ WHERE
 
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
-                <xsl:call-template name="onDocumentLoad">
+                <xsl:call-template name="ldh:DocumentLoaded">
                     <xsl:with-param name="href" select="$href"/>
                 </xsl:call-template>
             </ixsl:schedule-action>

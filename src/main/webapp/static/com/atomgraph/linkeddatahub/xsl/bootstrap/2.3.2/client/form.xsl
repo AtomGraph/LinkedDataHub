@@ -247,7 +247,7 @@ WHERE
                 <xsl:variable name="form-data" select="ldh:new('URLSearchParams', [ ldh:new('FormData', [ $form ]) ])"/>
                 <xsl:variable name="request" as="item()*">
                     <ixsl:schedule-action http-request="map{ 'method': $method, 'href': $request-uri, 'media-type': $enctype, 'body': $form-data, 'headers': map{ 'Accept': $accept } }">
-                        <xsl:call-template name="onFormLoad">
+                        <xsl:call-template name="ldh:FormLoaded">
                             <xsl:with-param name="action" select="$action"/>
                             <xsl:with-param name="form" select="$form"/>
                             <xsl:with-param name="target-id" select="$form/input[@class = 'target-id']/@value"/>
@@ -796,7 +796,7 @@ WHERE
         </xsl:variable>
         
         <xsl:for-each select="$response">
-            <xsl:call-template name="onFormLoad">
+            <xsl:call-template name="ldh:FormLoaded">
                 <xsl:with-param name="container" select="$container"/>
                 <xsl:with-param name="action" select="$action"/>
                 <xsl:with-param name="form" select="$form"/>
@@ -1035,7 +1035,7 @@ WHERE
     </xsl:template>
     
     <!-- after form is submitted. TO-DO: split into multiple callbacks and avoid <xsl:choose>? -->
-    <xsl:template name="onFormLoad">
+    <xsl:template name="ldh:FormLoaded">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="container" select="id('content-body', ixsl:page())" as="element()"/>
         <xsl:param name="action" as="xs:anyURI"/>
@@ -1055,7 +1055,7 @@ WHERE
                         <!-- load document -->
                         <xsl:variable name="request" as="item()*">
                             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
-                                <xsl:call-template name="onDocumentLoad">
+                                <xsl:call-template name="ldh:DocumentLoaded">
                                     <xsl:with-param name="href" select="ldh:absolute-path($uri)"/>
                                 </xsl:call-template>
                             </ixsl:schedule-action>
@@ -1097,7 +1097,7 @@ WHERE
                 <!-- load document -->
                 <xsl:variable name="request" as="item()*">
                     <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
-                        <xsl:call-template name="onDocumentLoad">
+                        <xsl:call-template name="ldh:DocumentLoaded">
                             <xsl:with-param name="href" select="ldh:absolute-path($uri)"/>
                             <xsl:with-param name="refresh-content" select="true()"/> <!-- make sure content (e.g. containers) do not use a stale response -->
                         </xsl:call-template>
@@ -1124,7 +1124,7 @@ WHERE
                         <!--reload resource--> 
                         <xsl:variable name="request" as="item()*">
                             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
-                                <xsl:call-template name="onDocumentLoad">
+                                <xsl:call-template name="ldh:DocumentLoaded">
                                     <xsl:with-param name="href" select="$uri"/>
                                 </xsl:call-template>
                             </ixsl:schedule-action>
@@ -1160,7 +1160,7 @@ WHERE
                     <xsl:otherwise>
                         <xsl:variable name="request" as="item()*">
                             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $created-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
-                                <xsl:call-template name="onDocumentLoad">
+                                <xsl:call-template name="ldh:DocumentLoaded">
                                     <xsl:with-param name="href" select="ldh:absolute-path($created-uri)"/> <!-- ldh:href()? -->
                                 </xsl:call-template>
                             </ixsl:schedule-action>

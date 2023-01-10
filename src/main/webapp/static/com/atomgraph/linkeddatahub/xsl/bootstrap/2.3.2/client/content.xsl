@@ -136,20 +136,22 @@ exclude-result-prefixes="#all"
         <xsl:param name="container" as="element()"/>
         <xsl:param name="mode" as="xs:anyURI?"/>
         <xsl:param name="refresh-content" as="xs:boolean?"/>
-        <xsl:variable name="content-uri" select="xs:anyURI(ixsl:get($container, 'dataset.contentUri'))" as="xs:anyURI"/>
-        <!-- set $this variable value unless getting the query string from state -->
-        <xsl:variable name="select-string" select="replace(sp:text, '\$this', '&lt;' || $about || '&gt;')" as="xs:string"/>
-        <xsl:variable name="select-json" as="item()">
-            <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', [ $select-string ])"/>
-            <xsl:sequence select="ixsl:call($select-builder, 'build', [])"/>
-        </xsl:variable>
-        <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $select-json ])" as="xs:string"/>
-        <xsl:variable name="select-xml" select="json-to-xml($select-json-string)" as="document-node()"/>
-        <xsl:variable name="initial-var-name" select="$select-xml/json:map/json:array[@key = 'variables']/json:string[1]/substring-after(., '?')" as="xs:string"/>
+        <xsl:param name="content-uri" select="xs:anyURI(ixsl:get($container, 'dataset.contentUri'))" as="xs:anyURI"/>
+        <xsl:param name="select-xml" as="document-node()">
+            <!-- set $this variable value unless getting the query string from state -->
+            <xsl:variable name="select-string" select="replace(sp:text, '\$this', '&lt;' || $about || '&gt;')" as="xs:string"/>
+            <xsl:variable name="select-json" as="item()">
+                <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', [ $select-string ])"/>
+                <xsl:sequence select="ixsl:call($select-builder, 'build', [])"/>
+            </xsl:variable>
+            <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $select-json ])" as="xs:string"/>
+            <xsl:sequence select="json-to-xml($select-json-string)"/>
+        </xsl:param>
+        <xsl:param name="initial-var-name" select="$select-xml/json:map/json:array[@key = 'variables']/json:string[1]/substring-after(., '?')" as="xs:string"/>
         <!-- service can be explicitly specified on content using ldh:service -->
-        <xsl:variable name="service-uri" select="xs:anyURI(ldh:service/@rdf:resource)" as="xs:anyURI?"/>
-        <xsl:variable name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.apps'))" as="element()?"/>
-        <xsl:variable name="endpoint" select="($service/sd:endpoint/@rdf:resource/xs:anyURI(.), sd:endpoint())[1]" as="xs:anyURI"/>
+        <xsl:param name="service-uri" select="xs:anyURI(ldh:service/@rdf:resource)" as="xs:anyURI?"/>
+        <xsl:param name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.apps'))" as="element()?"/>
+        <xsl:param name="endpoint" select="($service/sd:endpoint/@rdf:resource/xs:anyURI(.), sd:endpoint())[1]" as="xs:anyURI"/>
         
         <xsl:choose>
             <!-- service URI is not specified or specified and can be loaded -->
@@ -218,13 +220,13 @@ exclude-result-prefixes="#all"
         <xsl:param name="container" as="element()"/>
         <xsl:param name="mode" as="xs:anyURI?"/>
         <xsl:param name="refresh-content" as="xs:boolean?"/>
-        <xsl:variable name="content-uri" select="xs:anyURI(ixsl:get($container, 'dataset.contentUri'))" as="xs:anyURI"/>
+        <xsl:param name="content-uri" select="xs:anyURI(ixsl:get($container, 'dataset.contentUri'))" as="xs:anyURI"/>
         <!-- set $this variable value unless getting the query string from state -->
-        <xsl:variable name="query-string" select="replace(sp:text, '\$this', '&lt;' || $about || '&gt;')" as="xs:string"/>
+        <xsl:param name="query-string" select="replace(sp:text, '\$this', '&lt;' || $about || '&gt;')" as="xs:string"/>
         <!-- service can be explicitly specified on content using ldh:service -->
-        <xsl:variable name="service-uri" select="xs:anyURI(ldh:service/@rdf:resource)" as="xs:anyURI?"/>
-        <xsl:variable name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.apps'))" as="element()?"/>
-        <xsl:variable name="endpoint" select="($service/sd:endpoint/@rdf:resource/xs:anyURI(.), sd:endpoint())[1]" as="xs:anyURI"/>
+        <xsl:param name="service-uri" select="xs:anyURI(ldh:service/@rdf:resource)" as="xs:anyURI?"/>
+        <xsl:param name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.apps'))" as="element()?"/>
+        <xsl:param name="endpoint" select="($service/sd:endpoint/@rdf:resource/xs:anyURI(.), sd:endpoint())[1]" as="xs:anyURI"/>
 
         <xsl:choose>
             <!-- service URI is not specified or specified and can be loaded -->
