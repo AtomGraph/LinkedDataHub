@@ -16,13 +16,13 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="description" content="LinkedDataHub is open source software you can use to manage data, create visualizations and build apps on RDF Knowledge Graphs">
-    <meta name="keywords" content="RDF, SPARQL, Linked Data, Linked Data Templates, Linked Open Data, Knowledge Graph, notebook, declarative, triplestore, Semantic Web, XSLT, LDT, ontology, OWL, hypermedia, WebID, data driven, structured content">
+    <meta name="keywords" content="RDF, SPARQL, Linked Data, Linked Data Templates, Linked Open Data, Knowledge Graph, declarative, triplestore, Semantic Web, XSLT, LDT, ontology, OWL, hypermedia, WebID, data driven, structured content">
     <meta name="author" content="AtomGraph">
-    <meta name="twitter:title" content="LinkedDataHub – The Knowledge Graph notebook">
+    <meta name="twitter:title" content="LinkedDataHub – The low-code Knowledge Graph application platform">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:site" content="@atomgraphhq">
     <meta property="og:url" content="https://atomgraph.github.io/LinkedDataHub/">
-    <meta property="og:title" content="LinkedDataHub – The Knowledge Graph notebook">
+    <meta property="og:title" content="LinkedDataHub – The low-code Knowledge Graph application platform">
     <meta property="og:description" content="LinkedDataHub is open source software you can use to manage data, create visualizations and build apps on RDF Knowledge Graphs">
     <meta property="og:image" content="https://atomgraph.github.io/LinkedDataHub/img/og-image.png">
     <meta property="og:image:type" content="image/png">
@@ -32,7 +32,7 @@
 
     <!-- schema.org metadata -->
     <script type="application/ld+json">
-        { "@context": "https://schema.org", "@type": "WebApplication", "name": "LinkedDataHub", "description": "The Knowledge Graph notebook", "url": "https://atomgraph.github.io/LinkedDataHub/", "operatingSystem": "Docker", "applicationCategory": [ "Data management", "Browser", "Analytics" ], "screenshot": "LDHChartMode.png", "downloadUrl": "https://github.com/AtomGraph/LinkedDataHub", "license": "https://www.apache.org/licenses/LICENSE-2.0", "keywords": [ "RDF", "SPARQL", "Linked Data", "Linked Data Templates", "Linked Open Data", "Knowledge Graph", "notebook", "declarative", "triplestore", "Semantic Web", "XSLT", "LDT", "ontology", "OWL", "hypermedia", "WebID", "data driven", "structured content" ] , "publisher": { "@type": "Organization", "name": "AtomGraph", "url": "https://atomgraph.com" } }
+        { "@context": "https://schema.org", "@type": "WebApplication", "name": "LinkedDataHub", "description": "The low-code Knowledge Graph application platform", "url": "https://atomgraph.github.io/LinkedDataHub/", "operatingSystem": "Docker", "applicationCategory": [ "Data management", "Browser", "Analytics" ], "screenshot": "LDHChartMode.png", "downloadUrl": "https://github.com/AtomGraph/LinkedDataHub", "license": "https://www.apache.org/licenses/LICENSE-2.0", "keywords": [ "RDF", "SPARQL", "Linked Data", "Linked Data Templates", "Linked Open Data", "Knowledge Graph", "fair", "fair data", "declarative", "triplestore", "Semantic Web", "XSLT", "LDT", "ontology", "OWL", "hypermedia", "WebID", "data driven", "structured content" ] , "publisher": { "@type": "Organization", "name": "AtomGraph", "url": "https://atomgraph.com" } }
     </script>
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
@@ -81,7 +81,7 @@
 
         .footer { margin-top: 4em; margin-bottom: 3em; }
     </style>
-    <title>LinkedDataHub – The Knowledge Graph notebook</title>
+    <title>LinkedDataHub – The low-code Knowledge Graph application platform</title>
 </head>
 
 <body>
@@ -114,9 +114,9 @@
 
     <div class="jumbotron jumbotron-fluid">
         <div class="container text-center">
-            <h1 class="display-4">The Knowledge Graph<br/> notebook</h1>
+            <h1 class="display-4">The <em>low-code</em><br>Knowledge Graph<br> application platform</h1>
             <p class="lead">LinkedDataHub is open source software you can use to manage data,
-                <br/> create visualizations and build apps on RDF Knowledge Graphs</p>
+                <br> create visualizations and build apps on RDF Knowledge Graphs</p>
              <a href="linkeddatahub/docs/get-started/" class="btn btn-primary btn-lg active" role="button" aria-pressed="true">Get started</a>
              <a href="https://github.com/AtomGraph/LinkedDataHub" class="btn btn-primary btn-lg active" role="button" aria-pressed="true" id="github-button">&nbsp;</a>
              <a href="https://aws.amazon.com/marketplace/pp/prodview-vqbeztc3f2nni" class="btn btn-primary btn-lg active" role="button" aria-pressed="true" id="aws-marketplace-button">&nbsp;</a>
@@ -129,7 +129,7 @@
                 <div class="card">
                     <div class="card-body">
                         <h5 class="card-title">For researchers and data scientists</h5>
-                        <p class="card-text lead">RDF-native notebook environment</p>
+                        <p class="card-text lead">RDF-native FAIR data environment</p>
                         <ul>
                             <li>Copy Linked Data resources into your personal dataspace</li>
                             <li>Create data-driven content interactively</li>
@@ -146,7 +146,7 @@
                         <h5 class="card-title">For developers and data publishers</h5>
                         <p class="card-text lead">Low code application development</p>
                         <ul>
-                            <li>Customize the layout with few lines of declarative stylesheets</li>
+                            <li>Customize the UI with few lines of declarative stylesheets</li>
                             <li>Configure data editing forms using SPARQL-based templates</li>
                             <li>Create or import ontologies to model your domain</li>
                             <li>Use the standard SPARQL 1.1 APIs to query and manage data</li>
@@ -304,7 +304,7 @@
           <thead>
             <tr>
               <th scope="col" style="width: 25%"></th>
-              <th scope="col" style="width: 25%">Jupyter notebook</th>
+              <th scope="col" style="width: 25%">Metaphactory</th>
               <th scope="col" style="width: 25%">LinkedDataHub</th>
               <th scope="col" style="width: 25%">Wikibase</th>
             </tr>
@@ -312,39 +312,45 @@
           <tbody>
             <tr>
               <th scope="row">Store and publish Linked Data</th>
-              <td class="table-danger">&#10008;</td>
               <td class="table-success">&#10004;</td>
-              <td class="table-warning">With extensions</td>
+              <td class="table-success">&#10004;</td>
+              <td class="table-warning">Using extensions</td>
             </tr>
             <tr>
               <th scope="row">Edit RDF data</th>
-              <td class="table-danger">&#10008;</td>
+              <td class="table-success">&#10004;</td>
               <td class="table-success">&#10004;</td>
               <td class="table-danger">&#10008;</td>
             </tr>
             <tr>
               <th scope="row">Query with SPARQL</th>
-              <td class="table-warning">With extensions</td>
               <td class="table-success">&#10004;</td>
-              <td class="table-warning">With extensions</td>
+              <td class="table-success">&#10004;</td>
+              <td class="table-warning">Using extensions</td>
             </tr>
             <tr>
               <th scope="row">Create and import ontologies</th>
-              <td class="table-danger">&#10008;</td>
+              <td class="table-success">&#10004;</td>
               <td class="table-success">&#10004;</td>
               <td class="table-danger">&#10008;</td>
             </tr>
             <tr>
               <th scope="row">Create data-driven content</th>
+              <td class="table-warning">Using proprietary template language</td>
               <td class="table-success">&#10004;</td>
-              <td class="table-success">&#10004;</td>
-              <td class="table-warning">With extensions</td>
+              <td class="table-warning">Using extensions</td>
             </tr>
             <tr>
-              <th scope="row">Customize UI layout</th>
-              <td class="table-warning">With product-specific code</td>
-              <td class="table-success">With W3C standard stylesheets</td>
-              <td class="table-warning">With product-specific code</td>
+              <th scope="row">Customize UI</th>
+              <td class="table-warning">Using proprietary template language</td>
+              <td class="table-success">Using W3C standard stylesheets</td>
+              <td class="table-warning">Using product-specific code</td>
+            </tr>
+            <tr>
+              <th scope="row">License</th>
+              <td>Commercial</td>
+              <td class="table-success"><a href="https://github.com/AtomGraph/LinkedDataHub/blob/master/LICENSE" target="_blank">Open-source (Apache 2.0)</a></td>
+              <td class="table-success"><a href="https://github.com/wikimedia/Wikibase/blob/master/COPYING" target="_blank">Open-source (GNU)</a></td>
             </tr>
           </tbody>
         </table>
