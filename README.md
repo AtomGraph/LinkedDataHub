@@ -1,4 +1,4 @@
-# The Knowledge Graph notebook
+# The *low-code* Knowledge Graph application platform
 
 **_LinkedDataHub_ (LDH) is open source software you can use to manage data, create visualizations and build apps on RDF Knowledge Graphs.**
 
@@ -10,7 +10,7 @@ What's new in LinkedDataHub v3? Watch this video for a feature overview:
 We started the project with the intention to use it for Linked Data publishing, but gradually realized that we've built a multi-purpose data-driven platform.
 
 We are building LinkedDataHub primarily for:
-* researchers who need an RDF-native notebook that can consume and collect Linked Data and SPARQL documents and follows the [FAIR principles](https://www.go-fair.org/fair-principles/)
+* researchers who need an RDF-native FAIR data environment that can consume and collect Linked Data and SPARQL documents and follows the [FAIR principles](https://www.go-fair.org/fair-principles/)
 * developers who are looking for a declarative full stack framework for Knowledge Graph application development, with out-of-the-box UI and API
 
 What makes LinkedDataHub unique is its completely _data-driven architecture_: applications and documents are defined as data, managed using a single generic HTTP API and presented using declarative technologies. The default application structure and user interface are provided, but they can be completely overridden and customized. Unless a custom server-side processing is required, no imperative code such as Java or JavaScript needs to be involved at all.
