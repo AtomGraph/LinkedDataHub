@@ -5,6 +5,8 @@
 - `docker-compose.yml` now uses image versions instead of hashes
 - Refactored `RDFXML2JSON-LD.xsl` converter uses the XSLT 3.0 JSON instructions instead of string concatenation
 - New `<acl/authorizations/public-namespace/#this>` authorization, separate from `<acl/authorizations/public/#this>`
+- Fixed editing mode for resources that do not have any `rdf:type` properties
+- Replaced all SPARQLBuilder usages for query building with XSLT 3.0 transformations (SPARQLBuilder still used for query serialization)
 
 ## [3.3.2] - 2022-12-12
 ### Added

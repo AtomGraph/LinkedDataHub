@@ -210,6 +210,7 @@ LinkedDataHub includes an HTTP [test suite](https://github.com/AtomGraph/LinkedD
 ### Browser
 
 * [Saxon-JS](https://www.saxonica.com/saxon-js/)
+* [SPARQLBuilder](https://github.com/AtomGraph/sparql-builder)
 * [OpenLayers](https://openlayers.org)
 * [Google Charts](https://developers.google.com/chart)
 
