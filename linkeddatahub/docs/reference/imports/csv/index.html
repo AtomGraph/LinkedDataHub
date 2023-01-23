@@ -186,7 +186,7 @@ AF,33.9,67.7,Afghanistan</pre>
                            cells as <code>xsd:string</code> literals. The approach is the same as CSV on the Web
                            <a href="https://www.w3.org/TR/2015/REC-csv2rdf-20151217/#dfn-minimal-mode" target="_blank">minimal mode</a>.</p>
                         
-                        <pre>@base &lt;https://linkeddatahub.com/demo/city-graph/&gt; .
+                        <pre>@base &lt;https://localhost:4443/&gt; .
 
 _:8228a149-8efe-448d-b15f-8abf92e7bd17
   &lt;#countryCode&gt; "AD" ;
@@ -278,12 +278,22 @@ WHERE
                         
                         <p>The result of our mapping  (only the first resource is shown):</p>
                         
-                        <pre>_:item a &lt;https://linkeddatahub.com/demo/city-graph/ns/domain/default#Item&gt; ;
+                        <pre>PREFIX  ldh:  &lt;https://w3id.org/atomgraph/linkeddatahub#&gt;
+PREFIX  geo:  &lt;http://www.w3.org/2003/01/geo/wgs84_pos#&gt;
+PREFIX  dh:   &lt;https://www.w3.org/ns/ldt/document-hierarchy#&gt;
+PREFIX  dct:  &lt;http://purl.org/dc/terms/&gt;
+PREFIX  rdf:  &lt;http://www.w3.org/1999/02/22-rdf-syntax-ns#&gt;
+PREFIX  xsd:  &lt;http://www.w3.org/2001/XMLSchema#&gt;
+PREFIX  foaf: &lt;http://xmlns.com/foaf/0.1/&gt;
+PREFIX  sioc: &lt;http://rdfs.org/sioc/ns#&gt;
+
+_:item a &lt;https://w3id.org/atomgraph/linkeddatahub##Item&gt; ;
+    sioc:has_container &lt;https://localhost:4443/countries/&gt; ;
     dct:title "Andorra" ;
     dh:slug "AD" ;
     foaf:primaryTopic _:country .
 
-_:country a &lt;https://linkeddatahub.com/demo/city-graph/ns#Country&gt; ;
+_:country a &lt;http://dbpedia.org/ontology/Place&gt; ;
     dct:identifier "AD" ;
     geo:lat 42.5 ;
     geo:long 1.6 ;
