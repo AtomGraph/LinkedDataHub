@@ -141,7 +141,7 @@
                                  
                                  <li>Click on <samp>File</samp> in the drop-down list that appears</li>
                                  
-                                 <li>Fill out the mandatory fields in the form:
+                                 <li>Fill out the mandatory <dfn>File</dfn> fields in the form:
                                     
                                     <dl>
                                        
@@ -174,17 +174,17 @@
                            
                            <div>
                               
-                              <p>Replace <code>${OWNER_KEY_PASSWORD}</code> with its value from the <samp>.env</samp> file and execute the following command:</p>
+                              <p>Replace <code>$OWNER_KEY_PASSWORD</code> with its value from the <samp>.env</samp> file and execute the following command:</p>
                               
                               <pre>pushd . &amp;&amp; cd "$SCRIPT_ROOT/imports"
 
 ./create-file.sh \
 -b "https://localhost:4443/" \
--f "${cert_pem_file}" \
--p "${cert_password}" \
---title "${title}" \
---file "${filename}" \
---file-content-type "${content_type}"
+-f "$cert_pem_file" \
+-p "$cert_password" \
+--title "$title" \
+--file "$filename" \
+--file-content-type "$content_type"
 
 popd</pre>
                               </div>

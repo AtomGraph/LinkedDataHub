@@ -120,94 +120,274 @@
                   
                   <p class="lead">Step by step guide to importing RDF data</p>
                   
-                  <p>There are multiple ways to import RDF data into LinkedDataHub.</p>
+                  <div class="alert alert-info">
+                     
+                     <p>This guide is for importing larger amounts of data (e.g. more than a few thousands
+                        of RDF triples) asynchronously.
+                        For smaller data, it is simpler to <a href="../add-data/" target="_blank">add data </a> synchronously.</p>
+                     </div>
+                  
+                  <p class="lead"><a href="../../../reference/imports/rdf/" target="_blank">Read more on how RDF imports work.</a></p>
+                  
+                  <p>There are 3 main components that comprise a CSV import:</p>
+                  
+                  <dl>
+                     
+                     <dt>RDF file</dt>
+                     
+                     <dd>The file containing the RDF data (can be in any RDF syntax)</dd>
+                     
+                     <dt>Transformation query (optional)</dt>
+                     
+                     <dd>SPARQL <code>CONSTRUCT</code> query that maps RDF to another RDF represenation</dd>
+                     
+                     <dt>Graph (optional)</dt>
+                     
+                     <dd>The document that the import results will be stored in, if no mapping query is specified</dd>
+                     
+                     <dt>RDF import</dt>
+                     
+                     <dd>Combines the file with the corresponding query</dd>
+                     </dl>
                   
                   <div>
                      
-                     <h2 id="single-resource">Single resource</h2>
+                     <h2 id="without-transformation">Without transformation</h2>
                      
-                     <p>Create or update a single RDF document using the <a href="../../../reference/command-line-interface/">command line interface</a>.</p>
+                     <p>This method <em>asynchronously</em> appends RDF data to a document (see <a href="../../create-data/create-documents/">how to create a document</a>).</p>
+                     
+                     <div class="tabbable">
+                        
+                        <ul class="nav nav-tabs">
+                           
+                           <li class="active"><a>User interface</a></li>
+                           
+                           <li><a>Command line interface</a></li>
+                           </ul>
+                        
+                        <div class="tab-content">
+                           
+                           <div class="tab-pane active">
+                              
+                              <div>
+                                 
+                                 <p>LinkedDataHub allows all the import components be created from a single dialogue,
+                                    but we will go through the process in separate
+                                    steps:</p>
+                                 
+                                 <ol>
+                                    
+                                    <li>First, create a container for the data to be imported. This will be the import's <dfn>target container</dfn></li>
+                                    
+                                    <li>Upload a RDF file. Click on the <span class="btn btn-primary create-action">Create <span class="caret"></span></span> dropdown in the top left-hand corner and select
+                                       <dfn>File</dfn>. This will open a new form.</li>
+                                    
+                                    <li>Fill out <dfn>Item</dfn> fields</li>
+                                    
+                                    <li>
+                                       Fill in the mandatory <dfn>File</dfn> fields:
+                                       
+                                       <dl>
+                                          
+                                          <dt>Filename</dt>
+                                          
+                                          <dd>Click on <dfn>Choose file</dfn> and select a RDF file from your computer</dd>
+                                          
+                                          <dt>Title</dt>
+                                          
+                                          <dd>File title</dd>
+                                          </dl>
+                                       </li>
+                                    
+                                    <li>Once all the fields have been filled in, click <span class="btn btn-primary btn-save">Save</span></li>
+                                    
+                                    <li>Click on the <span class="btn btn-primary create-action">Create <span class="caret"></span></span> dropdown button at the top left-hand corner and select <dfn>RDF Import</dfn>.
+                                       This will open a new form.</li>
+                                    
+                                    <li>Fill out <dfn>Item</dfn> fields</li>
+                                    
+                                    <li>
+                                       Fill out the mandatory <dfn>RDF Import</dfn> fields:
+                                       
+                                       <dl>
+                                          
+                                          <dt>File</dt>
+                                          
+                                          <dd>Start typing the name of your RDF file and select it from the typeahead.</dd>
+                                          
+                                          <dt>Name</dt>
+                                          
+                                          <dd>Select the target document using the typeahead.</dd>
+                                          
+                                          <dt>Title</dt>
+                                          
+                                          <dd>Import title</dd>
+                                          </dl>
+                                       </li>
+                                    
+                                    <li>Click <span class="btn btn-primary btn-save">Save</span> and you will be redirected the newly created import document.</li>
+                                    
+                                    <li>Refresh the document after a couple of moments to see the import progress. In case
+                                       of success, the amount of data
+                                       imported will be displayed. In case of failure, constraint violation(s) or other import
+                                       issues will be displayed.</li>
+                                    
+                                    <li>Go back to the target document to see the newly imported data items.</li>
+                                    </ol>
+                                 </div>
+                              </div>
+                           
+                           <div class="tab-pane">
+                              
+                              <div>
+                                 
+                                 <p>Checkout the <a href="../../../reference/command-line-interface/">Command line interface</a> (CLI) scripts into a folder on your machine. Provide a list of arguments to the <samp>import-rdf</samp> script and execute it. For example:</p>
+                                 
+                                 <pre>./import-rdf.sh \
+    -b https://localhost:4443/ \
+    -f "$cert_pem_file" \
+    -p "$cert_password" \
+    --title "Concepts" \
+    --file "$PWD/concepts.ttl" \
+    --file-content-type "text/turtle" \
+    --graph "${base}skos/"</pre>
+                                 </div>
+                              </div>
+                           </div>
+                        </div>
                      </div>
                   
                   <div>
                      
-                     <h2 id="append-dataset">Append dataset</h2>
+                     <h2 id="with-transformation">With transformation</h2>
                      
-                     <p>This method simply appends RDF data to the application's dataset.</p>
-                     
-                     <p>If you want to append RDF data in a way where it attaches to the existing <a href="../../../reference/data-management/documents/#hierarchy">document hierarchy</a>, you need to make sure that it:</p>
-                     
-                     <ul>
+                     <div class="tabbable">
                         
-                        <li>describes one or more documents, possibly with some non-information resources attached
-                           to them</li>
-                        
-                        <li>the documents are either containers with a <a href="../../../reference/administration/model/built-ins/"><code>dh:Container</code></a> type, or items with a <a href="../../administration/model/built-ins/"><code>dh:Item</code></a> type</li>
-                        
-                        <li>have <code>sioc:has_parent</code> or <code>sioc:has_container</code> properties, respectively</li>
-                        
-                        <li>the document resources <em>may</em> be blank nodes, in which case there will be an attempt to skolemize them based on
-                           the their
-                           <a href="../../administration/model/#classes">type class properties</a></li>
-                        </ul>
-                     
-                     <p>Documents conforming to the above criteria will become children the container they
-                        are submitted to (the <em>target container</em>). Each of the documents and its related
-                        resources will be put into separate <a href="../../../reference/dataset/#structure">named graphs</a>.</p>
-                     
-                     <p>To execute the actual import, make an <a href="../../../reference/http-api/#ld-post">HTTP <code>POST</code> request</a>, for example using <a href="https://curl.haxx.se/" target="_blank">cURL</a>:</p>
-                     
-                     <pre><code>cat data.ttl | curl -E ${cert_pem_file}:${cert_password} -d @- -H "Content-Type: text/turtle" -H "Accept: text/turtle" "${target}" -i</code></pre>
-                     
-                     <p>This submits the <samp>data.ttl</samp> file, which could look like this:</p>
-                     
-                     <pre>@prefix dh:        &lt;https://www.w3.org/ns/ldt/document-hierarchy#&gt; .
-@prefix dct:       &lt;http://purl.org/dc/terms/&gt; .
-
-_:item a dh:Item ;
-  dh:slug "test-item" ;
-  dct:title "Test item" .
-        
-_:container a dh:Container ;
-  dh:slug "test-container" ;
-  dct:title "Test container" .</pre>
-                     
-                     <p>The command line parameters are as follows:</p>
-                     
-                     <dl>
-                        
-                        <dt><samp>${cert_pem_file}</samp></dt>
-                        
-                        <dd>Location of your WebID certificate in a PEM format.</dd>
-                        
-                        <dd>PKCS12 (<samp>.p12</samp>) files can be converted to PEM (<samp>.pem</samp>) using <code>openssl pkcs12 -in cert.p12 -out cert.pem</code>.</dd>
-                        
-                        <dt><samp>${cert_password}</samp></dt>
-                        
-                        <dd>The password of your WebID certificate (provided during signup)</dd>
-                        
-                        <dt><samp>${target}</samp></dt>
-                        
-                        <dd>URI of the target container, for example <samp>https://linkeddatahub.com/demo/skos/</samp></dd>
-                        </dl>
-                     </div>
-                  
-                  <div class="tabbable">
-                     
-                     <ul class="nav nav-tabs">
-                        
-                        <li class="active"><a>LinkedDataHub</a></li>
-                        </ul>
-                     
-                     <div class="tab-content">
-                        
-                        <div class="tab-pane active">
+                        <ul class="nav nav-tabs">
                            
-                           <h2 id="service-import">Service import</h2>
+                           <li class="active"><a>User interface</a></li>
                            
-                           <p>Use <a href="https://www.w3.org/TR/sparql11-http-rdf-update/" target="_blank">Graph Store Protocol</a> to import data directly into your end-user service repository, or use a management
-                              UI
-                              to upload it, if your vendor provides one.</p>
+                           <li><a>Command line interface</a></li>
+                           </ul>
+                        
+                        <div class="tab-content">
+                           
+                           <div class="tab-pane active">
+                              
+                              <div>
+                                 
+                                 <p>LinkedDataHub allows all the import components be created from a single dialogue,
+                                    but we will go through the process in separate
+                                    steps:</p>
+                                 
+                                 <ol>
+                                    
+                                    <li>First, create a container for the data to be imported. This will be the import's <dfn>target container</dfn></li>
+                                    
+                                    <li>Upload a RDF file. Click on the <span class="btn btn-primary create-action">Create <span class="caret"></span></span> dropdown in the top left-hand corner and select
+                                       <dfn>File</dfn>. This will open a new form.</li>
+                                    
+                                    <li>Fill out <dfn>Item</dfn> fields</li>
+                                    
+                                    <li>
+                                       Fill in the mandatory <dfn>File</dfn> fields:
+                                       
+                                       <dl>
+                                          
+                                          <dt>Title</dt>
+                                          
+                                          <dd>File title</dd>
+                                          
+                                          <dt>Filename</dt>
+                                          
+                                          <dd>Click on <dfn>Choose file</dfn> and select a RDF file from your computer</dd>
+                                          
+                                          <dt>Title</dt>
+                                          
+                                          <dd>Document title</dd>
+                                          </dl>
+                                       </li>
+                                    
+                                    <li>Once all the fields have been filled in, click <span class="btn btn-primary btn-save">Save</span></li>
+                                    
+                                    <li>The browser will open your imported file</li>
+                                    
+                                    <li>Create a <a href="../../../reference/imports/rdf/#transformation">transformation query</a> that will
+                                       transform the uploaded RDF to a new RDF structure. Click on the <span class="btn btn-primary create-action">Create <span class="caret"></span></span> dropdown in the top left-hand corner and
+                                       select <dfn>CONSTRUCT</dfn>. This will open a new form.</li>
+                                    
+                                    <li>Fill out <dfn>Item</dfn> fields</li>
+                                    
+                                    <li>
+                                       Fill out the mandatory <dfn>CONSTRUCT</dfn> fields:
+                                       
+                                       <dl>
+                                          
+                                          <dt>Text</dt>
+                                          
+                                          <dd>SPARQL <code>CONSTRUCT</code> query string</dd>
+                                          
+                                          <dd><em>You will not be able to save the query if its syntax is not valid SPARQL 1.1.</em></dd>
+                                          
+                                          <dt>Title</dt>
+                                          
+                                          <dd>Query title</dd>
+                                          </dl>
+                                       </li>
+                                    
+                                    <li>Once all the fields have been filled in click <span class="btn btn-primary btn-save">Save</span>. You can find this saved under
+                                       <dfn>Queries</dfn> container in <a href="../../user-interface/#left-nav">left navigation</a>.</li>
+                                    
+                                    <li>Click on the <span class="btn btn-primary create-action">Create <span class="caret"></span></span> dropdown button at the top left-hand corner and select <dfn>RDF Import</dfn>.
+                                       This will open a new form.</li>
+                                    
+                                    <li>Fill out <dfn>Item</dfn> fields</li>
+                                    
+                                    <li>
+                                       Fill out the mandatory <dfn>RDF Import</dfn> fields:
+                                       
+                                       <dl>
+                                          
+                                          <dt>File</dt>
+                                          
+                                          <dd>Start typing the name of your RDF file and select it from the typeahead.</dd>
+                                          
+                                          <dt>Query</dt>
+                                          
+                                          <dd>Select the transformation query using the typeahead.</dd>
+                                          
+                                          <dt>Title</dt>
+                                          
+                                          <dd>Import title</dd>
+                                          </dl>
+                                       </li>
+                                    
+                                    <li>Click <span class="btn btn-primary btn-save">Save</span> and you will be redirected the newly created import document.</li>
+                                    
+                                    <li>Refresh the document after a couple of moments to see the import progress. In case
+                                       of success, the amount of data
+                                       imported will be displayed. In case of failure, constraint violation(s) or other import
+                                       issues will be displayed.</li>
+                                    </ol>
+                                 </div>
+                              </div>
+                           
+                           <div class="tab-pane">
+                              
+                              <div>
+                                 
+                                 <p>Checkout the <a href="../../../reference/command-line-interface/">Command line interface</a> (CLI) scripts into a folder on your machine. Provide a list of arguments to the <samp>import-rdf</samp> script and execute it. For example:</p>
+                                 
+                                 <pre>./import-rdf.sh \
+    -b https://localhost:4443/ \
+    -f "$cert_pem_file" \
+    -p "$cert_password" \
+    --title "Concepts" \
+    --file concepts.ttl \
+    --file-content-type "text/turtle" \
+    --query-file concepts.rq</pre>
+                                 </div>
+                              </div>
                            </div>
                         </div>
                      </div>

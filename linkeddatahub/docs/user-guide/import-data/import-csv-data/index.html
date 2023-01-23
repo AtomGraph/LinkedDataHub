@@ -136,8 +136,7 @@
                      
                      <dt>CSV import</dt>
                      
-                     <dd>Connects the file with the corresponding query and submits the transformed RDF data
-                        to the specified action container</dd>
+                     <dd>Combines the file with the corresponding query</dd>
                      </dl>
                   
                   <div class="tabbable">
@@ -170,14 +169,12 @@
                                  <li>Upload a CSV file. Click on the <span class="btn btn-primary create-action">Create <span class="caret"></span></span> dropdown in the top left-hand corner and select
                                     <dfn>File</dfn>. This will open a new form.</li>
                                  
+                                 <li>Fill out <dfn>Item</dfn> fields</li>
+                                 
                                  <li>
-                                    Fill in the mandatory fields:
+                                    Fill out the mandatory <dfn>File</dfn> fields:
                                     
                                     <dl>
-                                       
-                                       <dt>Title</dt>
-                                       
-                                       <dd>File title</dd>
                                        
                                        <dt>Filename</dt>
                                        
@@ -185,7 +182,7 @@
                                        
                                        <dt>Title</dt>
                                        
-                                       <dd>Document title</dd>
+                                       <dd>File title</dd>
                                        </dl>
                                     </li>
                                  
@@ -197,8 +194,10 @@
                                     transform the uploaded CSV to RDF. Click on the <span class="btn btn-primary create-action">Create <span class="caret"></span></span> dropdown in the top left-hand corner and
                                     select <dfn>CONSTRUCT</dfn>. This will open a new form.</li>
                                  
+                                 <li>Fill out <dfn>Item</dfn> fields</li>
+                                 
                                  <li>
-                                    Fill out the mandatory fields:
+                                    Fill out the mandatory <dfn>Query</dfn> fields:
                                     
                                     <dl>
                                        
@@ -211,21 +210,19 @@
                                        <dt>Title</dt>
                                        
                                        <dd>Query title</dd>
-                                       
-                                       <dt>Title</dt>
-                                       
-                                       <dd>Document title</dd>
                                        </dl>
                                     </li>
                                  
                                  <li>Once all the fields have been filled in click <span class="btn btn-primary btn-save">Save</span>. You can find this saved under
                                     <dfn>Queries</dfn> container in <a href="../../user-interface/#left-nav">left navigation</a>.</li>
                                  
-                                 <li>Click on the <span class="btn btn-primary create-action">Create <span class="caret"></span></span> dropdown button at the top left-hand corner and select <dfn>CSV import</dfn>.
+                                 <li>Click on the <span class="btn btn-primary create-action">Create <span class="caret"></span></span> dropdown button at the top left-hand corner and select <dfn>CSV Import</dfn>.
                                     This will open a new form.</li>
                                  
+                                 <li>Fill out <dfn>Item</dfn> fields</li>
+                                 
                                  <li>
-                                    Fill out the mandatory fields:
+                                    Fill out the mandatory <dfn>CSV Import</dfn> fields:
                                     
                                     <dl>
                                        
@@ -235,15 +232,11 @@
                                        
                                        <dt>Query</dt>
                                        
-                                       <dd>Select the corresponding mapping query using the typeahead.</dd>
+                                       <dd>Select the mapping query using the typeahead.</dd>
                                        
                                        <dt>Title</dt>
                                        
                                        <dd>Import title</dd>
-                                       
-                                       <dt>Title</dt>
-                                       
-                                       <dd>Document title</dd>
                                        </dl>
                                     </li>
                                  
@@ -266,13 +259,12 @@
                               <p>Checkout the <a href="../../../reference/command-line-interface/">Command line interface</a> (CLI) scripts into a folder on your machine. Provide a list of arguments to the <samp>import-csv</samp> script and execute it. For example:</p>
                               
                               <pre>./import-csv.sh \
--b https://linkeddatahub.com/my-context/my-app/ \
--f "${cert_pem_file}" \
--p "${cert_password}" \
---title "Places" \
---query-file places.rq \
---file places.csv \
---action "${base}places/"</pre>
+    -b https://localhost:4443/ \
+    -f "$cert_pem_file" \
+    -p "$cert_password" \
+    --title "Places" \
+    --query-file places.rq \
+    --file places.csv</pre>
                               </div>
                            </div>
                         </div>
