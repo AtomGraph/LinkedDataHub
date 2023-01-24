@@ -142,7 +142,7 @@
                   <p>If the graph is specified, the resulting RDF data is appended to a single document.</p>
                   
                   <p>If the transformation query is specified, the resulting data should contain document
-                     instances in order to attach to the <a href="../../dataset/#structure">document hierarchy</a>. The documents have to be URI resources. The document graphs have to be <em>explicitly specified</em> using a <code>GRAPH</code> in the <code>CONSTRUCT</code> template (which is a
+                     instances in order to attach to the <a href="../../dataset/#structure">document hierarchy</a>. The documents have to be URI resources. The document graphs have to be <em>explicitly specified</em> using a <code>GRAPH</code> block in the <code>CONSTRUCT</code> template (which is a
                      <a href="https://jena.apache.org/documentation/query/construct-quad.html" target="_blank">Jena-specific extension</a> of SPARQL 1.1), otherwise the import result will end up in the default graph of the
                      application's RDF dataset, which is not accessible via LinkedDataHub.</p>
                   
@@ -220,8 +220,6 @@
                            <li>if you're constructing non-information resource (e.g. thing, concept) descriptions,
                               assign them URIs with fragment identified (e.g. <samp>#this</samp>) and pair them with item documents using the <code>foaf:primaryTopic</code> property</li>
                            </ul>
-                        
-                        <p>Blank node resources in the output will be skolemized depending on their RDF types.</p>
                         
                         <p>We plan to provide a UI-based mapping tool in the future.</p>
                         
