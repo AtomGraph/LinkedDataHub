@@ -120,24 +120,34 @@
                   
                   <p class="lead">CSV imports and mapping to RDF using SPARQL CONSTRUCT</p>
                   
-                  <p>A data import is a combination of 3 resources:</p>
+                  <p><a href="https://en.wikipedia.org/wiki/Comma-separated_values" target="_blank">CSV</a> is a plain-text format for
+                     tabular data.</p>
+                  
+                  <p>A CSV import is a combination of multiple resources:</p>
                   
                   <dl>
                      
                      <dt>File</dt>
                      
-                     <dd>An uploaded file holding the data to be converted to RDF and imported, such as CSV
-                        or RDF file</dd>
+                     <dd>The CSV file to be mapped to RDF and imported</dd>
                      
-                     <dt>Mapping</dt>
+                     <dt>Mapping query</dt>
                      
-                     <dd>The <code>CONSTRUCT</code> query that produces RDF</dd>
-                     
-                     <dt>Target container</dt>
-                     
-                     <dd>The container to which converted items will be <a href="../../http-api/#ld-post">POST</a>ed, skolemized against,
-                        and become its children</dd>
+                     <dd>A user-defined <code>CONSTRUCT</code> query that produces RDF</dd>
                      </dl>
+                  
+                  <p>CSV import in LinkedDataHub consists of 2 steps:</p>
+                  
+                  <ol>
+                     
+                     <li>
+                        <a href="#generic-conversion">generic conversion</a> creates an intermediary, generic CSV/RDF representation for each CSV row
+                        </li>
+                     
+                     <li>
+                        <a href="#vocabulary-conversion">vocabulary conversion</a> maps the CSV/RDF to the final RDF representation using the mapping query
+                        </li>
+                     </ol>
                   
                   <p>The import process runs in the background, i.e. the import item is created before
                      the process completes.
@@ -147,77 +157,94 @@
                      imported RDF triples is attached
                      to the import.</p>
                   
-                  <p>The converted RDF is validated against <a href="../../administration/model/#constraints">constraints</a>
-                     before import. Constraint violations, if any, are attached to the import item.</p>
+                  <p>The mapping is done <em>one row at a time</em>, with each row resulting in a new created document, which should attach to the <a href="../../dataset/#structure">document hierarchy</a>. The documents have to be URI resources. The server will automatically assign URIs
+                     for the documents constructed in the default graph. Alternatively, it is possible
+                     to explicitly specify the document graph using a <code>GRAPH</code> in the <code>CONSTRUCT</code> template (which is a
+                     <a href="https://jena.apache.org/documentation/query/construct-quad.html" target="_blank">Jena-specific extension</a> of SPARQL 1.1).</p>
                   
-                  <div>
-                     
-                     <h2 id="import-csv">Import CSV</h2>
-                     
-                     <p><a href="https://en.wikipedia.org/wiki/Comma-separated_values" target="_blank">CSV</a> is a plain-text format for
-                        tabular data. CSV import in LinkedDataHub consists of 2 steps:</p>
-                     
-                     <ol>
-                        
-                        <li>
-                           <a href="#generic-conversion">generic conversion</a>
-                           </li>
-                        
-                        <li>
-                           <a href="#vocabulary-conversion">vocabulary conversion</a>
-                           </li>
-                        </ol>
-                     
-                     <p>We provide an running example of CSV data that will be shown as RDF conversion in
-                        the following
-                        sections:</p>
-                     
-                     <pre>countryCode,latitude,longitude,name
+                  <p>The resulting RDF data is validated against <a href="../../administration/model/#constraints">constraints</a> in the process. Constraint violations, if any, are attached to the import item.</p>
+                  
+                  <p>We provide an running example of CSV data that will be shown as RDF conversion in
+                     the following
+                     sections:</p>
+                  
+                  <pre>countryCode,latitude,longitude,name
 AD,42.5,1.6,Andorra
 AE,23.4,53.8,"United Arab Emirates"
 AF,33.9,67.7,Afghanistan</pre>
+                  
+                  <div>
                      
-                     <div>
-                        
-                        <h3 id="generic-conversion">Generic conversion</h3>
-                        
-                        <p>The data table is converted to a graph by treating rows as resources, columns as predicates,
-                           and
-                           cells as <code>xsd:string</code> literals. The approach is the same as CSV on the Web
-                           <a href="https://www.w3.org/TR/2015/REC-csv2rdf-20151217/#dfn-minimal-mode" target="_blank">minimal mode</a>.</p>
-                        
-                        <pre>@base &lt;https://localhost:4443/&gt; .
+                     <h3 id="generic-conversion">Generic conversion</h3>
+                     
+                     <p>The data table is converted to a graph by treating rows as resources, columns as predicates,
+                        and
+                        cells as <code>xsd:string</code> literals. The approach is the same as CSV on the Web
+                        <a href="https://www.w3.org/TR/2015/REC-csv2rdf-20151217/#dfn-minimal-mode" target="_blank">minimal mode</a>.</p>
+                     
+                     <pre>@base &lt;https://localhost:4443/&gt; .
 
 _:8228a149-8efe-448d-b15f-8abf92e7bd17
-  &lt;#countryCode&gt; "AD" ;
-  &lt;#latitude&gt; "42.5" ;
-  &lt;#longitude&gt; "1.6" ;
-  &lt;#name&gt; "Andorra" .
+&lt;#countryCode&gt; "AD" ;
+&lt;#latitude&gt; "42.5" ;
+&lt;#longitude&gt; "1.6" ;
+&lt;#name&gt; "Andorra" .
 
 _:ec59dcfc-872a-4144-822b-9ad5e2c6149c
-  &lt;#countryCode&gt; "AE" ;
-  &lt;#latitude&gt; "23.4" ;
-  &lt;#longitude&gt; "53.8" ;
-  &lt;#name&gt; "United Arab Emirates" .
+&lt;#countryCode&gt; "AE" ;
+&lt;#latitude&gt; "23.4" ;
+&lt;#longitude&gt; "53.8" ;
+&lt;#name&gt; "United Arab Emirates" .
 
 _:e8f2e8e9-3d02-4bf5-b4f1-4794ba5b52c9
-  &lt;#countryCode&gt; "AF" ;
-  &lt;#latitude&gt; "33.9" ;
-  &lt;#longitude&gt; "67.7" ;
-  &lt;#name&gt; "Afghanistan" .</pre>
-                        </div>
+&lt;#countryCode&gt; "AF" ;
+&lt;#latitude&gt; "33.9" ;
+&lt;#longitude&gt; "67.7" ;
+&lt;#name&gt; "Afghanistan" .</pre>
+                     </div>
+                  
+                  <div>
+                     
+                     <h3 id="vocabulary-conversion">Vocabulary conversion</h3>
+                     
+                     <p>This step provides a semantic "lift" for the generic RDF output of the previous step
+                        by mapping it
+                        to classes and properties from specific vocabularies. It also connects instances in
+                        the imported data to the documents in LinkedDataHub's <a href="../../dataset/" target="_blank">dataset</a>.</p>
+                     
+                     <p>These are the rules that hold for mapping queries:</p>
+                     
+                     <ul>
+                        
+                        <li><code>BASE</code> value is automatically set to the imported file's URI. Do not add an explicit <code>BASE</code> to the query.</li>
+                        
+                        <li><code>$base</code> binding is set to the value of the application's baseURI</li>
+                        
+                        <li>use<code>OPTIONAL</code> for optional cell values</li>
+                        
+                        <li>use <code>BIND()</code> to introduce new values and/or cast literals to the appropriate result datatype or
+                           URI</li>
+                        
+                        <li>when building document URIs, use natural IDs from the input data (or UUIDs if there
+                           are no IDs) and remember to URI-encode them using <code>encode_for_uri</code></li>
+                        
+                        <li>use a <code>GRAPH</code> block in the constructor template to construct triples for a specific document</li>
+                        
+                        <li>construct <dfn>dh:Container</dfn> instances to create new container documents or <dfn>dh:Item</dfn> instances to create new item documents. <code>dct:title</code> values are mandatory for documents.</li>
+                        
+                        <li>if you're constructing non-information resource (e.g. thing, concept) descriptions,
+                           assign them URIs with fragment identified (e.g. <samp>#this</samp>) and pair them with item documents using the <code>foaf:primaryTopic</code> property</li>
+                        </ul>
+                     
+                     <p>Blank node resources in the output will be skolemized depending on their RDF types.</p>
+                     
+                     <p>We are planning to provide a UI-based mapping tool in the future.</p>
                      
                      <div>
                         
-                        <h3 id="vocabulary-conversion">Vocabulary conversion</h3>
+                        <h4 id="vocabulary-conversion-example">Example</h4>
                         
-                        <p>This step provides a semantic "lift" for the generic RDF output of the previous step
-                           by mapping it
-                           to classes and properties from specific vocabularies. It also connects instances in
-                           the imported data to the documents in LinkedDataHub's <a href="../../dataset/" target="_blank">dataset</a>.</p>
-                        
-                        <p>The mapping is a user-defined SPARQL
-                           <code>CONSTRUCT</code> query which transforms <em>one row at a time</em>. In this case we produce a SKOS concept paired with its item (document) for each
+                        <p>In this example we produce a SKOS concept paired with its item (document) for each
                            country:</p>
                         
                         <pre><code>PREFIX  ldh:  &lt;https://w3id.org/atomgraph/linkeddatahub#&gt;
@@ -236,7 +263,7 @@ CONSTRUCT
         dct:title ?name ;
         dh:slug ?countryCode ;
         foaf:primaryTopic ?country .
-    ?country a &lt;http://dbpedia.org/ontology/Place&gt; ;
+    ?country a &lt;http://dbpedia.org/ontology/Country&gt; ;
         dct:identifier ?countryCode ;
         geo:lat ?lat ;
         geo:long ?long ;
@@ -256,25 +283,8 @@ WHERE
     BIND(xsd:float(?longString) AS ?long)
   }</code></pre>
                         
-                        <p>These are the rules that hold for mapping queries:</p>
-                        
-                        <ul>
-                           
-                           <li><code>BASE</code> value is automatically set to the imported file's URI. Do not add an explicit <code>BASE</code> to the query.</li>
-                           
-                           <li><code>$base</code> binding is set to the value of the application's baseURI</li>
-                           
-                           <li>produce items (documents) and pair them with topic resources using the <code>foaf:primaryTopic</code> property</li>
-                           
-                           <li>use<code>OPTIONAL</code> for optional cell values</li>
-                           
-                           <li>use <code>BIND()</code> to introduce new values and/or cast literals to the appropriate result
-                              datatype or URI</li>
-                           </ul>
-                        
-                        <p>Blank node resources in the output will be skolemized depending on their RDF types.</p>
-                        
-                        <p>We are planning to provide a UI-based mapping tool in the future.</p>
+                        <p>When the import is complete, you should be able to see the imported documents as children
+                           of the <samp>${base}countries/</samp> container.</p>
                         
                         <p>The result of our mapping  (only the first resource is shown):</p>
                         
@@ -293,7 +303,7 @@ _:item a &lt;https://w3id.org/atomgraph/linkeddatahub##Item&gt; ;
     dh:slug "AD" ;
     foaf:primaryTopic _:country .
 
-_:country a &lt;http://dbpedia.org/ontology/Place&gt; ;
+_:country a &lt;http://dbpedia.org/ontology/Country&gt; ;
     dct:identifier "AD" ;
     geo:lat 42.5 ;
     geo:long 1.6 ;

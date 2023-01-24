@@ -120,39 +120,45 @@
                   
                   <p class="lead">RDF imports and transforming RDF using SPARQL CONSTRUCT</p>
                   
-                  <p>A data import is a combination of 3 resources:</p>
+                  <p>An RDF import is a combination of multiple resources:</p>
                   
                   <dl>
                      
                      <dt>File</dt>
                      
-                     <dd>An uploaded file holding the data to be converted to RDF and imported, such as CSV
-                        or RDF file</dd>
+                     <dd>The RDF file to be imported</dd>
                      
-                     <dt>Mapping</dt>
+                     <dt>Transformation query (optional)</dt>
                      
-                     <dd>The <code>CONSTRUCT</code> query that produces RDF</dd>
+                     <dd>A user-defined <code>CONSTRUCT</code> query that transforms the input RDF into another RDF</dd>
                      
-                     <dt>Target container</dt>
+                     <dt>Graph (optional)</dt>
                      
-                     <dd>The container to which converted items will be <a href="../../http-api/#ld-post">POST</a>ed, skolemized against,
-                        and become its children</dd>
+                     <dd>The target graph (document) to which converted items will be <a href="../../http-api/#ld-post">POST</a>ed</dd>
                      </dl>
                   
-                  <p>The import process runs in the background, i.e. the import item is created before
-                     the process completes.
+                  <p><em>Either the transformation query or the target graph needs to be specified, not both.</em></p>
+                  
+                  <p>If the graph is specified, the resulting RDF data is appended to a single document.</p>
+                  
+                  <p>If the transformation query is specified, the resulting data should contain document
+                     instances in order to attach to the <a href="../../dataset/#structure">document hierarchy</a>. The documents have to be URI resources. The document graphs have to be <em>explicitly specified</em> using a <code>GRAPH</code> in the <code>CONSTRUCT</code> template (which is a
+                     <a href="https://jena.apache.org/documentation/query/construct-quad.html" target="_blank">Jena-specific extension</a> of SPARQL 1.1), otherwise the import result will end up in the default graph of the
+                     application's RDF dataset, which is not accessible via LinkedDataHub.</p>
+                  
+                  <p>The import process runs asynchronously in the background, i.e. the import item is
+                     created before the process completes.
                      Currently the only way to determine when it completes is to refresh the import item
                      and check the import
                      status (completed/failed). Upon successful report, metadata such as the number of
                      imported RDF triples is attached
                      to the import.</p>
                   
-                  <p>The converted RDF is validated against <a href="../../administration/model/#constraints">constraints</a>
-                     before import. Constraint violations, if any, are attached to the import item.</p>
+                  <p>The resulting RDF is split into documents (named graphs), which are then created one
+                     by one and validated against <a href="../../administration/model/#constraints">constraints</a> in the process.
+                     Constraint violations, if any, are attached to the import item.</p>
                   
                   <div>
-                     
-                     <h2 id="import-rdf">Import RDF</h2>
                      
                      <p>Lets assume we want to import SKOS concept data:</p>
                      
@@ -191,122 +197,130 @@
                            a different vocabulary, for example). It also connects instances in the imported data
                            to the documents in LinkedDataHub's <a href="../../dataset/" target="_blank">dataset</a>.</p>
                         
-                        <p>The mapping is a user-defined SPARQL <code>CONSTRUCT</code>. In this case we give each SKOS concept from the imported dataset an additional RDF
-                           type and pair the concept with its item (document):</p>
-                        
-                        <pre><code>PREFIX dh:    &lt;https://www.w3.org/ns/ldt/document-hierarchy#&gt;
-PREFIX sioc:  &lt;http://rdfs.org/sioc/ns#&gt;
-PREFIX foaf:  &lt;http://xmlns.com/foaf/0.1/&gt;
-PREFIX skos:  &lt;http://www.w3.org/2004/02/skos/core#&gt;
-PREFIX dct:   &lt;http://purl.org/dc/terms/&gt;
-
-CONSTRUCT
-{
-    ?thing ?p ?o ;
-        a ?type ;
-        ?p ?o .
-    ?item a dh:Item ;
-        sioc:has_container ?container ;
-        dh:slug ?id ;
-        dct:title ?prefLabel ;
-        foaf:primaryTopic ?thing .
-}
-WHERE
-{
-    SELECT *
-    {
-        {
-            ?thing a skos:Concept
-            BIND (skos:Concept AS ?type)
-            BIND (&lt;concepts/&gt; AS ?container)
-        }
-        UNION
-        {
-            ?thing a skos:ConceptScheme
-            BIND (skos:ConceptScheme AS ?type)
-            BIND (&lt;concept-schemes/&gt; AS ?container)
-        }
-        BIND(struuid() AS ?id)
-        BIND(BNODE() AS ?item)
-        ?thing ?p ?o
-        OPTIONAL
-        {
-            ?thing skos:prefLabel ?prefLabel
-            FILTER (langMatches(lang(?prefLabel), "en"))
-        }
-    }
-}</code></pre>
-                        
-                        <p>These are the rules that hold for mapping queries:</p>
+                        <p>The mapping is a user-defined SPARQL <code>CONSTRUCT</code>. These are the rules that hold for mapping queries:</p>
                         
                         <ul>
                            
-                           <li>the base URI of the query is the URI of the CSV file (does not need to be explicitly
-                              specified as <code>BASE</code>)</li>
+                           <li><code>BASE</code> value is automatically set to the imported file's URI. Do not add an explicit <code>BASE</code> to the query.</li>
                            
-                           <li><code>$base</code> binding value is set to the application's base URI</li>
+                           <li><code>$base</code> binding is set to the value of the application's baseURI</li>
                            
-                           <li>produce items (documents) and pair them with topic resources using the <code>foaf:primaryTopic</code> property</li>
-                           
-                           <li>use<code>OPTIONAL</code> for optional cell values</li>
+                           <li>use<code>OPTIONAL</code> for optional values</li>
                            
                            <li>use <code>BIND()</code> to introduce new values and/or cast literals to the appropriate result datatype or
                               URI</li>
+                           
+                           <li>when building document URIs, use natural IDs from the input data (or UUIDs if there
+                              are no IDs) and remember to URI-encode them using <code>encode_for_uri</code></li>
+                           
+                           <li>use a <code>GRAPH</code> block in the constructor template to construct triples for a specific document</li>
+                           
+                           <li>construct <dfn>dh:Container</dfn> instances to create new container documents or <dfn>dh:Item</dfn> instances to create new item documents. <code>dct:title</code> values are mandatory for documents.</li>
+                           
+                           <li>if you're constructing non-information resource (e.g. thing, concept) descriptions,
+                              assign them URIs with fragment identified (e.g. <samp>#this</samp>) and pair them with item documents using the <code>foaf:primaryTopic</code> property</li>
                            </ul>
                         
                         <p>Blank node resources in the output will be skolemized depending on their RDF types.</p>
                         
-                        <p>We are planning to provide a UI-based mapping tool in the future.</p>
+                        <p>We plan to provide a UI-based mapping tool in the future.</p>
                         
-                        <p>The result of our mapping using:</p>
-                        
-                        <pre>@prefix : &lt;http://vocabularies.unesco.org/thesaurus/&gt; .
-@prefix skos: &lt;http://www.w3.org/2004/02/skos/core#&gt; .
-@prefix dcterms: &lt;http://purl.org/dc/terms/&gt; .
-@prefix xsd: &lt;http://www.w3.org/2001/XMLSchema#&gt; .
-@prefix foaf: &lt;http://xmlns.com/foaf/0.1/&gt; .
-@prefix sioc: &lt;http://rdfs.org/sioc/ns#&gt; .
-@prefix dh: &lt;https://www.w3.org/ns/ldt/document-hierarchy#&gt; .
+                        <div>
+                           
+                           <h4 id="transformation-example">Example</h4>
+                           
+                           <p>In this example we pair each SKOS concept from the imported dataset with a new document:</p>
+                           
+                           <pre><code>PREFIX dh:    &lt;https://www.w3.org/ns/ldt/document-hierarchy#&gt;
+    PREFIX sioc:  &lt;http://rdfs.org/sioc/ns#&gt;
+    PREFIX foaf:  &lt;http://xmlns.com/foaf/0.1/&gt;
+    PREFIX skos:  &lt;http://www.w3.org/2004/02/skos/core#&gt;
+    PREFIX dct:   &lt;http://purl.org/dc/terms/&gt;
 
-:concept10 a skos:Concept ;
-    dcterms:modified "2006-05-23T00:00:00"^^xsd:dateTime ;
-    skos:inScheme &lt;http://vocabularies.unesco.org/thesaurus&gt; ;
-    skos:narrower :concept4938 , :concept7597 ;
-    skos:prefLabel "Right to education"@en , "Droit à l'éducation"@fr , "Derecho a la educación"@es , "Право на образование"@ru ;
-    skos:related :concept9 , :concept556 , :concept557 , :concept1519 , :concept5052 ;
-    skos:topConceptOf &lt;http://vocabularies.unesco.org/thesaurus&gt; .
+    CONSTRUCT
+    {
+        GRAPH ?item
+        {
+            ?concept ?p ?o .
 
-&lt;concepts/c499e66a-8036-4637-929d-0d809177883e/&gt; a dh:Item ;
-    sioc:has_container &lt;concepts/&gt; ;
-    dh:slug "c499e66a-8036-4637-929d-0d809177883e" ;
-    dcterms:title "Right to education"@en ;
-    foaf:primaryTopic :concept10 .
+            ?item a dh:Item ;
+                foaf:primaryTopic ?concept ;
+                sioc:has_container ?container ;
+                dh:slug ?id ;
+                dct:title ?prefLabel .
+        }
+    }
+    WHERE
+    {
+        SELECT *
+        {
+            ?concept a skos:Concept .
+            BIND (STRAFTER(STR(?concept), "http://vocabularies.unesco.org/thesaurus/") AS ?id)
+            BIND (uri(concat(str($base), "concepts/")) AS ?container)
+            BIND (uri(concat(str(?container), encode_for_uri(?id), "/")) AS ?item)
 
-:concept1000 a skos:Concept ;
-    dcterms:modified "2006-05-23T00:00:00"^^xsd:dateTime ;
-    skos:broader :concept389 ;
-    skos:inScheme &lt;http://vocabularies.unesco.org/thesaurus&gt; ;
-    skos:prefLabel "Talent"@en , "Talent"@fr , "Talento"@es , "Талант"@ru ;
-    skos:related :concept993 , :concept996 , :concept3086 .
+            ?concept ?p ?o
+            OPTIONAL
+            {
+                ?concept skos:prefLabel ?prefLabel
+                FILTER (langMatches(lang(?prefLabel), "en"))
+            }
+        }
+    }</code></pre>
+                           
+                           <p>When the import is complete, you should be able to see the imported documents as children
+                              of the <samp>${base}concepts/</samp> container.</p>
+                           
+                           <p>The result of our mapping:</p>
+                           
+                           <pre>@prefix : &lt;http://vocabularies.unesco.org/thesaurus/&gt; .
+    @prefix skos: &lt;http://www.w3.org/2004/02/skos/core#&gt; .
+    @prefix dcterms: &lt;http://purl.org/dc/terms/&gt; .
+    @prefix xsd: &lt;http://www.w3.org/2001/XMLSchema#&gt; .
+    @prefix foaf: &lt;http://xmlns.com/foaf/0.1/&gt; .
+    @prefix sioc: &lt;http://rdfs.org/sioc/ns#&gt; .
+    @prefix dh: &lt;https://www.w3.org/ns/ldt/document-hierarchy#&gt; .
 
-&lt;concepts/f41910fa-9077-4656-8f73-752fd923a79b/&gt; a dh:Item ;
-    sioc:has_container &lt;concepts/&gt; ;
-    dh:slug "f41910fa-9077-4656-8f73-752fd923a79b" ;
-    dcterms:title "Talent"@en ;
-    foaf:primaryTopic :concept1000 .
+    :concept10 a skos:Concept ;
+        dcterms:modified "2006-05-23T00:00:00"^^xsd:dateTime ;
+        skos:inScheme &lt;http://vocabularies.unesco.org/thesaurus&gt; ;
+        skos:narrower :concept4938 , :concept7597 ;
+        skos:prefLabel "Right to education"@en , "Droit à l'éducation"@fr , "Derecho a la educación"@es , "Право на образование"@ru ;
+        skos:related :concept9 , :concept556 , :concept557 , :concept1519 , :concept5052 ;
+        skos:topConceptOf &lt;http://vocabularies.unesco.org/thesaurus&gt; .
 
-:concept10003 a skos:Concept ;
-    dcterms:modified "2006-05-23T00:00:00"^^xsd:dateTime ;
-    skos:altLabel "Entrevue"@fr ;
-    skos:broader :concept4725 ;
-    skos:inScheme &lt;http://vocabularies.unesco.org/thesaurus&gt; ;
-    skos:prefLabel "Interviews"@en , "Entretien"@fr , "Entrevista"@es , "Интервью"@ru .
+    &lt;concepts/c499e66a-8036-4637-929d-0d809177883e/&gt; a dh:Item ;
+        sioc:has_container &lt;concepts/&gt; ;
+        dh:slug "c499e66a-8036-4637-929d-0d809177883e" ;
+        dcterms:title "Right to education"@en ;
+        foaf:primaryTopic :concept10 .
 
-&lt;concepts/2afb2e06-5081-4db1-9255-660fcd1b3ec8/&gt; a dh:Item ;
-    sioc:has_container &lt;concepts/&gt; ;
-    dh:slug "2afb2e06-5081-4db1-9255-660fcd1b3ec8" ;
-    dcterms:title "Interviews"@en ;
-    foaf:primaryTopic :concept10003 .</pre>
+    :concept1000 a skos:Concept ;
+        dcterms:modified "2006-05-23T00:00:00"^^xsd:dateTime ;
+        skos:broader :concept389 ;
+        skos:inScheme &lt;http://vocabularies.unesco.org/thesaurus&gt; ;
+        skos:prefLabel "Talent"@en , "Talent"@fr , "Talento"@es , "Талант"@ru ;
+        skos:related :concept993 , :concept996 , :concept3086 .
+
+    &lt;concepts/f41910fa-9077-4656-8f73-752fd923a79b/&gt; a dh:Item ;
+        sioc:has_container &lt;concepts/&gt; ;
+        dh:slug "f41910fa-9077-4656-8f73-752fd923a79b" ;
+        dcterms:title "Talent"@en ;
+        foaf:primaryTopic :concept1000 .
+
+    :concept10003 a skos:Concept ;
+        dcterms:modified "2006-05-23T00:00:00"^^xsd:dateTime ;
+        skos:altLabel "Entrevue"@fr ;
+        skos:broader :concept4725 ;
+        skos:inScheme &lt;http://vocabularies.unesco.org/thesaurus&gt; ;
+        skos:prefLabel "Interviews"@en , "Entretien"@fr , "Entrevista"@es , "Интервью"@ru .
+
+    &lt;concepts/2afb2e06-5081-4db1-9255-660fcd1b3ec8/&gt; a dh:Item ;
+        sioc:has_container &lt;concepts/&gt; ;
+        dh:slug "2afb2e06-5081-4db1-9255-660fcd1b3ec8" ;
+        dcterms:title "Interviews"@en ;
+        foaf:primaryTopic :concept10003 .</pre>
+                           </div>
                         </div>
                      </div>
                   
