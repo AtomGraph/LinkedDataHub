@@ -230,41 +230,41 @@
                            <p>In this example we pair each SKOS concept from the imported dataset with a new document:</p>
                            
                            <pre><code>PREFIX dh:    &lt;https://www.w3.org/ns/ldt/document-hierarchy#&gt;
-    PREFIX sioc:  &lt;http://rdfs.org/sioc/ns#&gt;
-    PREFIX foaf:  &lt;http://xmlns.com/foaf/0.1/&gt;
-    PREFIX skos:  &lt;http://www.w3.org/2004/02/skos/core#&gt;
-    PREFIX dct:   &lt;http://purl.org/dc/terms/&gt;
+PREFIX sioc:  &lt;http://rdfs.org/sioc/ns#&gt;
+PREFIX foaf:  &lt;http://xmlns.com/foaf/0.1/&gt;
+PREFIX skos:  &lt;http://www.w3.org/2004/02/skos/core#&gt;
+PREFIX dct:   &lt;http://purl.org/dc/terms/&gt;
 
-    CONSTRUCT
+CONSTRUCT
+{
+    GRAPH ?item
     {
-        GRAPH ?item
-        {
-            ?concept ?p ?o .
+        ?concept ?p ?o .
 
-            ?item a dh:Item ;
-                foaf:primaryTopic ?concept ;
-                sioc:has_container ?container ;
-                dh:slug ?id ;
-                dct:title ?prefLabel .
+        ?item a dh:Item ;
+            foaf:primaryTopic ?concept ;
+            sioc:has_container ?container ;
+            dh:slug ?id ;
+            dct:title ?prefLabel .
+    }
+}
+WHERE
+{
+    SELECT *
+    {
+        ?concept a skos:Concept .
+        BIND (STRAFTER(STR(?concept), "http://vocabularies.unesco.org/thesaurus/") AS ?id)
+        BIND (uri(concat(str($base), "concepts/")) AS ?container)
+        BIND (uri(concat(str(?container), encode_for_uri(?id), "/")) AS ?item)
+
+        ?concept ?p ?o
+        OPTIONAL
+        {
+            ?concept skos:prefLabel ?prefLabel
+            FILTER (langMatches(lang(?prefLabel), "en"))
         }
     }
-    WHERE
-    {
-        SELECT *
-        {
-            ?concept a skos:Concept .
-            BIND (STRAFTER(STR(?concept), "http://vocabularies.unesco.org/thesaurus/") AS ?id)
-            BIND (uri(concat(str($base), "concepts/")) AS ?container)
-            BIND (uri(concat(str(?container), encode_for_uri(?id), "/")) AS ?item)
-
-            ?concept ?p ?o
-            OPTIONAL
-            {
-                ?concept skos:prefLabel ?prefLabel
-                FILTER (langMatches(lang(?prefLabel), "en"))
-            }
-        }
-    }</code></pre>
+}</code></pre>
                            
                            <p>When the import is complete, you should be able to see the imported documents as children
                               of the <samp>${base}concepts/</samp> container.</p>

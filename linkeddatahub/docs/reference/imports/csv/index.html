@@ -245,8 +245,7 @@ _:e8f2e8e9-3d02-4bf5-b4f1-4794ba5b52c9
                         <p>In this example we produce a SKOS concept paired with its item (document) for each
                            country:</p>
                         
-                        <pre><code>PREFIX  ldh:  &lt;https://w3id.org/atomgraph/linkeddatahub#&gt;
-PREFIX  geo:  &lt;http://www.w3.org/2003/01/geo/wgs84_pos#&gt;
+                        <pre><code>PREFIX  geo:  &lt;http://www.w3.org/2003/01/geo/wgs84_pos#&gt;
 PREFIX  dh:   &lt;https://www.w3.org/ns/ldt/document-hierarchy#&gt;
 PREFIX  dct:  &lt;http://purl.org/dc/terms/&gt;
 PREFIX  rdf:  &lt;http://www.w3.org/1999/02/22-rdf-syntax-ns#&gt;
@@ -286,8 +285,7 @@ WHERE
                         
                         <p>The result of our mapping:</p>
                         
-                        <pre>PREFIX  ldh:  &lt;https://w3id.org/atomgraph/linkeddatahub#&gt;
-PREFIX  geo:  &lt;http://www.w3.org/2003/01/geo/wgs84_pos#&gt;
+                        <pre>PREFIX  geo:  &lt;http://www.w3.org/2003/01/geo/wgs84_pos#&gt;
 PREFIX  dh:   &lt;https://www.w3.org/ns/ldt/document-hierarchy#&gt;
 PREFIX  dct:  &lt;http://purl.org/dc/terms/&gt;
 PREFIX  rdf:  &lt;http://www.w3.org/1999/02/22-rdf-syntax-ns#&gt;
@@ -295,7 +293,7 @@ PREFIX  xsd:  &lt;http://www.w3.org/2001/XMLSchema#&gt;
 PREFIX  foaf: &lt;http://xmlns.com/foaf/0.1/&gt;
 PREFIX  sioc: &lt;http://rdfs.org/sioc/ns#&gt;
 
-&lt;https://localhost:4443/countries/AD/&gt; a &lt;https://w3id.org/atomgraph/linkeddatahub#Item&gt; ;
+&lt;https://localhost:4443/countries/AD/&gt; a dh:Item ;
     sioc:has_container &lt;https://localhost:4443/countries/&gt; ;
     dct:title "Andorra" ;
     dh:slug "AD" ;
@@ -307,7 +305,7 @@ PREFIX  sioc: &lt;http://rdfs.org/sioc/ns#&gt;
     geo:long 1.6 ;
     dct:title "Andorra" .
 
-&lt;https://localhost:4443/countries/AE/&gt; a &lt;https://w3id.org/atomgraph/linkeddatahub#Item&gt; ;
+&lt;https://localhost:4443/countries/AE/&gt; a dh:Item ;
     sioc:has_container &lt;https://localhost:4443/countries/&gt; ;
     dct:title "United Arab Emirates" ;
     dh:slug "AE" ;
@@ -319,7 +317,7 @@ PREFIX  sioc: &lt;http://rdfs.org/sioc/ns#&gt;
     geo:long 53.8 ;
     dct:title "United Arab Emirates" .
 
-&lt;https://localhost:4443/countries/AF/&gt; a &lt;https://w3id.org/atomgraph/linkeddatahub#Item&gt; ;
+&lt;https://localhost:4443/countries/AF/&gt; a dh:Item ;
     sioc:has_container &lt;https://localhost:4443/countries/&gt; ;
     dct:title "Afghanistan" ;
     dh:slug "AF" ;
