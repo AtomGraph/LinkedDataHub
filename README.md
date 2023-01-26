@@ -43,8 +43,8 @@ It takes a few clicks and filling out a form to install the product into your ow
      COMPOSE_PROJECT_NAME=linkeddatahub
      
      PROTOCOL=https
-     PROXY_HTTP_PORT=81
-     PROXY_HTTPS_PORT=4443
+     HTTP_PORT=81
+     HTTPS_PORT=4443
      HOST=localhost
      ABS_PATH=/
      
