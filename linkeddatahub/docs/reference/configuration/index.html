@@ -89,6 +89,7 @@
                   <li><a href="../../user-guide/index.html" title="Step-by-step tutorials for everyday tasks with LinkedDataHub">User guide</a><ul class="nav nav-list">
                         <li><a href="../../user-guide/add-data/index.html" title="Fork RDF data from Linked Data resources and SPARQL results">Add data</a></li>
                         <li><a href="../../user-guide/browse-data/index.html" title="Use LinkedDataHub's built-in Linked Data browser to explore remote datasources">Browse data</a></li>
+                        <li><a href="../../user-guide/build-apps/index.html" title="Using LinkedDataHub as a low-code platform for Knowledge Graph applications">Build apps</a></li>
                         <li><a href="../../user-guide/change-layout/index.html" title="How to customize the layout of an application and the UI of the resources">Change layout</a></li>
                         <li><a href="../../user-guide/change-model/index.html" title="Change the model: create constructors, classes, and constraints">Change the model</a></li>
                         <li><a href="../../user-guide/change-system-base-uri/index.html" title="How to change host, port, or the path LinkedDataHub service runs on">Change system base URI</a></li>
@@ -123,7 +124,7 @@
                   <p>LinkedDataHub is configured using environment variables in the <code>docker-compose.yml</code> file (environment-specific configuration should go into <code>docker-compose.override.yml</code> instead).</p>
                   
                   <p>Below you'll find a list of environment variables grouped by service (they are defined
-                     in the <samp>environment</samp> section).</p>
+                     in the <samp>environment</samp> sections in <samp>docker-compose.yml</samp>).</p>
                   
                   <div>
                      
@@ -131,13 +132,13 @@
                      
                      <div>
                         
-                        <h3 id="webid-signup">WebID signup</h3>
+                        <h3 id="webid-auth">WebID authentication</h3>
                         
                         <dl>
                            
                            <dt><samp>ENABLE_WEBID_SIGNUP</samp></dt>
                            
-                           <dd><samp>false</samp> to disable (enabled by default)</dd>
+                           <dd><samp>false</samp> to disable. Enabled by default.</dd>
                            
                            <dd><em>Currently this will only hide the signup button in the UI, without disabling the endpoint</em></dd>
                            </dl>
@@ -196,6 +197,41 @@
                            <dd><samp>false</samp> to disable the <a href="../http-api/#ld-proxy">Linked Data proxy</a> (enabled by default)</dd>
                            </dl>
                         </div>
+                     
+                     <div>
+                        
+                        <h3 id="http">HTTP(S)</h3>
+                        
+                        <dl>
+                           
+                           <dt><samp>SELF_SIGNED_CERT</samp></dt>
+                           
+                           <dd>Set to false <samp>false</samp> if not using the self-signed <em>server</em> certificate (e.g. using LetsEncrypt certificate instead). Not to be confused with
+                              the WebID client certificate.
+                              Enabled by default.</dd>
+                           
+                           <dt><samp>MAX_CONTENT_LENGTH</samp></dt>
+                           
+                           <dd>Maximum allowed request body size (<samp>nginx</samp> has a separate setting for this.) By default <samp>2097152</samp>.</dd>
+                           </dl>
+                        </div>
+                     
+                     <div>
+                        
+                        <h3 id="debug">Debug</h3>
+                        
+                        <dl>
+                           
+                           <dt><samp>JPDA_ADDRESS</samp></dt>
+                           
+                           <dd>The address through which Java debugger can connect, for example <samp>*:8000</samp>. Note that the port has to be mapped to host in order for the debugger to work, e.g.
+                              <samp>8080:8080</samp>.</dd>
+                           
+                           <dt><samp>CATALINA_OPTS</samp></dt>
+                           
+                           <dd>Tomcat's Java options</dd>
+                           </dl>
+                        </div>
                      </div>
                   
                   <div>
@@ -221,7 +257,16 @@
                            5443.</dd>
                         
                         <dd><samp>optional_no_ca</samp> to enable it.</dd>
+                        
+                        <dt><samp>MAX_BODY_SIZE</samp></dt>
+                        
+                        <dd>Maximum allowed request body size (<samp>linkeddatahub</samp> has a separate setting for this.) By default <samp>2097152</samp>.</dd>
                         </dl>
+                     
+                     <p>By default nginx is configured to guard against DoS by limiting the rate of requests
+                        per second, which can be necessary on a public instance. The limiting can be disabled
+                        in <samp>platform/nginx.conf.template</samp>
+                        by commenting out all lines starting with <samp>limit_req</samp> using <samp>#</samp>.</p>
                      </div>
                   </div>
                <nav></nav>

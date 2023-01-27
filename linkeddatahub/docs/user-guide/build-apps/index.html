@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml">
    <head>
       <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
-      <title>LinkedDataHub v3 - Manage dataspaces</title>
-      <meta name="description" content="Create or change a dataspace, configure SPARQL services and XSLT stylesheets"/>
+      <title>LinkedDataHub v3 - Build apps</title>
+      <meta name="description" content="Using LinkedDataHub as a low-code platform for Knowledge Graph applications"/>
       <link rel="up" href="../index.html"/>
       <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/css/bootstrap.css" rel="stylesheet" type="text/css"/>
       <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/css/bootstrap-responsive.css" rel="stylesheet" type="text/css"/>
@@ -89,7 +89,7 @@
                   <li><a href="../index.html" title="Step-by-step tutorials for everyday tasks with LinkedDataHub">User guide</a><ul class="nav nav-list">
                         <li><a href="../add-data/index.html" title="Fork RDF data from Linked Data resources and SPARQL results">Add data</a></li>
                         <li><a href="../browse-data/index.html" title="Use LinkedDataHub's built-in Linked Data browser to explore remote datasources">Browse data</a></li>
-                        <li><a href="../build-apps/index.html" title="Using LinkedDataHub as a low-code platform for Knowledge Graph applications">Build apps</a></li>
+                        <li class="active"><a href="" title="Using LinkedDataHub as a low-code platform for Knowledge Graph applications">Build apps</a></li>
                         <li><a href="../change-layout/index.html" title="How to customize the layout of an application and the UI of the resources">Change layout</a></li>
                         <li><a href="../change-model/index.html" title="Change the model: create constructors, classes, and constraints">Change the model</a></li>
                         <li><a href="../change-system-base-uri/index.html" title="How to change host, port, or the path LinkedDataHub service runs on">Change system base URI</a></li>
@@ -104,7 +104,7 @@
                               <li><a href="../import-data/import-rdf-data/index.html" title="Step by step guide to importing RDF data">Import RDF data</a></li>
                            </ul>
                         </li>
-                        <li class="active"><a href="" title="Create or change a dataspace, configure SPARQL services and XSLT stylesheets">Manage dataspaces</a></li>
+                        <li><a href="../manage-dataspaces/index.html" title="Create or change a dataspace, configure SPARQL services and XSLT stylesheets">Manage dataspaces</a></li>
                         <li><a href="../navigate-data/index.html" title="Navigate the document hierarchy, related results, and backlinks">Navigate data</a></li>
                         <li><a href="../query-data/index.html" title="Learn how to query application data with SPARQL, store queries and charts">Query data</a></li>
                         <li><a href="../search-data/index.html" title="Search for resources using text keywords">Search data</a></li>
@@ -115,73 +115,119 @@
             </nav>
             <main class="span7">
                <header>
-                  <h1>Manage dataspaces</h1>
+                  <h1>Build apps</h1>
                </header>
                <div>
                   
-                  <p class="lead">Step by step guide to creating a new dataspace backed by SPARQL services</p>
+                  <p class="lead">Using LinkedDataHub as a low-code platform for Knowledge Graph applications</p>
+                  
+                  <p>Every component in LinkedDataHub is data-driven and was designed with extensibility
+                     in mind. You can override behavior (e.g. Java method or XSLT template) without having
+                     to modify LinkedDataHub's
+                     codebase, and more importantly, without having to write the same logic from scratch.</p>
+                  
+                  <p>The following sections are split by component/layer and explain how to extend them
+                     when building bespoke apps.</p>
                   
                   <div>
                      
-                     <h2 id="dataspaces">Manage dataspaces</h2>
+                     <h2 id="docker">Docker</h2>
                      
-                     <p><a href="../../reference/dataspace/" target="_blank">Dataspaces</a> are configured in <a href="https://github.com/AtomGraph/LinkedDataHub/blob/master/config/system.trig" target="_blank"><samp>config/system.trig</samp></a>. <a href="https://www.w3.org/TR/trig/" target="_blank">TriG</a> RDF syntax is used.</p>
+                     <p>You can go a long way just by mounting files (e.g. config files, ontologies, stylesheets)
+                        into LinkedDataHub's default Docker setup. But you may also want to build a dedicated
+                        Docker image for your app using LinkedDataHub as the base. Usually this is done to
+                        <code>COPY</code> files inside the the image or <code>RUN</code> addition commands.</p>
                      
-                     <p>The configuration uses the <a href="https://w3id.org/atomgraph/linkeddatahub/apps" target="_blank">Application domain ontology</a>. A dataspace is comprised of an end-user
-                        application and an administrative application, both of them are backed by each own
-                        SPARQL service. Each application can also specify its own <a href="../../reference/stylesheets/" target="_blank">XSLT stylesheet</a>.</p>
+                     <p>Here's an sample Dockerfile that copies custom stylesheets into the app's Docker image:</p>
                      
-                     <div class="alert alert-info">
-                        
-                        <p>Application base URIs need to be relative to the <a href="../change-system-base-uri/#base-uri" target="_blank">system base URI</a> configured in the <samp>.env</samp> file. A change of system base URI currently requires a change of application base
-                           URIs, otherwise they will not be reachable.</p>
-                        </div>
-                     
-                     <div>
-                        
-                        <h3 id="change-base-uri">Change base URI(s)</h3>
-                        
-                        <p>Lets say we want to use <samp>https://ec2-54-235-229-141.compute-1.amazonaws.com/linkeddatahub/</samp> as the new base URI of our dataspaces. The easiest way is to simple replace occurences
-                           of the default <samp>https://localhost:4443/</samp> base URI with the new value. It can be done using the following shell command:</p>
-                        
-                        <pre>sed -i 's/https:\/\/localhost:4443\//https:\/\/ec2-54-235-229-141.compute-1.amazonaws.com\/linkeddatahub\//g' config/system.trig</pre>
-                        
-                        <p>Note that <samp>sed</samp> requires to escape forward slashes <samp>/</samp> with backslashes <samp>\</samp>.</p>
-                        </div>
-                     
-                     <div>
-                        
-                        <h3 id="create-dataspace">Create a dataspace</h3>
-                        
-                        <p>Add instances of <code>lapp:EndUserApplication</code>, <code>lapp:AdminApplication</code> and their corresponding <code>sd:Service</code>s following the default dataspace in <samp>config/system.trig</samp>.</p>
-                        
-                        <div class="alert alert-info">
-                           
-                           <p>Use URIs (for example in the <samp>urn:</samp> scheme) to identify apps and services, not blank nodes. Make sure the file's syntax
-                              is valid <a href="https://www.w3.org/TR/turtle/" target="_blank">Turtle</a>, otherwise the setup will not work. You can use <a href="http://ttl.summerofcode.be/" target="_blank">Turtle Validator</a> to check the syntax.</p>
-                           </div>
-                        </div>
-                     
-                     <div>
-                        
-                        <h3 id="change-stylesheet">Change stylesheet</h3>
-                        
-                        <p>Change the value of <code>ac:stylesheet</code> to the URI of your <a href="../../reference/stylesheets/" target="_blank">XSLT stylesheet</a>. Add the property if it is absent.</p>
-                        
-                        <p>The stylesheet can either be <a href="../upload-file/" target="_blank">uploaded as a file</a> or <a href="https://docs.docker.com/storage/bind-mounts/" target="_blank">mounted</a> in <samp>docker-compose.yml</samp>, in the <samp>volumes</samp> section of the <samp>linkeddatahub</samp> service. Mounting is useful while developing.</p>
-                        
-                        <p>You will need to restart LinkedDataHub's Docker service for the new stylesheet to
-                           take effect.</p>
-                        
-                        <p>It is rarely necessary to change the stylesheet of an admin application.</p>
-                        </div>
+                     <pre>FROM atomgraph/linkeddatahub:4.0.0
+
+ARG SAXON_VERSION=9.9.1-2
+ 
+USER root
+
+RUN curl -fsSL https://deb.nodesource.com/setup_16.x | bash - &amp;&amp; \
+    apt-get update --allow-releaseinfo-change &amp;&amp; \
+    apt-get install -y nodejs &amp;&amp; \
+    rm -rf /var/lib/apt/lists/* &amp;&amp; \
+    mkdir /home/ldh &amp;&amp; chown ldh:ldh /home/ldh
+
+USER ldh
+
+RUN npm install saxon-js &amp;&amp; \
+    npm install xslt3
+
+WORKDIR $CATALINA_HOME/webapps/ROOT/static
+
+COPY --chown=ldh:ldh files/layout.xsl net/example/xsl/layout.xsl
+COPY --chown=ldh:ldh files/client.xsl net/example/xsl/client.xsl
+
+# pre-processing stylesheets in order to inline XML entities which SaxonJS does not support
+RUN curl https://repo1.maven.org/maven2/net/sf/saxon/Saxon-HE/${SAXON_VERSION}/Saxon-HE-${SAXON_VERSION}.jar -O &amp;&amp; \
+    cat com/atomgraph/linkeddatahub/xsl/client.xsl | grep 'xsl:import' | cut -d '"' -f 2 | xargs -I{} java -cp Saxon-HE-${SAXON_VERSION}.jar net.sf.saxon.Query -qs:"." -s:com/atomgraph/linkeddatahub/xsl/{} -o:com/atomgraph/linkeddatahub/xsl/{} &amp;&amp; \
+    cat com/atomgraph/linkeddatahub/xsl/client.xsl | grep 'xsl:include' | cut -d '"' -f 2 | xargs -I{} java -cp Saxon-HE-${SAXON_VERSION}.jar net.sf.saxon.Query -qs:"." -s:com/atomgraph/linkeddatahub/xsl/{} -o:com/atomgraph/linkeddatahub/xsl/{} &amp;&amp; \
+    java -cp Saxon-HE-${SAXON_VERSION}.jar net.sf.saxon.Query -qs:"." -s:com/atomgraph/linkeddatahub/xsl/client.xsl -o:com/atomgraph/linkeddatahub/xsl/client.xsl &amp;&amp; \
+    java -cp Saxon-HE-${SAXON_VERSION}.jar net.sf.saxon.Query -qs:"." -s:net/example/xsl/client.xsl -o:net/example/xsl/client.xsl &amp;&amp; \
+    npx xslt3 -t -xsl:net/example/xsl/client.xsl -export:net/example/xsl/client.xsl.sef.json -nogo -ns:##html5 -relocate:on &amp;&amp; \
+    rm Saxon-HE-${SAXON_VERSION}.jar &amp;&amp; \
+    setfacl -Rm user:ldh:rwx net/example/xsl
+
+WORKDIR $CATALINA_HOME</pre>
                      </div>
+                  
                   <div>
                      
-                     <h2 id="manage-services">Manage services</h2>
+                     <h2 id="java">Java</h2>
                      
-                     <p>LinkedDataHub service as well as the default SPARQL services <samp>fuseki-end-user</samp> and <samp>fuseki-admin</samp> are defined in <a href="https://github.com/AtomGraph/LinkedDataHub/blob/master/docker-compose.yml" target="_blank"><samp>docker-compose.yml</samp></a> and run as Docker containers.</p>
+                     <p>The Java layer of LinkedDataHub is a Maven project with a webapp layout. The codebase
+                        uses JAX-RS, specifically <a href="https://eclipse-ee4j.github.io/jersey/" target="_blank">Jersey 3</a>, as the HTTP/REST framework and uses <a href="https://jena.apache.org" target="_blank">Apache Jena</a> for RDF I/O.</p>
+                     
+                     <p>If you want to extend the Java codebase, for example to add a custom REST endpoint,
+                        you need to create a new Maven project with LinkedDataHub as dependency:</p>
+                     
+                     <pre>&lt;dependency&gt;
+    &lt;groupId&gt;com.atomgraph&lt;/groupId&gt;
+    &lt;artifactId&gt;linkeddatahub&lt;/artifactId&gt;
+    &lt;version&gt;3.1.4.0.0&lt;/version&gt;
+    &lt;classifier&gt;classes&lt;/classifier&gt;
+&lt;/dependency&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;com.atomgraph&lt;/groupId&gt;
+    &lt;artifactId&gt;linkeddatahub&lt;/artifactId&gt;
+    &lt;version&gt;3.1.4.0.0&lt;/version&gt;
+    &lt;type&gt;war&lt;/type&gt;
+&lt;/dependency&gt;</pre>
+                     
+                     <p>After adding the new endpoint, you'll also need to extend the LinkedDataHub's JAX-RS
+                        application (<code>com.atomgraph.linkeddatahub.Application</code>) and register your class there.</p>
+                     
+                     <p>By convention, static files (e.g. stylesheets, images) are placed in the <samp>src/main/webapp/static/</samp> folder in the codebase, which then becomes <samp>/usr/local/tomcat/webapps/ROOT/static/</samp> within the webapp deployed in the Docker container, and is available as <samp>${base}static/</samp> over HTTP.</p>
+                     
+                     <p>This means that if you want to deploy static files as part of your LinkedDataHub app,
+                        you will have to either mount them into the <samp>/usr/local/tomcat/webapps/ROOT/static/</samp> folder in the container, or copy them into a custom Docker image to the same effect.</p>
+                     
+                     <p>You can allow Java debugger access using <a href="../../reference/configuration/#debug">configuration properties</a>.</p>
                      </div>
+                  
+                  <div>
+                     
+                     <h2 id="xslt">XSLT</h2>
+                     
+                     <p>LinkedDataHub uses XSLT 3.0 for UI rendering both on the server- and on the client-side.</p>
+                     
+                     <p>You can specify a custom server-side XSLT 3.0 stylesheet in the <a href="../manage-dataspaces/#change-stylesheet">dataspace configuration</a>. Then you can reuse LinkedDataHub's stylesheet by
+                        importing it as explained in the <a href="../change-layout/">change layout</a> user guide.</p>
+                     </div>
+                  
+                  <div>
+                     
+                     <h2 id="rdf">RDF</h2>
+                     
+                     <p>You can modify or extend the <a href="../../reference/dataset/#default-datasets">default RDF datasets</a> used by LinkedDataHub. However, a better practice is to use the 
+                        <a href="../../reference/command-line-interface/">CLI scripts</a> to create documents and import data.</p>
+                     </div>
+                  
+                  <p class="lead"><a href="https://github.com/AtomGraph/LinkedDataHub-Apps" target="_blank">See the LinkedDataHub app repository for more examples.</a></p>
                   </div>
                <nav></nav>
             </main>
