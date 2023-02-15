@@ -411,6 +411,7 @@ exclude-result-prefixes="#all"
         </ixsl:schedule-action>
     </xsl:template>
     
+    <!-- $container here is the inner result container, not the content container! -->
     <xsl:template name="ldh:RenderContainerMode">
         <xsl:param name="container" as="element()"/>
         <xsl:param name="content-id" as="xs:string"/>
@@ -420,8 +421,6 @@ exclude-result-prefixes="#all"
         <xsl:param name="results" as="document-node()"/>
         <xsl:param name="active-mode" as="xs:anyURI"/>
         <xsl:param name="select-xml" as="document-node()"/>
-
-        <ixsl:set-property name="dataset.contentMode" select="$active-mode" object="$container"/>
         
         <xsl:for-each select="$container">
             <xsl:result-document href="?." method="ixsl:replace-content">
@@ -797,6 +796,8 @@ exclude-result-prefixes="#all"
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', true() ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
         
+        <ixsl:set-property name="dataset.contentMode" select="$active-mode" object="$container"/>
+
         <xsl:call-template name="ldh:RenderContainerMode">
             <xsl:with-param name="container" select="$results-container"/>
             <xsl:with-param name="content-id" select="$container/@id"/>
@@ -1291,6 +1292,8 @@ exclude-result-prefixes="#all"
                             </xsl:if>
                         </xsl:for-each>
                     </xsl:if>
+
+                    <ixsl:set-property name="dataset.contentMode" select="$active-mode" object="$container"/>
         
                     <xsl:call-template name="ldh:RenderContainerMode">
                         <xsl:with-param name="container" select="$content-container//div[contains-token(@class, 'container-results')]"/>
