@@ -288,6 +288,85 @@ exclude-result-prefixes="#all"
         </xsl:if>
     </xsl:template>
 
+    <!-- container mode tabs -->
+    
+    <xsl:template name="bs2:ContainerModeTabs">
+        <xsl:param name="active-mode" as="xs:anyURI"/>
+
+        <ul class="nav nav-tabs">
+            <li class="read-mode">
+                <xsl:if test="$active-mode = '&ac;ReadMode'">
+                    <xsl:attribute name="class" select="'read-mode active'"/>
+                </xsl:if>
+
+                <a>
+                    <xsl:apply-templates select="key('resources', '&ac;ReadMode', document(ac:document-uri('&ac;')))" mode="ldh:logo"/>
+                    <xsl:apply-templates select="key('resources', '&ac;ReadMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
+                </a>
+            </li>
+            <li class="list-mode">
+                <xsl:if test="$active-mode = '&ac;ListMode'">
+                    <xsl:attribute name="class" select="'list-mode active'"/>
+                </xsl:if>
+
+                <a>
+                    <xsl:apply-templates select="key('resources', '&ac;ListMode', document(ac:document-uri('&ac;')))" mode="ldh:logo"/>
+                    <xsl:apply-templates select="key('resources', '&ac;ListMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
+                </a>
+            </li>
+            <li class="table-mode">
+                <xsl:if test="$active-mode = '&ac;TableMode'">
+                    <xsl:attribute name="class" select="'table-mode active'"/>
+                </xsl:if>
+
+                <a>
+                    <xsl:apply-templates select="key('resources', '&ac;TableMode', document(ac:document-uri('&ac;')))" mode="ldh:logo"/>
+                    <xsl:apply-templates select="key('resources', '&ac;TableMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
+                </a>
+            </li>
+            <li class="grid-mode">
+                <xsl:if test="$active-mode = '&ac;GridMode'">
+                    <xsl:attribute name="class" select="'grid-mode active'"/>
+                </xsl:if>
+
+                <a>
+                    <xsl:apply-templates select="key('resources', '&ac;GridMode', document(ac:document-uri('&ac;')))" mode="ldh:logo"/>
+                    <xsl:apply-templates select="key('resources', '&ac;GridMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
+                </a>
+            </li>
+            <li class="chart-mode">
+                <xsl:if test="$active-mode = '&ac;ChartMode'">
+                    <xsl:attribute name="class" select="'chart-mode active'"/>
+                </xsl:if>
+
+                <a>
+                    <xsl:apply-templates select="key('resources', '&ac;ChartMode', document(ac:document-uri('&ac;')))" mode="ldh:logo"/>
+                    <xsl:apply-templates select="key('resources', '&ac;ChartMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
+                </a>
+            </li>
+            <li class="map-mode">
+                <xsl:if test="$active-mode = '&ac;MapMode'">
+                    <xsl:attribute name="class" select="'map-mode active'"/>
+                </xsl:if>
+
+                <a>
+                    <xsl:apply-templates select="key('resources', '&ac;MapMode', document(ac:document-uri('&ac;')))" mode="ldh:logo"/>
+                    <xsl:apply-templates select="key('resources', '&ac;MapMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
+                </a>
+            </li>
+            <li class="graph-mode">
+                <xsl:if test="$active-mode = '&ac;GraphMode'">
+                    <xsl:attribute name="class" select="'graph-mode active'"/>
+                </xsl:if>
+
+                <a>
+                    <xsl:apply-templates select="key('resources', '&ac;GraphMode', document(ac:document-uri('&ac;')))" mode="ldh:logo"/>
+                    <xsl:apply-templates select="key('resources', '&ac;GraphMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
+                </a>
+            </li>
+        </ul>
+    </xsl:template>
+    
     <!-- container -->
     
     <xsl:template name="ldh:RenderContainer">
@@ -1180,79 +1259,10 @@ exclude-result-prefixes="#all"
                                 <div>
                                     <p id="{$result-count-container-id}" class="result-count"/>
 
-                                    <ul class="nav nav-tabs">
-                                        <li class="read-mode">
-                                            <xsl:if test="$active-mode = '&ac;ReadMode'">
-                                                <xsl:attribute name="class" select="'read-mode active'"/>
-                                            </xsl:if>
-
-                                            <a>
-                                                <xsl:apply-templates select="key('resources', '&ac;ReadMode', document(ac:document-uri('&ac;')))" mode="ldh:logo"/>
-                                                <xsl:apply-templates select="key('resources', '&ac;ReadMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
-                                            </a>
-                                        </li>
-                                        <li class="list-mode">
-                                            <xsl:if test="$active-mode = '&ac;ListMode'">
-                                                <xsl:attribute name="class" select="'list-mode active'"/>
-                                            </xsl:if>
-
-                                            <a>
-                                                <xsl:apply-templates select="key('resources', '&ac;ListMode', document(ac:document-uri('&ac;')))" mode="ldh:logo"/>
-                                                <xsl:apply-templates select="key('resources', '&ac;ListMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
-                                            </a>
-                                        </li>
-                                        <li class="table-mode">
-                                            <xsl:if test="$active-mode = '&ac;TableMode'">
-                                                <xsl:attribute name="class" select="'table-mode active'"/>
-                                            </xsl:if>
-
-                                            <a>
-                                                <xsl:apply-templates select="key('resources', '&ac;TableMode', document(ac:document-uri('&ac;')))" mode="ldh:logo"/>
-                                                <xsl:apply-templates select="key('resources', '&ac;TableMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
-                                            </a>
-                                        </li>
-                                        <li class="grid-mode">
-                                            <xsl:if test="$active-mode = '&ac;GridMode'">
-                                                <xsl:attribute name="class" select="'grid-mode active'"/>
-                                            </xsl:if>
-
-                                            <a>
-                                                <xsl:apply-templates select="key('resources', '&ac;GridMode', document(ac:document-uri('&ac;')))" mode="ldh:logo"/>
-                                                <xsl:apply-templates select="key('resources', '&ac;GridMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
-                                            </a>
-                                        </li>
-                                        <li class="chart-mode">
-                                            <xsl:if test="$active-mode = '&ac;ChartMode'">
-                                                <xsl:attribute name="class" select="'chart-mode active'"/>
-                                            </xsl:if>
-
-                                            <a>
-                                                <xsl:apply-templates select="key('resources', '&ac;ChartMode', document(ac:document-uri('&ac;')))" mode="ldh:logo"/>
-                                                <xsl:apply-templates select="key('resources', '&ac;ChartMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
-                                            </a>
-                                        </li>
-                                        <li class="map-mode">
-                                            <xsl:if test="$active-mode = '&ac;MapMode'">
-                                                <xsl:attribute name="class" select="'map-mode active'"/>
-                                            </xsl:if>
-
-                                            <a>
-                                                <xsl:apply-templates select="key('resources', '&ac;MapMode', document(ac:document-uri('&ac;')))" mode="ldh:logo"/>
-                                                <xsl:apply-templates select="key('resources', '&ac;MapMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
-                                            </a>
-                                        </li>
-                                        <li class="graph-mode">
-                                            <xsl:if test="$active-mode = '&ac;GraphMode'">
-                                                <xsl:attribute name="class" select="'graph-mode active'"/>
-                                            </xsl:if>
-
-                                            <a>
-                                                <xsl:apply-templates select="key('resources', '&ac;GraphMode', document(ac:document-uri('&ac;')))" mode="ldh:logo"/>
-                                                <xsl:apply-templates select="key('resources', '&ac;GraphMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
-                                            </a>
-                                        </li>
-                                    </ul>
-
+                                    <xsl:call-template name="bs2:ContainerModeTabs">
+                                        <xsl:with-param name="active-mode" select="$active-mode"/>
+                                    </xsl:call-template>
+                                    
                                     <div id="{$container-results-id}" class="container-results"></div>
                                 </div>
                             </xsl:result-document>
