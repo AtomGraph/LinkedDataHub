@@ -676,7 +676,7 @@ WHERE
                 
                 <ixsl:set-property name="data-table" select="$data-table" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
 
-                <xsl:call-template name="render-chart">
+                <xsl:call-template name="ldh:RenderChart">
                     <xsl:with-param name="data-table" select="$data-table"/>
                     <xsl:with-param name="canvas-id" select="$canvas-id"/>
                     <xsl:with-param name="chart-type" select="$chart-type"/>
@@ -859,7 +859,7 @@ WHERE
                     <xsl:variable name="data-table" select="if ($results/rdf:RDF) then ac:rdf-data-table($results, $category, $series) else ac:sparql-results-data-table($results, $category, $series)"/>
                     <ixsl:set-property name="data-table" select="$data-table" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`')"/>
                     
-                    <xsl:call-template name="render-chart">
+                    <xsl:call-template name="ldh:RenderChart">
                         <xsl:with-param name="data-table" select="$data-table"/>
                         <xsl:with-param name="canvas-id" select="$chart-canvas-id"/>
                         <xsl:with-param name="chart-type" select="$chart-type"/>

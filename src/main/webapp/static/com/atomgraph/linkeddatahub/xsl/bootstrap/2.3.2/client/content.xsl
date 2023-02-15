@@ -1003,7 +1003,7 @@ exclude-result-prefixes="#all"
                     <xsl:variable name="series" select="distinct-values($results/*/*/concat(namespace-uri(), local-name()))" as="xs:string*"/>
                     <xsl:variable name="data-table" select="ac:rdf-data-table($results, $category, $series)"/>
 
-                    <xsl:call-template name="render-chart">
+                    <xsl:call-template name="ldh:RenderChart">
                         <xsl:with-param name="data-table" select="$data-table"/>
                         <xsl:with-param name="canvas-id" select="$canvas-id"/>
                         <xsl:with-param name="chart-type" select="$chart-type"/>

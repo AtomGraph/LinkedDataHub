@@ -89,7 +89,7 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="ixsl:call($chart, 'draw', [ $data-table, $options-obj ])[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
 
-    <xsl:template name="render-chart">
+    <xsl:template name="ldh:RenderChart">
         <xsl:param name="data-table"/>
         <xsl:param name="canvas-id" as="xs:string"/>
         <xsl:param name="chart-type" as="xs:anyURI"/>
@@ -220,7 +220,7 @@ exclude-result-prefixes="#all"
             <xsl:variable name="data-table" select="if ($results/rdf:RDF) then ac:rdf-data-table($results, $category, $series) else ac:sparql-results-data-table($results, $category, $series)"/>
             <ixsl:set-property name="data-table" select="$data-table" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`')"/>
 
-            <xsl:call-template name="render-chart">
+            <xsl:call-template name="ldh:RenderChart">
                 <xsl:with-param name="data-table" select="$data-table"/>
                 <xsl:with-param name="canvas-id" select="$chart-canvas-id"/>
                 <xsl:with-param name="chart-type" select="$chart-type"/>
@@ -252,7 +252,7 @@ exclude-result-prefixes="#all"
             <xsl:variable name="data-table" select="if ($results/rdf:RDF) then ac:rdf-data-table($results, $category, $series) else ac:sparql-results-data-table($results, $category, $series)"/>
             <ixsl:set-property name="data-table" select="$data-table" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`')"/>
 
-            <xsl:call-template name="render-chart">
+            <xsl:call-template name="ldh:RenderChart">
                 <xsl:with-param name="data-table" select="$data-table"/>
                 <xsl:with-param name="canvas-id" select="$chart-canvas-id"/>
                 <xsl:with-param name="chart-type" select="$chart-type"/>
@@ -282,7 +282,7 @@ exclude-result-prefixes="#all"
             <xsl:variable name="data-table" select="if ($results/rdf:RDF) then ac:rdf-data-table($results, $category, $series) else ac:sparql-results-data-table($results, $category, $series)"/>
             <ixsl:set-property name="data-table" select="$data-table" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`')"/>
 
-            <xsl:call-template name="render-chart">
+            <xsl:call-template name="ldh:RenderChart">
                 <xsl:with-param name="data-table" select="$data-table"/>
                 <xsl:with-param name="canvas-id" select="$chart-canvas-id"/>
                 <xsl:with-param name="chart-type" select="$chart-type"/>

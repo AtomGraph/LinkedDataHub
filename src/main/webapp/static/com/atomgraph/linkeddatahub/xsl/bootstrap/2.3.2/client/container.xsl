@@ -411,7 +411,7 @@ exclude-result-prefixes="#all"
         </ixsl:schedule-action>
     </xsl:template>
     
-    <xsl:template name="render-container">
+    <xsl:template name="ldh:RenderContainerMode">
         <xsl:param name="container" as="element()"/>
         <xsl:param name="content-id" as="xs:string"/>
         <xsl:param name="content-uri" as="xs:anyURI"/>
@@ -469,7 +469,7 @@ exclude-result-prefixes="#all"
             
             <ixsl:set-property name="data-table" select="$data-table" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`')"/>
 
-            <xsl:call-template name="render-chart">
+            <xsl:call-template name="ldh:RenderChart">
                 <xsl:with-param name="data-table" select="$data-table"/>
                 <xsl:with-param name="canvas-id" select="$canvas-id"/>
                 <xsl:with-param name="chart-type" select="$chart-type"/>
@@ -553,7 +553,7 @@ exclude-result-prefixes="#all"
     
     <!-- facets -->
 
-    <xsl:template name="render-facets">
+    <xsl:template name="ldh:RenderFacets">
         <xsl:param name="container" as="element()"/>
         <xsl:param name="container-id" select="ixsl:get($container, 'id')" as="xs:string"/>
         <xsl:param name="select-xml" as="document-node()"/>
@@ -797,7 +797,7 @@ exclude-result-prefixes="#all"
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', true() ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
         
-        <xsl:call-template name="render-container">
+        <xsl:call-template name="ldh:RenderContainerMode">
             <xsl:with-param name="container" select="$results-container"/>
             <xsl:with-param name="content-id" select="$container/@id"/>
             <xsl:with-param name="content-uri" select="$content-uri"/>
@@ -1292,7 +1292,7 @@ exclude-result-prefixes="#all"
                         </xsl:for-each>
                     </xsl:if>
         
-                    <xsl:call-template name="render-container">
+                    <xsl:call-template name="ldh:RenderContainerMode">
                         <xsl:with-param name="container" select="$content-container//div[contains-token(@class, 'container-results')]"/>
                         <xsl:with-param name="content-id" select="$content-id"/>
                         <xsl:with-param name="content-uri" select="$content-uri"/>
@@ -1323,7 +1323,7 @@ exclude-result-prefixes="#all"
                             <xsl:variable name="select-xml" select="json-to-xml($select-json-string)" as="document-node()"/>
                             <xsl:variable name="initial-var-name" select="$select-xml/json:map/json:array[@key = 'variables']/json:string[1]/substring-after(., '?')" as="xs:string"/>
 
-                            <xsl:call-template name="render-facets">
+                            <xsl:call-template name="ldh:RenderFacets">
                                 <xsl:with-param name="initial-var-name" select="$initial-var-name"/>
                                 <xsl:with-param name="select-xml" select="$select-xml"/>
                                 <xsl:with-param name="container" select="id($facet-container-id, ixsl:page())"/>
