@@ -148,6 +148,7 @@ exclude-result-prefixes="#all"
             <xsl:sequence select="json-to-xml($select-json-string)"/>
         </xsl:param>
         <xsl:param name="initial-var-name" select="$select-xml/json:map/json:array[@key = 'variables']/json:string[1]/substring-after(., '?')" as="xs:string"/>
+        <xsl:param name="focus-var-name" select="$initial-var-name" as="xs:string"/>
         <!-- service can be explicitly specified on content using ldh:service -->
         <xsl:param name="service-uri" select="xs:anyURI(ldh:service/@rdf:resource)" as="xs:anyURI?"/>
         <xsl:param name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.apps'))" as="element()?"/>
@@ -197,6 +198,7 @@ exclude-result-prefixes="#all"
                     <xsl:with-param name="select-xml" select="$select-xml"/>
                     <xsl:with-param name="endpoint" select="$endpoint"/>
                     <xsl:with-param name="initial-var-name" select="$initial-var-name"/>
+                    <xsl:with-param name="focus-var-name" select="$focus-var-name"/>
                     <xsl:with-param name="active-mode" select="if ($mode) then $mode else xs:anyURI('&ac;ListMode')"/>
                     <xsl:with-param name="refresh-content" select="$refresh-content"/>
                 </xsl:call-template>
