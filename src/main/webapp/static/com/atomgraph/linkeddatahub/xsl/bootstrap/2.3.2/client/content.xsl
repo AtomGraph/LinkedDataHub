@@ -138,7 +138,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="refresh-content" as="xs:boolean?"/>
         <xsl:param name="content-uri" select="xs:anyURI(ixsl:get($container, 'dataset.contentUri'))" as="xs:anyURI"/>
         <!-- set $this variable value unless getting the query string from state -->
-        <xsl:param name="select-string" select="replace(sp:text, '\$this', '&lt;' || $about || '&gt;')" as="xs:string"/>
+        <xsl:param name="select-string" select="replace(sp:text, '$this', '&lt;' || $about || '&gt;', 'q')" as="xs:string"/>
         <xsl:param name="select-xml" as="document-node()">
             <xsl:variable name="select-json" as="item()">
                 <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', [ $select-string ])"/>
@@ -224,7 +224,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="refresh-content" as="xs:boolean?"/>
         <xsl:param name="content-uri" select="xs:anyURI(ixsl:get($container, 'dataset.contentUri'))" as="xs:anyURI"/>
         <!-- set $this variable value unless getting the query string from state -->
-        <xsl:param name="query-string" select="replace(sp:text, '\$this', '&lt;' || $about || '&gt;')" as="xs:string"/>
+        <xsl:param name="query-string" select="replace(sp:text, '$this', '&lt;' || $about || '&gt;', 'q')" as="xs:string"/>
         <!-- service can be explicitly specified on content using ldh:service -->
         <xsl:param name="service-uri" select="xs:anyURI(ldh:service/@rdf:resource)" as="xs:anyURI?"/>
         <xsl:param name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.apps'))" as="element()?"/>
@@ -525,9 +525,9 @@ exclude-result-prefixes="#all"
             <!-- updating existing content -->
             <xsl:when test="ixsl:contains($container, 'dataset.contentUri')">
                 <xsl:variable name="content-uri" select="ixsl:get($container, 'dataset.contentUri')" as="xs:anyURI"/>
-                <xsl:variable name="update-string" select="replace($content-update-string, '\$this', '&lt;' || ac:uri() || '&gt;')" as="xs:string"/>
-                <xsl:variable name="update-string" select="replace($update-string, '\$content', '&lt;' || $content-uri || '&gt;')" as="xs:string"/>
-                <xsl:variable name="update-string" select="replace($update-string, '\$newValue', '&quot;' || $content-string || '&quot;^^&lt;&rdf;XMLLiteral&gt;')" as="xs:string"/>
+                <xsl:variable name="update-string" select="replace($content-update-string, '$this', '&lt;' || ac:uri() || '&gt;', 'q')" as="xs:string"/>
+                <xsl:variable name="update-string" select="replace($update-string, '$content', '&lt;' || $content-uri || '&gt;', 'q')" as="xs:string"/>
+                <xsl:variable name="update-string" select="replace($update-string, '$newValue', '&quot;' || $content-string || '&quot;^^&lt;&rdf;XMLLiteral&gt;', 'q')" as="xs:string"/>
                 <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), map{}, ac:uri())" as="xs:anyURI"/>
                 <xsl:variable name="request" as="item()*">
                     <ixsl:schedule-action http-request="map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string }">
@@ -546,9 +546,9 @@ exclude-result-prefixes="#all"
                 <ixsl:set-attribute name="id" select="$content-id" object="$container"/>
                 <ixsl:set-attribute name="about" select="$content-uri" object="$container"/>
 
-                <xsl:variable name="update-string" select="replace($content-append-string, '\$this', '&lt;' || ac:uri() || '&gt;')" as="xs:string"/>
-                <xsl:variable name="update-string" select="replace($update-string, '\$content', '&lt;' || $content-uri || '&gt;')" as="xs:string"/>
-                <xsl:variable name="update-string" select="replace($update-string, '\$value', '&quot;' || $content-string || '&quot;^^&lt;&rdf;XMLLiteral&gt;')" as="xs:string"/>
+                <xsl:variable name="update-string" select="replace($content-append-string, '$this', '&lt;' || ac:uri() || '&gt;', 'q')" as="xs:string"/>
+                <xsl:variable name="update-string" select="replace($update-string, '$content', '&lt;' || $content-uri || '&gt;', 'q')" as="xs:string"/>
+                <xsl:variable name="update-string" select="replace($update-string, '$value', '&quot;' || $content-string || '&quot;^^&lt;&rdf;XMLLiteral&gt;', 'q')" as="xs:string"/>
                 <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), map{}, ac:uri())" as="xs:anyURI"/>
                 <xsl:variable name="request" as="item()*">
                     <ixsl:schedule-action http-request="map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string }">
@@ -583,10 +583,10 @@ exclude-result-prefixes="#all"
                     <!-- updating existing content -->
                     <xsl:when test="ixsl:contains($container, 'dataset.contentUri')">
                         <xsl:variable name="content-uri" select="ixsl:get($container, 'dataset.contentUri')" as="xs:anyURI"/>
-                        <xsl:variable name="update-string" select="replace($content-update-string, '\$this', '&lt;' || ac:uri() || '&gt;')" as="xs:string"/>
-                        <xsl:variable name="update-string" select="replace($update-string, '\$content', '&lt;' || $content-uri || '&gt;')" as="xs:string"/>
-                        <xsl:variable name="update-string" select="replace($update-string, '\$newValue', '&lt;' || $content-value || '&gt;')" as="xs:string"/>
-                        <xsl:variable name="update-string" select="if ($mode) then replace($update-string, '\$newMode', '&lt;' || $mode || '&gt;') else $update-string" as="xs:string"/>
+                        <xsl:variable name="update-string" select="replace($content-update-string, '$this', '&lt;' || ac:uri() || '&gt;', 'q')" as="xs:string"/>
+                        <xsl:variable name="update-string" select="replace($update-string, '$content', '&lt;' || $content-uri || '&gt;', 'q')" as="xs:string"/>
+                        <xsl:variable name="update-string" select="replace($update-string, '$newValue', '&lt;' || $content-value || '&gt;', 'q')" as="xs:string"/>
+                        <xsl:variable name="update-string" select="if ($mode) then replace($update-string, '$newMode', '&lt;' || $mode || '&gt;', 'q') else $update-string" as="xs:string"/>
                         <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), map{}, ac:uri())" as="xs:anyURI"/>
                         <xsl:variable name="request" as="item()*">
                             <ixsl:schedule-action http-request="map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string }">
@@ -607,10 +607,10 @@ exclude-result-prefixes="#all"
                         <ixsl:set-attribute name="id" select="$content-id" object="$container"/>
                         <ixsl:set-attribute name="about" select="$content-uri" object="$container"/>
 
-                        <xsl:variable name="update-string" select="replace($content-append-string, '\$this', '&lt;' || ac:uri() || '&gt;')" as="xs:string"/>
-                        <xsl:variable name="update-string" select="replace($update-string, '\$content', '&lt;' || $content-uri || '&gt;')" as="xs:string"/>
-                        <xsl:variable name="update-string" select="replace($update-string, '\$value', '&lt;' || $content-value || '&gt;')" as="xs:string"/>
-                        <xsl:variable name="update-string" select="if ($mode) then replace($update-string, '\$mode', '&lt;' || $mode || '&gt;') else $update-string" as="xs:string"/>
+                        <xsl:variable name="update-string" select="replace($content-append-string, '$this', '&lt;' || ac:uri() || '&gt;', 'q')" as="xs:string"/>
+                        <xsl:variable name="update-string" select="replace($update-string, '$content', '&lt;' || $content-uri || '&gt;', 'q')" as="xs:string"/>
+                        <xsl:variable name="update-string" select="replace($update-string, '$value', '&lt;' || $content-value || '&gt;', 'q')" as="xs:string"/>
+                        <xsl:variable name="update-string" select="if ($mode) then replace($update-string, '$mode', '&lt;' || $mode || '&gt;', 'q') else $update-string" as="xs:string"/>
                         <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), map{}, ac:uri())" as="xs:anyURI"/>
                         <xsl:variable name="request" as="item()*">
                             <ixsl:schedule-action http-request="map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string }">
@@ -641,8 +641,8 @@ exclude-result-prefixes="#all"
                     <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
                     <xsl:variable name="content-uri" select="ixsl:get($container, 'dataset.contentUri')" as="xs:anyURI"/>
-                    <xsl:variable name="update-string" select="replace($content-delete-string, '\$this', '&lt;' || ac:uri() || '&gt;')" as="xs:string"/>
-                    <xsl:variable name="update-string" select="replace($update-string, '\$content', '&lt;' || $content-uri || '&gt;')" as="xs:string"/>
+                    <xsl:variable name="update-string" select="replace($content-delete-string, '$this', '&lt;' || ac:uri() || '&gt;', 'q')" as="xs:string"/>
+                    <xsl:variable name="update-string" select="replace($update-string, '$content', '&lt;' || $content-uri || '&gt;', 'q')" as="xs:string"/>
                     <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), map{}, ac:uri())" as="xs:anyURI"/>
                     <xsl:variable name="request" as="item()*">
                         <ixsl:schedule-action http-request="map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string }">

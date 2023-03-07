@@ -1602,7 +1602,7 @@ WHERE
         <xsl:variable name="container" select="ancestor::div[@about][1]" as="element()"/>
         <xsl:variable name="content-uri" select="$container/@about" as="xs:anyURI"/>
         <xsl:variable name="content-value" select="if (ixsl:contains($container, 'dataset.contentValue')) then ixsl:get($container, 'dataset.contentValue') else $content-uri" as="xs:anyURI"/>
-        <xsl:variable name="query-string" select="replace($backlinks-string, '\$this', '&lt;' || $content-value || '&gt;')" as="xs:string"/>
+        <xsl:variable name="query-string" select="replace($backlinks-string, '$this', '&lt;' || $content-value || '&gt;', 'q')" as="xs:string"/>
         <xsl:variable name="service-uri" select="if (ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`')) then (if (ixsl:contains(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`'), 'service-uri')) then ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`'), 'service-uri') else ()) else ()" as="xs:anyURI?"/>
         <xsl:variable name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.apps'))" as="element()?"/>
         <xsl:variable name="endpoint" select="($service/sd:endpoint/@rdf:resource/xs:anyURI(.), sd:endpoint())[1]" as="xs:anyURI"/>
