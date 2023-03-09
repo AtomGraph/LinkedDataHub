@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       ASF_ARCHIVE: http://archive.apache.org/dist/
-      JENA_VERSION: 3.13.1
+      JENA_VERSION: 4.7.0
       BASE_URI: https://localhost:4443/
       OWNER_CERT_PWD: changeit
       SECRETARY_CERT_PWD: LinkedDataHub
@@ -24,7 +24,7 @@ jobs:
         env:
             JENA_HOME: "${{runner.temp}}/apache-jena-${{env.JENA_VERSION}}"
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Generate owner's and secretary's certificates/public keys
         run: ../scripts/setup.sh .env ssl "${{env.OWNER_CERT_PWD}}" "${{env.SECRETARY_CERT_PWD}}" 3650
         shell: bash
