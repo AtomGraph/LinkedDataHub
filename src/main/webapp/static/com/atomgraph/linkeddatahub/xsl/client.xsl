@@ -973,10 +973,10 @@ WHERE
 
             <xsl:variable name="results" select="." as="document-node()"/>
             
-            <!-- replace content body with the loaded XHTML -->
-            <xsl:for-each select="$container">
+            <!-- replace HTML body with the loaded XHTML body -->
+            <xsl:for-each select="ixsl:page()//body">
                 <xsl:result-document href="?." method="ixsl:replace-content">
-                    <xsl:copy-of select="id($container/@id, $results)/*"/>
+                    <xsl:copy-of select="$results//body"/>
                 </xsl:result-document>
             </xsl:for-each>
 
