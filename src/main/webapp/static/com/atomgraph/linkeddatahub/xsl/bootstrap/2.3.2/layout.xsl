@@ -513,7 +513,7 @@ LIMIT   100
                     </xsl:if>
                 </input>
                 <!-- placeholder used by the client-side typeahead -->
-                <!-- <ul id="ul-{generate-id()}" class="search-typeahead typeahead dropdown-menu"/> -->
+                 <ul id="ul-{generate-id()}" class="search-typeahead typeahead dropdown-menu" style="display: none"/> 
 
                 <button type="submit">
                     <xsl:apply-templates select="key('resources', 'search', document('translations.rdf'))" mode="ldh:logo">
