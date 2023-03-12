@@ -85,7 +85,6 @@ exclude-result-prefixes="#all">
     <xsl:import href="imports/rdf.xsl"/>
     <xsl:import href="imports/sioc.xsl"/>
     <xsl:import href="imports/sp.xsl"/>
-    <xsl:import href="imports/void.xsl"/>
     <xsl:import href="resource.xsl"/>
     <xsl:import href="document.xsl"/>
     
@@ -563,17 +562,8 @@ LIMIT   100
             </xsl:if>
             
             <div class="row-fluid">
-                <div id="breadcrumb-nav" class="span9">
-                    <!-- placeholder for client.xsl callbacks -->
-
-                    <xsl:if test="not($ldh:ajaxRendering)">
-                        <ul class="breadcrumb pull-left">
-                            <!-- render breadcrumbs server-side -->
-                            <xsl:apply-templates select="key('resources', ac:uri())" mode="bs2:BreadCrumbListItem"/>
-                        </ul>
-                    </xsl:if>
-                </div>
-
+                <xsl:apply-templates select="." mode="bs2:BreadCrumbBar"/>
+                
                 <div id="created-modified-date" class="span3">
                     <!-- placeholder for client.xsl callbacks -->
                 </div>
@@ -599,6 +589,29 @@ LIMIT   100
         </div>
     </xsl:template>
     
+    <xsl:template match="rdf:RDF" mode="bs2:BreadCrumbBar">
+        <xsl:param name="id" select="'breadcrumb-nav'" as="xs:string?"/>
+        <xsl:param name="class" select="'span9'" as="xs:string?"/>
+
+        <div>
+            <xsl:if test="$id">
+                <xsl:attribute name="id" select="$id"/>
+            </xsl:if>
+            <xsl:if test="$class">
+                <xsl:attribute name="class" select="$class"/>
+            </xsl:if>
+            
+            <!-- placeholder for client.xsl callbacks -->
+
+            <xsl:if test="not($ldh:ajaxRendering)">
+                <ul class="breadcrumb pull-left">
+                    <!-- render breadcrumbs server-side -->
+                    <xsl:apply-templates select="key('resources', ac:uri())" mode="bs2:BreadCrumbListItem"/>
+                </ul>
+            </xsl:if>
+        </div>
+    </xsl:template>
+
     <xsl:template match="rdf:RDF" mode="bs2:NavBarNavList">
         <xsl:if test="$foaf:Agent//@rdf:about">
             <ul class="nav pull-right">

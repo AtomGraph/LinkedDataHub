@@ -173,6 +173,59 @@ WHERE
 
     <xsl:strip-space elements="*"/>
 
+    <xsl:param name="system-containers" as="map(xs:anyURI, map(xs:string, xs:string))">
+        <xsl:map>
+            <xsl:map-entry key="resolve-uri('apps/', $ldt:base)">
+                <xsl:map>
+                    <xsl:map-entry key="'class'" select="'btn-app'"/>
+                    <xsl:map-entry key="'label-id'" select="'applications'"/>
+                </xsl:map>
+            </xsl:map-entry>
+            <xsl:map-entry key="resolve-uri('charts/', $ldt:base)">
+                <xsl:map>
+                    <xsl:map-entry key="'class'" select="'btn-chart'"/>
+                    <xsl:map-entry key="'label-id'" select="'charts'"/>
+                </xsl:map>
+            </xsl:map-entry>
+            <xsl:map-entry key="resolve-uri('files/', $ldt:base)]">
+                <xsl:map>
+                    <xsl:map-entry key="'class'" select="'btn-file'"/>
+                    <xsl:map-entry key="'label-id'" select="'files'"/>
+                </xsl:map>
+            </xsl:map-entry>
+            <xsl:map-entry key="resolve-uri('geo/', $ldt:base)]">
+                <xsl:map>
+                    <xsl:map-entry key="'class'" select="'btn-geo'"/>
+                    <xsl:map-entry key="'label-id'" select="'geo'"/>
+                </xsl:map>
+            </xsl:map-entry>
+            <xsl:map-entry key="resolve-uri('imports/', $ldt:base)]">
+                <xsl:map>
+                    <xsl:map-entry key="'class'" select="'btn-import'"/>
+                    <xsl:map-entry key="'label-id'" select="'imports'"/>
+                </xsl:map>
+            </xsl:map-entry>
+            <xsl:map-entry key="resolve-uri('latest/', $ldt:base)]">
+                <xsl:map>
+                    <xsl:map-entry key="'class'" select="'btn-latest'"/>
+                    <xsl:map-entry key="'label-id'" select="'latest'"/>
+                </xsl:map>
+            </xsl:map-entry>
+            <xsl:map-entry key="resolve-uri('queries/', $ldt:base)]">
+                <xsl:map>
+                    <xsl:map-entry key="'class'" select="'btn-query'"/>
+                    <xsl:map-entry key="'label-id'" select="'queries'"/>
+                </xsl:map>
+            </xsl:map-entry>
+            <xsl:map-entry key="resolve-uri('services/', $ldt:base)]">
+                <xsl:map>
+                    <xsl:map-entry key="'class'" select="'btn-service'"/>
+                    <xsl:map-entry key="'label-id'" select="'services'"/>
+                </xsl:map>
+            </xsl:map-entry>
+        </xsl:map>
+    </xsl:param>
+    
     <!-- INITIAL TEMPLATE -->
     
     <xsl:template name="main">
@@ -380,112 +433,14 @@ WHERE
     
     <!-- classes for system container breadcrumbs. TO-DO: generalize -->
     
-    <xsl:template match="*[@rdf:about = resolve-uri('apps/', $ldt:base)]" mode="bs2:BreadCrumbListItem" priority="1">
+    <xsl:template match="*[@rdf:about = map:keys($system-containers)]" mode="bs2:BreadCrumbListItem" priority="1">
         <xsl:param name="leaf" select="true()" as="xs:boolean"/>
 
         <li>
-            <a href="{@rdf:about}" class="btn-logo btn-app">
-                <xsl:apply-templates select="key('resources', 'applications', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+            <a href="{@rdf:about}" class="btn-logo {map:get($system-containers, @rdf:about)?class}">
+                <xsl:apply-templates select="key('resources', map:get($system-containers, @rdf:about)?label-id, document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
             </a>
 
-            <xsl:if test="not($leaf)">
-                <span class="divider">/</span>
-            </xsl:if>
-        </li>
-    </xsl:template>
-
-    <xsl:template match="*[@rdf:about = resolve-uri('charts/', $ldt:base)]" mode="bs2:BreadCrumbListItem" priority="1">
-        <xsl:param name="leaf" select="true()" as="xs:boolean"/>
-        
-        <li>
-            <a href="{@rdf:about}" class="btn-logo btn-chart">
-                <xsl:apply-templates select="key('resources', 'charts', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-            </a>
-
-            <xsl:if test="not($leaf)">
-                <span class="divider">/</span>
-            </xsl:if>
-        </li>
-    </xsl:template>
-    
-    <xsl:template match="*[@rdf:about = resolve-uri('files/', $ldt:base)]" mode="bs2:BreadCrumbListItem" priority="1">
-        <xsl:param name="leaf" select="true()" as="xs:boolean"/>
-        
-        <li>
-            <a href="{@rdf:about}" class="btn-logo btn-file">
-                <xsl:apply-templates select="key('resources', 'files', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-            </a>
-
-            <xsl:if test="not($leaf)">
-                <span class="divider">/</span>
-            </xsl:if>
-        </li>
-    </xsl:template>
-    
-    <xsl:template match="*[@rdf:about = resolve-uri('geo/', $ldt:base)]" mode="bs2:BreadCrumbListItem" priority="1">
-        <xsl:param name="leaf" select="true()" as="xs:boolean"/>
-        
-        <li>
-            <a href="{@rdf:about}" class="btn-logo btn-geo">
-                <xsl:apply-templates select="key('resources', 'geo', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-            </a>
-
-            <xsl:if test="not($leaf)">
-                <span class="divider">/</span>
-            </xsl:if>
-        </li>
-    </xsl:template>
-    
-    <xsl:template match="*[@rdf:about = resolve-uri('imports/', $ldt:base)]" mode="bs2:BreadCrumbListItem" priority="1">
-        <xsl:param name="leaf" select="true()" as="xs:boolean"/>
-        
-        <li>
-            <a href="{@rdf:about}" class="btn-logo btn-import">
-                <xsl:apply-templates select="key('resources', 'imports', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-            </a>
-
-            <xsl:if test="not($leaf)">
-                <span class="divider">/</span>
-            </xsl:if>
-        </li>
-    </xsl:template>
-    
-    <xsl:template match="*[@rdf:about = resolve-uri('latest/', $ldt:base)]" mode="bs2:BreadCrumbListItem" priority="1">
-        <xsl:param name="leaf" select="true()" as="xs:boolean"/>
-        
-        <li>
-            <a href="{@rdf:about}" class="btn-logo btn-latest">
-                <xsl:apply-templates select="key('resources', 'latest', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-            </a>
-
-            <xsl:if test="not($leaf)">
-                <span class="divider">/</span>
-            </xsl:if>
-        </li>
-    </xsl:template>
-    
-    <xsl:template match="*[@rdf:about = resolve-uri('queries/', $ldt:base)]" mode="bs2:BreadCrumbListItem" priority="1">
-        <xsl:param name="leaf" select="true()" as="xs:boolean"/>
-        
-        <li>
-            <a href="{@rdf:about}" class="btn-logo btn-query">
-                <xsl:apply-templates select="key('resources', 'queries', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-            </a>
-            
-            <xsl:if test="not($leaf)">
-                <span class="divider">/</span>
-            </xsl:if>
-        </li>
-    </xsl:template>
-    
-    <xsl:template match="*[@rdf:about = resolve-uri('services/', $ldt:base)]" mode="bs2:BreadCrumbListItem" priority="1">
-        <xsl:param name="leaf" select="true()" as="xs:boolean"/>
-        
-        <li>
-            <a href="{@rdf:about}" class="btn-logo btn-service">
-                <xsl:apply-templates select="key('resources', 'services', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-            </a>
-            
             <xsl:if test="not($leaf)">
                 <span class="divider">/</span>
             </xsl:if>
