@@ -163,16 +163,6 @@ WHERE
   }
 ]]></xsl:param>
     <xsl:param name="force-exclude-all-namespaces" select="true()"/> <!-- used by xml-to-string.xsl -->
-
-    <xsl:key name="resources" match="*[*][@rdf:about] | *[*][@rdf:nodeID]" use="@rdf:about | @rdf:nodeID"/>
-    <xsl:key name="elements-by-class" match="*" use="tokenize(@class, ' ')"/>
-    <xsl:key name="violations-by-value" match="*" use="ldh:violationValue/text()"/>
-    <xsl:key name="violations-by-focus-node" match="*" use="sh:focusNode/@rdf:resource | sh:focusNode/@rdf:nodeID"/>
-    <xsl:key name="resources-by-container" match="*[@rdf:about] | *[@rdf:nodeID]" use="sioc:has_parent/@rdf:resource | sioc:has_container/@rdf:resource"/>
-    <xsl:key name="status-by-code" match="*[@rdf:about] | *[@rdf:nodeID]" use="http:statusCodeNumber/xs:integer(.)"/>
-
-    <xsl:strip-space elements="*"/>
-
     <xsl:param name="system-containers" as="map(xs:anyURI, map(xs:string, xs:string))">
         <xsl:map>
             <xsl:map-entry key="resolve-uri('apps/', $ldt:base)">
@@ -225,6 +215,16 @@ WHERE
             </xsl:map-entry>
         </xsl:map>
     </xsl:param>
+    <xsl:param name="body-id" select="'visible-body'" as="xs:string"/>
+    
+    <xsl:key name="resources" match="*[*][@rdf:about] | *[*][@rdf:nodeID]" use="@rdf:about | @rdf:nodeID"/>
+    <xsl:key name="elements-by-class" match="*" use="tokenize(@class, ' ')"/>
+    <xsl:key name="violations-by-value" match="*" use="ldh:violationValue/text()"/>
+    <xsl:key name="violations-by-focus-node" match="*" use="sh:focusNode/@rdf:resource | sh:focusNode/@rdf:nodeID"/>
+    <xsl:key name="resources-by-container" match="*[@rdf:about] | *[@rdf:nodeID]" use="sioc:has_parent/@rdf:resource | sioc:has_container/@rdf:resource"/>
+    <xsl:key name="status-by-code" match="*[@rdf:about] | *[@rdf:nodeID]" use="http:statusCodeNumber/xs:integer(.)"/>
+
+    <xsl:strip-space elements="*"/>
     
     <!-- INITIAL TEMPLATE -->
     
@@ -974,9 +974,9 @@ WHERE
             <xsl:variable name="results" select="." as="document-node()"/>
             
             <!-- replace HTML body with the loaded XHTML body -->
-            <xsl:for-each select="ixsl:page()//body">
+            <xsl:for-each select="id($body-id, ixsl:page())">
                 <xsl:result-document href="?." method="ixsl:replace-content">
-                    <xsl:copy-of select="$results//body/*"/>
+                    <xsl:copy-of select="id($body-id, $results)/*"/>
                 </xsl:result-document>
             </xsl:for-each>
 

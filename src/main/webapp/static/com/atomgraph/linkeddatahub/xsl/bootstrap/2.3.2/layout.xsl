@@ -747,13 +747,15 @@ LIMIT   100
 
     <xsl:template match="rdf:RDF" mode="xhtml:Body">
         <body>
-            <xsl:apply-templates select="." mode="bs2:NavBar"/>
+            <div class="visible-body">
+                <xsl:apply-templates select="." mode="bs2:NavBar"/>
 
-            <xsl:apply-templates select="." mode="bs2:ContentBody"/>
+                <xsl:apply-templates select="." mode="bs2:ContentBody"/>
 
-            <xsl:apply-templates select="." mode="bs2:DocumentTree"/>
+                <xsl:apply-templates select="." mode="bs2:Footer"/>
+            </div>
             
-            <xsl:apply-templates select="." mode="bs2:Footer"/>
+            <xsl:apply-templates select="." mode="bs2:DocumentTree"/>
         </body>
     </xsl:template>
 
