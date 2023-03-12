@@ -187,37 +187,37 @@ WHERE
                     <xsl:map-entry key="'label-id'" select="'charts'"/>
                 </xsl:map>
             </xsl:map-entry>
-            <xsl:map-entry key="resolve-uri('files/', $ldt:base)]">
+            <xsl:map-entry key="resolve-uri('files/', $ldt:base)">
                 <xsl:map>
                     <xsl:map-entry key="'class'" select="'btn-file'"/>
                     <xsl:map-entry key="'label-id'" select="'files'"/>
                 </xsl:map>
             </xsl:map-entry>
-            <xsl:map-entry key="resolve-uri('geo/', $ldt:base)]">
+            <xsl:map-entry key="resolve-uri('geo/', $ldt:base)">
                 <xsl:map>
                     <xsl:map-entry key="'class'" select="'btn-geo'"/>
                     <xsl:map-entry key="'label-id'" select="'geo'"/>
                 </xsl:map>
             </xsl:map-entry>
-            <xsl:map-entry key="resolve-uri('imports/', $ldt:base)]">
+            <xsl:map-entry key="resolve-uri('imports/', $ldt:base)">
                 <xsl:map>
                     <xsl:map-entry key="'class'" select="'btn-import'"/>
                     <xsl:map-entry key="'label-id'" select="'imports'"/>
                 </xsl:map>
             </xsl:map-entry>
-            <xsl:map-entry key="resolve-uri('latest/', $ldt:base)]">
+            <xsl:map-entry key="resolve-uri('latest/', $ldt:base)">
                 <xsl:map>
                     <xsl:map-entry key="'class'" select="'btn-latest'"/>
                     <xsl:map-entry key="'label-id'" select="'latest'"/>
                 </xsl:map>
             </xsl:map-entry>
-            <xsl:map-entry key="resolve-uri('queries/', $ldt:base)]">
+            <xsl:map-entry key="resolve-uri('queries/', $ldt:base)">
                 <xsl:map>
                     <xsl:map-entry key="'class'" select="'btn-query'"/>
                     <xsl:map-entry key="'label-id'" select="'queries'"/>
                 </xsl:map>
             </xsl:map-entry>
-            <xsl:map-entry key="resolve-uri('services/', $ldt:base)]">
+            <xsl:map-entry key="resolve-uri('services/', $ldt:base)">
                 <xsl:map>
                     <xsl:map-entry key="'class'" select="'btn-service'"/>
                     <xsl:map-entry key="'label-id'" select="'services'"/>
