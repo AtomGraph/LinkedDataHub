@@ -976,7 +976,7 @@ WHERE
             <!-- replace HTML body with the loaded XHTML body -->
             <xsl:for-each select="ixsl:page()//body">
                 <xsl:result-document href="?." method="ixsl:replace-content">
-                    <xsl:copy-of select="$results//body"/>
+                    <xsl:copy-of select="$results//body/*"/>
                 </xsl:result-document>
             </xsl:for-each>
 
