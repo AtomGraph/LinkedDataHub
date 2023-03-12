@@ -250,7 +250,7 @@ WHERE
         <ixsl:set-property name="graph" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/> <!-- used by graph.xsl -->
         <ixsl:set-property name="endpoint" select="$sd:endpoint" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
         <ixsl:set-property name="yasqe" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
-        <xsl:apply-templates select="ixsl:page()" mode="ldh:LoadedHTMLDocument">
+        <xsl:apply-templates select="ixsl:page()" mode="ldh:HTMLDocumentLoaded">
             <xsl:with-param name="href" select="ldh:href()"/>
             <xsl:with-param name="endpoint" select="$sd:endpoint"/>
             <xsl:with-param name="container" select="id('content-body', ixsl:page())"/>
@@ -431,7 +431,7 @@ WHERE
         <xsl:apply-templates select="key('resources', foaf:primaryTopic/@rdf:resource)" mode="#current"/>
     </xsl:template>
     
-    <!-- classes for system container breadcrumbs. TO-DO: generalize -->
+    <!-- classes for system container breadcrumbs -->
     
     <xsl:template match="*[@rdf:about = map:keys($system-containers)]" mode="bs2:BreadCrumbListItem" priority="1">
         <xsl:param name="leaf" select="true()" as="xs:boolean"/>
@@ -908,7 +908,7 @@ WHERE
                     <ixsl:set-property name="base" select="$base" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
                 </xsl:if>
 
-                <xsl:apply-templates select="?body" mode="ldh:LoadedHTMLDocument">
+                <xsl:apply-templates select="?body" mode="ldh:HTMLDocumentLoaded">
                     <xsl:with-param name="href" select="$href"/>
                     <xsl:with-param name="endpoint" select="$endpoint"/>
                     <xsl:with-param name="container" select="$container"/>
@@ -947,7 +947,7 @@ WHERE
     </xsl:template>
     
     <!-- cannot be a named template because overriding templates need to be able to call xsl:next-match (cannot use xsl:origin with Saxon-JS because of XSLT 3.0 packages) -->
-    <xsl:template match="/" mode="ldh:LoadedHTMLDocument">
+    <xsl:template match="/" mode="ldh:HTMLDocumentLoaded">
         <xsl:param name="href" as="xs:anyURI"/> <!-- possibly proxied URL -->
         <xsl:param name="container" as="element()"/>
         <xsl:param name="push-state" select="true()" as="xs:boolean"/>
@@ -958,7 +958,7 @@ WHERE
         <xsl:variable name="uri" select="if (contains($href, '?')) then let $query-params := ldh:parse-query-params(substring-after(ac:document-uri($href), '?')) return if (exists($query-params?uri)) then ldh:decode-uri($query-params?uri[1]) else ldh:absolute-path($href) else ldh:absolute-path($href)" as="xs:anyURI"/>
         <xsl:variable name="doc-uri" select="ac:document-uri($uri)" as="xs:anyURI"/>
         <xsl:variable name="fragment" select="if (contains($href, '#')) then substring-after($href, '#') else ()" as="xs:string?"/>
-        <!--<xsl:message>ldh:LoadedHTMLDocument $href: <xsl:value-of select="$href"/> $uri: <xsl:value-of select="$uri"/> $doc-uri: <xsl:value-of select="$doc-uri"/> $fragment: <xsl:value-of select="$fragment"/> </xsl:message>-->
+        <!--<xsl:message>ldh:HTMLDocumentLoaded $href: <xsl:value-of select="$href"/> $uri: <xsl:value-of select="$uri"/> $doc-uri: <xsl:value-of select="$doc-uri"/> $fragment: <xsl:value-of select="$fragment"/> </xsl:message>-->
         
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
 
