@@ -272,12 +272,6 @@ WHERE
         <xsl:if test="ac:mode() = '&ac;EditMode'">
             <xsl:apply-templates select="id('content-body', ixsl:page())" mode="ldh:PostConstruct"/>
         </xsl:if>
-        <!-- append typeahead list after the search/URI input -->
-        <xsl:for-each select="id('uri', ixsl:page())/..">
-            <xsl:result-document href="?." method="ixsl:append-content">
-                <ul id="{generate-id()}" class="search-typeahead typeahead dropdown-menu"></ul>
-            </xsl:result-document>
-        </xsl:for-each>
         <!-- initialize LinkedDataHub.apps (and the search dropdown, if it's shown) -->
         <ixsl:set-property name="apps" select="$ldh:apps" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
         <!-- #search-service may be missing (e.g. suppressed by extending stylesheet) -->
@@ -547,19 +541,6 @@ WHERE
             </xsl:if>
 
             <xsl:if test="acl:mode() = '&acl;Write'">
-<!--                 enable .btn-edit if it's present 
-                <xsl:for-each select="ixsl:page()//div[contains-token(@class, 'action-bar')]//a[contains-token(@class, 'btn-edit')]">
-                    <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'disabled', false() ])[current-date() lt xs:date('2000-01-01')]"/>
-                </xsl:for-each>
-                 enable .btn-delete button if document is not Root 
-                <xsl:for-each select="ixsl:page()//div[contains-token(@class, 'action-bar')]//button[contains-token(@class, 'btn-delete')]">
-                    <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'disabled', $uri = ldt:base() ])[current-date() lt xs:date('2000-01-01')]"/>
-                </xsl:for-each>
-                 enable .btn-save-as if it's present 
-                <xsl:for-each select="ixsl:page()//div[contains-token(@class, 'action-bar')]//button[contains-token(@class, 'btn-save-as')]">
-                    <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'disabled', false() ])[current-date() lt xs:date('2000-01-01')]"/>
-                </xsl:for-each>-->
-        
                 <xsl:variable name="xhtml-content-ids" select="key('elements-by-class', 'xhtml-content', ixsl:page())/@id" as="xs:string*"/>
                 <xsl:if test="not(empty($xhtml-content-ids))">
                     <xsl:variable name="containers" select="id($xhtml-content-ids, ixsl:page())" as="element()*"/>
@@ -572,20 +553,6 @@ WHERE
                     </xsl:for-each>
                 </xsl:if>
             </xsl:if>
-<!--            <xsl:if test="not(acl:mode() = '&acl;Write')">
-                 disable .btn-edit if it's present 
-                <xsl:for-each select="ixsl:page()//div[contains-token(@class, 'action-bar')]//a[contains-token(@class, 'btn-edit')]">
-                    <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'disabled', true() ])[current-date() lt xs:date('2000-01-01')]"/>
-                </xsl:for-each>
-                 disable .btn-delete button 
-                <xsl:for-each select="ixsl:page()//div[contains-token(@class, 'action-bar')]//button[contains-token(@class, 'btn-delete')]">
-                    <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'disabled', true() ])[current-date() lt xs:date('2000-01-01')]"/>
-                </xsl:for-each>
-                 disable .btn-save-as if it's present 
-                <xsl:for-each select="ixsl:page()//div[contains-token(@class, 'action-bar')]//button[contains-token(@class, 'btn-save-as')]">
-                    <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'disabled', true() ])[current-date() lt xs:date('2000-01-01')]"/>
-                </xsl:for-each>
-            </xsl:if>-->
 
             <!-- focus on current resource -->
             <xsl:for-each select="key('resources', $uri)">
@@ -862,33 +829,10 @@ WHERE
         <xsl:variable name="doc-uri" select="ac:document-uri($uri)" as="xs:anyURI"/>
         <!--<xsl:message>onDocumentLoad $href: <xsl:value-of select="$href"/> $uri: <xsl:value-of select="$uri"/> $doc-uri: <xsl:value-of select="$doc-uri"/></xsl:message>-->
 
-        <!-- update the URI in the nav bar -->
-        <xsl:choose>
-            <!-- local URI -->
-            <xsl:when test="starts-with($uri, $ldt:base)">
-<!--                 enable .btn-skolemize 
-                <xsl:for-each select="ixsl:page()//div[contains-token(@class, 'action-bar')]//button[contains-token(@class, 'btn-skolemize')]">
-                    <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'disabled', false() ])[current-date() lt xs:date('2000-01-01')]"/>
-                </xsl:for-each>-->
-
-                <!-- unset #uri value -->
-                <xsl:for-each select="id('uri', ixsl:page())">
-                    <ixsl:set-property name="value" select="()" object="."/>
-                </xsl:for-each>
-            </xsl:when>
-            <!-- external URI -->
-            <xsl:otherwise>
-<!--                 disable .btn-skolemize 
-                <xsl:for-each select="ixsl:page()//div[contains-token(@class, 'action-bar')]//button[contains-token(@class, 'btn-skolemize')]">
-                    <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'disabled', true() ])[current-date() lt xs:date('2000-01-01')]"/>
-                </xsl:for-each>-->
-
-                <!-- set #uri value -->
-                <xsl:for-each select="id('uri', ixsl:page())">
-                    <ixsl:set-property name="value" select="$uri" object="."/>
-                </xsl:for-each>
-            </xsl:otherwise>
-        </xsl:choose>
+        <!-- set #uri value -->
+        <xsl:for-each select="id('uri', ixsl:page())">
+            <ixsl:set-property name="value" select="if (not(starts-with($uri, $ldt:base))) then $uri else ()" object="."/>
+        </xsl:for-each>
         
         <xsl:variable name="response" select="." as="map(*)"/>
         <xsl:choose>
@@ -1045,16 +989,6 @@ WHERE
 
             <ixsl:set-attribute name="href" select="$href" object="."/>
         </xsl:for-each>
-            
-        <!-- !!! update button classes after state has been pushed, because button state might depend on the new state (e.g. new ac:mode) !!! -->
-        <!-- enable .btn-edit if it's present -->
-<!--        <xsl:for-each select="ixsl:page()//div[contains-token(@class, 'action-bar')]//a[contains-token(@class, 'btn-edit')]">
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', ac:mode() = '&ac;EditMode' ])[current-date() lt xs:date('2000-01-01')]"/>
-
-             update the a.btn-edit link if it is visible 
-            <xsl:variable name="edit-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ldh:query-params(xs:anyURI('&ac;EditMode')), $doc-uri)" as="xs:anyURI"/>
-            <ixsl:set-attribute name="href" select="$edit-uri" object="."/>
-        </xsl:for-each>-->
             
         <!-- activate the current URL in the document tree -->
         <xsl:for-each select="id('doc-tree', ixsl:page())">
@@ -1394,11 +1328,6 @@ WHERE
         <xsl:variable name="textarea-id" select="'query-string'" as="xs:string"/>
 
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
-
-<!--         disable action buttons 
-        <xsl:for-each select="ixsl:page()//div[contains-token(@class, 'action-bar')]//button[tokenize(@class, ' ') = ('btn-edit', 'btn-save-as', 'btn-skolemize')]">
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'disabled', true() ])[current-date() lt xs:date('2000-01-01')]"/>
-        </xsl:for-each>-->
 
         <xsl:for-each select="$container">
             <xsl:result-document href="?." method="ixsl:replace-content">

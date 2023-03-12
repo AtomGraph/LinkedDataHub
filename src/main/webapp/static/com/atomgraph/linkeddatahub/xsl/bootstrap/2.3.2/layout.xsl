@@ -512,6 +512,8 @@ LIMIT   100
                         <xsl:attribute name="value" select="ac:uri()"/>
                     </xsl:if>
                 </input>
+                <!-- placeholder used by the client-side typeahead -->
+                <!-- <ul id="ul-{generate-id()}" class="search-typeahead typeahead dropdown-menu"/> -->
 
                 <button type="submit">
                     <xsl:apply-templates select="key('resources', 'search', document('translations.rdf'))" mode="ldh:logo">
