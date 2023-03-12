@@ -747,7 +747,7 @@ LIMIT   100
 
     <xsl:template match="rdf:RDF" mode="xhtml:Body">
         <body>
-            <div class="visible-body">
+            <div id="visible-body">
                 <xsl:apply-templates select="." mode="bs2:NavBar"/>
 
                 <xsl:apply-templates select="." mode="bs2:ContentBody"/>
