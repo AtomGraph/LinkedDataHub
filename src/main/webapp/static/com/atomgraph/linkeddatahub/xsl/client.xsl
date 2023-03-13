@@ -819,6 +819,7 @@ WHERE
     <xsl:template name="ldh:DocumentLoaded">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="href" as="xs:anyURI?"/> <!-- absolute URI! -->
+        <xsl:param name="container" select="id($body-id, ixsl:page())" as="element()"/>
         <xsl:param name="service-uri" select="if (id('search-service', ixsl:page())) then xs:anyURI(ixsl:get(id('search-service', ixsl:page()), 'value')) else ()" as="xs:anyURI?"/>
         <xsl:param name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.apps'))" as="element()?"/>
         <xsl:param name="push-state" select="true()" as="xs:boolean"/>
@@ -835,7 +836,7 @@ WHERE
         
         <xsl:variable name="response" select="." as="map(*)"/>
         <xsl:choose>
-            <xsl:when test="?status = 200 and starts-with(?media-type, 'application/xhtml+xml')">
+            <xsl:when test="starts-with(?media-type, 'application/xhtml+xml')">
                 <xsl:variable name="endpoint-link" select="tokenize(?headers?link, ',')[contains(., '&sd;endpoint')]" as="xs:string?"/>
                 <xsl:variable name="endpoint" select="if ($endpoint-link) then xs:anyURI(substring-before(substring-after(substring-before($endpoint-link, ';'), '&lt;'), '&gt;')) else ()" as="xs:anyURI?"/>
                 <xsl:variable name="base-link" select="tokenize(?headers?link, ',')[contains(., '&ldt;base')]" as="xs:string?"/>
@@ -854,13 +855,10 @@ WHERE
                 <xsl:apply-templates select="?body" mode="ldh:HTMLDocumentLoaded">
                     <xsl:with-param name="href" select="$href"/>
                     <xsl:with-param name="endpoint" select="$endpoint"/>
-                    <xsl:with-param name="container" select="id($body-id, ixsl:page())"/>
+                    <xsl:with-param name="container" select="$container"/>
                     <xsl:with-param name="push-state" select="$push-state"/>
                     <xsl:with-param name="refresh-content" select="$refresh-content"/>
                 </xsl:apply-templates>
-            </xsl:when>
-            <xsl:when test="?status = 0">
-                <!-- HTTP request was terminated - do nothing -->
             </xsl:when>
             <xsl:otherwise>
                 <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
@@ -868,21 +866,14 @@ WHERE
                 <!-- error response - could not load document -->
                 <xsl:for-each select="$container">
                     <xsl:result-document href="?." method="ixsl:replace-content">
-                        <xsl:choose>
-                            <xsl:when test="id('content-body', $response?body)">
-                                <xsl:copy-of select="id('content-body', $response?body)/*"/>
-                            </xsl:when>
-                            <xsl:otherwise>
-                                <div class="alert alert-block">
-                                    <strong>Error loading RDF document</strong>
-                                    <xsl:if test="$response?message">
-                                        <pre>
-                                            <xsl:value-of select="$response?message"/>
-                                        </pre>
-                                    </xsl:if>
-                                </div>
-                            </xsl:otherwise>
-                        </xsl:choose>
+                        <div class="alert alert-block">
+                            <strong>Error loading XHTML document</strong>
+                            <xsl:if test="$response?message">
+                                <pre>
+                                    <xsl:value-of select="$response?message"/>
+                                </pre>
+                            </xsl:if>
+                        </div>
                     </xsl:result-document>
                 </xsl:for-each>
             </xsl:otherwise>
