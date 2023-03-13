@@ -819,7 +819,6 @@ WHERE
     <xsl:template name="ldh:DocumentLoaded">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="href" as="xs:anyURI?"/> <!-- absolute URI! -->
-        <xsl:param name="container" select="id($body-id, ixsl:page())" as="element()"/>
         <xsl:param name="service-uri" select="if (id('search-service', ixsl:page())) then xs:anyURI(ixsl:get(id('search-service', ixsl:page()), 'value')) else ()" as="xs:anyURI?"/>
         <xsl:param name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.apps'))" as="element()?"/>
         <xsl:param name="push-state" select="true()" as="xs:boolean"/>
@@ -855,7 +854,7 @@ WHERE
                 <xsl:apply-templates select="?body" mode="ldh:HTMLDocumentLoaded">
                     <xsl:with-param name="href" select="$href"/>
                     <xsl:with-param name="endpoint" select="$endpoint"/>
-                    <xsl:with-param name="container" select="$container"/>
+                    <xsl:with-param name="container" select="id($body-id, ixsl:page())"/>
                     <xsl:with-param name="push-state" select="$push-state"/>
                     <xsl:with-param name="refresh-content" select="$refresh-content"/>
                 </xsl:apply-templates>
@@ -864,18 +863,16 @@ WHERE
                 <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
                 
                 <!-- error response - could not load document -->
-                <xsl:for-each select="$container">
-                    <xsl:result-document href="?." method="ixsl:replace-content">
-                        <div class="alert alert-block">
-                            <strong>Error loading XHTML document</strong>
-                            <xsl:if test="$response?message">
-                                <pre>
-                                    <xsl:value-of select="$response?message"/>
-                                </pre>
-                            </xsl:if>
-                        </div>
-                    </xsl:result-document>
-                </xsl:for-each>
+                <xsl:result-document href="#content-body" method="ixsl:replace-content">
+                    <div class="alert alert-block">
+                        <strong>Error loading XHTML document</strong>
+                        <xsl:if test="$response?message">
+                            <pre>
+                                <xsl:value-of select="$response?message"/>
+                            </pre>
+                        </xsl:if>
+                    </div>
+                </xsl:result-document>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
