@@ -835,6 +835,9 @@ WHERE
         
         <xsl:variable name="response" select="." as="map(*)"/>
         <xsl:choose>
+            <xsl:when test="?status = 0">
+                <!-- HTTP request was terminated - do nothing -->
+            </xsl:when>
             <xsl:when test="starts-with(?media-type, 'application/xhtml+xml')">
                 <xsl:variable name="endpoint-link" select="tokenize(?headers?link, ',')[contains(., '&sd;endpoint')]" as="xs:string?"/>
                 <xsl:variable name="endpoint" select="if ($endpoint-link) then xs:anyURI(substring-before(substring-after(substring-before($endpoint-link, ';'), '&lt;'), '&gt;')) else ()" as="xs:anyURI?"/>
