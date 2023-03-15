@@ -405,7 +405,7 @@ exclude-result-prefixes="#all"
                 <xsl:with-param name="select-string" select="$select-string"/>
                 <xsl:with-param name="select-xml" select="$select-xml"/>
                 <xsl:with-param name="initial-var-name" select="$initial-var-name"/>
-                <xsl:with-param name="focus-var-name" select="$focus-var-name" as="xs:string"/>
+                <xsl:with-param name="focus-var-name" select="$focus-var-name"/>
                 <xsl:with-param name="endpoint" select="$endpoint"/>
             </xsl:call-template>
         </ixsl:schedule-action>
