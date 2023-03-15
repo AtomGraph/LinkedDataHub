@@ -147,4 +147,166 @@ exclude-result-prefixes="#all"
         </xsl:if>
     </xsl:template>
     
+    <!-- adopted JS code from https://itnext.io/javascript-zoom-like-in-maps-for-svg-html-89c0df016d8d -->
+    <xsl:template match="svg:svg" mode="ixsl:onwheel">
+        <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
+        <xsl:variable name="scale" select="if (ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.graph'), 'scale')) then ixsl:get(ixsl:window(), 'LinkedDataHub.graph.scale') else 1" as="xs:float"/>
+        <xsl:variable name="zoom-scale-factor" select="1.6" as="xs:float"/>
+        <xsl:variable name="delta" select="if (not(ixsl:get(ixsl:event(), 'deltaY') = 0)) then ixsl:get(ixsl:event(), 'deltaY') else ixsl:get(ixsl:event(), 'deltaX')" as="xs:float"/>
+
+        <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ 'Delta: ' || $delta ])"/>
+
+        <xsl:variable name="scale-step" select="if (abs($delta) &lt; 50) then 0.05 else 0.25" as="xs:float"/>
+        <xsl:variable name="scale-delta" select="if ($delta &gt; 0) then $scale-step else -1 * $scale-step" as="xs:float"/>
+        <xsl:variable name="next-scale" select="$scale + $scale-delta" as="xs:float"/>
+        <xsl:variable name="fixed-point" as="map(xs:string, xs:float)">
+            <xsl:map>
+                <xsl:map-entry key="'x'" select="ixsl:get(ixsl:event(), 'clientX')"/>
+                <xsl:map-entry key="'y'" select="ixsl:get(ixsl:event(), 'clientY')"/>
+            </xsl:map>
+        </xsl:variable>
+
+        <xsl:call-template name="svg-scale">
+            <xsl:with-param name="svg-element" select="."/>
+            <xsl:with-param name="fixed-point" select="$fixed-point"/>
+            <xsl:with-param name="scale" select="$scale"/>
+            <xsl:with-param name="next-scale" select="$next-scale"/>
+        </xsl:call-template>
+        
+        <ixsl:set-property name="scale" select="$next-scale" object="ixsl:get(ixsl:window(), 'LinkedDataHub.graph')"/>
+    </xsl:template>
+    
+    <xsl:template name="svg-scale">
+        <xsl:param name="svg-element" as="element()"/>
+        <xsl:param name="fixed-point" as="map(xs:string, xs:float)"/>
+        <xsl:param name="scale" as="xs:float"/>
+        <xsl:param name="next-scale" as="xs:float"/>
+
+        <xsl:variable name="position" as="map(xs:string, xs:float)">
+            <xsl:call-template name="svg-position-get">
+                <xsl:with-param name="svg-element" select="$svg-element"/>
+            </xsl:call-template>
+        </xsl:variable>
+        
+        <xsl:call-template name="svg-position-set">
+            <xsl:with-param name="svg-element" select="$svg-element"/>
+            <xsl:with-param name="position">
+                <xsl:map>
+                    <xsl:map-entry key="'x'" select="$next-scale div $scale * ($position?x - $fixed-point?x) + $fixed-point?x"/>
+                    <xsl:map-entry key="'y'" select="$next-scale div $scale * ($position?y - $fixed-point?y) + $fixed-point?y"/>
+                </xsl:map>
+            </xsl:with-param>
+        </xsl:call-template>
+
+...
+
+<!--    const position = svgPositionGet(svgEl);
+ 
+    svgPositionSet(svgEl, {
+        x: nextScale / scale * (position.x - fixedPoint.x) +     
+           fixedPoint.x,
+        y: nextScale / scale * (position.y - fixedPoint.y) + 
+           fixedPoint.y
+    });
+ 
+    ensureTransform(svgEl, SVGTransform.SVG_TRANSFORM_SCALE)
+        .setScale(nextScale, nextScale);-->
+    </xsl:template>
+    
+    <xsl:template name="svg-position-get" as="map(xs:string, xs:float)">
+        <xsl:param name="svg-element" as="element()"/>
+        <xsl:variable name="transform-list" select="ixsl:get($svg-element, 'transform.baseVal')" as="item()*"/>
+        <xsl:variable name="translate" select="filter($transform-list, function($tr) { ixsl:get($tr, 'type') = 2 })" as="item()"/> <!-- SVG_TRANSFORM_TRANSLATE = 2 -->
+        
+        <xsl:choose>
+            <xsl:when test="exists($translate)">
+                <xsl:map>
+                    <xsl:map-entry key="'x'" select="ixsl:get($translate, 'matrix.e')"/>
+                    <xsl:map-entry key="'y'" select="ixsl:get($translate, 'matrix.f')"/>
+                </xsl:map>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:map>
+                    <xsl:map-entry key="'x'" select="0"/>
+                    <xsl:map-entry key="'y'" select="0"/>
+                </xsl:map>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:template>
+    
+    <xsl:template name="svg-position-set">
+        <xsl:param name="svg-element" as="element()"/>
+        <xsl:param name="position" as="map(xs:string, xs:float)"/>
+        
+        <!-- 	ensureTransform(svgEl, SVGTransform.SVG_TRANSFORM_TRANSLATE, svg).setTranslate(position.x, position.y); -->
+        
+    </xsl:template>
+    
+    <xsl:template name="ensure-transform">
+
+        
+    </xsl:template>
+    
+<!--    // calc nextScale
+ 
+    const delta = evt.deltaY || evt.deltaX;
+    const scaleStep = Math.abs(delta) < 50
+        ? 0.05  // touchpad pitch
+        : 0.25; // mouse wheel
+ 
+    const scaleDelta = delta < 0 ? scaleStep : -scaleStep;
+    const nextScale = scale + scaleDelta; // 'scale' is prev scale
+ 
+ 
+    // calc fixedPoint
+    const fixedPoint = { x: evt.clientX, y: evt.clientY };
+ 
+ 
+    // scale
+    // 'svgEl' is element to scale
+    svgScale(svgEl, fixedPoint, scale, nextScale);
+    scale = nextScale;
+    ===
+    const position = svgPositionGet(svgEl);
+ 
+    svgPositionSet(svgEl, {
+        x: nextScale / scale * (position.x - fixedPoint.x) +     
+           fixedPoint.x,
+        y: nextScale / scale * (position.y - fixedPoint.y) + 
+           fixedPoint.y
+    });
+ 
+    ensureTransform(svgEl, SVGTransform.SVG_TRANSFORM_SCALE)
+        .setScale(nextScale, nextScale);
+        
+====
+
+export function ensureTransform(svgEl, transform, svg) {
+	let tr = first(svgEl.transform.baseVal, tt => tt.type === transform);
+	if (!tr) {
+		tr = (svgEl.ownerSVGElement || svg).createSVGTransform();
+		svgEl.transform.baseVal.appendItem(tr);
+	}
+	return tr;
+}
+
+/**
+* @param {SVGGraphicsElement} svgEl
+* @param { {x: number, y: number} } position
+* @param {SVGSVGElement=} svg pass if svgEl not yet in DOM
+* @returns {void}
+*/
+export function svgPositionSet(svgEl, position, svg) {
+	ensureTransform(svgEl, SVGTransform.SVG_TRANSFORM_TRANSLATE, svg).setTranslate(position.x, position.y);
+}
+
+/**
+ * @param {SVGGraphicsElement} svgEl
+ * @returns { {x: number, y: number} }
+ */
+export function svgPositionGet(svgEl) {
+	const tr = first(svgEl.transform.baseVal, tt => tt.type === SVGTransform.SVG_TRANSFORM_TRANSLATE);
+	return tr ? { x: tr.matrix.e, y: tr.matrix.f } : { x: 0, y: 0 };
+}-->
+
 </xsl:stylesheet>
