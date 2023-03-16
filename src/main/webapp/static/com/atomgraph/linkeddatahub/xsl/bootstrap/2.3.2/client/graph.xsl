@@ -148,9 +148,67 @@ exclude-result-prefixes="#all"
             <ixsl:remove-property name="selected-node" object="ixsl:get(ixsl:window(), 'LinkedDataHub.graph')"/>
         </xsl:if>
     </xsl:template>
-    
-    <!-- adopted JS code from https://itnext.io/javascript-zoom-like-in-maps-for-svg-html-89c0df016d8d -->
+
+    <!-- ported JS code from https://codepen.io/osublake/pen/oGoyYb -->
     <xsl:template match="svg:svg" mode="ixsl:onwheel">
+        <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
+        <xsl:variable name="zoom-scale-factor" select="1.6" as="xs:double"/>
+        <xsl:variable name="delta" select="ixsl:get(ixsl:event(), 'wheelDelta')" as="xs:integer"/>
+        <xsl:variable name="normalized" select="if ($delta mod 120 = 0) then $delta div 120 else $delta div 12" as="xs:double"/>
+        <xsl:variable name="scale-delta" select="if ($normalized &gt; 0) then 1 div $zoom-scale-factor else $zoom-scale-factor" as="xs:double"/>
+        <xsl:variable name="point" select="ixsl:call(., 'createSVGPoint', [])" as="item()"/>
+        <xsl:for-each select="$point">
+            <ixsl:set-property name="x" select="ixsl:get(ixsl:event(), 'clientX')" object="."/>
+            <ixsl:set-property name="y" select="ixsl:get(ixsl:event(), 'clientY')" object="."/>
+        </xsl:for-each>
+        <xsl:variable name="start-point" select="ixsl:call($point, 'matrixTransform', [ ixsl:call(ixsl:call(., 'getScreenCTM', []), 'inverse', []) ])" as="item()"/>
+        <xsl:variable name="viewbox" select="ixsl:get(., 'viewBox.baseVal')" as="item()"/>
+        <xsl:for-each select="$viewbox">
+            <ixsl:set-property name="x" select="(ixsl:get($start-point, 'x') - ixsl:get($viewbox, 'x')) * ($scale-delta - 1)" object="."/>
+            <ixsl:set-property name="y" select="(ixsl:get($start-point, 'y') - ixsl:get($viewbox, 'y')) * ($scale-delta - 1)" object="."/>
+            <ixsl:set-property name="width" select="$scale-delta" object="."/>
+            <ixsl:set-property name="height" select="$scale-delta" object="."/>
+        </xsl:for-each>
+        
+<!--  event.preventDefault();
+  
+  pivotAnimation.reverse();
+  
+  var normalized;  
+  var delta = event.wheelDelta;
+
+  if (delta) {
+    normalized = (delta % 120) == 0 ? delta / 120 : delta / 12;
+  } else {
+    delta = event.deltaY || event.detail || 0;
+    normalized = -(delta % 3 ? delta * 10 : delta / 3);
+  }
+  
+  var scaleDelta = normalized > 0 ? 1 / zoom.scaleFactor : zoom.scaleFactor;
+  
+  point.x = event.clientX;
+  point.y = event.clientY;
+  
+  var startPoint = point.matrixTransform(svg.getScreenCTM().inverse());
+    
+  var fromVars = {
+    ease: zoom.ease,
+    x: viewBox.x,
+    y: viewBox.y,
+    width: viewBox.width,
+    height: viewBox.height,
+  };
+  
+  viewBox.x -= (startPoint.x - viewBox.x) * (scaleDelta - 1);
+  viewBox.y -= (startPoint.y - viewBox.y) * (scaleDelta - 1);
+  viewBox.width *= scaleDelta;
+  viewBox.height *= scaleDelta;
+    
+  zoom.animation = TweenLite.from(viewBox, zoom.duration, fromVars);  -->
+    </xsl:template>
+
+    <!-- adopted JS code from https://itnext.io/javascript-zoom-like-in-maps-for-svg-html-89c0df016d8d -->
+<!--    <xsl:template match="svg:svg" mode="ixsl:onwheel">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="scale" select="if (ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.graph'), 'scale')) then ixsl:get(ixsl:window(), 'LinkedDataHub.graph.scale') else 1" as="xs:double"/>
         <xsl:variable name="zoom-scale-factor" select="1.25" as="xs:double"/>
@@ -172,7 +230,7 @@ exclude-result-prefixes="#all"
         </xsl:call-template>
         
         <ixsl:set-property name="scale" select="$next-scale" object="ixsl:get(ixsl:window(), 'LinkedDataHub.graph')"/>
-    </xsl:template>
+    </xsl:template>-->
     
     <xsl:template name="svg-scale">
         <xsl:context-item as="element()" use="required"/>
