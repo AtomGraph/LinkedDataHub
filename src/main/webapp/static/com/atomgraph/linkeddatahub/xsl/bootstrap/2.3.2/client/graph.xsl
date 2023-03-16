@@ -163,6 +163,8 @@ exclude-result-prefixes="#all"
             $scale-delta: <xsl:value-of select="$scale-delta"/>
             ixsl:get(ixsl:event(), 'clientX'): <xsl:value-of select="ixsl:get(ixsl:event(), 'clientX')"/>
             ixsl:get(ixsl:event(), 'clientY'): <xsl:value-of select="ixsl:get(ixsl:event(), 'clientY')"/>
+            ixsl:get(., 'viewBox.baseVal.x'): <xsl:value-of select="ixsl:get(., 'viewBox.baseVal.x')"/>
+            ixsl:get(., 'viewBox.baseVal.y'): <xsl:value-of select="ixsl:get(., 'viewBox.baseVal.y')"/>
         </xsl:message>
         
         <xsl:variable name="point" select="ixsl:call(., 'createSVGPoint', [])" as="item()"/>
@@ -173,8 +175,8 @@ exclude-result-prefixes="#all"
         <xsl:variable name="viewbox" select="ixsl:get(., 'viewBox.baseVal')" as="item()"/>
         <ixsl:set-property name="x" select="(ixsl:get($start-point, 'x') - ixsl:get($viewbox, 'x')) * ($scale-delta - 1)" object="$viewbox"/>
         <ixsl:set-property name="y" select="(ixsl:get($start-point, 'y') - ixsl:get($viewbox, 'y')) * ($scale-delta - 1)" object="$viewbox"/>
-        <ixsl:set-property name="width" select="$scale-delta" object="$viewbox"/>
-        <ixsl:set-property name="height" select="$scale-delta" object="$viewbox"/>
+        <ixsl:set-property name="width" select="$width * $scale-delta" object="$viewbox"/>
+        <ixsl:set-property name="height" select="$height * $scale-delta" object="$viewbox"/>
         
 <!--  event.preventDefault();
   
