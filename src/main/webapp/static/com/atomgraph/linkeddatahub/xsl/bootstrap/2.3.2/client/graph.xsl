@@ -220,8 +220,8 @@ exclude-result-prefixes="#all"
             </xsl:when>
             <xsl:otherwise>
                 <xsl:map>
-                    <xsl:map-entry key="'x'" select="0"/>
-                    <xsl:map-entry key="'y'" select="0"/>
+                    <xsl:map-entry key="'x'" select="0.0"/>
+                    <xsl:map-entry key="'y'" select="0.0"/>
                 </xsl:map>
             </xsl:otherwise>
         </xsl:choose>
