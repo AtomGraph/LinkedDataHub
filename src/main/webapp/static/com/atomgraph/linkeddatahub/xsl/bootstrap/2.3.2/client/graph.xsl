@@ -243,7 +243,7 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="ixsl:call($transform, 'setTranslate', [ $position?x, $position?y ])[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
     
-    <xsl:template name="ensure-transform" as="item()">
+    <xsl:template name="svg-ensure-transform" as="item()">
         <xsl:param name="svg-element" as="element()"/>
         <xsl:param name="transform-type" as="xs:integer"/>
 
