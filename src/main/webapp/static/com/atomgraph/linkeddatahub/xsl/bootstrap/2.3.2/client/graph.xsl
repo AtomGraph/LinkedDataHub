@@ -150,7 +150,7 @@ exclude-result-prefixes="#all"
     </xsl:template>
 
     <!-- ported JS code from https://codepen.io/osublake/pen/oGoyYb -->
-    <xsl:template match="svg:svg" mode="ixsl:onwheel">
+    <xsl:template match="." mode="ixsl:onwheel">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="zoom-scale-factor" select="1.6" as="xs:double"/>
         <xsl:variable name="delta" select="ixsl:get(ixsl:event(), 'wheelDelta')" as="xs:double"/>
@@ -158,6 +158,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="scale-delta" select="if ($normalized &gt; 0) then 1 div $zoom-scale-factor else $zoom-scale-factor" as="xs:double"/>
         
         <xsl:message>
+            ixsl:get(ixsl:event(), 'target'): <xsl:value-of select="ixsl:get(ixsl:event(), 'target')"/>
             $delta: <xsl:value-of select="$delta"/>
             $normalized: <xsl:value-of select="$normalized"/>
             $scale-delta: <xsl:value-of select="$scale-delta"/>
