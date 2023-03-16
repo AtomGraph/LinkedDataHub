@@ -189,7 +189,7 @@ exclude-result-prefixes="#all"
         
         <xsl:call-template name="svg-position-set">
             <xsl:with-param name="svg-element" select="$svg-element"/>
-            <xsl:with-param name="position">
+            <xsl:with-param name="position" as="map(xs:string, xs:double)">
                 <xsl:map>
                     <xsl:map-entry key="'x'" select="$next-scale div $scale * ($position?x - $fixed-point?x) + $fixed-point?x"/>
                     <xsl:map-entry key="'y'" select="$next-scale div $scale * ($position?y - $fixed-point?y) + $fixed-point?y"/>
