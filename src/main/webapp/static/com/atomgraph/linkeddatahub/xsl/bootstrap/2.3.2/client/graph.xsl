@@ -252,7 +252,7 @@ exclude-result-prefixes="#all"
                 <xsl:sequence select="$transform"/>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:variable name="transform" select="ixsl:call(ixsl:get($svg-element, 'ownerSVGElement'), 'createSVGTransform', [])" as="item()"/>
+                <xsl:variable name="transform" select="ixsl:call($svg-element, 'createSVGTransform', [])" as="item()"/>
                 <xsl:sequence select="ixsl:call(ixsl:get($svg-element, 'transform.baseVal'), 'appendItem', [ $transform ])[current-date() lt xs:date('2000-01-01')]"/>
                 <xsl:sequence select="$transform"/>
             </xsl:otherwise>
