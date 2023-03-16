@@ -155,9 +155,6 @@ exclude-result-prefixes="#all"
         <xsl:variable name="scale" select="if (ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.graph'), 'scale')) then ixsl:get(ixsl:window(), 'LinkedDataHub.graph.scale') else 1" as="xs:double"/>
         <xsl:variable name="zoom-scale-factor" select="1.6" as="xs:double"/>
         <xsl:variable name="delta" select="if (not(ixsl:get(ixsl:event(), 'deltaY') = 0)) then ixsl:get(ixsl:event(), 'deltaY') else ixsl:get(ixsl:event(), 'deltaX')" as="xs:double"/>
-
-        <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ 'Delta: ' || $delta ])"/>
-
         <xsl:variable name="scale-step" select="if (abs($delta) &lt; 50) then 0.05 else 0.25" as="xs:double"/>
         <xsl:variable name="scale-delta" select="if ($delta &gt; 0) then $scale-step else -1 * $scale-step" as="xs:double"/>
         <xsl:variable name="next-scale" select="$scale + $scale-delta" as="xs:double"/>
@@ -212,7 +209,7 @@ exclude-result-prefixes="#all"
     <xsl:template name="svg-position-get" as="map(xs:string, xs:double)">
         <xsl:param name="svg-element" as="element()"/>
         <xsl:variable name="transform-list" select="ixsl:get($svg-element, 'transform.baseVal')" as="item()*"/>
-        <xsl:variable name="translate" select="filter($transform-list, function($tr) { ixsl:get($tr, 'type') = $svg-transform-translate })[1]" as="item()"/>
+        <xsl:variable name="translate" select="filter($transform-list, function($tt) { ixsl:get($tt, 'type') = $svg-transform-translate })[1]" as="item()?"/>
         
         <xsl:choose>
             <xsl:when test="exists($translate)">
@@ -248,7 +245,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="transform-type" as="xs:integer"/>
 
         <xsl:variable name="transform-list" select="ixsl:get($svg-element, 'transform.baseVal')" as="item()*"/>
-        <xsl:variable name="transform" select="filter($transform-list, function($tr) { ixsl:get($tr, 'type') = $transform-type })[1]" as="item()"/>
+        <xsl:variable name="transform" select="filter($transform-list, function($tr) { ixsl:get($tr, 'type') = $transform-type })[1]" as="item()?"/>
         
         <xsl:choose>
             <xsl:when test="exists($transform)">
