@@ -209,7 +209,8 @@ exclude-result-prefixes="#all"
     <xsl:template name="svg-position-get" as="map(xs:string, xs:double)">
         <xsl:param name="svg-element" as="element()"/>
         <xsl:variable name="transform-list" select="ixsl:get($svg-element, 'transform.baseVal')" as="item()*"/>
-        <xsl:variable name="translate" select="filter($transform-list, function($tt) { ixsl:get($tt, 'type') = $svg-transform-translate })[1]" as="item()?"/>
+        <!-- filter SVGTransformList items by type -->
+        <xsl:variable name="translate" select="filter(for $i in 1 to ixsl:get($transform-list, 'length') - 1 return ixsl:call($transform-list, 'getItem', [ $i ]), function($tt) { ixsl:get($tt, 'type') = $svg-transform-translate })[1]" as="item()?"/>
         
         <xsl:choose>
             <xsl:when test="exists($translate)">
@@ -245,7 +246,8 @@ exclude-result-prefixes="#all"
         <xsl:param name="transform-type" as="xs:integer"/>
 
         <xsl:variable name="transform-list" select="ixsl:get($svg-element, 'transform.baseVal')" as="item()*"/>
-        <xsl:variable name="transform" select="filter($transform-list, function($tr) { ixsl:get($tr, 'type') = $transform-type })[1]" as="item()?"/>
+        <!-- filter SVGTransformList items by type -->
+        <xsl:variable name="transform" select="filter(for $i in 1 to ixsl:get($transform-list, 'length') - 1 return ixsl:call($transform-list, 'getItem', [ $i ]), function($tr) { ixsl:get($tr, 'type') = $transform-type })[1]" as="item()?"/>
         
         <xsl:choose>
             <xsl:when test="exists($transform)">
