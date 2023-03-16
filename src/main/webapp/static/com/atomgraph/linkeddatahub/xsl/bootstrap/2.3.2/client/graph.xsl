@@ -158,7 +158,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="scale-delta" select="if ($normalized &gt; 0) then 1 div $zoom-scale-factor else $zoom-scale-factor" as="xs:double"/>
         
         <xsl:message>
-            ixsl:get(ixsl:event(), 'target'): <xsl:value-of select="ixsl:get(ixsl:event(), 'target')"/>
+            ixsl:get(ixsl:event(), 'target')/name(): <xsl:value-of select="ixsl:get(ixsl:event(), 'target')/name()"/>
             $delta: <xsl:value-of select="$delta"/>
             $normalized: <xsl:value-of select="$normalized"/>
             $scale-delta: <xsl:value-of select="$scale-delta"/>
