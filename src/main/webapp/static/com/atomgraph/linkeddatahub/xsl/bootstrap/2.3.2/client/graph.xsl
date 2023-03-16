@@ -156,7 +156,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="zoom-scale-factor" select="1.25" as="xs:double"/>
         <xsl:variable name="delta" select="if (not(ixsl:get(ixsl:event(), 'deltaY') = xs:double(0))) then ixsl:get(ixsl:event(), 'deltaY') else ixsl:get(ixsl:event(), 'deltaX')" as="xs:double"/>
         <xsl:variable name="scale-step" select="if (abs($delta) &lt; 50) then 0.05 else 0.25" as="xs:double"/>
-        <xsl:variable name="scale-delta" select="if ($delta &gt; 0) then $scale-step else -1 * $scale-step" as="xs:double"/>
+        <xsl:variable name="scale-delta" select="if ($delta &lt; xs:double(0)) then $scale-step else -1 * $scale-step" as="xs:double"/>
         <xsl:variable name="next-scale" select="$scale + $scale-delta" as="xs:double"/>
         <xsl:variable name="fixed-point" as="map(xs:string, xs:double)">
             <xsl:map>
