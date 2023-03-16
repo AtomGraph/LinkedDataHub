@@ -152,16 +152,16 @@ exclude-result-prefixes="#all"
     <!-- adopted JS code from https://itnext.io/javascript-zoom-like-in-maps-for-svg-html-89c0df016d8d -->
     <xsl:template match="svg:svg" mode="ixsl:onwheel">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
-        <xsl:variable name="scale" select="if (ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.graph'), 'scale')) then ixsl:get(ixsl:window(), 'LinkedDataHub.graph.scale') else 1" as="xs:float"/>
-        <xsl:variable name="zoom-scale-factor" select="1.6" as="xs:float"/>
-        <xsl:variable name="delta" select="if (not(ixsl:get(ixsl:event(), 'deltaY') = 0)) then ixsl:get(ixsl:event(), 'deltaY') else ixsl:get(ixsl:event(), 'deltaX')" as="xs:float"/>
+        <xsl:variable name="scale" select="if (ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.graph'), 'scale')) then ixsl:get(ixsl:window(), 'LinkedDataHub.graph.scale') else 1" as="xs:double"/>
+        <xsl:variable name="zoom-scale-factor" select="1.6" as="xs:double"/>
+        <xsl:variable name="delta" select="if (not(ixsl:get(ixsl:event(), 'deltaY') = 0)) then ixsl:get(ixsl:event(), 'deltaY') else ixsl:get(ixsl:event(), 'deltaX')" as="xs:double"/>
 
         <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ 'Delta: ' || $delta ])"/>
 
-        <xsl:variable name="scale-step" select="if (abs($delta) &lt; 50) then 0.05 else 0.25" as="xs:float"/>
-        <xsl:variable name="scale-delta" select="if ($delta &gt; 0) then $scale-step else -1 * $scale-step" as="xs:float"/>
-        <xsl:variable name="next-scale" select="$scale + $scale-delta" as="xs:float"/>
-        <xsl:variable name="fixed-point" as="map(xs:string, xs:float)">
+        <xsl:variable name="scale-step" select="if (abs($delta) &lt; 50) then 0.05 else 0.25" as="xs:double"/>
+        <xsl:variable name="scale-delta" select="if ($delta &gt; 0) then $scale-step else -1 * $scale-step" as="xs:double"/>
+        <xsl:variable name="next-scale" select="$scale + $scale-delta" as="xs:double"/>
+        <xsl:variable name="fixed-point" as="map(xs:string, xs:double)">
             <xsl:map>
                 <xsl:map-entry key="'x'" select="ixsl:get(ixsl:event(), 'clientX')"/>
                 <xsl:map-entry key="'y'" select="ixsl:get(ixsl:event(), 'clientY')"/>
@@ -180,11 +180,11 @@ exclude-result-prefixes="#all"
     
     <xsl:template name="svg-scale">
         <xsl:param name="svg-element" as="element()"/>
-        <xsl:param name="fixed-point" as="map(xs:string, xs:float)"/>
-        <xsl:param name="scale" as="xs:float"/>
-        <xsl:param name="next-scale" as="xs:float"/>
+        <xsl:param name="fixed-point" as="map(xs:string, xs:double)"/>
+        <xsl:param name="scale" as="xs:double"/>
+        <xsl:param name="next-scale" as="xs:double"/>
 
-        <xsl:variable name="position" as="map(xs:string, xs:float)">
+        <xsl:variable name="position" as="map(xs:string, xs:double)">
             <xsl:call-template name="svg-position-get">
                 <xsl:with-param name="svg-element" select="$svg-element"/>
             </xsl:call-template>
@@ -209,7 +209,7 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="ixsl:call($transform, 'setScale', [ $next-scale, $next-scale ])[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
     
-    <xsl:template name="svg-position-get" as="map(xs:string, xs:float)">
+    <xsl:template name="svg-position-get" as="map(xs:string, xs:double)">
         <xsl:param name="svg-element" as="element()"/>
         <xsl:variable name="transform-list" select="ixsl:get($svg-element, 'transform.baseVal')" as="item()*"/>
         <xsl:variable name="translate" select="filter($transform-list, function($tr) { ixsl:get($tr, 'type') = $svg-transform-translate })[1]" as="item()"/>
@@ -232,7 +232,7 @@ exclude-result-prefixes="#all"
     
     <xsl:template name="svg-position-set">
         <xsl:param name="svg-element" as="element()"/>
-        <xsl:param name="position" as="map(xs:string, xs:float)"/>
+        <xsl:param name="position" as="map(xs:string, xs:double)"/>
         
         <xsl:variable name="transform" as="item()">
             <xsl:call-template name="svg-ensure-transform">
