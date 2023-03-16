@@ -30,6 +30,8 @@ exclude-result-prefixes="#all"
 
     <xsl:variable name="highlight-color" select="'gold'" as="xs:string"/>
     <xsl:variable name="highlighted-marker-id" select="'triangle-hl'" as="xs:string"/>
+    <xsl:variable name="svg-transform-translate" select="2" as="xs:integer"/> <!-- https://developer.mozilla.org/en-US/docs/Web/API/SVGTransform -->
+    <xsl:variable name="svg-transform-scale" select="3" as="xs:integer"/> <!-- https://developer.mozilla.org/en-US/docs/Web/API/SVGTransform -->
 
     <!-- TEMPLATES -->
     
@@ -198,25 +200,19 @@ exclude-result-prefixes="#all"
             </xsl:with-param>
         </xsl:call-template>
 
-...
-
-<!--    const position = svgPositionGet(svgEl);
- 
-    svgPositionSet(svgEl, {
-        x: nextScale / scale * (position.x - fixedPoint.x) +     
-           fixedPoint.x,
-        y: nextScale / scale * (position.y - fixedPoint.y) + 
-           fixedPoint.y
-    });
- 
-    ensureTransform(svgEl, SVGTransform.SVG_TRANSFORM_SCALE)
-        .setScale(nextScale, nextScale);-->
+        <xsl:variable name="transform" as="item()">
+            <xsl:call-template name="svg-ensure-transform">
+                <xsl:with-param name="svg-element" select="$svg-element"/>
+                <xsl:with-param name="transform-type" select="$svg-transform-scale"/>
+            </xsl:call-template>
+        </xsl:variable>
+        <xsl:sequence select="ixsl:call($transform, 'setScale', [ $next-scale, $next-scale ])[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
     
     <xsl:template name="svg-position-get" as="map(xs:string, xs:float)">
         <xsl:param name="svg-element" as="element()"/>
         <xsl:variable name="transform-list" select="ixsl:get($svg-element, 'transform.baseVal')" as="item()*"/>
-        <xsl:variable name="translate" select="filter($transform-list, function($tr) { ixsl:get($tr, 'type') = 2 })" as="item()"/> <!-- SVG_TRANSFORM_TRANSLATE = 2 -->
+        <xsl:variable name="translate" select="filter($transform-list, function($tr) { ixsl:get($tr, 'type') = $svg-transform-translate })[1]" as="item()"/>
         
         <xsl:choose>
             <xsl:when test="exists($translate)">
@@ -238,75 +234,32 @@ exclude-result-prefixes="#all"
         <xsl:param name="svg-element" as="element()"/>
         <xsl:param name="position" as="map(xs:string, xs:float)"/>
         
-        <!-- 	ensureTransform(svgEl, SVGTransform.SVG_TRANSFORM_TRANSLATE, svg).setTranslate(position.x, position.y); -->
-        
+        <xsl:variable name="transform" as="item()">
+            <xsl:call-template name="svg-ensure-transform">
+                <xsl:with-param name="svg-element" select="$svg-element"/>
+                <xsl:with-param name="transform-type" select="$svg-transform-translate"/>
+            </xsl:call-template>
+        </xsl:variable>
+        <xsl:sequence select="ixsl:call($transform, 'setTranslate', [ $position?x, $position?y ])[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
     
-    <xsl:template name="ensure-transform">
+    <xsl:template name="ensure-transform" as="item()">
+        <xsl:param name="svg-element" as="element()"/>
+        <xsl:param name="transform-type" as="xs:integer"/>
 
+        <xsl:variable name="transform-list" select="ixsl:get($svg-element, 'transform.baseVal')" as="item()*"/>
+        <xsl:variable name="transform" select="filter($transform-list, function($tr) { ixsl:get($tr, 'type') = $transform-type })[1]" as="item()"/>
         
+        <xsl:choose>
+            <xsl:when test="exists($transform)">
+                <xsl:sequence select="$transform"/>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:variable name="transform" select="ixsl:call(ixsl:get($svg-element, 'ownerSVGElement'), 'createSVGTransform')" as="item()"/>
+                <xsl:sequence select="ixsl:call(ixsl:get($svg-element, 'transform.baseVal'), 'appendItem', [ $transform ])[current-date() lt xs:date('2000-01-01')]"/>
+                <xsl:sequence select="$transform"/>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:template>
-    
-<!--    // calc nextScale
- 
-    const delta = evt.deltaY || evt.deltaX;
-    const scaleStep = Math.abs(delta) < 50
-        ? 0.05  // touchpad pitch
-        : 0.25; // mouse wheel
- 
-    const scaleDelta = delta < 0 ? scaleStep : -scaleStep;
-    const nextScale = scale + scaleDelta; // 'scale' is prev scale
- 
- 
-    // calc fixedPoint
-    const fixedPoint = { x: evt.clientX, y: evt.clientY };
- 
- 
-    // scale
-    // 'svgEl' is element to scale
-    svgScale(svgEl, fixedPoint, scale, nextScale);
-    scale = nextScale;
-    ===
-    const position = svgPositionGet(svgEl);
- 
-    svgPositionSet(svgEl, {
-        x: nextScale / scale * (position.x - fixedPoint.x) +     
-           fixedPoint.x,
-        y: nextScale / scale * (position.y - fixedPoint.y) + 
-           fixedPoint.y
-    });
- 
-    ensureTransform(svgEl, SVGTransform.SVG_TRANSFORM_SCALE)
-        .setScale(nextScale, nextScale);
-        
-====
-
-export function ensureTransform(svgEl, transform, svg) {
-	let tr = first(svgEl.transform.baseVal, tt => tt.type === transform);
-	if (!tr) {
-		tr = (svgEl.ownerSVGElement || svg).createSVGTransform();
-		svgEl.transform.baseVal.appendItem(tr);
-	}
-	return tr;
-}
-
-/**
-* @param {SVGGraphicsElement} svgEl
-* @param { {x: number, y: number} } position
-* @param {SVGSVGElement=} svg pass if svgEl not yet in DOM
-* @returns {void}
-*/
-export function svgPositionSet(svgEl, position, svg) {
-	ensureTransform(svgEl, SVGTransform.SVG_TRANSFORM_TRANSLATE, svg).setTranslate(position.x, position.y);
-}
-
-/**
- * @param {SVGGraphicsElement} svgEl
- * @returns { {x: number, y: number} }
- */
-export function svgPositionGet(svgEl) {
-	const tr = first(svgEl.transform.baseVal, tt => tt.type === SVGTransform.SVG_TRANSFORM_TRANSLATE);
-	return tr ? { x: tr.matrix.e, y: tr.matrix.f } : { x: 0, y: 0 };
-}-->
 
 </xsl:stylesheet>
