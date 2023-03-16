@@ -153,8 +153,8 @@ exclude-result-prefixes="#all"
     <xsl:template match="svg:svg" mode="ixsl:onwheel">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="scale" select="if (ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.graph'), 'scale')) then ixsl:get(ixsl:window(), 'LinkedDataHub.graph.scale') else 1" as="xs:double"/>
-        <xsl:variable name="zoom-scale-factor" select="1.6" as="xs:double"/>
-        <xsl:variable name="delta" select="if (not(ixsl:get(ixsl:event(), 'deltaY') = 0)) then ixsl:get(ixsl:event(), 'deltaY') else ixsl:get(ixsl:event(), 'deltaX')" as="xs:double"/>
+        <xsl:variable name="zoom-scale-factor" select="1.25" as="xs:double"/>
+        <xsl:variable name="delta" select="if (not(ixsl:get(ixsl:event(), 'deltaY') = xs:double(0))) then ixsl:get(ixsl:event(), 'deltaY') else ixsl:get(ixsl:event(), 'deltaX')" as="xs:double"/>
         <xsl:variable name="scale-step" select="if (abs($delta) &lt; 50) then 0.05 else 0.25" as="xs:double"/>
         <xsl:variable name="scale-delta" select="if ($delta &gt; 0) then $scale-step else -1 * $scale-step" as="xs:double"/>
         <xsl:variable name="next-scale" select="$scale + $scale-delta" as="xs:double"/>
@@ -166,7 +166,6 @@ exclude-result-prefixes="#all"
         </xsl:variable>
 
         <xsl:call-template name="svg-scale">
-            <xsl:with-param name="svg-element" select="."/>
             <xsl:with-param name="fixed-point" select="$fixed-point"/>
             <xsl:with-param name="scale" select="$scale"/>
             <xsl:with-param name="next-scale" select="$next-scale"/>
@@ -176,19 +175,16 @@ exclude-result-prefixes="#all"
     </xsl:template>
     
     <xsl:template name="svg-scale">
-        <xsl:param name="svg-element" as="element()"/>
+        <xsl:context-item as="element()" use="required"/>
         <xsl:param name="fixed-point" as="map(xs:string, xs:double)"/>
         <xsl:param name="scale" as="xs:double"/>
         <xsl:param name="next-scale" as="xs:double"/>
 
         <xsl:variable name="position" as="map(xs:string, xs:double)">
-            <xsl:call-template name="svg-position-get">
-                <xsl:with-param name="svg-element" select="$svg-element"/>
-            </xsl:call-template>
+            <xsl:call-template name="svg-position-get"/>
         </xsl:variable>
         
         <xsl:call-template name="svg-position-set">
-            <xsl:with-param name="svg-element" select="$svg-element"/>
             <xsl:with-param name="position" as="map(xs:string, xs:double)">
                 <xsl:map>
                     <xsl:map-entry key="'x'" select="$next-scale div $scale * ($position?x - $fixed-point?x) + $fixed-point?x"/>
@@ -199,7 +195,6 @@ exclude-result-prefixes="#all"
 
         <xsl:variable name="transform" as="item()">
             <xsl:call-template name="svg-ensure-transform">
-                <xsl:with-param name="svg-element" select="$svg-element"/>
                 <xsl:with-param name="transform-type" select="$svg-transform-scale"/>
             </xsl:call-template>
         </xsl:variable>
@@ -207,8 +202,8 @@ exclude-result-prefixes="#all"
     </xsl:template>
     
     <xsl:template name="svg-position-get" as="map(xs:string, xs:double)">
-        <xsl:param name="svg-element" as="element()"/>
-        <xsl:variable name="transform-list" select="ixsl:get($svg-element, 'transform.baseVal')" as="item()*"/>
+        <xsl:context-item as="element()" use="required"/>
+        <xsl:variable name="transform-list" select="ixsl:get(., 'transform.baseVal')" as="item()*"/>
         <!-- filter SVGTransformList items by type -->
         <xsl:variable name="translate" select="filter(for $i in 1 to xs:integer(ixsl:get($transform-list, 'length')) - 1 return ixsl:call($transform-list, 'getItem', [ $i ]), function($tt) { ixsl:get($tt, 'type') = $svg-transform-translate })[1]" as="item()?"/>
         
@@ -229,12 +224,11 @@ exclude-result-prefixes="#all"
     </xsl:template>
     
     <xsl:template name="svg-position-set">
-        <xsl:param name="svg-element" as="element()"/>
+        <xsl:context-item as="element()" use="required"/>
         <xsl:param name="position" as="map(xs:string, xs:double)"/>
         
         <xsl:variable name="transform" as="item()">
             <xsl:call-template name="svg-ensure-transform">
-                <xsl:with-param name="svg-element" select="$svg-element"/>
                 <xsl:with-param name="transform-type" select="$svg-transform-translate"/>
             </xsl:call-template>
         </xsl:variable>
@@ -242,10 +236,10 @@ exclude-result-prefixes="#all"
     </xsl:template>
     
     <xsl:template name="svg-ensure-transform" as="item()">
-        <xsl:param name="svg-element" as="element()"/>
+        <xsl:context-item as="element()" use="required"/>
         <xsl:param name="transform-type" as="xs:integer"/>
 
-        <xsl:variable name="transform-list" select="ixsl:get($svg-element, 'transform.baseVal')" as="item()*"/>
+        <xsl:variable name="transform-list" select="ixsl:get(., 'transform.baseVal')" as="item()*"/>
         <!-- filter SVGTransformList items by type -->
         <xsl:variable name="transform" select="filter(for $i in 1 to xs:integer(ixsl:get($transform-list, 'length')) - 1 return ixsl:call($transform-list, 'getItem', [ $i ]), function($tr) { ixsl:get($tr, 'type') = $transform-type })[1]" as="item()?"/>
         
@@ -254,8 +248,8 @@ exclude-result-prefixes="#all"
                 <xsl:sequence select="$transform"/>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:variable name="transform" select="ixsl:call($svg-element, 'createSVGTransform', [])" as="item()"/>
-                <xsl:sequence select="ixsl:call(ixsl:get($svg-element, 'transform.baseVal'), 'appendItem', [ $transform ])[current-date() lt xs:date('2000-01-01')]"/>
+                <xsl:variable name="transform" select="ixsl:call(., 'createSVGTransform', [])" as="item()"/>
+                <xsl:sequence select="ixsl:call(ixsl:get(., 'transform.baseVal'), 'appendItem', [ $transform ])[current-date() lt xs:date('2000-01-01')]"/>
                 <xsl:sequence select="$transform"/>
             </xsl:otherwise>
         </xsl:choose>
