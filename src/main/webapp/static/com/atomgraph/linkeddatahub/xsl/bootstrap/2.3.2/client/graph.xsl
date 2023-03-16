@@ -150,15 +150,14 @@ exclude-result-prefixes="#all"
     </xsl:template>
 
     <!-- ported JS code from https://codepen.io/osublake/pen/oGoyYb -->
-    <xsl:template match="." mode="ixsl:onwheel">
+    <xsl:template match="svg:svg" mode="ixsl:onwheel">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
-        <xsl:variable name="zoom-scale-factor" select="1.6" as="xs:double"/>
+        <xsl:variable name="zoom-scale-factor" select="1.05" as="xs:double"/>
         <xsl:variable name="delta" select="ixsl:get(ixsl:event(), 'wheelDelta')" as="xs:double"/>
         <xsl:variable name="normalized" select="if ($delta mod 120 = 0) then $delta div 120 else $delta div 12" as="xs:double"/>
         <xsl:variable name="scale-delta" select="if ($normalized &gt; 0) then 1 div $zoom-scale-factor else $zoom-scale-factor" as="xs:double"/>
         
         <xsl:message>
-            ixsl:get(ixsl:event(), 'target')/name(): <xsl:value-of select="ixsl:get(ixsl:event(), 'target')/name()"/>
             $delta: <xsl:value-of select="$delta"/>
             $normalized: <xsl:value-of select="$normalized"/>
             $scale-delta: <xsl:value-of select="$scale-delta"/>
@@ -168,9 +167,14 @@ exclude-result-prefixes="#all"
             ixsl:get(., 'viewBox.baseVal.y'): <xsl:value-of select="ixsl:get(., 'viewBox.baseVal.y')"/>
         </xsl:message>
         
+        <xsl:variable name="dom-x" select="ixsl:get(ixsl:event(), 'clientX')"/>
+        <xsl:variable name="dom-y" select="ixsl:get(ixsl:event(), 'clientY')"/>
+        <xsl:variable name="bound" select="ixsl:call(., 'getBoundingClientRect', [])"/>
+        <xsl:variable name="offset-x" select="ixsl:get($bound, 'width') div 2 - ($dom-x - ixsl:get($bound, 'x'))"/>
+        <xsl:variable name="offset-y" select="ixsl:get($bound, 'height') div 2 - ($dom-y - ixsl:get($bound, 'y'))"/>
         <xsl:variable name="point" select="ixsl:call(., 'createSVGPoint', [])" as="item()"/>
-        <ixsl:set-property name="x" select="ixsl:get(ixsl:event(), 'clientX')" object="$point"/>
-        <ixsl:set-property name="y" select="ixsl:get(ixsl:event(), 'clientY')" object="$point"/>
+        <ixsl:set-property name="x" select="$offset-x" object="$point"/>
+        <ixsl:set-property name="y" select="$offset-y" object="$point"/>
         
         <xsl:variable name="start-point" select="ixsl:call($point, 'matrixTransform', [ ixsl:call(ixsl:call(., 'getScreenCTM', []), 'inverse', []) ])" as="item()"/>
         <xsl:variable name="viewbox" select="ixsl:get(., 'viewBox.baseVal')" as="item()"/>
