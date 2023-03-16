@@ -156,19 +156,25 @@ exclude-result-prefixes="#all"
         <xsl:variable name="delta" select="ixsl:get(ixsl:event(), 'wheelDelta')" as="xs:double"/>
         <xsl:variable name="normalized" select="if ($delta mod 120 = 0) then $delta div 120 else $delta div 12" as="xs:double"/>
         <xsl:variable name="scale-delta" select="if ($normalized &gt; 0) then 1 div $zoom-scale-factor else $zoom-scale-factor" as="xs:double"/>
+        
+        <xsl:message>
+            $delta: <xsl:value-of select="$delta"/>
+            $normalized: <xsl:value-of select="$normalized"/>
+            $scale-delta: <xsl:value-of select="$scale-delta"/>
+            ixsl:get(ixsl:event(), 'clientX'): <xsl:value-of select="ixsl:get(ixsl:event(), 'clientX')"/>
+            ixsl:get(ixsl:event(), 'clientY'): <xsl:value-of select="ixsl:get(ixsl:event(), 'clientY')"/>
+        </xsl:message>
+        
         <xsl:variable name="point" select="ixsl:call(., 'createSVGPoint', [])" as="item()"/>
-        <xsl:for-each select="$point">
-            <ixsl:set-property name="x" select="ixsl:get(ixsl:event(), 'clientX')" object="."/>
-            <ixsl:set-property name="y" select="ixsl:get(ixsl:event(), 'clientY')" object="."/>
-        </xsl:for-each>
+        <ixsl:set-property name="x" select="ixsl:get(ixsl:event(), 'clientX')" object="$point"/>
+        <ixsl:set-property name="y" select="ixsl:get(ixsl:event(), 'clientY')" object="$point"/>
+        
         <xsl:variable name="start-point" select="ixsl:call($point, 'matrixTransform', [ ixsl:call(ixsl:call(., 'getScreenCTM', []), 'inverse', []) ])" as="item()"/>
         <xsl:variable name="viewbox" select="ixsl:get(., 'viewBox.baseVal')" as="item()"/>
-        <xsl:for-each select="$viewbox">
-            <ixsl:set-property name="x" select="(ixsl:get($start-point, 'x') - ixsl:get($viewbox, 'x')) * ($scale-delta - 1)" object="."/>
-            <ixsl:set-property name="y" select="(ixsl:get($start-point, 'y') - ixsl:get($viewbox, 'y')) * ($scale-delta - 1)" object="."/>
-            <ixsl:set-property name="width" select="$scale-delta" object="."/>
-            <ixsl:set-property name="height" select="$scale-delta" object="."/>
-        </xsl:for-each>
+        <ixsl:set-property name="x" select="(ixsl:get($start-point, 'x') - ixsl:get($viewbox, 'x')) * ($scale-delta - 1)" object="$viewbox"/>
+        <ixsl:set-property name="y" select="(ixsl:get($start-point, 'y') - ixsl:get($viewbox, 'y')) * ($scale-delta - 1)" object="$viewbox"/>
+        <ixsl:set-property name="width" select="$scale-delta" object="$viewbox"/>
+        <ixsl:set-property name="height" select="$scale-delta" object="$viewbox"/>
         
 <!--  event.preventDefault();
   
