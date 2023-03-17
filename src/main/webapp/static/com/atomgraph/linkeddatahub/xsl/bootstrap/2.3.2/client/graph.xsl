@@ -151,8 +151,7 @@ exclude-result-prefixes="#all"
 
     <!-- ported JS code from https://codepen.io/osublake/pen/oGoyYb -->
     <xsl:template match="svg:svg" mode="ixsl:onwheel">
-<!--        <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>-->
-        <ixsl:set-property name="returnValue" select="false()" object="ixsl:event()"/>
+        <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/> <!-- Ignoring 'preventDefault()' call on event of type 'wheel' from a listener registered as 'passive'. -->
         <xsl:variable name="zoom-scale-factor" select="1.2" as="xs:double"/>
         <xsl:variable name="delta" select="ixsl:get(ixsl:event(), 'wheelDelta')" as="xs:double"/>
         <xsl:variable name="normalized" select="if ($delta mod 120 = 0) then $delta div 120 else $delta div 12" as="xs:double"/>
