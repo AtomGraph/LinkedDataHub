@@ -1,3 +1,9 @@
+## [4.0.1] - 2023-03-17
+### Changed
+- Navigation bar is now fully rendered server-side, i.e. the whole visible HTML body is replaced via AJAX
+- Generalized client-side navigation templates using XPath maps
+- Fixed default `@id` value in `bs2:RowContent` mode
+
 ## [4.0.0] - 2023-01-04
 ### Changed
 - Upgraded dependencies to use Jersey 3.x and the Servlet 5 API. That required replacing `javax.*` dependencies with `jakarta.*`
