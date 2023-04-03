@@ -322,6 +322,9 @@ extension-element-prefixes="ixsl"
     
     <!-- LEFT NAV -->
     
+    <!-- disable .left-nav for XHTML content instances -->
+    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;Content'][rdf:value[@rdf:parseType = 'Literal']/xhtml:div]" mode="bs2:Left" priority="2"/>
+
     <xsl:template match="*[*][@rdf:about or @rdf:nodeID]" mode="bs2:Left" priority="1">
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" select="'left-nav span2'" as="xs:string?"/>
@@ -338,8 +341,7 @@ extension-element-prefixes="ixsl"
     
     <!-- RIGHT NAV -->
     
-    <!-- empty right nav for content instances -->
-    <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;Content'][rdf:value/@rdf:resource]" mode="bs2:Right" priority="1">
+    <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;Content']" mode="bs2:Right" priority="1">
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" select="'right-nav span3'" as="xs:string?"/>
         
@@ -707,7 +709,9 @@ extension-element-prefixes="ixsl"
         <xsl:param name="content-uri" select="@rdf:about" as="xs:string?"/>
         <xsl:param name="id" select="if (contains(@rdf:about, ac:uri() || '#')) then substring-after(@rdf:about, ac:uri() || '#') else generate-id()" as="xs:string?"/>
         <xsl:param name="class" select="'row-fluid content xhtml-content'" as="xs:string?"/>
+        <xsl:param name="left-class" as="xs:string?"/>
         <xsl:param name="main-class" select="'main span7 offset2'" as="xs:string?"/>
+        <xsl:param name="right-class" select="'right-nav span3'" as="xs:string?"/>
         <xsl:param name="transclude" select="false()" as="xs:boolean"/>
         <xsl:param name="base" as="xs:anyURI?"/>
 
@@ -722,6 +726,10 @@ extension-element-prefixes="ixsl"
                 <xsl:attribute name="class" select="$class"/>
             </xsl:if>
             
+            <xsl:apply-templates select="." mode="bs2:Left">
+                <xsl:with-param name="class" select="$left-class"/>
+            </xsl:apply-templates>
+
             <div>
                 <xsl:if test="$main-class">
                     <xsl:attribute name="class" select="$main-class"/>
@@ -732,6 +740,10 @@ extension-element-prefixes="ixsl"
                     <xsl:with-param name="base" select="$base" tunnel="yes"/>
                 </xsl:apply-templates>
             </div>
+            
+            <xsl:apply-templates select="." mode="bs2:Right">
+                <xsl:with-param name="class" select="$right-class"/>
+            </xsl:apply-templates>
         </div>
     </xsl:template>
 
