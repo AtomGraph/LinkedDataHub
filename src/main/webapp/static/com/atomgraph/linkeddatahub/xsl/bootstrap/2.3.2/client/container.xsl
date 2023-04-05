@@ -360,7 +360,7 @@ exclude-result-prefixes="#all"
     
     <xsl:template name="ldh:RenderContainer">
         <xsl:param name="container" as="element()"/>
-        <xsl:param name="content-uri" select="xs:anyURI(ixsl:get($container, 'dataset.contentUri'))" as="xs:anyURI"/>
+        <xsl:param name="content-uri" select="xs:anyURI(ixsl:get($container, 'about'))" as="xs:anyURI"/>
         <xsl:param name="content" as="element()?"/>
         <xsl:param name="select-string" as="xs:string"/>
         <xsl:param name="select-xml" as="document-node()"/>
@@ -778,7 +778,7 @@ exclude-result-prefixes="#all"
         </xsl:param>
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'resource-content')]" as="element()"/>
         <xsl:variable name="results-container" select="$container//div[contains-token(@class, 'container-results')]" as="element()"/> <!-- results in the middle column -->
-        <xsl:variable name="content-uri" select="xs:anyURI(ixsl:get($container, 'dataset.contentUri'))" as="xs:anyURI"/>
+        <xsl:variable name="content-uri" select="xs:anyURI(ixsl:get($container, 'about'))" as="xs:anyURI"/>
         <xsl:variable name="content" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`'), 'content')" as="element()"/>
         <xsl:variable name="active-class" select="../@class" as="xs:string"/>
         <xsl:variable name="active-mode" select="map:get($class-modes, $active-class)" as="xs:anyURI"/>
@@ -816,7 +816,7 @@ exclude-result-prefixes="#all"
     <xsl:template match="*[contains-token(@class, 'resource-content')]//ul[@class = 'pager']/li[@class = 'previous']/a[@class = 'active']" mode="ixsl:onclick">
         <xsl:variable name="event" select="ixsl:event()"/>
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'resource-content')]" as="element()"/>
-        <xsl:variable name="content-uri" select="xs:anyURI(ixsl:get($container, 'dataset.contentUri'))" as="xs:anyURI"/>
+        <xsl:variable name="content-uri" select="xs:anyURI(ixsl:get($container, 'about'))" as="xs:anyURI"/>
         <xsl:variable name="content" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`'), 'content')" as="element()"/>
         <xsl:variable name="active-mode" select="xs:anyURI(ixsl:get($container, 'dataset.contentMode'))" as="xs:anyURI"/>
         <xsl:variable name="select-string" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`'), 'select-query')" as="xs:string"/>
@@ -858,7 +858,7 @@ exclude-result-prefixes="#all"
     <xsl:template match="*[contains-token(@class, 'resource-content')]//ul[@class = 'pager']/li[@class = 'next']/a[@class = 'active']" mode="ixsl:onclick">
         <xsl:variable name="event" select="ixsl:event()"/>
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'resource-content')]" as="element()"/>
-        <xsl:variable name="content-uri" select="xs:anyURI(ixsl:get($container, 'dataset.contentUri'))" as="xs:anyURI"/>
+        <xsl:variable name="content-uri" select="xs:anyURI(ixsl:get($container, 'about'))" as="xs:anyURI"/>
         <xsl:variable name="content" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`'), 'content')" as="element()"/>
         <xsl:variable name="active-mode" select="xs:anyURI(ixsl:get($container, 'dataset.contentMode'))" as="xs:anyURI"/>
         <xsl:variable name="select-string" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`'), 'select-query')" as="xs:string"/>
@@ -899,7 +899,7 @@ exclude-result-prefixes="#all"
     
     <xsl:template match="select[contains-token(@class, 'container-order')]" mode="ixsl:onchange">
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'resource-content')]" as="element()"/>
-        <xsl:variable name="content-uri" select="xs:anyURI(ixsl:get($container, 'dataset.contentUri'))" as="xs:anyURI"/>
+        <xsl:variable name="content-uri" select="xs:anyURI(ixsl:get($container, 'about'))" as="xs:anyURI"/>
         <xsl:variable name="content" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`'), 'content')" as="element()"/>
         <xsl:variable name="active-mode" select="xs:anyURI(ixsl:get($container, 'dataset.contentMode'))" as="xs:anyURI"/>
         <xsl:variable name="predicate" select="ixsl:get(., 'value')" as="xs:anyURI?"/>
@@ -941,7 +941,7 @@ exclude-result-prefixes="#all"
     <!-- TO-DO: unify with container ORDER BY onchange -->
     <xsl:template match="button[contains-token(@class, 'btn-order-by')]" mode="ixsl:onclick">
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'resource-content')]" as="element()"/>
-        <xsl:variable name="content-uri" select="xs:anyURI(ixsl:get($container, 'dataset.contentUri'))" as="xs:anyURI"/>
+        <xsl:variable name="content-uri" select="xs:anyURI(ixsl:get($container, 'about'))" as="xs:anyURI"/>
         <xsl:variable name="content" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`'), 'content')" as="element()"/>
         <xsl:variable name="active-mode" select="xs:anyURI(ixsl:get($container, 'dataset.contentMode'))" as="xs:anyURI"/>
         <xsl:variable name="desc" select="contains(@class, 'btn-order-by-desc')" as="xs:boolean"/>
@@ -983,7 +983,7 @@ exclude-result-prefixes="#all"
     
     <xsl:template match="div[contains-token(@class, 'faceted-nav')]//*[contains-token(@class, 'nav-header')]" mode="ixsl:onclick">
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'resource-content')]" as="element()"/>
-        <xsl:variable name="content-uri" select="xs:anyURI(ixsl:get($container, 'dataset.contentUri'))" as="xs:anyURI"/>
+        <xsl:variable name="content-uri" select="xs:anyURI(ixsl:get($container, 'about'))" as="xs:anyURI"/>
         <xsl:variable name="facet-container" select="ancestor::div[contains-token(@class, 'faceted-nav')]" as="element()"/>
         <xsl:variable name="subject-var-name" select="input[@name = 'subject']/@value" as="xs:string"/>
         <xsl:variable name="predicate" select="input[@name = 'predicate']/@value" as="xs:anyURI"/>
@@ -1077,7 +1077,7 @@ exclude-result-prefixes="#all"
 
     <xsl:template match="div[contains-token(@class, 'faceted-nav')]//input[@type = 'checkbox']" mode="ixsl:onchange">
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'resource-content')]" as="element()"/>
-        <xsl:variable name="content-uri" select="xs:anyURI(ixsl:get($container, 'dataset.contentUri'))" as="xs:anyURI"/>
+        <xsl:variable name="content-uri" select="xs:anyURI(ixsl:get($container, 'about'))" as="xs:anyURI"/>
         <xsl:variable name="content" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`'), 'content')" as="element()"/>
         <xsl:variable name="active-mode" select="xs:anyURI(ixsl:get($container, 'dataset.contentMode'))" as="xs:anyURI"/>
         <xsl:variable name="var-name" select="@name" as="xs:string"/>
@@ -1120,7 +1120,7 @@ exclude-result-prefixes="#all"
     
     <xsl:template match="div[contains-token(@class, 'parallax-nav')]/ul/li/a" mode="ixsl:onclick">
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'resource-content')]" as="element()"/>
-        <xsl:variable name="content-uri" select="xs:anyURI(ixsl:get($container, 'dataset.contentUri'))" as="xs:anyURI"/>
+        <xsl:variable name="content-uri" select="xs:anyURI(ixsl:get($container, 'about'))" as="xs:anyURI"/>
         <xsl:variable name="content" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`'), 'content')" as="element()"/>
         <xsl:variable name="active-mode" select="xs:anyURI(ixsl:get($container, 'dataset.contentMode'))" as="xs:anyURI"/>
         <xsl:variable name="predicate" select="input/@value" as="xs:anyURI"/>
