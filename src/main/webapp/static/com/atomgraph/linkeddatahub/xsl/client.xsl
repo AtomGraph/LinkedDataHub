@@ -148,9 +148,14 @@ WHERE
     </xsl:param>
     <xsl:param name="backlinks-string" as="xs:string">
 <![CDATA[
-DESCRIBE ?subject
+PREFIX dct: <http://purl.org/dc/terms/>
+
+CONSTRUCT
+{
+  ?subject dct:title ?title 
+}
 WHERE
-  { SELECT DISTINCT  ?subject
+  { SELECT DISTINCT  ?subject ?title
     WHERE
       {   { ?subject  ?p  $this }
         UNION
@@ -158,6 +163,7 @@ WHERE
               { ?subject  ?p  $this }
           }
         FILTER isURI(?subject)
+        ?subject dct:title ?title .
       }
     LIMIT   10
   }
@@ -1474,6 +1480,7 @@ WHERE
     <xsl:template match="div[contains-token(@class, 'backlinks-nav')]//*[contains-token(@class, 'nav-header')]" mode="ixsl:onclick">
         <xsl:variable name="backlinks-container" select="ancestor::div[contains-token(@class, 'backlinks-nav')]" as="element()"/>
         <xsl:variable name="container" select="ancestor::div[@about][1]" as="element()"/>
+        <!-- TO-DO: fix $content-uri for .xhtml-conent -->
         <xsl:variable name="content-uri" select="$container/@about" as="xs:anyURI"/>
         <xsl:variable name="content-value" select="if (ixsl:contains($container, 'dataset.contentValue')) then ixsl:get($container, 'dataset.contentValue') else $content-uri" as="xs:anyURI"/>
         <xsl:variable name="query-string" select="replace($backlinks-string, '$this', '&lt;' || $content-value || '&gt;', 'q')" as="xs:string"/>
