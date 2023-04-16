@@ -514,7 +514,7 @@ extension-element-prefixes="ixsl"
             <xsl:apply-templates select="." mode="bs2:Right"/>
                     
             <!-- render contents attached to the types of this resource using ldh:template -->
-            <xsl:param name="types" select="rdf:type/@rdf:resource" as="xs:anyURI*"/>
+            <xsl:variable name="types" select="rdf:type/@rdf:resource" as="xs:anyURI*"/>
             <xsl:variable name="content-values" select="if (exists($types) and doc-available(resolve-uri('ns?query=ASK%20%7B%7D', $ldt:base))) then (ldh:query-result(map{}, resolve-uri('ns', $ldt:base), $template-query || ' VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }')//srx:binding[@name = 'content']/srx:uri/xs:anyURI(.)) else ()" as="xs:anyURI*" use-when="system-property('xsl:product-name') = 'SAXON'"/>
             <xsl:for-each select="$content-values" use-when="system-property('xsl:product-name') = 'SAXON'">
                 <xsl:if test="doc-available(ac:document-uri(.))">
