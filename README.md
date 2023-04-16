@@ -182,6 +182,7 @@ An environment variable `JENA_HOME` is used by all the command line tools to con
 ### Third party
 
 * [NOI OpenDataHub](https://kg.opendatahub.bz.it) – tourism Knowledge Graph portal powered by LinkedDataHub and [@ontop](https://github.com/ontop). [Source code](https://github.com/noi-techpark/it.bz.opendatahub.kg).
+* [LDH Uploader](https://github.com/tmciver/ldh-uploader) - a collection of shell scripts ussed to upload files or directory of files to a Linked Data Hub instance by [@tmciver](https://github.com/tmciver)
 
 ### [Demo apps](https://github.com/AtomGraph/LinkedDataHub-Apps)
 

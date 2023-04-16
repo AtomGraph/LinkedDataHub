@@ -1,8 +1,9 @@
-## [4.0.1] - 2023-03-17
+## [4.0.1] - 2023-04-05
 ### Changed
 - Navigation bar is now fully rendered server-side, i.e. the whole visible HTML body is replaced via AJAX
 - Generalized client-side navigation templates using XPath maps
 - Fixed default `@id` value in `bs2:RowContent` mode
+- Backlink navigation on XHTML content
 
 ## [4.0.0] - 2023-01-04
 ### Changed
