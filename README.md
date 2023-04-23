@@ -43,8 +43,8 @@ It takes a few clicks and filling out a form to install the product into your ow
      COMPOSE_PROJECT_NAME=linkeddatahub
      
      PROTOCOL=https
-     PROXY_HTTP_PORT=81
-     PROXY_HTTPS_PORT=4443
+     HTTP_PORT=81
+     HTTPS_PORT=4443
      HOST=localhost
      ABS_PATH=/
      
@@ -182,7 +182,7 @@ An environment variable `JENA_HOME` is used by all the command line tools to con
 ### Third party
 
 * [NOI OpenDataHub](https://kg.opendatahub.bz.it) – tourism Knowledge Graph portal powered by LinkedDataHub and [@ontop](https://github.com/ontop). [Source code](https://github.com/noi-techpark/it.bz.opendatahub.kg).
-* [LDH Uploader](https://github.com/tmciver/ldh-uploader) - a collection of shell scripts ussed to upload files or directory of files to a Linked Data Hub instance by [@tmciver](https://github.com/tmciver)
+* [LDH Uploader](https://github.com/tmciver/ldh-uploader) - a collection of shell scripts used to upload files or directory of files to a LinkedDataHub instance by [@tmciver](https://github.com/tmciver)
 
 ### [Demo apps](https://github.com/AtomGraph/LinkedDataHub-Apps)
 
