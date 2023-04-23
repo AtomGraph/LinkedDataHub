@@ -325,7 +325,7 @@ exclude-result-prefixes="#all"
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="container" as="element()"/>
         <xsl:param name="content-id" as="xs:string"/>
-        <xsl:param name="content-uri" select="xs:anyURI(ixsl:get($container, 'about'))" as="xs:anyURI"/>
+        <xsl:param name="content-uri" select="xs:anyURI($container/@about)" as="xs:anyURI"/>
         <xsl:param name="content" as="element()?"/>
         
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
