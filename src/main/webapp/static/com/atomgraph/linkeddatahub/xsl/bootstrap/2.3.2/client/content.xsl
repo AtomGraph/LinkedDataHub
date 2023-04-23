@@ -136,7 +136,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="container" as="element()"/>
         <xsl:param name="mode" as="xs:anyURI?"/>
         <xsl:param name="refresh-content" as="xs:boolean?"/>
-        <xsl:param name="content-uri" select="xs:anyURI(ixsl:get($container, 'about'))" as="xs:anyURI"/>
+        <xsl:param name="content-uri" select="xs:anyURI($container/@about)" as="xs:anyURI"/>
         <!-- set $this variable value unless getting the query string from state -->
         <xsl:param name="select-string" select="replace(sp:text, '$this', '&lt;' || $this || '&gt;', 'q')" as="xs:string"/>
         <xsl:param name="select-xml" as="document-node()">
@@ -222,7 +222,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="container" as="element()"/>
         <xsl:param name="mode" as="xs:anyURI?"/>
         <xsl:param name="refresh-content" as="xs:boolean?"/>
-        <xsl:param name="content-uri" select="xs:anyURI(ixsl:get($container, 'about'))" as="xs:anyURI"/>
+        <xsl:param name="content-uri" select="xs:anyURI($container/@about)" as="xs:anyURI"/>
         <!-- set $this variable value unless getting the query string from state -->
         <xsl:param name="query-string" select="replace(sp:text, '$this', '&lt;' || $this || '&gt;', 'q')" as="xs:string"/>
         <!-- service can be explicitly specified on content using ldh:service -->
@@ -524,7 +524,7 @@ exclude-result-prefixes="#all"
         <xsl:choose>
             <!-- updating existing content -->
             <xsl:when test="ixsl:contains($container, 'about')">
-                <xsl:variable name="content-uri" select="ixsl:get($container, 'about')" as="xs:anyURI"/>
+                <xsl:variable name="content-uri" select="$container/@about" as="xs:anyURI"/>
                 <xsl:variable name="update-string" select="replace($content-update-string, '$this', '&lt;' || ac:uri() || '&gt;', 'q')" as="xs:string"/>
                 <xsl:variable name="update-string" select="replace($update-string, '$content', '&lt;' || $content-uri || '&gt;', 'q')" as="xs:string"/>
                 <xsl:variable name="update-string" select="replace($update-string, '$newValue', '&quot;' || $content-string || '&quot;^^&lt;&rdf;XMLLiteral&gt;', 'q')" as="xs:string"/>
@@ -582,7 +582,7 @@ exclude-result-prefixes="#all"
                 <xsl:choose>
                     <!-- updating existing content -->
                     <xsl:when test="ixsl:contains($container, 'about')">
-                        <xsl:variable name="content-uri" select="ixsl:get($container, 'about')" as="xs:anyURI"/>
+                        <xsl:variable name="content-uri" select="$container/@about" as="xs:anyURI"/>
                         <xsl:variable name="update-string" select="replace($content-update-string, '$this', '&lt;' || ac:uri() || '&gt;', 'q')" as="xs:string"/>
                         <xsl:variable name="update-string" select="replace($update-string, '$content', '&lt;' || $content-uri || '&gt;', 'q')" as="xs:string"/>
                         <xsl:variable name="update-string" select="replace($update-string, '$newValue', '&lt;' || $content-value || '&gt;', 'q')" as="xs:string"/>
@@ -640,7 +640,7 @@ exclude-result-prefixes="#all"
                 <xsl:when test="ixsl:contains($container, 'about')">
                     <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
-                    <xsl:variable name="content-uri" select="ixsl:get($container, 'about')" as="xs:anyURI"/>
+                    <xsl:variable name="content-uri" select="$container/@about" as="xs:anyURI"/>
                     <xsl:variable name="update-string" select="replace($content-delete-string, '$this', '&lt;' || ac:uri() || '&gt;', 'q')" as="xs:string"/>
                     <xsl:variable name="update-string" select="replace($update-string, '$content', '&lt;' || $content-uri || '&gt;', 'q')" as="xs:string"/>
                     <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), map{}, ac:uri())" as="xs:anyURI"/>
