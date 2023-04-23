@@ -523,7 +523,7 @@ exclude-result-prefixes="#all"
 
         <xsl:choose>
             <!-- updating existing content -->
-            <xsl:when test="ixsl:contains($container, 'about')">
+            <xsl:when test="$container/@about">
                 <xsl:variable name="content-uri" select="$container/@about" as="xs:anyURI"/>
                 <xsl:variable name="update-string" select="replace($content-update-string, '$this', '&lt;' || ac:uri() || '&gt;', 'q')" as="xs:string"/>
                 <xsl:variable name="update-string" select="replace($update-string, '$content', '&lt;' || $content-uri || '&gt;', 'q')" as="xs:string"/>
@@ -581,7 +581,7 @@ exclude-result-prefixes="#all"
 
                 <xsl:choose>
                     <!-- updating existing content -->
-                    <xsl:when test="ixsl:contains($container, 'about')">
+                    <xsl:when test="$container/@about">
                         <xsl:variable name="content-uri" select="$container/@about" as="xs:anyURI"/>
                         <xsl:variable name="update-string" select="replace($content-update-string, '$this', '&lt;' || ac:uri() || '&gt;', 'q')" as="xs:string"/>
                         <xsl:variable name="update-string" select="replace($update-string, '$content', '&lt;' || $content-uri || '&gt;', 'q')" as="xs:string"/>
@@ -637,7 +637,7 @@ exclude-result-prefixes="#all"
         <xsl:if test="ixsl:call(ixsl:window(), 'confirm', [ ac:label(key('resources', 'are-you-sure', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))) ])">
             <xsl:choose>
                 <!-- delete existing content -->
-                <xsl:when test="ixsl:contains($container, 'about')">
+                <xsl:when test="$container/@about">
                     <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
                     <xsl:variable name="content-uri" select="$container/@about" as="xs:anyURI"/>
@@ -670,7 +670,7 @@ exclude-result-prefixes="#all"
 
         <xsl:choose>
             <!-- restore existing content -->
-            <xsl:when test="ixsl:contains($container, 'about')">
+            <xsl:when test="$container/@about">
                 <xsl:variable name="textarea" select="ancestor::div[contains-token(@class, 'main')]//textarea[contains-token(@class, 'wymeditor')]" as="element()"/>
                 <xsl:variable name="old-content-string" select="string($textarea)" as="xs:string"/>
                 <xsl:variable name="content-value" select="ldh:parse-html('&lt;div&gt;' || $old-content-string || '&lt;/div&gt;', 'application/xhtml+xml')" as="document-node()"/>
@@ -701,7 +701,7 @@ exclude-result-prefixes="#all"
 
         <xsl:choose>
             <!-- updating existing content -->
-            <xsl:when test="ixsl:contains($container, 'about')">
+            <xsl:when test="$container/@about">
                 <xsl:for-each select="$container">
                     <xsl:call-template name="ldh:LoadContent">
 <!--                        <xsl:with-param name="uri" select="ac:uri()"/>  content value gets read from dataset.contentValue -->
@@ -918,7 +918,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="acl-modes" as="xs:anyURI*"/>
         <xsl:param name="refresh-content" as="xs:boolean?"/>
         <xsl:variable name="this" select="ancestor::div[@about][1]/@about" as="xs:anyURI"/>
-        <xsl:variable name="content-uri" select="(ixsl:get(., 'about'), $this)[1]" as="xs:anyURI"/> <!-- fallback to @about for charts, queries etc. -->
+        <xsl:variable name="content-uri" select="(@about, $this)[1]" as="xs:anyURI"/> <!-- fallback to @about for charts, queries etc. -->
         <xsl:variable name="content-value" select="ixsl:get(., 'dataset.contentValue')" as="xs:anyURI"/> <!-- get the value of the @data-content-value attribute -->
         <xsl:variable name="mode" select="if (ixsl:contains(., 'dataset.contentMode')) then xs:anyURI(ixsl:get(., 'dataset.contentMode')) else ()" as="xs:anyURI?"/> <!-- get the value of the @data-content-mode attribute -->
         <xsl:variable name="container" select="." as="element()"/>
