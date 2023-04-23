@@ -1,4 +1,4 @@
-## [4.0.1] - 2023-04-05
+## [4.0.1] - 2023-04-23
 ### Changed
 - Navigation bar is now fully rendered server-side, i.e. the whole visible HTML body is replaced via AJAX
 - Generalized client-side navigation templates using XPath maps
