@@ -213,10 +213,29 @@ WORKDIR $CATALINA_HOME</pre>
                      
                      <h2 id="xslt">XSLT</h2>
                      
-                     <p>LinkedDataHub uses XSLT 3.0 for UI rendering both on the server- and on the client-side.</p>
+                     <p>LinkedDataHub uses <a href="https://www.w3.org/TR/xslt-30/" target="_blank">XSLT 3.0</a> for UI rendering both on the server- and on the client-side.</p>
                      
-                     <p>You can specify a custom server-side XSLT 3.0 stylesheet in the <a href="../manage-dataspaces/#change-stylesheet">dataspace configuration</a>. Then you can reuse LinkedDataHub's stylesheet by
-                        importing it as explained in the <a href="../change-layout/">change layout</a> user guide.</p>
+                     <p>You can specify a custom server-side XSLT 3.0 stylesheet in the <a href="../manage-dataspaces/#change-stylesheet">dataspace configuration</a>.</p>
+                     
+                     <p>You can reuse LinkedDataHub's stylesheets by importing them as explained in the <a href="../change-layout/">change layout</a> user guide.</p>
+                     
+                     <h3 id="server-side-xslt">Server-side</h3>
+                     
+                     <p>The default server-side stylesheet <samp>layout.xsl</samp> and its imports can be found in the <samp>src/main/webapp/static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2</samp> folder.</p>
+                     
+                     <h3 id="client-side-xslt">Client-side</h3>
+                     
+                     <p>Client-side stylesheets are used to implement the interactive parts of the UI (event
+                        handling, AJAX calls etc.) using the <a href="https://www.saxonica.com/saxon-js/documentation2/index.html#!ixsl-extension" target="_blank">IXSL extension</a>
+                        provided by the SaxonJS library. This way the frontend is made completely declarative
+                        and does not require almost any Javascript code, with exceptions of 3rd party libraries
+                        such as Google Charts and OpenLayers.</p>
+                     
+                     <p>Client-side stylesheets share common document-, resource-, and property-level templates
+                        with the server-side stylesheets. The client-side stylesheet may not contain any XML
+                        entity declarations (limitation of
+                        SaxonJS) and must be <a href="https://www.saxonica.com/saxon-js/documentation2/index.html#!starting/export" target="_blank">compiled into a SEF file</a> before it can be run by the SaxonJS runtime.
+                        By default, the URL of the client-side SEF stylesheet can be specified as the <code>$client-stylesheet</code> param of the document-level server-side <code>xhtml:Script</code> template.</p>
                      </div>
                   
                   <div>
@@ -224,7 +243,7 @@ WORKDIR $CATALINA_HOME</pre>
                      <h2 id="rdf">RDF</h2>
                      
                      <p>You can modify or extend the <a href="../../reference/dataset/#default-datasets">default RDF datasets</a> used by LinkedDataHub. However, a better practice is to use the 
-                        <a href="../../reference/command-line-interface/">CLI scripts</a> to create documents and import data.</p>
+                        <a href="../../reference/command-line-interface/">CLI scripts</a> to create documents and to <a href="../../reference/imports/">import CSV and RDF data</a>.</p>
                      </div>
                   
                   <p class="lead"><a href="https://github.com/AtomGraph/LinkedDataHub-Apps" target="_blank">See the LinkedDataHub app repository for more examples.</a></p>
