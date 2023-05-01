@@ -22,12 +22,14 @@
     <!ENTITY sp     "http://spinrdf.org/sp#">
     <!ENTITY spin   "http://spinrdf.org/spin#">
     <!ENTITY void   "http://rdfs.org/ns/void#">
+    <!ENTITY schema "https://schema.org/">
 ]>
 <xsl:stylesheet version="3.0"
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 xmlns:xhtml="http://www.w3.org/1999/xhtml"
 xmlns:xs="http://www.w3.org/2001/XMLSchema"
 xmlns:map="http://www.w3.org/2005/xpath-functions/map"
+xmlns:json="http://www.w3.org/2005/xpath-functions"
 xmlns:ldh="&ldh;"
 xmlns:ac="&ac;"
 xmlns:a="&a;"
@@ -47,6 +49,7 @@ xmlns:spin="&spin;"
 xmlns:geo="&geo;"
 xmlns:srx="&srx;"
 xmlns:void="&void;"
+xmlns:schema="&schema;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 xmlns:ixsl="http://saxonica.com/ns/interactiveXSLT"
 exclude-result-prefixes="#all"
@@ -59,6 +62,27 @@ extension-element-prefixes="ixsl"
     <xsl:param name="acl:Agent" as="document-node()?"/>
     <xsl:param name="acl:mode" select="$foaf:Agent//*[acl:accessToClass/@rdf:resource = (key('resources', ac:uri(), $main-doc)/rdf:type/@rdf:resource, key('resources', ac:uri(), $main-doc)/rdf:type/@rdf:resource/ldh:listSuperClasses(.))]/acl:mode/@rdf:resource" as="xs:anyURI*"/>
 
+    <xsl:template match="rdf:RDF" mode="ac:JSON-LD">
+        <xsl:apply-templates select="." mode="schema:BreadCrumbList"/>
+    </xsl:template>
+    
+    <!-- schema.org BREADCRUMBS -->
+    
+    <xsl:template match="rdf:RDF" mode="schema:BreadCrumbList">
+        <xsl:variable name="json-xml" as="element()">
+            <json:map>
+                <json:string key="'@type'" select="'&schema;BreadcrumbList'"/>
+
+                <json:array key="'&schema;itemListElement'">
+                    <xsl:apply-templates select="key('resources', ac:uri())" mode="schema:BreadCrumbListItem"/>
+                </json:array>
+            </json:map>
+        </xsl:variable>
+        <script type="application/ld+json">
+            <xsl:sequence select="xml-to-json($json-xml)"/>
+        </script>
+    </xsl:template>
+    
     <!-- BODY -->
     
     <!-- always show errors (except ConstraintViolations) in block mode -->
