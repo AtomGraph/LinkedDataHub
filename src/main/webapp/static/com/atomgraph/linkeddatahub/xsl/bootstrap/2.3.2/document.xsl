@@ -76,6 +76,7 @@ extension-element-prefixes="ixsl"
             <!-- walking up the ancestor document chain and collecting them -->
             <xsl:variable name="ancestors" as="element()*">
                 <xsl:iterate select="$parent-uri">
+                    <xsl:param name="parent-uri" select="$parent-uri" as="xs:anyURI?"/>
                     <xsl:param name="ancestors" as="element()*"/>
 
                     <xsl:on-completion>
@@ -84,9 +85,11 @@ extension-element-prefixes="ixsl"
 
                     <xsl:if test="doc-available(ac:document-uri($parent-uri))">
                         <xsl:variable name="parent-doc" select="document(ac:document-uri($parent-uri))" as="document-node()"/>
+                        <xsl:variable name="resource" select="key('resources', $parent-uri, $parent-doc)?"/>
 
                         <xsl:next-iteration>
-                            <xsl:with-param name="ancestors" select="($ancestors, key('resources', $parent-doc))"/>
+                            <xsl:with-param name="parent-uri" select="$resource/sioc:has_container/@rdf:resource | $resource/sioc:has_parent/@rdf:resource"/>
+                            <xsl:with-param name="ancestors" select="($ancestors, $resource)"/>
                         </xsl:next-iteration>
                     </xsl:if>
                 </xsl:iterate>
