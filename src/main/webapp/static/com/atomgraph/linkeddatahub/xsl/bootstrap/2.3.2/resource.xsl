@@ -306,31 +306,12 @@ extension-element-prefixes="ixsl"
     <!-- schema.org BREADCRUMBS -->
     
     <xsl:template match="*[@rdf:about]" mode="schema:BreadCrumbListItem">
-        <xsl:param name="level" select="1" as="xs:string"/>
-        
-        <xsl:choose>
-            <xsl:when test="key('resources', sioc:has_container/@rdf:resource | sioc:has_parent/@rdf:resource)">
-                <xsl:apply-templates select="key('resources', sioc:has_container/@rdf:resource | sioc:has_parent/@rdf:resource)" mode="#current">
-                    <xsl:with-param name="level" select="$level + 1"/>
-                </xsl:apply-templates>
-            </xsl:when>
-            <xsl:when test="sioc:has_container/@rdf:resource | sioc:has_parent/@rdf:resource">
-                <xsl:if test="doc-available((sioc:has_container/@rdf:resource | sioc:has_parent/@rdf:resource)[1])">
-                    <xsl:variable name="parent-doc" select="document(sioc:has_container/@rdf:resource | sioc:has_parent/@rdf:resource)" as="document-node()?"/>
-                    <xsl:apply-templates select="key('resources', sioc:has_container/@rdf:resource | sioc:has_parent/@rdf:resource, $parent-doc)" mode="#current">
-                        <xsl:with-param name="level" select="$level + 1"/>
-                    </xsl:apply-templates>
-                </xsl:if>
-            </xsl:when>
-            <xsl:otherwise>
-                <json:map>
-                    <json:string key="'@type'" select="'&schema;ListItem'"/>
-                    <json:number key="'&schema;position'" select="1"/>
-                    <json:string key="'&schema;name'" select="ac:title(.)"/>
-                    <json:string key="'&schema;item'" select="@rdf:about"/>
-                </json:map>
-            </xsl:otherwise>
-        </xsl:choose>
+        <json:map>
+            <json:string key="'@type'" select="'&schema;ListItem'"/>
+            <json:number key="'&schema;position'" select="position()"/>
+            <json:string key="'&schema;name'" select="ac:title(.)"/>
+            <json:string key="'&schema;item'" select="@rdf:about"/>
+        </json:map>
     </xsl:template>
     
     <!-- BREADCRUMBS -->

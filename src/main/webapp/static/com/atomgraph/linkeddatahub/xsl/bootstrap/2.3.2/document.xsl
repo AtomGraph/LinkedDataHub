@@ -69,18 +69,43 @@ extension-element-prefixes="ixsl"
     <!-- schema.org BREADCRUMBS -->
     
     <xsl:template match="rdf:RDF" mode="schema:BreadCrumbList">
-        <xsl:variable name="json-xml" as="element()">
-            <json:map>
-                <json:string key="'@type'" select="'&schema;BreadcrumbList'"/>
+        <xsl:variable name="resource" select="key('resources', ac:uri())" as="element()?"/>
+        <xsl:variable name="parent-uri" select="$resource/sioc:has_container/@rdf:resource | $resource/sioc:has_parent/@rdf:resource" as="xs:anyURI?"/>
 
-                <json:array key="'&schema;itemListElement'">
-                    <xsl:apply-templates select="key('resources', ac:uri())" mode="schema:BreadCrumbListItem"/>
-                </json:array>
-            </json:map>
-        </xsl:variable>
-        <script type="application/ld+json">
-            <xsl:sequence select="xml-to-json($json-xml)"/>
-        </script>
+        <xsl:if test="$parent-uri">
+            <!-- walking up the ancestor document chain and collecting them -->
+            <xsl:variable name="ancestors" as="element()*">
+                <xsl:iterate select="$parent-uri">
+                    <xsl:param name="ancestors" as="element()?"/>
+
+                    <xsl:on-completion>
+                        <xsl:sequence select="$ancestors"/>
+                    </xsl:on-completion>
+
+                    <xsl:if test="doc-available(ac:document-uri($parent-uri))">
+                        <xsl:variable name="parent-doc" select="document(ac:document-uri($parent-uri))" as="document()"/>
+
+                        <xsl:next-iteration>
+                            <xsl:with-param name="ancestors" select="($ancestors, key('resources', $parent-doc))" as="element()"/>
+                        </xsl:next-iteration>
+                    </xsl:if>
+                </xsl:iterate>
+            </xsl:variable>
+
+            <xsl:variable name="json-xml" as="element()">
+                <json:map>
+                    <json:string key="'@type'" select="'&schema;BreadcrumbList'"/>
+
+                    <json:array key="'&schema;itemListElement'">
+                        <!-- position index has to start from Root=1, so we need to reverse the ancestor sequence -->
+                        <xsl:apply-templates select="(reverse($ancestors), $resource)" mode="schema:BreadCrumbListItem"/>
+                    </json:array>
+                </json:map>
+            </xsl:variable>
+            <script type="application/ld+json">
+                <xsl:sequence select="xml-to-json($json-xml)"/>
+            </script>
+        </xsl:if>
     </xsl:template>
     
     <!-- BODY -->
