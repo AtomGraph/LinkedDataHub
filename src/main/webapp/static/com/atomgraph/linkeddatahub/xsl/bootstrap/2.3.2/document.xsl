@@ -97,7 +97,7 @@ extension-element-prefixes="ixsl"
 
             <xsl:variable name="json-xml" as="element()">
                 <json:map>
-                    <json:string key="@type" select="'&schema;BreadcrumbList'"/>
+                    <json:string key="@type">&schema;BreadcrumbList</json:string>
 
                     <json:array key="&schema;itemListElement">
                         <!-- position index has to start from Root=1, so we need to reverse the ancestor sequence -->
