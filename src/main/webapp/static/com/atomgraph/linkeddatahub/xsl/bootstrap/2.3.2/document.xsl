@@ -76,7 +76,7 @@ extension-element-prefixes="ixsl"
             <!-- walking up the ancestor document chain and collecting them -->
             <xsl:variable name="ancestors" as="element()*">
                 <xsl:iterate select="$parent-uri">
-                    <xsl:param name="ancestors" as="element()?"/>
+                    <xsl:param name="ancestors" as="element()*"/>
 
                     <xsl:on-completion>
                         <xsl:sequence select="$ancestors"/>
@@ -86,7 +86,7 @@ extension-element-prefixes="ixsl"
                         <xsl:variable name="parent-doc" select="document(ac:document-uri($parent-uri))" as="document()"/>
 
                         <xsl:next-iteration>
-                            <xsl:with-param name="ancestors" select="($ancestors, key('resources', $parent-doc))" as="element()"/>
+                            <xsl:with-param name="ancestors" select="($ancestors, key('resources', $parent-doc))"/>
                         </xsl:next-iteration>
                     </xsl:if>
                 </xsl:iterate>
@@ -94,9 +94,9 @@ extension-element-prefixes="ixsl"
 
             <xsl:variable name="json-xml" as="element()">
                 <json:map>
-                    <json:string key="'@type'" select="'&schema;BreadcrumbList'"/>
+                    <json:string key="@type" select="'&schema;BreadcrumbList'"/>
 
-                    <json:array key="'&schema;itemListElement'">
+                    <json:array key="&schema;itemListElement">
                         <!-- position index has to start from Root=1, so we need to reverse the ancestor sequence -->
                         <xsl:apply-templates select="(reverse($ancestors), $resource)" mode="schema:BreadCrumbListItem"/>
                     </json:array>
