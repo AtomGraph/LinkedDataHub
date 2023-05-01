@@ -307,10 +307,10 @@ extension-element-prefixes="ixsl"
     
     <xsl:template match="*[@rdf:about]" mode="schema:BreadCrumbListItem">
         <json:map>
-            <json:string key="'@type'" select="'&schema;ListItem'"/>
-            <json:number key="'&schema;position'" select="position()"/>
-            <json:string key="'&schema;name'" select="ac:title(.)"/>
-            <json:string key="'&schema;item'" select="@rdf:about"/>
+            <json:string key="@type" select="'&schema;ListItem'"/>
+            <json:number key="&schema;position" select="position()"/>
+            <json:string key="&schema;name" select="ac:title(.)"/>
+            <json:string key="&schema;item" select="@rdf:about"/>
         </json:map>
     </xsl:template>
     
