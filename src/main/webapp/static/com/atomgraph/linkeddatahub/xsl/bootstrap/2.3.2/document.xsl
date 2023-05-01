@@ -83,7 +83,7 @@ extension-element-prefixes="ixsl"
                     </xsl:on-completion>
 
                     <xsl:if test="doc-available(ac:document-uri($parent-uri))">
-                        <xsl:variable name="parent-doc" select="document(ac:document-uri($parent-uri))" as="document()"/>
+                        <xsl:variable name="parent-doc" select="document(ac:document-uri($parent-uri))" as="document-node()"/>
 
                         <xsl:next-iteration>
                             <xsl:with-param name="ancestors" select="($ancestors, key('resources', $parent-doc))"/>
