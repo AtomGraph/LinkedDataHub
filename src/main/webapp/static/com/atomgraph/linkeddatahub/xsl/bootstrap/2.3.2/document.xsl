@@ -85,7 +85,7 @@ extension-element-prefixes="ixsl"
 
                     <xsl:if test="doc-available(ac:document-uri($parent-uri))">
                         <xsl:variable name="parent-doc" select="document(ac:document-uri($parent-uri))" as="document-node()"/>
-                        <xsl:variable name="resource" select="key('resources', $parent-uri, $parent-doc)?"/>
+                        <xsl:variable name="resource" select="key('resources', $parent-uri, $parent-doc)" as="element()?"/>
 
                         <xsl:next-iteration>
                             <xsl:with-param name="parent-uri" select="$resource/sioc:has_container/@rdf:resource | $resource/sioc:has_parent/@rdf:resource"/>
