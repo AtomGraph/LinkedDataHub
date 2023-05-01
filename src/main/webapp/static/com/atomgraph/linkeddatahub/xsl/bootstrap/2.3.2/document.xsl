@@ -105,9 +105,7 @@ extension-element-prefixes="ixsl"
                     </json:array>
                 </json:map>
             </xsl:variable>
-            <script type="application/ld+json">
-                <xsl:sequence select="xml-to-json($json-xml)"/>
-            </script>
+            <xsl:sequence select="xml-to-json($json-xml)"/>
         </xsl:if>
     </xsl:template>
     
