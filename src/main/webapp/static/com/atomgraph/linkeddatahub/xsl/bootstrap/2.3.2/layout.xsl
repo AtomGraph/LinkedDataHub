@@ -35,6 +35,7 @@
     <!ENTITY spl    "http://spinrdf.org/spl#">
     <!ENTITY void   "http://rdfs.org/ns/void#">
     <!ENTITY nfo    "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#">
+    <!ENTITY schema "https://schema.org/">
 ]>
 <xsl:stylesheet version="3.0"
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
@@ -71,6 +72,7 @@ xmlns:nfo="&nfo;"
 xmlns:geo="&geo;"
 xmlns:srx="&srx;"
 xmlns:google="&google;"
+xmlns:schema="&schema;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 exclude-result-prefixes="#all">
 
@@ -327,7 +329,7 @@ LIMIT   100
         <xsl:param name="load-sparql-builder" select="not($ac:mode = ('&ac;ModalMode', '&ldht;InfoWindowMode'))" as="xs:boolean"/>
         <xsl:param name="load-sparql-map" select="not($ac:mode = ('&ac;ModalMode', '&ldht;InfoWindowMode'))" as="xs:boolean"/>
         <xsl:param name="load-google-charts" select="not($ac:mode = ('&ac;ModalMode', '&ldht;InfoWindowMode'))" as="xs:boolean"/>
-        <xsl:param name="output-schema-org" select="true()" as="xs:boolean"/>
+        <xsl:param name="output-schema-org" select="false()" as="xs:boolean"/>
 
         <!-- Web-Client scripts -->
         <script type="text/javascript" src="{resolve-uri('static/js/jquery.min.js', $ac:contextUri)}" defer="defer"></script>
