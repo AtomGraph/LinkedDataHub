@@ -441,7 +441,10 @@ LIMIT   100
             </script>
         </xsl:if>
         <xsl:if test="$output-schema-org">
-            <xsl:apply-templates select="." mode="schema:BreadCrumbList"/>
+            <!-- output structured data: https://developers.google.com/search/docs/guides/intro-structured-data -->
+            <script type="application/ld+json">
+                <xsl:apply-templates select="." mode="schema:BreadCrumbList"/>
+            </script>
         </xsl:if>
     </xsl:template>
     
