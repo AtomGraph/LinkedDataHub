@@ -70,45 +70,42 @@ extension-element-prefixes="ixsl"
     
     <xsl:template match="rdf:RDF" mode="schema:BreadCrumbList">
         <xsl:variable name="resource" select="key('resources', ac:uri())" as="element()?"/>
-        <xsl:variable name="parent-uri" select="$resource/sioc:has_container/@rdf:resource | $resource/sioc:has_parent/@rdf:resource" as="xs:anyURI?"/>
 
-        <xsl:if test="$parent-uri">
-            <!-- walking up the ancestor document chain and collecting them -->
-            <xsl:variable name="ancestors" as="element()*">
-                <xsl:iterate select="$parent-uri">
-                    <xsl:param name="parent-uri" select="$parent-uri" as="xs:anyURI?"/>
-                    <xsl:param name="ancestors" as="element()*"/>
-
-                    <xsl:on-completion>
-                        <xsl:sequence select="$ancestors"/>
-                    </xsl:on-completion>
-
-                    <xsl:if test="doc-available(ac:document-uri($parent-uri))">
-                        <xsl:variable name="parent-doc" select="document(ac:document-uri($parent-uri))" as="document-node()"/>
-                        <xsl:variable name="resource" select="key('resources', $parent-uri, $parent-doc)" as="element()?"/>
-
-                        <xsl:next-iteration>
-                            <xsl:with-param name="parent-uri" select="$resource/sioc:has_container/@rdf:resource | $resource/sioc:has_parent/@rdf:resource"/>
-                            <xsl:with-param name="ancestors" select="($ancestors, $resource)"/>
-                        </xsl:next-iteration>
-                    </xsl:if>
-                </xsl:iterate>
-            </xsl:variable>
-
+        <xsl:if test="$resource">
+            <xsl:variable name="doc-with-ancestors" select="ldh:doc-with-ancestors($resource)" as="element()*"/>
             <xsl:variable name="json-xml" as="element()">
                 <json:map>
                     <json:string key="@type">&schema;BreadcrumbList</json:string>
 
                     <json:array key="&schema;itemListElement">
                         <!-- position index has to start from Root=1, so we need to reverse the ancestor sequence -->
-                        <xsl:apply-templates select="(reverse($ancestors), $resource)" mode="schema:BreadCrumbListItem"/>
+                        <xsl:apply-templates select="reverse($ancestors)" mode="schema:BreadCrumbListItem"/>
                     </json:array>
                 </json:map>
             </xsl:variable>
             <xsl:sequence select="xml-to-json($json-xml)"/>
         </xsl:if>
     </xsl:template>
-    
+
+    <!-- walks up the ancestor document chain and collects them -->
+    <xsl:function name="ldh:doc-with-ancestors" as="element()*">
+        <xsl:param name="resource" as="element()"/>
+        <xsl:param name="parent-uri" select="$resource/sioc:has_container/@rdf:resource | $resource/sioc:has_parent/@rdf:resource" as="xs:anyURI?"/>
+        
+        <xsl:sequence select="$resource"/>
+
+        <xsl:if test="$parent-uri">
+            <xsl:if test="doc-available(ac:document-uri($parent-uri))">
+                <xsl:variable name="parent-doc" select="document(ac:document-uri($parent-uri))" as="document-node()"/>
+                <xsl:variable name="parent" select="key('resources', $parent-uri, $parent-doc)" as="element()?"/>
+
+                <xsl:if test="$parent">
+                    <xsl:sequence select="ldh:doc-ancestors($parent)"/>
+                </xsl:if>
+            </xsl:if>
+        </xsl:if>
+    </xsl:function>
+
     <!-- BODY -->
     
     <!-- always show errors (except ConstraintViolations) in block mode -->
