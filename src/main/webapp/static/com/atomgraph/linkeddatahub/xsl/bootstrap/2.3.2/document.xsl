@@ -90,7 +90,7 @@ extension-element-prefixes="ixsl"
     <!-- walks up the ancestor document chain and collects them -->
     <xsl:function name="ldh:doc-with-ancestors" as="element()*">
         <xsl:param name="resource" as="element()"/>
-        <xsl:param name="parent-uri" select="$resource/sioc:has_container/@rdf:resource | $resource/sioc:has_parent/@rdf:resource" as="xs:anyURI?"/>
+        <xsl:variable name="parent-uri" select="$resource/sioc:has_container/@rdf:resource | $resource/sioc:has_parent/@rdf:resource" as="xs:anyURI?"/>
         
         <xsl:sequence select="$resource"/>
 
