@@ -79,7 +79,7 @@ extension-element-prefixes="ixsl"
 
                     <json:array key="&schema;itemListElement">
                         <!-- position index has to start from Root=1, so we need to reverse the ancestor sequence -->
-                        <xsl:apply-templates select="reverse($ancestors)" mode="schema:BreadCrumbListItem"/>
+                        <xsl:apply-templates select="reverse($doc-with-ancestors)" mode="schema:BreadCrumbListItem"/>
                     </json:array>
                 </json:map>
             </xsl:variable>
