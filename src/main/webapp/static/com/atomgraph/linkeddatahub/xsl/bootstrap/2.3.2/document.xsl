@@ -100,7 +100,7 @@ extension-element-prefixes="ixsl"
                 <xsl:variable name="parent" select="key('resources', $parent-uri, $parent-doc)" as="element()?"/>
 
                 <xsl:if test="$parent">
-                    <xsl:sequence select="ldh:doc-ancestors($parent)"/>
+                    <xsl:sequence select="ldh:doc-with-ancestors($parent)"/>
                 </xsl:if>
             </xsl:if>
         </xsl:if>
