@@ -13,6 +13,6 @@ WHERE
           { ?loc  dct:created  ?created }
         OPTIONAL
           { ?loc  dct:modified  ?modified }
-        BIND(if(bound(?modified), ?modified, ?created) AS ?lastmod)
+        BIND(coalesce(?modified, ?created) AS ?lastmod)
       }
   }
