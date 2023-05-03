@@ -1,0 +1,18 @@
+PREFIX  dct:  <http://purl.org/dc/terms/>
+PREFIX  sioc: <http://rdfs.org/sioc/ns#>
+
+SELECT  ?loc ?lastmod
+WHERE
+  { GRAPH ?loc
+      {   { ?loc  sioc:has_parent  ?parent }
+        UNION
+          { ?loc  sioc:has_container  ?container }
+        UNION
+          { ?loc  a  <https://w3id.org/atomgraph/linkeddatahub/default#Root> }
+        OPTIONAL
+          { ?loc  dct:created  ?created }
+        OPTIONAL
+          { ?loc  dct:modified  ?modified }
+        BIND(if(bound(?modified), ?modified, ?created) AS ?lastmod)
+      }
+  }
