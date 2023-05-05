@@ -1,0 +1,29 @@
+PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX  acl:  <http://www.w3.org/ns/auth/acl#>
+PREFIX  dct:  <http://purl.org/dc/terms/>
+PREFIX  sioc: <http://rdfs.org/sioc/ns#>
+
+SELECT  ?loc ?lastmod
+WHERE
+  { GRAPH ?loc
+      { ?loc  a  ?Type
+        SERVICE <$admin_endpoint_url>
+          { GRAPH ?authGraph
+              { ?auth  acl:mode  acl:Read
+                  { ?auth  acl:accessTo  ?loc }
+                UNION
+                  {   { ?auth  acl:accessToClass  ?Type }
+                    UNION
+                      { ?auth  acl:accessToClass  ?Class .
+                        ?Type (rdfs:subClassOf)* ?Class
+                      }
+                  }
+              }
+          }
+        OPTIONAL
+          { ?loc  dct:created  ?created }
+        OPTIONAL
+          { ?loc  dct:modified  ?modified }
+        BIND(coalesce(?modified, ?created) AS ?lastmod)
+      }
+  }

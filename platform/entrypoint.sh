@@ -634,6 +634,8 @@ fi
 # if configured, generate XML sitemap: https://www.sitemaps.org/protocol.html
 
 if [ "$GENERATE_SITEMAP" = true ]; then
+    export admin_endpoint_url
+    envsubst < /var/linkeddatahub/sitemap/sitemap.rq.template > /var/linkeddatahub/sitemap/sitemap.rq
     sitemap_results=$(mktemp)
 
     curl -k -G -H "Accept: application/sparql-results+xml" "$end_user_endpoint_url" --data-urlencode "query@/var/linkeddatahub/sitemap/sitemap.rq" -o "$sitemap_results"

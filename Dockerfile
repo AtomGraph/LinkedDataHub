@@ -148,7 +148,7 @@ COPY platform/datasets/end-user.trig /var/linkeddatahub/datasets/end-user.trig
 
 # copy sitemap query & stylesheet
 
-COPY platform/sitemap/sitemap.rq /var/linkeddatahub/sitemap/sitemap.rq
+COPY platform/sitemap/sitemap.rq.template /var/linkeddatahub/sitemap/sitemap.rq.template
 
 COPY platform/sitemap/sitemap.xsl /var/linkeddatahub/sitemap/sitemap.xsl
 
