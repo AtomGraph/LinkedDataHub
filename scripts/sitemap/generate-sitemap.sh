@@ -1,5 +1,5 @@
 end_user_endpoint="http://localhost:3031/ds"
-export admin_endpoint_url="http://localhost:3030/ds"
+export admin_endpoint_url="http://fuseki-admin:3030/ds"
 
 envsubst < ../../platform/sitemap/sitemap.rq.template > sitemap.rq
 
