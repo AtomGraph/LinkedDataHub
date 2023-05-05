@@ -407,6 +407,8 @@ readarray apps < <(xmlstarlet sel -B \
     -o "\" \"" \
     -v "srx:binding[@name = 'endUserQuadStore']" \
     -o "\" \"" \
+    -v "srx:binding[@name = 'endUserEndpoint']" \
+    -o "\" \"" \
     -v "srx:binding[@name = 'endUserAuthUser']" \
     -o "\" \"" \
     -v "srx:binding[@name = 'endUserAuthPwd']" \
@@ -418,6 +420,8 @@ readarray apps < <(xmlstarlet sel -B \
     -v "srx:binding[@name = 'adminBase']" \
     -o "\" \"" \
     -v "srx:binding[@name = 'adminQuadStore']" \
+    -o "\" \"" \
+    -v "srx:binding[@name = 'adminEndpoint']" \
     -o "\" \"" \
     -v "srx:binding[@name = 'adminAuthUser']" \
     -o "\" \"" \
@@ -433,15 +437,17 @@ for app in "${apps[@]}"; do
     end_user_app="${app_array[0]//\"/}"
     end_user_base_uri="${app_array[1]//\"/}"
     end_user_quad_store_url="${app_array[2]//\"/}"
-    end_user_service_auth_user="${app_array[3]//\"/}"
-    end_user_service_auth_pwd="${app_array[4]//\"/}"
-    end_user_owner="${app_array[5]//\"/}"
-    admin_app="${app_array[6]//\"/}"
-    admin_base_uri="${app_array[7]//\"/}"
-    admin_quad_store_url="${app_array[8]//\"/}"
-    admin_service_auth_user="${app_array[9]//\"/}"
-    admin_service_auth_pwd="${app_array[10]//\"/}"
-    admin_owner="${app_array[11]//\"/}"
+    end_user_endpoint_url="${app_array[3]//\"/}"
+    end_user_service_auth_user="${app_array[4]//\"/}"
+    end_user_service_auth_pwd="${app_array[5]//\"/}"
+    end_user_owner="${app_array[6]//\"/}"
+    admin_app="${app_array[7]//\"/}"
+    admin_base_uri="${app_array[8]//\"/}"
+    admin_quad_store_url="${app_array[9]//\"/}"
+    admin_endpoint_url="${app_array[10]//\"/}"
+    admin_service_auth_user="${app_array[11]//\"/}"
+    admin_service_auth_pwd="${app_array[12]//\"/}"
+    admin_owner="${app_array[13]//\"/}"
 
     printf "\n### Processing dataspace. End-user app: %s Admin app: %s\n" "$end_user_app" "$admin_app"
 
@@ -625,8 +631,16 @@ if [ -n "$OIDC_REFRESH_TOKENS" ] && [ ! -f "$OIDC_REFRESH_TOKENS" ]; then
     touch "$OIDC_REFRESH_TOKENS"
 fi
 
+# if configured, generate XML sitemap: https://www.sitemaps.org/protocol.html
+
 if [ "$GENERATE_SITEMAP" = true ]; then
-    echo "sitemap" > "${PWD}/webapps/ROOT/sitemap.xml"
+    sitemap_results=$(mktemp)
+
+    curl -k -G -H "Accept: application/sparql-results+xml" "$end_user_endpoint_url" --data-urlencode "query@/var/linkeddatahub/sitemap/sitemap.rq" -o "$sitemap_results"
+
+    xsltproc --output "${PWD}/webapps/ROOT/sitemap.xml" /var/linkeddatahub/sitemap/sitemap.xsl "$sitemap_results"
+
+    rm "$sitemap_results"
 fi
 
 # change context configuration

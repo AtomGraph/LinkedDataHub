@@ -146,6 +146,12 @@ COPY platform/datasets/admin.trig /var/linkeddatahub/datasets/admin.trig
 
 COPY platform/datasets/end-user.trig /var/linkeddatahub/datasets/end-user.trig
 
+# copy sitemap query & stylesheet
+
+COPY platform/sitemap/sitemap.rq /var/linkeddatahub/sitemap/sitemap.rq
+
+COPY platform/sitemap/sitemap.xsl /var/linkeddatahub/sitemap/sitemap.xsl
+
 # copy webapp config
 
 COPY platform/conf/ROOT.xml conf/Catalina/localhost/ROOT.xml
