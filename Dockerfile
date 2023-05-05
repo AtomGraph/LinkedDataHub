@@ -108,6 +108,8 @@ ENV GOOGLE_CLIENT_ID=
 
 ENV GOOGLE_CLIENT_SECRET=
 
+ENV GENERATE_SITEMAP=true
+
 # HEALTHCHECK --start-period=80s CMD curl -f http://localhost:$HTTP_PORT || exit 1
 
 # remove default Tomcat webapps and install xmlstarlet (used for XPath queries) and envsubst (for variable substitution)
@@ -143,6 +145,12 @@ COPY platform/root-owner.trig.template root-owner.trig.template
 COPY platform/datasets/admin.trig /var/linkeddatahub/datasets/admin.trig
 
 COPY platform/datasets/end-user.trig /var/linkeddatahub/datasets/end-user.trig
+
+# copy sitemap query & stylesheet
+
+COPY platform/sitemap/sitemap.rq.template /var/linkeddatahub/sitemap/sitemap.rq.template
+
+COPY platform/sitemap/sitemap.xsl /var/linkeddatahub/sitemap/sitemap.xsl
 
 # copy webapp config
 
