@@ -1,3 +1,8 @@
+# This script directly queries the fuseki-end-user endpoint exposed on localhost:3030. You can configure in docker-compose.override.yml like this:
+#  fuseki-end-user:
+#    ports:
+#      - 3031:3030
+
 end_user_endpoint="http://localhost:3031/ds"
 export admin_endpoint_url="http://fuseki-admin:3030/ds"
 
