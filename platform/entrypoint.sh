@@ -625,6 +625,10 @@ if [ -n "$OIDC_REFRESH_TOKENS" ] && [ ! -f "$OIDC_REFRESH_TOKENS" ]; then
     touch "$OIDC_REFRESH_TOKENS"
 fi
 
+if [ "$GENERATE_SITEMAP" = true ]; then
+    echo "sitemap" > "${PWD}/webapps/ROOT/sitemap.xml"
+fi
+
 # change context configuration
 
 BASE_URI_PARAM="--stringparam ldhc:baseUri '$BASE_URI' "

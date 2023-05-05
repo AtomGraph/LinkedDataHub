@@ -357,6 +357,7 @@ support@atomgraph.com]]></param-value>
         <url-pattern>/static/*</url-pattern>
         <url-pattern>/robots.txt</url-pattern>
         <url-pattern>/favicon.ico</url-pattern>
+        <url-pattern>/sitemap.xml</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
         <servlet-name>com.atomgraph.linkeddatahub.Application</servlet-name>
