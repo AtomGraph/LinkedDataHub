@@ -78,9 +78,9 @@ ENV SECRETARY_CERT_ALIAS=secretary
 
 ENV CLIENT_KEYSTORE_MOUNT=/var/linkeddatahub/ssl/secretary/keystore.p12
 
-ENV CLIENT_KEYSTORE="$CATALINA_HOME/webapps/ROOT/ssl/keystore.p12"
+ENV CLIENT_KEYSTORE="$CATALINA_HOME/webapps/ROOT/WEB-INF/keystore.p12"
 
-ENV CLIENT_TRUSTSTORE="$CATALINA_HOME/webapps/ROOT/ssl/client.truststore"
+ENV CLIENT_TRUSTSTORE="$CATALINA_HOME/webapps/ROOT/WEB-INF/client.truststore"
 
 ENV OWNER_PUBLIC_KEY=/var/linkeddatahub/ssl/owner/public.pem
 
@@ -107,6 +107,8 @@ ENV IMPORT_KEEPALIVE=
 ENV GOOGLE_CLIENT_ID=
 
 ENV GOOGLE_CLIENT_SECRET=
+
+ENV GENERATE_SITEMAP=true
 
 # HEALTHCHECK --start-period=80s CMD curl -f http://localhost:$HTTP_PORT || exit 1
 
@@ -143,6 +145,12 @@ COPY platform/root-owner.trig.template root-owner.trig.template
 COPY platform/datasets/admin.trig /var/linkeddatahub/datasets/admin.trig
 
 COPY platform/datasets/end-user.trig /var/linkeddatahub/datasets/end-user.trig
+
+# copy sitemap query & stylesheet
+
+COPY platform/sitemap/sitemap.rq.template /var/linkeddatahub/sitemap/sitemap.rq.template
+
+COPY platform/sitemap/sitemap.xsl /var/linkeddatahub/sitemap/sitemap.xsl
 
 # copy webapp config
 

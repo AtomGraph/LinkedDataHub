@@ -26,12 +26,14 @@
     <!ENTITY spin   "http://spinrdf.org/spin#">
     <!ENTITY void   "http://rdfs.org/ns/void#">
     <!ENTITY nfo    "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#">
+    <!ENTITY schema "https://schema.org/">
 ]>
 <xsl:stylesheet version="3.0"
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 xmlns:xhtml="http://www.w3.org/1999/xhtml"
 xmlns:xs="http://www.w3.org/2001/XMLSchema"
 xmlns:map="http://www.w3.org/2005/xpath-functions/map"
+xmlns:json="http://www.w3.org/2005/xpath-functions"
 xmlns:lacl="&lacl;"
 xmlns:ldh="&ldh;"
 xmlns:ldht="&ldht;"
@@ -53,6 +55,7 @@ xmlns:sp="&sp;"
 xmlns:spin="&spin;"
 xmlns:geo="&geo;"
 xmlns:void="&void;"
+xmlns:schema="&schema;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 xmlns:ixsl="http://saxonica.com/ns/interactiveXSLT"
 exclude-result-prefixes="#all"
@@ -300,6 +303,17 @@ extension-element-prefixes="ixsl"
         </xsl:if>
     </xsl:template>
 
+    <!-- schema.org BREADCRUMBS -->
+    
+    <xsl:template match="*[@rdf:about]" mode="schema:BreadCrumbListItem">
+        <json:map>
+            <json:string key="@type">&schema;ListItem</json:string>
+            <json:number key="&schema;position"><xsl:value-of select="position()"/></json:number>
+            <json:string key="&schema;name"><xsl:value-of select="ac:label(.)"/></json:string>
+            <json:string key="&schema;item"><xsl:value-of select="@rdf:about"/></json:string>
+        </json:map>
+    </xsl:template>
+    
     <!-- BREADCRUMBS -->
 
     <xsl:template match="*[@rdf:about]" mode="bs2:BreadCrumbListItem">
@@ -708,7 +722,6 @@ extension-element-prefixes="ixsl"
     <!-- ROW CONTENT -->
     
     <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;Content'][rdf:value[@rdf:parseType = 'Literal']/xhtml:div]" mode="bs2:RowContent" priority="2">
-        <xsl:param name="content-uri" select="@rdf:about" as="xs:string?"/>
         <xsl:param name="id" select="if (contains(@rdf:about, ac:uri() || '#')) then substring-after(@rdf:about, ac:uri() || '#') else generate-id()" as="xs:string?"/>
         <xsl:param name="class" select="'row-fluid content xhtml-content'" as="xs:string?"/>
         <xsl:param name="left-class" as="xs:string?"/>
@@ -717,10 +730,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="transclude" select="false()" as="xs:boolean"/>
         <xsl:param name="base" as="xs:anyURI?"/>
 
-        <div>
-            <xsl:if test="$content-uri">
-                <xsl:attribute name="data-content-uri" select="$content-uri"/>
-            </xsl:if>
+        <div about="{@rdf:about}">
             <xsl:if test="$id">
                 <xsl:attribute name="id" select="$id"/>
             </xsl:if>
@@ -750,7 +760,6 @@ extension-element-prefixes="ixsl"
     </xsl:template>
 
     <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;Content'][rdf:value/@rdf:resource]" mode="bs2:RowContent" priority="2">
-        <xsl:param name="content-uri" select="@rdf:about" as="xs:string?"/>
         <xsl:param name="id" select="if (contains(@rdf:about, ac:uri() || '#')) then substring-after(@rdf:about, ac:uri() || '#') else generate-id()" as="xs:string?"/>
         <xsl:param name="class" select="'row-fluid content resource-content'" as="xs:string?"/>
         <xsl:param name="mode" select="ac:mode/@rdf:resource" as="xs:anyURI?"/>
@@ -761,10 +770,7 @@ extension-element-prefixes="ixsl"
         <xsl:apply-templates select="." mode="bs2:RowContentHeader"/>
         
         <!-- @data-content-value is used to retrieve $content-value in client.xsl -->
-        <div data-content-value="{rdf:value/@rdf:resource}">
-            <xsl:if test="$content-uri">
-                <xsl:attribute name="data-content-uri" select="$content-uri"/>
-            </xsl:if>
+        <div about="{@rdf:about}" data-content-value="{rdf:value/@rdf:resource}">
             <xsl:if test="$id">
                 <xsl:attribute name="id" select="$id"/>
             </xsl:if>

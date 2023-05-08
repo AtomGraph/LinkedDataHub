@@ -22,12 +22,14 @@
     <!ENTITY sp     "http://spinrdf.org/sp#">
     <!ENTITY spin   "http://spinrdf.org/spin#">
     <!ENTITY void   "http://rdfs.org/ns/void#">
+    <!ENTITY schema "https://schema.org/">
 ]>
 <xsl:stylesheet version="3.0"
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 xmlns:xhtml="http://www.w3.org/1999/xhtml"
 xmlns:xs="http://www.w3.org/2001/XMLSchema"
 xmlns:map="http://www.w3.org/2005/xpath-functions/map"
+xmlns:json="http://www.w3.org/2005/xpath-functions"
 xmlns:ldh="&ldh;"
 xmlns:ac="&ac;"
 xmlns:a="&a;"
@@ -47,6 +49,7 @@ xmlns:spin="&spin;"
 xmlns:geo="&geo;"
 xmlns:srx="&srx;"
 xmlns:void="&void;"
+xmlns:schema="&schema;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 xmlns:ixsl="http://saxonica.com/ns/interactiveXSLT"
 exclude-result-prefixes="#all"
@@ -58,6 +61,46 @@ extension-element-prefixes="ixsl"
     <xsl:param name="main-doc" select="/" as="document-node()"/>
     <xsl:param name="acl:Agent" as="document-node()?"/>
     <xsl:param name="acl:mode" select="$foaf:Agent//*[acl:accessToClass/@rdf:resource = (key('resources', ac:uri(), $main-doc)/rdf:type/@rdf:resource, key('resources', ac:uri(), $main-doc)/rdf:type/@rdf:resource/ldh:listSuperClasses(.))]/acl:mode/@rdf:resource" as="xs:anyURI*"/>
+    
+    <!-- schema.org BREADCRUMBS -->
+    
+    <xsl:template match="rdf:RDF" mode="schema:BreadCrumbList">
+        <xsl:variable name="resource" select="key('resources', ac:uri())" as="element()?"/>
+
+        <xsl:if test="$resource">
+            <xsl:variable name="doc-with-ancestors" select="ldh:doc-with-ancestors($resource)" as="element()*"/>
+            <xsl:variable name="json-xml" as="element()">
+                <json:map>
+                    <json:string key="@type">&schema;BreadcrumbList</json:string>
+
+                    <json:array key="&schema;itemListElement">
+                        <!-- position index has to start from Root=1, so we need to reverse the ancestor sequence -->
+                        <xsl:apply-templates select="reverse($doc-with-ancestors)" mode="schema:BreadCrumbListItem"/>
+                    </json:array>
+                </json:map>
+            </xsl:variable>
+            <xsl:sequence select="xml-to-json($json-xml)"/>
+        </xsl:if>
+    </xsl:template>
+
+    <!-- walks up the ancestor document chain and collects them -->
+    <xsl:function name="ldh:doc-with-ancestors" as="element()*">
+        <xsl:param name="resource" as="element()"/>
+        <xsl:variable name="parent-uri" select="$resource/sioc:has_container/@rdf:resource | $resource/sioc:has_parent/@rdf:resource" as="xs:anyURI?"/>
+        
+        <xsl:sequence select="$resource"/>
+
+        <xsl:if test="$parent-uri">
+            <xsl:if test="doc-available(ac:document-uri($parent-uri))">
+                <xsl:variable name="parent-doc" select="document(ac:document-uri($parent-uri))" as="document-node()"/>
+                <xsl:variable name="parent" select="key('resources', $parent-uri, $parent-doc)" as="element()?"/>
+
+                <xsl:if test="$parent">
+                    <xsl:sequence select="ldh:doc-with-ancestors($parent)"/>
+                </xsl:if>
+            </xsl:if>
+        </xsl:if>
+    </xsl:function>
 
     <!-- BODY -->
     

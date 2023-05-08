@@ -35,6 +35,7 @@
     <!ENTITY spl    "http://spinrdf.org/spl#">
     <!ENTITY void   "http://rdfs.org/ns/void#">
     <!ENTITY nfo    "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#">
+    <!ENTITY schema "https://schema.org/">
 ]>
 <xsl:stylesheet version="3.0"
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
@@ -71,11 +72,11 @@ xmlns:nfo="&nfo;"
 xmlns:geo="&geo;"
 xmlns:srx="&srx;"
 xmlns:google="&google;"
+xmlns:schema="&schema;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 exclude-result-prefixes="#all">
 
     <xsl:import href="imports/xml-to-string.xsl"/>
-    <xsl:import href="../../../../client/xsl/converters/RDFXML2JSON-LD.xsl"/>
     <xsl:import href="../../../../client/xsl/bootstrap/2.3.2/internal-layout.xsl"/>
     <xsl:import href="imports/default.xsl"/>
     <xsl:import href="imports/ac.xsl"/>
@@ -328,7 +329,7 @@ LIMIT   100
         <xsl:param name="load-sparql-builder" select="not($ac:mode = ('&ac;ModalMode', '&ldht;InfoWindowMode'))" as="xs:boolean"/>
         <xsl:param name="load-sparql-map" select="not($ac:mode = ('&ac;ModalMode', '&ldht;InfoWindowMode'))" as="xs:boolean"/>
         <xsl:param name="load-google-charts" select="not($ac:mode = ('&ac;ModalMode', '&ldht;InfoWindowMode'))" as="xs:boolean"/>
-        <xsl:param name="output-json-ld" select="false()" as="xs:boolean"/>
+        <xsl:param name="output-schema-org" select="true()" as="xs:boolean"/>
 
         <!-- Web-Client scripts -->
         <script type="text/javascript" src="{resolve-uri('static/js/jquery.min.js', $ac:contextUri)}" defer="defer"></script>
@@ -439,10 +440,10 @@ LIMIT   100
                 ]]>
             </script>
         </xsl:if>
-        <xsl:if test="$output-json-ld">
+        <xsl:if test="$output-schema-org">
             <!-- output structured data: https://developers.google.com/search/docs/guides/intro-structured-data -->
             <script type="application/ld+json">
-                <xsl:apply-templates select="." mode="ac:JSON-LD"/>
+                <xsl:apply-templates select="." mode="schema:BreadCrumbList"/>
             </script>
         </xsl:if>
     </xsl:template>
