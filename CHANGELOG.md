@@ -1,3 +1,11 @@
+## [4.0.2] - 2023-05-08
+### Added
+- [XML sitemap](https://www.sitemaps.org/protocol.html) generation when env param `GENERATE_SITEMAP=true` is specified (enabled by default)
+- JSON-LD output in the `<script>` tag containing [schema:BreadCrumbList](https://schema.org/BreadcrumbList) structured data
+
+### Changed
+- Content blocks use `@about` attributes as identifiers instead of `@data-content-uri`
+
 ## [4.0.1] - 2023-04-23
 ### Added
 - Backlink navigation on XHTML content
