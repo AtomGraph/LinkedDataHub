@@ -71,7 +71,7 @@ extension-element-prefixes="ixsl"
             <xsl:variable name="doc-with-ancestors" select="ldh:doc-with-ancestors($resource)" as="element()*"/>
 
             <rdf:RDF>
-                <rdf:Description>
+                <rdf:Description rdf:nodeID="breadcrumb-list">
                     <rdf:type rdf:resource="&schema;BreadcrumbList"/>
 
                     <!-- position index has to start from Root=1, so we need to reverse the ancestor sequence -->
