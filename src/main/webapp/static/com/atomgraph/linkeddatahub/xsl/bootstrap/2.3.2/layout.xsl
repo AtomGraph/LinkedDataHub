@@ -77,6 +77,7 @@ xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 exclude-result-prefixes="#all">
 
     <xsl:import href="imports/xml-to-string.xsl"/>
+    <xsl:import href="../../../../client/xsl/converters/RDFXML2JSON-LD.xsl"/>
     <xsl:import href="../../../../client/xsl/bootstrap/2.3.2/internal-layout.xsl"/>
     <xsl:import href="imports/default.xsl"/>
     <xsl:import href="imports/ac.xsl"/>
@@ -443,7 +444,13 @@ LIMIT   100
         <xsl:if test="$output-schema-org">
             <!-- output structured data: https://developers.google.com/search/docs/guides/intro-structured-data -->
             <script type="application/ld+json">
-                <xsl:apply-templates select="." mode="schema:BreadCrumbList"/>
+                <xsl:variable name="rdf" as="element()">
+                    <xsl:apply-templates select="." mode="schema:BreadCrumbList"/>
+                </xsl:variable>
+                <xsl:variable name="json-xml" as="element()">
+                    <xsl:apply-templates select="$rdf" mode="ac:JSON-LD"/>
+                </xsl:variable>
+                <xsl:sequence select="xml-to-json($json-xml)"/>
             </script>
         </xsl:if>
     </xsl:template>
