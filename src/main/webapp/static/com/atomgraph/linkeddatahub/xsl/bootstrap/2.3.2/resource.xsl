@@ -305,13 +305,13 @@ extension-element-prefixes="ixsl"
 
     <!-- schema.org BREADCRUMBS -->
     
-    <xsl:template match="*[@rdf:about]" mode="schema:BreadCrumbListItem">
-        <json:map>
-            <json:string key="@type">&schema;ListItem</json:string>
-            <json:number key="&schema;position"><xsl:value-of select="position()"/></json:number>
-            <json:string key="&schema;name"><xsl:value-of select="ac:label(.)"/></json:string>
-            <json:string key="&schema;item"><xsl:value-of select="@rdf:about"/></json:string>
-        </json:map>
+    <xsl:template match="*[@rdf:about]" mode="schema:BreadCrumbListItem" as="element()">
+        <rdf:Description rdf:nodeID="item{position()}">
+            <rdf:type rdf:resource="&schema;ListItem"/>
+            <schema:position><xsl:value-of select="position()"/></schema:position>
+            <schema:name><xsl:value-of select="ac:label(.)"/></schema:name>
+            <schema:item><xsl:value-of select="@rdf:about"/></schema:item>
+        </rdf:Description>
     </xsl:template>
     
     <!-- BREADCRUMBS -->
