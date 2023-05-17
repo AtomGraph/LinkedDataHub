@@ -909,6 +909,31 @@ exclude-result-prefixes="#all"
         </xsl:for-each>
     </xsl:template>
     
+    <!-- start dragging content -->
+    
+    <xsl:template match="div[contains-token(@class, 'content')]" mode="ixsl:ondragstart">
+        <xsl:variable name="content-uri" select="$container/@about" as="xs:anyURI"/>
+        <xsl:message>p ondragstart $content-uri: <xsl:value-of select="$content-uri"/></xsl:message>
+        <ixsl:set-property name="dataTransfer.effectAllowed" select="'move'" object="ixsl:event()"/>
+        <xsl:sequence select="ixsl:call(ixsl:get(ixsl:event(), 'dataTransfer'), 'setData', [ 'text/uri-list', 'http://whateverest.com' ])"/>
+    </xsl:template>
+
+    <!-- dragging content over other content -->
+    
+    <xsl:template match="p" mode="ixsl:ondragover">
+        <ixsl:set-property name="dataTransfer.dropEffect" select="'move'" object="ixsl:event()"/>
+        <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
+        <xsl:message>p ondragover</xsl:message>
+    </xsl:template>
+
+    <!-- dropping content over other content -->
+    
+    <xsl:template match="div[contains-token(@class, 'content')]" mode="ixsl:ondrop">
+        <xsl:variable name="content-uri" select="ixsl:call(ixsl:get(ixsl:event(), 'dataTransfer'), 'getData', [ 'text/uri-list' ])" as="xs:anyURI"/>
+        <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
+        <xsl:message>p ondrop $content-uri: <xsl:value-of select="$content-uri"/></xsl:message>
+    </xsl:template>
+    
     <!-- CALLBACKS -->
     
     <!-- load content -->
