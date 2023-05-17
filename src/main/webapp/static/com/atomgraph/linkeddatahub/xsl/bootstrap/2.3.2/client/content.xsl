@@ -920,7 +920,7 @@ exclude-result-prefixes="#all"
 
     <!-- dragging content over other content -->
     
-    <xsl:template match="p" mode="ixsl:ondragover">
+    <xsl:template match="div[contains-token(@class, 'content')]" mode="ixsl:ondragover">
         <ixsl:set-property name="dataTransfer.dropEffect" select="'move'" object="ixsl:event()"/>
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:message>p ondragover</xsl:message>
