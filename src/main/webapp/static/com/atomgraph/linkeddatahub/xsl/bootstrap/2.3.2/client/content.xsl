@@ -915,7 +915,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="content-uri" select="@about" as="xs:anyURI"/>
         <xsl:message>p ondragstart $content-uri: <xsl:value-of select="$content-uri"/></xsl:message>
         <ixsl:set-property name="dataTransfer.effectAllowed" select="'move'" object="ixsl:event()"/>
-        <xsl:sequence select="ixsl:call(ixsl:get(ixsl:event(), 'dataTransfer'), 'setData', [ 'text/uri-list', 'http://whateverest.com' ])"/>
+        <xsl:sequence select="ixsl:call(ixsl:get(ixsl:event(), 'dataTransfer'), 'setData', [ 'text/uri-list', $content-uri ])"/>
     </xsl:template>
 
     <!-- dragging content over other content -->
