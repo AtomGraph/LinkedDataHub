@@ -730,7 +730,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="transclude" select="false()" as="xs:boolean"/>
         <xsl:param name="base" as="xs:anyURI?"/>
 
-        <div about="{@rdf:about}">
+        <div about="{@rdf:about}" draggable="true">
             <xsl:if test="$id">
                 <xsl:attribute name="id" select="$id"/>
             </xsl:if>
@@ -770,7 +770,7 @@ extension-element-prefixes="ixsl"
         <xsl:apply-templates select="." mode="bs2:RowContentHeader"/>
         
         <!-- @data-content-value is used to retrieve $content-value in client.xsl -->
-        <div about="{@rdf:about}" data-content-value="{rdf:value/@rdf:resource}">
+        <div about="{@rdf:about}" data-content-value="{rdf:value/@rdf:resource}" draggable="true">
             <xsl:if test="$id">
                 <xsl:attribute name="id" select="$id"/>
             </xsl:if>
