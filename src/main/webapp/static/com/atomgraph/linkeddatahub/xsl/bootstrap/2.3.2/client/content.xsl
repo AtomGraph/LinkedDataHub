@@ -127,6 +127,8 @@ exclude-result-prefixes="#all"
         ]]>
     </xsl:variable>
     
+    <xsl:key name="content-by-about" match="*[@about]" use="@about"/>
+
     <!-- TEMPLATES -->
 
     <!-- SELECT query -->
@@ -921,18 +923,21 @@ exclude-result-prefixes="#all"
     <!-- dragging content over other content -->
     
     <xsl:template match="div[contains-token(@class, 'content')]" mode="ixsl:ondragover">
-        <ixsl:set-property name="dataTransfer.dropEffect" select="'move'" object="ixsl:event()"/>
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
+        <ixsl:set-property name="dataTransfer.dropEffect" select="'move'" object="ixsl:event()"/>
         <xsl:message>p ondragover</xsl:message>
     </xsl:template>
 
     <!-- dropping content over other content -->
     
     <xsl:template match="div[contains-token(@class, 'content')]" mode="ixsl:ondrop">
+        <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="content-uri" select="@about" as="xs:anyURI"/>
         <xsl:variable name="drop-content-uri" select="ixsl:call(ixsl:get(ixsl:event(), 'dataTransfer'), 'getData', [ 'text/uri-list' ])" as="xs:anyURI"/>
-        <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:message>p ondrop $content-uri: <xsl:value-of select="$content-uri"/> $drop-content-uri: <xsl:value-of select="$drop-content-uri"/></xsl:message>
+        <xsl:variable name="drop-content" select="key('content-by-about', $drop-content-uri)" as="element()"/>
+        <!-- move dropped element after this element -->
+        <xsl:sequence select="ixsl:call($drop-content, 'after', [ . ])"/>
     </xsl:template>
     
     <!-- CALLBACKS -->
