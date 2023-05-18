@@ -929,9 +929,10 @@ exclude-result-prefixes="#all"
     <!-- dropping content over other content -->
     
     <xsl:template match="div[contains-token(@class, 'content')]" mode="ixsl:ondrop">
-        <xsl:variable name="content-uri" select="ixsl:call(ixsl:get(ixsl:event(), 'dataTransfer'), 'getData', [ 'text/uri-list' ])" as="xs:anyURI"/>
+        <xsl:variable name="content-uri" select="@about" as="xs:anyURI"/>
+        <xsl:variable name="drop-content-uri" select="ixsl:call(ixsl:get(ixsl:event(), 'dataTransfer'), 'getData', [ 'text/uri-list' ])" as="xs:anyURI"/>
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
-        <xsl:message>p ondrop $content-uri: <xsl:value-of select="$content-uri"/></xsl:message>
+        <xsl:message>p ondrop $content-uri: <xsl:value-of select="$content-uri"/> $drop-content-uri: <xsl:value-of select="$drop-content-uri"/></xsl:message>
     </xsl:template>
     
     <!-- CALLBACKS -->
