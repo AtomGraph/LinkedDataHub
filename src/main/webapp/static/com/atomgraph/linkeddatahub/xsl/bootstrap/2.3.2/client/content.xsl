@@ -937,7 +937,7 @@ exclude-result-prefixes="#all"
         <xsl:message>p ondrop $content-uri: <xsl:value-of select="$content-uri"/> $drop-content-uri: <xsl:value-of select="$drop-content-uri"/></xsl:message>
         <xsl:variable name="drop-content" select="key('content-by-about', $drop-content-uri)" as="element()"/>
         <!-- move dropped element after this element -->
-        <xsl:sequence select="ixsl:call($drop-content, 'after', [ . ])"/>
+        <xsl:sequence select="ixsl:call(., 'after', [ $drop-content ])"/>
     </xsl:template>
     
     <!-- CALLBACKS -->
