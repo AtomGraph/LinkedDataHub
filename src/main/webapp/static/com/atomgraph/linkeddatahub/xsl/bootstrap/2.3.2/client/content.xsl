@@ -144,34 +144,38 @@ exclude-result-prefixes="#all"
               $this ?newSeq ?content .
             }
             WHERE
-              {   { $this  ?sourceSeq  $sourceContent
-                    BIND(xsd:integer(substr(str(?sourceSeq), 45)) AS ?sourceIndex)
-                    $this  ?targetSeq  $targetContent
-                    BIND(xsd:integer(substr(str(?targetSeq), 45)) AS ?targetIndex)
-                    $this  ?seq  ?content
-                    FILTER strstarts(str(?seq), str(rdf:_))
-                    BIND(xsd:integer(substr(str(?seq), 45)) AS ?index)
-                    FILTER ( ( ?index > ?sourceIndex ) && ( ?index < ?targetIndex ) )
-                    BIND(?targetIndex AS ?newSourceIndex)
-                    BIND(( ?targetIndex - 1 ) AS ?newTargetIndex)
-                    BIND(( ?index - 1 ) AS ?newIndex)
-                  }
-                UNION
-                  { $this  ?sourceSeq  $sourceContent
-                    BIND(xsd:integer(substr(str(?sourceSeq), 45)) AS ?sourceIndex)
-                    $this  ?targetSeq  $targetContent
-                    BIND(xsd:integer(substr(str(?targetSeq), 45)) AS ?targetIndex)
-                    $this  ?seq  ?content
-                    FILTER strstarts(str(?seq), str(rdf:_))
-                    BIND(xsd:integer(substr(str(?seq), 45)) AS ?index)
-                    FILTER ( ( ?index < ?sourceIndex ) && ( ?index > ?targetIndex ) )
-                    BIND(( ?targetIndex + 1 ) AS ?newSourceIndex)
-                    BIND(?targetIndex AS ?newTargetIndex)
-                    BIND(( ?index + 1 ) AS ?newIndex)
-                  }
+              { $this  ?sourceSeq  $sourceContent
+                BIND(xsd:integer(substr(str(?sourceSeq), 45)) AS ?sourceIndex)
+                $this  ?targetSeq  $targetContent
+                BIND(xsd:integer(substr(str(?targetSeq), 45)) AS ?targetIndex)
+                BIND(if(( ?sourceIndex < ?targetIndex ), ( ?targetIndex - 1 ), ?targetIndex) AS ?newTargetIndex)
+                BIND(if(( ?sourceIndex < ?targetIndex ), ?targetIndex, ( ?targetIndex + 1 )) AS ?newSourceIndex)
                 BIND(IRI(concat(str(rdf:), "_", str(?newSourceIndex))) AS ?newSourceSeq)
                 BIND(IRI(concat(str(rdf:), "_", str(?newTargetIndex))) AS ?newTargetSeq)
-                BIND(IRI(concat(str(rdf:), "_", str(?newIndex))) AS ?newSeq)
+                OPTIONAL
+                  {   { $this  ?sourceSeq  $sourceContent
+                        BIND(xsd:integer(substr(str(?sourceSeq), 45)) AS ?sourceIndex)
+                        $this  ?targetSeq  $targetContent
+                        BIND(xsd:integer(substr(str(?targetSeq), 45)) AS ?targetIndex)
+                        $this  ?seq  ?content
+                        FILTER strstarts(str(?seq), str(rdf:_))
+                        BIND(xsd:integer(substr(str(?seq), 45)) AS ?index)
+                        FILTER ( ( ?index > ?sourceIndex ) && ( ?index < ?targetIndex ) )
+                        BIND(( ?index - 1 ) AS ?newIndex)
+                      }
+                    UNION
+                      { $this  ?sourceSeq  $sourceContent
+                        BIND(xsd:integer(substr(str(?sourceSeq), 45)) AS ?sourceIndex)
+                        $this  ?targetSeq  $targetContent
+                        BIND(xsd:integer(substr(str(?targetSeq), 45)) AS ?targetIndex)
+                        $this  ?seq  ?content
+                        FILTER strstarts(str(?seq), str(rdf:_))
+                        BIND(xsd:integer(substr(str(?seq), 45)) AS ?index)
+                        FILTER ( ( ?index < ?sourceIndex ) && ( ?index > ?targetIndex ) )
+                        BIND(( ?index + 1 ) AS ?newIndex)
+                      }
+                    BIND(IRI(concat(str(rdf:), "_", str(?newIndex))) AS ?newSeq)
+                  }
               }
         ]]>
     </xsl:variable>
