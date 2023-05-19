@@ -996,12 +996,12 @@ exclude-result-prefixes="#all"
         <xsl:variable name="container" select="." as="element()"/>
         <xsl:variable name="content-uri" select="@about" as="xs:anyURI"/>
         <xsl:variable name="drop-content-uri" select="ixsl:call(ixsl:get(ixsl:event(), 'dataTransfer'), 'getData', [ 'text/uri-list' ])" as="xs:anyURI"/>
-        <xsl:variable name="drop-content" select="key('content-by-about', $drop-content-uri)" as="element()"/>
         
         <!-- move dropped element after this element, if they're not the same -->
-        <xsl:if test="not($drop-content is .)">
+        <xsl:if test="not($content-uri = $drop-content-uri)">
             <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
+            <xsl:variable name="drop-content" select="key('content-by-about', $drop-content-uri)" as="element()"/>
             <xsl:sequence select="ixsl:call(., 'after', [ $drop-content ])"/>
             
             <xsl:variable name="update-string" select="replace($content-swap-string, '$this', '&lt;' || ac:uri() || '&gt;', 'q')" as="xs:string"/>
