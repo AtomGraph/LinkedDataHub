@@ -979,6 +979,16 @@ exclude-result-prefixes="#all"
         <ixsl:set-property name="dataTransfer.dropEffect" select="'move'" object="ixsl:event()"/>
     </xsl:template>
 
+    <!-- change the style of elements when content is dragged over them -->
+    
+    <xsl:template match="div[contains-token(@class, 'content')][contains-token(@class, 'row-fluid')]" mode="ixsl:ondragenter">
+        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'drag-over', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+    </xsl:template>
+
+    <xsl:template match="div[contains-token(@class, 'content')][contains-token(@class, 'row-fluid')]" mode="ixsl:ondragleave">
+        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'drag-over', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+    </xsl:template>
+
     <!-- dropping content over other content -->
     
     <xsl:template match="div[contains-token(@class, 'content')][contains-token(@class, 'row-fluid')]" mode="ixsl:ondrop">
@@ -990,6 +1000,8 @@ exclude-result-prefixes="#all"
         
         <!-- move dropped element after this element, if they're not the same -->
         <xsl:if test="not($drop-content is .)">
+            <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+
             <xsl:sequence select="ixsl:call(., 'after', [ $drop-content ])"/>
             
             <xsl:variable name="update-string" select="replace($content-swap-string, '$this', '&lt;' || ac:uri() || '&gt;', 'q')" as="xs:string"/>
