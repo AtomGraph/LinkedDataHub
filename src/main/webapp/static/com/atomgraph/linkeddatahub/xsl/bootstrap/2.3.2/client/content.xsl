@@ -153,27 +153,17 @@ exclude-result-prefixes="#all"
                 BIND(IRI(concat(str(rdf:), "_", str(?newSourceIndex))) AS ?newSourceSeq)
                 BIND(IRI(concat(str(rdf:), "_", str(?newTargetIndex))) AS ?newTargetSeq)
                 OPTIONAL
-                  {   { $this  ?sourceSeq  $sourceContent
-                        BIND(xsd:integer(substr(str(?sourceSeq), 45)) AS ?sourceIndex)
-                        $this  ?targetSeq  $targetContent
-                        BIND(xsd:integer(substr(str(?targetSeq), 45)) AS ?targetIndex)
-                        $this  ?seq  ?content
-                        FILTER strstarts(str(?seq), str(rdf:_))
-                        BIND(xsd:integer(substr(str(?seq), 45)) AS ?index)
-                        FILTER ( ( ?index > ?sourceIndex ) && ( ?index < ?targetIndex ) )
-                        BIND(( ?index - 1 ) AS ?newIndex)
-                      }
-                    UNION
-                      { $this  ?sourceSeq  $sourceContent
-                        BIND(xsd:integer(substr(str(?sourceSeq), 45)) AS ?sourceIndex)
-                        $this  ?targetSeq  $targetContent
-                        BIND(xsd:integer(substr(str(?targetSeq), 45)) AS ?targetIndex)
-                        $this  ?seq  ?content
-                        FILTER strstarts(str(?seq), str(rdf:_))
-                        BIND(xsd:integer(substr(str(?seq), 45)) AS ?index)
-                        FILTER ( ( ?index < ?sourceIndex ) && ( ?index > ?targetIndex ) )
-                        BIND(( ?index + 1 ) AS ?newIndex)
-                      }
+                  { $this  ?sourceSeq  $sourceContent
+                    BIND(xsd:integer(substr(str(?sourceSeq), 45)) AS ?sourceIndex)
+                    $this  ?targetSeq  $targetContent
+                    BIND(xsd:integer(substr(str(?targetSeq), 45)) AS ?targetIndex)
+                    $this  ?seq  ?content
+                    FILTER strstarts(str(?seq), str(rdf:_))
+                    BIND(xsd:integer(substr(str(?seq), 45)) AS ?index)
+                    BIND(( ( ?index > ?sourceIndex ) && ( ?index < ?targetIndex ) ) AS ?isBetweenSourceAndTarget)
+                    BIND(( ( ?index < ?sourceIndex ) && ( ?index > ?targetIndex ) ) AS ?isBetweenTargetAndSource)
+                    FILTER ( ?isBetweenSourceAndTarget || ?isBetweenTargetAndSource )
+                    BIND(( ?index + if(?isBetweenSourceAndTarget, -1, +1) ) AS ?newIndex)
                     BIND(IRI(concat(str(rdf:), "_", str(?newIndex))) AS ?newSeq)
                   }
               }
