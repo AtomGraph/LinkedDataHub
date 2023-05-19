@@ -964,29 +964,31 @@ exclude-result-prefixes="#all"
 
     <!-- dragging content over other content -->
     
-    <xsl:template match="div[contains-token(@class, 'content')][contains-token(@class, 'row-fluid')]" mode="ixsl:ondragover">
+    <xsl:template match="div[contains-token(@class, 'content')][contains-token(@class, 'row-fluid')][acl:mode() = '&acl;Write']" mode="ixsl:ondragover">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <ixsl:set-property name="dataTransfer.dropEffect" select="'move'" object="ixsl:event()"/>
     </xsl:template>
 
     <!-- change the style of elements when content is dragged over them -->
     
-    <xsl:template match="div[contains-token(@class, 'content')][contains-token(@class, 'row-fluid')]" mode="ixsl:ondragenter">
+    <xsl:template match="div[contains-token(@class, 'content')][contains-token(@class, 'row-fluid')][acl:mode() = '&acl;Write']" mode="ixsl:ondragenter">
         <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'drag-over', true() ])[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
 
-    <xsl:template match="div[contains-token(@class, 'content')][contains-token(@class, 'row-fluid')]" mode="ixsl:ondragleave">
+    <xsl:template match="div[contains-token(@class, 'content')][contains-token(@class, 'row-fluid')][acl:mode() = '&acl;Write']" mode="ixsl:ondragleave">
         <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'drag-over', false() ])[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
 
     <!-- dropping content over other content -->
     
-    <xsl:template match="div[contains-token(@class, 'content')][contains-token(@class, 'row-fluid')]" mode="ixsl:ondrop">
+    <xsl:template match="div[contains-token(@class, 'content')][contains-token(@class, 'row-fluid')][acl:mode() = '&acl;Write']" mode="ixsl:ondrop">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="container" select="." as="element()"/>
         <xsl:variable name="content-uri" select="@about" as="xs:anyURI"/>
         <xsl:variable name="drop-content-uri" select="ixsl:call(ixsl:get(ixsl:event(), 'dataTransfer'), 'getData', [ 'text/uri-list' ])" as="xs:anyURI"/>
         
+        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'drag-over', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+
         <!-- move dropped element after this element, if they're not the same -->
         <xsl:if test="not($content-uri = $drop-content-uri)">
             <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
