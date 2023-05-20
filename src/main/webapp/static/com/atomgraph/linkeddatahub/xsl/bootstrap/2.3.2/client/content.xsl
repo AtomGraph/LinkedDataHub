@@ -989,6 +989,7 @@ exclude-result-prefixes="#all"
 
             <xsl:if test="$dragenter-target is ixsl:get(ixsl:event(), 'target')">
                 <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'drag-over', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+                <ixsl:remove-property name="dragenter-target" object="ixsl:get(ixsl:window(), 'LinkedDataHub.drag')"/>
             </xsl:if>
         </xsl:if>
     </xsl:template>
