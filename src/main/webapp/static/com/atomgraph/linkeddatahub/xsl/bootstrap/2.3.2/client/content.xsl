@@ -976,7 +976,12 @@ exclude-result-prefixes="#all"
     </xsl:template>
 
     <xsl:template match="div[contains-token(@class, 'content')][contains-token(@class, 'row-fluid')][acl:mode() = '&acl;Write']" mode="ixsl:ondragleave">
-        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'drag-over', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:variable name="container" select="." as="element()"/>
+
+        <!-- remove class unless the drag is leaving to the descendands of this content -->
+        <xsl:if test="not(ixsl:get(ixsl:event(), 'target')/ancestor::*[. is $container])">
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'drag-over', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+        </xsl:if>
     </xsl:template>
 
     <!-- dropping content over other content -->
