@@ -442,16 +442,18 @@ LIMIT   100
             </script>
         </xsl:if>
         <xsl:if test="$output-schema-org">
-            <!-- output structured data: https://developers.google.com/search/docs/guides/intro-structured-data -->
-            <script type="application/ld+json">
-                <xsl:variable name="rdf" as="element()">
-                    <xsl:apply-templates select="." mode="schema:BreadCrumbList"/>
-                </xsl:variable>
-                <xsl:variable name="json-xml" as="element()">
-                    <xsl:apply-templates select="$rdf" mode="ac:JSON-LD"/>
-                </xsl:variable>
-                <xsl:sequence select="xml-to-json($json-xml)"/>
-            </script>
+            <xsl:variable name="rdf" as="element()?">
+                <xsl:apply-templates select="." mode="schema:BreadCrumbList"/>
+            </xsl:variable>
+            <xsl:if test="exists($rdf)">
+                <!-- output structured data: https://developers.google.com/search/docs/guides/intro-structured-data -->
+                <script type="application/ld+json">
+                    <xsl:variable name="json-xml" as="element()">
+                        <xsl:apply-templates select="$rdf" mode="ac:JSON-LD"/>
+                    </xsl:variable>
+                    <xsl:sequence select="xml-to-json($json-xml)"/>
+                </script>
+            </xsl:if>
         </xsl:if>
     </xsl:template>
     
