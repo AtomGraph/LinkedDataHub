@@ -971,14 +971,17 @@ exclude-result-prefixes="#all"
 
     <!-- change the style of elements when content is dragged over them -->
     
-    <xsl:template match="div[contains-token(@class, 'content')][contains-token(@class, 'row-fluid')][acl:mode() = '&acl;Write']/descendant-or-self::*" mode="ixsl:ondragenter">
-        <xsl:variable name="container" select="ancestor-or-self::div[contains-token(@class, 'content')][contains-token(@class, 'row-fluid')]" as="element()"/>
-
-        <xsl:sequence select="ixsl:call(ixsl:get($container, 'classList'), 'toggle', [ 'drag-over', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+    <xsl:template match="div[contains-token(@class, 'content')][contains-token(@class, 'row-fluid')][acl:mode() = '&acl;Write']" mode="ixsl:ondragenter">
+        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'drag-over', true() ])[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
 
     <xsl:template match="div[contains-token(@class, 'content')][contains-token(@class, 'row-fluid')][acl:mode() = '&acl;Write']" mode="ixsl:ondragleave">
-        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'drag-over', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:variable name="related-target" select="ixsl:get(ixsl:event(), 'relatedTarget')" as="element()"/> <!-- the element drag entered -->
+
+        <!-- only remove class if the related target does not have this div as ancestor (is not its child) -->
+        <xsl:if test="not($related-target/ancestor-or-self::div[. is current()])">
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'drag-over', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+        </xsl:if>
     </xsl:template>
 
     <!-- dropping content over other content -->
