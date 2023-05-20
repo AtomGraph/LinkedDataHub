@@ -974,9 +974,8 @@ exclude-result-prefixes="#all"
     <xsl:template match="div[contains-token(@class, 'content')][contains-token(@class, 'row-fluid')][acl:mode() = '&acl;Write']" mode="ixsl:ondragenter">
         <xsl:variable name="container" select="." as="element()"/>
 
-        <xsl:if test="not(ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.drag'), 'dragenter-target'))">
-            <ixsl:set-property name="dragenter-target" select="ixsl:get(ixsl:event(), 'currentTarget')" object="ixsl:get(ixsl:window(), 'LinkedDataHub.drag')"/>
-
+        <!-- add class unless the drag is entering this content itself -->
+        <xsl:if test="not(ixsl:get(ixsl:event(), 'target')/ancestor::*[. is $container])">
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'drag-over', true() ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:if>
     </xsl:template>
@@ -984,13 +983,9 @@ exclude-result-prefixes="#all"
     <xsl:template match="div[contains-token(@class, 'content')][contains-token(@class, 'row-fluid')][acl:mode() = '&acl;Write']" mode="ixsl:ondragleave">
         <xsl:variable name="container" select="." as="element()"/>
 
-        <xsl:if test="ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.drag'), 'dragenter-target')">
-            <xsl:variable name="dragenter-target" select="ixsl:get(ixsl:window(), 'LinkedDataHub.drag.dragenter-target')" as="element()"/>
-
-            <xsl:if test="$dragenter-target is ixsl:get(ixsl:event(), 'target')">
-                <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'drag-over', false() ])[current-date() lt xs:date('2000-01-01')]"/>
-                <ixsl:remove-property name="dragenter-target" object="ixsl:get(ixsl:window(), 'LinkedDataHub.drag')"/>
-            </xsl:if>
+        <!-- remove class unless the drag is leaving to the descendands of this content -->
+        <xsl:if test="not(ixsl:get(ixsl:event(), 'target')/ancestor::*[. is $container])">
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'drag-over', false() ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:if>
     </xsl:template>
 
