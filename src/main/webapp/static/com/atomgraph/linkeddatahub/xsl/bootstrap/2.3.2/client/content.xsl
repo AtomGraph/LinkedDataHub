@@ -976,7 +976,7 @@ exclude-result-prefixes="#all"
     </xsl:template>
 
     <xsl:template match="div[contains-token(@class, 'content')][contains-token(@class, 'row-fluid')][acl:mode() = '&acl;Write']" mode="ixsl:ondragleave">
-        <xsl:variable name="related-target" select="ixsl:get(ixsl:event(), 'relatedTarget')" as="element()"/> <!-- the element drag entered -->
+        <xsl:variable name="related-target" select="ixsl:get(ixsl:event(), 'relatedTarget')" as="element()?"/> <!-- the element drag entered (optional) -->
 
         <!-- only remove class if the related target does not have this div as ancestor (is not its child) -->
         <xsl:if test="not($related-target/ancestor-or-self::div[. is current()])">
