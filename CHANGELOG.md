@@ -1,7 +1,14 @@
+## [4.0.3] - 2023-05-24
+### Added
+- Option to re-arrange content blocks by drag & drop in content mode (enabled only when the agent has write access)
+
+### Changed
+- Instead of writing JSON-LD directly, `schema:BreadCrumbList` mode returns RDF/XML which is then transformed to JSON-LD using `ac:JSON-LD`
+
 ## [4.0.2] - 2023-05-08
 ### Added
 - [XML sitemap](https://www.sitemaps.org/protocol.html) generation when env param `GENERATE_SITEMAP=true` is specified (enabled by default)
-- JSON-LD output in the `<script>` tag containing [schema:BreadCrumbList](https://schema.org/BreadcrumbList) structured data
+- JSON-LD output in the `<script>` tag containing [`schema:BreadCrumbList`](https://schema.org/BreadcrumbList) structured data
 
 ### Changed
 - Content blocks use `@about` attributes as identifiers instead of `@data-content-uri`

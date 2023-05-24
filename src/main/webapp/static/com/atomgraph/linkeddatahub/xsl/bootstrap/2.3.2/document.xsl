@@ -69,17 +69,20 @@ extension-element-prefixes="ixsl"
 
         <xsl:if test="$resource">
             <xsl:variable name="doc-with-ancestors" select="ldh:doc-with-ancestors($resource)" as="element()*"/>
-            <xsl:variable name="json-xml" as="element()">
-                <json:map>
-                    <json:string key="@type">&schema;BreadcrumbList</json:string>
 
-                    <json:array key="&schema;itemListElement">
-                        <!-- position index has to start from Root=1, so we need to reverse the ancestor sequence -->
-                        <xsl:apply-templates select="reverse($doc-with-ancestors)" mode="schema:BreadCrumbListItem"/>
-                    </json:array>
-                </json:map>
-            </xsl:variable>
-            <xsl:sequence select="xml-to-json($json-xml)"/>
+            <rdf:RDF>
+                <rdf:Description rdf:nodeID="breadcrumb-list">
+                    <rdf:type rdf:resource="&schema;BreadcrumbList"/>
+
+                    <!-- position index has to start from Root=1, so we need to reverse the ancestor sequence -->
+                    <xsl:for-each select="reverse($doc-with-ancestors)">
+                        <schema:itemListElement rdf:nodeID="item{position()}"/> <!-- rdf:nodeID aligned with schema:BreadCrumbListItem output -->
+                    </xsl:for-each>
+                </rdf:Description>
+
+                <!-- position index has to start from Root=1, so we need to reverse the ancestor sequence -->
+                <xsl:apply-templates select="reverse($doc-with-ancestors)" mode="schema:BreadCrumbListItem"/>
+            </rdf:RDF>
         </xsl:if>
     </xsl:template>
 
