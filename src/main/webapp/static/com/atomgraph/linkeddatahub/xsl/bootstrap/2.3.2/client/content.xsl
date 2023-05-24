@@ -126,7 +126,52 @@ exclude-result-prefixes="#all"
             }
         ]]>
     </xsl:variable>
+    <xsl:variable name="content-swap-string" as="xs:string">
+        <![CDATA[
+            PREFIX  xsd:  <http://www.w3.org/2001/XMLSchema#>
+            PREFIX  ldh:  <https://w3id.org/atomgraph/linkeddatahub#>
+            PREFIX  ac:   <https://w3id.org/atomgraph/client#>
+            PREFIX  rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+
+            DELETE {
+              $this ?sourceSeq $sourceContent .
+              $this ?targetSeq $targetContent .
+              $this ?seq ?content .
+            }
+            INSERT {
+              $this ?newSourceSeq $sourceContent .
+              $this ?newTargetSeq $targetContent .
+              $this ?newSeq ?content .
+            }
+            WHERE
+              { $this  ?sourceSeq  $sourceContent
+                BIND(xsd:integer(substr(str(?sourceSeq), 45)) AS ?sourceIndex)
+                $this  ?targetSeq  $targetContent
+                BIND(xsd:integer(substr(str(?targetSeq), 45)) AS ?targetIndex)
+                BIND(if(( ?sourceIndex < ?targetIndex ), ( ?targetIndex - 1 ), ?targetIndex) AS ?newTargetIndex)
+                BIND(if(( ?sourceIndex < ?targetIndex ), ?targetIndex, ( ?targetIndex + 1 )) AS ?newSourceIndex)
+                BIND(IRI(concat(str(rdf:), "_", str(?newSourceIndex))) AS ?newSourceSeq)
+                BIND(IRI(concat(str(rdf:), "_", str(?newTargetIndex))) AS ?newTargetSeq)
+                OPTIONAL
+                  { $this  ?sourceSeq  $sourceContent
+                    BIND(xsd:integer(substr(str(?sourceSeq), 45)) AS ?sourceIndex)
+                    $this  ?targetSeq  $targetContent
+                    BIND(xsd:integer(substr(str(?targetSeq), 45)) AS ?targetIndex)
+                    $this  ?seq  ?content
+                    FILTER strstarts(str(?seq), str(rdf:_))
+                    BIND(xsd:integer(substr(str(?seq), 45)) AS ?index)
+                    BIND(( ( ?index > ?sourceIndex ) && ( ?index < ?targetIndex ) ) AS ?isBetweenSourceAndTarget)
+                    BIND(( ( ?index < ?sourceIndex ) && ( ?index > ?targetIndex ) ) AS ?isBetweenTargetAndSource)
+                    FILTER ( ?isBetweenSourceAndTarget || ?isBetweenTargetAndSource )
+                    BIND(( ?index + if(?isBetweenSourceAndTarget, -1, +1) ) AS ?newIndex)
+                    BIND(IRI(concat(str(rdf:), "_", str(?newIndex))) AS ?newSeq)
+                  }
+              }
+        ]]>
+    </xsl:variable>
     
+    <xsl:key name="content-by-about" match="*[@about]" use="@about"/>
+
     <!-- TEMPLATES -->
 
     <!-- SELECT query -->
@@ -909,6 +954,68 @@ exclude-result-prefixes="#all"
         </xsl:for-each>
     </xsl:template>
     
+    <!-- start dragging content -->
+    
+    <xsl:template match="div[contains-token(@class, 'content')][contains-token(@class, 'row-fluid')]" mode="ixsl:ondragstart">
+        <xsl:variable name="content-uri" select="@about" as="xs:anyURI"/>
+        <ixsl:set-property name="dataTransfer.effectAllowed" select="'move'" object="ixsl:event()"/>
+        <xsl:sequence select="ixsl:call(ixsl:get(ixsl:event(), 'dataTransfer'), 'setData', [ 'text/uri-list', $content-uri ])"/>
+    </xsl:template>
+
+    <!-- dragging content over other content -->
+    
+    <xsl:template match="div[contains-token(@class, 'content')][contains-token(@class, 'row-fluid')][acl:mode() = '&acl;Write']" mode="ixsl:ondragover">
+        <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
+        <ixsl:set-property name="dataTransfer.dropEffect" select="'move'" object="ixsl:event()"/>
+    </xsl:template>
+
+    <!-- change the style of elements when content is dragged over them -->
+    
+    <xsl:template match="div[contains-token(@class, 'content')][contains-token(@class, 'row-fluid')][acl:mode() = '&acl;Write']" mode="ixsl:ondragenter">
+        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'drag-over', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+    </xsl:template>
+
+    <xsl:template match="div[contains-token(@class, 'content')][contains-token(@class, 'row-fluid')][acl:mode() = '&acl;Write']" mode="ixsl:ondragleave">
+        <xsl:variable name="related-target" select="ixsl:get(ixsl:event(), 'relatedTarget')" as="element()?"/> <!-- the element drag entered (optional) -->
+
+        <!-- only remove class if the related target does not have this div as ancestor (is not its child) -->
+        <xsl:if test="not($related-target/ancestor-or-self::div[. is current()])">
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'drag-over', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+        </xsl:if>
+    </xsl:template>
+
+    <!-- dropping content over other content -->
+    
+    <xsl:template match="div[contains-token(@class, 'content')][contains-token(@class, 'row-fluid')][acl:mode() = '&acl;Write']" mode="ixsl:ondrop">
+        <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
+        <xsl:variable name="container" select="." as="element()"/>
+        <xsl:variable name="content-uri" select="@about" as="xs:anyURI"/>
+        <xsl:variable name="drop-content-uri" select="ixsl:call(ixsl:get(ixsl:event(), 'dataTransfer'), 'getData', [ 'text/uri-list' ])" as="xs:anyURI"/>
+        
+        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'drag-over', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+
+        <!-- move dropped element after this element, if they're not the same -->
+        <xsl:if test="not($content-uri = $drop-content-uri)">
+            <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+
+            <xsl:variable name="drop-content" select="key('content-by-about', $drop-content-uri)" as="element()"/>
+            <xsl:sequence select="ixsl:call(., 'after', [ $drop-content ])"/>
+            
+            <xsl:variable name="update-string" select="replace($content-swap-string, '$this', '&lt;' || ac:uri() || '&gt;', 'q')" as="xs:string"/>
+            <xsl:variable name="update-string" select="replace($update-string, '$targetContent', '&lt;' || $content-uri || '&gt;', 'q')" as="xs:string"/>
+            <xsl:variable name="update-string" select="replace($update-string, '$sourceContent', '&lt;' || $drop-content-uri || '&gt;', 'q')" as="xs:string"/>
+            <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), map{}, ac:uri())" as="xs:anyURI"/>
+            <xsl:variable name="request" as="item()*">
+                <ixsl:schedule-action http-request="map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string }">
+                    <xsl:call-template name="onContentSwap">
+                        <xsl:with-param name="container" select="$container"/>
+                    </xsl:call-template>
+                </ixsl:schedule-action>
+            </xsl:variable>
+            <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+        </xsl:if>
+    </xsl:template>
+    
     <!-- CALLBACKS -->
     
     <!-- load content -->
@@ -1180,6 +1287,23 @@ exclude-result-prefixes="#all"
             </xsl:when>
             <xsl:otherwise>
                 <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ 'Could not delete content' ])[current-date() lt xs:date('2000-01-01')]"/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:template>
+    
+    <!-- content swap (drag & drop) -->
+    
+    <xsl:template name="onContentSwap">
+        <xsl:context-item as="map(*)" use="required"/>
+        <xsl:param name="container" as="element()"/>
+
+        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
+        
+        <xsl:choose>
+            <xsl:when test="?status = 200">
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ 'Could not swap content' ])[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
