@@ -489,8 +489,15 @@
                      
                      <h2 id="caching">Caching</h2>
                      
-                     <p><code>GET</code> and <code>HEAD</code> responses will be cached automatically by LinkedDataHub using <a href="https://varnish-cache.org" target="_blank">Varnish</a>
+                     <p><code>GET</code> and <code>HEAD</code> RDF responses from the backend triplestores (<em>not LinkedDataHub responses</em>) are cached automatically by LinkedDataHub using <a href="https://varnish-cache.org" target="_blank">Varnish</a>
                         as HTTP proxy cache. You can check the age of the response by inspecting the <code>Age</code> response header (the value is in seconds).</p>
+                     
+                     <p>LinkedDataHub sends <code>ETag</code> response headers that are derived as hashes of the requested document's RDF content.
+                        Every serialization format (HTML, RDF/XML, Turtle etc.) gets a distinct <em>ETag</em> value.</p>
+                     
+                     <p>Caching of LinkedDataHub responses can be enabled on the nginx HTTP proxy server by
+                        uncommenting the <code>add_header Cache-Control</code> directives in the <samp>platform/nginx.conf.template</samp> file.
+                        Caching of <samp>/uploads/</samp> and <samp>/static/</samp> namespaces is enabled by default (since version 4.0.4).</p>
                      </div>
                   </div>
                <nav></nav>
