@@ -181,6 +181,7 @@ An environment variable `JENA_HOME` is used by all the command line tools to con
 
 ### Third party
 
+* [KGDN](https://kgdev.net) - an open-source, collaborative project documenting RDF Knowledge Graph technologies, including RDF, SPARQL, OWL, and SHACL
 * [NOI OpenDataHub](https://kg.opendatahub.bz.it) – tourism Knowledge Graph portal powered by LinkedDataHub and [@ontop](https://github.com/ontop). [Source code](https://github.com/noi-techpark/it.bz.opendatahub.kg).
 * [LDH Uploader](https://github.com/tmciver/ldh-uploader) - a collection of shell scripts used to upload files or directory of files to a LinkedDataHub instance by [@tmciver](https://github.com/tmciver)
 
