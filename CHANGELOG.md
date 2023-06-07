@@ -1,3 +1,7 @@
+## [4.0.4] - 2023-06-07
+### Changed
+- Moved `Cache-Control` header settings from webapp's `web.xml` to nginx's config template
+
 ## [4.0.3] - 2023-05-24
 ### Added
 - Option to re-arrange content blocks by drag & drop in content mode (enabled only when the agent has write access)
