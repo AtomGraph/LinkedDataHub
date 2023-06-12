@@ -571,8 +571,12 @@ exclude-result-prefixes="#all"
         <xsl:context-item as="document-node()" use="required"/>
         <xsl:param name="container" as="element()"/>
         <xsl:param name="sub-container-id" as="xs:string"/>
-        <xsl:param name="select-xml" as="document-node()"/>
-        <xsl:param name="initial-var-name" as="xs:string"/> <!-- use the first SELECT variable as the facet variable name (so that we do not generate facets based on other variables) -->
+        <xsl:variable name="select-string" as="xs:string"/>
+        <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', [ $select-string ])"/>
+        <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ ixsl:call($select-builder, 'build', []) ])" as="xs:string"/>
+        <xsl:variable name="select-xml" select="json-to-xml($select-json-string)" as="document-node()"/>
+        <!-- use the first SELECT variable as the facet variable name (so that we do not generate facets based on other variables) -->
+        <xsl:variable name="initial-var-name" select="$select-xml/json:map/json:array[@key = 'variables']/json:string[1]/substring-after(., '?')" as="xs:string"/>
 
         <!-- only append facets if they are not already present -->
         <xsl:if test="not(id($sub-container-id, ixsl:page()))">
@@ -584,7 +588,7 @@ exclude-result-prefixes="#all"
                     </xsl:apply-templates>
                 </xsl:result-document>
             </xsl:for-each>
-        
+            <xsl:variable name="sub-container" select="id($sub-container-id, ixsl:page())" as="element()"/>
             <!-- use the BGPs where the predicate is a URI value and the subject and object are variables -->
             <xsl:variable name="bgp-triples-map" select="$select-xml//json:map[json:string[@key = 'type'] = 'bgp']/json:array[@key = 'triples']/json:map[json:string[@key = 'subject'] = '?' || $initial-var-name][not(starts-with(json:string[@key = 'predicate'], '?'))][starts-with(json:string[@key = 'object'], '?')]" as="element()*"/>
 
@@ -600,7 +604,7 @@ exclude-result-prefixes="#all"
                     <xsl:variable name="request" as="item()*">
                         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                             <xsl:call-template name="bs2:FilterIn">
-                                <xsl:with-param name="container" select="$container"/>
+                                <xsl:with-param name="container" select="$sub-container"/>
                                 <xsl:with-param name="id" select="$id"/>
                                 <xsl:with-param name="subject-var-name" select="$subject-var-name"/>
                                 <xsl:with-param name="predicate" select="$predicate"/>
@@ -1370,14 +1374,10 @@ exclude-result-prefixes="#all"
                          <ixsl:set-style name="display" select="'none'" object="."/>
                      </xsl:for-each>
                 
-                    <!-- use the initial (not the current, transformed) SELECT query and focus var name for facet rendering -->
-                    <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', [ $select-string ])"/>
-                    <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ ixsl:call($select-builder, 'build', []) ])" as="xs:string"/>
-                    <xsl:variable name="select-xml" select="json-to-xml($select-json-string)" as="document-node()"/>
-                    <xsl:variable name="initial-var-name" select="$select-xml/json:map/json:array[@key = 'variables']/json:string[1]/substring-after(., '?')" as="xs:string"/>
+                    <!-- use the initial (not the current transformed) SELECT query and focus var name for facet rendering -->
                     <xsl:call-template name="ldh:RenderFacets">
                         <xsl:with-param name="initial-var-name" select="$initial-var-name"/>
-                        <xsl:with-param name="select-xml" select="$select-xml"/>
+                        <xsl:with-param name="select-string" select="select-string"/>
                         <xsl:with-param name="container" select="$container/div[contains-token(@class, 'left-nav')]"/>
                         <xsl:with-param name="sub-container-id" select="$content-id || '-left-nav'"/>
                     </xsl:call-template>
@@ -1419,7 +1419,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="container" as="element()"/>
         <xsl:param name="container-id" select="ixsl:get($container, 'id')" as="xs:string"/>
         <xsl:param name="var-name" as="xs:string"/>
-        <xsl:param name="results" select="." as="document-node()"/>
+        <xsl:param name="results" as="document-node()"/>
         
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = 'application/sparql-results+xml'">
@@ -1654,7 +1654,9 @@ exclude-result-prefixes="#all"
                     <xsl:variable name="results" select="." as="document-node()"/>
                     <xsl:for-each select="$container">
                         <xsl:result-document href="?." method="ixsl:replace-content">
-                            <xsl:apply-templates select="$results" mode="ldh:ResultCountResultsLoad"/>
+                            <xsl:apply-templates select="$results" mode="ldh:ResultCountResultsLoad">
+                                <xsl:with-param name="count-var-name" select="$count-var-name"/>
+                            </xsl:apply-templates>
                         </xsl:result-document>
                     </xsl:for-each>
                 </xsl:for-each>
@@ -1668,11 +1670,12 @@ exclude-result-prefixes="#all"
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
-    
+
     <xsl:template match="srx:sparql" mode="ldh:ResultCountResultsLoad">
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" as="xs:string?"/>
-        
+        <xsl:param name="count-var-name" as="xs:string"/>
+
         <strong>
             <xsl:apply-templates select="key('resources', 'total-results', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
             <xsl:text> </xsl:text>
