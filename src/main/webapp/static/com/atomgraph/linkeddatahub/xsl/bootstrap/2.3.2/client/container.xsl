@@ -800,7 +800,7 @@ exclude-result-prefixes="#all"
                 <xsl:call-template name="onParallaxNavSelectLoad">
                     <xsl:with-param name="container" select="id($properties-container-id, ixsl:page())"/>
                     <xsl:with-param name="var-name" select="$focus-var-name"/>
-                    <xsl:with-param name="results" select="."/>
+                    <xsl:with-param name="results" select="$results"/>
                 </xsl:call-template>
             </ixsl:schedule-action>
         </xsl:if>
@@ -1360,7 +1360,7 @@ exclude-result-prefixes="#all"
                         <xsl:with-param name="content-uri" select="$content-uri"/>
                         <xsl:with-param name="content" select="$content"/>
                         <xsl:with-param name="endpoint" select="$endpoint"/>
-                        <xsl:with-param name="results" select="$sorted-results"/>  <!-- TO-DO! -->
+                        <xsl:with-param name="results" select="$sorted-results"/>
                         <xsl:with-param name="select-xml" select="$select-xml"/>
                         <xsl:with-param name="active-mode" select="$active-mode"/>
                     </xsl:call-template>
