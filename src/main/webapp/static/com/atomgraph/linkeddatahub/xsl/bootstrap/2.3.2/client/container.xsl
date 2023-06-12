@@ -571,7 +571,7 @@ exclude-result-prefixes="#all"
         <xsl:context-item as="document-node()" use="required"/>
         <xsl:param name="container" as="element()"/>
         <xsl:param name="sub-container-id" as="xs:string"/>
-        <xsl:variable name="select-string" as="xs:string"/>
+        <xsl:param name="select-string" as="xs:string"/>
         <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', [ $select-string ])"/>
         <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ ixsl:call($select-builder, 'build', []) ])" as="xs:string"/>
         <xsl:variable name="select-xml" select="json-to-xml($select-json-string)" as="document-node()"/>
@@ -1376,7 +1376,6 @@ exclude-result-prefixes="#all"
                 
                     <!-- use the initial (not the current transformed) SELECT query and focus var name for facet rendering -->
                     <xsl:call-template name="ldh:RenderFacets">
-                        <xsl:with-param name="initial-var-name" select="$initial-var-name"/>
                         <xsl:with-param name="select-string" select="select-string"/>
                         <xsl:with-param name="container" select="$container/div[contains-token(@class, 'left-nav')]"/>
                         <xsl:with-param name="sub-container-id" select="$content-id || '-left-nav'"/>
