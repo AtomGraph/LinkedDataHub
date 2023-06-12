@@ -141,7 +141,7 @@ exclude-result-prefixes="#all"
                 <xsl:attribute name="class" select="$class"/>
             </xsl:if>
 
-            <h2 class="nav-header btn">
+            <h2 class="nav-header btn" title="{$resource/@rdf:about}">
                 <xsl:value-of>
                     <xsl:apply-templates select="$resource" mode="ac:label"/>
                 </xsl:value-of>
@@ -1353,6 +1353,7 @@ exclude-result-prefixes="#all"
                     </xsl:if>
 
                     <ixsl:set-property name="dataset.contentMode" select="$active-mode" object="$container"/>
+                    
         
                     <xsl:call-template name="ldh:RenderContainerMode">
                         <xsl:with-param name="container" select="$content-container//div[contains-token(@class, 'container-results')]"/>
