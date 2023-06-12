@@ -101,6 +101,7 @@ exclude-result-prefixes="#all"
     <!-- transform SPARQL BGP triple into facet header and placeholder -->
     <xsl:template name="bs2:FilterIn">
         <xsl:context-item as="map(*)" use="required"/>
+        <xsl:param name="container" as="element()"/>
         <xsl:param name="class" select="'sidebar-nav faceted-nav'" as="xs:string?"/>
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="subject-var-name" as="xs:string"/>
@@ -110,15 +111,17 @@ exclude-result-prefixes="#all"
         <xsl:if test="?status = 200 and ?media-type = 'application/rdf+xml' and ?body">
             <xsl:variable name="body" select="?body" as="document-node()"/>
             
-            <xsl:result-document href="?." method="ixsl:append-content">
-                <xsl:apply-templates select="." mode="bs2:FilterIn">
-                    <xsl:with-param name="id" select="$id"/>
-                    <xsl:with-param name="class" select="$class"/>
-                    <xsl:with-param name="resource" select="key('resources', $predicate, $body)"/>
-                    <xsl:with-param name="subject-var-name" select="$subject-var-name"/>
-                    <xsl:with-param name="object-var-name" select="$object-var-name"/>
-                </xsl:apply-templates>
-            </xsl:result-document>
+            <xsl:for-each select="$container">
+                <xsl:result-document href="?." method="ixsl:append-content">
+                    <xsl:apply-templates select="." mode="bs2:FilterIn">
+                        <xsl:with-param name="id" select="$id"/>
+                        <xsl:with-param name="class" select="$class"/>
+                        <xsl:with-param name="resource" select="key('resources', $predicate, $body)"/>
+                        <xsl:with-param name="subject-var-name" select="$subject-var-name"/>
+                        <xsl:with-param name="object-var-name" select="$object-var-name"/>
+                    </xsl:apply-templates>
+                </xsl:result-document>
+            </xsl:for-each>
         </xsl:if>
         <!-- ignore error response -->
     </xsl:template>
@@ -156,7 +159,7 @@ exclude-result-prefixes="#all"
     <!-- result counts -->
     
     <xsl:template name="ldh:ResultCount">
-        <xsl:param name="container" as="element()"/>
+        <xsl:context-item as="element()" use="required"/>
         <xsl:param name="count-var-name" select="'count'" as="xs:string"/>
         <xsl:param name="endpoint" as="xs:anyURI"/>
         <xsl:param name="select-xml" as="document-node()"/>
@@ -195,7 +198,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml' } }">
                 <xsl:call-template name="ldh:ResultCountResultsLoad">
-                    <xsl:with-param name="container" select="$container"/>
+                    <xsl:with-param name="container" select="."/>
                     <xsl:with-param name="count-var-name" select="$count-var-name"/>
                 </xsl:call-template>
             </ixsl:schedule-action>
@@ -1376,12 +1379,13 @@ exclude-result-prefixes="#all"
                     </xsl:for-each>
                 
                     <!-- result count -->
-                    <xsl:call-template name="ldh:ResultCount">
-                        <xsl:with-param name="focus-var-name" select="$focus-var-name"/>
-                        <xsl:with-param name="endpoint" select="$endpoint"/>
-                        <xsl:with-param name="select-xml" select="$select-xml"/>
-                        <xsl:with-param name="container" select="id($result-count-container-id, ixsl:page())"/> <!-- TO-DO! -->
-                    </xsl:call-template>
+                    <xsl:for-each select="id($result-count-container-id, ixsl:page())">
+                        <xsl:call-template name="ldh:ResultCount">
+                            <xsl:with-param name="focus-var-name" select="$focus-var-name"/>
+                            <xsl:with-param name="endpoint" select="$endpoint"/>
+                            <xsl:with-param name="select-xml" select="$select-xml"/>
+                        </xsl:call-template>
+                    </xsl:for-each>
 
                     <xsl:for-each select="$container/div[contains-token(@class, 'right-nav')]">
                         <xsl:call-template name="bs2:ParallaxNav">
@@ -1412,7 +1416,6 @@ exclude-result-prefixes="#all"
     <xsl:template name="onParallaxNavSelectLoad">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="container" as="element()"/>
-        <xsl:param name="container-id" select="ixsl:get($container, 'id')" as="xs:string"/>
         <xsl:param name="var-name" as="xs:string"/>
         <xsl:param name="results" as="document-node()"/>
         
@@ -1454,7 +1457,6 @@ exclude-result-prefixes="#all"
     <xsl:template name="onParallaxPropertyLoad">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="container" as="element()"/>
-        <xsl:param name="container-id" select="ixsl:get($container, 'id')" as="xs:string"/>
         <xsl:param name="class" as="xs:string?"/>
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="predicate" as="xs:anyURI"/>
@@ -1640,7 +1642,7 @@ exclude-result-prefixes="#all"
     
     <xsl:template name="ldh:ResultCountResultsLoad">
         <xsl:context-item as="map(*)" use="required"/>
-        <xsl:param name="container" select="." as="element()"/>
+        <xsl:param name="container" as="element()"/>
         <xsl:param name="count-var-name" as="xs:string"/>
 
         <xsl:choose>
