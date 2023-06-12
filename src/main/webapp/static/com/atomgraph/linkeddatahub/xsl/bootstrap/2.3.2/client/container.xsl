@@ -102,7 +102,6 @@ exclude-result-prefixes="#all"
     <xsl:template name="bs2:FilterIn">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="container" as="element()"/>
-        <xsl:param name="container-id" select="ixsl:get($container, 'id')" as="xs:string"/>
         <xsl:param name="class" select="'sidebar-nav faceted-nav'" as="xs:string?"/>
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="subject-var-name" as="xs:string"/>
@@ -113,9 +112,10 @@ exclude-result-prefixes="#all"
             <xsl:variable name="body" select="?body" as="document-node()"/>
             <xsl:for-each select="$container">
                 <xsl:result-document href="?." method="ixsl:append-content">
-                    <xsl:apply-templates select="key('resources', $predicate, $body)" mode="bs2:FilterIn">
+                    <xsl:apply-templates select="." mode="bs2:FilterIn">
                         <xsl:with-param name="id" select="$id"/>
                         <xsl:with-param name="class" select="$class"/>
+                        <xsl:with-param name="resource" select="key('resources', $predicate, $body)"/>
                         <xsl:with-param name="subject-var-name" select="$subject-var-name"/>
                         <xsl:with-param name="object-var-name" select="$object-var-name"/>
                     </xsl:apply-templates>
@@ -125,7 +125,8 @@ exclude-result-prefixes="#all"
         <!-- ignore error response -->
     </xsl:template>
 
-    <xsl:template match="*[@rdf:about]" mode="bs2:FilterIn">
+    <xsl:template match="*" mode="bs2:FilterIn">
+        <xsl:param name="resource" as="element()"/>
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" as="xs:string?"/>
         <xsl:param name="subject-var-name" as="xs:string"/>
@@ -141,12 +142,12 @@ exclude-result-prefixes="#all"
 
             <h2 class="nav-header btn">
                 <xsl:value-of>
-                    <xsl:apply-templates select="." mode="ac:label"/>
+                    <xsl:apply-templates select="$resource" mode="ac:label"/>
                 </xsl:value-of>
 
                 <span class="caret caret-reversed pull-right"></span>
                 <input type="hidden" name="subject" value="{$subject-var-name}"/>
-                <input type="hidden" name="predicate" value="{@rdf:about}"/>
+                <input type="hidden" name="predicate" value="{$resource/@rdf:about}"/>
                 <input type="hidden" name="object" value="{$object-var-name}"/>
             </h2>
 
@@ -568,8 +569,8 @@ exclude-result-prefixes="#all"
     <!-- facets -->
 
     <xsl:template name="ldh:RenderFacets">
-        <xsl:context-item as="document-node()" use="required"/>
-        <xsl:param name="container" as="element()"/>
+        <xsl:context-item as="element()" use="required"/>
+        <xsl:param name="container" select="." as="element()"/>
         <xsl:param name="sub-container-id" as="xs:string"/>
         <xsl:param name="select-string" as="xs:string"/>
         <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', [ $select-string ])"/>
@@ -767,9 +768,10 @@ exclude-result-prefixes="#all"
     <!-- parallax -->
     
     <xsl:template name="bs2:ParallaxNav">
-        <xsl:context-item as="document-node()" use="required"/>
-        <xsl:param name="container" as="element()"/>
+        <xsl:context-item as="element()" use="required"/>
+        <xsl:param name="container" select="." as="element()"/>
         <xsl:param name="sub-container-id" as="xs:string"/>
+        <xsl:param name="results" as="document-node()"/>
         <xsl:param name="select-xml" as="document-node()"/>
         <xsl:param name="endpoint" select="xs:anyURI"/>
         <xsl:param name="properties-container-id" select="$sub-container-id || '-parallax-properties'" as="xs:string"/>
@@ -777,10 +779,9 @@ exclude-result-prefixes="#all"
         
          <!-- create a container for parallax controls in the right-nav, if it doesn't exist yet -->
         <xsl:if test="not(id($sub-container-id, ixsl:page()))">
-            <xsl:variable name="rdf" select="rdf:RDF" as="element()"/>
             <xsl:for-each select="$container">
                 <xsl:result-document href="?." method="ixsl:append-content">
-                    <xsl:apply-templates select="$rdf" mode="bs2:ParallaxNav">
+                    <xsl:apply-templates select="." mode="bs2:ParallaxNav">
                         <xsl:with-param name="id" select="$sub-container-id"/>
                         <xsl:with-param name="properties-container-id" select="$properties-container-id"/>
                     </xsl:apply-templates>
@@ -793,7 +794,7 @@ exclude-result-prefixes="#all"
         </xsl:for-each>
 
         <!-- only render parallax if the RDF result contains object resources -->
-        <xsl:if test="rdf:RDF/*/*[@rdf:resource]">
+        <xsl:if test="$results/rdf:RDF/*/*[@rdf:resource]">
             <xsl:variable name="query-json-string" select="xml-to-json($select-xml)" as="xs:string"/>
             <xsl:variable name="query-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $query-json-string ])"/>
             <xsl:variable name="query-string" select="ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromQuery', [ $query-json ]), 'toString', [])" as="xs:string"/>
@@ -810,7 +811,7 @@ exclude-result-prefixes="#all"
         </xsl:if>
     </xsl:template>
 
-    <xsl:template match="rdf:RDF" mode="bs2:ParallaxNav">
+    <xsl:template match="*" mode="bs2:ParallaxNav">
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" select="'well well-small sidebar-nav parallax-nav'" as="xs:string?"/>
         <xsl:param name="properties-container-id" as="xs:string"/>
@@ -1375,12 +1376,13 @@ exclude-result-prefixes="#all"
                      </xsl:for-each>
                 
                     <!-- use the initial (not the current transformed) SELECT query and focus var name for facet rendering -->
-                    <xsl:call-template name="ldh:RenderFacets">
-                        <xsl:with-param name="select-string" select="$select-string"/>
-                        <xsl:with-param name="container" select="$container/div[contains-token(@class, 'left-nav')]"/>
-                        <xsl:with-param name="sub-container-id" select="$content-id || '-left-nav'"/>
-                    </xsl:call-template>
-
+                    <xsl:for-each select="$container/div[contains-token(@class, 'left-nav')]">
+                        <xsl:call-template name="ldh:RenderFacets">
+                            <xsl:with-param name="select-string" select="$select-string"/>
+                            <xsl:with-param name="sub-container-id" select="$content-id || '-left-nav'"/>
+                        </xsl:call-template>
+                    </xsl:for-each>
+                
                     <!-- result count -->
                     <xsl:call-template name="ldh:ResultCount">
                         <xsl:with-param name="focus-var-name" select="$focus-var-name"/>
@@ -1389,13 +1391,15 @@ exclude-result-prefixes="#all"
                         <xsl:with-param name="container" select="id($result-count-container-id, ixsl:page())"/> <!-- TO-DO! -->
                     </xsl:call-template>
 
-                    <xsl:call-template name="bs2:ParallaxNav">
-                        <xsl:with-param name="select-xml" select="$select-xml"/>
-                        <xsl:with-param name="endpoint" select="$endpoint"/>
-                        <xsl:with-param name="focus-var-name" select="$focus-var-name"/>
-                        <xsl:with-param name="container" select="$container/div[contains-token(@class, 'right-nav')]"/>
-                        <xsl:with-param name="sub-container-id" select="$content-id || '-right-nav'"/>
-                    </xsl:call-template>
+                    <xsl:for-each select="$container/div[contains-token(@class, 'right-nav')]">
+                        <xsl:call-template name="bs2:ParallaxNav">
+                            <xsl:with-param name="results" select="$sorted-results"/>
+                            <xsl:with-param name="select-xml" select="$select-xml"/>
+                            <xsl:with-param name="endpoint" select="$endpoint"/>
+                            <xsl:with-param name="focus-var-name" select="$focus-var-name"/>
+                            <xsl:with-param name="sub-container-id" select="$content-id || '-right-nav'"/>
+                        </xsl:call-template>
+                    </xsl:for-each>
                     
                     <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
                 </xsl:for-each>
@@ -1644,7 +1648,7 @@ exclude-result-prefixes="#all"
     
     <xsl:template name="ldh:ResultCountResultsLoad">
         <xsl:context-item as="map(*)" use="required"/>
-        <xsl:param name="container" as="element()"/>
+        <xsl:param name="container" select="." as="element()"/>
         <xsl:param name="count-var-name" as="xs:string"/>
 
         <xsl:choose>
@@ -1653,7 +1657,8 @@ exclude-result-prefixes="#all"
                     <xsl:variable name="results" select="." as="document-node()"/>
                     <xsl:for-each select="$container">
                         <xsl:result-document href="?." method="ixsl:replace-content">
-                            <xsl:apply-templates select="$results" mode="ldh:ResultCountResultsLoad">
+                            <xsl:apply-templates select="." mode="ldh:ResultCountResultsLoad">
+                                <xsl:with-param name="results" select="$results"/>
                                 <xsl:with-param name="count-var-name" select="$count-var-name"/>
                             </xsl:apply-templates>
                         </xsl:result-document>
@@ -1670,7 +1675,8 @@ exclude-result-prefixes="#all"
         </xsl:choose>
     </xsl:template>
 
-    <xsl:template match="srx:sparql" mode="ldh:ResultCountResultsLoad">
+    <xsl:template match="*" mode="ldh:ResultCountResultsLoad">
+        <xsl:param name="results" as="document-node()"/>
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" as="xs:string?"/>
         <xsl:param name="count-var-name" as="xs:string"/>
@@ -1679,7 +1685,7 @@ exclude-result-prefixes="#all"
             <xsl:apply-templates select="key('resources', 'total-results', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
             <xsl:text> </xsl:text>
             <span class="badge badge-inverse">
-                <xsl:value-of select="//srx:binding[@name = $count-var-name]/srx:literal"/>
+                <xsl:value-of select="$results//srx:binding[@name = $count-var-name]/srx:literal"/>
             </span>
         </strong>
     </xsl:template>
