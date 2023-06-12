@@ -1376,7 +1376,7 @@ exclude-result-prefixes="#all"
                 
                     <!-- use the initial (not the current transformed) SELECT query and focus var name for facet rendering -->
                     <xsl:call-template name="ldh:RenderFacets">
-                        <xsl:with-param name="select-string" select="select-string"/>
+                        <xsl:with-param name="select-string" select="$select-string"/>
                         <xsl:with-param name="container" select="$container/div[contains-token(@class, 'left-nav')]"/>
                         <xsl:with-param name="sub-container-id" select="$content-id || '-left-nav'"/>
                     </xsl:call-template>
