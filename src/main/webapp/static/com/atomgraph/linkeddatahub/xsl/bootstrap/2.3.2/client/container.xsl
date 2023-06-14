@@ -600,7 +600,6 @@ exclude-result-prefixes="#all"
                         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                             <xsl:call-template name="bs2:FilterIn">
                                 <xsl:with-param name="container" select="$sub-container"/>
-                                <xsl:with-param name="id" select="$id"/>
                                 <xsl:with-param name="subject-var-name" select="$subject-var-name"/>
                                 <xsl:with-param name="predicate" select="$predicate"/>
                                 <xsl:with-param name="object-var-name" select="$object-var-name"/>
