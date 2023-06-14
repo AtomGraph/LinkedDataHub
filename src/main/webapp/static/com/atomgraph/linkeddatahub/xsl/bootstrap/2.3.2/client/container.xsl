@@ -102,8 +102,6 @@ exclude-result-prefixes="#all"
     <xsl:template name="bs2:FilterIn">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="container" as="element()"/>
-        <xsl:param name="class" select="'sidebar-nav faceted-nav'" as="xs:string?"/>
-        <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="subject-var-name" as="xs:string"/>
         <xsl:param name="predicate" as="xs:anyURI"/>
         <xsl:param name="object-var-name" as="xs:string"/>
@@ -114,8 +112,6 @@ exclude-result-prefixes="#all"
             <xsl:for-each select="$container">
                 <xsl:result-document href="?." method="ixsl:append-content">
                     <xsl:apply-templates select="." mode="bs2:FilterIn">
-                        <xsl:with-param name="id" select="$id"/>
-                        <xsl:with-param name="class" select="$class"/>
                         <xsl:with-param name="resource" select="key('resources', $predicate, $body)"/>
                         <xsl:with-param name="subject-var-name" select="$subject-var-name"/>
                         <xsl:with-param name="object-var-name" select="$object-var-name"/>
@@ -129,7 +125,7 @@ exclude-result-prefixes="#all"
     <xsl:template match="*" mode="bs2:FilterIn">
         <xsl:param name="resource" as="element()"/>
         <xsl:param name="id" as="xs:string?"/>
-        <xsl:param name="class" as="xs:string?"/>
+        <xsl:param name="class" select="'sidebar-nav faceted-nav'" as="xs:string?"/>
         <xsl:param name="subject-var-name" as="xs:string"/>
         <xsl:param name="object-var-name" as="xs:string"/>
 
