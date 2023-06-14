@@ -71,11 +71,10 @@ public interface Application extends Resource, com.atomgraph.processor.model.App
     Resource getStylesheet();
     
     /**
-     * Returns true if application is read-only.
-     * Read-only application does not allow changes to its state.
+     * Returns true if read methods are allowed without authorization.
      * 
      * @return true if read-only
      */
-    boolean isReadOnly();
+    boolean isReadAllowed();
     
 }

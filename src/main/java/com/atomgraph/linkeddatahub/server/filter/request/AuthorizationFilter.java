@@ -120,17 +120,13 @@ public class AuthorizationFilter implements ContainerRequestFilter
             return;
         }
         
-        if (getApplication().isReadOnly())
+        if (getApplication().isReadAllowed())
         {
             if (request.getMethod().equals(HttpMethod.GET) || request.getMethod().equals(HttpMethod.HEAD)) // allow read-only methods
             {
-                if (log.isTraceEnabled()) log.trace("App is read-only, skipping authorization for request URI: {}", request.getUriInfo().getAbsolutePath());
+                if (log.isTraceEnabled()) log.trace("Read methods are allowed on app, skipping authorization for request URI: {}", request.getUriInfo().getAbsolutePath());
                 return;
             }
-
-            // throw 403 exception otherwise
-            if (log.isTraceEnabled()) log.trace("Write access not authorized (app is read-only) for request URI: {}", request.getUriInfo().getAbsolutePath());
-            throw new AuthorizationException("Write access not authorized (app is read-only)", request.getUriInfo().getAbsolutePath(), accessMode);
         }
 
         if (getDataset().isPresent()) return; // skip proxied dataspaces

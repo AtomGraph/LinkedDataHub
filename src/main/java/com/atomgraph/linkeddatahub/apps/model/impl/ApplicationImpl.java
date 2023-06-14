@@ -95,9 +95,9 @@ public class ApplicationImpl extends ResourceImpl implements Application
     }
 
     @Override
-    public boolean isReadOnly()
+    public boolean isReadAllowed()
     {
-        Statement stmt = getProperty(LAPP.readOnly);
+        Statement stmt = getProperty(LAPP.allowRead);
         
         if (stmt != null) return stmt.getBoolean();
         

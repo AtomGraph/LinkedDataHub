@@ -53,6 +53,13 @@
     rdfs:comment "If true, this application can be listed as public (ACL still applies). If false, it is private and will not be listed" ;
     rdfs:isDefinedBy : .
 
+:allowRead a owl:DatatypeProperty ;
+    rdfs:domain :Application ;
+    rdfs:range xsd:boolean ;
+    rdfs:label "Allow read" ;
+    rdfs:comment "If true, this application allows GET an HEAD methods for all request URIs without authorization check" ;
+    rdfs:isDefinedBy : .
+
 # CLASSES
 
 # dataset
