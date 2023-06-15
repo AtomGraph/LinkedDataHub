@@ -77,6 +77,6 @@ public class LAPP
     public static final ObjectProperty prefix = m_model.createObjectProperty( NS + "prefix" );
     
     /** Read-only property */
-    public static final DatatypeProperty readOnly = m_model.createDatatypeProperty( NS + "readOnly" );
+    public static final DatatypeProperty allowRead = m_model.createDatatypeProperty( NS + "allowRead" );
 
 }
