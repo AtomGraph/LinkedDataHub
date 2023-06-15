@@ -375,7 +375,7 @@ LIMIT   100
                     window.onload = function() {
                         const locationMapping = [
                             ]]>
-                            <xsl:for-each select="$location-mapping">
+                            <xsl:for-each select="map:keys($location-mapping)">
                                 <xsl:text>{ name: "</xsl:text>
                                 <xsl:value-of select="."/>
                                 <xsl:text>", altName: "</xsl:text>
