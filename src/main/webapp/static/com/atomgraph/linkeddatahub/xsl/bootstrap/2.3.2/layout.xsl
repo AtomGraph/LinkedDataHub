@@ -130,6 +130,19 @@ exclude-result-prefixes="#all">
             <xsl:map-entry key="'&ldh;ResultSetChart'" select="resolve-uri('charts/', $ldt:base)"/>
         </xsl:map>
     </xsl:param>
+    <xsl:param name="location-mapping" as="map(xs:anyURI, xs:anyURI)">
+        <xsl:map>
+            <xsl:map-entry key="resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)" select="resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)"/>
+            <xsl:map-entry key="resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/http-statusCodes.rdf', $ac:contextUri)" select="resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/http-statusCodes.rdf', $ac:contextUri)"/>
+            <xsl:map-entry key="resolve-uri(ac:document-uri(xs:anyURI('&ac;')), $ac:contextUri)" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&ac;'))), 'accept': 'application/rdf+xml' })"/>
+            <xsl:map-entry key="resolve-uri(ac:document-uri(xs:anyURI('&adm;')), $ac:contextUri)" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&adm;'))), 'accept': 'application/rdf+xml' })"/>
+            <xsl:map-entry key="resolve-uri(ac:document-uri(xs:anyURI('&ldh;')), $ac:contextUri)" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&ldh;'))), 'accept': 'application/rdf+xml' })"/>
+            <xsl:map-entry key="resolve-uri(ac:document-uri(xs:anyURI('&def;')), $ac:contextUri)" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&def;'))), 'accept': 'application/rdf+xml' })"/>
+            <xsl:map-entry key="resolve-uri(ac:document-uri(xs:anyURI('&dh;')), $ac:contextUri)" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&dh;'))), 'accept': 'application/rdf+xml' })"/>
+            <xsl:map-entry key="resolve-uri(ac:document-uri(xs:anyURI('&sp;')), $ac:contextUri)" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&sp;'))), 'accept': 'application/rdf+xml' })"/>
+            <xsl:map-entry key="resolve-uri(ac:document-uri(xs:anyURI('&rdf;')), $ac:contextUri)" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&rdf;'))), 'accept': 'application/rdf+xml' })"/>
+        </xsl:map>
+    </xsl:param>
     <xsl:param name="explore-service-query" as="xs:string">
 <![CDATA[SELECT DISTINCT  ?type (COUNT(?s) AS ?count) (SAMPLE(?s) AS ?sample)
 WHERE
@@ -331,19 +344,7 @@ LIMIT   100
         <xsl:param name="load-sparql-map" select="not($ac:mode = ('&ac;ModalMode', '&ldht;InfoWindowMode'))" as="xs:boolean"/>
         <xsl:param name="load-google-charts" select="not($ac:mode = ('&ac;ModalMode', '&ldht;InfoWindowMode'))" as="xs:boolean"/>
         <xsl:param name="output-schema-org" select="true()" as="xs:boolean"/>
-        <xsl:param name="location-mapping" as="map(xs:anyURI, xs:anyURI)">
-            <xsl:map>
-                <xsl:map-entry key="resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)" select="resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)"/>
-                <xsl:map-entry key="resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/http-statusCodes.rdf', $ac:contextUri)" select="resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/http-statusCodes.rdf', $ac:contextUri)"/>
-                <xsl:map-entry key="resolve-uri(ac:document-uri(xs:anyURI('&ac;')), $ac:contextUri)" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&ac;'))), 'accept': 'application/rdf+xml' })"/>
-                <xsl:map-entry key="resolve-uri(ac:document-uri(xs:anyURI('&adm;')), $ac:contextUri)" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&adm;'))), 'accept': 'application/rdf+xml' })"/>
-                <xsl:map-entry key="resolve-uri(ac:document-uri(xs:anyURI('&ldh;')), $ac:contextUri)" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&ldh;'))), 'accept': 'application/rdf+xml' })"/>
-                <xsl:map-entry key="resolve-uri(ac:document-uri(xs:anyURI('&def;')), $ac:contextUri)" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&def;'))), 'accept': 'application/rdf+xml' })"/>
-                <xsl:map-entry key="resolve-uri(ac:document-uri(xs:anyURI('&dh;')), $ac:contextUri)" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&dh;'))), 'accept': 'application/rdf+xml' })"/>
-                <xsl:map-entry key="resolve-uri(ac:document-uri(xs:anyURI('&sp;')), $ac:contextUri)" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&sp;'))), 'accept': 'application/rdf+xml' })"/>
-                <xsl:map-entry key="resolve-uri(ac:document-uri(xs:anyURI('&rdf;')), $ac:contextUri)" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&rdf;'))), 'accept': 'application/rdf+xml' })"/>
-            </xsl:map>
-        </xsl:param>
+        <xsl:param name="location-mapping" select="$location-mapping" as="map(xs:anyURI, xs:anyURI)"/>
 
         <!-- Web-Client scripts -->
         <script type="text/javascript" src="{resolve-uri('static/js/jquery.min.js', $ac:contextUri)}" defer="defer"></script>
