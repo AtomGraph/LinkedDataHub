@@ -19,6 +19,7 @@ package com.atomgraph.linkeddatahub.server.filter.response;
 import java.io.IOException;
 import jakarta.annotation.Priority;
 import jakarta.inject.Inject;
+import jakarta.ws.rs.HttpMethod;
 import jakarta.ws.rs.Priorities;
 import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.container.ContainerRequestContext;
@@ -45,7 +46,8 @@ public class FrontendInvalidationFilter implements ContainerResponseFilter
     {
         if (getApplication().getFrontendProxy() == null) return;
         
-        purge(getApplication().getFrontendProxy(), req.getUriInfo().getRequestUri().toString()).close();
+        if (req.getMethod().equals(HttpMethod.POST) || req.getMethod().equals(HttpMethod.PUT) || req.getMethod().equals(HttpMethod.DELETE) || req.getMethod().equals(HttpMethod.PATCH))
+            purge(getApplication().getFrontendProxy(), req.getUriInfo().getRequestUri().toString()).close();
     }
     
     /**
