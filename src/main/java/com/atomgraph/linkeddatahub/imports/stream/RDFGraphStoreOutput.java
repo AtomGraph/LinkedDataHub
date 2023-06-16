@@ -94,8 +94,8 @@ public class RDFGraphStoreOutput
                         if (!dataset.getNamedModel(graphUri).isEmpty()) getGraphStoreClient().add(graphUri, dataset.getNamedModel(graphUri));
                         
                         // purge cache entries that include the graph URI
-                        if (getService().getProxy() != null) ban(getService().getClient(), getService().getProxy(), graphUri).close();
-                        if (getAdminService() != null && getAdminService().getProxy() != null) ban(getAdminService().getClient(), getAdminService().getProxy(), graphUri).close();
+                        if (getService().getBackendProxy() != null) ban(getService().getClient(), getService().getBackendProxy(), graphUri).close();
+                        if (getAdminService() != null && getAdminService().getBackendProxy() != null) ban(getAdminService().getClient(), getAdminService().getBackendProxy(), graphUri).close();
                     }
                 );
             }
@@ -107,8 +107,8 @@ public class RDFGraphStoreOutput
             getGraphStoreClient().add(getGraphURI(), model); // exceptions get swallowed by the client! TO-DO: wait for completion
             
             // purge cache entries that include the graph URI
-            if (getService().getProxy() != null) ban(getService().getClient(), getService().getProxy(), getGraphURI()).close();
-            if (getAdminService() != null && getAdminService().getProxy() != null) ban(getAdminService().getClient(), getAdminService().getProxy(), getGraphURI()).close();
+            if (getService().getBackendProxy() != null) ban(getService().getClient(), getService().getBackendProxy(), getGraphURI()).close();
+            if (getAdminService() != null && getAdminService().getBackendProxy() != null) ban(getAdminService().getClient(), getAdminService().getBackendProxy(), getGraphURI()).close();
         }
     }
 

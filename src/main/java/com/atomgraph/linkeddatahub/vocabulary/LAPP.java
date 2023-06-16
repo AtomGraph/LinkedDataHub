@@ -70,8 +70,11 @@ public class LAPP
     /** End-user application class */
     public static final ObjectProperty endUserApplication = m_model.createObjectProperty( NS + "endUserApplication" );
 
-    /** Proxy property */
-    public static final ObjectProperty proxy = m_model.createObjectProperty( NS + "proxy" );
+    /** Frontend proxy property */
+    public static final ObjectProperty frontendProxy = m_model.createObjectProperty( NS + "frontendProxy" );
+
+    /** Backend proxy property */
+    public static final ObjectProperty backendProxy = m_model.createObjectProperty( NS + "backendProxy" );
 
     /** Prefix property */
     public static final ObjectProperty prefix = m_model.createObjectProperty( NS + "prefix" );

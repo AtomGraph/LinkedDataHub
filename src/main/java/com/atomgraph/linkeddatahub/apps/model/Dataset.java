@@ -39,12 +39,12 @@ public interface Dataset extends Resource
     Resource getPrefix();
     
     /**
-     * Returns the proxy URI resource.
+     * Returns the backend proxy's URI resource.
      * URI of the service that URIs in this dataset are proxied through.
      * 
      * @return proxy resource
      */
-    Resource getProxy();
+    Resource getBackendProxy();
     
     /**
      * Returns the proxy URI.URI of the service that URIs in this dataset are proxied through.

@@ -86,12 +86,12 @@ public class Clear
         {
             if (log.isDebugEnabled()) log.debug("Clearing ontology with URI '{}' from memory", ontologyURI);
             ontModelSpec.getDocumentManager().getFileManager().removeCacheModel(ontologyURI);
-            if (getApplication().getService().getProxy() != null)
+            if (getApplication().getService().getBackendProxy() != null)
             {
                 if (log.isDebugEnabled()) log.debug("Purge ontology with URI '{}' from proxy cache", ontologyURI);
-                ban(getApplication().getService().getProxy(), ontologyURI);
+                ban(getApplication().getService().getBackendProxy(), ontologyURI);
             }
-                
+            
             // !!! we need to reload the ontology model before returning a response, to make sure the next request already gets the new version !!!
             // same logic as in OntologyFilter. TO-DO: encapsulate?
             OntologyModelGetter modelGetter = new OntologyModelGetter(app,
