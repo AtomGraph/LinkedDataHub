@@ -21,7 +21,7 @@
     ldt:service <urn:linkeddatahub:services/admin> ;
     ac:stylesheet <static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/admin/layout.xsl> ;
     lapp:endUserApplication <urn:linkeddatahub:apps/end-user> ;
-    lapp:frontendProxy <http://varnish-frontend/> .
+    lapp:frontendProxy <http://varnish-frontend:6060/> .
 
 <urn:linkeddatahub:services/admin> a sd:Service ;
     dct:title "LinkedDataHub admin service" ;
@@ -39,7 +39,7 @@
     ldt:ontology <ns#> ;
     ldt:service <urn:linkeddatahub:services/end-user>;
     lapp:adminApplication <urn:linkeddatahub:apps/admin> ;
-    lapp:frontendProxy <http://varnish-frontend/> ;
+    lapp:frontendProxy <http://varnish-frontend:6060/> ;
     lapp:public true .
 
 <urn:linkeddatahub:services/end-user> a sd:Service ;
