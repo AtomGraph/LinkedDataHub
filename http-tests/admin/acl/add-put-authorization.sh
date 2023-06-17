@@ -13,6 +13,7 @@ curl -k -w "%{http_code}\n" -o /dev/null -s \
   -H "Content-Type: application/n-triples" \
   -H "Accept: application/n-triples" \
   -X PUT \
+   --data-binary @triple.nt \
   "$END_USER_BASE_URL" \
 | grep -q "$STATUS_FORBIDDEN"
 
