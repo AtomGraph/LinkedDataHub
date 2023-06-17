@@ -53,8 +53,7 @@ sub vcl_recv {
         return (pass);
     }
     if (req.http.Cookie) { // allow req.http.Authorization
-        /* Not cacheable by default */
-        return (pass);
+        unset req.http.Cookie; // unset all cookies
     }
     return (hash);
 }
