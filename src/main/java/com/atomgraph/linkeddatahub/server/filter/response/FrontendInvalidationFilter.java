@@ -45,7 +45,8 @@ public class FrontendInvalidationFilter implements ContainerResponseFilter
     public void filter(ContainerRequestContext req, ContainerResponseContext resp) throws IOException
     {
         if (getApplication().getFrontendProxy() == null) return;
-        
+        if (!resp.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL)) return;
+
         if (req.getMethod().equals(HttpMethod.POST) || req.getMethod().equals(HttpMethod.PUT) || req.getMethod().equals(HttpMethod.DELETE) || req.getMethod().equals(HttpMethod.PATCH))
             purge(getApplication().getFrontendProxy(), req.getUriInfo().getRequestUri().toString()).close();
     }
