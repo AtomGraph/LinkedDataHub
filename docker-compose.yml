@@ -94,10 +94,10 @@ services:
       - VARNISH_HTTP_PORT=6060
       - BACKEND_HOST=linkeddatahub
       - BACKEND_PORT=7070
-      - CLIENT_HOST=nginx
+      - CLIENT_HOST=linkeddatahub
       - VARNISH_TTL=86400
       - VARNISH_SIZE=1G
-    entrypoint: /bin/sh -c "cp /etc/varnish/default.vcl.template /etc/varnish/default.vcl && export CLIENT_HOST_IP=$$(getent hosts "$$CLIENT_HOST" | awk '{ print $1 }') && sed -i 's|$${BACKEND_HOST}|'"$$BACKEND_HOST"'|g' /etc/varnish/default.vcl && sed -i 's|$${BACKEND_PORT}|'"$$BACKEND_PORT"'|g' /etc/varnish/default.vcl && sed -i 's|$${CLIENT_HOST}|'"$$CLIENT_HOST_IP"'|g' /etc/varnish/default.vcl && /usr/local/bin/docker-varnish-entrypoint"
+    entrypoint: /bin/sh -c "cp /etc/varnish/default.vcl.template /etc/varnish/default.vcl && sed -i 's|$${BACKEND_HOST}|'"$$BACKEND_HOST"'|g' /etc/varnish/default.vcl && sed -i 's|$${BACKEND_PORT}|'"$$BACKEND_PORT"'|g' /etc/varnish/default.vcl && sed -i 's|$${CLIENT_HOST}|'"$$CLIENT_HOST"'|g' /etc/varnish/default.vcl && /usr/local/bin/docker-varnish-entrypoint"
     volumes:
       - ./platform/varnish.vcl.template:/etc/varnish/default.vcl.template:ro
   varnish-admin:
