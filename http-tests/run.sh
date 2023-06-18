@@ -101,6 +101,7 @@ export END_USER_BASE_URL="https://localhost:4443/"
 export ADMIN_BASE_URL="https://localhost:4443/admin/"
 export END_USER_VARNISH_SERVICE="varnish-end-user"
 export ADMIN_VARNISH_SERVICE="varnish-admin"
+export FRONTEND_VARNISH_SERVICE="varnish-frontend"
 
 error_count=0
 
