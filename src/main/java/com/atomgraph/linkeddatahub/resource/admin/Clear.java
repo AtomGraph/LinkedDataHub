@@ -30,6 +30,7 @@ import jakarta.ws.rs.HeaderParam;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.UriBuilder;
 import org.apache.jena.ontology.OntModel;
 import org.apache.jena.ontology.OntModelSpec;
 import org.apache.jena.rdf.model.Model;
@@ -88,8 +89,9 @@ public class Clear
             ontModelSpec.getDocumentManager().getFileManager().removeCacheModel(ontologyURI);
             if (getApplication().getFrontendProxy() != null)
             {
-                if (log.isDebugEnabled()) log.debug("Purge ontology with URI '{}' from frontend proxy cache", ontologyURI);
-                purge(getApplication().getFrontendProxy(), ontologyURI);
+                URI ontologyDocURI = UriBuilder.fromUri(ontologyURI).fragment(null).build(); // skip fragment from the ontology URI to get its graph URI
+                if (log.isDebugEnabled()) log.debug("Purge ontology document with URI '{}' from frontend proxy cache", ontologyDocURI);
+                purge(getApplication().getFrontendProxy(), ontologyDocURI.toString());
             }
             if (getApplication().getService().getBackendProxy() != null)
             {
