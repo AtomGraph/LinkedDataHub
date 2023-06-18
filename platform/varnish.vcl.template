@@ -52,9 +52,14 @@ sub vcl_recv {
         /* We only deal with GET and HEAD by default */
         return (pass);
     }
+    if (req.http.Client-Cert) {
+        /* Authenticated requests are not cacheable */
+        return (pass);
+    }
     if (req.http.Cookie) { // allow req.http.Authorization
         unset req.http.Cookie; // unset all cookies
     }
+
     return (hash);
 }
 
