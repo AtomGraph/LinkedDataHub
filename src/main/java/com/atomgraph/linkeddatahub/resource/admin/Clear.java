@@ -86,9 +86,14 @@ public class Clear
         {
             if (log.isDebugEnabled()) log.debug("Clearing ontology with URI '{}' from memory", ontologyURI);
             ontModelSpec.getDocumentManager().getFileManager().removeCacheModel(ontologyURI);
+            if (getApplication().getFrontendProxy() != null)
+            {
+                if (log.isDebugEnabled()) log.debug("Purge ontology with URI '{}' from frontend proxy cache", ontologyURI);
+                purge(getApplication().getFrontendProxy(), ontologyURI);
+            }
             if (getApplication().getService().getBackendProxy() != null)
             {
-                if (log.isDebugEnabled()) log.debug("Purge ontology with URI '{}' from proxy cache", ontologyURI);
+                if (log.isDebugEnabled()) log.debug("Ban ontology with URI '{}' from backend proxy cache", ontologyURI);
                 ban(getApplication().getService().getBackendProxy(), ontologyURI);
             }
             
@@ -127,6 +132,22 @@ public class Clear
         return getSystem().getClient().target(proxy.getURI()).request().
             header(BackendInvalidationFilter.HEADER_NAME, UriComponent.encode(url, UriComponent.Type.UNRESERVED)). // the value has to be URL-encoded in order to match request URLs in Varnish
             method("BAN", Response.class);
+    }
+    
+    /**
+     * Purges URL from proxy cache.
+     * 
+     * @param proxy proxy resource
+     * @param url URL to be banned
+     * @return response from proxy
+     */
+    public Response purge(Resource proxy, String url)
+    {
+        if (url == null) throw new IllegalArgumentException("Resource cannot be null");
+
+        // create new Client instance, otherwise ApacheHttpClient reuses connection and Varnish ignores BAN request
+        return getSystem().getClient().target(proxy.getURI()).request().
+            method("PURGE", Response.class);
     }
     
     /**
