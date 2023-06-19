@@ -30,13 +30,10 @@ pushd . > /dev/null && cd "$SCRIPT_ROOT/admin/acl"
 
 popd > /dev/null
 
-# store the ETag value
-
 pushd . > /dev/null && cd "$SCRIPT_ROOT"
 
 etag_before=$(
   curl -k -i -f -s -G \
-    -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
     -H "Accept: application/n-triples" \
   "$END_USER_BASE_URL" \
 | grep 'ETag' \
@@ -45,20 +42,17 @@ etag_before=$(
 
 popd > /dev/null
 
-# replace the graph
+# append new triples to the graph
 
 (
 curl -k -w "%{http_code}\n" -o /dev/null -f -s \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
-  -X PUT \
   -H "Accept: application/n-triples" \
   -H "Content-Type: application/n-triples" \
   --data-binary @- \
   "$END_USER_BASE_URL" <<EOF
-<${END_USER_BASE_URL}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/atomgraph/linkeddatahub/default#Root> .
-<${END_USER_BASE_URL}> <http://purl.org/dc/terms/title> "Root" .
-<${END_USER_BASE_URL}named-subject-put> <http://example.com/default-predicate> "named object PUT" .
-<${END_USER_BASE_URL}named-subject-put> <http://example.com/another-predicate> "another named object PUT" .
+<${END_USER_BASE_URL}named-subject-post> <http://example.com/default-predicate> "named object POST" .
+<${END_USER_BASE_URL}named-subject-post> <http://example.com/another-predicate> "another named object POST" .
 EOF
 ) \
 | grep -q "$STATUS_OK"
@@ -69,7 +63,6 @@ pushd . > /dev/null && cd "$SCRIPT_ROOT"
 
 etag_after=$(
   curl -k -i -f -s -G \
-    -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
     -H "Accept: application/n-triples" \
   "$END_USER_BASE_URL" \
 | grep 'ETag' \
