@@ -36,7 +36,6 @@ pushd . > /dev/null && cd "$SCRIPT_ROOT"
 
 etag_before=$(
   curl -k -i -f -s -G \
-    -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
     -H "Accept: application/n-triples" \
   "$END_USER_BASE_URL" \
 | grep 'ETag' \
@@ -69,7 +68,6 @@ pushd . > /dev/null && cd "$SCRIPT_ROOT"
 
 etag_after=$(
   curl -k -i -f -s -G \
-    -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
     -H "Accept: application/n-triples" \
   "$END_USER_BASE_URL" \
 | grep 'ETag' \
