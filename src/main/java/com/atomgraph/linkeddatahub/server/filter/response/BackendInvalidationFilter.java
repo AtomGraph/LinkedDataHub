@@ -40,7 +40,7 @@ import org.glassfish.jersey.uri.UriComponent;
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-@Priority(Priorities.USER + 401)
+@Priority(Priorities.USER + 400)
 public class BackendInvalidationFilter implements ContainerResponseFilter
 {
     

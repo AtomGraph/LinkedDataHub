@@ -1,3 +1,11 @@
+## [4.0.5] - 2023-06-19
+### Added
+- New Varnish proxy cache between nginx and LinkedDataHub (service `varnish-frontend`) in order to improve performance
+- New `lapp:frontendProxy` and `lapp:backendProxy` properties in the LAPP ontology
+
+### Changed
+- Replaced the `atomgraph/varnish:6.0.11` Docker image with the official `varnish:7.3.0` image
+
 ## [4.0.4] - 2023-06-07
 ### Changed
 - Moved `Cache-Control` header settings from webapp's `web.xml` to nginx's config template
