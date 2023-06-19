@@ -293,7 +293,7 @@ public class Login extends GraphStoreImpl
                     }
 
                     // purge agent lookup from proxy cache
-                    if (getApplication().getService().getProxy() != null) ban(getApplication().getService().getProxy(), jwt.getSubject());
+                    if (getApplication().getService().getBackendProxy() != null) ban(getApplication().getService().getBackendProxy(), jwt.getSubject());
 
                     // remove secretary WebID from cache
                     getSystem().getEventBus().post(new com.atomgraph.linkeddatahub.server.event.SignUp(getSystem().getSecretaryWebIDURI()));

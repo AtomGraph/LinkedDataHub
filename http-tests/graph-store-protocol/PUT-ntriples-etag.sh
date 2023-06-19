@@ -16,6 +16,33 @@ pushd . > /dev/null && cd "$SCRIPT_ROOT/admin/acl"
   -p "$OWNER_CERT_PWD" \
   --agent "$AGENT_URI" \
   "${ADMIN_BASE_URL}acl/groups/writers/"
+
+# create public authorization
+
+./create-authorization.sh \
+  -f "$OWNER_CERT_FILE" \
+  -p "$OWNER_CERT_PWD" \
+  -b "$ADMIN_BASE_URL" \
+  --label "Public access authorization" \
+  --agent-class 'http://xmlns.com/foaf/0.1/Agent' \
+  --to "$END_USER_BASE_URL" \
+  --read
+
+popd > /dev/null
+
+# store the ETag value
+
+pushd . > /dev/null && cd "$SCRIPT_ROOT"
+
+etag_before=$(
+  curl -k -i -f -s -G \
+    -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
+    -H "Accept: application/n-triples" \
+  "$END_USER_BASE_URL" \
+| grep 'ETag' \
+| tr -d '\r' \
+| sed -En 's/^ETag: (.*)$/\1/p')
+
 popd > /dev/null
 
 # replace the graph
@@ -36,12 +63,22 @@ EOF
 ) \
 | grep -q "$STATUS_OK"
 
-# check that resource is accessible
+# check that the ETag value changed
 
-curl -k -f -s -G \
-  -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
-  -H "Accept: application/n-triples" \
+pushd . > /dev/null && cd "$SCRIPT_ROOT"
+
+etag_after=$(
+  curl -k -i -f -s -G \
+    -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
+    -H "Accept: application/n-triples" \
   "$END_USER_BASE_URL" \
-| tr -d '\n' \
-| grep '"named object PUT"' \
-| grep -v '"named object"' > /dev/null
+| grep 'ETag' \
+| tr -d '\r' \
+| sed -En 's/^ETag: (.*)$/\1/p')
+
+popd > /dev/null
+
+if [ "$etag_before" = "$etag_after" ]; then
+    echo "The new ETag value '${etag_after}' is the same as the old one '${etag_before} despite the update'"
+    exit 1
+fi

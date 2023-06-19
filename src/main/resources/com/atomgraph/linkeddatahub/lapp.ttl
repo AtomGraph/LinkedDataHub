@@ -39,11 +39,18 @@
     rdfs:comment "Links administration application to its end-user application" ;
     rdfs:isDefinedBy : .
 
-:proxy a owl:ObjectProperty ;
+:frontendProxy a owl:ObjectProperty ;
     rdfs:domain :Dataset ;
     rdfs:range rdfs:Resource ;
-    rdfs:label "Proxy" ;
-    rdfs:comment "An intermediary server (such as cache) that proxies requests to service" ;
+    rdfs:label "Frontend proxy" ;
+    rdfs:comment "An intermediary server (such as cache) that proxies frontend requests to service" ;
+    rdfs:isDefinedBy : .
+
+:backendProxy a owl:ObjectProperty ;
+    rdfs:domain :Dataset ;
+    rdfs:range rdfs:Resource ;
+    rdfs:label "Backend proxy" ;
+    rdfs:comment "An intermediary server (such as cache) that proxies backend requests to service" ;
     rdfs:isDefinedBy : .
 
 :public a owl:DatatypeProperty ;

@@ -76,7 +76,7 @@ function initialize_dataset()
       "$3" > /dev/null
 }
 
-function purge_backend_cache()
+function purge_cache()
 {
     local service_name="$1"
 
@@ -92,7 +92,7 @@ export SECRETARY_URI="$("$SCRIPT_ROOT"/webid-uri.sh "$SECRETARY_CERT_FILE")"
 printf "### Secretary agent URI: %s\n" "$SECRETARY_URI"
 
 export -f initialize_dataset
-export -f purge_backend_cache
+export -f purge_cache
 
 export HTTP_TEST_ROOT="$PWD"
 export END_USER_ENDPOINT_URL="http://localhost:3031/ds/"
@@ -101,6 +101,7 @@ export END_USER_BASE_URL="https://localhost:4443/"
 export ADMIN_BASE_URL="https://localhost:4443/admin/"
 export END_USER_VARNISH_SERVICE="varnish-end-user"
 export ADMIN_VARNISH_SERVICE="varnish-admin"
+export FRONTEND_VARNISH_SERVICE="varnish-frontend"
 
 error_count=0
 

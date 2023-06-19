@@ -77,4 +77,11 @@ public interface Application extends Resource, com.atomgraph.processor.model.App
      */
     boolean isReadAllowed();
     
+    /**
+     * Returns frontend proxy's cache URI resource.
+     * 
+     * @return RDF resource
+     */
+    Resource getFrontendProxy();
+    
 }

@@ -33,11 +33,11 @@ public interface Service extends com.atomgraph.core.model.RemoteService, Resourc
     EndpointAccessor getEndpointAccessor();
 
     /**
-     * Returns backend's proxy cache URI resource.
+     * Returns backend proxy's cache URI resource.
      * 
      * @return RDF resource
      */
-    Resource getProxy();
+    Resource getBackendProxy();
     
     /**
      * Returns HTTP client.

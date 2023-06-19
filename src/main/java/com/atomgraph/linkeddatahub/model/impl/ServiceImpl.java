@@ -93,9 +93,9 @@ public class ServiceImpl extends ResourceImpl implements Service
     }
     
     @Override
-    public Resource getProxy()
+    public Resource getBackendProxy()
     {
-        return getPropertyResourceValue(LAPP.proxy);
+        return getPropertyResourceValue(LAPP.backendProxy);
     }
     
     @Override
@@ -226,7 +226,7 @@ public class ServiceImpl extends ResourceImpl implements Service
     }
     
     /**
-     * Rewrites the given URI using the proxy URI.
+     * Rewrites the given URI using the backendProxy URI.
      * 
      * @param uri input URI
      * @return proxied URI
@@ -234,9 +234,9 @@ public class ServiceImpl extends ResourceImpl implements Service
     protected URI getProxiedURI(final URI uri)
     {
         // if service proxyURI is set, change the URI host/port to proxyURI host/port
-        if (getProxy() != null)
+        if (getBackendProxy() != null)
         {
-            final URI proxyURI = URI.create(getProxy().getURI());
+            final URI proxyURI = URI.create(getBackendProxy().getURI());
             
             return UriBuilder.fromUri(uri).
                     scheme(proxyURI.getScheme()).
