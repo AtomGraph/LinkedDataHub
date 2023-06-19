@@ -9,18 +9,13 @@ purge_cache "$FRONTEND_VARNISH_SERVICE"
 
 pushd . > /dev/null && cd "$SCRIPT_ROOT/admin/acl"
 
-# add an explicit read/write authorization for the owner because add-agent-to-group.sh won't work non-existing URI
+# add agent to the writers group
 
-./create-authorization.sh \
-  -b "$ADMIN_BASE_URL" \
+./add-agent-to-group.sh \
   -f "$OWNER_CERT_FILE" \
   -p "$OWNER_CERT_PWD" \
-  --label "Write base" \
   --agent "$AGENT_URI" \
-  --to "$END_USER_BASE_URL" \
-  --read \
-  --write
-
+  "${ADMIN_BASE_URL}acl/groups/writers/"
 popd > /dev/null
 
 # replace the graph
