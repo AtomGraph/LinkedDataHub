@@ -205,6 +205,7 @@ extension-element-prefixes="ixsl"
     <xsl:template match="rdf:RDF" mode="bs2:Map">
         <xsl:param name="canvas-id" as="xs:string"/>
         <xsl:param name="class" select="'map-canvas'" as="xs:string?"/>
+        <xsl:param name="draggable" select="false()" as="xs:boolean?"/>
 
         <div>
             <xsl:if test="$canvas-id">
@@ -212,6 +213,12 @@ extension-element-prefixes="ixsl"
             </xsl:if>
             <xsl:if test="$class">
                 <xsl:attribute name="class" select="$class"/>
+            </xsl:if>
+            <xsl:if test="$draggable = true()">
+                <xsl:attribute name="draggable" select="'true'"/>
+            </xsl:if>
+            <xsl:if test="$draggable = false()">
+                <xsl:attribute name="draggable" select="'false'"/>
             </xsl:if>
         </div>
     </xsl:template>
