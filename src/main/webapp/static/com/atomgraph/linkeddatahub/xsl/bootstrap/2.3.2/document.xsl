@@ -223,35 +223,6 @@ extension-element-prefixes="ixsl"
         </div>
     </xsl:template>
     
-    <!-- GRAPH  -->
-    
-    <xsl:template match="rdf:RDF" mode="bs2:Graph">
-        <xsl:param name="id" as="xs:string?"/>
-        <xsl:param name="class" as="xs:string?"/>
-        <xsl:param name="draggable" select="true()" as="xs:boolean?"/> <!-- counter-intuitive but needed in order to trigger "ixsl:ondragstart" on the map and then cancel it -->
-
-        <div>
-            <xsl:if test="$id">
-                <xsl:attribute name="id" select="$id"/>
-            </xsl:if>
-            <xsl:if test="$class">
-                <xsl:attribute name="class" select="$class"/>
-            </xsl:if>
-            <xsl:if test="$draggable = true()">
-                <xsl:attribute name="draggable" select="'true'"/>
-            </xsl:if>
-            <xsl:if test="$draggable = false()">
-                <xsl:attribute name="draggable" select="'false'"/>
-            </xsl:if>
-            
-            <xsl:apply-templates select="." mode="ac:SVG">
-                <xsl:with-param name="width" select="'100%'"/>
-                <xsl:with-param name="step-count" select="20"/>
-                <xsl:with-param name="spring-length" select="150" tunnel="yes"/>
-            </xsl:apply-templates>
-        </div>
-    </xsl:template>
-    
     <!-- CHART -->
 
     <!-- graph chart (for RDF/XML results) -->
