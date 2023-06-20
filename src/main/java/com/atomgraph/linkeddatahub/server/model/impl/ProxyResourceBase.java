@@ -34,6 +34,7 @@ import java.util.Locale;
 import java.util.Optional;
 import jakarta.inject.Inject;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.POST;
@@ -201,6 +202,8 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
             return getResponse(getDataManager().loadModel(target.getUri().toString()));
         }
 
+        if (!getSystem().isEnableLinkedDataProxy()) throw new BadRequestException("Linked Data proxy not enabled");
+
         return super.get(target, builder);
     }
     
@@ -214,6 +217,7 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     public Response postMultipart(FormDataMultiPart multiPart)
     {
+        if (!getSystem().isEnableLinkedDataProxy()) throw new BadRequestException("Linked Data proxy not enabled");
         if (getWebTarget() == null) throw new NotFoundException("Resource URI not supplied"); // cannot throw Exception in constructor: https://github.com/eclipse-ee4j/jersey/issues/4436
         
         try (Response cr = getWebTarget().request().
@@ -235,6 +239,7 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     public Response putMultipart(FormDataMultiPart multiPart)
     {
+        if (!getSystem().isEnableLinkedDataProxy()) throw new BadRequestException("Linked Data proxy not enabled");
         if (getWebTarget() == null) throw new NotFoundException("Resource URI not supplied"); // cannot throw Exception in constructor: https://github.com/eclipse-ee4j/jersey/issues/4436
         
         try (Response cr = getWebTarget().request().

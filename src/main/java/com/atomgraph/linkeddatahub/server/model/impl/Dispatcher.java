@@ -79,7 +79,7 @@ public class Dispatcher
     @Path("{path: .*}")
     public Object getSubResource()
     {
-        if (getSystem().isEnableLinkedDataProxy() && getUriInfo().getQueryParameters().containsKey(AC.uri.getLocalName()))
+        if (getUriInfo().getQueryParameters().containsKey(AC.uri.getLocalName()))
         {
             if (log.isDebugEnabled()) log.debug("No Application matched request URI <{}>, dispatching to ProxyResourceBase", getUriInfo().getQueryParameters().getFirst(AC.uri.getLocalName()));
             return ProxyResourceBase.class;
