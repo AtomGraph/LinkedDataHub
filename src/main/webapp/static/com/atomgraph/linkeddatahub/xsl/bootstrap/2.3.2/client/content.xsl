@@ -956,7 +956,7 @@ exclude-result-prefixes="#all"
     
     <!-- start dragging content -->
     
-    <xsl:template match="div[ac:mode() = '&ldh;ContentMode'][contains-token(@class, 'content')][contains-token(@class, 'row-fluid')]" mode="ixsl:ondragstart">
+    <xsl:template match="div[ac:mode() = '&ldh;ContentMode'][contains-token(@class, 'content')][contains-token(@class, 'row-fluid')]/descendant-or-self::*" mode="ixsl:ondragstart">
         <xsl:variable name="content-uri" select="@about" as="xs:anyURI"/>
         <ixsl:set-property name="dataTransfer.effectAllowed" select="'move'" object="ixsl:event()"/>
         <xsl:sequence select="ixsl:call(ixsl:get(ixsl:event(), 'dataTransfer'), 'setData', [ 'text/uri-list', $content-uri ])"/>
