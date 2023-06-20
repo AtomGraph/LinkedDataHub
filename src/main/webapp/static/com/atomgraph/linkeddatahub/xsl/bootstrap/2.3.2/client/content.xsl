@@ -954,12 +954,21 @@ exclude-result-prefixes="#all"
         </xsl:for-each>
     </xsl:template>
     
-    <!-- start dragging content -->
+    <!-- start dragging content (or its descendants) -->
     
     <xsl:template match="div[ac:mode() = '&ldh;ContentMode'][contains-token(@class, 'content')][contains-token(@class, 'row-fluid')]/descendant-or-self::*" mode="ixsl:ondragstart">
-        <xsl:variable name="content-uri" select="@about" as="xs:anyURI"/>
-        <ixsl:set-property name="dataTransfer.effectAllowed" select="'move'" object="ixsl:event()"/>
-        <xsl:sequence select="ixsl:call(ixsl:get(ixsl:event(), 'dataTransfer'), 'setData', [ 'text/uri-list', $content-uri ])"/>
+        <xsl:choose>
+            <!-- allow drag on the content <div> -->
+            <xsl:when test="self::div[contains-token(@class, 'content')][contains-token(@class, 'row-fluid')]">
+                <xsl:variable name="content-uri" select="@about" as="xs:anyURI"/>
+                <ixsl:set-property name="dataTransfer.effectAllowed" select="'move'" object="ixsl:event()"/>
+                <xsl:sequence select="ixsl:call(ixsl:get(ixsl:event(), 'dataTransfer'), 'setData', [ 'text/uri-list', $content-uri ])"/>
+            </xsl:when>
+            <!-- prevent drag on its descendants. This makes sure that content drag-and-drop doesn't interfere with drag events in the Map and Graph modes -->
+            <xsl:otherwise>
+                <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:template>
 
     <!-- dragging content over other content -->
