@@ -540,13 +540,13 @@ exclude-result-prefixes="#all"
             </xsl:when>
             <xsl:when test="$active-mode = '&ac;ChartMode'">
                 <xsl:apply-templates select="$results" mode="bs2:Chart">
-                    <xsl:with-param name="canvas-id" select="$container-id || '-chart-canvas'"/>
+                    <xsl:with-param name="id" select="$container-id || '-chart-canvas'"/>
                     <xsl:with-param name="endpoint" select="if (not($endpoint = sd:endpoint())) then $endpoint else ()" tunnel="yes"/>
                 </xsl:apply-templates>
             </xsl:when>
             <xsl:when test="$active-mode = '&ac;MapMode'">
                 <xsl:apply-templates select="$results" mode="bs2:Map">
-                    <xsl:with-param name="canvas-id" select="$container-id || '-map-canvas'"/>
+                    <xsl:with-param name="id" select="$container-id || '-map-canvas'"/>
                     <xsl:with-param name="endpoint" select="if (not($endpoint = sd:endpoint())) then $endpoint else ()" tunnel="yes"/>
                 </xsl:apply-templates>
             </xsl:when>

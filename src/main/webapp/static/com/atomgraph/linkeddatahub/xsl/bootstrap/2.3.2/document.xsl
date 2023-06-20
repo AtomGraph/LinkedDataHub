@@ -203,13 +203,13 @@ extension-element-prefixes="ixsl"
     <!-- MAP -->
     
     <xsl:template match="rdf:RDF" mode="bs2:Map">
-        <xsl:param name="canvas-id" as="xs:string"/>
+        <xsl:param name="id" as="xs:string"/>
         <xsl:param name="class" select="'map-canvas'" as="xs:string?"/>
         <xsl:param name="draggable" select="true()" as="xs:boolean?"/> <!-- counter-intuitive but needed in order to trigger "ixsl:ondragstart" on the map and then cancel it -->
 
         <div>
-            <xsl:if test="$canvas-id">
-                <xsl:attribute name="id" select="$canvas-id"/>
+            <xsl:if test="$id">
+                <xsl:attribute name="id" select="$id"/>
             </xsl:if>
             <xsl:if test="$class">
                 <xsl:attribute name="class" select="$class"/>
@@ -222,13 +222,13 @@ extension-element-prefixes="ixsl"
             </xsl:if>
         </div>
     </xsl:template>
-        
+    
     <!-- CHART -->
 
     <!-- graph chart (for RDF/XML results) -->
 
     <xsl:template match="rdf:RDF" mode="bs2:Chart">
-        <xsl:param name="canvas-id" as="xs:string"/>
+        <xsl:param name="id" as="xs:string"/>
         <xsl:param name="class" select="'chart-canvas'" as="xs:string?"/>
         <xsl:param name="chart-type" select="xs:anyURI('&ac;Table')" as="xs:anyURI?"/>
         <xsl:param name="category" as="xs:string?"/>
@@ -243,8 +243,8 @@ extension-element-prefixes="ixsl"
         </xsl:apply-templates>
 
         <div>
-            <xsl:if test="$canvas-id">
-                <xsl:attribute name="id" select="$canvas-id"/>
+            <xsl:if test="$id">
+                <xsl:attribute name="id" select="$id"/>
             </xsl:if>
             <xsl:if test="$class">
                 <xsl:attribute name="class" select="$class"/>
@@ -408,7 +408,7 @@ extension-element-prefixes="ixsl"
     <!-- table chart (for SPARQL XML results) -->
 
     <xsl:template match="srx:sparql" mode="bs2:Chart">
-        <xsl:param name="canvas-id" as="xs:string"/>
+        <xsl:param name="id" as="xs:string"/>
         <xsl:param name="class" select="'chart-canvas'" as="xs:string?"/>
         <xsl:param name="chart-type" select="xs:anyURI('&ac;Table')" as="xs:anyURI?"/>
         <xsl:param name="category" select="srx:head/srx:variable[1]/@name" as="xs:string?"/>
@@ -423,8 +423,8 @@ extension-element-prefixes="ixsl"
         </xsl:apply-templates>
 
         <div>
-            <xsl:if test="$canvas-id">
-                <xsl:attribute name="id" select="$canvas-id"/>
+            <xsl:if test="$id">
+                <xsl:attribute name="id" select="$id"/>
             </xsl:if>
             <xsl:if test="$class">
                 <xsl:attribute name="class" select="$class"/>
