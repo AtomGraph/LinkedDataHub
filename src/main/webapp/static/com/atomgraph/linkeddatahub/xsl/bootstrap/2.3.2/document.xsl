@@ -226,7 +226,7 @@ extension-element-prefixes="ixsl"
     <!-- GRAPH  -->
     
     <xsl:template match="rdf:RDF" mode="bs2:Graph">
-        <xsl:param name="id" as="xs:string"/>
+        <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" as="xs:string?"/>
         <xsl:param name="draggable" select="true()" as="xs:boolean?"/> <!-- counter-intuitive but needed in order to trigger "ixsl:ondragstart" on the map and then cancel it -->
 
