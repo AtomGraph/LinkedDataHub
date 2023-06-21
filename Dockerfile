@@ -180,8 +180,8 @@ RUN useradd --no-log-init -U ldh && \
 
 RUN ./import-letsencrypt-stg-roots.sh
 
-HEALTHCHECK --start-period=15s --interval=15s --timeout=3s \
-    CMD curl -f "http://localhost:${HTTP_PORT}/ns" || exit 1 # relies on public access to the namespace document
+HEALTHCHECK --start-period=80s --interval=20s --timeout=10s \
+    CMD curl -f -I "http://localhost:${HTTP_PORT}/ns" || exit 1 # relies on public access to the namespace document
 
 USER ldh
 
