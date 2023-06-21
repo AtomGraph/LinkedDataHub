@@ -4,6 +4,9 @@ services:
     image: atomgraph/nginx:1.23.3
     mem_limit: 128m
     command: /bin/bash -c "envsubst '$$HTTPS_PORT $$UPSTREAM_SERVER $$UPSTREAM_HTTP_PORT $$SERVER_NAME $$SERVER_HTTPS_PORT $$SERVER_HTTP_PORT $$SERVER_CERT_FILE $$SERVER_KEY_FILE $$SSL_VERIFY_CLIENT $$MAX_BODY_SIZE $$SERVER_CLIENT_CERT_HTTPS_PORT' < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf && nginx -g 'daemon off;'"
+    depends_on:
+      linkeddatahub:
+        condition: service_healthy
     ports:
       - ${HTTP_PORT}:8080 # allow Tomcat to do HTTP to HTTPS redirect
       - ${HTTPS_PORT}:8443 # HTTPS
