@@ -2,11 +2,13 @@
 ### Added
 - New Varnish proxy cache between nginx and LinkedDataHub (service `varnish-frontend`) in order to improve performance
 - New `lapp:frontendProxy` and `lapp:backendProxy` properties in the LAPP ontology
+- `HEALTHCHECK` configuration in Dockerfile (relies on public access to the namespace document)
 
 ### Changed
-- Replaced the `atomgraph/varnish:6.0.11` Docker image with the official `varnish:7.3.0` image
 - Fixed content drag and drop logic to only work in content mode and not affect dragging in map and graph modes
 - When `ENABLE_LINKED_DATA_PROXY=false`, `?uri=` proxy requests will return `400 Bad Request` unless the URI is already cached or mapped to file
+- Replaced the `atomgraph/varnish:6.0.11` Docker image with the official `varnish:7.3.0` image
+- Replaced the `atomgraph/nginx:1.23.3` Docker image with the official `nginx:1.23.3` image
 
 ## [4.0.4] - 2023-06-07
 ### Changed

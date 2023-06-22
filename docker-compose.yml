@@ -1,9 +1,12 @@
 version: "2.3"
 services:
   nginx:
-    image: atomgraph/nginx:1.23.3
+    image: nginx:1.23.3
     mem_limit: 128m
-    command: /bin/bash -c "envsubst '$$HTTPS_PORT $$UPSTREAM_SERVER $$UPSTREAM_HTTP_PORT $$SERVER_NAME $$SERVER_HTTPS_PORT $$SERVER_HTTP_PORT $$SERVER_CERT_FILE $$SERVER_KEY_FILE $$SSL_VERIFY_CLIENT $$MAX_BODY_SIZE $$SERVER_CLIENT_CERT_HTTPS_PORT' < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf && nginx -g 'daemon off;'"
+    command: /bin/sh -c "cp /etc/nginx/nginx.conf.template /etc/nginx/nginx.conf && sed -i 's|$${HTTPS_PORT}|'"$$HTTPS_PORT"'|g' /etc/nginx/nginx.conf && sed -i 's|$${UPSTREAM_SERVER}|'"$$UPSTREAM_SERVER"'|g' /etc/nginx/nginx.conf && sed -i 's|$${UPSTREAM_HTTP_PORT}|'"$$UPSTREAM_HTTP_PORT"'|g' /etc/nginx/nginx.conf && sed -i 's|$${SERVER_NAME}|'"$$SERVER_NAME"'|g' /etc/nginx/nginx.conf && sed -i 's|$${SERVER_HTTPS_PORT}|'"$$SERVER_HTTPS_PORT"'|g' /etc/nginx/nginx.conf && sed -i 's|$${SERVER_HTTP_PORT}|'"$$SERVER_HTTP_PORT"'|g' /etc/nginx/nginx.conf && sed -i 's|$${SERVER_CERT_FILE}|'"$$SERVER_CERT_FILE"'|g' /etc/nginx/nginx.conf && sed -i 's|$${SERVER_KEY_FILE}|'"$$SERVER_KEY_FILE"'|g' /etc/nginx/nginx.conf && sed -i 's|$${SSL_VERIFY_CLIENT}|'"$$SSL_VERIFY_CLIENT"'|g' /etc/nginx/nginx.conf && sed -i 's|$${MAX_BODY_SIZE}|'"$$MAX_BODY_SIZE"'|g' /etc/nginx/nginx.conf && sed -i 's|$${SERVER_CLIENT_CERT_HTTPS_PORT}|'"$$SERVER_CLIENT_CERT_HTTPS_PORT"'|g' /etc/nginx/nginx.conf && nginx -g 'daemon off;'"
+    depends_on:
+      linkeddatahub:
+        condition: service_healthy
     ports:
       - ${HTTP_PORT}:8080 # allow Tomcat to do HTTP to HTTPS redirect
       - ${HTTPS_PORT}:8443 # HTTPS
