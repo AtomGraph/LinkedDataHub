@@ -82,6 +82,7 @@ It takes a few clicks and filling out a form to install the product into your ow
 
   ### Notes
 
+  * There might go up to a minute before the web server is available because the nginx server depends on healthy LinkedDataHub and the healthcheck is done every 20s
   * You will likely get a browser warning such as `Your connection is not private` in Chrome or `Warning: Potential Security Risk Ahead` in Firefox due to the self-signed server certificate. Ignore it: click `Advanced` and `Proceed` or `Accept the risk` to proceed.
     * If this option does not appear in Chrome (as observed on some MacOS), you can open `chrome://flags/#allow-insecure-localhost`, switch `Allow invalid certificates for resources loaded from localhost` to `Enabled` and restart Chrome
   * `.env_sample` and `.env` files might be invisible in MacOS Finder which hides filenames starting with a dot. You should be able to [create it using Terminal](https://stackoverflow.com/questions/5891365/mac-os-x-doesnt-allow-to-name-files-starting-with-a-dot-how-do-i-name-the-hta) however.
@@ -145,6 +146,8 @@ _:warning: Do not use blank nodes to identify applications or services. We recom
     <dt><code>GOOGLE_CLIENT_SECRET</code></dt>
     <dd>Client secret from Google</dd>
   </dl>
+
+The options are described in more detail in the [configuration documentation](https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/reference/configuration/).
 
   ## Reset
 
