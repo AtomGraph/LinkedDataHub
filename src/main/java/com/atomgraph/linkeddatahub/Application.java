@@ -120,7 +120,8 @@ import com.atomgraph.linkeddatahub.vocabulary.LDHC;
 import com.atomgraph.linkeddatahub.vocabulary.Google;
 import com.atomgraph.linkeddatahub.vocabulary.LAPP;
 import com.atomgraph.linkeddatahub.writer.Mode;
-import com.atomgraph.linkeddatahub.writer.ModelXSLTWriterBase;
+import com.atomgraph.linkeddatahub.writer.ResultSetXSLTWriter;
+import com.atomgraph.linkeddatahub.writer.XSLTWriterBase;
 import com.atomgraph.linkeddatahub.writer.factory.ModeFactory;
 import com.atomgraph.linkeddatahub.writer.function.DecodeURI;
 import com.atomgraph.processor.vocabulary.AP;
@@ -723,10 +724,10 @@ public class Application extends ResourceConfig
                 }
                 
                 // register HTTPS URL of translations.rdf so it doesn't have to be requested repeatedly
-                try (InputStream translations = servletConfig.getServletContext().getResourceAsStream(ModelXSLTWriterBase.TRANSLATIONS_PATH))
+                try (InputStream translations = servletConfig.getServletContext().getResourceAsStream(XSLTWriterBase.TRANSLATIONS_PATH))
                 {
                     TreeInfo doc = xsltProc.getUnderlyingConfiguration().buildDocumentTree(new StreamSource(translations));
-                    xsltProc.getUnderlyingConfiguration().getGlobalDocumentPool().add(doc, baseURI.resolve(ModelXSLTWriterBase.TRANSLATIONS_PATH).toString());
+                    xsltProc.getUnderlyingConfiguration().getGlobalDocumentPool().add(doc, baseURI.resolve(XSLTWriterBase.TRANSLATIONS_PATH).toString());
                 }
             }
             catch (XPathException | TransformerException ex)
@@ -808,6 +809,7 @@ public class Application extends ResourceConfig
         register(new QueryParamProvider());
         register(new UpdateRequestProvider());
         register(new ModelXSLTWriter(getXsltExecutable(), getOntModelSpec(), getDataManager(), getMessageDigest())); // writes (X)HTML responses
+        register(new ResultSetXSLTWriter(getXsltExecutable(), getOntModelSpec(), getDataManager(), getMessageDigest())); // writes (X)HTML responses
 
         final com.atomgraph.linkeddatahub.Application system = this;
         register(new AbstractBinder()

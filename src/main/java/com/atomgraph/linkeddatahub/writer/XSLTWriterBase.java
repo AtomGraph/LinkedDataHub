@@ -36,10 +36,6 @@ import com.atomgraph.linkeddatahub.server.security.AuthorizationContext;
 import com.atomgraph.linkeddatahub.vocabulary.FOAF;
 import com.atomgraph.linkeddatahub.vocabulary.LDHC;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Type;
-import java.math.BigInteger;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.security.MessageDigest;
@@ -53,8 +49,6 @@ import java.util.stream.Collectors;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.core.Context;
-import jakarta.ws.rs.core.EntityTag;
-import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.MultivaluedMap;
 import jakarta.ws.rs.core.SecurityContext;
 import javax.xml.transform.Source;
@@ -78,9 +72,9 @@ import org.slf4j.LoggerFactory;
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.ModelXSLTWriterBase
+public abstract class XSLTWriterBase extends com.atomgraph.client.writer.ModelXSLTWriterBase
 {
-    private static final Logger log = LoggerFactory.getLogger(ModelXSLTWriterBase.class);
+    private static final Logger log = LoggerFactory.getLogger(XSLTWriterBase.class);
     private static final Set<String> NAMESPACES;
     /** The relative URL of the RDF file with localized labels */
     public static final String TRANSLATIONS_PATH = "static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf";
@@ -112,28 +106,12 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
      * @param dataManager RDF data manager
      * @param messageDigest message digest
      */
-    public ModelXSLTWriterBase(XsltExecutable xsltExec, OntModelSpec ontModelSpec, DataManager dataManager, MessageDigest messageDigest)
+    public XSLTWriterBase(XsltExecutable xsltExec, OntModelSpec ontModelSpec, DataManager dataManager, MessageDigest messageDigest)
     {
         super(xsltExec, ontModelSpec, dataManager); // this DataManager will be unused as we override getDataManager() with the injected (subclassed) one
         this.messageDigest = messageDigest;
     }
-    
-    @Override
-    public void writeTo(Model model, Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType, MultivaluedMap<String, Object> headerMap, OutputStream entityStream) throws IOException
-    {
-        // authenticated agents get a different HTML representation and therefore a different entity tag
-        if (headerMap.containsKey(HttpHeaders.ETAG) && headerMap.getFirst(HttpHeaders.ETAG) instanceof EntityTag && getSecurityContext() != null && getSecurityContext().getUserPrincipal() instanceof Agent)
-        {
-            EntityTag eTag = (EntityTag)headerMap.getFirst(HttpHeaders.ETAG);
-            BigInteger eTagHash = new BigInteger(eTag.getValue(), 16);
-            Agent agent = (Agent)getSecurityContext().getUserPrincipal();
-            eTagHash = eTagHash.add(BigInteger.valueOf(agent.hashCode()));
-            headerMap.replace(HttpHeaders.ETAG, Arrays.asList(new EntityTag(eTagHash.toString(16))));
-        }
-        
-        super.writeTo(processWrite(model), type, type, annotations, mediaType, headerMap, entityStream);
-    }
-    
+
     @Override
     public <T extends XdmValue> Map<QName, XdmValue> getParameters(MultivaluedMap<String, Object> headerMap) throws TransformerException
     {
