@@ -156,7 +156,7 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
 
         List<jakarta.ws.rs.core.MediaType> readableMediaTypesList = new ArrayList<>();
         readableMediaTypesList.addAll(mediaTypes.getReadable(Model.class));
-        readableMediaTypesList.addAll(mediaTypes.getReadable(ResultSet.class)); // not in the superclass
+        readableMediaTypesList.addAll(mediaTypes.getReadable(ResultSet.class));
         this.readableMediaTypes = readableMediaTypesList.toArray(MediaType[]::new);
         
         if (agentContext.isPresent())

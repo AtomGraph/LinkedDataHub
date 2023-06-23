@@ -26,27 +26,17 @@ import jakarta.ws.rs.core.MultivaluedMap;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.ext.MessageBodyWriter;
 import jakarta.ws.rs.ext.Provider;
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.math.BigInteger;
-import static java.nio.charset.StandardCharsets.UTF_8;
 import java.security.MessageDigest;
-import java.time.ZonedDateTime;
 import java.util.Arrays;
 import javax.xml.transform.TransformerException;
-import javax.xml.transform.URIResolver;
-import javax.xml.transform.stream.StreamSource;
-import net.sf.saxon.lib.ResourceResolverWrappingURIResolver;
-import net.sf.saxon.lib.UnparsedTextURIResolver;
 import net.sf.saxon.s9api.SaxonApiException;
-import net.sf.saxon.s9api.Serializer;
-import net.sf.saxon.s9api.Xslt30Transformer;
 import net.sf.saxon.s9api.XsltExecutable;
-import net.sf.saxon.value.DateTimeValue;
 import org.apache.http.HttpHeaders;
 import org.apache.jena.ontology.OntModelSpec;
 import org.apache.jena.query.ResultSetFormatter;
@@ -104,31 +94,7 @@ public class ResultSetXSLTWriter extends XSLTWriterBase implements MessageBodyWr
 
             ResultSetFormatter.outputAsXML(baos, results);
   
-            Xslt30Transformer xsltTrans = getXsltExecutable().load30();
-            Serializer out = xsltTrans.newSerializer();
-            out.setOutputStream(entityStream);
-            out.setOutputProperty(Serializer.Property.ENCODING, UTF_8.name());
-
-            if (mediaType.isCompatible(MediaType.TEXT_HTML_TYPE))
-            {
-                out.setOutputProperty(Serializer.Property.METHOD, "html");
-                out.setOutputProperty(Serializer.Property.MEDIA_TYPE, MediaType.TEXT_HTML);
-                out.setOutputProperty(Serializer.Property.DOCTYPE_SYSTEM, "http://www.w3.org/TR/html4/strict.dtd");
-                out.setOutputProperty(Serializer.Property.DOCTYPE_PUBLIC, "-//W3C//DTD HTML 4.01//EN");
-            }
-            if (mediaType.isCompatible(MediaType.APPLICATION_XHTML_XML_TYPE))
-            {
-                out.setOutputProperty(Serializer.Property.METHOD, "xhtml");
-                out.setOutputProperty(Serializer.Property.MEDIA_TYPE, MediaType.APPLICATION_XHTML_XML);
-                out.setOutputProperty(Serializer.Property.DOCTYPE_SYSTEM, "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd");
-                out.setOutputProperty(Serializer.Property.DOCTYPE_PUBLIC, "-//W3C//DTD XHTML 1.0 Strict//EN");
-            }
-
-            xsltTrans.setResourceResolver(new ResourceResolverWrappingURIResolver((URIResolver)getDataManager()));
-            xsltTrans.getUnderlyingController().setUnparsedTextURIResolver((UnparsedTextURIResolver)getDataManager());
-            xsltTrans.getUnderlyingController().setCurrentDateTime(DateTimeValue.fromZonedDateTime(ZonedDateTime.now())); // TO-DO: make TZ configurable
-            xsltTrans.setStylesheetParameters(getParameters(headerMap));
-            xsltTrans.transform(new StreamSource(new ByteArrayInputStream(baos.toByteArray())), out);
+            transform(baos, mediaType, headerMap, entityStream);
         }
         catch (TransformerException | SaxonApiException ex)
         {

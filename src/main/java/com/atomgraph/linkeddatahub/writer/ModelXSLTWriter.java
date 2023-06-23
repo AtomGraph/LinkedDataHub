@@ -16,25 +16,38 @@
 package com.atomgraph.linkeddatahub.writer;
 
 import com.atomgraph.client.util.DataManager;
+import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.model.auth.Agent;
+import com.atomgraph.linkeddatahub.server.io.ValidatingModelProvider;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.security.MessageDigest;
 import jakarta.inject.Singleton;
+import jakarta.ws.rs.InternalServerErrorException;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.EntityTag;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.MultivaluedMap;
 import jakarta.ws.rs.ext.MessageBodyWriter;
 import jakarta.ws.rs.ext.Provider;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.math.BigInteger;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import javax.xml.transform.TransformerException;
+import net.sf.saxon.s9api.SaxonApiException;
 import net.sf.saxon.s9api.XsltExecutable;
 import org.apache.http.HttpHeaders;
 import org.apache.jena.ontology.OntModelSpec;
 import org.apache.jena.rdf.model.Model;
+import org.apache.jena.riot.RDFFormat;
+import org.apache.jena.riot.RDFWriter;
+import org.apache.jena.riot.SysRIOT;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * JAX-RS writer that renders RDF as HTML using XSLT stylesheet.
@@ -46,6 +59,8 @@ import org.apache.jena.rdf.model.Model;
 @Produces({MediaType.TEXT_HTML + ";charset=UTF-8", MediaType.APPLICATION_XHTML_XML + ";charset=UTF-8"})
 public class ModelXSLTWriter extends XSLTWriterBase implements MessageBodyWriter<Model>
 {
+
+    private static final Logger log = LoggerFactory.getLogger(ModelXSLTWriter.class);
 
     /**
      * Constructs XSLT writer.
@@ -85,7 +100,43 @@ public class ModelXSLTWriter extends XSLTWriterBase implements MessageBodyWriter
             headerMap.replace(HttpHeaders.ETAG, Arrays.asList(new EntityTag(eTagHash.toString(16))));
         }
         
-        super.writeTo(processWrite(model), type, type, annotations, mediaType, headerMap, entityStream);
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream())
+        {
+            Map<String, Object> properties = new HashMap<>() ;
+            properties.put("allowBadURIs", "true"); // round-tripping RDF/POST with user input may contain invalid URIs
+            org.apache.jena.sparql.util.Context cxt = new org.apache.jena.sparql.util.Context();
+            cxt.set(SysRIOT.sysRdfWriterProperties, properties);
+        
+            RDFWriter.create().
+                format(RDFFormat.RDFXML_PLAIN).
+                context(cxt).
+                source(model).
+                output(baos);
+            
+            transform(baos, mediaType, headerMap, entityStream);
+        }
+        catch (TransformerException | SaxonApiException ex)
+        {
+            if (log.isErrorEnabled()) log.error("XSLT transformation failed", ex);
+            throw new InternalServerErrorException(ex);
+        }
+    }
+
+    /**
+     * Hook for RDF model processing before write.
+     * 
+     * @param model RDF model
+     * @return RDF model
+     */
+    public Model processWrite(Model model)
+    {
+        // show foaf:mbox in end-user apps
+        if (getApplication().get().canAs(EndUserApplication.class)) return model;
+        // show foaf:mbox for authenticated agents
+        if (getSecurityContext() != null && getSecurityContext().getUserPrincipal() instanceof Agent) return model;
+
+        // show foaf:mbox_sha1sum for all other agents (in admin apps)
+        return ValidatingModelProvider.hashMboxes(getMessageDigest()).apply(model); // apply processing from superclasses
     }
     
 }

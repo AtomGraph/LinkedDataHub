@@ -17,7 +17,6 @@ package com.atomgraph.linkeddatahub.writer;
 
 import com.atomgraph.client.util.DataManager;
 import com.atomgraph.client.vocabulary.AC;
-import static com.atomgraph.client.writer.ModelXSLTWriterBase.getSource;
 import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
 import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
@@ -31,7 +30,6 @@ import com.atomgraph.linkeddatahub.vocabulary.LAPP;
 import com.atomgraph.client.vocabulary.LDT;
 import com.atomgraph.core.util.Link;
 import com.atomgraph.core.vocabulary.SD;
-import com.atomgraph.linkeddatahub.server.io.ValidatingModelProvider;
 import com.atomgraph.linkeddatahub.server.security.AuthorizationContext;
 import com.atomgraph.linkeddatahub.vocabulary.FOAF;
 import com.atomgraph.linkeddatahub.vocabulary.LDHC;
@@ -51,8 +49,11 @@ import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MultivaluedMap;
 import jakarta.ws.rs.core.SecurityContext;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import javax.xml.transform.Source;
 import javax.xml.transform.TransformerException;
+import javax.xml.transform.stream.StreamSource;
 import net.sf.saxon.s9api.QName;
 import net.sf.saxon.s9api.SaxonApiException;
 import net.sf.saxon.s9api.XdmAtomicValue;
@@ -64,6 +65,7 @@ import org.apache.jena.ontology.OntModelSpec;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.StmtIterator;
+import org.apache.jena.riot.RDFLanguages;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -72,7 +74,7 @@ import org.slf4j.LoggerFactory;
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-public abstract class XSLTWriterBase extends com.atomgraph.client.writer.ModelXSLTWriterBase
+public abstract class XSLTWriterBase extends com.atomgraph.client.writer.XSLTWriterBase
 {
     private static final Logger log = LoggerFactory.getLogger(XSLTWriterBase.class);
     private static final Set<String> NAMESPACES;
@@ -219,23 +221,6 @@ public abstract class XSLTWriterBase extends com.atomgraph.client.writer.ModelXS
         
         return model;
     }
-    
-    /**
-     * Hook for RDF model processing before write.
-     * 
-     * @param model RDF model
-     * @return RDF model
-     */
-    public Model processWrite(Model model)
-    {
-        // show foaf:mbox in end-user apps
-        if (getApplication().get().canAs(EndUserApplication.class)) return model;
-        // show foaf:mbox for authenticated agents
-        if (getSecurityContext() != null && getSecurityContext().getUserPrincipal() instanceof Agent) return model;
-
-        // show foaf:mbox_sha1sum for all other agents (in admin apps)
-        return ValidatingModelProvider.hashMboxes(getMessageDigest()).apply(model); // apply processing from superclasses
-    }
 
     /**
      * Override the Web-Client's implementation because LinkedDataHub concatenates <code>Link</code> headers into a single value.
@@ -272,6 +257,25 @@ public abstract class XSLTWriterBase extends com.atomgraph.client.writer.ModelXS
         if (!baseLinks.isEmpty()) return baseLinks.get(0);
 
         return null;
+    }
+    
+    /**
+     * Creates stream source from RDF model.
+     * The model is serialized using the RDF/XML syntax.
+     * 
+     * @param model RDF model
+     * @return XML stream source
+     * @throws IOException I/O error
+     */
+    public StreamSource getSource(Model model) throws IOException
+    {
+        if (model == null) throw new IllegalArgumentException("Model cannot be null");
+
+        try (ByteArrayOutputStream stream = new ByteArrayOutputStream())
+        {
+            model.write(stream, RDFLanguages.RDFXML.getName(), null);
+            return new StreamSource(new ByteArrayInputStream(stream.toByteArray()));
+        }
     }
     
     /**
