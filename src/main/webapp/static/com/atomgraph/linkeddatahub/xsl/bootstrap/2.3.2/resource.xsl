@@ -729,13 +729,20 @@ extension-element-prefixes="ixsl"
         <xsl:param name="right-class" select="'right-nav span3'" as="xs:string?"/>
         <xsl:param name="transclude" select="false()" as="xs:boolean"/>
         <xsl:param name="base" as="xs:anyURI?"/>
+        <xsl:param name="draggable" select="$acl:mode = '&acl;Write'" as="xs:boolean?"/>
 
-        <div about="{@rdf:about}" draggable="true">
+        <div about="{@rdf:about}">
             <xsl:if test="$id">
                 <xsl:attribute name="id" select="$id"/>
             </xsl:if>
             <xsl:if test="$class">
                 <xsl:attribute name="class" select="$class"/>
+            </xsl:if>
+            <xsl:if test="$draggable = true()">
+                <xsl:attribute name="draggable" select="'true'"/>
+            </xsl:if>
+            <xsl:if test="$draggable = false()">
+                <xsl:attribute name="draggable" select="'false'"/>
             </xsl:if>
             
             <xsl:apply-templates select="." mode="bs2:Left">
@@ -766,11 +773,12 @@ extension-element-prefixes="ixsl"
         <xsl:param name="left-class" select="'left-nav span2'" as="xs:string?"/>
         <xsl:param name="main-class" select="'main span7'" as="xs:string?"/>
         <xsl:param name="right-class" select="'right-nav span3'" as="xs:string?"/>
-        
+        <xsl:param name="draggable" select="$acl:mode = '&acl;Write'" as="xs:boolean?"/>
+
         <xsl:apply-templates select="." mode="bs2:RowContentHeader"/>
         
         <!-- @data-content-value is used to retrieve $content-value in client.xsl -->
-        <div about="{@rdf:about}" data-content-value="{rdf:value/@rdf:resource}" draggable="true">
+        <div about="{@rdf:about}" data-content-value="{rdf:value/@rdf:resource}">
             <xsl:if test="$id">
                 <xsl:attribute name="id" select="$id"/>
             </xsl:if>
@@ -779,6 +787,12 @@ extension-element-prefixes="ixsl"
             </xsl:if>
             <xsl:if test="$mode">
                 <xsl:attribute name="data-content-mode" select="$mode"/>
+            </xsl:if>
+            <xsl:if test="$draggable = true()">
+                <xsl:attribute name="draggable" select="'true'"/>
+            </xsl:if>
+            <xsl:if test="$draggable = false()">
+                <xsl:attribute name="draggable" select="'false'"/>
             </xsl:if>
             
             <xsl:apply-templates select="." mode="bs2:Left">
