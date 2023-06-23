@@ -40,6 +40,7 @@ import java.util.Arrays;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.URIResolver;
 import javax.xml.transform.stream.StreamSource;
+import net.sf.saxon.lib.ResourceResolverWrappingURIResolver;
 import net.sf.saxon.lib.UnparsedTextURIResolver;
 import net.sf.saxon.s9api.SaxonApiException;
 import net.sf.saxon.s9api.Serializer;
@@ -48,9 +49,8 @@ import net.sf.saxon.s9api.XsltExecutable;
 import net.sf.saxon.value.DateTimeValue;
 import org.apache.http.HttpHeaders;
 import org.apache.jena.ontology.OntModelSpec;
-import org.apache.jena.query.ResultSet;
 import org.apache.jena.query.ResultSetFormatter;
-import org.apache.jena.rdf.model.Model;
+import org.apache.jena.query.ResultSetRewindable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,7 +61,7 @@ import org.slf4j.LoggerFactory;
 @Provider
 @Singleton
 @Produces({MediaType.TEXT_HTML + ";charset=UTF-8", MediaType.APPLICATION_XHTML_XML + ";charset=UTF-8"})
-public class ResultSetXSLTWriter extends XSLTWriterBase implements MessageBodyWriter<ResultSet>
+public class ResultSetXSLTWriter extends XSLTWriterBase implements MessageBodyWriter<ResultSetRewindable>
 {
 
     private static final Logger log = LoggerFactory.getLogger(ResultSetXSLTWriter.class);
@@ -82,11 +82,11 @@ public class ResultSetXSLTWriter extends XSLTWriterBase implements MessageBodyWr
     @Override
     public boolean isWriteable(Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType)
     {
-        return (ResultSet.class.isAssignableFrom(type));
+        return (ResultSetRewindable.class.isAssignableFrom(type));
     }
 
     @Override
-    public void writeTo(ResultSet results, Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType, MultivaluedMap<String, Object> headerMap, OutputStream entityStream) throws IOException, WebApplicationException
+    public void writeTo(ResultSetRewindable results, Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType, MultivaluedMap<String, Object> headerMap, OutputStream entityStream) throws IOException, WebApplicationException
     {
         if (log.isTraceEnabled()) log.trace("Writing ResultSet with HTTP headers: {} MediaType: {}", headerMap, mediaType);
 
@@ -124,7 +124,7 @@ public class ResultSetXSLTWriter extends XSLTWriterBase implements MessageBodyWr
                 out.setOutputProperty(Serializer.Property.DOCTYPE_PUBLIC, "-//W3C//DTD XHTML 1.0 Strict//EN");
             }
 
-            xsltTrans.setURIResolver((URIResolver)getDataManager());
+            xsltTrans.setResourceResolver(new ResourceResolverWrappingURIResolver((URIResolver)getDataManager()));
             xsltTrans.getUnderlyingController().setUnparsedTextURIResolver((UnparsedTextURIResolver)getDataManager());
             xsltTrans.getUnderlyingController().setCurrentDateTime(DateTimeValue.fromZonedDateTime(ZonedDateTime.now())); // TO-DO: make TZ configurable
             xsltTrans.setStylesheetParameters(getParameters(headerMap));
