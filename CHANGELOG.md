@@ -8,7 +8,7 @@
 - Fixed content drag and drop logic to only work in content mode and not affect dragging in map and graph modes
 - Content drag and drop is only enabled when the authenticated agent has an `acl:Write` authorization for the document
 - Improved extensibility of client-side XSLT templates for faceted search and parallax navigation
-- When `ENABLE_LINKED_DATA_PROXY=false`, `?uri=` proxy requests will return 405 Method Not Allowed` unless the URI is already cached or mapped to file
+- When `ENABLE_LINKED_DATA_PROXY=false`, `?uri=` proxy requests will return `405 Method Not Allowed` unless the URI is already cached or mapped to file
 - Replaced the `atomgraph/varnish:6.0.11` Docker image with the official `varnish:7.3.0` image
 - Replaced the `atomgraph/nginx:1.23.3` Docker image with the official `nginx:1.23.3` image
 
