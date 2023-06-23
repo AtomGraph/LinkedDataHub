@@ -956,7 +956,7 @@ exclude-result-prefixes="#all"
     
     <!-- start dragging content (or its descendants) -->
     
-    <xsl:template match="div[ac:mode() = '&ldh;ContentMode'][contains-token(@class, 'content')][contains-token(@class, 'row-fluid')]/descendant-or-self::*" mode="ixsl:ondragstart">
+    <xsl:template match="div[ac:mode() = '&ldh;ContentMode'][acl:mode() = '&acl;Write'][contains-token(@class, 'content')][contains-token(@class, 'row-fluid')]/descendant-or-self::*" mode="ixsl:ondragstart">
         <xsl:choose>
             <!-- allow drag on the content <div> -->
             <xsl:when test="self::div[contains-token(@class, 'content')][contains-token(@class, 'row-fluid')]">
@@ -973,18 +973,18 @@ exclude-result-prefixes="#all"
 
     <!-- dragging content over other content -->
     
-    <xsl:template match="div[ac:mode() = '&ldh;ContentMode'][contains-token(@class, 'content')][contains-token(@class, 'row-fluid')][acl:mode() = '&acl;Write']" mode="ixsl:ondragover">
+    <xsl:template match="div[ac:mode() = '&ldh;ContentMode'][acl:mode() = '&acl;Write'][contains-token(@class, 'content')][contains-token(@class, 'row-fluid')][acl:mode() = '&acl;Write']" mode="ixsl:ondragover">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <ixsl:set-property name="dataTransfer.dropEffect" select="'move'" object="ixsl:event()"/>
     </xsl:template>
 
     <!-- change the style of elements when content is dragged over them -->
     
-    <xsl:template match="div[ac:mode() = '&ldh;ContentMode'][contains-token(@class, 'content')][contains-token(@class, 'row-fluid')][acl:mode() = '&acl;Write']" mode="ixsl:ondragenter">
+    <xsl:template match="div[ac:mode() = '&ldh;ContentMode'][acl:mode() = '&acl;Write'][contains-token(@class, 'content')][contains-token(@class, 'row-fluid')][acl:mode() = '&acl;Write']" mode="ixsl:ondragenter">
         <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'drag-over', true() ])[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
 
-    <xsl:template match="div[ac:mode() = '&ldh;ContentMode'][contains-token(@class, 'content')][contains-token(@class, 'row-fluid')][acl:mode() = '&acl;Write']" mode="ixsl:ondragleave">
+    <xsl:template match="div[ac:mode() = '&ldh;ContentMode'][acl:mode() = '&acl;Write'][contains-token(@class, 'content')][contains-token(@class, 'row-fluid')][acl:mode() = '&acl;Write']" mode="ixsl:ondragleave">
         <xsl:variable name="related-target" select="ixsl:get(ixsl:event(), 'relatedTarget')" as="element()?"/> <!-- the element drag entered (optional) -->
 
         <!-- only remove class if the related target does not have this div as ancestor (is not its child) -->
@@ -995,7 +995,7 @@ exclude-result-prefixes="#all"
 
     <!-- dropping content over other content -->
     
-    <xsl:template match="div[ac:mode() = '&ldh;ContentMode'][contains-token(@class, 'content')][contains-token(@class, 'row-fluid')][acl:mode() = '&acl;Write']" mode="ixsl:ondrop">
+    <xsl:template match="div[ac:mode() = '&ldh;ContentMode'][acl:mode() = '&acl;Write'][contains-token(@class, 'content')][contains-token(@class, 'row-fluid')][acl:mode() = '&acl;Write']" mode="ixsl:ondrop">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="container" select="." as="element()"/>
         <xsl:variable name="content-uri" select="@about" as="xs:anyURI"/>
