@@ -86,6 +86,8 @@ extension-element-prefixes="ixsl"
         </xsl:if>
     </xsl:template>
 
+    <xsl:template match="srx:sparql" mode="schema:BreadCrumbList"/>
+
     <!-- walks up the ancestor document chain and collects them -->
     <xsl:function name="ldh:doc-with-ancestors" as="element()*">
         <xsl:param name="resource" as="element()"/>
