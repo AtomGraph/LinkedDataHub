@@ -110,7 +110,7 @@ public class ModelXSLTWriter extends XSLTWriterBase implements MessageBodyWriter
             RDFWriter.create().
                 format(RDFFormat.RDFXML_PLAIN).
                 context(cxt).
-                source(model).
+                source(processWrite(model)).
                 output(baos);
             
             transform(baos, mediaType, headerMap, entityStream);
