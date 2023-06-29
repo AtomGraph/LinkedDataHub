@@ -706,7 +706,7 @@ LIMIT   100
         <xsl:apply-templates select="." mode="bs2:SignUp"/>
     </xsl:template>
 
-    <xsl:template match="rdf:RDF[not($foaf:Agent//@rdf:about)][$lapp:Application//rdf:type/@rdf:resource = '&lapp;EndUserApplication']" mode="bs2:SignUp" priority="1">
+    <xsl:template match="rdf:RDF[not($foaf:Agent//@rdf:about)][$lapp:Application//rdf:type/@rdf:resource = '&lapp;EndUserApplication'] | srx:sparql[not($foaf:Agent//@rdf:about)][$lapp:Application//rdf:type/@rdf:resource = '&lapp;EndUserApplication']" mode="bs2:SignUp" priority="1">
         <!-- resolve links against the base URI of LinkedDataHub and not of the current app, as we want signups to always go the root app -->
         <xsl:param name="google-signup-uri" select="ac:build-uri(resolve-uri('admin/oauth2/authorize/google', $ldh:base), map{ 'referer': string(ac:uri()) })" as="xs:anyURI"/>
         <xsl:param name="webid-signup-uri" select="resolve-uri('admin/sign%20up', $ldh:base)" as="xs:anyURI"/>
@@ -733,7 +733,7 @@ LIMIT   100
         </xsl:if>
     </xsl:template>
     
-    <xsl:template match="rdf:RDF" mode="bs2:SignUp"/>
+    <xsl:template match="*" mode="bs2:SignUp"/>
     
     <xsl:template match="*[ldt:base/@rdf:resource]" mode="bs2:AppListItem">
         <xsl:param name="active" as="xs:boolean?"/>
@@ -1445,7 +1445,7 @@ LIMIT   100
     
     <!-- DOCUMENT TREE -->
     
-    <xsl:template match="rdf:RDF" mode="bs2:DocumentTree">
+    <xsl:template match="rdf:RDF | srx:sparql" mode="bs2:DocumentTree">
         <xsl:param name="id" select="'doc-tree'" as="xs:string?"/>
         <xsl:param name="class" select="'well well-small sidebar-nav'" as="xs:string?"/>
         
