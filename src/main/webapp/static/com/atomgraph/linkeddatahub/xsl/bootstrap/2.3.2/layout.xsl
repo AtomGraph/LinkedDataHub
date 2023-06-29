@@ -278,7 +278,7 @@ LIMIT   100
     
     <!-- META -->
     
-    <xsl:template match="rdf:RDF" mode="xhtml:Meta">
+    <xsl:template match="rdf:RDF | srx:sparql" mode="xhtml:Meta">
         <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 
         <meta name="og:url" content="{ac:uri()}"/>
@@ -317,7 +317,7 @@ LIMIT   100
 
     <!-- STYLE -->
     
-    <xsl:template match="rdf:RDF" mode="xhtml:Style">
+    <xsl:template match="rdf:RDF | srx:sparql" mode="xhtml:Style">
         <xsl:param name="load-wymeditor" select="exists($foaf:Agent//@rdf:about)" as="xs:boolean"/>
         <xsl:param name="load-yasqe" select="true()" as="xs:boolean"/>
 
@@ -334,7 +334,7 @@ LIMIT   100
 
     <!-- SCRIPT -->
 
-    <xsl:template match="rdf:RDF" mode="xhtml:Script">
+    <xsl:template match="rdf:RDF | srx:sparql" mode="xhtml:Script">
         <xsl:param name="client-stylesheet" select="resolve-uri('static/com/atomgraph/linkeddatahub/xsl/client.xsl.sef.json', $ac:contextUri)" as="xs:anyURI"/>
         <xsl:param name="saxon-js-log-level" select="10" as="xs:integer"/>
         <xsl:param name="load-wymeditor" select="not($ac:mode = ('&ac;ModalMode', '&ldht;InfoWindowMode'))" as="xs:boolean"/>
@@ -473,7 +473,7 @@ LIMIT   100
     
     <!-- NAVBAR -->
     
-    <xsl:template match="rdf:RDF" mode="bs2:NavBar">
+    <xsl:template match="rdf:RDF | srx:sparql" mode="bs2:NavBar">
         <div class="navbar navbar-fixed-top">
             <div class="navbar-inner">
                 <div class="container-fluid">
@@ -505,7 +505,7 @@ LIMIT   100
         </div>
     </xsl:template>
 
-    <xsl:template match="rdf:RDF" mode="bs2:Brand">
+    <xsl:template match="rdf:RDF | srx:sparql" mode="bs2:Brand">
         <a class="brand" href="{$ldt:base}">
             <xsl:if test="$lapp:Application//*[ldt:base/@rdf:resource = $ldt:base]/rdf:type/@rdf:resource = '&lapp;AdminApplication'">
                 <xsl:attribute name="class" select="'brand admin'"/>
@@ -518,7 +518,7 @@ LIMIT   100
     </xsl:template>
     
     <!-- check if agent has access to the user endpoint by executing a dummy query ASK {} -->
-    <xsl:template match="rdf:RDF[doc-available(resolve-uri('sparql?query=ASK%20%7B%7D', $ldt:base))]" mode="bs2:SearchBar" priority="1">
+    <xsl:template match="rdf:RDF[doc-available(resolve-uri('sparql?query=ASK%20%7B%7D', $ldt:base))] | srx:sparql[doc-available(resolve-uri('sparql?query=ASK%20%7B%7D', $ldt:base))]" mode="bs2:SearchBar" priority="1">
         <form action="" method="get" class="navbar-form pull-left" accept-charset="UTF-8" title="{ac:label(key('resources', 'search-title', document('translations.rdf')))}">
             <div class="input-append">
                 <select id="search-service" name="service">
@@ -550,7 +550,7 @@ LIMIT   100
     
     <xsl:template match="*" mode="bs2:SearchBar"/>
 
-    <xsl:template match="rdf:RDF" mode="bs2:ActionBarLeft">
+    <xsl:template match="rdf:RDF | srx:sparql" mode="bs2:ActionBarLeft">
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" select="'span2'" as="xs:string?"/>
         <xsl:param name="classes" select="for $class-uri in map:keys($default-classes) return key('resources', $class-uri, document(ac:document-uri($class-uri)))" as="element()*"/>
@@ -575,7 +575,7 @@ LIMIT   100
         </div>
     </xsl:template>
     
-    <xsl:template match="rdf:RDF" mode="bs2:ActionBarMain">
+    <xsl:template match="rdf:RDF | srx:sparql" mode="bs2:ActionBarMain">
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" select="'span7'" as="xs:string?"/>
 
@@ -597,7 +597,7 @@ LIMIT   100
         </div>
     </xsl:template>
     
-    <xsl:template match="rdf:RDF" mode="bs2:ActionBarRight">
+    <xsl:template match="rdf:RDF | srx:sparql" mode="bs2:ActionBarRight">
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" select="'span3'" as="xs:string?"/>
 
@@ -638,7 +638,9 @@ LIMIT   100
         </div>
     </xsl:template>
 
-    <xsl:template match="rdf:RDF" mode="bs2:NavBarNavList">
+    <xsl:template match="srx:sparql" mode="bs2:BreadCrumbBar"/>
+
+    <xsl:template match="rdf:RDF | srx:sparql" mode="bs2:NavBarNavList">
         <xsl:if test="$foaf:Agent//@rdf:about">
             <ul class="nav pull-right">
                 <li>
@@ -771,7 +773,7 @@ LIMIT   100
         </body>
     </xsl:template>
 
-    <xsl:template match="rdf:RDF" mode="xhtml:Body">
+    <xsl:template match="rdf:RDF | srx:sparql" mode="xhtml:Body">
         <body>
             <div id="visible-body">
                 <xsl:apply-templates select="." mode="bs2:NavBar"/>
@@ -784,21 +786,25 @@ LIMIT   100
             <xsl:apply-templates select="." mode="bs2:DocumentTree"/>
         </body>
     </xsl:template>
-
+    
     <xsl:template match="rdf:RDF" mode="bs2:ContentBody">
         <xsl:param name="id" select="'content-body'" as="xs:string?"/>
         <xsl:param name="class" select="'container-fluid'" as="xs:string?"/>
+        <xsl:param name="about" select="ac:uri()" as="xs:anyURI?"/>
         <xsl:param name="classes" select="for $class-uri in map:keys($default-classes) return key('resources', $class-uri, document(ac:document-uri($class-uri)))" as="element()*"/>
         <xsl:param name="doc-types" select="key('resources', ac:uri())/rdf:type/@rdf:resource[ . = ('&def;Root', '&dh;Container', '&dh;Item')]" as="xs:anyURI*"/>
         <xsl:param name="content-values" select="if (exists($doc-types) and doc-available(resolve-uri('ns?query=ASK%20%7B%7D', $ldt:base))) then (ldh:query-result(map{}, resolve-uri('ns', $ldt:base), $template-query || ' VALUES $Type { ' || string-join(for $type in $doc-types return '&lt;' || $type || '&gt;', ' ') || ' }')//srx:binding[@name = 'content']/srx:uri/xs:anyURI(.)) else ()" as="xs:anyURI*"/>
         <xsl:param name="has-content" select="key('resources', key('resources', ac:uri())/rdf:*[starts-with(local-name(), '_')]/@rdf:resource) or exists($content-values)" as="xs:boolean"/>
 
-        <div about="{ac:uri()}">
+        <div>
             <xsl:if test="$id">
                 <xsl:attribute name="id" select="$id"/>
             </xsl:if>
             <xsl:if test="$class">
                 <xsl:attribute name="class" select="$class"/>
+            </xsl:if>
+            <xsl:if test="$about">
+                <xsl:attribute name="about" select="$about"/>
             </xsl:if>
             
             <xsl:apply-templates select="." mode="bs2:ModeTabs">
@@ -927,6 +933,26 @@ LIMIT   100
         
     <!-- don't show document-level tabs if the response returned an error or if we're in EditMode -->
     <xsl:template match="rdf:RDF[key('resources-by-type', '&http;Response')] | rdf:RDF[$ac:forClass or $ac:mode = '&ac;EditMode']" mode="bs2:ModeTabs" priority="1"/>
+
+    <xsl:template match="srx:sparql" mode="bs2:ContentBody">
+        <xsl:param name="id" select="'content-body'" as="xs:string?"/>
+        <xsl:param name="class" select="'container-fluid'" as="xs:string?"/>
+        <xsl:param name="about" select="ac:uri()" as="xs:anyURI?"/>
+
+        <div>
+            <xsl:if test="$id">
+                <xsl:attribute name="id" select="$id"/>
+            </xsl:if>
+            <xsl:if test="$class">
+                <xsl:attribute name="class" select="$class"/>
+            </xsl:if>
+            <xsl:if test="$about">
+                <xsl:attribute name="about" select="$about"/>
+            </xsl:if>
+
+            <xsl:apply-templates select="." mode="xhtml:Table"/>
+        </div>
+    </xsl:template>
     
     <!-- only lookup resource locally using DESCRIBE if it's external (not relative to the app's base URI) and the agent is authenticated -->
     <xsl:template match="*[*][@rdf:about = ac:uri()][not(starts-with(@rdf:about, $ldt:base))][$foaf:Agent//@rdf:about]" mode="bs2:PropertyList">
@@ -1104,7 +1130,7 @@ LIMIT   100
 
     <!-- MEDIA TYPE LIST  -->
         
-    <xsl:template match="rdf:RDF" mode="bs2:MediaTypeList" priority="1">
+    <xsl:template match="rdf:RDF | srx:sparql" mode="bs2:MediaTypeList" priority="1">
         <div class="btn-group pull-right">
             <button type="button" id="export-rdf" title="{ac:label(key('resources', 'nav-bar-action-export-rdf-title', document('translations.rdf')))}">
                 <xsl:apply-templates select="key('resources', '&ac;Export', document(ac:document-uri('&ac;')))" mode="ldh:logo">
@@ -1298,7 +1324,7 @@ LIMIT   100
         
     <!-- SETTINGS -->
     
-    <xsl:template match="rdf:RDF" mode="bs2:Settings" priority="1">
+    <xsl:template match="rdf:RDF | srx:sparql" mode="bs2:Settings" priority="1">
         <div class="btn-group pull-right">
             <button type="button" title="{ac:label(key('resources', 'nav-bar-action-settings-title', document('translations.rdf')))}">
                 <xsl:apply-templates select="key('resources', 'settings', document('translations.rdf'))" mode="ldh:logo">
@@ -1437,7 +1463,7 @@ LIMIT   100
     
     <!-- FOOTER -->
     
-    <xsl:template match="rdf:RDF" mode="bs2:Footer">
+    <xsl:template match="rdf:RDF | srx:sparql" mode="bs2:Footer">
         <div class="footer container-fluid">
             <div class="row-fluid">
                 <div class="offset2 span8">
