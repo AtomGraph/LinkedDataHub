@@ -18,8 +18,10 @@ package com.atomgraph.linkeddatahub.writer.function;
 
 import com.atomgraph.client.vocabulary.SPIN;
 import com.atomgraph.linkeddatahub.vocabulary.LDH;
-import com.atomgraph.linkeddatahub.writer.ModelXSLTWriter;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import javax.xml.transform.stream.StreamSource;
 import net.sf.saxon.s9api.ExtensionFunction;
 import net.sf.saxon.s9api.ItemType;
 import net.sf.saxon.s9api.ItemTypeFactory;
@@ -35,6 +37,7 @@ import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
+import org.apache.jena.riot.RDFLanguages;
 import org.apache.jena.vocabulary.RDF;
 
 /**
@@ -105,11 +108,30 @@ public class Construct implements ExtensionFunction
                     }
                 );
 
-            return getProcessor().newDocumentBuilder().build(ModelXSLTWriter.getSource(model));
+            return getProcessor().newDocumentBuilder().build(getSource(model));
         }
         catch (IOException ex)
         {
             throw new SaxonApiException(ex);
+        }
+    }
+    
+    /**
+     * Creates stream source from RDF model.
+     * The model is serialized using the RDF/XML syntax.
+     * 
+     * @param model RDF model
+     * @return XML stream source
+     * @throws IOException I/O error
+     */
+    public StreamSource getSource(Model model) throws IOException
+    {
+        if (model == null) throw new IllegalArgumentException("Model cannot be null");
+
+        try (ByteArrayOutputStream stream = new ByteArrayOutputStream())
+        {
+            model.write(stream, RDFLanguages.RDFXML.getName(), null);
+            return new StreamSource(new ByteArrayInputStream(stream.toByteArray()));
         }
     }
     
