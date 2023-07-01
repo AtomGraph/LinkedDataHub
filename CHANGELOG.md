@@ -1,3 +1,7 @@
+## [4.0.6] - 2023-07-01
+### Added
+- (X)HTML writer for SPARQL XML Results
+
 ## [4.0.5] - 2023-06-23
 ### Added
 - New Varnish proxy cache between nginx and LinkedDataHub (`varnish-frontend` service) in order to improve performance
