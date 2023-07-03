@@ -43,8 +43,8 @@ It takes a few clicks and filling out a form to install the product into your ow
      COMPOSE_PROJECT_NAME=linkeddatahub
      
      PROTOCOL=https
-     PROXY_HTTP_PORT=81
-     PROXY_HTTPS_PORT=4443
+     HTTP_PORT=81
+     HTTPS_PORT=4443
      HOST=localhost
      ABS_PATH=/
      
@@ -82,6 +82,7 @@ It takes a few clicks and filling out a form to install the product into your ow
 
   ### Notes
 
+  * There might go up to a minute before the web server is available because the nginx server depends on healthy LinkedDataHub and the healthcheck is done every 20s
   * You will likely get a browser warning such as `Your connection is not private` in Chrome or `Warning: Potential Security Risk Ahead` in Firefox due to the self-signed server certificate. Ignore it: click `Advanced` and `Proceed` or `Accept the risk` to proceed.
     * If this option does not appear in Chrome (as observed on some MacOS), you can open `chrome://flags/#allow-insecure-localhost`, switch `Allow invalid certificates for resources loaded from localhost` to `Enabled` and restart Chrome
   * `.env_sample` and `.env` files might be invisible in MacOS Finder which hides filenames starting with a dot. You should be able to [create it using Terminal](https://stackoverflow.com/questions/5891365/mac-os-x-doesnt-allow-to-name-files-starting-with-a-dot-how-do-i-name-the-hta) however.
@@ -146,6 +147,8 @@ _:warning: Do not use blank nodes to identify applications or services. We recom
     <dd>Client secret from Google</dd>
   </dl>
 
+The options are described in more detail in the [configuration documentation](https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/reference/configuration/).
+
   ## Reset
 
   If you need to start fresh and wipe the existing setup (e.g. after configuring a new base URI), you can do that using
@@ -181,7 +184,8 @@ An environment variable `JENA_HOME` is used by all the command line tools to con
 
 ### Third party
 
-* [NOI OpenDataHub](https://kg.opendatahub.bz.it) – tourism Knowledge Graph portal powered by LinkedDataHub and [@ontop](https://github.com/ontop). [Source code](https://github.com/noi-techpark/it.bz.opendatahub.kg).
+* [KGDN](https://kgdev.net) - an open-source, collaborative project documenting RDF Knowledge Graph technologies, including RDF, SPARQL, OWL, and SHACL
+* [LDH Uploader](https://github.com/tmciver/ldh-uploader) - a collection of shell scripts used to upload files or directory of files to a LinkedDataHub instance by [@tmciver](https://github.com/tmciver)
 
 ### [Demo apps](https://github.com/AtomGraph/LinkedDataHub-Apps)
 
@@ -228,9 +232,9 @@ LinkedDataHub includes an HTTP [test suite](https://github.com/AtomGraph/LinkedD
 
 ### Docker
 
-* [atomgraph/nginx](https://hub.docker.com/r/atomgraph/nginx)
+* [nginx](https://hub.docker.com/_/nginx)
+* [varnish](https://hub.docker.com/_/varnish)
 * [atomgraph/fuseki](https://hub.docker.com/r/atomgraph/fuseki)
-* [atomgraph/varnish](https://hub.docker.com/r/atomgraph/varnish)
 * [namshi/smtp](https://hub.docker.com/r/namshi/smtp)
 
 ## Support
@@ -245,4 +249,3 @@ Commercial consulting, development, and support are available from [AtomGraph](h
 * [linkeddatahub/Lobby](https://gitter.im/linkeddatahub/Lobby) on gitter
 * [@atomgraphhq](https://twitter.com/atomgraphhq) on Twitter
 * [AtomGraph](https://www.linkedin.com/company/atomgraph/) on LinkedIn
-* W3C [Declarative Linked Data Apps Community Group](http://www.w3.org/community/declarative-apps/)

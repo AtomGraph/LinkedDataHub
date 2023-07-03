@@ -95,9 +95,15 @@ public class ApplicationImpl extends ResourceImpl implements Application
     }
 
     @Override
-    public boolean isReadOnly()
+    public Resource getFrontendProxy()
     {
-        Statement stmt = getProperty(LAPP.readOnly);
+        return getPropertyResourceValue(LAPP.frontendProxy);
+    }
+    
+    @Override
+    public boolean isReadAllowed()
+    {
+        Statement stmt = getProperty(LAPP.allowRead);
         
         if (stmt != null) return stmt.getBoolean();
         

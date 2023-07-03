@@ -298,7 +298,7 @@ public class ImportExecutor
     {
         URI graphURI = UriBuilder.fromUri(provImport.getURI()).fragment(null).build(); // skip fragment from the Import URI to get its graph URI
         if (log.isDebugEnabled()) log.debug("Appending import metadata to graph: {}", graphURI);
-                    
+        
         new Skolemizer(graphURI.toString()).apply(provImport.getModel()); // make sure we don't store blank nodes
         accessor.add(graphURI.toString(), provImport.getModel());
     }

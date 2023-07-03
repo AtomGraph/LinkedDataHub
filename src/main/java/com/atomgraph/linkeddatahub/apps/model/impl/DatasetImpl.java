@@ -54,15 +54,15 @@ public class DatasetImpl extends ResourceImpl implements Dataset
     }
 
     @Override
-    public Resource getProxy()
+    public Resource getBackendProxy()
     {
-        return getPropertyResourceValue(LAPP.proxy);
+        return getPropertyResourceValue(LAPP.backendProxy);
     }
 
     @Override
     public URI getProxyURI()
     {
-        if (getProxy() != null) return URI.create(getProxy().getURI());
+        if (getBackendProxy() != null) return URI.create(getBackendProxy().getURI());
         
         return null;
     }

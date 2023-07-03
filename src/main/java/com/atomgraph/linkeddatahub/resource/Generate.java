@@ -159,7 +159,7 @@ public class Generate extends GraphStoreImpl
             }
             
             // ban the parent container URI from proxy cache to make sure the next query using it will be fresh (e.g. SELECT that loads children)
-            ban(getApplication().getService().getProxy(), parent.getURI());
+            ban(getApplication().getService().getBackendProxy(), parent.getURI());
             
             return Response.ok().build();
         }

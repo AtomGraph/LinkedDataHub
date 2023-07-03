@@ -52,14 +52,19 @@ sub vcl_recv {
         /* We only deal with GET and HEAD by default */
         return (pass);
     }
-    if (req.http.Cookie) { // allow req.http.Authorization
-        /* Not cacheable by default */
+    if (req.http.Client-Cert) {
+        /* Authenticated requests are not cacheable */
         return (pass);
     }
+    if (req.http.Cookie) { // allow req.http.Authorization
+        unset req.http.Cookie; // unset all cookies
+    }
+
     return (hash);
 }
 
 sub vcl_backend_response {
+    /* purge URLs after updates */
     if ((beresp.status == 200 || beresp.status == 201 || beresp.status == 204) && bereq.method ~ "POST|PUT|DELETE|PATCH") {
         set beresp.http.X-LinkedDataHub = "Banned";
         ban("req.url == " + bereq.url + " && req.http.host == " + bereq.http.host);

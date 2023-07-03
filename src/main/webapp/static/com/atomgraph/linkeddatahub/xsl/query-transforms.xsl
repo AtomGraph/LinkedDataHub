@@ -148,6 +148,8 @@ extension-element-prefixes="ixsl"
         <xsl:param name="predicate" as="xs:anyURI" tunnel="yes"/>
         <xsl:param name="new-var-name" as="xs:string" tunnel="yes"/>
         <xsl:param name="graph-var-name" as="xs:string" tunnel="yes"/>
+        <xsl:param name="title-predicate" as="xs:anyURI?" tunnel="yes"/>
+        <xsl:param name="title-new-var-name" as="xs:string?" tunnel="yes"/>
 
         <xsl:copy>
             <xsl:apply-templates select="@* | node()" mode="#current"/>
@@ -163,6 +165,14 @@ extension-element-prefixes="ixsl"
                                 <json:string key="predicate"><xsl:value-of select="$predicate"/></json:string>
                                 <json:string key="object"><xsl:text>?</xsl:text><xsl:value-of select="$new-var-name"/></json:string>
                             </json:map>
+                            
+                            <xsl:if test="$title-new-var-name and $title-predicate"> <!-- TO-DO: support OPTIONAL? -->
+                                <json:map>
+                                    <json:string key="subject"><xsl:text>?</xsl:text><xsl:value-of select="$new-var-name"/></json:string>
+                                    <json:string key="predicate"><xsl:value-of select="$title-predicate"/></json:string>
+                                    <json:string key="object"><xsl:text>?</xsl:text><xsl:value-of select="$title-new-var-name"/></json:string>
+                                </json:map>
+                            </xsl:if>
                         </json:array>
                     </json:map>
                     <json:map>
@@ -176,6 +186,14 @@ extension-element-prefixes="ixsl"
                                         <json:string key="predicate"><xsl:value-of select="$predicate"/></json:string>
                                         <json:string key="object"><xsl:text>?</xsl:text><xsl:value-of select="$new-var-name"/></json:string>
                                     </json:map>
+                                    
+                                    <xsl:if test="$title-new-var-name and $title-predicate"> <!-- TO-DO: support OPTIONAL? -->
+                                        <json:map>
+                                            <json:string key="subject"><xsl:text>?</xsl:text><xsl:value-of select="$new-var-name"/></json:string>
+                                            <json:string key="predicate"><xsl:value-of select="$title-predicate"/></json:string>
+                                            <json:string key="object"><xsl:text>?</xsl:text><xsl:value-of select="$title-new-var-name"/></json:string>
+                                        </json:map>
+                                    </xsl:if>
                                 </json:array>
                             </json:map>
                         </json:array>

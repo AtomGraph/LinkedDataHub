@@ -126,19 +126,64 @@ exclude-result-prefixes="#all"
             }
         ]]>
     </xsl:variable>
+    <xsl:variable name="content-swap-string" as="xs:string">
+        <![CDATA[
+            PREFIX  xsd:  <http://www.w3.org/2001/XMLSchema#>
+            PREFIX  ldh:  <https://w3id.org/atomgraph/linkeddatahub#>
+            PREFIX  ac:   <https://w3id.org/atomgraph/client#>
+            PREFIX  rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+
+            DELETE {
+              $this ?sourceSeq $sourceContent .
+              $this ?targetSeq $targetContent .
+              $this ?seq ?content .
+            }
+            INSERT {
+              $this ?newSourceSeq $sourceContent .
+              $this ?newTargetSeq $targetContent .
+              $this ?newSeq ?content .
+            }
+            WHERE
+              { $this  ?sourceSeq  $sourceContent
+                BIND(xsd:integer(substr(str(?sourceSeq), 45)) AS ?sourceIndex)
+                $this  ?targetSeq  $targetContent
+                BIND(xsd:integer(substr(str(?targetSeq), 45)) AS ?targetIndex)
+                BIND(if(( ?sourceIndex < ?targetIndex ), ( ?targetIndex - 1 ), ?targetIndex) AS ?newTargetIndex)
+                BIND(if(( ?sourceIndex < ?targetIndex ), ?targetIndex, ( ?targetIndex + 1 )) AS ?newSourceIndex)
+                BIND(IRI(concat(str(rdf:), "_", str(?newSourceIndex))) AS ?newSourceSeq)
+                BIND(IRI(concat(str(rdf:), "_", str(?newTargetIndex))) AS ?newTargetSeq)
+                OPTIONAL
+                  { $this  ?sourceSeq  $sourceContent
+                    BIND(xsd:integer(substr(str(?sourceSeq), 45)) AS ?sourceIndex)
+                    $this  ?targetSeq  $targetContent
+                    BIND(xsd:integer(substr(str(?targetSeq), 45)) AS ?targetIndex)
+                    $this  ?seq  ?content
+                    FILTER strstarts(str(?seq), str(rdf:_))
+                    BIND(xsd:integer(substr(str(?seq), 45)) AS ?index)
+                    BIND(( ( ?index > ?sourceIndex ) && ( ?index < ?targetIndex ) ) AS ?isBetweenSourceAndTarget)
+                    BIND(( ( ?index < ?sourceIndex ) && ( ?index > ?targetIndex ) ) AS ?isBetweenTargetAndSource)
+                    FILTER ( ?isBetweenSourceAndTarget || ?isBetweenTargetAndSource )
+                    BIND(( ?index + if(?isBetweenSourceAndTarget, -1, +1) ) AS ?newIndex)
+                    BIND(IRI(concat(str(rdf:), "_", str(?newIndex))) AS ?newSeq)
+                  }
+              }
+        ]]>
+    </xsl:variable>
     
+    <xsl:key name="content-by-about" match="*[@about]" use="@about"/>
+
     <!-- TEMPLATES -->
 
     <!-- SELECT query -->
     
     <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&sp;Select'][sp:text]" mode="ldh:RenderContent" priority="1">
-        <xsl:param name="about" as="xs:anyURI"/>
+        <xsl:param name="this" as="xs:anyURI"/>
         <xsl:param name="container" as="element()"/>
         <xsl:param name="mode" as="xs:anyURI?"/>
         <xsl:param name="refresh-content" as="xs:boolean?"/>
-        <xsl:param name="content-uri" select="xs:anyURI(ixsl:get($container, 'dataset.contentUri'))" as="xs:anyURI"/>
+        <xsl:param name="content-uri" select="xs:anyURI($container/@about)" as="xs:anyURI"/>
         <!-- set $this variable value unless getting the query string from state -->
-        <xsl:param name="select-string" select="replace(sp:text, '\$this', '&lt;' || $about || '&gt;')" as="xs:string"/>
+        <xsl:param name="select-string" select="replace(sp:text, '$this', '&lt;' || $this || '&gt;', 'q')" as="xs:string"/>
         <xsl:param name="select-xml" as="document-node()">
             <xsl:variable name="select-json" as="item()">
                 <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', [ $select-string ])"/>
@@ -148,6 +193,7 @@ exclude-result-prefixes="#all"
             <xsl:sequence select="json-to-xml($select-json-string)"/>
         </xsl:param>
         <xsl:param name="initial-var-name" select="$select-xml/json:map/json:array[@key = 'variables']/json:string[1]/substring-after(., '?')" as="xs:string"/>
+        <xsl:param name="focus-var-name" select="$initial-var-name" as="xs:string"/>
         <!-- service can be explicitly specified on content using ldh:service -->
         <xsl:param name="service-uri" select="xs:anyURI(ldh:service/@rdf:resource)" as="xs:anyURI?"/>
         <xsl:param name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.apps'))" as="element()?"/>
@@ -197,6 +243,7 @@ exclude-result-prefixes="#all"
                     <xsl:with-param name="select-xml" select="$select-xml"/>
                     <xsl:with-param name="endpoint" select="$endpoint"/>
                     <xsl:with-param name="initial-var-name" select="$initial-var-name"/>
+                    <xsl:with-param name="focus-var-name" select="$focus-var-name"/>
                     <xsl:with-param name="active-mode" select="if ($mode) then $mode else xs:anyURI('&ac;ListMode')"/>
                     <xsl:with-param name="refresh-content" select="$refresh-content"/>
                 </xsl:call-template>
@@ -216,13 +263,13 @@ exclude-result-prefixes="#all"
     <!-- DESCRIBE/CONSTRUCT queries -->
     
     <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = ('&sp;Describe', '&sp;Construct')][sp:text]" mode="ldh:RenderContent" priority="1">
-        <xsl:param name="about" as="xs:anyURI"/>
+        <xsl:param name="this" as="xs:anyURI"/>
         <xsl:param name="container" as="element()"/>
         <xsl:param name="mode" as="xs:anyURI?"/>
         <xsl:param name="refresh-content" as="xs:boolean?"/>
-        <xsl:param name="content-uri" select="xs:anyURI(ixsl:get($container, 'dataset.contentUri'))" as="xs:anyURI"/>
+        <xsl:param name="content-uri" select="xs:anyURI($container/@about)" as="xs:anyURI"/>
         <!-- set $this variable value unless getting the query string from state -->
-        <xsl:param name="query-string" select="replace(sp:text, '\$this', '&lt;' || $about || '&gt;')" as="xs:string"/>
+        <xsl:param name="query-string" select="replace(sp:text, '$this', '&lt;' || $this || '&gt;', 'q')" as="xs:string"/>
         <!-- service can be explicitly specified on content using ldh:service -->
         <xsl:param name="service-uri" select="xs:anyURI(ldh:service/@rdf:resource)" as="xs:anyURI?"/>
         <xsl:param name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.apps'))" as="element()?"/>
@@ -521,11 +568,11 @@ exclude-result-prefixes="#all"
 
         <xsl:choose>
             <!-- updating existing content -->
-            <xsl:when test="ixsl:contains($container, 'dataset.contentUri')">
-                <xsl:variable name="content-uri" select="ixsl:get($container, 'dataset.contentUri')" as="xs:anyURI"/>
-                <xsl:variable name="update-string" select="replace($content-update-string, '\$this', '&lt;' || ac:uri() || '&gt;')" as="xs:string"/>
-                <xsl:variable name="update-string" select="replace($update-string, '\$content', '&lt;' || $content-uri || '&gt;')" as="xs:string"/>
-                <xsl:variable name="update-string" select="replace($update-string, '\$newValue', '&quot;' || $content-string || '&quot;^^&lt;&rdf;XMLLiteral&gt;')" as="xs:string"/>
+            <xsl:when test="$container/@about">
+                <xsl:variable name="content-uri" select="$container/@about" as="xs:anyURI"/>
+                <xsl:variable name="update-string" select="replace($content-update-string, '$this', '&lt;' || ac:uri() || '&gt;', 'q')" as="xs:string"/>
+                <xsl:variable name="update-string" select="replace($update-string, '$content', '&lt;' || $content-uri || '&gt;', 'q')" as="xs:string"/>
+                <xsl:variable name="update-string" select="replace($update-string, '$newValue', '&quot;' || $content-string || '&quot;^^&lt;&rdf;XMLLiteral&gt;', 'q')" as="xs:string"/>
                 <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), map{}, ac:uri())" as="xs:anyURI"/>
                 <xsl:variable name="request" as="item()*">
                     <ixsl:schedule-action http-request="map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string }">
@@ -544,9 +591,9 @@ exclude-result-prefixes="#all"
                 <ixsl:set-attribute name="id" select="$content-id" object="$container"/>
                 <ixsl:set-attribute name="about" select="$content-uri" object="$container"/>
 
-                <xsl:variable name="update-string" select="replace($content-append-string, '\$this', '&lt;' || ac:uri() || '&gt;')" as="xs:string"/>
-                <xsl:variable name="update-string" select="replace($update-string, '\$content', '&lt;' || $content-uri || '&gt;')" as="xs:string"/>
-                <xsl:variable name="update-string" select="replace($update-string, '\$value', '&quot;' || $content-string || '&quot;^^&lt;&rdf;XMLLiteral&gt;')" as="xs:string"/>
+                <xsl:variable name="update-string" select="replace($content-append-string, '$this', '&lt;' || ac:uri() || '&gt;', 'q')" as="xs:string"/>
+                <xsl:variable name="update-string" select="replace($update-string, '$content', '&lt;' || $content-uri || '&gt;', 'q')" as="xs:string"/>
+                <xsl:variable name="update-string" select="replace($update-string, '$value', '&quot;' || $content-string || '&quot;^^&lt;&rdf;XMLLiteral&gt;', 'q')" as="xs:string"/>
                 <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), map{}, ac:uri())" as="xs:anyURI"/>
                 <xsl:variable name="request" as="item()*">
                     <ixsl:schedule-action http-request="map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string }">
@@ -579,12 +626,12 @@ exclude-result-prefixes="#all"
 
                 <xsl:choose>
                     <!-- updating existing content -->
-                    <xsl:when test="ixsl:contains($container, 'dataset.contentUri')">
-                        <xsl:variable name="content-uri" select="ixsl:get($container, 'dataset.contentUri')" as="xs:anyURI"/>
-                        <xsl:variable name="update-string" select="replace($content-update-string, '\$this', '&lt;' || ac:uri() || '&gt;')" as="xs:string"/>
-                        <xsl:variable name="update-string" select="replace($update-string, '\$content', '&lt;' || $content-uri || '&gt;')" as="xs:string"/>
-                        <xsl:variable name="update-string" select="replace($update-string, '\$newValue', '&lt;' || $content-value || '&gt;')" as="xs:string"/>
-                        <xsl:variable name="update-string" select="if ($mode) then replace($update-string, '\$newMode', '&lt;' || $mode || '&gt;') else $update-string" as="xs:string"/>
+                    <xsl:when test="$container/@about">
+                        <xsl:variable name="content-uri" select="$container/@about" as="xs:anyURI"/>
+                        <xsl:variable name="update-string" select="replace($content-update-string, '$this', '&lt;' || ac:uri() || '&gt;', 'q')" as="xs:string"/>
+                        <xsl:variable name="update-string" select="replace($update-string, '$content', '&lt;' || $content-uri || '&gt;', 'q')" as="xs:string"/>
+                        <xsl:variable name="update-string" select="replace($update-string, '$newValue', '&lt;' || $content-value || '&gt;', 'q')" as="xs:string"/>
+                        <xsl:variable name="update-string" select="if ($mode) then replace($update-string, '$newMode', '&lt;' || $mode || '&gt;', 'q') else $update-string" as="xs:string"/>
                         <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), map{}, ac:uri())" as="xs:anyURI"/>
                         <xsl:variable name="request" as="item()*">
                             <ixsl:schedule-action http-request="map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string }">
@@ -605,10 +652,10 @@ exclude-result-prefixes="#all"
                         <ixsl:set-attribute name="id" select="$content-id" object="$container"/>
                         <ixsl:set-attribute name="about" select="$content-uri" object="$container"/>
 
-                        <xsl:variable name="update-string" select="replace($content-append-string, '\$this', '&lt;' || ac:uri() || '&gt;')" as="xs:string"/>
-                        <xsl:variable name="update-string" select="replace($update-string, '\$content', '&lt;' || $content-uri || '&gt;')" as="xs:string"/>
-                        <xsl:variable name="update-string" select="replace($update-string, '\$value', '&lt;' || $content-value || '&gt;')" as="xs:string"/>
-                        <xsl:variable name="update-string" select="if ($mode) then replace($update-string, '\$mode', '&lt;' || $mode || '&gt;') else $update-string" as="xs:string"/>
+                        <xsl:variable name="update-string" select="replace($content-append-string, '$this', '&lt;' || ac:uri() || '&gt;', 'q')" as="xs:string"/>
+                        <xsl:variable name="update-string" select="replace($update-string, '$content', '&lt;' || $content-uri || '&gt;', 'q')" as="xs:string"/>
+                        <xsl:variable name="update-string" select="replace($update-string, '$value', '&lt;' || $content-value || '&gt;', 'q')" as="xs:string"/>
+                        <xsl:variable name="update-string" select="if ($mode) then replace($update-string, '$mode', '&lt;' || $mode || '&gt;', 'q') else $update-string" as="xs:string"/>
                         <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), map{}, ac:uri())" as="xs:anyURI"/>
                         <xsl:variable name="request" as="item()*">
                             <ixsl:schedule-action http-request="map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string }">
@@ -635,12 +682,12 @@ exclude-result-prefixes="#all"
         <xsl:if test="ixsl:call(ixsl:window(), 'confirm', [ ac:label(key('resources', 'are-you-sure', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))) ])">
             <xsl:choose>
                 <!-- delete existing content -->
-                <xsl:when test="ixsl:contains($container, 'dataset.contentUri')">
+                <xsl:when test="$container/@about">
                     <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
-                    <xsl:variable name="content-uri" select="ixsl:get($container, 'dataset.contentUri')" as="xs:anyURI"/>
-                    <xsl:variable name="update-string" select="replace($content-delete-string, '\$this', '&lt;' || ac:uri() || '&gt;')" as="xs:string"/>
-                    <xsl:variable name="update-string" select="replace($update-string, '\$content', '&lt;' || $content-uri || '&gt;')" as="xs:string"/>
+                    <xsl:variable name="content-uri" select="$container/@about" as="xs:anyURI"/>
+                    <xsl:variable name="update-string" select="replace($content-delete-string, '$this', '&lt;' || ac:uri() || '&gt;', 'q')" as="xs:string"/>
+                    <xsl:variable name="update-string" select="replace($update-string, '$content', '&lt;' || $content-uri || '&gt;', 'q')" as="xs:string"/>
                     <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), map{}, ac:uri())" as="xs:anyURI"/>
                     <xsl:variable name="request" as="item()*">
                         <ixsl:schedule-action http-request="map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string }">
@@ -668,7 +715,7 @@ exclude-result-prefixes="#all"
 
         <xsl:choose>
             <!-- restore existing content -->
-            <xsl:when test="ixsl:contains($container, 'dataset.contentUri')">
+            <xsl:when test="$container/@about">
                 <xsl:variable name="textarea" select="ancestor::div[contains-token(@class, 'main')]//textarea[contains-token(@class, 'wymeditor')]" as="element()"/>
                 <xsl:variable name="old-content-string" select="string($textarea)" as="xs:string"/>
                 <xsl:variable name="content-value" select="ldh:parse-html('&lt;div&gt;' || $old-content-string || '&lt;/div&gt;', 'application/xhtml+xml')" as="document-node()"/>
@@ -699,7 +746,7 @@ exclude-result-prefixes="#all"
 
         <xsl:choose>
             <!-- updating existing content -->
-            <xsl:when test="ixsl:contains($container, 'dataset.contentUri')">
+            <xsl:when test="$container/@about">
                 <xsl:for-each select="$container">
                     <xsl:call-template name="ldh:LoadContent">
 <!--                        <xsl:with-param name="uri" select="ac:uri()"/>  content value gets read from dataset.contentValue -->
@@ -907,6 +954,77 @@ exclude-result-prefixes="#all"
         </xsl:for-each>
     </xsl:template>
     
+    <!-- start dragging content (or its descendants) -->
+    
+    <xsl:template match="div[ac:mode() = '&ldh;ContentMode'][contains-token(@class, 'content')][contains-token(@class, 'row-fluid')]/descendant-or-self::*" mode="ixsl:ondragstart">
+        <xsl:choose>
+            <!-- allow drag on the content <div> -->
+            <xsl:when test="self::div[contains-token(@class, 'content')][contains-token(@class, 'row-fluid')]">
+                <xsl:variable name="content-uri" select="@about" as="xs:anyURI"/>
+                <ixsl:set-property name="dataTransfer.effectAllowed" select="'move'" object="ixsl:event()"/>
+                <xsl:sequence select="ixsl:call(ixsl:get(ixsl:event(), 'dataTransfer'), 'setData', [ 'text/uri-list', $content-uri ])"/>
+            </xsl:when>
+            <!-- prevent drag on its descendants. This makes sure that content drag-and-drop doesn't interfere with drag events in the Map and Graph modes -->
+            <xsl:otherwise>
+                <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:template>
+
+    <!-- dragging content over other content -->
+    
+    <xsl:template match="div[ac:mode() = '&ldh;ContentMode'][contains-token(@class, 'content')][contains-token(@class, 'row-fluid')][acl:mode() = '&acl;Write']" mode="ixsl:ondragover">
+        <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
+        <ixsl:set-property name="dataTransfer.dropEffect" select="'move'" object="ixsl:event()"/>
+    </xsl:template>
+
+    <!-- change the style of elements when content is dragged over them -->
+    
+    <xsl:template match="div[ac:mode() = '&ldh;ContentMode'][contains-token(@class, 'content')][contains-token(@class, 'row-fluid')][acl:mode() = '&acl;Write']" mode="ixsl:ondragenter">
+        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'drag-over', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+    </xsl:template>
+
+    <xsl:template match="div[ac:mode() = '&ldh;ContentMode'][contains-token(@class, 'content')][contains-token(@class, 'row-fluid')][acl:mode() = '&acl;Write']" mode="ixsl:ondragleave">
+        <xsl:variable name="related-target" select="ixsl:get(ixsl:event(), 'relatedTarget')" as="element()?"/> <!-- the element drag entered (optional) -->
+
+        <!-- only remove class if the related target does not have this div as ancestor (is not its child) -->
+        <xsl:if test="not($related-target/ancestor-or-self::div[. is current()])">
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'drag-over', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+        </xsl:if>
+    </xsl:template>
+
+    <!-- dropping content over other content -->
+    
+    <xsl:template match="div[ac:mode() = '&ldh;ContentMode'][contains-token(@class, 'content')][contains-token(@class, 'row-fluid')][acl:mode() = '&acl;Write']" mode="ixsl:ondrop">
+        <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
+        <xsl:variable name="container" select="." as="element()"/>
+        <xsl:variable name="content-uri" select="@about" as="xs:anyURI"/>
+        <xsl:variable name="drop-content-uri" select="ixsl:call(ixsl:get(ixsl:event(), 'dataTransfer'), 'getData', [ 'text/uri-list' ])" as="xs:anyURI"/>
+        
+        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'drag-over', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+
+        <!-- move dropped element after this element, if they're not the same -->
+        <xsl:if test="not($content-uri = $drop-content-uri)">
+            <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+
+            <xsl:variable name="drop-content" select="key('content-by-about', $drop-content-uri)" as="element()"/>
+            <xsl:sequence select="ixsl:call(., 'after', [ $drop-content ])"/>
+            
+            <xsl:variable name="update-string" select="replace($content-swap-string, '$this', '&lt;' || ac:uri() || '&gt;', 'q')" as="xs:string"/>
+            <xsl:variable name="update-string" select="replace($update-string, '$targetContent', '&lt;' || $content-uri || '&gt;', 'q')" as="xs:string"/>
+            <xsl:variable name="update-string" select="replace($update-string, '$sourceContent', '&lt;' || $drop-content-uri || '&gt;', 'q')" as="xs:string"/>
+            <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), map{}, ac:uri())" as="xs:anyURI"/>
+            <xsl:variable name="request" as="item()*">
+                <ixsl:schedule-action http-request="map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string }">
+                    <xsl:call-template name="onContentSwap">
+                        <xsl:with-param name="container" select="$container"/>
+                    </xsl:call-template>
+                </ixsl:schedule-action>
+            </xsl:variable>
+            <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+        </xsl:if>
+    </xsl:template>
+    
     <!-- CALLBACKS -->
     
     <!-- load content -->
@@ -915,8 +1033,8 @@ exclude-result-prefixes="#all"
         <xsl:context-item as="element()" use="required"/> <!-- container element -->
         <xsl:param name="acl-modes" as="xs:anyURI*"/>
         <xsl:param name="refresh-content" as="xs:boolean?"/>
-        <xsl:variable name="about" select="ancestor::div[@about][1]/@about" as="xs:anyURI"/>
-        <xsl:variable name="content-uri" select="(ixsl:get(., 'dataset.contentUri'), $about)[1]" as="xs:anyURI"/> <!-- fallback to @about for charts, queries etc. -->
+        <xsl:variable name="this" select="ancestor::div[@about][1]/@about" as="xs:anyURI"/>
+        <xsl:variable name="content-uri" select="(@about, $this)[1]" as="xs:anyURI"/> <!-- fallback to @about for charts, queries etc. -->
         <xsl:variable name="content-value" select="ixsl:get(., 'dataset.contentValue')" as="xs:anyURI"/> <!-- get the value of the @data-content-value attribute -->
         <xsl:variable name="mode" select="if (ixsl:contains(., 'dataset.contentMode')) then xs:anyURI(ixsl:get(., 'dataset.contentMode')) else ()" as="xs:anyURI?"/> <!-- get the value of the @data-content-mode attribute -->
         <xsl:variable name="container" select="." as="element()"/>
@@ -937,7 +1055,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': ac:document-uri($request-uri), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                 <xsl:call-template name="onContentValueLoad">
-                    <xsl:with-param name="about" select="$about"/>
+                    <xsl:with-param name="this" select="$this"/>
                     <xsl:with-param name="content-uri" select="$content-uri"/>
                     <xsl:with-param name="content-value" select="$content-value"/>
                     <xsl:with-param name="container" select="$container"/>
@@ -954,7 +1072,7 @@ exclude-result-prefixes="#all"
     
     <xsl:template name="onContentValueLoad">
         <xsl:context-item as="map(*)" use="required"/>
-        <xsl:param name="about" as="xs:anyURI"/>
+        <xsl:param name="this" as="xs:anyURI"/>
         <xsl:param name="container" as="element()"/>
         <xsl:param name="container-id" select="ixsl:get($container, 'id')" as="xs:string"/>
         <xsl:param name="content-uri" as="xs:anyURI"/>
@@ -979,7 +1097,7 @@ exclude-result-prefixes="#all"
                 </xsl:for-each>
 
                 <xsl:apply-templates select="$value" mode="ldh:RenderContent">
-                    <xsl:with-param name="about" select="$about"/>
+                    <xsl:with-param name="this" select="$this"/>
                     <xsl:with-param name="container" select="$container"/>
                     <xsl:with-param name="mode" select="$mode"/>
                     <xsl:with-param name="refresh-content" select="$refresh-content"/>
@@ -1003,7 +1121,7 @@ exclude-result-prefixes="#all"
                     <xsl:variable name="series" select="distinct-values($results/*/*/concat(namespace-uri(), local-name()))" as="xs:string*"/>
                     <xsl:variable name="data-table" select="ac:rdf-data-table($results, $category, $series)"/>
 
-                    <xsl:call-template name="render-chart">
+                    <xsl:call-template name="ldh:RenderChart">
                         <xsl:with-param name="data-table" select="$data-table"/>
                         <xsl:with-param name="canvas-id" select="$canvas-id"/>
                         <xsl:with-param name="chart-type" select="$chart-type"/>
@@ -1020,7 +1138,7 @@ exclude-result-prefixes="#all"
                 <xsl:variable name="request" as="item()*">
                     <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': ac:document-uri($request-uri), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                         <xsl:call-template name="onContentValueLoad">
-                            <xsl:with-param name="about" select="$about"/>
+                            <xsl:with-param name="this" select="$this"/>
                             <xsl:with-param name="content-uri" select="$content-uri"/>
                             <xsl:with-param name="content-value" select="$content-value"/>
                             <xsl:with-param name="container" select="$container"/>
@@ -1178,6 +1296,23 @@ exclude-result-prefixes="#all"
             </xsl:when>
             <xsl:otherwise>
                 <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ 'Could not delete content' ])[current-date() lt xs:date('2000-01-01')]"/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:template>
+    
+    <!-- content swap (drag & drop) -->
+    
+    <xsl:template name="onContentSwap">
+        <xsl:context-item as="map(*)" use="required"/>
+        <xsl:param name="container" as="element()"/>
+
+        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
+        
+        <xsl:choose>
+            <xsl:when test="?status = 200">
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ 'Could not swap content' ])[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>

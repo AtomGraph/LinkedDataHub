@@ -22,12 +22,14 @@
     <!ENTITY sp     "http://spinrdf.org/sp#">
     <!ENTITY spin   "http://spinrdf.org/spin#">
     <!ENTITY void   "http://rdfs.org/ns/void#">
+    <!ENTITY schema "https://schema.org/">
 ]>
 <xsl:stylesheet version="3.0"
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 xmlns:xhtml="http://www.w3.org/1999/xhtml"
 xmlns:xs="http://www.w3.org/2001/XMLSchema"
 xmlns:map="http://www.w3.org/2005/xpath-functions/map"
+xmlns:json="http://www.w3.org/2005/xpath-functions"
 xmlns:ldh="&ldh;"
 xmlns:ac="&ac;"
 xmlns:a="&a;"
@@ -47,6 +49,7 @@ xmlns:spin="&spin;"
 xmlns:geo="&geo;"
 xmlns:srx="&srx;"
 xmlns:void="&void;"
+xmlns:schema="&schema;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 xmlns:ixsl="http://saxonica.com/ns/interactiveXSLT"
 exclude-result-prefixes="#all"
@@ -58,6 +61,49 @@ extension-element-prefixes="ixsl"
     <xsl:param name="main-doc" select="/" as="document-node()"/>
     <xsl:param name="acl:Agent" as="document-node()?"/>
     <xsl:param name="acl:mode" select="$foaf:Agent//*[acl:accessToClass/@rdf:resource = (key('resources', ac:uri(), $main-doc)/rdf:type/@rdf:resource, key('resources', ac:uri(), $main-doc)/rdf:type/@rdf:resource/ldh:listSuperClasses(.))]/acl:mode/@rdf:resource" as="xs:anyURI*"/>
+    
+    <!-- schema.org BREADCRUMBS -->
+    
+    <xsl:template match="rdf:RDF" mode="schema:BreadCrumbList">
+        <xsl:variable name="resource" select="key('resources', ac:uri())" as="element()?"/>
+
+        <xsl:if test="$resource">
+            <xsl:variable name="doc-with-ancestors" select="ldh:doc-with-ancestors($resource)" as="element()*"/>
+
+            <rdf:RDF>
+                <rdf:Description rdf:nodeID="breadcrumb-list">
+                    <rdf:type rdf:resource="&schema;BreadcrumbList"/>
+
+                    <!-- position index has to start from Root=1, so we need to reverse the ancestor sequence -->
+                    <xsl:for-each select="reverse($doc-with-ancestors)">
+                        <schema:itemListElement rdf:nodeID="item{position()}"/> <!-- rdf:nodeID aligned with schema:BreadCrumbListItem output -->
+                    </xsl:for-each>
+                </rdf:Description>
+
+                <!-- position index has to start from Root=1, so we need to reverse the ancestor sequence -->
+                <xsl:apply-templates select="reverse($doc-with-ancestors)" mode="schema:BreadCrumbListItem"/>
+            </rdf:RDF>
+        </xsl:if>
+    </xsl:template>
+
+    <!-- walks up the ancestor document chain and collects them -->
+    <xsl:function name="ldh:doc-with-ancestors" as="element()*">
+        <xsl:param name="resource" as="element()"/>
+        <xsl:variable name="parent-uri" select="$resource/sioc:has_container/@rdf:resource | $resource/sioc:has_parent/@rdf:resource" as="xs:anyURI?"/>
+        
+        <xsl:sequence select="$resource"/>
+
+        <xsl:if test="$parent-uri">
+            <xsl:if test="doc-available(ac:document-uri($parent-uri))">
+                <xsl:variable name="parent-doc" select="document(ac:document-uri($parent-uri))" as="document-node()"/>
+                <xsl:variable name="parent" select="key('resources', $parent-uri, $parent-doc)" as="element()?"/>
+
+                <xsl:if test="$parent">
+                    <xsl:sequence select="ldh:doc-with-ancestors($parent)"/>
+                </xsl:if>
+            </xsl:if>
+        </xsl:if>
+    </xsl:function>
 
     <!-- BODY -->
     
@@ -157,25 +203,32 @@ extension-element-prefixes="ixsl"
     <!-- MAP -->
     
     <xsl:template match="rdf:RDF" mode="bs2:Map">
-        <xsl:param name="canvas-id" as="xs:string"/>
+        <xsl:param name="id" as="xs:string"/>
         <xsl:param name="class" select="'map-canvas'" as="xs:string?"/>
+        <xsl:param name="draggable" select="true()" as="xs:boolean?"/> <!-- counter-intuitive but needed in order to trigger "ixsl:ondragstart" on the map and then cancel it -->
 
         <div>
-            <xsl:if test="$canvas-id">
-                <xsl:attribute name="id" select="$canvas-id"/>
+            <xsl:if test="$id">
+                <xsl:attribute name="id" select="$id"/>
             </xsl:if>
             <xsl:if test="$class">
                 <xsl:attribute name="class" select="$class"/>
             </xsl:if>
+            <xsl:if test="$draggable = true()">
+                <xsl:attribute name="draggable" select="'true'"/>
+            </xsl:if>
+            <xsl:if test="$draggable = false()">
+                <xsl:attribute name="draggable" select="'false'"/>
+            </xsl:if>
         </div>
     </xsl:template>
-        
+    
     <!-- CHART -->
 
     <!-- graph chart (for RDF/XML results) -->
 
     <xsl:template match="rdf:RDF" mode="bs2:Chart">
-        <xsl:param name="canvas-id" as="xs:string"/>
+        <xsl:param name="id" as="xs:string"/>
         <xsl:param name="class" select="'chart-canvas'" as="xs:string?"/>
         <xsl:param name="chart-type" select="xs:anyURI('&ac;Table')" as="xs:anyURI?"/>
         <xsl:param name="category" as="xs:string?"/>
@@ -190,8 +243,8 @@ extension-element-prefixes="ixsl"
         </xsl:apply-templates>
 
         <div>
-            <xsl:if test="$canvas-id">
-                <xsl:attribute name="id" select="$canvas-id"/>
+            <xsl:if test="$id">
+                <xsl:attribute name="id" select="$id"/>
             </xsl:if>
             <xsl:if test="$class">
                 <xsl:attribute name="class" select="$class"/>
@@ -355,7 +408,7 @@ extension-element-prefixes="ixsl"
     <!-- table chart (for SPARQL XML results) -->
 
     <xsl:template match="srx:sparql" mode="bs2:Chart">
-        <xsl:param name="canvas-id" as="xs:string"/>
+        <xsl:param name="id" as="xs:string"/>
         <xsl:param name="class" select="'chart-canvas'" as="xs:string?"/>
         <xsl:param name="chart-type" select="xs:anyURI('&ac;Table')" as="xs:anyURI?"/>
         <xsl:param name="category" select="srx:head/srx:variable[1]/@name" as="xs:string?"/>
@@ -370,8 +423,8 @@ extension-element-prefixes="ixsl"
         </xsl:apply-templates>
 
         <div>
-            <xsl:if test="$canvas-id">
-                <xsl:attribute name="id" select="$canvas-id"/>
+            <xsl:if test="$id">
+                <xsl:attribute name="id" select="$id"/>
             </xsl:if>
             <xsl:if test="$class">
                 <xsl:attribute name="class" select="$class"/>

@@ -129,15 +129,10 @@
 
 :ImportConstructor a :Constructor ;
     sp:text """PREFIX ldh:      <https://w3id.org/atomgraph/linkeddatahub#>
-        PREFIX rdfs:  <http://www.w3.org/2000/01/rdf-schema#>
-        PREFIX sioc:  <http://rdfs.org/sioc/ns#>
-        PREFIX sd:    <http://www.w3.org/ns/sparql-service-description#>
         PREFIX nfo:   <http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#>
-        PREFIX dh:      <https://www.w3.org/ns/ldt/document-hierarchy#>
 
         CONSTRUCT {
-            $this sd:name [ a rdfs:Resource ] ;
-                ldh:file [ a nfo:FileDataObject ] .
+            $this ldh:file [ a nfo:FileDataObject ] .
         }
         WHERE {}""" ;
     rdfs:label "Import constructor" ;
@@ -157,11 +152,14 @@
     rdfs:isDefinedBy : .
 
 :RDFImportConstructor a :Constructor ;
-    sp:text """PREFIX sp:      <http://spinrdf.org/sp#>
+    sp:text """PREFIX rdfs:  <http://www.w3.org/2000/01/rdf-schema#>
+        PREFIX sd:    <http://www.w3.org/ns/sparql-service-description#>
+        PREFIX sp:      <http://spinrdf.org/sp#>
         PREFIX spin:    <http://spinrdf.org/spin#>
 
         CONSTRUCT {
-            $this spin:query [ a sp:Construct ] .
+            $this sd:name [ a rdfs:Resource ] ;
+                spin:query [ a sp:Construct ] .
         }
         WHERE {}""" ;
     rdfs:label "RDF import constructor" ;

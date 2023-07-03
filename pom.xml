@@ -3,11 +3,11 @@
 
     <groupId>com.atomgraph</groupId>
     <artifactId>linkeddatahub</artifactId>
-    <version>4.0.0-SNAPSHOT</version>
+    <version>4.0.6-SNAPSHOT</version>
     <packaging>${packaging.type}</packaging>
 
     <name>AtomGraph LinkedDataHub</name>
-    <description>The Knowledge Graph notebook</description>
+    <description>The low-code Knowledge Graph application platform</description>
     <url>https://atomgraph.github.io/LinkedDataHub/</url>
     <inceptionYear>2014</inceptionYear>
 

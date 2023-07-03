@@ -110,7 +110,7 @@ exclude-result-prefixes="#all"
         
         <ixsl:set-style name="cursor" select="'progress'" object="."/>
 
-        <xsl:variable name="query-string" select="replace($constructor-query, '\$Type', '&lt;' || $type || '&gt;')" as="xs:string"/>
+        <xsl:variable name="query-string" select="replace($constructor-query, '$Type', '&lt;' || $type || '&gt;', 'q')" as="xs:string"/>
         <!-- ldh:query-result function does the same synchronously -->
         <xsl:variable name="results-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': $query-string })" as="xs:anyURI"/>
         <xsl:variable name="request" as="item()*">
@@ -517,7 +517,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'modal-body')]" as="element()"/>
         <xsl:variable name="button-div" select=".." as="element()"/>
         <xsl:variable name="type" select="ancestor::form/@about" as="xs:anyURI"/> <!-- the URI of the class that constructors are attached to -->
-        <xsl:variable name="query-string" select="replace($type-graph-query, '\$Type', '&lt;' || $type || '&gt;')" as="xs:string"/>
+        <xsl:variable name="query-string" select="replace($type-graph-query, '$Type', '&lt;' || $type || '&gt;', 'q')" as="xs:string"/>
         <xsl:variable name="results-uri" select="ac:build-uri(resolve-uri('admin/sparql', $ldt:base), map{ 'query': $query-string })" as="xs:anyURI"/>
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), map{}, $results-uri)" as="xs:anyURI"/>
 
@@ -585,8 +585,8 @@ exclude-result-prefixes="#all"
                     <xsl:variable name="construct-json-string" select="xml-to-json($construct-xml)" as="xs:string"/>
                     <xsl:variable name="construct-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $construct-json-string ])"/>
                     <xsl:variable name="construct-string" select="ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'fromQuery', [ $construct-json ]), 'toString', [])" as="xs:string"/>
-                    <xsl:variable name="update-string" select="replace($constructor-update-string, '\$this', '&lt;' || $constructor-uri || '&gt;')" as="xs:string"/>
-                    <xsl:variable name="update-string" select="replace($update-string, '\$text', '&quot;&quot;&quot;' || $construct-string || '&quot;&quot;&quot;')" as="xs:string"/>
+                    <xsl:variable name="update-string" select="replace($constructor-update-string, '$this', '&lt;' || $constructor-uri || '&gt;', 'q')" as="xs:string"/>
+                    <xsl:variable name="update-string" select="replace($update-string, '$text', '&quot;&quot;&quot;' || $construct-string || '&quot;&quot;&quot;', 'q')" as="xs:string"/>
                     <!-- what if the constructor URI is not relative to the document URI? -->
                     <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), map{}, ac:document-uri($constructor-uri))" as="xs:anyURI"/>
                     <xsl:variable name="request" as="item()*">
@@ -651,8 +651,8 @@ exclude-result-prefixes="#all"
                         <xsl:variable name="graph" select="srx:binding[@name = 'graph']/srx:uri" as="xs:anyURI"/>
                         <xsl:variable name="uuid" select="ixsl:call(ixsl:window(), 'generateUUID', [])" as="xs:string"/>
                         <xsl:variable name="constructor-uri" select="xs:anyURI($graph || '#id' || $uuid)" as="xs:anyURI"/>
-                        <xsl:variable name="update-string" select="replace($constructor-insert-string, '\$this', '&lt;' || $constructor-uri || '&gt;')" as="xs:string"/>
-                        <xsl:variable name="update-string" select="replace($update-string, '\$Type', '&lt;' || $type || '&gt;')" as="xs:string"/>
+                        <xsl:variable name="update-string" select="replace($constructor-insert-string, '$this', '&lt;' || $constructor-uri || '&gt;', 'q')" as="xs:string"/>
+                        <xsl:variable name="update-string" select="replace($update-string, '$Type', '&lt;' || $type || '&gt;', 'q')" as="xs:string"/>
                         <!-- what if the constructor URI is not relative to the document URI? -->
                         <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), map{}, ac:document-uri($constructor-uri))" as="xs:anyURI"/>
                         <xsl:variable name="request" as="item()*">

@@ -26,12 +26,14 @@
     <!ENTITY spin   "http://spinrdf.org/spin#">
     <!ENTITY void   "http://rdfs.org/ns/void#">
     <!ENTITY nfo    "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#">
+    <!ENTITY schema "https://schema.org/">
 ]>
 <xsl:stylesheet version="3.0"
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 xmlns:xhtml="http://www.w3.org/1999/xhtml"
 xmlns:xs="http://www.w3.org/2001/XMLSchema"
 xmlns:map="http://www.w3.org/2005/xpath-functions/map"
+xmlns:json="http://www.w3.org/2005/xpath-functions"
 xmlns:lacl="&lacl;"
 xmlns:ldh="&ldh;"
 xmlns:ldht="&ldht;"
@@ -53,6 +55,7 @@ xmlns:sp="&sp;"
 xmlns:spin="&spin;"
 xmlns:geo="&geo;"
 xmlns:void="&void;"
+xmlns:schema="&schema;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 xmlns:ixsl="http://saxonica.com/ns/interactiveXSLT"
 exclude-result-prefixes="#all"
@@ -300,6 +303,17 @@ extension-element-prefixes="ixsl"
         </xsl:if>
     </xsl:template>
 
+    <!-- schema.org BREADCRUMBS -->
+    
+    <xsl:template match="*[@rdf:about]" mode="schema:BreadCrumbListItem" as="element()">
+        <rdf:Description rdf:nodeID="item{position()}">
+            <rdf:type rdf:resource="&schema;ListItem"/>
+            <schema:position><xsl:value-of select="position()"/></schema:position>
+            <schema:name><xsl:value-of select="ac:label(.)"/></schema:name>
+            <schema:item><xsl:value-of select="@rdf:about"/></schema:item>
+        </rdf:Description>
+    </xsl:template>
+    
     <!-- BREADCRUMBS -->
 
     <xsl:template match="*[@rdf:about]" mode="bs2:BreadCrumbListItem">
@@ -322,6 +336,9 @@ extension-element-prefixes="ixsl"
     
     <!-- LEFT NAV -->
     
+    <!-- disable .left-nav for XHTML content instances -->
+    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;Content'][rdf:value[@rdf:parseType = 'Literal']/xhtml:div]" mode="bs2:Left" priority="2"/>
+
     <xsl:template match="*[*][@rdf:about or @rdf:nodeID]" mode="bs2:Left" priority="1">
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" select="'left-nav span2'" as="xs:string?"/>
@@ -338,7 +355,7 @@ extension-element-prefixes="ixsl"
     
     <!-- RIGHT NAV -->
     
-    <!-- empty right nav for content instances -->
+    <!-- .resource-content instances -->
     <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;Content'][rdf:value/@rdf:resource]" mode="bs2:Right" priority="1">
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" select="'right-nav span3'" as="xs:string?"/>
@@ -490,12 +507,12 @@ extension-element-prefixes="ixsl"
                     </xsl:when>
                     <xsl:when test="$mode = '&ac;MapMode'">
                         <xsl:apply-templates select="$doc" mode="bs2:Map">
-                            <xsl:with-param name="canvas-id" select="generate-id() || '-map-canvas'"/>
+                            <xsl:with-param name="id" select="generate-id() || '-map-canvas'"/>
                         </xsl:apply-templates>
                     </xsl:when>
                     <xsl:when test="$mode = '&ac;ChartMode'">
                         <xsl:apply-templates select="$doc" mode="bs2:Chart">
-                            <xsl:with-param name="canvas-id" select="generate-id() || '-chart-canvas'"/>
+                            <xsl:with-param name="id" select="generate-id() || '-chart-canvas'"/>
                             <xsl:with-param name="show-save" select="false()"/>
                         </xsl:apply-templates>
                     </xsl:when>
@@ -511,7 +528,8 @@ extension-element-prefixes="ixsl"
             <xsl:apply-templates select="." mode="bs2:Right"/>
                     
             <!-- render contents attached to the types of this resource using ldh:template -->
-            <xsl:variable name="content-values" select="if (doc-available(resolve-uri('ns?query=ASK%20%7B%7D', $ldt:base))) then (ldh:query-result(map{}, resolve-uri('ns', $ldt:base), $template-query || ' VALUES $Type { ' || string-join(for $type in rdf:type/@rdf:resource return '&lt;' || $type || '&gt;', ' ') || ' }')//srx:binding[@name = 'content']/srx:uri/xs:anyURI(.)) else ()" as="xs:anyURI*" use-when="system-property('xsl:product-name') = 'SAXON'"/>
+            <xsl:variable name="types" select="rdf:type/@rdf:resource" as="xs:anyURI*" use-when="system-property('xsl:product-name') = 'SAXON'"/>
+            <xsl:variable name="content-values" select="if (exists($types) and doc-available(resolve-uri('ns?query=ASK%20%7B%7D', $ldt:base))) then (ldh:query-result(map{}, resolve-uri('ns', $ldt:base), $template-query || ' VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }')//srx:binding[@name = 'content']/srx:uri/xs:anyURI(.)) else ()" as="xs:anyURI*" use-when="system-property('xsl:product-name') = 'SAXON'"/>
             <xsl:for-each select="$content-values" use-when="system-property('xsl:product-name') = 'SAXON'">
                 <xsl:if test="doc-available(ac:document-uri(.))">
                     <xsl:apply-templates select="key('resources', ., document(ac:document-uri(.)))" mode="bs2:RowContent"/>
@@ -704,24 +722,33 @@ extension-element-prefixes="ixsl"
     <!-- ROW CONTENT -->
     
     <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;Content'][rdf:value[@rdf:parseType = 'Literal']/xhtml:div]" mode="bs2:RowContent" priority="2">
-        <xsl:param name="content-uri" select="@rdf:about" as="xs:string?"/>
-        <xsl:param name="id" select="generate-id()" as="xs:string?"/>
+        <xsl:param name="id" select="if (contains(@rdf:about, ac:uri() || '#')) then substring-after(@rdf:about, ac:uri() || '#') else generate-id()" as="xs:string?"/>
         <xsl:param name="class" select="'row-fluid content xhtml-content'" as="xs:string?"/>
+        <xsl:param name="left-class" as="xs:string?"/>
         <xsl:param name="main-class" select="'main span7 offset2'" as="xs:string?"/>
+        <xsl:param name="right-class" select="'right-nav span3'" as="xs:string?"/>
         <xsl:param name="transclude" select="false()" as="xs:boolean"/>
         <xsl:param name="base" as="xs:anyURI?"/>
+        <xsl:param name="draggable" select="$acl:mode = '&acl;Write'" as="xs:boolean?"/>
 
-        <div>
-            <xsl:if test="$content-uri">
-                <xsl:attribute name="data-content-uri" select="$content-uri"/>
-            </xsl:if>
+        <div about="{@rdf:about}">
             <xsl:if test="$id">
                 <xsl:attribute name="id" select="$id"/>
             </xsl:if>
             <xsl:if test="$class">
                 <xsl:attribute name="class" select="$class"/>
             </xsl:if>
+            <xsl:if test="$draggable = true()">
+                <xsl:attribute name="draggable" select="'true'"/>
+            </xsl:if>
+            <xsl:if test="$draggable = false()">
+                <xsl:attribute name="draggable" select="'false'"/>
+            </xsl:if>
             
+            <xsl:apply-templates select="." mode="bs2:Left">
+                <xsl:with-param name="class" select="$left-class"/>
+            </xsl:apply-templates>
+
             <div>
                 <xsl:if test="$main-class">
                     <xsl:attribute name="class" select="$main-class"/>
@@ -732,25 +759,26 @@ extension-element-prefixes="ixsl"
                     <xsl:with-param name="base" select="$base" tunnel="yes"/>
                 </xsl:apply-templates>
             </div>
+            
+            <xsl:apply-templates select="." mode="bs2:Right">
+                <xsl:with-param name="class" select="$right-class"/>
+            </xsl:apply-templates>
         </div>
     </xsl:template>
 
     <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;Content'][rdf:value/@rdf:resource]" mode="bs2:RowContent" priority="2">
-        <xsl:param name="content-uri" select="@rdf:about" as="xs:string?"/>
         <xsl:param name="id" select="if (contains(@rdf:about, ac:uri() || '#')) then substring-after(@rdf:about, ac:uri() || '#') else generate-id()" as="xs:string?"/>
         <xsl:param name="class" select="'row-fluid content resource-content'" as="xs:string?"/>
         <xsl:param name="mode" select="ac:mode/@rdf:resource" as="xs:anyURI?"/>
         <xsl:param name="left-class" select="'left-nav span2'" as="xs:string?"/>
         <xsl:param name="main-class" select="'main span7'" as="xs:string?"/>
         <xsl:param name="right-class" select="'right-nav span3'" as="xs:string?"/>
-        
+        <xsl:param name="draggable" select="$acl:mode = '&acl;Write'" as="xs:boolean?"/>
+
         <xsl:apply-templates select="." mode="bs2:RowContentHeader"/>
         
         <!-- @data-content-value is used to retrieve $content-value in client.xsl -->
-        <div data-content-value="{rdf:value/@rdf:resource}">
-            <xsl:if test="$content-uri">
-                <xsl:attribute name="data-content-uri" select="$content-uri"/>
-            </xsl:if>
+        <div about="{@rdf:about}" data-content-value="{rdf:value/@rdf:resource}">
             <xsl:if test="$id">
                 <xsl:attribute name="id" select="$id"/>
             </xsl:if>
@@ -759,6 +787,12 @@ extension-element-prefixes="ixsl"
             </xsl:if>
             <xsl:if test="$mode">
                 <xsl:attribute name="data-content-mode" select="$mode"/>
+            </xsl:if>
+            <xsl:if test="$draggable = true()">
+                <xsl:attribute name="draggable" select="'true'"/>
+            </xsl:if>
+            <xsl:if test="$draggable = false()">
+                <xsl:attribute name="draggable" select="'false'"/>
             </xsl:if>
             
             <xsl:apply-templates select="." mode="bs2:Left">

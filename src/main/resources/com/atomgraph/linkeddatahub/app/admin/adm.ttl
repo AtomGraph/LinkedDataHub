@@ -37,7 +37,8 @@
 
 :MissingRDFSLabel a ldh:MissingPropertyValue ;
     rdfs:label "Missing rdfs:label" ;
-    sp:arg1 rdfs:label .
+    sp:arg1 rdfs:label ;
+    rdfs:isDefinedBy : .
 
 ### EXTERNAL ASSERTIONS
 

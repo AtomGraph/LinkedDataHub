@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-email="john@doe.com"
+uuid=$(uuidgen | tr '[:upper:]' '[:lower:]')
+email="${uuid}@example.com" # randomize email so we don't get an exception because it already exists
 given_name="John"
 family_name="Doe"
 password="$AGENT_CERT_PWD"
 title="whatever"
-uuid=$(uuidgen | tr '[:upper:]' '[:lower:]')
 agent_p12_cert=$(mktemp)
 
 curl -k -s -f \

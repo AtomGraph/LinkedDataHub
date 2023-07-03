@@ -78,9 +78,9 @@ ENV SECRETARY_CERT_ALIAS=secretary
 
 ENV CLIENT_KEYSTORE_MOUNT=/var/linkeddatahub/ssl/secretary/keystore.p12
 
-ENV CLIENT_KEYSTORE="$CATALINA_HOME/webapps/ROOT/ssl/keystore.p12"
+ENV CLIENT_KEYSTORE="$CATALINA_HOME/webapps/ROOT/WEB-INF/keystore.p12"
 
-ENV CLIENT_TRUSTSTORE="$CATALINA_HOME/webapps/ROOT/ssl/client.truststore"
+ENV CLIENT_TRUSTSTORE="$CATALINA_HOME/webapps/ROOT/WEB-INF/client.truststore"
 
 ENV OWNER_PUBLIC_KEY=/var/linkeddatahub/ssl/owner/public.pem
 
@@ -108,7 +108,7 @@ ENV GOOGLE_CLIENT_ID=
 
 ENV GOOGLE_CLIENT_SECRET=
 
-# HEALTHCHECK --start-period=80s CMD curl -f http://localhost:$HTTP_PORT || exit 1
+ENV GENERATE_SITEMAP=true
 
 # remove default Tomcat webapps and install xmlstarlet (used for XPath queries) and envsubst (for variable substitution)
 
@@ -144,6 +144,12 @@ COPY platform/datasets/admin.trig /var/linkeddatahub/datasets/admin.trig
 
 COPY platform/datasets/end-user.trig /var/linkeddatahub/datasets/end-user.trig
 
+# copy sitemap query & stylesheet
+
+COPY platform/sitemap/sitemap.rq.template /var/linkeddatahub/sitemap/sitemap.rq.template
+
+COPY platform/sitemap/sitemap.xsl /var/linkeddatahub/sitemap/sitemap.xsl
+
 # copy webapp config
 
 COPY platform/conf/ROOT.xml conf/Catalina/localhost/ROOT.xml
@@ -173,6 +179,9 @@ RUN useradd --no-log-init -U ldh && \
     chown -R ldh:ldh /etc/letsencrypt/staging
 
 RUN ./import-letsencrypt-stg-roots.sh
+
+HEALTHCHECK --start-period=80s --interval=20s --timeout=10s \
+    CMD curl -f -I "http://localhost:${HTTP_PORT}/ns" -H "Accept: application/n-triples" || exit 1 # relies on public access to the namespace document
 
 USER ldh
 

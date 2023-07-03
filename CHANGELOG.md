@@ -1,3 +1,45 @@
+## [4.0.5] - 2023-06-23
+### Added
+- New Varnish proxy cache between nginx and LinkedDataHub (`varnish-frontend` service) in order to improve performance
+- New `lapp:frontendProxy` and `lapp:backendProxy` properties in the LAPP ontology
+- `HEALTHCHECK` configuration in Dockerfile (relies on public access to the namespace document)
+
+### Changed
+- Fixed content drag and drop logic to only work in content mode and not affect dragging in map and graph modes
+- Content drag and drop is only enabled when the authenticated agent has an `acl:Write` authorization for the document
+- Improved extensibility of client-side XSLT templates for faceted search and parallax navigation
+- When `ENABLE_LINKED_DATA_PROXY=false`, `?uri=` proxy requests will return `405 Method Not Allowed` unless the URI is already cached or mapped to file
+- Replaced the `atomgraph/varnish:6.0.11` Docker image with the official `varnish:7.3.0` image
+- Replaced the `atomgraph/nginx:1.23.3` Docker image with the official `nginx:1.23.3` image
+
+## [4.0.4] - 2023-06-07
+### Changed
+- Moved `Cache-Control` header settings from webapp's `web.xml` to nginx's config template
+
+## [4.0.3] - 2023-05-24
+### Added
+- Option to re-arrange content blocks by drag & drop in content mode (enabled only when the agent has write access)
+
+### Changed
+- Instead of writing JSON-LD directly, `schema:BreadCrumbList` mode returns RDF/XML which is then transformed to JSON-LD using `ac:JSON-LD`
+
+## [4.0.2] - 2023-05-08
+### Added
+- [XML sitemap](https://www.sitemaps.org/protocol.html) generation when env param `GENERATE_SITEMAP=true` is specified (enabled by default)
+- JSON-LD output in the `<script>` tag containing [`schema:BreadCrumbList`](https://schema.org/BreadcrumbList) structured data
+
+### Changed
+- Content blocks use `@about` attributes as identifiers instead of `@data-content-uri`
+
+## [4.0.1] - 2023-04-23
+### Added
+- Backlink navigation on XHTML content
+
+### Changed
+- Navigation bar is now fully rendered server-side, i.e. the whole visible HTML body is replaced via AJAX
+- Generalized client-side navigation templates using XPath maps
+- Fixed default `@id` value in `bs2:RowContent` mode
+
 ## [4.0.0] - 2023-01-04
 ### Changed
 - Upgraded dependencies to use Jersey 3.x and the Servlet 5 API. That required replacing `javax.*` dependencies with `jakarta.*`

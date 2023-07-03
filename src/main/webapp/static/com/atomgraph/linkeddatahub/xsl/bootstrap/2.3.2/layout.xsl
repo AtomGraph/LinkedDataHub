@@ -35,6 +35,7 @@
     <!ENTITY spl    "http://spinrdf.org/spl#">
     <!ENTITY void   "http://rdfs.org/ns/void#">
     <!ENTITY nfo    "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#">
+    <!ENTITY schema "https://schema.org/">
 ]>
 <xsl:stylesheet version="3.0"
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
@@ -71,6 +72,7 @@ xmlns:nfo="&nfo;"
 xmlns:geo="&geo;"
 xmlns:srx="&srx;"
 xmlns:google="&google;"
+xmlns:schema="&schema;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 exclude-result-prefixes="#all">
 
@@ -85,7 +87,6 @@ exclude-result-prefixes="#all">
     <xsl:import href="imports/rdf.xsl"/>
     <xsl:import href="imports/sioc.xsl"/>
     <xsl:import href="imports/sp.xsl"/>
-    <xsl:import href="imports/void.xsl"/>
     <xsl:import href="resource.xsl"/>
     <xsl:import href="document.xsl"/>
     
@@ -127,6 +128,19 @@ exclude-result-prefixes="#all">
             <xsl:map-entry key="'&ldh;CSVImport'" select="resolve-uri('imports/', $ldt:base)"/>
             <xsl:map-entry key="'&ldh;GraphChart'" select="resolve-uri('charts/', $ldt:base)"/>
             <xsl:map-entry key="'&ldh;ResultSetChart'" select="resolve-uri('charts/', $ldt:base)"/>
+        </xsl:map>
+    </xsl:param>
+    <xsl:param name="location-mapping" as="map(xs:anyURI, xs:anyURI)">
+        <xsl:map>
+            <xsl:map-entry key="resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)" select="resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)"/>
+            <xsl:map-entry key="resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/http-statusCodes.rdf', $ac:contextUri)" select="resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/http-statusCodes.rdf', $ac:contextUri)"/>
+            <xsl:map-entry key="resolve-uri(ac:document-uri(xs:anyURI('&ac;')), $ac:contextUri)" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&ac;'))), 'accept': 'application/rdf+xml' })"/>
+            <xsl:map-entry key="resolve-uri(ac:document-uri(xs:anyURI('&adm;')), $ac:contextUri)" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&adm;'))), 'accept': 'application/rdf+xml' })"/>
+            <xsl:map-entry key="resolve-uri(ac:document-uri(xs:anyURI('&ldh;')), $ac:contextUri)" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&ldh;'))), 'accept': 'application/rdf+xml' })"/>
+            <xsl:map-entry key="resolve-uri(ac:document-uri(xs:anyURI('&def;')), $ac:contextUri)" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&def;'))), 'accept': 'application/rdf+xml' })"/>
+            <xsl:map-entry key="resolve-uri(ac:document-uri(xs:anyURI('&dh;')), $ac:contextUri)" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&dh;'))), 'accept': 'application/rdf+xml' })"/>
+            <xsl:map-entry key="resolve-uri(ac:document-uri(xs:anyURI('&sp;')), $ac:contextUri)" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&sp;'))), 'accept': 'application/rdf+xml' })"/>
+            <xsl:map-entry key="resolve-uri(ac:document-uri(xs:anyURI('&rdf;')), $ac:contextUri)" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&rdf;'))), 'accept': 'application/rdf+xml' })"/>
         </xsl:map>
     </xsl:param>
     <xsl:param name="explore-service-query" as="xs:string">
@@ -329,7 +343,8 @@ LIMIT   100
         <xsl:param name="load-sparql-builder" select="not($ac:mode = ('&ac;ModalMode', '&ldht;InfoWindowMode'))" as="xs:boolean"/>
         <xsl:param name="load-sparql-map" select="not($ac:mode = ('&ac;ModalMode', '&ldht;InfoWindowMode'))" as="xs:boolean"/>
         <xsl:param name="load-google-charts" select="not($ac:mode = ('&ac;ModalMode', '&ldht;InfoWindowMode'))" as="xs:boolean"/>
-        <xsl:param name="output-json-ld" select="false()" as="xs:boolean"/>
+        <xsl:param name="output-schema-org" select="true()" as="xs:boolean"/>
+        <xsl:param name="location-mapping" select="$location-mapping" as="map(xs:anyURI, xs:anyURI)"/>
 
         <!-- Web-Client scripts -->
         <script type="text/javascript" src="{resolve-uri('static/js/jquery.min.js', $ac:contextUri)}" defer="defer"></script>
@@ -359,18 +374,18 @@ LIMIT   100
             <script type="text/javascript">
                 <![CDATA[
                     window.onload = function() {
-                        const locationMapping = [ 
-                            // not using entities as we don't want the # in the end
-                            { name: contextUri + "static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf",     altName: contextUri + "static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf" },
-                            { name: contextUri + "static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/http-statusCodes.rdf", altName: contextUri + "static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/http-statusCodes.rdf" },
-                            { name: "https://w3id.org/atomgraph/client",                                                        altName: "]]><xsl:value-of select="$ldt:base"/><![CDATA[" + "?uri=" + encodeURIComponent("https://w3id.org/atomgraph/client") + "&accept=" + encodeURIComponent("application/rdf+xml") },
-                            { name: "https://w3id.org/atomgraph/linkeddatahub/admin",                                           altName: "]]><xsl:value-of select="$ldt:base"/><![CDATA[" + "?uri=" + encodeURIComponent("https://w3id.org/atomgraph/linkeddatahub/admin") + "&accept=" + encodeURIComponent("application/rdf+xml") },
-                            { name: "https://w3id.org/atomgraph/linkeddatahub",                                                 altName: "]]><xsl:value-of select="$ldt:base"/><![CDATA[" + "?uri=" + encodeURIComponent("https://w3id.org/atomgraph/linkeddatahub") + "&accept=" + encodeURIComponent("application/rdf+xml") },
-                            { name: "https://w3id.org/atomgraph/linkeddatahub/default",                                         altName: "]]><xsl:value-of select="$ldt:base"/><![CDATA[" + "?uri=" + encodeURIComponent("https://w3id.org/atomgraph/linkeddatahub/default") + "&accept=" + encodeURIComponent("application/rdf+xml") },
-                            { name: "https://www.w3.org/ns/ldt/document-hierarchy",                                             altName: "]]><xsl:value-of select="$ldt:base"/><![CDATA[" + "?uri=" + encodeURIComponent("https://www.w3.org/ns/ldt/document-hierarchy") + "&accept=" + encodeURIComponent("application/rdf+xml") },
-                            { name: "http://spinrdf.org/sp",                                                                    altName: "]]><xsl:value-of select="$ldt:base"/><![CDATA[" + "?uri=" + encodeURIComponent("http://spinrdf.org/sp") + "&accept=" + encodeURIComponent("application/rdf+xml") },
-                            { name: "http://www.w3.org/1999/02/22-rdf-syntax-ns",                                               altName: "]]><xsl:value-of select="$ldt:base"/><![CDATA[" + "?uri=" + encodeURIComponent("http://www.w3.org/1999/02/22-rdf-syntax-ns") + "&accept=" + encodeURIComponent("application/rdf+xml") }
+                        const locationMapping = [
                             ]]>
+                            <xsl:for-each select="map:keys($location-mapping)">
+                                <xsl:text>{ name: "</xsl:text>
+                                <xsl:value-of select="."/>
+                                <xsl:text>", altName: "</xsl:text>
+                                <xsl:value-of select="map:get($location-mapping, .)"/>
+                                <xsl:text>" }</xsl:text>
+                                <xsl:if test="position() != last()">
+                                    <xsl:text>,&#xa;</xsl:text>
+                                </xsl:if>
+                            </xsl:for-each>
                             <!--<xsl:variable name="ontology-imports" select="for $value in distinct-values(ldh:ontologyImports($ldt:ontology)) return xs:anyURI($value)" as="xs:anyURI*"/>
                             <xsl:if test="exists($ontology-imports)">
                                 <xsl:text>,</xsl:text>
@@ -440,11 +455,19 @@ LIMIT   100
                 ]]>
             </script>
         </xsl:if>
-        <xsl:if test="$output-json-ld">
-            <!-- output structured data: https://developers.google.com/search/docs/guides/intro-structured-data -->
-            <script type="application/ld+json">
-                <xsl:apply-templates select="." mode="ac:JSON-LD"/>
-            </script>
+        <xsl:if test="$output-schema-org">
+            <xsl:variable name="rdf" as="element()?">
+                <xsl:apply-templates select="." mode="schema:BreadCrumbList"/>
+            </xsl:variable>
+            <xsl:if test="exists($rdf)">
+                <!-- output structured data: https://developers.google.com/search/docs/guides/intro-structured-data -->
+                <script type="application/ld+json">
+                    <xsl:variable name="json-xml" as="element()">
+                        <xsl:apply-templates select="$rdf" mode="ac:JSON-LD"/>
+                    </xsl:variable>
+                    <xsl:sequence select="xml-to-json($json-xml)"/>
+                </script>
+            </xsl:if>
         </xsl:if>
     </xsl:template>
     
@@ -513,6 +536,8 @@ LIMIT   100
                         <xsl:attribute name="value" select="ac:uri()"/>
                     </xsl:if>
                 </input>
+                <!-- placeholder used by the client-side typeahead -->
+                 <ul id="ul-{generate-id()}" class="search-typeahead typeahead dropdown-menu" style="display: none"/> 
 
                 <button type="submit">
                     <xsl:apply-templates select="key('resources', 'search', document('translations.rdf'))" mode="ldh:logo">
@@ -563,17 +588,8 @@ LIMIT   100
             </xsl:if>
             
             <div class="row-fluid">
-                <div id="breadcrumb-nav" class="span9">
-                    <!-- placeholder for client.xsl callbacks -->
-
-                    <xsl:if test="not($ldh:ajaxRendering)">
-                        <ul class="breadcrumb pull-left">
-                            <!-- render breadcrumbs server-side -->
-                            <xsl:apply-templates select="key('resources', ac:uri())" mode="bs2:BreadCrumbListItem"/>
-                        </ul>
-                    </xsl:if>
-                </div>
-
+                <xsl:apply-templates select="." mode="bs2:BreadCrumbBar"/>
+                
                 <div id="created-modified-date" class="span3">
                     <!-- placeholder for client.xsl callbacks -->
                 </div>
@@ -599,6 +615,29 @@ LIMIT   100
         </div>
     </xsl:template>
     
+    <xsl:template match="rdf:RDF" mode="bs2:BreadCrumbBar">
+        <xsl:param name="id" select="'breadcrumb-nav'" as="xs:string?"/>
+        <xsl:param name="class" select="'span9'" as="xs:string?"/>
+
+        <div>
+            <xsl:if test="$id">
+                <xsl:attribute name="id" select="$id"/>
+            </xsl:if>
+            <xsl:if test="$class">
+                <xsl:attribute name="class" select="$class"/>
+            </xsl:if>
+            
+            <!-- placeholder for client.xsl callbacks -->
+
+            <xsl:if test="not($ldh:ajaxRendering)">
+                <ul class="breadcrumb pull-left">
+                    <!-- render breadcrumbs server-side -->
+                    <xsl:apply-templates select="key('resources', ac:uri())" mode="bs2:BreadCrumbListItem"/>
+                </ul>
+            </xsl:if>
+        </div>
+    </xsl:template>
+
     <xsl:template match="rdf:RDF" mode="bs2:NavBarNavList">
         <xsl:if test="$foaf:Agent//@rdf:about">
             <ul class="nav pull-right">
@@ -734,13 +773,15 @@ LIMIT   100
 
     <xsl:template match="rdf:RDF" mode="xhtml:Body">
         <body>
-            <xsl:apply-templates select="." mode="bs2:NavBar"/>
+            <div id="visible-body">
+                <xsl:apply-templates select="." mode="bs2:NavBar"/>
 
-            <xsl:apply-templates select="." mode="bs2:ContentBody"/>
+                <xsl:apply-templates select="." mode="bs2:ContentBody"/>
 
-            <xsl:apply-templates select="." mode="bs2:DocumentTree"/>
+                <xsl:apply-templates select="." mode="bs2:Footer"/>
+            </div>
             
-            <xsl:apply-templates select="." mode="bs2:Footer"/>
+            <xsl:apply-templates select="." mode="bs2:DocumentTree"/>
         </body>
     </xsl:template>
 
@@ -748,7 +789,8 @@ LIMIT   100
         <xsl:param name="id" select="'content-body'" as="xs:string?"/>
         <xsl:param name="class" select="'container-fluid'" as="xs:string?"/>
         <xsl:param name="classes" select="for $class-uri in map:keys($default-classes) return key('resources', $class-uri, document(ac:document-uri($class-uri)))" as="element()*"/>
-        <xsl:param name="content-values" select="if (doc-available(resolve-uri('ns?query=ASK%20%7B%7D', $ldt:base))) then (ldh:query-result(map{}, resolve-uri('ns', $ldt:base), $template-query || ' VALUES $Type { ' || string-join(for $type in key('resources', ac:uri())/rdf:type/@rdf:resource[ . = ('&def;Root', '&dh;Container', '&dh;Item')] return '&lt;' || $type || '&gt;', ' ') || ' }')//srx:binding[@name = 'content']/srx:uri/xs:anyURI(.)) else ()" as="xs:anyURI*"/>
+        <xsl:param name="doc-types" select="key('resources', ac:uri())/rdf:type/@rdf:resource[ . = ('&def;Root', '&dh;Container', '&dh;Item')]" as="xs:anyURI*"/>
+        <xsl:param name="content-values" select="if (exists($doc-types) and doc-available(resolve-uri('ns?query=ASK%20%7B%7D', $ldt:base))) then (ldh:query-result(map{}, resolve-uri('ns', $ldt:base), $template-query || ' VALUES $Type { ' || string-join(for $type in $doc-types return '&lt;' || $type || '&gt;', ' ') || ' }')//srx:binding[@name = 'content']/srx:uri/xs:anyURI(.)) else ()" as="xs:anyURI*"/>
         <xsl:param name="has-content" select="key('resources', key('resources', ac:uri())/rdf:*[starts-with(local-name(), '_')]/@rdf:resource) or exists($content-values)" as="xs:boolean"/>
 
         <div about="{ac:uri()}">
@@ -841,13 +883,13 @@ LIMIT   100
                 </xsl:when>
                 <xsl:when test="$ac:mode = '&ac;MapMode'">
                     <xsl:apply-templates select="." mode="bs2:Map">
-                        <xsl:with-param name="canvas-id" select="generate-id() || '-map-canvas'"/>
+                        <xsl:with-param name="id" select="generate-id() || '-map-canvas'"/>
                         <xsl:sort select="ac:label(.)"/>
                     </xsl:apply-templates>
                 </xsl:when>
                 <xsl:when test="$ac:mode = '&ac;ChartMode'">
                     <xsl:apply-templates select="." mode="bs2:Chart">
-                        <xsl:with-param name="canvas-id" select="generate-id() || '-chart-canvas'"/>
+                        <xsl:with-param name="id" select="generate-id() || '-chart-canvas'"/>
                         <xsl:with-param name="show-save" select="false()"/>
                         <xsl:sort select="ac:label(.)"/>
                     </xsl:apply-templates>
