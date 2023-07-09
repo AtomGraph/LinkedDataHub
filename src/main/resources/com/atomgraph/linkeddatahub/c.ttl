@@ -1,0 +1,34 @@
+@base           <https://www.w3.org/ns/ldt/core> .
+
+@prefix :	<#> .
+@prefix rdf:	<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:	<http://www.w3.org/2001/XMLSchema#> .
+@prefix owl:	<http://www.w3.org/2002/07/owl#> .
+@prefix ldt:	<https://www.w3.org/ns/ldt#> .
+@prefix sp:	<http://spinrdf.org/sp#> .
+@prefix spl:	<http://spinrdf.org/spl#> .
+@prefix dct:	<http://purl.org/dc/terms/> .
+@prefix vann:	<http://purl.org/vocab/vann/> .
+@prefix foaf:	<http://xmlns.com/foaf/0.1/> .
+
+: a owl:Ontology ;
+    owl:versionInfo "1.1.4" ;
+    rdfs:label "LDT Core domain ontology" ;
+    dct:created "2016-08-31T21:54:00+02:00"^^xsd:dateTime ;
+    vann:preferredNamespaceUri "https://www.w3.org/ns/ldt/core#" ;
+    dct:license <http://www.opendatacommons.org/licenses/pddl/1.0/> .
+
+# CLASSES
+
+:SPARQLEndpoint a rdfs:Class ;
+    foaf:subClassOf foaf:Document ;
+    rdfs:label "SPARQL endpoint" ;
+    rdfs:comment "A resource that implements SPARQL 1.1 Protocol" ;
+    rdfs:isDefinedBy : .
+
+:GraphStore a rdfs:Class ;
+    foaf:subClassOf foaf:Document ;
+    rdfs:label "Graph Store" ;
+    rdfs:comment "A resource that implements SPARQL 1.1 Graph Store Protocol" ;
+    rdfs:isDefinedBy : .
