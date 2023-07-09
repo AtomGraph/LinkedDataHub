@@ -36,7 +36,7 @@ import java.util.List;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.UriInfo;
 import org.apache.jena.riot.Lang;
-import com.atomgraph.processor.vocabulary.SIOC;
+import com.atomgraph.linkeddatahub.vocabulary.SIOC;
 import com.atomgraph.server.exception.SPINConstraintViolationException;
 import com.atomgraph.spinrdf.constraints.ConstraintViolation;
 import com.atomgraph.spinrdf.constraints.ObjectPropertyPath;

@@ -26,13 +26,20 @@ import org.apache.jena.rdf.model.Resource;
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-public interface Application extends Resource, com.atomgraph.processor.model.Application
+public interface Application extends Resource, com.atomgraph.core.model.Application
 {
     
     /**
      * The relative path of the content-addressed file container.
      */
     public static final String UPLOADS_PATH = "uploads";
+
+    /**
+     * Returns the application's namespace ontology.
+     * 
+     * @return ontology resource
+     */
+    Resource getOntology();
 
     /**
      * Returns the agent who created this application.

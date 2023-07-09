@@ -128,8 +128,8 @@
         <!-- TO-DO: replace with AtomGraph Core -->
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>processor</artifactId>
-            <version>4.0.1</version>
+            <artifactId>server</artifactId>
+            <version>4.0.2-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>

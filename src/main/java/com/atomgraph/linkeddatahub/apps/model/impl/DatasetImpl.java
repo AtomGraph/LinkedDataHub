@@ -19,7 +19,7 @@ package com.atomgraph.linkeddatahub.apps.model.impl;
 import com.atomgraph.linkeddatahub.apps.model.Dataset;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.vocabulary.LAPP;
-import com.atomgraph.processor.vocabulary.LDT;
+import com.atomgraph.server.vocabulary.LDT;
 import java.net.URI;
 import jakarta.ws.rs.core.UriBuilder;
 import org.apache.jena.enhanced.EnhGraph;
