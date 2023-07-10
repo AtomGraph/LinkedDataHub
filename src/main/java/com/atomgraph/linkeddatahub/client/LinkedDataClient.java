@@ -40,6 +40,9 @@ public class LinkedDataClient extends com.atomgraph.core.client.LinkedDataClient
 
     private static final Logger log = LoggerFactory.getLogger(LinkedDataClient.class);
 
+    /**
+     * <samp>User-Agent</samp> request header value used by this HTTP client.
+     */
     public final static String USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:107.0) Gecko/20100101 Firefox/107.0"; // impersonate Firefox
 
     private URI baseURI;

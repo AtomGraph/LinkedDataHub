@@ -41,6 +41,9 @@ public class SIOC {
    */
   public static final String NS = "http://rdfs.org/sioc/ns#";
 
+  /**
+   * Default prefix for this namespace.
+   */
   public static final String PREFIX = "sioc";
 
   /**
@@ -48,6 +51,7 @@ public class SIOC {
    * The namespace of the vocabulary as a string
    * </p>
    *
+     * @return the URI of this namespace
    * @see #NS
    */
   public static String getURI() {
@@ -154,6 +158,9 @@ public class SIOC {
   public static final ObjectProperty FUNCTION_OF = m_model
       .createObjectProperty("http://rdfs.org/sioc/ns#function_of");
 
+  /**
+   * This property has been renamed. Use <samp>sioc:sioc:usergroup_of</samp> instead.
+   */
   public static final ObjectProperty GROUP_OF = m_model
       .createObjectProperty("http://rdfs.org/sioc/ns#group_of");
 
@@ -197,6 +204,9 @@ public class SIOC {
   public static final ObjectProperty HAS_FUNCTION = m_model
       .createObjectProperty("http://rdfs.org/sioc/ns#has_function");
 
+  /**
+   * This property has been renamed. Use <samp>sioc:has_usergroup</samp> instead.
+   */
   public static final ObjectProperty HAS_GROUP = m_model
       .createObjectProperty("http://rdfs.org/sioc/ns#has_group");
 

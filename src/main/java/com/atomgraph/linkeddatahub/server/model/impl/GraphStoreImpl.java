@@ -490,8 +490,8 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
      * List allowed HTTP methods for the given graph URI.
      * Exceptions apply to the application's Root document, owner's WebID document, and secretary's WebID document.
      * 
-     * @param graphUri
-     * @return 
+     * @param graphUri ma,ed graph URI
+     * @return list of HTTP methods
      */
     public Set<String> getAllowedMethods(URI graphUri)
     {
