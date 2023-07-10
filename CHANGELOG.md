@@ -1,4 +1,4 @@
-## [4.0.7] - 2023-07-11
+## [4.0.8] - 2023-07-11
 ### Changed
 - Dependency on `com.atomgraph.server` (new module) instead of `com.atomgraph.processor`
 - JAX-RS application now registers the `NotAcceptableExceptionMapper` so that the `406 Not Acceptable` responses are mapped correctly
