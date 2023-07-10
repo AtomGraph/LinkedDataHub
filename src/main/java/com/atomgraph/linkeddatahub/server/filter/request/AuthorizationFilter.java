@@ -26,7 +26,7 @@ import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.security.AuthorizationContext;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
 import com.atomgraph.linkeddatahub.vocabulary.LACL;
-import com.atomgraph.processor.vocabulary.LDT;
+import com.atomgraph.server.vocabulary.LDT;
 import com.atomgraph.spinrdf.vocabulary.SPIN;
 import java.io.IOException;
 import java.util.Collections;

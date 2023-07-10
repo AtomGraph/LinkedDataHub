@@ -17,10 +17,6 @@
 package com.atomgraph.linkeddatahub.server.mapper;
 
 import com.atomgraph.core.MediaTypes;
-import jakarta.ws.rs.core.Context;
-import jakarta.ws.rs.core.Response;
-import com.atomgraph.server.exception.ModelException;
-import com.atomgraph.server.model.QueriedResource;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.container.ResourceContext;
 
@@ -32,7 +28,7 @@ import jakarta.ws.rs.container.ResourceContext;
 public class ModelExceptionMapper extends com.atomgraph.server.mapper.ModelExceptionMapper
 {
 
-    @Context ResourceContext resourceContext;
+//    @Context ResourceContext resourceContext;
     
     /**
      * Constructs mapper from media types.
@@ -45,32 +41,32 @@ public class ModelExceptionMapper extends com.atomgraph.server.mapper.ModelExcep
         super(mediaTypes);
     }
 
-    @Override
-    public Response toResponse(ModelException ex)
-    {
-        if (getQueriedResource() != null) ex.getModel().add(getQueriedResource().describe());
-        
-        return super.toResponse(ex);
-    }
+//    @Override
+//    public Response toResponse(ModelException ex)
+//    {
+//        if (getQueriedResource() != null) ex.getModel().add(getQueriedResource().describe());
+//        
+//        return super.toResponse(ex);
+//    }
     
     /**
      * Returns the current RDF resource.
      * 
      * @return RDF resource
      */
-    public QueriedResource getQueriedResource()
-    {
-        return getResourceContext().getResource(QueriedResource.class);
-    }
+//    public QueriedResource getQueriedResource()
+//    {
+//        return getResourceContext().getResource(QueriedResource.class);
+//    }
     
     /**
      * Returns JAX-RS resource context.
      * 
      * @return resource context
      */
-    public ResourceContext getResourceContext()
-    {
-        return resourceContext;
-    }
+//    public ResourceContext getResourceContext()
+//    {
+//        return resourceContext;
+//    }
     
 }

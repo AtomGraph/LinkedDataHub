@@ -48,10 +48,10 @@ public class QueryExecExceptionMapper extends ExceptionMapperBase implements Exc
     @Override
     public Response toResponse(QueryExecException ex)
     {
-        return getResponseBuilder(toResource(ex, Response.Status.INTERNAL_SERVER_ERROR,
-                    ResourceFactory.createResource("http://www.w3.org/2011/http-statusCodes#InternalServerError")).
+        return getResponseBuilder(toResource(ex, Response.Status.BAD_REQUEST,
+                    ResourceFactory.createResource("http://www.w3.org/2011/http-statusCodes#BadRequest")).
                 getModel()).
-            status(Response.Status.INTERNAL_SERVER_ERROR).
+            status(Response.Status.BAD_REQUEST).
             build();
     }
 

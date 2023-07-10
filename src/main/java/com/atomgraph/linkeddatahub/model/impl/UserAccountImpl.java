@@ -18,7 +18,7 @@ package com.atomgraph.linkeddatahub.model.impl;
 
 import org.apache.jena.graph.Node;
 import com.atomgraph.linkeddatahub.model.UserAccount;
-import com.atomgraph.processor.vocabulary.SIOC;
+import com.atomgraph.linkeddatahub.vocabulary.SIOC;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.enhanced.EnhNode;
 import org.apache.jena.enhanced.Implementation;

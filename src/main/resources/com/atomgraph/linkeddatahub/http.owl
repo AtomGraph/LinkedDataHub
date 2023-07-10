@@ -1,0 +1,326 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rdf:RDF
+    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+    xmlns:http="http://www.w3.org/2011/http#"
+    xmlns:owl="http://www.w3.org/2002/07/owl#"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+    xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+    xmlns="http://www.w3.org/2011/http#"
+    xml:base="http://www.w3.org/2011/http"
+>
+
+  <owl:Ontology rdf:about="">
+    <rdfs:label xml:lang="en">HTTP in RDF</rdfs:label>
+    <rdfs:comment xml:lang="en">A namespace for describing HTTP messages (http://www.w3.org/Protocols/rfc2616/rfc2616.html)</rdfs:comment>
+    <owl:versionInfo xml:lang="en">Working Draft 29 April 2011</owl:versionInfo>
+    <rdfs:isDefinedBy rdf:resource="http://www.w3.org/TR/HTTP-in-RDF/" />
+    <rdfs:seeAlso rdf:resource="http://www.w3.org/WAI/intro/earl" />
+    <rdfs:seeAlso rdf:resource="http://www.w3.org/TR/Content-in-RDF/" />
+	<owl:imports rdf:resource="http://purl.org/dc/terms/" />
+    <owl:imports rdf:resource="http://www.w3.org/2011/content#" />
+  </owl:Ontology>
+
+  <!-- Classes -->
+  
+  <rdfs:Class rdf:about="#Connection">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#Class"/>
+    <rdfs:label xml:lang="en">Connection</rdfs:label>
+    <rdfs:comment xml:lang="en">A connection used for HTTP transfer.</rdfs:comment>
+    <rdfs:isDefinedBy rdf:resource="http://www.ietf.org/rfc/rfc2616.txt"/>
+  </rdfs:Class>
+  
+  <rdfs:Class rdf:about="#EntityHeader">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#Class"/>
+    <rdfs:label xml:lang="en">Entity Header</rdfs:label>
+    <rdfs:comment xml:lang="en">An entity header in an HTTP message.</rdfs:comment>
+    <rdfs:subClassOf rdf:resource="#MessageHeader"/>
+  </rdfs:Class>
+  
+  <rdfs:Class rdf:about="#GeneralHeader">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#Class"/>
+    <rdfs:label xml:lang="en">General Header</rdfs:label>
+    <rdfs:comment xml:lang="en">A general header in an HTTP message.</rdfs:comment>
+    <rdfs:subClassOf rdf:resource="#MessageHeader"/>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:about="#HeaderElement">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#Class"/>
+    <rdfs:label xml:lang="en">Header Element</rdfs:label>
+    <rdfs:comment xml:lang="en">A part of a deconstructed header value.</rdfs:comment>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:about="#HeaderName">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#Class"/>
+    <rdfs:label xml:lang="en">Header Name</rdfs:label>
+    <rdfs:comment xml:lang="en">A header name.</rdfs:comment>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:about="#Message">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#Class"/>
+    <rdfs:label xml:lang="en">Message</rdfs:label>
+    <rdfs:comment xml:lang="en">An HTTP message.</rdfs:comment>
+    <rdfs:isDefinedBy rdf:resource="http://www.ietf.org/rfc/rfc2616.txt"/>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:about="#MessageHeader">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#Class"/>
+    <rdfs:label xml:lang="en">Message Header</rdfs:label>
+    <rdfs:comment xml:lang="en">A header in an HTTP message.</rdfs:comment>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:about="#Method">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#Class"/>
+    <rdfs:label xml:lang="en">Method</rdfs:label>
+    <rdfs:comment xml:lang="en">The HTTP method used for the request.</rdfs:comment>
+    <rdfs:isDefinedBy rdf:resource="http://www.ietf.org/rfc/rfc2616.txt"/>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:about="#Parameter">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#Class"/>
+    <rdfs:comment xml:lang="en">A parameter for a part of a header value.</rdfs:comment>
+    <rdfs:label xml:lang="en">Parameter</rdfs:label>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:about="#Request">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#Class"/>
+    <rdfs:label xml:lang="en">Request</rdfs:label>
+    <rdfs:comment xml:lang="en">An HTTP request.</rdfs:comment>
+    <rdfs:subClassOf rdf:resource="#Message"/>
+    <rdfs:isDefinedBy rdf:resource="http://www.ietf.org/rfc/rfc2616.txt"/>
+  </rdfs:Class>
+  
+  <rdfs:Class rdf:about="#RequestHeader">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#Class"/>
+    <rdfs:label xml:lang="en">Request Header</rdfs:label>
+    <rdfs:comment xml:lang="en">A header in an HTTP request message.</rdfs:comment>
+    <rdfs:subClassOf rdf:resource="#MessageHeader"/>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:about="#Response">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#Class"/>
+    <rdfs:label xml:lang="en">Response</rdfs:label>
+    <rdfs:comment xml:lang="en">An HTTP response.</rdfs:comment>
+    <rdfs:subClassOf rdf:resource="#Message"/>
+    <rdfs:isDefinedBy rdf:resource="http://www.ietf.org/rfc/rfc2616.txt"/>
+  </rdfs:Class>
+  
+  <rdfs:Class rdf:about="#ResponseHeader">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#Class"/>
+    <rdfs:label xml:lang="en">Response Header</rdfs:label>
+    <rdfs:comment xml:lang="en">A header in an HTTP response message.</rdfs:comment>
+    <rdfs:subClassOf rdf:resource="#MessageHeader"/>
+  </rdfs:Class>
+  
+  <rdfs:Class rdf:about="#StatusCode">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#Class"/>
+    <rdfs:label xml:lang="en">Status code</rdfs:label>
+    <rdfs:comment xml:lang="en">The status code of an HTTP response.</rdfs:comment>
+    <rdfs:isDefinedBy rdf:resource="http://www.ietf.org/rfc/rfc2616.txt"/>
+  </rdfs:Class>
+
+  <!-- Properties -->
+  
+  <rdf:Property rdf:about="#absoluteURI">
+    <rdfs:label xml:lang="en">Absolute URI</rdfs:label>
+    <rdfs:comment xml:lang="en">The absolute request URI.</rdfs:comment>
+    <rdfs:subPropertyOf rdf:resource="#requestURI"/>
+  </rdf:Property>
+
+  <rdf:Property rdf:about="#absolutePath">
+    <rdfs:label xml:lang="en">Absolute path</rdfs:label>
+    <rdfs:comment xml:lang="en">The absolute path sort of request URI.</rdfs:comment>
+    <rdfs:subPropertyOf rdf:resource="#requestURI"/>
+  </rdf:Property>
+
+  <rdf:Property rdf:about="#authority">
+    <rdfs:label xml:lang="en">Authority</rdfs:label>
+    <rdfs:comment xml:lang="en">The authority sort of request URI.</rdfs:comment>
+    <rdfs:subPropertyOf rdf:resource="#requestURI"/>
+  </rdf:Property>
+
+  <rdf:Property rdf:about="#body">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#ObjectProperty"/>
+    <rdfs:label xml:lang="en">Entity Body</rdfs:label>
+    <rdfs:comment xml:lang="en">The entity body of an HTTP message.</rdfs:comment>
+    <rdfs:domain rdf:resource="#Message"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2011/content#ContentAsBase64"/>
+    <rdfs:isDefinedBy rdf:resource="http://www.ietf.org/rfc/rfc2616.txt"/>
+  </rdf:Property>
+
+  <rdf:Property rdf:about="#connectionAuthority">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#ObjectProperty"/>
+    <rdfs:label xml:lang="en">Connection authority</rdfs:label>
+    <rdfs:comment xml:lang="en">The authority of a connection used for the HTTP transfer.</rdfs:comment>
+    <rdfs:domain rdf:resource="#Connection"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2000/01/rdf-schema#Literal"/>
+  </rdf:Property>
+
+  <rdf:Property rdf:about="#elementName">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#ObjectProperty"/>
+    <rdfs:label xml:lang="en">Header element name</rdfs:label>
+    <rdfs:comment xml:lang="en">The name of a header element.</rdfs:comment>
+    <rdfs:domain rdf:resource="#HeaderElement"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2000/01/rdf-schema#Literal"/>
+  </rdf:Property>
+
+  <rdf:Property rdf:about="#elementValue">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#ObjectProperty"/>
+    <rdfs:label xml:lang="en">Header element value</rdfs:label>
+    <rdfs:comment xml:lang="en">The value of a header element.</rdfs:comment>
+    <rdfs:domain rdf:resource="#HeaderElement"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2000/01/rdf-schema#Literal"/>
+  </rdf:Property>
+
+  <rdf:Property rdf:about="#fieldName">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#ObjectProperty"/>
+    <rdfs:label xml:lang="en">Field name</rdfs:label>
+    <rdfs:comment xml:lang="en">The name of an HTTP header field.</rdfs:comment>
+    <rdfs:domain rdf:resource="#MessageHeader"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2000/01/rdf-schema#Literal"/>
+  </rdf:Property>
+
+  <rdf:Property rdf:about="#fieldValue">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#ObjectProperty"/>
+    <rdfs:label xml:lang="en">Field value</rdfs:label>
+    <rdfs:comment xml:lang="en">The value of an HTTP header field.</rdfs:comment>
+    <rdfs:domain rdf:resource="#MessageHeader"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2000/01/rdf-schema#Literal"/>
+  </rdf:Property>
+
+  <rdf:Property rdf:about="#headerElements">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#ObjectProperty"/>
+    <rdfs:label xml:lang="en">Header elements</rdfs:label>
+    <rdfs:comment xml:lang="en">The deconstructed parts of an HTTP header value.</rdfs:comment>
+    <rdfs:domain rdf:resource="#MessageHeader"/>
+  </rdf:Property>
+
+  <rdf:Property rdf:about="#hdrName">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#ObjectProperty"/>
+    <rdfs:label xml:lang="en">Header name</rdfs:label>
+    <rdfs:comment xml:lang="en">The name of an HTTP header.</rdfs:comment>
+    <rdfs:domain rdf:resource="#MessageHeader"/>
+    <rdfs:range rdf:resource="#HeaderName"/>
+  </rdf:Property>
+
+  <rdf:Property rdf:about="#headers">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#ObjectProperty"/>
+    <rdfs:label xml:lang="en">Headers</rdfs:label>
+    <rdfs:comment xml:lang="en">The headers in an HTTP message.</rdfs:comment>
+    <rdfs:domain rdf:resource="#Message"/>
+    <rdfs:isDefinedBy rdf:resource="http://www.ietf.org/rfc/rfc2616.txt"/>
+  </rdf:Property>
+
+  <rdf:Property rdf:about="#httpVersion">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#ObjectProperty"/>
+    <rdfs:label xml:lang="en">HTTP version</rdfs:label>
+    <rdfs:comment xml:lang="en">The HTTP version of an HTTP message.</rdfs:comment>
+    <rdfs:domain rdf:resource="#Message"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2000/01/rdf-schema#Literal"/>
+    <rdfs:isDefinedBy rdf:resource="http://www.ietf.org/rfc/rfc2616.txt"/>
+  </rdf:Property>
+
+  <rdf:Property rdf:about="#mthd">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#ObjectProperty"/>
+    <rdfs:label xml:lang="en">Method</rdfs:label>
+    <rdfs:comment xml:lang="en">The HTTP method used for the HTTP request.</rdfs:comment>
+    <rdfs:domain rdf:resource="#Request"/>
+    <rdfs:range rdf:resource="#Method"/>
+    <rdfs:isDefinedBy rdf:resource="http://www.ietf.org/rfc/rfc2616.txt"/>
+  </rdf:Property>
+
+  <rdf:Property rdf:about="#methodName">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#ObjectProperty"/>
+    <rdfs:label xml:lang="en">Method name</rdfs:label>
+    <rdfs:comment xml:lang="en">The HTTP method name used for the HTTP request.</rdfs:comment>
+    <rdfs:domain rdf:resource="#Request"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2000/01/rdf-schema#Literal"/>
+    <rdfs:isDefinedBy rdf:resource="http://www.ietf.org/rfc/rfc2616.txt"/>
+  </rdf:Property>
+
+  <rdf:Property rdf:about="#paramName">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#ObjectProperty"/>
+    <rdfs:label xml:lang="en">Parameter name</rdfs:label>
+    <rdfs:comment xml:lang="en">The name of a parameter in a part of a deconstructed HTTP header value.</rdfs:comment>
+    <rdfs:domain rdf:resource="#Parameter"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2000/01/rdf-schema#Literal"/>
+  </rdf:Property>
+
+  <rdf:Property rdf:about="#params">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#ObjectProperty"/>
+    <rdfs:label xml:lang="en">Header parameters</rdfs:label>
+    <rdfs:comment xml:lang="en">The parameters in a part of a deconstructed HTTP header value.</rdfs:comment>
+    <rdfs:domain rdf:resource="#HeaderElement"/>
+  </rdf:Property>
+
+  <rdf:Property rdf:about="#paramValue">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#ObjectProperty"/>
+    <rdfs:label xml:lang="en">Parameter value</rdfs:label>
+    <rdfs:comment xml:lang="en">The value of a parameter in a part of a deconstructed HTTP header value.</rdfs:comment>
+    <rdfs:domain rdf:resource="#Parameter"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2000/01/rdf-schema#Literal"/>
+  </rdf:Property>
+
+  <rdf:Property rdf:about="#reasonPhrase">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#ObjectProperty"/>
+    <rdfs:label xml:lang="en">Reason phrase</rdfs:label>
+    <rdfs:comment xml:lang="en">The reason phrase (status text) of an HTTP response.</rdfs:comment>
+    <rdfs:domain rdf:resource="#Response"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2000/01/rdf-schema#Literal"/>
+    <rdfs:isDefinedBy rdf:resource="http://www.ietf.org/rfc/rfc2616.txt"/>
+  </rdf:Property>
+
+  <rdf:Property rdf:about="#requests">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#ObjectProperty"/>
+    <rdfs:label xml:lang="en">Requests</rdfs:label>
+    <rdfs:comment xml:lang="en">The HTTP requests made via a connection.</rdfs:comment>
+    <rdfs:domain rdf:resource="#Connection"/>
+    <rdfs:isDefinedBy rdf:resource="http://www.ietf.org/rfc/rfc2616.txt"/>
+  </rdf:Property>
+
+  <rdf:Property rdf:about="#requestURI">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#ObjectProperty"/>
+    <rdfs:label xml:lang="en">Request URI</rdfs:label>
+    <rdfs:comment xml:lang="en">The request URI of an HTTP request.</rdfs:comment>
+    <rdfs:domain rdf:resource="#Request"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2000/01/rdf-schema#Literal"/>
+    <rdfs:isDefinedBy rdf:resource="http://www.ietf.org/rfc/rfc2616.txt"/>
+  </rdf:Property>
+
+  <rdf:Property rdf:about="#resp">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#ObjectProperty"/>
+    <rdfs:label xml:lang="en">Response</rdfs:label>
+    <rdfs:comment xml:lang="en">The HTTP response sent in answer to an HTTP request.</rdfs:comment>
+    <rdfs:domain rdf:resource="#Request"/>
+    <rdfs:range rdf:resource="#Response"/>
+    <rdfs:isDefinedBy rdf:resource="http://www.ietf.org/rfc/rfc2616.txt"/>
+  </rdf:Property>
+
+  <rdf:Property rdf:about="#sc">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#ObjectProperty"/>
+    <rdfs:label xml:lang="en">Status code</rdfs:label>
+    <rdfs:comment xml:lang="en">The status code of an HTTP response.</rdfs:comment>
+    <rdfs:domain rdf:resource="#Response"/>
+    <rdfs:range rdf:resource="#StatusCode"/>
+    <rdfs:isDefinedBy rdf:resource="http://www.ietf.org/rfc/rfc2616.txt"/>
+  </rdf:Property>
+
+  <rdf:Property rdf:about="#statusCodeNumber">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#ObjectProperty"/>
+    <rdfs:subPropertyOf rdf:resource="http://purl.org/dc/terms/identifier"/>
+    <rdfs:label xml:lang="en">Status code</rdfs:label>
+    <rdfs:comment xml:lang="en">The status code number.</rdfs:comment>
+    <rdfs:domain rdf:resource="#StatusCode"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#int"/>
+    <rdfs:isDefinedBy rdf:resource="http://www.ietf.org/rfc/rfc2616.txt"/>
+  </rdf:Property>
+  
+  <rdf:Property rdf:about="#statusCodeValue">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#ObjectProperty"/>
+    <rdfs:label xml:lang="en">Status code</rdfs:label>
+    <rdfs:comment xml:lang="en">The status code value of an HTTP response.</rdfs:comment>
+    <rdfs:domain rdf:resource="#Response"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2000/01/rdf-schema#Literal"/>
+    <rdfs:isDefinedBy rdf:resource="http://www.ietf.org/rfc/rfc2616.txt"/>
+  </rdf:Property>
+
+</rdf:RDF>
