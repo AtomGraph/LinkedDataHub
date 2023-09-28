@@ -180,7 +180,6 @@ WHERE
 
 }
 
-
 <apps/>
 {
 
@@ -354,7 +353,7 @@ WHERE
     <acl/authorizations/> a dh:Container ;
         sioc:has_parent <acl/> ;
         dct:title "Authorizations" ;
-        dct:description "Manage who has access to which resources" ;
+        dct:description "Manage requests for access" ;
         rdf:_1 <acl/authorizations/#select-children> .
 
     <acl/authorizations/#select-children> a ldh:Content ;

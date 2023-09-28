@@ -780,6 +780,18 @@ transform="xsltproc \
 
 eval "$transform"
 
+# change webapp (servlet) configuration
+
+if [ -n "$SERVLET_NAME" ]; then
+    SERVLET_NAME_PARAM="--stringparam jee:servlet-name '$SERVLET_NAME' "
+fi
+
+transform="xsltproc \
+  --output /usr/local/tomcat/webapps/ROOT/WEB-INF/web.xml \
+  $SERVLET_NAME_PARAM \
+  /usr/local/tomcat/webapps/ROOT/WEB-INF/web.xsl \
+  /usr/local/tomcat/webapps/ROOT/WEB-INF/web.xml"
+
 # print Java's memory settings
 
 java -XX:+PrintFlagsFinal -version | grep -iE 'HeapSize|PermSize|ThreadStackSize'

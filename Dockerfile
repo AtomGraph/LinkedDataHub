@@ -1,4 +1,4 @@
-FROM maven:3.8.4-openjdk-17 as maven
+FROM --platform=$BUILDPLATFORM maven:3.8.4-openjdk-17 as maven
 
 # download and extract Jena
 
@@ -41,6 +41,10 @@ WORKDIR $CATALINA_HOME
 # add XSLT stylesheet that makes changes to ROOT.xml
 
 COPY platform/context.xsl conf/context.xsl
+
+# add XSLT stylesheet that makes changes to web.xml
+
+COPY platform/web.xsl /usr/local/tomcat/webapps/ROOT/WEB-INF/web.xsl
 
 ENV CACHE_MODEL_LOADS=true
 
@@ -107,6 +111,8 @@ ENV IMPORT_KEEPALIVE=
 ENV GOOGLE_CLIENT_ID=
 
 ENV GOOGLE_CLIENT_SECRET=
+
+ENV SERVLET_NAME=
 
 ENV GENERATE_SITEMAP=true
 
