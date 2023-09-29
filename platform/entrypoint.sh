@@ -792,6 +792,8 @@ transform="xsltproc \
   /var/linkeddatahub/xsl/web.xsl \
   /usr/local/tomcat/webapps/ROOT/WEB-INF/web.xml"
 
+eval "$transform"
+
 # print Java's memory settings
 
 java -XX:+PrintFlagsFinal -version | grep -iE 'HeapSize|PermSize|ThreadStackSize'
