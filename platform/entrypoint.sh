@@ -775,7 +775,7 @@ transform="xsltproc \
   $MAIL_PASSWORD_PARAM \
   $GOOGLE_CLIENT_ID_PARAM \
   $GOOGLE_CLIENT_SECRET_PARAM \
-  conf/context.xsl \
+  /var/linkeddatahub/xsl/context.xsl \
   conf/Catalina/localhost/ROOT.xml"
 
 eval "$transform"
@@ -789,7 +789,7 @@ fi
 transform="xsltproc \
   --output /usr/local/tomcat/webapps/ROOT/WEB-INF/web.xml \
   $SERVLET_NAME_PARAM \
-  /usr/local/tomcat/webapps/ROOT/WEB-INF/web.xsl \
+  /var/linkeddatahub/xsl/web.xsl \
   /usr/local/tomcat/webapps/ROOT/WEB-INF/web.xml"
 
 # print Java's memory settings

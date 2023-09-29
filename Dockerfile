@@ -38,14 +38,6 @@ ENV SOURCE_COMMIT=$SOURCE_COMMIT
 
 WORKDIR $CATALINA_HOME
 
-# add XSLT stylesheet that makes changes to ROOT.xml
-
-COPY platform/context.xsl conf/context.xsl
-
-# add XSLT stylesheet that makes changes to web.xml
-
-COPY platform/web.xsl /usr/local/tomcat/webapps/ROOT/WEB-INF/web.xsl
-
 ENV CACHE_MODEL_LOADS=true
 
 ENV STYLESHEET=static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/layout.xsl
@@ -125,6 +117,14 @@ RUN apt-get update --allow-releaseinfo-change && \
     apt-get install -y uuid-runtime && \
     rm -rf webapps/* && \
     rm -rf /var/lib/apt/lists/*
+
+# add XSLT stylesheet that makes changes to ROOT.xml
+
+COPY platform/context.xsl /var/linkeddatahub/xsl/context.xsl
+
+# add XSLT stylesheet that makes changes to web.xml
+
+COPY platform/web.xsl /var/linkeddatahub/xsl/web.xsl
 
 # copy entrypoint
 
