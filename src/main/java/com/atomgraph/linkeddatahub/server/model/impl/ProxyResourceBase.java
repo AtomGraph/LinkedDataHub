@@ -299,6 +299,7 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
      * 
      * @return URI info
      */
+    @Override
     public UriInfo getUriInfo()
     {
         return uriInfo;

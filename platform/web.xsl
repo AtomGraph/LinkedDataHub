@@ -8,7 +8,8 @@ xmlns:jee="https://jakarta.ee/xml/ns/jakartaee"
 
     <xsl:param name="jee:servlet-name"/>
 
-    <xsl:template match="jee:servlet-name/text()">
+    <!-- replace server's JAX-RS application (don't touch other <servlet-name>s) -->
+    <xsl:template match="jee:servlet-name/text()[. = 'com.atomgraph.linkeddatahub.Application']">
         <xsl:choose>
             <xsl:when test="$jee:servlet-name">
                 <xsl:value-of select="$jee:servlet-name"/>
