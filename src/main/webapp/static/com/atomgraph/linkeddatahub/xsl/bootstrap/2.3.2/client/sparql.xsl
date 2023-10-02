@@ -44,7 +44,7 @@ LIMIT 100</xsl:param>
         <xsl:attribute name="class" select="concat($class, ' ', 'btn-run-query')"/>
     </xsl:template>
 
-    <xsl:template name="bs2:QueryEditor" >
+    <xsl:template name="bs2:QueryEditor">
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" select="'span7 main'" as="xs:string?"/>
         <xsl:param name="mode" select="$ac:mode" as="xs:anyURI*"/>
@@ -105,12 +105,6 @@ LIMIT 100</xsl:param>
             </xsl:if>
 
             <fieldset>
-<!--                <label for="query-uri">Query</label>
-                <xsl:text> </xsl:text>
-                <select id="query-uri" name="query-uri" class="input-xxlarge">
-                    <option value="">[Query]</option>
-                </select>-->
-                
                 <label for="service">Service</label>
                 <xsl:text> </xsl:text>
                 <select id="query-service" name="service" class="input-xxlarge">
@@ -260,7 +254,7 @@ LIMIT 100</xsl:param>
         <xsl:variable name="forClass" select="xs:anyURI('&sp;' || upper-case(substring($query-type, 1, 1)) || lower-case(substring($query-type, 2)))" as="xs:anyURI"/>
         <!--- show a modal form if this button is in a <fieldset>, meaning on a resource-level and not form level. Otherwise (e.g. for the "Create" button) show normal form -->
         <xsl:variable name="modal-form" select="true()" as="xs:boolean"/>
-        <xsl:variable name="href" select="ac:build-uri(ldh:absolute-path(ldh:href()), let $params := map{ 'forClass': string($forClass), 'createGraph': string(true()) } return if ($modal-form) then map:merge(($params, map{ 'mode': '&ac;ModalMode' })) else $params)" as="xs:anyURI"/>
+        <xsl:variable name="href" select="ac:build-uri(ldh:absolute-path(ldh:base-uri(.)), let $params := map{ 'forClass': string($forClass), 'createGraph': string(true()) } return if ($modal-form) then map:merge(($params, map{ 'mode': '&ac;ModalMode' })) else $params)" as="xs:anyURI"/>
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
         

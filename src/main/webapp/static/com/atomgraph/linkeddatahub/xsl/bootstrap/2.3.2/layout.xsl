@@ -96,7 +96,6 @@ exclude-result-prefixes="#all">
     <xsl:output method="xhtml" encoding="UTF-8" indent="yes" omit-xml-declaration="yes" doctype-system="http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd" doctype-public="-//W3C//DTD XHTML 1.0 Strict//EN" media-type="application/xhtml+xml"/>
 
     <xsl:param name="ldh:base" as="xs:anyURI" static="yes"/>
-    <xsl:param name="ldh:absolutePath" as="xs:anyURI"/>
     <xsl:param name="ldh:requestUri" as="xs:anyURI"/>
     <xsl:param name="ac:endpoint" select="resolve-uri('sparql', $ldt:base)" as="xs:anyURI"/>
     <xsl:param name="a:graphStore" select="resolve-uri('service', $ldt:base)" as="xs:anyURI"/> <!-- TO-DO: rename to ac:graphStore? -->
@@ -105,9 +104,9 @@ exclude-result-prefixes="#all">
     <xsl:param name="lapp:Application" as="document-node()?"/>
     <xsl:param name="foaf:Agent" select="if ($acl:agent) then document(ac:document-uri($acl:agent)) else ()" as="document-node()?"/>
     <xsl:param name="force-exclude-all-namespaces" select="true()"/>
+    <xsl:param name="ac:uri" as="xs:anyURI"/>
     <xsl:param name="ac:httpHeaders" as="xs:string"/> 
     <xsl:param name="ac:method" as="xs:string"/>
-    <xsl:param name="ac:uri" as="xs:anyURI"/>
     <xsl:param name="ac:mode" as="xs:anyURI*"/> <!-- select="xs:anyURI('&ac;ReadMode')" -->
     <xsl:param name="acl:mode" as="xs:anyURI*"/>
     <xsl:param name="ldh:forShape" as="xs:anyURI?"/>
@@ -238,14 +237,6 @@ LIMIT   100
     
     <rdf:Description rdf:about="">
     </rdf:Description>
-
-    <xsl:function name="ac:uri" as="xs:anyURI">
-        <xsl:sequence select="$ac:uri"/>
-    </xsl:function>
-    
-    <xsl:function name="ldh:href" as="xs:anyURI">
-        <xsl:sequence select="$ldh:requestUri"/>
-    </xsl:function>
     
     <!-- TITLE -->
 
@@ -262,13 +253,13 @@ LIMIT   100
         </title>
     </xsl:template>
 
-    <xsl:template match="*[rdf:type/@rdf:resource = '&http;Response'][not(key('resources', ac:uri()))]" mode="xhtml:Title" priority="1">
+    <xsl:template match="*[rdf:type/@rdf:resource = '&http;Response'][not(key('resources', ldh:absolute-path(base-uri())))]" mode="xhtml:Title" priority="1">
         <xsl:value-of>
             <xsl:apply-templates select="." mode="ac:label"/>
         </xsl:value-of>
     </xsl:template>
     
-    <xsl:template match="*[@rdf:about = ac:uri()]" mode="xhtml:Title" priority="1">
+    <xsl:template match="*[@rdf:about = ldh:absolute-path(base-uri())]" mode="xhtml:Title" priority="1">
         <xsl:value-of>
             <xsl:apply-templates select="." mode="ac:label"/>
         </xsl:value-of>
@@ -281,10 +272,10 @@ LIMIT   100
     <xsl:template match="rdf:RDF | srx:sparql" mode="xhtml:Meta">
         <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 
-        <meta name="og:url" content="{ac:uri()}"/>
-        <meta name="twitter:url" content="{ac:uri()}"/>
+        <meta name="og:url" content="{ldh:absolute-path(base-uri())}"/>
+        <meta name="twitter:url" content="{ldh:absolute-path(base-uri())}"/>
 
-        <xsl:for-each select="key('resources', ac:uri())">
+        <xsl:for-each select="key('resources', ldh:absolute-path(base-uri()))">
             <meta name="og:title" content="{ac:label(.)}"/>
             <meta name="twitter:title" content="{ac:label(.)}"/>
 
@@ -355,7 +346,7 @@ LIMIT   100
         <script type="text/javascript">
             <![CDATA[
                 var baseUri = ]]><xsl:value-of select="'&quot;' || $ldt:base || '&quot;'"/><![CDATA[;
-                var absolutePath = ]]><xsl:value-of select="'&quot;' || $ldh:absolutePath || '&quot;'"/><![CDATA[;
+                var absolutePath = ]]><xsl:value-of select="'&quot;' || ldh:absolute-path(base-uri()) || '&quot;'"/><![CDATA[;
                 var ontologyUri = ]]><xsl:value-of select="'&quot;' || $ldt:ontology || '&quot;'"/><![CDATA[;
                 var endpointUri = ]]><xsl:value-of select="if ($sd:endpoint) then '&quot;' || $sd:endpoint || '&quot;'  else 'null'"/><![CDATA[;
                 var contextUri = ]]><xsl:value-of select="if ($ac:contextUri) then '&quot;' || $ac:contextUri || '&quot;'  else 'null'"/><![CDATA[;
@@ -532,8 +523,8 @@ LIMIT   100
                 </select>
                 
                 <input type="text" id="uri" name="uri" class="input-xxlarge typeahead">
-                    <xsl:if test="not(starts-with(ac:uri(), $ldt:base))">
-                        <xsl:attribute name="value" select="ac:uri()"/>
+                    <xsl:if test="not(starts-with(ldh:absolute-path(base-uri()), $ldt:base))">
+                        <xsl:attribute name="value" select="ldh:absolute-path(base-uri())"/>
                     </xsl:if>
                 </input>
                 <!-- placeholder used by the client-side typeahead -->
@@ -632,7 +623,7 @@ LIMIT   100
             <xsl:if test="not($ldh:ajaxRendering)">
                 <ul class="breadcrumb pull-left">
                     <!-- render breadcrumbs server-side -->
-                    <xsl:apply-templates select="key('resources', ac:uri())" mode="bs2:BreadCrumbListItem"/>
+                    <xsl:apply-templates select="key('resources', ldh:absolute-path(base-uri()))" mode="bs2:BreadCrumbListItem"/>
                 </ul>
             </xsl:if>
         </div>
@@ -708,7 +699,7 @@ LIMIT   100
 
     <xsl:template match="rdf:RDF[not($foaf:Agent//@rdf:about)][$lapp:Application//rdf:type/@rdf:resource = '&lapp;EndUserApplication'] | srx:sparql[not($foaf:Agent//@rdf:about)][$lapp:Application//rdf:type/@rdf:resource = '&lapp;EndUserApplication']" mode="bs2:SignUp" priority="1">
         <!-- resolve links against the base URI of LinkedDataHub and not of the current app, as we want signups to always go the root app -->
-        <xsl:param name="google-signup-uri" select="ac:build-uri(resolve-uri('admin/oauth2/authorize/google', $ldh:base), map{ 'referer': string(ac:uri()) })" as="xs:anyURI"/>
+        <xsl:param name="google-signup-uri" select="ac:build-uri(resolve-uri('admin/oauth2/authorize/google', $ldh:base), map{ 'referer': string(ldh:absolute-path(base-uri())) })" as="xs:anyURI"/>
         <xsl:param name="webid-signup-uri" select="resolve-uri('admin/sign%20up', $ldh:base)" as="xs:anyURI"/>
         <xsl:param name="google-signup" select="exists($google:clientID)" as="xs:boolean"/>
         <xsl:param name="webid-signup" select="$ldhc:enableWebIDSignUp" as="xs:boolean"/>
@@ -753,7 +744,7 @@ LIMIT   100
     
     <!-- BODY -->
 
-    <xsl:template match="rdf:RDF[key('resources', ac:uri())][$ac:mode = '&ldht;InfoWindowMode']" mode="xhtml:Body" priority="1">
+    <xsl:template match="rdf:RDF[key('resources', ldh:absolute-path(base-uri()))][$ac:mode = '&ldht;InfoWindowMode']" mode="xhtml:Body" priority="1">
         <body>
             <div> <!-- SPARQLMap renders the first child of <body> as InfoWindow -->
                 <xsl:apply-templates select="." mode="bs2:Block">
@@ -763,7 +754,7 @@ LIMIT   100
         </body>
     </xsl:template>
 
-    <xsl:template match="rdf:RDF[key('resources', ac:uri())][$ac:mode = '&ldht;ObjectMode']" mode="xhtml:Body" priority="2">
+    <xsl:template match="rdf:RDF[key('resources', ldh:absolute-path(base-uri()))][$ac:mode = '&ldht;ObjectMode']" mode="xhtml:Body" priority="2">
         <body class="embed">
             <div>
                 <xsl:apply-templates select="." mode="bs2:Object">
@@ -790,11 +781,11 @@ LIMIT   100
     <xsl:template match="rdf:RDF" mode="bs2:ContentBody">
         <xsl:param name="id" select="'content-body'" as="xs:string?"/>
         <xsl:param name="class" select="'container-fluid'" as="xs:string?"/>
-        <xsl:param name="about" select="ac:uri()" as="xs:anyURI?"/>
+        <xsl:param name="about" select="ldh:absolute-path(base-uri())" as="xs:anyURI?"/>
         <xsl:param name="classes" select="for $class-uri in map:keys($default-classes) return key('resources', $class-uri, document(ac:document-uri($class-uri)))" as="element()*"/>
-        <xsl:param name="doc-types" select="key('resources', ac:uri())/rdf:type/@rdf:resource[ . = ('&def;Root', '&dh;Container', '&dh;Item')]" as="xs:anyURI*"/>
+        <xsl:param name="doc-types" select="key('resources', ldh:absolute-path(base-uri()))/rdf:type/@rdf:resource[ . = ('&def;Root', '&dh;Container', '&dh;Item')]" as="xs:anyURI*"/>
         <xsl:param name="content-values" select="if (exists($doc-types) and doc-available(resolve-uri('ns?query=ASK%20%7B%7D', $ldt:base))) then (ldh:query-result(map{}, resolve-uri('ns', $ldt:base), $template-query || ' VALUES $Type { ' || string-join(for $type in $doc-types return '&lt;' || $type || '&gt;', ' ') || ' }')//srx:binding[@name = 'content']/srx:uri/xs:anyURI(.)) else ()" as="xs:anyURI*"/>
-        <xsl:param name="has-content" select="key('resources', key('resources', ac:uri())/rdf:*[starts-with(local-name(), '_')]/@rdf:resource) or exists($content-values)" as="xs:boolean"/>
+        <xsl:param name="has-content" select="key('resources', key('resources', ldh:absolute-path(base-uri()))/rdf:*[starts-with(local-name(), '_')]/@rdf:resource) or exists($content-values)" as="xs:boolean"/>
 
         <div>
             <xsl:if test="$id">
@@ -837,6 +828,7 @@ LIMIT   100
                                 <xsl:with-param name="constructor-query" select="$constructor-query" tunnel="yes"/>
                                 <xsl:with-param name="constraint-query" select="$constraint-query" tunnel="yes"/>
                                 <xsl:with-param name="shape-query" select="$shape-query" tunnel="yes"/>
+                                <xsl:with-param name="base-uri" select="ldh:absolute-path(base-uri())" tunnel="yes"/> <!-- ldh:absolute-path(base-uri()) is empty on constructed documents -->
                                 <xsl:sort select="ac:label(.)"/>
                             </xsl:apply-templates>
                         </xsl:when>
@@ -846,6 +838,7 @@ LIMIT   100
                                 <xsl:with-param name="constructor-query" select="$constructor-query" tunnel="yes"/>
                                 <xsl:with-param name="constraint-query" select="$constraint-query" tunnel="yes"/>
                                 <xsl:with-param name="shape-query" select="$shape-query" tunnel="yes"/>
+                                <xsl:with-param name="base-uri" select="ldh:absolute-path(base-uri())" tunnel="yes"/> <!-- ldh:absolute-path(base-uri()) is empty on constructed documents -->
                                 <xsl:sort select="ac:label(.)"/>
                             </xsl:apply-templates>
                         </xsl:otherwise>
@@ -863,6 +856,7 @@ LIMIT   100
                                 <xsl:with-param name="constructor-query" select="$constructor-query" tunnel="yes"/>
                                 <xsl:with-param name="constraint-query" select="$constraint-query" tunnel="yes"/>
                                 <xsl:with-param name="shape-query" select="$shape-query" tunnel="yes"/>
+                                <xsl:with-param name="base-uri" select="ldh:absolute-path(base-uri())" tunnel="yes"/> <!-- ldh:absolute-path(base-uri()) is empty on constructed documents -->
                                 <xsl:sort select="ac:label(.)"/>
                             </xsl:apply-templates>
                         </xsl:when>
@@ -872,6 +866,7 @@ LIMIT   100
                                 <xsl:with-param name="constructor-query" select="$constructor-query" tunnel="yes"/>
                                 <xsl:with-param name="constraint-query" select="$constraint-query" tunnel="yes"/>
                                 <xsl:with-param name="shape-query" select="$shape-query" tunnel="yes"/>
+                                <xsl:with-param name="base-uri" select="ldh:absolute-path(base-uri())" tunnel="yes"/> <!-- ldh:absolute-path(base-uri()) is empty on constructed documents -->
                                 <xsl:sort select="ac:label(.)"/>
                             </xsl:apply-templates>
                         </xsl:otherwise>
@@ -937,7 +932,7 @@ LIMIT   100
     <xsl:template match="srx:sparql" mode="bs2:ContentBody">
         <xsl:param name="id" select="'content-body'" as="xs:string?"/>
         <xsl:param name="class" select="'container-fluid'" as="xs:string?"/>
-        <xsl:param name="about" select="ac:uri()" as="xs:anyURI?"/>
+        <xsl:param name="about" select="ldh:absolute-path(base-uri())" as="xs:anyURI?"/>
 
         <div>
             <xsl:if test="$id">
@@ -955,7 +950,7 @@ LIMIT   100
     </xsl:template>
     
     <!-- only lookup resource locally using DESCRIBE if it's external (not relative to the app's base URI) and the agent is authenticated -->
-    <xsl:template match="*[*][@rdf:about = ac:uri()][not(starts-with(@rdf:about, $ldt:base))][$foaf:Agent//@rdf:about]" mode="bs2:PropertyList">
+    <xsl:template match="*[*][@rdf:about = ldh:absolute-path(base-uri())][not(starts-with(@rdf:about, $ldt:base))][$foaf:Agent//@rdf:about]" mode="bs2:PropertyList">
         <xsl:param name="endpoint" select="($sd:endpoint, $ac:endpoint)[1]" as="xs:anyURI"/>
         <xsl:param name="property-uris" select="distinct-values(*/concat(namespace-uri(), local-name()))" as="xs:anyURI*"/>
         <xsl:param name="property-metadata" select="ldh:send-request(resolve-uri('ns', $ldt:base), 'POST', 'application/sparql-query', 'DESCRIBE ' || string-join(for $uri in distinct-values(/rdf:RDF/*/*/concat(namespace-uri(), local-name())) return '&lt;' || $uri || '&gt;', ' '), map{ 'Accept': 'application/rdf+xml' })" as="document-node()"/>
@@ -1105,29 +1100,6 @@ LIMIT   100
         
     <xsl:template match="rdf:RDF[key('resources-by-type', '&http;Response')][not(key('resources-by-type', '&spin;ConstraintViolation'))] | rdf:RDF[key('resources-by-type', '&http;Response')][not(key('resources-by-type', '&sh;ValidationResult'))]" mode="bs2:ModeList" priority="1"/>
 
-    <xsl:template match="rdf:RDF[ac:uri()]" mode="bs2:ModeList">
-        <div class="btn-group pull-right">
-            <button type="button" title="{ac:label(key('resources', 'mode-list-title', document('translations.rdf')))}">
-                <xsl:apply-templates select="key('resources', $ac:mode, document(ac:document-uri('&ac;'))) | key('resources', $ac:mode, document(ac:document-uri('&ldh;')))" mode="ldh:logo">
-                    <xsl:with-param name="class" select="'btn dropdown-toggle'"/>
-                </xsl:apply-templates>
-                <xsl:text> </xsl:text>
-                <span class="caret"></span>
-            </button>
-
-            <ul class="dropdown-menu">
-                <xsl:for-each select="key('resources-by-type', '&ac;Mode', document(ac:document-uri('&ac;'))) | key('resources', ('&ac;QueryEditorMode'), document(ac:document-uri('&ac;')))">
-                    <xsl:sort select="ac:label(.)"/>
-                    <xsl:apply-templates select="." mode="bs2:ModeListItem">
-                        <xsl:with-param name="active" select="$ac:mode"/>
-                    </xsl:apply-templates>
-                </xsl:for-each>
-            </ul>
-        </div>
-    </xsl:template>
-       
-    <xsl:template match="*" mode="bs2:ModeListItem"/>
-
     <!-- MEDIA TYPE LIST  -->
         
     <xsl:template match="rdf:RDF | srx:sparql" mode="bs2:MediaTypeList" priority="1">
@@ -1143,15 +1115,15 @@ LIMIT   100
             </button>
             <ul class="dropdown-menu">
                 <li>
-                    <xsl:variable name="href" select="ac:build-uri($ldh:absolutePath, let $params := map{ 'accept': 'application/rdf+xml' } return if (not(starts-with(ac:uri(), $ldt:base))) then map:merge(($params, map{ 'uri': string(ac:uri()) })) else $params)" as="xs:anyURI"/>
+                    <xsl:variable name="href" select="ac:build-uri(ldh:absolute-path(base-uri()), let $params := map{ 'accept': 'application/rdf+xml' } return if (not(starts-with(ldh:absolute-path(base-uri()), $ldt:base))) then map:merge(($params, map{ 'uri': string(ldh:absolute-path(base-uri())) })) else $params)" as="xs:anyURI"/>
                     <a href="{$href}" title="application/rdf+xml" target="_blank">RDF/XML</a>
                 </li>
                 <li>
-                    <xsl:variable name="href" select="ac:build-uri($ldh:absolutePath, let $params := map{ 'accept': 'text/turtle' } return if (not(starts-with(ac:uri(), $ldt:base))) then map:merge(($params, map{ 'uri': string(ac:uri()) })) else $params)" as="xs:anyURI"/>
+                    <xsl:variable name="href" select="ac:build-uri(ldh:absolute-path(base-uri()), let $params := map{ 'accept': 'text/turtle' } return if (not(starts-with(ldh:absolute-path(base-uri()), $ldt:base))) then map:merge(($params, map{ 'uri': string(ldh:absolute-path(base-uri())) })) else $params)" as="xs:anyURI"/>
                     <a href="{$href}" title="text/turtle" target="_blank">Turtle</a>
                 </li>
                 <li>
-                    <xsl:variable name="href" select="ac:build-uri($ldh:absolutePath, let $params := map{ 'accept': 'application/ld+json' } return if (not(starts-with(ac:uri(), $ldt:base))) then map:merge(($params, map{ 'uri': string(ac:uri()) })) else $params)" as="xs:anyURI"/>
+                    <xsl:variable name="href" select="ac:build-uri(ldh:absolute-path(base-uri()), let $params := map{ 'accept': 'application/ld+json' } return if (not(starts-with(ldh:absolute-path(base-uri()), $ldt:base))) then map:merge(($params, map{ 'uri': string(ldh:absolute-path(base-uri())) })) else $params)" as="xs:anyURI"/>
                     <a href="{$href}" title="application/ld+json" target="_blank">JSON-LD</a>
                 </li>
             </ul>
@@ -1178,8 +1150,8 @@ LIMIT   100
                 
                 <xsl:apply-templates select="." mode="ac:label"/>
                 
-                <xsl:variable name="request-access-to" select="ac:build-uri(lacl:requestAccess/@rdf:resource, map{ 'access-to': string(ac:uri()) } )" as="xs:anyURI"/>
-                <a href="{ldh:href($ldt:base, ldh:absolute-path(ldh:href()), map{}, $request-access-to)}" class="btn btn-primary pull-right">
+                <xsl:variable name="request-access-to" select="ac:build-uri(lacl:requestAccess/@rdf:resource, map{ 'access-to': string($ac:uri) } )" as="xs:anyURI"/>
+                <a href="{ldh:href($ldt:base, ldh:absolute-path($ldh:requestUri), map{}, $request-access-to)}" class="btn btn-primary pull-right">
                     <xsl:value-of>
                         <xsl:apply-templates select="key('resources', 'request-access', document('translations.rdf'))" mode="ac:label"/>
                     </xsl:value-of>
@@ -1232,7 +1204,8 @@ LIMIT   100
     </xsl:template>
     
     <xsl:template match="*[@rdf:about or @rdf:nodeID][$ac:forClass]/sioc:has_parent/@rdf:nodeID | *[@rdf:about or @rdf:nodeID][$ac:forClass]/sioc:has_container/@rdf:nodeID" mode="bs2:FormControl">
-        <xsl:param name="container" select="if (map:contains($default-classes, $ac:forClass)) then map:get($default-classes, $ac:forClass) else ac:uri()" as="xs:anyURI"/>
+        <xsl:param name="base-uri" select="ldh:absolute-path(base-uri())" as="xs:anyURI" tunnel="yes"/>
+        <xsl:param name="container" select="if (map:contains($default-classes, $ac:forClass)) then map:get($default-classes, $ac:forClass) else $base-uri" as="xs:anyURI"/>
 
         <xsl:next-match>
             <xsl:with-param name="container" select="$container" as="xs:anyURI"/>
@@ -1242,6 +1215,8 @@ LIMIT   100
     <!-- NAVBAR ACTIONS -->
 
     <xsl:template match="rdf:RDF" mode="bs2:NavBarActions" priority="1">
+        <xsl:param name="base-uri" select="ldh:absolute-path(base-uri())" as="xs:anyURI"/>
+        
         <xsl:if test="$foaf:Agent//@rdf:about">
             <div class="pull-right">
                 <button type="button" title="{ac:label(key('resources', 'nav-bar-action-delete-title', document('translations.rdf')))}">
@@ -1254,7 +1229,7 @@ LIMIT   100
             </div>
 
             <div class="pull-right">
-                <a href="{ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ldh:query-params(xs:anyURI('&ac;EditMode')),  ac:uri())}" title="{ac:label(key('resources', 'nav-bar-action-edit-graph-title', document('translations.rdf')))}">
+                <a href="{ldh:href($ldt:base, ldh:absolute-path(base-uri()), ldh:query-params(xs:anyURI('&ac;EditMode')), ldh:absolute-path(base-uri()))}" title="{ac:label(key('resources', 'nav-bar-action-edit-graph-title', document('translations.rdf')))}">
                     <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="ldh:logo">
                         <xsl:with-param name="class" select="'btn' || (if ($ac:mode = '&ac;EditMode') then ' active' else ()) || (if (not($acl:mode = '&acl;Write')) then ' disabled' else ())"/>
                     </xsl:apply-templates>
@@ -1293,6 +1268,7 @@ LIMIT   100
                         <xsl:sort select="ac:label(.)"/>
                         <xsl:apply-templates select="." mode="bs2:AccessListItem">
                             <xsl:with-param name="enabled" select="$acl:mode"/>
+                            <xsl:with-param name="base-uri" select="$base-uri" tunnel="yes"/>
                         </xsl:apply-templates>
                     </xsl:for-each>
                 </ul>
@@ -1302,7 +1278,7 @@ LIMIT   100
     
     <xsl:template match="*[@rdf:about]" mode="bs2:AccessListItem" priority="1">
         <xsl:param name="enabled" as="xs:anyURI*"/>
-        <xsl:variable name="href" select="ac:uri()" as="xs:anyURI"/>
+        <xsl:param name="base-uri" select="ldh:absolute-path(base-uri())" as="xs:anyURI" tunnel="yes"/>
 
         <li>
             <a title="{@rdf:about}">

@@ -59,6 +59,7 @@ exclude-result-prefixes="#all">
     <xsl:template match="rdf:RDF[$foaf:Agent]" mode="bs2:Create" priority="1">
         <xsl:param name="classes" as="element()*"/>
         <xsl:param name="create-graph" select="false()" as="xs:boolean"/>
+        <xsl:param name="base-uri" select="base-uri()" as="xs:anyURI"/>
 
         <div class="btn-group pull-left">
             <button type="button" title="{ac:label(key('resources', 'create-instance-title', document('../translations.rdf')))}">
@@ -74,6 +75,7 @@ exclude-result-prefixes="#all">
 
             <ul class="dropdown-menu">
                 <xsl:apply-templates select="$classes" mode="bs2:ConstructorListItem">
+                    <xsl:with-param name="base-uri" select="$base-uri" tunnel="yes"/>
                     <xsl:with-param name="create-graph" select="$create-graph"/>
                     <xsl:sort select="ac:label(.)"/>
                 </xsl:apply-templates>
@@ -137,8 +139,8 @@ exclude-result-prefixes="#all">
     </xsl:template>
     
     <!-- add sp:Construct to the creatable class list below the form. Needs to pass parameters from signup.xsl and request-access.xsl!!! -->
-    <xsl:template match="rdf:RDF[$ac:method = 'GET']" mode="bs2:RowForm" use-when="system-property('xsl:product-name') = 'SAXON'">
-        <xsl:param name="action" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), map{}, ac:build-uri(ac:uri(), map{ '_method': 'PUT', 'mode': for $mode in $ac:mode return string($mode) }))" as="xs:anyURI"/>
+    <xsl:template match="rdf:RDF[base-uri()][$ac:method = 'GET']" mode="bs2:RowForm" use-when="system-property('xsl:product-name') = 'SAXON'">
+        <xsl:param name="action" select="ldh:href($ldt:base, ldh:absolute-path(base-uri()), map{}, ac:build-uri(ldh:absolute-path(base-uri()), map{ '_method': 'PUT', 'mode': for $mode in $ac:mode return string($mode) }))" as="xs:anyURI"/>
         <xsl:param name="enctype" select="'multipart/form-data'" as="xs:string?"/>
         <xsl:param name="create-resource" select="true()" as="xs:boolean"/>
         <!-- TO-DO: generate ontology classes from the OWL vocabulary -->
