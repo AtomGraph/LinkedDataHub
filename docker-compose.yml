@@ -90,8 +90,8 @@ services:
   varnish-frontend:
     image: varnish:7.3.0
     user: root # otherwise varnish user does not have permissions to the mounted folder which is owner by root
-    depends_on:
-      - linkeddatahub
+    #depends_on:
+    #  - linkeddatahub
     tmpfs: /var/lib/varnish/varnishd:exec
     environment:
       - VARNISH_HTTP_PORT=6060

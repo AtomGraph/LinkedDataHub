@@ -1232,9 +1232,7 @@ LIMIT   100
     </xsl:template>
     
     <xsl:template match="*[@rdf:about or @rdf:nodeID][$ac:forClass]/sioc:has_parent/@rdf:nodeID | *[@rdf:about or @rdf:nodeID][$ac:forClass]/sioc:has_container/@rdf:nodeID" mode="bs2:FormControl">
-        <xsl:param name="forClass-and-superclasses" select="for $class in ($ac:forClass, ldh:listSuperClasses($ac:forClass)) return xs:anyURI($class)" as="xs:anyURI*"/>
-        <xsl:param name="container-class" select="$forClass-and-superclasses[map:contains($default-classes, .)]" as="xs:anyURI?"/>
-        <xsl:param name="container" select="if ($container-class) then map:get($default-classes, $container-class) else ac:uri()" as="xs:anyURI"/>
+        <xsl:param name="container" select="if (map:contains($default-classes, $ac:forClass)) then map:get($default-classes, $ac:forClass) else ac:uri()" as="xs:anyURI"/>
 
         <xsl:next-match>
             <xsl:with-param name="container" select="$container" as="xs:anyURI"/>
