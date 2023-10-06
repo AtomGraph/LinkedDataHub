@@ -1185,17 +1185,15 @@ extension-element-prefixes="ixsl"
                 <xsl:with-param name="shapes" select="$shapes"/>
                 <xsl:with-param name="traversed-ids" select="$traversed-ids" tunnel="yes"/>
                 <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/>
+                <xsl:with-param name="base-uri" select="base-uri()"/> <!-- make sure main doc's base URI is used and not the template's (which is empty) -->
             </xsl:apply-templates>
 
-            <!-- do not show property controls if there is no constructor or it has no properties -->
-<!--            <xsl:if test="$template/*">-->
-                <xsl:apply-templates select="." mode="bs2:PropertyControl">
-                    <xsl:with-param name="template" select="$template"/>
-                    <xsl:with-param name="forClass" select="$forClass"/>
-                    <xsl:with-param name="required" select="true()"/>
-                    <xsl:with-param name="property-metadata" select="$property-metadata"/>
-                </xsl:apply-templates>
-            <!--</xsl:if>-->
+            <xsl:apply-templates select="." mode="bs2:PropertyControl">
+                <xsl:with-param name="template" select="$template"/>
+                <xsl:with-param name="forClass" select="$forClass"/>
+                <xsl:with-param name="required" select="true()"/>
+                <xsl:with-param name="property-metadata" select="$property-metadata"/>
+            </xsl:apply-templates>
         </fieldset>
     </xsl:template>
     
