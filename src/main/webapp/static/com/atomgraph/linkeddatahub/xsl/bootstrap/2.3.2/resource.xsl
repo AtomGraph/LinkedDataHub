@@ -1185,7 +1185,7 @@ extension-element-prefixes="ixsl"
                 <xsl:with-param name="shapes" select="$shapes"/>
                 <xsl:with-param name="traversed-ids" select="$traversed-ids" tunnel="yes"/>
                 <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/>
-                <xsl:with-param name="base-uri" select="base-uri()"/> <!-- make sure main doc's base URI is used and not the template's (which is empty) -->
+                <xsl:with-param name="base-uri" select="$main-doc/base-uri()"/> <!-- make sure main doc's base URI is used and not the template's (which is empty) -->
             </xsl:apply-templates>
 
             <xsl:apply-templates select="." mode="bs2:PropertyControl">
