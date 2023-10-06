@@ -60,12 +60,12 @@ extension-element-prefixes="ixsl"
 
     <xsl:param name="main-doc" select="/" as="document-node()"/>
     <xsl:param name="acl:Agent" as="document-node()?"/>
-    <xsl:param name="acl:mode" select="$foaf:Agent//*[acl:accessToClass/@rdf:resource = (key('resources', ac:uri(), $main-doc)/rdf:type/@rdf:resource, key('resources', ac:uri(), $main-doc)/rdf:type/@rdf:resource/ldh:listSuperClasses(.))]/acl:mode/@rdf:resource" as="xs:anyURI*"/>
+    <xsl:param name="acl:mode" select="$foaf:Agent//*[acl:accessToClass/@rdf:resource = (key('resources', base-uri(), $main-doc)/rdf:type/@rdf:resource, key('resources', base-uri(), $main-doc)/rdf:type/@rdf:resource/ldh:listSuperClasses(.))]/acl:mode/@rdf:resource" as="xs:anyURI*"/>
     
     <!-- schema.org BREADCRUMBS -->
     
     <xsl:template match="rdf:RDF" mode="schema:BreadCrumbList">
-        <xsl:variable name="resource" select="key('resources', ac:uri())" as="element()?"/>
+        <xsl:variable name="resource" select="key('resources', base-uri())" as="element()?"/>
 
         <xsl:if test="$resource">
             <xsl:variable name="doc-with-ancestors" select="ldh:doc-with-ancestors($resource)" as="element()*"/>
@@ -110,7 +110,7 @@ extension-element-prefixes="ixsl"
     <!-- BODY -->
     
     <!-- always show errors (except ConstraintViolations) in block mode -->
-    <xsl:template match="rdf:RDF[not(key('resources', ac:uri()))][key('resources-by-type', '&http;Response')][not(key('resources-by-type', '&spin;ConstraintViolation'))] | rdf:RDF[not(key('resources', ac:uri()))][key('resources-by-type', '&http;Response')][not(key('resources-by-type', '&sh;ValidationResult'))]" mode="xhtml:Body" priority="1">
+    <xsl:template match="rdf:RDF[not(key('resources', base-uri()))][key('resources-by-type', '&http;Response')][not(key('resources-by-type', '&spin;ConstraintViolation'))] | rdf:RDF[not(key('resources', base-uri()))][key('resources-by-type', '&http;Response')][not(key('resources-by-type', '&sh;ValidationResult'))]" mode="xhtml:Body" priority="1">
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" select="'span12'" as="xs:string?"/>
         
@@ -137,7 +137,7 @@ extension-element-prefixes="ixsl"
         <div class="row-fluid">
             <ul class="nav nav-tabs offset2 span7">
                 <li class="content-mode{if ((empty($active-mode) and $has-content and not($forClass)) or $active-mode = '&ldh;ContentMode') then ' active' else() }">
-                    <a href="{ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ldh:query-params(xs:anyURI('&ldh;ContentMode')), ac:uri())}">
+                    <a href="{ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ldh:query-params(xs:anyURI('&ldh;ContentMode')), base-uri())}">
                         <xsl:value-of>
                             <xsl:apply-templates select="key('resources', 'content', document('translations.rdf'))" mode="ac:label"/>
                         </xsl:value-of>
@@ -173,7 +173,7 @@ extension-element-prefixes="ixsl"
     <!-- CONTENT LIST -->
     
     <xsl:template match="rdf:RDF" mode="ldh:ContentList">
-        <xsl:apply-templates select="key('resources', ac:uri())" mode="#current"/>
+        <xsl:apply-templates select="key('resources', base-uri())" mode="#current"/>
         
         <!-- only show buttons to agents who have sufficient access to modify them -->
         <xsl:if test="$acl:mode = '&acl;Append'">
@@ -197,7 +197,7 @@ extension-element-prefixes="ixsl"
     <xsl:template match="rdf:RDF" mode="bs2:Row">
         <!-- select elements explicitly, because Saxon-JS chokes on text nodes here -->
         <!-- hide the current document resource and the content resources -->
-        <xsl:apply-templates select="*[not(@rdf:about = ac:uri() and rdf:type/@rdf:resource = ('&def;Root', '&dh;Container', '&dh;Item')) and not(rdf:type/@rdf:resource = '&ldh;Content')]" mode="#current">
+        <xsl:apply-templates select="*[not(@rdf:about = base-uri() and rdf:type/@rdf:resource = ('&def;Root', '&dh;Container', '&dh;Item')) and not(rdf:type/@rdf:resource = '&ldh;Content')]" mode="#current">
             <xsl:sort select="ac:label(.)"/>
         </xsl:apply-templates>
     </xsl:template>
@@ -755,7 +755,7 @@ extension-element-prefixes="ixsl"
     
     <xsl:template match="rdf:RDF" mode="bs2:RowForm">
         <xsl:param name="method" select="'post'" as="xs:string"/>
-        <xsl:param name="action" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), map{}, ac:build-uri(ac:uri(), map{ '_method': 'PUT', 'mode': for $mode in $ac:mode return string($mode) }))" as="xs:anyURI"/>
+        <xsl:param name="action" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), map{}, ac:build-uri(base-uri(), map{ '_method': 'PUT', 'mode': for $mode in $ac:mode return string($mode) }))" as="xs:anyURI"/>
         <xsl:param name="id" select="concat('form-', generate-id())" as="xs:string?"/>
         <xsl:param name="class" select="'form-horizontal'" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
@@ -789,11 +789,11 @@ extension-element-prefixes="ixsl"
             <xsl:apply-templates mode="bs2:Exception"/>
 
             <!-- show the current document on the top -->
-            <xsl:apply-templates select="*[@rdf:about = ac:uri()]" mode="#current">
+            <xsl:apply-templates select="*[@rdf:about = base-uri()]" mode="#current">
                 <xsl:with-param name="inline" select="false()" tunnel="yes"/>
             </xsl:apply-templates>
             <!-- show the rest of the resources (contents, instances) below it -->
-            <xsl:apply-templates select="*[not(@rdf:about = ac:uri())]" mode="#current">
+            <xsl:apply-templates select="*[not(@rdf:about = base-uri())]" mode="#current">
                 <xsl:sort select="ac:label(.)"/>
                 <xsl:with-param name="inline" select="false()" tunnel="yes"/>
             </xsl:apply-templates>
@@ -807,7 +807,7 @@ extension-element-prefixes="ixsl"
                         </xsl:apply-templates>
                         
                         <!-- separate "Create" button only for Content -->
-                        <a href="{ac:build-uri(ac:uri(), map{ 'forClass': '&ldh;Content' })}" class="btn btn-primary add-constructor create-action">
+                        <a href="{ac:build-uri(base-uri(), map{ 'forClass': '&ldh;Content' })}" class="btn btn-primary add-constructor create-action">
                             <xsl:value-of>
                                 <xsl:apply-templates select="key('resources', '&ldh;Content', document(ac:document-uri('&ldh;')))" mode="ac:label"/>
                             </xsl:value-of>
@@ -940,7 +940,7 @@ extension-element-prefixes="ixsl"
                     <!--if the current resource is a Container, show Container and Item constructors--> 
                     <xsl:variable name="document-classes" select="key('resources', ('&dh;Container', '&dh;Item'), document(ac:document-uri('&def;')))" as="element()*"/>
                     <!-- current resource is a container -->
-                    <xsl:if test="exists($document-classes) and key('resources', ac:uri())/rdf:type/@rdf:resource = ('&def;Root', '&dh;Container')">
+                    <xsl:if test="exists($document-classes) and key('resources', base-uri())/rdf:type/@rdf:resource = ('&def;Root', '&dh;Container')">
                         <xsl:apply-templates select="$document-classes" mode="bs2:ConstructorListItem">
                             <xsl:with-param name="create-graph" select="$create-graph"/>
                             <xsl:sort select="ac:label(.)"/>

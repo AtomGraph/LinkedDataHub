@@ -527,7 +527,7 @@ exclude-result-prefixes="#all"
                                 -->
                                 <!-- hidden inputs in which we store the old values of the visible input -->
                                 <input type="hidden" class="old su">
-                                    <xsl:attribute name="value" select="if (local-name() = 'about') then . else resolve-uri(concat('/', ac:uuid()), ac:uri())"/>
+                                    <xsl:attribute name="value" select="if (local-name() = 'about') then . else resolve-uri(concat('/', ac:uuid()), base-uri())"/>
                                 </input>
                                 <input type="hidden" class="old sb">
                                     <xsl:attribute name="value" select="if (local-name() = 'nodeID') then . else generate-id()"/>
