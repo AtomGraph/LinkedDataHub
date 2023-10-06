@@ -97,7 +97,7 @@ exclude-result-prefixes="#all">
 
     <xsl:param name="ldh:base" as="xs:anyURI" static="yes"/>
     <!--<xsl:param name="ldh:absolutePath" as="xs:anyURI"/>-->
-    <xsl:param name="ldh:requestUri" as="xs:anyURI"/>
+<!--    <xsl:param name="ldh:requestUri" as="xs:anyURI"/>-->
     <xsl:param name="ac:endpoint" select="resolve-uri('sparql', $ldt:base)" as="xs:anyURI"/>
     <xsl:param name="a:graphStore" select="resolve-uri('service', $ldt:base)" as="xs:anyURI"/> <!-- TO-DO: rename to ac:graphStore? -->
     <xsl:param name="sd:endpoint" as="xs:anyURI?"/>

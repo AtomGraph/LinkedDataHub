@@ -53,6 +53,7 @@ exclude-result-prefixes="#all"
     <xsl:key name="resources-by-type" match="*[*][@rdf:about] | *[*][@rdf:nodeID]" use="rdf:type/@rdf:resource"/>
 
     <xsl:param name="ac:contextUri" as="xs:anyURI?"/>
+    <xsl:param name="ldh:requestUri" as="xs:anyURI"/>
 
     <xsl:function name="ac:property-label" as="xs:string?">
         <xsl:param name="property" as="element()"/>
