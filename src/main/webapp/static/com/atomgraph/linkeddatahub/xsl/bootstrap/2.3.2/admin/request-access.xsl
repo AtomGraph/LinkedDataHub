@@ -46,9 +46,9 @@ exclude-result-prefixes="#all">
 
     <xsl:param name="ldh:access-to" as="xs:anyURI?"/>
 
-    <xsl:template match="rdf:RDF[if (base-uri()) then (key('resources', base-uri())/rdf:type/@rdf:resource = '&adm;RequestAccess') else false()][$ac:method = 'POST'][key('resources-by-type', '&spin;ConstraintViolation') or key('resources-by-type', '&sh;ValidationResult')]" mode="xhtml:Body" priority="3">
+    <xsl:template match="rdf:RDF[if (doc-available(base-uri($main-doc))) then (key('resources', base-uri($main-doc), $main-doc)/rdf:type/@rdf:resource = '&adm;RequestAccess') else false()][$ac:method = 'POST'][key('resources-by-type', '&spin;ConstraintViolation') or key('resources-by-type', '&sh;ValidationResult')]" mode="xhtml:Body" priority="3">
         <xsl:apply-templates select="." mode="bs2:RowForm">
-            <xsl:with-param name="action" select="base-uri()"/>
+            <xsl:with-param name="action" select="base-uri($main-doc)"/>
             <xsl:with-param name="enctype" select="()"/> <!-- don't use 'multipart/form-data' which is the default -->
             <xsl:with-param name="create-resource" select="false()"/>
             <xsl:with-param name="constructor-query" select="$constructor-query" tunnel="yes"/>
@@ -57,18 +57,18 @@ exclude-result-prefixes="#all">
         </xsl:apply-templates>
     </xsl:template>
     
-    <xsl:template match="rdf:RDF[if (base-uri()) then (key('resources', base-uri())/rdf:type/@rdf:resource = '&adm;RequestAccess') else false()][$ac:method = 'GET']" mode="bs2:ContentBody" priority="2">
-        <div about="{base-uri()}" id="content-body" class="container-fluid">
-            <xsl:apply-templates select="key('resources', base-uri())" mode="ldh:ContentList"/>
+    <xsl:template match="rdf:RDF[if (doc-available(base-uri($main-doc))) then (key('resources', base-uri($main-doc), $main-doc)/rdf:type/@rdf:resource = '&adm;RequestAccess') else false()][$ac:method = 'GET']" mode="bs2:ContentBody" priority="2">
+        <div about="{base-uri($main-doc)}" id="content-body" class="container-fluid">
+            <xsl:apply-templates select="key('resources', base-uri($main-doc))" mode="ldh:ContentList"/>
 
             <xsl:apply-templates select="." mode="bs2:Row"/>
         </div>
     </xsl:template>
 
     <!-- currently doesn't work because the client-side does not refresh the bs2:NavBarActions -->
-    <!--<xsl:template match="rdf:RDF[if (base-uri()) then (key('resources', base-uri())/rdf:type/@rdf:resource = '&adm;RequestAccess') else false()]" mode="bs2:NavBarActions" priority="2"/>-->
+    <!--<xsl:template match="rdf:RDF[if (doc-available(base-uri($main-doc))) then (key('resources', base-uri($main-doc), $main-doc)/rdf:type/@rdf:resource = '&adm;RequestAccess') else false()]" mode="bs2:NavBarActions" priority="2"/>-->
 
-    <xsl:template match="rdf:RDF[if (base-uri()) then (key('resources', base-uri())/rdf:type/@rdf:resource = '&adm;RequestAccess') else false()]" mode="bs2:ModeTabs" priority="2"/>
+    <xsl:template match="rdf:RDF[if (doc-available(base-uri($main-doc))) then (key('resources', base-uri($main-doc), $main-doc)/rdf:type/@rdf:resource = '&adm;RequestAccess') else false()]" mode="bs2:ModeTabs" priority="2"/>
 
     <xsl:template match="*[rdf:type/@rdf:resource = '&adm;RequestAccess'][$ac:method = 'GET']" mode="bs2:Row" priority="2">
         <xsl:variable name="constructor" as="document-node()">
@@ -86,7 +86,7 @@ exclude-result-prefixes="#all">
         </xsl:variable>
         
         <xsl:apply-templates select="$constructor" mode="bs2:RowForm">
-            <xsl:with-param name="action" select="base-uri()"/>
+            <xsl:with-param name="action" select="base-uri($main-doc)"/>
             <xsl:with-param name="enctype" select="()"/> <!-- don't use 'multipart/form-data' which is the default -->
             <xsl:with-param name="create-resource" select="false()"/>
             <xsl:with-param name="constructor-query" select="$constructor-query" tunnel="yes"/>
@@ -96,7 +96,7 @@ exclude-result-prefixes="#all">
     </xsl:template>
 
     <!-- display stored AuthorizationRequest data after successful POST (without ConstraintViolations) -->
-    <xsl:template match="rdf:RDF[if (base-uri()) then (key('resources', base-uri())/rdf:type/@rdf:resource = '&adm;RequestAccess') else false()][$ac:method = 'POST'][not(key('resources-by-type', '&http;Response'))][1]" mode="bs2:Row" priority="3">
+    <xsl:template match="rdf:RDF[if (doc-available(base-uri($main-doc))) then (key('resources', base-uri($main-doc), $main-doc)/rdf:type/@rdf:resource = '&adm;RequestAccess') else false()][$ac:method = 'POST'][not(key('resources-by-type', '&http;Response'))][1]" mode="bs2:Row" priority="3">
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" select="'offset2 span7'" as="xs:string?"/>
 
@@ -116,12 +116,12 @@ exclude-result-prefixes="#all">
     </xsl:template>
 
     <!-- suppress other resources -->
-    <xsl:template match="*[if (base-uri()) then (key('resources', base-uri())/rdf:type/@rdf:resource = '&adm;RequestAccess') else false()][$ac:method = 'POST'][not(key('resources-by-type', '&http;Response'))]" mode="bs2:Row" priority="2"/>
+    <xsl:template match="*[if (doc-available(base-uri($main-doc))) then (key('resources', base-uri($main-doc), $main-doc)/rdf:type/@rdf:resource = '&adm;RequestAccess') else false()][$ac:method = 'POST'][not(key('resources-by-type', '&http;Response'))]" mode="bs2:Row" priority="2"/>
 
     <!-- hide object blank nodes (that only have a single rdf:type property) from constructed models -->
-    <xsl:template match="rdf:Description[$ac:method = 'GET'][@rdf:nodeID][not(rdf:type/@rdf:resource = ('&lacl;AuthorizationRequest', '&dh;Item'))][if (base-uri()) then (key('resources', base-uri())/rdf:type/@rdf:resource = '&adm;RequestAccess') else false()]" mode="bs2:RowForm" priority="3"/>
+    <xsl:template match="rdf:Description[$ac:method = 'GET'][@rdf:nodeID][not(rdf:type/@rdf:resource = ('&lacl;AuthorizationRequest', '&dh;Item'))][if (doc-available(base-uri($main-doc))) then (key('resources', base-uri($main-doc), $main-doc)/rdf:type/@rdf:resource = '&adm;RequestAccess') else false()]" mode="bs2:RowForm" priority="3"/>
 
-    <xsl:template match="*[*][@rdf:about or @rdf:nodeID][if (base-uri()) then (key('resources', base-uri())/rdf:type/@rdf:resource = '&adm;RequestAccess') else false()]" mode="bs2:FormControl" priority="1">
+    <xsl:template match="*[*][@rdf:about or @rdf:nodeID][if (doc-available(base-uri($main-doc))) then (key('resources', base-uri($main-doc), $main-doc)/rdf:type/@rdf:resource = '&adm;RequestAccess') else false()]" mode="bs2:FormControl" priority="1">
         <xsl:next-match>
             <xsl:with-param name="show-subject" select="false()" tunnel="yes"/>
             <xsl:with-param name="legend" select="false()"/>
@@ -130,13 +130,13 @@ exclude-result-prefixes="#all">
     </xsl:template>
 
     <!-- make properties required -->
-    <xsl:template match="*[*][@rdf:about or @rdf:nodeID][if (base-uri()) then (key('resources', base-uri())/rdf:type/@rdf:resource = '&adm;RequestAccess') else false()]/*" mode="bs2:FormControl" priority="1">
+    <xsl:template match="*[*][@rdf:about or @rdf:nodeID][if (doc-available(base-uri($main-doc))) then (key('resources', base-uri($main-doc), $main-doc)/rdf:type/@rdf:resource = '&adm;RequestAccess') else false()]/*" mode="bs2:FormControl" priority="1">
         <xsl:next-match>
             <xsl:with-param name="required" select="true()"/>
         </xsl:next-match>
     </xsl:template>
     
-    <xsl:template match="*[@rdf:about or @rdf:nodeID][if (base-uri()) then (key('resources', base-uri())/rdf:type/@rdf:resource = '&adm;RequestAccess') else false()]/sioc:has_parent | *[@rdf:about or @rdf:nodeID][if (base-uri()) then (key('resources', base-uri())/rdf:type/@rdf:resource = '&adm;RequestAccess') else false()]/sioc:has_container" mode="bs2:FormControl" priority="4">
+    <xsl:template match="*[@rdf:about or @rdf:nodeID][if (doc-available(base-uri($main-doc))) then (key('resources', base-uri($main-doc), $main-doc)/rdf:type/@rdf:resource = '&adm;RequestAccess') else false()]/sioc:has_parent | *[@rdf:about or @rdf:nodeID][if (doc-available(base-uri($main-doc))) then (key('resources', base-uri($main-doc), $main-doc)/rdf:type/@rdf:resource = '&adm;RequestAccess') else false()]/sioc:has_container" mode="bs2:FormControl" priority="4">
         <xsl:apply-templates select="." mode="xhtml:Input">
             <xsl:with-param name="type" select="'hidden'"/>
         </xsl:apply-templates>
@@ -159,7 +159,7 @@ exclude-result-prefixes="#all">
         </xsl:call-template>
     </xsl:template>
     
-    <xsl:template match="lacl:requestMode/@rdf:*[if (base-uri()) then (key('resources', base-uri())/rdf:type/@rdf:resource = '&adm;RequestAccess') else false()]" mode="bs2:FormControl" priority="2">
+    <xsl:template match="lacl:requestMode/@rdf:*[if (doc-available(base-uri($main-doc))) then (key('resources', base-uri($main-doc), $main-doc)/rdf:type/@rdf:resource = '&adm;RequestAccess') else false()]" mode="bs2:FormControl" priority="2">
         <xsl:param name="id" select="generate-id()" as="xs:string"/>
         <xsl:param name="class" as="xs:string?"/>
         <xsl:param name="disabled" select="false()" as="xs:boolean"/>
@@ -183,7 +183,7 @@ exclude-result-prefixes="#all">
         </xsl:if>
     </xsl:template>
     
-    <xsl:template match="lacl:requestAgent[if (base-uri()) then (key('resources', base-uri())/rdf:type/@rdf:resource = '&adm;RequestAccess') else false()]" mode="bs2:FormControl" priority="2">
+    <xsl:template match="lacl:requestAgent[if (doc-available(base-uri($main-doc))) then (key('resources', base-uri($main-doc), $main-doc)/rdf:type/@rdf:resource = '&adm;RequestAccess') else false()]" mode="bs2:FormControl" priority="2">
         <xsl:apply-templates select="." mode="xhtml:Input">
             <xsl:with-param name="type" select="'hidden'"/>
         </xsl:apply-templates>
@@ -207,7 +207,7 @@ exclude-result-prefixes="#all">
         </xsl:call-template>
     </xsl:template>
     
-    <xsl:template match="lacl:requestAccessTo/@rdf:*[if (base-uri()) then (key('resources', base-uri())/rdf:type/@rdf:resource = '&adm;RequestAccess') else false()][$ldh:access-to]" mode="bs2:FormControl" priority="2">
+    <xsl:template match="lacl:requestAccessTo/@rdf:*[if (doc-available(base-uri($main-doc))) then (key('resources', base-uri($main-doc), $main-doc)/rdf:type/@rdf:resource = '&adm;RequestAccess') else false()][$ldh:access-to]" mode="bs2:FormControl" priority="2">
         <select name="ou" id="{generate-id()}" multiple="multiple" size="4">
             <option value="{resolve-uri('../add', $ldt:base)}" selected="selected">Add RDF endpoint</option>
             <option value="{resolve-uri('../service', $ldt:base)}" selected="selected">Graph Store endpoint</option>
@@ -217,7 +217,7 @@ exclude-result-prefixes="#all">
     </xsl:template>
 
     <!-- show first property as a select -->
-    <xsl:template match="lacl:requestAccessToClass[1]/@rdf:*[if (base-uri()) then (key('resources', base-uri())/rdf:type/@rdf:resource = '&adm;RequestAccess') else false()]" mode="bs2:FormControl" priority="2">
+    <xsl:template match="lacl:requestAccessToClass[1]/@rdf:*[if (doc-available(base-uri($main-doc))) then (key('resources', base-uri($main-doc), $main-doc)/rdf:type/@rdf:resource = '&adm;RequestAccess') else false()]" mode="bs2:FormControl" priority="2">
         <xsl:variable name="this" select="../concat(namespace-uri(), local-name())" as="xs:string"/>
         <xsl:variable name="classes" select="key('resources', ('&def;Root', '&dh;Container','&dh;Item', '&nfo;FileDataObject'), document(ac:document-uri('&def;')))" as="element()*"/>
         <select name="ou" id="{generate-id()}" multiple="multiple" size="{count($classes)}">
@@ -231,20 +231,20 @@ exclude-result-prefixes="#all">
     </xsl:template>
 
     <!-- hide following properties -->
-    <xsl:template match="lacl:requestAccessToClass/@rdf:*[if (base-uri()) then (key('resources', base-uri())/rdf:type/@rdf:resource = '&adm;RequestAccess') else false()]" mode="bs2:FormControl" priority="1"/>
+    <xsl:template match="lacl:requestAccessToClass/@rdf:*[if (doc-available(base-uri($main-doc))) then (key('resources', base-uri($main-doc), $main-doc)/rdf:type/@rdf:resource = '&adm;RequestAccess') else false()]" mode="bs2:FormControl" priority="1"/>
     
     <!-- hide type control -->
-    <xsl:template match="*[*][@rdf:about or @rdf:nodeID][if (base-uri()) then (key('resources', base-uri())/rdf:type/@rdf:resource = '&adm;RequestAccess') else false()]" mode="bs2:TypeControl" priority="2">
+    <xsl:template match="*[*][@rdf:about or @rdf:nodeID][if (doc-available(base-uri($main-doc))) then (key('resources', base-uri($main-doc), $main-doc)/rdf:type/@rdf:resource = '&adm;RequestAccess') else false()]" mode="bs2:TypeControl" priority="2">
         <xsl:next-match>
             <xsl:with-param name="hidden" select="true()"/>
         </xsl:next-match>
     </xsl:template>
 
     <!-- suppress properties -->
-    <xsl:template match="dct:title[if (base-uri()) then (key('resources', base-uri())/rdf:type/@rdf:resource = '&adm;RequestAccess') else false()] | dct:description[if (base-uri()) then (key('resources', base-uri())/rdf:type/@rdf:resource = '&adm;RequestAccess') else false()] | rdf:_1[if (base-uri()) then (key('resources', base-uri())/rdf:type/@rdf:resource = '&adm;RequestAccess') else false()]" mode="bs2:FormControl" priority="4"/>
+    <xsl:template match="dct:title[if (doc-available(base-uri($main-doc))) then (key('resources', base-uri($main-doc), $main-doc)/rdf:type/@rdf:resource = '&adm;RequestAccess') else false()] | dct:description[if (doc-available(base-uri($main-doc))) then (key('resources', base-uri($main-doc), $main-doc)/rdf:type/@rdf:resource = '&adm;RequestAccess') else false()] | rdf:_1[if (doc-available(base-uri($main-doc))) then (key('resources', base-uri($main-doc), $main-doc)/rdf:type/@rdf:resource = '&adm;RequestAccess') else false()]" mode="bs2:FormControl" priority="4"/>
 
     <!-- hide properties (including all of document resource properties) -->
-    <xsl:template match="rdfs:label[if (base-uri()) then (key('resources', base-uri())/rdf:type/@rdf:resource = '&adm;RequestAccess') else false()] | foaf:isPrimaryTopicOf[if (base-uri()) then (key('resources', base-uri())/rdf:type/@rdf:resource = '&adm;RequestAccess') else false()] | *[foaf:primaryTopic][if (base-uri()) then (key('resources', base-uri())/rdf:type/@rdf:resource = '&adm;RequestAccess') else false()]/*" mode="bs2:FormControl" priority="3">
+    <xsl:template match="rdfs:label[if (doc-available(base-uri($main-doc))) then (key('resources', base-uri($main-doc), $main-doc)/rdf:type/@rdf:resource = '&adm;RequestAccess') else false()] | foaf:isPrimaryTopicOf[if (doc-available(base-uri($main-doc))) then (key('resources', base-uri($main-doc), $main-doc)/rdf:type/@rdf:resource = '&adm;RequestAccess') else false()] | *[foaf:primaryTopic][if (doc-available(base-uri($main-doc))) then (key('resources', base-uri($main-doc), $main-doc)/rdf:type/@rdf:resource = '&adm;RequestAccess') else false()]/*" mode="bs2:FormControl" priority="3">
         <xsl:apply-templates select="." mode="xhtml:Input">
             <xsl:with-param name="type" select="'hidden'"/>
         </xsl:apply-templates>
@@ -257,6 +257,6 @@ exclude-result-prefixes="#all">
     </xsl:template>
 
     <!-- turn off additional properties - it applies on the constructor document and not the $main-doc -->
-    <xsl:template match="*[if (base-uri()) then (key('resources', base-uri())/rdf:type/@rdf:resource = '&adm;RequestAccess') else false()]" mode="bs2:PropertyControl" priority="1"/>
+    <xsl:template match="*[if (doc-available(base-uri($main-doc))) then (key('resources', base-uri($main-doc), $main-doc)/rdf:type/@rdf:resource = '&adm;RequestAccess') else false()]" mode="bs2:PropertyControl" priority="1"/>
 
 </xsl:stylesheet>
