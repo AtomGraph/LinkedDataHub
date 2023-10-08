@@ -107,7 +107,7 @@ exclude-result-prefixes="#all">
     <xsl:param name="force-exclude-all-namespaces" select="true()"/>
     <xsl:param name="ac:httpHeaders" as="xs:string"/> 
     <xsl:param name="ac:method" as="xs:string"/>
-    <xsl:param name="ac:uri" as="xs:anyURI"/>
+<!--    <xsl:param name="ac:uri" as="xs:anyURI"/>-->
     <xsl:param name="ac:mode" as="xs:anyURI*"/> <!-- select="xs:anyURI('&ac;ReadMode')" -->
     <xsl:param name="acl:mode" as="xs:anyURI*"/>
     <xsl:param name="ldh:forShape" as="xs:anyURI?"/>
@@ -239,9 +239,9 @@ LIMIT   100
     <rdf:Description rdf:about="">
     </rdf:Description>
 
-    <xsl:function name="ac:uri" as="xs:anyURI">
+<!--    <xsl:function name="ac:uri" as="xs:anyURI">
         <xsl:sequence select="$ac:uri"/>
-    </xsl:function>
+    </xsl:function>-->
     
     <xsl:function name="ldh:href" as="xs:anyURI">
         <xsl:sequence select="$ldh:requestUri"/>
