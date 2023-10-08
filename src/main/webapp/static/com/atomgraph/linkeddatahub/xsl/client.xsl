@@ -513,6 +513,8 @@ WHERE
         </xsl:if>
         
         <xsl:for-each select="?body">
+            <xsl:message>RDF BASE URI: <xsl:value-of select="base-uri()"/></xsl:message>
+        
             <xsl:variable name="results" select="." as="document-node()"/>
             <ixsl:set-property name="{'`' || $uri || '`'}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
             <!-- store document under window.LinkedDataHub[$content-uri].results -->
@@ -896,6 +898,7 @@ WHERE
         
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
 
+        <xsl:message>HTML BASE URI: <xsl:value-of select="base-uri()"/></xsl:message>
         <ixsl:set-property name="uri" select="$uri" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
         <xsl:if test="$endpoint">
             <ixsl:set-property name="endpoint" select="$endpoint" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
