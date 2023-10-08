@@ -529,7 +529,7 @@ exclude-result-prefixes="#all"
                                 <!-- hidden inputs in which we store the old values of the visible input -->
                                 <input type="hidden" class="old su">
                                     <!-- TO-DO: the following logic is flaky. Probably related to https://github.com/AtomGraph/LinkedDataHub/issues/179 -->
-                                    <xsl:variable name="base-uri" select="if (contains($ldh:requestUri, '?')) then substring-before($ldh:requestUri, '?') else $ldh:requestUri" as="xs:anyURI"/>
+                                    <xsl:variable name="base-uri" select="if (contains($ldh:requestUri, '?')) then xs:anyURI(substring-before($ldh:requestUri, '?')) else $ldh:requestUri" as="xs:anyURI"/>
                                     <xsl:variable name="resource-uri" select="resolve-uri(ac:uuid() || '/', $base-uri)" as="xs:anyURI"/>
                                     <xsl:attribute name="value" select="if (local-name() = 'about') then . else $resource-uri"/>
                                 </input>
