@@ -41,6 +41,13 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.base'))"/>
     </xsl:function>
     
+    <!-- TO-DO: replace with standard XPath `base-uri` after this is fixed: -->
+    <xsl:function name="ldh:base-uri" as="xs:anyURI?">
+        <xsl:param name="arg" as="node()"/>
+        
+        <xsl:sequence select="if (ixsl:contains($arg, 'baseURI')) then ixsl:get($arg, 'baseURI') else ()"/>
+    </xsl:function>
+    
     <xsl:function name="ac:uri" as="xs:anyURI">
         <xsl:sequence select="xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.uri'))"/>
     </xsl:function>

@@ -513,7 +513,10 @@ WHERE
         </xsl:if>
         
         <xsl:for-each select="?body">
-            <xsl:message>RDF BASE URI: <xsl:value-of select="base-uri()"/></xsl:message>
+            <xsl:message>RDF base-uri(?body): <xsl:value-of select="base-uri()"/></xsl:message>
+            <xsl:message>RDF base-uri(ixsl:page()): <xsl:value-of select="ixsl:page()"/></xsl:message>
+            <xsl:message>RDF ldh:base-uri(?body): <xsl:value-of select="ldh:base-uri(.)"/></xsl:message>
+            <xsl:message>RDF ldh:base-uri(ixsl:page()): <xsl:value-of select="ldh:base-uri(ixsl:page())"/></xsl:message>
         
             <xsl:variable name="results" select="." as="document-node()"/>
             <ixsl:set-property name="{'`' || $uri || '`'}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
@@ -898,7 +901,10 @@ WHERE
         
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
 
-        <xsl:message>HTML BASE URI: <xsl:value-of select="base-uri()"/></xsl:message>
+        <xsl:message>HTML base-uri(.): <xsl:value-of select="base-uri()"/></xsl:message>
+        <xsl:message>HTML ldh:base-uri(.): <xsl:value-of select="ldh:base-uri(.)"/></xsl:message>
+        <xsl:message>HTML ldh:base-uri(ixsl:page()): <xsl:value-of select="ldh:base-uri(ixsl:page())"/></xsl:message>
+            
         <ixsl:set-property name="uri" select="$uri" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
         <xsl:if test="$endpoint">
             <ixsl:set-property name="endpoint" select="$endpoint" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
