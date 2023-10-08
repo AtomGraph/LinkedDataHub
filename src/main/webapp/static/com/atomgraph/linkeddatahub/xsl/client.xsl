@@ -514,7 +514,7 @@ WHERE
         
         <xsl:for-each select="?body">
             <xsl:message>RDF base-uri(?body): <xsl:value-of select="base-uri()"/></xsl:message>
-            <xsl:message>RDF base-uri(ixsl:page()): <xsl:value-of select="ixsl:page()"/></xsl:message>
+            <xsl:message>RDF base-uri(ixsl:page()): <xsl:value-of select="base-uri(ixsl:page())"/></xsl:message>
             <xsl:message>RDF ldh:base-uri(?body): <xsl:value-of select="ldh:base-uri(.)"/></xsl:message>
             <xsl:message>RDF ldh:base-uri(ixsl:page()): <xsl:value-of select="ldh:base-uri(ixsl:page())"/></xsl:message>
         
