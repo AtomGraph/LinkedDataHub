@@ -59,6 +59,7 @@ exclude-result-prefixes="#all">
     <xsl:template match="rdf:RDF[$foaf:Agent]" mode="bs2:Create" priority="1">
         <xsl:param name="classes" as="element()*"/>
         <xsl:param name="create-graph" select="false()" as="xs:boolean"/>
+        <xsl:param name="base-uri" select="base-uri()" as="xs:anyURI"/>
 
         <div class="btn-group pull-left">
             <button type="button" title="{ac:label(key('resources', 'create-instance-title', document('../translations.rdf')))}">
@@ -74,6 +75,7 @@ exclude-result-prefixes="#all">
 
             <ul class="dropdown-menu">
                 <xsl:apply-templates select="$classes" mode="bs2:ConstructorListItem">
+                    <xsl:with-param name="base-uri" select="$base-uri" tunnel="yes"/>
                     <xsl:with-param name="create-graph" select="$create-graph"/>
                     <xsl:sort select="ac:label(.)"/>
                 </xsl:apply-templates>

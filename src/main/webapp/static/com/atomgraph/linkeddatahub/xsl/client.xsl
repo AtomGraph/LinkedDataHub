@@ -830,8 +830,6 @@ WHERE
         <xsl:param name="refresh-content" as="xs:boolean?"/>
         <!-- decode raw document URL (without fragment) from the ?uri query param, if it's present -->
         <xsl:variable name="uri" select="if (contains($href, '?')) then let $query-params := ldh:parse-query-params(substring-after(ac:document-uri($href), '?')) return if (exists($query-params?uri)) then ldh:decode-uri($query-params?uri[1]) else ldh:absolute-path($href) else ldh:absolute-path($href)" as="xs:anyURI"/>
-        <xsl:variable name="doc-uri" select="ac:document-uri($uri)" as="xs:anyURI"/>
-        <!--<xsl:message>onDocumentLoad $href: <xsl:value-of select="$href"/> $uri: <xsl:value-of select="$uri"/> $doc-uri: <xsl:value-of select="$doc-uri"/></xsl:message>-->
 
         <!-- set #uri value -->
         <xsl:for-each select="id('uri', ixsl:page())">
@@ -895,9 +893,7 @@ WHERE
         <xsl:param name="refresh-content" as="xs:boolean?"/>
         <!-- decode raw document URL (without fragment) from the ?uri query param, if it's present -->
         <xsl:variable name="uri" select="if (contains($href, '?')) then let $query-params := ldh:parse-query-params(substring-after(ac:document-uri($href), '?')) return if (exists($query-params?uri)) then ldh:decode-uri($query-params?uri[1]) else ldh:absolute-path($href) else ldh:absolute-path($href)" as="xs:anyURI"/>
-        <xsl:variable name="doc-uri" select="ac:document-uri($uri)" as="xs:anyURI"/>
         <xsl:variable name="fragment" select="if (contains($href, '#')) then substring-after($href, '#') else ()" as="xs:string?"/>
-        <!--<xsl:message>ldh:HTMLDocumentLoaded $href: <xsl:value-of select="$href"/> $uri: <xsl:value-of select="$uri"/> $doc-uri: <xsl:value-of select="$doc-uri"/> $fragment: <xsl:value-of select="$fragment"/> </xsl:message>-->
         
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
 
@@ -905,7 +901,7 @@ WHERE
         <xsl:message>HTML ldh:base-uri(.): <xsl:value-of select="ldh:base-uri(.)"/></xsl:message>
         <xsl:message>HTML ldh:base-uri(ixsl:page()): <xsl:value-of select="ldh:base-uri(ixsl:page())"/></xsl:message>
             
-        <ixsl:set-property name="uri" select="$uri" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+<!--        <ixsl:set-property name="uri" select="$uri" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>-->
         <xsl:if test="$endpoint">
             <ixsl:set-property name="endpoint" select="$endpoint" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
         </xsl:if>
@@ -961,7 +957,7 @@ WHERE
         
         <xsl:call-template name="ldh:PostHTMLDocumentLoad">
             <xsl:with-param name="href" select="$href"/>
-            <xsl:with-param name="doc-uri" select="$doc-uri"/>
+            <!--<xsl:with-param name="doc-uri" select="$doc-uri"/>-->
         </xsl:call-template>
         
         <xsl:call-template name="ldh:RDFDocumentLoad">
@@ -974,20 +970,20 @@ WHERE
     
     <xsl:template name="ldh:PostHTMLDocumentLoad">
         <xsl:param name="href" as="xs:anyURI"/> <!-- possibly proxied URL -->
-        <xsl:param name="doc-uri" as="xs:anyURI"/>
+<!--        <xsl:param name="doc-uri" as="xs:anyURI"/>-->
 
         <!-- update the document-level @about -->
-        <xsl:for-each select="id('content-body', ixsl:page())">
+<!--        <xsl:for-each select="id('content-body', ixsl:page())">
             <ixsl:set-attribute name="about" select="$doc-uri" object="."/>
-        </xsl:for-each>
+        </xsl:for-each>-->
         
         <!-- update RDF download links to match the current URI -->
-        <xsl:for-each select="id('export-rdf', ixsl:page())/following-sibling::ul/li/a">
-            <!-- use @title attribute for the media type TO-DO: find a better way, a hidden input or smth -->
+<!--        <xsl:for-each select="id('export-rdf', ixsl:page())/following-sibling::ul/li/a">
+             use @title attribute for the media type TO-DO: find a better way, a hidden input or smth 
             <xsl:variable name="href" select="ac:build-uri(ldh:absolute-path($href), let $params := map{ 'accept': string(@title) } return if (not(starts-with($doc-uri, $ldt:base))) then map:merge(($params, map{ 'uri': $doc-uri })) else $params)" as="xs:anyURI"/>
 
             <ixsl:set-attribute name="href" select="$href" object="."/>
-        </xsl:for-each>
+        </xsl:for-each>-->
             
         <!-- activate the current URL in the document tree -->
         <xsl:for-each select="id('doc-tree', ixsl:page())">

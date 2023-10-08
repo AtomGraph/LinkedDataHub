@@ -133,6 +133,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="active-mode" as="xs:anyURI?"/>
         <xsl:param name="forClass" as="xs:anyURI?"/>
         <xsl:param name="ajax-rendering" select="true()" as="xs:boolean"/>
+        <xsl:param name="base-uri" select="base-uri()" as="xs:anyURI"/>
 
         <div class="row-fluid">
             <ul class="nav nav-tabs offset2 span7">
@@ -147,23 +148,27 @@ extension-element-prefixes="ixsl"
                 <xsl:for-each select="key('resources', '&ac;ReadMode', document(ac:document-uri('&ac;')))">
                     <xsl:apply-templates select="." mode="bs2:ModeTabsItem">
                         <xsl:with-param name="active" select="@rdf:about = $active-mode or (empty($active-mode) and not($has-content))"/>
+                        <xsl:with-param name="base-uri" select="$base-uri" tunnel="yes"/>
                     </xsl:apply-templates>
                 </xsl:for-each>
                 <xsl:for-each select="key('resources', '&ac;MapMode', document(ac:document-uri('&ac;')))">
                     <xsl:apply-templates select="." mode="bs2:ModeTabsItem">
                         <xsl:with-param name="active" select="@rdf:about = $active-mode"/>
+                        <xsl:with-param name="base-uri" select="$base-uri" tunnel="yes"/>
                     </xsl:apply-templates>
                 </xsl:for-each>
                 <xsl:if test="$ajax-rendering">
                     <xsl:for-each select="key('resources', '&ac;ChartMode', document(ac:document-uri('&ac;')))">
                         <xsl:apply-templates select="." mode="bs2:ModeTabsItem">
                             <xsl:with-param name="active" select="@rdf:about = $active-mode"/>
+                            <xsl:with-param name="base-uri" select="$base-uri" tunnel="yes"/>
                         </xsl:apply-templates>
                     </xsl:for-each>
                 </xsl:if>
                 <xsl:for-each select="key('resources', '&ac;GraphMode', document(ac:document-uri('&ac;')))">
                     <xsl:apply-templates select="." mode="bs2:ModeTabsItem">
                         <xsl:with-param name="active" select="@rdf:about = $active-mode"/>
+                        <xsl:with-param name="base-uri" select="$base-uri" tunnel="yes"/>
                     </xsl:apply-templates>
                 </xsl:for-each>
             </ul>
@@ -918,6 +923,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="classes" as="element()*"/>
         <xsl:param name="show-document-classes" select="true()" as="xs:boolean"/>
         <xsl:param name="create-graph" select="false()" as="xs:boolean"/>
+        <xsl:param name="base-uri" select="base-uri()" as="xs:anyURI"/>
 
         <div>
             <xsl:if test="$class">
@@ -943,6 +949,7 @@ extension-element-prefixes="ixsl"
                     <xsl:if test="exists($document-classes) and key('resources', base-uri())/rdf:type/@rdf:resource = ('&def;Root', '&dh;Container')">
                         <xsl:apply-templates select="$document-classes" mode="bs2:ConstructorListItem">
                             <xsl:with-param name="create-graph" select="$create-graph"/>
+                            <xsl:with-param name="base-uri" select="$base-uri" tunnel="yes"/>
                             <xsl:sort select="ac:label(.)"/>
                         </xsl:apply-templates>
 
@@ -954,6 +961,7 @@ extension-element-prefixes="ixsl"
                 
                 <xsl:apply-templates select="key('resources', '&owl;NamedIndividual', document(ac:document-uri('&owl;')))" mode="bs2:ConstructorListItem">
                     <xsl:with-param name="create-graph" select="$create-graph"/>
+                    <xsl:with-param name="base-uri" select="$base-uri" tunnel="yes"/>
                     <xsl:sort select="ac:label(.)"/>
                 </xsl:apply-templates>
 
@@ -961,6 +969,7 @@ extension-element-prefixes="ixsl"
                 
                 <xsl:apply-templates select="$classes" mode="bs2:ConstructorListItem">
                     <xsl:with-param name="create-graph" select="$create-graph"/>
+                    <xsl:with-param name="base-uri" select="$base-uri" tunnel="yes"/>
                     <xsl:sort select="ac:label(.)"/>
                 </xsl:apply-templates>
             </ul>

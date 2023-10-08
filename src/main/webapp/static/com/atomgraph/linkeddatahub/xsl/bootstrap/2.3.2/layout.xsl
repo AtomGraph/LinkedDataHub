@@ -1105,7 +1105,9 @@ LIMIT   100
         
     <xsl:template match="rdf:RDF[key('resources-by-type', '&http;Response')][not(key('resources-by-type', '&spin;ConstraintViolation'))] | rdf:RDF[key('resources-by-type', '&http;Response')][not(key('resources-by-type', '&sh;ValidationResult'))]" mode="bs2:ModeList" priority="1"/>
 
-    <xsl:template match="rdf:RDF[base-uri()]" mode="bs2:ModeList">
+<!--    <xsl:template match="rdf:RDF[base-uri()]" mode="bs2:ModeList">
+        <xsl:param name="base-uri" select="base-uri()" as="xs:anyURI"/>
+        
         <div class="btn-group pull-right">
             <button type="button" title="{ac:label(key('resources', 'mode-list-title', document('translations.rdf')))}">
                 <xsl:apply-templates select="key('resources', $ac:mode, document(ac:document-uri('&ac;'))) | key('resources', $ac:mode, document(ac:document-uri('&ldh;')))" mode="ldh:logo">
@@ -1119,6 +1121,7 @@ LIMIT   100
                 <xsl:for-each select="key('resources-by-type', '&ac;Mode', document(ac:document-uri('&ac;'))) | key('resources', ('&ac;QueryEditorMode'), document(ac:document-uri('&ac;')))">
                     <xsl:sort select="ac:label(.)"/>
                     <xsl:apply-templates select="." mode="bs2:ModeListItem">
+                        <xsl:with-param name="base-uri" select="$base-uri"/>
                         <xsl:with-param name="active" select="$ac:mode"/>
                     </xsl:apply-templates>
                 </xsl:for-each>
@@ -1127,6 +1130,7 @@ LIMIT   100
     </xsl:template>
        
     <xsl:template match="*" mode="bs2:ModeListItem"/>
+    -->
 
     <!-- MEDIA TYPE LIST  -->
         
@@ -1242,6 +1246,8 @@ LIMIT   100
     <!-- NAVBAR ACTIONS -->
 
     <xsl:template match="rdf:RDF" mode="bs2:NavBarActions" priority="1">
+        <xsl:param name="base-uri" select="base-uri()" as="xs:anyURI"/>
+        
         <xsl:if test="$foaf:Agent//@rdf:about">
             <div class="pull-right">
                 <button type="button" title="{ac:label(key('resources', 'nav-bar-action-delete-title', document('translations.rdf')))}">
@@ -1293,6 +1299,7 @@ LIMIT   100
                         <xsl:sort select="ac:label(.)"/>
                         <xsl:apply-templates select="." mode="bs2:AccessListItem">
                             <xsl:with-param name="enabled" select="$acl:mode"/>
+                            <xsl:with-param name="base-uri" select="$base-uri" tunnel="yes"/>
                         </xsl:apply-templates>
                     </xsl:for-each>
                 </ul>
@@ -1302,7 +1309,7 @@ LIMIT   100
     
     <xsl:template match="*[@rdf:about]" mode="bs2:AccessListItem" priority="1">
         <xsl:param name="enabled" as="xs:anyURI*"/>
-        <xsl:variable name="href" select="base-uri()" as="xs:anyURI"/>
+        <xsl:param name="base-uri" select="base-uri()" as="xs:anyURI" tunnel="yes"/>
 
         <li>
             <a title="{@rdf:about}">

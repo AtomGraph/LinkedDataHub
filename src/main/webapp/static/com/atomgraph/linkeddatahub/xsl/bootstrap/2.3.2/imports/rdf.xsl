@@ -72,7 +72,7 @@ exclude-result-prefixes="#all">
                     </xsl:call-template>
 
                     <label class="control-label" for="{$for}" title="{$this}">
-                        <xsl:value-of select="ac:label(key('resources', '&rdf;type', document(ac:document-uri('&rdf;'))))"/>
+                        <xsl:value-of select="ac:label(key('resources', $this, document(ac:document-uri(namespace-uri()))))"/>
                     </label>
 
                     <div class="controls">
