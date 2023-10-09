@@ -98,9 +98,14 @@ exclude-result-prefixes="#all"
                 <xsl:variable name="fragment" select="if ($fragment) then $fragment else if (contains($uri, '#')) then substring-after($uri, '#') else ()" as="xs:string?"/>
                 <xsl:sequence select="xs:anyURI(ac:build-uri($absolute-path, $query-params) || (if ($fragment) then ('#' || $fragment) else ()))"/>
             </xsl:when>
-            <xsl:otherwise>
+            <!-- proxy external URI -->
+            <xsl:when test="$uri">
                 <xsl:variable name="fragment" select="if ($fragment) then $fragment else encode-for-uri($uri)" as="xs:string?"/>
                 <xsl:sequence select="xs:anyURI(ac:build-uri($absolute-path, map:merge((map{ 'uri': string($uri) }, $query-params))) || (if ($fragment) then ('#' || $fragment) else ()))"/>
+            </xsl:when>
+            <!-- no URI supplied -->
+            <xsl:otherwise>
+                <xsl:sequence select="xs:anyURI(ac:build-uri($absolute-path, $query-params) || (if ($fragment) then ('#' || $fragment) else ()))"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:function>
