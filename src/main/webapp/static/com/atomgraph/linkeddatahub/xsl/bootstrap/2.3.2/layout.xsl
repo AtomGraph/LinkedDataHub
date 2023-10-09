@@ -96,8 +96,6 @@ exclude-result-prefixes="#all">
     <xsl:output method="xhtml" encoding="UTF-8" indent="yes" omit-xml-declaration="yes" doctype-system="http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd" doctype-public="-//W3C//DTD XHTML 1.0 Strict//EN" media-type="application/xhtml+xml"/>
 
     <xsl:param name="ldh:base" as="xs:anyURI" static="yes"/>
-    <!--<xsl:param name="ldh:absolutePath" as="xs:anyURI"/>-->
-<!--    <xsl:param name="ldh:requestUri" as="xs:anyURI"/>-->
     <xsl:param name="ac:endpoint" select="resolve-uri('sparql', $ldt:base)" as="xs:anyURI"/>
     <xsl:param name="a:graphStore" select="resolve-uri('service', $ldt:base)" as="xs:anyURI"/> <!-- TO-DO: rename to ac:graphStore? -->
     <xsl:param name="sd:endpoint" as="xs:anyURI?"/>
@@ -107,7 +105,6 @@ exclude-result-prefixes="#all">
     <xsl:param name="force-exclude-all-namespaces" select="true()"/>
     <xsl:param name="ac:httpHeaders" as="xs:string"/> 
     <xsl:param name="ac:method" as="xs:string"/>
-<!--    <xsl:param name="ac:uri" as="xs:anyURI"/>-->
     <xsl:param name="ac:mode" as="xs:anyURI*"/> <!-- select="xs:anyURI('&ac;ReadMode')" -->
     <xsl:param name="acl:mode" as="xs:anyURI*"/>
     <xsl:param name="ldh:forShape" as="xs:anyURI?"/>
@@ -238,14 +235,6 @@ LIMIT   100
     
     <rdf:Description rdf:about="">
     </rdf:Description>
-
-<!--    <xsl:function name="ac:uri" as="xs:anyURI">
-        <xsl:sequence select="$ac:uri"/>
-    </xsl:function>-->
-    
-<!--    <xsl:function name="ldh:href" as="xs:anyURI">
-        <xsl:sequence select="$ldh:requestUri"/>
-    </xsl:function>-->
     
     <!-- TITLE -->
 
@@ -1108,33 +1097,6 @@ LIMIT   100
     <!-- MODE LIST -->
         
     <xsl:template match="rdf:RDF[key('resources-by-type', '&http;Response')][not(key('resources-by-type', '&spin;ConstraintViolation'))] | rdf:RDF[key('resources-by-type', '&http;Response')][not(key('resources-by-type', '&sh;ValidationResult'))]" mode="bs2:ModeList" priority="1"/>
-
-<!--    <xsl:template match="rdf:RDF[ldh:absolute-path(base-uri())]" mode="bs2:ModeList">
-        <xsl:param name="base-uri" select="ldh:absolute-path(base-uri())" as="xs:anyURI"/>
-        
-        <div class="btn-group pull-right">
-            <button type="button" title="{ac:label(key('resources', 'mode-list-title', document('translations.rdf')))}">
-                <xsl:apply-templates select="key('resources', $ac:mode, document(ac:document-uri('&ac;'))) | key('resources', $ac:mode, document(ac:document-uri('&ldh;')))" mode="ldh:logo">
-                    <xsl:with-param name="class" select="'btn dropdown-toggle'"/>
-                </xsl:apply-templates>
-                <xsl:text> </xsl:text>
-                <span class="caret"></span>
-            </button>
-
-            <ul class="dropdown-menu">
-                <xsl:for-each select="key('resources-by-type', '&ac;Mode', document(ac:document-uri('&ac;'))) | key('resources', ('&ac;QueryEditorMode'), document(ac:document-uri('&ac;')))">
-                    <xsl:sort select="ac:label(.)"/>
-                    <xsl:apply-templates select="." mode="bs2:ModeListItem">
-                        <xsl:with-param name="base-uri" select="$base-uri" tunnel="yes"/>
-                        <xsl:with-param name="active" select="$ac:mode"/>
-                    </xsl:apply-templates>
-                </xsl:for-each>
-            </ul>
-        </div>
-    </xsl:template>
-       
-    <xsl:template match="*" mode="bs2:ModeListItem"/>
-    -->
 
     <!-- MEDIA TYPE LIST  -->
         

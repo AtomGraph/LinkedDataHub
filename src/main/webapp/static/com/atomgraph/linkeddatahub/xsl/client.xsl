@@ -104,7 +104,6 @@ extension-element-prefixes="ixsl"
     <xsl:param name="ldt:ontology" as="xs:anyURI"/> <!-- used in default.xsl -->
     <xsl:param name="acl:agent" as="xs:anyURI?"/>
     <xsl:param name="sd:endpoint" as="xs:anyURI?"/>
-    <xsl:param name="ldh:absolutePath" as="xs:anyURI"/>
     <xsl:param name="app-request-uri" as="xs:anyURI"/>
     <xsl:param name="ldh:apps" as="document-node()">
         <xsl:document>
@@ -233,7 +232,6 @@ WHERE
         <xsl:message>saxon:platform: <xsl:value-of select="system-property('saxon:platform')"/></xsl:message>
         <xsl:message>$ac:contextUri: <xsl:value-of select="$ac:contextUri"/></xsl:message>
         <xsl:message>$ldt:base: <xsl:value-of select="$ldt:base"/></xsl:message>
-        <xsl:message>$ldh:absolutePath: <xsl:value-of select="$ldh:absolutePath"/></xsl:message>
         <xsl:message>$acl:agent: <xsl:value-of select="$acl:agent"/></xsl:message>
         <xsl:message>count($ldh:apps//*[rdf:type/@rdf:resource = '&sd;Service']): <xsl:value-of select="count($ldh:apps//*[rdf:type/@rdf:resource = '&sd;Service'])"/></xsl:message>
         <xsl:message>$ac:lang: <xsl:value-of select="$ac:lang"/></xsl:message>
@@ -974,20 +972,6 @@ WHERE
     
     <xsl:template name="ldh:PostHTMLDocumentLoad">
         <xsl:param name="href" as="xs:anyURI"/> <!-- possibly proxied URL -->
-<!--        <xsl:param name="doc-uri" as="xs:anyURI"/>-->
-
-        <!-- update the document-level @about -->
-<!--        <xsl:for-each select="id('content-body', ixsl:page())">
-            <ixsl:set-attribute name="about" select="$doc-uri" object="."/>
-        </xsl:for-each>-->
-        
-        <!-- update RDF download links to match the current URI -->
-<!--        <xsl:for-each select="id('export-rdf', ixsl:page())/following-sibling::ul/li/a">
-             use @title attribute for the media type TO-DO: find a better way, a hidden input or smth 
-            <xsl:variable name="href" select="ac:build-uri(ldh:absolute-path($href), let $params := map{ 'accept': string(@title) } return if (not(starts-with($doc-uri, $ldt:base))) then map:merge(($params, map{ 'uri': $doc-uri })) else $params)" as="xs:anyURI"/>
-
-            <ixsl:set-attribute name="href" select="$href" object="."/>
-        </xsl:for-each>-->
             
         <!-- activate the current URL in the document tree -->
         <xsl:for-each select="id('doc-tree', ixsl:page())">
