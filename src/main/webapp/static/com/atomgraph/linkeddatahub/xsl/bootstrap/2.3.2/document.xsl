@@ -60,7 +60,7 @@ extension-element-prefixes="ixsl"
 
     <xsl:param name="main-doc" select="/" as="document-node()"/>
     <xsl:param name="acl:Agent" as="document-node()?"/>
-    <xsl:param name="acl:mode" select="$foaf:Agent//*[acl:accessToClass/@rdf:resource = (key('resources', ldh:absolute-path(base-uri()), $main-doc)/rdf:type/@rdf:resource, key('resources', base-uri(), $main-doc)/rdf:type/@rdf:resource/ldh:listSuperClasses(.))]/acl:mode/@rdf:resource" as="xs:anyURI*"/>
+    <xsl:param name="acl:mode" select="$foaf:Agent//*[acl:accessToClass/@rdf:resource = (key('resources', ldh:absolute-path(base-uri()), $main-doc)/rdf:type/@rdf:resource, key('resources', ldh:absolute-path(base-uri()), $main-doc)/rdf:type/@rdf:resource/ldh:listSuperClasses(.))]/acl:mode/@rdf:resource" as="xs:anyURI*"/>
     
     <!-- schema.org BREADCRUMBS -->
     
