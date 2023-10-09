@@ -33,10 +33,6 @@ extension-element-prefixes="ixsl"
 exclude-result-prefixes="#all"
 >
 
-<!--    <xsl:function name="ldh:href" as="xs:anyURI">
-        <xsl:sequence select="xs:anyURI(ixsl:get(ixsl:window(), 'location.href'))"/>
-    </xsl:function>-->
-
     <xsl:function name="ldt:base" as="xs:anyURI">
         <xsl:sequence select="xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.base'))"/>
     </xsl:function>
@@ -47,10 +43,6 @@ exclude-result-prefixes="#all"
         
         <xsl:sequence select="if (ixsl:contains($arg, 'baseURI')) then ac:document-uri(ixsl:get($arg, 'baseURI')) else ()"/>
     </xsl:function>
-    
-<!--    <xsl:function name="ac:uri" as="xs:anyURI">
-        <xsl:sequence select="xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.uri'))"/>
-    </xsl:function>-->
 
     <xsl:function name="ac:mode" as="xs:anyURI*">
         <xsl:param name="base-uri" as="xs:anyURI"/>
