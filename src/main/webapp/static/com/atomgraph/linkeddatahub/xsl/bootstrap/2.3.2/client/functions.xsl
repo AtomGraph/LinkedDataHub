@@ -33,9 +33,9 @@ extension-element-prefixes="ixsl"
 exclude-result-prefixes="#all"
 >
 
-    <xsl:function name="ldh:href" as="xs:anyURI">
+<!--    <xsl:function name="ldh:href" as="xs:anyURI">
         <xsl:sequence select="xs:anyURI(ixsl:get(ixsl:window(), 'location.href'))"/>
-    </xsl:function>
+    </xsl:function>-->
 
     <xsl:function name="ldt:base" as="xs:anyURI">
         <xsl:sequence select="xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.base'))"/>
@@ -53,9 +53,9 @@ exclude-result-prefixes="#all"
     </xsl:function>-->
 
     <xsl:function name="ac:mode" as="xs:anyURI*">
-        <xsl:variable name="href" select="ldh:href()" as="xs:anyURI"/>
+        <xsl:param name="base-uri" as="xs:anyURI"/>
         <!-- decode mode URI from the ?mode query param, if it's present -->
-        <xsl:sequence select="if (contains($href, '?')) then let $query-params := ldh:parse-query-params(substring-after($href, '?')) return ldh:decode-uri($query-params?mode) else ()"/> <!-- raw URL -->
+        <xsl:sequence select="if (contains($base-uri, '?')) then let $query-params := ldh:parse-query-params(substring-after($base-uri, '?')) return ldh:decode-uri($query-params?mode) else ()"/> <!-- raw URL -->
     </xsl:function>
 
     <xsl:function name="acl:mode" as="xs:anyURI*">

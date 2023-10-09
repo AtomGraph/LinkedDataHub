@@ -1113,7 +1113,7 @@ WHERE
                     <xsl:when test="starts-with(?media-type, 'application/xhtml+xml')"> <!-- allow 'application/xhtml+xml;charset=UTF-8' as well -->
                         <xsl:apply-templates select="?body" mode="ldh:HTMLDocumentLoaded">
                             <!-- $href does not change at this point -->
-                            <xsl:with-param name="href" select="ldh:href()"/>
+                            <!--<xsl:with-param name="href" select="ldh:base-uri(?body)"/>-->
                             <xsl:with-param name="container" select="$container"/>
                         </xsl:apply-templates>
                     </xsl:when>
@@ -1161,7 +1161,7 @@ WHERE
                         <xsl:variable name="request" as="item()*">
                             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $created-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
                                 <xsl:call-template name="ldh:DocumentLoaded">
-                                    <xsl:with-param name="href" select="ldh:absolute-path($created-uri)"/> <!-- ldh:href()? -->
+                                    <xsl:with-param name="href" select="ldh:absolute-path($created-uri)"/>
                                 </xsl:call-template>
                             </ixsl:schedule-action>
                         </xsl:variable>

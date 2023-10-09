@@ -122,7 +122,7 @@ public abstract class XSLTWriterBase extends com.atomgraph.client.writer.XSLTWri
         try
         {
             //params.put(new QName("ldh", LDH.absolutePath.getNameSpace(), LDH.absolutePath.getLocalName()), new XdmAtomicValue(getAbsolutePath()));
-            params.put(new QName("ldh", LDH.requestUri.getNameSpace(), LDH.requestUri.getLocalName()), new XdmAtomicValue(getRequestURI()));
+            //params.put(new QName("ldh", LDH.requestUri.getNameSpace(), LDH.requestUri.getLocalName()), new XdmAtomicValue(getRequestURI()));
             //if (getURI() != null) params.put(new QName("ac", AC.uri.getNameSpace(), AC.uri.getLocalName()), new XdmAtomicValue(getURI()));
             //else params.put(new QName("ac", AC.uri.getNameSpace(), AC.uri.getLocalName()), new XdmAtomicValue(getAbsolutePath()));
 
@@ -278,6 +278,12 @@ public abstract class XSLTWriterBase extends com.atomgraph.client.writer.XSLTWri
         }
     }
     
+    /**
+     * Returns the base URI of the main RDF/XML document being transformed.
+     * 
+     * @return base URL
+     * @throws URISyntaxException 
+     */
     @Override
     public String getSystemId() throws URISyntaxException
     {
@@ -285,7 +291,7 @@ public abstract class XSLTWriterBase extends com.atomgraph.client.writer.XSLTWri
         
         if (uri != null) return uri.toString();
         
-        return getAbsolutePath().toString();
+        return getRequestURI().toString();
     }
     
     /**

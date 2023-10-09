@@ -251,7 +251,7 @@ WHERE
         <ixsl:set-property name="endpoint" select="$sd:endpoint" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
         <ixsl:set-property name="yasqe" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
         <xsl:apply-templates select="ixsl:page()" mode="ldh:HTMLDocumentLoaded">
-            <xsl:with-param name="href" select="ldh:href()"/>
+<!--            <xsl:with-param name="href" select="ldh:href()"/>-->
             <xsl:with-param name="endpoint" select="$sd:endpoint"/>
             <xsl:with-param name="container" select="id($body-id, ixsl:page())"/>
             <xsl:with-param name="replace-content" select="false()"/>
@@ -269,7 +269,7 @@ WHERE
             </xsl:for-each>
         </xsl:if>
         <!-- initialize form if we're in editing mode -->
-        <xsl:if test="ac:mode() = '&ac;EditMode'">
+        <xsl:if test="ac:mode(ldh:base-uri(ixsl:page())) = '&ac;EditMode'">
             <xsl:apply-templates select="id('content-body', ixsl:page())" mode="ldh:PostConstruct"/>
         </xsl:if>
         <!-- initialize LinkedDataHub.apps (and the search dropdown, if it's shown) -->
@@ -287,7 +287,7 @@ WHERE
                 <xsl:call-template name="ldh:DocTree"/>
             </xsl:result-document>
             <xsl:call-template name="ldh:DocTreeActivateHref">
-                <xsl:with-param name="href" select="ldh:href()"/>
+                <xsl:with-param name="href" select="ldh:base-uri(ixsl:page())"/>
             </xsl:call-template>
         </xsl:for-each>
     </xsl:template>
@@ -858,7 +858,7 @@ WHERE
                 </xsl:if>
 
                 <xsl:apply-templates select="?body" mode="ldh:HTMLDocumentLoaded">
-                    <xsl:with-param name="href" select="$href"/>
+                    <!--<xsl:with-param name="href" select="$href"/>-->
                     <xsl:with-param name="endpoint" select="$endpoint"/>
                     <xsl:with-param name="container" select="id($body-id, ixsl:page())"/>
                     <xsl:with-param name="push-state" select="$push-state"/>
@@ -885,7 +885,7 @@ WHERE
     
     <!-- cannot be a named template because overriding templates need to be able to call xsl:next-match (cannot use xsl:origin with Saxon-JS because of XSLT 3.0 packages) -->
     <xsl:template match="/" mode="ldh:HTMLDocumentLoaded">
-        <xsl:param name="href" as="xs:anyURI"/> <!-- possibly proxied URL -->
+        <xsl:param name="href" select="ldh:base-uri(.)" as="xs:anyURI"/> <!-- possibly proxied URL -->
         <xsl:param name="container" as="element()"/>
         <xsl:param name="push-state" select="true()" as="xs:boolean"/>
         <xsl:param name="endpoint" as="xs:anyURI?"/>
@@ -1023,7 +1023,7 @@ WHERE
                         <ul class="well well-small nav nav-list">
                             <xsl:apply-templates select="$results/rdf:RDF/rdf:Description[not(@rdf:about = $doc-uri)]" mode="bs2:List">
                                 <xsl:sort select="ac:label(.)" order="ascending" lang="{$ldt:lang}"/>
-                                <xsl:with-param name="mode" select="ac:mode()[1]" tunnel="yes"/> <!-- TO-DO: support multiple modes -->
+                                <xsl:with-param name="mode" select="ac:mode(ldh:base-uri(.))[1]" tunnel="yes"/> <!-- TO-DO: support multiple modes -->
                                 <xsl:with-param name="render-id" select="false()" tunnel="yes"/>
                             </xsl:apply-templates>
                         </ul>
