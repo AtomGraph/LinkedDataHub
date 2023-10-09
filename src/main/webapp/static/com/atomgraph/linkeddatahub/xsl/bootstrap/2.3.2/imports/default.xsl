@@ -443,7 +443,7 @@ exclude-result-prefixes="#all"
             <xsl:with-param name="class" select="$class"/>
             <xsl:with-param name="target" select="$target"/>
         </xsl:next-match>
-            ->
+        -->
     </xsl:template>
     
     <!-- DEFAULT -->
