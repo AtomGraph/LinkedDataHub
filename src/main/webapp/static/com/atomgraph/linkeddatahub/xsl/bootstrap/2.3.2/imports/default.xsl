@@ -400,9 +400,10 @@ exclude-result-prefixes="#all"
         <xsl:param name="query-string" select="'DESCRIBE &lt;' || . || '&gt;'" as="xs:string"/>
         <xsl:param name="fragment" select="if (starts-with(., $ldt:base)) then (if (contains(., '#')) then substring-after(., '#') else ()) else encode-for-uri(.)" as="xs:string?"/>
         <xsl:message>111 ldh:base-uri(.): <xsl:value-of select="ldh:base-uri(.)"/></xsl:message>
+        <!--
         <xsl:param name="href" select="ldh:href($ldt:base, ldh:absolute-path(base-uri()), map{}, if ($endpoint) then xs:anyURI($endpoint || '?query=' || encode-for-uri($query-string)) else xs:anyURI(.), $fragment)" as="xs:anyURI" use-when="system-property('xsl:product-name') = 'SAXON'"/>
         <xsl:param name="href" select="ldh:href($ldt:base, ldh:absolute-path(ldh:base-uri(.)), map{}, if ($endpoint) then xs:anyURI($endpoint || '?query=' || encode-for-uri($query-string)) else xs:anyURI(.), $fragment)" as="xs:anyURI" use-when="system-property('xsl:product-name') eq 'SaxonJS'"/>
-        <!-- if the URI's absolute path equals the current URL and has a #fragment, use the fragment as @id. Otherwise use encoded URI as @id. -->
+        !!!!!!!!!!!!! - if the URI's absolute path equals the current URL and has a #fragment, use the fragment as @id. Otherwise use encoded URI as @id. -
         <xsl:param name="id" select="if (starts-with(., '#') or (ldh:absolute-path(.) = ldh:absolute-path(base-uri()) and (contains(., '#')))) then substring-after(., '#') else (if (starts-with(., $ldt:base)) then () else encode-for-uri(.))" as="xs:string?" use-when="system-property('xsl:product-name') = 'SAXON'"/>
         <xsl:param name="id" select="if (starts-with(., '#') or (ldh:absolute-path(.) = ldh:absolute-path(ldh:base-uri(.)) and (contains(., '#')))) then substring-after(., '#') else (if (starts-with(., $ldt:base)) then () else encode-for-uri(.))" as="xs:string?" use-when="system-property('xsl:product-name') eq 'SaxonJS'"/>
 
@@ -417,6 +418,7 @@ exclude-result-prefixes="#all"
             <xsl:with-param name="class" select="$class"/>
             <xsl:with-param name="target" select="$target"/>
         </xsl:next-match>
+        -->
     </xsl:template>
     
     <xsl:template match="@rdf:about | @rdf:resource" mode="svg:Anchor">
@@ -424,6 +426,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="query-string" select="'DESCRIBE &lt;' || . || '&gt;'" as="xs:string"/>
         <xsl:param name="fragment" select="if (starts-with(., $ldt:base)) then (if (contains(., '#')) then substring-after(., '#') else ()) else encode-for-uri(.)" as="xs:string?"/>
         <xsl:message>222 ldh:base-uri(.): <xsl:value-of select="ldh:base-uri(.)"/></xsl:message>
+        <!--
         <xsl:param name="href" select="ldh:href($ldt:base, ldh:absolute-path(base-uri()), map{}, if ($endpoint) then xs:anyURI($endpoint || '?query=' || encode-for-uri($query-string)) else xs:anyURI(.), $fragment)" as="xs:anyURI" use-when="system-property('xsl:product-name') = 'SAXON'"/>
         <xsl:param name="href" select="ldh:href($ldt:base, ldh:absolute-path(ldh:base-uri(.)), map{}, if ($endpoint) then xs:anyURI($endpoint || '?query=' || encode-for-uri($query-string)) else xs:anyURI(.), $fragment)" as="xs:anyURI" use-when="system-property('xsl:product-name') eq 'SaxonJS'"/>
         <xsl:param name="id" select="$fragment" as="xs:string?"/>
@@ -440,6 +443,7 @@ exclude-result-prefixes="#all"
             <xsl:with-param name="class" select="$class"/>
             <xsl:with-param name="target" select="$target"/>
         </xsl:next-match>
+            ->
     </xsl:template>
     
     <!-- DEFAULT -->
@@ -450,6 +454,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="query-string" select="'DESCRIBE &lt;' || . || '&gt;'" as="xs:string"/>
         <xsl:param name="fragment" select="if (starts-with(., $ldt:base)) then (if (contains(., '#')) then substring-after(., '#') else ()) else encode-for-uri(.)" as="xs:string?"/>
         <xsl:message>333 ldh:base-uri(.): <xsl:value-of select="ldh:base-uri(.)"/></xsl:message>
+        <!--
         <xsl:param name="href" select="ldh:href($ldt:base, ldh:absolute-path(base-uri()), map{}, if ($endpoint) then xs:anyURI($endpoint || '?query=' || encode-for-uri($query-string)) else xs:anyURI(.), $fragment)" as="xs:anyURI" use-when="system-property('xsl:product-name') = 'SAXON'"/>
         <xsl:param name="href" select="ldh:href($ldt:base, ldh:absolute-path(ldh:base-uri(.)), map{}, if ($endpoint) then xs:anyURI($endpoint || '?query=' || encode-for-uri($query-string)) else xs:anyURI(.), $fragment)" as="xs:anyURI" use-when="system-property('xsl:product-name') eq 'SaxonJS'"/>
         <xsl:param name="id" as="xs:string?"/>
@@ -464,6 +469,7 @@ exclude-result-prefixes="#all"
             <xsl:with-param name="class" select="$class"/>
             <xsl:with-param name="target" select="$target"/>
         </xsl:next-match>
+        -->
     </xsl:template>
     
     <!-- LOOKUP -->
