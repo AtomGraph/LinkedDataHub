@@ -420,7 +420,7 @@ extension-element-prefixes="ixsl"
                 <xsl:attribute name="class" select="$class"/>
             </xsl:if>
 
-            <a href="{ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ldh:query-params(xs:anyURI(@rdf:about)), base-uri())}">
+            <a href="{ldh:href($ldt:base, ldh:absolute-path($base-uri), ldh:query-params(xs:anyURI(@rdf:about)))}">
                 <xsl:value-of>
                     <xsl:apply-templates select="." mode="ac:label"/>
                 </xsl:value-of>
@@ -1086,6 +1086,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="traversed-ids" select="@rdf:*" as="xs:string*" tunnel="yes"/>
         <xsl:param name="show-subject" select="false()" as="xs:boolean" tunnel="yes"/>
         <xsl:param name="required" select="false()" as="xs:boolean"/>
+        <xsl:param name="base-uri" select="base-uri()" as="xs:anyURI"/>
 
         <fieldset>
             <xsl:if test="$id">
@@ -1187,6 +1188,7 @@ extension-element-prefixes="ixsl"
                 <xsl:with-param name="shapes" select="$shapes"/>
                 <xsl:with-param name="traversed-ids" select="$traversed-ids" tunnel="yes"/>
                 <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/>
+                <xsl:with-param name="base-uri" select="$base-uri" tunnel="yes"/> <!-- base-uri() is empty on constructed documents -->
             </xsl:apply-templates>
 
             <xsl:apply-templates select="." mode="bs2:PropertyControl">

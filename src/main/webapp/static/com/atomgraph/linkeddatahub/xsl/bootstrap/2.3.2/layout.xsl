@@ -1121,7 +1121,7 @@ LIMIT   100
                 <xsl:for-each select="key('resources-by-type', '&ac;Mode', document(ac:document-uri('&ac;'))) | key('resources', ('&ac;QueryEditorMode'), document(ac:document-uri('&ac;')))">
                     <xsl:sort select="ac:label(.)"/>
                     <xsl:apply-templates select="." mode="bs2:ModeListItem">
-                        <xsl:with-param name="base-uri" select="$base-uri"/>
+                        <xsl:with-param name="base-uri" select="$base-uri" tunnel="yes"/>
                         <xsl:with-param name="active" select="$ac:mode"/>
                     </xsl:apply-templates>
                 </xsl:for-each>
@@ -1236,7 +1236,8 @@ LIMIT   100
     </xsl:template>
     
     <xsl:template match="*[@rdf:about or @rdf:nodeID][$ac:forClass]/sioc:has_parent/@rdf:nodeID | *[@rdf:about or @rdf:nodeID][$ac:forClass]/sioc:has_container/@rdf:nodeID" mode="bs2:FormControl">
-        <xsl:param name="container" select="if (map:contains($default-classes, $ac:forClass)) then map:get($default-classes, $ac:forClass) else base-uri()" as="xs:anyURI"/>
+        <xsl:param name="base-uri" select="base-uri()" as="xs:anyURI" tunnel="yes"/>
+        <xsl:param name="container" select="if (map:contains($default-classes, $ac:forClass)) then map:get($default-classes, $ac:forClass) else $base-uri" as="xs:anyURI"/>
 
         <xsl:next-match>
             <xsl:with-param name="container" select="$container" as="xs:anyURI"/>
