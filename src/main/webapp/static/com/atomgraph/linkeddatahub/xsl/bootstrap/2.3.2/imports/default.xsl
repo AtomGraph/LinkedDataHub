@@ -399,7 +399,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="endpoint" as="xs:anyURI?" tunnel="yes"/>
         <xsl:param name="query-string" select="'DESCRIBE &lt;' || . || '&gt;'" as="xs:string"/>
         <xsl:param name="fragment" select="if (starts-with(., $ldt:base)) then (if (contains(., '#')) then substring-after(., '#') else ()) else encode-for-uri(.)" as="xs:string?"/>
-        <xsl:message>111 ldh:base-uri(.): <xsl:value-of select="ldh:base-uri(.)"/></xsl:message>
+        <xsl:message use-when="system-property('xsl:product-name') eq 'SaxonJS'">111 ldh:base-uri(.): <xsl:value-of select="ldh:base-uri(.)"/></xsl:message>
         <!--
         <xsl:param name="href" select="ldh:href($ldt:base, ldh:absolute-path(base-uri()), map{}, if ($endpoint) then xs:anyURI($endpoint || '?query=' || encode-for-uri($query-string)) else xs:anyURI(.), $fragment)" as="xs:anyURI" use-when="system-property('xsl:product-name') = 'SAXON'"/>
         <xsl:param name="href" select="ldh:href($ldt:base, ldh:absolute-path(ldh:base-uri(.)), map{}, if ($endpoint) then xs:anyURI($endpoint || '?query=' || encode-for-uri($query-string)) else xs:anyURI(.), $fragment)" as="xs:anyURI" use-when="system-property('xsl:product-name') eq 'SaxonJS'"/>
@@ -425,7 +425,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="endpoint" as="xs:anyURI?" tunnel="yes"/>
         <xsl:param name="query-string" select="'DESCRIBE &lt;' || . || '&gt;'" as="xs:string"/>
         <xsl:param name="fragment" select="if (starts-with(., $ldt:base)) then (if (contains(., '#')) then substring-after(., '#') else ()) else encode-for-uri(.)" as="xs:string?"/>
-        <xsl:message>222 ldh:base-uri(.): <xsl:value-of select="ldh:base-uri(.)"/></xsl:message>
+        <xsl:message use-when="system-property('xsl:product-name') eq 'SaxonJS'">222 ldh:base-uri(.): <xsl:value-of select="ldh:base-uri(.)"/></xsl:message>
         <!--
         <xsl:param name="href" select="ldh:href($ldt:base, ldh:absolute-path(base-uri()), map{}, if ($endpoint) then xs:anyURI($endpoint || '?query=' || encode-for-uri($query-string)) else xs:anyURI(.), $fragment)" as="xs:anyURI" use-when="system-property('xsl:product-name') = 'SAXON'"/>
         <xsl:param name="href" select="ldh:href($ldt:base, ldh:absolute-path(ldh:base-uri(.)), map{}, if ($endpoint) then xs:anyURI($endpoint || '?query=' || encode-for-uri($query-string)) else xs:anyURI(.), $fragment)" as="xs:anyURI" use-when="system-property('xsl:product-name') eq 'SaxonJS'"/>
@@ -453,7 +453,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="endpoint" as="xs:anyURI?" tunnel="yes"/>
         <xsl:param name="query-string" select="'DESCRIBE &lt;' || . || '&gt;'" as="xs:string"/>
         <xsl:param name="fragment" select="if (starts-with(., $ldt:base)) then (if (contains(., '#')) then substring-after(., '#') else ()) else encode-for-uri(.)" as="xs:string?"/>
-        <xsl:message>333 ldh:base-uri(.): <xsl:value-of select="ldh:base-uri(.)"/></xsl:message>
+        <xsl:message use-when="system-property('xsl:product-name') eq 'SaxonJS'">333 ldh:base-uri(.): <xsl:value-of select="ldh:base-uri(.)"/></xsl:message>
         <!--
         <xsl:param name="href" select="ldh:href($ldt:base, ldh:absolute-path(base-uri()), map{}, if ($endpoint) then xs:anyURI($endpoint || '?query=' || encode-for-uri($query-string)) else xs:anyURI(.), $fragment)" as="xs:anyURI" use-when="system-property('xsl:product-name') = 'SAXON'"/>
         <xsl:param name="href" select="ldh:href($ldt:base, ldh:absolute-path(ldh:base-uri(.)), map{}, if ($endpoint) then xs:anyURI($endpoint || '?query=' || encode-for-uri($query-string)) else xs:anyURI(.), $fragment)" as="xs:anyURI" use-when="system-property('xsl:product-name') eq 'SaxonJS'"/>
