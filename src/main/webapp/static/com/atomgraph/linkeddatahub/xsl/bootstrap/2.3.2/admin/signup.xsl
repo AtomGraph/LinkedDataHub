@@ -71,6 +71,7 @@ exclude-result-prefixes="#all">
             <xsl:with-param name="constructor-query" select="$constructor-query" tunnel="yes"/>
             <xsl:with-param name="constraint-query" select="$constraint-query" tunnel="yes"/>
             <xsl:with-param name="shape-query" select="$shape-query" tunnel="yes"/>
+            <xsl:with-param name="base-uri" select="base-uri($main-doc)" tunnel="yes"/> <!-- base-uri() is empty on constructed documents -->
         </xsl:apply-templates>
     </xsl:template>
     
@@ -82,6 +83,7 @@ exclude-result-prefixes="#all">
             <xsl:with-param name="constructor-query" select="$constructor-query" tunnel="yes"/>
             <xsl:with-param name="constraint-query" select="$constraint-query" tunnel="yes"/>
             <xsl:with-param name="shape-query" select="$shape-query" tunnel="yes"/>
+            <xsl:with-param name="base-uri" select="base-uri($main-doc)" tunnel="yes"/> <!-- base-uri() is empty on constructed documents -->
         </xsl:apply-templates>
     </xsl:template>
     

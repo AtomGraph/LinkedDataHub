@@ -837,6 +837,7 @@ LIMIT   100
                                 <xsl:with-param name="constructor-query" select="$constructor-query" tunnel="yes"/>
                                 <xsl:with-param name="constraint-query" select="$constraint-query" tunnel="yes"/>
                                 <xsl:with-param name="shape-query" select="$shape-query" tunnel="yes"/>
+                                <xsl:with-param name="base-uri" select="base-uri()" tunnel="yes"/> <!-- base-uri() is empty on constructed documents -->
                                 <xsl:sort select="ac:label(.)"/>
                             </xsl:apply-templates>
                         </xsl:when>
@@ -846,6 +847,7 @@ LIMIT   100
                                 <xsl:with-param name="constructor-query" select="$constructor-query" tunnel="yes"/>
                                 <xsl:with-param name="constraint-query" select="$constraint-query" tunnel="yes"/>
                                 <xsl:with-param name="shape-query" select="$shape-query" tunnel="yes"/>
+                                <xsl:with-param name="base-uri" select="base-uri()" tunnel="yes"/> <!-- base-uri() is empty on constructed documents -->
                                 <xsl:sort select="ac:label(.)"/>
                             </xsl:apply-templates>
                         </xsl:otherwise>
@@ -863,6 +865,7 @@ LIMIT   100
                                 <xsl:with-param name="constructor-query" select="$constructor-query" tunnel="yes"/>
                                 <xsl:with-param name="constraint-query" select="$constraint-query" tunnel="yes"/>
                                 <xsl:with-param name="shape-query" select="$shape-query" tunnel="yes"/>
+                                <xsl:with-param name="base-uri" select="base-uri()" tunnel="yes"/> <!-- base-uri() is empty on constructed documents -->
                                 <xsl:sort select="ac:label(.)"/>
                             </xsl:apply-templates>
                         </xsl:when>
@@ -872,6 +875,7 @@ LIMIT   100
                                 <xsl:with-param name="constructor-query" select="$constructor-query" tunnel="yes"/>
                                 <xsl:with-param name="constraint-query" select="$constraint-query" tunnel="yes"/>
                                 <xsl:with-param name="shape-query" select="$shape-query" tunnel="yes"/>
+                                <xsl:with-param name="base-uri" select="base-uri()" tunnel="yes"/> <!-- base-uri() is empty on constructed documents -->
                                 <xsl:sort select="ac:label(.)"/>
                             </xsl:apply-templates>
                         </xsl:otherwise>
