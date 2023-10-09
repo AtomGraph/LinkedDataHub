@@ -41,7 +41,14 @@ exclude-result-prefixes="#all"
     <xsl:function name="ldh:base-uri" as="xs:anyURI?">
         <xsl:param name="arg" as="node()"/>
         
-        <xsl:sequence select="if (ixsl:contains($arg, 'baseURI')) then ac:document-uri(ixsl:get($arg, 'baseURI')) else ()"/>
+        <xsl:choose>
+            <xsl:when test="($arg instance of attribute()) or ($arg instance of text())">
+                <xsl:sequence select="if (ixsl:contains($arg/.., 'baseURI')) then ac:document-uri(ixsl:get($arg/.., 'baseURI')) else ()"/>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:sequence select="if (ixsl:contains($arg, 'baseURI')) then ac:document-uri(ixsl:get($arg, 'baseURI')) else ()"/>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:function>
 
     <xsl:function name="ac:mode" as="xs:anyURI*">
