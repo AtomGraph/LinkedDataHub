@@ -290,15 +290,6 @@ exclude-result-prefixes="#all"
         </xsl:message>
     </xsl:function>
     
-    <!-- function stub so that Saxon-EE doesn't complain when compiling SEF -->
-    <xsl:function name="ldh:base-uri" as="xs:anyURI?" override-extension-function="no" cache="yes">
-        <xsl:param name="arg" as="node()"/>
-        
-        <xsl:message use-when="system-property('xsl:product-name') = 'SAXON'" terminate="yes">
-            Not implemented
-        </xsl:message>
-    </xsl:function>
-    
     <!-- SHARED FUNCTIONS -->
 
     <!-- TO-DO: move down to Web-Client -->
