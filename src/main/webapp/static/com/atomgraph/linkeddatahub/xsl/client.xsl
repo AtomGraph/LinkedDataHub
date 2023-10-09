@@ -924,7 +924,7 @@ WHERE
                 <xsl:when test="$fragment">
                     <xsl:for-each select="id($fragment, ixsl:page())">
                         <xsl:sequence select="ixsl:call(., 'scrollIntoView', [])[current-date() lt xs:date('2000-01-01')]"/>
-                    </xsl:for-each >
+                    </xsl:for-each>
                 </xsl:when>
                 <!-- otherwise, scroll to the top of the window -->
                 <xsl:otherwise>

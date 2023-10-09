@@ -1265,7 +1265,7 @@ extension-element-prefixes="ixsl"
                                 </xsl:if>
                             </xsl:otherwise>
                         </xsl:choose>
-                        <xsl:for-each use-when="system-property('xsl:product-name') eq 'SaxonJS'" select=".">
+                        <xsl:for-each select="." use-when="system-property('xsl:product-name') eq 'SaxonJS'">
                             <option value="{current-grouping-key()}">
                                 <xsl:value-of select="local-name()"/>
                             </option>
