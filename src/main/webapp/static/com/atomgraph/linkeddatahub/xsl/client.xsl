@@ -939,7 +939,7 @@ WHERE
                 <xsl:variable name="query-params" select="if (contains(ldh:base-uri(.), '?')) then ldh:parse-query-params(substring-after(ldh:base-uri(.), '?')) else map{}" as="map(xs:string, xs:string*)"/>
                 <xsl:choose>
                     <!-- if ldh:ContentMode is active but no mode param explicitly is specified, change the page's URL to reflect that -->
-                    <xsl:when test="not(map:contains($query-params, 'mode')) and id('content-body', ixsl:page())/div[contains-token(@class, 'row-fluid')][1]/ul[contains-token(@class, 'nav-tabs')]/li[contains-token(@class, 'content-mode')][contains-token(@class, 'active')])">
+                    <xsl:when test="not(map:contains($query-params, 'mode')) and id('content-body', ixsl:page())/div[contains-token(@class, 'row-fluid')][1]/ul[contains-token(@class, 'nav-tabs')]/li[contains-token(@class, 'content-mode')][contains-token(@class, 'active')]">
                         <xsl:message>BBB ldh:base-uri(.): <xsl:value-of select="ldh:base-uri(.)"/></xsl:message>
                         
                         <xsl:variable name="fragment" select="substring-after($href, '#')" as="xs:string"/>
