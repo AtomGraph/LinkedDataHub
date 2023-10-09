@@ -42,6 +42,7 @@ exclude-result-prefixes="#all">
 
         <span>
             <xsl:apply-templates select="key('resources', $container, document($container))" mode="ldh:Typeahead"/>
+            $base-uri: !!!<xsl:value-of select="$base-uri"/>/!!!
         </span>
         
         <xsl:text> </xsl:text>
