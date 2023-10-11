@@ -1419,7 +1419,7 @@ WHERE
         <xsl:variable name="results-uri" select="if ($query) then ac:build-uri($endpoint, map{ 'query': $query }) else ()" as="xs:anyURI?"/>
         
         <!-- if SPARQL editor is shown, use the SPARQL protocol URI; otherwise use the Linked Data resource URI -->
-        <xsl:variable name="uri" select="if ($results-uri) then $results-uri else ldh:base-uri(.)" as="xs:anyURI"/>
+        <xsl:variable name="uri" select="if ($results-uri) then $results-uri else xs:anyURI(ixsl:query-params()?uri)" as="xs:anyURI"/>
 
         <xsl:call-template name="ldh:ShowAddDataForm">
             <xsl:with-param name="form" as="element()">
