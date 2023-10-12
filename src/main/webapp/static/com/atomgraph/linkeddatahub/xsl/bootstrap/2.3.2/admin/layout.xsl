@@ -119,38 +119,50 @@ exclude-result-prefixes="#all">
     <!-- ROW FORM - we need the overriding templates as well -->
 
     <xsl:template match="rdf:RDF[$ac:forClass = ('&ldh;CSVImport', '&ldh;RDFImport')][$ac:method = 'GET']" mode="bs2:RowForm" priority="2" use-when="system-property('xsl:product-name') = 'SAXON'">
+        <xsl:param name="id" select="concat('form-', generate-id())" as="xs:string?"/>
+        <xsl:param name="class" select="'form-horizontal'" as="xs:string?"/>
         <xsl:param name="action" select="ac:build-uri(resolve-uri('importer', $ldt:base), map{ 'forClass': string($ac:forClass), 'mode': '&ac;EditMode' })" as="xs:anyURI"/>
         <xsl:param name="classes" as="element()*"/>
 
         <xsl:next-match>
+            <xsl:with-param name="id" select="$id"/>
+            <xsl:with-param name="class" select="$class"/>
             <xsl:with-param name="action" select="$action"/>
             <xsl:with-param name="classes" select="$classes"/>
         </xsl:next-match>
     </xsl:template>
     
     <xsl:template match="rdf:RDF[$ac:forClass][$ac:method = 'GET']" mode="bs2:RowForm" priority="1" use-when="system-property('xsl:product-name') = 'SAXON'">
+        <xsl:param name="id" select="concat('form-', generate-id())" as="xs:string?"/>
+        <xsl:param name="class" select="'form-horizontal'" as="xs:string?"/>
         <xsl:param name="action" select="ac:build-uri($a:graphStore, map{ 'forClass': string($ac:forClass), 'mode': '&ac;EditMode' })" as="xs:anyURI"/>
         <xsl:param name="classes" as="element()*"/>
-CCC
+
         <xsl:next-match>
+            <xsl:with-param name="id" select="$id"/>
+            <xsl:with-param name="class" select="$class"/>
             <xsl:with-param name="action" select="$action"/>
             <xsl:with-param name="classes" select="$classes"/>
         </xsl:next-match>
     </xsl:template>
     
     <!-- add sp:Construct to the creatable class list below the form. Needs to pass parameters from signup.xsl and request-access.xsl!!! -->
-    <xsl:template match="rdf:RDF[base-uri()][$ac:method = 'GET']" mode="bs2:RowForm" use-when="system-property('xsl:product-name') = 'SAXON'">
+    <xsl:template match="rdf:RDF[$ac:method = 'GET']" mode="bs2:RowForm" use-when="system-property('xsl:product-name') = 'SAXON'">
+        <xsl:param name="id" select="concat('form-', generate-id())" as="xs:string?"/>
+        <xsl:param name="class" select="'form-horizontal'" as="xs:string?"/>
         <xsl:param name="action" select="ldh:href($ldt:base, ldh:absolute-path(base-uri()), map{}, ac:build-uri(ldh:absolute-path(base-uri()), map{ '_method': 'PUT', 'mode': for $mode in $ac:mode return string($mode) }))" as="xs:anyURI"/>
         <xsl:param name="enctype" select="'multipart/form-data'" as="xs:string?"/>
         <xsl:param name="create-resource" select="true()" as="xs:boolean"/>
         <!-- TO-DO: generate ontology classes from the OWL vocabulary -->
         <xsl:param name="ontology-classes" select="for $class-uri in ('&ldh;Constructor', '&owl;Class', '&owl;DatatypeProperty', '&owl;ObjectProperty', '&owl;Restriction') return key('resources', $class-uri, document(ac:document-uri($class-uri)))" as="element()*"/>
-BBB
+
         <xsl:next-match>
-            <xsl:with-param name="classes" select="$ontology-classes"/>
+            <xsl:with-param name="id" select="$id"/>
+            <xsl:with-param name="class" select="$class"/>
             <xsl:with-param name="action" select="$action"/>
             <xsl:with-param name="enctype" select="$enctype"/>
             <xsl:with-param name="create-resource" select="$create-resource"/>
+            <xsl:with-param name="classes" select="$ontology-classes"/>
         </xsl:next-match>
     </xsl:template>
     
