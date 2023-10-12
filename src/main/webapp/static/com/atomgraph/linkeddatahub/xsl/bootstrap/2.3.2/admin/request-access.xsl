@@ -84,6 +84,8 @@ exclude-result-prefixes="#all">
             </xsl:document>
         </xsl:variable>
         
+        $CONSTRUCTOR BASE URI: '<xsl:value-of select="base-uri($constructor)"/>'
+        
         <xsl:apply-templates select="$constructor" mode="bs2:RowForm">
             <xsl:with-param name="id" select="'form-request-access'"/>
             <xsl:with-param name="action" select="ldh:absolute-path(base-uri($main-doc))"/>
