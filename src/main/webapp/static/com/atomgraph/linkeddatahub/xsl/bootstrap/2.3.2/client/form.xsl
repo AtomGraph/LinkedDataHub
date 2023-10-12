@@ -219,11 +219,12 @@ WHERE
         <ixsl:set-property name="value" select="string(adjust-dateTime-to-timezone(ixsl:get(., 'value')))" object="."/>
     </xsl:template>
     
-    
     <xsl:template name="bs2:SignUpComplete">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="created-uri" select="?headers?location" as="xs:anyURI"/>
 
+        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
+        
         <xsl:for-each select="id('content-body', ixsl:page())">
             <xsl:result-document href="?." method="ixsl:replace-content">
                 <div class="row-fluid">
@@ -246,8 +247,32 @@ WHERE
                 <xsl:variable name="request-uri" select="ac:build-uri($created-uri, map{ 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
                 <xsl:for-each select="document($request-uri)">
                     <xsl:apply-templates select="key('resources-by-type', '&foaf;Person')[@rdf:about]" mode="bs2:Row"/>
-                    <xsl:apply-templates select="key('resources-by-type', '&cert;PublicKey')[@rdf:about]" mode="bs2:Row"/>
                 </xsl:for-each>
+            </xsl:result-document>
+        </xsl:for-each>
+    </xsl:template>
+    
+    <xsl:template name="bs2:AccessRequestComplete">
+        <xsl:context-item as="map(*)" use="required"/>
+        <xsl:param name="created-uri" select="?headers?location" as="xs:anyURI"/>
+
+        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
+        
+        <xsl:for-each select="id('content-body', ixsl:page())">
+            <xsl:result-document href="?." method="ixsl:replace-content">
+                <div class="row-fluid">
+                    <div class="offset2 span7">
+                        <div class="alert alert-success row-fluid ">
+                            <div class="span1">
+                                <img src="{resolve-uri('static/com/atomgraph/linkeddatahub/icons/baseline_done_white_48dp.png', $ac:contextUri)}" alt="Request created"/>
+                            </div>
+                            <div class="span11">
+                                <p>Your access request has been created.</p>
+                                <p>You will be notified when the administrator approves or rejects it.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </xsl:result-document>
         </xsl:for-each>
     </xsl:template>
@@ -1175,6 +1200,10 @@ WHERE
                     <!-- special case for signup form -->
                     <xsl:when test="ixsl:get($form, 'id') = 'form-signup'">
                         <xsl:call-template name="bs2:SignUpComplete"/>
+                    </xsl:when>
+                    <!-- special case for request access form -->
+                    <xsl:when test="ixsl:get($form, 'id') = 'form-request-access'">
+                        <xsl:call-template name="bs2:AccessRequestComplete"/>
                     </xsl:when>
                     <!-- special case for "Save query/chart" forms: simpy hide the modal form -->
                     <xsl:when test="contains-token($form/@class, 'form-save-query') or contains-token($form/@class, 'form-save-chart')">

@@ -48,6 +48,7 @@ exclude-result-prefixes="#all">
 
     <xsl:template match="rdf:RDF[if (doc-available(ldh:absolute-path($ldh:requestUri))) then (key('resources', ldh:absolute-path($ldh:requestUri), document(ldh:absolute-path($ldh:requestUri)))/rdf:type/@rdf:resource = '&adm;RequestAccess') else false()][$ac:method = 'POST'][key('resources-by-type', '&spin;ConstraintViolation') or key('resources-by-type', '&sh;ValidationResult')]" mode="xhtml:Body" priority="3">
         <xsl:apply-templates select="." mode="bs2:RowForm">
+            <xsl:with-param name="id" select="'form-request-access'"/>
             <xsl:with-param name="action" select="ldh:absolute-path(base-uri($main-doc))"/>
             <xsl:with-param name="enctype" select="()"/> <!-- don't use 'multipart/form-data' which is the default -->
             <xsl:with-param name="create-resource" select="false()"/>
@@ -65,9 +66,6 @@ exclude-result-prefixes="#all">
             <xsl:apply-templates select="." mode="bs2:Row"/>
         </div>
     </xsl:template>
-
-    <!-- currently doesn't work because the client-side does not refresh the bs2:NavBarActions -->
-    <!--<xsl:template match="rdf:RDF[if (doc-available(ldh:absolute-path($ldh:requestUri))) then (key('resources', ldh:absolute-path($ldh:requestUri), document(ldh:absolute-path($ldh:requestUri)))/rdf:type/@rdf:resource = '&adm;RequestAccess') else false()]" mode="bs2:NavBarActions" priority="2"/>-->
 
     <xsl:template match="rdf:RDF[if (doc-available(ldh:absolute-path($ldh:requestUri))) then (key('resources', ldh:absolute-path($ldh:requestUri), document(ldh:absolute-path($ldh:requestUri)))/rdf:type/@rdf:resource = '&adm;RequestAccess') else false()]" mode="bs2:ModeTabs" priority="2"/>
 
@@ -87,6 +85,7 @@ exclude-result-prefixes="#all">
         </xsl:variable>
         
         <xsl:apply-templates select="$constructor" mode="bs2:RowForm">
+            <xsl:with-param name="id" select="'form-request-access'"/>
             <xsl:with-param name="action" select="ldh:absolute-path(base-uri($main-doc))"/>
             <xsl:with-param name="enctype" select="()"/> <!-- don't use 'multipart/form-data' which is the default -->
             <xsl:with-param name="create-resource" select="false()"/>
@@ -95,26 +94,6 @@ exclude-result-prefixes="#all">
             <xsl:with-param name="shape-query" select="$shape-query" tunnel="yes"/>
             <xsl:with-param name="base-uri" select="ldh:absolute-path(base-uri($main-doc))" tunnel="yes"/> <!-- base-uri() is empty on constructed documents -->
         </xsl:apply-templates>
-    </xsl:template>
-
-    <!-- display stored AuthorizationRequest data after successful POST (without ConstraintViolations) -->
-    <xsl:template match="rdf:RDF[if (doc-available(ldh:absolute-path($ldh:requestUri))) then (key('resources', ldh:absolute-path($ldh:requestUri), document(ldh:absolute-path($ldh:requestUri)))/rdf:type/@rdf:resource = '&adm;RequestAccess') else false()][$ac:method = 'POST'][not(key('resources-by-type', '&http;Response'))][1]" mode="bs2:Row" priority="3">
-        <xsl:param name="id" as="xs:string?"/>
-        <xsl:param name="class" select="'offset2 span7'" as="xs:string?"/>
-
-        <div class="row-fluid">
-            <div class="offset2 span7">
-                <div class="alert alert-success row-fluid ">
-                    <div class="span1">
-                        <img src="{resolve-uri('static/com/atomgraph/linkeddatahub/icons/baseline_done_white_48dp.png', $ac:contextUri)}" alt="Request created"/>
-                    </div>
-                    <div class="span11">
-                        <p>Your access request has been created.</p>
-                        <p>You will be notified when the administrator approves or rejects it.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
     </xsl:template>
 
     <!-- suppress other resources -->
