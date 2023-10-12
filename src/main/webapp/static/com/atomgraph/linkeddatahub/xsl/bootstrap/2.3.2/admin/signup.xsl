@@ -65,6 +65,7 @@ exclude-result-prefixes="#all">
     <xsl:template match="*[rdf:type/@rdf:resource = '&adm;SignUp'][$ac:method = 'GET']" mode="bs2:Row" priority="2">
         <xsl:variable name="constructors" select="ldh:query-result(map{}, resolve-uri('ns', $ldt:base), $constructor-query || ' VALUES $Type { ' || string-join(for $type in '&foaf;Person' return '&lt;' || $type || '&gt;', ' ') || ' }')" as="document-node()?"/>
         <xsl:apply-templates select="ldh:construct(map{ xs:anyURI('&foaf;Person'): $constructors//srx:result[srx:binding[@name = 'Type'] = '&foaf;Person']/srx:binding[@name = 'construct']/srx:literal/string() })" mode="bs2:RowForm">
+            <xsl:with-param name="id" select="'form-signup'"/>
             <xsl:with-param name="action" select="ldh:absolute-path(base-uri($main-doc))"/>
             <xsl:with-param name="enctype" select="()"/> <!-- don't use 'multipart/form-data' which is the default -->
             <xsl:with-param name="create-resource" select="false()"/>
@@ -74,9 +75,11 @@ exclude-result-prefixes="#all">
             <xsl:with-param name="base-uri" select="ldh:absolute-path(base-uri($main-doc))" tunnel="yes"/> <!-- base-uri() is empty on constructed documents -->
         </xsl:apply-templates>
     </xsl:template>
-    
+
+    <!-- constraint violation -->
     <xsl:template match="rdf:RDF[if (doc-available(ldh:absolute-path($ldh:requestUri))) then (key('resources', ldh:absolute-path($ldh:requestUri), document(ldh:absolute-path($ldh:requestUri)))/rdf:type/@rdf:resource = '&adm;SignUp') else false()][$ac:method = 'POST'][key('resources-by-type', '&spin;ConstraintViolation') or key('resources-by-type', '&sh;ValidationResult')]" mode="bs2:Row" priority="3">
         <xsl:apply-templates select="." mode="bs2:RowForm">
+            <xsl:with-param name="id" select="'form-signup'"/>
             <xsl:with-param name="action" select="ldh:absolute-path(base-uri($main-doc))"/>
             <xsl:with-param name="enctype" select="()"/>
             <xsl:with-param name="create-resource" select="false()"/>

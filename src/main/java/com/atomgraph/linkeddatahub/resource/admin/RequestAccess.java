@@ -141,7 +141,7 @@ public class RequestAccess extends GraphStoreImpl
             owner = agentModel.getResource(ownerURI);
             if (!agentModel.containsResource(owner)) throw new IllegalStateException("Could not load agent's <" + ownerURI + "> description from admin service");
 
-            super.post(requestModel, false, graphUri); // don't wrap into try-with-resources because that will close the Response
+            Response response = super.post(requestModel, false, graphUri); // don't wrap into try-with-resources because that will close the Response
 
             try
             {
@@ -152,9 +152,7 @@ public class RequestAccess extends GraphStoreImpl
                 if (log.isErrorEnabled()) log.error("Could not send access request email to Agent: {}", getAgentContext().get().getAgent().getURI());
             }
 
-            return Response.ok().
-                entity(requestModel).
-                build(); // don't return 201 Created as we don't want a redirect in client.xsl
+            return response; // 201 Created
         }
         finally
         {

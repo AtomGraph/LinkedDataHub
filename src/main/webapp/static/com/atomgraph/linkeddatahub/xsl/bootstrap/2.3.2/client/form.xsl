@@ -1137,8 +1137,32 @@ WHERE
             <xsl:when test="?status = 201 and ?headers?location">
                 <xsl:variable name="created-uri" select="?headers?location" as="xs:anyURI"/>
                 <xsl:choose>
+                    <!-- special case for signup form -->
+                    <xsl:when test="ixsl:get($form, 'id') = 'form-signup'">
+                        <xsl:for-each select="id('content-body', ixsl:page())">
+                            <xsl:result-document href="?." method="ixsl:replace-content">
+                                <!-- TO-DO: move to a named template -->
+                                <div class="row-fluid">
+                                    <div class="main offset2 span7">
+                                        <div class="alert alert-success row-fluid">
+                                            <div class="span1">
+                                                <img src="{resolve-uri('static/com/atomgraph/linkeddatahub/icons/baseline_done_white_48dp.png', $ac:contextUri)}" alt="Signup complete"/>
+                                            </div>
+                                            <div class="span11">
+                                                <p>Congratulations! Your WebID profile has been created. You can see its data below.</p>
+                                                <p>
+                                                    <strong>Authentication details have been sent to your email address.</strong>
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </xsl:result-document>
+                        </xsl:for-each>
+                    </xsl:when>
+
                     <!-- special case for "Save query/chart" forms: simpy hide the modal form -->
-                    <xsl:when test="tokenize($form/@class, ' ') = ('form-save-query', 'form-save-chart')">
+                    <xsl:when test="contains-token($form/@class, 'form-save-query') or contains-token($form/@class, 'form-save-chart')">
                         <!-- remove the modal div -->
                         <xsl:sequence select="ixsl:call($form/ancestor::div[contains-token(@class, 'modal')], 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
                         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
