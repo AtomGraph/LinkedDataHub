@@ -242,8 +242,9 @@ WHERE
                     </div>
                 </div>
                 
-                <!-- TO-DO: load asynchronously? -->
-                <xsl:for-each select="document($created-uri)">
+                <!-- proxy $created-uri to make sure we get RDF/XML. TO-DO: load asynchronously? -->
+                <xsl:variable name="request-uri" select="ac:build-uri($ldt:base, map{ 'uri': string($created-uri), 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>                
+                <xsl:for-each select="document($request-uri)">
                     <xsl:apply-templates select="key('resources-by-type', '&foaf;Person')[@rdf:about]" mode="bs2:Row"/>
                     <xsl:apply-templates select="key('resources-by-type', '&cert;PublicKey')[@rdf:about]" mode="bs2:Row"/>
                 </xsl:for-each>
