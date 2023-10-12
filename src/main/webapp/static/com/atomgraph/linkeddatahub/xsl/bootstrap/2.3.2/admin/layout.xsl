@@ -131,7 +131,7 @@ exclude-result-prefixes="#all">
     <xsl:template match="rdf:RDF[$ac:forClass][$ac:method = 'GET']" mode="bs2:RowForm" priority="1" use-when="system-property('xsl:product-name') = 'SAXON'">
         <xsl:param name="action" select="ac:build-uri($a:graphStore, map{ 'forClass': string($ac:forClass), 'mode': '&ac;EditMode' })" as="xs:anyURI"/>
         <xsl:param name="classes" as="element()*"/>
-
+CCC
         <xsl:next-match>
             <xsl:with-param name="action" select="$action"/>
             <xsl:with-param name="classes" select="$classes"/>
@@ -145,7 +145,7 @@ exclude-result-prefixes="#all">
         <xsl:param name="create-resource" select="true()" as="xs:boolean"/>
         <!-- TO-DO: generate ontology classes from the OWL vocabulary -->
         <xsl:param name="ontology-classes" select="for $class-uri in ('&ldh;Constructor', '&owl;Class', '&owl;DatatypeProperty', '&owl;ObjectProperty', '&owl;Restriction') return key('resources', $class-uri, document(ac:document-uri($class-uri)))" as="element()*"/>
-
+BBB
         <xsl:next-match>
             <xsl:with-param name="classes" select="$ontology-classes"/>
             <xsl:with-param name="action" select="$action"/>
