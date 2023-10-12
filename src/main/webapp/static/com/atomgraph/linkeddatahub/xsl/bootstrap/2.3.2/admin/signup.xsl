@@ -90,7 +90,7 @@ exclude-result-prefixes="#all">
         </xsl:apply-templates>
     </xsl:template>
     
-    <xsl:template match="rdf:RDF[if (doc-available(ldh:absolute-path($ldh:requestUri))) then (key('resources', ldh:absolute-path($ldh:requestUri), document(ldh:absolute-path($ldh:requestUri)))/rdf:type/@rdf:resource = '&adm;SignUp') else false()][$ac:method = 'POST'][not(key('resources-by-type', '&http;Response'))][1]" mode="bs2:Row" priority="3">
+<!--    <xsl:template match="rdf:RDF[if (doc-available(ldh:absolute-path($ldh:requestUri))) then (key('resources', ldh:absolute-path($ldh:requestUri), document(ldh:absolute-path($ldh:requestUri)))/rdf:type/@rdf:resource = '&adm;SignUp') else false()][$ac:method = 'POST'][not(key('resources-by-type', '&http;Response'))][1]" mode="bs2:Row" priority="3">
         <div class="row-fluid">
             <div class="main offset2 span7">
                 <div class="alert alert-success row-fluid">
@@ -109,7 +109,7 @@ exclude-result-prefixes="#all">
         
         <xsl:apply-templates select="key('resources-by-type', '&foaf;Person')[@rdf:about]" mode="#current"/>
         <xsl:apply-templates select="key('resources-by-type', '&cert;PublicKey')[@rdf:about]" mode="#current"/>
-    </xsl:template>
+    </xsl:template>-->
     
     <!-- suppress resources other than foaf:Person and cert:PublicKey -->
     <xsl:template match="*[if (doc-available(ldh:absolute-path($ldh:requestUri))) then (key('resources', ldh:absolute-path($ldh:requestUri), document(ldh:absolute-path($ldh:requestUri)))/rdf:type/@rdf:resource = '&adm;SignUp') else false()][$ac:method = 'POST'][not(key('resources-by-type', '&http;Response'))][not(rdf:type/@rdf:resource = ('&foaf;Person', '&cert;PublicKey'))]" mode="bs2:Row" priority="2"/>

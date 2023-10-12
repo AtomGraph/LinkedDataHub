@@ -10,11 +10,13 @@
     <!ENTITY owl        "http://www.w3.org/2002/07/owl#">
     <!ENTITY ldt        "https://www.w3.org/ns/ldt#">
     <!ENTITY dh         "https://www.w3.org/ns/ldt/document-hierarchy#">
+    <!ENTITY cert       "http://www.w3.org/ns/auth/cert#">
     <!ENTITY sd         "http://www.w3.org/ns/sparql-service-description#">
     <!ENTITY sh         "http://www.w3.org/ns/shacl#">
     <!ENTITY sioc       "http://rdfs.org/sioc/ns#">
     <!ENTITY sp         "http://spinrdf.org/sp#">
     <!ENTITY dct        "http://purl.org/dc/terms/">
+    <!ENTITY foaf       "http://xmlns.com/foaf/0.1/">
 ]>
 <xsl:stylesheet version="3.0"
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
@@ -215,6 +217,38 @@ WHERE
         <!-- set the input type back to 'text' because 'datetime-local' does not accept the timezoned value -->
         <ixsl:set-attribute name="type" select="'text'"/>
         <ixsl:set-property name="value" select="string(adjust-dateTime-to-timezone(ixsl:get(., 'value')))" object="."/>
+    </xsl:template>
+    
+    
+    <xsl:template name="bs2:SignUpComplete">
+        <xsl:context-item as="map(*)" use="required"/>
+        <xsl:param name="created-uri" select="?headers?location" as="xs:anyURI"/>
+
+        <xsl:for-each select="id('content-body', ixsl:page())">
+            <xsl:result-document href="?." method="ixsl:replace-content">
+                <div class="row-fluid">
+                    <div class="main offset2 span7">
+                        <div class="alert alert-success row-fluid">
+                            <div class="span1">
+                                <img src="{resolve-uri('static/com/atomgraph/linkeddatahub/icons/baseline_done_white_48dp.png', $ac:contextUri)}" alt="Signup complete"/>
+                            </div>
+                            <div class="span11">
+                                <p>Congratulations! Your WebID profile has been created. You can see its data below.</p>
+                                <p>
+                                    <strong>Authentication details have been sent to your email address.</strong>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- TO-DO: load asynchronously? -->
+                <xsl:for-each select="document($created-uri)">
+                    <xsl:apply-templates select="key('resources-by-type', '&foaf;Person')[@rdf:about]" mode="bs2:Row"/>
+                    <xsl:apply-templates select="key('resources-by-type', '&cert;PublicKey')[@rdf:about]" mode="bs2:Row"/>
+                </xsl:for-each>
+            </xsl:result-document>
+        </xsl:for-each>
     </xsl:template>
     
     <!-- EVENT HANDLERS -->
@@ -1139,28 +1173,8 @@ WHERE
                 <xsl:choose>
                     <!-- special case for signup form -->
                     <xsl:when test="ixsl:get($form, 'id') = 'form-signup'">
-                        <xsl:for-each select="id('content-body', ixsl:page())">
-                            <xsl:result-document href="?." method="ixsl:replace-content">
-                                <!-- TO-DO: move to a named template -->
-                                <div class="row-fluid">
-                                    <div class="main offset2 span7">
-                                        <div class="alert alert-success row-fluid">
-                                            <div class="span1">
-                                                <img src="{resolve-uri('static/com/atomgraph/linkeddatahub/icons/baseline_done_white_48dp.png', $ac:contextUri)}" alt="Signup complete"/>
-                                            </div>
-                                            <div class="span11">
-                                                <p>Congratulations! Your WebID profile has been created. You can see its data below.</p>
-                                                <p>
-                                                    <strong>Authentication details have been sent to your email address.</strong>
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </xsl:result-document>
-                        </xsl:for-each>
+                        <xsl:call-template name="bs2:SignUpComplete"/>
                     </xsl:when>
-
                     <!-- special case for "Save query/chart" forms: simpy hide the modal form -->
                     <xsl:when test="contains-token($form/@class, 'form-save-query') or contains-token($form/@class, 'form-save-chart')">
                         <!-- remove the modal div -->
