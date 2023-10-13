@@ -1172,8 +1172,6 @@ WHERE
                 <xsl:choose>
                     <xsl:when test="starts-with(?media-type, 'application/xhtml+xml')"> <!-- allow 'application/xhtml+xml;charset=UTF-8' as well -->
                         <xsl:apply-templates select="?body" mode="ldh:HTMLDocumentLoaded">
-                            <!-- $href does not change at this point -->
-                            <!--<xsl:with-param name="href" select="ldh:base-uri(?body)"/>-->
                             <xsl:with-param name="container" select="$container"/>
                         </xsl:apply-templates>
                     </xsl:when>

@@ -266,7 +266,7 @@ WHERE
             </xsl:for-each>
         </xsl:if>
         <!-- initialize form if we're in editing mode -->
-        <xsl:if test="ac:mode(ldh:base-uri(ixsl:page())) = '&ac;EditMode'">
+        <xsl:if test="ac:mode(base-uri(ixsl:page())) = '&ac;EditMode'">
             <xsl:apply-templates select="id('content-body', ixsl:page())" mode="ldh:PostConstruct"/>
         </xsl:if>
         <!-- initialize LinkedDataHub.apps (and the search dropdown, if it's shown) -->
@@ -284,7 +284,7 @@ WHERE
                 <xsl:call-template name="ldh:DocTree"/>
             </xsl:result-document>
             <xsl:call-template name="ldh:DocTreeActivateHref">
-                <xsl:with-param name="href" select="ldh:base-uri(ixsl:page())"/>
+                <xsl:with-param name="href" select="base-uri(ixsl:page())"/>
             </xsl:call-template>
         </xsl:for-each>
     </xsl:template>
