@@ -36,20 +36,6 @@ exclude-result-prefixes="#all"
     <xsl:function name="ldt:base" as="xs:anyURI">
         <xsl:sequence select="xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.base'))"/>
     </xsl:function>
-    
-    <!-- TO-DO: replace with standard XPath `base-uri` after this is fixed: https://saxonica.plan.io/issues/6216 -->
-    <xsl:function name="ldh:base-uri" as="xs:anyURI?">
-        <xsl:param name="arg" as="node()"/>
-        
-        <xsl:choose>
-            <xsl:when test="($arg instance of attribute()) or ($arg instance of text())">
-                <xsl:sequence select="if (ixsl:contains($arg/.., 'baseURI')) then ac:document-uri(ixsl:get($arg/.., 'baseURI')) else ()"/>
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:sequence select="if (ixsl:contains($arg, 'baseURI')) then ac:document-uri(ixsl:get($arg, 'baseURI')) else ()"/>
-            </xsl:otherwise>
-        </xsl:choose>
-    </xsl:function>
 
     <xsl:function name="ac:mode" as="xs:anyURI*">
         <xsl:param name="base-uri" as="xs:anyURI"/>
@@ -108,7 +94,7 @@ exclude-result-prefixes="#all"
 
     <!-- format URLs in DataTable as HTML links. !!! Saxon-JS cannot intercept Google Charts events, therefore set a full proxied URL !!! -->
     <xsl:template match="@rdf:about[starts-with(., 'http://')] | @rdf:about[starts-with(., 'https://')] | @rdf:resource[starts-with(., 'http://')] | @rdf:resource[starts-with(., 'https://')] | srx:uri[starts-with(., 'http://')] | srx:uri[starts-with(., 'https://')]" mode="ac:DataTable">
-        <json:string key="v">&lt;a href="<xsl:value-of select="ldh:href($ldt:base, ldh:absolute-path(ldh:base-uri(.)), map{}, xs:anyURI(.))"/>"&gt;<xsl:value-of select="."/>&lt;/a&gt;</json:string>
+        <json:string key="v">&lt;a href="<xsl:value-of select="ldh:href($ldt:base, ldh:absolute-path(base-uri()), map{}, xs:anyURI(.))"/>"&gt;<xsl:value-of select="."/>&lt;/a&gt;</json:string>
     </xsl:template>
 
     <!-- escape < > in literals so they don't get interpreted as HTML tags -->
