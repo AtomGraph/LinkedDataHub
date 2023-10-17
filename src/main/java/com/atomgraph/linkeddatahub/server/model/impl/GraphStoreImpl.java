@@ -75,8 +75,8 @@ import jakarta.ws.rs.core.UriBuilder;
 import jakarta.ws.rs.core.UriInfo;
 import jakarta.ws.rs.ext.MessageBodyReader;
 import jakarta.ws.rs.ext.Providers;
+import java.util.stream.Collectors;
 import org.apache.commons.codec.binary.Hex;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.jena.atlas.RuntimeIOException;
 import org.apache.jena.datatypes.xsd.XSDDateTime;
 import org.apache.jena.graph.NodeFactory;
@@ -175,8 +175,17 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
         if (log.isTraceEnabled()) log.trace("POST Graph Store request with RDF payload: {} payload size(): {}", model, model.size());
         
         final boolean existingGraph = getDatasetAccessor().containsModel(graphUri.toString());
-        if (!existingGraph) model.createResource(graphUri.toString()).
-            addLiteral(DCTerms.created, ResourceFactory.createTypedLiteral(GregorianCalendar.getInstance()));
+        if (!existingGraph)
+        {
+            // TO-DO: replace with foaf:Document?
+            if (!model.createResource(graphUri.toString()).hasProperty(RDF.type, Default.Root) &&
+                !model.createResource(graphUri.toString()).hasProperty(RDF.type, DH.Container) &&
+                !model.createResource(graphUri.toString()).hasProperty(RDF.type, DH.Item))
+                throw new WebApplicationException("Named graph <" + graphUri + "> must contain a document resource (instance of dh:Container or dh:Item)", UNPROCESSABLE_ENTITY.toEnum()); // 422 Unprocessable Entity
+
+            model.createResource(graphUri.toString()).
+                addLiteral(DCTerms.created, ResourceFactory.createTypedLiteral(GregorianCalendar.getInstance()));
+        }
         
         // container/item (graph) resource is already skolemized, skolemize the rest of the model
         new Skolemizer(graphUri.toString()).apply(model);
@@ -272,7 +281,7 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
         Response.ResponseBuilder rb = Response.ok().
             allow(getAllowedMethods(graphUri));
         
-        String acceptWritable = StringUtils.join(getWritableMediaTypes(Model.class), ",");
+        String acceptWritable = String.join(",", getWritableMediaTypes(Model.class).stream().map(mt -> mt.toString()).collect(Collectors.toList()));
         rb.header("Accept-Post", acceptWritable);
         
         return rb.build();

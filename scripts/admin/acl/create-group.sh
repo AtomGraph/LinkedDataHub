@@ -102,7 +102,11 @@ if [ ${#members[@]} -eq 0 ]; then
     print_usage
     exit 1
 fi
+if [ -z "$slug" ] ; then
+    slug=$(uuidgen | tr '[:upper:]' '[:lower:]') # lowercase
+fi
 
+encoded_slug=$(urlencode "$slug")
 container="${base}acl/groups/"
 
 # allow explicit URIs
@@ -127,16 +131,13 @@ turtle+="@prefix foaf:	<http://xmlns.com/foaf/0.1/> .\n"
 turtle+="@prefix sioc:	<http://rdfs.org/sioc/ns#> .\n"
 turtle+="${group} a foaf:Group .\n"
 turtle+="${group} foaf:name \"${label}\" .\n"
-turtle+="_:item a dh:Item .\n"
-turtle+="_:item foaf:primaryTopic ${group} .\n"
-turtle+="_:item sioc:has_container <${container}> .\n"
-turtle+="_:item dct:title \"${label}\" .\n"
+turtle+="<${container}${encoded_slug}/> a dh:Item .\n"
+turtle+="<${container}${encoded_slug}/> foaf:primaryTopic ${group} .\n"
+turtle+="<${container}${encoded_slug}/> sioc:has_container <${container}> .\n"
+turtle+="<${container}${encoded_slug}/> dct:title \"${label}\" .\n"
 
 if [ -n "$description" ] ; then
     turtle+="${group} dct:description \"${description}\" .\n"
-fi
-if [ -n "$slug" ] ; then
-    turtle+="_:item dh:slug \"${slug}\" .\n"
 fi
 if [ -n "$fragment" ] ; then
     turtle+="${group} ldh:fragment \"${fragment}\" .\n"

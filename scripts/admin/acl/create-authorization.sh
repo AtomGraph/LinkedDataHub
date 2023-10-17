@@ -158,7 +158,11 @@ if [ -z "$append" ] && [ -z "$control" ] && [ -z "$read" ] && [ -z "$write" ] ; 
     print_usage
     exit 1
 fi
+if [ -z "$slug" ] ; then
+    slug=$(uuidgen | tr '[:upper:]' '[:lower:]') # lowercase
+fi
 
+encoded_slug=$(urlencode "$slug")
 container="${base}acl/authorizations/"
 
 # allow explicit URIs
@@ -185,16 +189,13 @@ turtle+="@prefix foaf:	<http://xmlns.com/foaf/0.1/> .\n"
 turtle+="@prefix sioc:	<http://rdfs.org/sioc/ns#> .\n"
 turtle+="${auth} a acl:Authorization .\n"
 turtle+="${auth} rdfs:label \"${label}\" .\n"
-turtle+="_:item a dh:Item .\n"
-turtle+="_:item foaf:primaryTopic ${auth} .\n"
-turtle+="_:item sioc:has_container <${container}> .\n"
-turtle+="_:item dct:title \"${label}\" .\n"
+turtle+="<${container}${encoded_slug}/> a dh:Item .\n"
+turtle+="<${container}${encoded_slug}/> foaf:primaryTopic ${auth} .\n"
+turtle+="<${container}${encoded_slug}/> sioc:has_container <${container}> .\n"
+turtle+="<${container}${encoded_slug}/> dct:title \"${label}\" .\n"
 
 if [ -n "$comment" ] ; then
     turtle+="${auth} rdfs:comment \"${comment}\" .\n"
-fi
-if [ -n "$slug" ] ; then
-    turtle+="_:item dh:slug \"${slug}\" .\n"
 fi
 if [ -n "$fragment" ] ; then
     turtle+="${auth} ldh:fragment \"${fragment}\" .\n"
