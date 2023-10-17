@@ -28,7 +28,7 @@ import com.atomgraph.linkeddatahub.server.util.Skolemizer;
 import com.atomgraph.linkeddatahub.vocabulary.Default;
 import com.atomgraph.linkeddatahub.vocabulary.NFO;
 import com.atomgraph.linkeddatahub.vocabulary.DH;
-import com.atomgraph.linkeddatahub.vocabulary.SIOC;
+import static com.atomgraph.server.status.UnprocessableEntityStatus.UNPROCESSABLE_ENTITY;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -52,8 +52,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.UUID;
-import java.util.function.Function;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.Consumes;
@@ -103,7 +101,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * LinkedDataHub Graph Store implementation.
- * We need to subclass the Core class because we're injecting a subclass of Service.
+ * Only named graphs are allowed.
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
@@ -111,99 +109,6 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
 {
     
     private static final Logger log = LoggerFactory.getLogger(GraphStoreImpl.class);
-    
-    /**
-     * A function that derives a graph name from the Graph Store Protocol request body.
-     */
-    public static Function<Model, Resource> CREATE_GRAPH = new Function<Model, Resource>()
-    {
-        
-        /**
-         * Creates a new graph URI from the document resource in the request body.
-         * The new graph URI will be relative to the parent container's URI.
-         * 
-         * @param model input RDF graph
-         * @return graph resource or null
-         */
-        @Override
-        public Resource apply(Model model)
-        {
-            if (model == null) throw new IllegalArgumentException("Model cannot be null");
-
-            Resource doc = getDocument(model);
-            if (doc == null) throw new WebApplicationException("Cannot create a new named graph, no Container or Item instance found in request body", 422); // 422 Unprocessable Entity
-
-            Resource parent = getParent(doc);
-            if (parent == null) throw new WebApplicationException("Graph URI is not specified and no document (with sioc:has_parent or sioc:has_container) found in request body", 422);
-
-            // hardcoded hierarchical URL building logic
-            final String slug;
-            if (doc.hasProperty(DH.slug)) slug = doc.getProperty(DH.slug).getString();
-            else slug = UUID.randomUUID().toString();
-            URI graphUri = URI.create(parent.getURI()).resolve(slug + "/");
-
-            if (graphUri != null) return ResourceUtils.renameResource(doc, graphUri.toString());
-            else return null;
-        }
-
-        /**
-         * Extracts the document that is being created from the input RDF graph.
-         * 
-         * @param model RDF input graph
-         * @return RDF resource
-         */
-        public Resource getDocument(Model model)
-        {
-            if (model == null) throw new IllegalArgumentException("Model cannot be null");
-
-            ResIterator it = model.listSubjectsWithProperty(SIOC.HAS_PARENT);
-            try
-            {
-                if (it.hasNext())
-                {
-                    Resource doc = it.next();
-
-                    return doc;
-                }
-            }
-            finally
-            {
-                it.close();
-            }
-
-            it = model.listSubjectsWithProperty(SIOC.HAS_CONTAINER);
-            try
-            {
-                if (it.hasNext())
-                {
-                    Resource doc = it.next();
-
-                    return doc;
-                }
-            }
-            finally
-            {
-                it.close();
-            }
-
-            return null;
-        }
-
-        /**
-         * Returns the parent container of the specified document.
-         * 
-         * @param doc document resource
-         * @return parent resource
-         */
-        public Resource getParent(Resource doc)
-        {
-            Resource parent = doc.getPropertyResourceValue(SIOC.HAS_PARENT);
-            if (parent != null) return parent;
-            parent = doc.getPropertyResourceValue(SIOC.HAS_CONTAINER);
-            return parent;
-        }
-        
-    };
     
     private final UriInfo uriInfo;
     private final com.atomgraph.linkeddatahub.apps.model.Application application;
@@ -266,27 +171,22 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
     @Override
     public Response post(Model model, @QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
     {
+        if (graphUri == null) throw new BadRequestException("Named graph not specified");
         if (log.isTraceEnabled()) log.trace("POST Graph Store request with RDF payload: {} payload size(): {}", model, model.size());
         
-        final boolean created;
-        // neither default graph nor named graph specified -- obtain named graph URI from the document
-        if (!defaultGraph && graphUri == null)
-        {
-            Resource graph = CREATE_GRAPH.apply(model);
-            if (graph == null) throw new InternalServerErrorException("Named graph skolemization failed");
-            graphUri = URI.create(graph.getURI());
-            created = true;
-            model.createResource(graphUri.toString()).
-                addLiteral(DCTerms.created, ResourceFactory.createTypedLiteral(GregorianCalendar.getInstance()));
-        }
-        else created = false;
+        final boolean existingGraph = getDatasetAccessor().containsModel(graphUri.toString());
+        if (!existingGraph) model.createResource(graphUri.toString()).
+            addLiteral(DCTerms.created, ResourceFactory.createTypedLiteral(GregorianCalendar.getInstance()));
         
         // container/item (graph) resource is already skolemized, skolemize the rest of the model
         new Skolemizer(graphUri.toString()).apply(model);
         
-        Response response = super.post(model, false, graphUri);
-        if (created) return Response.created(graphUri).build();
-        else return response;
+        // is this implemented correctly? The specification is not very clear.
+        if (log.isDebugEnabled()) log.debug("POST Model to named graph with URI: {} Did it already exist? {}", graphUri, existingGraph);
+        getDatasetAccessor().add(graphUri.toString(), model);
+
+        if (existingGraph) return Response.ok().build();
+        else return Response.created(graphUri).build();
     }
     
     @PUT
@@ -299,18 +199,26 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
         if (!allowedMethods.contains(HttpMethod.PUT))
             throw new WebApplicationException("Cannot update document", Response.status(Status.METHOD_NOT_ALLOWED).allow(allowedMethods).build());
         
+        // TO-DO: replace with foaf:Document?
         if (!model.createResource(graphUri.toString()).hasProperty(RDF.type, Default.Root) &&
             !model.createResource(graphUri.toString()).hasProperty(RDF.type, DH.Container) &&
             !model.createResource(graphUri.toString()).hasProperty(RDF.type, DH.Item))
-            throw new WebApplicationException("Named graph <" + graphUri + "> must contain a document resource (instance of dh:Container or dh:Item)", 422); // 422 Unprocessable Entity
+            throw new WebApplicationException("Named graph <" + graphUri + "> must contain a document resource (instance of dh:Container or dh:Item)", UNPROCESSABLE_ENTITY.toEnum()); // 422 Unprocessable Entity
 
-        model.createResource(graphUri.toString()).
+        final boolean existingGraph = getDatasetAccessor().containsModel(graphUri.toString());
+        if (!existingGraph) model.createResource(graphUri.toString()).
+            addLiteral(DCTerms.created, ResourceFactory.createTypedLiteral(GregorianCalendar.getInstance()));
+        else model.createResource(graphUri.toString()).
             removeAll(DCTerms.modified).
             addLiteral(DCTerms.modified, ResourceFactory.createTypedLiteral(GregorianCalendar.getInstance()));
         
         new Skolemizer(graphUri.toString()).apply(model);
         
-        return super.put(model, defaultGraph, graphUri);
+        if (log.isDebugEnabled()) log.debug("PUT Model to named graph with URI: {} Did it already exist? {}", graphUri, existingGraph);
+        getDatasetAccessor().putModel(graphUri.toString(), model);
+
+        if (existingGraph) return Response.ok().build();
+        else return Response.created(graphUri).build();
     }
 
     /**
@@ -334,14 +242,14 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
             // check for GRAPH keyword which is disallowed
             PatchUpdateVisitor visitor = new PatchUpdateVisitor();
             update.visit(visitor);
-            if (visitor.isContainsNamedGraph())
+            if (visitor.containsNamedGraph())
             {
                 if (log.isWarnEnabled()) log.debug("SPARQL update used with PATCH method cannot contain the GRAPH keyword");
-                throw new WebApplicationException("SPARQL update used with PATCH method cannot contain the GRAPH keyword", 422); // 422 Unprocessable Entity
+                throw new WebApplicationException("SPARQL update used with PATCH method cannot contain the GRAPH keyword", UNPROCESSABLE_ENTITY.toEnum()); // 422 Unprocessable Entity
             }
 
             // set WITH <graphUri>
-            if (!(update instanceof UpdateModify updateModify)) throw new WebApplicationException("Only UpdateModify form of SPARQL Update is supported", 422); // 422 Unprocessable Entity
+            if (!(update instanceof UpdateModify updateModify)) throw new WebApplicationException("Only UpdateModify form of SPARQL Update is supported", UNPROCESSABLE_ENTITY.toEnum()); // 422 Unprocessable Entity
             updateModify.setWithIRI(NodeFactory.createURI(graphUri.toString()));
         });
 
@@ -359,9 +267,10 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
     @OPTIONS
     public Response options(@QueryParam("graph") URI graphUri)
     {
-        Response.ResponseBuilder rb = Response.ok();
+        if (graphUri == null) throw new BadRequestException("Named graph not specified");
         
-        if (graphUri != null) rb.allow(getAllowedMethods(graphUri)); // do not return Allow for the default graph
+        Response.ResponseBuilder rb = Response.ok().
+            allow(getAllowedMethods(graphUri));
         
         String acceptWritable = StringUtils.join(getWritableMediaTypes(Model.class), ",");
         rb.header("Accept-Post", acceptWritable);
@@ -382,6 +291,7 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     public Response postMultipart(FormDataMultiPart multiPart, @QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
     {
+        if (graphUri == null) throw new BadRequestException("Named graph not specified");
         if (log.isDebugEnabled()) log.debug("MultiPart fields: {} body parts: {}", multiPart.getFields(), multiPart.getBodyParts());
 
         try
@@ -389,30 +299,15 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
             Model model = parseModel(multiPart);
             MessageBodyReader<Model> reader = getProviders().getMessageBodyReader(Model.class, null, null, com.atomgraph.core.MediaType.APPLICATION_NTRIPLES_TYPE);
             if (reader instanceof ValidatingModelProvider validatingModelProvider) model = validatingModelProvider.processRead(model);
-            
-            final boolean created;
-            // neither default graph nor named graph specified -- obtain named graph URI from the document
-            if (!defaultGraph && graphUri == null)
-            {
-                Resource graph = CREATE_GRAPH.apply(model);
-                if (graph == null) throw new InternalServerErrorException("Named graph skolemization failed");
-                graphUri = URI.create(graph.getURI());
-                created = true;
-                model.createResource(graphUri.toString()).
-                    addLiteral(DCTerms.created, ResourceFactory.createTypedLiteral(GregorianCalendar.getInstance()));
-            }
-            else created = false;
 
-            // container/item (graph) resource is already skolemized, skolemize the rest of the model
+            // container/item (graph) resource is already skolemized, skolemize the rest of the model (including the file resources)
             new Skolemizer(graphUri.toString()).apply(model);
         
             int fileCount = writeFiles(model, getFileNameBodyPartMap(multiPart));
             if (log.isDebugEnabled()) log.debug("# of files uploaded: {} ", fileCount);
 
             if (log.isDebugEnabled()) log.debug("POSTed Model size: {}", model.size());
-            Response response = post(model, defaultGraph, graphUri);
-            if (created) return Response.created(graphUri).build();
-            else return response;
+            return post(model, defaultGraph, graphUri);
         }
         catch (URISyntaxException ex)
         {
@@ -479,6 +374,8 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
     @Override
     public Response delete(@QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
     {
+        if (graphUri == null) throw new BadRequestException("Named graph not specified");
+
         Set<String> allowedMethods = getAllowedMethods(graphUri);
         if (!allowedMethods.contains(HttpMethod.DELETE))
             throw new WebApplicationException("Cannot delete document", Response.status(Status.METHOD_NOT_ALLOWED).allow(allowedMethods).build());
