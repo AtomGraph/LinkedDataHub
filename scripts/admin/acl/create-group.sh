@@ -24,7 +24,7 @@ print_usage()
 hash turtle 2>/dev/null || { echo >&2 "turtle not on \$PATH. Need to set \$JENA_HOME. Aborting."; exit 1; }
 
 urlencode() {
-  python -c 'import urllib, sys; print urllib.quote(sys.argv[1], sys.argv[2])' \
+  python -c 'import urllib, sys; print(urllib.quote(sys.argv[1], sys.argv[2]))' \
     "$1" "$urlencode_safe"
 }
 
