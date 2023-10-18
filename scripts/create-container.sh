@@ -21,6 +21,10 @@ print_usage()
 }
 
 hash turtle 2>/dev/null || { echo >&2 "turtle not on \$PATH. Need to set \$JENA_HOME. Aborting."; exit 1; }
+urlencode() {
+  python -c 'import urllib, sys; print urllib.quote(sys.argv[1], sys.argv[2])' \
+    "$1" "$urlencode_safe"
+}
 
 args=()
 while [[ $# -gt 0 ]]
@@ -102,13 +106,18 @@ if [ -z "$parent" ] ; then
     exit 1
 fi
 
+if [ -z "$slug" ] ; then
+    slug=$(uuidgen | tr '[:upper:]' '[:lower:]') # lowercase
+fi
+encoded_slug=$(urlencode "$slug")
+
 args+=("-f")
 args+=("$cert_pem_file")
 args+=("-p")
 args+=("$cert_password")
 args+=("-t")
 args+=("text/turtle")
-args+=("${base}service")
+args+=("${parent}${encoded_slug}/")
 
 turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy#> .\n"
 turtle+="@prefix ac:	<https://w3id.org/atomgraph/client#> .\n"
@@ -116,23 +125,20 @@ turtle+="@prefix ldh:	<https://w3id.org/atomgraph/linkeddatahub#> .\n"
 turtle+="@prefix rdf:	<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
 turtle+="@prefix sioc:	<http://rdfs.org/sioc/ns#> .\n"
-turtle+="_:container a dh:Container .\n"
-turtle+="_:container dct:title \"${title}\" .\n"
-turtle+="_:container sioc:has_parent <${parent}> .\n"
+turtle+="<${parent}${encoded_slug}/> a dh:Container .\n"
+turtle+="<${parent}${encoded_slug}/> dct:title \"${title}\" .\n"
+turtle+="<${parent}${encoded_slug}/> sioc:has_parent <${parent}> .\n"
 if [ -n "$content" ] ; then
-    turtle+="_:container rdf:_1 <${content}> .\n"
+    turtle+="<${parent}${encoded_slug}/> rdf:_1 <${content}> .\n"
 else
     content_triples="a ldh:Content; rdf:value ldh:SelectChildren"
     if [ -n "$mode" ] ; then
         content_triples+="; ac:mode <${mode}> "
     fi
-    turtle+="_:container rdf:_1 [ ${content_triples} ] .\n"
+    turtle+="<${parent}${encoded_slug}/> rdf:_1 [ ${content_triples} ] .\n"
 fi
 if [ -n "$description" ] ; then
-    turtle+="_:container dct:description \"${description}\" .\n"
-fi
-if [ -n "$slug" ] ; then
-    turtle+="_:container dh:slug \"${slug}\" .\n"
+    turtle+="<${parent}${encoded_slug}/> dct:description \"${description}\" .\n"
 fi
 
-echo -e "$turtle" | turtle --base="$base" | ./create-document.sh "${args[@]}"
+echo -e "$turtle" | turtle --base="$base" | ./put-document.sh "${args[@]}"

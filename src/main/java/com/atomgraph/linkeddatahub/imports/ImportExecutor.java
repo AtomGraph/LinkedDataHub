@@ -109,9 +109,8 @@ public class ImportExecutor
      * @param appBaseURI application's base URI
      * @param ldc Linked Data client
      * @param graphStoreClient GSP client
-     * @param createGraph function that derives graph URI from a document model
      */
-    public void start(Service service, Service adminService, String appBaseURI, LinkedDataClient ldc, GraphStoreClient graphStoreClient, Function<Model, Resource> createGraph, CSVImport csvImport)
+    public void start(Service service, Service adminService, String appBaseURI, LinkedDataClient ldc, GraphStoreClient graphStoreClient, CSVImport csvImport)
     {
         if (csvImport == null) throw new IllegalArgumentException("CSVImport cannot be null");
         if (log.isDebugEnabled()) log.debug("Submitting new import to thread pool: {}", csvImport.toString());
@@ -128,7 +127,7 @@ public class ImportExecutor
         Supplier<Response> fileSupplier = new ClientResponseSupplier(ldc, CSV_MEDIA_TYPES, URI.create(csvImport.getFile().getURI()));
         // skip validation because it will be done during final POST anyway
         CompletableFuture.supplyAsync(fileSupplier, getExecutorService()).thenApplyAsync(getStreamRDFOutputWriter(service, adminService,
-                graphStoreClient, queryBaseURI, query, createGraph, csvImport), getExecutorService()).
+                graphStoreClient, queryBaseURI, query, csvImport), getExecutorService()).
             thenAcceptAsync(success(service, csvImport, provImport), getExecutorService()).
             exceptionally(failure(service, csvImport, provImport));
     }
@@ -311,13 +310,12 @@ public class ImportExecutor
      * @param graphStoreClient GSP client
      * @param baseURI base URI
      * @param query transformation query
-     * @param createGraph function that derives graph URI from a document model
      * @param imp import resource
      * @return function
      */
-    protected Function<Response, CSVGraphStoreOutput> getStreamRDFOutputWriter(Service service, Service adminService, GraphStoreClient graphStoreClient, String baseURI, Query query, Function<Model, Resource> createGraph, CSVImport imp)
+    protected Function<Response, CSVGraphStoreOutput> getStreamRDFOutputWriter(Service service, Service adminService, GraphStoreClient graphStoreClient, String baseURI, Query query, CSVImport imp)
     {
-        return new CSVGraphStoreOutputWriter(service, adminService, graphStoreClient, baseURI, query, createGraph, imp.getDelimiter());
+        return new CSVGraphStoreOutputWriter(service, adminService, graphStoreClient, baseURI, query, imp.getDelimiter());
     }
 
     /**

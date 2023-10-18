@@ -119,11 +119,11 @@ public class Dispatcher
      * 
      * @return endpoint resource
      */
-    @Path("service")
-    public Class getGraphStore()
-    {
-        return getProxyClass().orElse(GraphStoreImpl.class);
-    }
+//    @Path("service")
+//    public Class getGraphStore()
+//    {
+//        return getProxyClass().orElse(GraphStoreImpl.class);
+//    }
 
     /**
      * Returns SPARQL endpoint for the in-memory ontology model.

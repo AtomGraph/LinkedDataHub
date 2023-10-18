@@ -109,7 +109,6 @@ import com.atomgraph.linkeddatahub.server.interceptor.RDFPostCleanupInterceptor;
 import com.atomgraph.linkeddatahub.server.interceptor.UpdateRequestCleanupInterceptor;
 import com.atomgraph.linkeddatahub.server.mapper.auth.oauth2.TokenExpiredExceptionMapper;
 import com.atomgraph.linkeddatahub.server.model.impl.Dispatcher;
-import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.server.security.AuthorizationContext;
 import com.atomgraph.linkeddatahub.server.util.MessageBuilder;
@@ -1282,7 +1281,7 @@ public class Application extends ResourceConfig
      */
     public void submitImport(CSVImport csvImport, com.atomgraph.linkeddatahub.apps.model.Application app, Service service, Service adminService, String baseURI, LinkedDataClient ldc)
     {
-        new ImportExecutor(importThreadPool).start(service, adminService, baseURI, ldc, service.getGraphStoreClient(), GraphStoreImpl.CREATE_GRAPH, csvImport);
+        new ImportExecutor(importThreadPool).start(service, adminService, baseURI, ldc, service.getGraphStoreClient(), csvImport);
     }
     
     /**

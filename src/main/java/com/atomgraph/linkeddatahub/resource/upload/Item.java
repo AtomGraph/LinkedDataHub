@@ -29,7 +29,6 @@ import jakarta.ws.rs.ext.Providers;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.io.FileRangeOutput;
-import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -62,14 +61,13 @@ import org.slf4j.LoggerFactory;
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-public class Item extends GraphStoreImpl
+public class Item extends com.atomgraph.linkeddatahub.resource.graph.Item
 {
     private static final Logger log = LoggerFactory.getLogger(Item.class);
     
     private static final String ACCEPT_RANGES = "Accept-Ranges";
     private static final String BYTES_RANGE = "bytes";
     private static final String RANGE = "Range";
-    private static final String IF_RANGE = "If-Range";
     private static final String CONTENT_RANGE = "Content-Range";
     private static final int CHUNK_SIZE = 1024 * 1024; // 1MB chunks
 

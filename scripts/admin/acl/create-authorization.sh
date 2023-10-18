@@ -159,6 +159,11 @@ if [ -z "$append" ] && [ -z "$control" ] && [ -z "$read" ] && [ -z "$write" ] ; 
     exit 1
 fi
 
+if [ -z "$slug" ] ; then
+    slug=$(uuidgen | tr '[:upper:]' '[:lower:]') # lowercase
+fi
+encoded_slug=$(urlencode "$slug")
+
 container="${base}acl/authorizations/"
 
 # allow explicit URIs
@@ -174,7 +179,7 @@ args+=("-p")
 args+=("$cert_password")
 args+=("-t")
 args+=("text/turtle") # content type
-args+=("${base}service")
+args+=("${parent}${encoded_slug}/")
 
 turtle+="@prefix ldh:	<https://w3id.org/atomgraph/linkeddatahub#> .\n"
 turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy#> .\n"
@@ -185,16 +190,13 @@ turtle+="@prefix foaf:	<http://xmlns.com/foaf/0.1/> .\n"
 turtle+="@prefix sioc:	<http://rdfs.org/sioc/ns#> .\n"
 turtle+="${auth} a acl:Authorization .\n"
 turtle+="${auth} rdfs:label \"${label}\" .\n"
-turtle+="_:item a dh:Item .\n"
-turtle+="_:item foaf:primaryTopic ${auth} .\n"
-turtle+="_:item sioc:has_container <${container}> .\n"
-turtle+="_:item dct:title \"${label}\" .\n"
+turtle+="<${parent}${encoded_slug}/> a dh:Item .\n"
+turtle+="<${parent}${encoded_slug}/> foaf:primaryTopic ${auth} .\n"
+turtle+="<${parent}${encoded_slug}/> sioc:has_container <${container}> .\n"
+turtle+="<${parent}${encoded_slug}/> dct:title \"${label}\" .\n"
 
 if [ -n "$comment" ] ; then
     turtle+="${auth} rdfs:comment \"${comment}\" .\n"
-fi
-if [ -n "$slug" ] ; then
-    turtle+="_:item dh:slug \"${slug}\" .\n"
 fi
 if [ -n "$fragment" ] ; then
     turtle+="${auth} ldh:fragment \"${fragment}\" .\n"
@@ -235,4 +237,4 @@ if [ -n "$write" ] ; then
 fi
 
 # submit Turtle doc to the server
-echo -e "$turtle" | turtle --base="$base" | ../../create-document.sh "${args[@]}"
+echo -e "$turtle" | turtle --base="$base" | ../../put-document.sh "${args[@]}"

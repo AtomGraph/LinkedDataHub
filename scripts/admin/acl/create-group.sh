@@ -103,6 +103,11 @@ if [ ${#members[@]} -eq 0 ]; then
     exit 1
 fi
 
+if [ -z "$slug" ] ; then
+    slug=$(uuidgen | tr '[:upper:]' '[:lower:]') # lowercase
+fi
+encoded_slug=$(urlencode "$slug")
+
 container="${base}acl/groups/"
 
 # allow explicit URIs
@@ -118,7 +123,7 @@ args+=("-p")
 args+=("$cert_password")
 args+=("-t")
 args+=("text/turtle") # content type
-args+=("${base}service")
+args+=("${parent}${encoded_slug}/")
 
 turtle+="@prefix ldh:	<https://w3id.org/atomgraph/linkeddatahub#> .\n"
 turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy#> .\n"
@@ -127,16 +132,13 @@ turtle+="@prefix foaf:	<http://xmlns.com/foaf/0.1/> .\n"
 turtle+="@prefix sioc:	<http://rdfs.org/sioc/ns#> .\n"
 turtle+="${group} a foaf:Group .\n"
 turtle+="${group} foaf:name \"${label}\" .\n"
-turtle+="_:item a dh:Item .\n"
-turtle+="_:item foaf:primaryTopic ${group} .\n"
-turtle+="_:item sioc:has_container <${container}> .\n"
-turtle+="_:item dct:title \"${label}\" .\n"
+turtle+="<${parent}${encoded_slug}/> a dh:Item .\n"
+turtle+="<${parent}${encoded_slug}/> foaf:primaryTopic ${group} .\n"
+turtle+="<${parent}${encoded_slug}/> sioc:has_container <${container}> .\n"
+turtle+="<${parent}${encoded_slug}/> dct:title \"${label}\" .\n"
 
 if [ -n "$description" ] ; then
     turtle+="${group} dct:description \"${description}\" .\n"
-fi
-if [ -n "$slug" ] ; then
-    turtle+="_:item dh:slug \"${slug}\" .\n"
 fi
 if [ -n "$fragment" ] ; then
     turtle+="${group} ldh:fragment \"${fragment}\" .\n"
@@ -148,4 +150,4 @@ do
 done
 
 # submit Turtle doc to the server
-echo -e "$turtle" | turtle --base="$base" | ../../create-document.sh "${args[@]}"
+echo -e "$turtle" | turtle --base="$base" | ../../put-document.sh "${args[@]}"

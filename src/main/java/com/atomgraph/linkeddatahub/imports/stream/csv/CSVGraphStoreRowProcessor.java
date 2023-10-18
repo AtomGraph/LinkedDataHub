@@ -18,10 +18,8 @@ package com.atomgraph.linkeddatahub.imports.stream.csv;
 
 import com.atomgraph.core.client.GraphStoreClient;
 import com.atomgraph.linkeddatahub.model.Service;
-import com.atomgraph.linkeddatahub.server.util.Skolemizer;
 import com.univocity.parsers.common.ParsingContext;
 import com.univocity.parsers.common.processor.RowProcessor;
-import java.util.function.Function;
 import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.core.Response;
 import org.apache.jena.atlas.lib.IRILib;
@@ -45,7 +43,6 @@ public class CSVGraphStoreRowProcessor implements RowProcessor // extends com.at
     private final GraphStoreClient graphStoreClient;
     private final String base;
     private final Query query;
-    private final Function<Model, Resource> createGraph;
     private int subjectCount, tripleCount;
 
     /**
@@ -56,16 +53,14 @@ public class CSVGraphStoreRowProcessor implements RowProcessor // extends com.at
      * @param graphStoreClient the GSP client
      * @param base base URI
      * @param query transformation query
-     * @param createGraph function that derives graph URI from a document model
      */
-    public CSVGraphStoreRowProcessor(Service service, Service adminService, GraphStoreClient graphStoreClient, String base, Query query, Function<Model, Resource> createGraph)
+    public CSVGraphStoreRowProcessor(Service service, Service adminService, GraphStoreClient graphStoreClient, String base, Query query)
     {
         this.service = service;
         this.adminService = adminService;
         this.graphStoreClient = graphStoreClient;
         this.base = base;
         this.query = query;
-        this.createGraph = createGraph;
     }
 
     @Override
@@ -79,17 +74,7 @@ public class CSVGraphStoreRowProcessor implements RowProcessor // extends com.at
     {
         Dataset rowDataset = transformRow(row, context);
         
-        // graph name not specified, will be assigned by the server. Exceptions get swallowed by the client! TO-DO: wait for completion
-        if (!rowDataset.getDefaultModel().isEmpty()) 
-        {
-            String graphUri = getCreateGraph().apply(rowDataset.getDefaultModel()).getURI();
-            new Skolemizer(graphUri).apply(rowDataset.getDefaultModel());
-            getGraphStoreClient().add(graphUri, rowDataset.getDefaultModel());
-            
-            // purge cache entries that include the graph URI
-            if (getService().getBackendProxy() != null) ban(getService().getClient(), getService().getBackendProxy(), graphUri).close();
-            if (getAdminService() != null && getAdminService().getBackendProxy() != null) ban(getAdminService().getClient(), getAdminService().getBackendProxy(), graphUri).close();
-        }
+        // the default graph is ignored!
         
         rowDataset.listNames().forEachRemaining(graphUri -> 
             {
@@ -230,16 +215,5 @@ public class CSVGraphStoreRowProcessor implements RowProcessor // extends com.at
     {
         return tripleCount;
     }
-    
-    /**
-     * Returns function that is used to create graph names (URIs).
-     * 
-     * @return function
-     */
-    public Function<Model, Resource> getCreateGraph()
-    {
-        return createGraph;
-    }
-    
     
 }
