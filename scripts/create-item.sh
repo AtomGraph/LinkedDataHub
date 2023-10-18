@@ -111,10 +111,10 @@ args+=("${container}${encoded_slug}/")
 
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
 turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy#> .\n"
-#turtle+="@prefix sioc:	<http://rdfs.org/sioc/ns#> .\n"
+turtle+="@prefix sioc:	<http://rdfs.org/sioc/ns#> .\n"
 turtle+="<${container}${encoded_slug}/> a dh:Item .\n"
 turtle+="<${container}${encoded_slug}/> dct:title \"${title}\" .\n"
-#turtle+="<${container}${encoded_slug}/> sioc:has_container <${container}> .\n"
+turtle+="<${container}${encoded_slug}/> sioc:has_container <${container}> .\n"
 
 if [ -n "$description" ] ; then
     turtle+="<${container}${encoded_slug}/> dct:description \"${description}\" .\n"

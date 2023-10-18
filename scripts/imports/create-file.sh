@@ -164,8 +164,8 @@ rdf_post+="-F \"pu=http://www.w3.org/1999/02/22-rdf-syntax-ns#type\"\n"
 rdf_post+="-F \"ou=https://www.w3.org/ns/ldt/document-hierarchy#Item\"\n"
 rdf_post+="-F \"pu=http://xmlns.com/foaf/0.1/primaryTopic\"\n"
 rdf_post+="-F \"ob=file\"\n"
-#rdf_post+="-F \"pu=http://rdfs.org/sioc/ns#has_container\"\n"
-#rdf_post+="-F \"ou=${container}\"\n"
+rdf_post+="-F \"pu=http://rdfs.org/sioc/ns#has_container\"\n"
+rdf_post+="-F \"ou=${container}\"\n"
 
 if [ -n "$description" ] ; then
     rdf_post+="-F \"sb=file\"\n"
