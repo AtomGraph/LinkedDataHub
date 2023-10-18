@@ -27,6 +27,7 @@ import com.atomgraph.linkeddatahub.model.CSVImport;
 import com.atomgraph.linkeddatahub.model.Import;
 import com.atomgraph.linkeddatahub.model.RDFImport;
 import com.atomgraph.linkeddatahub.resource.graph.Item;
+import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import java.net.URI;
 import java.util.Optional;
@@ -57,7 +58,7 @@ import org.slf4j.LoggerFactory;
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-public class Importer extends Item
+public class Importer extends GraphStoreImpl
 {
     private static final Logger log = LoggerFactory.getLogger(Importer.class);
 

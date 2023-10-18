@@ -20,8 +20,8 @@ import com.atomgraph.core.MediaTypes;
 import com.atomgraph.core.vocabulary.SD;
 import com.atomgraph.linkeddatahub.client.LinkedDataClient;
 import com.atomgraph.linkeddatahub.model.Service;
-import com.atomgraph.linkeddatahub.resource.graph.Item;
 import com.atomgraph.linkeddatahub.server.io.ValidatingModelProvider;
+import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.vocabulary.NFO;
 import java.io.IOException;
@@ -64,7 +64,7 @@ import org.slf4j.LoggerFactory;
  * 
  * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
  */
-public class Add extends Item // TO-DO: does not need to extend GraphStore is the multipart/form-data is not RDF/POST. Replace with ProxyResourceBase?
+public class Add extends GraphStoreImpl // TO-DO: does not need to extend GraphStore is the multipart/form-data is not RDF/POST. Replace with ProxyResourceBase?
 {
 
     private static final Logger log = LoggerFactory.getLogger(Add.class);
@@ -137,7 +137,6 @@ public class Add extends Item // TO-DO: does not need to extend GraphStore is th
      */
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
-    @Override
     public Response postMultipart(FormDataMultiPart multiPart, @QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
     {
         if (log.isDebugEnabled()) log.debug("MultiPart fields: {} body parts: {}", multiPart.getFields(), multiPart.getBodyParts());

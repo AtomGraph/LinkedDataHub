@@ -91,26 +91,29 @@ if [ -z "$container" ] ; then
     exit 1
 fi
 
+if [ -z "$slug" ] ; then
+    slug=$(uuidgen | tr '[:upper:]' '[:lower:]') # lowercase
+fi
+encoded_slug=$(urlencode "$slug")
+
 args+=("-f")
 args+=("$cert_pem_file")
 args+=("-p")
 args+=("$cert_password")
 args+=("-t")
 args+=("text/turtle")
-args+=("${base}service")
+args+=("${parent}${encoded_slug}/")
 
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
 turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy#> .\n"
-turtle+="@prefix sioc:	<http://rdfs.org/sioc/ns#> .\n"
-turtle+="_:item a dh:Item .\n"
-turtle+="_:item dct:title \"${title}\" .\n"
-turtle+="_:item sioc:has_container <${container}> .\n"
+#turtle+="@prefix sioc:	<http://rdfs.org/sioc/ns#> .\n"
+turtle+="<${container}${encoded_slug}/> a dh:Item .\n"
+turtle+="<${container}${encoded_slug}/> dct:title \"${title}\" .\n"
+#turtle+="<${container}${encoded_slug}/> sioc:has_container <${container}> .\n"
 
 if [ -n "$description" ] ; then
-    turtle+="_:item dct:description \"${description}\" .\n"
-fi
-if [ -n "$slug" ] ; then
-    turtle+="_:item dh:slug \"${slug}\" .\n"
+    turtle+="<${container}${encoded_slug}/> dct:description \"${description}\" .\n"
 fi
 
-echo -e "$turtle" | turtle --base="$base" | ./create-document.sh "${args[@]}"
+
+echo -e "$turtle" | turtle --base="$base" | ./put-document.sh "${args[@]}"

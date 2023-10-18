@@ -25,7 +25,7 @@ import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.listener.EMailListener;
-import com.atomgraph.linkeddatahub.resource.graph.Item;
+import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.server.util.MessageBuilder;
 import com.atomgraph.linkeddatahub.server.util.Skolemizer;
@@ -98,7 +98,7 @@ import org.slf4j.LoggerFactory;
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-public class SignUp extends Item
+public class SignUp extends GraphStoreImpl
 {
     
     private static final Logger log = LoggerFactory.getLogger(SignUp.class);

@@ -19,11 +19,9 @@ package com.atomgraph.linkeddatahub.resource.graph;
 import com.atomgraph.client.vocabulary.AC;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.core.model.EndpointAccessor;
-import com.atomgraph.core.model.impl.GraphStoreImpl;
-import com.atomgraph.core.riot.lang.RDFPostReader;
-import static com.atomgraph.linkeddatahub.apps.model.Application.UPLOADS_PATH;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.io.ValidatingModelProvider;
+import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.server.util.PatchUpdateVisitor;
 import com.atomgraph.linkeddatahub.server.util.Skolemizer;
@@ -56,7 +54,6 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Request;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.SecurityContext;
-import jakarta.ws.rs.core.UriBuilder;
 import jakarta.ws.rs.core.UriInfo;
 import jakarta.ws.rs.ext.MessageBodyReader;
 import jakarta.ws.rs.ext.Providers;
@@ -69,15 +66,11 @@ import java.net.URISyntaxException;
 import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.security.DigestInputStream;
-import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.GregorianCalendar;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import org.apache.commons.codec.binary.Hex;
@@ -99,7 +92,6 @@ import org.apache.jena.update.UpdateRequest;
 import org.apache.jena.util.ResourceUtils;
 import org.apache.jena.vocabulary.DCTerms;
 import org.apache.jena.vocabulary.RDF;
-import org.glassfish.jersey.media.multipart.BodyPart;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.slf4j.Logger;
@@ -116,18 +108,6 @@ public class Item extends GraphStoreImpl
     
     private static final Logger log = LoggerFactory.getLogger(Item.class);
 
-    private final UriInfo uriInfo;
-    private final com.atomgraph.linkeddatahub.apps.model.Application application;
-    private final Ontology ontology;
-    private final Service service;
-    private final Providers providers;
-    private final com.atomgraph.linkeddatahub.Application system;
-    private final UriBuilder uploadsUriBuilder;
-    private final MessageDigest messageDigest;
-    private final URI ownerDocURI, secretaryDocURI;
-    private final SecurityContext securityContext;
-    private final Optional<AgentContext> agentContext;
-    
     /**
      * Constructs resource.
      * 
@@ -148,29 +128,7 @@ public class Item extends GraphStoreImpl
         @Context SecurityContext securityContext, Optional<AgentContext> agentContext,
         @Context Providers providers, com.atomgraph.linkeddatahub.Application system)
     {
-        super(request, service.get(), mediaTypes);
-        if (ontology.isEmpty()) throw new InternalServerErrorException("Ontology is not specified");
-        if (service.isEmpty()) throw new InternalServerErrorException("Service is not specified");
-        this.uriInfo = uriInfo;
-        this.application = application;
-        this.ontology = ontology.get();
-        this.service = service.get();
-        this.securityContext = securityContext;
-        this.agentContext = agentContext;
-        this.providers = providers;
-        this.system = system;
-        this.messageDigest = system.getMessageDigest();
-        uploadsUriBuilder = uriInfo.getBaseUriBuilder().path(UPLOADS_PATH);
-        URI ownerURI = URI.create(application.getMaker().getURI());
-        try
-        {
-            this.ownerDocURI = new URI(ownerURI.getScheme(), ownerURI.getSchemeSpecificPart(), null).normalize();
-            this.secretaryDocURI = new URI(system.getSecretaryWebIDURI().getScheme(), system.getSecretaryWebIDURI().getSchemeSpecificPart(), null).normalize();
-        }
-        catch (URISyntaxException ex)
-        {
-            throw new InternalServerErrorException(ex);
-        }
+        super(request, uriInfo, mediaTypes, application, ontology, service, securityContext, agentContext, providers, system);
     }
 
     @Override
@@ -229,7 +187,7 @@ public class Item extends GraphStoreImpl
                 removeAll(DCTerms.modified).
                 addLiteral(DCTerms.modified, ResourceFactory.createTypedLiteral(GregorianCalendar.getInstance()));
         }
-        else resource.addLiteral(DCTerms.modified, ResourceFactory.createTypedLiteral(GregorianCalendar.getInstance()));
+        else resource.addLiteral(DCTerms.created, ResourceFactory.createTypedLiteral(GregorianCalendar.getInstance()));
 
         new Skolemizer(getURI().toString()).apply(model);
         
@@ -456,74 +414,6 @@ public class Item extends GraphStoreImpl
 
         return count;
     }
-    
-    /**
-     * Parses multipart RDF/POST request.
-     * 
-     * @param multiPart multipart form data
-     * @return RDF graph
-     * @throws URISyntaxException thrown if there is a syntax error in RDF/POST data
-     * @see <a href="https://atomgraph.github.io/RDF-POST/">RDF/POST Encoding for RDF</a>
-     */
-    public Model parseModel(FormDataMultiPart multiPart) throws URISyntaxException
-    {
-        if (multiPart == null) throw new IllegalArgumentException("FormDataMultiPart cannot be null");
-        
-        List<String> keys = new ArrayList<>(), values = new ArrayList<>();
-        Iterator<BodyPart> it = multiPart.getBodyParts().iterator(); // not using getFields() to retain ordering
-
-        while (it.hasNext())
-        {
-            FormDataBodyPart bodyPart = (FormDataBodyPart)it.next();
-            if (log.isDebugEnabled()) log.debug("Body part media type: {} headers: {}", bodyPart.getMediaType(), bodyPart.getHeaders());
-
-            // it's a file (if the filename is not empty)
-            if (bodyPart.getContentDisposition().getFileName() != null &&
-                    !bodyPart.getContentDisposition().getFileName().isEmpty())
-            {
-                keys.add(bodyPart.getName());
-                if (log.isDebugEnabled()) log.debug("FormDataBodyPart name: {} value: {}", bodyPart.getName(), bodyPart.getContentDisposition().getFileName());
-                values.add(bodyPart.getContentDisposition().getFileName());
-            }
-            else
-            {
-                if (bodyPart.isSimple() && !bodyPart.getValue().isEmpty())
-                {
-                    keys.add(bodyPart.getName());
-                    if (log.isDebugEnabled()) log.debug("FormDataBodyPart name: {} value: {}", bodyPart.getName(), bodyPart.getValue());
-                    values.add(bodyPart.getValue());
-                }
-            }
-        }
-
-        return RDFPostReader.parse(keys, values);
-    }
-    
-    /**
-     * Gets a map of file parts from multipart form data.
-     * 
-     * @param multiPart multipart form data
-     * @return map of file parts
-     */
-    public Map<String, FormDataBodyPart> getFileNameBodyPartMap(FormDataMultiPart multiPart)
-    {
-        if (multiPart == null) throw new IllegalArgumentException("FormDataMultiPart cannot be null");
-
-        Map<String, FormDataBodyPart> fileNameBodyPartMap = new HashMap<>();
-        Iterator<BodyPart> it = multiPart.getBodyParts().iterator(); // not using getFields() to retain ordering
-        while (it.hasNext())
-        {
-            FormDataBodyPart bodyPart = (FormDataBodyPart)it.next();
-            if (log.isDebugEnabled()) log.debug("Body part media type: {} headers: {}", bodyPart.getMediaType(), bodyPart.getHeaders());
-
-            if (bodyPart.getContentDisposition().getFileName() != null) // it's a file
-            {
-                if (log.isDebugEnabled()) log.debug("FormDataBodyPart name: {} value: {}", bodyPart.getName(), bodyPart.getContentDisposition().getFileName());
-                fileNameBodyPartMap.put(bodyPart.getContentDisposition().getFileName(), bodyPart);
-            }
-        }
-        return fileNameBodyPartMap;
-    }
 
     /**
      * Writes a data stream to the upload folder.
@@ -688,137 +578,6 @@ public class Item extends GraphStoreImpl
         if (!dates.isEmpty()) return Collections.max(dates);
         
         return null;
-    }
-    
-    /**
-     * Returns a list of supported languages.
-     * 
-     * @return list of languages
-     */
-    @Override
-    public List<Locale> getLanguages()
-    {
-        return getSystem().getSupportedLanguages();
-    }
-    
-    /**
-     * Returns URI builder for uploaded file resources.
-     * 
-     * @return URI builder
-     */
-    public UriBuilder getUploadsUriBuilder()
-    {
-        return uploadsUriBuilder.clone();
-    }
-    
-    /**
-     * Returns message digest used in SHA1 hashing.
-     * 
-     * @return message digest
-     */
-    public MessageDigest getMessageDigest()
-    {
-        return messageDigest;
-    }
-    
-    /**
-     * Returns the request URI information.
-     * 
-     * @return URI info
-     */
-    public UriInfo getUriInfo()
-    {
-        return uriInfo;
-    }
-
-    /**
-     * Returns the current application.
-     * 
-     * @return application resource
-     */
-    public com.atomgraph.linkeddatahub.apps.model.Application getApplication()
-    {
-        return application;
-    }
-    
-    /**
-     * Returns the ontology of the current application.
-     * 
-     * @return ontology resource
-     */
-    public Ontology getOntology()
-    {
-        return ontology;
-    }
-
-    /**
-     * Returns the SPARQL service of the current application.
-     * 
-     * @return service resource
-     */
-    public Service getService()
-    {
-        return service;
-    }
-    
-    /**
-     * Get JAX-RS security context
-     * 
-     * @return security context object
-     */
-    public SecurityContext getSecurityContext()
-    {
-        return securityContext;
-    }
-    
-    /**
-     * Gets authenticated agent's context
-     * 
-     * @return optional agent's context
-     */
-    public Optional<AgentContext> getAgentContext()
-    {
-        return agentContext;
-    }
-    
-    /**
-     * Returns a registry of JAX-RS providers.
-     * 
-     * @return provider registry
-     */
-    public Providers getProviders()
-    {
-        return providers;
-    }
-    
-    /**
-     * Returns the system application.
-     * 
-     * @return JAX-RS application
-     */
-    public com.atomgraph.linkeddatahub.Application getSystem()
-    {
-        return system;
-    }
-    
-    /**
-     * Returns URI of the WebID document of the applications owner.
-     * 
-     * @return document URI
-     */
-    public URI getOwnerDocURI()
-    {
-        return ownerDocURI;
-    }
-    
-    /**
-     * Returns URI of the WebID document of the applications secretary.
-     * 
-     * @return document URI
-     */
-    public URI getSecretaryDocURI()
-    {
-        return secretaryDocURI;
     }
     
     /**

@@ -25,9 +25,9 @@ import com.atomgraph.linkeddatahub.model.Service;
 import static com.atomgraph.linkeddatahub.resource.admin.SignUp.AGENT_PATH;
 import static com.atomgraph.linkeddatahub.resource.admin.SignUp.AUTHORIZATION_PATH;
 import com.atomgraph.linkeddatahub.resource.admin.oauth2.google.Authorize;
-import com.atomgraph.linkeddatahub.resource.graph.Item;
 import com.atomgraph.linkeddatahub.server.filter.request.auth.IDTokenFilter;
 import com.atomgraph.linkeddatahub.server.filter.response.BackendInvalidationFilter;
+import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.server.util.MessageBuilder;
 import com.atomgraph.linkeddatahub.server.util.Skolemizer;
@@ -91,7 +91,7 @@ import org.slf4j.LoggerFactory;
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
 @Path("oauth2/login")
-public class Login extends Item
+public class Login extends GraphStoreImpl
 {
 
     private static final Logger log = LoggerFactory.getLogger(Login.class);

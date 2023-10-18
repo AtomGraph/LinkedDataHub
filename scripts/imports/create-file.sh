@@ -19,6 +19,7 @@ print_usage()
     printf "  --file ABS_PATH                      Absolute path to the file\n"
     printf "  --file-content-type MEDIA_TYPE       Media type of the file (optional)\n"
     #printf "  --file-slug STRING                   String that will be used as the file's URI path segment (optional)\n"
+    printf "  --container CONTAINER_URI            URI of the parent container (optional)\n"
 }
 
 hash curl 2>/dev/null || { echo >&2 "curl not on \$PATH. Aborting."; exit 1; }
@@ -61,6 +62,11 @@ do
         ;;
         --slug)
         slug="$2"
+        shift # past argument
+        shift # past value
+        ;;
+        --container)
+        container="$2"
         shift # past argument
         shift # past value
         ;;
@@ -112,21 +118,28 @@ if [ -z "$file_content_type" ] ; then
     file_content_type=$(file -b --mime-type "$file")
 fi
 
-container="${base}files/"
+if [ -z "$slug" ] ; then
+    slug=$(uuidgen | tr '[:upper:]' '[:lower:]') # lowercase
+fi
+encoded_slug=$(urlencode "$slug")
 
-target="${base}service"
+# need to create explicit file URI since that is what this script returns (not the graph URI)
+
+#if [ -z "$file_slug" ] ; then
+#    file_slug=$(uuidgen | tr '[:upper:]' '[:lower:]') # lowercase
+#fi
+
+if [ -z "$container" ] ; then
+    container="${base}files/"
+fi
+
+target="${container}${encoded_slug}/"
 
 if [ -n "$proxy" ]; then
     # rewrite target hostname to proxy hostname
     target_host=$(echo "$target" | cut -d '/' -f 1,2,3)
     proxy_host=$(echo "$proxy" | cut -d '/' -f 1,2,3)
     target="${target/$target_host/$proxy_host}"
-fi
-
-# need to create explicit file URI since that is what this script returns (not the graph URI)
-
-if [ -z "$file_slug" ] ; then
-    file_slug=$(uuidgen)
 fi
 
 # https://stackoverflow.com/questions/19116016/what-is-the-right-way-to-post-multipart-form-data-using-curl
@@ -139,32 +152,27 @@ rdf_post+="-F \"pu=http://purl.org/dc/terms/title\"\n"
 rdf_post+="-F \"ol=${title}\"\n"
 rdf_post+="-F \"pu=http://www.w3.org/1999/02/22-rdf-syntax-ns#type\"\n"
 rdf_post+="-F \"ou=http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#FileDataObject\"\n"
-rdf_post+="-F \"sb=item\"\n"
+rdf_post+="-F \"su=${container}${encoded_slug}/\"\n"
 rdf_post+="-F \"pu=http://purl.org/dc/terms/title\"\n"
 rdf_post+="-F \"ol=${title}\"\n"
 rdf_post+="-F \"pu=http://www.w3.org/1999/02/22-rdf-syntax-ns#type\"\n"
 rdf_post+="-F \"ou=https://www.w3.org/ns/ldt/document-hierarchy#Item\"\n"
 rdf_post+="-F \"pu=http://xmlns.com/foaf/0.1/primaryTopic\"\n"
 rdf_post+="-F \"ob=file\"\n"
-rdf_post+="-F \"pu=http://rdfs.org/sioc/ns#has_container\"\n"
-rdf_post+="-F \"ou=${container}\"\n"
+#rdf_post+="-F \"pu=http://rdfs.org/sioc/ns#has_container\"\n"
+#rdf_post+="-F \"ou=${container}\"\n"
 
-if [ -n "$slug" ] ; then
-    rdf_post+="-F \"sb=item\"\n"
-    rdf_post+="-F \"pu=https://www.w3.org/ns/ldt/document-hierarchy#slug\"\n"
-    rdf_post+="-F \"ol=${slug}\"\n"
-fi
 if [ -n "$description" ] ; then
     rdf_post+="-F \"sb=file\"\n"
     rdf_post+="-F \"pu=http://purl.org/dc/terms/description\"\n"
     rdf_post+="-F \"ol=${description}\"\n"
 fi
-if [ -n "$file_slug" ] ; then
-    rdf_post+="-F \"sb=file\"\n"
-    rdf_post+="-F \"pu=https://www.w3.org/ns/ldt/document-hierarchy#slug\"\n"
-    rdf_post+="-F \"ol=${file_slug}\"\n"
+#if [ -n "$file_slug" ] ; then
+#    rdf_post+="-F \"sb=file\"\n"
+#    rdf_post+="-F \"pu=https://www.w3.org/ns/ldt/document-hierarchy#slug\"\n"
+#    rdf_post+="-F \"ol=${file_slug}\"\n"
 
 fi
 
 # POST RDF/POST multipart form from stdin to the server
-echo -e "$rdf_post" | curl -s -k -H "Accept: text/turtle" -E "$cert_pem_file":"$cert_password" --config - "$target" -v -D - | tr -d '\r' | sed -En 's/^Location: (.*)$/\1/p'
+echo -e "$rdf_post" | curl -s -k -X PUT -H "Accept: text/turtle" -E "$cert_pem_file":"$cert_password" --config - "$target" -v -D - | tr -d '\r' | sed -En 's/^Location: (.*)$/\1/p'
