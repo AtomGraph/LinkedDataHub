@@ -184,7 +184,7 @@ args+=("-p")
 args+=("$cert_password")
 args+=("-t")
 args+=("text/turtle") # content type
-args+=("${parent}${encoded_slug}/")
+args+=("${container}${encoded_slug}/")
 
 turtle+="@prefix ldh:	<https://w3id.org/atomgraph/linkeddatahub#> .\n"
 turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy#> .\n"
@@ -195,10 +195,10 @@ turtle+="@prefix foaf:	<http://xmlns.com/foaf/0.1/> .\n"
 #turtle+="@prefix sioc:	<http://rdfs.org/sioc/ns#> .\n"
 turtle+="${auth} a acl:Authorization .\n"
 turtle+="${auth} rdfs:label \"${label}\" .\n"
-turtle+="<${parent}${encoded_slug}/> a dh:Item .\n"
-turtle+="<${parent}${encoded_slug}/> foaf:primaryTopic ${auth} .\n"
-#turtle+="<${parent}${encoded_slug}/> sioc:has_container <${container}> .\n"
-turtle+="<${parent}${encoded_slug}/> dct:title \"${label}\" .\n"
+turtle+="<${container}${encoded_slug}/> a dh:Item .\n"
+turtle+="<${container}${encoded_slug}/> foaf:primaryTopic ${auth} .\n"
+#turtle+="<${container}${encoded_slug}/> sioc:has_container <${container}> .\n"
+turtle+="<${container}${encoded_slug}/> dct:title \"${label}\" .\n"
 
 if [ -n "$comment" ] ; then
     turtle+="${auth} rdfs:comment \"${comment}\" .\n"

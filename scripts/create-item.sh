@@ -107,7 +107,7 @@ args+=("-p")
 args+=("$cert_password")
 args+=("-t")
 args+=("text/turtle")
-args+=("${parent}${encoded_slug}/")
+args+=("${container}${encoded_slug}/")
 
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
 turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy#> .\n"
