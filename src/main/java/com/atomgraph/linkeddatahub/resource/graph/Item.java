@@ -180,7 +180,7 @@ public class Item extends GraphStoreImpl
         final boolean existingGraph = getDatasetAccessor().containsModel(getURI().toString());
         
         Resource resource = model.createResource(getURI().toString());
-        if (!existingGraph)
+        if (!existingGraph) // creating new graph
         {
             URI parentURI = getURI().resolve("..");
             Resource parent = model.createResource(parentURI.toString()).
@@ -193,17 +193,17 @@ public class Item extends GraphStoreImpl
                 resource.addProperty(SIOC.HAS_CONTAINER, parent).
                     addProperty(RDF.type, DH.Item); // TO-DO: replace with foaf:Document?
 
-            resource.removeAll(DCTerms.modified).
-                addLiteral(DCTerms.modified, ResourceFactory.createTypedLiteral(GregorianCalendar.getInstance()));
+            resource.addLiteral(DCTerms.created, ResourceFactory.createTypedLiteral(GregorianCalendar.getInstance()));
         }
-        else
+        else // updating existing graph
         {
             if (!resource.hasProperty(RDF.type, Default.Root) &&
                 !resource.hasProperty(RDF.type, DH.Container) &&
                 !resource.hasProperty(RDF.type, DH.Item))
                 throw new WebApplicationException("Named graph <" + getURI() + "> must contain a document resource (instance of dh:Container or dh:Item)", 422); // 422 Unprocessable Entity
- 
-            resource.addLiteral(DCTerms.created, ResourceFactory.createTypedLiteral(GregorianCalendar.getInstance()));
+
+            resource.removeAll(DCTerms.modified).
+                addLiteral(DCTerms.modified, ResourceFactory.createTypedLiteral(GregorianCalendar.getInstance()));
         }
 
         new Skolemizer(getURI().toString()).apply(model);
