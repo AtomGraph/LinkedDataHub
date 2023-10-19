@@ -19,17 +19,27 @@ pushd . > /dev/null && cd "$SCRIPT_ROOT/admin/acl"
 
 popd > /dev/null
 
-# attempt to create a new named graph using direct identification fails due to missing authorizations
-# the current W3C ACL ontology-based model does not support "unknown" URIs that are not attached to any acl:Authorization using acl:accessTo or acl:accessToClass
+pushd . > /dev/null && cd "$SCRIPT_ROOT"
 
-(
-curl -k -w "%{http_code}\n" -o /dev/null -s \
-  -X PUT \
-  -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
-  -H "Content-Type: application/n-triples" \
-   --data-binary @- \
-  "${END_USER_BASE_URL}non-existing/" <<EOF
-<http://s> <http://p> <http://o> .
-EOF
-) \
-| grep -q "$STATUS_FORBIDDEN"
+# create item
+
+slug="test-item"
+
+item=$(./create-iten.sh \
+  -f "$AGENT_CERT_FILE" \
+  -p "$AGENT_CERT_PWD" \
+  -b "$END_USER_BASE_URL" \
+  --title "Test" \
+  --slug "$slug" \
+  --parent "$END_USER_BASE_URL")
+
+# check that the item was created at the expected URL and attached to the document hierarchy
+
+./get-document.sh \
+  -f "$AGENT_CERT_FILE" \
+  -p "$AGENT_CERT_PWD" \
+  --accept 'application/n-triples' \
+  "$item" \
+| grep "<${item}> <http://rdfs.org/sioc/ns#has_container> <${END_USER_BASE_URL}>"
+
+popd > /dev/null

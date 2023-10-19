@@ -9,7 +9,7 @@ purge_cache "$FRONTEND_VARNISH_SERVICE"
 
 pushd . > /dev/null && cd "$SCRIPT_ROOT/admin/acl"
 
-# add an explicit read/write authorization for the owner because add-agent-to-group.sh won't work non-existing URI
+# add an explicit read/write authorization for the parent since the child document will inherit it
 
 ./create-authorization.sh \
   -b "$ADMIN_BASE_URL" \
@@ -23,7 +23,10 @@ pushd . > /dev/null && cd "$SCRIPT_ROOT/admin/acl"
 
 popd > /dev/null
 
-# replace the graph
+# replace the graph (note that the document does not have an RDF type)
+
+slug="test-item"
+item="${END_USER_BASE_URL}${slug}/"
 
 (
 curl -k -w "%{http_code}\n" -o /dev/null -s \
@@ -32,8 +35,17 @@ curl -k -w "%{http_code}\n" -o /dev/null -s \
   -H "Accept: application/n-triples" \
   -H "Content-Type: application/n-triples" \
   --data-binary @- \
-  "$END_USER_BASE_URL" <<EOF
+  "$item" <<EOF
 <${END_USER_BASE_URL}> <http://example.com/default-predicate> "named object PUT" .
 EOF
 ) \
-| grep -q "$STATUS_UNPROCESSABLE_ENTITY"
+| grep -q "$STATUS_CREATED"
+
+# check that a default RDF type was assigned to the new document
+
+./get-document.sh \
+  -f "$AGENT_CERT_FILE" \
+  -p "$AGENT_CERT_PWD" \
+  --accept 'application/n-triples' \
+  "$item" \
+| grep "<${item}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.w3.org/ns/ldt/document-hierarchy#Item>"

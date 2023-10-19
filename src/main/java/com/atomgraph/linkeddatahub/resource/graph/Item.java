@@ -78,7 +78,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.jena.atlas.RuntimeIOException;
 import org.apache.jena.datatypes.xsd.XSDDateTime;
 import org.apache.jena.graph.NodeFactory;
-import org.apache.jena.ontology.ObjectProperty;
 import org.apache.jena.ontology.Ontology;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ResIterator;
@@ -164,6 +163,7 @@ public class Item extends GraphStoreImpl
     
     @Override
     @PUT
+    // the AuthorizationFilter only allows creating new URIs for existing parents (i.e. there has to be a .. document already)
     public Response put(Model model, @QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUriUnused)
     {
         if (log.isTraceEnabled()) log.trace("PUT Graph Store request with RDF payload: {} payload size(): {}", model, model.size());
@@ -173,23 +173,20 @@ public class Item extends GraphStoreImpl
             throw new WebApplicationException("Cannot update document", Response.status(Response.Status.METHOD_NOT_ALLOWED).allow(allowedMethods).build());
         
         final boolean existingGraph = getDatasetAccessor().containsModel(getURI().toString());
-
-//        Resource resource = model.createResource(getURI().toString());
-//        if (!resource.hasProperty(RDF.type, Default.Root) &&
-//            !resource.hasProperty(RDF.type, DH.Container) &&
-//            !resource.hasProperty(RDF.type, DH.Item))
-//            throw new WebApplicationException("Named graph <" + getURI() + "> must contain a document resource (instance of dh:Container or dh:Item)", 422); // 422 Unprocessable Entity
         
         Resource resource = model.createResource(getURI().toString());
         if (!existingGraph)
         {
             URI parentURI = getURI().resolve("..");
-            final ObjectProperty containmentProperty;
-            if (resource.hasProperty(RDF.type, DH.Container)) containmentProperty = SIOC.HAS_PARENT;
-            else containmentProperty = SIOC.HAS_CONTAINER;
+            Resource parent = model.createResource(parentURI.toString());
+            if (resource.hasProperty(RDF.type, DH.Container)) resource.addProperty(SIOC.HAS_PARENT, parent);
+            else
+            {
+                resource.addProperty(RDF.type, DH.Item). // TO-DO: replace with foaf:Document?
+                    addProperty(SIOC.HAS_CONTAINER, parent);
+            }
 
-            resource.addProperty(containmentProperty, model.createResource(parentURI.toString())).
-                removeAll(DCTerms.modified).
+            resource.removeAll(DCTerms.modified).
                 addLiteral(DCTerms.modified, ResourceFactory.createTypedLiteral(GregorianCalendar.getInstance()));
         }
         else resource.addLiteral(DCTerms.created, ResourceFactory.createTypedLiteral(GregorianCalendar.getInstance()));
