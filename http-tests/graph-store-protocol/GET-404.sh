@@ -19,11 +19,10 @@ pushd . > /dev/null && cd "$SCRIPT_ROOT/admin/acl"
 
 popd > /dev/null
 
-# check that non-existing graph is forbidden
+# check that access to graph with parent is allowed, but the graph is not found
 
 curl -k -w "%{http_code}\n" -o /dev/null -s -G \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
-  -X DELETE \
   -H "Accept: application/n-triples" \
   "${END_USER_BASE_URL}non-existing/" \
-| grep -q "$STATUS_FORBIDDEN"
+| grep -q "$STATUS_NOT_FOUND"

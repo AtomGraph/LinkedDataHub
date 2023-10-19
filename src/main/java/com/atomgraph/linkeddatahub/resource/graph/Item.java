@@ -26,6 +26,7 @@ import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.server.util.PatchUpdateVisitor;
 import com.atomgraph.linkeddatahub.server.util.Skolemizer;
 import com.atomgraph.linkeddatahub.vocabulary.DH;
+import com.atomgraph.linkeddatahub.vocabulary.Default;
 import com.atomgraph.linkeddatahub.vocabulary.NFO;
 import com.atomgraph.linkeddatahub.vocabulary.SIOC;
 import static com.atomgraph.server.status.UnprocessableEntityStatus.UNPROCESSABLE_ENTITY;
@@ -172,24 +173,38 @@ public class Item extends GraphStoreImpl
         if (!allowedMethods.contains(HttpMethod.PUT))
             throw new WebApplicationException("Cannot update document", Response.status(Response.Status.METHOD_NOT_ALLOWED).allow(allowedMethods).build());
         
+        // enforce that document URIs always end with a slash
+        if (!getURI().toString().endsWith("/"))
+            throw new WebApplicationException("Document URIs need to end with a slash", UNPROCESSABLE_ENTITY.getStatusCode()); // 422 Unprocessable Entity
+        
         final boolean existingGraph = getDatasetAccessor().containsModel(getURI().toString());
         
         Resource resource = model.createResource(getURI().toString());
         if (!existingGraph)
         {
             URI parentURI = getURI().resolve("..");
-            Resource parent = model.createResource(parentURI.toString());
-            if (resource.hasProperty(RDF.type, DH.Container)) resource.addProperty(SIOC.HAS_PARENT, parent);
+            Resource parent = model.createResource(parentURI.toString()).
+                removeAll(SIOC.HAS_PARENT).
+                removeAll(SIOC.HAS_CONTAINER);
+
+            if (resource.hasProperty(RDF.type, DH.Container))
+                resource.addProperty(SIOC.HAS_PARENT, parent);
             else
-            {
-                resource.addProperty(RDF.type, DH.Item). // TO-DO: replace with foaf:Document?
-                    addProperty(SIOC.HAS_CONTAINER, parent);
-            }
+                resource.addProperty(SIOC.HAS_CONTAINER, parent).
+                    addProperty(RDF.type, DH.Item); // TO-DO: replace with foaf:Document?
 
             resource.removeAll(DCTerms.modified).
                 addLiteral(DCTerms.modified, ResourceFactory.createTypedLiteral(GregorianCalendar.getInstance()));
         }
-        else resource.addLiteral(DCTerms.created, ResourceFactory.createTypedLiteral(GregorianCalendar.getInstance()));
+        else
+        {
+            if (!resource.hasProperty(RDF.type, Default.Root) &&
+                !resource.hasProperty(RDF.type, DH.Container) &&
+                !resource.hasProperty(RDF.type, DH.Item))
+                throw new WebApplicationException("Named graph <" + getURI() + "> must contain a document resource (instance of dh:Container or dh:Item)", 422); // 422 Unprocessable Entity
+ 
+            resource.addLiteral(DCTerms.created, ResourceFactory.createTypedLiteral(GregorianCalendar.getInstance()));
+        }
 
         new Skolemizer(getURI().toString()).apply(model);
         
@@ -213,6 +228,9 @@ public class Item extends GraphStoreImpl
     public Response patch(UpdateRequest updateRequest, @QueryParam("graph") URI graphUriUnused)
     {
         if (updateRequest == null) throw new BadRequestException("SPARQL update not specified");
+
+        final boolean existingGraph = getDatasetAccessor().containsModel(getURI().toString());
+        if (!existingGraph) throw new NotFoundException("Named graph with URI <" + getURI() + "> not found");
 
         updateRequest.getOperations().forEach(update ->
         {

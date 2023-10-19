@@ -23,7 +23,7 @@ pushd . > /dev/null && cd "$SCRIPT_ROOT/admin/acl"
 
 popd > /dev/null
 
-# replace the graph (note that the document does not have an RDF type)
+# replace the graph (note that the document does not have description in the request body)
 
 slug="test-item"
 item="${END_USER_BASE_URL}${slug}/"
@@ -36,7 +36,7 @@ curl -k -w "%{http_code}\n" -o /dev/null -s \
   -H "Content-Type: application/n-triples" \
   --data-binary @- \
   "$item" <<EOF
-<${END_USER_BASE_URL}> <http://example.com/default-predicate> "named object PUT" .
+<http://example.com/> <http://example.com/default-predicate> "named object PUT" .
 EOF
 ) \
 | grep -q "$STATUS_CREATED"
