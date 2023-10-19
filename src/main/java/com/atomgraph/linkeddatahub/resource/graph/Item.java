@@ -191,8 +191,7 @@ public class Item extends GraphStoreImpl
 
         new Skolemizer(getURI().toString()).apply(model);
         
-        if (existingGraph) return Response.ok().build();
-        else return Response.created(getURI()).build();
+        return super.put(model, false, getURI());
     }
     
     /**
