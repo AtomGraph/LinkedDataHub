@@ -58,11 +58,10 @@ WHERE
                       { $Container  a  ?Type }
                   }
                 UNION
-                  { { GRAPH ?g
-                        { $this  a  <http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#FileDataObject> ;
-                                 a  ?Type
-                        }
-                    }
+                  { GRAPH ?g
+                      { $this  a  <http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#FileDataObject> ;
+                               a  ?Type
+                      }
                   }
               }
           }
@@ -105,11 +104,10 @@ WHERE
                       { $Container  a  ?Type }
                   }
                 UNION
-                  { { GRAPH ?g
-                        { $this  a  <http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#FileDataObject> ;
-                                 a  ?Type
-                        }
-                    }
+                  { GRAPH ?g
+                      { $this  a  <http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#FileDataObject> ;
+                               a  ?Type
+                      }
                   }
               }
           }

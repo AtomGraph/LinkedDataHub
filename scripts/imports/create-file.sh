@@ -25,7 +25,7 @@ print_usage()
 hash curl 2>/dev/null || { echo >&2 "curl not on \$PATH. Aborting."; exit 1; }
 
 urlencode() {
-  python -c 'import urllib, sys; print urllib.quote(sys.argv[1], sys.argv[2])' \
+  python -c 'import urllib.parse, sys; print(urllib.parse.quote(sys.argv[1], sys.argv[2]))' \
     "$1" "$urlencode_safe"
 }
 
