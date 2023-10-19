@@ -222,14 +222,14 @@ public class Item extends GraphStoreImpl
             // check for GRAPH keyword which is disallowed
             PatchUpdateVisitor visitor = new PatchUpdateVisitor();
             update.visit(visitor);
-            if (visitor.isContainsNamedGraph())
+            if (visitor.containsNamedGraph())
             {
                 if (log.isWarnEnabled()) log.debug("SPARQL update used with PATCH method cannot contain the GRAPH keyword");
-                throw new WebApplicationException("SPARQL update used with PATCH method cannot contain the GRAPH keyword", UNPROCESSABLE_ENTITY.toEnum()); // 422 Unprocessable Entity
+                throw new WebApplicationException("SPARQL update used with PATCH method cannot contain the GRAPH keyword", UNPROCESSABLE_ENTITY.getStatusCode()); // 422 Unprocessable Entity
             }
 
             // set WITH <graphUri>
-            if (!(update instanceof UpdateModify updateModify)) throw new WebApplicationException("Only UpdateModify form of SPARQL Update is supported", UNPROCESSABLE_ENTITY.toEnum()); // 422 Unprocessable Entity
+            if (!(update instanceof UpdateModify updateModify)) throw new WebApplicationException("Only UpdateModify form of SPARQL Update is supported", UNPROCESSABLE_ENTITY.getStatusCode()); // 422 Unprocessable Entity
             updateModify.setWithIRI(NodeFactory.createURI(getURI().toString())); // ignore the @QueryParam("graph") value
         });
 
