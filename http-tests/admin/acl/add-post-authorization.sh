@@ -39,11 +39,15 @@ popd > /dev/null
 
 # access is allowed after authorization is created
 
-curl -k -w "%{http_code}\n" -o /dev/null -f -s \
+(
+curl -k -w "%{http_code}\n" -o /dev/null -s \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -H "Content-Type: application/n-triples" \
   -H "Accept: application/n-triples" \
-  -H "Content-Length: 0" \
   -X POST \
-  "$END_USER_BASE_URL" \
-| grep -q "$STATUS_NO_CONTENT"
+   --data-binary @- \
+  "$END_USER_BASE_URL" <<EOF
+<http://s> <http://p> <http://o> .
+EOF
+) \
+| grep -q "$STATUS_OK"
