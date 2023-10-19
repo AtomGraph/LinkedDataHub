@@ -282,6 +282,8 @@ public class Item extends GraphStoreImpl
             final boolean existingGraph = getDatasetAccessor().containsModel(getURI().toString());
             if (!existingGraph) throw new NotFoundException("Named graph with URI <" + getURI() + "> not found");
 
+            new Skolemizer(getURI().toString()).apply(model); // skolemize before writing files (they require absolute URIs)
+
             int fileCount = writeFiles(model, getFileNameBodyPartMap(multiPart));
             if (log.isDebugEnabled()) log.debug("# of files uploaded: {} ", fileCount);
 
@@ -321,6 +323,8 @@ public class Item extends GraphStoreImpl
             MessageBodyReader<Model> reader = getProviders().getMessageBodyReader(Model.class, null, null, com.atomgraph.core.MediaType.APPLICATION_NTRIPLES_TYPE);
             if (reader instanceof ValidatingModelProvider validatingModelProvider) model = validatingModelProvider.processRead(model);
             if (log.isDebugEnabled()) log.debug("POSTed Model size: {}", model.size());
+
+            new Skolemizer(getURI().toString()).apply(model); // skolemize before writing files (they require absolute URIs)
 
             int fileCount = writeFiles(model, getFileNameBodyPartMap(multiPart));
             if (log.isDebugEnabled()) log.debug("# of files uploaded: {} ", fileCount);
