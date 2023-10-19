@@ -33,14 +33,29 @@ WHERE
   {   { ?auth  acl:mode  $Mode
           { ?auth  acl:accessTo  $this }
         UNION
+          { SERVICE $endpoint
+              { FILTER NOT EXISTS { GRAPH $this
+                                      { $this  ?thisP  ?thisO }
+                                  }
+              }
+            ?auth  acl:accessTo  $Container
+          }
+        UNION
           {   { ?auth  acl:accessToClass  ?Type }
             UNION
               { ?auth  acl:accessToClass  ?Class .
                 ?Type (rdfs:subClassOf)* ?Class
               }
-            SERVICE ?endpoint
+            SERVICE $endpoint
               {   { GRAPH $this
                       { $this  a  ?Type }
+                  }
+                UNION
+                  { FILTER NOT EXISTS { GRAPH $this
+                                          { $this  ?thisP  ?thisO }
+                                      }
+                    GRAPH $Container
+                      { $Container  a  ?Type }
                   }
                 UNION
                   { { GRAPH ?g
@@ -65,14 +80,29 @@ WHERE
           { ?auth  acl:agentClass  $AuthenticatedAgentClass }
           { ?auth  acl:accessTo  $this }
         UNION
+          { SERVICE $endpoint
+              { FILTER NOT EXISTS { GRAPH $this
+                                      { $this  ?thisP  ?thisO }
+                                  }
+              }
+            ?auth  acl:accessTo  $Container
+          }
+        UNION
           {   { ?auth  acl:accessToClass  ?Type }
             UNION
               { ?auth  acl:accessToClass  ?Class .
                 ?Type (rdfs:subClassOf)* ?Class
               }
-            SERVICE ?endpoint
+            SERVICE $endpoint
               {   { GRAPH $this
                       { $this  a  ?Type }
+                  }
+                UNION
+                  { FILTER NOT EXISTS { GRAPH $this
+                                          { $this  ?thisP  ?thisO }
+                                      }
+                    GRAPH $Container
+                      { $Container  a  ?Type }
                   }
                 UNION
                   { { GRAPH ?g

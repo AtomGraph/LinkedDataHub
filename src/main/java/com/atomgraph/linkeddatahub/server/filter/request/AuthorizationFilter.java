@@ -26,6 +26,7 @@ import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.security.AuthorizationContext;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
 import com.atomgraph.linkeddatahub.vocabulary.LACL;
+import com.atomgraph.linkeddatahub.vocabulary.SIOC;
 import com.atomgraph.server.vocabulary.LDT;
 import com.atomgraph.spinrdf.vocabulary.SPIN;
 import java.io.IOException;
@@ -42,6 +43,7 @@ import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.container.ContainerRequestFilter;
 import jakarta.ws.rs.container.PreMatching;
 import jakarta.ws.rs.core.Response;
+import java.net.URI;
 import org.apache.jena.query.ParameterizedSparqlString;
 import org.apache.jena.query.QuerySolutionMap;
 import org.apache.jena.rdf.model.Model;
@@ -161,6 +163,14 @@ public class AuthorizationFilter implements ContainerRequestFilter
         qsm.add(LDT.Ontology.getLocalName(), getApplication().getOntology());
         qsm.add(LDT.base.getLocalName(), getApplication().getBase());
         
+        if (!absolutePath.equals(getApplication().getBase())) // enable $Container pattern, unless the Root document is requested
+        {
+            URI container = URI.create(absolutePath.getURI()).resolve("..");
+            qsm.add(SIOC.CONTAINER.getLocalName(), ResourceFactory.createResource(container.toString()));
+        }
+        else // disable $Container pattern
+            qsm.add(SIOC.CONTAINER.getLocalName(), RDFS.Resource);
+
         if (agent != null)
         {
             qsm.add("AuthenticatedAgentClass", ACL.AuthenticatedAgent); // enable AuthenticatedAgent UNION branch
@@ -169,7 +179,7 @@ public class AuthorizationFilter implements ContainerRequestFilter
         else
         {
             qsm.add("AuthenticatedAgentClass", RDFS.Resource); // disable AuthenticatedAgent UNION branch
-            qsm.add("agent", RDFS.Resource); // disables UNION branch with ?agent
+            qsm.add("agent", RDFS.Resource); // disables UNION branch with $agent
         }
         
         return qsm;
