@@ -154,7 +154,12 @@ public class Item extends GraphStoreImpl
         // container/item (graph) resource is already skolemized, skolemize the rest of the model
         new Skolemizer(getURI().toString()).apply(model);
         
-        return super.post(model, false, getURI());
+        // is this implemented correctly? The specification is not very clear.
+        if (log.isDebugEnabled()) log.debug("POST Model to named graph with URI: {} Did it already exist? {}", getURI(), existingGraph);
+        getDatasetAccessor().add(getURI().toString(), model);
+
+        if (existingGraph) return Response.ok().build();
+        else return Response.created(getURI()).build();
     }
     
     @Override
@@ -191,7 +196,11 @@ public class Item extends GraphStoreImpl
 
         new Skolemizer(getURI().toString()).apply(model);
         
-        return super.put(model, false, getURI());
+        if (log.isDebugEnabled()) log.debug("PUT Model to named graph with URI: {} Did it already exist? {}", getURI(), existingGraph);
+        getDatasetAccessor().putModel(getURI().toString(), model);
+
+        if (existingGraph) return Response.ok().build();
+        else return Response.created(getURI()).build();
     }
     
     /**
