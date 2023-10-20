@@ -23,7 +23,7 @@ popd > /dev/null
 
 (
 curl -k -w "%{http_code}\n" -o /dev/null -s \
-  -X POST \
+  -X PUT \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -H "Content-Type: application/n-triples" \
    --data-binary @- \
