@@ -22,6 +22,8 @@
     <context-param>
         <param-name>https://w3id.org/atomgraph/linkeddatahub/config#authQuery</param-name>
         <param-value><![CDATA[
+PREFIX  def:  <https://w3id.org/atomgraph/linkeddatahub/default#>
+PREFIX  dh:   <https://www.w3.org/ns/ldt/document-hierarchy#>
 PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX  acl:  <http://www.w3.org/ns/auth/acl#>
 PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
@@ -32,14 +34,19 @@ FROM <urn:x-arq:UnionGraph>
 WHERE
   {   { ?auth  acl:mode  $Mode
           { ?auth  acl:accessTo  $this }
-        UNION
-          { SERVICE $endpoint
-              { FILTER NOT EXISTS { GRAPH $this
-                                      { $this  ?thisP  ?thisO }
-                                  }
-              }
-            ?auth  acl:accessTo  $Container
-          }
+      UNION
+        { ?auth  acl:accessTo  $Container
+          SERVICE $endpoint
+            { GRAPH $Container
+                {   { $Container  a  def:Root }
+                  UNION
+                    { $Container  a  dh:Container }
+                }
+              FILTER NOT EXISTS { GRAPH $this
+                                    { $this  ?thisP  ?thisO }
+                                }
+            }
+        }
         UNION
           {   { ?auth  acl:accessToClass  ?Type }
             UNION
@@ -51,11 +58,15 @@ WHERE
                       { $this  a  ?Type }
                   }
                 UNION
-                  { FILTER NOT EXISTS { GRAPH $this
+                  { GRAPH $Container
+                      {   { $Container  a  def:Root }
+                        UNION
+                          { $Container  a  dh:Container }
+                        $Container  a  ?Type
+                      }
+                    FILTER NOT EXISTS { GRAPH $this
                                           { $this  ?thisP  ?thisO }
                                       }
-                    GRAPH $Container
-                      { $Container  a  ?Type }
                   }
                 UNION
                   { GRAPH ?g
@@ -79,12 +90,17 @@ WHERE
           { ?auth  acl:agentClass  $AuthenticatedAgentClass }
           { ?auth  acl:accessTo  $this }
         UNION
-          { SERVICE $endpoint
-              { FILTER NOT EXISTS { GRAPH $this
-                                      { $this  ?thisP  ?thisO }
+          { ?auth  acl:accessTo  $Container
+            SERVICE $endpoint
+              { GRAPH $Container
+                  {   { $Container  a  def:Root }
+                    UNION
+                      { $Container  a  dh:Container }
+                  }
+                FILTER NOT EXISTS { GRAPH $this
+                                      { ?this  ?thisP  ?thisO }
                                   }
               }
-            ?auth  acl:accessTo  $Container
           }
         UNION
           {   { ?auth  acl:accessToClass  ?Type }
@@ -97,11 +113,15 @@ WHERE
                       { $this  a  ?Type }
                   }
                 UNION
-                  { FILTER NOT EXISTS { GRAPH $this
+                  { GRAPH $Container
+                      {   { $Container  a  def:Root }
+                        UNION
+                          { $Container  a  dh:Container }
+                        $Container  a  ?Type
+                      }
+                    FILTER NOT EXISTS { GRAPH $this
                                           { $this  ?thisP  ?thisO }
                                       }
-                    GRAPH $Container
-                      { $Container  a  ?Type }
                   }
                 UNION
                   { GRAPH ?g

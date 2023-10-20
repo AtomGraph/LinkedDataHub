@@ -15,7 +15,7 @@ pushd . > /dev/null && cd "$SCRIPT_ROOT/admin/acl"
   -b "$ADMIN_BASE_URL" \
   -f "$OWNER_CERT_FILE" \
   -p "$OWNER_CERT_PWD" \
-  --label "Write base" \
+  --label "Write Root" \
   --agent "$AGENT_URI" \
   --to "$END_USER_BASE_URL" \
   --read \
