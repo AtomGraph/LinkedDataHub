@@ -164,7 +164,7 @@ public class Item extends GraphStoreImpl
     
     @Override
     @PUT
-    // the AuthorizationFilter only allows creating new URIs for existing parents (i.e. there has to be a .. document already)
+    // the AuthorizationFilter only allows creating new child URIs for existing containers (i.e. there has to be a .. container already)
     public Response put(Model model, @QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUriUnused)
     {
         if (log.isTraceEnabled()) log.trace("PUT Graph Store request with RDF payload: {} payload size(): {}", model, model.size());
