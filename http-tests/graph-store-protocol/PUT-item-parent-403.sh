@@ -19,6 +19,8 @@ pushd . > /dev/null && cd "$SCRIPT_ROOT/admin/acl"
 
 popd > /dev/null
 
+pushd . > /dev/null && cd "$SCRIPT_ROOT"
+
 # create item
 
 slug="test-item"
@@ -31,15 +33,17 @@ item=$(./create-item.sh \
   --slug "$slug" \
   --container "$END_USER_BASE_URL")
 
+popd > /dev/null
+
 # check that item as parent is forbidden
 
 (
 curl -k -w "%{http_code}\n" -o /dev/null -s \
-  -X POST \
+  -X PUT \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -H "Content-Type: application/n-triples" \
    --data-binary @- \
-  "${item}/child/" <<EOF
+  "${item}child/" <<EOF
 <http://s> <http://p> <http://o> .
 EOF
 ) \
