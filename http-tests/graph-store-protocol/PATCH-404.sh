@@ -33,10 +33,12 @@ WHERE
 EOF
 )
 
-curl -k -w "%{http_code}\n" -o /dev/null -f -s \
+(
+curl -k -w "%{http_code}\n" -o /dev/null -s \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -X PATCH \
   -H "Content-Type: application/sparql-update" \
   "${END_USER_BASE_URL}non-existing/" \
-   --data-binary "$update" \
+   --data-binary "$update"
+) \
 | grep -q "$STATUS_NOT_FOUND"
