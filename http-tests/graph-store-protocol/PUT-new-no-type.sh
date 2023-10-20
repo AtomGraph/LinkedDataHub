@@ -41,6 +41,8 @@ EOF
 ) \
 | grep -q "$STATUS_CREATED"
 
+pushd . > /dev/null && cd "$SCRIPT_ROOT"
+
 # check that a default RDF type was assigned to the new document
 
 ./get-document.sh \
@@ -49,3 +51,5 @@ EOF
   --accept 'application/n-triples' \
   "$item" \
 | grep "<${item}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.w3.org/ns/ldt/document-hierarchy#Item>"
+
+popd > /dev/null
