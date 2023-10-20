@@ -19,10 +19,28 @@ pushd . > /dev/null && cd "$SCRIPT_ROOT/admin/acl"
 
 popd > /dev/null
 
-# check that access to graph with parent is allowed, but the graph is not found
+# create item
 
-curl -k -w "%{http_code}\n" -o /dev/null -s -G \
+slug="test-item"
+
+item=$(./create-item.sh \
+  -f "$AGENT_CERT_FILE" \
+  -p "$AGENT_CERT_PWD" \
+  -b "$END_USER_BASE_URL" \
+  --title "Test" \
+  --slug "$slug" \
+  --container "$END_USER_BASE_URL")
+
+# check that item as parent is forbidden
+
+(
+curl -k -w "%{http_code}\n" -o /dev/null -s \
+  -X POST \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
-  -H "Accept: application/n-triples" \
-  "${END_USER_BASE_URL}non-existing/" \
-| grep -q "$STATUS_NOT_FOUND"
+  -H "Content-Type: application/n-triples" \
+   --data-binary @- \
+  "${item}/child/" <<EOF
+<http://s> <http://p> <http://o> .
+EOF
+) \
+| grep -q "$STATUS_FORBIDDEN"
