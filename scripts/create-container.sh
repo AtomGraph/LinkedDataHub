@@ -13,10 +13,10 @@ print_usage()
     printf "  --proxy PROXY_URL                    The host this request will be proxied through (optional)\n"
     printf "\n"
     printf "  --title TITLE                        Title of the container\n"
+    printf "  --parent PARENT_URI                  URI of the parent container\n"
     printf "  --description DESCRIPTION            Description of the container (optional)\n"
     printf "  --slug STRING                        String that will be used as URI path segment (optional)\n"
     printf "\n"
-    printf "  --parent PARENT_URI                  URI of the parent container\n"
     printf "  --content CONTENT_URI                URI of the content list (optional)\n"
 }
 

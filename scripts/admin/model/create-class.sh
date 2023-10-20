@@ -112,8 +112,10 @@ if [ -z "$label" ] ; then
     print_usage
     exit 1
 fi
-
-container="${base}model/classes/"
+if [ -z "$1" ]; then
+    print_usage
+    exit 1
+fi
 
 # allow explicit URIs
 if [ -n "$uri" ] ; then
@@ -122,10 +124,12 @@ else
     class="_:class" # blank node
 fi
 
-if [ -z "$1" ]; then
-    print_usage
-    exit 1
+if [ -z "$slug" ] ; then
+    slug=$(uuidgen | tr '[:upper:]' '[:lower:]') # lowercase
 fi
+encoded_slug=$(urlencode "$slug")
+
+container="${base}model/classes/"
 
 args+=("-f")
 args+=("$cert_pem_file")
@@ -145,16 +149,13 @@ turtle+="@prefix spin:	<http://spinrdf.org/spin#> .\n"
 turtle+="@prefix sioc:	<http://rdfs.org/sioc/ns#> .\n"
 turtle+="${class} a owl:Class .\n"
 turtle+="${class} rdfs:label \"${label}\" .\n"
-turtle+="_:item a dh:Item .\n"
-turtle+="_:item foaf:primaryTopic ${class} .\n"
-turtle+="_:item sioc:has_container <${container}> .\n"
-turtle+="_:item dct:title \"${label}\" .\n"
+turtle+="<${parent}${encoded_slug}/> a dh:Item .\n"
+turtle+="<${parent}${encoded_slug}/> foaf:primaryTopic ${class} .\n"
+turtle+="<${parent}${encoded_slug}/> sioc:has_container <${container}> .\n"
+turtle+="<${parent}${encoded_slug}/> dct:title \"${label}\" .\n"
 
 if [ -n "$comment" ] ; then
     turtle+="${class} rdfs:comment \"${comment}\" .\n"
-fi
-if [ -n "$slug" ] ; then
-    turtle+="_:item dh:slug \"${slug}\" .\n"
 fi
 if [ -n "$fragment" ] ; then
     turtle+="${class} ldh:fragment \"${fragment}\" .\n"
@@ -172,4 +173,4 @@ do
 done
 
 # submit Turtle doc to the server
-echo -e "$turtle" | turtle --base="$base" | ../../create-document.sh "${args[@]}"
+echo -e "$turtle" | turtle --base="$base" | ../../put-document.sh "${args[@]}"

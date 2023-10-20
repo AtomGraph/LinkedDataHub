@@ -110,8 +110,10 @@ if [ -z "$label" ] ; then
     print_usage
     exit 1
 fi
-
-container="${base}model/restrictions/"
+if [ -z "$1" ]; then
+    print_usage
+    exit 1
+fi
 
 # allow explicit URIs
 if [ -n "$uri" ] ; then
@@ -120,10 +122,12 @@ else
     restriction="_:restriction" # blank node
 fi
 
-if [ -z "$1" ]; then
-    print_usage
-    exit 1
+if [ -z "$slug" ] ; then
+    slug=$(uuidgen | tr '[:upper:]' '[:lower:]') # lowercase
 fi
+encoded_slug=$(urlencode "$slug")
+
+container="${base}model/restrictions/"
 
 args+=("-f")
 args+=("$cert_pem_file")
@@ -151,9 +155,6 @@ turtle+="_:item dct:title \"${label}\" .\n"
 if [ -n "$comment" ] ; then
     turtle+="${restriction} rdfs:comment \"${comment}\" .\n"
 fi
-if [ -n "$slug" ] ; then
-    turtle+="_:item dh:slug \"${slug}\" .\n"
-fi
 if [ -n "$fragment" ] ; then
     turtle+="${restriction} ldh:fragment \"${fragment}\" .\n"
 fi
@@ -169,4 +170,4 @@ if [ -n "$has_value" ] ; then
 fi
 
 # submit Turtle doc to the server
-echo -e "$turtle" | turtle --base="$base" | ../../create-document.sh "${args[@]}"
+echo -e "$turtle" | turtle --base="$base" | ../../put-document.sh "${args[@]}"

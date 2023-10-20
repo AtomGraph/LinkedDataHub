@@ -102,8 +102,10 @@ if [ -z "$property" ] ; then
     print_usage
     exit 1
 fi
-
-container="${base}model/constraints/"
+if [ -z "$1" ]; then
+    print_usage
+    exit 1
+fi
 
 # allow explicit URIs
 if [ -n "$uri" ] ; then
@@ -112,10 +114,12 @@ else
     constraint="_:constraint" # blank node
 fi
 
-if [ -z "$1" ]; then
-    print_usage
-    exit 1
+if [ -z "$slug" ] ; then
+    slug=$(uuidgen | tr '[:upper:]' '[:lower:]') # lowercase
 fi
+encoded_slug=$(urlencode "$slug")
+
+container="${base}model/constraints/"
 
 args+=("-f")
 args+=("$cert_pem_file")
@@ -134,20 +138,17 @@ turtle+="@prefix sioc:	<http://rdfs.org/sioc/ns#> .\n"
 turtle+="${constraint} a ldh:MissingPropertyValue .\n"
 turtle+="${constraint} rdfs:label \"${label}\" .\n"
 turtle+="${constraint} sp:arg1 <${property}> .\n"
-turtle+="_:item a dh:Item .\n"
-turtle+="_:item foaf:primaryTopic ${constraint} .\n"
-turtle+="_:item sioc:has_container <${container}> .\n"
-turtle+="_:item dct:title \"${label}\" .\n"
+turtle+="<${parent}${encoded_slug}/> a dh:Item .\n"
+turtle+="<${parent}${encoded_slug}/> foaf:primaryTopic ${constraint} .\n"
+turtle+="<${parent}${encoded_slug}/> sioc:has_container <${container}> .\n"
+turtle+="<${parent}${encoded_slug}/> dct:title \"${label}\" .\n"
 
 if [ -n "$comment" ] ; then
     turtle+="${constraint} rdfs:comment \"${comment}\" .\n"
-fi
-if [ -n "$slug" ] ; then
-    turtle+="_:item dh:slug \"${slug}\" .\n"
 fi
 if [ -n "$fragment" ] ; then
     turtle+="${constraint} ldh:fragment \"${fragment}\" .\n"
 fi
 
 # submit Turtle doc to the server
-echo -e "$turtle" | turtle --base="$base" | ../../create-document.sh "${args[@]}"
+echo -e "$turtle" | turtle --base="$base" | ../../put-document.sh "${args[@]}"

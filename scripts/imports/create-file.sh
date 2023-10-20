@@ -13,13 +13,13 @@ print_usage()
     printf "  --proxy PROXY_URL                    The host this request will be proxied through (optional)\n"
     printf "\n"
     printf "  --title TITLE                        Title of the file\n"
+    printf "  --container CONTAINER_URI            URI of the parent container (optional)\n"
     printf "  --description DESCRIPTION            Description of the file (optional)\n"
     printf "  --slug STRING                        String that will be used as URI path segment (optional)\n"
     printf "\n"
     printf "  --file ABS_PATH                      Absolute path to the file\n"
     printf "  --file-content-type MEDIA_TYPE       Media type of the file (optional)\n"
     #printf "  --file-slug STRING                   String that will be used as the file's URI path segment (optional)\n"
-    printf "  --container CONTAINER_URI            URI of the parent container (optional)\n"
 }
 
 hash curl 2>/dev/null || { echo >&2 "curl not on \$PATH. Aborting."; exit 1; }
