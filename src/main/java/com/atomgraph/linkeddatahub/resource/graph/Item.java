@@ -180,11 +180,12 @@ public class Item extends GraphStoreImpl
         final boolean existingGraph = getDatasetAccessor().containsModel(getURI().toString());
         
         Resource resource = model.createResource(getURI().toString());
-        if (!existingGraph) // creating new graph
+        if (!existingGraph) // creating new graph and attaching it to the document hierarchy
         {
             URI parentURI = getURI().resolve("..");
-            Resource parent = model.createResource(parentURI.toString()).
-                removeAll(SIOC.HAS_PARENT).
+            Resource parent = model.createResource(parentURI.toString());
+            
+            resource.removeAll(SIOC.HAS_PARENT).
                 removeAll(SIOC.HAS_CONTAINER);
 
             if (resource.hasProperty(RDF.type, DH.Container))

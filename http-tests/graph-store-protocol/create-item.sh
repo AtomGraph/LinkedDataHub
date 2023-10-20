@@ -31,7 +31,7 @@ item=$(./create-item.sh \
   -b "$END_USER_BASE_URL" \
   --title "Test" \
   --slug "$slug" \
-  --parent "$END_USER_BASE_URL")
+  --container "$END_USER_BASE_URL")
 
 # check that the item was created at the expected URL and attached to the document hierarchy
 
