@@ -25,7 +25,7 @@ pushd . > /dev/null && cd "$SCRIPT_ROOT"
 
 slug="test-item"
 
-item=$(./create-iten.sh \
+item=$(./create-item.sh \
   -f "$AGENT_CERT_FILE" \
   -p "$AGENT_CERT_PWD" \
   -b "$END_USER_BASE_URL" \

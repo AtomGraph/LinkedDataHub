@@ -197,6 +197,7 @@ public class Item extends GraphStoreImpl
         }
         else // updating existing graph
         {
+            // TO-DO: enforce that only document with application's base URI can have the def:Root type
             if (!resource.hasProperty(RDF.type, Default.Root) &&
                 !resource.hasProperty(RDF.type, DH.Container) &&
                 !resource.hasProperty(RDF.type, DH.Item))
@@ -344,7 +345,6 @@ public class Item extends GraphStoreImpl
             int fileCount = writeFiles(model, getFileNameBodyPartMap(multiPart));
             if (log.isDebugEnabled()) log.debug("# of files uploaded: {} ", fileCount);
             
-            //new Skolemizer(graphUri.toString()).apply(model);
             return put(model, defaultGraph, getURI()); // ignore the @QueryParam("graph") value
         }
         catch (URISyntaxException ex)
