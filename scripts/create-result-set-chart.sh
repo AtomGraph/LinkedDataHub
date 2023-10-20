@@ -145,7 +145,7 @@ args+=("-p")
 args+=("$cert_password")
 args+=("-t")
 args+=("text/turtle") # content type
-args+=("${parent}${encoded_slug}/")
+args+=("${container}${encoded_slug}/")
 
 turtle+="@prefix ldh:	<https://w3id.org/atomgraph/linkeddatahub#> .\n"
 turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy#> .\n"
@@ -159,10 +159,10 @@ turtle+="_:chart spin:query <${query}> .\n"
 turtle+="_:chart ldh:chartType <${chart_type}> .\n"
 turtle+="_:chart ldh:categoryVarName \"${category_var_name}\" .\n"
 turtle+="_:chart ldh:seriesVarName \"${series_var_name}\" .\n"
-turtle+="<${parent}${encoded_slug}/> a dh:Item .\n"
-turtle+="<${parent}${encoded_slug}/> dct:title \"${title}\" .\n"
-turtle+="<${parent}${encoded_slug}/> foaf:primaryTopic _:chart .\n"
-turtle+="<${parent}${encoded_slug}/> sioc:has_container <${container}> .\n"
+turtle+="<${container}${encoded_slug}/> a dh:Item .\n"
+turtle+="<${container}${encoded_slug}/> dct:title \"${title}\" .\n"
+turtle+="<${container}${encoded_slug}/> foaf:primaryTopic _:chart .\n"
+turtle+="<${container}${encoded_slug}/> sioc:has_container <${container}> .\n"
 
 if [ -n "$description" ] ; then
     turtle+="_:chart dct:description \"${description}\" .\n"

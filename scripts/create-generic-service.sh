@@ -132,7 +132,7 @@ args+=("-p")
 args+=("$cert_password")
 args+=("-t")
 args+=("text/turtle") # content type
-args+=("${parent}${encoded_slug}/")
+args+=("${container}${encoded_slug}/")
 
 turtle+="@prefix ldh:	<https://w3id.org/atomgraph/linkeddatahub#> .\n"
 turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy#> .\n"
@@ -146,10 +146,10 @@ turtle+="_:service dct:title \"${title}\" .\n"
 turtle+="_:service sd:endpoint <${endpoint}> .\n"
 turtle+="_:service sd:supportedLanguage sd:SPARQL11Query .\n"
 turtle+="_:service sd:supportedLanguage sd:SPARQL11Update .\n"
-turtle+="<${parent}${encoded_slug}/> a dh:Item .\n"
-turtle+="<${parent}${encoded_slug}/> foaf:primaryTopic _:service .\n"
-turtle+="<${parent}${encoded_slug}/> sioc:has_container <${container}> .\n"
-turtle+="<${parent}${encoded_slug}/> dct:title \"${title}\" .\n"
+turtle+="<${container}${encoded_slug}/> a dh:Item .\n"
+turtle+="<${container}${encoded_slug}/> foaf:primaryTopic _:service .\n"
+turtle+="<${container}${encoded_slug}/> sioc:has_container <${container}> .\n"
+turtle+="<${container}${encoded_slug}/> dct:title \"${title}\" .\n"
 
 if [ -n "$graph_store" ] ; then
     turtle+="_:service a:graphStore <${graph_store}> .\n"

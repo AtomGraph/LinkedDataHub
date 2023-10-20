@@ -116,7 +116,7 @@ args+=("-p")
 args+=("$cert_password")
 args+=("-t")
 args+=("text/turtle") # content type
-args+=("${parent}${encoded_slug}/")
+args+=("${container}${encoded_slug}/")
 
 turtle+="@prefix ldh:	<https://w3id.org/atomgraph/linkeddatahub#> .\n"
 turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy#> .\n"
@@ -127,10 +127,10 @@ turtle+="@prefix sioc:	<http://rdfs.org/sioc/ns#> .\n"
 turtle+="_:query a sp:Construct .\n"
 turtle+="_:query dct:title \"${title}\" .\n"
 turtle+="_:query sp:text \"\"\"${query}\"\"\" .\n"
-turtle+="<${parent}${encoded_slug}/> a dh:Item .\n"
-turtle+="<${parent}${encoded_slug}/> foaf:primaryTopic _:query .\n"
-turtle+="<${parent}${encoded_slug}/> sioc:has_container <${container}> .\n"
-turtle+="<${parent}${encoded_slug}/> dct:title \"${title}\" .\n"
+turtle+="<${container}${encoded_slug}/> a dh:Item .\n"
+turtle+="<${container}${encoded_slug}/> foaf:primaryTopic _:query .\n"
+turtle+="<${container}${encoded_slug}/> sioc:has_container <${container}> .\n"
+turtle+="<${container}${encoded_slug}/> dct:title \"${title}\" .\n"
 
 if [ -n "$description" ] ; then
     turtle+="_:query dct:description \"${description}\" .\n"
