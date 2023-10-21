@@ -34,9 +34,7 @@ import jakarta.inject.Inject;
 import jakarta.servlet.ServletConfig;
 import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.DefaultValue;
-import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
-import jakarta.ws.rs.Path;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Response.Status;
 import jakarta.ws.rs.core.SecurityContext;
@@ -85,34 +83,16 @@ public class ImportItem extends Item
         super(request, uriInfo, mediaTypes, application, ontology, service, securityContext, agentContext, providers, system);
         if (log.isDebugEnabled()) log.debug("Constructing {}", getClass());
     }
-
-    /**
-     * Returns item as JAX-RS sub-resource.
-     * 
-     * @return item class
-     */
-    @Path("{path: .*}")
-    public Object getSubResource()
-    {
-        return Item.class;
-    }
-        
-    @GET
-    @Override
-    public Response get(@QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
-    {
-        return super.get(false, getURI());
-    }
     
     @POST
     @Override
     public Response put(Model model, @QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
     {
-        Response constructor = super.put(model, defaultGraph, graphUri); // construct Import
+        Response response = super.put(model, defaultGraph, graphUri); // construct Import
         
-        if (constructor.getStatus() == Status.CREATED.getStatusCode()) // import created
+        if (response.getStatus() == Status.CREATED.getStatusCode()) // import created
         {
-            URI importGraphUri = constructor.getLocation();
+            URI importGraphUri = response.getLocation();
             //Model importModel = (Model)super.get(false, importGraphUri).getEntity();
             InfModel infModel = ModelFactory.createRDFSModel(getOntology().getOntModel(), model);
             Resource doc = infModel.createResource(importGraphUri.toString());
@@ -151,7 +131,7 @@ public class ImportItem extends Item
             }
         }
         
-        return constructor;
+        return response;
     }
     
 }

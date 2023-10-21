@@ -115,17 +115,6 @@ public class Dispatcher
     }
 
     /**
-     * Returns Graph Store Protocol endpoint.
-     * 
-     * @return endpoint resource
-     */
-//    @Path("service")
-//    public Class getGraphStore()
-//    {
-//        return getProxyClass().orElse(GraphStoreImpl.class);
-//    }
-
-    /**
      * Returns SPARQL endpoint for the in-memory ontology model.
      * 
      * @return endpoint resource
@@ -186,7 +175,7 @@ public class Dispatcher
      * 
      * @return endpoint resource
      */
-    @Path("imports/{.*}/")
+    @Path("imports/{.+}/")
     public Class getImportItem()
     {
         return getProxyClass().orElse(ImportItem.class);
