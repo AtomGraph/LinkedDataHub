@@ -127,7 +127,7 @@ public class ImportExecutor
         Supplier<Response> fileSupplier = new ClientResponseSupplier(ldc, CSV_MEDIA_TYPES, URI.create(csvImport.getFile().getURI()));
         // skip validation because it will be done during final POST anyway
         CompletableFuture.supplyAsync(fileSupplier, getExecutorService()).thenApplyAsync(getStreamRDFOutputWriter(service, adminService,
-                graphStoreClient, queryBaseURI, query, csvImport), getExecutorService()).
+                ldc, queryBaseURI, query, csvImport), getExecutorService()).
             thenAcceptAsync(success(service, csvImport, provImport), getExecutorService()).
             exceptionally(failure(service, csvImport, provImport));
     }
@@ -307,15 +307,15 @@ public class ImportExecutor
      * 
      * @param service SPARQL service of the application
      * @param adminService SPARQL service of the admin application
-     * @param graphStoreClient GSP client
+     * @param ldc Linked Data client
      * @param baseURI base URI
      * @param query transformation query
      * @param imp import resource
      * @return function
      */
-    protected Function<Response, CSVGraphStoreOutput> getStreamRDFOutputWriter(Service service, Service adminService, GraphStoreClient graphStoreClient, String baseURI, Query query, CSVImport imp)
+    protected Function<Response, CSVGraphStoreOutput> getStreamRDFOutputWriter(Service service, Service adminService, LinkedDataClient ldc, String baseURI, Query query, CSVImport imp)
     {
-        return new CSVGraphStoreOutputWriter(service, adminService, graphStoreClient, baseURI, query, imp.getDelimiter());
+        return new CSVGraphStoreOutputWriter(service, adminService, ldc, baseURI, query, imp.getDelimiter());
     }
 
     /**

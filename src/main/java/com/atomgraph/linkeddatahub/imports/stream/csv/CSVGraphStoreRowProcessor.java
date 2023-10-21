@@ -16,12 +16,15 @@
  */
 package com.atomgraph.linkeddatahub.imports.stream.csv;
 
-import com.atomgraph.core.client.GraphStoreClient;
+import static com.atomgraph.core.MediaType.APPLICATION_NTRIPLES_TYPE;
+import com.atomgraph.core.client.LinkedDataClient;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.univocity.parsers.common.ParsingContext;
 import com.univocity.parsers.common.processor.RowProcessor;
 import jakarta.ws.rs.client.Client;
+import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.Response;
+import java.net.URI;
 import org.apache.jena.atlas.lib.IRILib;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.query.Query;
@@ -40,7 +43,7 @@ public class CSVGraphStoreRowProcessor implements RowProcessor // extends com.at
 {
 
     private final Service service, adminService;
-    private final GraphStoreClient graphStoreClient;
+    private final LinkedDataClient ldc;
     private final String base;
     private final Query query;
     private int subjectCount, tripleCount;
@@ -50,15 +53,15 @@ public class CSVGraphStoreRowProcessor implements RowProcessor // extends com.at
      * 
      * @param service SPARQL service of the application
      * @param adminService SPARQL service of the admin application
-     * @param graphStoreClient the GSP client
+     * @param ldc Linked Data client
      * @param base base URI
      * @param query transformation query
      */
-    public CSVGraphStoreRowProcessor(Service service, Service adminService, GraphStoreClient graphStoreClient, String base, Query query)
+    public CSVGraphStoreRowProcessor(Service service, Service adminService, LinkedDataClient ldc, String base, Query query)
     {
         this.service = service;
         this.adminService = adminService;
-        this.graphStoreClient = graphStoreClient;
+        this.ldc = ldc;
         this.base = base;
         this.query = query;
     }
@@ -78,14 +81,33 @@ public class CSVGraphStoreRowProcessor implements RowProcessor // extends com.at
         
         rowDataset.listNames().forEachRemaining(graphUri -> 
             {
-                // exceptions get swallowed by the client! TO-DO: wait for completion
-                if (!rowDataset.getNamedModel(graphUri).isEmpty()) getGraphStoreClient().add(graphUri, rowDataset.getNamedModel(graphUri));
+                // exceptions get swallowed by the client? TO-DO: wait for completion
+                Model namedModel = rowDataset.getNamedModel(graphUri);
+                put(Entity.entity(namedModel, APPLICATION_NTRIPLES_TYPE), graphUri);
                 
                 // purge cache entries that include the graph URI
                 if (getService().getBackendProxy() != null) ban(getService().getClient(), getService().getBackendProxy(), graphUri).close();
                 if (getAdminService() != null && getAdminService().getBackendProxy() != null) ban(getAdminService().getClient(), getAdminService().getBackendProxy(), graphUri).close();
             }
         );
+    }
+    
+    /**
+     * Forwards <code>POST</code> request to a graph.
+     * 
+     * @param entity request entity
+     * @param graphURI the graph URI
+     * @return JAX-RS response
+     */
+    protected Response put(Entity entity, String graphURI)
+    {
+        // forward the stream to the named graph document. Buffer the entity first so that the server response is not returned before the client response completes
+        try (Response response = getLinkedDataClient().put(URI.create(graphURI), getLinkedDataClient().getReadableMediaTypes(Model.class), entity))
+        {
+            return Response.status(response.getStatus()).
+                entity(response.readEntity(Model.class)).
+                build();
+        }
     }
     
     /**
@@ -168,16 +190,6 @@ public class CSVGraphStoreRowProcessor implements RowProcessor // extends com.at
     }
     
     /**
-     * Returns the Graph Store Protocol client.
-     * 
-     * @return client
-     */
-    public GraphStoreClient getGraphStoreClient()
-    {
-        return graphStoreClient;
-    }
-    
-    /**
      * Returns base URI.
      * @return base URI string
      */
@@ -214,6 +226,16 @@ public class CSVGraphStoreRowProcessor implements RowProcessor // extends com.at
     public int getTripleCount()
     {
         return tripleCount;
+    }
+    
+    /**
+     * Returns the HTTP client.
+     * 
+     * @return client object
+     */
+    public LinkedDataClient getLinkedDataClient()
+    {
+        return ldc;
     }
     
 }
