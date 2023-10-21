@@ -34,7 +34,7 @@ import jakarta.inject.Inject;
 import jakarta.servlet.ServletConfig;
 import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.DefaultValue;
-import jakarta.ws.rs.POST;
+import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Response.Status;
 import jakarta.ws.rs.core.SecurityContext;
@@ -84,7 +84,7 @@ public class ImportItem extends Item
         if (log.isDebugEnabled()) log.debug("Constructing {}", getClass());
     }
     
-    @POST
+    @PUT
     @Override
     public Response put(Model model, @QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
     {
