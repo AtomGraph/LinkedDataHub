@@ -27,7 +27,6 @@ import com.atomgraph.linkeddatahub.model.CSVImport;
 import com.atomgraph.linkeddatahub.model.Import;
 import com.atomgraph.linkeddatahub.model.RDFImport;
 import com.atomgraph.linkeddatahub.resource.graph.Item;
-import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import java.net.URI;
 import java.util.Optional;
@@ -58,9 +57,9 @@ import org.slf4j.LoggerFactory;
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-public class Importer extends GraphStoreImpl
+public class ImportItem extends Item
 {
-    private static final Logger log = LoggerFactory.getLogger(Importer.class);
+    private static final Logger log = LoggerFactory.getLogger(ImportItem.class);
 
     /**
      * Constructs endpoint for asynchronous CSV and RDF data imports.
@@ -78,7 +77,7 @@ public class Importer extends GraphStoreImpl
      * @param servletConfig servlet config
      */
     @Inject
-    public Importer(@Context Request request, @Context UriInfo uriInfo, MediaTypes mediaTypes,
+    public ImportItem(@Context Request request, @Context UriInfo uriInfo, MediaTypes mediaTypes,
             com.atomgraph.linkeddatahub.apps.model.Application application, Optional<Ontology> ontology, Optional<Service> service,
             @Context SecurityContext securityContext, Optional<AgentContext> agentContext,
             @Context Providers providers, com.atomgraph.linkeddatahub.Application system, @Context ServletConfig servletConfig)
@@ -107,9 +106,9 @@ public class Importer extends GraphStoreImpl
     
     @POST
     @Override
-    public Response post(Model model, @QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
+    public Response put(Model model, @QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
     {
-        Response constructor = super.post(model, defaultGraph, graphUri); // construct Import
+        Response constructor = super.put(model, defaultGraph, graphUri); // construct Import
         
         if (constructor.getStatus() == Status.CREATED.getStatusCode()) // import created
         {
@@ -153,16 +152,6 @@ public class Importer extends GraphStoreImpl
         }
         
         return constructor;
-    }
-    
-    /**
-     * Returns URI of this resource.
-     * 
-     * @return URI
-     */
-    public URI getURI()
-    {
-        return getUriInfo().getAbsolutePath();
     }
     
 }

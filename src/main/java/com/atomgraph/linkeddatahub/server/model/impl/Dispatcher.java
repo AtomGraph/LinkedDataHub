@@ -20,7 +20,7 @@ import com.atomgraph.client.vocabulary.AC;
 import com.atomgraph.linkeddatahub.apps.model.Dataset;
 import com.atomgraph.linkeddatahub.resource.Add;
 import com.atomgraph.linkeddatahub.resource.Generate;
-import com.atomgraph.linkeddatahub.resource.Importer;
+import com.atomgraph.linkeddatahub.resource.ImportItem;
 import com.atomgraph.linkeddatahub.resource.Namespace;
 import com.atomgraph.linkeddatahub.resource.Transform;
 import com.atomgraph.linkeddatahub.resource.admin.Clear;
@@ -186,10 +186,10 @@ public class Dispatcher
      * 
      * @return endpoint resource
      */
-    @Path("importer")
-    public Class getImportEndpoint()
+    @Path("imports/{.*}/")
+    public Class getImportItem()
     {
-        return getProxyClass().orElse(Importer.class);
+        return getProxyClass().orElse(ImportItem.class);
     }
 
     /**
