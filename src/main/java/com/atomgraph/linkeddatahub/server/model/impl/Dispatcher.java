@@ -175,7 +175,7 @@ public class Dispatcher
      * 
      * @return endpoint resource
      */
-    @Path("imports/{.+}/")
+    @Path("imports/{path: .+}/")
     public Class getImportItem()
     {
         return getProxyClass().orElse(ImportItem.class);
