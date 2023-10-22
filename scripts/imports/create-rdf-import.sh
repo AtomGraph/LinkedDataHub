@@ -24,6 +24,11 @@ print_usage()
 
 hash turtle 2>/dev/null || { echo >&2 "turtle not on \$PATH. Need to set \$JENA_HOME. Aborting."; exit 1; }
 
+urlencode() {
+  python -c 'import urllib.parse, sys; print(urllib.parse.quote(sys.argv[1], sys.argv[2]))' \
+    "$1" "$urlencode_safe"
+}
+
 args=()
 while [[ $# -gt 0 ]]
 do
@@ -109,6 +114,11 @@ if [ -z "$file" ] ; then
     exit 1
 fi
 
+if [ -z "$slug" ] ; then
+    slug=$(uuidgen | tr '[:upper:]' '[:lower:]') # lowercase
+fi
+encoded_slug=$(urlencode "$slug")
+
 container="${base}imports/"
 
 args+=("-f")
@@ -117,7 +127,7 @@ args+=("-p")
 args+=("$cert_password")
 args+=("-t")
 args+=("text/turtle") # content type
-args+=("${base}importer")
+args+=("${container}${encoded_slug}/")
 
 turtle+="@prefix ldh:	<https://w3id.org/atomgraph/linkeddatahub#> .\n"
 turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy#> .\n"
@@ -127,10 +137,10 @@ turtle+="@prefix sioc:	<http://rdfs.org/sioc/ns#> .\n"
 turtle+="_:import a ldh:RDFImport .\n"
 turtle+="_:import dct:title \"${title}\" .\n"
 turtle+="_:import ldh:file <${file}> .\n"
-turtle+="_:item a dh:Item .\n"
-turtle+="_:item foaf:primaryTopic _:import .\n"
-turtle+="_:item sioc:has_container <${container}> .\n"
-turtle+="_:item dct:title \"${title}\" .\n"
+turtle+="<${container}${encoded_slug}/> a dh:Item .\n"
+turtle+="<${container}${encoded_slug}/> foaf:primaryTopic _:import .\n"
+turtle+="<${container}${encoded_slug}/> sioc:has_container <${container}> .\n"
+turtle+="<${container}${encoded_slug}/> dct:title \"${title}\" .\n"
 
 if [ -n "$graph" ] ; then
     turtle+="@prefix sd:	<http://www.w3.org/ns/sparql-service-description#> .\n"
@@ -143,12 +153,9 @@ fi
 if [ -n "$description" ] ; then
     turtle+="_:import dct:description \"${description}\" .\n"
 fi
-if [ -n "$slug" ] ; then
-    turtle+="_:item dh:slug \"${slug}\" .\n"
-fi
 if [ -n "$fragment" ] ; then
     turtle+="_:import ldh:fragment \"${fragment}\" .\n"
 fi
 
 # submit Turtle doc to the server
-echo -e "$turtle" | turtle --base="$base" | ../create-document.sh "${args[@]}"
+echo -e "$turtle" | turtle --base="$base" | ../put-document.sh "${args[@]}"

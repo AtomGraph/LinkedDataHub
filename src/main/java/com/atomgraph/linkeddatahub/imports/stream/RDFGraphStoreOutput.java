@@ -16,11 +16,12 @@
  */
 package com.atomgraph.linkeddatahub.imports.stream;
 
-import com.atomgraph.core.client.GraphStoreClient;
+import com.atomgraph.core.client.LinkedDataClient;
 import com.atomgraph.linkeddatahub.model.Service;
 import java.io.InputStream;
 import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.core.Response;
+import java.net.URI;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryExecution;
@@ -41,7 +42,7 @@ public class RDFGraphStoreOutput
 {
 
     private final Service service, adminService;
-    private final GraphStoreClient graphStoreClient;
+    private final LinkedDataClient ldc;
     private final String base;
     private final InputStream is;
     private final Query query;
@@ -53,18 +54,18 @@ public class RDFGraphStoreOutput
      * 
      * @param service SPARQL service of the application
      * @param adminService SPARQL service of the admin application
-     * @param graphStoreClient GSP client for RDF results
+     * @param ldc Linked Data client for RDF results
      * @param is RDF input stream
      * @param base base URI
      * @param query <code>CONSTRUCT</code> transformation query or null
      * @param lang RDF language
      * @param graphURI named graph URI
      */
-    public RDFGraphStoreOutput(Service service, Service adminService, GraphStoreClient graphStoreClient, InputStream is, String base, Query query, Lang lang, String graphURI)
+    public RDFGraphStoreOutput(Service service, Service adminService, LinkedDataClient ldc, InputStream is, String base, Query query, Lang lang, String graphURI)
     {
         this.service = service;
         this.adminService = adminService;
-        this.graphStoreClient = graphStoreClient;
+        this.ldc = ldc;
         this.is = is;
         this.base = base;
         this.query = query;
@@ -76,6 +77,7 @@ public class RDFGraphStoreOutput
      * Reads RDF and writes (possibly transformed) RDF into a named graph.
      * The input is transformed if the SPARQL transformation query was provided.
      * Extended SPARQL syntax is used to allow the <code>CONSTRUCT GRAPH</code> query form.
+     * The default graph output is ignored.
      */
     public void write()
     {
@@ -90,8 +92,9 @@ public class RDFGraphStoreOutput
 
                 dataset.listNames().forEachRemaining(graphUri ->
                     {
-                         // exceptions get swallowed by the client! TO-DO: wait for completion
-                        if (!dataset.getNamedModel(graphUri).isEmpty()) getGraphStoreClient().add(graphUri, dataset.getNamedModel(graphUri));
+                        Model namedModel = dataset.getNamedModel(graphUri);
+                         // exceptions get swallowed by the client? TO-DO: wait for completion
+                        if (!namedModel.isEmpty()) getLinkedDataClient().put(URI.create(graphUri), namedModel);
                         
                         // purge cache entries that include the graph URI
                         if (getService().getBackendProxy() != null) ban(getService().getClient(), getService().getBackendProxy(), graphUri).close();
@@ -104,7 +107,7 @@ public class RDFGraphStoreOutput
         {
             if (getGraphURI() == null) throw new IllegalStateException("Neither RDFImport query nor graph name is specified");
             
-            getGraphStoreClient().add(getGraphURI(), model); // exceptions get swallowed by the client! TO-DO: wait for completion
+            getLinkedDataClient().put(URI.create(getGraphURI()), model); // exceptions get swallowed by the client? TO-DO: wait for completion
             
             // purge cache entries that include the graph URI
             if (getService().getBackendProxy() != null) ban(getService().getClient(), getService().getBackendProxy(), getGraphURI()).close();
@@ -153,13 +156,13 @@ public class RDFGraphStoreOutput
     }
     
     /**
-     * Returns Graph Store Protocol client.
+     * Returns Linked Data client.
      * 
-     * @return GSP client
+     * @return client object
      */
-    public GraphStoreClient getGraphStoreClient()
+    public LinkedDataClient getLinkedDataClient()
     {
-        return graphStoreClient;
+        return ldc;
     }
     
     /**

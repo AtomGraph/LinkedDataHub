@@ -83,7 +83,7 @@ public class CSVGraphStoreRowProcessor implements RowProcessor // extends com.at
             {
                 // exceptions get swallowed by the client? TO-DO: wait for completion
                 Model namedModel = rowDataset.getNamedModel(graphUri);
-                put(Entity.entity(namedModel, APPLICATION_NTRIPLES_TYPE), graphUri);
+                if (!namedModel.isEmpty()) put(Entity.entity(namedModel, APPLICATION_NTRIPLES_TYPE), graphUri);
                 
                 // purge cache entries that include the graph URI
                 if (getService().getBackendProxy() != null) ban(getService().getClient(), getService().getBackendProxy(), graphUri).close();

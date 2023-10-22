@@ -18,7 +18,6 @@ package com.atomgraph.linkeddatahub.imports;
 
 import com.atomgraph.client.MediaTypes;
 import com.atomgraph.client.vocabulary.LDT;
-import com.atomgraph.core.client.GraphStoreClient;
 import com.atomgraph.core.client.LinkedDataClient;
 import com.atomgraph.core.model.DatasetAccessor;
 import com.atomgraph.linkeddatahub.imports.stream.RDFGraphStoreOutput;
@@ -110,7 +109,7 @@ public class ImportExecutor
      * @param ldc Linked Data client
      * @param graphStoreClient GSP client
      */
-    public void start(Service service, Service adminService, String appBaseURI, LinkedDataClient ldc, GraphStoreClient graphStoreClient, CSVImport csvImport)
+    public void start(Service service, Service adminService, String appBaseURI, LinkedDataClient ldc, LinkedDataClient graphStoreClient, CSVImport csvImport)
     {
         if (csvImport == null) throw new IllegalArgumentException("CSVImport cannot be null");
         if (log.isDebugEnabled()) log.debug("Submitting new import to thread pool: {}", csvImport.toString());
@@ -143,7 +142,7 @@ public class ImportExecutor
      * @param graphStoreClient GSP client
      */
 
-    public void start(Service service, Service adminService, String appBaseURI, LinkedDataClient ldc, GraphStoreClient graphStoreClient, RDFImport rdfImport)
+    public void start(Service service, Service adminService, String appBaseURI, LinkedDataClient ldc, LinkedDataClient graphStoreClient, RDFImport rdfImport)
     {
         if (rdfImport == null) throw new IllegalArgumentException("RDFImport cannot be null");
         if (log.isDebugEnabled()) log.debug("Submitting new import to thread pool: {}", rdfImport.toString());
@@ -323,15 +322,15 @@ public class ImportExecutor
      * 
      * @param service SPARQL service of the application
      * @param adminService SPARQL service of the admin application
-     * @param graphStoreClient GSP client
+     * @param ldc Linked Data client
      * @param baseURI base URI
      * @param query transformation query
      * @param imp import resource
      * @return function
      */
-    protected Function<Response, RDFGraphStoreOutput> getStreamRDFOutputWriter(Service service, Service adminService, GraphStoreClient graphStoreClient, String baseURI, Query query, RDFImport imp)
+    protected Function<Response, RDFGraphStoreOutput> getStreamRDFOutputWriter(Service service, Service adminService, LinkedDataClient ldc, String baseURI, Query query, RDFImport imp)
     {
-        return new StreamRDFOutputWriter(service, adminService, graphStoreClient, baseURI, query, imp.getGraphName() != null ? imp.getGraphName().getURI() : null);
+        return new StreamRDFOutputWriter(service, adminService, ldc, baseURI, query, imp.getGraphName() != null ? imp.getGraphName().getURI() : null);
     }
 
     

@@ -10,7 +10,6 @@ CONSTRUCT
     {
         ?item a dh:Item ;
             sioc:has_container ?container ;
-            dh:slug ?id ;
             dct:title ?string ;
             rdf:value ?integer
     }
