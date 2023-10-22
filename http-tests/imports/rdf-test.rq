@@ -12,7 +12,6 @@ CONSTRUCT
         ?item a dh:Item ;
             foaf:primaryTopic ?concept ;
             sioc:has_container ?container ;
-            dh:slug ?id ;
             dct:title ?prefLabel .
     }
 }

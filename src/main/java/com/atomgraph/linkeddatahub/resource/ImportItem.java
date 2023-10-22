@@ -24,7 +24,6 @@ import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.client.LinkedDataClient;
 import com.atomgraph.linkeddatahub.model.CSVImport;
-import com.atomgraph.linkeddatahub.model.Import;
 import com.atomgraph.linkeddatahub.model.RDFImport;
 import com.atomgraph.linkeddatahub.resource.graph.Item;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
@@ -41,9 +40,7 @@ import jakarta.ws.rs.core.SecurityContext;
 import jakarta.ws.rs.core.UriInfo;
 import jakarta.ws.rs.ext.Providers;
 import org.apache.jena.ontology.Ontology;
-import org.apache.jena.rdf.model.InfModel;
 import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.NodeIterator;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.sparql.vocabulary.FOAF;
@@ -86,25 +83,23 @@ public class ImportItem extends Item
     
     @PUT
     @Override
-    public Response put(Model model, @QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
+    public Response put(Model model, @QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUriUnused)
     {
-        Response response = super.put(model, defaultGraph, graphUri); // construct Import
+        Response response = super.put(model, defaultGraph, getURI()); // construct Import
         
         if (response.getStatus() == Status.CREATED.getStatusCode()) // import created
         {
-            URI importGraphUri = response.getLocation();
-            //Model importModel = (Model)super.get(false, importGraphUri).getEntity();
-            InfModel infModel = ModelFactory.createRDFSModel(getOntology().getOntModel(), model);
-            Resource doc = infModel.createResource(importGraphUri.toString());
+            URI graphUri = response.getLocation();
+            Resource doc = model.createResource(graphUri.toString());
             
-            NodeIterator it = infModel.listObjectsOfProperty(doc, FOAF.primaryTopic);
+            NodeIterator it = model.listObjectsOfProperty(doc, FOAF.primaryTopic);
             try
             {
                 if (it.hasNext())
                 {
                     Resource topic = it.next().asResource();
 
-                    if (topic != null && topic.canAs(Import.class))
+                    if (topic != null && !topic.canAs(CSVImport.class) && !topic.canAs(RDFImport.class))
                     {
                         Service adminService = getApplication().canAs(EndUserApplication.class) ? getApplication().as(EndUserApplication.class).getAdminApplication().getService() : null;
                         LinkedDataClient ldc = LinkedDataClient.create(getSystem().getClient(), getSystem().getMediaTypes()).
