@@ -99,7 +99,7 @@ public class ImportItem extends Item
                 {
                     Resource topic = it.next().asResource();
 
-                    if (topic != null && !topic.canAs(CSVImport.class) && !topic.canAs(RDFImport.class))
+                    if (topic != null && (topic.canAs(CSVImport.class) || topic.canAs(RDFImport.class))) // canAs(Import.class) would require InfModel
                     {
                         Service adminService = getApplication().canAs(EndUserApplication.class) ? getApplication().as(EndUserApplication.class).getAdminApplication().getService() : null;
                         LinkedDataClient ldc = LinkedDataClient.create(getSystem().getClient(), getSystem().getMediaTypes()).
