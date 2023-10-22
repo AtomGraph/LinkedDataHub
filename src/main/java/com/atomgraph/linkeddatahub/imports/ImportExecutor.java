@@ -102,14 +102,13 @@ public class ImportExecutor
     /**
      * Executes CSV import.
      * 
-     * @param csvImport CSV import resource
      * @param service application's SPARQL service
      * @param adminService admin application's SPARQL service
      * @param appBaseURI application's base URI
      * @param ldc Linked Data client
-     * @param graphStoreClient GSP client
+     * @param csvImport CSV import resource
      */
-    public void start(Service service, Service adminService, String appBaseURI, LinkedDataClient ldc, LinkedDataClient graphStoreClient, CSVImport csvImport)
+    public void start(Service service, Service adminService, String appBaseURI, LinkedDataClient ldc, CSVImport csvImport)
     {
         if (csvImport == null) throw new IllegalArgumentException("CSVImport cannot be null");
         if (log.isDebugEnabled()) log.debug("Submitting new import to thread pool: {}", csvImport.toString());
@@ -134,15 +133,14 @@ public class ImportExecutor
     /**
      * Executes RDF import.
      * 
-     * @param rdfImport RDF import resource
      * @param service application's SPARQL service
      * @param adminService admin application's SPARQL service
      * @param appBaseURI application's base URI
      * @param ldc Linked Data client
-     * @param graphStoreClient GSP client
+     * @param rdfImport RDF import resource
      */
 
-    public void start(Service service, Service adminService, String appBaseURI, LinkedDataClient ldc, LinkedDataClient graphStoreClient, RDFImport rdfImport)
+    public void start(Service service, Service adminService, String appBaseURI, LinkedDataClient ldc, RDFImport rdfImport)
     {
         if (rdfImport == null) throw new IllegalArgumentException("RDFImport cannot be null");
         if (log.isDebugEnabled()) log.debug("Submitting new import to thread pool: {}", rdfImport.toString());
@@ -165,7 +163,7 @@ public class ImportExecutor
         Supplier<Response> fileSupplier = new ClientResponseSupplier(ldc, RDF_MEDIA_TYPES, URI.create(rdfImport.getFile().getURI()));
         // skip validation because it will be done during final POST anyway
         CompletableFuture.supplyAsync(fileSupplier, getExecutorService()).thenApplyAsync(getStreamRDFOutputWriter(service, adminService,
-                graphStoreClient, queryBaseURI, query, rdfImport), getExecutorService()).
+                ldc, queryBaseURI, query, rdfImport), getExecutorService()).
             thenAcceptAsync(success(service, rdfImport, provImport), getExecutorService()).
             exceptionally(failure(service, rdfImport, provImport));
     }

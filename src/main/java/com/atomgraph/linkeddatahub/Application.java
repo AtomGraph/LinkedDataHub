@@ -1281,7 +1281,7 @@ public class Application extends ResourceConfig
      */
     public void submitImport(CSVImport csvImport, com.atomgraph.linkeddatahub.apps.model.Application app, Service service, Service adminService, String baseURI, LinkedDataClient ldc)
     {
-        new ImportExecutor(importThreadPool).start(service, adminService, baseURI, ldc, service.getGraphStoreClient(), csvImport);
+        new ImportExecutor(importThreadPool).start(service, adminService, baseURI, ldc, csvImport);
     }
     
     /**
@@ -1296,7 +1296,7 @@ public class Application extends ResourceConfig
      */
     public void submitImport(RDFImport rdfImport, com.atomgraph.linkeddatahub.apps.model.Application app, Service service, Service adminService, String baseURI, LinkedDataClient ldc)
     {
-        new ImportExecutor(importThreadPool).start(service, adminService, baseURI, ldc, service.getGraphStoreClient(), rdfImport);
+        new ImportExecutor(importThreadPool).start(service, adminService, baseURI, ldc, rdfImport);
     }
     
     /**
