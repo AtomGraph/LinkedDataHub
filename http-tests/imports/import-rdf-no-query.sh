@@ -21,21 +21,11 @@ pushd . > /dev/null && cd "$SCRIPT_ROOT/admin/acl"
 
 popd > /dev/null
 
-pushd . > /dev/null && cd "$SCRIPT_ROOT"
-
-# create container
-
-container=$(./create-container.sh \
-  -f "$AGENT_CERT_FILE" \
-  -p "$AGENT_CERT_PWD" \
-  -b "$END_USER_BASE_URL" \
-  --title "Concepts" \
-  --slug "concepts" \
-  --parent "$END_USER_BASE_URL")
+pushd . > /dev/null && cd "$SCRIPT_ROOT/imports"
 
 # import RDF
 
-cd imports
+item="${END_USER_BASE_URL}concepts/"
 
 ./import-rdf.sh \
   -f "$AGENT_CERT_FILE" \
@@ -44,7 +34,7 @@ cd imports
   --title "Test" \
   --file "$pwd/test.ttl" \
   --file-content-type "text/turtle" \
-  --graph "$container"
+  --graph "$item"
 
 popd > /dev/null
 
@@ -56,12 +46,12 @@ test_triples=""
 
 while [ "$i" -lt "$counter" ] && [ -z "$test_triples" ]
 do
-    # check item properties
+    # check expected graph content
 
     test_triples=$(curl -G -k -f -s -N \
       -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
       -H "Accept: application/n-triples" \
-      "$container" \
+      "$item" \
     | grep "<http://vocabularies.unesco.org/thesaurus/concept7367> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2004/02/skos/core#Concept>" || [[ $? == 1 ]])
 
     sleep 1 ;
