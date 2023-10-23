@@ -714,7 +714,7 @@ extension-element-prefixes="ixsl"
                 <xsl:call-template name="xhtml:Input">
                     <xsl:with-param name="name" select="'v'"/>
                     <xsl:with-param name="type" select="'hidden'"/>
-                    <xsl:with-param name="value" select="ac:absolute-path($ldh:requestUri))"/>
+                    <xsl:with-param name="value" select="ac:absolute-path($ldh:requestUri)"/>
                 </xsl:call-template>
             
                 <input type="hidden" class="target-id"/>
@@ -796,7 +796,7 @@ extension-element-prefixes="ixsl"
             <xsl:call-template name="xhtml:Input" use-when="system-property('xsl:product-name') = 'SAXON'">
                 <xsl:with-param name="name" select="'v'"/>
                 <xsl:with-param name="type" select="'hidden'"/>
-                <xsl:with-param name="value" select="ac:absolute-path($ldh:requestUri))"/>
+                <xsl:with-param name="value" select="ac:absolute-path($ldh:requestUri)"/>
             </xsl:call-template>
             
             <input type="hidden" class="target-id"/>
