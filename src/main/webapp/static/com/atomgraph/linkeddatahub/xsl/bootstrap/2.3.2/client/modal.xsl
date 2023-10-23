@@ -129,7 +129,12 @@ LIMIT   10
                                     <xsl:with-param name="name" select="'rdf'"/>
                                     <xsl:with-param name="type" select="'hidden'"/>
                                 </xsl:call-template>
-
+                                <xsl:call-template name="xhtml:Input">
+                                    <xsl:with-param name="name" select="'v'"/>
+                                    <xsl:with-param name="type" select="'hidden'"/>
+                                    <xsl:with-param name="value" select="base-uri()"/>
+                                </xsl:call-template>
+            
                                 <fieldset>
                                     <input type="hidden" name="sb" value="file"/>
                                     <input type="hidden" name="pu" value="&rdf;type"/>
@@ -244,7 +249,12 @@ LIMIT   10
                                     <xsl:with-param name="name" select="'rdf'"/>
                                     <xsl:with-param name="type" select="'hidden'"/>
                                 </xsl:call-template>
-
+                                <xsl:call-template name="xhtml:Input">
+                                    <xsl:with-param name="name" select="'v'"/>
+                                    <xsl:with-param name="type" select="'hidden'"/>
+                                    <xsl:with-param name="value" select="base-uri()"/>
+                                </xsl:call-template>
+            
                                 <fieldset>
                                     <input type="hidden" name="sb" value="clone"/>
                                     
@@ -393,7 +403,12 @@ LIMIT   10
                                     <xsl:with-param name="name" select="'rdf'"/>
                                     <xsl:with-param name="type" select="'hidden'"/>
                                 </xsl:call-template>
-                                
+                                <xsl:call-template name="xhtml:Input">
+                                    <xsl:with-param name="name" select="'v'"/>
+                                    <xsl:with-param name="type" select="'hidden'"/>
+                                    <xsl:with-param name="value" select="base-uri()"/>
+                                </xsl:call-template>
+            
                                 <fieldset>
                                     <input type="hidden" name="sb" value="{$arg-bnode-id}"/>
 
@@ -529,7 +544,12 @@ LIMIT   10
                         <xsl:with-param name="name" select="'rdf'"/>
                         <xsl:with-param name="type" select="'hidden'"/>
                     </xsl:call-template>
-
+                    <xsl:call-template name="xhtml:Input">
+                        <xsl:with-param name="name" select="'v'"/>
+                        <xsl:with-param name="type" select="'hidden'"/>
+                        <xsl:with-param name="value" select="base-uri()"/>
+                    </xsl:call-template>
+            
                     <fieldset>
                         <input type="hidden" name="su" value="{$resource}"/>
 

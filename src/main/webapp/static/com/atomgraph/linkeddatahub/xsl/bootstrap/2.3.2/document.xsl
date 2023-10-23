@@ -711,7 +711,12 @@ extension-element-prefixes="ixsl"
                     <xsl:with-param name="name" select="'rdf'"/>
                     <xsl:with-param name="type" select="'hidden'"/>
                 </xsl:call-template>
-
+                <xsl:call-template name="xhtml:Input">
+                    <xsl:with-param name="name" select="'v'"/>
+                    <xsl:with-param name="type" select="'hidden'"/>
+                    <xsl:with-param name="value" select="base-uri()"/>
+                </xsl:call-template>
+            
                 <input type="hidden" class="target-id"/>
 
                 <div class="modal-header">
@@ -788,7 +793,12 @@ extension-element-prefixes="ixsl"
                 <xsl:with-param name="name" select="'rdf'"/>
                 <xsl:with-param name="type" select="'hidden'"/>
             </xsl:call-template>
-
+            <xsl:call-template name="xhtml:Input">
+                <xsl:with-param name="name" select="'v'"/>
+                <xsl:with-param name="type" select="'hidden'"/>
+                <xsl:with-param name="value" select="base-uri()"/>
+            </xsl:call-template>
+            
             <input type="hidden" class="target-id"/>
 
             <xsl:apply-templates mode="bs2:Exception"/>
