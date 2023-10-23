@@ -793,7 +793,7 @@ extension-element-prefixes="ixsl"
                 <xsl:with-param name="name" select="'rdf'"/>
                 <xsl:with-param name="type" select="'hidden'"/>
             </xsl:call-template>
-            <xsl:call-template name="xhtml:Input">
+            <xsl:call-template name="xhtml:Input" use-when="system-property('xsl:product-name') = 'SAXON'">
                 <xsl:with-param name="name" select="'v'"/>
                 <xsl:with-param name="type" select="'hidden'"/>
                 <xsl:with-param name="value" select="ac:absolute-path($ldh:requestUri))"/>
