@@ -129,11 +129,6 @@ LIMIT   10
                                     <xsl:with-param name="name" select="'rdf'"/>
                                     <xsl:with-param name="type" select="'hidden'"/>
                                 </xsl:call-template>
-                                <xsl:call-template name="xhtml:Input">
-                                    <xsl:with-param name="name" select="'v'"/>
-                                    <xsl:with-param name="type" select="'hidden'"/>
-                                    <xsl:with-param name="value" select="ac:absolute-path($ldh:requestUri))"/>
-                                </xsl:call-template>
             
                                 <fieldset>
                                     <input type="hidden" name="sb" value="file"/>
@@ -248,11 +243,6 @@ LIMIT   10
                                 <xsl:call-template name="xhtml:Input">
                                     <xsl:with-param name="name" select="'rdf'"/>
                                     <xsl:with-param name="type" select="'hidden'"/>
-                                </xsl:call-template>
-                                <xsl:call-template name="xhtml:Input">
-                                    <xsl:with-param name="name" select="'v'"/>
-                                    <xsl:with-param name="type" select="'hidden'"/>
-                                    <xsl:with-param name="value" select="ac:absolute-path($ldh:requestUri))"/>
                                 </xsl:call-template>
             
                                 <fieldset>
@@ -403,11 +393,6 @@ LIMIT   10
                                     <xsl:with-param name="name" select="'rdf'"/>
                                     <xsl:with-param name="type" select="'hidden'"/>
                                 </xsl:call-template>
-                                <xsl:call-template name="xhtml:Input">
-                                    <xsl:with-param name="name" select="'v'"/>
-                                    <xsl:with-param name="type" select="'hidden'"/>
-                                    <xsl:with-param name="value" select="ac:absolute-path($ldh:requestUri))"/>
-                                </xsl:call-template>
             
                                 <fieldset>
                                     <input type="hidden" name="sb" value="{$arg-bnode-id}"/>
@@ -543,11 +528,6 @@ LIMIT   10
                     <xsl:call-template name="xhtml:Input">
                         <xsl:with-param name="name" select="'rdf'"/>
                         <xsl:with-param name="type" select="'hidden'"/>
-                    </xsl:call-template>
-                    <xsl:call-template name="xhtml:Input">
-                        <xsl:with-param name="name" select="'v'"/>
-                        <xsl:with-param name="type" select="'hidden'"/>
-                        <xsl:with-param name="value" select="ac:absolute-path($ldh:requestUri))"/>
                     </xsl:call-template>
             
                     <fieldset>
