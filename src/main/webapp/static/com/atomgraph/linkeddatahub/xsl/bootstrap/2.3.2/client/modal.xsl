@@ -190,14 +190,14 @@ LIMIT   10
                                                 <button type="button" class="btn dropdown-toggle create-action"></button>
                                                 <ul class="dropdown-menu">
                                                     <li>
-                                                        <a href="{ldh:href($ldt:base, ldh:absolute-path(base-uri()), ldh:query-params(xs:anyURI('&ac;ModalMode'), xs:anyURI('&dh;Container')), ldh:absolute-path(base-uri()))}" class="btn add-constructor" title="&dh;Container" id="{generate-id()}-upload-rdf-container">
+                                                        <a href="{ldh:href($ldt:base, ac:absolute-path(base-uri()), ldh:query-params(xs:anyURI('&ac;ModalMode'), xs:anyURI('&dh;Container')), ac:absolute-path(base-uri()))}" class="btn add-constructor" title="&dh;Container" id="{generate-id()}-upload-rdf-container">
                                                             <xsl:value-of>
                                                                 <xsl:apply-templates select="key('resources', '&dh;Container', document(ac:document-uri('&dh;')))" mode="ac:label"/>
                                                             </xsl:value-of>
 
                                                             <input type="hidden" class="forClass" value="&dh;Container"/>
                                                         </a>
-                                                        <a href="{ldh:href($ldt:base, ldh:absolute-path(base-uri()), ldh:query-params(xs:anyURI('&ac;ModalMode'), xs:anyURI('&dh;Item')), ldh:absolute-path(base-uri()))}" class="btn add-constructor" title="&dh;Item" id="{generate-id()}-upload-rdf-item">
+                                                        <a href="{ldh:href($ldt:base, ac:absolute-path(base-uri()), ldh:query-params(xs:anyURI('&ac;ModalMode'), xs:anyURI('&dh;Item')), ac:absolute-path(base-uri()))}" class="btn add-constructor" title="&dh;Item" id="{generate-id()}-upload-rdf-item">
                                                             <xsl:value-of>
                                                                 <xsl:apply-templates select="key('resources', '&dh;Item', document(ac:document-uri('&dh;')))" mode="ac:label"/>
                                                             </xsl:value-of>
@@ -293,7 +293,7 @@ LIMIT   10
                                                 <button type="button" class="btn dropdown-toggle create-action"></button>
                                                 <ul class="dropdown-menu">
                                                     <li>
-                                                        <a href="{ldh:href($ldt:base, ldh:absolute-path(base-uri()), ldh:query-params(xs:anyURI('&ac;ModalMode'), xs:anyURI('&dh;Container')), ldh:absolute-path(base-uri()))}" class="btn add-constructor" title="&dh;Container" id="{generate-id()}-remote-rdf-container">
+                                                        <a href="{ldh:href($ldt:base, ac:absolute-path(base-uri()), ldh:query-params(xs:anyURI('&ac;ModalMode'), xs:anyURI('&dh;Container')), ac:absolute-path(base-uri()))}" class="btn add-constructor" title="&dh;Container" id="{generate-id()}-remote-rdf-container">
                                                             <xsl:value-of>
                                                                 <xsl:apply-templates select="key('resources', '&dh;Container', document(ac:document-uri('&dh;')))" mode="ac:label"/>
                                                             </xsl:value-of>
@@ -302,7 +302,7 @@ LIMIT   10
                                                         </a>
                                                     </li>
                                                     <li>
-                                                        <a href="{ldh:href($ldt:base, ldh:absolute-path(base-uri()), ldh:query-params(xs:anyURI('&ac;ModalMode'), xs:anyURI('&dh;Item')), ldh:absolute-path(base-uri()))}" type="button" class="btn add-constructor" title="&dh;Item" id="{generate-id()}-remote-rdf-item">
+                                                        <a href="{ldh:href($ldt:base, ac:absolute-path(base-uri()), ldh:query-params(xs:anyURI('&ac;ModalMode'), xs:anyURI('&dh;Item')), ac:absolute-path(base-uri()))}" type="button" class="btn add-constructor" title="&dh;Item" id="{generate-id()}-remote-rdf-item">
                                                             <xsl:value-of>
                                                                 <xsl:apply-templates select="key('resources', '&dh;Item', document(ac:document-uri('&dh;')))" mode="ac:label"/>
                                                             </xsl:value-of>
@@ -413,7 +413,7 @@ LIMIT   10
                                             <input type="hidden" class="forClass" value="&def;Root" autocomplete="off"/>
                                             <input type="hidden" class="forClass" value="&dh;Container" autocomplete="off"/>
 
-                                            <a href="{ldh:href($ldt:base, ldh:absolute-path(base-uri()), ldh:query-params(xs:anyURI('&ac;ModalMode'), xs:anyURI('&dh;Container')), ldh:absolute-path(base-uri()))}" class="btn add-constructor create-action" title="&dh;Container" id="{generate-id()}-generate-containers-parent">
+                                            <a href="{ldh:href($ldt:base, ac:absolute-path(base-uri()), ldh:query-params(xs:anyURI('&ac;ModalMode'), xs:anyURI('&dh;Container')), ac:absolute-path(base-uri()))}" class="btn add-constructor create-action" title="&dh;Container" id="{generate-id()}-generate-containers-parent">
                                                 <input type="hidden" class="forClass" value="&dh;Container"/>
                                             </a>
 
@@ -453,7 +453,7 @@ LIMIT   10
 
                                             <input type="hidden" class="forClass" value="&sd;Service" autocomplete="off"/>
 
-                                            <a href="{ldh:href($ldt:base, ldh:absolute-path(base-uri()), ldh:query-params(xs:anyURI('&ac;ModalMode'), xs:anyURI('&sd;Service')), ldh:absolute-path(base-uri()))}" class="btn add-constructor create-action" title="&sd;Service" id="{generate-id()}-generate-containers-service">
+                                            <a href="{ldh:href($ldt:base, ac:absolute-path(base-uri()), ldh:query-params(xs:anyURI('&ac;ModalMode'), xs:anyURI('&sd;Service')), ac:absolute-path(base-uri()))}" class="btn add-constructor create-action" title="&sd;Service" id="{generate-id()}-generate-containers-service">
                                                 <input type="hidden" class="forClass" value="&sd;Service"/>
                                             </a>
 
@@ -503,7 +503,7 @@ LIMIT   10
         <xsl:param name="id" select="'reconcile'" as="xs:string?"/>
         <xsl:param name="button-class" select="'btn btn-primary btn-save'" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
-        <xsl:param name="action" select="ldh:absolute-path(base-uri())" as="xs:anyURI"/>
+        <xsl:param name="action" select="ac:absolute-path(base-uri())" as="xs:anyURI"/>
         <xsl:param name="legend-label" select="ac:label(key('resources', 'reconcile-entity', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri))))" as="xs:string"/>
         <xsl:param name="resource" as="xs:anyURI"/>
         <xsl:param name="label" as="xs:string"/>
@@ -581,7 +581,7 @@ LIMIT   10
             <xsl:with-param name="form" as="element()">
                 <xsl:call-template name="ldh:AddDataForm"/>
             </xsl:with-param>
-            <xsl:with-param name="graph" select="ldh:absolute-path(base-uri())"/>
+            <xsl:with-param name="graph" select="ac:absolute-path(base-uri())"/>
         </xsl:call-template>
     </xsl:template>
     
@@ -594,7 +594,7 @@ LIMIT   10
                     <xsl:with-param name="legend-label" select="ac:label(key('resources', 'import-ontology', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri))))"/>
                 </xsl:call-template>
             </xsl:with-param>
-            <xsl:with-param name="graph" select="ldh:absolute-path(base-uri())"/>
+            <xsl:with-param name="graph" select="ac:absolute-path(base-uri())"/>
         </xsl:call-template>
     </xsl:template>
 
@@ -603,7 +603,7 @@ LIMIT   10
             <xsl:with-param name="form" as="element()">
                 <xsl:call-template name="ldh:GenerateContainersForm"/>
             </xsl:with-param>
-            <xsl:with-param name="graph" select="ldh:absolute-path(base-uri())"/>
+            <xsl:with-param name="graph" select="ac:absolute-path(base-uri())"/>
         </xsl:call-template>
     </xsl:template>
     

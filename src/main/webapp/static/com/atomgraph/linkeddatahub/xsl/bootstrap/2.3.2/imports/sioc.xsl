@@ -38,7 +38,7 @@ exclude-result-prefixes="#all">
         <xsl:param name="required" select="false()" as="xs:boolean"/>
         <xsl:param name="type-label" select="true()" as="xs:boolean"/>
         <xsl:param name="base-uri" select="base-uri()" as="xs:anyURI" tunnel="yes"/>
-        <xsl:param name="container" select="ldh:absolute-path($base-uri)" as="xs:anyURI"/>
+        <xsl:param name="container" select="ac:absolute-path($base-uri)" as="xs:anyURI"/>
 
         <span>
             <xsl:apply-templates select="key('resources', $container, document($container))" mode="ldh:Typeahead"/>
