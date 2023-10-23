@@ -1084,7 +1084,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="template" select="$constructor/rdf:RDF/*[@rdf:nodeID][every $type in rdf:type/@rdf:resource satisfies current()/rdf:type/@rdf:resource = $type][* except rdf:type]" as="element()*"/>
         <xsl:param name="template-properties" select="true()" as="xs:boolean" tunnel="yes"/>
         <xsl:param name="traversed-ids" select="@rdf:*" as="xs:string*" tunnel="yes"/>
-        <xsl:param name="show-subject" select="false()" as="xs:boolean" tunnel="yes"/>
+        <xsl:param name="show-subject" select="true()" as="xs:boolean" tunnel="yes"/>
         <xsl:param name="required" select="false()" as="xs:boolean"/>
 
         <fieldset>
