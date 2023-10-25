@@ -1143,7 +1143,7 @@ extension-element-prefixes="ixsl"
                             </xsl:if>
                             
                             <!-- button that toggles the .control-group for subject URI/bnode ID editing -->
-                            <button type="button" class="btn btn-edit-subj"></button>
+                            <button type="button" class="btn btn-edit-subj {if ($show-subject) then 'open' else ()}"></button>
                         </div>
                         
                         <!-- "Copy URI" button -->
