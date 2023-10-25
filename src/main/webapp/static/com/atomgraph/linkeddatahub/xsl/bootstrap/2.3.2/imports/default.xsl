@@ -548,10 +548,10 @@ exclude-result-prefixes="#all"
                                 <xsl:text> </xsl:text>
                             </span>
                         </div>
+                        
+                        <hr/>
                     </div>
                 <!-- </fieldset> -->
-                
-                <hr/>
             </xsl:when>
             <xsl:otherwise>
                 <xsl:apply-templates select="." mode="xhtml:Input">

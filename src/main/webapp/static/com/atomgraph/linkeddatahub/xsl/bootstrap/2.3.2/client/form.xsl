@@ -338,6 +338,22 @@ WHERE
         <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
     
+    <!-- toggles the .control-group for subject URI/bnode ID editing -->
+    <xsl:template match="button[contains-token(@class, 'btn-edit-subj')]" mode="ixsl:onclick">
+        <xsl:variable name="subj-control-group" select="ancestor::legend/following-sibling::div[contains-token(@class, 'control-group')]" as="element()"/>
+        
+        <xsl:for-each select="$subj-control-group">
+            <xsl:choose>
+                <xsl:when test="ixsl:style(.)?display = 'none'">
+                    <ixsl:set-style name="display" select="'block'"/>
+                </xsl:when>
+                <xsl:otherwise>
+                    <ixsl:set-style name="display" select="'none'"/>
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:for-each>
+    </xsl:template>
+    
     <!-- appends new SPIN-constructed instance to the form -->
     <xsl:template match="a[contains-token(@class, 'add-constructor')][input[@class = 'forClass']/@value]" mode="ixsl:onclick" priority="1">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>

@@ -1105,10 +1105,10 @@ extension-element-prefixes="ixsl"
                             </div>
                         </xsl:if>
 
-                        <xsl:if test="exists($type-metadata)">
-                            <!-- show list of types that have constructors (excluding built-in system classes) -->
-                            <xsl:variable name="constructor-classes" select="distinct-values($constructors//srx:binding[@name = 'Type']/srx:uri)[not(starts-with(., '&dh;') or starts-with(., '&ldh;') or starts-with(., '&def;') or starts-with(., '&lapp;') or starts-with(., '&sp;') or starts-with(., '&nfo;'))]" as="xs:anyURI*"/>
-                            <div class="btn-group pull-right">
+                        <div class="btn-group pull-right">
+                            <xsl:if test="exists($type-metadata)">
+                                <!-- show list of types that have constructors (excluding built-in system classes) -->
+                                <xsl:variable name="constructor-classes" select="distinct-values($constructors//srx:binding[@name = 'Type']/srx:uri)[not(starts-with(., '&dh;') or starts-with(., '&ldh;') or starts-with(., '&def;') or starts-with(., '&lapp;') or starts-with(., '&sp;') or starts-with(., '&nfo;'))]" as="xs:anyURI*"/>
                                 <button type="button" class="btn dropdown-toggle btn-edit-actions">
                                     <!-- only admins should see the button as only they have access to the ontologies with constructors in them -->
                                     <xsl:if test="not($acl:mode = '&acl;Control' and exists($constructor-classes))">
@@ -1138,9 +1138,12 @@ extension-element-prefixes="ixsl"
                                         </li>
                                     </xsl:for-each>
                                 </ul>
-                            </div>
-                        </xsl:if>
-
+                            </xsl:if>
+                            
+                            <!-- button that toggles the .control-group for subject URI/bnode ID editing -->
+                            <button type="button" class="btn btn-edit-subj"></button>
+                        </div>
+                        
                         <!-- "Copy URI" button -->
                         <button type="button">
                             <xsl:attribute name="title">
