@@ -1105,39 +1105,41 @@ extension-element-prefixes="ixsl"
                             </div>
                         </xsl:if>
 
-                        <div class="btn-group pull-right">
+                        <div class="pull-right">
                             <xsl:if test="exists($type-metadata)">
-                                <!-- show list of types that have constructors (excluding built-in system classes) -->
-                                <xsl:variable name="constructor-classes" select="distinct-values($constructors//srx:binding[@name = 'Type']/srx:uri)[not(starts-with(., '&dh;') or starts-with(., '&ldh;') or starts-with(., '&def;') or starts-with(., '&lapp;') or starts-with(., '&sp;') or starts-with(., '&nfo;'))]" as="xs:anyURI*"/>
-                                <button type="button" class="btn dropdown-toggle btn-edit-actions">
-                                    <!-- only admins should see the button as only they have access to the ontologies with constructors in them -->
-                                    <xsl:if test="not($acl:mode = '&acl;Control' and exists($constructor-classes))">
-                                        <xsl:attribute name="style" select="'display: none'"/>
-                                    </xsl:if>
+                                <div class="btn-group">
+                                    <!-- show list of types that have constructors (excluding built-in system classes) -->
+                                    <xsl:variable name="constructor-classes" select="distinct-values($constructors//srx:binding[@name = 'Type']/srx:uri)[not(starts-with(., '&dh;') or starts-with(., '&ldh;') or starts-with(., '&def;') or starts-with(., '&lapp;') or starts-with(., '&sp;') or starts-with(., '&nfo;'))]" as="xs:anyURI*"/>
+                                    <button type="button" class="btn dropdown-toggle btn-edit-actions">
+                                        <!-- only admins should see the button as only they have access to the ontologies with constructors in them -->
+                                        <xsl:if test="not($acl:mode = '&acl;Control' and exists($constructor-classes))">
+                                            <xsl:attribute name="style" select="'display: none'"/>
+                                        </xsl:if>
 
-                                    <xsl:value-of>
-                                        <xsl:apply-templates select="key('resources', 'actions', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                                    </xsl:value-of>
-                                    <span class="caret"></span>
-                                </button>
-                                <ul class="dropdown-menu">
-                                    <xsl:for-each select="$constructor-classes">
-                                        <li>
-                                            <button type="button" class="btn btn-edit-constructors" data-resource-type="{.}">
-                                                <xsl:value-of>
-                                                    <xsl:apply-templates select="key('resources', 'edit', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                                                </xsl:value-of>
-                                                <xsl:text> </xsl:text>
-                                                <!-- query class description from the namespace ontology (because it might not be available as Linked Data) -->
-                                                <xsl:apply-templates select="key('resources', ., $type-metadata)" mode="ac:label"/>
-                                                <xsl:text> </xsl:text>
-                                                <xsl:value-of>
-                                                    <xsl:apply-templates select="key('resources', 'constructors', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                                                </xsl:value-of>
-                                            </button>
-                                        </li>
-                                    </xsl:for-each>
-                                </ul>
+                                        <xsl:value-of>
+                                            <xsl:apply-templates select="key('resources', 'actions', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                                        </xsl:value-of>
+                                        <span class="caret"></span>
+                                    </button>
+                                    <ul class="dropdown-menu">
+                                        <xsl:for-each select="$constructor-classes">
+                                            <li>
+                                                <button type="button" class="btn btn-edit-constructors" data-resource-type="{.}">
+                                                    <xsl:value-of>
+                                                        <xsl:apply-templates select="key('resources', 'edit', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                                                    </xsl:value-of>
+                                                    <xsl:text> </xsl:text>
+                                                    <!-- query class description from the namespace ontology (because it might not be available as Linked Data) -->
+                                                    <xsl:apply-templates select="key('resources', ., $type-metadata)" mode="ac:label"/>
+                                                    <xsl:text> </xsl:text>
+                                                    <xsl:value-of>
+                                                        <xsl:apply-templates select="key('resources', 'constructors', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                                                    </xsl:value-of>
+                                                </button>
+                                            </li>
+                                        </xsl:for-each>
+                                    </ul>
+                                </div>
                             </xsl:if>
                             
                             <!-- button that toggles the .control-group for subject URI/bnode ID editing -->

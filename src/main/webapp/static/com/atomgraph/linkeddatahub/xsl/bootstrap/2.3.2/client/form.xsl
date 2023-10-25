@@ -340,7 +340,8 @@ WHERE
     
     <!-- toggles the .control-group for subject URI/bnode ID editing -->
     <xsl:template match="button[contains-token(@class, 'btn-edit-subj')]" mode="ixsl:onclick">
-        <xsl:variable name="subj-control-group" select="ancestor::legend/following-sibling::div[contains-token(@class, 'control-group')]" as="element()"/>
+        <!-- subject .control group is the first one after <legend> -->
+        <xsl:variable name="subj-control-group" select="ancestor::legend/following-sibling::div[1][contains-token(@class, 'control-group')]" as="element()"/>
         
         <xsl:for-each select="$subj-control-group">
             <xsl:choose>
