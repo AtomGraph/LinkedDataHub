@@ -343,6 +343,8 @@ WHERE
         <!-- subject .control group is the first one after <legend> -->
         <xsl:variable name="subj-control-group" select="ancestor::legend/following-sibling::div[1][contains-token(@class, 'control-group')]" as="element()"/>
         
+        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'open' ])[current-date() lt xs:date('2000-01-01')]"/>
+        
         <xsl:for-each select="$subj-control-group">
             <xsl:choose>
                 <xsl:when test="ixsl:style(.)?display = 'none'">
