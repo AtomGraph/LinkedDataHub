@@ -172,11 +172,6 @@ if [ -n "$description" ] ; then
     rdf_post+="-F \"pu=http://purl.org/dc/terms/description\"\n"
     rdf_post+="-F \"ol=${description}\"\n"
 fi
-#if [ -n "$file_slug" ] ; then
-#    rdf_post+="-F \"sb=file\"\n"
-#    rdf_post+="-F \"pu=https://www.w3.org/ns/ldt/document-hierarchy#slug\"\n"
-#    rdf_post+="-F \"ol=${file_slug}\"\n"
-#fi
 
 # POST RDF/POST multipart form from stdin to the server
 echo -e "$rdf_post" | curl -s -k -X PUT -H "Accept: text/turtle" -E "$cert_pem_file":"$cert_password" --config - "$target" -v -D - | tr -d '\r' | sed -En 's/^Location: (.*)$/\1/p'
