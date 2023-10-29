@@ -88,7 +88,7 @@ public class CSVGraphStoreRowProcessor implements RowProcessor // extends com.at
             {
                 // exceptions get swallowed by the client? TO-DO: wait for completion
                 Model namedModel = rowDataset.getNamedModel(graphUri);
-                if (!namedModel.isEmpty()) put(Entity.entity(namedModel, APPLICATION_NTRIPLES_TYPE), graphUri);
+                if (!namedModel.isEmpty()) add(Entity.entity(namedModel, APPLICATION_NTRIPLES_TYPE), graphUri);
                 
                 // purge cache entries that include the graph URI
                 if (getService().getBackendProxy() != null) ban(getService().getClient(), getService().getBackendProxy(), graphUri).close();
@@ -104,20 +104,40 @@ public class CSVGraphStoreRowProcessor implements RowProcessor // extends com.at
      * @param graphURI the graph URI
      * @return JAX-RS response
      */
-    protected Response put(Entity entity, String graphURI)
+    protected Response add(Entity entity, String graphURI)
     {
-        // forward the stream to the named graph document. Buffer the entity first so that the server response is not returned before the client response completes
-        try (Response cr = getLinkedDataClient().put(URI.create(graphURI), getLinkedDataClient().getReadableMediaTypes(Model.class), entity))
+        try (Response headResponse = getLinkedDataClient().head(URI.create(graphURI)))
         {
-            if (!cr.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
+            if (headResponse.getStatus() == Response.Status.OK.getStatusCode()) // POST if graph already exists
             {
-                if (log.isErrorEnabled()) log.error("RDF document with URI <{}> could not be successfully created using PUT. Status code: {}", graphURI, cr.getStatus());
-                throw new RuntimeException(new IOException("RDF document with URI <" + graphURI + "> could not be successfully created using PUT. Status code: " + cr.getStatus()));
-            }
+                try (Response cr = getLinkedDataClient().put(URI.create(graphURI), getLinkedDataClient().getReadableMediaTypes(Model.class), entity))
+                {
+                    if (!cr.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
+                    {
+                        if (log.isErrorEnabled()) log.error("RDF document with URI <{}> could not be successfully created using PUT. Status code: {}", graphURI, cr.getStatus());
+                        throw new RuntimeException(new IOException("RDF document with URI <" + graphURI + "> could not be successfully created using PUT. Status code: " + cr.getStatus()));
+                    }
 
-            return Response.status(cr.getStatus()).
-                entity(cr.readEntity(Model.class)).
-                build();
+                    return Response.status(cr.getStatus()).
+                        entity(cr.readEntity(Model.class)).
+                        build();
+                }
+            }
+            else // PUT to create graph
+            {
+                try (Response cr = getLinkedDataClient().put(URI.create(graphURI), getLinkedDataClient().getReadableMediaTypes(Model.class), entity))
+                {
+                    if (!cr.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
+                    {
+                        if (log.isErrorEnabled()) log.error("RDF document with URI <{}> could not be successfully created using PUT. Status code: {}", graphURI, cr.getStatus());
+                        throw new RuntimeException(new IOException("RDF document with URI <" + graphURI + "> could not be successfully created using PUT. Status code: " + cr.getStatus()));
+                    }
+
+                    return Response.status(cr.getStatus()).
+                        entity(cr.readEntity(Model.class)).
+                        build();
+                }
+            }
         }
     }
     
