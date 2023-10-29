@@ -149,11 +149,10 @@ public class CSVGraphStoreRowProcessor implements RowProcessor // extends com.at
             cellNo++;
         }
 
-        // cannot use try-with-resources here as it can lead to a race condition: https://lists.apache.org/thread/jwrrjjn3hp7qs2c25l9r2qt09q8xn4jf
-        QueryExecution qex = QueryExecution.create(getQuery(), rowModel);
-        Dataset rowDataset = qex.execConstructDataset();
-        qex.close();
-        return rowDataset;
+        try (QueryExecution qex = QueryExecution.create(getQuery(), rowModel))
+        {
+            return qex.execConstructDataset();
+        }
     }
     
     @Override
