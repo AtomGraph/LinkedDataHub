@@ -171,11 +171,17 @@ public class Item extends GraphStoreImpl
 
         Set<String> allowedMethods = getAllowedMethods(getURI());
         if (!allowedMethods.contains(HttpMethod.PUT))
-            throw new WebApplicationException("Cannot update document", Response.status(Response.Status.METHOD_NOT_ALLOWED).allow(allowedMethods).build());
+        {
+            if (log.isErrorEnabled()) log.error("Method '{}' is not allowed on document URI <{}>", HttpMethod.PUT, getURI());
+            throw new WebApplicationException("Method '" + HttpMethod.PUT + "' is not allowed on document URI <" + getURI() + ">", Response.status(Response.Status.METHOD_NOT_ALLOWED).allow(allowedMethods).build());
+        }
         
         // enforce that document URIs always end with a slash
         if (!getURI().toString().endsWith("/"))
-            throw new WebApplicationException("Document URIs need to end with a slash", UNPROCESSABLE_ENTITY.getStatusCode()); // 422 Unprocessable Entity
+        {
+            if (log.isErrorEnabled()) log.error("Document URI <{}> does not end with a slash", getURI());
+            throw new WebApplicationException("Document URI <" + getURI() + "> does not end with a slash", UNPROCESSABLE_ENTITY.getStatusCode()); // 422 Unprocessable Entity
+        }
         
         final boolean existingGraph = getDatasetAccessor().containsModel(getURI().toString());
         
@@ -202,7 +208,10 @@ public class Item extends GraphStoreImpl
             if (!resource.hasProperty(RDF.type, Default.Root) &&
                 !resource.hasProperty(RDF.type, DH.Container) &&
                 !resource.hasProperty(RDF.type, DH.Item))
-                throw new WebApplicationException("Named graph <" + getURI() + "> must contain a document resource (instance of dh:Container or dh:Item)", 422); // 422 Unprocessable Entity
+            {
+                if (log.isErrorEnabled()) log.error("Named graph <{}> must contain a document resource (instance of dh:Container or dh:Item)", getURI());
+                throw new WebApplicationException("Named graph <" + getURI() + "> must contain a document resource (instance of dh:Container or dh:Item)", UNPROCESSABLE_ENTITY.getStatusCode()); // 422 Unprocessable Entity
+            }
 
             resource.removeAll(DCTerms.modified).
                 addLiteral(DCTerms.modified, ResourceFactory.createTypedLiteral(GregorianCalendar.getInstance()));

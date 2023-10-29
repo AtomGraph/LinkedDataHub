@@ -24,6 +24,7 @@ import com.univocity.parsers.common.processor.RowProcessor;
 import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.Response;
+import java.io.IOException;
 import java.net.URI;
 import org.apache.jena.atlas.lib.IRILib;
 import org.apache.jena.query.Dataset;
@@ -34,6 +35,8 @@ import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
 import org.glassfish.jersey.uri.UriComponent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -41,6 +44,8 @@ import org.glassfish.jersey.uri.UriComponent;
  */
 public class CSVGraphStoreRowProcessor implements RowProcessor // extends com.atomgraph.etl.csv.stream.CSVStreamRDFProcessor
 {
+
+    private static final Logger log = LoggerFactory.getLogger(CSVGraphStoreRowProcessor.class);
 
     private final Service service, adminService;
     private final LinkedDataClient ldc;
@@ -102,10 +107,16 @@ public class CSVGraphStoreRowProcessor implements RowProcessor // extends com.at
     protected Response put(Entity entity, String graphURI)
     {
         // forward the stream to the named graph document. Buffer the entity first so that the server response is not returned before the client response completes
-        try (Response response = getLinkedDataClient().put(URI.create(graphURI), getLinkedDataClient().getReadableMediaTypes(Model.class), entity))
+        try (Response cr = getLinkedDataClient().put(URI.create(graphURI), getLinkedDataClient().getReadableMediaTypes(Model.class), entity))
         {
-            return Response.status(response.getStatus()).
-                entity(response.readEntity(Model.class)).
+            if (!cr.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
+            {
+                if (log.isErrorEnabled()) log.error("RDF document with URI <{}> could not be successfully created using PUT. Status code: {}", graphURI, cr.getStatus());
+                throw new RuntimeException(new IOException("RDF document with URI <" + graphURI + "> could not be successfully created using PUT. Status code: " + cr.getStatus()));
+            }
+
+            return Response.status(cr.getStatus()).
+                entity(cr.readEntity(Model.class)).
                 build();
         }
     }
