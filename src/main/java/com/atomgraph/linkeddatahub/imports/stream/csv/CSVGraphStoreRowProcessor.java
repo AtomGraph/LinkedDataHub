@@ -98,7 +98,7 @@ public class CSVGraphStoreRowProcessor implements RowProcessor // extends com.at
     }
     
     /**
-     * Forwards <code>POST</code> request to a graph.
+     * Creates a graph using <code>PUT</code> if it doesn't exist, otherwise appends data using <code>POST</code>.
      * 
      * @param entity request entity
      * @param graphURI the graph URI
@@ -110,7 +110,7 @@ public class CSVGraphStoreRowProcessor implements RowProcessor // extends com.at
         {
             if (headResponse.getStatus() == Response.Status.OK.getStatusCode()) // POST if graph already exists
             {
-                try (Response cr = getLinkedDataClient().put(URI.create(graphURI), getLinkedDataClient().getReadableMediaTypes(Model.class), entity))
+                try (Response cr = getLinkedDataClient().post(URI.create(graphURI), getLinkedDataClient().getReadableMediaTypes(Model.class), entity))
                 {
                     if (!cr.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
                     {
