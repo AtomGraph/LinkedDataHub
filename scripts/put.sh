@@ -77,4 +77,4 @@ if [ -n "$proxy" ]; then
 fi
 
 # POST RDF document from stdin to the server and print request URL
-cat - | curl -w '%{url_effective}\n' -k -E "$cert_pem_file":"$cert_password" -d @- -X PUT -H "Content-Type: ${content_type}" -H "Accept: text/turtle" -o /dev/null "$target"
+cat - | curl -w '%{url_effective}\n' -v -k -E "$cert_pem_file":"$cert_password" -d @- -X PUT -H "Content-Type: ${content_type}" -H "Accept: text/turtle" -o /dev/null "$target"
