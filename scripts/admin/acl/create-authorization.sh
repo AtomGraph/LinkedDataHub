@@ -242,4 +242,4 @@ if [ -n "$write" ] ; then
 fi
 
 # submit Turtle doc to the server
-echo -e "$turtle" | turtle --base="$base" | ../../put-document.sh "${args[@]}"
+echo -e "$turtle" | turtle --base="$base" | ../../put.sh "${args[@]}"

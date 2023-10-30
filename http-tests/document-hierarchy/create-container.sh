@@ -35,7 +35,7 @@ container=$(./create-container.sh \
 
 # check that the item was created at the expected URL and attached to the document hierarchy
 
-./get-document.sh \
+./get.sh \
   -f "$AGENT_CERT_FILE" \
   -p "$AGENT_CERT_PWD" \
   --accept 'application/n-triples' \

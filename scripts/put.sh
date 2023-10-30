@@ -76,5 +76,5 @@ if [ -n "$proxy" ]; then
     target="${target/$target_host/$proxy_host}"
 fi
 
-# POST RDF document from stdin to the server and print Location URL
-cat - | curl -v -k -E "$cert_pem_file":"$cert_password" -d @- -X PUT -H "Content-Type: ${content_type}" -H "Accept: text/turtle" "$target" -v -D - | tr -d '\r' | sed -En 's/^Location: (.*)/\1/p'
+# POST RDF document from stdin to the server and print request URL
+cat - | curl -w '%{url_effective}\n' -k -E "$cert_pem_file":"$cert_password" -d @- -X PUT -H "Content-Type: ${content_type}" -H "Accept: text/turtle" -o /dev/null "$target"

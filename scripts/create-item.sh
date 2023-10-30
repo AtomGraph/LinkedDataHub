@@ -121,4 +121,4 @@ if [ -n "$description" ] ; then
 fi
 
 
-echo -e "$turtle" | turtle --base="$base" | ./put-document.sh "${args[@]}"
+echo -e "$turtle" | turtle --base="$base" | ./put.sh "${args[@]}"

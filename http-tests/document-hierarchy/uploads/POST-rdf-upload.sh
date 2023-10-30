@@ -70,7 +70,7 @@ echo -e "$rdf_post" \
 
 pushd . > /dev/null && cd "$SCRIPT_ROOT"
 
-doc_ntriples=$(./get-document.sh \
+doc_ntriples=$(./get.sh \
   -f "$AGENT_CERT_FILE" \
   -p "$AGENT_CERT_PWD" \
   --accept 'application/n-triples' \

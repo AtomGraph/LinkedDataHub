@@ -2,13 +2,13 @@
 
 print_usage()
 {
-    printf "Replaces RDF description.\n"
+    printf "Creates an RDF document.\n"
     printf "\n"
-    printf "Usage:  echo -e \$rdf_body | %s options TARGET_URI\n" "$0"
+    printf "Usage:  cat data.ttl | %s options TARGET_URI\n" "$0"
     printf "\n"
     printf "Options:\n"
     printf "  -f, --cert-pem-file CERT_FILE        .pem file with the WebID certificate of the agent\n"
-    printf "  -p, --cert-password CERT_PASSWORD    Password of the WebID certificate (provided during signup)\n"
+    printf "  -p, --cert-password CERT_PASSWORD    Password of the WebID certificate\n"
     printf "  --proxy PROXY_URL                    The host this request will be proxied through (optional)\n"
     printf "\n"
     printf "  -t, --content-type MEDIA_TYPE        Media type of the RDF body (e.g. text/turtle)\n"
@@ -55,7 +55,6 @@ if [ -z "$cert_pem_file" ] ; then
     exit 1
 fi
 if [ -z "$cert_password" ] ; then
-    # echo '-p|--cert-password not set'
     print_usage
     exit 1
 fi
@@ -77,5 +76,5 @@ if [ -n "$proxy" ]; then
     target="${target/$target_host/$proxy_host}"
 fi
 
-# PUT RDF document from stdin to the server and print Location URL
-cat - | curl -v -k -E "$cert_pem_file":"$cert_password" -X PUT -d @- -H "Content-Type: ${content_type}" -H "Accept: text/turtle" "$target" -s -D - | tr -d '\r' | sed -En 's/^Location: (.*)$/\1/p'
+# POST RDF document from stdin to the server and print request URL
+cat - | curl -w '%{url_effective}\n' -k -E "$cert_pem_file":"$cert_password" -d @- -H "Content-Type: ${content_type}" -H "Accept: text/turtle" -o /dev/null "$target"

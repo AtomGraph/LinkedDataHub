@@ -11,7 +11,7 @@ pushd . > /dev/null && cd "$SCRIPT_ROOT"
 
 # check that the acl:delegates triple exists in the agent's description
 
-./get-document.sh \
+./get.sh \
   -f "$AGENT_CERT_FILE" \
   -p "$AGENT_CERT_PWD" \
   --accept 'application/n-triples' \

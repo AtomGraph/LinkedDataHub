@@ -57,7 +57,7 @@ popd > /dev/null
 
 pushd . && cd "$SCRIPT_ROOT"
 
-root_ntriples=$(./get-document.sh \
+root_ntriples=$(./get.sh \
   -f "$OWNER_CERT_FILE" \
   -p "$OWNER_CERT_PWD" \
   --accept 'application/n-triples' \

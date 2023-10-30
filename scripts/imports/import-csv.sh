@@ -151,7 +151,7 @@ query_doc=$(./create-query.sh \
 
 pushd . > /dev/null && cd "$SCRIPT_ROOT"
 
-query_ntriples=$(./get-document.sh \
+query_ntriples=$(./get.sh \
   -f "$cert_pem_file" \
   -p "$cert_password" \
   --proxy "$proxy" \
@@ -177,7 +177,7 @@ file_doc=$(./create-file.sh \
 
 pushd . > /dev/null && cd "$SCRIPT_ROOT"
 
-file_ntriples=$(./get-document.sh \
+file_ntriples=$(./get.sh \
   -f "$cert_pem_file" \
   -p "$cert_password" \
   --proxy "$proxy" \

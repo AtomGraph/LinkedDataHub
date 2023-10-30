@@ -142,4 +142,4 @@ if [ -n "$description" ] ; then
     turtle+="<${parent}${encoded_slug}/> dct:description \"${description}\" .\n"
 fi
 
-echo -e "$turtle" | turtle --base="$base" | ./put-document.sh "${args[@]}"
+echo -e "$turtle" | turtle --base="$base" | ./put.sh "${args[@]}"

@@ -41,7 +41,7 @@ popd > /dev/null
 
 pushd . > /dev/null && cd "$SCRIPT_ROOT"
 
-file_doc_ntriples=$(./get-document.sh \
+file_doc_ntriples=$(./get.sh \
   -f "$AGENT_CERT_FILE" \
   -p "$AGENT_CERT_PWD" \
   --accept 'application/n-triples' \

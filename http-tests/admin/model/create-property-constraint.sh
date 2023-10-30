@@ -72,7 +72,7 @@ turtle+="_:item sioc:has_container <${END_USER_BASE_URL}> .\n"
 
 response=$(echo -e "$turtle" \
 | turtle --base="$END_USER_BASE_URL" \
-| ./put-document.sh \
+| ./put.sh \
   -f "$OWNER_CERT_FILE" \
   -p "$OWNER_CERT_PWD" \
   --content-type "text/turtle" \
