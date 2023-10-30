@@ -2,7 +2,7 @@
 
 print_usage()
 {
-    printf "Creates an ontology class.\n"
+    printf "Adds an ontology class.\n"
     printf "\n"
     printf "Usage:  %s options [TARGET_URI]\n" "$0"
     printf "\n"

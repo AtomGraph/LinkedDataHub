@@ -16,7 +16,7 @@ namespace="${namespace_doc}#"
 ontology_doc="${ADMIN_BASE_URL}model/ontologies/namespace/"
 constraint="${namespace_doc}#NewConstraint"
 
-./create-property-constraint.sh \
+./add-property-constraint.sh \
   -f "$OWNER_CERT_FILE" \
   -p "$OWNER_CERT_PWD" \
   -b "$ADMIN_BASE_URL" \
@@ -28,7 +28,7 @@ constraint="${namespace_doc}#NewConstraint"
 
 # create a class with the constraint
 
-./create-class.sh \
+./add-class.sh \
   -f "$OWNER_CERT_FILE" \
   -p "$OWNER_CERT_PWD" \
   -b "$ADMIN_BASE_URL" \

@@ -2,7 +2,7 @@
 
 print_usage()
 {
-    printf "Creates a new ontology in its own named graph.\n"
+    printf "Creates a new ontology.\n"
     printf "\n"
     printf "Usage:  %s options [TARGET_URI]\n" "$0"
     printf "\n"
@@ -143,4 +143,4 @@ if [ -n "$fragment" ] ; then
 fi
 
 # submit Turtle doc to the server
-echo -e "$turtle" | turtle --base="$base" | ../../post.sh "${args[@]}"
+echo -e "$turtle" | turtle --base="$base" | ../../put.sh "${args[@]}"

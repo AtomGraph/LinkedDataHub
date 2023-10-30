@@ -16,7 +16,7 @@ namespace="${namespace_doc}#"
 ontology_doc="${ADMIN_BASE_URL}model/ontologies/namespace/"
 class="${namespace_doc}#NewClass"
 
-./create-class.sh \
+./add-class.sh \
   -f "$OWNER_CERT_FILE" \
   -p "$OWNER_CERT_PWD" \
   -b "$ADMIN_BASE_URL" \

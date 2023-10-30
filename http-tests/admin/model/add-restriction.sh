@@ -16,7 +16,7 @@ namespace="${namespace_doc}#"
 ontology_doc="${ADMIN_BASE_URL}model/ontologies/namespace/"
 restriction="${namespace_doc}#Restriction"
 
-./create-restriction.sh \
+./add-restriction.sh \
   -f "$OWNER_CERT_FILE" \
   -p "$OWNER_CERT_PWD" \
   -b "$ADMIN_BASE_URL" \
