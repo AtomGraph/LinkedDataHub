@@ -174,4 +174,4 @@ if [ -n "$description" ] ; then
 fi
 
 # POST RDF/POST multipart form from stdin to the server
-echo -e "$rdf_post" | curl -w '%{url_effective}\n' -k -X PUT -H "Accept: text/turtle" -E "$cert_pem_file":"$cert_password" -o /dev/null --config - "$target"
+echo -e "$rdf_post" | curl -w '%{url_effective}\n' -v -s -k -X PUT -H "Accept: text/turtle" -E "$cert_pem_file":"$cert_password" -o /dev/null --config - "$target"
