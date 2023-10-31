@@ -313,7 +313,7 @@ public class Login extends GraphStoreImpl
             
             String path = getApplication().as(AdminApplication.class).getEndUserApplication().getBaseURI().getPath();
             NewCookie jwtCookie = new NewCookie(IDTokenFilter.COOKIE_NAME, idToken, path, null, NewCookie.DEFAULT_VERSION, null, NewCookie.DEFAULT_MAX_AGE, false);
-            URI originalReferer = URI.create(new String(Base64.getDecoder().decode(stateCookie.getValue())).split(Pattern.quote(";"))[1]);
+            URI originalReferer = URI.create(new String(Base64.getDecoder().decode(stateCookie.getValue())).split(Pattern.quote(";"))[1]); // fails if referer param was not specified
             
             return Response.seeOther(originalReferer). // redirect to where the user started authentication
                 cookie(jwtCookie).
