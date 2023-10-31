@@ -56,8 +56,17 @@ sub vcl_recv {
         /* Authenticated requests are not cacheable */
         return (pass);
     }
-    if (req.http.Cookie) { // allow req.http.Authorization
-        unset req.http.Cookie; // unset all cookies
+    if (req.http.Cookie) {
+        # explicitly allow only cookies required by LDH server-side
+        set req.http.Cookie = ";" + req.http.Cookie;
+        set req.http.Cookie = regsuball(req.http.Cookie, "; +", ";");
+        set req.http.Cookie = regsuball(req.http.Cookie, ";(LinkedDataHub\.state)=", "; \1=");
+        set req.http.Cookie = regsuball(req.http.Cookie, ";[^ ][^;]*", "");
+        set req.http.Cookie = regsuball(req.http.Cookie, "^[; ]+|[; ]+$", "");
+
+        if (req.http.cookie ~ "^\s*$") {
+            unset req.http.cookie;
+        }
     }
 
     return (hash);
