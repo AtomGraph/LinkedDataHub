@@ -15,7 +15,6 @@ print_usage()
     printf "  --label LABEL                        Label of the restriction\n"
     printf "  --comment COMMENT                    Description of the restriction (optional)\n"
     printf "  --slug STRING                        String that will be used as URI path segment (optional)\n"
-    printf "  --fragment STRING                    String that will be used as URI fragment identifier (optional)\n"
     printf "\n"
     printf "  --uri URI                            URI of the restriction (optional)\n"
     printf "  --on-property PROPERTY_URI           URI of the restricted property (optional)\n"
@@ -63,11 +62,6 @@ do
         ;;
         --slug)
         slug="$2"
-        shift # past argument
-        shift # past value
-        ;;
-        --fragment)
-        fragment="$2"
         shift # past argument
         shift # past value
         ;;
@@ -141,7 +135,6 @@ args+=("$cert_password")
 args+=("-t")
 args+=("text/turtle") # content type
 
-turtle+="@prefix ldh:	<https://w3id.org/atomgraph/linkeddatahub#> .\n"
 turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy#> .\n"
 turtle+="@prefix owl:	<http://www.w3.org/2002/07/owl#> .\n"
 turtle+="@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .\n"
@@ -160,10 +153,6 @@ turtle+="_:item dct:title \"${label}\" .\n"
 if [ -n "$comment" ] ; then
     turtle+="${restriction} rdfs:comment \"${comment}\" .\n"
 fi
-if [ -n "$fragment" ] ; then
-    turtle+="${restriction} ldh:fragment \"${fragment}\" .\n"
-fi
-
 if [ -n "$on_property" ] ; then
     turtle+="${restriction} owl:onProperty <$on_property> .\n"
 fi

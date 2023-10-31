@@ -15,7 +15,6 @@ print_usage()
     printf "  --title TITLE                        Title of the service\n"
     printf "  --description DESCRIPTION            Description of the service (optional)\n"
     printf "  --slug SLUG                          String that will be used as URI path segment (optional)\n"
-    printf "  --fragment STRING                    String that will be used as URI fragment identifier (optional)\n"
     printf "\n"
     printf "  --endpoint ENDPOINT_URI              Endpoint URI\n"
     printf "  --graph-store GRAPH_STORE_URI        Graph Store URI (optional)\n"
@@ -63,11 +62,6 @@ do
         ;;
         --slug)
         slug="$2"
-        shift # past argument
-        shift # past value
-        ;;
-        --fragment)
-        fragment="$2"
         shift # past argument
         shift # past value
         ;;
@@ -162,9 +156,6 @@ if [ -n "$auth_pwd" ] ; then
 fi
 if [ -n "$description" ] ; then
     turtle+="_:query dct:description \"${description}\" .\n"
-fi
-if [ -n "$fragment" ] ; then
-    turtle+="_:service ldh:fragment \"${fragment}\" .\n"
 fi
 
 # submit Turtle doc to the server

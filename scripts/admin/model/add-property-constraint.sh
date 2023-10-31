@@ -15,7 +15,6 @@ print_usage()
     printf "  --label LABEL                        Label of the constraint\n"
     printf "  --comment COMMENT                    Description of the constraint (optional)\n"
     printf "  --slug STRING                        String that will be used as URI path segment (optional)\n"
-    printf "  --fragment STRING                    String that will be used as URI fragment identifier (optional)\n"
     printf "\n"
     printf "  --uri URI                            URI of the constraint (optional)\n"
     printf "  --property PROPERTY_URI              URI of the constrained property\n"
@@ -61,11 +60,6 @@ do
         ;;
         --slug)
         slug="$2"
-        shift # past argument
-        shift # past value
-        ;;
-        --fragment)
-        fragment="$2"
         shift # past argument
         shift # past value
         ;;
@@ -150,9 +144,6 @@ turtle+="<${container}${encoded_slug}/> dct:title \"${label}\" .\n"
 
 if [ -n "$comment" ] ; then
     turtle+="${constraint} rdfs:comment \"${comment}\" .\n"
-fi
-if [ -n "$fragment" ] ; then
-    turtle+="${constraint} ldh:fragment \"${fragment}\" .\n"
 fi
 
 # submit Turtle doc to the server

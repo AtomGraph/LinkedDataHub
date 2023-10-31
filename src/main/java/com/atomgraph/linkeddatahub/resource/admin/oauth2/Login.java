@@ -251,7 +251,7 @@ public class Login extends GraphStoreImpl
                     userAccount.addProperty(SIOC.ACCOUNT_OF, agent);
                     new Skolemizer(userAccountGraphUri.toString()).apply(accountModel);
                     
-                    Response userAccountResponse = super.post(accountModel, false, userAccountGraphUri);
+                    Response userAccountResponse = super.put(accountModel, false, userAccountGraphUri);
                     if (userAccountResponse.getStatus() != Response.Status.CREATED.getStatusCode())
                     {
                         if (log.isErrorEnabled()) log.error("Cannot create UserAccount");
@@ -267,7 +267,7 @@ public class Login extends GraphStoreImpl
                     URI agentUri = URI.create(agent.getURI());
                     // get Agent's document URI by stripping the fragment identifier from the Agent's URI
                     URI agentGraphUri = new URI(agentUri.getScheme(), agentUri.getSchemeSpecificPart(), null).normalize();
-                    Response agentResponse = super.post(agentModel, false, agentGraphUri);
+                    Response agentResponse = super.put(agentModel, false, agentGraphUri);
                     if ((!agentExists && agentResponse.getStatus() != Response.Status.CREATED.getStatusCode()) ||
                         (agentExists && agentResponse.getStatus() != Response.Status.OK.getStatusCode()))
                     {
@@ -285,7 +285,7 @@ public class Login extends GraphStoreImpl
                         userAccountGraphUri);
                     new Skolemizer(authGraphUri.toString()).apply(authModel);
 
-                    Response authResponse = super.post(authModel, false, authGraphUri);
+                    Response authResponse = super.put(authModel, false, authGraphUri);
                     if (authResponse.getStatus() != Response.Status.CREATED.getStatusCode())
                     {
                         if (log.isErrorEnabled()) log.error("Cannot create Authorization");

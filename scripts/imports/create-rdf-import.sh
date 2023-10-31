@@ -15,7 +15,6 @@ print_usage()
     printf "  --title TITLE                        Title of the container\n"
     printf "  --description DESCRIPTION            Description of the container (optional)\n"
     printf "  --slug STRING                        String that will be used as URI path segment (optional)\n"
-    printf "  --fragment STRING                    String that will be used as URI fragment identifier (optional)\n"
     printf "\n"
     printf "  --query QUERY_URI                    URI of the CONSTRUCT mapping query (optional)\n"
     printf "  --graph GRAPH_URI                    URI of the graph (optional)\n"
@@ -62,11 +61,6 @@ do
         ;;
         --slug)
         slug="$2"
-        shift # past argument
-        shift # past value
-        ;;
-        --fragment)
-        fragment="$2"
         shift # past argument
         shift # past value
         ;;
@@ -152,9 +146,6 @@ if [ -n "$query" ] ; then
 fi
 if [ -n "$description" ] ; then
     turtle+="_:import dct:description \"${description}\" .\n"
-fi
-if [ -n "$fragment" ] ; then
-    turtle+="_:import ldh:fragment \"${fragment}\" .\n"
 fi
 
 # submit Turtle doc to the server

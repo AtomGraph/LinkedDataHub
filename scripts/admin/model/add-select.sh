@@ -15,7 +15,6 @@ print_usage()
     printf "  --label LABEL                        Label of the query\n"
     printf "  --comment COMMENT                    Description of the query (optional)\n"
     printf "  --slug STRING                        String that will be used as URI path segment (optional)\n"
-    printf "  --fragment STRING                    String that will be used as URI fragment identifier (optional)\n"
     printf "\n"
     printf "  --uri URI                            URI of the query (optional)\n"
     printf "  --query-file ABS_PATH                Absolute path to the text file with the SPARQL query string\n"
@@ -62,11 +61,6 @@ do
         ;;
         --slug)
         slug="$2"
-        shift # past argument
-        shift # past value
-        ;;
-        --fragment)
-        fragment="$2"
         shift # past argument
         shift # past value
         ;;
@@ -161,9 +155,6 @@ fi
 if [ -n "$service" ] ; then
     turtle+="@prefix ldh:	<https://w3id.org/atomgraph/linkeddatahub#> .\n"
     turtle+="${query} ldh:service <${service}> .\n"
-fi
-if [ -n "$fragment" ] ; then
-    turtle+="${query} ldh:fragment \"${fragment}\" .\n"
 fi
 
 # submit Turtle doc to the server
