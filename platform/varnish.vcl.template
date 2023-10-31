@@ -60,7 +60,7 @@ sub vcl_recv {
         # explicitly allow only cookies required by LDH server-side
         set req.http.Cookie = ";" + req.http.Cookie;
         set req.http.Cookie = regsuball(req.http.Cookie, "; +", ";");
-        set req.http.Cookie = regsuball(req.http.Cookie, ";(LinkedDataHub\.state)=", "; \1=");
+        set req.http.Cookie = regsuball(req.http.Cookie, ";(LinkedDataHub\.state|LinkedDataHub\.id_token)=", "; \1=");
         set req.http.Cookie = regsuball(req.http.Cookie, ";[^ ][^;]*", "");
         set req.http.Cookie = regsuball(req.http.Cookie, "^[; ]+|[; ]+$", "");
 
