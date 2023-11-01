@@ -828,8 +828,7 @@ LIMIT   100
                                 <xsl:with-param name="constructor-query" select="$constructor-query" tunnel="yes"/>
                                 <xsl:with-param name="constraint-query" select="$constraint-query" tunnel="yes"/>
                                 <xsl:with-param name="shape-query" select="$shape-query" tunnel="yes"/>
-                                <!-- base-uri() is empty on constructed documents. Create a new URI which is relative to the current base-uri(). -->
-                                <xsl:with-param name="base-uri" select="resolve-uri(ac:uuid() || '/', base-uri())" tunnel="yes"/>
+                                <xsl:with-param name="base-uri" select="ac:absolute-path(base-uri())" tunnel="yes"/> <!-- ac:absolute-path(base-uri()) is empty on constructed documents -->
                                 <xsl:sort select="ac:label(.)"/>
                             </xsl:apply-templates>
                         </xsl:when>
@@ -839,8 +838,7 @@ LIMIT   100
                                 <xsl:with-param name="constructor-query" select="$constructor-query" tunnel="yes"/>
                                 <xsl:with-param name="constraint-query" select="$constraint-query" tunnel="yes"/>
                                 <xsl:with-param name="shape-query" select="$shape-query" tunnel="yes"/>
-                                <!-- base-uri() is empty on constructed documents. Create a new URI which is relative to the current base-uri(). -->
-                                <xsl:with-param name="base-uri" select="resolve-uri(ac:uuid() || '/', base-uri())" tunnel="yes"/>
+                                <xsl:with-param name="base-uri" select="ac:absolute-path(base-uri())" tunnel="yes"/> <!-- ac:absolute-path(base-uri()) is empty on constructed documents -->
                                 <xsl:sort select="ac:label(.)"/>
                             </xsl:apply-templates>
                         </xsl:otherwise>
