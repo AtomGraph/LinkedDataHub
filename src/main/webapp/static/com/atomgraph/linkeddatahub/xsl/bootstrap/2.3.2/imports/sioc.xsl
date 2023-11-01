@@ -30,7 +30,7 @@ exclude-result-prefixes="#all">
     </xsl:template>
     
     <!-- override the value of sioc:has_parent/sioc:has_constructor in constructor with current URI -->
-    <xsl:template match="*[@rdf:about or @rdf:nodeID][$ac:forClass]/sioc:has_parent/@rdf:nodeID[key('resources', .)] | *[@rdf:about or @rdf:nodeID][$ac:forClass]/sioc:has_container/@rdf:nodeID[key('resources', .)]" mode="bs2:FormControl">
+<!--    <xsl:template match="*[@rdf:about or @rdf:nodeID][$ac:forClass]/sioc:has_parent/@rdf:nodeID[key('resources', .)] | *[@rdf:about or @rdf:nodeID][$ac:forClass]/sioc:has_container/@rdf:nodeID[key('resources', .)]" mode="bs2:FormControl">
         <xsl:param name="type" select="'text'" as="xs:string"/>
         <xsl:param name="id" select="generate-id()" as="xs:string"/>
         <xsl:param name="class" select="'resource-typeahead typeahead'" as="xs:string?"/>
@@ -46,23 +46,23 @@ exclude-result-prefixes="#all">
         
         <xsl:text> </xsl:text>
 
-        <!-- forClass input is used by typeahead's FILTER ($Type IN ()) in client.xsl. Not the same as $ac:forClass! -->
+         forClass input is used by typeahead's FILTER ($Type IN ()) in client.xsl. Not the same as $ac:forClass! 
         <xsl:variable name="forClass" select="key('resources', .)/rdf:type/@rdf:resource" as="xs:anyURI"/>
         <xsl:choose>
             <xsl:when test="not($forClass = '&rdfs;Resource') and doc-available(ac:document-uri($forClass))">
                 <xsl:variable name="subclasses" select="ldh:listSubClasses($forClass, false(), $ldt:ontology)" as="attribute()*"/>
-                <!-- add subclasses as forClass -->
+                 add subclasses as forClass 
                 <xsl:for-each select="distinct-values($subclasses)[not(. = $forClass)]">
                     <input type="hidden" class="forClass" value="{.}"/>
                 </xsl:for-each>
-                <!-- bs2:Constructor sets forClass -->
+                 bs2:Constructor sets forClass 
                 <xsl:apply-templates select="key('resources', $forClass, document(ac:document-uri($forClass)))" mode="bs2:Constructor">
                     <xsl:with-param name="modal-form" select="true()"/>
                     <xsl:with-param name="subclasses" select="$subclasses"/>
                 </xsl:apply-templates>
             </xsl:when>
             <xsl:otherwise>
-                <input type="hidden" class="forClass" value="{$forClass}"/> <!-- required by ?Type FILTER -->
+                <input type="hidden" class="forClass" value="{$forClass}"/>  required by ?Type FILTER 
             </xsl:otherwise>
         </xsl:choose>
 
@@ -72,7 +72,7 @@ exclude-result-prefixes="#all">
                 <xsl:with-param name="forClass" select="$forClass"/>
             </xsl:apply-templates>
         </xsl:if>
-    </xsl:template>
+    </xsl:template>-->
 
     <xsl:template match="sioc:email/@rdf:*"  mode="bs2:FormControl">
         <xsl:param name="type" select="'text'" as="xs:string"/>
