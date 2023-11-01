@@ -500,8 +500,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="class" select="'subject input-xxlarge'" as="xs:string?"/>
         <xsl:param name="disabled" select="false()" as="xs:boolean"/>
         <xsl:param name="auto" select="local-name() = 'nodeID' or starts-with(., $ldt:base)" as="xs:boolean"/>
-        <xsl:param name="base-uri" select="base-uri()" as="xs:anyURI" tunnel="yes" use-when="system-property('xsl:product-name') = 'SAXON'"/>
-        <xsl:param name="base-uri" select="base-uri()" as="xs:anyURI" tunnel="yes" use-when="system-property('xsl:product-name') eq 'SaxonJS'"/>
+        <xsl:param name="base-uri" select="base-uri()" as="xs:anyURI" tunnel="yes"/>
 
         <xsl:choose>
             <xsl:when test="not($type = 'hidden')">
@@ -533,8 +532,7 @@ exclude-result-prefixes="#all"
                                 -->
                                 <!-- hidden inputs in which we store the old values of the visible input -->
                                 <input type="hidden" class="old su">
-                                    <xsl:variable name="resource-uri" select="resolve-uri(ac:uuid() || '/', $base-uri)" as="xs:anyURI"/>
-                                    <xsl:attribute name="value" select="if (local-name() = 'about') then . else $resource-uri"/>
+                                    <xsl:attribute name="value" select="if (local-name() = 'about') then . else $base-uri"/>
                                 </input>
                                 <input type="hidden" class="old sb">
                                     <xsl:attribute name="value" select="if (local-name() = 'nodeID') then . else generate-id()"/>

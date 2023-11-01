@@ -99,11 +99,6 @@ exclude-result-prefixes="#all">
                 <xsl:with-param name="name" select="'rdf'"/>
                 <xsl:with-param name="type" select="'hidden'"/>
             </xsl:call-template>
-            <xsl:call-template name="xhtml:Input">
-                <xsl:with-param name="name" select="'v'"/>
-                <xsl:with-param name="type" select="'hidden'"/>
-                <xsl:with-param name="value" select="base-uri()"/>
-            </xsl:call-template>
             
             <xsl:call-template name="xhtml:Input">
                 <xsl:with-param name="name" select="'sb'"/>

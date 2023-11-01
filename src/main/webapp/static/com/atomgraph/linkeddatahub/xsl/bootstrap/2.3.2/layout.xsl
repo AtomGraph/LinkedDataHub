@@ -98,7 +98,7 @@ exclude-result-prefixes="#all">
     <xsl:param name="ldh:base" as="xs:anyURI" static="yes"/>
     <xsl:param name="ldh:requestUri" as="xs:anyURI"/>
     <xsl:param name="ac:endpoint" select="resolve-uri('sparql', $ldt:base)" as="xs:anyURI"/>
-    <xsl:param name="a:graphStore" select="resolve-uri('service', $ldt:base)" as="xs:anyURI"/> <!-- TO-DO: rename to ac:graphStore? -->
+<!--    <xsl:param name="a:graphStore" select="resolve-uri('service', $ldt:base)" as="xs:anyURI"/>  TO-DO: rename to ac:graphStore? -->
     <xsl:param name="sd:endpoint" as="xs:anyURI?"/>
     <xsl:param name="acl:agent" as="xs:anyURI?"/>
     <xsl:param name="lapp:Application" as="document-node()?"/>
@@ -111,7 +111,7 @@ exclude-result-prefixes="#all">
     <xsl:param name="acl:mode" as="xs:anyURI*"/>
     <xsl:param name="ldh:forShape" as="xs:anyURI?"/>
     <xsl:param name="ldh:createGraph" select="false()" as="xs:boolean"/>
-    <xsl:param name="ldh:ajaxRendering" select="true()" as="xs:boolean"/> <!-- TO-DO: rename to ldhc:ajaxRendering? -->
+    <xsl:param name="ldh:ajaxRendering" select="true()" as="xs:boolean"/>
     <xsl:param name="ldhc:enableWebIDSignUp" as="xs:boolean"/>
     <xsl:param name="google:clientID" as="xs:string?"/>
     <xsl:param name="default-classes" as="map(xs:string, xs:anyURI)">
@@ -828,7 +828,8 @@ LIMIT   100
                                 <xsl:with-param name="constructor-query" select="$constructor-query" tunnel="yes"/>
                                 <xsl:with-param name="constraint-query" select="$constraint-query" tunnel="yes"/>
                                 <xsl:with-param name="shape-query" select="$shape-query" tunnel="yes"/>
-                                <xsl:with-param name="base-uri" select="ac:absolute-path(base-uri())" tunnel="yes"/> <!-- ac:absolute-path(base-uri()) is empty on constructed documents -->
+                                <!-- base-uri() is empty on constructed documents. Create a new URI which is relative to the current base-uri(). -->
+                                <xsl:with-param name="base-uri" select="resolve-uri(ac:uuid() || '/', base-uri())" tunnel="yes"/>
                                 <xsl:sort select="ac:label(.)"/>
                             </xsl:apply-templates>
                         </xsl:when>
@@ -838,7 +839,8 @@ LIMIT   100
                                 <xsl:with-param name="constructor-query" select="$constructor-query" tunnel="yes"/>
                                 <xsl:with-param name="constraint-query" select="$constraint-query" tunnel="yes"/>
                                 <xsl:with-param name="shape-query" select="$shape-query" tunnel="yes"/>
-                                <xsl:with-param name="base-uri" select="ac:absolute-path(base-uri())" tunnel="yes"/> <!-- ac:absolute-path(base-uri()) is empty on constructed documents -->
+                                <!-- base-uri() is empty on constructed documents. Create a new URI which is relative to the current base-uri(). -->
+                                <xsl:with-param name="base-uri" select="resolve-uri(ac:uuid() || '/', base-uri())" tunnel="yes"/>
                                 <xsl:sort select="ac:label(.)"/>
                             </xsl:apply-templates>
                         </xsl:otherwise>

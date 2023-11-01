@@ -711,11 +711,6 @@ extension-element-prefixes="ixsl"
                     <xsl:with-param name="name" select="'rdf'"/>
                     <xsl:with-param name="type" select="'hidden'"/>
                 </xsl:call-template>
-                <xsl:call-template name="xhtml:Input">
-                    <xsl:with-param name="name" select="'v'"/>
-                    <xsl:with-param name="type" select="'hidden'"/>
-                    <xsl:with-param name="value" select="ac:absolute-path($ldh:requestUri)"/>
-                </xsl:call-template>
             
                 <input type="hidden" class="target-id"/>
 
@@ -754,7 +749,7 @@ extension-element-prefixes="ixsl"
     </xsl:template>
     
     <xsl:template match="rdf:RDF[$ac:forClass][$ac:method = 'GET']" mode="bs2:RowForm" priority="1" use-when="system-property('xsl:product-name') = 'SAXON'">
-        <xsl:param name="action" select="ac:build-uri($a:graphStore, map{ 'forClass': string($ac:forClass), 'mode': '&ac;EditMode' })" as="xs:anyURI"/>
+        <xsl:param name="action" select="ac:build-uri($document-uri, map{ 'forClass': string($ac:forClass), 'mode': '&ac;EditMode' })" as="xs:anyURI"/>
         <xsl:param name="classes" as="element()*"/>
 
         <xsl:next-match>
@@ -765,7 +760,8 @@ extension-element-prefixes="ixsl"
     
     <xsl:template match="rdf:RDF" mode="bs2:RowForm">
         <xsl:param name="method" select="'post'" as="xs:string"/>
-        <xsl:param name="action" select="ldh:href($ldt:base, ac:absolute-path(base-uri()), map{}, ac:build-uri(ac:absolute-path(base-uri()), map{ '_method': 'PUT', 'mode': for $mode in $ac:mode return string($mode) }))" as="xs:anyURI"/>
+        <xsl:param name="base-uri" select="base-uri()" as="xs:anyURI" tunnel="yes"/>
+        <xsl:param name="action" select="ldh:href($ldt:base, ac:absolute-path($base-uri), map{}, ac:build-uri(ac:absolute-path($base-uri), map{ '_method': 'PUT', 'mode': for $mode in $ac:mode return string($mode) }))" as="xs:anyURI"/>
         <xsl:param name="id" select="concat('form-', generate-id())" as="xs:string?"/>
         <xsl:param name="class" select="'form-horizontal'" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
@@ -792,11 +788,6 @@ extension-element-prefixes="ixsl"
             <xsl:call-template name="xhtml:Input">
                 <xsl:with-param name="name" select="'rdf'"/>
                 <xsl:with-param name="type" select="'hidden'"/>
-            </xsl:call-template>
-            <xsl:call-template name="xhtml:Input" use-when="system-property('xsl:product-name') = 'SAXON'">
-                <xsl:with-param name="name" select="'v'"/>
-                <xsl:with-param name="type" select="'hidden'"/>
-                <xsl:with-param name="value" select="ac:absolute-path($ldh:requestUri)"/>
             </xsl:call-template>
             
             <input type="hidden" class="target-id"/>

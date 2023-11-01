@@ -31,7 +31,7 @@ curl --head -k -w "%{http_code}\n" -o /dev/null -s \
 
 pushd . > /dev/null && cd "$SCRIPT_ROOT/admin/acl"
 
-# add agent to the writers group to be able to read/write documents (might already be done by another test)
+# add agent to the writers group to be able to read/write documents
 
 ./add-agent-to-group.sh \
   -f "$OWNER_CERT_FILE" \
