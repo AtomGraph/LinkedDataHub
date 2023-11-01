@@ -63,7 +63,7 @@ exclude-result-prefixes="#all">
 
     <xsl:template match="*[lacl:requestAccessTo/@rdf:resource]" mode="bs2:Block" priority="1">
         <xsl:param name="method" select="'post'" as="xs:string"/>
-        <xsl:param name="action" select="ac:build-uri($a:graphStore, map{ 'forClass': '&acl;Authorization' })" as="xs:anyURI"/>
+        <xsl:param name="action" select="ac:build-uri(base-uri(), map{ 'forClass': '&acl;Authorization' })" as="xs:anyURI"/> <!-- TO-DO: fix! -->
         <xsl:param name="id" select="concat('form-', generate-id())" as="xs:string?"/>
         <xsl:param name="class" select="'form-horizontal'" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
@@ -198,7 +198,7 @@ exclude-result-prefixes="#all">
                 <xsl:with-param name="value" select="'&dh;Item'"/> <!-- Item class URI -->
                 <xsl:with-param name="type" select="'hidden'"/>
             </xsl:call-template>
-            <xsl:call-template name="xhtml:Input">
+<!--            <xsl:call-template name="xhtml:Input">
                 <xsl:with-param name="name" select="'pu'"/>
                 <xsl:with-param name="value" select="'&sioc;has_container'"/>
                 <xsl:with-param name="type" select="'hidden'"/>
@@ -207,7 +207,7 @@ exclude-result-prefixes="#all">
                 <xsl:with-param name="name" select="'ou'"/>
                 <xsl:with-param name="value" select="resolve-uri('acl/authorizations/', $ldt:base)"/>
                 <xsl:with-param name="type" select="'hidden'"/>
-            </xsl:call-template>
+            </xsl:call-template>-->
             <xsl:call-template name="xhtml:Input">
                 <xsl:with-param name="name" select="'pu'"/>
                 <xsl:with-param name="value" select="'&dct;title'"/>
