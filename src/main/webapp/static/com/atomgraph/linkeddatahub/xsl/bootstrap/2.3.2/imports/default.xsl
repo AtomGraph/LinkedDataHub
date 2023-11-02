@@ -493,14 +493,23 @@ exclude-result-prefixes="#all"
 
     <!-- FORM CONTROL -->
 
+    <xsl:template match="*[rdf:type/@rdf:resource = ('&dh;Container', '&dh;Item')]/@rdf:nodeID" mode="bs2:FormControl" priority="1">
+        <xsl:param name="document-uri" as="xs:anyURI?" tunnel="yes"/>
+
+        <xsl:next-match>
+            <xsl:with-param name="about" select="$document-uri" tunnel="yes"/>
+        </xsl:next-match>
+    </xsl:template>
+    
     <!-- resource -->
-    <xsl:template match="*[*]/@rdf:*[local-name() = ('about', 'nodeID')]" mode="bs2:FormControl">
+    <xsl:template match="*[*]/@rdf:about | *[*]/@rdf:nodeID" mode="bs2:FormControl">
         <xsl:param name="type" select="'text'" as="xs:string"/>
         <xsl:param name="id" select="generate-id()" as="xs:string"/>
         <xsl:param name="class" select="'subject input-xxlarge'" as="xs:string?"/>
         <xsl:param name="disabled" select="false()" as="xs:boolean"/>
         <xsl:param name="auto" select="local-name() = 'nodeID' or starts-with(., $ldt:base)" as="xs:boolean"/>
-        <xsl:param name="base-uri" select="base-uri()" as="xs:anyURI" tunnel="yes"/>
+        <xsl:param name="document-uri" as="xs:anyURI?" tunnel="yes"/>
+        <xsl:param name="about" select="$document-uri || 'id' || ac:uuid()" as="xs:anyURI?"/>
 
         <xsl:choose>
             <xsl:when test="not($type = 'hidden')">
@@ -532,7 +541,7 @@ exclude-result-prefixes="#all"
                                 -->
                                 <!-- hidden inputs in which we store the old values of the visible input -->
                                 <input type="hidden" class="old su">
-                                    <xsl:attribute name="value" select="if (local-name() = 'about') then . else $base-uri"/>
+                                    <xsl:attribute name="value" select="if (local-name() = 'about') then . else $about"/>
                                 </input>
                                 <input type="hidden" class="old sb">
                                     <xsl:attribute name="value" select="if (local-name() = 'nodeID') then . else generate-id()"/>
