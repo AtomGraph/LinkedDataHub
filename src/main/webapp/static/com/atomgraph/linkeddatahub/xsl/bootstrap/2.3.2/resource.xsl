@@ -1173,7 +1173,7 @@ extension-element-prefixes="ixsl"
             </xsl:choose>
 
             <xsl:apply-templates select="@rdf:about | @rdf:nodeID" mode="#current">
-<!--                <xsl:with-param name="type" select="if ($show-subject) then 'text' else 'hidden'"/>-->
+                <xsl:with-param name="type" select="if ($show-subject) then 'text' else 'hidden'"/>
             </xsl:apply-templates>
     
             <xsl:apply-templates select="." mode="bs2:TypeControl">

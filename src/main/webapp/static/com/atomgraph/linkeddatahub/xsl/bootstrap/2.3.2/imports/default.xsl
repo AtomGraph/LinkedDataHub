@@ -497,7 +497,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="document-uri" as="xs:anyURI?" tunnel="yes"/>
 
         <xsl:next-match>
-            <xsl:with-param name="about" select="$document-uri" tunnel="yes"/>
+            <xsl:with-param name="about" select="$document-uri"/>
         </xsl:next-match>
     </xsl:template>
     
@@ -509,7 +509,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="disabled" select="false()" as="xs:boolean"/>
         <xsl:param name="auto" select="local-name() = 'nodeID' or starts-with(., $ldt:base)" as="xs:boolean"/>
         <xsl:param name="document-uri" as="xs:anyURI?" tunnel="yes"/>
-        <xsl:param name="about" select="xs:anyURI($document-uri || 'id' || ac:uuid())" as="xs:anyURI?"/>
+        <xsl:param name="about" select="xs:anyURI($document-uri || '#id' || ac:uuid())" as="xs:anyURI?"/>
 
         <xsl:choose>
             <xsl:when test="not($type = 'hidden')">
