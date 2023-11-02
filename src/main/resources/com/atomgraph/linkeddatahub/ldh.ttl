@@ -448,8 +448,8 @@ ac:ChartMode a ac:Mode, ac:ContainerMode ;
 
 # https://www.w3.org/ns/ldt/document-hierarchy
 
-dh:Item spin:constructor :TitleConstructor, :DescriptionConstructor, :PrimaryTopicConstructor, :ContentConstructor ;
-    spin:constraint :MissingContainer .
+dh:Item spin:constructor :TitleConstructor, :DescriptionConstructor, :PrimaryTopicConstructor, :ContentConstructor .
+    # spin:constraint :MissingContainer .
 
 :PrimaryTopicConstructor a :Constructor ;
     rdfs:label "Primary topic constructor" ;
@@ -521,8 +521,8 @@ dh:Item spin:constructor :TitleConstructor, :DescriptionConstructor, :PrimaryTop
     sp:arg1 sioc:has_container ;
     rdfs:isDefinedBy : .
 
-dh:Container spin:constructor :TitleConstructor, :DescriptionConstructor, :PrimaryTopicConstructor, :ContainerContentConstructor ;
-    spin:constraint :MissingParent .
+dh:Container spin:constructor :TitleConstructor, :DescriptionConstructor, :PrimaryTopicConstructor, :ContainerContentConstructor .
+    # spin:constraint :MissingParent .
 
 :MissingParent a :MissingPropertyValue ;
     rdfs:label "Missing parent" ;
