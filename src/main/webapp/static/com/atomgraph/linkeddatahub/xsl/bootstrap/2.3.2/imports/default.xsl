@@ -494,9 +494,19 @@ exclude-result-prefixes="#all"
     <!-- FORM CONTROL -->
 
     <xsl:template match="*[rdf:type/@rdf:resource = ('&dh;Container', '&dh;Item')]/@rdf:nodeID" mode="bs2:FormControl" priority="1">
-        <xsl:param name="document-uri" as="xs:anyURI?" tunnel="yes"/>
+        <xsl:param name="type" select="'text'" as="xs:string"/>
+        <xsl:param name="id" select="generate-id()" as="xs:string"/>
+        <xsl:param name="class" select="'subject input-xxlarge'" as="xs:string?"/>
+        <xsl:param name="disabled" select="false()" as="xs:boolean"/>
+        <xsl:param name="auto" select="local-name() = 'nodeID' or starts-with(., $ldt:base)" as="xs:boolean"/>
+        <xsl:param name="document-uri" as="xs:anyURI" tunnel="yes"/>
 
         <xsl:next-match>
+            <xsl:with-param name="type" select="$type"/>
+            <xsl:with-param name="id" select="$id"/>
+            <xsl:with-param name="class" select="$class"/>
+            <xsl:with-param name="disabled" select="$disabled"/>
+            <xsl:with-param name="auto" select="$auto"/>
             <xsl:with-param name="about" select="$document-uri"/>
         </xsl:next-match>
     </xsl:template>
@@ -511,64 +521,62 @@ exclude-result-prefixes="#all"
         <xsl:param name="document-uri" as="xs:anyURI?" tunnel="yes"/>
         <xsl:param name="about" select="xs:anyURI($document-uri || '#id' || ac:uuid())" as="xs:anyURI?"/>
 
-        <xsl:choose>
-            <xsl:when test="not($type = 'hidden')">
-                <!-- <fieldset> -->
-                    <div class="control-group">
-                        <span class="control-label">
-                            <input type="hidden" class="old subject-type" value="{if (local-name() = 'about') then 'su' else if (local-name() = 'nodeID') then 'sb' else ()}"/>
-                            <select class="subject-type input-medium">
-                                <option value="su">
-                                    <xsl:if test="local-name() = 'about'">
-                                        <xsl:attribute name="selected" select="'selected'"/>
-                                    </xsl:if>
-                                    <xsl:text>URI</xsl:text>
-                                </option>
-                                <option value="sb">
-                                    <xsl:if test="local-name() = 'nodeID'">
-                                        <xsl:attribute name="selected" select="'selected'"/>
-                                    </xsl:if>
-                                    <xsl:text>Blank node</xsl:text>
-                                </option>
-                            </select>
-                        </span>
-                        <div class="controls">
-                            <span>
-                                <!--
-                                <xsl:if test="$auto">
-                                    <xsl:attribute name="style" select="'display: none;'"/>
-                                </xsl:if>
-                                -->
-                                <!-- hidden inputs in which we store the old values of the visible input -->
-                                <input type="hidden" class="old su">
-                                    <xsl:attribute name="value" select="if (local-name() = 'about') then . else $about"/>
-                                </input>
-                                <input type="hidden" class="old sb">
-                                    <xsl:attribute name="value" select="if (local-name() = 'nodeID') then . else generate-id()"/>
-                                </input>
-                                <xsl:apply-templates select="." mode="xhtml:Input">
-                                    <xsl:with-param name="type" select="$type"/>
-                                    <!-- <xsl:with-param name="id" select="$id"/> -->
-                                    <xsl:with-param name="class" select="$class"/>
-                                    <xsl:with-param name="disabled" select="$disabled"/>
-                                </xsl:apply-templates>
-                                <xsl:text> </xsl:text>
-                            </span>
-                        </div>
-                        
-                        <hr/>
-                    </div>
-                <!-- </fieldset> -->
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:apply-templates select="." mode="xhtml:Input">
-                    <xsl:with-param name="type" select="$type"/>
-                    <!-- <xsl:with-param name="id" select="$id"/> -->
-                    <xsl:with-param name="class" select="$class"/>
-                    <xsl:with-param name="disabled" select="$disabled"/>
-                </xsl:apply-templates>
-            </xsl:otherwise>
-        </xsl:choose>
+        <div class="control-group">
+            <xsl:if test="$type = 'hidden'">
+                <xsl:attribute name="style" select="'display: none'"/>
+            </xsl:if>
+            
+            <span class="control-label">
+                <input type="hidden" class="old subject-type" value="{if (local-name() = 'about') then 'su' else if (local-name() = 'nodeID') then 'sb' else ()}"/>
+                <select class="subject-type input-medium">
+                    <option value="su">
+                        <xsl:if test="local-name() = 'about'">
+                            <xsl:attribute name="selected" select="'selected'"/>
+                        </xsl:if>
+                        <xsl:text>URI</xsl:text>
+                    </option>
+                    <option value="sb">
+                        <xsl:if test="local-name() = 'nodeID'">
+                            <xsl:attribute name="selected" select="'selected'"/>
+                        </xsl:if>
+                        <xsl:text>Blank node</xsl:text>
+                    </option>
+                </select>
+            </span>
+            <div class="controls">
+                <span>
+                    <!--
+                    <xsl:if test="$auto">
+                        <xsl:attribute name="style" select="'display: none;'"/>
+                    </xsl:if>
+                    -->
+                    <!-- hidden inputs in which we store the old values of the visible input -->
+                    <input type="hidden" class="old su">
+                        <xsl:attribute name="value" select="if (local-name() = 'about') then . else $about"/>
+                    </input>
+                    <input type="hidden" class="old sb">
+                        <xsl:attribute name="value" select="if (local-name() = 'nodeID') then . else generate-id()"/>
+                    </input>
+                    <xsl:apply-templates select="." mode="xhtml:Input">
+                        <xsl:with-param name="type" select="$type"/>
+                        <!-- <xsl:with-param name="id" select="$id"/> -->
+                        <xsl:with-param name="class" select="$class"/>
+                        <xsl:with-param name="disabled" select="$disabled"/>
+                    </xsl:apply-templates>
+                    <xsl:text> </xsl:text>
+                </span>
+            </div>
+
+            <hr/>
+            </div>
+
+        <!--
+        <xsl:apply-templates select="." mode="xhtml:Input">
+            <xsl:with-param name="type" select="$type"/>
+            <xsl:with-param name="class" select="$class"/>
+            <xsl:with-param name="disabled" select="$disabled"/>
+        </xsl:apply-templates>
+        -->
     </xsl:template>
 
     <!-- property -->
