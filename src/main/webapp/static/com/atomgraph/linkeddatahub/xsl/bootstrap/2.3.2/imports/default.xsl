@@ -517,7 +517,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="id" select="generate-id()" as="xs:string"/>
         <xsl:param name="class" select="'subject input-xxlarge'" as="xs:string?"/>
         <xsl:param name="disabled" select="false()" as="xs:boolean"/>
-        <xsl:param name="auto" select="local-name() = 'nodeID' or starts-with(., $ldt:base)" as="xs:boolean"/>
+<!--        <xsl:param name="auto" select="local-name() = 'nodeID' or starts-with(., $ldt:base)" as="xs:boolean"/>-->
         <xsl:param name="document-uri" as="xs:anyURI?" tunnel="yes"/>
         <xsl:param name="about" select="xs:anyURI($document-uri || '#id' || ac:uuid())" as="xs:anyURI?"/>
 
@@ -545,11 +545,6 @@ exclude-result-prefixes="#all"
             </span>
             <div class="controls">
                 <span>
-                    <!--
-                    <xsl:if test="$auto">
-                        <xsl:attribute name="style" select="'display: none;'"/>
-                    </xsl:if>
-                    -->
                     <!-- hidden inputs in which we store the old values of the visible input -->
                     <input type="hidden" class="old su">
                         <xsl:attribute name="value" select="if (local-name() = 'about') then . else $about"/>
@@ -558,7 +553,7 @@ exclude-result-prefixes="#all"
                         <xsl:attribute name="value" select="if (local-name() = 'nodeID') then . else generate-id()"/>
                     </input>
                     <xsl:apply-templates select="." mode="xhtml:Input">
-                        <xsl:with-param name="type" select="$type"/>
+                        <xsl:with-param name="type" select="'text'"/>
                         <!-- <xsl:with-param name="id" select="$id"/> -->
                         <xsl:with-param name="class" select="$class"/>
                         <xsl:with-param name="disabled" select="$disabled"/>
@@ -568,7 +563,7 @@ exclude-result-prefixes="#all"
             </div>
 
             <hr/>
-            </div>
+        </div>
 
         <!--
         <xsl:apply-templates select="." mode="xhtml:Input">
