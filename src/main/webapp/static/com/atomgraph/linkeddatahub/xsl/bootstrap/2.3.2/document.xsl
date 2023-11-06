@@ -677,7 +677,7 @@ extension-element-prefixes="ixsl"
     <xsl:template match="rdf:RDF[$ac:forClass][$ac:method = 'GET']" mode="bs2:ModalForm" priority="1" use-when="system-property('xsl:product-name') = 'SAXON'">
         <xsl:param name="base-uri" as="xs:anyURI" tunnel="yes"/>
         <xsl:param name="document-uri" select="key('resources-by-type', ('&dh;Container', '&dh;Item'))/@rdf:about" as="xs:anyURI"/> <!-- $doc-uri of the constructed document -->
-        <xsl:param name="action" select="ac:build-uri($document-uri, map{ 'forClass': string($ac:forClass), 'mode': ('&ac;EditMode', '&ac;ModalMode') })" as="xs:anyURI"/>
+        <xsl:param name="action" select="ac:build-uri($document-uri, map{ '_method': 'PUT', 'forClass': string($ac:forClass), 'mode': ('&ac;EditMode', '&ac;ModalMode') })" as="xs:anyURI"/>
 
         <xsl:next-match>
             <xsl:with-param name="document-uri" select="$document-uri" tunnel="yes"/>
@@ -688,7 +688,7 @@ extension-element-prefixes="ixsl"
     <xsl:template match="rdf:RDF" mode="bs2:ModalForm" use-when="system-property('xsl:product-name') = 'SAXON'">
         <xsl:param name="method" select="'post'" as="xs:string"/>
         <xsl:param name="base-uri" select="base-uri()" as="xs:anyURI" tunnel="yes"/>
-        <xsl:param name="action" select="ac:build-uri(ac:absolute-path($base-uri), map{ 'forClass': string($ac:forClass), 'mode': '&ac;ModalMode' })" as="xs:anyURI"/>
+        <xsl:param name="action" select="ac:build-uri(ac:absolute-path($base-uri), map{ '_method': 'PUT', 'forClass': string($ac:forClass), 'mode': '&ac;ModalMode' })" as="xs:anyURI"/>
         <xsl:param name="id" select="concat('form-', generate-id())" as="xs:string?"/>
         <xsl:param name="class" select="'form-horizontal'" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
@@ -743,7 +743,7 @@ extension-element-prefixes="ixsl"
     <!-- ROW FORM -->
 
     <xsl:template match="rdf:RDF[$ac:forClass = ('&ldh;CSVImport', '&ldh;RDFImport')][$ac:method = 'GET']" mode="bs2:RowForm" priority="2" use-when="system-property('xsl:product-name') = 'SAXON'">
-        <xsl:param name="action" select="ac:build-uri(resolve-uri('importer', $ldt:base), map{ 'forClass': string($ac:forClass), 'mode': '&ac;EditMode' })" as="xs:anyURI"/>
+        <xsl:param name="action" select="ac:build-uri(resolve-uri('importer', $ldt:base), map{ '_method': 'PUT', 'forClass': string($ac:forClass), 'mode': '&ac;EditMode' })" as="xs:anyURI"/>
         <xsl:param name="classes" as="element()*"/>
 
         <xsl:next-match>
@@ -755,7 +755,7 @@ extension-element-prefixes="ixsl"
     <xsl:template match="rdf:RDF[$ac:forClass][$ac:method = 'GET']" mode="bs2:RowForm" priority="1" use-when="system-property('xsl:product-name') = 'SAXON'">
         <xsl:param name="base-uri" as="xs:anyURI" tunnel="yes"/>
         <xsl:param name="document-uri" select="key('resources-by-type', ('&dh;Container', '&dh;Item'))/@rdf:about" as="xs:anyURI"/> <!-- $doc-uri of the constructed document -->
-        <xsl:param name="action" select="ac:build-uri($document-uri, map{ 'forClass': string($ac:forClass), 'mode': '&ac;EditMode' })" as="xs:anyURI"/>
+        <xsl:param name="action" select="ac:build-uri($document-uri, map{ '_method': 'PUT', 'forClass': string($ac:forClass), 'mode': '&ac;EditMode' })" as="xs:anyURI"/>
         <xsl:param name="classes" as="element()*"/>
 
         <xsl:next-match>
