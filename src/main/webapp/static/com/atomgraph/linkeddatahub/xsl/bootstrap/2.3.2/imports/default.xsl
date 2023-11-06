@@ -337,12 +337,28 @@ exclude-result-prefixes="#all"
         </xsl:copy>
     </xsl:template>
 
-    <!-- suppress the old foaf:primaryTopic object resource which is not used anymore -->
     <xsl:template match="rdf:Description[@rdf:nodeID]" mode="ldh:SetPrimaryTopic" priority="1">
         <xsl:param name="doc-id" as="xs:string" tunnel="yes"/>
+        <xsl:param name="doc-uri" as="xs:anyURI" tunnel="yes"/>
 
+        <!-- add document URI if it's provided -->
+        <xsl:if test="$doc-uri and @rdf:nodeID = $doc-id">
+            <xsl:attribute name="rdf:about" select="$doc-uri"/>
+        </xsl:if>
+        
+        <!-- suppress the old foaf:primaryTopic object resource which is not used anymore -->
         <!-- check if the bnode ID of this resource equals the foaf:primaryTopic/@rdf:nodeID of the document instance -->
         <xsl:if test="not(@rdf:nodeID = key('resources', $doc-id)/foaf:primaryTopic/@rdf:nodeID)">
+            <xsl:next-match/>
+        </xsl:if>
+    </xsl:template>
+    
+    <xsl:template match="rdf:Description/@rdf:nodeID" mode="ldh:SetPrimaryTopic" priority="1">
+        <xsl:param name="doc-id" as="xs:string" tunnel="yes"/>
+        <xsl:param name="doc-uri" as="xs:anyURI" tunnel="yes"/>
+
+        <!-- suppress bnode ID if replacement URI is provided -->
+        <xsl:if test="not($doc-uri and . = $doc-id)">
             <xsl:next-match/>
         </xsl:if>
     </xsl:template>
@@ -493,7 +509,7 @@ exclude-result-prefixes="#all"
 
     <!-- FORM CONTROL -->
 
-    <xsl:template match="*[rdf:type/@rdf:resource = ('&dh;Container', '&dh;Item')]/@rdf:nodeID" mode="bs2:FormControl" priority="1">
+<!--    <xsl:template match="*[rdf:type/@rdf:resource = ('&dh;Container', '&dh;Item')]/@rdf:nodeID" mode="bs2:FormControl" priority="1">
         <xsl:param name="type" select="'text'" as="xs:string"/>
         <xsl:param name="id" select="generate-id()" as="xs:string"/>
         <xsl:param name="class" select="'subject input-xxlarge'" as="xs:string?"/>
@@ -509,7 +525,7 @@ exclude-result-prefixes="#all"
             <xsl:with-param name="auto" select="$auto"/>
             <xsl:with-param name="about" select="$document-uri"/>
         </xsl:next-match>
-    </xsl:template>
+    </xsl:template>-->
     
     <!-- resource -->
     <xsl:template match="*[*]/@rdf:about | *[*]/@rdf:nodeID" mode="bs2:FormControl">

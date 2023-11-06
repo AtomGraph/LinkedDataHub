@@ -819,6 +819,7 @@ LIMIT   100
                             <xsl:with-param name="forClass" select="$ac:forClass"/>
                             <xsl:with-param name="createGraph" select="$ldh:createGraph"/>
                             <xsl:with-param name="constructor-query" select="$constructor-query"/>
+                            <xsl:with-param name="doc-uri" select="resolve-uri(ac:uuid() || '/', base-uri())" tunnel="yes"/>
                         </xsl:apply-templates>
                     </xsl:variable>
 
