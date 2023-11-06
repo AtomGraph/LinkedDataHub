@@ -328,9 +328,9 @@ exclude-result-prefixes="#all"
             <xsl:copy>
                 <xsl:choose>
                     <!-- add document URI if it's provided -->
-                    <xsl:if test="$doc-uri and @rdf:nodeID = $doc-id">
+                    <xsl:when test="$doc-uri and @rdf:nodeID = $doc-id">
                         <xsl:attribute name="rdf:about" select="$doc-uri"/>
-                    </xsl:if>
+                    </xsl:when>
                     <xsl:otherwise>
                         <xsl:apply-templates select="@*" mode="#current"/>
                     </xsl:otherwise>
