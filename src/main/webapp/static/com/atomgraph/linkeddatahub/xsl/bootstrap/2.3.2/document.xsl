@@ -676,7 +676,7 @@ extension-element-prefixes="ixsl"
 
     <xsl:template match="rdf:RDF[$ac:forClass][$ac:method = 'GET']" mode="bs2:ModalForm" priority="1" use-when="system-property('xsl:product-name') = 'SAXON'">
         <xsl:param name="base-uri" as="xs:anyURI" tunnel="yes"/>
-        <xsl:param name="document-uri" select="key('resource-by-type', ('&dh;Container', '&dh;Item'))/@rdf:about" as="xs:anyURI"/> <!-- $doc-uri of the constructed document -->
+        <xsl:param name="document-uri" select="key('resources-by-type', ('&dh;Container', '&dh;Item'))/@rdf:about" as="xs:anyURI"/> <!-- $doc-uri of the constructed document -->
         <xsl:param name="action" select="ac:build-uri($document-uri, map{ 'forClass': string($ac:forClass), 'mode': ('&ac;EditMode', '&ac;ModalMode') })" as="xs:anyURI"/>
 
         <xsl:next-match>
