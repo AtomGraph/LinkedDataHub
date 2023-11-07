@@ -760,7 +760,8 @@ extension-element-prefixes="ixsl"
     
     <xsl:template match="rdf:RDF[$ac:forClass][$ac:method = 'GET']" mode="bs2:RowForm" priority="1" use-when="system-property('xsl:product-name') = 'SAXON'">
         <xsl:param name="base-uri" as="xs:anyURI" tunnel="yes"/>
-        <xsl:param name="document-uri" select="key('resources-by-type', ('&dh;Container', '&dh;Item'))/@rdf:about" as="xs:anyURI"/> <!-- $doc-uri of the constructed document -->
+        <!-- document resource might not always be present in the form (e.g. ldh:Content only) -->
+        <xsl:param name="document-uri" select="if (key('resources-by-type', ('&dh;Container', '&dh;Item'))/@rdf:about) then key('resources-by-type', ('&dh;Container', '&dh;Item'))/@rdf:about else $base-uri" as="xs:anyURI"/> <!-- $doc-uri of the constructed document -->
         <xsl:param name="action" select="ac:build-uri($document-uri, map{ '_method': 'PUT', 'forClass': string($ac:forClass), 'mode': '&ac;EditMode' })" as="xs:anyURI"/>
         <xsl:param name="classes" as="element()*"/>
 
