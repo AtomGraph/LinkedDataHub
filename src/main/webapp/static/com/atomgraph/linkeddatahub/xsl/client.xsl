@@ -1508,6 +1508,7 @@ WHERE
         
     <xsl:template match="div[$ac:mode = '&ac;ReadMode'][acl:mode() = '&acl;Write']" mode="ixsl:ondrop">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
+        <xsl:variable name="base-uri" select="base-uri()" as="xs:anyURI"/>
         
         <xsl:message>FILE DROP</xsl:message>
         
@@ -1522,7 +1523,7 @@ WHERE
                     
                     <xsl:variable name="media-type" select="ixsl:get($file, 'type')" as="xs:string"/>>
                     
-                    <ixsl:schedule-action http-request="map{ 'method': 'POST', 'href': base-uri(), 'media-type': $media-type, 'body': $file, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+                    <ixsl:schedule-action http-request="map{ 'method': 'POST', 'href': $base-uri, 'media-type': $media-type, 'body': $file, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                         <!--<xsl:call-template name="ldh:ClearNamespace"/>-->
                     </ixsl:schedule-action>
                 </xsl:for-each>
