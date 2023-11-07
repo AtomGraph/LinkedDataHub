@@ -19,6 +19,7 @@ package com.atomgraph.linkeddatahub.server.filter.response;
 import com.atomgraph.client.vocabulary.AC;
 import com.atomgraph.linkeddatahub.MediaType;
 import static com.atomgraph.linkeddatahub.writer.XSLTWriterBase.SYSTEM_ID_PROPERTY;
+import static com.atomgraph.server.status.UnprocessableEntityStatus.UNPROCESSABLE_ENTITY;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -75,8 +76,8 @@ public class XsltExecutableFilter implements ContainerResponseFilter
             if (stylesheet != null) req.setProperty(AC.stylesheet.getURI(), getXsltExecutable(stylesheet));
             else req.setProperty(AC.stylesheet.getURI(), getSystem().getXsltExecutable());
             
-            // systemId (base URI) is only set on successful documents, not on error responses
-            if (resp.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
+            // systemId (base URI) is only set on successful documents or '422 Unprocessable Entity' (ConstraintViolation) error responses
+            if (resp.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL) || resp.getStatusInfo().equals(UNPROCESSABLE_ENTITY))
             {
                 final URI systemId;
 
