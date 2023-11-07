@@ -316,28 +316,42 @@ exclude-result-prefixes="#all"
         </xsl:choose>
     </xsl:template>
     
+    <!-- SET DOCUMENT URI -->
+    
+    <xsl:template match="rdf:Description[@rdf:nodeID][rdf:type/@rdf:resource = ('&dh;Container', '&dh;Item')]" mode="ldh:SetDocumentURI" priority="1">
+        <xsl:param name="doc-uri" as="xs:anyURI" tunnel="yes"/>
+
+        <xsl:copy>
+            <xsl:choose>
+                <!-- add document URI if it's provided -->
+                <xsl:when test="$doc-uri">
+                    <xsl:attribute name="rdf:about" select="$doc-uri"/>
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:apply-templates select="@*" mode="#current"/>
+                </xsl:otherwise>
+            </xsl:choose>
+
+            <xsl:apply-templates select="node()" mode="#current"/>
+        </xsl:copy>
+    </xsl:template>
+
+    <!-- identity transform -->
+    <xsl:template match="@* | node()" mode="ldh:SetDocumentURI">
+        <xsl:copy>
+            <xsl:apply-templates select="@* | node()" mode="#current"/>
+        </xsl:copy>
+    </xsl:template>
+    
     <!-- SET PRIMARY TOPIC -->
 
     <xsl:template match="rdf:Description[@rdf:nodeID]" mode="ldh:SetPrimaryTopic" priority="1">
         <xsl:param name="doc-id" as="xs:string" tunnel="yes"/>
-        <xsl:param name="doc-uri" as="xs:anyURI" tunnel="yes"/>
 
         <!-- suppress the old foaf:primaryTopic object resource which is not used anymore -->
         <!-- check if the bnode ID of this resource equals the foaf:primaryTopic/@rdf:nodeID of the document instance -->
         <xsl:if test="not(@rdf:nodeID = key('resources', $doc-id)/foaf:primaryTopic/@rdf:nodeID)">
-            <xsl:copy>
-                <xsl:choose>
-                    <!-- add document URI if it's provided -->
-                    <xsl:when test="$doc-uri and @rdf:nodeID = $doc-id">
-                        <xsl:attribute name="rdf:about" select="$doc-uri"/>
-                    </xsl:when>
-                    <xsl:otherwise>
-                        <xsl:apply-templates select="@*" mode="#current"/>
-                    </xsl:otherwise>
-                </xsl:choose>
-                
-                <xsl:apply-templates select="node()" mode="#current"/>
-            </xsl:copy>
+            <xsl:next-match/>
         </xsl:if>
     </xsl:template>
     
