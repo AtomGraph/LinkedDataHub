@@ -346,11 +346,11 @@ exclude-result-prefixes="#all"
     <!-- SET PRIMARY TOPIC -->
 
     <xsl:template match="rdf:Description[@rdf:nodeID]" mode="ldh:SetPrimaryTopic" priority="1">
-        <xsl:param name="doc-id" as="xs:string" tunnel="yes"/>
+        <xsl:param name="doc-uri" as="xs:string" tunnel="yes"/>
 
         <!-- suppress the old foaf:primaryTopic object resource which is not used anymore -->
         <!-- check if the bnode ID of this resource equals the foaf:primaryTopic/@rdf:nodeID of the document instance -->
-        <xsl:if test="not(@rdf:nodeID = key('resources', $doc-id)/foaf:primaryTopic/@rdf:nodeID)">
+        <xsl:if test="not(@rdf:nodeID = key('resources', $doc-uri)/foaf:primaryTopic/@rdf:nodeID)">
             <xsl:next-match/>
         </xsl:if>
     </xsl:template>
@@ -358,12 +358,12 @@ exclude-result-prefixes="#all"
     <!-- link document instance to the topic instance using foaf:primaryTopic -->
     <xsl:template match="rdf:Description/foaf:primaryTopic[@rdf:nodeID]" mode="ldh:SetPrimaryTopic" priority="1">
         <xsl:param name="topic-id" as="xs:string?" tunnel="yes"/>
-        <xsl:param name="doc-id" as="xs:string" tunnel="yes"/>
+        <xsl:param name="doc-uri" as="xs:string" tunnel="yes"/>
 
         <xsl:copy>
             <xsl:choose>
-                <!-- check subject ID of this resource -->
-                <xsl:when test="$topic-id and ../@rdf:nodeID = $doc-id"> <!-- TO-DO: support @rdf:about? -->
+                <!-- check subject URI of this resource -->
+                <xsl:when test="$topic-id and ../@rdf:about = $doc-uri">
                     <!-- overwrite existing value with $topic-id -->
                     <xsl:attribute name="rdf:nodeID" select="$topic-id"/>
                 </xsl:when>
@@ -373,17 +373,7 @@ exclude-result-prefixes="#all"
             </xsl:choose>
         </xsl:copy>
     </xsl:template>
-    
-    <xsl:template match="rdf:Description/@rdf:nodeID" mode="ldh:SetPrimaryTopic" priority="1">
-        <xsl:param name="doc-id" as="xs:string" tunnel="yes"/>
-        <xsl:param name="doc-uri" as="xs:anyURI" tunnel="yes"/>
 
-        <!-- suppress bnode ID if replacement URI is provided -->
-        <xsl:if test="not($doc-uri and . = $doc-id)">
-            <xsl:next-match/>
-        </xsl:if>
-    </xsl:template>
-    
     <!-- identity transform -->
     <xsl:template match="@* | node()" mode="ldh:SetPrimaryTopic">
         <xsl:copy>

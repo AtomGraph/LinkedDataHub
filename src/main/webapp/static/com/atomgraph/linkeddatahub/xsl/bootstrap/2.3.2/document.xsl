@@ -604,7 +604,7 @@ extension-element-prefixes="ixsl"
                         <xsl:apply-templates select="$constructed-doc" mode="ldh:SetPrimaryTopic">
                             <!-- avoid selecting object blank nodes which only have rdf:type, unless the rdf:type is owl:NamedIndividual --> 
                             <xsl:with-param name="topic-id" select="key('resources-by-type', $forClass)[* except rdf:type or rdf:type/@rdf:resource = '&owl;NamedIndividual']/@rdf:nodeID" tunnel="yes"/>
-                            <xsl:with-param name="doc-id" select="key('resources-by-type', '&dh;Item')/@rdf:nodeID" tunnel="yes"/>
+                            <xsl:with-param name="doc-uri" select="key('resources-by-type', '&dh;Item')/@rdf:about" tunnel="yes"/>
                         </xsl:apply-templates>
                     </xsl:for-each>
                 </xsl:when>
