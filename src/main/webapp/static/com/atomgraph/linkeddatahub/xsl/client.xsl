@@ -1521,10 +1521,11 @@ WHERE
                     file.type <xsl:sequence select="ixsl:get($file, 'type')"/>
                     file.name <xsl:sequence select="ixsl:get($file, 'name')"/>
                     
-                    <xsl:variable name="media-type" select="ixsl:get($file, 'type')" as="xs:string"/>>
+                    <xsl:variable name="media-type" select="ixsl:get($file, 'type')" as="xs:string"/>
                     
                     <ixsl:schedule-action http-request="map{ 'method': 'POST', 'href': $base-uri, 'media-type': $media-type, 'body': $file, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-                        <!--<xsl:call-template name="ldh:ClearNamespace"/>-->
+                        <!-- bogus template call required because of Saxon-JS 2.4 bug: https://saxonica.plan.io/issues/5597 -->
+                        <xsl:call-template name="ldh:NoOp"/>
                     </ixsl:schedule-action>
                 </xsl:for-each>
             </xsl:message>
