@@ -77,7 +77,8 @@ public class XsltExecutableFilter implements ContainerResponseFilter
             else req.setProperty(AC.stylesheet.getURI(), getSystem().getXsltExecutable());
             
             // systemId (base URI) is only set on successful documents or '422 Unprocessable Entity' (ConstraintViolation) error responses
-            if (resp.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL) || resp.getStatusInfo().equals(UNPROCESSABLE_ENTITY))
+            if (resp.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL) ||
+                    resp.getStatusInfo().getStatusCode() == UNPROCESSABLE_ENTITY.getStatusCode())
             {
                 final URI systemId;
 
