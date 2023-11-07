@@ -1319,6 +1319,7 @@ WHERE
     </xsl:template>
     
     <!-- open editing form (do nothing if the button is disabled) -->
+    
     <xsl:template match="a[contains-token(@class, 'btn-edit')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="href" select="@href" as="xs:anyURI"/>
@@ -1365,6 +1366,7 @@ WHERE
     </xsl:template>
 
     <!-- content tabs (markup from Bootstrap) -->
+    
     <xsl:template match="div[contains-token(@class, 'tabbable')]/ul[contains-token(@class, 'nav-tabs')]/li/a" mode="ixsl:onclick">
         <!-- deactivate other tabs -->
         <xsl:for-each select="../../li">
@@ -1501,5 +1503,25 @@ WHERE
             <ixsl:set-style name="display" select="'block'" object="id('doc-tree', ixsl:page())"/>
         </xsl:if>
     </xsl:template>
-    
+
+    <!-- file drop -->
+        
+    <xsl:template match="div[$ac:mode = '&ac;ReadMode'][acl:mode() = '&acl;Write']" mode="ixsl:ondrop">
+        <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
+        
+        <xsl:message>FILE DROP</xsl:message>
+        
+        <xsl:if test="ixsl:get(ixsl:get(ixsl:event(), 'dataTransfer'), 'files.length') gt 0">
+            <xsl:message>
+                <xsl:variable name="files" select="ixsl:get(ixsl:get(ixsl:event(), 'dataTransfer'), 'files')"/>
+                <xsl:for-each select="0 to xs:integer(ixsl:get($files, 'length')) - 1">
+                    <xsl:variable name="file" select="map:get($files, .)"/>
+
+                    file.type <xsl:sequence select="ixsl:get($file, 'type')"/>
+                    file.name <xsl:sequence select="ixsl:get($file, 'name')"/>
+                </xsl:for-each>
+            </xsl:message>
+        </xsl:if>
+    </xsl:template>
+
 </xsl:stylesheet>

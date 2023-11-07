@@ -1023,39 +1023,6 @@ exclude-result-prefixes="#all"
         </xsl:if>
     </xsl:template>
     
-    <!-- dropping files over content -->
-    
-    <xsl:template match="div[contains-token(@class, 'xhtml-content')][contains-token(@class, 'row-fluid')]" mode="ixsl:ondrop">
-        <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
-        <xsl:message>p ondrop</xsl:message>
-
-        <xsl:message>
-            Data: <xsl:value-of select="ixsl:call(ixsl:get(ixsl:event(), 'dataTransfer'), 'getData', [ 'text/uri-list' ])"/>
-        </xsl:message>
-
-        <!-- check whether files were dropped and iterate them -->
-        <xsl:if test="ixsl:contains(ixsl:get(ixsl:event(), 'dataTransfer'), 'items')">
-            <xsl:message>
-                <xsl:variable name="items" select="ixsl:get(ixsl:get(ixsl:event(), 'dataTransfer'), 'items')"/>
-                <xsl:for-each select="0 to xs:integer(ixsl:get($items, 'length')) - 1">
-                    <xsl:variable name="item" select="map:get($items, .)"/>
-
-                    item.kind: <xsl:sequence select="ixsl:get($item, 'kind')"/>
-                    item.type <xsl:sequence select="ixsl:get($item, 'type')"/>
-                </xsl:for-each>
-            </xsl:message>
-            <xsl:message>
-                <xsl:variable name="files" select="ixsl:get(ixsl:get(ixsl:event(), 'dataTransfer'), 'files')"/>
-                <xsl:for-each select="0 to xs:integer(ixsl:get($files, 'length')) - 1">
-                    <xsl:variable name="file" select="map:get($files, .)"/>
-
-                    file.type <xsl:sequence select="ixsl:get($file, 'type')"/>
-                    file.name <xsl:sequence select="ixsl:get($file, 'name')"/>
-                </xsl:for-each>
-            </xsl:message>
-        </xsl:if>
-    </xsl:template>
-    
     <!-- CALLBACKS -->
     
     <!-- load content -->
