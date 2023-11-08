@@ -1518,7 +1518,7 @@ WHERE
                     
                     <xsl:choose>
                         <!-- file extension is a map key or media type is a map value -->
-                        <xsl:when test="map:contains($rdf-media-types, $file-ext) or some $entry in map:keys($rdf-media-types) satisfies deep-equal($file-type, map:get($rdf-media-types, $entry))">
+                        <xsl:when test="map:contains($rdf-media-types, $file-ext) or exists($rdf-media-types?*[. eq $file-type])">
                             <!-- attempt to infer RDF media type from file extension first, fallback to file type -->
                             <xsl:variable name="media-type" select="if (map:contains($rdf-media-types, $file-ext)) then map:get($rdf-media-types, $file-ext) else $file-type" as="xs:string"/>
                             <xsl:variable name="headers" select="ldh:new-object()"/>
