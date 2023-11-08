@@ -552,21 +552,6 @@ WHERE
                 </xsl:if>
             </xsl:if>
 
-            <!-- focus on current resource -->
-<!--            <xsl:for-each select="key('resources', $uri)">
-                <xsl:variable name="is-item" select="exists(sioc:has_container/@rdf:resource)" as="xs:boolean"/>
-                <xsl:for-each select="ixsl:page()//div[contains-token(@class, 'action-bar')]//button[contains-token(@class, 'create-action')]/..">
-                    <xsl:choose>
-                        <xsl:when test="$is-item">
-                            <ixsl:set-style name="display" select="'none'"/>
-                        </xsl:when>
-                        <xsl:otherwise>
-                            <ixsl:set-style name="display" select="'block'"/>
-                        </xsl:otherwise>
-                    </xsl:choose>
-                </xsl:for-each>
-            </xsl:for-each>-->
-
             <!-- is a new instance of Service was created, reload the LinkedDataHub.apps data and re-render the service dropdown -->
             <xsl:if test="//ldt:base or //sd:endpoint">
                 <xsl:variable name="request" as="item()*">
@@ -1509,6 +1494,14 @@ WHERE
     <xsl:template match="div[$ac:mode = '&ac;ReadMode'][acl:mode() = '&acl;Write']" mode="ixsl:ondrop">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="base-uri" select="base-uri()" as="xs:anyURI"/>
+        <xsl:variable name="rdf-media-types" as="map(xs:string, xs:string)">
+            <xsl:map>
+                <xsl:map-entry key="'nt'" select="'application/n-triples'"/>
+                <xsl:map-entry key="'ttl'" select="'text/turtle'"/>
+                <xsl:map-entry key="'rdf'" select="'application/rdf+xml'"/>
+                <xsl:map-entry key="'jsonld'" select="'application/ld+json'"/>
+            </xsl:map>
+        </xsl:variable>
         
         <xsl:message>FILE DROP</xsl:message>
         
@@ -1517,18 +1510,29 @@ WHERE
                 <xsl:variable name="files" select="ixsl:get(ixsl:get(ixsl:event(), 'dataTransfer'), 'files')"/>
                 <xsl:for-each select="0 to xs:integer(ixsl:get($files, 'length')) - 1">
                     <xsl:variable name="file" select="map:get($files, .)"/>
+                    <xsl:variable name="file-ext" select="replace(ixsl:get($file, 'name'), '.*\.', '')" as="xs:string?"/>
+                    <xsl:variable name="file-type" select="if (ixsl:contains($file, 'type')) then ixsl:get($file, 'type') else ()" as="xs:string?"/>
 
-                    file.type <xsl:sequence select="ixsl:get($file, 'type')"/>
-                    file.name <xsl:sequence select="ixsl:get($file, 'name')"/>
+                    file.type: <xsl:sequence select="$file-ext"/>
+                    file.name: <xsl:sequence select="$file-type"/>
                     
-                    <xsl:variable name="media-type" select="ixsl:get($file, 'type')" as="xs:string"/>
-                    <xsl:variable name="headers" select="ldh:new-object()"/>
-                    <ixsl:set-property name="Accept" select="'application/rdf+xml'" object="$headers"/>
-                    
-<!--                    <ixsl:schedule-action http-request="map{ 'method': 'POST', 'href': $base-uri, 'media-type': $media-type, 'body': $file, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-                    </ixsl:schedule-action>-->
+                    <xsl:choose>
+                        <!-- file extension is a map key or media type is a map value -->
+                        <xsl:when test="map:contains($rdf-media-types, $file-ext) or some $entry in map:keys($rdf-media-types) satisfies deep-equal($file-type, map:get($rdf-media-types, $entry))">
+                            <!-- attempt to infer RDF media type from file extension first, fallback to file type -->
+                            <xsl:variable name="media-type" select="if (map:contains($rdf-media-types, $file-ext)) then map:get($rdf-media-types, $file-ext) else $file-type" as="xs:string"/>
+                            <xsl:variable name="headers" select="ldh:new-object()"/>
+                            <ixsl:set-property name="Accept" select="'application/rdf+xml'" object="$headers"/>
 
-                    <xsl:sequence select="js:fetchDispatchXML($base-uri, 'POST', $headers, $file, ., 'fileUpload')[current-date() lt xs:date('2000-01-01')]"/>
+        <!--                    <ixsl:schedule-action http-request="map{ 'method': 'POST', 'href': $base-uri, 'media-type': $media-type, 'body': $file, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+                            </ixsl:schedule-action>-->
+
+                            <xsl:sequence select="js:fetchDispatchXML($base-uri, 'POST', $headers, $file, ., 'fileUpload')[current-date() lt xs:date('2000-01-01')]"/>
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ 'The file extension or media type is not a supported RDF triple syntax' ])[current-date() lt xs:date('2000-01-01')]"/>
+                        </xsl:otherwise>
+                    </xsl:choose>
                 </xsl:for-each>
             </xsl:message>
         </xsl:if>
@@ -1537,12 +1541,29 @@ WHERE
     <xsl:template match="." mode="ixsl:onfileUpload">
         <xsl:variable name="event" select="ixsl:event()"/>
         <xsl:variable name="response" select="ixsl:get(ixsl:get($event, 'detail'), 'response')"/>
-<!--        <xsl:variable name="html" select="if (ixsl:contains($event, 'detail.xml')) then ixsl:get($event, 'detail.xml') else ()" as="document-node()?"/>-->
 
         <xsl:message>
             FILE UPLOADED!
-            
         </xsl:message>
+        
+        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+        
+        <!-- abort the previous request, if any -->
+        <xsl:if test="ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub'), 'request')">
+            <xsl:message>Aborting HTTP request that has already been sent</xsl:message>
+            <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'LinkedDataHub.request'), 'abort', [])"/>
+        </xsl:if>
+        
+        <xsl:variable name="request" as="item()*">
+            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': base-uri(), 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
+                <xsl:call-template name="ldh:DocumentLoaded">
+                    <xsl:with-param name="href" select="$href"/>
+                </xsl:call-template>
+            </ixsl:schedule-action>
+        </xsl:variable>
+        
+        <!-- store the new request object -->
+        <ixsl:set-property name="request" select="$request" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
     </xsl:template>
     
 </xsl:stylesheet>

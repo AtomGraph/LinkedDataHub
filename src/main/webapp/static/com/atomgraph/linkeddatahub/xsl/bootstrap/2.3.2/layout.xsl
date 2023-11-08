@@ -553,11 +553,14 @@ LIMIT   100
                 <xsl:attribute name="class" select="$class"/>
             </xsl:if>
             
-            <xsl:apply-templates select="." mode="bs2:Create">
-                <xsl:with-param name="class" select="'btn-group pull-left'"/>
-                <xsl:with-param name="classes" select="$classes"/>
-                <xsl:with-param name="create-graph" select="true()"/>
-            </xsl:apply-templates>
+            <!-- if the current resource is an Item, hide the "Create" dropdown as items cannot have child documents -->
+            <xsl:if test="not(key('resources', ac:absolute-path(base-uri()))/rdf:type/@rdf:resource = '&dh;Item')">
+                <xsl:apply-templates select="." mode="bs2:Create">
+                    <xsl:with-param name="class" select="'btn-group pull-left'"/>
+                    <xsl:with-param name="classes" select="$classes"/>
+                    <xsl:with-param name="create-graph" select="true()"/>
+                </xsl:apply-templates>
+            </xsl:if>
             
             <xsl:if test="$ldh:ajaxRendering">
                 <xsl:apply-templates select="." mode="bs2:AddData"/>
