@@ -1513,15 +1513,14 @@ WHERE
                     <xsl:variable name="file-ext" select="replace(ixsl:get($file, 'name'), '.*\.', '')" as="xs:string?"/>
                     <xsl:variable name="file-type" select="if (ixsl:contains($file, 'type')) then ixsl:get($file, 'type') else ()" as="xs:string?"/>
 
-                    file.type: <xsl:sequence select="$file-ext"/>
-                    file.name: <xsl:sequence select="$file-type"/>
-                    
                     <xsl:choose>
                         <!-- file extension is a map key or media type is a map value -->
                         <xsl:when test="map:contains($rdf-media-types, $file-ext) or exists($rdf-media-types?*[. eq $file-type])">
                             <!-- attempt to infer RDF media type from file extension first, fallback to file type -->
                             <xsl:variable name="media-type" select="if (map:contains($rdf-media-types, $file-ext)) then map:get($rdf-media-types, $file-ext) else $file-type" as="xs:string"/>
+                            <xsl:message>$media-type: <xsl:value-of select="$media-type"/></xsl:message>
                             <xsl:variable name="headers" select="ldh:new-object()"/>
+                            <ixsl:set-property name="Content-Type" select="$media-type" object="$headers"/>
                             <ixsl:set-property name="Accept" select="'application/rdf+xml'" object="$headers"/>
 
         <!--                    <ixsl:schedule-action http-request="map{ 'method': 'POST', 'href': $base-uri, 'media-type': $media-type, 'body': $file, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
