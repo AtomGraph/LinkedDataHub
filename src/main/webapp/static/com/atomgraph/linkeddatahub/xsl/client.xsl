@@ -1557,7 +1557,7 @@ WHERE
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': base-uri(), 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
                 <xsl:call-template name="ldh:DocumentLoaded">
-                    <xsl:with-param name="href" select="$href"/>
+                    <xsl:with-param name="href" select="base-uri()"/>
                 </xsl:call-template>
             </ixsl:schedule-action>
         </xsl:variable>
