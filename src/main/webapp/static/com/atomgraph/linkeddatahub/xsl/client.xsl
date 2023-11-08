@@ -1522,14 +1522,28 @@ WHERE
                     file.name <xsl:sequence select="ixsl:get($file, 'name')"/>
                     
                     <xsl:variable name="media-type" select="ixsl:get($file, 'type')" as="xs:string"/>
+                    <xsl:variable name="headers" select="ldh:new-object()"/>
+                    <ixsl:set-property name="Accept" select="'application/rdf+xml'" object="$headers"/>
                     
-                    <ixsl:schedule-action http-request="map{ 'method': 'POST', 'href': $base-uri, 'media-type': $media-type, 'body': $file, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-                        <!-- bogus template call required because of Saxon-JS 2.4 bug: https://saxonica.plan.io/issues/5597 -->
-                        <xsl:call-template name="ldh:NoOp"/>
-                    </ixsl:schedule-action>
+<!--                    <ixsl:schedule-action http-request="map{ 'method': 'POST', 'href': $base-uri, 'media-type': $media-type, 'body': $file, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+                    </ixsl:schedule-action>-->
+
+                    <xsl:sequence select="js:fetchDispatchXML($base-uri, 'POST', $headers, $file, ., 'fileUpload')[current-date() lt xs:date('2000-01-01')]"/>
                 </xsl:for-each>
             </xsl:message>
         </xsl:if>
     </xsl:template>
 
+    <xsl:template match="." mode="ixsl:onfileUpload">
+        <xsl:variable name="event" select="ixsl:event()"/>
+        <xsl:variable name="response" select="ixsl:get(ixsl:get($event, 'detail'), 'response')"/>
+        <xsl:variable name="html" select="if (ixsl:contains($event, 'detail.xml')) then ixsl:get($event, 'detail.xml') else ()" as="document-node()?"/>
+
+        <xsl:message>
+            FILE UPLOADED!
+            
+            <xsl:copy-of select="$html"/>
+        </xsl:message>
+    </xsl:template>
+    
 </xsl:stylesheet>
