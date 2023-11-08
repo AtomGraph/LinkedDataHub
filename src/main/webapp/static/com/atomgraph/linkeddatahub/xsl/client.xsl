@@ -553,8 +553,7 @@ WHERE
             </xsl:if>
 
             <!-- focus on current resource -->
-            <xsl:for-each select="key('resources', $uri)">
-                <!-- if the current resource is an Item, hide the <div> with the top/left "Create" dropdown as Items cannot have child documents -->
+<!--            <xsl:for-each select="key('resources', $uri)">
                 <xsl:variable name="is-item" select="exists(sioc:has_container/@rdf:resource)" as="xs:boolean"/>
                 <xsl:for-each select="ixsl:page()//div[contains-token(@class, 'action-bar')]//button[contains-token(@class, 'create-action')]/..">
                     <xsl:choose>
@@ -566,7 +565,7 @@ WHERE
                         </xsl:otherwise>
                     </xsl:choose>
                 </xsl:for-each>
-            </xsl:for-each>
+            </xsl:for-each>-->
 
             <!-- is a new instance of Service was created, reload the LinkedDataHub.apps data and re-render the service dropdown -->
             <xsl:if test="//ldt:base or //sd:endpoint">
@@ -1538,12 +1537,11 @@ WHERE
     <xsl:template match="." mode="ixsl:onfileUpload">
         <xsl:variable name="event" select="ixsl:event()"/>
         <xsl:variable name="response" select="ixsl:get(ixsl:get($event, 'detail'), 'response')"/>
-        <xsl:variable name="html" select="if (ixsl:contains($event, 'detail.xml')) then ixsl:get($event, 'detail.xml') else ()" as="document-node()?"/>
+<!--        <xsl:variable name="html" select="if (ixsl:contains($event, 'detail.xml')) then ixsl:get($event, 'detail.xml') else ()" as="document-node()?"/>-->
 
         <xsl:message>
             FILE UPLOADED!
             
-            <xsl:copy-of select="$html"/>
         </xsl:message>
     </xsl:template>
     

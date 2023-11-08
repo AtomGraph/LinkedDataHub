@@ -369,8 +369,7 @@ WHERE
         <xsl:variable name="forClass" select="input[@class = 'forClass']/@value" as="xs:anyURI"/>
         <xsl:variable name="create-graph" select="empty($form) or $modal-form" as="xs:boolean"/>
         <xsl:variable name="query-params" select="map:merge((map{ 'forClass': string($forClass) }, if ($modal-form) then map{ 'mode': '&ac;ModalMode' } else (), if ($create-graph) then map{ 'createGraph': string(true()) } else ()))" as="map(xs:string, xs:string*)"/>
-        <!-- do not use @href from the HTML because it does not update with AJAX document loads -->
-        <xsl:variable name="href" select="ac:build-uri(ac:absolute-path(base-uri()), $query-params)" as="xs:anyURI"/>
+        <xsl:variable name="href" select="ac:build-uri(ac:absolute-path(@href), $query-params)" as="xs:anyURI"/>
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
         
