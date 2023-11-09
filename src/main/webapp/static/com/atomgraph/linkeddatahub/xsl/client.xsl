@@ -1499,11 +1499,10 @@ WHERE
                 <xsl:map-entry key="'nt'" select="'application/n-triples'"/>
                 <xsl:map-entry key="'ttl'" select="'text/turtle'"/>
                 <xsl:map-entry key="'rdf'" select="'application/rdf+xml'"/>
+                <xsl:map-entry key="'owl'" select="'application/rdf+xml'"/>
                 <xsl:map-entry key="'jsonld'" select="'application/ld+json'"/>
             </xsl:map>
         </xsl:variable>
-        
-        <xsl:message>FILE DROP</xsl:message>
         
         <xsl:if test="ixsl:get(ixsl:get(ixsl:event(), 'dataTransfer'), 'files.length') gt 0">
             <xsl:message>
@@ -1515,10 +1514,11 @@ WHERE
 
                     <xsl:choose>
                         <!-- file extension is a map key or media type is a map value -->
-                        <xsl:when test="map:contains($rdf-media-types, $file-ext) or exists($rdf-media-types?*[. eq $file-type])">
+                        <xsl:when test="map:contains($rdf-media-types, $file-ext) or $file-type = $rdf-media-types?*">
                             <!-- attempt to infer RDF media type from file extension first, fallback to file type -->
                             <xsl:variable name="media-type" select="if (map:contains($rdf-media-types, $file-ext)) then map:get($rdf-media-types, $file-ext) else $file-type" as="xs:string"/>
-                            <xsl:message>$media-type: <xsl:value-of select="$media-type"/></xsl:message>
+                            <xsl:message>Importing RDF file. Name: '<xsl:value-of select="ixsl:get($file, 'name')"/>' Media type: '<xsl:value-of select="$media-type"/>'</xsl:message>
+                            
                             <xsl:variable name="headers" select="ldh:new-object()"/>
                             <ixsl:set-property name="Content-Type" select="$media-type" object="$headers"/>
                             <ixsl:set-property name="Accept" select="'application/rdf+xml'" object="$headers"/>
@@ -1537,13 +1537,11 @@ WHERE
         </xsl:if>
     </xsl:template>
 
+    <!-- this callback will be invoked for every uploaded file -->
+    
     <xsl:template match="." mode="ixsl:onfileUpload">
         <xsl:variable name="event" select="ixsl:event()"/>
         <xsl:variable name="response" select="ixsl:get(ixsl:get($event, 'detail'), 'response')"/>
-
-        <xsl:message>
-            FILE UPLOADED!
-        </xsl:message>
         
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
         
