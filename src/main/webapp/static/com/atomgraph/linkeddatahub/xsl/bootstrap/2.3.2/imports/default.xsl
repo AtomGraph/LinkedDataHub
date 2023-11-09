@@ -90,12 +90,28 @@ exclude-result-prefixes="#all"
         <xsl:param name="uri" as="xs:anyURI?"/>
         <xsl:param name="fragment" as="xs:string?"/>
 
+        <xsl:sequence select="ldh:href($base, $absolute-path, $query-params, $uri, (), $fragment)"/>
+    </xsl:function>
+    
+    <xsl:function name="ldh:href" as="xs:anyURI">
+        <xsl:param name="base" as="xs:anyURI"/>
+        <xsl:param name="absolute-path" as="xs:anyURI"/>
+        <xsl:param name="query-params" as="map(xs:string, xs:string*)"/>
+        <xsl:param name="uri" as="xs:anyURI?"/>
+        <xsl:param name="graph" as="xs:anyURI?"/>
+        <xsl:param name="fragment" as="xs:string?"/>
+
         <xsl:choose>
             <!-- do not proxy $uri via ?uri= if it is relative to the $base -->
             <xsl:when test="$uri and starts-with($uri, $base)">
                 <xsl:variable name="absolute-path" select="xs:anyURI(if (contains($uri, '#')) then substring-before($uri, '#') else $uri)" as="xs:anyURI"/>
                 <xsl:variable name="fragment" select="if ($fragment) then $fragment else if (contains($uri, '#')) then substring-after($uri, '#') else ()" as="xs:string?"/>
                 <xsl:sequence select="xs:anyURI(ac:build-uri($absolute-path, $query-params) || (if ($fragment) then ('#' || $fragment) else ()))"/>
+            </xsl:when>
+            <!-- proxy external URI/graph -->
+            <xsl:when test="$uri and $graph">
+                <xsl:variable name="fragment" select="if ($fragment) then $fragment else encode-for-uri($uri)" as="xs:string?"/>
+                <xsl:sequence select="xs:anyURI(ac:build-uri($absolute-path, map:merge((map{ 'uri': string($uri), 'graph': string($graph) }, $query-params))) || (if ($fragment) then ('#' || $fragment) else ()))"/>
             </xsl:when>
             <!-- proxy external URI -->
             <xsl:when test="$uri">
@@ -257,19 +273,6 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="distinct-values($arg1[not(.=$arg2)])"/>
     </xsl:function>
 
-    <xsl:function name="ldh:parse-query-params" as="map(xs:string, xs:string*)">
-        <xsl:param name="query-string" as="xs:string"/>
-
-        <xsl:sequence select="map:merge(
-            for $query in tokenize($query-string, '&amp;')
-            return
-                let $param := tokenize($query, '=')
-                return map:entry(head($param), tail($param))
-            ,
-            map { 'duplicates': 'combine' }
-        )"/>
-    </xsl:function>
-
     <!-- function stub so that Saxon-EE doesn't complain when compiling SEF -->
     <xsl:function name="ldh:send-request" as="document-node()?" override-extension-function="no" cache="yes">
         <xsl:param name="href" as="xs:anyURI"/>
@@ -417,14 +420,12 @@ exclude-result-prefixes="#all"
     <!-- subject resource -->
     <xsl:template match="@rdf:about" mode="xhtml:Anchor">
         <xsl:param name="endpoint" as="xs:anyURI?" tunnel="yes"/>
+        <xsl:param name="graph" as="xs:anyURI?" tunnel="yes"/>
         <xsl:param name="query-string" select="'DESCRIBE &lt;' || . || '&gt;'" as="xs:string"/>
         <xsl:param name="fragment" select="if (starts-with(., $ldt:base)) then (if (contains(., '#')) then substring-after(., '#') else ()) else encode-for-uri(.)" as="xs:string?"/>
-        <xsl:param name="href" select="ldh:href($ldt:base, ac:absolute-path(base-uri()), map{}, if ($endpoint) then xs:anyURI($endpoint || '?query=' || encode-for-uri($query-string)) else xs:anyURI(.), $fragment)" as="xs:anyURI" use-when="system-property('xsl:product-name') = 'SAXON'"/>
-        <xsl:param name="href" select="ldh:href($ldt:base, ac:absolute-path(base-uri()), map{}, if ($endpoint) then xs:anyURI($endpoint || '?query=' || encode-for-uri($query-string)) else xs:anyURI(.), $fragment)" as="xs:anyURI" use-when="system-property('xsl:product-name') eq 'SaxonJS'"/>
+        <xsl:param name="href" select="ldh:href($ldt:base, ac:absolute-path(base-uri()), map{}, if ($endpoint) then xs:anyURI($endpoint || '?query=' || encode-for-uri($query-string)) else xs:anyURI(.), $graph, $fragment)" as="xs:anyURI"/>
         <!-- if the URI's absolute path equals the current URL and has a #fragment, use the fragment as @id. Otherwise use encoded URI as @id. -->
-        <xsl:param name="id" select="if (starts-with(., '#') or (ac:absolute-path(.) = ac:absolute-path(base-uri()) and (contains(., '#')))) then substring-after(., '#') else (if (starts-with(., $ldt:base)) then () else encode-for-uri(.))" as="xs:string?" use-when="system-property('xsl:product-name') = 'SAXON'"/>
-        <xsl:param name="id" select="if (starts-with(., '#') or (ac:absolute-path(.) = ac:absolute-path(base-uri()) and (contains(., '#')))) then substring-after(., '#') else (if (starts-with(., $ldt:base)) then () else encode-for-uri(.))" as="xs:string?" use-when="system-property('xsl:product-name') eq 'SaxonJS'"/>
-
+        <xsl:param name="id" select="if (starts-with(., '#') or (ac:absolute-path(.) = ac:absolute-path(base-uri()) and (contains(., '#')))) then substring-after(., '#') else (if (starts-with(., $ldt:base)) then () else encode-for-uri(.))" as="xs:string?"/>
         <xsl:param name="title" select="." as="xs:string?"/>
         <xsl:param name="class" as="xs:string?"/>
         <xsl:param name="target" as="xs:string?"/>
@@ -442,8 +443,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="endpoint" as="xs:anyURI?" tunnel="yes"/>
         <xsl:param name="query-string" select="'DESCRIBE &lt;' || . || '&gt;'" as="xs:string"/>
         <xsl:param name="fragment" select="if (starts-with(., $ldt:base)) then (if (contains(., '#')) then substring-after(., '#') else ()) else encode-for-uri(.)" as="xs:string?"/>
-        <xsl:param name="href" select="ldh:href($ldt:base, ac:absolute-path(base-uri()), map{}, if ($endpoint) then xs:anyURI($endpoint || '?query=' || encode-for-uri($query-string)) else xs:anyURI(.), $fragment)" as="xs:anyURI" use-when="system-property('xsl:product-name') = 'SAXON'"/>
-        <xsl:param name="href" select="ldh:href($ldt:base, ac:absolute-path(base-uri()), map{}, if ($endpoint) then xs:anyURI($endpoint || '?query=' || encode-for-uri($query-string)) else xs:anyURI(.), $fragment)" as="xs:anyURI" use-when="system-property('xsl:product-name') eq 'SaxonJS'"/>
+        <xsl:param name="href" select="ldh:href($ldt:base, ac:absolute-path(base-uri()), map{}, if ($endpoint) then xs:anyURI($endpoint || '?query=' || encode-for-uri($query-string)) else xs:anyURI(.), $fragment)" as="xs:anyURI"/>
         <xsl:param name="id" select="$fragment" as="xs:string?"/>
         <xsl:param name="label" select="if (parent::rdf:Description) then ac:svg-label(..) else ac:svg-object-label(.)" as="xs:string"/>
         <xsl:param name="title" select="$label" as="xs:string"/>
@@ -467,8 +467,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="endpoint" as="xs:anyURI?" tunnel="yes"/>
         <xsl:param name="query-string" select="'DESCRIBE &lt;' || . || '&gt;'" as="xs:string"/>
         <xsl:param name="fragment" select="if (starts-with(., $ldt:base)) then (if (contains(., '#')) then substring-after(., '#') else ()) else encode-for-uri(.)" as="xs:string?"/>
-        <xsl:param name="href" select="ldh:href($ldt:base, ac:absolute-path(base-uri()), map{}, if ($endpoint) then xs:anyURI($endpoint || '?query=' || encode-for-uri($query-string)) else xs:anyURI(.), $fragment)" as="xs:anyURI" use-when="system-property('xsl:product-name') = 'SAXON'"/>
-        <xsl:param name="href" select="ldh:href($ldt:base, ac:absolute-path(base-uri()), map{}, if ($endpoint) then xs:anyURI($endpoint || '?query=' || encode-for-uri($query-string)) else xs:anyURI(.), $fragment)" as="xs:anyURI" use-when="system-property('xsl:product-name') eq 'SaxonJS'"/>
+        <xsl:param name="href" select="ldh:href($ldt:base, ac:absolute-path(base-uri()), map{}, if ($endpoint) then xs:anyURI($endpoint || '?query=' || encode-for-uri($query-string)) else xs:anyURI(.), $fragment)" as="xs:anyURI"/>
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="title" select="." as="xs:string?"/>
         <xsl:param name="class" as="xs:string?"/>
@@ -519,24 +518,6 @@ exclude-result-prefixes="#all"
     <xsl:template match="*[@rdf:about or @rdf:nodeID]/*[@xml:lang and not(lang($ldt:lang))]" mode="bs2:PropertyList"/>
 
     <!-- FORM CONTROL -->
-
-<!--    <xsl:template match="*[rdf:type/@rdf:resource = ('&dh;Container', '&dh;Item')]/@rdf:nodeID" mode="bs2:FormControl" priority="1">
-        <xsl:param name="type" select="'text'" as="xs:string"/>
-        <xsl:param name="id" select="generate-id()" as="xs:string"/>
-        <xsl:param name="class" select="'subject input-xxlarge'" as="xs:string?"/>
-        <xsl:param name="disabled" select="false()" as="xs:boolean"/>
-        <xsl:param name="auto" select="local-name() = 'nodeID' or starts-with(., $ldt:base)" as="xs:boolean"/>
-        <xsl:param name="document-uri" as="xs:anyURI" tunnel="yes"/>
-
-        <xsl:next-match>
-            <xsl:with-param name="type" select="$type"/>
-            <xsl:with-param name="id" select="$id"/>
-            <xsl:with-param name="class" select="$class"/>
-            <xsl:with-param name="disabled" select="$disabled"/>
-            <xsl:with-param name="auto" select="$auto"/>
-            <xsl:with-param name="about" select="$document-uri"/>
-        </xsl:next-match>
-    </xsl:template>-->
     
     <!-- resource -->
     <xsl:template match="*[*]/@rdf:about | *[*]/@rdf:nodeID" mode="bs2:FormControl">
@@ -544,7 +525,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="id" select="generate-id()" as="xs:string"/>
         <xsl:param name="class" select="'subject input-xxlarge'" as="xs:string?"/>
         <xsl:param name="disabled" select="false()" as="xs:boolean"/>
-<!--        <xsl:param name="auto" select="local-name() = 'nodeID' or starts-with(., $ldt:base)" as="xs:boolean"/>-->
+        <!--        <xsl:param name="auto" select="local-name() = 'nodeID' or starts-with(., $ldt:base)" as="xs:boolean"/>-->
         <xsl:param name="document-uri" as="xs:anyURI?" tunnel="yes"/>
         <xsl:param name="about" select="xs:anyURI($document-uri || '#id' || ac:uuid())" as="xs:anyURI?"/>
 
@@ -591,14 +572,6 @@ exclude-result-prefixes="#all"
 
             <hr/>
         </div>
-
-        <!--
-        <xsl:apply-templates select="." mode="xhtml:Input">
-            <xsl:with-param name="type" select="$type"/>
-            <xsl:with-param name="class" select="$class"/>
-            <xsl:with-param name="disabled" select="$disabled"/>
-        </xsl:apply-templates>
-        -->
     </xsl:template>
 
     <!-- property -->
@@ -619,10 +592,10 @@ exclude-result-prefixes="#all"
         <xsl:param name="constructor" as="document-node()?"/>
         <xsl:param name="template" as="element()*"/>
         <xsl:param name="cloneable" select="false()" as="xs:boolean"/>
-        <xsl:param name="constraints" as="document-node()*"/>
-        <xsl:param name="shapes" as="document-node()*"/>
+        <xsl:param name="type-constraints" as="element()*"/>
+        <xsl:param name="type-shapes" as="element()*"/>
         <!-- only the first property that has a mandatory constraint is required, the following ones are not -->
-        <xsl:param name="required" select="($shapes//rdf:Description[sh:path/@rdf:resource = $this][sh:minCount &gt;= count(preceding-sibling::*[concat(namespace-uri(), local-name()) = $this])]) or ($constraints//srx:binding[@name = 'property'][srx:uri = $this] and not(preceding-sibling::*[concat(namespace-uri(), local-name()) = $this]))" as="xs:boolean"/>
+        <xsl:param name="required" select="($type-shapes[sh:path/@rdf:resource = $this][sh:minCount &gt;= count(preceding-sibling::*[concat(namespace-uri(), local-name()) = $this])]) or ($type-constraints//srx:binding[@name = 'property'][srx:uri = $this] and not(preceding-sibling::*[concat(namespace-uri(), local-name()) = $this]))" as="xs:boolean"/>
         <xsl:param name="id" select="generate-id()" as="xs:string"/>
         <xsl:param name="for" select="generate-id((node() | @rdf:resource | @rdf:nodeID)[1])" as="xs:string"/>
         <xsl:param name="class" select="concat('control-group', if ($error) then ' error' else (), if ($required) then ' required' else ())" as="xs:string?"/>

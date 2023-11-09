@@ -37,12 +37,6 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.base'))"/>
     </xsl:function>
 
-    <xsl:function name="ac:mode" as="xs:anyURI*">
-        <xsl:param name="base-uri" as="xs:anyURI"/>
-        <!-- decode mode URI from the ?mode query param, if it's present -->
-        <xsl:sequence select="if (contains($base-uri, '?')) then let $query-params := ldh:parse-query-params(substring-after($base-uri, '?')) return ldh:decode-uri($query-params?mode) else ()"/> <!-- raw URL -->
-    </xsl:function>
-
     <xsl:function name="acl:mode" as="xs:anyURI*">
         <xsl:sequence select="(
             if (ixsl:contains(ixsl:window(), 'LinkedDataHub.acl-modes.read')) then xs:anyURI('&acl;Read') else (),
@@ -54,14 +48,6 @@ exclude-result-prefixes="#all"
     
     <xsl:function name="sd:endpoint" as="xs:anyURI">
         <xsl:sequence select="xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.endpoint'))"/>
-    </xsl:function>
-    
-    <xsl:function name="ldh:decode-uri" as="xs:anyURI?" use-when="system-property('xsl:product-name') eq 'SaxonJS'">
-        <xsl:param name="encoded-uri" as="xs:string?"/>
-
-        <xsl:if test="$encoded-uri">
-            <xsl:sequence select="xs:anyURI(ixsl:call(ixsl:window(), 'decodeURIComponent', [ $encoded-uri ]))"/>
-        </xsl:if>
     </xsl:function>
 
     <!-- finds the app with the longest matching base URI -->

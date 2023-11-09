@@ -27,6 +27,7 @@ import com.atomgraph.linkeddatahub.resource.admin.Clear;
 import com.atomgraph.linkeddatahub.resource.admin.RequestAccess;
 import com.atomgraph.linkeddatahub.resource.admin.SignUp;
 import com.atomgraph.linkeddatahub.resource.graph.Item;
+import com.atomgraph.linkeddatahub.vocabulary.LDH;
 import java.util.Optional;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.Path;
@@ -69,7 +70,7 @@ public class Dispatcher
      * Returns proxy class that takes precedence over the default JAX-RS path matching.
      * The request is proxied in two cases:
      * <ul>
-     *   <li>externally (URI specified by the <code>?uri</code> query param)</li>
+     *   <li>externally (URI specified by the <code>?uri</code> query param, when <code>?graph</code> query param not set)</li>
      *   <li>internally if it matches a <code>lapp:Dataset</code> specified in the system app config</li>
      * </ul>
      * @return optional class
@@ -98,7 +99,7 @@ public class Dispatcher
     @Path("{path: .*}")
     public Class getSubResource()
     {
-        return getProxyClass().orElse(getResourceClass());
+        return getProxyClass().orElse(getDocumentClass());
     }
     
     // TO-DO: move @Path annotations onto respective classes?
@@ -252,7 +253,7 @@ public class Dispatcher
      * 
      * @return resource class
      */
-    public Class getResourceClass()
+    public Class getDocumentClass()
     {
         return Item.class;
     }

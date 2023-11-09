@@ -267,7 +267,7 @@ WHERE
             </xsl:for-each>
         </xsl:if>
         <!-- initialize form if we're in editing mode -->
-        <xsl:if test="ac:mode(base-uri(ixsl:page())) = '&ac;EditMode'">
+        <xsl:if test="ixsl:query-params()?mode = '&ac;EditMode'">
             <xsl:apply-templates select="id('content-body', ixsl:page())" mode="ldh:PostConstruct"/>
         </xsl:if>
         <!-- initialize LinkedDataHub.apps (and the search dropdown, if it's shown) -->
@@ -454,12 +454,13 @@ WHERE
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="uri" as="xs:anyURI"/>
         <xsl:param name="refresh-content" as="xs:boolean?"/>
+        <xsl:param name="graph" as="xs:anyURI"/>
 
         <!-- load breadcrumbs -->
         <xsl:if test="id('breadcrumb-nav', ixsl:page())">
             <xsl:result-document href="#breadcrumb-nav" method="ixsl:replace-content">
                 <!-- show label if the resource is external -->
-                <xsl:if test="not(starts-with($uri, $ldt:base))">
+                <xsl:if test="not(starts-with($graph, $ldt:base))">
                     <xsl:variable name="app" select="ldh:match-app($uri, ixsl:get(ixsl:window(), 'LinkedDataHub.apps'))" as="element()?"/>
                     <xsl:choose>
                         <!-- if a known app matches $uri, show link to its ldt:base -->
@@ -487,7 +488,7 @@ WHERE
             <xsl:call-template name="ldh:BreadCrumbResourceLoaded">
                 <xsl:with-param name="container" select="id('breadcrumb-nav', ixsl:page())"/>
                 <!-- strip the query string if it's present -->
-                <xsl:with-param name="uri" select="xs:anyURI(if (contains($uri, '?')) then substring-before($uri, '?') else $uri)"/>
+                <xsl:with-param name="uri" select="$graph"/>
             </xsl:call-template>
         </xsl:if>
 
@@ -640,16 +641,18 @@ WHERE
     
     <xsl:template name="ldh:RDFDocumentLoad">
         <xsl:param name="uri" as="xs:anyURI"/>
+        <xsl:param name="graph" as="xs:anyURI?"/>
         <xsl:param name="refresh-content" as="xs:boolean?"/>
         <!-- if the URI is external, dereference it through the proxy -->
         <!-- add a bogus query parameter to give the RDF/XML document a different URL in the browser cache, otherwise it will clash with the HTML representation -->
         <!-- this is due to broken browser behavior re. Vary and conditional requests: https://stackoverflow.com/questions/60799116/firefox-if-none-match-headers-ignore-content-type-and-vary/60802443 -->
-        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(base-uri()), map{ 'param': 'dummy' }, ac:document-uri($uri))" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(base-uri()), map{ 'param': 'dummy' }, ac:document-uri($uri), $graph, ())" as="xs:anyURI"/>
 
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                 <xsl:call-template name="ldh:RDFDocumentLoaded">
                     <xsl:with-param name="uri" select="$uri"/>
+                    <xsl:with-param name="graph" select="$graph"/>
                     <xsl:with-param name="refresh-content" select="$refresh-content"/>
                 </xsl:call-template>
             </ixsl:schedule-action>
@@ -805,8 +808,9 @@ WHERE
         <xsl:param name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.apps'))" as="element()?"/>
         <xsl:param name="push-state" select="true()" as="xs:boolean"/>
         <xsl:param name="refresh-content" as="xs:boolean?"/>
-        <!-- decode raw document URL (without fragment) from the ?uri query param, if it's present -->
-        <xsl:variable name="uri" select="if (contains($href, '?')) then let $query-params := ldh:parse-query-params(substring-after(ac:document-uri($href), '?')) return if (exists($query-params?uri)) then ldh:decode-uri($query-params?uri[1]) else ac:absolute-path($href) else ac:absolute-path($href)" as="xs:anyURI"/>
+        <!-- $graph defaults to ac:absolute-path($href), $uri defaults to $graph -->
+        <xsl:variable name="graph" select="if (exists(ixsl:query-params()?graph)) then xs:anyURI(ixsl:query-params()?graph[1]) else ac:absolute-path($href)" as="xs:anyURI"/>
+        <xsl:variable name="uri" select="if (exists(ixsl:query-params()?uri)) then xs:anyURI(ixsl:query-params()?uri[1]) else $graph" as="xs:anyURI"/>
 
         <!-- set #uri value -->
         <xsl:for-each select="id('uri', ixsl:page())">
@@ -868,7 +872,7 @@ WHERE
         <xsl:param name="replace-content" select="true()" as="xs:boolean"/>
         <xsl:param name="refresh-content" as="xs:boolean?"/>
         <!-- decode raw document URL (without fragment) from the ?uri query param, if it's present -->
-        <xsl:variable name="uri" select="if (contains($href, '?')) then let $query-params := ldh:parse-query-params(substring-after(ac:document-uri($href), '?')) return if (exists($query-params?uri)) then ldh:decode-uri($query-params?uri[1]) else ac:absolute-path($href) else ac:absolute-path($href)" as="xs:anyURI"/>
+        <xsl:variable name="uri" select="if (exists(ixsl:query-params()?uri)) then xs:anyURI(ixsl:query-params()?uri) else ac:absolute-path($href)" as="xs:anyURI"/>
         <xsl:variable name="fragment" select="if (contains($href, '#')) then substring-after($href, '#') else ()" as="xs:string?"/>
         
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
@@ -906,12 +910,11 @@ WHERE
 
         <xsl:if test="$push-state">
             <xsl:variable name="href" as="xs:anyURI">
-                <xsl:variable name="query-params" select="if (contains(base-uri(), '?')) then ldh:parse-query-params(substring-after(base-uri(), '?')) else map{}" as="map(xs:string, xs:string*)"/>
                 <xsl:choose>
                     <!-- if ldh:ContentMode is active but no mode param explicitly is specified, change the page's URL to reflect that -->
-                    <xsl:when test="not(map:contains($query-params, 'mode')) and id('content-body', ixsl:page())/div[contains-token(@class, 'row-fluid')][1]/ul[contains-token(@class, 'nav-tabs')]/li[contains-token(@class, 'content-mode')][contains-token(@class, 'active')]">
+                    <xsl:when test="not(exists(ixsl:query-params()?mode)) and id('content-body', ixsl:page())/div[contains-token(@class, 'row-fluid')][1]/ul[contains-token(@class, 'nav-tabs')]/li[contains-token(@class, 'content-mode')][contains-token(@class, 'active')]">
                         <xsl:variable name="fragment" select="substring-after($href, '#')" as="xs:string"/>
-                        <xsl:sequence select="xs:anyURI(ldh:href($ldt:base, ac:absolute-path(base-uri()), map{}, ac:build-uri(base-uri(), map{ 'mode': '&ldh;ContentMode' } ), $fragment))"/>
+                        <xsl:sequence select="xs:anyURI(ldh:href($ldt:base, ac:absolute-path(base-uri()), map{}, ac:build-uri(ac:absolute-path(base-uri()), map:merge((ixsl:query-params(), map{ 'mode': '&ldh;ContentMode' } ))), $fragment))"/>
                     </xsl:when>
                     <xsl:otherwise>
                         <xsl:sequence select="$href"/>
@@ -931,8 +934,10 @@ WHERE
             <xsl:with-param name="href" select="$href"/>
         </xsl:call-template>
         
+        <xsl:variable name="graph" select="if (exists(ixsl:query-params()?graph)) then xs:anyURI(ixsl:query-params()?graph[1]) else ac:absolute-path($uri)" as="xs:anyURI"/>
         <xsl:call-template name="ldh:RDFDocumentLoad">
             <xsl:with-param name="uri" select="$uri"/>
+            <xsl:with-param name="graph" select="$graph"/>
             <xsl:with-param name="refresh-content" select="$refresh-content"/>
         </xsl:call-template>
     </xsl:template>
@@ -976,7 +981,7 @@ WHERE
                         <ul class="well well-small nav nav-list">
                             <xsl:apply-templates select="$results/rdf:RDF/rdf:Description[not(@rdf:about = $doc-uri)]" mode="bs2:List">
                                 <xsl:sort select="ac:label(.)" order="ascending" lang="{$ldt:lang}"/>
-                                <xsl:with-param name="mode" select="ac:mode(base-uri())[1]" tunnel="yes"/> <!-- TO-DO: support multiple modes -->
+                                <xsl:with-param name="mode" select="ixsl:query-params()?mode[1]" tunnel="yes"/> <!-- TO-DO: support multiple modes -->
                                 <xsl:with-param name="render-id" select="false()" tunnel="yes"/>
                             </xsl:apply-templates>
                         </ul>

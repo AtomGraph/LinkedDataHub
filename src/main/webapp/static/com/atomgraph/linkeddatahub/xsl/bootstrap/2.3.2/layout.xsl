@@ -191,7 +191,7 @@ LIMIT   100
             PREFIX  sp:   <http://spinrdf.org/sp#>
             PREFIX  spin: <http://spinrdf.org/spin#>
 
-            SELECT  ?property
+            SELECT  $Type ?property
             WHERE
               { $Type (rdfs:subClassOf)*/spin:constraint  ?constraint .
                 ?constraint  a             ldh:MissingPropertyValue ;
@@ -233,7 +233,8 @@ LIMIT   100
     <xsl:key name="violations-by-value" match="*" use="ldh:violationValue/text()"/>
     <xsl:key name="violations-by-focus-node" match="*" use="sh:focusNode/@rdf:resource | sh:focusNode/@rdf:nodeID"/>
     <xsl:key name="resources-by-container" match="*[@rdf:about] | *[@rdf:nodeID]" use="sioc:has_parent/@rdf:resource | sioc:has_container/@rdf:resource"/>
-    
+    <xsl:key name="shapes-by-target-class" match="*[@rdf:about] | *[@rdf:nodeID]" use="sh:targetClass/@rdf:resource | sh:targetClass/@rdf:resource"/>
+
     <rdf:Description rdf:about="">
     </rdf:Description>
     

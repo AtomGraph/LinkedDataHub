@@ -347,6 +347,7 @@ exclude-result-prefixes="#all"
     
     <xsl:template match="*[*][@rdf:about]" mode="ldh:RenderContent">
         <xsl:param name="container" as="element()"/>
+        <xsl:param name="graph" as="xs:anyURI?"/>
         <xsl:param name="mode" as="xs:anyURI?"/>
         <xsl:param name="refresh-content" as="xs:boolean?"/>
 
@@ -355,6 +356,7 @@ exclude-result-prefixes="#all"
         
         <xsl:variable name="row" as="node()*">
             <xsl:apply-templates select="." mode="bs2:Row">
+                <xsl:with-param name="graph" select="$graph" tunnel="yes"/>
                 <xsl:with-param name="mode" select="$mode"/>
             </xsl:apply-templates>
         </xsl:variable>
@@ -954,7 +956,7 @@ exclude-result-prefixes="#all"
     
     <!-- start dragging content (or its descendants) -->
     
-    <xsl:template match="div[ac:mode(base-uri()) = '&ldh;ContentMode'][contains-token(@class, 'content')][contains-token(@class, 'row-fluid')]/descendant-or-self::*" mode="ixsl:ondragstart">
+    <xsl:template match="div[ixsl:query-params()?mode = '&ldh;ContentMode'][contains-token(@class, 'content')][contains-token(@class, 'row-fluid')]/descendant-or-self::*" mode="ixsl:ondragstart">
         <xsl:choose>
             <!-- allow drag on the content <div> -->
             <xsl:when test="self::div[contains-token(@class, 'content')][contains-token(@class, 'row-fluid')]">
@@ -971,18 +973,18 @@ exclude-result-prefixes="#all"
 
     <!-- dragging content over other content -->
     
-    <xsl:template match="div[ac:mode(base-uri()) = '&ldh;ContentMode'][contains-token(@class, 'content')][contains-token(@class, 'row-fluid')][acl:mode() = '&acl;Write']" mode="ixsl:ondragover">
+    <xsl:template match="div[ixsl:query-params()?mode = '&ldh;ContentMode'][contains-token(@class, 'content')][contains-token(@class, 'row-fluid')][acl:mode() = '&acl;Write']" mode="ixsl:ondragover">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <ixsl:set-property name="dataTransfer.dropEffect" select="'move'" object="ixsl:event()"/>
     </xsl:template>
 
     <!-- change the style of elements when content is dragged over them -->
     
-    <xsl:template match="div[ac:mode(base-uri()) = '&ldh;ContentMode'][contains-token(@class, 'content')][contains-token(@class, 'row-fluid')][acl:mode() = '&acl;Write']" mode="ixsl:ondragenter">
+    <xsl:template match="div[ixsl:query-params()?mode = '&ldh;ContentMode'][contains-token(@class, 'content')][contains-token(@class, 'row-fluid')][acl:mode() = '&acl;Write']" mode="ixsl:ondragenter">
         <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'drag-over', true() ])[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
 
-    <xsl:template match="div[ac:mode(base-uri()) = '&ldh;ContentMode'][contains-token(@class, 'content')][contains-token(@class, 'row-fluid')][acl:mode() = '&acl;Write']" mode="ixsl:ondragleave">
+    <xsl:template match="div[ixsl:query-params()?mode = '&ldh;ContentMode'][contains-token(@class, 'content')][contains-token(@class, 'row-fluid')][acl:mode() = '&acl;Write']" mode="ixsl:ondragleave">
         <xsl:variable name="related-target" select="ixsl:get(ixsl:event(), 'relatedTarget')" as="element()?"/> <!-- the element drag entered (optional) -->
 
         <!-- only remove class if the related target does not have this div as ancestor (is not its child) -->
@@ -993,7 +995,7 @@ exclude-result-prefixes="#all"
 
     <!-- dropping content over other content -->
     
-    <xsl:template match="div[ac:mode(base-uri()) = '&ldh;ContentMode'][contains-token(@class, 'content')][contains-token(@class, 'row-fluid')][acl:mode() = '&acl;Write']" mode="ixsl:ondrop">
+    <xsl:template match="div[ixsl:query-params()?mode = '&ldh;ContentMode'][contains-token(@class, 'content')][contains-token(@class, 'row-fluid')][acl:mode() = '&acl;Write']" mode="ixsl:ondrop">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="container" select="." as="element()"/>
         <xsl:variable name="content-uri" select="@about" as="xs:anyURI"/>
@@ -1034,6 +1036,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="this" select="ancestor::div[@about][1]/@about" as="xs:anyURI"/>
         <xsl:variable name="content-uri" select="(@about, $this)[1]" as="xs:anyURI"/> <!-- fallback to @about for charts, queries etc. -->
         <xsl:variable name="content-value" select="ixsl:get(., 'dataset.contentValue')" as="xs:anyURI"/> <!-- get the value of the @data-content-value attribute -->
+        <xsl:variable name="graph" select="if (ixsl:contains(., 'dataset.contentGraph')) then xs:anyURI(ixsl:get(., 'dataset.contentGraph')) else ()" as="xs:anyURI?"/> <!-- get the value of the @data-content-graph attribute -->
         <xsl:variable name="mode" select="if (ixsl:contains(., 'dataset.contentMode')) then xs:anyURI(ixsl:get(., 'dataset.contentMode')) else ()" as="xs:anyURI?"/> <!-- get the value of the @data-content-mode attribute -->
         <xsl:variable name="container" select="." as="element()"/>
         <xsl:variable name="progress-container" select="if (contains-token(@class, 'row-fluid')) then ./div[contains-token(@class, 'main')] else ." as="element()"/>
@@ -1049,7 +1052,8 @@ exclude-result-prefixes="#all"
             </xsl:result-document>
         </xsl:for-each>
 
-        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(base-uri()), map{}, $content-value)" as="xs:anyURI"/>
+        <!-- don't use base-uri() because it's value comes from the last HTML document load -->
+        <xsl:variable name="request-uri" select="ldh:href($ldt:base, if (starts-with($graph, $ldt:base)) then $graph else ac:absolute-path(xs:anyURI(ixsl:location())), map{}, $content-value, $graph, ())" as="xs:anyURI"/>
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': ac:document-uri($request-uri), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                 <xsl:call-template name="onContentValueLoad">
@@ -1057,6 +1061,7 @@ exclude-result-prefixes="#all"
                     <xsl:with-param name="content-uri" select="$content-uri"/>
                     <xsl:with-param name="content-value" select="$content-value"/>
                     <xsl:with-param name="container" select="$container"/>
+                    <xsl:with-param name="graph" select="$graph"/>
                     <xsl:with-param name="mode" select="$mode"/>
                     <xsl:with-param name="acl-modes" select="$acl-modes"/>
                     <xsl:with-param name="refresh-content" select="$refresh-content"/>
@@ -1075,6 +1080,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="container-id" select="ixsl:get($container, 'id')" as="xs:string"/>
         <xsl:param name="content-uri" as="xs:anyURI"/>
         <xsl:param name="content-value" as="xs:anyURI"/>
+        <xsl:param name="graph" as="xs:anyURI?"/>
         <xsl:param name="mode" as="xs:anyURI?"/>
         <xsl:param name="acl-modes" as="xs:anyURI*"/>
         <xsl:param name="refresh-content" as="xs:boolean?"/>
@@ -1097,6 +1103,7 @@ exclude-result-prefixes="#all"
                 <xsl:apply-templates select="$value" mode="ldh:RenderContent">
                     <xsl:with-param name="this" select="$this"/>
                     <xsl:with-param name="container" select="$container"/>
+                    <xsl:with-param name="graph" select="$graph"/>
                     <xsl:with-param name="mode" select="$mode"/>
                     <xsl:with-param name="refresh-content" select="$refresh-content"/>
                 </xsl:apply-templates>
@@ -1140,6 +1147,7 @@ exclude-result-prefixes="#all"
                             <xsl:with-param name="content-uri" select="$content-uri"/>
                             <xsl:with-param name="content-value" select="$content-value"/>
                             <xsl:with-param name="container" select="$container"/>
+                            <xsl:with-param name="graph" select="$graph"/>
                             <xsl:with-param name="mode" select="$mode"/>
                             <xsl:with-param name="acl-modes" select="$acl-modes"/>
                         </xsl:call-template>

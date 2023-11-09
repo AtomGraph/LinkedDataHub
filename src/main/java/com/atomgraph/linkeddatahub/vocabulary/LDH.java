@@ -77,9 +77,6 @@ public class LDH
     /** Base property */
     public static final ObjectProperty base = m_model.createObjectProperty( NS + "base" );
     
-    /** Violation property */
-    public static final ObjectProperty violation = m_model.createObjectProperty( NS + "violation" );
-    
     /** File property */
     public static final ObjectProperty file = m_model.createObjectProperty( NS + "file" );
     
@@ -89,26 +86,18 @@ public class LDH
     /** Delimiter property */
     public static final DatatypeProperty delimiter = m_model.createDatatypeProperty( NS + "delimiter" );
 
-    /** Resource type property */
-    public static final ObjectProperty resourceType = m_model.createObjectProperty( NS + "resourceType" );
-
     /** Violation value property */
     public static final DatatypeProperty violationValue = m_model.createDatatypeProperty( NS + "violationValue" );
     
     /** Access to property */
     public static final ObjectProperty access_to = m_model.createObjectProperty(NS + "access-to"); // TO-DO: move to client-side?
 
-    /** Absolute path property */
-    public static final ObjectProperty absolutePath = m_model.createObjectProperty(NS + "absolutePath");
-    
     /** Request URI property */
     public static final ObjectProperty requestUri = m_model.createObjectProperty(NS + "requestUri");
     
     /** Create graph property */
     public static final DatatypeProperty createGraph = m_model.createDatatypeProperty( NS + "createGraph" );
     
-    /** Fragment property */
-    public static final DatatypeProperty fragment = m_model.createDatatypeProperty( NS + "fragment" );
 
     /** Service property */
     public static final DatatypeProperty service = m_model.createDatatypeProperty( NS + "service" );
@@ -116,5 +105,9 @@ public class LDH
     /**
      * For shape property */
     public static final ObjectProperty forShape = m_model.createObjectProperty( NS + "forShape" );
+
+    /**
+     * Graph URI property */
+    public static final ObjectProperty graph = m_model.createObjectProperty( NS + "graph" );
 
 }
