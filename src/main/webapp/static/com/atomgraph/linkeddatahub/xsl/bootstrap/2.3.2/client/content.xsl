@@ -954,6 +954,78 @@ exclude-result-prefixes="#all"
         </xsl:for-each>
     </xsl:template>
     
+    <!-- appends new SPARQL content instance to the content list -->
+    <xsl:template match="div[contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'create-action')][contains-token(@class, 'add-sparql-content')]" mode="ixsl:onclick">
+        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'row-fluid')]" as="element()"/>
+        <xsl:variable name="constructor" as="document-node()">
+            <xsl:document>
+                <rdf:RDF>
+                    <rdf:Description rdf:nodeID="A1">
+                        <rdf:type rdf:resource="&ldh;Content"/>
+                        <rdf:value rdf:nodeID="A2"/>
+                    </rdf:Description>
+                    <rdf:Description rdf:nodeID="A2">
+                        <rdf:type rdf:resource="&sp;Query"/>
+                        <sp:text rdf:datatype="&xsd;string">
+                    <![CDATA[SELECT DISTINCT *
+WHERE
+{
+    GRAPH ?g
+    { ?s ?p ?o }
+}
+LIMIT 100]]></sp:text>
+                    </rdf:Description>
+                </rdf:RDF>
+            </xsl:document>
+        </xsl:variable>
+        <xsl:variable name="controls" as="node()*">
+            <xsl:call-template name="bs2:QueryForm">
+<!--                <xsl:with-param name="mode" select="$mode"/>
+                <xsl:with-param name="service" select="$service"/>
+                <xsl:with-param name="endpoint" select="$endpoint"/>
+                <xsl:with-param name="query" select="$query"/>-->
+                <xsl:with-param name="default-query" select="$default-query"/>
+            </xsl:call-template>
+        </xsl:variable>
+
+        <!-- move the current row of controls to the bottom of the content list -->
+        <xsl:for-each select="$container/..">
+            <xsl:result-document href="?." method="ixsl:append-content">
+                <xsl:copy-of select="$container"/>
+            </xsl:result-document>
+        </xsl:for-each>
+        
+        <!-- add .content.sparql-content to div.row-fluid -->
+        <xsl:for-each select="$container">
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'content', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'sparql-content', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+        </xsl:for-each>
+        
+        <xsl:for-each select="ancestor::div[contains-token(@class, 'main')]">
+            <xsl:result-document href="?." method="ixsl:replace-content">
+                <div>
+                    <xsl:copy-of select="$controls"/>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="btn btn-primary btn-save">
+                        <xsl:value-of>
+                            <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                        </xsl:value-of>
+                    </button>
+                    <button type="button" class="btn btn-cancel">
+                        <xsl:value-of>
+                            <xsl:apply-templates select="key('resources', 'cancel', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                        </xsl:value-of>
+                    </button>
+                </div>
+            </xsl:result-document>
+            
+            <!-- initialize wymeditor textarea -->
+            <xsl:apply-templates select="key('elements-by-class', 'wymeditor', .)" mode="ldh:PostConstruct"/>
+        </xsl:for-each>
+    </xsl:template>
+    
     <!-- start dragging content (or its descendants) -->
     
     <xsl:template match="div[ixsl:query-params()?mode = '&ldh;ContentMode'][contains-token(@class, 'content')][contains-token(@class, 'row-fluid')]/descendant-or-self::*" mode="ixsl:ondragstart">

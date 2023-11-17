@@ -191,6 +191,9 @@ extension-element-prefixes="ixsl"
                         <button type="button" class="btn btn-primary create-action add-xhtml-content">
                             <xsl:apply-templates select="key('resources', 'html', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
                         </button>
+                        <button type="button" class="btn btn-primary create-action add-sparql-content">
+                            <xsl:apply-templates select="key('resources', 'sparql', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                        </button>
                     </p>
                 </div>
             </div>
