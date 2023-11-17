@@ -699,7 +699,7 @@ WHERE
         <xsl:param name="category" as="xs:string?"/>
         <xsl:param name="series" as="xs:string*"/>
         <xsl:param name="push-state" select="true()" as="xs:boolean"/>
-        <xsl:param name="textarea-id" select="'query-string'" as="xs:string"/>
+        <xsl:param name="textarea-id" select="'query-string'" as="xs:string"/>  <!-- TO-DO: fix -->
         <xsl:param name="query" as="xs:string?"/>
         <xsl:param name="endpoint" as="xs:anyURI?"/>
         <xsl:param name="content-method" select="xs:QName('ixsl:replace-content')" as="xs:QName"/>

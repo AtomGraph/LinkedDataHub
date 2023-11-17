@@ -296,7 +296,7 @@ exclude-result-prefixes="#all"
     <!-- save chart -->
     
     <xsl:template match="button[contains-token(@class, 'btn-save-chart')]" mode="ixsl:onclick">
-        <xsl:variable name="textarea-id" select="'query-string'" as="xs:string"/>
+        <xsl:variable name="textarea-id" select="'query-string'" as="xs:string"/>  <!-- TO-DO: fix -->
         <xsl:variable name="yasqe" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe'), $textarea-id)"/>
         <xsl:variable name="query-string" select="ixsl:call($yasqe, 'getValue', [])" as="xs:string"/> <!-- get query string from YASQE -->
         <xsl:variable name="service-uri" select="xs:anyURI(ixsl:get(id('query-service'), 'value'))" as="xs:anyURI?"/> <!-- TO-DO: fix content-embedded queries -->

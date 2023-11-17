@@ -978,12 +978,14 @@ LIMIT 100]]></sp:text>
                 </rdf:RDF>
             </xsl:document>
         </xsl:variable>
+        <xsl:variable name="textarea-id" select="'id' || ac:uuid()" as="xs:string"/>
         <xsl:variable name="controls" as="node()*">
             <xsl:call-template name="bs2:QueryForm">
 <!--                <xsl:with-param name="mode" select="$mode"/>
                 <xsl:with-param name="service" select="$service"/>
                 <xsl:with-param name="endpoint" select="$endpoint"/>
                 <xsl:with-param name="query" select="$query"/>-->
+                <xsl:with-param name="textarea-id" select="$textarea-id"/>
                 <xsl:with-param name="default-query" select="$default-query"/>
             </xsl:call-template>
         </xsl:variable>
@@ -1021,8 +1023,8 @@ LIMIT 100]]></sp:text>
                 </div>
             </xsl:result-document>
             
-            <!-- initialize wymeditor textarea -->
-            <xsl:apply-templates select="key('elements-by-class', 'wymeditor', .)" mode="ldh:PostConstruct"/>
+            <!-- initialize yasqe textarea -->
+            <xsl:variable name="yasqe" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe'), $textarea-id)"/>
         </xsl:for-each>
     </xsl:template>
     

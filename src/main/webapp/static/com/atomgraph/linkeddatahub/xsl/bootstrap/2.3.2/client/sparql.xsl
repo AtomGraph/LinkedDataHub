@@ -83,6 +83,7 @@ LIMIT 100</xsl:param>
         <xsl:param name="class" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
         <xsl:param name="enctype" as="xs:string?"/>
+        <xsl:param name="textarea-id" as="xs:string"/>
         <!--<xsl:param name="uri" as="xs:anyURI?"/>-->
         <xsl:param name="mode" as="xs:anyURI*"/>
         <xsl:param name="service" as="xs:anyURI?"/>
@@ -117,7 +118,11 @@ LIMIT 100</xsl:param>
                     </option>
                 </select>
         
-                <textarea id="query-string" name="query" class="span12" rows="15">
+                <textarea name="query" class="span12" rows="15">
+                    <xsl:if test="$textarea-id">
+                        <xsl:attribute name="textarea-id" select="$textarea-id"/>
+                    </xsl:if>
+                    
                     <xsl:value-of select="if ($query) then $query else $default-query"/>
                 </textarea>
 
@@ -162,7 +167,7 @@ LIMIT 100</xsl:param>
     
     <xsl:template match="form[contains-token(@class, 'form-open-query')]" mode="ixsl:onsubmit" priority="1">
         <xsl:param name="container" select="id('content-body', ixsl:page())" as="element()"/>
-        <xsl:variable name="textarea-id" select="'query-string'" as="xs:string"/>
+        <xsl:variable name="textarea-id" select="'query-string'" as="xs:string"/> <!-- TO-DO: fix -->
         <xsl:variable name="form" select="." as="element()"/>
         <xsl:variable name="query" select="$form//input[@name = 'query']/ixsl:get(., 'value')" as="xs:string"/>
         <xsl:variable name="service" select="$form//input[@name = 'service']/ixsl:get(., 'value')" as="xs:anyURI?"/>
