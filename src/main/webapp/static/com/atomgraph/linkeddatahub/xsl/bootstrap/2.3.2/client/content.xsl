@@ -1022,10 +1022,14 @@ LIMIT 100]]></sp:text>
                     </button>
                 </div>
             </xsl:result-document>
-            
-            <!-- initialize yasqe textarea -->
-            <xsl:variable name="yasqe" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe'), $textarea-id)"/>
         </xsl:for-each>
+        
+        <!-- initialize YASQE on the textarea -->
+        <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'YASQE'), 'fromTextArea', [ id($textarea-id, ixsl:page()) ])[current-date() lt xs:date('2000-01-01')]"/>
+        <!--            <xsl:variable name="js-statement" as="element()">
+            <root statement="YASQE.fromTextArea(document.getElementById('{$textarea-id}'), {{ persistent: null }})"/>
+        </xsl:variable>-->
+<!--            <ixsl:set-property name="{$textarea-id}" select="ixsl:eval(string($js-statement/@statement))" object="ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe')"/>-->
     </xsl:template>
     
     <!-- start dragging content (or its descendants) -->

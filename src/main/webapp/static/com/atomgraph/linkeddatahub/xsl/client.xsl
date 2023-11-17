@@ -1279,7 +1279,7 @@ WHERE
         <ixsl:set-property name="request" select="$request" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
     </xsl:template>
     
-    <!-- open SPARQL editor -->
+    <!-- open SPARQL editor TO-DO: remove -->
     
     <xsl:template match="a[contains-token(@class, 'query-editor')]" mode="ixsl:onclick">
         <xsl:param name="container" select="id('content-body', ixsl:page())" as="element()"/>
