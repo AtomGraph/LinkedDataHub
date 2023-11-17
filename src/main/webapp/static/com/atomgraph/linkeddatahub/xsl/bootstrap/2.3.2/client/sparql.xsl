@@ -120,7 +120,7 @@ LIMIT 100</xsl:param>
         
                 <textarea name="query" class="span12" rows="15">
                     <xsl:if test="$textarea-id">
-                        <xsl:attribute name="textarea-id" select="$textarea-id"/>
+                        <xsl:attribute name="id" select="$textarea-id"/>
                     </xsl:if>
                     
                     <xsl:value-of select="if ($query) then $query else $default-query"/>
