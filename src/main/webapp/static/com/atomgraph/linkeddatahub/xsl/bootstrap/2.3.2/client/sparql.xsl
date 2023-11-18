@@ -126,37 +126,27 @@ LIMIT 100</xsl:param>
                     <xsl:value-of select="if ($query) then $query else $default-query"/>
                 </textarea>
 
-<!--                <div class="form-actions">
-                     retain URL parameters 
-                    <xsl:if test="ac:uri()">
-                        <input type="hidden" name="uri" value="{ac:uri()}"/>
-                    </xsl:if>
-                    <xsl:if test="$service">
-                        <input type="hidden" name="service" value="{$service}"/>
-                    </xsl:if>
-                    <xsl:for-each select="$mode">
-                        <input type="hidden" name="mode" value="{.}"/>
-                    </xsl:for-each>
-    
+                <div class="form-actions">
                     <button type="submit">
                         <xsl:apply-templates select="key('resources', 'run', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ldh:logo">
-                            <xsl:with-param name="class" select="'btn btn-primary'"/>
+                            <xsl:with-param name="class" select="'btn btn-primary btn-run-query'"/>
                         </xsl:apply-templates>
 
                         <xsl:value-of>
                             <xsl:apply-templates select="key('resources', 'run', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
                         </xsl:value-of>
                     </button>
-                    <button class="btn btn-save-query" type="button">
-                        <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ldh:logo">
-                            <xsl:with-param name="class" select="'btn btn-save-query'"/>
-                        </xsl:apply-templates>
-                        
+                    <button type="button" class="btn btn-primary btn-save btn-save-query">
                         <xsl:value-of>
                             <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
                         </xsl:value-of>
                     </button>
-                </div>-->
+                    <button type="button" class="btn btn-cancel">
+                        <xsl:value-of>
+                            <xsl:apply-templates select="key('resources', 'cancel', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                        </xsl:value-of>
+                    </button>
+                </div>
             </fieldset>
         </form>
     </xsl:template>
