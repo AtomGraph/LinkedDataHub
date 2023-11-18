@@ -998,8 +998,9 @@ LIMIT 100]]></sp:text>
             </xsl:result-document>
         </xsl:for-each>
         
-        <!-- add .content.sparql-content to div.row-fluid -->
+        <!-- add @id and .content.sparql-content to div.row-fluid -->
         <xsl:for-each select="$container">
+            <ixsl:set-attribute name="id" select="'id' || ac:uuid()"/>
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'content', true() ])[current-date() lt xs:date('2000-01-01')]"/>
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'sparql-content', true() ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
@@ -1059,7 +1060,7 @@ LIMIT 100]]></sp:text>
                 <xsl:call-template name="onSPARQLResultsLoad">
                     <xsl:with-param name="endpoint" select="$endpoint"/>
                     <xsl:with-param name="results-uri" select="$results-uri"/>
-                    <xsl:with-param name="container" select="id($results-container-id, ixsl:page())"/>
+                    <xsl:with-param name="container" select="$container"/>
                     <xsl:with-param name="textarea-id" select="$textarea-id"/>
                     <xsl:with-param name="chart-canvas-id" select="$container-id || '-chart-canvas'"/>
                     <xsl:with-param name="query" select="$query"/>
