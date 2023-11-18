@@ -985,6 +985,7 @@ LIMIT 100]]></sp:text>
                 <xsl:with-param name="service" select="$service"/>
                 <xsl:with-param name="endpoint" select="$endpoint"/>
                 <xsl:with-param name="query" select="$query"/>-->
+                <xsl:with-param name="class" select="'sparql-query-form'"/>
                 <xsl:with-param name="textarea-id" select="$textarea-id"/>
                 <xsl:with-param name="default-query" select="$default-query"/>
             </xsl:call-template>
@@ -1010,7 +1011,16 @@ LIMIT 100]]></sp:text>
                 </div>
                 
                 <div class="form-actions">
-                    <button type="button" class="btn btn-primary btn-save">
+                    <button type="submit">
+                        <xsl:apply-templates select="key('resources', 'run', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ldh:logo">
+                            <xsl:with-param name="class" select="'btn btn-primary btn-run-query'"/>
+                        </xsl:apply-templates>
+
+                        <xsl:value-of>
+                            <xsl:apply-templates select="key('resources', 'run', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                        </xsl:value-of>
+                    </button>
+                    <button type="button" class="btn btn-primary btn-save btn-save-query">
                         <xsl:value-of>
                             <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
                         </xsl:value-of>
@@ -1029,6 +1039,55 @@ LIMIT 100]]></sp:text>
             <root statement="YASQE.fromTextArea(document.getElementById('{$textarea-id}'), {{ persistent: null }})"/>
         </xsl:variable>
         <xsl:sequence select="ixsl:eval(string($js-statement/@statement))[current-date() lt xs:date('2000-01-01')]"/>
+    </xsl:template>
+    
+    <!-- submit SPARQL query form -->
+    
+    <xsl:template match="form[contains-token(@class, 'sparql-query-form')]" mode="ixsl:onsubmit">
+        <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
+        <xsl:variable name="textarea-id" select="descendant::textarea[@name = 'query']/ixsl:get(., 'id')" as="xs:string"/>
+        <xsl:variable name="yasqe" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe'), $textarea-id)"/>
+        <xsl:variable name="query" select="ixsl:call($yasqe, 'getValue', [])" as="xs:string"/> <!-- get query string from YASQE -->
+        <xsl:variable name="service-uri" select="xs:anyURI(ixsl:get(id('query-service'), 'value'))" as="xs:anyURI?"/>
+        <xsl:variable name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.apps'))" as="element()?"/>
+        <xsl:variable name="endpoint" select="($service/sd:endpoint/@rdf:resource/xs:anyURI(.), sd:endpoint())[1]" as="xs:anyURI"/>
+        <xsl:variable name="container" select="id('content-body', ixsl:page())" as="element()"/>
+        <xsl:variable name="container-id" select="ixsl:get($container, 'id')" as="xs:string"/>
+        <xsl:variable name="results-container-id" select="$container-id || '-sparql-results'" as="xs:string"/>
+        <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': $query })" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="ldh:href($ldt:base, $ldt:base, map{}, $results-uri)" as="xs:anyURI"/>
+        <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml,application/rdf+xml;q=0.9' } }" as="map(xs:string, item())"/>
+
+        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+
+        <xsl:choose>
+            <xsl:when test="not(id($results-container-id, ixsl:page()))">
+                <xsl:for-each select="$container">
+                    <xsl:result-document href="?." method="ixsl:append-content">
+                        <div id="{$results-container-id}" class="sparql-results" about="{$results-uri}"/> <!-- used as $content-uri in chart form's onchange events -->
+                    </xsl:result-document>
+                </xsl:for-each>
+            </xsl:when>
+            <xsl:otherwise>
+                <!-- update @about value -->
+                <xsl:for-each select="id($results-container-id, ixsl:page())">
+                    <ixsl:set-attribute name="about" select="$results-uri" object="."/>
+                </xsl:for-each>
+            </xsl:otherwise>
+        </xsl:choose>
+        
+        <xsl:variable name="request" as="item()*">
+            <ixsl:schedule-action http-request="$request">
+                <xsl:call-template name="onSPARQLResultsLoad">
+                    <xsl:with-param name="endpoint" select="$endpoint"/>
+                    <xsl:with-param name="results-uri" select="$results-uri"/>
+                    <xsl:with-param name="container" select="id($results-container-id, ixsl:page())"/>
+                    <xsl:with-param name="chart-canvas-id" select="$container-id || '-chart-canvas'"/>
+                    <xsl:with-param name="query" select="$query"/>
+                </xsl:call-template>
+            </ixsl:schedule-action>
+        </xsl:variable>
+        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
     
     <!-- start dragging content (or its descendants) -->
