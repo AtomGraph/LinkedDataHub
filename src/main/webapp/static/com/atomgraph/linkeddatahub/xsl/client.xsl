@@ -717,11 +717,11 @@ WHERE
                     <xsl:variable name="series" select="if (exists($series)) then $series else (if (rdf:RDF) then distinct-values(rdf:RDF/*/*/concat(namespace-uri(), local-name())) else srx:sparql/srx:head/srx:variable/@name)" as="xs:string*"/>
 
                     <!-- disable buttons if the result is not RDF (e.g. SPARQL XML results), enable otherwise -->
-                    <xsl:for-each select="ixsl:page()//div[contains-token(@class, 'action-bar')]//button[tokenize(@class, ' ') = ('btn-save-as', 'btn-skolemize')]">
+<!--                    <xsl:for-each select="ixsl:page()//div[contains-token(@class, 'action-bar')]//button[tokenize(@class, ' ') = ('btn-save-as', 'btn-skolemize')]">
                         <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'disabled', not($results/rdf:RDF) ])[current-date() lt xs:date('2000-01-01')]"/>
-                    </xsl:for-each>
+                    </xsl:for-each>-->
 
-                    <xsl:if test="$show-editor and not(id('query-form', ixsl:page()))">
+<!--                    <xsl:if test="$show-editor and not(id('query-form', ixsl:page()))">
                         <xsl:for-each select="$container">
                             <xsl:result-document href="?." method="{$content-method}">
                                 <xsl:call-template name="bs2:QueryEditor">
@@ -729,19 +729,18 @@ WHERE
                                 </xsl:call-template>
                             </xsl:result-document>
                         </xsl:for-each>
-                    </xsl:if>
+                    </xsl:if>-->
 
-                    <xsl:if test="$show-editor and not(id('query-form', ixsl:page()))">
-                        <!-- initialize YASQE on the textarea -->
+<!--                    <xsl:if test="$show-editor and not(id('query-form', ixsl:page()))">
+                         initialize YASQE on the textarea 
                         <xsl:variable name="js-statement" as="element()">
                             <root statement="YASQE.fromTextArea(document.getElementById('{$textarea-id}'), {{ persistent: null }})"/>
                         </xsl:variable>
                         <ixsl:set-property name="{$textarea-id}" select="ixsl:eval(string($js-statement/@statement))" object="ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe')"/>
-                    </xsl:if>
+                    </xsl:if>-->
 
-                    <!-- workaround until SPARQL editor is refactored as a content block -->
-                    <xsl:for-each select="if (contains-token($container/@class, 'row-fluid')) then $container/div[contains-token(@class, 'main')] else $container">
-                        <xsl:result-document href="?." method="ixsl:replace-content">
+                    <xsl:for-each select="$container">
+                        <xsl:result-document href="?." method="ixsl:append-content">
                             <xsl:apply-templates select="$results" mode="bs2:Chart">
                                 <xsl:with-param name="endpoint" select="if (not($endpoint = sd:endpoint())) then $endpoint else ()" tunnel="yes"/>
                                 <xsl:with-param name="id" select="$chart-canvas-id"/>
@@ -754,11 +753,11 @@ WHERE
                     </xsl:for-each>
                         
                     <!-- post-process the container if it's a chart instance being rendered and not SPARQL results -->
-                    <xsl:if test="not($query)">
+<!--                    <xsl:if test="not($query)">
                         <xsl:call-template name="ldh:ContentLoaded">
                             <xsl:with-param name="container" select="$container"/>
                         </xsl:call-template>
-                    </xsl:if>
+                    </xsl:if>-->
 
                     <!-- create new cache entry using content URI as key -->
                     <ixsl:set-property name="{'`' || $content-uri || '`'}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
