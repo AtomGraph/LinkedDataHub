@@ -1016,7 +1016,7 @@ LIMIT 100]]></sp:text>
         <xsl:variable name="js-statement" as="element()">
             <root statement="YASQE.fromTextArea(document.getElementById('{$textarea-id}'), {{ persistent: null }})"/>
         </xsl:variable>
-        <xsl:sequence select="ixsl:eval(string($js-statement/@statement))[current-date() lt xs:date('2000-01-01')]"/>
+        <ixsl:set-property name="{$textarea-id}" select="ixsl:eval(string($js-statement/@statement))" object="ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe')"/>
     </xsl:template>
     
     <!-- submit SPARQL query form -->
