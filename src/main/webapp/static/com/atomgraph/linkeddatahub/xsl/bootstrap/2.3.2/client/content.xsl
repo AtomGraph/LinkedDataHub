@@ -1032,6 +1032,7 @@ LIMIT 100]]></sp:text>
         <xsl:variable name="service-uri" select="xs:anyURI(ixsl:get(id('query-service'), 'value'))" as="xs:anyURI?"/>
         <xsl:variable name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.apps'))" as="element()?"/>
         <xsl:variable name="endpoint" select="($service/sd:endpoint/@rdf:resource/xs:anyURI(.), sd:endpoint())[1]" as="xs:anyURI"/>
+        <xsl:variable name="content-uri" select="resolve-uri(ancestor::div[contains-token(@class, 'content')]/ixsl:get(., 'id'), base-uri())" as="xs:anyURI"/>
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'main')]" as="element()"/>
         <xsl:variable name="container-id" select="ixsl:get($container, 'id')" as="xs:string"/>
         <xsl:variable name="results-container-id" select="$container-id || '-sparql-results'" as="xs:string"/>
@@ -1040,7 +1041,11 @@ LIMIT 100]]></sp:text>
         <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml,application/rdf+xml;q=0.9' } }" as="map(xs:string, item())"/>
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
-
+        
+        <xsl:message>
+            $content-uri: <xsl:value-of select="$content-uri"/>
+        </xsl:message>
+        
 <!--        <xsl:choose>
             <xsl:when test="not(id($results-container-id, ixsl:page()))">
                 <xsl:for-each select="$container">
@@ -1062,6 +1067,7 @@ LIMIT 100]]></sp:text>
                 <xsl:call-template name="onSPARQLResultsLoad">
                     <xsl:with-param name="endpoint" select="$endpoint"/>
                     <xsl:with-param name="results-uri" select="$results-uri"/>
+                    <xsl:with-param name="content-uri" select="$content-uri"/>
                     <xsl:with-param name="container" select="$container"/>
                     <xsl:with-param name="textarea-id" select="$textarea-id"/>
                     <xsl:with-param name="chart-canvas-id" select="$container-id || '-chart-canvas'"/>
