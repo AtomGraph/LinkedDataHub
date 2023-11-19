@@ -740,7 +740,7 @@ WHERE
                     </xsl:if>-->
 
                     <xsl:choose>
-                        <xsl:when test="id($chart-canvas-id, ixsl:page())">
+                        <xsl:when test="not(id($chart-canvas-id, ixsl:page()))">
                             <xsl:for-each select="$container">
                                 <xsl:result-document href="?." method="ixsl:append-content">
                                     <xsl:apply-templates select="$results" mode="bs2:Chart">
