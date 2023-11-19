@@ -739,18 +739,36 @@ WHERE
                         <ixsl:set-property name="{$textarea-id}" select="ixsl:eval(string($js-statement/@statement))" object="ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe')"/>
                     </xsl:if>-->
 
-                    <xsl:for-each select="$container">
-                        <xsl:result-document href="?." method="ixsl:append-content">
-                            <xsl:apply-templates select="$results" mode="bs2:Chart">
-                                <xsl:with-param name="endpoint" select="if (not($endpoint = sd:endpoint())) then $endpoint else ()" tunnel="yes"/>
-                                <xsl:with-param name="id" select="$chart-canvas-id"/>
-                                <xsl:with-param name="chart-type" select="$chart-type"/>
-                                <xsl:with-param name="category" select="$category"/>
-                                <xsl:with-param name="series" select="$series"/>
-                                <xsl:with-param name="show-save" select="$show-chart-save"/>
-                            </xsl:apply-templates>
-                        </xsl:result-document>
-                    </xsl:for-each>
+                    <xsl:choose>
+                        <xsl:when test="id($chart-canvas-id, ixsl:page())">
+                            <xsl:for-each select="$container">
+                                <xsl:result-document href="?." method="ixsl:append-content">
+                                    <xsl:apply-templates select="$results" mode="bs2:Chart">
+                                        <xsl:with-param name="endpoint" select="if (not($endpoint = sd:endpoint())) then $endpoint else ()" tunnel="yes"/>
+                                        <xsl:with-param name="id" select="$chart-canvas-id"/>
+                                        <xsl:with-param name="chart-type" select="$chart-type"/>
+                                        <xsl:with-param name="category" select="$category"/>
+                                        <xsl:with-param name="series" select="$series"/>
+                                        <xsl:with-param name="show-save" select="$show-chart-save"/>
+                                    </xsl:apply-templates>
+                                </xsl:result-document>
+                            </xsl:for-each>
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <xsl:for-each select="id($chart-canvas-id, ixsl:page())">
+                                <xsl:result-document href="?." method="ixsl:replace-content">
+                                    <xsl:apply-templates select="$results" mode="bs2:Chart">
+                                        <xsl:with-param name="endpoint" select="if (not($endpoint = sd:endpoint())) then $endpoint else ()" tunnel="yes"/>
+                                        <xsl:with-param name="id" select="$chart-canvas-id"/>
+                                        <xsl:with-param name="chart-type" select="$chart-type"/>
+                                        <xsl:with-param name="category" select="$category"/>
+                                        <xsl:with-param name="series" select="$series"/>
+                                        <xsl:with-param name="show-save" select="$show-chart-save"/>
+                                    </xsl:apply-templates>
+                                </xsl:result-document>
+                            </xsl:for-each>
+                        </xsl:otherwise>
+                    </xsl:choose>
                         
                     <!-- post-process the container if it's a chart instance being rendered and not SPARQL results -->
 <!--                    <xsl:if test="not($query)">
