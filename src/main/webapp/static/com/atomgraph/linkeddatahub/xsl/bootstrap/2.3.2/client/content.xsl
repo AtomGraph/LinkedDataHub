@@ -1006,6 +1006,8 @@ LIMIT 100]]></sp:text>
         </xsl:for-each>
         
         <xsl:for-each select="ancestor::div[contains-token(@class, 'main')]">
+            <ixsl:set-attribute name="id" select="'id' || ac:uuid()"/>
+            
             <xsl:result-document href="?." method="ixsl:replace-content">
                 <div>
                     <xsl:copy-of select="$controls"/>

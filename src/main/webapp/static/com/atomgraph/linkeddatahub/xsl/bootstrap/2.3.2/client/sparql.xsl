@@ -105,7 +105,7 @@ LIMIT 100</xsl:param>
                 <xsl:attribute name="enctype" select="$enctype"/>
             </xsl:if>
 
-            <fieldset>
+<!--            <fieldset>-->
                 <label for="service">Service</label>
                 <xsl:text> </xsl:text>
                 <select id="query-service" name="service" class="input-xxlarge">
@@ -147,7 +147,7 @@ LIMIT 100</xsl:param>
                         </xsl:value-of>
                     </button>
                 </div>
-            </fieldset>
+<!--            </fieldset>-->
         </form>
     </xsl:template>
     
