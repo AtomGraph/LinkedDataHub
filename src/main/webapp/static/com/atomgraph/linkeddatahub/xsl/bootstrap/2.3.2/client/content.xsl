@@ -666,7 +666,7 @@ exclude-result-prefixes="#all"
         
                 <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(base-uri()), map{}, ac:absolute-path(base-uri()))" as="xs:anyURI"/>
                 <xsl:variable name="request" as="item()*">
-                    <ixsl:schedule-action http-request="map{ 'method': 'POST', 'href': $request-uri, 'media-type': 'application/rdf+xml', 'body': $update-string }">
+                    <ixsl:schedule-action http-request="map{ 'method': 'POST', 'href': $request-uri, 'media-type': 'application/rdf+xml', 'body': $constructor }">
                         <xsl:call-template name="onSPARQLQuerySave">
                             <xsl:with-param name="query-uri" select="$query-uri"/>
                         </xsl:call-template>
