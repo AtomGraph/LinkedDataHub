@@ -672,6 +672,7 @@ exclude-result-prefixes="#all"
                         </xsl:call-template>
                     </ixsl:schedule-action>
                 </xsl:variable>
+                <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
                 
 <!--                <xsl:variable name="content-id" select="$container/@id" as="xs:string"/>
                 <xsl:variable name="content-uri" select="if ($container/@about) then $container/@about else xs:anyURI(ac:absolute-path(base-uri()) || '#' || $content-id)" as="xs:anyURI"/>
