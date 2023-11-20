@@ -108,7 +108,7 @@ LIMIT 100</xsl:param>
 <!--            <fieldset>-->
                 <label for="service">Service</label>
                 <xsl:text> </xsl:text>
-                <select id="query-service" name="service" class="input-xxlarge">
+                <select name="service" class="input-xxlarge input-query-service">
                     <option value="">
                         <xsl:value-of>
                             <xsl:text>[</xsl:text>
@@ -191,11 +191,11 @@ LIMIT 100</xsl:param>
     <!-- run SPARQL query in editor -->
     
     <!-- TO-DO: change to 'query-form' @class? -->
-    <xsl:template match="form[@id = 'query-form']" mode="ixsl:onsubmit">
+<!--    <xsl:template match="form[@id = 'query-form']" mode="ixsl:onsubmit">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="textarea-id" select="descendant::textarea[@name = 'query']/ixsl:get(., 'id')" as="xs:string"/>
         <xsl:variable name="yasqe" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe'), $textarea-id)"/>
-        <xsl:variable name="query" select="ixsl:call($yasqe, 'getValue', [])" as="xs:string"/> <!-- get query string from YASQE -->
+        <xsl:variable name="query" select="ixsl:call($yasqe, 'getValue', [])" as="xs:string"/> get query string from YASQE
         <xsl:variable name="service-uri" select="xs:anyURI(ixsl:get(id('query-service'), 'value'))" as="xs:anyURI?"/>
         <xsl:variable name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.apps'))" as="element()?"/>
         <xsl:variable name="endpoint" select="($service/sd:endpoint/@rdf:resource/xs:anyURI(.), sd:endpoint())[1]" as="xs:anyURI"/>
@@ -212,12 +212,12 @@ LIMIT 100</xsl:param>
             <xsl:when test="not(id($results-container-id, ixsl:page()))">
                 <xsl:for-each select="$container">
                     <xsl:result-document href="?." method="ixsl:append-content">
-                        <div id="{$results-container-id}" class="sparql-results" about="{$results-uri}"/> <!-- used as $content-uri in chart form's onchange events -->
+                        <div id="{$results-container-id}" class="sparql-results" about="{$results-uri}"/>  used as $content-uri in chart form's onchange events 
                     </xsl:result-document>
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
-                <!-- update @about value -->
+                 update @about value 
                 <xsl:for-each select="id($results-container-id, ixsl:page())">
                     <ixsl:set-attribute name="about" select="$results-uri" object="."/>
                 </xsl:for-each>
@@ -236,18 +236,18 @@ LIMIT 100</xsl:param>
             </ixsl:schedule-action>
         </xsl:variable>
         <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
-    </xsl:template>
+    </xsl:template>-->
     
     <!-- save query -->
     
-    <xsl:template match="button[contains-token(@class, 'btn-save-query')]" mode="ixsl:onclick">
+<!--    <xsl:template match="button[contains-token(@class, 'btn-save-query')]" mode="ixsl:onclick">
         <xsl:variable name="textarea-id" select="ancestor::form/descendant::textarea[@name = 'query']/ixsl:get(., 'id')" as="xs:string"/>
         <xsl:variable name="yasqe" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe'), $textarea-id)"/>
-        <xsl:variable name="query-string" select="ixsl:call($yasqe, 'getValue', [])" as="xs:string"/> <!-- get query string from YASQE -->
+        <xsl:variable name="query-string" select="ixsl:call($yasqe, 'getValue', [])" as="xs:string"/>  get query string from YASQE 
         <xsl:variable name="service-uri" select="xs:anyURI(ixsl:get(id('query-service'), 'value'))" as="xs:anyURI?"/>
         <xsl:variable name="query-type" select="ldh:query-type($query-string)" as="xs:string"/>
         <xsl:variable name="forClass" select="xs:anyURI('&sp;' || upper-case(substring($query-type, 1, 1)) || lower-case(substring($query-type, 2)))" as="xs:anyURI"/>
-        <!--- show a modal form if this button is in a <fieldset>, meaning on a resource-level and not form level. Otherwise (e.g. for the "Create" button) show normal form -->
+        - show a modal form if this button is in a <fieldset>, meaning on a resource-level and not form level. Otherwise (e.g. for the "Create" button) show normal form 
         <xsl:variable name="modal-form" select="true()" as="xs:boolean"/>
         <xsl:variable name="href" select="ac:build-uri(ac:absolute-path(base-uri()), let $params := map{ 'forClass': string($forClass), 'createGraph': string(true()) } return if ($modal-form) then map:merge(($params, map{ 'mode': '&ac;ModalMode' })) else $params)" as="xs:anyURI"/>
 
@@ -262,7 +262,7 @@ LIMIT 100</xsl:param>
             </ixsl:schedule-action>
         </xsl:variable>
         <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
-    </xsl:template>
+    </xsl:template>-->
     
     <!-- CALLBACKS -->
     
