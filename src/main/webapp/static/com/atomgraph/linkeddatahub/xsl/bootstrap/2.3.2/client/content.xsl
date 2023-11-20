@@ -1000,7 +1000,9 @@ LIMIT 100]]></sp:text>
         
         <!-- add @id and .content.sparql-content to div.row-fluid -->
         <xsl:for-each select="$container">
-            <ixsl:set-attribute name="id" select="'id' || ac:uuid()"/>
+            <xsl:variable name="content-id" select="'id' || ac:uuid()" as="xs:string"/>
+            <ixsl:set-attribute name="id" select="$content-id"/>
+            <ixsl:set-attribute name="about" select="ac:absolute-path(base-uri()) || '#' || $content-id"/>
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'content', true() ])[current-date() lt xs:date('2000-01-01')]"/>
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'sparql-content', true() ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
@@ -1032,7 +1034,8 @@ LIMIT 100]]></sp:text>
         <xsl:variable name="service-uri" select="xs:anyURI(ixsl:get(id('query-service'), 'value'))" as="xs:anyURI?"/>
         <xsl:variable name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.apps'))" as="element()?"/>
         <xsl:variable name="endpoint" select="($service/sd:endpoint/@rdf:resource/xs:anyURI(.), sd:endpoint())[1]" as="xs:anyURI"/>
-        <xsl:variable name="content-uri" select="resolve-uri(ancestor::div[contains-token(@class, 'content')]/ixsl:get(., 'id'), base-uri())" as="xs:anyURI"/>
+        <xsl:variable name="content-id" select="ancestor::div[contains-token(@class, 'content')]/ixsl:get(., 'id')" as="xs:anyURI"/>
+        <xsl:variable name="content-uri" select="xs:anyURI(ac:absolute-path(base-uri()) || '#' || $content-id)" as="xs:anyURI"/> <!-- build content URI -->
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'main')]" as="element()"/>
         <xsl:variable name="container-id" select="ixsl:get($container, 'id')" as="xs:string"/>
         <xsl:variable name="results-container-id" select="$container-id || '-sparql-results'" as="xs:string"/>
