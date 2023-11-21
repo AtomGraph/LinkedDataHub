@@ -660,7 +660,7 @@ exclude-result-prefixes="#all"
                             <rdf:Description rdf:about="{$query-uri}">
                                 <rdf:type rdf:resource="&sp;Query"/>
                                 <rdf:type rdf:resource="{$forClass}"/>
-                                <dct:title><xsl:value-of select="$query-title"/></dct:title>
+                                <dct:title><xsl:value-of select="$title-input/ixsl:get(., 'value')"/></dct:title>
                                 <sp:text rdf:datatype="&xsd;string"><xsl:value-of select="$query-string"/></sp:text>
                                 
                                 <xsl:if test="$service-uri">

@@ -637,17 +637,6 @@ LIMIT   100
     <xsl:template match="rdf:RDF | srx:sparql" mode="bs2:NavBarNavList">
         <xsl:if test="$foaf:Agent//@rdf:about">
             <ul class="nav pull-right">
-                <li>
-                    <xsl:if test="$ac:mode = '&ac;QueryEditorMode'">
-                        <xsl:attribute name="class" select="'active'"/>
-                    </xsl:if>
-
-                    <a href="{ac:build-uri((), map{ 'mode': '&ac;QueryEditorMode' })}" class="query-editor">
-                        <xsl:value-of>
-                            <xsl:apply-templates select="key('resources', 'sparql-editor', document('translations.rdf'))" mode="ac:label"/>
-                        </xsl:value-of>
-                    </a>
-                </li>
                 <xsl:if test="doc-available($app-request-uri)">
                     <li>
                         <div class="btn-group">
