@@ -637,6 +637,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="service-uri" select="ancestor::form/descendant::select[contains-token(@class, 'input-query-service')]/ixsl:get(., 'value')" as="xs:anyURI?"/>
         <xsl:variable name="query-type" select="ldh:query-type($query-string)" as="xs:string"/>
         <xsl:variable name="forClass" select="xs:anyURI('&sp;' || upper-case(substring($query-type, 1, 1)) || lower-case(substring($query-type, 2)))" as="xs:anyURI"/>
+        <xsl:variable name="query-title" select="ancestor::form/descendant::input[@name = 'title']/ixsl:get(., 'id')" as="xs:string"/>
 
         <xsl:choose>
             <!-- input values missing, throw an error -->
@@ -654,6 +655,7 @@ exclude-result-prefixes="#all"
                             <rdf:Description rdf:about="{$query-uri}">
                                 <rdf:type rdf:resource="&sp;Query"/>
                                 <rdf:type rdf:resource="{$forClass}"/>
+                                <dct:title><xsl:value-of select="$query-title"/></dct:title>
                                 <sp:text rdf:datatype="&xsd;string"><xsl:value-of select="$query-string"/></sp:text>
                                 
                                 <xsl:if test="$service-uri">
@@ -1021,7 +1023,7 @@ LIMIT 100]]></sp:text>
                 <xsl:with-param name="service" select="$service"/>
                 <xsl:with-param name="endpoint" select="$endpoint"/>
                 <xsl:with-param name="query" select="$query"/>-->
-                <xsl:with-param name="class" select="'sparql-query-form'"/>
+                <xsl:with-param name="class" select="'sparql-query-form form-horizontal'"/>
                 <xsl:with-param name="textarea-id" select="$textarea-id"/>
                 <xsl:with-param name="default-query" select="$default-query"/>
             </xsl:call-template>

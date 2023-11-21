@@ -80,7 +80,7 @@ LIMIT 100</xsl:param>
         <xsl:param name="method" select="'get'" as="xs:string"/>
         <xsl:param name="action" select="xs:anyURI('')" as="xs:anyURI"/>
         <xsl:param name="id" as="xs:string?"/>
-        <xsl:param name="class" as="xs:string?"/>
+        <xsl:param name="class" select="'form-horizontal'" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
         <xsl:param name="enctype" as="xs:string?"/>
         <xsl:param name="textarea-id" as="xs:string"/>
@@ -106,17 +106,29 @@ LIMIT 100</xsl:param>
             </xsl:if>
 
 <!--            <fieldset>-->
-                <label for="service">Service</label>
-                <xsl:text> </xsl:text>
-                <select name="service" class="input-xxlarge input-query-service">
-                    <option value="">
-                        <xsl:value-of>
-                            <xsl:text>[</xsl:text>
-                            <xsl:apply-templates select="key('resources', 'sparql-service', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                            <xsl:text>]</xsl:text>
-                        </xsl:value-of>
-                    </option>
-                </select>
+                <div class="control-group">
+                    <label class="control-label">Service</label> <!-- for="service" -->
+
+                    <div class="controls">
+                        <select name="service" class="input-xxlarge input-query-service">
+                            <option value="">
+                                <xsl:value-of>
+                                    <xsl:text>[</xsl:text>
+                                    <xsl:apply-templates select="key('resources', 'sparql-service', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                                    <xsl:text>]</xsl:text>
+                                </xsl:value-of>
+                            </option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <label class="control-label">Title</label> <!-- for="title" -->
+
+                    <div class="controls">
+                        <input type="text" name="title"/>
+                    </div>
+                </div>
         
                 <textarea name="query" class="span12" rows="15">
                     <xsl:if test="$textarea-id">
