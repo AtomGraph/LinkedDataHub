@@ -634,20 +634,24 @@ exclude-result-prefixes="#all"
         <xsl:variable name="content-value" select="ixsl:get($container//div[contains-token(@class, 'main')]//input[@name = 'ou'], 'value')" as="xs:anyURI"/>
         <xsl:variable name="textarea" select="ancestor::form/descendant::textarea[@name = 'query']" as="element()"/>
         <xsl:variable name="yasqe" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe'), $textarea/ixsl:get(., 'id'))"/>
-        <xsl:variable name="query-string" select="ixsl:call($yasqe, 'getValue', [])" as="xs:string"/> <!-- get query string from YASQE -->
+        <xsl:variable name="query-string" select="ixsl:call($yasqe, 'getValue', [])" as="xs:string?"/> <!-- get query string from YASQE -->
         <xsl:variable name="service-uri" select="ancestor::form/descendant::select[contains-token(@class, 'input-query-service')]/ixsl:get(., 'value')" as="xs:anyURI?"/>
-        <xsl:variable name="query-type" select="ldh:query-type($query-string)" as="xs:string"/>
-        <xsl:variable name="forClass" select="xs:anyURI('&sp;' || upper-case(substring($query-type, 1, 1)) || lower-case(substring($query-type, 2)))" as="xs:anyURI"/>
-        <xsl:variable name="query-title" select="ancestor::form/descendant::input[@name = 'title']/ixsl:get(., 'value')" as="xs:string"/>
+        <xsl:variable name="title-input" select="ancestor::form/descendant::input[@name = 'title']" as="element()"/>
 
         <xsl:choose>
-            <!-- input values missing, throw an error -->
+            <!-- query string value missing, throw an error -->
             <xsl:when test="not($query-string)">
                 <ixsl:set-style name="border-color" select="'#ff0039'" object="$textarea"/>
+            </xsl:when>
+            <!-- query title value missing, throw an error -->
+            <xsl:when test="not($title-input/ixsl:get(., 'value'))">
+                <ixsl:set-style name="border-color" select="'#ff0039'" object="$title-input"/>
             </xsl:when>
             <xsl:otherwise>
                 <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
+                <xsl:variable name="query-type" select="ldh:query-type($query-string)" as="xs:string"/>
+                <xsl:variable name="forClass" select="xs:anyURI('&sp;' || upper-case(substring($query-type, 1, 1)) || lower-case(substring($query-type, 2)))" as="xs:anyURI"/>
                 <xsl:variable name="query-id" select="'id' || ac:uuid()" as="xs:string"/>
                 <xsl:variable name="query-uri" select="xs:anyURI(ac:absolute-path(base-uri()) || '#' || $query-id)" as="xs:anyURI"/>
                 <xsl:variable name="constructor" as="document-node()">
@@ -1083,12 +1087,7 @@ LIMIT 100]]></sp:text>
         <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml,application/rdf+xml;q=0.9' } }" as="map(xs:string, item())"/>
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
-        
-        <xsl:message>
-            $request-uri: <xsl:value-of select="$request-uri"/>
-            $request: <xsl:value-of select="serialize($request, map{ 'method': 'adaptive' })"/>
-        </xsl:message>
-        
+
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="$request">
                 <xsl:call-template name="onSPARQLResultsLoad">
