@@ -1086,7 +1086,7 @@ LIMIT 100]]></sp:text>
         
         <xsl:message>
             $request-uri: <xsl:value-of select="$request-uri"/>
-            $request: <xsl:value-of select="serialize($request, { 'method': 'adaptive' })"/>
+            $request: <xsl:value-of select="serialize($request, map{ 'method': 'adaptive' })"/>
         </xsl:message>
         
         <xsl:variable name="request" as="item()*">
