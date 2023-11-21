@@ -638,7 +638,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="service-uri" select="ancestor::form/descendant::select[contains-token(@class, 'input-query-service')]/ixsl:get(., 'value')" as="xs:anyURI?"/>
         <xsl:variable name="query-type" select="ldh:query-type($query-string)" as="xs:string"/>
         <xsl:variable name="forClass" select="xs:anyURI('&sp;' || upper-case(substring($query-type, 1, 1)) || lower-case(substring($query-type, 2)))" as="xs:anyURI"/>
-        <xsl:variable name="query-title" select="ancestor::form/descendant::input[@name = 'title']/ixsl:get(., 'id')" as="xs:string"/>
+        <xsl:variable name="query-title" select="ancestor::form/descendant::input[@name = 'title']/ixsl:get(., 'value')" as="xs:string"/>
 
         <xsl:choose>
             <!-- input values missing, throw an error -->
@@ -1065,7 +1065,7 @@ LIMIT 100]]></sp:text>
     
     <!-- submit SPARQL query form -->
     
-    <xsl:template match="form[contains-token(@class, 'sparql-query-form')]" mode="ixsl:onsubmit">
+    <xsl:template match="form[contains-token(@class, 'sparql-query-form')]" mode="ixsl:onsubmit" priority="1"> <!-- prioritize over default template in form.xsl -->
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="textarea-id" select="descendant::textarea[@name = 'query']/ixsl:get(., 'id')" as="xs:string"/>
         <xsl:variable name="yasqe" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe'), $textarea-id)"/>
