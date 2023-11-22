@@ -808,7 +808,7 @@ exclude-result-prefixes="#all"
     
     <!-- resource content/SPARQL content cancel onclick -->
     
-    <xsl:template match="div[contains-token(@class, ('resource-content', 'sparql-content'))]//button[contains-token(@class, 'btn-cancel')]" mode="ixsl:onclick">
+    <xsl:template match="div[contains-token(@class, 'resource-content') or contains-token(@class, 'sparql-content')]//button[contains-token(@class, 'btn-cancel')]" mode="ixsl:onclick">
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'resource-content')]" as="element()"/>
 
         <xsl:choose>
