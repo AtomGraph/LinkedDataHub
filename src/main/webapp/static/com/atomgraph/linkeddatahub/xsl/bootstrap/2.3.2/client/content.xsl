@@ -182,7 +182,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="container" as="element()"/>
         <xsl:param name="mode" as="xs:anyURI?"/>
         <xsl:param name="refresh-content" as="xs:boolean?"/>
-        <xsl:param name="content-uri" select="xs:anyURI($container/@about)" as="xs:anyURI"/>
+        <xsl:variable name="content-uri" select="if ($container/@about) then $container/@about else xs:anyURI(ac:absolute-path(base-uri()) || '#' || $content-id)" as="xs:anyURI"/>
         <!-- set $this variable value unless getting the query string from state -->
         <xsl:param name="select-string" select="replace(sp:text, '$this', '&lt;' || $this || '&gt;', 'q')" as="xs:string"/>
         <xsl:param name="select-xml" as="document-node()">
@@ -637,20 +637,23 @@ exclude-result-prefixes="#all"
         <xsl:variable name="query-string" select="ixsl:call($yasqe, 'getValue', [])" as="xs:string?"/> <!-- get query string from YASQE -->
         <xsl:variable name="service-uri" select="ancestor::form/descendant::select[contains-token(@class, 'input-query-service')]/ixsl:get(., 'value')" as="xs:anyURI?"/>
         <xsl:variable name="title-input" select="ancestor::form/descendant::input[@name = 'title']" as="element()"/>
+        <xsl:variable name="query-type" select="ldh:query-type($query-string)" as="xs:string?"/>
 
         <xsl:choose>
-            <!-- query string value missing, throw an error -->
-            <xsl:when test="not($query-string)">
-                <ixsl:set-style name="border-color" select="'#ff0039'" object="$textarea"/>
+            <!-- query string value missing/invalid, throw an error -->
+            <xsl:when test="not($query-string) or not($query-type)">
+                <ixsl:set-style name="border-color" select="'#ff0039'" object="$textarea/following-sibling::div[contains-token(@class, 'CodeMirror')]"/> <!-- YASQE container -->
             </xsl:when>
             <!-- query title value missing, throw an error -->
             <xsl:when test="not($title-input/ixsl:get(., 'value'))">
                 <ixsl:set-style name="border-color" select="'#ff0039'" object="$title-input"/>
+                <ixsl:set-style name="border-color" select="()" object="$textarea/following-sibling::div[contains-token(@class, 'CodeMirror')]"/> <!-- YASQE container -->
             </xsl:when>
             <xsl:otherwise>
+                <ixsl:set-style name="border-color" select="()" object="$title-input"/>
+                <ixsl:set-style name="border-color" select="()" object="$textarea/following-sibling::div[contains-token(@class, 'CodeMirror')]"/> <!-- YASQE container -->
                 <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
-                <xsl:variable name="query-type" select="ldh:query-type($query-string)" as="xs:string"/>
                 <xsl:variable name="forClass" select="xs:anyURI('&sp;' || upper-case(substring($query-type, 1, 1)) || lower-case(substring($query-type, 2)))" as="xs:anyURI"/>
                 <xsl:variable name="query-id" select="'id' || ac:uuid()" as="xs:string"/>
                 <xsl:variable name="query-uri" select="xs:anyURI(ac:absolute-path(base-uri()) || '#' || $query-id)" as="xs:anyURI"/>
@@ -676,6 +679,8 @@ exclude-result-prefixes="#all"
                     <ixsl:schedule-action http-request="map{ 'method': 'POST', 'href': $request-uri, 'media-type': 'application/rdf+xml', 'body': $constructor }">
                         <xsl:call-template name="onSPARQLQuerySave">
                             <xsl:with-param name="query-uri" select="$query-uri"/>
+                            <xsl:with-param name="container" select="$container"/>
+                            <xsl:with-param name="textarea" select="$textarea"/>
                         </xsl:call-template>
                     </ixsl:schedule-action>
                 </xsl:variable>
@@ -706,11 +711,33 @@ exclude-result-prefixes="#all"
     </xsl:template>
     
     <xsl:template name="onSPARQLQuerySave">
+        <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="query-uri" as="xs:anyURI"/>
+        <xsl:param name="container" as="element()"/>
+        <xsl:param name="textarea" as="element()"/>
 
-        <xsl:message>
-            onSPARQLQuerySave $query-uri: <xsl:value-of select="$query-uri"/>
-        </xsl:message>
+        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
+
+        <xsl:choose>
+            <xsl:when test="?status = 200">
+                <xsl:message>
+                    onSPARQLQuerySave $query-uri: <xsl:value-of select="$query-uri"/>
+                </xsl:message>
+            </xsl:when>
+            <!-- query string was invalid - show error -->
+            <xsl:when test="?status = 422">
+                <ixsl:set-style name="border-color" select="'#ff0039'" object="$textarea/following-sibling::div[contains-token(@class, 'CodeMirror')]"/> <!-- YASQE container -->
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:for-each select="$container">
+                    <xsl:result-document href="?." method="ixsl:replace-content">
+                        <div class="alert alert-block">
+                            <strong>Could not save content resource: <a href="{$query-uri}"><xsl:value-of select="$query-uri"/></a></strong>
+                        </div>
+                    </xsl:result-document>
+                </xsl:for-each>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:template>
     
     <!-- delete content onclick (increased priority to take precedence over document's .btn-delete) -->
