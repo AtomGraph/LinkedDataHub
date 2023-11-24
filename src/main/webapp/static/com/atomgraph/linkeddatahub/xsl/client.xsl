@@ -716,33 +716,33 @@ WHERE
                     <xsl:variable name="category" select="if ($category) then $category else (if (rdf:RDF) then distinct-values(rdf:RDF/*/*/concat(namespace-uri(), local-name()))[1] else srx:sparql/srx:head/srx:variable[1]/@name)" as="xs:string?"/>
                     <xsl:variable name="series" select="if (exists($series)) then $series else (if (rdf:RDF) then distinct-values(rdf:RDF/*/*/concat(namespace-uri(), local-name())) else srx:sparql/srx:head/srx:variable/@name)" as="xs:string*"/>
 
-                    <!-- disable buttons if the result is not RDF (e.g. SPARQL XML results), enable otherwise -->
-<!--                    <xsl:for-each select="ixsl:page()//div[contains-token(@class, 'action-bar')]//button[tokenize(@class, ' ') = ('btn-save-as', 'btn-skolemize')]">
-                        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'disabled', not($results/rdf:RDF) ])[current-date() lt xs:date('2000-01-01')]"/>
-                    </xsl:for-each>-->
-
-<!--                    <xsl:if test="$show-editor and not(id('query-form', ixsl:page()))">
-                        <xsl:for-each select="$container">
-                            <xsl:result-document href="?." method="{$content-method}">
-                                <xsl:call-template name="bs2:QueryEditor">
-                                    <xsl:with-param name="query" select="$query"/>
-                                </xsl:call-template>
-                            </xsl:result-document>
-                        </xsl:for-each>
-                    </xsl:if>-->
-
-<!--                    <xsl:if test="$show-editor and not(id('query-form', ixsl:page()))">
-                         initialize YASQE on the textarea 
-                        <xsl:variable name="js-statement" as="element()">
-                            <root statement="YASQE.fromTextArea(document.getElementById('{$textarea-id}'), {{ persistent: null }})"/>
-                        </xsl:variable>
-                        <ixsl:set-property name="{$textarea-id}" select="ixsl:eval(string($js-statement/@statement))" object="ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe')"/>
-                    </xsl:if>-->
-
                     <!-- create chart canvas element if it doesn't exist -->
                     <xsl:if test="not(id($chart-canvas-id, ixsl:page()))">
                         <xsl:for-each select="$container">
                             <xsl:result-document href="?." method="ixsl:append-content">
+                                <ul class="nav nav-tabs">
+                                    <li class="chart-mode">
+                                        <xsl:if test="$active-mode = '&ac;ChartMode'">
+                                            <xsl:attribute name="class" select="'read-mode active'"/>
+                                        </xsl:if>
+
+                                        <a>
+                                            <xsl:apply-templates select="key('resources', '&ac;ChartMode', document(ac:document-uri('&ac;')))" mode="ldh:logo"/>
+                                            <xsl:apply-templates select="key('resources', '&ac;ChartMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
+                                        </a>
+                                    </li>
+                                    <li class="container-mode">
+                                        <xsl:if test="$active-mode = '&ac;ContainerMode'">
+                                            <xsl:attribute name="class" select="'container-mode active'"/>
+                                        </xsl:if>
+
+                                        <a>
+                                            <xsl:apply-templates select="key('resources', '&ac;ContainerMode', document(ac:document-uri('&ac;')))" mode="ldh:logo"/>
+                                            <xsl:apply-templates select="key('resources', '&ac;ContainerMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
+                                        </a>
+                                    </li>
+                                </ul>
+            
                                 <xsl:apply-templates select="$results" mode="bs2:Chart">
                                     <xsl:with-param name="endpoint" select="if (not($endpoint = sd:endpoint())) then $endpoint else ()" tunnel="yes"/>
                                     <xsl:with-param name="id" select="$chart-canvas-id"/>

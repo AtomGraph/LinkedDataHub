@@ -647,7 +647,7 @@ exclude-result-prefixes="#all"
                     <ixsl:set-style name="border-color" select="'#ff0039'"/>
                     <xsl:sequence select="ixsl:call(., 'scrollIntoView', [])[current-date() lt xs:date('2000-01-01')]"/>
                 </xsl:for-each>
-                <ixsl:set-style name="border-color" select="()" object="$title-input"/>
+                <ixsl:set-style name="border-color" select="''" object="$title-input"/>
             </xsl:when>
             <!-- query title value missing, throw an error -->
             <xsl:when test="not($title-input/ixsl:get(., 'value'))">
@@ -655,11 +655,11 @@ exclude-result-prefixes="#all"
                     <ixsl:set-style name="border-color" select="'#ff0039'"/>
                     <xsl:sequence select="ixsl:call(., 'scrollIntoView', [])[current-date() lt xs:date('2000-01-01')]"/>
                 </xsl:for-each>
-                <ixsl:set-style name="border-color" select="()" object="$textarea/following-sibling::div[contains-token(@class, 'CodeMirror')]"/> <!-- YASQE container -->
+                <ixsl:set-style name="border-color" select="''" object="$textarea/following-sibling::div[contains-token(@class, 'CodeMirror')]"/> <!-- YASQE container -->
             </xsl:when>
             <xsl:otherwise>
-                <ixsl:set-style name="border-color" select="()" object="$title-input"/>
-                <ixsl:set-style name="border-color" select="()" object="$textarea/following-sibling::div[contains-token(@class, 'CodeMirror')]"/> <!-- YASQE container -->
+                <ixsl:set-style name="border-color" select="''" object="$title-input"/>
+                <ixsl:set-style name="border-color" select="''" object="$textarea/following-sibling::div[contains-token(@class, 'CodeMirror')]"/> <!-- YASQE container -->
                 <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
                 <xsl:variable name="forClass" select="xs:anyURI('&sp;' || upper-case(substring($query-type, 1, 1)) || lower-case(substring($query-type, 2)))" as="xs:anyURI"/>
