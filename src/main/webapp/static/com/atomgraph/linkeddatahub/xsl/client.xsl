@@ -719,6 +719,8 @@ WHERE
                     <!-- create chart canvas element if it doesn't exist -->
                     <xsl:if test="not(id($chart-canvas-id, ixsl:page()))">
                         <xsl:for-each select="$container">
+                            <xsl:variable name="active-mode" select="xs:anyURI('&ac;ChartMode')" as="xs:anyURI"/>
+                            
                             <xsl:result-document href="?." method="ixsl:append-content">
                                 <ul class="nav nav-tabs">
                                     <li class="chart-mode">
