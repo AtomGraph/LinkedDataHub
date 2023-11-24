@@ -643,11 +643,18 @@ exclude-result-prefixes="#all"
         <xsl:choose>
             <!-- query string value missing/invalid, throw an error -->
             <xsl:when test="not($query-string) or not($query-type)">
-                <ixsl:set-style name="border-color" select="'#ff0039'" object="$textarea/following-sibling::div[contains-token(@class, 'CodeMirror')]"/> <!-- YASQE container -->
+                <xsl:for-each select="$textarea/following-sibling::div[contains-token(@class, 'CodeMirror')]"> <!-- YASQE container -->
+                    <ixsl:set-style name="border-color" select="'#ff0039'"/>
+                    <xsl:sequence select="ixsl:call(., 'scrollIntoView', [])[current-date() lt xs:date('2000-01-01')]"/>
+                </xsl:for-each>
+                <ixsl:set-style name="border-color" select="()" object="$title-input"/>
             </xsl:when>
             <!-- query title value missing, throw an error -->
             <xsl:when test="not($title-input/ixsl:get(., 'value'))">
-                <ixsl:set-style name="border-color" select="'#ff0039'" object="$title-input"/>
+                <xsl:for-each select="$title-input">
+                    <ixsl:set-style name="border-color" select="'#ff0039'"/>
+                    <xsl:sequence select="ixsl:call(., 'scrollIntoView', [])[current-date() lt xs:date('2000-01-01')]"/>
+                </xsl:for-each>
                 <ixsl:set-style name="border-color" select="()" object="$textarea/following-sibling::div[contains-token(@class, 'CodeMirror')]"/> <!-- YASQE container -->
             </xsl:when>
             <xsl:otherwise>
