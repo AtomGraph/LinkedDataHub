@@ -1144,7 +1144,7 @@ LIMIT 100]]></sp:text>
     
     <xsl:template match="*[contains-token(@class, 'sparql-content')]//ul[@class = 'nav nav-tabs']/li[contains-token(@class, 'container-mode')][not(contains-token(@class, 'active'))]/a" mode="ixsl:onclick">
         <xsl:variable name="this" select="ancestor::div[@about][1]/@about" as="xs:anyURI"/>
-        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'main')]" as="element()"/>
+        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'sparql-content')]" as="element()"/>
         <xsl:variable name="form" select="$container//form[contains-token(@class, 'sparql-query-form')]" as="element()"/>
         <xsl:variable name="textarea-id" select="$form//textarea[@name = 'query']/ixsl:get(., 'id')" as="xs:string"/>
         <xsl:variable name="yasqe" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe'), $textarea-id)"/>
