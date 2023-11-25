@@ -1173,6 +1173,16 @@ LIMIT 100]]></sp:text>
             </xsl:document>
         </xsl:variable>
 
+        <!-- create new cache entry using content URI as key -->
+        <ixsl:set-property name="{'`' || $content-uri || '`'}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
+        <!-- store this content element -->
+        <ixsl:set-property name="content" select="$value" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`')"/>
+
+        <xsl:for-each select="$container//div[@class = 'bar']">
+            <!-- update progress bar -->
+            <ixsl:set-style name="width" select="'50%'" object="."/>
+        </xsl:for-each>
+                
         <xsl:apply-templates select="$constructor//*[rdf:type/@rdf:resource]" mode="ldh:RenderContent">
             <xsl:with-param name="this" select="$this"/>
             <xsl:with-param name="container" select="$container"/>
