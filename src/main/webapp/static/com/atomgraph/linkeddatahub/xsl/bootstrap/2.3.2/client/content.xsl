@@ -1172,6 +1172,7 @@ LIMIT 100]]></sp:text>
                 </rdf:RDF>
             </xsl:document>
         </xsl:variable>
+        <xsl:variable name="content-uri" select="$query-uri" as="xs:anyURI"/>
 
         <!-- create new cache entry using content URI as key -->
         <ixsl:set-property name="{'`' || $content-uri || '`'}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
