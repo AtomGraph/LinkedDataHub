@@ -1108,7 +1108,7 @@ LIMIT 100]]></sp:text>
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="textarea-id" select="descendant::textarea[@name = 'query']/ixsl:get(., 'id')" as="xs:string"/>
         <xsl:variable name="yasqe" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe'), $textarea-id)"/>
-        <xsl:variable name="query" select="ixsl:call($yasqe, 'getValue', [])" as="xs:string"/> <!-- get query string from YASQE -->
+        <xsl:variable name="query-string" select="ixsl:call($yasqe, 'getValue', [])" as="xs:string"/> <!-- get query string from YASQE -->
         <xsl:variable name="service-uri" select="descendant::select[contains-token(@class, 'input-query-service')]/ixsl:get(., 'value')" as="xs:anyURI?"/>
         <xsl:variable name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.apps'))" as="element()?"/>
         <xsl:variable name="endpoint" select="($service/sd:endpoint/@rdf:resource/xs:anyURI(.), sd:endpoint())[1]" as="xs:anyURI"/>
@@ -1117,7 +1117,7 @@ LIMIT 100]]></sp:text>
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'main')]" as="element()"/>
         <xsl:variable name="container-id" select="ixsl:get($container, 'id')" as="xs:string"/>
         <xsl:variable name="results-container-id" select="$container-id || '-sparql-results'" as="xs:string"/>
-        <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': $query })" as="xs:anyURI"/>
+        <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': $query-string })" as="xs:anyURI"/>
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, $ldt:base, map{}, $results-uri)" as="xs:anyURI"/>
         <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml,application/rdf+xml;q=0.9' } }" as="map(xs:string, item())"/>
 
@@ -1132,11 +1132,52 @@ LIMIT 100]]></sp:text>
                     <xsl:with-param name="container" select="$container"/>
                     <xsl:with-param name="textarea-id" select="$textarea-id"/>
                     <xsl:with-param name="chart-canvas-id" select="$container-id || '-chart-canvas'"/>
-                    <xsl:with-param name="query" select="$query"/>
+                    <xsl:with-param name="query" select="$query-string"/>
                 </xsl:call-template>
             </ixsl:schedule-action>
         </xsl:variable>
         <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+    </xsl:template>
+    
+    <!-- toggle query results to container mode -->
+    
+    <xsl:template match="*[contains-token(@class, 'sparql-content')]//ul[@class = 'nav nav-tabs']/li[contains-token(@class, 'container-mode')][not(contains-token(@class, 'active'))]/a" mode="ixsl:onclick">
+        <xsl:variable name="this" select="ancestor::div[@about][1]/@about" as="xs:anyURI"/>
+        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'main')]" as="element()"/>
+        <xsl:variable name="form" select="$container//form[contains-token(@class, 'sparql-query-form')]" as="element()"/>
+        <xsl:variable name="textarea-id" select="$form//textarea[@name = 'query']/ixsl:get(., 'id')" as="xs:string"/>
+        <xsl:variable name="yasqe" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe'), $textarea-id)"/>
+        <xsl:variable name="query-string" select="ixsl:call($yasqe, 'getValue', [])" as="xs:string"/> <!-- get query string from YASQE -->
+        <xsl:variable name="service-uri" select="$form//select[contains-token(@class, 'input-query-service')]/ixsl:get(., 'value')" as="xs:anyURI?"/>
+        <xsl:variable name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.apps'))" as="element()?"/>
+        <xsl:variable name="endpoint" select="($service/sd:endpoint/@rdf:resource/xs:anyURI(.), sd:endpoint())[1]" as="xs:anyURI"/>
+        <xsl:variable name="query-id" select="'id' || ac:uuid()" as="xs:string"/>
+        <xsl:variable name="query-uri" select="xs:anyURI(ac:absolute-path(base-uri()) || '#' || $query-id)" as="xs:anyURI"/>
+        <xsl:variable name="query-type" select="ldh:query-type($query-string)" as="xs:string?"/>
+        <xsl:variable name="forClass" select="xs:anyURI('&sp;' || upper-case(substring($query-type, 1, 1)) || lower-case(substring($query-type, 2)))" as="xs:anyURI"/>
+        <xsl:variable name="constructor" as="document-node()">
+            <xsl:document>
+                <rdf:RDF>
+                    <rdf:Description rdf:about="{$query-uri}">
+                        <rdf:type rdf:resource="&sp;Query"/>
+                        <rdf:type rdf:resource="{$forClass}"/>
+<!--                        <dct:title><xsl:value-of select="$title-input/ixsl:get(., 'value')"/></dct:title>-->
+                        <sp:text rdf:datatype="&xsd;string"><xsl:value-of select="$query-string"/></sp:text>
+
+                        <xsl:if test="$service-uri">
+                            <ldh:service rdf:resource="$service-uri"/>
+                        </xsl:if>
+                    </rdf:Description>
+                </rdf:RDF>
+            </xsl:document>
+        </xsl:variable>
+
+        <xsl:apply-templates select="$constructor" mode="ldh:RenderContent">
+            <xsl:with-param name="this" select="$this"/>
+            <xsl:with-param name="container" select="$container"/>
+<!--            <xsl:with-param name="graph" select="$graph"/>
+            <xsl:with-param name="mode" select="$mode"/>-->
+        </xsl:apply-templates>
     </xsl:template>
     
     <!-- start dragging content (or its descendants) -->
