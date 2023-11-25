@@ -1173,6 +1173,7 @@ LIMIT 100]]></sp:text>
             </xsl:document>
         </xsl:variable>
         <xsl:variable name="content-uri" select="$query-uri" as="xs:anyURI"/>
+        <xsl:variable name="value" select="$constructor//*[rdf:type/@rdf:resource]" as="element()"/>
 
         <!-- create new cache entry using content URI as key -->
         <ixsl:set-property name="{'`' || $content-uri || '`'}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
@@ -1184,7 +1185,7 @@ LIMIT 100]]></sp:text>
             <ixsl:set-style name="width" select="'50%'" object="."/>
         </xsl:for-each>
                 
-        <xsl:apply-templates select="$constructor//*[rdf:type/@rdf:resource]" mode="ldh:RenderContent">
+        <xsl:apply-templates select="$value" mode="ldh:RenderContent">
             <xsl:with-param name="this" select="$this"/>
             <xsl:with-param name="container" select="$container"/>
             <xsl:with-param name="base-uri" select="ac:absolute-path(base-uri())"/>
