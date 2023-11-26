@@ -1139,6 +1139,24 @@ LIMIT 100]]></sp:text>
         </xsl:variable>
         <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
+
+    <!-- toggle query results to chart mode -->
+    
+    <xsl:template match="*[contains-token(@class, 'sparql-content')]//ul[@class = 'nav nav-tabs']/li[contains-token(@class, 'chart-mode')][not(contains-token(@class, 'active'))]/a" mode="ixsl:onclick">
+        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'sparql-content')]" as="element()"/>
+        <xsl:variable name="form" select="$container//form[contains-token(@class, 'sparql-query-form')]" as="element()"/>
+
+        <!-- deactivate other tabs -->
+        <xsl:for-each select="../../li">
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+        </xsl:for-each>
+        <!-- activate this tab -->
+        <xsl:for-each select="..">
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+        </xsl:for-each>
+        
+        <xsl:apply-templates select="$form" mode="ixsl:onsubmit"/>
+    </xsl:template>
     
     <!-- toggle query results to container mode -->
     
@@ -1175,6 +1193,15 @@ LIMIT 100]]></sp:text>
         <xsl:variable name="content-uri" select="$query-uri" as="xs:anyURI"/>
         <xsl:variable name="value" select="$constructor//*[rdf:type/@rdf:resource]" as="element()"/>
 
+        <!-- deactivate other tabs -->
+        <xsl:for-each select="../../li">
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+        </xsl:for-each>
+        <!-- activate this tab -->
+        <xsl:for-each select="..">
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+        </xsl:for-each>
+        
         <!-- create new cache entry using content URI as key -->
         <ixsl:set-property name="{'`' || $content-uri || '`'}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
         <!-- store this content element -->
@@ -1187,7 +1214,7 @@ LIMIT 100]]></sp:text>
                 
         <xsl:apply-templates select="$value" mode="ldh:RenderContent">
             <xsl:with-param name="this" select="$this"/>
-            <xsl:with-param name="container" select="$container"/>
+            <xsl:with-param name="container" select="$container//div[contains-token(@class, 'chart-canvas')]"/>
             <xsl:with-param name="base-uri" select="ac:absolute-path(base-uri())"/>
 <!--            <xsl:with-param name="graph" select="$graph"/>
             <xsl:with-param name="mode" select="$mode"/>-->
