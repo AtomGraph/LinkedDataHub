@@ -1215,11 +1215,9 @@ LIMIT 100]]></sp:text>
                 
         <xsl:apply-templates select="$value" mode="ldh:RenderContent">
             <xsl:with-param name="this" select="$this"/>
-            <xsl:with-param name="container" select="$container//div[contains-token(@class, 'chart-canvas')]"/>
+            <xsl:with-param name="container" select="$container//div[contains-token(@class, 'sparql-query-results')]"/>
             <xsl:with-param name="content-uri" select="$content-uri"/>
             <xsl:with-param name="base-uri" select="ac:absolute-path(base-uri())"/>
-<!--            <xsl:with-param name="graph" select="$graph"/>
-            <xsl:with-param name="mode" select="$mode"/>-->
         </xsl:apply-templates>
     </xsl:template>
     

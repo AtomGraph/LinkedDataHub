@@ -725,7 +725,7 @@ WHERE
                                 <ul class="nav nav-tabs">
                                     <li class="chart-mode">
                                         <xsl:if test="$active-mode = '&ac;ChartMode'">
-                                            <xsl:attribute name="class" select="'read-mode active'"/>
+                                            <xsl:attribute name="class" select="'chart-mode active'"/>
                                         </xsl:if>
 
                                         <a>
@@ -744,15 +744,17 @@ WHERE
                                         </a>
                                     </li>
                                 </ul>
-            
-                                <xsl:apply-templates select="$results" mode="bs2:Chart">
-                                    <xsl:with-param name="endpoint" select="if (not($endpoint = sd:endpoint())) then $endpoint else ()" tunnel="yes"/>
-                                    <xsl:with-param name="id" select="$chart-canvas-id"/>
-                                    <xsl:with-param name="chart-type" select="$chart-type"/>
-                                    <xsl:with-param name="category" select="$category"/>
-                                    <xsl:with-param name="series" select="$series"/>
-                                    <xsl:with-param name="show-save" select="$show-chart-save"/>
-                                </xsl:apply-templates>
+
+                                <div class="sparql-query-results">
+                                    <xsl:apply-templates select="$results" mode="bs2:Chart">
+                                        <xsl:with-param name="endpoint" select="if (not($endpoint = sd:endpoint())) then $endpoint else ()" tunnel="yes"/>
+                                        <xsl:with-param name="id" select="$chart-canvas-id"/>
+                                        <xsl:with-param name="chart-type" select="$chart-type"/>
+                                        <xsl:with-param name="category" select="$category"/>
+                                        <xsl:with-param name="series" select="$series"/>
+                                        <xsl:with-param name="show-save" select="$show-chart-save"/>
+                                    </xsl:apply-templates>
+                                </div>
                             </xsl:result-document>
                         </xsl:for-each>
                     </xsl:if>
