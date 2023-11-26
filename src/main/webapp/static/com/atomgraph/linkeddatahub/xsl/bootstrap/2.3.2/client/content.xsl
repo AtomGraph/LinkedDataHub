@@ -182,9 +182,8 @@ exclude-result-prefixes="#all"
         <xsl:param name="container" as="element()"/>
         <xsl:param name="mode" as="xs:anyURI?"/>
         <xsl:param name="refresh-content" as="xs:boolean?"/>
-        <xsl:param name="content-id" select="$container/@id" as="xs:string"/>
         <xsl:param name="base-uri" select="base-uri()" as="xs:anyURI"/>
-        <xsl:param name="content-uri" select="if ($container/@about) then $container/@about else xs:anyURI(ac:absolute-path($base-uri) || '#' || $content-id)" as="xs:anyURI"/>
+        <xsl:param name="content-uri" select="if ($container/@about) then $container/@about else xs:anyURI(ac:absolute-path($base-uri) || '#' || $container/@id)" as="xs:anyURI"/>
         <!-- set $this variable value unless getting the query string from state -->
         <xsl:param name="select-string" select="replace(sp:text, '$this', '&lt;' || $this || '&gt;', 'q')" as="xs:string"/>
         <xsl:param name="select-xml" as="document-node()">
@@ -1154,6 +1153,8 @@ LIMIT 100]]></sp:text>
         <xsl:for-each select="..">
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', true() ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
+        
+        <xsl:message>ChartMode</xsl:message>
         
         <xsl:apply-templates select="$form" mode="ixsl:onsubmit"/>
     </xsl:template>
