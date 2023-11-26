@@ -745,7 +745,7 @@ WHERE
                                     </li>
                                 </ul>
 
-                                <div class="sparql-query-results" id="'id' || ac:uuid()">
+                                <div class="sparql-query-results" id="{'id' || ac:uuid()}">
                                     <xsl:apply-templates select="$results" mode="bs2:Chart">
                                         <xsl:with-param name="endpoint" select="if (not($endpoint = sd:endpoint())) then $endpoint else ()" tunnel="yes"/>
                                         <xsl:with-param name="canvas-id" select="$chart-canvas-id"/>
