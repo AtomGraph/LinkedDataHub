@@ -883,7 +883,7 @@ LIMIT   100
                 </xsl:when>
                 <xsl:when test="$ac:mode = '&ac;ChartMode'">
                     <xsl:apply-templates select="." mode="bs2:Chart">
-                        <xsl:with-param name="id" select="generate-id() || '-chart-canvas'"/>
+                        <xsl:with-param name="canvas-id" select="generate-id() || '-chart-canvas'"/>
                         <xsl:with-param name="show-save" select="false()"/>
                         <xsl:sort select="ac:label(.)"/>
                     </xsl:apply-templates>

@@ -238,31 +238,8 @@ extension-element-prefixes="ixsl"
     <!-- graph chart (for RDF/XML results) -->
 
     <xsl:template match="rdf:RDF" mode="bs2:Chart">
-        <xsl:param name="id" as="xs:string"/>
-        <xsl:param name="class" select="'chart-canvas'" as="xs:string?"/>
-        <xsl:param name="chart-type" select="xs:anyURI('&ac;Table')" as="xs:anyURI?"/>
-        <xsl:param name="category" as="xs:string?"/>
-        <xsl:param name="series" select="distinct-values(*/*/concat(namespace-uri(), local-name()))" as="xs:string*"/>
-        <xsl:param name="show-save" select="true()" as="xs:boolean"/>
-
-        <xsl:apply-templates select="." mode="bs2:ChartForm">
-            <xsl:with-param name="chart-type" select="$chart-type"/>
-            <xsl:with-param name="category" select="$category"/>
-            <xsl:with-param name="series" select="$series"/>
-            <xsl:with-param name="show-save" select="$show-save"/>
-        </xsl:apply-templates>
-
-        <div>
-            <xsl:if test="$id">
-                <xsl:attribute name="id" select="$id"/>
-            </xsl:if>
-            <xsl:if test="$class">
-                <xsl:attribute name="class" select="$class"/>
-            </xsl:if>
-        </div>
-    </xsl:template>
-
-    <xsl:template match="rdf:RDF" mode="bs2:ChartForm" priority="-1">
+        <xsl:param name="canvas-id" as="xs:string"/>
+        <xsl:param name="canvas-class" select="'chart-canvas'" as="xs:string?"/>
         <xsl:param name="method" select="'post'" as="xs:string"/>
         <xsl:param name="doc-type" select="xs:anyURI('&dh;Item')" as="xs:anyURI"/>
         <xsl:param name="type" select="xs:anyURI('&ldh;GraphChart')" as="xs:anyURI"/>
@@ -400,6 +377,15 @@ extension-element-prefixes="ixsl"
                     </div>
                 </fieldset>
 
+                <div>
+                    <xsl:if test="$canvas-id">
+                        <xsl:attribute name="id" select="$canvas-id"/>
+                    </xsl:if>
+                    <xsl:if test="$canvas-class">
+                        <xsl:attribute name="class" select="$canvas-class"/>
+                    </xsl:if>
+                </div>
+        
                 <xsl:if test="$show-save">
                     <div class="form-actions">
                         <button class="btn btn-primary btn-save-chart" type="button">
@@ -418,31 +404,8 @@ extension-element-prefixes="ixsl"
     <!-- table chart (for SPARQL XML results) -->
 
     <xsl:template match="srx:sparql" mode="bs2:Chart">
-        <xsl:param name="id" as="xs:string"/>
-        <xsl:param name="class" select="'chart-canvas'" as="xs:string?"/>
-        <xsl:param name="chart-type" select="xs:anyURI('&ac;Table')" as="xs:anyURI?"/>
-        <xsl:param name="category" select="srx:head/srx:variable[1]/@name" as="xs:string?"/>
-        <xsl:param name="series" select="srx:head/srx:variable/@name" as="xs:string*"/>
-        <xsl:param name="show-save" select="true()" as="xs:boolean"/>
-
-        <xsl:apply-templates select="." mode="bs2:ChartForm">
-            <xsl:with-param name="chart-type" select="$chart-type"/>
-            <xsl:with-param name="category" select="$category"/>
-            <xsl:with-param name="series" select="$series"/>
-            <xsl:with-param name="show-save" select="$show-save"/>
-        </xsl:apply-templates>
-
-        <div>
-            <xsl:if test="$id">
-                <xsl:attribute name="id" select="$id"/>
-            </xsl:if>
-            <xsl:if test="$class">
-                <xsl:attribute name="class" select="$class"/>
-            </xsl:if>
-        </div>
-    </xsl:template>
-
-    <xsl:template match="srx:sparql" mode="bs2:ChartForm">
+        <xsl:param name="canvas-id" as="xs:string"/>
+        <xsl:param name="canvas-class" select="'chart-canvas'" as="xs:string?"/>
         <xsl:param name="method" select="'post'" as="xs:string"/>
         <xsl:param name="doc-type" select="xs:anyURI('&dh;Item')" as="xs:anyURI"/>
         <xsl:param name="type" select="xs:anyURI('&ldh;ResultSetChart')" as="xs:anyURI"/>
@@ -570,6 +533,15 @@ extension-element-prefixes="ixsl"
                     </div>
                 </fieldset>
                 
+                <div>
+                    <xsl:if test="$canvas-id">
+                        <xsl:attribute name="id" select="$canvas-id"/>
+                    </xsl:if>
+                    <xsl:if test="$canvas-class">
+                        <xsl:attribute name="class" select="$canvas-class"/>
+                    </xsl:if>
+                </div>
+        
                 <xsl:if test="$show-save">
                     <div class="form-actions">
                         <button class="btn btn-primary btn-save-chart" type="button">
