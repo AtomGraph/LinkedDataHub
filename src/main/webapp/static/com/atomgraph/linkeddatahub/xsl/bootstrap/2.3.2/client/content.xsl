@@ -1190,6 +1190,7 @@ LIMIT 100]]></sp:text>
                 </rdf:RDF>
             </xsl:document>
         </xsl:variable>
+        <xsl:variable name="content-id" select="$container/@id" as="xs:string"/>
         <xsl:variable name="content-uri" select="if ($container/@about) then $container/@about else xs:anyURI(ac:absolute-path(base-uri()) || '#' || $content-id)" as="xs:anyURI"/>
         <xsl:variable name="value" select="$constructor//*[rdf:type/@rdf:resource]" as="element()"/>
 
