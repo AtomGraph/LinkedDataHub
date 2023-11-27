@@ -762,7 +762,7 @@ exclude-result-prefixes="#all"
                     <ixsl:schedule-action http-request="map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string }">
                         <xsl:call-template name="onSPARQLContentUpdate">
                             <xsl:with-param name="container" select="$container"/>
-                            <xsl:with-param name="uri" select="ac:absolute-path($base-uri)"/>
+                            <xsl:with-param name="content-uri" select="$content-uri"/>
                             <xsl:with-param name="content-value" select="$content-value"/>
                             <xsl:with-param name="mode" select="$mode"/>
                         </xsl:call-template>
@@ -1596,7 +1596,7 @@ LIMIT 100]]></sp:text>
     
     <xsl:template name="onSPARQLContentUpdate">
         <xsl:context-item as="map(*)" use="required"/>
-        <xsl:param name="uri" as="xs:anyURI"/> <!-- document URI -->
+        <xsl:param name="content-uri" as="xs:anyURI"/>
         <xsl:param name="container" as="element()"/>
         <xsl:param name="content-value" as="xs:anyURI"/>
         <xsl:param name="mode" as="xs:anyURI?"/>
@@ -1606,6 +1606,8 @@ LIMIT 100]]></sp:text>
         <xsl:choose>
             <xsl:when test="?status = 200">
                 <xsl:for-each select="$container">
+                    <!-- set @about attribute -->
+                    <ixsl:set-attribute name="about" select="$content-uri"/>
                     <!-- update @data-content-value value -->
                     <ixsl:set-property name="dataset.contentValue" select="$content-value" object="."/>
 
