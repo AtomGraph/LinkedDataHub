@@ -627,7 +627,7 @@ exclude-result-prefixes="#all"
         </xsl:choose>
     </xsl:template>
     
-    <!-- save sparql-content onclick -->
+    <!-- save sparql-content query onclick -->
     
     <xsl:template match="div[contains-token(@class, 'sparql-content')][contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'btn-save-query')]" mode="ixsl:onclick">
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'sparql-content')][contains-token(@class, 'row-fluid')]" as="element()"/>
@@ -697,19 +697,76 @@ exclude-result-prefixes="#all"
         </xsl:choose>
     </xsl:template>
     
+    <!-- save sparql-content chart onclick -->
+    
+<!--    <xsl:template match="div[contains-token(@class, 'sparql-content')][contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'btn-save-chart')]" mode="ixsl:onclick">
+        <xsl:variable name="textarea-id" select="descendant::textarea[@name = 'query']/ixsl:get(., 'id')" as="xs:string"/>
+        <xsl:variable name="yasqe" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe'), $textarea-id)"/>
+        <xsl:variable name="query-string" select="ixsl:call($yasqe, 'getValue', [])" as="xs:string"/>  get query string from YASQE 
+        <xsl:variable name="service-uri" select="xs:anyURI(ixsl:get(id('query-service'), 'value'))" as="xs:anyURI?"/>  TO-DO: fix content-embedded queries 
+        <xsl:variable name="query-type" select="ldh:query-type($query-string)" as="xs:string"/>
+        <xsl:variable name="forClass" select="if (upper-case($query-type) = ('SELECT', 'ASK')) then xs:anyURI('&ldh;ResultSetChart') else xs:anyURI('&ldh;GraphChart')" as="xs:anyURI"/>
+        - show a modal form if this button is in a <fieldset>, meaning on a resource-level and not form level. Otherwise (e.g. for the "Create" button) show normal form 
+        <xsl:variable name="modal-form" select="true()" as="xs:boolean"/>
+        <xsl:variable name="href" select="ac:build-uri(ac:absolute-path(base-uri()), let $params := map{ 'forClass': string($forClass), 'createGraph': string(true()) } return if ($modal-form) then map:merge(($params, map{ 'mode': '&ac;ModalMode' })) else $params)" as="xs:anyURI"/>
+        <xsl:variable name="chart-type" select="../..//select[contains-token(@class, 'chart-type')]/ixsl:get(., 'value')" as="xs:anyURI?"/>
+        <xsl:variable name="category" select="../..//select[contains-token(@class, 'chart-category')]/ixsl:get(., 'value')" as="xs:string?"/>
+        <xsl:variable name="series" as="xs:string*">
+            <xsl:for-each select="../..//select[contains-token(@class, 'chart-series')]">
+                <xsl:variable name="select" select="." as="element()"/>
+                <xsl:for-each select="0 to xs:integer(ixsl:get(., 'selectedOptions.length')) - 1">
+                    <xsl:sequence select="ixsl:get(ixsl:call(ixsl:get($select, 'selectedOptions'), 'item', [ . ]), 'value')"/>
+                </xsl:for-each>
+            </xsl:for-each>
+        </xsl:variable>
+
+        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+        
+        <xsl:variable name="request" as="item()*">
+            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
+                <xsl:call-template name="onAddSaveChartForm">
+                    <xsl:with-param name="query-string" select="$query-string"/>
+                    <xsl:with-param name="service-uri" select="$service-uri"/>
+                    <xsl:with-param name="chart-type" select="$chart-type"/>
+                    <xsl:with-param name="category" select="$category"/>
+                    <xsl:with-param name="series" select="$series"/>
+                </xsl:call-template>
+            </ixsl:schedule-action>
+        </xsl:variable>
+        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+    </xsl:template>-->
+    
     <xsl:template name="onSPARQLQuerySave">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="query-uri" as="xs:anyURI"/>
         <xsl:param name="container" as="element()"/>
         <xsl:param name="textarea" as="element()"/>
+        <xsl:param name="mode" as="xs:anyURI?"/>
 
-        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
+        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
         <xsl:choose>
             <xsl:when test="?status = 200">
-                <xsl:message>
-                    onSPARQLQuerySave $query-uri: <xsl:value-of select="$query-uri"/>
-                </xsl:message>
+                <xsl:variable name="content-value" select="$query-uri" as="xs:anyURI"/>
+                <xsl:variable name="content-id" select="$container/@id" as="xs:string"/>
+                <xsl:variable name="content-uri" select="if ($container/@about) then $container/@about else xs:anyURI(ac:absolute-path(base-uri()) || '#' || $content-id)" as="xs:anyURI"/>
+                <xsl:variable name="update-string" select="if ($container/@about) then $content-update-string else $content-append-string" as="xs:string"/>
+                <xsl:variable name="update-string" select="replace($update-string, '$this', '&lt;' || ac:absolute-path(base-uri()) || '&gt;', 'q')" as="xs:string"/>
+                <xsl:variable name="update-string" select="replace($update-string, '$content', '&lt;' || $content-uri || '&gt;', 'q')" as="xs:string"/>
+                <xsl:variable name="update-string" select="replace($update-string, '$value', '&lt;' || $content-value || '&gt;', 'q')" as="xs:string"/>
+                <xsl:variable name="update-string" select="if ($mode) then replace($update-string, '$mode', '&lt;' || $mode || '&gt;', 'q') else $update-string" as="xs:string"/>
+                <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(base-uri()), map{}, ac:absolute-path(base-uri()))" as="xs:anyURI"/>
+                <xsl:variable name="request" as="item()*">
+                    <ixsl:schedule-action http-request="map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string }">
+                        <xsl:call-template name="onSPARQLContentUpdate">
+                            <xsl:with-param name="container" select="$container"/>
+                            <xsl:with-param name="uri" select="ac:absolute-path(base-uri())"/>
+                            <xsl:with-param name="content-value" select="$content-value"/>
+                            <xsl:with-param name="mode" select="$mode"/>
+                        </xsl:call-template>
+                    </ixsl:schedule-action>
+                </xsl:variable>
+                <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:when>
             <!-- query string was invalid - show error -->
             <xsl:when test="?status = 422">
@@ -1524,9 +1581,44 @@ LIMIT 100]]></sp:text>
                         </xsl:when>
                     </xsl:choose>
                     
-                    <xsl:call-template name="ldh:LoadContent">
-<!--                        <xsl:with-param name="uri" select="$uri"/>  content value gets read from dataset.contentValue -->
-                    </xsl:call-template>
+                    <xsl:call-template name="ldh:LoadContent"/>
+                </xsl:for-each>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ 'Could not update resource content' ])[current-date() lt xs:date('2000-01-01')]"/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:template>
+    
+    <!-- resource content update -->
+    
+    <xsl:template name="onSPARQLContentUpdate">
+        <xsl:context-item as="map(*)" use="required"/>
+        <xsl:param name="uri" as="xs:anyURI"/> <!-- document URI -->
+        <xsl:param name="container" as="element()"/>
+        <xsl:param name="content-value" as="xs:anyURI"/>
+        <xsl:param name="mode" as="xs:anyURI?"/>
+
+        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
+
+        <xsl:choose>
+            <xsl:when test="?status = 200">
+                <xsl:for-each select="$container">
+                    <!-- update @data-content-value value -->
+                    <ixsl:set-property name="dataset.contentValue" select="$content-value" object="."/>
+
+                    <xsl:choose>
+                        <xsl:when test="$mode">
+                            <!-- update @data-content-mode value -->
+                            <ixsl:set-property name="dataset.contentMode" select="$mode" object="."/>
+                        </xsl:when>
+                        <xsl:when test="ixsl:contains(., 'dataset.contentMode')">
+                            <!-- remove @data-content-mode -->
+                            <ixsl:remove-property name="dataset.contentMode" object="."/>
+                        </xsl:when>
+                    </xsl:choose>
+                    
+                    <xsl:call-template name="ldh:LoadContent"/>
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
