@@ -705,7 +705,7 @@ WHERE
         <xsl:param name="content-method" select="xs:QName('ixsl:replace-content')" as="xs:QName"/>
         <xsl:param name="show-editor" select="true()" as="xs:boolean"/>
         <xsl:param name="show-chart-save" select="true()" as="xs:boolean"/>
-        <xsl:param name="results-container-id" select="'id' || ac:uuid()" as="xs:string"/>
+        <xsl:param name="results-container-id" select="ixsl:get($container, 'id') || '-query-results'" as="xs:string"/>
         <xsl:param name="results-container-class" select="'sparql-query-results'" as="xs:string"/>
 
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
