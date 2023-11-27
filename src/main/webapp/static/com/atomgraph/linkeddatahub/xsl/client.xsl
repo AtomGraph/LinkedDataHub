@@ -705,6 +705,8 @@ WHERE
         <xsl:param name="content-method" select="xs:QName('ixsl:replace-content')" as="xs:QName"/>
         <xsl:param name="show-editor" select="true()" as="xs:boolean"/>
         <xsl:param name="show-chart-save" select="true()" as="xs:boolean"/>
+        <xsl:param name="results-container-id" select="'id' || ac:uuid()" as="xs:string"/>
+        <xsl:param name="results-container-class" select="'sparql-query-results'" as="xs:string"/>
 
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
 
@@ -716,8 +718,8 @@ WHERE
                     <xsl:variable name="category" select="if ($category) then $category else (if (rdf:RDF) then distinct-values(rdf:RDF/*/*/concat(namespace-uri(), local-name()))[1] else srx:sparql/srx:head/srx:variable[1]/@name)" as="xs:string?"/>
                     <xsl:variable name="series" select="if (exists($series)) then $series else (if (rdf:RDF) then distinct-values(rdf:RDF/*/*/concat(namespace-uri(), local-name())) else srx:sparql/srx:head/srx:variable/@name)" as="xs:string*"/>
 
-                    <!-- create chart canvas element if it doesn't exist -->
-                    <xsl:if test="not(id($chart-canvas-id, ixsl:page()))">
+                    <!-- create results container element if it doesn't exist -->
+                    <xsl:if test="not(id($results-container-id, ixsl:page()))">
                         <xsl:for-each select="$container">
                             <xsl:variable name="active-mode" select="xs:anyURI('&ac;ChartMode')" as="xs:anyURI"/>
                             
@@ -745,20 +747,24 @@ WHERE
                                     </li>
                                 </ul>
 
-                                <div class="sparql-query-results" id="{'id' || ac:uuid()}">
-                                    <xsl:apply-templates select="$results" mode="bs2:Chart">
-                                        <xsl:with-param name="endpoint" select="if (not($endpoint = sd:endpoint())) then $endpoint else ()" tunnel="yes"/>
-                                        <xsl:with-param name="canvas-id" select="$chart-canvas-id"/>
-                                        <xsl:with-param name="chart-type" select="$chart-type"/>
-                                        <xsl:with-param name="category" select="$category"/>
-                                        <xsl:with-param name="series" select="$series"/>
-                                        <xsl:with-param name="show-save" select="$show-chart-save"/>
-                                    </xsl:apply-templates>
-                                </div>
+                                <div class="{$results-container-class}" id="{$results-container-id}"></div>
                             </xsl:result-document>
                         </xsl:for-each>
                     </xsl:if>
-                       
+                    
+                    <xsl:for-each select="id($results-container-id, ixsl:page())">
+                        <xsl:result-document href="?." method="ixsl:replace-content">
+                            <xsl:apply-templates select="$results" mode="bs2:Chart">
+                                <xsl:with-param name="endpoint" select="if (not($endpoint = sd:endpoint())) then $endpoint else ()" tunnel="yes"/>
+                                <xsl:with-param name="canvas-id" select="$chart-canvas-id"/>
+                                <xsl:with-param name="chart-type" select="$chart-type"/>
+                                <xsl:with-param name="category" select="$category"/>
+                                <xsl:with-param name="series" select="$series"/>
+                                <xsl:with-param name="show-save" select="$show-chart-save"/>
+                            </xsl:apply-templates>
+                        </xsl:result-document>
+                    </xsl:for-each>
+                    
                     <!-- post-process the container if it's a chart instance being rendered and not SPARQL results -->
 <!--                    <xsl:if test="not($query)">
                         <xsl:call-template name="ldh:ContentLoaded">
