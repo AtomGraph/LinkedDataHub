@@ -689,6 +689,7 @@ exclude-result-prefixes="#all"
                             <xsl:with-param name="query-uri" select="$query-uri"/>
                             <xsl:with-param name="container" select="$container"/>
                             <xsl:with-param name="textarea" select="$textarea"/>
+                            <xsl:with-param name="base-uri" select="base-uri()"/>
                         </xsl:call-template>
                     </ixsl:schedule-action>
                 </xsl:variable>
@@ -742,6 +743,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="container" as="element()"/>
         <xsl:param name="textarea" as="element()"/>
         <xsl:param name="mode" as="xs:anyURI?"/>
+        <xsl:param name="base-uri" as="xs:anyURI?"/>
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
@@ -749,18 +751,18 @@ exclude-result-prefixes="#all"
             <xsl:when test="?status = 200">
                 <xsl:variable name="content-value" select="$query-uri" as="xs:anyURI"/>
                 <xsl:variable name="content-id" select="$container/@id" as="xs:string"/>
-                <xsl:variable name="content-uri" select="if ($container/@about) then $container/@about else xs:anyURI(ac:absolute-path(base-uri()) || '#' || $content-id)" as="xs:anyURI"/>
+                <xsl:variable name="content-uri" select="if ($container/@about) then $container/@about else xs:anyURI(ac:absolute-path($base-uri) || '#' || $content-id)" as="xs:anyURI"/>
                 <xsl:variable name="update-string" select="if ($container/@about) then $content-update-string else $content-append-string" as="xs:string"/>
-                <xsl:variable name="update-string" select="replace($update-string, '$this', '&lt;' || ac:absolute-path(base-uri()) || '&gt;', 'q')" as="xs:string"/>
+                <xsl:variable name="update-string" select="replace($update-string, '$this', '&lt;' || ac:absolute-path($base-uri) || '&gt;', 'q')" as="xs:string"/>
                 <xsl:variable name="update-string" select="replace($update-string, '$content', '&lt;' || $content-uri || '&gt;', 'q')" as="xs:string"/>
                 <xsl:variable name="update-string" select="replace($update-string, '$value', '&lt;' || $content-value || '&gt;', 'q')" as="xs:string"/>
                 <xsl:variable name="update-string" select="if ($mode) then replace($update-string, '$mode', '&lt;' || $mode || '&gt;', 'q') else $update-string" as="xs:string"/>
-                <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(base-uri()), map{}, ac:absolute-path(base-uri()))" as="xs:anyURI"/>
+                <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path($base-uri), map{}, ac:absolute-path($base-uri))" as="xs:anyURI"/>
                 <xsl:variable name="request" as="item()*">
                     <ixsl:schedule-action http-request="map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string }">
                         <xsl:call-template name="onSPARQLContentUpdate">
                             <xsl:with-param name="container" select="$container"/>
-                            <xsl:with-param name="uri" select="ac:absolute-path(base-uri())"/>
+                            <xsl:with-param name="uri" select="ac:absolute-path($base-uri)"/>
                             <xsl:with-param name="content-value" select="$content-value"/>
                             <xsl:with-param name="mode" select="$mode"/>
                         </xsl:call-template>
