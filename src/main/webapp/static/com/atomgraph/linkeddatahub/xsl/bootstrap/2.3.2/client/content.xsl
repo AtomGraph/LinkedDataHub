@@ -693,27 +693,6 @@ exclude-result-prefixes="#all"
                     </ixsl:schedule-action>
                 </xsl:variable>
                 <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
-                
-<!--                <xsl:variable name="content-id" select="$container/@id" as="xs:string"/>
-                <xsl:variable name="content-uri" select="if ($container/@about) then $container/@about else xs:anyURI(ac:absolute-path(base-uri()) || '#' || $content-id)" as="xs:anyURI"/>
-                <xsl:variable name="update-string" select="if ($container/@about) then $content-update-string else $content-append-string" as="xs:string"/>
-                <xsl:variable name="update-string" select="replace($update-string, '$this', '&lt;' || ac:absolute-path(base-uri()) || '&gt;', 'q')" as="xs:string"/>
-                <xsl:variable name="update-string" select="replace($update-string, '$content', '&lt;' || $content-uri || '&gt;', 'q')" as="xs:string"/>
-                <xsl:variable name="update-string" select="replace($update-string, '$value', '&lt;' || $content-value || '&gt;', 'q')" as="xs:string"/>
-                <xsl:variable name="update-string" select="if ($mode) then replace($update-string, '$mode', '&lt;' || $mode || '&gt;', 'q') else $update-string" as="xs:string"/>
-                <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(base-uri()), map{}, ac:absolute-path(base-uri()))" as="xs:anyURI"/>
-                <xsl:variable name="request" as="item()*">
-                    <ixsl:schedule-action http-request="map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string }">
-                        <xsl:call-template name="onResourceContentUpdate">
-                            <xsl:with-param name="container" select="$container"/>
-                            <xsl:with-param name="uri" select="ac:absolute-path(base-uri())"/>
-                            <xsl:with-param name="content-value" select="$content-value"/>
-                            <xsl:with-param name="mode" select="$mode"/>
-                        </xsl:call-template>
-                    </ixsl:schedule-action>
-                </xsl:variable>
-                <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
-                -->
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
@@ -1154,7 +1133,7 @@ LIMIT 100]]></sp:text>
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', true() ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
         
-        <xsl:message>ChartMode</xsl:message>
+        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
         
         <xsl:apply-templates select="$form" mode="ixsl:onsubmit"/>
     </xsl:template>
@@ -1204,6 +1183,8 @@ LIMIT 100]]></sp:text>
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', true() ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
         
+        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+
         <!-- create new cache entry using content URI as key -->
         <ixsl:set-property name="{'`' || $content-uri || '`'}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
         <!-- store this content element -->
