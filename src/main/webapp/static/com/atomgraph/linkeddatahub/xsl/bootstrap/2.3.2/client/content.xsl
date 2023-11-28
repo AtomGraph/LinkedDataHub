@@ -180,6 +180,7 @@ exclude-result-prefixes="#all"
     <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&sp;Select'][sp:text]" mode="ldh:RenderContent" priority="1">
         <xsl:param name="this" as="xs:anyURI"/>
         <xsl:param name="container" as="element()"/>
+        <xsl:param name="graph" as="xs:anyURI?"/>
         <xsl:param name="mode" as="xs:anyURI?"/>
         <xsl:param name="refresh-content" as="xs:boolean?"/>
         <xsl:param name="base-uri" select="base-uri()" as="xs:anyURI"/>
@@ -266,7 +267,12 @@ exclude-result-prefixes="#all"
             </xsl:when>
             <xsl:otherwise>
                 <!-- default to Linked Data resource rendering -->
-                <xsl:next-match/>
+                <xsl:next-match>
+                    <xsl:with-param name="container" select="$container"/>
+                    <xsl:with-param name="graph" select="$graph"/>
+                    <xsl:with-param name="mode" select="$mode"/>
+                    <xsl:with-param name="refresh-content" select="$refresh-content"/>
+                </xsl:next-match>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
