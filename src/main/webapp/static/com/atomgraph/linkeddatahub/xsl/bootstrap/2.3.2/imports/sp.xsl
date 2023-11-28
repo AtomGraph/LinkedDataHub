@@ -44,8 +44,7 @@ exclude-result-prefixes="#all">
         <xsl:param name="mode" as="xs:anyURI*"/>
         <xsl:param name="service" as="xs:anyURI?"/>
         <xsl:param name="endpoint" as="xs:anyURI?"/>
-        <xsl:param name="query" as="xs:string?"/>
-        <xsl:param name="default-query" as="xs:string"/>
+        <xsl:param name="query" select="sp:text" as="xs:string"/>
         
         <form method="{$method}" action="{$action}">
             <xsl:if test="$id">
@@ -91,7 +90,7 @@ exclude-result-prefixes="#all">
                         <xsl:attribute name="id" select="$textarea-id"/>
                     </xsl:if>
                     
-                    <xsl:value-of select="if ($query) then $query else $default-query"/>
+                    <xsl:value-of select="$query"/>
                 </textarea>
 
                 <div class="form-actions">
