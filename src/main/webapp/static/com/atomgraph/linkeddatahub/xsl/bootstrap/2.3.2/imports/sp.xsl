@@ -30,6 +30,95 @@ exclude-result-prefixes="#all">
         <xsl:apply-templates select="key('resources', 'construct-query', document('../translations.rdf'))" mode="#current"/>
     </xsl:template>
 
+    <!-- BLOCK MODE -->
+
+    <xsl:template match="*[sp:text/text()]" mode="bs2:Block">
+        <xsl:param name="method" select="'get'" as="xs:string"/>
+        <xsl:param name="action" select="xs:anyURI('')" as="xs:anyURI"/>
+        <xsl:param name="id" as="xs:string?"/>
+        <xsl:param name="class" select="'form-horizontal'" as="xs:string?"/>
+        <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
+        <xsl:param name="enctype" as="xs:string?"/>
+        <xsl:param name="textarea-id" as="xs:string"/>
+        <!--<xsl:param name="uri" as="xs:anyURI?"/>-->
+        <xsl:param name="mode" as="xs:anyURI*"/>
+        <xsl:param name="service" as="xs:anyURI?"/>
+        <xsl:param name="endpoint" as="xs:anyURI?"/>
+        <xsl:param name="query" as="xs:string?"/>
+        <xsl:param name="default-query" as="xs:string"/>
+        
+        <form method="{$method}" action="{$action}">
+            <xsl:if test="$id">
+                <xsl:attribute name="id" select="$id"/>
+            </xsl:if>
+            <xsl:if test="$class">
+                <xsl:attribute name="class" select="$class"/>
+            </xsl:if>
+            <xsl:if test="$accept-charset">
+                <xsl:attribute name="accept-charset" select="$accept-charset"/>
+            </xsl:if>
+            <xsl:if test="$enctype">
+                <xsl:attribute name="enctype" select="$enctype"/>
+            </xsl:if>
+
+<!--            <fieldset>-->
+                <div class="control-group">
+                    <label class="control-label">Service</label> <!-- for="service" -->
+
+                    <div class="controls">
+                        <select name="service" class="input-xxlarge input-query-service">
+                            <option value="">
+                                <xsl:value-of>
+                                    <xsl:text>[</xsl:text>
+                                    <xsl:apply-templates select="key('resources', 'sparql-service', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                                    <xsl:text>]</xsl:text>
+                                </xsl:value-of>
+                            </option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="control-group required">
+                    <label class="control-label">Title</label> <!-- for="title" -->
+
+                    <div class="controls">
+                        <input type="text" name="title"/>
+                    </div>
+                </div>
+        
+                <textarea name="query" class="span12" rows="15">
+                    <xsl:if test="$textarea-id">
+                        <xsl:attribute name="id" select="$textarea-id"/>
+                    </xsl:if>
+                    
+                    <xsl:value-of select="if ($query) then $query else $default-query"/>
+                </textarea>
+
+                <div class="form-actions">
+                    <button type="submit">
+                        <xsl:apply-templates select="key('resources', 'run', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ldh:logo">
+                            <xsl:with-param name="class" select="'btn btn-primary btn-run-query'"/>
+                        </xsl:apply-templates>
+
+                        <xsl:value-of>
+                            <xsl:apply-templates select="key('resources', 'run', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                        </xsl:value-of>
+                    </button>
+                    <button type="button" class="btn btn-primary btn-save btn-save-query">
+                        <xsl:value-of>
+                            <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                        </xsl:value-of>
+                    </button>
+                    <button type="button" class="btn btn-cancel">
+                        <xsl:value-of>
+                            <xsl:apply-templates select="key('resources', 'cancel', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                        </xsl:value-of>
+                    </button>
+                </div>
+<!--            </fieldset>-->
+        </form>
+    </xsl:template>
+    
     <xsl:template match="sp:text/text() | *[@rdf:*[local-name() = 'nodeID']]/sp:text/@rdf:*[local-name() = 'nodeID'][key('resources', .)[not(* except rdf:type[@rdf:resource = '&xsd;string'])]]" mode="bs2:FormControl">
         <xsl:param name="type-label" select="true()" as="xs:boolean"/>
         
