@@ -39,7 +39,7 @@ exclude-result-prefixes="#all">
         <xsl:param name="class" select="'form-horizontal'" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
         <xsl:param name="enctype" as="xs:string?"/>
-        <xsl:param name="textarea-id" as="xs:string"/>
+        <xsl:param name="textarea-id" select="'id' || ac:uuid()" as="xs:string"/>
         <!--<xsl:param name="uri" as="xs:anyURI?"/>-->
         <xsl:param name="mode" as="xs:anyURI*"/>
         <xsl:param name="service" as="xs:anyURI?"/>
