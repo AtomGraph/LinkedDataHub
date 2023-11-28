@@ -122,8 +122,8 @@ LIMIT 100</xsl:param>
                     </div>
                 </div>
                 
-                <div class="control-group">
-                    <label class="control-label required">Title</label> <!-- for="title" -->
+                <div class="control-group required">
+                    <label class="control-label">Title</label> <!-- for="title" -->
 
                     <div class="controls">
                         <input type="text" name="title"/>
