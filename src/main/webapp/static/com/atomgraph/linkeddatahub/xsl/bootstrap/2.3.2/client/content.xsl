@@ -1133,7 +1133,7 @@ LIMIT 100]]></sp:text>
                 <xsl:with-param name="service" select="$service"/>
                 <xsl:with-param name="endpoint" select="$endpoint"/>
                 <xsl:with-param name="query" select="$query"/>-->
-                <xsl:with-param name="class" select="'sparql-query-form form-horizontal'"/>
+<!--                <xsl:with-param name="class" select="'sparql-query-form form-horizontal'"/>-->
                 <xsl:with-param name="textarea-id" select="$textarea-id"/>
                 <xsl:with-param name="default-query" select="$default-query"/>
             </xsl:call-template>

@@ -36,7 +36,7 @@ exclude-result-prefixes="#all">
         <xsl:param name="method" select="'get'" as="xs:string"/>
         <xsl:param name="action" select="xs:anyURI('')" as="xs:anyURI"/>
         <xsl:param name="id" as="xs:string?"/>
-        <xsl:param name="class" select="'form-horizontal'" as="xs:string?"/>
+        <xsl:param name="class" select="'sparql-query-form form-horizontal'" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
         <xsl:param name="enctype" as="xs:string?"/>
         <xsl:param name="textarea-id" select="'id' || ac:uuid()" as="xs:string"/>
