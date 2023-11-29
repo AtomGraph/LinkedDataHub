@@ -77,13 +77,13 @@ exclude-result-prefixes="#all">
                     </div>
                 </div>
                 
-                <div class="control-group required">
-                    <label class="control-label">Title</label> <!-- for="title" -->
+<!--                <div class="control-group required">
+                    <label class="control-label">Title</label>
 
                     <div class="controls">
                         <input type="text" name="title"/>
                     </div>
-                </div>
+                </div>-->
         
                 <textarea name="query" class="span12" rows="15">
                     <xsl:if test="$textarea-id">
@@ -103,7 +103,7 @@ exclude-result-prefixes="#all">
                             <xsl:apply-templates select="key('resources', 'run', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
                         </xsl:value-of>
                     </button>
-                    <button type="button" class="btn btn-primary btn-save btn-save-query">
+<!--                    <button type="button" class="btn btn-primary btn-save btn-save-query">
                         <xsl:value-of>
                             <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
                         </xsl:value-of>
@@ -112,7 +112,7 @@ exclude-result-prefixes="#all">
                         <xsl:value-of>
                             <xsl:apply-templates select="key('resources', 'cancel', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
                         </xsl:value-of>
-                    </button>
+                    </button>-->
                 </div>
 <!--            </fieldset>-->
         </form>

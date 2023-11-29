@@ -266,13 +266,32 @@ exclude-result-prefixes="#all"
                 </xsl:choose>
             </xsl:when>
             <xsl:otherwise>
-                <!-- default to Linked Data resource rendering -->
-                <xsl:next-match>
+                <xsl:variable name="row" as="element()*">
+                    <!-- default to Linked Data resource rendering -->
+                    <xsl:next-match>
+                        <xsl:with-param name="container" select="$container"/>
+                        <xsl:with-param name="graph" select="$graph"/>
+                        <xsl:with-param name="mode" select="$mode"/>
+                        <xsl:with-param name="refresh-content" select="$refresh-content"/>
+                    </xsl:next-match>
+                </xsl:variable>
+
+                <xsl:for-each select="$container">
+                    <xsl:result-document href="?." method="ixsl:replace-content">
+                        <xsl:copy-of select="$row/*"/>
+                    </xsl:result-document>
+                </xsl:for-each>
+
+                <xsl:call-template name="ldh:ContentLoaded">
                     <xsl:with-param name="container" select="$container"/>
-                    <xsl:with-param name="graph" select="$graph"/>
-                    <xsl:with-param name="mode" select="$mode"/>
-                    <xsl:with-param name="refresh-content" select="$refresh-content"/>
-                </xsl:next-match>
+                </xsl:call-template>
+
+                <xsl:variable name="textarea-id" select="$row//textarea[@name = 'query']/ixsl:get(., 'id')" as="xs:string"/>
+                <!-- initialize YASQE on the textarea -->
+                <xsl:variable name="js-statement" as="element()">
+                    <root statement="YASQE.fromTextArea(document.getElementById('{$textarea/@id}'), {{ persistent: null }})"/>
+                </xsl:variable>
+                <ixsl:set-property name="{$textarea-id}" select="ixsl:eval(string($js-statement/@statement))" object="ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe')"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
