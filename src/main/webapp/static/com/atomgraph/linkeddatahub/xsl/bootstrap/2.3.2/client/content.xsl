@@ -289,7 +289,7 @@ exclude-result-prefixes="#all"
                 <xsl:variable name="textarea-id" select="$row//textarea[@name = 'query']/ixsl:get(., 'id')" as="xs:string"/>
                 <!-- initialize YASQE on the textarea -->
                 <xsl:variable name="js-statement" as="element()">
-                    <root statement="YASQE.fromTextArea(document.getElementById('{$textarea/@id}'), {{ persistent: null }})"/>
+                    <root statement="YASQE.fromTextArea(document.getElementById('{$textarea-id}'), {{ persistent: null }})"/>
                 </xsl:variable>
                 <ixsl:set-property name="{$textarea-id}" select="ixsl:eval(string($js-statement/@statement))" object="ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe')"/>
             </xsl:otherwise>
