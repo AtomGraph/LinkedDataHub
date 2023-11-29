@@ -106,7 +106,7 @@ exclude-result-prefixes="#all"
         </xsl:call-template>
     </xsl:template>
     
-    <xsl:template name="onAddSaveChartForm">
+<!--    <xsl:template name="onAddSaveChartForm">
         <xsl:param name="query-string" as="xs:string"/>
         <xsl:param name="service-uri" as="xs:anyURI?"/>
         <xsl:param name="chart-type" as="xs:anyURI"/>
@@ -114,7 +114,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="series" as="xs:string*"/>
         <xsl:variable name="query-type" select="ldh:query-type($query-string)" as="xs:string"/>
         <xsl:variable name="forClass" select="xs:anyURI('&sp;' || upper-case(substring($query-type, 1, 1)) || lower-case(substring($query-type, 2)))" as="xs:anyURI"/>
-        <!--- show a modal form if this button is in a <fieldset>, meaning on a resource-level and not form level. Otherwise (e.g. for the "Create" button) show normal form -->
+        - show a modal form if this button is in a <fieldset>, meaning on a resource-level and not form level. Otherwise (e.g. for the "Create" button) show normal form 
         <xsl:variable name="modal-form" select="true()" as="xs:boolean"/>
         <xsl:variable name="href" select="ac:build-uri(ac:absolute-path(base-uri()), let $params := map{ 'forClass': string($forClass), 'createGraph': string(true()) } return if ($modal-form) then map:merge(($params, map{ 'mode': '&ac;ModalMode' })) else $params)" as="xs:anyURI"/>
 
@@ -141,12 +141,12 @@ exclude-result-prefixes="#all"
         </xsl:variable>
         <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
         
-        <!-- handle both ResultSetChart and GraphChart here -->
+         handle both ResultSetChart and GraphChart here 
         <xsl:variable name="chart-type-group" select="$form/descendant::div[contains-token(@class, 'control-group')][input[@name = 'pu'][@value = '&ldh;chartType']]" as="element()"/>
         <ixsl:set-property name="value" select="$chart-type" object="$chart-type-group/descendant::select[@name = 'ou']"/>
         <xsl:variable name="category-control-group" select="$form/descendant::div[contains-token(@class, 'control-group')][input[@name = 'pu'][@value = ('&ldh;categoryVarName', '&ldh;categoryProperty')]]" as="element()"/>
         <ixsl:set-property name="value" select="$category" object="$category-control-group/descendant::input[@name = ('ou', 'ol')]"/>
-        <!-- TO-DO: support more than one series variable -->
+         TO-DO: support more than one series variable 
         <xsl:variable name="series-control-group" select="$form/descendant::div[contains-token(@class, 'control-group')][input[@name = 'pu'][@value = ('&ldh;seriesVarName', '&ldh;seriesProperty')]]" as="element()"/>
         <ixsl:set-property name="value" select="$series" object="$series-control-group/descendant::input[@name = ('ou', 'ol')]"/>
         <xsl:variable name="query-control-group" select="$form/descendant::div[contains-token(@class, 'control-group')][input[@name = 'pu'][@value = '&spin;query']]" as="element()*"/>
@@ -164,7 +164,7 @@ exclude-result-prefixes="#all"
             </ixsl:schedule-action>
         </xsl:variable>
         <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
-    </xsl:template>
+    </xsl:template>-->
     
     <!-- chart content -->
     <xsl:template match="*[@rdf:about][spin:query/@rdf:resource][ldh:chartType/@rdf:resource]" mode="ldh:RenderContent" priority="1">
