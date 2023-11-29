@@ -267,13 +267,10 @@ exclude-result-prefixes="#all"
             </xsl:when>
             <xsl:otherwise>
                 <xsl:variable name="row" as="element()*">
-                    <!-- default to Linked Data resource rendering -->
-                    <xsl:next-match>
-                        <xsl:with-param name="container" select="$container"/>
-                        <xsl:with-param name="graph" select="$graph"/>
+                    <xsl:apply-templates select="." mode="bs2:Row">
+                        <xsl:with-param name="graph" select="$graph" tunnel="yes"/>
                         <xsl:with-param name="mode" select="$mode"/>
-                        <xsl:with-param name="refresh-content" select="$refresh-content"/>
-                    </xsl:next-match>
+                    </xsl:apply-templates>
                 </xsl:variable>
 
                 <xsl:for-each select="$container">
