@@ -48,13 +48,11 @@
     <queries/select-instances/#this> a sp:Select ;
         dct:title "Select instances" ;
         dct:description "Selects instances of type from the default graph" ;
-        sp:text """
-SELECT DISTINCT ?s
+        sp:text """SELECT DISTINCT ?s
 WHERE
   { ?s  a   $type ;
         ?p  ?o
-  }
-    """ .
+  }""" .
 
 }
 
@@ -69,8 +67,7 @@ WHERE
     <queries/select-instances-in-graphs/#this> a sp:Select ;
         dct:title "Select instances in graphs" ;
         dct:description "Selects instances of type from named graphs" ;
-        sp:text """
-SELECT DISTINCT ?s
+        sp:text """SELECT DISTINCT ?s
 WHERE
   { GRAPH ?g
       { ?s  a   $type ;
@@ -121,23 +118,21 @@ WHERE
 
     <geo/#select-geo-query> a sp:Select ;
         dct:title "Select geo resources" ;
-        sp:text """
-    PREFIX  geo:  <http://www.w3.org/2003/01/geo/wgs84_pos#>
-    PREFIX  dct:  <http://purl.org/dc/terms/>
+        sp:text """PREFIX  geo:  <http://www.w3.org/2003/01/geo/wgs84_pos#>
+PREFIX  dct:  <http://purl.org/dc/terms/>
 
-    SELECT  DISTINCT ?resource
-    WHERE
-    { GRAPH ?graph
-      { ?resource  geo:lat  ?lat ;
-                  geo:long  ?long
-        OPTIONAL
-          { ?resource  a                    ?type }
-        OPTIONAL
-          { ?resource  dct:title  ?title }
-      }
-    }
-    ORDER BY ?title
-    """ .
+SELECT  DISTINCT ?resource
+WHERE
+{ GRAPH ?graph
+  { ?resource  geo:lat  ?lat ;
+              geo:long  ?long
+    OPTIONAL
+      { ?resource  a                    ?type }
+    OPTIONAL
+      { ?resource  dct:title  ?title }
+  }
+}
+ORDER BY ?title""" .
 
 }
 
@@ -162,8 +157,7 @@ WHERE
     { GRAPH ?graph
       { ?dated  dct:created  ?created }
     }
-    ORDER BY DESC(?created)
-    """ .
+    ORDER BY DESC(?created)""" .
 
 }
 

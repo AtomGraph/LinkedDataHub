@@ -48,13 +48,11 @@
     <queries/select-instances/#this> a sp:Select ;
         dct:title "Select instances" ;
         dct:description "Selects instances of type from the default graph" ;
-        sp:text """
-SELECT DISTINCT ?s
+        sp:text """SELECT DISTINCT ?s
 WHERE
   { ?s  a   $type ;
         ?p  ?o
-  }
-    """ .
+  }""" .
 
 }
 
