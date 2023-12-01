@@ -1279,7 +1279,7 @@ LIMIT 100]]></sp:text>
 <!--        <xsl:variable name="content-uri" select="xs:anyURI(ac:absolute-path(base-uri()) || '#' || $content-id)" as="xs:anyURI"/>  build content URI -->
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'main')]" as="element()"/>
         <xsl:variable name="container-id" select="ixsl:get($container, 'id')" as="xs:string"/>
-        <xsl:variable name="results-container-id" select="$container-id || '-sparql-results'" as="xs:string"/>
+        <!--<xsl:variable name="results-container-id" select="$container-id || '-query-results'" as="xs:string"/>-->
         <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': $query-string })" as="xs:anyURI"/>
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, $ldt:base, map{}, $results-uri)" as="xs:anyURI"/>
         <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml,application/rdf+xml;q=0.9' } }" as="map(xs:string, item())"/>
@@ -1294,8 +1294,8 @@ LIMIT 100]]></sp:text>
                     <xsl:with-param name="content-uri" select="xs:anyURI(ac:absolute-path(base-uri()) || '#' || $content-id)"/>
                     <xsl:with-param name="container" select="$container"/>
                     <xsl:with-param name="textarea-id" select="$textarea-id"/>
-                    <xsl:with-param name="chart-canvas-id" select="$container-id || '-chart-canvas'"/>
-                    <xsl:with-param name="results-container-id" select="$container-id || '-query-results'"/>
+                    <xsl:with-param name="chart-canvas-id" select="$content-id || '-chart-canvas'"/>
+                    <xsl:with-param name="results-container-id" select="$content-id || '-query-results'"/>
                     <xsl:with-param name="query" select="$query-string"/>
                 </xsl:call-template>
             </ixsl:schedule-action>
