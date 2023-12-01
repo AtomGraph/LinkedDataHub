@@ -1326,7 +1326,6 @@ LIMIT 100]]></sp:text>
     <!-- toggle query results to container mode -->
     
     <xsl:template match="*[contains-token(@class, 'query-content')]//ul[contains-token(@class, 'nav-tabs')][contains-token(@class, 'nav-query-results')]/li[contains-token(@class, 'container-mode')][not(contains-token(@class, 'active'))]/a" mode="ixsl:onclick" priority="1">
-        <xsl:variable name="this" select="ancestor::div[@about][1]/@about" as="xs:anyURI"/>
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'query-content')]" as="element()"/>
         <xsl:variable name="form" select="$container//form[contains-token(@class, 'sparql-query-form')]" as="element()"/>
         <xsl:variable name="textarea-id" select="$form//textarea[@name = 'query']/ixsl:get(., 'id')" as="xs:string"/>
@@ -1381,7 +1380,7 @@ LIMIT 100]]></sp:text>
         </xsl:for-each>
                 
         <xsl:apply-templates select="$value" mode="ldh:RenderContent">
-            <xsl:with-param name="this" select="$this"/>
+            <xsl:with-param name="this" select="id('content-body', ixsl:page())/@about"/>
             <xsl:with-param name="container" select="$container//div[contains-token(@class, 'sparql-query-results')]"/>
             <xsl:with-param name="content-uri" select="$content-uri"/>
             <xsl:with-param name="mode" select="xs:anyURI('&ac;ContainerMode')"/>
