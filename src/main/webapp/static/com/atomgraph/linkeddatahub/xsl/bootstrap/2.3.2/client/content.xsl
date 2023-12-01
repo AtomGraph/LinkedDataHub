@@ -1384,6 +1384,7 @@ LIMIT 100]]></sp:text>
             <xsl:with-param name="this" select="$this"/>
             <xsl:with-param name="container" select="$container//div[contains-token(@class, 'sparql-query-results')]"/>
             <xsl:with-param name="content-uri" select="$content-uri"/>
+            <xsl:with-param name="mode" select="xs:anyURI('&ac;ContainerMode')"/>
             <xsl:with-param name="base-uri" select="ac:absolute-path(base-uri())"/>
         </xsl:apply-templates>
     </xsl:template>
