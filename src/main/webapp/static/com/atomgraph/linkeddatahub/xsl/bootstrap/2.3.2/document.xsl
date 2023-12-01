@@ -185,15 +185,21 @@ extension-element-prefixes="ixsl"
             <div class="row-fluid">
                 <div class="main offset2 span7">
                     <p>
-                        <button type="button" class="btn btn-primary create-action add-resource-content">
-                            <xsl:apply-templates select="key('resources', 'resource', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                        </button>
                         <button type="button" class="btn btn-primary create-action add-xhtml-content">
                             <xsl:apply-templates select="key('resources', 'html', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
                         </button>
-                        <button type="button" class="btn btn-primary create-action add-sparql-content">
-                            <xsl:apply-templates select="key('resources', 'sparql', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                        <button type="button" class="btn btn-primary create-action add-resource-content">
+                            <xsl:apply-templates select="key('resources', 'resource', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
                         </button>
+                        <button type="button" class="btn btn-primary create-action add-query-content">
+                            <xsl:apply-templates select="key('resources', '&sp;Query', document(ac:document-uri('&sp;')))" mode="ac:label"/>
+                        </button>
+<!--                        <button type="button" class="btn btn-primary create-action add-chart-content">
+                            <xsl:apply-templates select="key('resources', '&ldh;Chart', document(ac:document-uri('&ldh;')))" mode="ac:label"/>
+                        </button>
+                        <button type="button" class="btn btn-primary create-action add-container-content">
+                            <xsl:apply-templates select="key('resources', '&dh;Container', document(ac:document-uri('&dh;')))" mode="ac:label"/>
+                        </button>-->
                     </p>
                 </div>
             </div>

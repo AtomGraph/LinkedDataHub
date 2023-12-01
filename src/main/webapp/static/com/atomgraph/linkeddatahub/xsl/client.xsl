@@ -103,7 +103,6 @@ extension-element-prefixes="ixsl"
     <xsl:include href="bootstrap/2.3.2/client/form.xsl"/>
     <xsl:include href="bootstrap/2.3.2/client/map.xsl"/>
     <xsl:include href="bootstrap/2.3.2/client/graph.xsl"/>
-    <xsl:include href="bootstrap/2.3.2/client/sparql.xsl"/>
     <xsl:include href="bootstrap/2.3.2/client/constructor.xsl"/>
     
     <xsl:param name="ac:contextUri" as="xs:anyURI"/>
@@ -1273,35 +1272,6 @@ WHERE
         
         <!-- store the new request object -->
         <ixsl:set-property name="request" select="$request" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
-    </xsl:template>
-    
-    <!-- open SPARQL editor TO-DO: remove -->
-    
-    <xsl:template match="a[contains-token(@class, 'query-editor')]" mode="ixsl:onclick">
-        <xsl:param name="container" select="id('content-body', ixsl:page())" as="element()"/>
-        <xsl:variable name="textarea-id" select="'query-string'" as="xs:string"/>
-
-        <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
-
-        <xsl:for-each select="$container">
-            <xsl:result-document href="?." method="ixsl:replace-content">
-                <xsl:call-template name="bs2:QueryEditor"/>
-            </xsl:result-document>
-        </xsl:for-each>
-
-        <!-- initialize SPARQL query service dropdown -->
-        <xsl:variable name="service" select="if (id('search-service', ixsl:page())) then xs:anyURI(ixsl:get(id('search-service', ixsl:page()), 'value')) else ()" as="xs:anyURI?"/>
-        <xsl:call-template name="ldh:RenderServices">
-            <xsl:with-param name="select" select="id('query-service', ixsl:page())"/>
-            <xsl:with-param name="apps" select="ixsl:get(ixsl:window(), 'LinkedDataHub.apps')"/>
-            <xsl:with-param name="selected-service" select="$service"/>
-        </xsl:call-template>
-
-        <!-- initialize YASQE on the textarea -->
-        <xsl:variable name="js-statement" as="element()">
-            <root statement="YASQE.fromTextArea(document.getElementById('{$textarea-id}'), {{ persistent: null }})"/>
-        </xsl:variable>
-        <ixsl:set-property name="{$textarea-id}" select="ixsl:eval(string($js-statement/@statement))" object="ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe')"/>
     </xsl:template>
     
     <!-- open editing form (do nothing if the button is disabled) -->
