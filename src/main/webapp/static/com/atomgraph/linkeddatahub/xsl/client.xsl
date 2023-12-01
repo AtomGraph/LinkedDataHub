@@ -729,7 +729,7 @@ WHERE
                             <xsl:variable name="active-mode" select="xs:anyURI('&ac;ChartMode')" as="xs:anyURI"/>
                             
                             <xsl:result-document href="?." method="ixsl:append-content">
-                                <ul class="nav nav-tabs">
+                                <ul class="nav nav-tabs nav-query-results">
                                     <li class="chart-mode">
                                         <xsl:if test="$active-mode = '&ac;ChartMode'">
                                             <xsl:attribute name="class" select="'chart-mode active'"/>

@@ -1325,7 +1325,7 @@ LIMIT 100]]></sp:text>
     
     <!-- toggle query results to container mode -->
     
-    <xsl:template match="*[contains-token(@class, 'query-content')]//ul[@class = 'nav nav-tabs']/li[contains-token(@class, 'container-mode')][not(contains-token(@class, 'active'))]/a" mode="ixsl:onclick">
+    <xsl:template match="*[contains-token(@class, 'query-content')]//ul[@class = 'nav nav-tabs'][contains-token(@class, 'nav-query-results')]/li[contains-token(@class, 'container-mode')][not(contains-token(@class, 'active'))]/a" mode="ixsl:onclick" priority="1">
         <xsl:variable name="this" select="ancestor::div[@about][1]/@about" as="xs:anyURI"/>
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'query-content')]" as="element()"/>
         <xsl:variable name="form" select="$container//form[contains-token(@class, 'sparql-query-form')]" as="element()"/>
@@ -1358,7 +1358,6 @@ LIMIT 100]]></sp:text>
         <xsl:variable name="content-id" select="$container/@id" as="xs:string"/>
         <xsl:variable name="content-uri" select="if ($container/@about) then $container/@about else xs:anyURI(ac:absolute-path(base-uri()) || '#' || $content-id)" as="xs:anyURI"/>
         <xsl:variable name="value" select="$constructor//*[rdf:type/@rdf:resource]" as="element()"/>
-        <xsl:message>CONTENT.XSL $content-uri: <xsl:value-of select="$content-uri"/></xsl:message>
 
         <!-- deactivate other tabs -->
         <xsl:for-each select="../../li">
