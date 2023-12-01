@@ -767,9 +767,9 @@ extension-element-prefixes="ixsl"
         </div>
     </xsl:template>
 
-    <!-- SPARQL query -->
+    <!-- SPARQL query content -->
     
-    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;Content'][key('resources', rdf:value/@rdf:resource)/sp:text/text()]" mode="bs2:RowContent" priority="3">
+    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;Content'][key('resources', rdf:value/@rdf:resource, document(ac:document-uri(rdf:value/@rdf:resource)))/sp:text/text()]" mode="bs2:RowContent" priority="3">
         <xsl:param name="id" select="if (contains(@rdf:about, ac:absolute-path(base-uri()) || '#')) then substring-after(@rdf:about, ac:absolute-path(base-uri()) || '#') else generate-id()" as="xs:string?"/>
         <xsl:param name="class" select="'row-fluid content query-content'" as="xs:string?"/>
         <xsl:param name="graph" select="ldh:graph/@rdf:resource" as="xs:anyURI?"/>
@@ -790,6 +790,8 @@ extension-element-prefixes="ixsl"
             <xsl:with-param name="draggable" select="$draggable"/>
         </xsl:next-match>
     </xsl:template>
+    
+    <!-- resource content -->
     
     <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;Content'][rdf:value/@rdf:resource]" mode="bs2:RowContent" priority="2">
         <xsl:param name="id" select="if (contains(@rdf:about, ac:absolute-path(base-uri()) || '#')) then substring-after(@rdf:about, ac:absolute-path(base-uri()) || '#') else generate-id()" as="xs:string?"/>

@@ -1228,11 +1228,6 @@ LIMIT 100]]></sp:text>
         <xsl:variable name="textarea-id" select="'id' || ac:uuid()" as="xs:string"/>
         <xsl:variable name="controls" as="node()*">
             <xsl:call-template name="bs2:QueryForm">
-<!--                <xsl:with-param name="mode" select="$mode"/>
-                <xsl:with-param name="service" select="$service"/>
-                <xsl:with-param name="endpoint" select="$endpoint"/>
-                <xsl:with-param name="query" select="$query"/>-->
-<!--                <xsl:with-param name="class" select="'sparql-query-form form-horizontal'"/>-->
                 <xsl:with-param name="textarea-id" select="$textarea-id"/>
             </xsl:call-template>
         </xsl:variable>
@@ -1309,7 +1304,7 @@ LIMIT 100]]></sp:text>
 
     <!-- toggle query results to chart mode -->
     
-    <xsl:template match="*[contains-token(@class, 'query-content')]//ul[@class = 'nav nav-tabs']/li[contains-token(@class, 'new-query')][not(contains-token(@class, 'active'))]/a" mode="ixsl:onclick">
+    <xsl:template match="*[contains-token(@class, 'query-content')]//ul[@class = 'nav nav-tabs']/li[contains-token(@class, 'chart-mode')][not(contains-token(@class, 'active'))]/a" mode="ixsl:onclick">
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'query-content')]" as="element()"/>
         <xsl:variable name="form" select="$container//form[contains-token(@class, 'sparql-query-form')]" as="element()"/>
 
@@ -1329,7 +1324,7 @@ LIMIT 100]]></sp:text>
     
     <!-- toggle query results to container mode -->
     
-    <xsl:template match="*[contains-token(@class, 'query-content')]//ul[@class = 'nav nav-tabs']/li[contains-token(@class, 'existing-query')][not(contains-token(@class, 'active'))]/a" mode="ixsl:onclick">
+    <xsl:template match="*[contains-token(@class, 'query-content')]//ul[@class = 'nav nav-tabs']/li[contains-token(@class, 'container-mode')][not(contains-token(@class, 'active'))]/a" mode="ixsl:onclick">
         <xsl:variable name="this" select="ancestor::div[@about][1]/@about" as="xs:anyURI"/>
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'query-content')]" as="element()"/>
         <xsl:variable name="form" select="$container//form[contains-token(@class, 'sparql-query-form')]" as="element()"/>
