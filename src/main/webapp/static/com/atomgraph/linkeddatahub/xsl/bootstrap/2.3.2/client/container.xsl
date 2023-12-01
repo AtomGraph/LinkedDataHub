@@ -847,7 +847,7 @@ exclude-result-prefixes="#all"
 
     <!-- container mode tabs -->
     
-    <xsl:template match="*[contains-token(@class, 'resource-content')]//div/ul[@class = 'nav nav-tabs']/li[not(contains-token(@class, 'active'))]/a" mode="ixsl:onclick">
+    <xsl:template match="*[contains-token(@class, 'resource-content')]//div/ul[contains-token(@class, 'nav-tabs')]/li[not(contains-token(@class, 'active'))]/a" mode="ixsl:onclick">
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'resource-content')]" as="element()"/>
         <xsl:variable name="results-container" select="$container//div[contains-token(@class, 'sparql-query-results')]" as="element()"/> <!-- results in the middle column -->
         <xsl:variable name="content-uri" select="xs:anyURI($container/@about)" as="xs:anyURI"/>

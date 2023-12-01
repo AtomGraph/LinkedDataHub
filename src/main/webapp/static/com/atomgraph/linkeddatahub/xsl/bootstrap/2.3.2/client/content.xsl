@@ -1325,7 +1325,7 @@ LIMIT 100]]></sp:text>
     
     <!-- toggle query results to container mode -->
     
-    <xsl:template match="*[contains-token(@class, 'query-content')]//ul[@class = 'nav nav-tabs'][contains-token(@class, 'nav-query-results')]/li[contains-token(@class, 'container-mode')][not(contains-token(@class, 'active'))]/a" mode="ixsl:onclick" priority="1">
+    <xsl:template match="*[contains-token(@class, 'query-content')]//ul[contains-token(@class, 'nav-tabs')][contains-token(@class, 'nav-query-results')]/li[contains-token(@class, 'container-mode')][not(contains-token(@class, 'active'))]/a" mode="ixsl:onclick" priority="1">
         <xsl:variable name="this" select="ancestor::div[@about][1]/@about" as="xs:anyURI"/>
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'query-content')]" as="element()"/>
         <xsl:variable name="form" select="$container//form[contains-token(@class, 'sparql-query-form')]" as="element()"/>
