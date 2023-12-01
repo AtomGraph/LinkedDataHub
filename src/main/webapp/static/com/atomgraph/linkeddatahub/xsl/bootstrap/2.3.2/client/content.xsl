@@ -1295,6 +1295,7 @@ LIMIT 100]]></sp:text>
                     <xsl:with-param name="container" select="$container"/>
                     <xsl:with-param name="textarea-id" select="$textarea-id"/>
                     <xsl:with-param name="chart-canvas-id" select="$container-id || '-chart-canvas'"/>
+                    <xsl:with-param name="results-container-id" select="$container-id || '-query-results'"/>
                     <xsl:with-param name="query" select="$query-string"/>
                 </xsl:call-template>
             </ixsl:schedule-action>
