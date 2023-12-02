@@ -1306,7 +1306,7 @@ LIMIT 100]]></sp:text>
 
     <!-- toggle query results to chart mode -->
     
-    <xsl:template match="*[contains-token(@class, 'query-content')]//ul[@class = 'nav nav-tabs'][contains-token(@class, 'nav-query-results')]/li[contains-token(@class, 'chart-mode')][not(contains-token(@class, 'active'))]/a" mode="ixsl:onclick" priority="1"> <!-- prioritize over container.xsl -->
+    <xsl:template match="*[contains-token(@class, 'query-content')]//ul[contains-token(@class, 'nav-tabs')][contains-token(@class, 'nav-query-results')]/li[contains-token(@class, 'chart-mode')][not(contains-token(@class, 'active'))]/a" mode="ixsl:onclick">
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'query-content')]" as="element()"/>
         <xsl:variable name="form" select="$container//form[contains-token(@class, 'sparql-query-form')]" as="element()"/>
 
@@ -1326,7 +1326,7 @@ LIMIT 100]]></sp:text>
     
     <!-- toggle query results to container mode -->
     
-    <xsl:template match="*[contains-token(@class, 'query-content')]//ul[contains-token(@class, 'nav-tabs')][contains-token(@class, 'nav-query-results')]/li[contains-token(@class, 'container-mode')][not(contains-token(@class, 'active'))]/a" mode="ixsl:onclick" priority="1"> <!-- prioritize over container.xsl -->
+    <xsl:template match="*[contains-token(@class, 'query-content')]//ul[contains-token(@class, 'nav-tabs')][contains-token(@class, 'nav-query-results')]/li[contains-token(@class, 'container-mode')][not(contains-token(@class, 'active'))]/a" mode="ixsl:onclick">
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'query-content')]" as="element()"/>
         <xsl:variable name="form" select="$container//form[contains-token(@class, 'sparql-query-form')]" as="element()"/>
         <xsl:variable name="textarea-id" select="$form//textarea[@name = 'query']/ixsl:get(., 'id')" as="xs:string"/>
