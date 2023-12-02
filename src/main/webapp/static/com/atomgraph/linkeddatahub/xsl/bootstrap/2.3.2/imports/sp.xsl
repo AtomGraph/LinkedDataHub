@@ -34,7 +34,7 @@ exclude-result-prefixes="#all">
 
     <!-- BLOCK MODE -->
 
-    <xsl:template match="*[sp:text/text()]" mode="bs2:Block">
+    <xsl:template match="*[$ac:mode = '&ac;ContentMode'][sp:text/text()]" mode="bs2:Block">
         <xsl:param name="method" select="'get'" as="xs:string"/>
         <xsl:param name="action" select="xs:anyURI('')" as="xs:anyURI"/>
         <xsl:param name="id" as="xs:string?"/>
@@ -42,7 +42,6 @@ exclude-result-prefixes="#all">
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
         <xsl:param name="enctype" as="xs:string?"/>
         <xsl:param name="textarea-id" select="'id' || ac:uuid()" as="xs:string"/>
-        <!--<xsl:param name="uri" as="xs:anyURI?"/>-->
         <xsl:param name="mode" as="xs:anyURI*"/>
         <xsl:param name="service" as="xs:anyURI?"/>
         <xsl:param name="endpoint" as="xs:anyURI?"/>
