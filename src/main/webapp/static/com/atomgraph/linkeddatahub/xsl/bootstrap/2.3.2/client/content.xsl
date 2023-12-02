@@ -1287,6 +1287,10 @@ LIMIT 100]]></sp:text>
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
+        <xsl:message>
+            ixsl:onsubmit $request-uri: <xsl:value-of select="$request-uri"/>
+        </xsl:message>
+        
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="$request">
                 <xsl:call-template name="onSPARQLResultsLoad">
