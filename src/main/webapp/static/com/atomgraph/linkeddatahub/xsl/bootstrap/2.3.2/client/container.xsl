@@ -860,10 +860,6 @@ exclude-result-prefixes="#all"
         <xsl:variable name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.apps'))" as="element()?"/>
         <xsl:variable name="endpoint" select="($service/sd:endpoint/@rdf:resource/xs:anyURI(.), sd:endpoint())[1]"/>
         
-        <xsl:message>
-            CONTAINER.XSL ixsl:onsubmit
-        </xsl:message>
-        
         <!-- deactivate other tabs -->
         <xsl:for-each select="../../li">
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', false() ])[current-date() lt xs:date('2000-01-01')]"/>

@@ -1286,10 +1286,6 @@ LIMIT 100]]></sp:text>
         <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml,application/rdf+xml;q=0.9' } }" as="map(xs:string, item())"/>
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
-
-        <xsl:message>
-            CONTENT.XSL ixsl:onsubmit $request-uri: <xsl:value-of select="$request-uri"/>
-        </xsl:message>
         
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="$request">
@@ -1310,7 +1306,7 @@ LIMIT 100]]></sp:text>
 
     <!-- toggle query results to chart mode -->
     
-    <xsl:template match="*[contains-token(@class, 'query-content')]//ul[@class = 'nav nav-tabs']/li[contains-token(@class, 'chart-mode')][not(contains-token(@class, 'active'))]/a" mode="ixsl:onclick">
+    <xsl:template match="*[contains-token(@class, 'query-content')]//ul[@class = 'nav nav-tabs'][contains-token(@class, 'nav-query-results')]/li[contains-token(@class, 'chart-mode')][not(contains-token(@class, 'active'))]/a" mode="ixsl:onclick" priority="1"> <!-- prioritize over container.xsl -->
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'query-content')]" as="element()"/>
         <xsl:variable name="form" select="$container//form[contains-token(@class, 'sparql-query-form')]" as="element()"/>
 
@@ -1330,7 +1326,7 @@ LIMIT 100]]></sp:text>
     
     <!-- toggle query results to container mode -->
     
-    <xsl:template match="*[contains-token(@class, 'query-content')]//ul[contains-token(@class, 'nav-tabs')][contains-token(@class, 'nav-query-results')]/li[contains-token(@class, 'container-mode')][not(contains-token(@class, 'active'))]/a" mode="ixsl:onclick" priority="1">
+    <xsl:template match="*[contains-token(@class, 'query-content')]//ul[contains-token(@class, 'nav-tabs')][contains-token(@class, 'nav-query-results')]/li[contains-token(@class, 'container-mode')][not(contains-token(@class, 'active'))]/a" mode="ixsl:onclick" priority="1"> <!-- prioritize over container.xsl -->
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'query-content')]" as="element()"/>
         <xsl:variable name="form" select="$container//form[contains-token(@class, 'sparql-query-form')]" as="element()"/>
         <xsl:variable name="textarea-id" select="$form//textarea[@name = 'query']/ixsl:get(., 'id')" as="xs:string"/>
