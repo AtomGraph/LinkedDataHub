@@ -34,7 +34,7 @@ exclude-result-prefixes="#all">
 
     <!-- BLOCK MODE -->
 
-    <xsl:template match="*[$ac:mode = '&ac;ContentMode'][sp:text/text()]" mode="bs2:Block">
+    <xsl:template match="*[ixsl:query-params()?mode = '&ac;ContentMode'][sp:text/text()]" mode="bs2:Block" use-when="system-property('xsl:product-name') eq 'SaxonJS'">
         <xsl:param name="method" select="'get'" as="xs:string"/>
         <xsl:param name="action" select="xs:anyURI('')" as="xs:anyURI"/>
         <xsl:param name="id" as="xs:string?"/>
