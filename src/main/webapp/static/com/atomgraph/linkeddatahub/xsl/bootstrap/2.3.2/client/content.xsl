@@ -187,13 +187,14 @@ exclude-result-prefixes="#all"
         <xsl:param name="this" as="xs:anyURI"/>
         <xsl:param name="container" as="element()"/>
         <xsl:param name="graph" as="xs:anyURI?"/>
+        <xsl:param name="container-mode" select="false()" as="xs:boolean"/>
         <xsl:param name="mode" as="xs:anyURI?"/>
         <xsl:param name="refresh-content" as="xs:boolean?"/>
         <xsl:param name="base-uri" select="base-uri()" as="xs:anyURI"/>
         <xsl:param name="content-uri" select="if ($container/@about) then $container/@about else xs:anyURI(ac:absolute-path($base-uri) || '#' || $container/@id)" as="xs:anyURI"/>
         
         <xsl:choose>
-            <xsl:when test="$mode = '&ac;ContainerMode'">
+            <xsl:when test="$container-mode">
                 <!-- set $this variable value unless getting the query string from state -->
                 <xsl:variable name="select-string" select="replace(sp:text, '$this', '&lt;' || $this || '&gt;', 'q')" as="xs:string"/>
                 <xsl:variable name="select-xml" as="document-node()">
@@ -1383,7 +1384,7 @@ LIMIT 100]]></sp:text>
             <xsl:with-param name="this" select="id('content-body', ixsl:page())/@about"/>
             <xsl:with-param name="container" select="$container//div[contains-token(@class, 'sparql-query-results')]"/>
             <xsl:with-param name="content-uri" select="$content-uri"/>
-            <xsl:with-param name="mode" select="xs:anyURI('&ac;ContainerMode')"/>
+            <xsl:with-param name="container-mode" select="true()"/>
             <xsl:with-param name="base-uri" select="ac:absolute-path(base-uri())"/>
         </xsl:apply-templates>
     </xsl:template>
