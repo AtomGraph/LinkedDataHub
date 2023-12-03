@@ -539,7 +539,7 @@ dh:Item spin:constructor :TitleConstructor, :DescriptionConstructor, :PrimaryTop
 
         CONSTRUCT {
             $this rdf:_1 [ a ldh:Content ;
-                rdf:value ldh:SelectChildren
+                rdf:value ldh:ChildrenContainer
             ] .
         }
         WHERE {}""" ;
