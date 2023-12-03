@@ -273,6 +273,41 @@ exclude-result-prefixes="#all"
         </xsl:choose>
     </xsl:template>
 
+    <!-- SELECT query -->
+    
+    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&sp;Select'][sp:text]" mode="ldh:RenderContent" priority="1">
+        <xsl:param name="this" as="xs:anyURI"/>
+        <xsl:param name="container" as="element()"/>
+        <xsl:param name="graph" as="xs:anyURI?"/>
+        <xsl:param name="refresh-content" as="xs:boolean?"/>
+        <xsl:param name="base-uri" select="base-uri()" as="xs:anyURI"/>
+        <xsl:param name="content-uri" select="if ($container/@about) then $container/@about else xs:anyURI(ac:absolute-path($base-uri) || '#' || $container/@id)" as="xs:anyURI"/>
+        
+        <xsl:variable name="row" as="element()*">
+            <xsl:apply-templates select="." mode="bs2:Row">
+                <xsl:with-param name="graph" select="$graph" tunnel="yes"/>
+                <xsl:with-param name="mode" select="$mode"/>
+            </xsl:apply-templates>
+        </xsl:variable>
+
+        <xsl:for-each select="$container">
+            <xsl:result-document href="?." method="ixsl:replace-content">
+                <xsl:copy-of select="$row/*"/>
+            </xsl:result-document>
+        </xsl:for-each>
+
+        <xsl:call-template name="ldh:ContentLoaded">
+            <xsl:with-param name="container" select="$container"/>
+        </xsl:call-template>
+
+        <xsl:variable name="textarea-id" select="$row//textarea[@name = 'query']/ixsl:get(., 'id')" as="xs:string"/>
+        <!-- initialize YASQE on the textarea -->
+        <xsl:variable name="js-statement" as="element()">
+            <root statement="YASQE.fromTextArea(document.getElementById('{$textarea-id}'), {{ persistent: null }})"/>
+        </xsl:variable>
+        <ixsl:set-property name="{$textarea-id}" select="ixsl:eval(string($js-statement/@statement))" object="ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe')"/>
+    </xsl:template>
+
     <!-- DESCRIBE/CONSTRUCT queries -->
     
     <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = ('&sp;Describe', '&sp;Construct')][sp:text]" mode="ldh:RenderContent" priority="1">
