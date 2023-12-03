@@ -194,12 +194,12 @@ extension-element-prefixes="ixsl"
                         <button type="button" class="btn btn-primary create-action add-query-content">
                             <xsl:apply-templates select="key('resources', '&sp;Query', document(ac:document-uri('&sp;')))" mode="ac:label"/>
                         </button>
-<!--                        <button type="button" class="btn btn-primary create-action add-chart-content">
+                        <button type="button" class="btn btn-primary create-action add-chart-content">
                             <xsl:apply-templates select="key('resources', '&ldh;Chart', document(ac:document-uri('&ldh;')))" mode="ac:label"/>
                         </button>
                         <button type="button" class="btn btn-primary create-action add-container-content">
                             <xsl:apply-templates select="key('resources', '&dh;Container', document(ac:document-uri('&dh;')))" mode="ac:label"/>
-                        </button>-->
+                        </button>
                     </p>
                 </div>
             </div>

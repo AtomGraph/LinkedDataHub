@@ -18,7 +18,7 @@
         rdf:_1 <#select-children> .
 
     <#select-children> a ldh:Content ;
-        rdf:value ldh:SelectChildren .
+        rdf:value ldh:ChildrenContainer .
 
 }
 
@@ -33,7 +33,7 @@
         rdf:_1 <queries/#select-children> .
 
     <queries/#select-children> a ldh:Content ;
-        rdf:value ldh:SelectChildren .
+        rdf:value ldh:ChildrenContainer .
 
 }
 
@@ -88,7 +88,7 @@ WHERE
         rdf:_1 <files/#select-children> .
 
     <files/#select-children> a ldh:Content ;
-        rdf:value ldh:SelectChildren .
+        rdf:value ldh:ChildrenContainer .
 
 }
 
@@ -101,7 +101,7 @@ WHERE
         rdf:_1 <imports/#select-children> .
 
     <imports/#select-children> a ldh:Content ;
-        rdf:value ldh:SelectChildren .
+        rdf:value ldh:ChildrenContainer .
 
 }
 
@@ -174,7 +174,7 @@ WHERE
         rdf:_1 <charts/#select-children> .
 
     <charts/#select-children> a ldh:Content ;
-        rdf:value ldh:SelectChildren .
+        rdf:value ldh:ChildrenContainer .
 
 }
 
@@ -187,7 +187,7 @@ WHERE
         rdf:_1 <apps/#select-children> .
 
     <apps/#select-children> a ldh:Content ;
-        rdf:value ldh:SelectChildren .
+        rdf:value ldh:ChildrenContainer .
 
 }
 
@@ -200,7 +200,7 @@ WHERE
         rdf:_1 <services/#select-children> .
 
     <services/#select-children> a ldh:Content ;
-        rdf:value ldh:SelectChildren .
+        rdf:value ldh:ChildrenContainer .
 
 }
 
@@ -342,7 +342,7 @@ WHERE
         rdf:_1 <acl/#select-children> .
 
     <acl/#select-children> a ldh:Content ;
-        rdf:value ldh:SelectChildren .
+        rdf:value ldh:ChildrenContainer .
 }
 
 <acl/authorizations/>
@@ -355,7 +355,7 @@ WHERE
         rdf:_1 <acl/authorizations/#select-children> .
 
     <acl/authorizations/#select-children> a ldh:Content ;
-        rdf:value ldh:SelectChildren .
+        rdf:value ldh:ChildrenContainer .
 
 }
 
@@ -369,7 +369,7 @@ WHERE
         rdf:_1 <acl/authorization-requests/#select-children> .
 
     <acl/authorization-requests/#select-children> a ldh:Content ;
-        rdf:value ldh:SelectChildren .
+        rdf:value ldh:ChildrenContainer .
 
 }
 
@@ -383,7 +383,7 @@ WHERE
         rdf:_1 <acl/agents/#select-children> .
 
     <acl/agents/#select-children> a ldh:Content ;
-        rdf:value ldh:SelectChildren .
+        rdf:value ldh:ChildrenContainer .
 
 }
 
@@ -397,7 +397,7 @@ WHERE
         rdf:_1 <acl/public-keys/#select-children> .
 
     <acl/public-keys/#select-children> a ldh:Content ;
-        rdf:value ldh:SelectChildren .
+        rdf:value ldh:ChildrenContainer .
 
 }
 
@@ -411,7 +411,7 @@ WHERE
         rdf:_1 <acl/users/#select-children> .
 
     <acl/users/#select-children> a ldh:Content ;
-        rdf:value ldh:SelectChildren .
+        rdf:value ldh:ChildrenContainer .
 
 }
 
@@ -425,7 +425,7 @@ WHERE
         rdf:_1 <acl/groups/#select-children> .
 
     <acl/groups/#select-children> a ldh:Content ;
-        rdf:value ldh:SelectChildren .
+        rdf:value ldh:ChildrenContainer .
 
 }
 
@@ -709,7 +709,7 @@ WHERE
         rdf:_1 <model/#select-children> .
 
     <model/#select-children> a ldh:Content ;
-        rdf:value ldh:SelectChildren .
+        rdf:value ldh:ChildrenContainer .
 
 }
 
@@ -723,7 +723,7 @@ WHERE
         rdf:_1 <model/ontologies/#select-children> .
 
     <model/ontologies/#select-children> a ldh:Content ;
-        rdf:value ldh:SelectChildren .
+        rdf:value ldh:ChildrenContainer .
 
 }
 
@@ -737,7 +737,7 @@ WHERE
         rdf:_1 <model/shapes/#select-children> .
 
     <model/shapes/#select-children> a ldh:Content ;
-        rdf:value ldh:SelectChildren .
+        rdf:value ldh:ChildrenContainer .
 
 }
 

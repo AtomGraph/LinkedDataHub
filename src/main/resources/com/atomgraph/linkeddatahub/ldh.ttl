@@ -231,6 +231,28 @@
     rdfs:label "Model chart constructor" ;
     rdfs:isDefinedBy : .
 
+# container
+
+:Container a rdfs:Class, owl:Class ;
+    rdfs:label "Container" ;
+    spin:constructor :ContainerConstructor ;
+    spin:constraint :MissingQuery ;
+    rdfs:isDefinedBy : .
+
+:ContainerConstructor a :Constructor ;
+  sp:text """
+      PREFIX spin:  <http://spinrdf.org/spin#>
+      PREFIX sp:    <http://spinrdf.org/sp#>
+
+      CONSTRUCT {
+          $this spin:query [ a sp:Select ] .
+      }
+      WHERE {}""" ;
+    rdfs:label "Container constructor" ;
+    rdfs:isDefinedBy : .
+
+# content
+
 :Content a rdfs:Class, owl:Class ;
     rdfs:subClassOf rdf:List ;
     rdfs:label "Content" ;
@@ -385,6 +407,11 @@ WHERE
     rdfs:isDefinedBy : .
 
 # CONTENTS
+
+:ChildrenContainer a :Container ;
+    rdfs:label "Children container" ;
+    spin:query :SelectChildren ;
+    rdfs:isDefinedBy : .
 
 :SelectChildren a sp:Select ;
     rdfs:label "Select children" ;
