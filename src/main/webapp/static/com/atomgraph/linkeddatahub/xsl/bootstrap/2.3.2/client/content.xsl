@@ -1350,7 +1350,7 @@ LIMIT 100]]></sp:text>
         <xsl:variable name="query-type" select="ldh:query-type($query-string)" as="xs:string?"/>
         <xsl:variable name="forClass" select="xs:anyURI('&sp;' || upper-case(substring($query-type, 1, 1)) || lower-case(substring($query-type, 2)))" as="xs:anyURI"/>
         <xsl:variable name="container-id" select="'id' || ac:uuid()" as="xs:string"/>
-        <xsl:variable name="container-uri" select="xs:anyURI(ac:absolute-path(base-uri()) || '#' || $query-id)" as="xs:anyURI"/>
+        <xsl:variable name="container-uri" select="xs:anyURI(ac:absolute-path(base-uri()) || '#' || $container-id)" as="xs:anyURI"/>
         <xsl:variable name="constructor" as="document-node()">
             <xsl:document>
                 <rdf:RDF>
