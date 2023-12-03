@@ -1256,6 +1256,7 @@ LIMIT 100]]></sp:text>
 
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'content', true() ])[current-date() lt xs:date('2000-01-01')]"/>
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'query-content', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'resource-content', true() ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
         
         <xsl:for-each select="ancestor::div[contains-token(@class, 'main')]">
@@ -1348,6 +1349,8 @@ LIMIT 100]]></sp:text>
         <xsl:variable name="query-uri" select="xs:anyURI(ac:absolute-path(base-uri()) || '#' || $query-id)" as="xs:anyURI"/>
         <xsl:variable name="query-type" select="ldh:query-type($query-string)" as="xs:string?"/>
         <xsl:variable name="forClass" select="xs:anyURI('&sp;' || upper-case(substring($query-type, 1, 1)) || lower-case(substring($query-type, 2)))" as="xs:anyURI"/>
+        <xsl:variable name="container-id" select="'id' || ac:uuid()" as="xs:string"/>
+        <xsl:variable name="container-uri" select="xs:anyURI(ac:absolute-path(base-uri()) || '#' || $query-id)" as="xs:anyURI"/>
         <xsl:variable name="constructor" as="document-node()">
             <xsl:document>
                 <rdf:RDF>
@@ -1361,12 +1364,16 @@ LIMIT 100]]></sp:text>
                             <ldh:service rdf:resource="$service-uri"/>
                         </xsl:if>
                     </rdf:Description>
+                    <rdf:Description rdf:about="{$container-uri}">
+                        <rdf:type rdf:resource="&ldh;Container"/>
+                        <spin:query rdf:resource="{$query-uri}"/>
+                    </rdf:Description>
                 </rdf:RDF>
             </xsl:document>
         </xsl:variable>
         <xsl:variable name="content-id" select="$container/@id" as="xs:string"/>
         <xsl:variable name="content-uri" select="if ($container/@about) then $container/@about else xs:anyURI(ac:absolute-path(base-uri()) || '#' || $content-id)" as="xs:anyURI"/>
-        <xsl:variable name="value" select="$constructor//*[rdf:type/@rdf:resource]" as="element()"/>
+        <xsl:variable name="value" select="$constructor//*[@rdf:about = $container-uri]" as="element()"/>
 
         <!-- deactivate other tabs -->
         <xsl:for-each select="../../li">
@@ -1393,7 +1400,6 @@ LIMIT 100]]></sp:text>
             <xsl:with-param name="this" select="id('content-body', ixsl:page())/@about"/>
             <xsl:with-param name="container" select="$container//div[contains-token(@class, 'sparql-query-results')]"/>
             <xsl:with-param name="content-uri" select="$content-uri"/>
-            <xsl:with-param name="container-mode" select="true()"/>
             <xsl:with-param name="base-uri" select="ac:absolute-path(base-uri())"/>
         </xsl:apply-templates>
     </xsl:template>
