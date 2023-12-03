@@ -1335,7 +1335,7 @@ exclude-result-prefixes="#all"
                                         <xsl:with-param name="active-mode" select="$active-mode"/>
                                     </xsl:call-template>
                                     
-                                    <div id="{$container-results-id}" class="container-results"></div>
+                                    <div id="{$container-results-id}" class="sparql-query-results"></div>
                                 </div>
                             </xsl:result-document>
                         </xsl:for-each>
@@ -1370,7 +1370,7 @@ exclude-result-prefixes="#all"
                     
         
                     <xsl:call-template name="ldh:RenderContainerMode">
-                        <xsl:with-param name="container" select="$content-container//div[contains-token(@class, 'container-results')]"/>
+                        <xsl:with-param name="container" select="$content-container//div[contains-token(@class, 'sparql-query-results')]"/>
                         <xsl:with-param name="content-id" select="$content-id"/>
                         <xsl:with-param name="content-uri" select="$content-uri"/>
                         <xsl:with-param name="content" select="$content"/>
