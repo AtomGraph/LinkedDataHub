@@ -192,9 +192,8 @@ exclude-result-prefixes="#all"
         <xsl:param name="refresh-content" as="xs:boolean?"/>
         <xsl:param name="base-uri" select="base-uri()" as="xs:anyURI"/>
         <xsl:param name="content-uri" select="if ($container/@about) then $container/@about else xs:anyURI(ac:absolute-path($base-uri) || '#' || $container/@id)" as="xs:anyURI"/>
-        
         <!-- TO-DO: make request asynchronous -->
-        <xsl:variable name="select-query" select="key('resources', spin:query/@rdf:resource, document(ac:document-uri(spin:query/@rdf:resource)))" as="element()"/>
+        <xsl:param name="select-query" select="key('resources', spin:query/@rdf:resource, document(ac:document-uri(spin:query/@rdf:resource)))" as="element()"/>
         <!-- set $this variable value unless getting the query string from state -->
         <xsl:variable name="select-string" select="replace($select-query/sp:text, '$this', '&lt;' || $this || '&gt;', 'q')" as="xs:string"/>
         <xsl:variable name="select-xml" as="document-node()">
@@ -1401,6 +1400,7 @@ LIMIT 100]]></sp:text>
             <xsl:with-param name="container" select="$container//div[contains-token(@class, 'sparql-query-results')]"/>
             <xsl:with-param name="content-uri" select="$content-uri"/>
             <xsl:with-param name="base-uri" select="ac:absolute-path(base-uri())"/>
+            <xsl:with-param name="select-query" select="$constructor//*[@rdf:about = $query-uri]"/>
         </xsl:apply-templates>
     </xsl:template>
     
