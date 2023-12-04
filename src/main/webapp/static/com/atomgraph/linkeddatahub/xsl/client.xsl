@@ -622,18 +622,16 @@ WHERE
         <xsl:param name="title" as="xs:string?"/>
         <xsl:param name="container" as="element()"/>
         <xsl:param name="query" as="xs:string?"/>
-        <xsl:param name="sparql" select="false()" as="xs:boolean"/>
-        <xsl:param name="endpoint" as="xs:anyURI?"/>
         
         <xsl:variable name="state" as="map(xs:string, item())">
             <xsl:map>
                 <xsl:map-entry key="'href'" select="$href"/>
                 <xsl:map-entry key="'container-id'" select="ixsl:get($container, 'id')"/>
-                <xsl:map-entry key="'query-string'" select="$query"/>
+<!--                <xsl:map-entry key="'query-string'" select="$query"/>
                 <xsl:map-entry key="'sparql'" select="$sparql"/>
                 <xsl:if test="$endpoint">
                     <xsl:map-entry key="'endpoint'" select="$endpoint"/>
-                </xsl:if>
+                </xsl:if>-->
             </xsl:map>
         </xsl:variable>
         <xsl:variable name="state-obj" select="ixsl:call(ixsl:window(), 'JSON.parse', [ $state => serialize(map{ 'method': 'json' }) ])"/>
@@ -929,7 +927,7 @@ WHERE
             <xsl:variable name="href" as="xs:anyURI">
                 <xsl:choose>
                     <!-- if ldh:ContentMode is active but no mode param explicitly is specified, change the page's URL to reflect that -->
-                    <xsl:when test="not(exists(ixsl:query-params()?mode)) and id('content-body', ixsl:page())/div[contains-token(@class, 'row-fluid')][1]/ul[contains-token(@class, 'nav-tabs')]/li[contains-token(@class, 'content-mode')][contains-token(@class, 'active')]">
+                    <xsl:when test="not(exists(ixsl:query-params()?mode)) and id('content-body', ixsl:page())/div[contains-token(@class, 'row-fluid')][1]/ul[contains-token(@class, 'nav-tabs')]/li[contains-token(@class, 'content-mode')]">
                         <xsl:variable name="fragment" select="substring-after($href, '#')" as="xs:string"/>
                         <xsl:sequence select="xs:anyURI(ldh:href($ldt:base, ac:absolute-path(base-uri()), map{}, ac:build-uri(ac:absolute-path(base-uri()), map:merge((ixsl:query-params(), map{ 'mode': '&ldh;ContentMode' } ))), $fragment))"/>
                     </xsl:when>
@@ -943,7 +941,6 @@ WHERE
                 <xsl:with-param name="href" select="$href"/>
                 <xsl:with-param name="title" select="/html/head/title"/>
                 <xsl:with-param name="container" select="$container"/>
-                <xsl:with-param name="endpoint" select="$endpoint"/>
             </xsl:call-template>
         </xsl:if>
         

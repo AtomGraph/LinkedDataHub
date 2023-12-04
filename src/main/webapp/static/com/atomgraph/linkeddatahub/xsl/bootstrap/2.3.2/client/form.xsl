@@ -422,7 +422,6 @@ WHERE
         <xsl:if test="not($modal-form)">
             <xsl:call-template name="ldh:PushState">
                 <xsl:with-param name="href" select="ldh:href($ldt:base, ac:absolute-path(base-uri()), map{}, $href)"/>
-                <!--<xsl:with-param name="title" select="/html/head/title"/>-->
                 <xsl:with-param name="container" select="id('content-body', ixsl:page())"/>
             </xsl:call-template>
         </xsl:if>
