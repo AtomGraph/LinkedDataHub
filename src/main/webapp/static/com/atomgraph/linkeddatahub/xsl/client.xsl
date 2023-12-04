@@ -923,18 +923,20 @@ WHERE
             </xsl:choose>
         </xsl:if>
 
-        <xsl:message>
-            $push-state: <xsl:value-of select="$push-state"/>
-            ixsl:query-params()?mode: <xsl:value-of select="ixsl:query-params()?mode"/>
-            exists(id('content-body', ixsl:page())/div[contains-token(@class, 'row-fluid')][1]/ul[contains-token(@class, 'nav-tabs')]/li[contains-token(@class, 'content-mode')][contains-token(@class, 'active')]): <xsl:value-of select="exists(id('content-body', ixsl:page())/div[contains-token(@class, 'row-fluid')][1]/ul[contains-token(@class, 'nav-tabs')]/li[contains-token(@class, 'content-mode')][contains-token(@class, 'active')])"/>
-            exists(id('content-body', ixsl:page())/div[contains-token(@class, 'row-fluid')][1]/ul[contains-token(@class, 'nav-tabs')]/li[contains-token(@class, 'content-mode')]): <xsl:value-of select="exists(id('content-body', ixsl:page())/div[contains-token(@class, 'row-fluid')][1]/ul[contains-token(@class, 'nav-tabs')]/li[contains-token(@class, 'content-mode')])"/>
-        </xsl:message>
-        
         <xsl:if test="$push-state">
+            <!-- cannot use ixsl:query-params() because they're not up to date with $href at this point -->
+            <xsl:variable name="query-params" select="if (contains($href, '?')) then ldh:parse-query-params(substring-after($href, '?')) else map{}" as="map(xs:string, xs:string*)"/>
+            <xsl:message>
+                $push-state: <xsl:value-of select="$push-state"/>
+                $query-params?mode: <xsl:value-of select="$query-params?mode"/>
+                exists(id('content-body', ixsl:page())/div[contains-token(@class, 'row-fluid')][1]/ul[contains-token(@class, 'nav-tabs')]/li[contains-token(@class, 'content-mode')][contains-token(@class, 'active')]): <xsl:value-of select="exists(id('content-body', ixsl:page())/div[contains-token(@class, 'row-fluid')][1]/ul[contains-token(@class, 'nav-tabs')]/li[contains-token(@class, 'content-mode')][contains-token(@class, 'active')])"/>
+                exists(id('content-body', ixsl:page())/div[contains-token(@class, 'row-fluid')][1]/ul[contains-token(@class, 'nav-tabs')]/li[contains-token(@class, 'content-mode')]): <xsl:value-of select="exists(id('content-body', ixsl:page())/div[contains-token(@class, 'row-fluid')][1]/ul[contains-token(@class, 'nav-tabs')]/li[contains-token(@class, 'content-mode')])"/>
+            </xsl:message>
+
             <xsl:variable name="href" as="xs:anyURI">
                 <xsl:choose>
                     <!-- if ldh:ContentMode is active but no mode param explicitly is specified, change the page's URL to reflect that -->
-                    <xsl:when test="not(exists(ixsl:query-params()?mode)) and id('content-body', ixsl:page())/div[contains-token(@class, 'row-fluid')][1]/ul[contains-token(@class, 'nav-tabs')]/li[contains-token(@class, 'content-mode')][contains-token(@class, 'active')]">
+                    <xsl:when test="not(exists($query-params?mode)) and id('content-body', ixsl:page())/div[contains-token(@class, 'row-fluid')][1]/ul[contains-token(@class, 'nav-tabs')]/li[contains-token(@class, 'content-mode')][contains-token(@class, 'active')]">
                         <xsl:variable name="fragment" select="substring-after($href, '#')" as="xs:string"/>
                         <xsl:sequence select="xs:anyURI(ldh:href($ldt:base, ac:absolute-path(base-uri()), map{}, ac:build-uri(ac:absolute-path(base-uri()), map:merge((ixsl:query-params(), map{ 'mode': '&ldh;ContentMode' } ))), $fragment))"/>
                     </xsl:when>
