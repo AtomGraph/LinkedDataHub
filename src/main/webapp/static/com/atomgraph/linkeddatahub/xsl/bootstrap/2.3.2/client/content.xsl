@@ -274,7 +274,7 @@ exclude-result-prefixes="#all"
 
     <!-- SELECT query -->
     
-    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&sp;Select'][sp:text]" mode="ldh:RenderContent" priority="1">
+    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = ('&sp;Select', '&sp;Ask', '&sp;Describe', '&sp;Construct')][sp:text]" mode="ldh:RenderContent" priority="1">
         <xsl:param name="this" as="xs:anyURI"/>
         <xsl:param name="container" as="element()"/>
         <xsl:param name="graph" as="xs:anyURI?"/>
@@ -310,30 +310,30 @@ exclude-result-prefixes="#all"
 
     <!-- DESCRIBE/CONSTRUCT queries -->
     
-    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = ('&sp;Describe', '&sp;Construct')][sp:text]" mode="ldh:RenderContent" priority="1">
+<!--    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = ('&sp;Describe', '&sp;Construct')][sp:text]" mode="ldh:RenderContent" priority="1">
         <xsl:param name="this" as="xs:anyURI"/>
         <xsl:param name="container" as="element()"/>
         <xsl:param name="mode" as="xs:anyURI?"/>
         <xsl:param name="refresh-content" as="xs:boolean?"/>
         <xsl:param name="content-uri" select="xs:anyURI($container/@about)" as="xs:anyURI"/>
-        <!-- set $this variable value unless getting the query string from state -->
+         set $this variable value unless getting the query string from state 
         <xsl:param name="query-string" select="replace(sp:text, '$this', '&lt;' || $this || '&gt;', 'q')" as="xs:string"/>
-        <!-- service can be explicitly specified on content using ldh:service -->
+         service can be explicitly specified on content using ldh:service 
         <xsl:param name="service-uri" select="xs:anyURI(ldh:service/@rdf:resource)" as="xs:anyURI?"/>
         <xsl:param name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.apps'))" as="element()?"/>
         <xsl:param name="endpoint" select="($service/sd:endpoint/@rdf:resource/xs:anyURI(.), sd:endpoint())[1]" as="xs:anyURI"/>
 
         <xsl:choose>
-            <!-- service URI is not specified or specified and can be loaded -->
+             service URI is not specified or specified and can be loaded 
             <xsl:when test="not($service-uri) or ($service-uri and exists($service))">
-                <!-- window.LinkedDataHub.contents[{$content-uri}] object is already created -->
+                 window.LinkedDataHub.contents[{$content-uri}] object is already created 
                 <xsl:if test="$service-uri">
-                    <!-- store (the URI of) the service -->
+                     store (the URI of) the service 
                     <ixsl:set-property name="service-uri" select="$service-uri" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`')"/>
                     <ixsl:set-property name="service" select="$service" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`')"/>
                 </xsl:if>
 
-                <!-- update progress bar -->
+                 update progress bar 
                 <xsl:for-each select="$container//div[@class = 'bar']">
                     <ixsl:set-style name="width" select="'75%'" object="."/>
                 </xsl:for-each>
@@ -359,7 +359,7 @@ exclude-result-prefixes="#all"
                 </xsl:for-each>
             </xsl:otherwise>
         </xsl:choose>
-    </xsl:template>
+    </xsl:template>-->
     
     <!-- .xhtml-content referenced from .resource-content (XHTML transclusion) -->
     

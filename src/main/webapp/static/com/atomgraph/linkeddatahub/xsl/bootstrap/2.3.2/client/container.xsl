@@ -849,7 +849,7 @@ exclude-result-prefixes="#all"
     
     <xsl:template match="*[contains-token(@class, 'resource-content')]//div/ul[contains-token(@class, 'nav-tabs')]/li[not(contains-token(@class, 'active'))]/a" mode="ixsl:onclick">
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'resource-content')]" as="element()"/>
-        <xsl:variable name="results-container" select="$container//div[contains-token(@class, 'sparql-query-results')]" as="element()"/> <!-- results in the middle column -->
+        <xsl:variable name="results-container" select="$container//div[contains-token(@class, 'container-results')]" as="element()"/> <!-- results in the middle column -->
         <xsl:variable name="content-uri" select="xs:anyURI($container/@about)" as="xs:anyURI"/>
         <xsl:variable name="content" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`'), 'content')" as="element()"/>
         <xsl:variable name="active-class" select="../@class" as="xs:string"/>
@@ -1335,7 +1335,7 @@ exclude-result-prefixes="#all"
                                         <xsl:with-param name="active-mode" select="$active-mode"/>
                                     </xsl:call-template>
                                     
-                                    <div id="{$container-results-id}" class="sparql-query-results"></div>
+                                    <div id="{$container-results-id}" class="container-results"></div>
                                 </div>
                             </xsl:result-document>
                         </xsl:for-each>
@@ -1370,7 +1370,7 @@ exclude-result-prefixes="#all"
                     
         
                     <xsl:call-template name="ldh:RenderContainerMode">
-                        <xsl:with-param name="container" select="$content-container//div[contains-token(@class, 'sparql-query-results')]"/>
+                        <xsl:with-param name="container" select="$content-container//div[contains-token(@class, 'container-results')]"/>
                         <xsl:with-param name="content-id" select="$content-id"/>
                         <xsl:with-param name="content-uri" select="$content-uri"/>
                         <xsl:with-param name="content" select="$content"/>
