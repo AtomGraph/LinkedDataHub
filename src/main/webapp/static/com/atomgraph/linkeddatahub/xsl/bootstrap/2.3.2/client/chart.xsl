@@ -106,66 +106,6 @@ exclude-result-prefixes="#all"
         </xsl:call-template>
     </xsl:template>
     
-<!--    <xsl:template name="onAddSaveChartForm">
-        <xsl:param name="query-string" as="xs:string"/>
-        <xsl:param name="service-uri" as="xs:anyURI?"/>
-        <xsl:param name="chart-type" as="xs:anyURI"/>
-        <xsl:param name="category" as="xs:string?"/>
-        <xsl:param name="series" as="xs:string*"/>
-        <xsl:variable name="query-type" select="ldh:query-type($query-string)" as="xs:string"/>
-        <xsl:variable name="forClass" select="xs:anyURI('&sp;' || upper-case(substring($query-type, 1, 1)) || lower-case(substring($query-type, 2)))" as="xs:anyURI"/>
-        - show a modal form if this button is in a <fieldset>, meaning on a resource-level and not form level. Otherwise (e.g. for the "Create" button) show normal form 
-        <xsl:variable name="modal-form" select="true()" as="xs:boolean"/>
-        <xsl:variable name="href" select="ac:build-uri(ac:absolute-path(base-uri()), let $params := map{ 'forClass': string($forClass), 'createGraph': string(true()) } return if ($modal-form) then map:merge(($params, map{ 'mode': '&ac;ModalMode' })) else $params)" as="xs:anyURI"/>
-
-        <xsl:variable name="form-id" select="'id' || ixsl:call(ixsl:window(), 'generateUUID', [])" as="xs:string"/>
-        <xsl:call-template name="onAddForm">
-            <xsl:with-param name="container" select="id('content-body', ixsl:page())"/>
-            <xsl:with-param name="add-class" select="'form-save-chart'"/>
-            <xsl:with-param name="new-form-id" select="$form-id"/>
-        </xsl:call-template>
-
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
-        
-        <xsl:variable name="form" select="id($form-id, ixsl:page())" as="element()"/>
-        <xsl:variable name="item-control-group" select="$form/descendant::div[contains-token(@class, 'control-group')][input[@name = 'pu'][@value = '&sioc;has_container']]" as="element()"/>
-        <xsl:variable name="container" select="resolve-uri('charts/', $ldt:base)" as="xs:anyURI"/>
-        
-        <xsl:variable name="request" as="item()*">
-            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $container, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-                <xsl:call-template name="onTypeaheadResourceLoad">
-                    <xsl:with-param name="resource-uri" select="$container"/>
-                    <xsl:with-param name="typeahead-span" select="$item-control-group/div[contains-token(@class, 'controls')]/span[1]"/>
-                </xsl:call-template>
-            </ixsl:schedule-action>
-        </xsl:variable>
-        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
-        
-         handle both ResultSetChart and GraphChart here 
-        <xsl:variable name="chart-type-group" select="$form/descendant::div[contains-token(@class, 'control-group')][input[@name = 'pu'][@value = '&ldh;chartType']]" as="element()"/>
-        <ixsl:set-property name="value" select="$chart-type" object="$chart-type-group/descendant::select[@name = 'ou']"/>
-        <xsl:variable name="category-control-group" select="$form/descendant::div[contains-token(@class, 'control-group')][input[@name = 'pu'][@value = ('&ldh;categoryVarName', '&ldh;categoryProperty')]]" as="element()"/>
-        <ixsl:set-property name="value" select="$category" object="$category-control-group/descendant::input[@name = ('ou', 'ol')]"/>
-         TO-DO: support more than one series variable 
-        <xsl:variable name="series-control-group" select="$form/descendant::div[contains-token(@class, 'control-group')][input[@name = 'pu'][@value = ('&ldh;seriesVarName', '&ldh;seriesProperty')]]" as="element()"/>
-        <ixsl:set-property name="value" select="$series" object="$series-control-group/descendant::input[@name = ('ou', 'ol')]"/>
-        <xsl:variable name="query-control-group" select="$form/descendant::div[contains-token(@class, 'control-group')][input[@name = 'pu'][@value = '&spin;query']]" as="element()*"/>
-        <xsl:variable name="target-id" select="$query-control-group/descendant::input[@name = 'ou']/@id" as="xs:string"/>
-        
-        <xsl:variable name="request" as="item()*">
-            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
-                <xsl:call-template name="onAddSaveQueryForm">
-                    <xsl:with-param name="query-string" select="$query-string"/>
-                    <xsl:with-param name="service-uri" select="$service-uri"/>
-                    <xsl:with-param name="add-class" select="()"/>
-                    <xsl:with-param name="form-id" select="'id' || ixsl:call(ixsl:window(), 'generateUUID', [])"/>
-                    <xsl:with-param name="target-id" select="$target-id"/>
-                </xsl:call-template>
-            </ixsl:schedule-action>
-        </xsl:variable>
-        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
-    </xsl:template>-->
-    
     <!-- chart content -->
     <xsl:template match="*[@rdf:about][spin:query/@rdf:resource][ldh:chartType/@rdf:resource]" mode="ldh:RenderContent" priority="1">
         <xsl:param name="container" as="element()"/>

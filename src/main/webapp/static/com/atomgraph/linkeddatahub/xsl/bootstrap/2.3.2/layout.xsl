@@ -118,14 +118,14 @@ exclude-result-prefixes="#all">
             <xsl:map-entry key="'&lapp;Application'" select="resolve-uri('apps/', $ldt:base)"/>
             <xsl:map-entry key="'&sd;Service'" select="resolve-uri('services/', $ldt:base)"/>
             <xsl:map-entry key="'&nfo;FileDataObject'" select="resolve-uri('files/', $ldt:base)"/>
-            <xsl:map-entry key="'&sp;Construct'" select="resolve-uri('queries/', $ldt:base)"/>
+<!--            <xsl:map-entry key="'&sp;Construct'" select="resolve-uri('queries/', $ldt:base)"/>
             <xsl:map-entry key="'&sp;Describe'" select="resolve-uri('queries/', $ldt:base)"/>
             <xsl:map-entry key="'&sp;Select'" select="resolve-uri('queries/', $ldt:base)"/>
-            <xsl:map-entry key="'&sp;Ask'" select="resolve-uri('queries/', $ldt:base)"/>
+            <xsl:map-entry key="'&sp;Ask'" select="resolve-uri('queries/', $ldt:base)"/>-->
             <xsl:map-entry key="'&ldh;RDFImport'" select="resolve-uri('imports/', $ldt:base)"/>
             <xsl:map-entry key="'&ldh;CSVImport'" select="resolve-uri('imports/', $ldt:base)"/>
-            <xsl:map-entry key="'&ldh;GraphChart'" select="resolve-uri('charts/', $ldt:base)"/>
-            <xsl:map-entry key="'&ldh;ResultSetChart'" select="resolve-uri('charts/', $ldt:base)"/>
+<!--            <xsl:map-entry key="'&ldh;GraphChart'" select="resolve-uri('charts/', $ldt:base)"/>
+            <xsl:map-entry key="'&ldh;ResultSetChart'" select="resolve-uri('charts/', $ldt:base)"/>-->
         </xsl:map>
     </xsl:param>
     <xsl:param name="location-mapping" as="map(xs:anyURI, xs:anyURI)">
