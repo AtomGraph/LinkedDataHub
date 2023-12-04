@@ -702,7 +702,7 @@ WHERE
         <xsl:param name="category" as="xs:string?"/>
         <xsl:param name="series" as="xs:string*"/>
         <xsl:param name="push-state" select="true()" as="xs:boolean"/>
-        <xsl:param name="query" as="xs:string?"/>
+        <xsl:param name="query-string" as="xs:string?"/>
         <xsl:param name="endpoint" as="xs:anyURI?"/>
         <xsl:param name="content-method" select="xs:QName('ixsl:replace-content')" as="xs:QName"/>
         <xsl:param name="show-editor" select="true()" as="xs:boolean"/>
@@ -726,28 +726,30 @@ WHERE
                             <xsl:variable name="active-mode" select="xs:anyURI('&ac;ChartMode')" as="xs:anyURI"/>
                             
                             <xsl:result-document href="?." method="ixsl:append-content">
-                                <ul class="nav nav-tabs nav-query-results">
-                                    <li class="chart-mode">
-                                        <xsl:if test="$active-mode = '&ac;ChartMode'">
-                                            <xsl:attribute name="class" select="'chart-mode active'"/>
-                                        </xsl:if>
+                                <xsl:if test="$query-string">
+                                    <ul class="nav nav-tabs nav-query-results">
+                                        <li class="chart-mode">
+                                            <xsl:if test="$active-mode = '&ac;ChartMode'">
+                                                <xsl:attribute name="class" select="'chart-mode active'"/>
+                                            </xsl:if>
 
-                                        <a>
-                                            <xsl:apply-templates select="key('resources', '&ac;ChartMode', document(ac:document-uri('&ac;')))" mode="ldh:logo"/>
-                                            <xsl:apply-templates select="key('resources', '&ac;ChartMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
-                                        </a>
-                                    </li>
-                                    <li class="container-mode">
-                                        <xsl:if test="$active-mode = '&ac;ContainerMode'">
-                                            <xsl:attribute name="class" select="'container-mode active'"/>
-                                        </xsl:if>
+                                            <a>
+                                                <xsl:apply-templates select="key('resources', '&ac;ChartMode', document(ac:document-uri('&ac;')))" mode="ldh:logo"/>
+                                                <xsl:apply-templates select="key('resources', '&ac;ChartMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
+                                            </a>
+                                        </li>
+                                        <li class="container-mode">
+                                            <xsl:if test="$active-mode = '&ac;ContainerMode'">
+                                                <xsl:attribute name="class" select="'container-mode active'"/>
+                                            </xsl:if>
 
-                                        <a>
-                                            <xsl:apply-templates select="key('resources', '&ac;ContainerMode', document(ac:document-uri('&ac;')))" mode="ldh:logo"/>
-                                            <xsl:apply-templates select="key('resources', '&ac;ContainerMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
-                                        </a>
-                                    </li>
-                                </ul>
+                                            <a>
+                                                <xsl:apply-templates select="key('resources', '&ac;ContainerMode', document(ac:document-uri('&ac;')))" mode="ldh:logo"/>
+                                                <xsl:apply-templates select="key('resources', '&ac;ContainerMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </xsl:if>
 
                                 <div class="{$results-container-class}" id="{$results-container-id}"></div>
                             </xsl:result-document>
@@ -768,7 +770,7 @@ WHERE
                     </xsl:for-each>
                     
                     <!-- post-process the container if it's a chart instance being rendered and not SPARQL results -->
-                    <xsl:if test="not($query)">
+                    <xsl:if test="not($query-string)">
                         <xsl:call-template name="ldh:ContentLoaded">
                             <xsl:with-param name="container" select="$container"/>
                         </xsl:call-template>
