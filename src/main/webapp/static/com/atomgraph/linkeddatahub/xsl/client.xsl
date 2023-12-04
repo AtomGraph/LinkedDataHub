@@ -702,7 +702,6 @@ WHERE
         <xsl:param name="category" as="xs:string?"/>
         <xsl:param name="series" as="xs:string*"/>
         <xsl:param name="push-state" select="true()" as="xs:boolean"/>
-        <xsl:param name="textarea-id" as="xs:string"/>
         <xsl:param name="query" as="xs:string?"/>
         <xsl:param name="endpoint" as="xs:anyURI?"/>
         <xsl:param name="content-method" select="xs:QName('ixsl:replace-content')" as="xs:QName"/>
@@ -769,11 +768,11 @@ WHERE
                     </xsl:for-each>
                     
                     <!-- post-process the container if it's a chart instance being rendered and not SPARQL results -->
-<!--                    <xsl:if test="not($query)">
+                    <xsl:if test="not($query)">
                         <xsl:call-template name="ldh:ContentLoaded">
                             <xsl:with-param name="container" select="$container"/>
                         </xsl:call-template>
-                    </xsl:if>-->
+                    </xsl:if>
 
                     <!-- create new cache entry using content URI as key -->
                     <ixsl:set-property name="{'`' || $content-uri || '`'}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
@@ -926,13 +925,6 @@ WHERE
         <xsl:if test="$push-state">
             <!-- cannot use ixsl:query-params() because they're not up to date with $href at this point -->
             <xsl:variable name="query-params" select="if (contains($href, '?')) then ldh:parse-query-params(substring-after($href, '?')) else map{}" as="map(xs:string, xs:string*)"/>
-            <xsl:message>
-                $push-state: <xsl:value-of select="$push-state"/>
-                $query-params?mode: <xsl:value-of select="$query-params?mode"/>
-                exists(id('content-body', ixsl:page())/div[contains-token(@class, 'row-fluid')][1]/ul[contains-token(@class, 'nav-tabs')]/li[contains-token(@class, 'content-mode')][contains-token(@class, 'active')]): <xsl:value-of select="exists(id('content-body', ixsl:page())/div[contains-token(@class, 'row-fluid')][1]/ul[contains-token(@class, 'nav-tabs')]/li[contains-token(@class, 'content-mode')][contains-token(@class, 'active')])"/>
-                exists(id('content-body', ixsl:page())/div[contains-token(@class, 'row-fluid')][1]/ul[contains-token(@class, 'nav-tabs')]/li[contains-token(@class, 'content-mode')]): <xsl:value-of select="exists(id('content-body', ixsl:page())/div[contains-token(@class, 'row-fluid')][1]/ul[contains-token(@class, 'nav-tabs')]/li[contains-token(@class, 'content-mode')])"/>
-            </xsl:message>
-
             <xsl:variable name="href" as="xs:anyURI">
                 <xsl:choose>
                     <!-- if ldh:ContentMode is active but no mode param explicitly is specified, change the page's URL to reflect that -->

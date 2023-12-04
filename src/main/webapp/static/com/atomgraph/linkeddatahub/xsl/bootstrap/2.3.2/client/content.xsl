@@ -1303,7 +1303,7 @@ LIMIT 100]]></sp:text>
                     <xsl:with-param name="results-uri" select="$results-uri"/>
                     <xsl:with-param name="content-uri" select="xs:anyURI(ac:absolute-path(base-uri()) || '#' || $content-id)"/>
                     <xsl:with-param name="container" select="$container"/>
-                    <xsl:with-param name="textarea-id" select="$textarea-id"/>
+                    <!-- <xsl:with-param name="textarea-id" select="$textarea-id"/> -->
                     <xsl:with-param name="chart-canvas-id" select="$content-id || '-chart-canvas'"/>
                     <xsl:with-param name="results-container-id" select="$content-id || '-query-results'"/>
                     <xsl:with-param name="query" select="$query-string"/>
