@@ -938,7 +938,7 @@ WHERE
                     <!-- if ldh:ContentMode is active but no mode param explicitly is specified, change the page's URL to reflect that -->
                     <xsl:when test="not(exists($query-params?mode)) and id('content-body', ixsl:page())/div[contains-token(@class, 'row-fluid')][1]/ul[contains-token(@class, 'nav-tabs')]/li[contains-token(@class, 'content-mode')][contains-token(@class, 'active')]">
                         <xsl:variable name="fragment" select="substring-after($href, '#')" as="xs:string"/>
-                        <xsl:sequence select="xs:anyURI(ldh:href($ldt:base, ac:absolute-path(base-uri()), map{}, ac:build-uri(ac:absolute-path(base-uri()), map:merge((ixsl:query-params(), map{ 'mode': '&ldh;ContentMode' } ))), $fragment))"/>
+                        <xsl:sequence select="xs:anyURI(ldh:href($ldt:base, ac:absolute-path(base-uri()), map{}, ac:build-uri(ac:absolute-path(base-uri()), map:merge(($query-params, map{ 'mode': '&ldh;ContentMode' } ))), $fragment))"/>
                     </xsl:when>
                     <xsl:otherwise>
                         <xsl:sequence select="$href"/>
