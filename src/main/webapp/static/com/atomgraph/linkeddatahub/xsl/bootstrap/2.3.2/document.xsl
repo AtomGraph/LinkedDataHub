@@ -251,7 +251,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="type" select="xs:anyURI('&ldh;GraphChart')" as="xs:anyURI"/>
         <xsl:param name="action" select="ac:build-uri(resolve-uri('charts/', $ldt:base), map{ 'forClass': string($type) })" as="xs:anyURI"/>
         <xsl:param name="id" as="xs:string?"/>
-        <xsl:param name="class" select="'form-inline'" as="xs:string?"/>
+        <xsl:param name="class" select="'form-horizontal'" as="xs:string?"/>
         <xsl:param name="button-class" select="'btn'" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
         <xsl:param name="enctype" as="xs:string?"/>
@@ -267,6 +267,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="query" as="xs:string?"/>
         <xsl:param name="show-controls" select="true()" as="xs:boolean"/>
         <xsl:param name="show-save" select="true()" as="xs:boolean"/>
+        <xsl:param name="show-title" select="true()" as="xs:boolean"/>
 
         <xsl:if test="$show-controls">
             <form method="{$method}" action="{$action}">
@@ -283,6 +284,19 @@ extension-element-prefixes="ixsl"
                     <xsl:attribute name="enctype" select="$enctype"/>
                 </xsl:if>
 
+                <xsl:if test="$show-title">
+                    <div class="control-group required">
+                        <label class="control-label">
+                            <xsl:value-of>
+                                <xsl:apply-templates select="key('resources', '&dct;title', document(ac:document-uri('&dct;')))" mode="ac:label"/>
+                            </xsl:value-of>
+                        </label>
+                        <div class="controls">
+                            <input name="title" type="text"/>
+                        </div>
+                    </div>
+                </xsl:if>
+                
                 <fieldset>
                     <div class="row-fluid">
                         <div class="span4">
@@ -291,7 +305,6 @@ extension-element-prefixes="ixsl"
                                     <xsl:apply-templates select="key('resources', '&ldh;chartType', document(ac:document-uri('&ldh;')))" mode="ac:label"/>
                                 </xsl:value-of>
                             </label>
-                            <br/>
                             <!-- TO-DO: replace with xsl:apply-templates on ac:Chart subclasses as in imports/ldh.xsl -->
                             <select id="{$chart-type-id}" name="ou" class="input-medium chart-type">
                                 <option value="&ac;Table">
@@ -333,7 +346,6 @@ extension-element-prefixes="ixsl"
                         </div>
                         <div class="span4">
                             <label for="{$category-id}">Category</label>
-                            <br/>
                             <select id="{$category-id}" name="ou" class="input-large chart-category">
                                 <option value="">
                                     <!-- URI is the default category -->
@@ -362,7 +374,6 @@ extension-element-prefixes="ixsl"
                         </div>
                         <div class="span4">
                             <label for="{$series-id}">Series</label>
-                            <br/>
                             <select id="{$series-id}" name="ou" multiple="multiple" class="input-large chart-series">
                                 <xsl:for-each-group select="*/*" group-by="concat(namespace-uri(), local-name())">
                                     <xsl:sort select="ac:property-label(.)" order="ascending" lang="{$ldt:lang}" use-when="system-property('xsl:product-name') = 'SAXON'"/>
@@ -417,7 +428,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="type" select="xs:anyURI('&ldh;ResultSetChart')" as="xs:anyURI"/>
         <xsl:param name="action" select="ac:build-uri(resolve-uri('charts/', $ldt:base), map{ 'forClass': string($type) })" as="xs:anyURI"/>
         <xsl:param name="id" as="xs:string?"/>
-        <xsl:param name="class" select="'form-inline'" as="xs:string?"/>
+        <xsl:param name="class" select="'form-horizontal'" as="xs:string?"/>
         <xsl:param name="button-class" select="'btn'" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
         <xsl:param name="enctype" as="xs:string?"/>
@@ -433,6 +444,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="query" as="xs:string?"/>
         <xsl:param name="show-controls" select="true()" as="xs:boolean"/>
         <xsl:param name="show-save" select="true()" as="xs:boolean"/>
+        <xsl:param name="show-title" select="true()" as="xs:boolean"/>
 
         <xsl:if test="$show-controls">
             <form method="{$method}" action="{$action}">
@@ -449,6 +461,19 @@ extension-element-prefixes="ixsl"
                     <xsl:attribute name="enctype" select="$enctype"/>
                 </xsl:if>
 
+                <xsl:if test="$show-title">
+                    <div class="control-group required">
+                        <label class="control-label">
+                            <xsl:value-of>
+                                <xsl:apply-templates select="key('resources', '&dct;title', document(ac:document-uri('&dct;')))" mode="ac:label"/>
+                            </xsl:value-of>
+                        </label>
+                        <div class="controls">
+                            <input name="title" type="text"/>
+                        </div>
+                    </div>
+                </xsl:if>
+                
                 <fieldset>
                     <div class="row-fluid">
                         <div class="span4">
@@ -457,7 +482,6 @@ extension-element-prefixes="ixsl"
                                     <xsl:apply-templates select="key('resources', '&ldh;chartType', document(ac:document-uri('&ldh;')))" mode="ac:label"/>
                                 </xsl:value-of>
                             </label>
-                            <br/>
                             <select id="{$chart-type-id}" name="ou" class="input-medium chart-type">
                                 <option value="&ac;Table">
                                     <xsl:if test="$chart-type = '&ac;Table'">
@@ -504,7 +528,6 @@ extension-element-prefixes="ixsl"
                             </xsl:call-template>
 
                             <label for="{$category-id}">Category</label>
-                            <br/>
                             <select id="{$category-id}" name="ol" class="input-large chart-category">
                                 <xsl:for-each select="srx:head/srx:variable">
                                     <!-- leave the original variable order so it can be controlled from query -->
@@ -521,7 +544,6 @@ extension-element-prefixes="ixsl"
                         </div>
                         <div class="span4">
                             <label for="{$series-id}">Series</label>
-                            <br/>
                             <select id="{$series-id}" name="ol" multiple="multiple" class="input-large chart-series">
                                 <xsl:for-each select="srx:head/srx:variable">
                                     <!-- leave the original variable order so it can be controlled from query -->

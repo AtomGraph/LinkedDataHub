@@ -722,7 +722,7 @@ WHERE
 
                     <!-- create results container element if it doesn't exist -->
                     <xsl:if test="not(id($results-container-id, ixsl:page()))">
-                        <xsl:for-each select="$container">
+                        <xsl:for-each select="$container//div[contains-token(@class, 'main')]">
                             <xsl:variable name="active-mode" select="xs:anyURI('&ac;ChartMode')" as="xs:anyURI"/>
                             
                             <xsl:result-document href="?." method="ixsl:append-content">
@@ -758,14 +758,14 @@ WHERE
                     
                     <xsl:for-each select="id($results-container-id, ixsl:page())">
                         <xsl:result-document href="?." method="ixsl:replace-content">
-                            <xsl:apply-templates select="$results" mode="bs2:Chart">
-                                <xsl:with-param name="endpoint" select="if (not($endpoint = sd:endpoint())) then $endpoint else ()" tunnel="yes"/>
-                                <xsl:with-param name="canvas-id" select="$chart-canvas-id"/>
-                                <xsl:with-param name="chart-type" select="$chart-type"/>
-                                <xsl:with-param name="category" select="$category"/>
-                                <xsl:with-param name="series" select="$series"/>
-                                <xsl:with-param name="show-save" select="$show-chart-save"/>
-                            </xsl:apply-templates>
+                                <xsl:apply-templates select="$results" mode="bs2:Chart">
+                                    <xsl:with-param name="endpoint" select="if (not($endpoint = sd:endpoint())) then $endpoint else ()" tunnel="yes"/>
+                                    <xsl:with-param name="canvas-id" select="$chart-canvas-id"/>
+                                    <xsl:with-param name="chart-type" select="$chart-type"/>
+                                    <xsl:with-param name="category" select="$category"/>
+                                    <xsl:with-param name="series" select="$series"/>
+                                    <xsl:with-param name="show-save" select="$show-chart-save"/>
+                                </xsl:apply-templates>
                         </xsl:result-document>
                     </xsl:for-each>
                     
