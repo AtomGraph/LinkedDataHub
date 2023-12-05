@@ -748,6 +748,7 @@ exclude-result-prefixes="#all"
     <!-- save query-content chart onclick -->
     
     <xsl:template match="div[contains-token(@class, 'query-content')][contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'btn-save-chart')]" mode="ixsl:onclick">
+        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'query-content')][contains-token(@class, 'row-fluid')]" as="element()"/>
         <xsl:variable name="textarea-id" select="descendant::textarea[@name = 'query']/ixsl:get(., 'id')" as="xs:string"/>
         <xsl:variable name="yasqe" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe'), $textarea-id)"/>
         <xsl:variable name="query-string" select="ixsl:call($yasqe, 'getValue', [])" as="xs:string"/> <!-- get query string from YASQE -->
