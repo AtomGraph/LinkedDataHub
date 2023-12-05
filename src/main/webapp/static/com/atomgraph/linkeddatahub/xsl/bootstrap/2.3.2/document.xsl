@@ -286,10 +286,10 @@ extension-element-prefixes="ixsl"
 
                 <xsl:if test="$show-title">
                     <div class="control-group required">
-                        <label class="control-label">
-                            <xsl:value-of>
+                        <label class="control-label">Title
+<!--                            <xsl:value-of>
                                 <xsl:apply-templates select="key('resources', '&dct;title', document(ac:document-uri('&dct;')))" mode="ac:label"/>
-                            </xsl:value-of>
+                            </xsl:value-of>-->
                         </label>
                         <div class="controls">
                             <input name="title" type="text"/>
@@ -463,10 +463,10 @@ extension-element-prefixes="ixsl"
 
                 <xsl:if test="$show-title">
                     <div class="control-group required">
-                        <label class="control-label">
-                            <xsl:value-of>
+                        <label class="control-label">Title
+<!--                            <xsl:value-of>
                                 <xsl:apply-templates select="key('resources', '&dct;title', document(ac:document-uri('&dct;')))" mode="ac:label"/>
-                            </xsl:value-of>
+                            </xsl:value-of>-->
                         </label>
                         <div class="controls">
                             <input name="title" type="text"/>
