@@ -18,7 +18,7 @@
         rdf:_1 <#select-children> .
 
     <#select-children> a ldh:Content ;
-        rdf:value ldh:ChildrenContainer .
+        rdf:value ldh:ChildrenView .
 
 }
 
@@ -33,7 +33,7 @@
         rdf:_1 <queries/#select-children> .
 
     <queries/#select-children> a ldh:Content ;
-        rdf:value ldh:ChildrenContainer .
+        rdf:value ldh:ChildrenView .
 
 }
 
@@ -87,7 +87,7 @@ WHERE
         rdf:_1 <files/#select-children> .
 
     <files/#select-children> a ldh:Content ;
-        rdf:value ldh:ChildrenContainer .
+        rdf:value ldh:ChildrenView .
 
 }
 
@@ -100,7 +100,7 @@ WHERE
         rdf:_1 <imports/#select-children> .
 
     <imports/#select-children> a ldh:Content ;
-        rdf:value ldh:ChildrenContainer .
+        rdf:value ldh:ChildrenView .
 
 }
 
@@ -170,7 +170,7 @@ ORDER BY ?title""" .
         rdf:_1 <charts/#select-children> .
 
     <charts/#select-children> a ldh:Content ;
-        rdf:value ldh:ChildrenContainer .
+        rdf:value ldh:ChildrenView .
 
 }
 
@@ -183,7 +183,7 @@ ORDER BY ?title""" .
         rdf:_1 <apps/#select-children> .
 
     <apps/#select-children> a ldh:Content ;
-        rdf:value ldh:ChildrenContainer .
+        rdf:value ldh:ChildrenView .
 
 }
 
@@ -196,6 +196,6 @@ ORDER BY ?title""" .
         rdf:_1 <services/#select-children> .
 
     <services/#select-children> a ldh:Content ;
-        rdf:value ldh:ChildrenContainer .
+        rdf:value ldh:ChildrenView .
 
 }
