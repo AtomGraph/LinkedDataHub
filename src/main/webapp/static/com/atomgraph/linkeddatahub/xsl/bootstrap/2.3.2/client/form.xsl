@@ -1291,18 +1291,31 @@ WHERE
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
                 <xsl:for-each select="?body">
-                    <xsl:variable name="resource" select="key('resources', $resource-uri)" as="element()"/>
+                    <xsl:variable name="resource" select="key('resources', $resource-uri)" as="element()?"/>
 
-                    <!-- remove modal constructor form -->
-                    <xsl:if test="$modal-form">
-                        <xsl:sequence select="ixsl:call($modal-form/.., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
-                    </xsl:if>
+                    <xsl:choose>
+                        <xsl:when test="$resource">
+                            <!-- remove modal constructor form -->
+    <!--                        <xsl:if test="$modal-form">
+                                <xsl:sequence select="ixsl:call($modal-form/.., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
+                            </xsl:if>-->
 
-                    <xsl:for-each select="$typeahead-span">
-                        <xsl:result-document href="?." method="ixsl:replace-content">
-                            <xsl:apply-templates select="$resource" mode="ldh:Typeahead"/>
-                        </xsl:result-document>
-                    </xsl:for-each>
+                            <xsl:for-each select="$typeahead-span">
+                                <xsl:result-document href="?." method="ixsl:replace-content">
+                                    <xsl:apply-templates select="$resource" mode="ldh:Typeahead"/>
+                                </xsl:result-document>
+                            </xsl:for-each>
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <!-- resource description not found, render lookup input -->
+                            <xsl:call-template name="bs2:Lookup">
+                                <xsl:with-param name="class" select="'resource-typeahead typeahead'"/>
+<!--                                <xsl:with-param name="id" select="'input-' || $uuid"/>-->
+                                <xsl:with-param name="list-class" select="'resource-typeahead typeahead dropdown-menu'"/>
+                                <xsl:with-param name="value" select="$resource-uri"/>
+                            </xsl:call-template>
+                        </xsl:otherwise>
+                    </xsl:choose>
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>

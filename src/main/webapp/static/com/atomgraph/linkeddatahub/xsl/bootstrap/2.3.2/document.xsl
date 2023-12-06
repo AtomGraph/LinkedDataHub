@@ -197,8 +197,8 @@ extension-element-prefixes="ixsl"
                         <button type="button" class="btn btn-primary create-action add-chart-content">
                             <xsl:apply-templates select="key('resources', '&ldh;Chart', document(ac:document-uri('&ldh;')))" mode="ac:label"/>
                         </button>
-                        <button type="button" class="btn btn-primary create-action add-container-content">
-                            <xsl:apply-templates select="key('resources', '&dh;Container', document(ac:document-uri('&dh;')))" mode="ac:label"/>
+                        <button type="button" class="btn btn-primary create-action add-view-content">
+                            <xsl:apply-templates select="key('resources', '&ldh;View', document(ac:document-uri('&ldh;')))" mode="ac:label"/>
                         </button>
                     </p>
                 </div>
