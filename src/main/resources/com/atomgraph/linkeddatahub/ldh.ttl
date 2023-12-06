@@ -21,7 +21,7 @@
     owl:imports dh:, ac:, <http://spinrdf.org/spin>, foaf:, sd:, nfo:, owl: ;
     rdfs:label "LinkedDataHub ontology" ;
     rdfs:comment "Should be imported and reused by all extending applications" ;
-    owl:versionInfo "1.1.5" .
+    owl:versionInfo "1.1.6" .
 
 # PROPERTIES
 
@@ -231,15 +231,15 @@
     rdfs:label "Model chart constructor" ;
     rdfs:isDefinedBy : .
 
-# container
+# view
 
-:Container a rdfs:Class, owl:Class ;
-    rdfs:label "Container" ;
-    spin:constructor :ContainerConstructor ;
+:View a rdfs:Class, owl:Class ;
+    rdfs:label "View" ;
+    spin:constructor :ViewConstructor ;
     spin:constraint :MissingQuery ;
     rdfs:isDefinedBy : .
 
-:ContainerConstructor a :Constructor ;
+:ViewConstructor a :Constructor ;
   sp:text """
       PREFIX spin:  <http://spinrdf.org/spin#>
       PREFIX sp:    <http://spinrdf.org/sp#>
@@ -248,7 +248,7 @@
           $this spin:query [ a sp:Select ] .
       }
       WHERE {}""" ;
-    rdfs:label "Container constructor" ;
+    rdfs:label "View constructor" ;
     rdfs:isDefinedBy : .
 
 # content
@@ -408,7 +408,7 @@ WHERE
 
 # CONTENTS
 
-:ChildrenContainer a :Container ;
+:ChildrenView a :View ;
     rdfs:label "Children container" ;
     spin:query :SelectChildren ;
     rdfs:isDefinedBy : .
@@ -531,7 +531,7 @@ dh:Item spin:constructor :TitleConstructor, :DescriptionConstructor, :PrimaryTop
         WHERE {}""" ;
     rdfs:isDefinedBy : .
 
-:ContainerContentConstructor a :Constructor ;
+:ViewContentConstructor a :Constructor ;
     rdfs:label "Container content constructor" ;
     sp:text """
         PREFIX ldh:     <https://w3id.org/atomgraph/linkeddatahub#>
@@ -539,7 +539,7 @@ dh:Item spin:constructor :TitleConstructor, :DescriptionConstructor, :PrimaryTop
 
         CONSTRUCT {
             $this rdf:_1 [ a ldh:Content ;
-                rdf:value ldh:ChildrenContainer
+                rdf:value ldh:ChildrenView
             ] .
         }
         WHERE {}""" ;
@@ -551,7 +551,7 @@ dh:Item spin:constructor :TitleConstructor, :DescriptionConstructor, :PrimaryTop
     sp:arg1 sioc:has_container ;
     rdfs:isDefinedBy : .
 
-dh:Container spin:constructor :TitleConstructor, :DescriptionConstructor, :PrimaryTopicConstructor, :ContainerContentConstructor .
+dh:Container spin:constructor :TitleConstructor, :DescriptionConstructor, :PrimaryTopicConstructor, :ViewContentConstructor .
     # spin:constraint :MissingParent .
 
 :MissingParent a :MissingPropertyValue ;

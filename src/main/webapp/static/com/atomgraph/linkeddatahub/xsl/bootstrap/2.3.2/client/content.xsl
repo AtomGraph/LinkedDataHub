@@ -184,7 +184,7 @@ exclude-result-prefixes="#all"
 
     <!-- CONTAINER -->
     
-    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;Container'][spin:query/@rdf:resource]" mode="ldh:RenderContent" priority="1">
+    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;View'][spin:query/@rdf:resource]" mode="ldh:RenderContent" priority="1">
         <xsl:param name="this" as="xs:anyURI"/>
         <xsl:param name="container" as="element()"/>
         <xsl:param name="graph" as="xs:anyURI?"/>
@@ -261,13 +261,17 @@ exclude-result-prefixes="#all"
                 </xsl:call-template>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:for-each select="$container">
+                <xsl:for-each select="$container//div[contains-token(@class, 'main')]">
                     <xsl:result-document href="?." method="ixsl:replace-content">
                         <div class="alert alert-block">
                             <strong>Could not load service resource: <a href="{$service-uri}"><xsl:value-of select="$service-uri"/></a></strong>
                         </div>
                     </xsl:result-document>
                 </xsl:for-each>
+
+                <xsl:call-template name="ldh:ContentLoaded">
+                    <xsl:with-param name="container" select="$container"/>
+                </xsl:call-template>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
@@ -350,13 +354,17 @@ exclude-result-prefixes="#all"
                 </ixsl:schedule-action>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:for-each select="$container">
+                <xsl:for-each select="$container//div[contains-token(@class, 'main')]">
                     <xsl:result-document href="?." method="ixsl:replace-content">
                         <div class="alert alert-block">
                             <strong>Could not load service resource: <a href="{$service-uri}"><xsl:value-of select="$service-uri"/></a></strong>
                         </div>
                     </xsl:result-document>
                 </xsl:for-each>
+                
+                <xsl:call-template name="ldh:ContentLoaded">
+                    <xsl:with-param name="container" select="$container"/>
+                </xsl:call-template>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>-->
@@ -828,13 +836,17 @@ exclude-result-prefixes="#all"
                 <ixsl:set-style name="border-color" select="'#ff0039'" object="$textarea/following-sibling::div[contains-token(@class, 'CodeMirror')]"/> <!-- YASQE container -->
             </xsl:when>
             <xsl:otherwise>
-                <xsl:for-each select="$container">
+                <xsl:for-each select="$container//div[contains-token(@class, 'main')]">
                     <xsl:result-document href="?." method="ixsl:replace-content">
                         <div class="alert alert-block">
                             <strong>Could not save content resource: <a href="{$query-uri}"><xsl:value-of select="$query-uri"/></a></strong>
                         </div>
                     </xsl:result-document>
                 </xsl:for-each>
+                
+                <xsl:call-template name="ldh:ContentLoaded">
+                    <xsl:with-param name="container" select="$container"/>
+                </xsl:call-template>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
@@ -1369,7 +1381,7 @@ LIMIT 100]]></sp:text>
                         </xsl:if>
                     </rdf:Description>
                     <rdf:Description rdf:about="{$container-uri}">
-                        <rdf:type rdf:resource="&ldh;Container"/>
+                        <rdf:type rdf:resource="&ldh;View"/>
                         <spin:query rdf:resource="{$query-uri}"/>
                     </rdf:Description>
                 </rdf:RDF>
@@ -1621,13 +1633,17 @@ LIMIT 100]]></sp:text>
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:for-each select="$container">
+                <xsl:for-each select="$container//div[contains-token(@class, 'main')]">
                     <xsl:result-document href="?." method="ixsl:replace-content">
                         <div class="alert alert-block">
                             <strong>Could not load content resource: <a href="{$content-value}"><xsl:value-of select="$content-value"/></a></strong>
                         </div>
                     </xsl:result-document>
                 </xsl:for-each>
+                
+                <xsl:call-template name="ldh:ContentLoaded">
+                    <xsl:with-param name="container" select="$container"/>
+                </xsl:call-template>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
@@ -1664,13 +1680,17 @@ LIMIT 100]]></sp:text>
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:for-each select="$container">
+                <xsl:for-each select="$container//div[contains-token(@class, 'main')]">
                     <xsl:result-document href="?." method="ixsl:replace-content">
                         <div class="alert alert-block">
                             <strong>Could not load content resource: <a href="{$query-uri}"><xsl:value-of select="$query-uri"/></a></strong>
                         </div>
                     </xsl:result-document>
                 </xsl:for-each>
+                
+                <xsl:call-template name="ldh:ContentLoaded">
+                    <xsl:with-param name="container" select="$container"/>
+                </xsl:call-template>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
