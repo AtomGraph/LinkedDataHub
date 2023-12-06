@@ -58,10 +58,10 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="let $max-length := max($apps//rdf:Description[ldt:base/@rdf:resource[starts-with($uri, .)]]/string-length(ldt:base/@rdf:resource)) return ($apps//rdf:Description[ldt:base/@rdf:resource[starts-with($uri, .)]][string-length(ldt:base/@rdf:resource) eq $max-length])[1]"/>
     </xsl:function>
     
-    <xsl:function name="ldh:query-type" as="xs:string">
+    <xsl:function name="ldh:query-type" as="xs:string?">
         <xsl:param name="query-string" as="xs:string"/>
         
-        <xsl:sequence select="analyze-string($query-string, '[^a-zA-Z]?(SELECT|ASK|DESCRIBE|CONSTRUCT)[^a-zA-Z]', 'i')/fn:match[1]/fn:group[@nr = '1']/string()"/>
+        <xsl:sequence select="analyze-string($query-string, '[^a-zA-Z]?(SELECT|ASK|DESCRIBE|CONSTRUCT)[^a-zA-Z]', 'i')/fn:match[1]/fn:group[@nr = '1']/string() => upper-case()"/>
     </xsl:function>
 
     <xsl:function name="ldh:new-object">

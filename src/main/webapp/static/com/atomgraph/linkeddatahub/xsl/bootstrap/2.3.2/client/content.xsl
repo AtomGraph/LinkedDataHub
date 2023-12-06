@@ -807,7 +807,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="query-string" select="ixsl:call($yasqe, 'getValue', [])" as="xs:string"/> <!-- get query string from YASQE -->
         <xsl:variable name="service-uri" select="xs:anyURI(ixsl:get(id('query-service'), 'value'))" as="xs:anyURI?"/> <!-- TO-DO: fix content-embedded queries -->
         <xsl:variable name="query-type" select="ldh:query-type($query-string)" as="xs:string"/>
-        <xsl:variable name="forClass" select="if (upper-case($query-type) = ('SELECT', 'ASK')) then xs:anyURI('&ldh;ResultSetChart') else xs:anyURI('&ldh;GraphChart')" as="xs:anyURI"/>
+        <xsl:variable name="forClass" select="if ($query-type = ('SELECT', 'ASK')) then xs:anyURI('&ldh;ResultSetChart') else xs:anyURI('&ldh;GraphChart')" as="xs:anyURI"/>
         <xsl:variable name="modal-form" select="true()" as="xs:boolean"/>
         <xsl:variable name="href" select="ac:build-uri(ac:absolute-path(base-uri()), let $params := map{ 'forClass': string($forClass), 'createGraph': string(true()) } return if ($modal-form) then map:merge(($params, map{ 'mode': '&ac;ModalMode' })) else $params)" as="xs:anyURI"/>
         <xsl:variable name="chart-type" select="../..//select[contains-token(@class, 'chart-type')]/ixsl:get(., 'value')" as="xs:anyURI?"/>
@@ -1518,30 +1518,33 @@ LIMIT 100]]></sp:text>
     <xsl:template match="div[ixsl:query-params()?mode = '&ldh;ContentMode'][contains-token(@class, 'content')][contains-token(@class, 'row-fluid')][acl:mode() = '&acl;Write']" mode="ixsl:ondrop">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="container" select="." as="element()"/>
-        <xsl:variable name="content-uri" select="@about" as="xs:anyURI"/>
+        <xsl:variable name="content-uri" select="@about" as="xs:anyURI?"/>
         <xsl:variable name="drop-content-uri" select="ixsl:call(ixsl:get(ixsl:event(), 'dataTransfer'), 'getData', [ 'text/uri-list' ])" as="xs:anyURI"/>
         
         <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'drag-over', false() ])[current-date() lt xs:date('2000-01-01')]"/>
 
-        <!-- move dropped element after this element, if they're not the same -->
-        <xsl:if test="not($content-uri = $drop-content-uri)">
-            <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+        <!-- only persist the change if the content is already saved and has an @about -->
+        <xsl:if test="$content-uri">
+            <!-- move dropped element after this element, if they're not the same -->
+            <xsl:if test="not($content-uri = $drop-content-uri)">
+                <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
-            <xsl:variable name="drop-content" select="key('content-by-about', $drop-content-uri)" as="element()"/>
-            <xsl:sequence select="ixsl:call(., 'after', [ $drop-content ])"/>
-            
-            <xsl:variable name="update-string" select="replace($content-swap-string, '$this', '&lt;' || ac:absolute-path(base-uri()) || '&gt;', 'q')" as="xs:string"/>
-            <xsl:variable name="update-string" select="replace($update-string, '$targetContent', '&lt;' || $content-uri || '&gt;', 'q')" as="xs:string"/>
-            <xsl:variable name="update-string" select="replace($update-string, '$sourceContent', '&lt;' || $drop-content-uri || '&gt;', 'q')" as="xs:string"/>
-            <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(base-uri()), map{}, ac:absolute-path(base-uri()))" as="xs:anyURI"/>
-            <xsl:variable name="request" as="item()*">
-                <ixsl:schedule-action http-request="map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string }">
-                    <xsl:call-template name="onContentSwap">
-                        <xsl:with-param name="container" select="$container"/>
-                    </xsl:call-template>
-                </ixsl:schedule-action>
-            </xsl:variable>
-            <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+                <xsl:variable name="drop-content" select="key('content-by-about', $drop-content-uri)" as="element()"/>
+                <xsl:sequence select="ixsl:call(., 'after', [ $drop-content ])"/>
+
+                <xsl:variable name="update-string" select="replace($content-swap-string, '$this', '&lt;' || ac:absolute-path(base-uri()) || '&gt;', 'q')" as="xs:string"/>
+                <xsl:variable name="update-string" select="replace($update-string, '$targetContent', '&lt;' || $content-uri || '&gt;', 'q')" as="xs:string"/>
+                <xsl:variable name="update-string" select="replace($update-string, '$sourceContent', '&lt;' || $drop-content-uri || '&gt;', 'q')" as="xs:string"/>
+                <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(base-uri()), map{}, ac:absolute-path(base-uri()))" as="xs:anyURI"/>
+                <xsl:variable name="request" as="item()*">
+                    <ixsl:schedule-action http-request="map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string }">
+                        <xsl:call-template name="onContentSwap">
+                            <xsl:with-param name="container" select="$container"/>
+                        </xsl:call-template>
+                    </ixsl:schedule-action>
+                </xsl:variable>
+                <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+            </xsl:if>
         </xsl:if>
     </xsl:template>
     
