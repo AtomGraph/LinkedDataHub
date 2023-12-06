@@ -429,7 +429,14 @@ extension-element-prefixes="ixsl"
     </xsl:template>
     
     <!-- BLOCK -->
-    
+
+    <!-- append div.resource-content to chart instances which is then rendered by client.xsl -->
+    <xsl:template match="*[@rdf:about][spin:query/@rdf:resource][ldh:chartType/@rdf:resource]" mode="bs2:Block" priority="1">
+        <xsl:next-match/>
+        
+        <div id="{generate-id()}-content" about="{@rdf:about}" class="content resource-content" data-content-value="{@rdf:about}" />
+    </xsl:template>
+
     <!-- embed file content -->
     <xsl:template match="*[@rdf:about][dct:format]" mode="bs2:Block" priority="2">
         <xsl:param name="id" select="generate-id()" as="xs:string?"/>
@@ -762,7 +769,7 @@ extension-element-prefixes="ixsl"
 
     <!-- SPARQL query content -->
     
-    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;Content'][if (doc-available(ac:document-uri(rdf:value/@rdf:resource))) then key('resources', rdf:value/@rdf:resource, document(ac:document-uri(rdf:value/@rdf:resource)))/sp:text/text() else false()]" mode="bs2:RowContent" priority="3">
+    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;Content'][if (rdf:value/@rdf:resource) then (if (doc-available(ac:document-uri(rdf:value/@rdf:resource))) then key('resources', rdf:value/@rdf:resource, document(ac:document-uri(rdf:value/@rdf:resource)))/sp:text/text() else false()) else false()]" mode="bs2:RowContent" priority="3">
         <xsl:param name="id" select="if (contains(@rdf:about, ac:absolute-path(base-uri()) || '#')) then substring-after(@rdf:about, ac:absolute-path(base-uri()) || '#') else generate-id()" as="xs:string?"/>
         <xsl:param name="class" select="'row-fluid content query-content resource-content'" as="xs:string?"/>
         <xsl:param name="graph" select="ldh:graph/@rdf:resource" as="xs:anyURI?"/>
