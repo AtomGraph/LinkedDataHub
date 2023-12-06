@@ -845,7 +845,6 @@ extension-element-prefixes="ixsl"
                     <div class="main offset2 span7">
                         <xsl:apply-templates select="." mode="bs2:Create">
                             <xsl:with-param name="classes" select="$classes"/>
-                            <xsl:with-param name="show-document-classes" select="false()"/>
                         </xsl:apply-templates>
                         
                         <!-- separate "Create" button only for Content -->
@@ -958,9 +957,9 @@ extension-element-prefixes="ixsl"
     <xsl:template match="rdf:RDF[$acl:mode = '&acl;Append'] | srx:sparql[$acl:mode = '&acl;Append']" mode="bs2:Create" priority="1">
         <xsl:param name="class" select="'btn-group'" as="xs:string?"/>
         <xsl:param name="classes" as="element()*"/>
-        <xsl:param name="show-document-classes" select="true()" as="xs:boolean"/>
         <xsl:param name="create-graph" select="false()" as="xs:boolean"/>
         <xsl:param name="base-uri" select="base-uri()" as="xs:anyURI"/>
+        <xsl:param name="show-instance" select="true()" as="xs:boolean"/>
 
         <div>
             <xsl:if test="$class">
@@ -979,30 +978,15 @@ extension-element-prefixes="ixsl"
             </button>
 
             <ul class="dropdown-menu">
-                <xsl:if test="$show-document-classes">
-                    <!--if the current resource is a Container, show Container and Item constructors--> 
-                    <xsl:variable name="document-classes" select="key('resources', ('&dh;Container', '&dh;Item'), document(ac:document-uri('&def;')))" as="element()*"/>
-                    <!-- current resource is a container -->
-                    <xsl:if test="exists($document-classes) and key('resources', ac:absolute-path(base-uri()))/rdf:type/@rdf:resource = ('&def;Root', '&dh;Container')">
-                        <xsl:apply-templates select="$document-classes" mode="bs2:ConstructorListItem">
-                            <xsl:with-param name="create-graph" select="$create-graph"/>
-                            <xsl:with-param name="base-uri" select="$base-uri" tunnel="yes"/>
-                            <xsl:sort select="ac:label(.)"/>
-                        </xsl:apply-templates>
+                <xsl:if test="$show-instance">
+                    <xsl:apply-templates select="key('resources', '&owl;NamedIndividual', document(ac:document-uri('&owl;')))" mode="bs2:ConstructorListItem">
+                        <xsl:with-param name="create-graph" select="$create-graph"/>
+                        <xsl:with-param name="base-uri" select="$base-uri" tunnel="yes"/>
+                        <xsl:sort select="ac:label(.)"/>
+                    </xsl:apply-templates>
 
-                        <xsl:if test="$classes">
-                            <li class="divider"></li>
-                        </xsl:if>
-                    </xsl:if>
+                    <li class="divider"></li>
                 </xsl:if>
-                
-                <xsl:apply-templates select="key('resources', '&owl;NamedIndividual', document(ac:document-uri('&owl;')))" mode="bs2:ConstructorListItem">
-                    <xsl:with-param name="create-graph" select="$create-graph"/>
-                    <xsl:with-param name="base-uri" select="$base-uri" tunnel="yes"/>
-                    <xsl:sort select="ac:label(.)"/>
-                </xsl:apply-templates>
-
-                <li class="divider"></li>
                 
                 <xsl:apply-templates select="$classes" mode="bs2:ConstructorListItem">
                     <xsl:with-param name="create-graph" select="$create-graph"/>
