@@ -1687,6 +1687,10 @@ LIMIT 100]]></sp:text>
                         </div>
                     </xsl:result-document>
                 </xsl:for-each>
+                
+                <xsl:call-template name="ldh:ContentLoaded">
+                    <xsl:with-param name="container" select="$container"/>
+                </xsl:call-template>
             </xsl:when>
             <xsl:otherwise>
                 <xsl:for-each select="$container//div[contains-token(@class, 'main')]">
