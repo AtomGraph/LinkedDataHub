@@ -725,6 +725,8 @@ extension-element-prefixes="ixsl"
 
     <!-- ROW CONTENT -->
     
+    <!-- XHTML content -->
+    
     <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;Content'][rdf:value[@rdf:parseType = 'Literal']/xhtml:div]" mode="bs2:RowContent" priority="2">
         <xsl:param name="id" select="if (contains(@rdf:about, ac:absolute-path(base-uri()) || '#')) then substring-after(@rdf:about, ac:absolute-path(base-uri()) || '#') else generate-id()" as="xs:string?"/>
         <xsl:param name="class" select="'row-fluid content xhtml-content'" as="xs:string?"/>
@@ -768,30 +770,6 @@ extension-element-prefixes="ixsl"
                 <xsl:with-param name="class" select="$right-class"/>
             </xsl:apply-templates>
         </div>
-    </xsl:template>
-
-    <!-- SPARQL query content -->
-    
-    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;Content'][if (rdf:value/@rdf:resource) then (if (doc-available(ac:document-uri(rdf:value/@rdf:resource))) then key('resources', rdf:value/@rdf:resource, document(ac:document-uri(rdf:value/@rdf:resource)))/sp:text/text() else false()) else false()]" mode="bs2:RowContent" priority="3">
-        <xsl:param name="id" select="if (contains(@rdf:about, ac:absolute-path(base-uri()) || '#')) then substring-after(@rdf:about, ac:absolute-path(base-uri()) || '#') else generate-id()" as="xs:string?"/>
-        <xsl:param name="class" select="'row-fluid content query-content resource-content'" as="xs:string?"/>
-        <xsl:param name="graph" select="ldh:graph/@rdf:resource" as="xs:anyURI?"/>
-        <xsl:param name="mode" select="ac:mode/@rdf:resource" as="xs:anyURI?"/>
-        <xsl:param name="left-class" select="'left-nav span2'" as="xs:string?"/>
-        <xsl:param name="main-class" select="'main span7'" as="xs:string?"/>
-        <xsl:param name="right-class" select="'right-nav span3'" as="xs:string?"/>
-        <xsl:param name="draggable" select="$acl:mode = '&acl;Write'" as="xs:boolean?"/>
-        
-        <xsl:next-match>
-            <xsl:with-param name="id" select="$id"/>
-            <xsl:with-param name="class" select="$class"/>
-            <xsl:with-param name="graph" select="$graph"/>
-            <xsl:with-param name="mode" select="$mode"/>
-            <xsl:with-param name="left-class" select="$left-class"/>
-            <xsl:with-param name="main-class" select="$main-class"/>
-            <xsl:with-param name="right-class" select="$right-class"/>
-            <xsl:with-param name="draggable" select="$draggable"/>
-        </xsl:next-match>
     </xsl:template>
     
     <!-- resource content -->

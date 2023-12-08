@@ -47,7 +47,8 @@ exclude-result-prefixes="#all">
         <xsl:param name="service" as="xs:anyURI?"/>
         <xsl:param name="endpoint" as="xs:anyURI?"/>
         <xsl:param name="query" select="sp:text" as="xs:string"/>
-        
+        <xsl:param name="show-next-match" select="false()" as="xs:boolean"/>
+
         <form method="{$method}" action="{$action}">
             <xsl:if test="$id">
                 <xsl:attribute name="id" select="$id"/>
@@ -62,70 +63,44 @@ exclude-result-prefixes="#all">
                 <xsl:attribute name="enctype" select="$enctype"/>
             </xsl:if>
 
-<!--            <fieldset>-->
-<!--                <div class="control-group">
-                    <label class="control-label">Service</label>  for="service" 
+            <textarea name="query" class="span12" rows="15">
+                <xsl:if test="$textarea-id">
+                    <xsl:attribute name="id" select="$textarea-id"/>
+                </xsl:if>
 
-                    <div class="controls">
-                        <select name="service" class="input-xxlarge input-query-service">
-                            <option value="">
-                                <xsl:value-of>
-                                    <xsl:text>[</xsl:text>
-                                    <xsl:apply-templates select="key('resources', 'sparql-service', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                                    <xsl:text>]</xsl:text>
-                                </xsl:value-of>
-                            </option>
-                        </select>
-                    </div>
-                </div>-->
-                
-<!--                <div class="control-group required">
-                    <label class="control-label">Title</label>
+                <xsl:value-of select="$query"/>
+            </textarea>
 
-                    <div class="controls">
-                        <input type="text" name="title"/>
-                    </div>
-                </div>-->
-        
-                <textarea name="query" class="span12" rows="15">
-                    <xsl:if test="$textarea-id">
-                        <xsl:attribute name="id" select="$textarea-id"/>
-                    </xsl:if>
-                    
-                    <xsl:value-of select="$query"/>
-                </textarea>
+            <div class="form-actions">
+                <button type="submit">
+                    <xsl:apply-templates select="key('resources', 'run', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ldh:logo">
+                        <xsl:with-param name="class" select="'btn btn-primary btn-run-query'"/>
+                    </xsl:apply-templates>
 
-                <div class="form-actions">
-                    <button type="submit">
-                        <xsl:apply-templates select="key('resources', 'run', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ldh:logo">
-                            <xsl:with-param name="class" select="'btn btn-primary btn-run-query'"/>
-                        </xsl:apply-templates>
-
-                        <xsl:value-of>
-                            <xsl:apply-templates select="key('resources', 'run', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                        </xsl:value-of>
-                    </button>
-                    <button type="button" class="btn btn-primary btn-open-query">
-                        <xsl:value-of>
-                            <xsl:apply-templates select="key('resources', 'open', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                        </xsl:value-of>
-                    </button>
-                    <button type="button" class="btn btn-primary btn-save btn-save-query">
-                        <xsl:value-of>
-                            <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                        </xsl:value-of>
-                    </button>
-<!--
-                    <button type="button" class="btn btn-cancel">
-                        <xsl:value-of>
-                            <xsl:apply-templates select="key('resources', 'cancel', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                        </xsl:value-of>
-                    </button>-->
-                </div>
-<!--            </fieldset>-->
+                    <xsl:value-of>
+                        <xsl:apply-templates select="key('resources', 'run', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                    </xsl:value-of>
+                </button>
+                <button type="button" class="btn btn-primary btn-open-query">
+                    <xsl:value-of>
+                        <xsl:apply-templates select="key('resources', 'open', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                    </xsl:value-of>
+                </button>
+                <button type="button" class="btn btn-primary btn-save btn-save-query">
+                    <xsl:value-of>
+                        <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                    </xsl:value-of>
+                </button>
+            </div>
         </form>
         
-        <xsl:next-match/>
+        <xsl:if test="$show-next-match">
+            <xsl:next-match/>
+        </xsl:if>
+    </xsl:template>
+    
+    <xsl:template match="sp:text/text()">
+        <pre><xsl:next-match/></pre>
     </xsl:template>
     
     <xsl:template match="sp:text/text() | *[@rdf:*[local-name() = 'nodeID']]/sp:text/@rdf:*[local-name() = 'nodeID'][key('resources', .)[not(* except rdf:type[@rdf:resource = '&xsd;string'])]]" mode="bs2:FormControl">

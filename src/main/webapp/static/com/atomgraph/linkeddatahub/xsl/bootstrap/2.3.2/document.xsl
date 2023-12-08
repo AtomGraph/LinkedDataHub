@@ -280,7 +280,6 @@ extension-element-prefixes="ixsl"
         <xsl:param name="query" as="xs:string?"/>
         <xsl:param name="show-controls" select="true()" as="xs:boolean"/>
         <xsl:param name="show-save" select="true()" as="xs:boolean"/>
-        <xsl:param name="show-title" select="true()" as="xs:boolean"/>
 
         <xsl:if test="$show-controls">
             <form method="{$method}" action="{$action}">
@@ -295,19 +294,6 @@ extension-element-prefixes="ixsl"
                 </xsl:if>
                 <xsl:if test="$enctype">
                     <xsl:attribute name="enctype" select="$enctype"/>
-                </xsl:if>
-
-                <xsl:if test="$show-title">
-                    <div class="control-group required">
-                        <label class="control-label">Title
-<!--                            <xsl:value-of>
-                                <xsl:apply-templates select="key('resources', '&dct;title', document(ac:document-uri('&dct;')))" mode="ac:label"/>
-                            </xsl:value-of>-->
-                        </label>
-                        <div class="controls">
-                            <input name="title" type="text"/>
-                        </div>
-                    </div>
                 </xsl:if>
                 
                 <fieldset>
@@ -457,7 +443,6 @@ extension-element-prefixes="ixsl"
         <xsl:param name="query" as="xs:string?"/>
         <xsl:param name="show-controls" select="true()" as="xs:boolean"/>
         <xsl:param name="show-save" select="true()" as="xs:boolean"/>
-        <xsl:param name="show-title" select="true()" as="xs:boolean"/>
 
         <xsl:if test="$show-controls">
             <form method="{$method}" action="{$action}">
@@ -472,19 +457,6 @@ extension-element-prefixes="ixsl"
                 </xsl:if>
                 <xsl:if test="$enctype">
                     <xsl:attribute name="enctype" select="$enctype"/>
-                </xsl:if>
-
-                <xsl:if test="$show-title">
-                    <div class="control-group required">
-                        <label class="control-label">Title
-<!--                            <xsl:value-of>
-                                <xsl:apply-templates select="key('resources', '&dct;title', document(ac:document-uri('&dct;')))" mode="ac:label"/>
-                            </xsl:value-of>-->
-                        </label>
-                        <div class="controls">
-                            <input name="title" type="text"/>
-                        </div>
-                    </div>
                 </xsl:if>
                 
                 <fieldset>

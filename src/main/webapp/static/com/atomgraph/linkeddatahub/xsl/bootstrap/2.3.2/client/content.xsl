@@ -1324,7 +1324,7 @@ LIMIT 100]]></sp:text>
             <ixsl:set-attribute name="draggable" select="'true'"/>
 
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'content', true() ])[current-date() lt xs:date('2000-01-01')]"/>
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'query-content', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+<!--            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'query-content', true() ])[current-date() lt xs:date('2000-01-01')]"/>-->
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'resource-content', true() ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
         
@@ -1345,9 +1345,9 @@ LIMIT 100]]></sp:text>
         <ixsl:set-property name="{$textarea-id}" select="ixsl:eval(string($js-statement/@statement))" object="ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe')"/>
     </xsl:template>
     
-    <!-- submit SPARQL query form -->
+    <!-- submit SPARQL query form (prioritize over default template in form.xsl) -->
     
-    <xsl:template match="form[contains-token(@class, 'sparql-query-form')]" mode="ixsl:onsubmit" priority="1"> <!-- prioritize over default template in form.xsl -->
+    <xsl:template match="form[contains-token(@class, 'sparql-query-form')]" mode="ixsl:onsubmit" priority="1">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="textarea-id" select="descendant::textarea[@name = 'query']/ixsl:get(., 'id')" as="xs:string"/>
         <xsl:variable name="yasqe" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe'), $textarea-id)"/>
@@ -1382,9 +1382,9 @@ LIMIT 100]]></sp:text>
         <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
 
-    <!-- toggle query results to chart mode -->
+    <!-- toggle query results to chart mode (prioritize over container.xsl) -->
     
-    <xsl:template match="*[contains-token(@class, 'query-content')]//ul[contains-token(@class, 'nav-tabs')][contains-token(@class, 'nav-query-results')]/li[contains-token(@class, 'chart-mode')][not(contains-token(@class, 'active'))]/a" mode="ixsl:onclick" priority="1"> <!-- prioritize over container.xsl -->
+    <xsl:template match="*[contains-token(@class, 'resource-content')]//ul[contains-token(@class, 'nav-tabs')][contains-token(@class, 'nav-query-results')]/li[contains-token(@class, 'chart-mode')][not(contains-token(@class, 'active'))]/a" mode="ixsl:onclick" priority="1">
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'query-content')]" as="element()"/>
         <xsl:variable name="form" select="$container//form[contains-token(@class, 'sparql-query-form')]" as="element()"/>
 
@@ -1402,9 +1402,9 @@ LIMIT 100]]></sp:text>
         <xsl:apply-templates select="$form" mode="ixsl:onsubmit"/>
     </xsl:template>
     
-    <!-- toggle query results to container mode -->
+    <!-- toggle query results to container mode (prioritize over container.xsl) -->
     
-    <xsl:template match="*[contains-token(@class, 'query-content')]//ul[contains-token(@class, 'nav-tabs')][contains-token(@class, 'nav-query-results')]/li[contains-token(@class, 'container-mode')][not(contains-token(@class, 'active'))]/a" mode="ixsl:onclick" priority="1"> <!-- prioritize over container.xsl -->
+    <xsl:template match="*[contains-token(@class, 'resource-content')]//ul[contains-token(@class, 'nav-tabs')][contains-token(@class, 'nav-query-results')]/li[contains-token(@class, 'container-mode')][not(contains-token(@class, 'active'))]/a" mode="ixsl:onclick" priority="1">
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'query-content')]" as="element()"/>
         <xsl:variable name="form" select="$container//form[contains-token(@class, 'sparql-query-form')]" as="element()"/>
         <xsl:variable name="textarea-id" select="$form//textarea[@name = 'query']/ixsl:get(., 'id')" as="xs:string"/>
