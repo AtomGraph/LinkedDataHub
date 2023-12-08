@@ -1184,13 +1184,12 @@ exclude-result-prefixes="#all"
     
     <xsl:template name="bs2:QueryForm">
         <xsl:param name="method" select="'get'" as="xs:string"/>
-        <xsl:param name="action" select="xs:anyURI('')" as="xs:anyURI"/>
+        <xsl:param name="action" select="$sd:endpoint" as="xs:anyURI"/>
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" select="'sparql-query-form form-horizontal'" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
         <xsl:param name="enctype" as="xs:string?"/>
         <xsl:param name="textarea-id" select="'id' || ac:uuid()" as="xs:string"/>
-        <!--<xsl:param name="uri" as="xs:anyURI?"/>-->
         <xsl:param name="mode" as="xs:anyURI*"/>
         <xsl:param name="service" as="xs:anyURI?"/>
         <xsl:param name="endpoint" as="xs:anyURI?"/>
@@ -1218,8 +1217,8 @@ LIMIT 100]]>
             </xsl:if>
 
 <!--            <fieldset>-->
-                <div class="control-group">
-                    <label class="control-label">Service</label> <!-- for="service" -->
+<!--                <div class="control-group">
+                    <label class="control-label">Service</label>  for="service" 
 
                     <div class="controls">
                         <select name="service" class="input-xxlarge input-query-service">
@@ -1235,12 +1234,12 @@ LIMIT 100]]>
                 </div>
                 
                 <div class="control-group required">
-                    <label class="control-label">Title</label> <!-- for="title" -->
+                    <label class="control-label">Title</label>  for="title" 
 
                     <div class="controls">
                         <input type="text" name="title"/>
                     </div>
-                </div>
+                </div>-->
         
                 <textarea name="query" class="span12" rows="15">
                     <xsl:if test="$textarea-id">
@@ -1260,21 +1259,21 @@ LIMIT 100]]>
                             <xsl:apply-templates select="key('resources', 'run', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
                         </xsl:value-of>
                     </button>
-                    <button type="button" class="btn btn-primary btn-save btn-save-query">
+<!--                    <button type="button" class="btn btn-primary btn-save btn-save-query">
                         <xsl:value-of>
                             <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
                         </xsl:value-of>
-                    </button>
+                    </button>-->
                     <button type="button" class="btn btn-primary btn-open-query">
                         <xsl:value-of>
                             <xsl:apply-templates select="key('resources', 'open', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
                         </xsl:value-of>
                     </button>
-                    <button type="button" class="btn btn-cancel">
+<!--                    <button type="button" class="btn btn-cancel">
                         <xsl:value-of>
                             <xsl:apply-templates select="key('resources', 'cancel', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
                         </xsl:value-of>
-                    </button>
+                    </button>-->
                 </div>
 <!--            </fieldset>-->
         </form>

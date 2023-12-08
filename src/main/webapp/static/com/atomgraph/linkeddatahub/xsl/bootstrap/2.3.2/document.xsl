@@ -209,11 +209,22 @@ extension-element-prefixes="ixsl"
     <!-- ROW BLOCK -->
     
     <xsl:template match="rdf:RDF" mode="bs2:Row">
+        <xsl:param name="create-resource" select="true()" as="xs:boolean"/>
         <!-- select elements explicitly, because Saxon-JS chokes on text nodes here -->
         <!-- hide the current document resource and the content resources -->
         <xsl:apply-templates select="*" mode="#current">
             <xsl:sort select="ac:label(.)"/>
         </xsl:apply-templates>
+        
+        <xsl:if test="$create-resource">
+            <div class="create-resource row-fluid">
+                <div class="main offset2 span7">
+                    <xsl:apply-templates select="." mode="bs2:Create">
+                        <xsl:with-param name="classes" select="$classes"/>
+                    </xsl:apply-templates>
+                </div>
+            </div>
+        </xsl:if>
     </xsl:template>
 
     <!-- MAP -->
@@ -846,14 +857,6 @@ extension-element-prefixes="ixsl"
                         <xsl:apply-templates select="." mode="bs2:Create">
                             <xsl:with-param name="classes" select="$classes"/>
                         </xsl:apply-templates>
-                        
-                        <!-- separate "Create" button only for Content -->
-                        <a href="{ac:build-uri(ac:absolute-path(base-uri()), map{ 'forClass': '&ldh;Content' })}" class="btn btn-primary add-constructor create-action">
-                            <xsl:value-of>
-                                <xsl:apply-templates select="key('resources', '&ldh;Content', document(ac:document-uri('&ldh;')))" mode="ac:label"/>
-                            </xsl:value-of>
-                            <input type="hidden" class="forClass" value="&ldh;Content"/>
-                        </a>
                     </div>
                 </div>
             </xsl:if>
