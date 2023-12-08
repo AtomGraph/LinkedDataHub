@@ -191,15 +191,6 @@ extension-element-prefixes="ixsl"
                         <button type="button" class="btn btn-primary create-action add-resource-content">
                             <xsl:apply-templates select="key('resources', 'resource', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
                         </button>
-<!--                        <button type="button" class="btn btn-primary create-action add-query-content">
-                            <xsl:apply-templates select="key('resources', '&sp;Query', document(ac:document-uri('&sp;')))" mode="ac:label"/>
-                        </button>
-                        <button type="button" class="btn btn-primary create-action add-chart-content">
-                            <xsl:apply-templates select="key('resources', '&ldh;Chart', document(ac:document-uri('&ldh;')))" mode="ac:label"/>
-                        </button>
-                        <button type="button" class="btn btn-primary create-action add-view-content">
-                            <xsl:apply-templates select="key('resources', '&ldh;View', document(ac:document-uri('&ldh;')))" mode="ac:label"/>
-                        </button>-->
                     </p>
                 </div>
             </div>
