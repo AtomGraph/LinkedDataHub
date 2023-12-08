@@ -210,6 +210,8 @@ extension-element-prefixes="ixsl"
     
     <xsl:template match="rdf:RDF" mode="bs2:Row">
         <xsl:param name="create-resource" select="true()" as="xs:boolean"/>
+        <xsl:param name="classes" as="element()*"/>
+
         <!-- select elements explicitly, because Saxon-JS chokes on text nodes here -->
         <!-- hide the current document resource and the content resources -->
         <xsl:apply-templates select="*" mode="#current">
@@ -690,74 +692,6 @@ extension-element-prefixes="ixsl"
                 </rdf:Description>
             </xsl:element>
         </xsl:for-each>
-    </xsl:template>
-    
-    <!-- MODAL FORM -->
-
-    <xsl:template match="rdf:RDF[$ac:forClass][$ac:method = 'GET']" mode="bs2:ModalForm" priority="1" use-when="system-property('xsl:product-name') = 'SAXON'">
-        <xsl:param name="base-uri" as="xs:anyURI" tunnel="yes"/>
-        <xsl:param name="document-uri" select="key('resources-by-type', ('&dh;Container', '&dh;Item'))/@rdf:about" as="xs:anyURI"/> <!-- $doc-uri of the constructed document -->
-        <xsl:param name="action" select="ac:build-uri($document-uri, map{ '_method': 'PUT', 'forClass': string($ac:forClass), 'mode': ('&ac;EditMode', '&ac;ModalMode') })" as="xs:anyURI"/>
-
-        <xsl:next-match>
-            <xsl:with-param name="document-uri" select="$document-uri" tunnel="yes"/>
-            <xsl:with-param name="action" select="$action"/>
-        </xsl:next-match>
-    </xsl:template>
-    
-    <xsl:template match="rdf:RDF" mode="bs2:ModalForm" use-when="system-property('xsl:product-name') = 'SAXON'">
-        <xsl:param name="method" select="'post'" as="xs:string"/>
-        <xsl:param name="base-uri" select="base-uri()" as="xs:anyURI" tunnel="yes"/>
-        <xsl:param name="action" select="ac:build-uri(ac:absolute-path($base-uri), map{ '_method': 'PUT', 'forClass': string($ac:forClass), 'mode': '&ac;ModalMode' })" as="xs:anyURI"/>
-        <xsl:param name="id" select="concat('form-', generate-id())" as="xs:string?"/>
-        <xsl:param name="class" select="'form-horizontal'" as="xs:string?"/>
-        <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
-        <xsl:param name="enctype" select="'multipart/form-data'" as="xs:string?"/>
-        <xsl:param name="button-class" select="'btn btn-primary wymupdate'" as="xs:string?"/>
-
-        <div class="modal modal-constructor fade in">
-            <form method="{$method}" action="{$action}">
-                <xsl:if test="$id">
-                    <xsl:attribute name="id" select="$id"/>
-                </xsl:if>
-                <xsl:if test="$class">
-                    <xsl:attribute name="class" select="$class"/>
-                </xsl:if>
-                <xsl:if test="$accept-charset">
-                    <xsl:attribute name="accept-charset" select="$accept-charset"/>
-                </xsl:if>
-                <xsl:if test="$enctype">
-                    <xsl:attribute name="enctype" select="$enctype"/>
-                </xsl:if>
-
-                <xsl:comment>This form uses RDF/POST encoding: https://atomgraph.github.io/RDF-POST/</xsl:comment>
-                <xsl:call-template name="xhtml:Input">
-                    <xsl:with-param name="name" select="'rdf'"/>
-                    <xsl:with-param name="type" select="'hidden'"/>
-                </xsl:call-template>
-            
-                <input type="hidden" class="target-id"/>
-
-                <div class="modal-header">
-                    <button type="button" class="close">&#215;</button>
-
-                    <!--<xsl:apply-templates select="." mode="bs2:Legend"/>-->
-                </div>
-
-                <div class="modal-body">
-                    <xsl:apply-templates mode="bs2:Exception"/>
-
-                    <xsl:apply-templates select="*" mode="#current">
-                        <xsl:sort select="ac:label(.)"/>
-                        <xsl:with-param name="inline" select="false()" tunnel="yes"/>
-                    </xsl:apply-templates>
-                </div>
-
-                <xsl:apply-templates select="." mode="bs2:ModalFormActions">
-                    <xsl:with-param name="button-class" select="$button-class"/>
-                </xsl:apply-templates>
-            </form>
-        </div>
     </xsl:template>
     
     <!-- ROW FORM -->

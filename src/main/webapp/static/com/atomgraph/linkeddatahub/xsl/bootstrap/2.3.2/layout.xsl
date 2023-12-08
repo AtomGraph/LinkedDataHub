@@ -915,6 +915,7 @@ LIMIT   100
                 </xsl:when>
                 <xsl:otherwise>
                     <xsl:apply-templates select="." mode="bs2:Row">
+                        <xsl:with-param name="classes" select="$classes"/>
                         <xsl:sort select="ac:label(.)"/>
                     </xsl:apply-templates>
                 </xsl:otherwise>
