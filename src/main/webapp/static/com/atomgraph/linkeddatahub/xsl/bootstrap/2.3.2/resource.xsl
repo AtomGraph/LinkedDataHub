@@ -1043,7 +1043,7 @@ extension-element-prefixes="ixsl"
     <xsl:template match="*[rdf:type/@rdf:resource = ('&spin;ConstraintViolation', '&sh;ValidationResult', '&sh;ValidationReport', '&http;Response')]" mode="bs2:RowForm" priority="3" use-when="system-property('xsl:product-name') = 'SAXON'"/>
 
     <!-- hide instances of system classes -->
-    <xsl:template match="*[not($ldh:renderSystemResources)][not(@rdf:about = ac:absolute-path(base-uri()) and rdf:type/@rdf:resource = ('&def;Root', '&dh;Container', '&dh;Item')) and not(rdf:type/@rdf:resource = '&ldh;Content')]" mode="bs2:Row" priority="2.5" use-when="system-property('xsl:product-name') = 'SAXON'"/>
+    <xsl:template match="not($ldh:renderSystemResources)][@rdf:about = ac:absolute-path(base-uri()) and rdf:type/@rdf:resource = ('&def;Root', '&dh;Container', '&dh;Item')] | *[not($ldh:renderSystemResources)][rdf:type/@rdf:resource = '&ldh;Content']" mode="bs2:Row" priority="2.5" use-when="system-property('xsl:product-name') = 'SAXON'"/>
 
     <!-- hide object blank nodes that only have a single rdf:type property from constructed models, unless the type is owl:NamedIndividual -->
     <xsl:template match="*[@rdf:nodeID][$ac:forClass or $ldh:forShape][$ac:method = 'GET'][key('predicates-by-object', @rdf:nodeID)][not(* except rdf:type or rdf:type/@rdf:resource = '&owl;NamedIndividual')]" mode="bs2:RowForm" priority="2" use-when="system-property('xsl:product-name') = 'SAXON'"/>
@@ -1052,11 +1052,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="id" select="generate-id()" as="xs:string?"/>
         <xsl:param name="content-value" as="xs:anyURI?"/>
         <xsl:param name="class" select="'row-fluid'" as="xs:string?"/>
-XXX
-not($ldh:renderSystemResources): <xsl:value-of select="not($ldh:renderSystemResources)"/>
-not(@rdf:about = ac:absolute-path(base-uri()) and rdf:type/@rdf:resource = ('&def;Root', '&dh;Container', '&dh;Item')): <xsl:value-of select="not(@rdf:about = ac:absolute-path(base-uri()) and rdf:type/@rdf:resource = ('&def;Root', '&dh;Container', '&dh;Item'))"/>
-not(rdf:type/@rdf:resource = '&ldh;Content'): <xsl:value-of select="not(rdf:type/@rdf:resource = '&ldh;Content')"/>
-/XXX
+
         <div>
             <xsl:if test="$id">
                 <xsl:attribute name="id" select="$id"/>
