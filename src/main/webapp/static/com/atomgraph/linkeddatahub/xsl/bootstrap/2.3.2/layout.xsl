@@ -112,6 +112,7 @@ exclude-result-prefixes="#all">
     <xsl:param name="ldh:createGraph" select="false()" as="xs:boolean"/>
     <xsl:param name="ldh:ajaxRendering" select="true()" as="xs:boolean"/>
     <xsl:param name="ldhc:enableWebIDSignUp" as="xs:boolean"/>
+    <xsl:param name="ldh:renderSystemResources" select="false()" as="xs:boolean"/>
     <xsl:param name="google:clientID" as="xs:string?"/>
     <xsl:param name="default-classes" as="map(xs:string, xs:anyURI)">
         <xsl:map>
@@ -817,17 +818,17 @@ LIMIT   100
                         </xsl:apply-templates>
                     </xsl:variable>
 
-                    <xsl:choose>
+<!--                    <xsl:choose>
                         <xsl:when test="$ac:mode = '&ac;ModalMode'">
                             <xsl:apply-templates select="$constructor" mode="bs2:ModalForm">
                                 <xsl:with-param name="constructor-query" select="$constructor-query" tunnel="yes"/>
                                 <xsl:with-param name="constraint-query" select="$constraint-query" tunnel="yes"/>
                                 <xsl:with-param name="shape-query" select="$shape-query" tunnel="yes"/>
-                                <xsl:with-param name="base-uri" select="ac:absolute-path(base-uri())" tunnel="yes"/> <!-- ac:absolute-path(base-uri()) is empty on constructed documents -->
+                                <xsl:with-param name="base-uri" select="ac:absolute-path(base-uri())" tunnel="yes"/>  ac:absolute-path(base-uri()) is empty on constructed documents 
                                 <xsl:sort select="ac:label(.)"/>
                             </xsl:apply-templates>
                         </xsl:when>
-                        <xsl:otherwise>
+                        <xsl:otherwise>-->
                             <xsl:apply-templates select="$constructor" mode="bs2:RowForm">
                                 <xsl:with-param name="classes" select="$classes"/>
                                 <xsl:with-param name="constructor-query" select="$constructor-query" tunnel="yes"/>
@@ -836,8 +837,8 @@ LIMIT   100
                                 <xsl:with-param name="base-uri" select="ac:absolute-path(base-uri())" tunnel="yes"/> <!-- ac:absolute-path(base-uri()) is empty on constructed documents -->
                                 <xsl:sort select="ac:label(.)"/>
                             </xsl:apply-templates>
-                        </xsl:otherwise>
-                    </xsl:choose>
+<!--                        </xsl:otherwise>
+                    </xsl:choose>-->
                 </xsl:when>
                 <xsl:when test="$ldh:forShape and $ac:method = 'GET'">
                     <xsl:variable name="shapes" select="ldh:query-result(map{ '$Shape': $ldh:forShape }, resolve-uri('ns', $ldt:base), $shape-query)" as="document-node()"/>
@@ -845,17 +846,17 @@ LIMIT   100
                         <xsl:apply-templates select="$shapes" mode="ldh:Shape"/>
                     </xsl:variable>
 
-                    <xsl:choose>
+<!--                    <xsl:choose>
                         <xsl:when test="$ac:mode = '&ac;ModalMode'">
                             <xsl:apply-templates select="ldh:reserialize($constructor)" mode="bs2:ModalForm">
                                 <xsl:with-param name="constructor-query" select="$constructor-query" tunnel="yes"/>
                                 <xsl:with-param name="constraint-query" select="$constraint-query" tunnel="yes"/>
                                 <xsl:with-param name="shape-query" select="$shape-query" tunnel="yes"/>
-                                <xsl:with-param name="base-uri" select="ac:absolute-path(base-uri())" tunnel="yes"/> <!-- ac:absolute-path(base-uri()) is empty on constructed documents -->
+                                <xsl:with-param name="base-uri" select="ac:absolute-path(base-uri())" tunnel="yes"/>  ac:absolute-path(base-uri()) is empty on constructed documents 
                                 <xsl:sort select="ac:label(.)"/>
                             </xsl:apply-templates>
                         </xsl:when>
-                        <xsl:otherwise>
+                        <xsl:otherwise>-->
                             <xsl:apply-templates select="ldh:reserialize($constructor)" mode="bs2:RowForm">
                                 <xsl:with-param name="classes" select="$classes"/>
                                 <xsl:with-param name="constructor-query" select="$constructor-query" tunnel="yes"/>
@@ -864,8 +865,8 @@ LIMIT   100
                                 <xsl:with-param name="base-uri" select="ac:absolute-path(base-uri())" tunnel="yes"/> <!-- ac:absolute-path(base-uri()) is empty on constructed documents -->
                                 <xsl:sort select="ac:label(.)"/>
                             </xsl:apply-templates>
-                        </xsl:otherwise>
-                    </xsl:choose>
+<!--                        </xsl:otherwise>
+                    </xsl:choose>-->
                 </xsl:when>
                 <!-- check if the current document has content or its class has content -->
                 <xsl:when test="(empty($ac:mode) and $has-content) or $ac:mode = '&ldh;ContentMode'">

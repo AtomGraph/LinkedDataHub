@@ -191,7 +191,7 @@ extension-element-prefixes="ixsl"
                         <button type="button" class="btn btn-primary create-action add-resource-content">
                             <xsl:apply-templates select="key('resources', 'resource', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
                         </button>
-                        <button type="button" class="btn btn-primary create-action add-query-content">
+<!--                        <button type="button" class="btn btn-primary create-action add-query-content">
                             <xsl:apply-templates select="key('resources', '&sp;Query', document(ac:document-uri('&sp;')))" mode="ac:label"/>
                         </button>
                         <button type="button" class="btn btn-primary create-action add-chart-content">
@@ -199,7 +199,7 @@ extension-element-prefixes="ixsl"
                         </button>
                         <button type="button" class="btn btn-primary create-action add-view-content">
                             <xsl:apply-templates select="key('resources', '&ldh;View', document(ac:document-uri('&ldh;')))" mode="ac:label"/>
-                        </button>
+                        </button>-->
                     </p>
                 </div>
             </div>
@@ -211,7 +211,7 @@ extension-element-prefixes="ixsl"
     <xsl:template match="rdf:RDF" mode="bs2:Row">
         <!-- select elements explicitly, because Saxon-JS chokes on text nodes here -->
         <!-- hide the current document resource and the content resources -->
-        <xsl:apply-templates select="*[not(@rdf:about = ac:absolute-path(base-uri()) and rdf:type/@rdf:resource = ('&def;Root', '&dh;Container', '&dh;Item')) and not(rdf:type/@rdf:resource = '&ldh;Content')]" mode="#current">
+        <xsl:apply-templates select="*" mode="#current">
             <xsl:sort select="ac:label(.)"/>
         </xsl:apply-templates>
     </xsl:template>
@@ -866,7 +866,7 @@ extension-element-prefixes="ixsl"
 
     <!-- MODAL FORM ACTIONS -->
     
-    <xsl:template match="rdf:RDF" mode="bs2:ModalFormActions">
+<!--    <xsl:template match="rdf:RDF" mode="bs2:ModalFormActions">
         <xsl:param name="class" select="'form-actions modal-footer'" as="xs:string?"/>
         <xsl:param name="button-class" select="'btn btn-primary'" as="xs:string?"/>
         
@@ -899,7 +899,7 @@ extension-element-prefixes="ixsl"
                 <xsl:apply-templates select="key('resources', 'reset', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
             </button>
         </div>
-    </xsl:template>
+    </xsl:template>-->
 
     <!-- FORM ACTIONS -->
     
