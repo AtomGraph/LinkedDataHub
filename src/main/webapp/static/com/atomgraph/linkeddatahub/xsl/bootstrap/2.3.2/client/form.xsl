@@ -365,10 +365,10 @@ WHERE
          <!-- find the last bnode ID on the form so that we can change this resources ID to +1. Will only work with Jena's ID format A1, A2, ... -->
         <xsl:variable name="max-bnode-id" select="if (empty($bnode-ids)) then 0 else max(for $bnode-id in $bnode-ids return xs:integer(substring-after($bnode-id, 'A')))" as="xs:integer"/>
         <!--- show a modal form if this button is in a <fieldset>, meaning on a resource-level and not form level. Otherwise (e.g. for the "Create" button) show normal form -->
-        <xsl:variable name="modal-form" select="exists(ancestor::fieldset)" as="xs:boolean"/>
+<!--        <xsl:variable name="modal-form" select="exists(ancestor::fieldset)" as="xs:boolean"/>-->
         <xsl:variable name="forClass" select="input[@class = 'forClass']/@value" as="xs:anyURI"/>
-        <xsl:variable name="create-graph" select="empty($form) or $modal-form" as="xs:boolean"/>
-        <xsl:variable name="query-params" select="map:merge((map{ 'forClass': string($forClass) }, if ($modal-form) then map{ 'mode': '&ac;ModalMode' } else (), if ($create-graph) then map{ 'createGraph': string(true()) } else ()))" as="map(xs:string, xs:string*)"/>
+        <xsl:variable name="create-graph" select="empty($form)" as="xs:boolean"/>
+        <xsl:variable name="query-params" select="map:merge((map{ 'forClass': string($forClass) }, if ($create-graph) then map{ 'createGraph': string(true()) } else ()))" as="map(xs:string, xs:string*)"/>
         <xsl:variable name="href" select="ac:build-uri(ac:absolute-path(@href), $query-params)" as="xs:anyURI"/>
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
@@ -383,13 +383,11 @@ WHERE
         </xsl:variable>
         <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
 
-        <xsl:if test="not($modal-form)">
-            <xsl:call-template name="ldh:PushState">
-                <xsl:with-param name="href" select="ldh:href($ldt:base, ac:absolute-path(base-uri()), map{}, $href)"/>
-                <!--<xsl:with-param name="title" select="/html/head/title"/>-->
-                <xsl:with-param name="container" select="id('content-body', ixsl:page())"/>
-            </xsl:call-template>
-        </xsl:if>
+        <xsl:call-template name="ldh:PushState">
+            <xsl:with-param name="href" select="ldh:href($ldt:base, ac:absolute-path(base-uri()), map{}, $href)"/>
+            <!--<xsl:with-param name="title" select="/html/head/title"/>-->
+            <xsl:with-param name="container" select="id('content-body', ixsl:page())"/>
+        </xsl:call-template>
     </xsl:template>
     
     <!-- appends new SHACL-constructed instance to the form -->
@@ -400,10 +398,10 @@ WHERE
          <!-- find the last bnode ID on the form so that we can change this resources ID to +1. Will only work with Jena's ID format A1, A2, ... -->
         <xsl:variable name="max-bnode-id" select="if (empty($bnode-ids)) then 0 else max(for $bnode-id in $bnode-ids return xs:integer(substring-after($bnode-id, 'A')))" as="xs:integer"/>
         <!--- show a modal form if this button is in a <fieldset>, meaning on a resource-level and not form level. Otherwise (e.g. for the "Create" button) show normal form -->
-        <xsl:variable name="modal-form" select="exists(ancestor::fieldset)" as="xs:boolean"/>
+<!--        <xsl:variable name="modal-form" select="exists(ancestor::fieldset)" as="xs:boolean"/>-->
         <xsl:variable name="forShape" select="input[@class = 'forShape']/@value" as="xs:anyURI"/>
-        <xsl:variable name="create-graph" select="empty($form) or $modal-form" as="xs:boolean"/>
-        <xsl:variable name="query-params" select="map:merge((map{ 'forShape': string($forShape) }, if ($modal-form) then map{ 'mode': '&ac;ModalMode' } else (), if ($create-graph) then map{ 'createGraph': string(true()) } else ()))" as="map(xs:string, xs:string*)"/>
+        <xsl:variable name="create-graph" select="empty($form)" as="xs:boolean"/>
+        <xsl:variable name="query-params" select="map:merge((map{ 'forShape': string($forShape) }, if ($create-graph) then map{ 'createGraph': string(true()) } else ()))" as="map(xs:string, xs:string*)"/>
         <!-- do not use @href from the HTML because it does not update with AJAX document loads -->
         <xsl:variable name="href" select="ac:build-uri(ac:absolute-path(base-uri()), $query-params)" as="xs:anyURI"/>
 
