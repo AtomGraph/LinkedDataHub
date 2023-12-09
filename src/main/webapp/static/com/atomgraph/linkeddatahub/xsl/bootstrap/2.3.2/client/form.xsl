@@ -419,12 +419,10 @@ WHERE
         </xsl:variable>
         <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
 
-        <xsl:if test="not($modal-form)">
-            <xsl:call-template name="ldh:PushState">
-                <xsl:with-param name="href" select="ldh:href($ldt:base, ac:absolute-path(base-uri()), map{}, $href)"/>
-                <xsl:with-param name="container" select="id('content-body', ixsl:page())"/>
-            </xsl:call-template>
-        </xsl:if>
+        <xsl:call-template name="ldh:PushState">
+            <xsl:with-param name="href" select="ldh:href($ldt:base, ac:absolute-path(base-uri()), map{}, $href)"/>
+            <xsl:with-param name="container" select="id('content-body', ixsl:page())"/>
+        </xsl:call-template>
     </xsl:template>
     
     <!-- types (classes with constructors) are looked up in the <ns> endpoint -->
@@ -901,105 +899,79 @@ WHERE
                     <xsl:variable name="target-id" select="$target/@id" as="xs:string?"/>
                     <xsl:variable name="doc-id" select="concat('id', ixsl:call(ixsl:window(), 'generateUUID', []))" as="xs:string"/>
                     
-                    <xsl:choose>
-                        <xsl:when test="$modal">
-                            <xsl:variable name="modal-div" as="element()">
-                                <xsl:apply-templates select="id($container/@id)//div[contains-token(@class, 'modal-constructor')]" mode="form">
-                                    <xsl:with-param name="target-id" select="$target-id" tunnel="yes"/>
-                                    <xsl:with-param name="doc-id" select="$doc-id" tunnel="yes"/>
-<!--                                    <xsl:with-param name="max-bnode-id" select="$max-bnode-id" tunnel="yes"/>-->
-                                </xsl:apply-templates>
-                            </xsl:variable>
-                            <xsl:variable name="form-id" select="$modal-div//form/@id" as="xs:string"/>
-                            
-                            <xsl:if test="$add-class">
-                                <xsl:sequence select="$modal-div//form/ixsl:call(ixsl:get(., 'classList'), 'toggle', [ $add-class, true() ])[current-date() lt xs:date('2000-01-01')]"/>
-                            </xsl:if>
+                    <xsl:variable name="form" as="element()">
+                        <xsl:apply-templates select="id($container/@id)//form" mode="form">
+                            <xsl:with-param name="target-id" select="$target-id" tunnel="yes"/>
+                            <xsl:with-param name="doc-id" select="$doc-id" tunnel="yes"/>
+                            <!-- only rewrite bnode labels if "Create" button was called within <form> -->
+                            <xsl:with-param name="max-bnode-id" select="if ($target/ancestor::form[contains-token(@class, 'form-horizontal')]) then $max-bnode-id else ()" tunnel="yes"/>
+                        </xsl:apply-templates>
+                    </xsl:variable>
+                    <xsl:variable name="form-id" select="$form/@id" as="xs:string"/>
 
-                            <xsl:for-each select="ixsl:page()//body">
+                    <xsl:if test="$add-class">
+                        <xsl:sequence select="$form/ixsl:call(ixsl:get(., 'classList'), 'toggle', [ $add-class, true() ])[current-date() lt xs:date('2000-01-01')]"/>
+                    </xsl:if>
+
+                    <xsl:choose>
+                        <!-- if "Create" button is within a <form>, append elements to <form> -->
+                        <xsl:when test="$target/ancestor::form[contains-token(@class, 'form-horizontal')]">
+                            <xsl:for-each select="$target/ancestor::form[contains-token(@class, 'form-horizontal')]">
+                                <!-- remove the old form-actions <div> because we'll be appending a new one below -->
+                                <xsl:for-each select="./div[./div[contains-token(@class, 'form-actions')]]">
+                                    <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
+                                </xsl:for-each>
+                                <!-- remove the current "Create" buttons from the form -->
+                                <xsl:for-each select="$target/ancestor::div[contains-token(@class, 'create-resource')]">
+                                    <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
+                                </xsl:for-each>
+
                                 <xsl:result-document href="?." method="ixsl:append-content">
-                                    <!-- append modal div to body -->
-                                    <xsl:copy-of select="$modal-div"/>
+                                    <!-- only append the <fieldset> from the $form, not the whole <form> -->
+                                    <xsl:copy-of select="$form//div[contains-token(@class, 'row-fluid')]"/>
                                 </xsl:result-document>
                             </xsl:for-each>
-                            
-                            <!-- add event listeners to the descendants of the form. TO-DO: replace with XSLT -->
-                            <xsl:if test="id($form-id, ixsl:page())">
-                                <xsl:apply-templates select="id($form-id, ixsl:page())" mode="ldh:PostConstruct"/>
-                            </xsl:if>
-                            
-                            <xsl:if test="$new-target-id">
-                                <!-- overwrite target-id input's value with the provided value -->
-                                <xsl:for-each select="id($form-id, ixsl:page())//input[@class = 'target-id']"> <!-- why @class and not @name?? -->
-                                    <ixsl:set-property name="value" select="$new-target-id" object="."/>
-                                </xsl:for-each>
-                            </xsl:if>
-                            <xsl:if test="$new-form-id">
-                                <!-- overwrite form @id with the provided value -->
-                                <ixsl:set-property name="id" select="$new-form-id" object="id($form-id, ixsl:page())"/>
-                            </xsl:if>
                         </xsl:when>
-                        <xsl:otherwise>
-                            <xsl:variable name="form" as="element()">
-                                <xsl:apply-templates select="id($container/@id)//form" mode="form">
-                                    <xsl:with-param name="target-id" select="$target-id" tunnel="yes"/>
-                                    <xsl:with-param name="doc-id" select="$doc-id" tunnel="yes"/>
-                                    <!-- only rewrite bnode labels if "Create" button was called within <form> -->
-                                    <xsl:with-param name="max-bnode-id" select="if ($target/ancestor::form[contains-token(@class, 'form-horizontal')]) then $max-bnode-id else ()" tunnel="yes"/>
-                                </xsl:apply-templates>
-                            </xsl:variable>
-                            <xsl:variable name="form-id" select="$form/@id" as="xs:string"/>
-                            
-                            <xsl:if test="$add-class">
-                                <xsl:sequence select="$form/ixsl:call(ixsl:get(., 'classList'), 'toggle', [ $add-class, true() ])[current-date() lt xs:date('2000-01-01')]"/>
-                            </xsl:if>
-                            
-                            <xsl:choose>
-                                <!-- if "Create" button is within the <form>, append elements to <form> -->
-                                <xsl:when test="$target/ancestor::form[contains-token(@class, 'form-horizontal')]">
-                                    <xsl:for-each select="$target/ancestor::form[contains-token(@class, 'form-horizontal')]">
-                                        <!-- remove the old form-actions <div> because we'll be appending a new one below -->
-                                        <xsl:for-each select="./div[./div[contains-token(@class, 'form-actions')]]">
-                                            <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
-                                        </xsl:for-each>
-                                        <!-- remove the current "Create" buttons from the form -->
-                                        <xsl:for-each select="$target/ancestor::div[contains-token(@class, 'create-resource')]">
-                                            <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
-                                        </xsl:for-each>
-
-                                        <xsl:result-document href="?." method="ixsl:append-content">
-                                            <!-- only append the <fieldset> from the $form, not the whole <form> -->
-                                            <xsl:copy-of select="$form//div[contains-token(@class, 'row-fluid')]"/>
-                                        </xsl:result-document>
-                                    </xsl:for-each>
-                                </xsl:when>
-                                <!-- there's no <form> so we're not in EditMode - replace the whole content -->
-                                <xsl:otherwise>
-                                    <xsl:for-each select="$container">
-                                        <xsl:result-document href="?." method="ixsl:replace-content">
-                                            <xsl:copy-of select="$form"/>
-                                        </xsl:result-document>
-                                    </xsl:for-each>
-                                </xsl:otherwise>
-                            </xsl:choose>
-                            
-                            <!-- add event listeners to the descendants of the form. TO-DO: replace with XSLT -->
-                            <xsl:if test="id($form-id, ixsl:page())">
-                                <xsl:apply-templates select="id($form-id, ixsl:page())" mode="ldh:PostConstruct"/>
-                            </xsl:if>
-                    
-                            <xsl:if test="$new-target-id">
-                                <!-- overwrite target-id input's value with the provided value -->
-                                <xsl:for-each select="id($form-id, ixsl:page())//input[@class = 'target-id']"> <!-- why @class and not @name?? -->
-                                    <ixsl:set-property name="value" select="$new-target-id" object="."/>
+                        <!-- if "Create" button is ReadMode, append form as row -->
+                        <xsl:when test="$target/ancestor::div[@id = 'content-body')]">
+                            <xsl:for-each select="$target/ancestor::div[@id = 'content-body')]">
+                                <!-- remove the current "Create" buttons from the row -->
+                                <xsl:for-each select="$target/ancestor::div[contains-token(@class, 'create-resource')]">
+                                    <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
                                 </xsl:for-each>
-                            </xsl:if>
-                            <xsl:if test="$new-form-id">
-                                <!-- overwrite form's @id with the provided value -->
-                                <ixsl:set-property name="id" select="$new-form-id" object="id($form-id, ixsl:page())"/>
-                            </xsl:if>
+
+                                <xsl:result-document href="?." method="ixsl:append-content">
+                                    <div id="id{ac:uuid()}" class="row-fluid"> <!-- typeof -->
+                                        <xsl:copy-of select="$form"/>
+                                    </div>
+                                </xsl:result-document>
+                            </xsl:for-each>
+                        </xsl:when>
+                        <!-- there's no <form> so we're not in EditMode - replace the whole content -->
+                        <xsl:otherwise>
+                            <xsl:for-each select="$container">
+                                <xsl:result-document href="?." method="ixsl:replace-content">
+                                    <xsl:copy-of select="$form"/>
+                                </xsl:result-document>
+                            </xsl:for-each>
                         </xsl:otherwise>
                     </xsl:choose>
+
+                    <!-- add event listeners to the descendants of the form. TO-DO: replace with XSLT -->
+                    <xsl:if test="id($form-id, ixsl:page())">
+                        <xsl:apply-templates select="id($form-id, ixsl:page())" mode="ldh:PostConstruct"/>
+                    </xsl:if>
+
+                    <xsl:if test="$new-target-id">
+                        <!-- overwrite target-id input's value with the provided value -->
+                        <xsl:for-each select="id($form-id, ixsl:page())//input[@class = 'target-id']"> <!-- why @class and not @name?? -->
+                            <ixsl:set-property name="value" select="$new-target-id" object="."/>
+                        </xsl:for-each>
+                    </xsl:if>
+                    <xsl:if test="$new-form-id">
+                        <!-- overwrite form's @id with the provided value -->
+                        <ixsl:set-property name="id" select="$new-form-id" object="id($form-id, ixsl:page())"/>
+                    </xsl:if>
                     
                     <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
                 </xsl:for-each>

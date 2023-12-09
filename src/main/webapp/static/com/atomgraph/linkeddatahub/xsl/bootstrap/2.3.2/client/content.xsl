@@ -1230,72 +1230,6 @@ LIMIT 100]]>
 <!--            </fieldset>-->
         </form>
     </xsl:template>
-
-    <!-- appends new query content instance to the content list -->
-    
-    <xsl:template match="div[contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'create-action')][contains-token(@class, 'add-query-content')]" mode="ixsl:onclick">
-        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'row-fluid')]" as="element()"/>
-        <xsl:variable name="constructor" as="document-node()">
-            <xsl:document>
-                <rdf:RDF>
-                    <rdf:Description rdf:nodeID="A1">
-                        <rdf:type rdf:resource="&ldh;Content"/>
-                        <rdf:value rdf:nodeID="A2"/>
-                    </rdf:Description>
-                    <rdf:Description rdf:nodeID="A2">
-                        <rdf:type rdf:resource="&sp;Query"/>
-                        <sp:text rdf:datatype="&xsd;string">
-                    <![CDATA[SELECT DISTINCT *
-WHERE
-{
-    GRAPH ?g
-    { ?s ?p ?o }
-}
-LIMIT 100]]></sp:text>
-                    </rdf:Description>
-                </rdf:RDF>
-            </xsl:document>
-        </xsl:variable>
-        <xsl:variable name="textarea-id" select="'id' || ac:uuid()" as="xs:string"/>
-        <xsl:variable name="controls" as="node()*">
-            <xsl:call-template name="bs2:QueryForm">
-                <xsl:with-param name="textarea-id" select="$textarea-id"/>
-            </xsl:call-template>
-        </xsl:variable>
-
-        <!-- move the current row of controls to the bottom of the content list -->
-        <xsl:for-each select="$container/..">
-            <xsl:result-document href="?." method="ixsl:append-content">
-                <xsl:copy-of select="$container"/>
-            </xsl:result-document>
-        </xsl:for-each>
-        
-        <!-- add @id and .content.resource-content to div.row-fluid -->
-        <xsl:for-each select="$container">
-            <xsl:variable name="content-id" select="'id' || ac:uuid()" as="xs:string"/>
-            <ixsl:set-attribute name="id" select="$content-id"/>
-            <ixsl:set-attribute name="draggable" select="'true'"/>
-
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'content', true() ])[current-date() lt xs:date('2000-01-01')]"/>
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'resource-content', true() ])[current-date() lt xs:date('2000-01-01')]"/>
-        </xsl:for-each>
-        
-        <xsl:for-each select="ancestor::div[contains-token(@class, 'main')]">
-            <ixsl:set-attribute name="id" select="'id' || ac:uuid()"/>
-            
-            <xsl:result-document href="?." method="ixsl:replace-content">
-                <div>
-                    <xsl:copy-of select="$controls"/>
-                </div>
-            </xsl:result-document>
-        </xsl:for-each>
-        
-        <!-- initialize YASQE on the textarea -->
-        <xsl:variable name="js-statement" as="element()">
-            <root statement="YASQE.fromTextArea(document.getElementById('{$textarea-id}'), {{ persistent: null }})"/>
-        </xsl:variable>
-        <ixsl:set-property name="{$textarea-id}" select="ixsl:eval(string($js-statement/@statement))" object="ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe')"/>
-    </xsl:template>
     
     <!-- submit SPARQL query form (prioritize over default template in form.xsl) -->
     
@@ -1324,7 +1258,6 @@ LIMIT 100]]></sp:text>
                     <xsl:with-param name="results-uri" select="$results-uri"/>
                     <xsl:with-param name="content-uri" select="xs:anyURI(ac:absolute-path(base-uri()) || '#' || $content-id)"/>
                     <xsl:with-param name="container" select="$container"/>
-                    <!-- <xsl:with-param name="textarea-id" select="$textarea-id"/> -->
                     <xsl:with-param name="chart-canvas-id" select="$content-id || '-chart-canvas'"/>
                     <xsl:with-param name="results-container-id" select="$content-id || '-query-results'"/>
                     <xsl:with-param name="query-string" select="$query-string"/>
