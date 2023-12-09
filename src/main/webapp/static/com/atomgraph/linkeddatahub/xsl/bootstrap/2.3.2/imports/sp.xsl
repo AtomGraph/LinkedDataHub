@@ -33,9 +33,9 @@ exclude-result-prefixes="#all">
         <xsl:apply-templates select="key('resources', 'construct-query', document('../translations.rdf'))" mode="#current"/>
     </xsl:template>
 
-    <!-- ROW -->
+    <!-- ROW: WRONG IMPORT PRECEDENCE! -->
     
-    <xsl:template match="*[sp:text/text()]" mode="bs2:Row" priority="1">
+<!--    <xsl:template match="*[sp:text/text()]" mode="bs2:Row" priority="1">
         <xsl:param name="id" select="generate-id()" as="xs:string?"/>
         <xsl:param name="class" select="'row-fluid override-content'" as="xs:string?"/>
         <xsl:param name="about" select="@rdf:about" as="xs:anyURI?"/>
@@ -51,7 +51,7 @@ exclude-result-prefixes="#all">
             <xsl:with-param name="content-value" select="$content-value"/>
             <xsl:with-param name="mode" select="$mode"/>
         </xsl:next-match>
-    </xsl:template>
+    </xsl:template>-->
     
     <!-- BLOCK MODE -->
 

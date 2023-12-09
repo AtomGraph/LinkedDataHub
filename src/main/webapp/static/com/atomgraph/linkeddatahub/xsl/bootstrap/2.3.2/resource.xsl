@@ -461,6 +461,24 @@ extension-element-prefixes="ixsl"
     
     <!-- ROW -->
     
+    <xsl:template match="*[sp:text/text()]" mode="bs2:Row" priority="1">
+        <xsl:param name="id" select="generate-id()" as="xs:string?"/>
+        <xsl:param name="class" select="'row-fluid override-content'" as="xs:string?"/>
+        <xsl:param name="about" select="@rdf:about" as="xs:anyURI?"/>
+        <xsl:param name="typeof" select="rdf:type/@rdf:resource/xs:anyURI(.)" as="xs:anyURI*"/>
+        <xsl:param name="content-value" as="xs:anyURI?"/>
+        <xsl:param name="mode" as="xs:anyURI?"/>
+
+        <xsl:next-match>
+            <xsl:with-param name="id" select="$id"/>
+            <xsl:with-param name="class" select="$class"/>
+            <xsl:with-param name="about" select="$about"/>
+            <xsl:with-param name="typeof" select="$typeof"/>
+            <xsl:with-param name="content-value" select="$content-value"/>
+            <xsl:with-param name="mode" select="$mode"/>
+        </xsl:next-match>
+    </xsl:template>
+    
     <!-- hide inlined blank node resources from the main block flow -->
     <xsl:template match="*[*][key('resources', @rdf:nodeID)][count(key('predicates-by-object', @rdf:nodeID)[not(self::foaf:primaryTopic)]) = 1]" mode="bs2:Row" priority="1">
         <xsl:param name="display" select="false()" as="xs:boolean" tunnel="yes"/>
@@ -1005,18 +1023,6 @@ extension-element-prefixes="ixsl"
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:if>
-    </xsl:template>
-    
-    <!-- MODAL FORM -->
-
-    <!-- hide constraint violations and HTTP responses in the form - they are displayed as errors on the edited resources -->
-    <xsl:template match="*[rdf:type/@rdf:resource = ('&spin;ConstraintViolation', '&sh;ValidationResult', '&sh;ValidationReport', '&http;Response')]" mode="bs2:ModalForm" priority="3" use-when="system-property('xsl:product-name') = 'SAXON'"/>
-
-    <!-- hide object blank nodes that only have a single rdf:type property from constructed models, unless the type is owl:NamedIndividual -->
-    <xsl:template match="*[@rdf:nodeID][$ac:forClass or $ldh:forShape][$ac:method = 'GET'][key('predicates-by-object', @rdf:nodeID)][not(* except rdf:type or rdf:type/@rdf:resource = '&owl;NamedIndividual')]" mode="bs2:ModalForm" priority="2" use-when="system-property('xsl:product-name') = 'SAXON'"/>
-
-    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:ModalForm" use-when="system-property('xsl:product-name') = 'SAXON'">
-        <xsl:apply-templates select="." mode="bs2:Form"/>
     </xsl:template>
 
     <!-- ROW FORM -->
