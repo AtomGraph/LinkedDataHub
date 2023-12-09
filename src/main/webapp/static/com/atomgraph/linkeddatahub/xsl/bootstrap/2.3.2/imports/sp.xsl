@@ -44,7 +44,7 @@ exclude-result-prefixes="#all">
         <xsl:param name="mode" as="xs:anyURI?"/>
 
         <xsl:next-match>
-            <xsl:with-param name="id" select=""/>
+            <xsl:with-param name="id" select="$id"/>
             <xsl:with-param name="class" select="$class"/>
             <xsl:with-param name="about" select="$about"/>
             <xsl:with-param name="typeof" select="$typeof"/>
