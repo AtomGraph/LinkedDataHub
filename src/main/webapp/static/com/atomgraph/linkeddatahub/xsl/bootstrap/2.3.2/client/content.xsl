@@ -312,62 +312,14 @@ exclude-result-prefixes="#all"
         <ixsl:set-property name="{$textarea-id}" select="ixsl:eval(string($js-statement/@statement))" object="ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe')"/>
     </xsl:template>
 
-    <!-- DESCRIBE/CONSTRUCT queries -->
-    
-<!--    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = ('&sp;Describe', '&sp;Construct')][sp:text]" mode="ldh:RenderContent" priority="1">
-        <xsl:param name="this" as="xs:anyURI"/>
-        <xsl:param name="container" as="element()"/>
-        <xsl:param name="mode" as="xs:anyURI?"/>
-        <xsl:param name="refresh-content" as="xs:boolean?"/>
-        <xsl:param name="content-uri" select="xs:anyURI($container/@about)" as="xs:anyURI"/>
-         set $this variable value unless getting the query string from state 
-        <xsl:param name="query-string" select="replace(sp:text, '$this', '&lt;' || $this || '&gt;', 'q')" as="xs:string"/>
-         service can be explicitly specified on content using ldh:service 
-        <xsl:param name="service-uri" select="xs:anyURI(ldh:service/@rdf:resource)" as="xs:anyURI?"/>
-        <xsl:param name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.apps'))" as="element()?"/>
-        <xsl:param name="endpoint" select="($service/sd:endpoint/@rdf:resource/xs:anyURI(.), sd:endpoint())[1]" as="xs:anyURI"/>
-
-        <xsl:choose>
-             service URI is not specified or specified and can be loaded 
-            <xsl:when test="not($service-uri) or ($service-uri and exists($service))">
-                 window.LinkedDataHub.contents[{$content-uri}] object is already created 
-                <xsl:if test="$service-uri">
-                     store (the URI of) the service 
-                    <ixsl:set-property name="service-uri" select="$service-uri" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`')"/>
-                    <ixsl:set-property name="service" select="$service" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`')"/>
-                </xsl:if>
-
-                 update progress bar 
-                <xsl:for-each select="$container//div[@class = 'bar']">
-                    <ixsl:set-style name="width" select="'75%'" object="."/>
-                </xsl:for-each>
-
-                <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': $query-string })" as="xs:anyURI"/>
-                <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(base-uri()), map{}, $results-uri)" as="xs:anyURI"/>
-                
-                <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-                    <xsl:call-template name="onQueryContentLoad">
-                        <xsl:with-param name="container" select="$container"/>
-                        <xsl:with-param name="query-uri" select="@rdf:about"/>
-                        <xsl:with-param name="mode" select="$mode"/>
-                    </xsl:call-template>
-                </ixsl:schedule-action>
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:for-each select="$container//div[contains-token(@class, 'main')]">
-                    <xsl:result-document href="?." method="ixsl:replace-content">
-                        <div class="alert alert-block">
-                            <strong>Could not load service resource: <a href="{$service-uri}"><xsl:value-of select="$service-uri"/></a></strong>
-                        </div>
-                    </xsl:result-document>
-                </xsl:for-each>
-                
-                <xsl:call-template name="ldh:ContentLoaded">
-                    <xsl:with-param name="container" select="$container"/>
-                </xsl:call-template>
-            </xsl:otherwise>
-        </xsl:choose>
-    </xsl:template>-->
+    <xsl:template match="div[contains-token(@typeof, '&sp;Select')] | div[contains-token(@typeof, '&sp;Ask')] | div[contains-token(@typeof, '&sp;Describe')] | div[contains-token(@typeof, '&sp;Construct')]" mode="ldh:RenderOverrideContent">
+        <xsl:variable name="textarea-id" select=".//textarea[@name = 'query']/ixsl:get(., 'id')" as="xs:string"/>
+        <!-- initialize YASQE on the textarea -->
+        <xsl:variable name="js-statement" as="element()">
+            <root statement="YASQE.fromTextArea(document.getElementById('{$textarea-id}'), {{ persistent: null }})"/>
+        </xsl:variable>
+        <ixsl:set-property name="{$textarea-id}" select="ixsl:eval(string($js-statement/@statement))" object="ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe')"/>
+    </xsl:template>
     
     <!-- .xhtml-content referenced from .resource-content (XHTML transclusion) -->
     

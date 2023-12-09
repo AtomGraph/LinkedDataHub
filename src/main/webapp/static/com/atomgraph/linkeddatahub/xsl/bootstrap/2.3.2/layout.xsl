@@ -777,6 +777,7 @@ LIMIT   100
         <xsl:param name="id" select="'content-body'" as="xs:string?"/>
         <xsl:param name="class" select="'container-fluid'" as="xs:string?"/>
         <xsl:param name="about" select="ac:absolute-path(base-uri())" as="xs:anyURI?"/>
+        <xsl:param name="typeof" select="key('resources', ac:absolute-path(base-uri()))/rdf:type/@rdf:resource/xs:anyURI(.)" as="xs:anyURI*"/>
         <xsl:param name="classes" select="for $class-uri in map:keys($default-classes) return key('resources', $class-uri, document(ac:document-uri($class-uri)))" as="element()*"/>
         <xsl:param name="doc-types" select="key('resources', ac:absolute-path(base-uri()))/rdf:type/@rdf:resource[ . = ('&def;Root', '&dh;Container', '&dh;Item')]" as="xs:anyURI*"/>
         <xsl:param name="content-values" select="if (exists($doc-types) and doc-available(resolve-uri('ns?query=ASK%20%7B%7D', $ldt:base))) then (ldh:query-result(map{}, resolve-uri('ns', $ldt:base), $template-query || ' VALUES $Type { ' || string-join(for $type in $doc-types return '&lt;' || $type || '&gt;', ' ') || ' }')//srx:binding[@name = 'content']/srx:uri/xs:anyURI(.)) else ()" as="xs:anyURI*"/>
@@ -791,6 +792,9 @@ LIMIT   100
             </xsl:if>
             <xsl:if test="$about">
                 <xsl:attribute name="about" select="$about"/>
+            </xsl:if>
+            <xsl:if test="$typeof">
+                <xsl:attribute name="typeof" select="$typeof"/>
             </xsl:if>
             
             <xsl:apply-templates select="." mode="bs2:ModeTabs">

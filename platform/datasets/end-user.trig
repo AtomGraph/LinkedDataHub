@@ -113,7 +113,11 @@ WHERE
         rdf:_1 <geo/#select-geo> .
 
     <geo/#select-geo> a ldh:Content ;
-        rdf:value <geo/#select-geo-query> ;
+        rdf:value <geo/#select-geo-view> .
+
+    <geo/#select-geo-view> a ldh:View ;
+        rdfs:label "Geo view" ;
+        spin:query <geo/#select-geo-query> ;
         ac:mode ac:MapMode .
 
     <geo/#select-geo-query> a sp:Select ;
@@ -145,7 +149,11 @@ ORDER BY ?title""" .
         rdf:_1 <latest/#select-latest> .
 
     <latest/#select-latest> a ldh:Content ;
-        rdf:value <latest/#select-latest-query> .
+        rdf:value <latest/#select-latest-view> .
+
+    <latest/#select-latest-view> a ldh:View ;
+        rdfs:label "Latest resources view" ;
+        spin:query <latest/#select-latest-query> .
 
     <latest/#select-latest-query> a sp:Select ;
         dct:title "Select latest" ;
@@ -158,19 +166,6 @@ ORDER BY ?title""" .
       { ?dated  dct:created  ?created }
     }
     ORDER BY DESC(?created)""" .
-
-}
-
-<charts/>
-{
-
-    <charts/> a dh:Container ;
-        dct:title "Charts" ;
-        dct:description "Saved charts" ;
-        rdf:_1 <charts/#select-children> .
-
-    <charts/#select-children> a ldh:Content ;
-        rdf:value ldh:ChildrenView .
 
 }
 

@@ -33,6 +33,26 @@ exclude-result-prefixes="#all">
         <xsl:apply-templates select="key('resources', 'construct-query', document('../translations.rdf'))" mode="#current"/>
     </xsl:template>
 
+    <!-- ROW -->
+    
+    <xsl:template match="*[sp:text/text()]" mode="bs2:Row" priority="1">
+        <xsl:param name="id" select="generate-id()" as="xs:string?"/>
+        <xsl:param name="class" select="'row-fluid override-content'" as="xs:string?"/>
+        <xsl:param name="about" select="@rdf:about" as="xs:anyURI?"/>
+        <xsl:param name="typeof" select="rdf:type/@rdf:resource/xs:anyURI(.)" as="xs:anyURI*"/>
+        <xsl:param name="content-value" as="xs:anyURI?"/>
+        <xsl:param name="mode" as="xs:anyURI?"/>
+
+        <xsl:next-match>
+            <xsl:with-param name="id" select=""/>
+            <xsl:with-param name="class" select="$class"/>
+            <xsl:with-param name="about" select="$about"/>
+            <xsl:with-param name="typeof" select="$typeof"/>
+            <xsl:with-param name="content-value" select="$content-value"/>
+            <xsl:with-param name="mode" select="$mode"/>
+        </xsl:next-match>
+    </xsl:template>
+    
     <!-- BLOCK MODE -->
 
     <xsl:template match="*[sp:text/text()] | *[@rdf:nodeID]/sp:text/@rdf:nodeID[key('resources', .)[not(* except rdf:type[@rdf:resource = '&xsd;string'])]]" mode="bs2:Block">
@@ -47,8 +67,10 @@ exclude-result-prefixes="#all">
         <xsl:param name="service" as="xs:anyURI?"/>
         <xsl:param name="endpoint" as="xs:anyURI?"/>
         <xsl:param name="query" select="sp:text" as="xs:string"/>
-        <xsl:param name="show-next-match" select="false()" as="xs:boolean"/>
+        <xsl:param name="show-properties" select="false()" as="xs:boolean"/>
 
+        <xsl:apply-templates select="." mode="bs2:Header"/>
+        
         <form method="{$method}" action="{$action}">
             <xsl:if test="$id">
                 <xsl:attribute name="id" select="$id"/>
@@ -94,8 +116,8 @@ exclude-result-prefixes="#all">
             </div>
         </form>
         
-        <xsl:if test="$show-next-match">
-            <xsl:next-match/>
+        <xsl:if test="$show-properties">
+            <xsl:apply-templates select="." mode="bs2:PropertyList"/>
         </xsl:if>
     </xsl:template>
     

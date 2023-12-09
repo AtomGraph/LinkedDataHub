@@ -409,7 +409,7 @@ WHERE
 # CONTENTS
 
 :ChildrenView a :View ;
-    rdfs:label "Children container" ;
+    rdfs:label "Children view" ;
     spin:query :SelectChildren ;
     rdfs:isDefinedBy : .
 

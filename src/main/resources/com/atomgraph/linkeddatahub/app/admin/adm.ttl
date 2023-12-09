@@ -69,12 +69,18 @@ owl:Ontology spin:constructor [
     WHERE {}"""
     ] ;
 #    spin:constraint :MissingRDFSLabel .
-    ldh:template :OntologyClasses .
+    ldh:template :OntologyClassView .
+
+:OntologyClassView a ldh:View ;
+    rdfs:label "Ontology class view" ;
+    spin:query :OntologyClasses ;
+    ac:mode ac:TableMode ;
+    rdfs:isDefinedBy : .
 
 :OntologyClasses a ldh:Content ;
     rdfs:label "Classes defined by this ontology" ;
     rdf:value :SelectOntologyClasses ;
-    ac:mode ac:TableMode .
+    rdfs:isDefinedBy : .
 
 :SelectOntologyClasses a sp:Select ;
     rdfs:label "Select classes" ;
@@ -221,7 +227,13 @@ acl:Authorization spin:constructor [
 
 :AuthorizationAgents a ldh:Content ;
     rdfs:label "Agents authorized by this authorization" ;
-    rdf:value :SelectAuthorizationAgents .
+    rdf:value :AuthorizationAgentView ;
+    rdfs:isDefinedBy : .
+
+:AuthorizationAgentView a ldh:View ;
+    rdfs:label "Authorization agent view" ;
+    spin:query :SelectAuthorizationAgents ;
+    rdfs:isDefinedBy : .
 
 :SelectAuthorizationAgents a sp:Select ;
     rdfs:label "Select agents" ;
@@ -234,7 +246,8 @@ WHERE
   { GRAPH ?authGraph
       { $this  acl:agent  ?agent }
   }
-""" .
+""" ;
+    rdfs:isDefinedBy : .
 
 # http://www.w3.org/ns/auth/cert
 

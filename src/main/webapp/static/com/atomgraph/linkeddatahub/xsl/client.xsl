@@ -558,6 +558,14 @@ WHERE
                 </xsl:if>
             </xsl:if>
 
+            <xsl:variable name="override-content-ids" select="key('elements-by-class', 'override-content', ixsl:page())/@id" as="xs:string*"/>
+            <xsl:if test="not(empty($override-content-ids))">
+                <xsl:variable name="containers" select="id($override-content-ids, ixsl:page())" as="element()*"/>
+                <xsl:for-each select="$containers">
+                    <xsl:apply-templates select="." mode="ldh:RenderOverrideContent"/>
+                </xsl:for-each>
+            </xsl:if>
+            
             <!-- is a new instance of Service was created, reload the LinkedDataHub.apps data and re-render the service dropdown -->
             <xsl:if test="//ldt:base or //sd:endpoint">
                 <xsl:variable name="request" as="item()*">
