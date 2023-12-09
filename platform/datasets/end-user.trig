@@ -158,15 +158,14 @@ ORDER BY ?title""" .
 
     <latest/#select-latest-query> a sp:Select ;
         dct:title "Select latest" ;
-        sp:text """
-    PREFIX  dct:  <http://purl.org/dc/terms/>
+        sp:text """PREFIX  dct:  <http://purl.org/dc/terms/>
 
-    SELECT DISTINCT  ?dated
-    WHERE
-    { GRAPH ?graph
-      { ?dated  dct:created  ?created }
-    }
-    ORDER BY DESC(?created)""" .
+SELECT DISTINCT  ?dated
+WHERE
+{ GRAPH ?graph
+  { ?dated  dct:created  ?created }
+}
+ORDER BY DESC(?created)""" .
 
 }
 
