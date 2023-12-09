@@ -116,7 +116,7 @@ WHERE
         rdf:value <geo/#select-geo-view> .
 
     <geo/#select-geo-view> a ldh:View ;
-        rdfs:label "Geo view" ;
+        dct:title "Geo view" ;
         spin:query <geo/#select-geo-query> ;
         ac:mode ac:MapMode .
 
@@ -152,7 +152,7 @@ ORDER BY ?title""" .
         rdf:value <latest/#select-latest-view> .
 
     <latest/#select-latest-view> a ldh:View ;
-        rdfs:label "Latest resources view" ;
+        dct:title "Latest resources view" ;
         spin:query <latest/#select-latest-query> .
 
     <latest/#select-latest-query> a sp:Select ;
