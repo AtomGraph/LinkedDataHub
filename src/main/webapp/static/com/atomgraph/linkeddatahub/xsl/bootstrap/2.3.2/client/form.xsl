@@ -933,8 +933,8 @@ WHERE
                             </xsl:for-each>
                         </xsl:when>
                         <!-- if "Create" button is ReadMode, append form as row -->
-                        <xsl:when test="$target/ancestor::div[@id = 'content-body')]">
-                            <xsl:for-each select="$target/ancestor::div[@id = 'content-body')]">
+                        <xsl:when test="$target/ancestor::div[@id = 'content-body']">
+                            <xsl:for-each select="$target/ancestor::div[@id = 'content-body']">
                                 <!-- remove the current "Create" buttons from the row -->
                                 <xsl:for-each select="$target/ancestor::div[contains-token(@class, 'create-resource')]">
                                     <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
