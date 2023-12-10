@@ -1071,7 +1071,7 @@ extension-element-prefixes="ixsl"
     <!-- FORM CONTROL -->
 
     <!-- TO-DO: move to a vocab-specific stylesheet -->
-    <xsl:template match="*[sp:text/text()] | *[@rdf:nodeID]/sp:text/@rdf:nodeID[key('resources', .)[not(* except rdf:type[@rdf:resource = '&xsd;string'])]]" mode="bs2:FormControl">
+    <xsl:template match="*[sp:text/text()] | *[@rdf:nodeID]/sp:text/@rdf:nodeID[key('resources', .)[not(* except rdf:type[@rdf:resource = '&xsd;string'])]]" mode="bs2:FormControl" priority="3">
         <xsl:param name="class" select="'row-fluid content override-content'" as="xs:string?"/>
         <xsl:param name="query" select="sp:text" as="xs:string"/>
         <xsl:param name="textarea-id" select="'id' || ac:uuid()" as="xs:string"/>
