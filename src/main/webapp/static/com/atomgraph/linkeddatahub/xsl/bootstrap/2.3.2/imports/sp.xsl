@@ -120,7 +120,27 @@ exclude-result-prefixes="#all">
             <xsl:apply-templates select="." mode="bs2:PropertyList"/>
         </xsl:if>
     </xsl:template>
-    
+
+    <!-- FORM CONTROL MODE -->
+
+    <xsl:template match="*[sp:text/text()] | *[@rdf:nodeID]/sp:text/@rdf:nodeID[key('resources', .)[not(* except rdf:type[@rdf:resource = '&xsd;string'])]]" mode="bs2:FormControl">
+        <xsl:param name="class" select="'row-fluid content override-content'" as="xs:string?"/>
+        <xsl:param name="query" select="sp:text" as="xs:string"/>
+        <xsl:param name="textarea-id" select="'id' || ac:uuid()" as="xs:string"/>
+
+        <xsl:next-match>
+            <xsl:with-param name="class" select="$class"/>
+        </xsl:next-match>
+        
+        <textarea name="query" class="span12" rows="15">
+            <xsl:if test="$textarea-id">
+                <xsl:attribute name="id" select="$textarea-id"/>
+            </xsl:if>
+
+            <xsl:value-of select="$query"/>
+        </textarea>
+    </xsl:template>
+
     <xsl:template match="sp:text/text() | *[@rdf:*[local-name() = 'nodeID']]/sp:text/@rdf:*[local-name() = 'nodeID'][key('resources', .)[not(* except rdf:type[@rdf:resource = '&xsd;string'])]]" mode="bs2:FormControl">
         <xsl:param name="type-label" select="true()" as="xs:boolean"/>
         
