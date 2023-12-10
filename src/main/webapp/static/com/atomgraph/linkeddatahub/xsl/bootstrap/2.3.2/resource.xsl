@@ -1041,6 +1041,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="id" select="generate-id()" as="xs:string?"/>
         <xsl:param name="content-value" as="xs:anyURI?"/>
         <xsl:param name="class" select="'row-fluid'" as="xs:string?"/>
+        <xsl:param name="typeof" select="rdf:type/@rdf:resource/xs:anyURI(.)" as="xs:anyURI*"/>
 
         <div>
             <xsl:if test="$id">
@@ -1049,7 +1050,10 @@ extension-element-prefixes="ixsl"
             <xsl:if test="$class">
                 <xsl:attribute name="class" select="$class"/>
             </xsl:if>
-
+            <xsl:if test="$typeof">
+                <xsl:attribute name="typeof" select="$typeof"/>
+            </xsl:if>
+            
             <!--<xsl:apply-templates select="." mode="bs2:Left"/>-->
 
             <div class="main span7 offset2">
