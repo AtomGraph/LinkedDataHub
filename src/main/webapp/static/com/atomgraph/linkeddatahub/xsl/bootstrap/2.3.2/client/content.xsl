@@ -636,7 +636,7 @@ exclude-result-prefixes="#all"
     
     <!-- save query onclick -->
     
-    <xsl:template match="div[contains-token(@class, 'resource-content')][contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'btn-save-query')]" mode="ixsl:onclick">
+    <xsl:template match="div[contains-token(@class, 'content')][contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'btn-save-query')]" mode="ixsl:onclick">
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'resource-content')][contains-token(@class, 'row-fluid')]" as="element()"/>
         <xsl:variable name="old-content-value" select="ixsl:get($container, 'dataset.contentValue')" as="xs:anyURI"/>
         <xsl:variable name="content-value" select="ixsl:get($container//div[contains-token(@class, 'main')]//input[@name = 'ou'], 'value')" as="xs:anyURI"/>
@@ -1134,103 +1134,6 @@ exclude-result-prefixes="#all"
         </xsl:for-each>
     </xsl:template>
     
-    <xsl:template name="bs2:QueryForm">
-        <xsl:param name="method" select="'get'" as="xs:string"/>
-        <xsl:param name="action" select="$sd:endpoint" as="xs:anyURI"/>
-        <xsl:param name="id" as="xs:string?"/>
-        <xsl:param name="class" select="'sparql-query-form form-horizontal'" as="xs:string?"/>
-        <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
-        <xsl:param name="enctype" as="xs:string?"/>
-        <xsl:param name="textarea-id" select="'id' || ac:uuid()" as="xs:string"/>
-        <xsl:param name="mode" as="xs:anyURI*"/>
-        <xsl:param name="service" as="xs:anyURI?"/>
-        <xsl:param name="endpoint" as="xs:anyURI?"/>
-        <xsl:param name="query" as="xs:string"><![CDATA[SELECT DISTINCT *
-WHERE
-{
-    GRAPH ?g
-    { ?s ?p ?o }
-}
-LIMIT 100]]>
-        </xsl:param>
-        
-        <form method="{$method}" action="{$action}">
-            <xsl:if test="$id">
-                <xsl:attribute name="id" select="$id"/>
-            </xsl:if>
-            <xsl:if test="$class">
-                <xsl:attribute name="class" select="$class"/>
-            </xsl:if>
-            <xsl:if test="$accept-charset">
-                <xsl:attribute name="accept-charset" select="$accept-charset"/>
-            </xsl:if>
-            <xsl:if test="$enctype">
-                <xsl:attribute name="enctype" select="$enctype"/>
-            </xsl:if>
-
-<!--            <fieldset>-->
-<!--                <div class="control-group">
-                    <label class="control-label">Service</label>  for="service" 
-
-                    <div class="controls">
-                        <select name="service" class="input-xxlarge input-query-service">
-                            <option value="">
-                                <xsl:value-of>
-                                    <xsl:text>[</xsl:text>
-                                    <xsl:apply-templates select="key('resources', 'sparql-service', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                                    <xsl:text>]</xsl:text>
-                                </xsl:value-of>
-                            </option>
-                        </select>
-                    </div>
-                </div>
-                
-                <div class="control-group required">
-                    <label class="control-label">Title</label>  for="title" 
-
-                    <div class="controls">
-                        <input type="text" name="title"/>
-                    </div>
-                </div>-->
-        
-                <textarea name="query" class="span12" rows="15">
-                    <xsl:if test="$textarea-id">
-                        <xsl:attribute name="id" select="$textarea-id"/>
-                    </xsl:if>
-                    
-                    <xsl:value-of select="$query"/>
-                </textarea>
-
-                <div class="form-actions">
-                    <button type="submit">
-                        <xsl:apply-templates select="key('resources', 'run', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ldh:logo">
-                            <xsl:with-param name="class" select="'btn btn-primary btn-run-query'"/>
-                        </xsl:apply-templates>
-
-                        <xsl:value-of>
-                            <xsl:apply-templates select="key('resources', 'run', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                        </xsl:value-of>
-                    </button>
-<!--                    <button type="button" class="btn btn-primary btn-save btn-save-query">
-                        <xsl:value-of>
-                            <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                        </xsl:value-of>
-                    </button>-->
-                    <button type="button" class="btn btn-primary btn-open-query">
-                        <xsl:value-of>
-                            <xsl:apply-templates select="key('resources', 'open', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                        </xsl:value-of>
-                    </button>
-<!--                    <button type="button" class="btn btn-cancel">
-                        <xsl:value-of>
-                            <xsl:apply-templates select="key('resources', 'cancel', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                        </xsl:value-of>
-                    </button>-->
-                </div>
-<!--            </fieldset>-->
-        </form>
-    </xsl:template>
-    
     <!-- submit SPARQL query form (prioritize over default template in form.xsl) -->
     
     <xsl:template match="form[contains-token(@class, 'sparql-query-form')]" mode="ixsl:onsubmit" priority="1">
@@ -1269,7 +1172,7 @@ LIMIT 100]]>
 
     <!-- toggle query results to chart mode (prioritize over container.xsl) -->
     
-    <xsl:template match="*[contains-token(@class, 'resource-content')]//ul[contains-token(@class, 'nav-tabs')][contains-token(@class, 'nav-query-results')]/li[contains-token(@class, 'chart-mode')][not(contains-token(@class, 'active'))]/a" mode="ixsl:onclick" priority="1">
+    <xsl:template match="*[contains-token(@class, 'content')]//ul[contains-token(@class, 'nav-tabs')][contains-token(@class, 'nav-query-results')]/li[contains-token(@class, 'chart-mode')][not(contains-token(@class, 'active'))]/a" mode="ixsl:onclick" priority="1">
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'resource-content')]" as="element()"/>
         <xsl:variable name="form" select="$container//form[contains-token(@class, 'sparql-query-form')]" as="element()"/>
 
@@ -1289,7 +1192,7 @@ LIMIT 100]]>
     
     <!-- toggle query results to container mode (prioritize over container.xsl) -->
     
-    <xsl:template match="*[contains-token(@class, 'resource-content')]//ul[contains-token(@class, 'nav-tabs')][contains-token(@class, 'nav-query-results')]/li[contains-token(@class, 'container-mode')][not(contains-token(@class, 'active'))]/a" mode="ixsl:onclick" priority="1">
+    <xsl:template match="*[contains-token(@class, 'content')]//ul[contains-token(@class, 'nav-tabs')][contains-token(@class, 'nav-query-results')]/li[contains-token(@class, 'container-mode')][not(contains-token(@class, 'active'))]/a" mode="ixsl:onclick" priority="1">
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'resource-content')]" as="element()"/>
         <xsl:variable name="form" select="$container//form[contains-token(@class, 'sparql-query-form')]" as="element()"/>
         <xsl:variable name="textarea-id" select="$form//textarea[@name = 'query']/ixsl:get(., 'id')" as="xs:string"/>

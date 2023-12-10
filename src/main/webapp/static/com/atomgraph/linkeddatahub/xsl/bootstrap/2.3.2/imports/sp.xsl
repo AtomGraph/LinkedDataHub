@@ -123,28 +123,25 @@ exclude-result-prefixes="#all">
 
     <!-- FORM CONTROL MODE -->
 
-<!--    <xsl:template match="*[sp:text/text()] | *[@rdf:nodeID]/sp:text/@rdf:nodeID[key('resources', .)[not(* except rdf:type[@rdf:resource = '&xsd;string'])]]" mode="bs2:FormControl">
-        <xsl:param name="class" select="'row-fluid content override-content'" as="xs:string?"/>
-        <xsl:param name="query" select="sp:text" as="xs:string"/>
-        <xsl:param name="textarea-id" select="'id' || ac:uuid()" as="xs:string"/>
-
-        <xsl:next-match>
-            <xsl:with-param name="class" select="$class"/>
-        </xsl:next-match>
-        
-        <textarea name="query" class="span12" rows="15">
-            <xsl:if test="$textarea-id">
-                <xsl:attribute name="id" select="$textarea-id"/>
-            </xsl:if>
-
-            <xsl:value-of select="$query"/>
-        </textarea>
-    </xsl:template>-->
-
     <xsl:template match="sp:text/text() | *[@rdf:*[local-name() = 'nodeID']]/sp:text/@rdf:*[local-name() = 'nodeID'][key('resources', .)[not(* except rdf:type[@rdf:resource = '&xsd;string'])]]" mode="bs2:FormControl">
+        <xsl:param name="id" select="generate-id()" as="xs:string?"/>
+        <xsl:param name="class" select="'sparql-query-string'" as="xs:string?"/>
         <xsl:param name="type-label" select="true()" as="xs:boolean"/>
-        
-        <textarea name="ol" id="{generate-id()}" rows="10" style="font-family: monospace;">
+        <xsl:param name="name" select="'ol'" as="xs:string"/>
+        <xsl:param name="rows" select="10" as="xs:integer"/>
+        <xsl:param name="style" select="'font-family: monospace;" as="xs:string"/>
+
+        <textarea name="{$name}" id="{generate-id()}" rows="{$rows}">
+            <xsl:if test="$id">
+                <xsl:attribute name="id" select="$id"/>
+            </xsl:if>
+            <xsl:if test="$class">
+                <xsl:attribute name="class" select="$class"/>
+            </xsl:if>
+            <xsl:if test="$style">
+                <xsl:attribute name="style" select="$style"/>
+            </xsl:if>
+            
             <xsl:if test="self::text()">
                 <xsl:value-of select="."/>
             </xsl:if>

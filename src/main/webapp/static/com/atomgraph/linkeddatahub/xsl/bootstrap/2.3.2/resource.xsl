@@ -1072,35 +1072,8 @@ extension-element-prefixes="ixsl"
         </xsl:apply-templates>
     </xsl:template>
     
-    <!-- ROW FORM -->
-
-    <!-- TO-DO: move to a vocab-specific stylesheet -->
-    <xsl:template match="*[sp:text/text()] | *[@rdf:nodeID]/sp:text/@rdf:nodeID[key('resources', .)[not(* except rdf:type[@rdf:resource = '&xsd;string'])]]" mode="bs2:RowForm" priority="3">
-        <xsl:param name="class" select="'row-fluid content override-content'" as="xs:string?"/>
-        
-        <xsl:next-match>
-            <xsl:with-param name="class" select="$class"/>
-        </xsl:next-match>
-    </xsl:template>
-
     <!-- FORM CONTROL -->
         
-    <!-- TO-DO: move to a vocab-specific stylesheet -->
-    <xsl:template match="*[sp:text/text()] | *[@rdf:nodeID]/sp:text/@rdf:nodeID[key('resources', .)[not(* except rdf:type[@rdf:resource = '&xsd;string'])]]" mode="bs2:FormControl" priority="3">
-        <xsl:param name="query" select="sp:text" as="xs:string"/>
-        <xsl:param name="textarea-id" select="'id' || ac:uuid()" as="xs:string"/>
-
-        <xsl:next-match/>
-        
-        <textarea name="query" class="span12" rows="15">
-            <xsl:if test="$textarea-id">
-                <xsl:attribute name="id" select="$textarea-id"/>
-            </xsl:if>
-
-            <xsl:value-of select="$query"/>
-        </textarea>
-    </xsl:template>
-    
     <!-- turn off blank node resources from constructor graph (only those that are objects) -->
     <xsl:template match="*[@rdf:nodeID][$ac:forClass or $ldh:forShape][rdf:type/starts-with(@rdf:resource, '&xsd;')] | *[@rdf:nodeID][$ac:forClass or $ldh:forShape][count(key('predicates-by-object', @rdf:nodeID)) &gt; 0][rdf:type/@rdf:resource = '&rdfs;Resource']" mode="bs2:FormControl" priority="2" use-when="system-property('xsl:product-name') = 'SAXON'"/>
 

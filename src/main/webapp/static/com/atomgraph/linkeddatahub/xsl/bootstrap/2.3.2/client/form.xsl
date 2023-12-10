@@ -110,6 +110,15 @@ WHERE
         <xsl:sequence select="ixsl:call(ixsl:call(ixsl:window(), 'jQuery', [ . ]), 'wymeditor', [])[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
 
+    <xsl:template match="textarea[@id][contains-token(@class, 'sparql-query-string')]" mode="ldh:PostConstruct" priority="1">
+        <xsl:variable name="textarea-id" select="ixsl:get(., 'id')" as="xs:string"/>
+        <!-- initialize YASQE SPARQL editor on the textarea -->
+        <xsl:variable name="js-statement" as="element()">
+            <root statement="YASQE.fromTextArea(document.getElementById('{$textarea-id}'), {{ persistent: null }})"/>
+        </xsl:variable>
+        <ixsl:set-property name="{$textarea-id}" select="ixsl:eval(string($js-statement/@statement))" object="ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe')"/>
+    </xsl:template>
+    
     <!-- TO-DO: phase out as regular ixsl: event templates -->
     <xsl:template match="fieldset//input" mode="ldh:PostConstruct" priority="1">
         <!-- subject value change -->
@@ -364,8 +373,6 @@ WHERE
         <xsl:variable name="bnode-ids" select="distinct-values($form//input[@name = ('sb', 'ob')]/ixsl:get(., 'value')[starts-with(., 'A')])" as="xs:string*"/>
          <!-- find the last bnode ID on the form so that we can change this resources ID to +1. Will only work with Jena's ID format A1, A2, ... -->
         <xsl:variable name="max-bnode-id" select="if (empty($bnode-ids)) then 0 else max(for $bnode-id in $bnode-ids return xs:integer(substring-after($bnode-id, 'A')))" as="xs:integer"/>
-        <!--- show a modal form if this button is in a <fieldset>, meaning on a resource-level and not form level. Otherwise (e.g. for the "Create" button) show normal form -->
-<!--        <xsl:variable name="modal-form" select="exists(ancestor::fieldset)" as="xs:boolean"/>-->
         <xsl:variable name="forClass" select="input[@class = 'forClass']/@value" as="xs:anyURI"/>
         <xsl:variable name="create-graph" select="empty($form)" as="xs:boolean"/>
         <xsl:variable name="query-params" select="map:merge((map{ 'forClass': string($forClass) }, if ($create-graph) then map{ 'createGraph': string(true()) } else ()))" as="map(xs:string, xs:string*)"/>
@@ -960,12 +967,6 @@ WHERE
                         <xsl:apply-templates select="id($form-id, ixsl:page())" mode="ldh:PostConstruct"/>
                     </xsl:if>
 
-                    <xsl:if test="$new-target-id">
-                        <!-- overwrite target-id input's value with the provided value -->
-                        <xsl:for-each select="id($form-id, ixsl:page())//input[@class = 'target-id']"> <!-- why @class and not @name?? -->
-                            <ixsl:set-property name="value" select="$new-target-id" object="."/>
-                        </xsl:for-each>
-                    </xsl:if>
                     <xsl:if test="$new-form-id">
                         <!-- overwrite form's @id with the provided value -->
                         <ixsl:set-property name="id" select="$new-form-id" object="id($form-id, ixsl:page())"/>

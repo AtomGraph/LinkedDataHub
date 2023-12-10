@@ -176,18 +176,6 @@ WHERE
                     <xsl:map-entry key="'label-id'" select="'applications'"/>
                 </xsl:map>
             </xsl:map-entry>
-            <xsl:map-entry key="resolve-uri('charts/', $ldt:base)">
-                <xsl:map>
-                    <xsl:map-entry key="'class'" select="'btn-chart'"/>
-                    <xsl:map-entry key="'label-id'" select="'charts'"/>
-                </xsl:map>
-            </xsl:map-entry>
-            <xsl:map-entry key="resolve-uri('files/', $ldt:base)">
-                <xsl:map>
-                    <xsl:map-entry key="'class'" select="'btn-file'"/>
-                    <xsl:map-entry key="'label-id'" select="'files'"/>
-                </xsl:map>
-            </xsl:map-entry>
             <xsl:map-entry key="resolve-uri('geo/', $ldt:base)">
                 <xsl:map>
                     <xsl:map-entry key="'class'" select="'btn-geo'"/>
@@ -204,12 +192,6 @@ WHERE
                 <xsl:map>
                     <xsl:map-entry key="'class'" select="'btn-latest'"/>
                     <xsl:map-entry key="'label-id'" select="'latest'"/>
-                </xsl:map>
-            </xsl:map-entry>
-            <xsl:map-entry key="resolve-uri('queries/', $ldt:base)">
-                <xsl:map>
-                    <xsl:map-entry key="'class'" select="'btn-query'"/>
-                    <xsl:map-entry key="'label-id'" select="'queries'"/>
                 </xsl:map>
             </xsl:map-entry>
             <xsl:map-entry key="resolve-uri('services/', $ldt:base)">
@@ -262,6 +244,15 @@ WHERE
         <!-- disable SPARQL editor's server-side submission -->
         <xsl:for-each select="ixsl:page()//button[contains(@class, 'btn-run-query')]"> <!-- TO-DO: use the 'elements-by-class' key -->
             <ixsl:set-attribute name="type" select="'button'"/> <!-- instead of "submit" -->
+        </xsl:for-each>
+        <!-- initialize SPARQL editor -->
+        <xsl:for-each select="ixsl:page()//textarea[contains(@class, 'sparql-query-string')]"> <!-- TO-DO: use the 'elements-by-class' key -->
+            <xsl:variable name="textarea-id" select="ixsl:get(., 'id')" as="xs:string"/>
+            <!-- initialize YASQE on the textarea -->
+            <xsl:variable name="js-statement" as="element()">
+                <root statement="YASQE.fromTextArea(document.getElementById('{$textarea-id}'), {{ persistent: null }})"/>
+            </xsl:variable>
+            <ixsl:set-property name="{$textarea-id}" select="ixsl:eval(string($js-statement/@statement))" object="ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe')"/>
         </xsl:for-each>
         <!-- only show first time message for authenticated agents -->
         <xsl:if test="$acl:agent and not(contains(ixsl:get(ixsl:page(), 'cookie'), 'LinkedDataHub.first-time-message'))">
