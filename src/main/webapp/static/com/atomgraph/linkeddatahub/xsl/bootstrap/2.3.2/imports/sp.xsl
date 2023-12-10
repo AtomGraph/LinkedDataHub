@@ -129,7 +129,7 @@ exclude-result-prefixes="#all">
         <xsl:param name="type-label" select="true()" as="xs:boolean"/>
         <xsl:param name="name" select="'ol'" as="xs:string"/>
         <xsl:param name="rows" select="10" as="xs:integer"/>
-        <xsl:param name="style" select="'font-family: monospace;" as="xs:string"/>
+        <xsl:param name="style" select="'font-family: monospace;'" as="xs:string"/>
 
         <textarea name="{$name}" id="{generate-id()}" rows="{$rows}">
             <xsl:if test="$id">
