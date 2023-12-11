@@ -724,7 +724,8 @@ WHERE
 <xsl:message>BBB</xsl:message>
                     <!-- create results container element if it doesn't exist -->
                     <xsl:if test="not(id($results-container-id, ixsl:page()))">
-                        <xsl:for-each select="$container//div[contains-token(@class, 'main')]">
+                        <!-- TO-DO: find a better solution -->
+                        <xsl:for-each select="if ($container//div[contains-token(@class, 'main')]) then $container//div[contains-token(@class, 'main')] else $container">
                             <xsl:variable name="active-mode" select="xs:anyURI('&ac;ChartMode')" as="xs:anyURI"/>
 <xsl:message>CCC</xsl:message>
                             <xsl:result-document href="?." method="ixsl:append-content">
