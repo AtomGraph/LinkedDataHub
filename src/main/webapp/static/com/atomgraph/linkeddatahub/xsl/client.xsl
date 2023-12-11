@@ -710,7 +710,10 @@ WHERE
         <xsl:param name="results-container-class" select="'sparql-query-results'" as="xs:string"/>
 
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
-<xsl:message>AAA</xsl:message>
+<xsl:message>AAA $chart-canvas-id: '<xsl:value-of select="$chart-canvas-id"/>'</xsl:message>
+<xsl:message>AAA ixsl:get($container, 'id'): '<xsl:value-of select="ixsl:get($container, 'id')"/>'</xsl:message>
+<xsl:message>AAA $results-container-id: '<xsl:value-of select="$results-container-id"/>'</xsl:message>
+        
         <xsl:variable name="response" select="." as="map(*)"/>
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = ('application/rdf+xml', 'application/sparql-results+xml')">
@@ -784,7 +787,7 @@ WHERE
                     <ixsl:set-property name="results" select="$results" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`')"/>
                     <xsl:variable name="data-table" select="if ($results/rdf:RDF) then ac:rdf-data-table($results, $category, $series) else ac:sparql-results-data-table($results, $category, $series)"/>
                     <ixsl:set-property name="data-table" select="$data-table" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`')"/>
-<xsl:message>HHH</xsl:message>
+<xsl:message>HHH </xsl:message>
 
                     <xsl:call-template name="ldh:RenderChart">
                         <xsl:with-param name="data-table" select="$data-table"/>
