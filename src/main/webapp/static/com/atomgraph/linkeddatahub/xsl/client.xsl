@@ -710,7 +710,7 @@ WHERE
         <xsl:param name="results-container-class" select="'sparql-query-results'" as="xs:string"/>
 
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
-
+<xsl:message>AAA</xsl:message>
         <xsl:variable name="response" select="." as="map(*)"/>
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = ('application/rdf+xml', 'application/sparql-results+xml')">
@@ -718,12 +718,12 @@ WHERE
                     <xsl:variable name="results" select="." as="document-node()"/>
                     <xsl:variable name="category" select="if ($category) then $category else (if (rdf:RDF) then distinct-values(rdf:RDF/*/*/concat(namespace-uri(), local-name()))[1] else srx:sparql/srx:head/srx:variable[1]/@name)" as="xs:string?"/>
                     <xsl:variable name="series" select="if (exists($series)) then $series else (if (rdf:RDF) then distinct-values(rdf:RDF/*/*/concat(namespace-uri(), local-name())) else srx:sparql/srx:head/srx:variable/@name)" as="xs:string*"/>
-
+<xsl:message>BBB</xsl:message>
                     <!-- create results container element if it doesn't exist -->
                     <xsl:if test="not(id($results-container-id, ixsl:page()))">
                         <xsl:for-each select="$container//div[contains-token(@class, 'main')]">
                             <xsl:variable name="active-mode" select="xs:anyURI('&ac;ChartMode')" as="xs:anyURI"/>
-                            
+<xsl:message>CCC</xsl:message>
                             <xsl:result-document href="?." method="ixsl:append-content">
                                 <xsl:if test="$query-string">
                                     <ul class="nav nav-tabs nav-query-results">
@@ -754,7 +754,7 @@ WHERE
                             </xsl:result-document>
                         </xsl:for-each>
                     </xsl:if>
-                    
+<xsl:message>DDD</xsl:message>
                     <xsl:for-each select="id($results-container-id, ixsl:page())">
                         <xsl:result-document href="?." method="ixsl:replace-content">
                                 <xsl:apply-templates select="$results" mode="bs2:Chart">
@@ -795,6 +795,7 @@ WHERE
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
+<xsl:message>XXX</xsl:message>
                 <xsl:for-each select="$container//div[@class = 'progress-bar']">
                     <ixsl:set-style name="display" select="'none'" object="."/>
                 </xsl:for-each>
