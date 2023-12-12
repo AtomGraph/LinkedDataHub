@@ -939,10 +939,10 @@ WHERE
                         </xsl:when>
                         <!-- if "Create" button is ReadMode, append form as row -->
                         <xsl:when test="$target/ancestor::div[@id = 'content-body']">
-                            <xsl:message>A ixsl:get($form, 'action'): <xsl:value-of select="ixsl:get($form, 'action')"/></xsl:message>
+                            <xsl:message>A $form/@action: <xsl:value-of select="$form/@action"/></xsl:message>
                             <!-- a hack to change the request method to POST as we want to append partial data and not replace the whole graph as with PUT in EditMode -->
-                            <ixsl:set-property name="action" select="replace($form/@action, '_method=PUT', '_method=POST')" object="$form"/>
-                            <xsl:message>B ixsl:get($form, 'action'): <xsl:value-of select="ixsl:get($form, 'action')"/></xsl:message>
+                            <ixsl:set-attribute name="action" select="replace($form/@action, '_method=PUT', '_method=POST')" object="$form"/>
+                            <xsl:message>B $form/@action: <xsl:value-of select="$form/@action"/></xsl:message>
                             
                             <xsl:for-each select="$target/ancestor::div[@id = 'content-body']">
                                 <!-- remove the current "Create" buttons from the row -->
