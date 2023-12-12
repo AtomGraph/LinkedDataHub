@@ -710,9 +710,6 @@ WHERE
         <xsl:param name="results-container-class" select="'sparql-query-results'" as="xs:string"/>
 
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
-<xsl:message>AAA $chart-canvas-id: '<xsl:value-of select="$chart-canvas-id"/>'</xsl:message>
-<xsl:message>AAA ixsl:get($container, 'id'): '<xsl:value-of select="ixsl:get($container, 'id')"/>'</xsl:message>
-<xsl:message>AAA $results-container-id: '<xsl:value-of select="$results-container-id"/>'</xsl:message>
         
         <xsl:variable name="response" select="." as="map(*)"/>
         <xsl:choose>
@@ -721,13 +718,13 @@ WHERE
                     <xsl:variable name="results" select="." as="document-node()"/>
                     <xsl:variable name="category" select="if ($category) then $category else (if (rdf:RDF) then distinct-values(rdf:RDF/*/*/concat(namespace-uri(), local-name()))[1] else srx:sparql/srx:head/srx:variable[1]/@name)" as="xs:string?"/>
                     <xsl:variable name="series" select="if (exists($series)) then $series else (if (rdf:RDF) then distinct-values(rdf:RDF/*/*/concat(namespace-uri(), local-name())) else srx:sparql/srx:head/srx:variable/@name)" as="xs:string*"/>
-<xsl:message>BBB</xsl:message>
+
                     <!-- create results container element if it doesn't exist -->
                     <xsl:if test="not(id($results-container-id, ixsl:page()))">
-                        <!-- TO-DO: find a better solution -->
+                        <!-- TO-DO: find a better solution. $container in ContentMode is the whole .content row but in ReadMode it's .main -->
                         <xsl:for-each select="if ($container//div[contains-token(@class, 'main')]) then $container//div[contains-token(@class, 'main')] else $container">
                             <xsl:variable name="active-mode" select="xs:anyURI('&ac;ChartMode')" as="xs:anyURI"/>
-<xsl:message>CCC</xsl:message>
+
                             <xsl:result-document href="?." method="ixsl:append-content">
                                 <xsl:if test="$query-string">
                                     <ul class="nav nav-tabs nav-query-results">
@@ -758,10 +755,8 @@ WHERE
                             </xsl:result-document>
                         </xsl:for-each>
                     </xsl:if>
-<xsl:message>DDD</xsl:message>
-                    <xsl:for-each select="id($results-container-id, ixsl:page())">
-<xsl:message>EEE</xsl:message>
 
+                    <xsl:for-each select="id($results-container-id, ixsl:page())">
                         <xsl:result-document href="?." method="ixsl:replace-content">
                                 <xsl:apply-templates select="$results" mode="bs2:Chart">
                                     <xsl:with-param name="endpoint" select="if (not($endpoint = sd:endpoint())) then $endpoint else ()" tunnel="yes"/>
@@ -773,7 +768,6 @@ WHERE
                                 </xsl:apply-templates>
                         </xsl:result-document>
                     </xsl:for-each>
-<xsl:message>FFF</xsl:message>
 
                     <!-- post-process the container if it's a chart instance being rendered and not SPARQL results -->
                     <xsl:if test="not($query-string)">
@@ -781,14 +775,12 @@ WHERE
                             <xsl:with-param name="container" select="$container"/>
                         </xsl:call-template>
                     </xsl:if>
-<xsl:message>GGG</xsl:message>
 
                     <!-- create new cache entry using content URI as key -->
                     <ixsl:set-property name="{'`' || $content-uri || '`'}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
                     <ixsl:set-property name="results" select="$results" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`')"/>
                     <xsl:variable name="data-table" select="if ($results/rdf:RDF) then ac:rdf-data-table($results, $category, $series) else ac:sparql-results-data-table($results, $category, $series)"/>
                     <ixsl:set-property name="data-table" select="$data-table" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`')"/>
-<xsl:message>HHH </xsl:message>
 
                     <xsl:call-template name="ldh:RenderChart">
                         <xsl:with-param name="data-table" select="$data-table"/>
@@ -797,7 +789,6 @@ WHERE
                         <xsl:with-param name="category" select="$category"/>
                         <xsl:with-param name="series" select="$series"/>
                     </xsl:call-template>
-<xsl:message>III</xsl:message>
 
                     <xsl:for-each select="$container//div[@class = 'progress-bar']">
                         <ixsl:set-style name="display" select="'none'" object="."/>
@@ -805,7 +796,6 @@ WHERE
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
-<xsl:message>XXX</xsl:message>
                 <xsl:for-each select="$container//div[@class = 'progress-bar']">
                     <ixsl:set-style name="display" select="'none'" object="."/>
                 </xsl:for-each>
