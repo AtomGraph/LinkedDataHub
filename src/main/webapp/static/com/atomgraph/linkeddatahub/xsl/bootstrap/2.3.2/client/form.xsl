@@ -939,13 +939,6 @@ WHERE
                         </xsl:when>
                         <!-- if "Create" button is ReadMode, append form as row -->
                         <xsl:when test="$target/ancestor::div[@id = 'content-body']">
-                            <xsl:message>A $form/@action: <xsl:value-of select="$form/@action"/></xsl:message>
-                            <!-- a hack to change the request method to POST as we want to append partial data and not replace the whole graph as with PUT in EditMode -->
-                            <xsl:for-each select="$form">
-                                <ixsl:set-attribute name="action" select="replace($form/@action, '_method=PUT', '_method=POST')" object="."/>
-                            </xsl:for-each>
-                            <xsl:message>B $form/@action: <xsl:value-of select="$form/@action"/></xsl:message>
-
                             <xsl:for-each select="$target/ancestor::div[@id = 'content-body']">
                                 <!-- remove the current "Create" buttons from the row -->
                                 <xsl:for-each select="$target/ancestor::div[contains-token(@class, 'create-resource')]">
@@ -958,6 +951,11 @@ WHERE
                                     </div>
                                 </xsl:result-document>
                             </xsl:for-each>
+                            
+                            <xsl:message>A id($form-id, ixsl:page())/@action: <xsl:value-of select="id($form-id, ixsl:page())/@action"/></xsl:message>
+                            <!-- a hack to change the request method to POST as we want to append partial data and not replace the whole graph as with PUT in EditMode -->
+                            <ixsl:set-attribute name="action" select="replace($form/@action, '_method=PUT', '_method=POST')" object="id($form-id, ixsl:page())"/>
+                            <xsl:message>B id($form-id, ixsl:page())/@action: <xsl:value-of select="id($form-id, ixsl:page())/@action"/></xsl:message>
                         </xsl:when>
                         <!-- there's no <form> so we're not in EditMode - replace the whole content -->
                         <xsl:otherwise>
