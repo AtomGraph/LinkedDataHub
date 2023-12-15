@@ -1286,7 +1286,7 @@ WHERE
             $about: <xsl:value-of select="$about"/> base-uri(): <xsl:value-of select="base-uri()"/>
         </xsl:message>
         
-        <xsl:variable name="doc" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || base-uri() || '`')" as="document-node()"/>
+        <xsl:variable name="doc" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(base-uri()) || '`')" as="document-node()"/>
         <xsl:variable name="resource" select="key('resources', $about, $doc)" as="element()"/>
         
         <xsl:for-each select="$container">
