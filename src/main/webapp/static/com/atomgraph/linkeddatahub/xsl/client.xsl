@@ -1282,8 +1282,11 @@ WHERE
         <xsl:variable name="about" select="$container/@about" as="xs:anyURI"/>
 
 <!--        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>-->
-
-        <xsl:variable name="doc" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $about || '`')" as="document-node()"/>
+        <xsl:message>
+            $about: <xsl:value-of select="$about"/> base-uri(): <xsl:value-of select="base-uri()"/>
+        </xsl:message>
+        
+        <xsl:variable name="doc" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || base-uri() || '`')" as="document-node()"/>
         <xsl:variable name="resource" select="key('resources', $about, $doc)" as="element()"/>
         
         <xsl:for-each select="$container">
