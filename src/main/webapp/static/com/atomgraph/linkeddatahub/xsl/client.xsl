@@ -1283,10 +1283,10 @@ WHERE
 
 <!--        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>-->
         <xsl:message>
-            $about: <xsl:value-of select="$about"/> base-uri(): <xsl:value-of select="base-uri()"/>
+            $about: <xsl:value-of select="$about"/> ac:absolute-path(base-uri()): <xsl:value-of select="ac:absolute-path(base-uri())"/>
         </xsl:message>
         
-        <xsl:variable name="doc" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(base-uri()) || '`')" as="document-node()"/>
+        <xsl:variable name="doc" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(base-uri()) || '`'), 'results')" as="document-node()"/>
         <xsl:variable name="resource" select="key('resources', $about, $doc)" as="element()"/>
         
         <xsl:for-each select="$container">
