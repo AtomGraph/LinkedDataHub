@@ -1273,6 +1273,25 @@ WHERE
         <!-- store the new request object -->
         <ixsl:set-property name="request" select="$request" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
     </xsl:template>
+
+    <!-- toggle inline editing form (do nothing if the button is disabled) -->
+    
+    <xsl:template match="button[contains-token(@class, 'btn-edit')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick">
+        <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
+        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'row-fluid')]" as="element()"/>
+        <xsl:variable name="about" select="$container/@about" as="xs:anyURI"/>
+
+<!--        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>-->
+
+        <xsl:variable name="doc" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`')" as="document-node()"/>
+        <xsl:variable name="resource" select="key('resources', $about, $doc)" as="element()"/>
+        
+        <xsl:for-each select="$container">
+            <xsl:result-document href="?." method="ixsl:replace-content">
+                <xsl:apply-templates select="$resource" mode="bs2:RowForm"/>
+            </xsl:result-document>
+        </xsl:for-each>
+    </xsl:template>
     
     <!-- open editing form (do nothing if the button is disabled) -->
     

@@ -952,10 +952,8 @@ WHERE
                                 </xsl:result-document>
                             </xsl:for-each>
                             
-                            <xsl:message>A id($form-id, ixsl:page())/@action: <xsl:value-of select="id($form-id, ixsl:page())/@action"/></xsl:message>
                             <!-- a hack to change the request method to POST as we want to append partial data and not replace the whole graph as with PUT in EditMode -->
                             <ixsl:set-attribute name="action" select="replace($form/@action, '_method=PUT', '_method=POST')" object="id($form-id, ixsl:page())"/>
-                            <xsl:message>B id($form-id, ixsl:page())/@action: <xsl:value-of select="id($form-id, ixsl:page())/@action"/></xsl:message>
                         </xsl:when>
                         <!-- there's no <form> so we're not in EditMode - replace the whole content -->
                         <xsl:otherwise>

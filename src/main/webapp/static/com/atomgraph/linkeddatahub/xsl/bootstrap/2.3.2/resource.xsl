@@ -701,6 +701,10 @@ extension-element-prefixes="ixsl"
                     <xsl:apply-templates select="key('resources', 'copy-uri', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
                 </xsl:value-of>
             </button>
+            
+            <button type="button" class="btn btn-edit">
+                <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
+            </button>
         </div>
     </xsl:template>
     
@@ -1037,7 +1041,7 @@ extension-element-prefixes="ixsl"
     <!-- hide object blank nodes that only have a single rdf:type property from constructed models, unless the type is owl:NamedIndividual -->
     <xsl:template match="*[@rdf:nodeID][$ac:forClass or $ldh:forShape][$ac:method = 'GET'][key('predicates-by-object', @rdf:nodeID)][not(* except rdf:type or rdf:type/@rdf:resource = '&owl;NamedIndividual')]" mode="bs2:RowForm" priority="2" use-when="system-property('xsl:product-name') = 'SAXON'"/>
         
-    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:RowForm" use-when="system-property('xsl:product-name') = 'SAXON'">
+    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:RowForm"> <!-- use-when="system-property('xsl:product-name') = 'SAXON'" -->
         <xsl:param name="id" select="generate-id()" as="xs:string?"/>
         <xsl:param name="content-value" as="xs:anyURI?"/>
         <xsl:param name="class" select="'row-fluid'" as="xs:string?"/>
