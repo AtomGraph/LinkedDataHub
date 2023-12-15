@@ -1283,7 +1283,7 @@ WHERE
 
 <!--        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>-->
 
-        <xsl:variable name="doc" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`')" as="document-node()"/>
+        <xsl:variable name="doc" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $about || '`')" as="document-node()"/>
         <xsl:variable name="resource" select="key('resources', $about, $doc)" as="element()"/>
         
         <xsl:for-each select="$container">
