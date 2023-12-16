@@ -96,7 +96,7 @@ exclude-result-prefixes="#all">
             <div class="form-actions">
                 <button type="submit">
                     <xsl:apply-templates select="key('resources', 'run', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ldh:logo">
-                        <xsl:with-param name="class" select="'btn btn-primary btn-run-query'"/>
+                        <xsl:with-param name="class" select="'btn btn-primary btn-run-query wymupdate'"/>
                     </xsl:apply-templates>
 
                     <xsl:value-of>
