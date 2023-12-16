@@ -1069,6 +1069,7 @@ extension-element-prefixes="ixsl"
                 </xsl:variable>
 
                 <xsl:apply-templates select="$doc" mode="bs2:Form"/>
+                <xsl:apply-templates select="root($doc)" mode="bs2:Form"/>
             </div>
 
             <!--<xsl:apply-templates select="." mode="bs2:Right"/>-->
@@ -1078,6 +1079,7 @@ extension-element-prefixes="ixsl"
     <!-- FORM -->
 
     <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:Form">
+        <xsl:message>AAA</xsl:message>
         <xsl:apply-templates select="." mode="bs2:FormControl">
             <xsl:sort select="ac:label(.)"/>
         </xsl:apply-templates>
@@ -1130,6 +1132,8 @@ extension-element-prefixes="ixsl"
         <xsl:param name="show-subject" select="not(starts-with(@rdf:about, $base-uri) or @rdf:nodeID)" as="xs:boolean" tunnel="yes"/>
         <xsl:param name="required" select="false()" as="xs:boolean"/>
 
+        <xsl:message>BBB</xsl:message>
+        
         <fieldset>
             <xsl:if test="$id">
                 <xsl:attribute name="id" select="$id"/>
