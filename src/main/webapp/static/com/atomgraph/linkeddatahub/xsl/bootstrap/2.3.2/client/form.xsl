@@ -952,8 +952,13 @@ WHERE
                                 </xsl:result-document>
                             </xsl:for-each>
                             
-                            <!-- a hack to change the request method to POST as we want to append partial data and not replace the whole graph as with PUT in EditMode -->
-                            <ixsl:set-attribute name="action" select="replace($form/@action, '_method=PUT', '_method=POST')" object="id($form-id, ixsl:page())"/>
+                            <xsl:for-each select="id($form-id, ixsl:page())">
+                                <!-- a hack to change the request method to POST as we want to append partial data and not replace the whole graph as with PUT in EditMode -->
+                                <ixsl:set-attribute name="action" select="replace($form/@action, '_method=PUT', '_method=POST')" object="."/>
+                                
+                                <xsl:apply-templates select="." mode="ldh:PostConstruct"/>
+                            </xsl:for-each>
+                    <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
                         </xsl:when>
                         <!-- there's no <form> so we're not in EditMode - replace the whole content -->
                         <xsl:otherwise>
