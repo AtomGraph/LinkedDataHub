@@ -1283,19 +1283,24 @@ WHERE
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'row-fluid')]" as="element()"/>
         <xsl:variable name="about" select="$container/@about" as="xs:anyURI"/>
 
-<!--        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>-->
-        <xsl:message>
-            $about: <xsl:value-of select="$about"/> ac:absolute-path(base-uri()): <xsl:value-of select="ac:absolute-path(base-uri())"/>
-        </xsl:message>
+        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
         
         <xsl:variable name="doc" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(base-uri()) || '`'), 'results')" as="document-node()"/>
         <xsl:variable name="resource" select="key('resources', $about, $doc)" as="element()"/>
         
         <xsl:for-each select="$container">
+            <xsl:variable name="form-id" select="'form-' || generate-id($resource)" as="xs:string"/>
+            
             <xsl:result-document href="?." method="ixsl:replace-content">
-                <xsl:apply-templates select="$resource" mode="bs2:RowForm"/>
+                <xsl:apply-templates select="$resource" mode="bs2:RowForm">
+                    <xsl:with-param name="id" select="$form-id"/>
+                </xsl:apply-templates>
             </xsl:result-document>
+            
+            <xsl:apply-templates select="id($form-id, ixsl:page())" mode="ldh:PostConstruct"/>
         </xsl:for-each>
+        
+        <ixsl:set-style name="default" select="'progress'" object="ixsl:page()//body"/>
     </xsl:template>
     
     <!-- open editing form (do nothing if the button is disabled) -->
