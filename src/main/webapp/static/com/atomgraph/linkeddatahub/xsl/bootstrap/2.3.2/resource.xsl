@@ -1069,7 +1069,6 @@ extension-element-prefixes="ixsl"
                 </xsl:variable>
 
                 <xsl:apply-templates select="$doc" mode="bs2:Form"/>
-                <xsl:apply-templates select="root($doc)" mode="bs2:Form"/>
             </div>
 
             <!--<xsl:apply-templates select="." mode="bs2:Right"/>-->
