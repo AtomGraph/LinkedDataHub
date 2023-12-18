@@ -1339,9 +1339,9 @@ WHERE
     
     <!-- disable inline editing form (do nothing if the button is disabled) -->
     
-    <xsl:template match="div[contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'btn-cancel')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick">
+    <xsl:template match="div[@typeof]//button[contains-token(@class, 'btn-cancel')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
-        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'row-fluid')]" as="element()"/>
+        <xsl:variable name="container" select="ancestor::div[@typeof][1]" as="element()"/>
         <xsl:variable name="about" select="$container/@about" as="xs:anyURI"/>
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
@@ -1354,6 +1354,8 @@ WHERE
                 <xsl:apply-templates select="$resource" mode="bs2:Row"/>
             </xsl:result-document>
         </xsl:for-each>
+        
+        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
     </xsl:template>
     
     <!-- open editing form (do nothing if the button is disabled) -->

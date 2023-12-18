@@ -784,34 +784,28 @@ extension-element-prefixes="ixsl"
         <xsl:param name="class" select="'row-fluid'" as="xs:string?"/>
         <xsl:param name="button-class" select="'btn btn-primary'" as="xs:string?"/>
         
-        <div>
-            <xsl:if test="$class">
-                <xsl:attribute name="class" select="$class"/>
-            </xsl:if>
-            
-            <div class="form-actions main offset2 span7">
-                <button type="submit" class="{$button-class}">
-                    <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ldh:logo">
-                        <xsl:with-param name="class" select="$button-class"/>
-                    </xsl:apply-templates>
-                    
-                    <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                </button>
+        <div class="form-actions">
+            <button type="submit" class="{$button-class}">
+                <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ldh:logo">
+                    <xsl:with-param name="class" select="$button-class"/>
+                </xsl:apply-templates>
 
-                <button type="reset" class="btn">
-                    <xsl:apply-templates select="key('resources', 'reset', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ldh:logo">
-                        <xsl:with-param name="class" select="'btn'"/>
-                    </xsl:apply-templates>
-                    
-                    <xsl:apply-templates select="key('resources', 'reset', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                </button>
-                
-                <button type="button" class="btn btn-cancel">
-                    <xsl:value-of>
-                        <xsl:apply-templates select="key('resources', 'cancel', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                    </xsl:value-of>
-                </button>
-            </div>
+                <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+            </button>
+
+            <button type="reset" class="btn">
+                <xsl:apply-templates select="key('resources', 'reset', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ldh:logo">
+                    <xsl:with-param name="class" select="'btn'"/>
+                </xsl:apply-templates>
+
+                <xsl:apply-templates select="key('resources', 'reset', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+            </button>
+
+            <button type="button" class="btn btn-cancel">
+                <xsl:value-of>
+                    <xsl:apply-templates select="key('resources', 'cancel', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                </xsl:value-of>
+            </button>
         </div>
     </xsl:template>
 
