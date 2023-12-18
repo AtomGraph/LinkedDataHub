@@ -180,7 +180,7 @@ WHERE
         </xsl:choose>
     </xsl:template>
     
-    <xsl:template match="input[@class = 'target-id']" mode="form" priority="1">
+<!--    <xsl:template match="input[@class = 'target-id']" mode="form" priority="1">
         <xsl:param name="target-id" as="xs:string?" tunnel="yes"/>
         
         <xsl:copy>
@@ -189,7 +189,7 @@ WHERE
                 <xsl:attribute name="value" select="$target-id"/>
             </xsl:if>
         </xsl:copy>
-    </xsl:template>
+    </xsl:template>-->
 
     <!-- regenerates slug literal UUID because form (X)HTML can be cached -->
     <xsl:template match="input[@name = 'ol'][ancestor::div[@class = 'controls']/preceding-sibling::input[@name = 'pu']/@value = '&dh;slug']" mode="form" priority="1">
@@ -319,7 +319,7 @@ WHERE
                         <xsl:call-template name="ldh:FormLoaded">
                             <xsl:with-param name="action" select="$action"/>
                             <xsl:with-param name="form" select="$form"/>
-                            <xsl:with-param name="target-id" select="$form/input[@class = 'target-id']/@value"/>
+                            <!-- <xsl:with-param name="target-id" select="$form/input[@class = 'target-id']/@value"/> -->
                         </xsl:call-template>
                     </ixsl:schedule-action>
                 </xsl:variable>
@@ -855,9 +855,9 @@ WHERE
         <xsl:variable name="event" select="ixsl:event()"/>
         <xsl:variable name="action" select="ixsl:get(ixsl:get($event, 'detail'), 'action')" as="xs:anyURI"/>
         <xsl:variable name="form" select="ixsl:get(ixsl:get($event, 'detail'), 'target')" as="element()"/> <!-- not ixsl:get(ixsl:event(), 'target') because that's the whole document -->
-        <xsl:variable name="target-id" select="$form/input[@class = 'target-id']/@value" as="xs:string?"/>
+<!--        <xsl:variable name="target-id" select="$form/input[@class = 'target-id']/@value" as="xs:string?"/>-->
         <!-- $target-id is of the "Create" button, need to replace the preceding typeahead input instead -->
-        <xsl:variable name="typeahead-span" select="if ($target-id) then id($target-id, ixsl:page())/ancestor::div[@class = 'controls']//span[descendant::input[@name = 'ou']] else ()" as="element()?"/>
+<!--        <xsl:variable name="typeahead-span" select="if ($target-id) then id($target-id, ixsl:page())/ancestor::div[@class = 'controls']//span[descendant::input[@name = 'ou']] else ()" as="element()?"/>-->
         <xsl:variable name="response" select="ixsl:get(ixsl:get($event, 'detail'), 'response')"/>
         <xsl:variable name="html" select="if (ixsl:contains($event, 'detail.xml')) then ixsl:get($event, 'detail.xml') else ()" as="document-node()?"/>
 
@@ -880,7 +880,7 @@ WHERE
                 <xsl:with-param name="container" select="$container"/>
                 <xsl:with-param name="action" select="$action"/>
                 <xsl:with-param name="form" select="$form"/>
-                <xsl:with-param name="target-id" select="$target-id"/>
+<!--                <xsl:with-param name="target-id" select="$target-id"/>-->
             </xsl:call-template>
         </xsl:for-each>
     </xsl:template>
@@ -890,9 +890,9 @@ WHERE
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="container" as="element()"/>
         <xsl:param name="add-class" as="xs:string?"/>
-        <xsl:param name="target-id" as="xs:string?"/>
+<!--        <xsl:param name="target-id" as="xs:string?"/>-->
         <xsl:param name="new-form-id" as="xs:string?"/>
-        <xsl:param name="new-target-id" as="xs:string?"/>
+<!--        <xsl:param name="new-target-id" as="xs:string?"/>-->
         <xsl:param name="max-bnode-id" as="xs:integer?"/>
 
         <xsl:choose>
@@ -901,12 +901,12 @@ WHERE
                     <xsl:variable name="event" select="ixsl:event()"/>
                     <xsl:variable name="target" select="ixsl:get($event, 'target')"/>
                     <xsl:variable name="modal" select="exists(id($container/@id)//div[contains-token(@class, 'modal-constructor')])" as="xs:boolean"/>
-                    <xsl:variable name="target-id" select="$target/@id" as="xs:string?"/>
+<!--                    <xsl:variable name="target-id" select="$target/@id" as="xs:string?"/>-->
                     <xsl:variable name="doc-id" select="concat('id', ixsl:call(ixsl:window(), 'generateUUID', []))" as="xs:string"/>
                     
                     <xsl:variable name="form" as="element()">
                         <xsl:apply-templates select="id($container/@id)//form" mode="form">
-                            <xsl:with-param name="target-id" select="$target-id" tunnel="yes"/>
+<!--                            <xsl:with-param name="target-id" select="$target-id" tunnel="yes"/>-->
                             <xsl:with-param name="doc-id" select="$doc-id" tunnel="yes"/>
                             <!-- only rewrite bnode labels if "Create" button was called within <form> -->
                             <xsl:with-param name="max-bnode-id" select="if ($target/ancestor::form[contains-token(@class, 'form-horizontal')]) then $max-bnode-id else ()" tunnel="yes"/>
@@ -1091,9 +1091,9 @@ WHERE
         <xsl:param name="container" select="id('content-body', ixsl:page())" as="element()"/>
         <xsl:param name="action" as="xs:anyURI"/>
         <xsl:param name="form" as="element()"/>
-        <xsl:param name="target-id" as="xs:string?"/>
+<!--        <xsl:param name="target-id" as="xs:string?"/>-->
         <!-- $target-id is of the "Create" button, need to replace the preceding typeahead input instead -->
-        <xsl:param name="typeahead-span" select="if ($target-id) then id($target-id, ixsl:page())/ancestor::div[@class = 'controls']//span[descendant::input[@name = 'ou']] else ()" as="element()?"/>
+<!--        <xsl:param name="typeahead-span" select="if ($target-id) then id($target-id, ixsl:page())/ancestor::div[@class = 'controls']//span[descendant::input[@name = 'ou']] else ()" as="element()?"/>-->
         
         <xsl:choose>
             <!-- special case for add/clone data forms: redirect to the container -->
@@ -1201,7 +1201,7 @@ WHERE
                         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
                     </xsl:when>
                     <!-- render the created resource as a typeahead input -->
-                    <xsl:when test="$typeahead-span">
+<!--                    <xsl:when test="$typeahead-span">
                         <xsl:variable name="request" as="item()*">
                             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $created-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                                 <xsl:call-template name="onTypeaheadResourceLoad">
@@ -1212,7 +1212,7 @@ WHERE
                             </ixsl:schedule-action>
                         </xsl:variable>
                         <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
-                    </xsl:when>
+                    </xsl:when>-->
                     <!-- if the form submit did not originate from a typeahead (target), load the created resource -->
                     <xsl:otherwise>
                         <xsl:variable name="request" as="item()*">
@@ -1235,7 +1235,7 @@ WHERE
                     <xsl:variable name="doc-id" select="concat('id', ixsl:call(ixsl:window(), 'generateUUID', []))" as="xs:string"/>
                     <xsl:variable name="form" as="element()">
                         <xsl:apply-templates select="//form[@class = 'form-horizontal']" mode="form">
-                            <xsl:with-param name="target-id" select="$target-id" tunnel="yes"/>
+                            <!-- <xsl:with-param name="target-id" select="$target-id" tunnel="yes"/> -->
                             <xsl:with-param name="doc-id" select="$doc-id" tunnel="yes"/>
                         </xsl:apply-templates>
                     </xsl:variable>

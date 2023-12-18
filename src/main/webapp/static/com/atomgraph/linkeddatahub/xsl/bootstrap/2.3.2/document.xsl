@@ -725,8 +725,6 @@ extension-element-prefixes="ixsl"
                 <xsl:with-param name="type" select="'hidden'"/>
             </xsl:call-template>
             
-            <input type="hidden" class="target-id"/>
-
             <xsl:apply-templates mode="bs2:Exception"/>
 
             <!-- show the current document on the top -->

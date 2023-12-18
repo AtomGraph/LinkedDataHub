@@ -78,7 +78,7 @@ extension-element-prefixes="ixsl"
     <xsl:import href="../../../../com/atomgraph/client/xsl/bootstrap/2.3.2/imports/default.xsl"/>
     <xsl:import href="bootstrap/2.3.2/imports/default.xsl"/>
     <xsl:import href="../../../../com/atomgraph/client/xsl/bootstrap/2.3.2/resource.xsl"/>
-    <xsl:import href="../../../../com/atomgraph/client/xsl/bootstrap/2.3.2/document.xsl"/>
+    <!-- <xsl:import href="../../../../com/atomgraph/client/xsl/bootstrap/2.3.2/document.xsl"/> -->
     <xsl:import href="../../../../com/atomgraph/client/xsl/bootstrap/2.3.2/container.xsl"/>
     <xsl:import href="bootstrap/2.3.2/imports/ac.xsl"/>
     <xsl:import href="bootstrap/2.3.2/imports/ldh.xsl"/>
@@ -119,7 +119,7 @@ extension-element-prefixes="ixsl"
     </xsl:param>
     <xsl:param name="ac:lang" select="ixsl:get(ixsl:get(ixsl:page(), 'documentElement'), 'lang')" as="xs:string"/>
     <xsl:param name="ac:mode" select="if (ixsl:query-params()?mode) then for $mode in ixsl:query-params()?mode return xs:anyURI($mode) else xs:anyURI('&ac;ReadMode')" as="xs:anyURI*"/>
-    <xsl:param name="ac:forClass" as="xs:anyURI?"/>
+<!--    <xsl:param name="ac:forClass" as="xs:anyURI?"/>-->
     <xsl:param name="ac:query" select="ixsl:query-params()?query" as="xs:string?"/>
     <xsl:param name="ac:googleMapsKey" select="''" as="xs:string"/>  <!-- cannot remove yet as it's used by container.xsl in Web-Client -->
     <xsl:param name="page-size" select="20" as="xs:integer"/>
@@ -1287,20 +1287,51 @@ WHERE
         
         <xsl:variable name="doc" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(base-uri()) || '`'), 'results')" as="document-node()"/>
         <xsl:variable name="resource" select="key('resources', $about, $doc)" as="element()"/>
-        
-        <xsl:for-each select="$container">
-            <xsl:variable name="form-id" select="'form-' || generate-id($resource)" as="xs:string"/>
-            
-            <xsl:result-document href="?." method="ixsl:replace-content">
+        <xsl:variable name="form-id" select="'form-' || generate-id($resource)" as="xs:string"/>
+        <xsl:variable name="types" select="distinct-values($resource/rdf:type/@rdf:resource)" as="xs:anyURI*"/>
+        <xsl:variable name="query-string" select="'DESCRIBE $Type' || ' VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }'" as="xs:string"/>
+
+        <xsl:variable name="request" as="item()*">
+            <ixsl:schedule-action http-request="map{ 'method': 'POST', 'href': resolve-uri('ns', $ldt:base), 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+                <xsl:call-template name="onTypeMetadataLoad">
+                    <xsl:with-param name="container" select="$container"/>
+                    <xsl:with-param name="resource" select="$resource"/>
+                    <xsl:with-param name="form-id" select="$form-id"/>
+                </xsl:call-template>
+            </ixsl:schedule-action>
+        </xsl:variable>
+        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+    </xsl:template>
+    
+    <xsl:template name="onTypeMetadataLoad">
+        <xsl:context-item as="map(*)" use="required"/>
+        <xsl:param name="container" as="element()"/>
+        <xsl:param name="resource" as="element()"/>
+        <xsl:param name="form-id" as="xs:string"/>
+
+        <xsl:choose>
+            <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
+                <xsl:for-each select="?body">
+                    <xsl:for-each select="$container">
+                        <xsl:result-document href="?." method="ixsl:replace-content">
+                            <xsl:apply-templates select="$resource" mode="bs2:RowForm">
+                                <xsl:with-param name="id" select="$form-id"/>
+                                <xsl:with-param name="type-metadata" select="$type-metadata"/>
+                            </xsl:apply-templates>
+                        </xsl:result-document>
+                    </xsl:for-each>
+
+                    <xsl:apply-templates select="id($form-id, ixsl:page())" mode="ldh:PostConstruct"/>
+                </xsl:for-each>
+            </xsl:when>
+            <xsl:otherwise>
                 <xsl:apply-templates select="$resource" mode="bs2:RowForm">
                     <xsl:with-param name="id" select="$form-id"/>
                 </xsl:apply-templates>
-            </xsl:result-document>
-            
-            <xsl:apply-templates select="id($form-id, ixsl:page())" mode="ldh:PostConstruct"/>
-        </xsl:for-each>
+            </xsl:otherwise>
+        </xsl:choose>
         
-        <ixsl:set-style name="default" select="'progress'" object="ixsl:page()//body"/>
+        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
     </xsl:template>
     
     <!-- open editing form (do nothing if the button is disabled) -->
