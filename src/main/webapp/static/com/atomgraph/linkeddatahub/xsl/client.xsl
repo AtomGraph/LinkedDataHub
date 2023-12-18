@@ -1316,7 +1316,7 @@ WHERE
                     <xsl:result-document href="?." method="ixsl:replace-content">
                         <xsl:apply-templates select="$resource" mode="bs2:RowForm">
                             <xsl:with-param name="id" select="$form-id"/>
-                            <xsl:with-param name="type-metadata" select="$type-metadata"/>
+                            <xsl:with-param name="type-metadata" select="$type-metadata" tunnel="yes"/>
                         </xsl:apply-templates>
                     </xsl:result-document>
                 </xsl:for-each>
