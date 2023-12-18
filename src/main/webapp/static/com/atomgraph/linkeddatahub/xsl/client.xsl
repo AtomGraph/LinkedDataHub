@@ -1276,9 +1276,9 @@ WHERE
         <ixsl:set-property name="request" select="$request" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
     </xsl:template>
 
-    <!-- toggle inline editing form (do nothing if the button is disabled) -->
+    <!-- enable inline editing form (do nothing if the button is disabled) -->
     
-    <xsl:template match="button[contains-token(@class, 'btn-edit')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick">
+    <xsl:template match="div[contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'btn-edit')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'row-fluid')]" as="element()"/>
         <xsl:variable name="about" select="$container/@about" as="xs:anyURI"/>
@@ -1324,13 +1324,36 @@ WHERE
                 <xsl:apply-templates select="id($form-id, ixsl:page())" mode="ldh:PostConstruct"/>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:apply-templates select="$resource" mode="bs2:RowForm">
-                    <xsl:with-param name="id" select="$form-id"/>
-                </xsl:apply-templates>
+                <xsl:for-each select="$container">
+                    <xsl:result-document href="?." method="ixsl:replace-content">
+                        <xsl:apply-templates select="$resource" mode="bs2:RowForm">
+                            <xsl:with-param name="id" select="$form-id"/>
+                        </xsl:apply-templates>
+                    </xsl:result-document>
+                </xsl:for-each>
             </xsl:otherwise>
         </xsl:choose>
         
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
+    </xsl:template>
+    
+    <!-- disable inline editing form (do nothing if the button is disabled) -->
+    
+    <xsl:template match="div[contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'btn-cancel')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick">
+        <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
+        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'row-fluid')]" as="element()"/>
+        <xsl:variable name="about" select="$container/@about" as="xs:anyURI"/>
+
+        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+        
+        <xsl:variable name="doc" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(base-uri()) || '`'), 'results')" as="document-node()"/>
+        <xsl:variable name="resource" select="key('resources', $about, $doc)" as="element()"/>
+
+        <xsl:for-each select="$container">
+            <xsl:result-document href="?." method="ixsl:replace-content">
+                <xsl:apply-templates select="$resource" mode="bs2:Row"/>
+            </xsl:result-document>
+        </xsl:for-each>
     </xsl:template>
     
     <!-- open editing form (do nothing if the button is disabled) -->
