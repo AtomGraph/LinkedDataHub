@@ -1044,7 +1044,7 @@ extension-element-prefixes="ixsl"
     <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:RowForm"> <!-- use-when="system-property('xsl:product-name') = 'SAXON'" -->
         <xsl:param name="id" select="generate-id()" as="xs:string?"/>
         <xsl:param name="class" select="'main span7 offset2'" as="xs:string?"/>
-        <xsl:param name="typeof" select="rdf:type/@rdf:resource/xs:anyURI(.)" as="xs:anyURI*"/>
+<!--        <xsl:param name="typeof" select="rdf:type/@rdf:resource/xs:anyURI(.)" as="xs:anyURI*"/>-->
 
         <div>
             <xsl:if test="$id">
@@ -1053,9 +1053,9 @@ extension-element-prefixes="ixsl"
             <xsl:if test="$class">
                 <xsl:attribute name="class" select="$class"/>
             </xsl:if>
-            <xsl:if test="$typeof">
+<!--            <xsl:if test="$typeof">
                 <xsl:attribute name="typeof" select="$typeof"/>
-            </xsl:if>
+            </xsl:if>-->
 
             <xsl:variable name="doc" as="document-node()">
                 <xsl:document>
