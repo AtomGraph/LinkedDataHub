@@ -119,7 +119,7 @@ extension-element-prefixes="ixsl"
     </xsl:param>
     <xsl:param name="ac:lang" select="ixsl:get(ixsl:get(ixsl:page(), 'documentElement'), 'lang')" as="xs:string"/>
     <xsl:param name="ac:mode" select="if (ixsl:query-params()?mode) then for $mode in ixsl:query-params()?mode return xs:anyURI($mode) else xs:anyURI('&ac;ReadMode')" as="xs:anyURI*"/>
-<!--    <xsl:param name="ac:forClass" as="xs:anyURI?"/>-->
+    <xsl:param name="ac:forClass" as="xs:anyURI?"/>
     <xsl:param name="ac:query" select="ixsl:query-params()?query" as="xs:string?"/>
     <xsl:param name="ac:googleMapsKey" select="''" as="xs:string"/>  <!-- cannot remove yet as it's used by container.xsl in Web-Client -->
     <xsl:param name="page-size" select="20" as="xs:integer"/>
