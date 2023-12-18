@@ -1311,18 +1311,17 @@ WHERE
 
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
-                <xsl:for-each select="?body">
-                    <xsl:for-each select="$container">
-                        <xsl:result-document href="?." method="ixsl:replace-content">
-                            <xsl:apply-templates select="$resource" mode="bs2:RowForm">
-                                <xsl:with-param name="id" select="$form-id"/>
-                                <xsl:with-param name="type-metadata" select="$type-metadata"/>
-                            </xsl:apply-templates>
-                        </xsl:result-document>
-                    </xsl:for-each>
-
-                    <xsl:apply-templates select="id($form-id, ixsl:page())" mode="ldh:PostConstruct"/>
+                <xsl:variable name="type-metadata" select="?body" as="document-node()"/>
+                <xsl:for-each select="$container">
+                    <xsl:result-document href="?." method="ixsl:replace-content">
+                        <xsl:apply-templates select="$resource" mode="bs2:RowForm">
+                            <xsl:with-param name="id" select="$form-id"/>
+                            <xsl:with-param name="type-metadata" select="$type-metadata"/>
+                        </xsl:apply-templates>
+                    </xsl:result-document>
                 </xsl:for-each>
+
+                <xsl:apply-templates select="id($form-id, ixsl:page())" mode="ldh:PostConstruct"/>
             </xsl:when>
             <xsl:otherwise>
                 <xsl:apply-templates select="$resource" mode="bs2:RowForm">
