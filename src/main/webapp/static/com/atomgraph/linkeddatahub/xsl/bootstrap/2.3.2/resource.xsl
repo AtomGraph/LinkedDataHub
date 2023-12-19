@@ -1043,7 +1043,7 @@ extension-element-prefixes="ixsl"
         
     <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:RowForm"> <!-- use-when="system-property('xsl:product-name') = 'SAXON'" -->
         <xsl:param name="id" select="generate-id()" as="xs:string?"/>
-        <xsl:param name="class" select="'main span7 offset2 '" as="xs:string?"/>
+        <xsl:param name="class" select="'main span7 offset2'" as="xs:string?"/>
 <!--        <xsl:param name="typeof" select="rdf:type/@rdf:resource/xs:anyURI(.)" as="xs:anyURI*"/>-->
         <xsl:param name="method" select="'post'" as="xs:string"/>
         <xsl:param name="base-uri" select="base-uri()" as="xs:anyURI" tunnel="yes"/>
