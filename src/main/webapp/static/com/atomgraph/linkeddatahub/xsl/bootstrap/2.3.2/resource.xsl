@@ -14,6 +14,7 @@
     <!ENTITY geo    "http://www.w3.org/2003/01/geo/wgs84_pos#">
     <!ENTITY srx    "http://www.w3.org/2005/sparql-results#">
     <!ENTITY http   "http://www.w3.org/2011/http#">
+    <!ENTITY sc     "http://www.w3.org/2011/http-statusCodes#">
     <!ENTITY acl    "http://www.w3.org/ns/auth/acl#">
     <!ENTITY ldt    "https://www.w3.org/ns/ldt#">
     <!ENTITY dh     "https://www.w3.org/ns/ldt/document-hierarchy#">
@@ -1088,7 +1089,7 @@ extension-element-prefixes="ixsl"
                     <xsl:with-param name="type" select="'hidden'"/>
                 </xsl:call-template>
 
-                <xsl:apply-templates mode="bs2:Exception"/>
+                <xsl:apply-templates select="/rdf:RDF/*[http:sc/@rdf:resource = '&sc;Conflict']" mode="bs2:Exception"/>
 
                 <xsl:apply-templates select="." mode="bs2:FormControl">
                     <xsl:with-param name="inline" select="false()" tunnel="yes"/>
@@ -1133,6 +1134,26 @@ extension-element-prefixes="ixsl"
                     </button>
                 </div>
             </form>
+        </div>
+    </xsl:template>
+    
+    <!-- EXCEPTION -->
+    
+    <xsl:template match="*[http:sc/@rdf:resource = '&sc;Conflict']" mode="bs2:Exception" priority="1">
+        <xsl:param name="class" select="'alert alert-error'" as="xs:string?"/>
+
+        <div>
+            <xsl:if test="$class">
+                <xsl:attribute name="class" select="$class"/>
+            </xsl:if>
+
+            <xsl:apply-templates select="key('resources', '&ldh;ResourceExistsException', document(ac:document-uri('&ldh;')))" mode="ldh:logo">
+                <xsl:with-param name="class" select="$class"/>
+            </xsl:apply-templates>
+            <xsl:text> </xsl:text>
+            <xsl:value-of>
+                <xsl:apply-templates select="key('resources', '&ldh;ResourceExistsException', document(ac:document-uri('&ldh;')))" mode="ac:label"/>
+            </xsl:value-of>
         </div>
     </xsl:template>
     

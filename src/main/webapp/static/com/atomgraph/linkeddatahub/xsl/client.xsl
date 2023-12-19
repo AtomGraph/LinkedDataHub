@@ -1285,9 +1285,12 @@ WHERE
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
         
-        <xsl:message>ac:absolute-path(base-uri()): <xsl:value-of select="ac:absolute-path(base-uri())"/></xsl:message>
+        <xsl:message>ixsl:get(., 'baseURI'): <xsl:value-of select="ixsl:get(., 'baseURI')"/></xsl:message>
+        <xsl:message>base-uri(): <xsl:value-of select="base-uri()"/></xsl:message>
+        <xsl:message>ixsl:location(): <xsl:value-of select="ixsl:location()"/></xsl:message>
         
-        <xsl:variable name="doc" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(base-uri()) || '`'), 'results')" as="document-node()"/>
+        <!-- not using base-uri() because it goes stale when DOM is replaced -->
+        <xsl:variable name="doc" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(xs:anyURI(ixsl:location())) || '`'), 'results')" as="document-node()"/>
         <xsl:variable name="resource" select="key('resources', $about, $doc)" as="element()"/>
         <xsl:variable name="form-id" select="'form-' || generate-id($resource)" as="xs:string"/>
         <xsl:variable name="types" select="distinct-values($resource/rdf:type/@rdf:resource)" as="xs:anyURI*"/>

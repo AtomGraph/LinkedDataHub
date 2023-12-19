@@ -809,26 +809,6 @@ extension-element-prefixes="ixsl"
         </div>
     </xsl:template>-->
 
-    <!-- EXCEPTION -->
-    
-    <xsl:template match="*[http:sc/@rdf:resource = '&sc;Conflict']" mode="bs2:Exception" priority="1">
-        <xsl:param name="class" select="'alert alert-error'" as="xs:string?"/>
-
-        <div>
-            <xsl:if test="$class">
-                <xsl:attribute name="class" select="$class"/>
-            </xsl:if>
-
-            <xsl:apply-templates select="key('resources', '&ldh;ResourceExistsException', document(ac:document-uri('&ldh;')))" mode="ldh:logo">
-                <xsl:with-param name="class" select="$class"/>
-            </xsl:apply-templates>
-            <xsl:text> </xsl:text>
-            <xsl:value-of>
-                <xsl:apply-templates select="key('resources', '&ldh;ResourceExistsException', document(ac:document-uri('&ldh;')))" mode="ac:label"/>
-            </xsl:value-of>
-        </div>
-    </xsl:template>
-
     <!-- CREATE -->
     
     <xsl:template match="rdf:RDF[$acl:mode = '&acl;Append'] | srx:sparql[$acl:mode = '&acl;Append']" mode="bs2:Create" priority="1">
