@@ -780,7 +780,7 @@ extension-element-prefixes="ixsl"
 
     <!-- FORM ACTIONS -->
     
-    <xsl:template match="rdf:RDF" mode="bs2:FormActions">
+<!--    <xsl:template match="rdf:RDF" mode="bs2:FormActions">
         <xsl:param name="class" select="'row-fluid'" as="xs:string?"/>
         <xsl:param name="button-class" select="'btn btn-primary'" as="xs:string?"/>
         
@@ -807,7 +807,7 @@ extension-element-prefixes="ixsl"
                 </xsl:value-of>
             </button>
         </div>
-    </xsl:template>
+    </xsl:template>-->
 
     <!-- EXCEPTION -->
     

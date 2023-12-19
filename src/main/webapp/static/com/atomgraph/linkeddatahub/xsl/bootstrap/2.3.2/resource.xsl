@@ -1042,14 +1042,14 @@ extension-element-prefixes="ixsl"
     <xsl:template match="*[@rdf:nodeID][$ac:forClass or $ldh:forShape][$ac:method = 'GET'][key('predicates-by-object', @rdf:nodeID)][not(* except rdf:type or rdf:type/@rdf:resource = '&owl;NamedIndividual')]" mode="bs2:RowForm" priority="2" use-when="system-property('xsl:product-name') = 'SAXON'"/>
         
     <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:RowForm"> <!-- use-when="system-property('xsl:product-name') = 'SAXON'" -->
-<!--        <xsl:param name="id" select="generate-id()" as="xs:string?"/>-->
-        <!--<xsl:param name="class" select="'main span7 offset2 '" as="xs:string?"/>-->
+        <xsl:param name="id" select="generate-id()" as="xs:string?"/>
+        <xsl:param name="class" select="'main span7 offset2 '" as="xs:string?"/>
 <!--        <xsl:param name="typeof" select="rdf:type/@rdf:resource/xs:anyURI(.)" as="xs:anyURI*"/>-->
         <xsl:param name="method" select="'post'" as="xs:string"/>
         <xsl:param name="base-uri" select="base-uri()" as="xs:anyURI" tunnel="yes"/>
         <xsl:param name="action" select="ldh:href($ldt:base, ac:absolute-path($base-uri), map{}, ac:build-uri(ac:absolute-path($base-uri), map{ '_method': 'PUT', 'mode': for $mode in $ac:mode return string($mode) }))" as="xs:anyURI"/>
-        <xsl:param name="id" select="concat('form-', generate-id())" as="xs:string?"/>
-        <xsl:param name="class" select="'main span7 offset2 form-horizontal'" as="xs:string?"/>
+<!--        <xsl:param name="id" select="concat('form-', generate-id())" as="xs:string?"/>
+        <xsl:param name="class" select="'form-horizontal'" as="xs:string?"/>-->
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
         <xsl:param name="enctype" select="'multipart/form-data'" as="xs:string?"/>
         <xsl:param name="button-class" select="'btn btn-primary wymupdate'" as="xs:string?"/>
@@ -1066,71 +1066,84 @@ extension-element-prefixes="ixsl"
         <xsl:variable name="property-uris" select="distinct-values(*/concat(namespace-uri(), local-name()))" as="xs:string*"/>
         <xsl:variable name="property-metadata" select="if (exists($property-uris)) then ldh:send-request(resolve-uri('ns', $ldt:base), 'POST', 'application/sparql-query', 'DESCRIBE $Type' || ' VALUES $Type { ' || string-join(for $uri in $property-uris return '&lt;' || $uri || '&gt;', ' ') || ' }', map{ 'Accept': 'application/rdf+xml' }) else ()" as="document-node()?"/>
 
-        <form method="{$method}" action="{$action}">
+        <div>
             <xsl:if test="$id">
                 <xsl:attribute name="id" select="$id"/>
             </xsl:if>
             <xsl:if test="$class">
                 <xsl:attribute name="class" select="$class"/>
             </xsl:if>
-            <xsl:if test="$accept-charset">
-                <xsl:attribute name="accept-charset" select="$accept-charset"/>
-            </xsl:if>
-            <xsl:if test="$enctype">
-                <xsl:attribute name="enctype" select="$enctype"/>
-            </xsl:if>
 
-            <xsl:comment>This form uses RDF/POST encoding: https://atomgraph.github.io/RDF-POST/</xsl:comment>
-            <xsl:call-template name="xhtml:Input">
-                <xsl:with-param name="name" select="'rdf'"/>
-                <xsl:with-param name="type" select="'hidden'"/>
-            </xsl:call-template>
+            <form method="{$method}" action="{$action}" id="{concat('form-', generate-id())}" class="form-horizontal">
+                <xsl:if test="$accept-charset">
+                    <xsl:attribute name="accept-charset" select="$accept-charset"/>
+                </xsl:if>
+                <xsl:if test="$enctype">
+                    <xsl:attribute name="enctype" select="$enctype"/>
+                </xsl:if>
 
-            <xsl:apply-templates mode="bs2:Exception"/>
+                <xsl:comment>This form uses RDF/POST encoding: https://atomgraph.github.io/RDF-POST/</xsl:comment>
+                <xsl:call-template name="xhtml:Input">
+                    <xsl:with-param name="name" select="'rdf'"/>
+                    <xsl:with-param name="type" select="'hidden'"/>
+                </xsl:call-template>
 
-            <!-- show the current document on the top -->
-            <xsl:apply-templates select="*[@rdf:about = ac:absolute-path(base-uri())]" mode="bs2:FormControl">
-                <xsl:with-param name="inline" select="false()" tunnel="yes"/>
-                <xsl:with-param name="constructors" select="$constructors" tunnel="yes"/>
-                <xsl:with-param name="constraints" select="$constraints" tunnel="yes"/>
-                <xsl:with-param name="type-metadata" select="$type-metadata" tunnel="yes"/>
-                <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/>
-            </xsl:apply-templates>
-            <!-- show the rest of the resources (contents, instances) below it -->
-            <xsl:apply-templates select="*[not(@rdf:about = ac:absolute-path(base-uri()))]" mode="bs2:FormControl">
-                <xsl:sort select="ac:label(.)"/>
-                <xsl:with-param name="inline" select="false()" tunnel="yes"/>
-                <xsl:with-param name="constructors" select="$constructors" tunnel="yes"/>
-                <xsl:with-param name="constraints" select="$constraints" tunnel="yes"/>
-                <xsl:with-param name="shapes" select="$shapes" tunnel="yes"/>
-                <xsl:with-param name="type-metadata" select="$type-metadata" tunnel="yes"/>
-                <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/>
-            </xsl:apply-templates>
+                <xsl:apply-templates mode="bs2:Exception"/>
 
-            <xsl:if test="$create-resource">
-                <div class="create-resource row-fluid">
-                    <div class="main offset2 span7">
-                        <xsl:apply-templates select="." mode="bs2:Create">
-                            <xsl:with-param name="classes" select="$classes"/>
-                        </xsl:apply-templates>
+                <xsl:apply-templates select="." mode="bs2:FormControl">
+                    <xsl:with-param name="inline" select="false()" tunnel="yes"/>
+                    <xsl:with-param name="constructors" select="$constructors" tunnel="yes"/>
+                    <xsl:with-param name="constraints" select="$constraints" tunnel="yes"/>
+                    <xsl:with-param name="shapes" select="$shapes" tunnel="yes"/>
+                    <xsl:with-param name="type-metadata" select="$type-metadata" tunnel="yes"/>
+                    <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/>
+                </xsl:apply-templates>
+
+                <xsl:if test="$create-resource">
+                    <div class="create-resource row-fluid">
+                        <div class="main offset2 span7">
+                            <xsl:apply-templates select="." mode="bs2:Create">
+                                <xsl:with-param name="classes" select="$classes"/>
+                            </xsl:apply-templates>
+                        </div>
                     </div>
-                </div>
-            </xsl:if>
+                </xsl:if>
 
-            <xsl:apply-templates select="." mode="bs2:FormActions">
-                <xsl:with-param name="button-class" select="$button-class"/>
-            </xsl:apply-templates>
-        </form>
+                <div class="form-actions">
+                    <button type="submit" class="btn-primary">
+                        <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ldh:logo">
+                            <xsl:with-param name="class" select="$button-class"/>
+                        </xsl:apply-templates>
+
+                        <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                    </button>
+
+                    <button type="reset" class="btn">
+                        <xsl:apply-templates select="key('resources', 'reset', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ldh:logo">
+                            <xsl:with-param name="class" select="'btn'"/>
+                        </xsl:apply-templates>
+
+                        <xsl:apply-templates select="key('resources', 'reset', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                    </button>
+
+                    <button type="button" class="btn btn-cancel">
+                        <xsl:value-of>
+                            <xsl:apply-templates select="key('resources', 'cancel', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                        </xsl:value-of>
+                    </button>
+                </div>
+            </form>
+        </div>
     </xsl:template>
     
     <!-- FORM -->
 
-    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:Form">
+<!--    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:Form">
         <xsl:apply-templates select="." mode="bs2:FormControl">
             <xsl:sort select="ac:label(.)"/>
         </xsl:apply-templates>
     </xsl:template>
-    
+    -->
     <!-- FORM CONTROL -->
         
     <!-- turn off blank node resources from constructor graph (only those that are objects) -->
