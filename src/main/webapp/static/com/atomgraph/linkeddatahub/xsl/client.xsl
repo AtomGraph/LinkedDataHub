@@ -1356,7 +1356,7 @@ WHERE
         <xsl:message>ixsl:location(): <xsl:value-of select="ixsl:location()"/></xsl:message>
 
         <!-- not using base-uri() because it goes stale when DOM is replaced -->
-        <xsl:variable name="doc" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(ixsl:location()) || '`'), 'results')" as="document-node()"/>
+        <xsl:variable name="doc" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(xs:anyURI(ixsl:location())) || '`'), 'results')" as="document-node()"/>
         <xsl:variable name="resource" select="key('resources', $about, $doc)" as="element()"/>
 
         <xsl:for-each select="$container">
