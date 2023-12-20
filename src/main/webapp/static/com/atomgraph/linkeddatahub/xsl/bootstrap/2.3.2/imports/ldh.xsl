@@ -19,7 +19,7 @@ xmlns:ldt="&ldt;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 exclude-result-prefixes="#all">
     
-    <!-- override the value of ldh:chartType with a dropdown of ac:Chart subclasses (currently in the APL vocabulary) -->
+    <!-- override the value of ldh:chartType with a dropdown of ac:Chart subclasses (currently in the LDH vocabulary) -->
     <xsl:template match="ldh:chartType/@rdf:resource | ldh:chartType/@rdf:nodeID" mode="bs2:FormControl">
         <xsl:param name="type-label" select="true()" as="xs:boolean"/>
         <xsl:variable name="value" select="." as="xs:string"/>
