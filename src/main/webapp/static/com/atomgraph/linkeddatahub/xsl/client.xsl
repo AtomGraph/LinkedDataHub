@@ -1359,9 +1359,13 @@ WHERE
         <xsl:variable name="doc" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(xs:anyURI(ixsl:location())) || '`'), 'results')" as="document-node()"/>
         <xsl:variable name="resource" select="key('resources', $about, $doc)" as="element()"/>
 
+        <xsl:variable name="row" as="node()*">
+            <xsl:apply-templates select="." mode="bs2:Row"/>
+        </xsl:variable>
+
         <xsl:for-each select="$container">
             <xsl:result-document href="?." method="ixsl:replace-content">
-                <xsl:apply-templates select="$resource" mode="bs2:Row"/>
+                <xsl:copy-of select="$row/*"/> <!-- inject the content of div.row-fluid -->
             </xsl:result-document>
         </xsl:for-each>
         
