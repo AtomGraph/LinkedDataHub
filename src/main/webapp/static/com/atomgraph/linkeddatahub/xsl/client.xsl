@@ -247,15 +247,8 @@ WHERE
         <xsl:for-each select="ixsl:page()//button[contains(@class, 'btn-run-query')]"> <!-- TO-DO: use the 'elements-by-class' key -->
             <ixsl:set-attribute name="type" select="'button'"/> <!-- instead of "submit" -->
         </xsl:for-each>
-        <!-- initialize SPARQL editor -->
-        <xsl:for-each select="ixsl:page()//textarea[contains(@class, 'sparql-query-string')]"> <!-- TO-DO: use the 'elements-by-class' key -->
-            <xsl:variable name="textarea-id" select="ixsl:get(., 'id')" as="xs:string"/>
-            <!-- initialize YASQE on the textarea -->
-            <xsl:variable name="js-statement" as="element()">
-                <root statement="YASQE.fromTextArea(document.getElementById('{$textarea-id}'), {{ persistent: null }})"/>
-            </xsl:variable>
-            <ixsl:set-property name="{$textarea-id}" select="ixsl:eval(string($js-statement/@statement))" object="ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe')"/>
-        </xsl:for-each>
+        <!-- initialize SPARQL editors -->
+        <xsl:apply-templates select="ixsl:page()//textarea[contains(@class, 'sparql-query-string')]" mode="ldh:PostConstruct"/> <!-- TO-DO: use the 'elements-by-class' key -->
         <!-- only show first time message for authenticated agents -->
         <xsl:if test="$acl:agent and not(contains(ixsl:get(ixsl:page(), 'cookie'), 'LinkedDataHub.first-time-message'))">
             <xsl:for-each select="ixsl:page()//body">
@@ -1368,7 +1361,9 @@ WHERE
                 <xsl:copy-of select="$row/*"/> <!-- inject the content of div.row-fluid -->
             </xsl:result-document>
         </xsl:for-each>
-        
+        <!-- initialize SPARQL editor -->
+        <xsl:apply-templates select="$container" mode="ldh:PostConstruct"/>
+
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
     </xsl:template>
     
