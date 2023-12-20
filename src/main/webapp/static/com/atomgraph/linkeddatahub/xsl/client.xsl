@@ -1342,9 +1342,12 @@ WHERE
         <!-- not using base-uri() because it goes stale when DOM is replaced -->
         <xsl:variable name="doc" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(xs:anyURI(ixsl:location())) || '`'), 'results')" as="document-node()"/>
         <xsl:variable name="resource" select="key('resources', $about, $doc)" as="element()"/>
+        <xsl:variable name="div-id" select="generate-id($resource)" as="xs:string"/>
 
         <xsl:variable name="row" as="node()*">
-            <xsl:apply-templates select="$resource" mode="bs2:Row"/>
+            <xsl:apply-templates select="$resource" mode="bs2:Row">
+                <xsl:with-param name="id" select="$div-id"/>
+            </xsl:apply-templates>
         </xsl:variable>
 
         <xsl:for-each select="$container">
@@ -1353,7 +1356,7 @@ WHERE
             </xsl:result-document>
         </xsl:for-each>
         <!-- initialize SPARQL editor -->
-        <xsl:apply-templates select="id($container/@id, ixsl:page())" mode="ldh:PostConstruct"/>
+        <xsl:apply-templates select="id($div-id, ixsl:page())" mode="ldh:PostConstruct"/>
 
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
     </xsl:template>
