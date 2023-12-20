@@ -431,15 +431,6 @@ WHERE
     </xsl:template>
     
     <!-- CALLBACKS -->
-
-    <!-- ontology loaded -->
-<!--    <xsl:template name="ixsl:onOntologyLoad">
-        <xsl:context-item as="map(*)" use="required"/>
-
-        <xsl:for-each select="?status">
-            <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ . ])[current-date() lt xs:date('2000-01-01')]"/>
-        </xsl:for-each>
-    </xsl:template>-->
         
     <xsl:template name="ldh:RDFDocumentLoaded">
         <xsl:context-item as="map(*)" use="required"/>
@@ -1318,8 +1309,6 @@ WHERE
                         </xsl:apply-templates>
                     </xsl:result-document>
                 </xsl:for-each>
-
-                <xsl:apply-templates select="id($form-id, ixsl:page())" mode="ldh:PostConstruct"/>
             </xsl:when>
             <xsl:otherwise>
                 <xsl:for-each select="$container">
@@ -1331,6 +1320,8 @@ WHERE
                 </xsl:for-each>
             </xsl:otherwise>
         </xsl:choose>
+
+        <xsl:apply-templates select="id($form-id, ixsl:page())" mode="ldh:PostConstruct"/>
         
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
     </xsl:template>
@@ -1362,7 +1353,7 @@ WHERE
             </xsl:result-document>
         </xsl:for-each>
         <!-- initialize SPARQL editor -->
-        <xsl:apply-templates select="$container" mode="ldh:PostConstruct"/>
+        <xsl:apply-templates select="id($container/@id, ixsl:page())" mode="ldh:PostConstruct"/>
 
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
     </xsl:template>
