@@ -1276,7 +1276,7 @@ WHERE
         <!-- not using base-uri() because it goes stale when DOM is replaced -->
         <xsl:variable name="doc" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(xs:anyURI(ixsl:location())) || '`'), 'results')" as="document-node()"/>
         <xsl:variable name="resource" select="key('resources', $about, $doc)" as="element()"/>
-        <xsl:variable name="form-id" select="'form-' || generate-id($resource)" as="xs:string"/>
+        <xsl:variable name="div-id" select="generate-id($resource)" as="xs:string"/>
         <xsl:variable name="types" select="distinct-values($resource/rdf:type/@rdf:resource)" as="xs:anyURI*"/>
         <xsl:variable name="query-string" select="'DESCRIBE $Type' || ' VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }'" as="xs:string"/>
 
@@ -1285,7 +1285,7 @@ WHERE
                 <xsl:call-template name="onTypeMetadataLoad">
                     <xsl:with-param name="container" select="$container"/>
                     <xsl:with-param name="resource" select="$resource"/>
-                    <xsl:with-param name="form-id" select="$form-id"/>
+                    <xsl:with-param name="div-id" select="$div-id"/>
                 </xsl:call-template>
             </ixsl:schedule-action>
         </xsl:variable>
@@ -1296,7 +1296,7 @@ WHERE
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="container" as="element()"/>
         <xsl:param name="resource" as="element()"/>
-        <xsl:param name="form-id" as="xs:string"/>
+        <xsl:param name="div-id" as="xs:string"/>
 
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
@@ -1304,7 +1304,7 @@ WHERE
                 <xsl:for-each select="$container">
                     <xsl:result-document href="?." method="ixsl:replace-content">
                         <xsl:apply-templates select="$resource" mode="bs2:RowForm">
-                            <xsl:with-param name="id" select="$form-id"/>
+                            <xsl:with-param name="id" select="$div-id"/>
                             <xsl:with-param name="type-metadata" select="$type-metadata" tunnel="yes"/>
                         </xsl:apply-templates>
                     </xsl:result-document>
@@ -1314,14 +1314,14 @@ WHERE
                 <xsl:for-each select="$container">
                     <xsl:result-document href="?." method="ixsl:replace-content">
                         <xsl:apply-templates select="$resource" mode="bs2:RowForm">
-                            <xsl:with-param name="id" select="$form-id"/>
+                            <xsl:with-param name="id" select="$div-id"/>
                         </xsl:apply-templates>
                     </xsl:result-document>
                 </xsl:for-each>
             </xsl:otherwise>
         </xsl:choose>
 
-        <xsl:apply-templates select="id($form-id, ixsl:page())" mode="ldh:PostConstruct"/>
+        <xsl:apply-templates select="id($div-id, ixsl:page())" mode="ldh:PostConstruct"/>
         
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
     </xsl:template>

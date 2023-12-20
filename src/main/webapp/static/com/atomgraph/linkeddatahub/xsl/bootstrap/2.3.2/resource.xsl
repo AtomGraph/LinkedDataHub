@@ -1072,7 +1072,7 @@ extension-element-prefixes="ixsl"
                 <xsl:attribute name="class" select="$class"/>
             </xsl:if>
 
-            <form method="{$method}" action="{$action}" id="{concat('form-', generate-id())}" class="form-horizontal">
+            <form method="{$method}" action="{$action}" id="{concat('form-', $id)}" class="form-horizontal">
                 <xsl:if test="$accept-charset">
                     <xsl:attribute name="accept-charset" select="$accept-charset"/>
                 </xsl:if>
