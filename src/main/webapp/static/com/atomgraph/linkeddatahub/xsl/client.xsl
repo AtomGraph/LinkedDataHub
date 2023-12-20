@@ -1360,7 +1360,7 @@ WHERE
         <xsl:variable name="resource" select="key('resources', $about, $doc)" as="element()"/>
 
         <xsl:variable name="row" as="node()*">
-            <xsl:apply-templates select="." mode="bs2:Row"/>
+            <xsl:apply-templates select="$resource" mode="bs2:Row"/>
         </xsl:variable>
 
         <xsl:for-each select="$container">
