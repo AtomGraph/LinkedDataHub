@@ -1347,6 +1347,7 @@ WHERE
                 <xsl:copy-of select="$row/*"/> <!-- inject the content of div.row-fluid -->
             </xsl:result-document>
         </xsl:for-each>
+        <xsl:message>$div-id: <xsl:value-of select="$div-id"/></xsl:message>
         <!-- initialize SPARQL editor -->
         <xsl:apply-templates select="id($div-id, ixsl:page())" mode="ldh:PostConstruct"/>
 
