@@ -1416,7 +1416,7 @@ exclude-result-prefixes="#all"
                 </xsl:if>
                 
                 <!-- initialize chart -->
-                <xsl:for-each select="key('elements-by-class', 'chart-canvas', $container)">
+<!--                <xsl:for-each select="key('elements-by-class', 'chart-canvas', $container)">
                     <xsl:variable name="canvas-id" select="@id" as="xs:string"/>
                     <xsl:variable name="chart-type" select="xs:anyURI('&ac;Table')" as="xs:anyURI"/>
                     <xsl:variable name="category" as="xs:string?"/>
@@ -1430,7 +1430,7 @@ exclude-result-prefixes="#all"
                         <xsl:with-param name="category" select="$category"/>
                         <xsl:with-param name="series" select="$series"/>
                     </xsl:call-template>
-                </xsl:for-each>
+                </xsl:for-each>-->
             </xsl:when>
             <!-- content could not be loaded from Linked Data, attempt a fallback to a DESCRIBE query over the local endpoint -->
             <xsl:when test="?status = 502">
