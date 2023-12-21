@@ -1338,6 +1338,9 @@ exclude-result-prefixes="#all"
         <xsl:variable name="container" select="." as="element()"/>
         <xsl:variable name="progress-container" select="if (contains-token(@class, 'row-fluid')) then ./div[contains-token(@class, 'main')] else ." as="element()"/>
 
+        <!-- container could be hidden server-side -->
+        <ixsl:set-style name="display" select="'block'"/>
+        
         <!-- show progress bar in the middle column -->
         <xsl:for-each select="$progress-container">
             <xsl:result-document href="?." method="ixsl:replace-content">
