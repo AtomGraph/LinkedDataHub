@@ -1289,6 +1289,9 @@ WHERE
                 </xsl:apply-templates>
             </xsl:result-document>
         </xsl:for-each>
+        <xsl:apply-templates select="id($div-id, ixsl:page())" mode="ldh:PostConstruct"/>
+
+        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
 
         <!--
         <xsl:variable name="request" as="item()*">
