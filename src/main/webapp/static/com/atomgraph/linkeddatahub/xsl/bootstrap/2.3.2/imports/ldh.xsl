@@ -25,14 +25,12 @@ exclude-result-prefixes="#all">
         <xsl:param name="method" select="'get'" as="xs:string"/>
         <xsl:param name="action" select="xs:anyURI('')" as="xs:anyURI"/>
         <xsl:param name="id" as="xs:string?"/>
-        <xsl:param name="class" select="'sparql-query-form form-horizontal'" as="xs:string?"/>
+        <xsl:param name="class" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
         <xsl:param name="enctype" as="xs:string?"/>
-        <xsl:param name="textarea-id" select="'id' || ac:uuid()" as="xs:string"/>
         <xsl:param name="mode" as="xs:anyURI*"/>
         <xsl:param name="service" as="xs:anyURI?"/>
         <xsl:param name="endpoint" as="xs:anyURI?"/>
-        <xsl:param name="query" select="sp:text" as="xs:string"/>
         <xsl:param name="show-properties" select="false()" as="xs:boolean"/>
 
         <xsl:apply-templates select="." mode="bs2:Header"/>
