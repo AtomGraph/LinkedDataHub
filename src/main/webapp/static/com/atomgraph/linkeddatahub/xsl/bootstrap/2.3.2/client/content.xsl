@@ -305,20 +305,7 @@ exclude-result-prefixes="#all"
         </xsl:call-template>
 
         <xsl:variable name="textarea-id" select="$row//textarea[@name = 'query']/ixsl:get(., 'id')" as="xs:string"/>
-        <!-- initialize YASQE on the textarea -->
-        <xsl:variable name="js-statement" as="element()">
-            <root statement="YASQE.fromTextArea(document.getElementById('{$textarea-id}'), {{ persistent: null }})"/>
-        </xsl:variable>
-        <ixsl:set-property name="{$textarea-id}" select="ixsl:eval(string($js-statement/@statement))" object="ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe')"/>
-    </xsl:template>
-
-    <xsl:template match="div[contains-token(@typeof, '&sp;Select')] | div[contains-token(@typeof, '&sp;Ask')] | div[contains-token(@typeof, '&sp;Describe')] | div[contains-token(@typeof, '&sp;Construct')]" mode="ldh:RenderOverrideContent">
-        <xsl:variable name="textarea-id" select=".//textarea[@name = 'query']/ixsl:get(., 'id')" as="xs:string"/>
-        <!-- initialize YASQE on the textarea -->
-        <xsl:variable name="js-statement" as="element()">
-            <root statement="YASQE.fromTextArea(document.getElementById('{$textarea-id}'), {{ persistent: null }})"/>
-        </xsl:variable>
-        <ixsl:set-property name="{$textarea-id}" select="ixsl:eval(string($js-statement/@statement))" object="ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe')"/>
+        <xsl:apply-templates select="id($textarea-id, ixsl:page())" mode="ldh:PostConstruct"/>
     </xsl:template>
     
     <!-- .xhtml-content referenced from .resource-content (XHTML transclusion) -->
@@ -1345,7 +1332,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="refresh-content" as="xs:boolean?"/>
         <xsl:variable name="this" select="ancestor::div[@about][1]/@about" as="xs:anyURI"/>
         <xsl:variable name="content-uri" select="(@about, $this)[1]" as="xs:anyURI"/> <!-- fallback to @about for charts, queries etc. -->
-        <xsl:variable name="content-value" select="ixsl:get(., 'dataset.contentValue')" as="xs:anyURI"/> <!-- get the value of the @data-content-value attribute -->
+        <xsl:variable name="content-value" select="if (contains-token(@class, 'override-content)) then @about else ixsl:get(., 'dataset.contentValue')" as="xs:anyURI"/> <!-- get the value of the @data-content-value attribute -->
         <xsl:variable name="graph" select="if (ixsl:contains(., 'dataset.contentGraph')) then xs:anyURI(ixsl:get(., 'dataset.contentGraph')) else ()" as="xs:anyURI?"/> <!-- get the value of the @data-content-graph attribute -->
         <xsl:variable name="mode" select="if (ixsl:contains(., 'dataset.contentMode')) then xs:anyURI(ixsl:get(., 'dataset.contentMode')) else ()" as="xs:anyURI?"/> <!-- get the value of the @data-content-mode attribute -->
         <xsl:variable name="container" select="." as="element()"/>

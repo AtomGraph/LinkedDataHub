@@ -248,7 +248,7 @@ WHERE
             <ixsl:set-attribute name="type" select="'button'"/> <!-- instead of "submit" -->
         </xsl:for-each>
         <!-- initialize SPARQL editors -->
-        <xsl:apply-templates select="ixsl:page()//textarea[contains(@class, 'sparql-query-string')]" mode="ldh:PostConstruct"/> <!-- TO-DO: use the 'elements-by-class' key -->
+        <!-- <xsl:apply-templates select="ixsl:page()//textarea[contains(@class, 'sparql-query-string')]" mode="ldh:PostConstruct"/> --> <!-- TO-DO: use the 'elements-by-class' key -->
         <!-- only show first time message for authenticated agents -->
         <xsl:if test="$acl:agent and not(contains(ixsl:get(ixsl:page(), 'cookie'), 'LinkedDataHub.first-time-message'))">
             <xsl:for-each select="ixsl:page()//body">
@@ -258,9 +258,9 @@ WHERE
             </xsl:for-each>
         </xsl:if>
         <!-- initialize form if we're in editing mode -->
-        <xsl:if test="ixsl:query-params()?mode = '&ac;EditMode'">
+<!--        <xsl:if test="ixsl:query-params()?mode = '&ac;EditMode'">
             <xsl:apply-templates select="id('content-body', ixsl:page())" mode="ldh:PostConstruct"/>
-        </xsl:if>
+        </xsl:if>-->
         <!-- initialize LinkedDataHub.apps (and the search dropdown, if it's shown) -->
         <ixsl:set-property name="apps" select="$ldh:apps" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
         <!-- #search-service may be missing (e.g. suppressed by extending stylesheet) -->
@@ -510,7 +510,7 @@ WHERE
         
             <!-- this has to go after <xsl:result-document href="#{$container-id}"> because otherwise new elements will be injected and the $resource-content-ids lookup will not work anymore -->
             <!-- load resource contents -->
-            <xsl:variable name="resource-content-ids" select="key('elements-by-class', 'resource-content', ixsl:page())/@id" as="xs:string*"/>
+            <xsl:variable name="resource-content-ids" select="key('elements-by-class', 'resource-content', ixsl:page())/@id | key('elements-by-class', 'override-content', ixsl:page())/@id" as="xs:string*"/>
             <xsl:if test="not(empty($resource-content-ids))">
                 <xsl:variable name="containers" select="id($resource-content-ids, ixsl:page())" as="element()*"/>
                 <xsl:for-each select="$containers">
@@ -533,14 +533,6 @@ WHERE
                         </xsl:call-template>
                     </xsl:for-each>
                 </xsl:if>
-            </xsl:if>
-
-            <xsl:variable name="override-content-ids" select="key('elements-by-class', 'override-content', ixsl:page())/@id" as="xs:string*"/>
-            <xsl:if test="not(empty($override-content-ids))">
-                <xsl:variable name="containers" select="id($override-content-ids, ixsl:page())" as="element()*"/>
-                <xsl:for-each select="$containers">
-                    <xsl:apply-templates select="." mode="ldh:RenderOverrideContent"/>
-                </xsl:for-each>
             </xsl:if>
             
             <!-- is a new instance of Service was created, reload the LinkedDataHub.apps data and re-render the service dropdown -->
