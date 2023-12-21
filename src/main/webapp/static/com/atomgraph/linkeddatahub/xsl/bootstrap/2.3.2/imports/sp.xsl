@@ -85,7 +85,7 @@ exclude-result-prefixes="#all">
                 <xsl:attribute name="enctype" select="$enctype"/>
             </xsl:if>
 
-            <textarea name="query" class="span12" rows="15">
+            <textarea name="query" class="span12 sparql-query-string" rows="15">
                 <xsl:if test="$textarea-id">
                     <xsl:attribute name="id" select="$textarea-id"/>
                 </xsl:if>
