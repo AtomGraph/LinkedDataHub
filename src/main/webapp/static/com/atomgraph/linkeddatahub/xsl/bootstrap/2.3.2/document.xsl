@@ -648,9 +648,9 @@ extension-element-prefixes="ixsl"
         </xsl:next-match>
     </xsl:template>
     
-<!--    <xsl:template match="rdf:RDF[$ac:forClass][$ac:method = 'GET']" mode="bs2:RowForm" priority="1" use-when="system-property('xsl:product-name') = 'SAXON'">
+    <xsl:template match="rdf:RDF[$ac:forClass][$ac:method = 'GET']" mode="bs2:RowForm" priority="1" use-when="system-property('xsl:product-name') = 'SAXON'">
         <xsl:param name="base-uri" as="xs:anyURI" tunnel="yes"/>
-         document resource might not always be present in the form (e.g. ldh:Content only) 
+        <!-- document resource might not always be present in the form (e.g. ldh:Content only) -->
         <xsl:param name="document-uri" select="if (key('resources-by-type', ('&dh;Container', '&dh;Item'))/@rdf:about) then key('resources-by-type', ('&dh;Container', '&dh;Item'))/@rdf:about else $base-uri" as="xs:anyURI"/>  $doc-uri of the constructed document 
         <xsl:param name="action" select="ac:build-uri($document-uri, map{ '_method': 'PUT', 'forClass': string($ac:forClass), 'mode': '&ac;EditMode' })" as="xs:anyURI"/>
         <xsl:param name="classes" as="element()*"/>
@@ -706,7 +706,7 @@ extension-element-prefixes="ixsl"
             
             <xsl:apply-templates mode="bs2:Exception"/>
 
-             show the current document on the top 
+            <!-- show the current document on the top -->
             <xsl:apply-templates select="*[@rdf:about = ac:absolute-path(base-uri())]" mode="#current">
                 <xsl:with-param name="inline" select="false()" tunnel="yes"/>
                 <xsl:with-param name="constructors" select="$constructors" tunnel="yes"/>
@@ -714,7 +714,7 @@ extension-element-prefixes="ixsl"
                 <xsl:with-param name="type-metadata" select="$type-metadata" tunnel="yes"/>
                 <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/>
             </xsl:apply-templates>
-             show the rest of the resources (contents, instances) below it 
+            <!-- show the rest of the resources (contents, instances) below it -->
             <xsl:apply-templates select="*[not(@rdf:about = ac:absolute-path(base-uri()))]" mode="#current">
                 <xsl:sort select="ac:label(.)"/>
                 <xsl:with-param name="inline" select="false()" tunnel="yes"/>
@@ -739,7 +739,7 @@ extension-element-prefixes="ixsl"
                 <xsl:with-param name="button-class" select="$button-class"/>
             </xsl:apply-templates>
         </form>
-    </xsl:template>-->
+    </xsl:template>
 
     <!-- MODAL FORM ACTIONS -->
     
@@ -780,7 +780,7 @@ extension-element-prefixes="ixsl"
 
     <!-- FORM ACTIONS -->
     
-<!--    <xsl:template match="rdf:RDF" mode="bs2:FormActions">
+    <xsl:template match="rdf:RDF" mode="bs2:FormActions">
         <xsl:param name="class" select="'row-fluid'" as="xs:string?"/>
         <xsl:param name="button-class" select="'btn btn-primary'" as="xs:string?"/>
         
@@ -807,7 +807,7 @@ extension-element-prefixes="ixsl"
                 </xsl:value-of>
             </button>
         </div>
-    </xsl:template>-->
+    </xsl:template>
 
     <!-- CREATE -->
     

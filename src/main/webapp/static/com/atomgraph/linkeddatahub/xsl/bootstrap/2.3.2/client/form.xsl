@@ -390,11 +390,11 @@ WHERE
         </xsl:variable>
         <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
 
-        <xsl:call-template name="ldh:PushState">
+<!--        <xsl:call-template name="ldh:PushState">
             <xsl:with-param name="href" select="ldh:href($ldt:base, ac:absolute-path(base-uri()), map{}, $href)"/>
-            <!--<xsl:with-param name="title" select="/html/head/title"/>-->
+            <xsl:with-param name="title" select="/html/head/title"/>
             <xsl:with-param name="container" select="id('content-body', ixsl:page())"/>
-        </xsl:call-template>
+        </xsl:call-template>-->
     </xsl:template>
     
     <!-- appends new SHACL-constructed instance to the form -->
@@ -424,10 +424,10 @@ WHERE
         </xsl:variable>
         <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
 
-        <xsl:call-template name="ldh:PushState">
+<!--        <xsl:call-template name="ldh:PushState">
             <xsl:with-param name="href" select="ldh:href($ldt:base, ac:absolute-path(base-uri()), map{}, $href)"/>
             <xsl:with-param name="container" select="id('content-body', ixsl:page())"/>
-        </xsl:call-template>
+        </xsl:call-template>-->
     </xsl:template>
     
     <!-- types (classes with constructors) are looked up in the <ns> endpoint -->
@@ -890,9 +890,7 @@ WHERE
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="container" as="element()"/>
         <xsl:param name="add-class" as="xs:string?"/>
-<!--        <xsl:param name="target-id" as="xs:string?"/>-->
         <xsl:param name="new-form-id" as="xs:string?"/>
-<!--        <xsl:param name="new-target-id" as="xs:string?"/>-->
         <xsl:param name="max-bnode-id" as="xs:integer?"/>
 
         <xsl:choose>
@@ -901,12 +899,10 @@ WHERE
                     <xsl:variable name="event" select="ixsl:event()"/>
                     <xsl:variable name="target" select="ixsl:get($event, 'target')"/>
                     <xsl:variable name="modal" select="exists(id($container/@id)//div[contains-token(@class, 'modal-constructor')])" as="xs:boolean"/>
-<!--                    <xsl:variable name="target-id" select="$target/@id" as="xs:string?"/>-->
                     <xsl:variable name="doc-id" select="concat('id', ixsl:call(ixsl:window(), 'generateUUID', []))" as="xs:string"/>
                     
                     <xsl:variable name="form" as="element()">
                         <xsl:apply-templates select="id($container/@id)//form" mode="form">
-<!--                            <xsl:with-param name="target-id" select="$target-id" tunnel="yes"/>-->
                             <xsl:with-param name="doc-id" select="$doc-id" tunnel="yes"/>
                             <!-- only rewrite bnode labels if "Create" button was called within <form> -->
                             <xsl:with-param name="max-bnode-id" select="if ($target/ancestor::form[contains-token(@class, 'form-horizontal')]) then $max-bnode-id else ()" tunnel="yes"/>
@@ -920,23 +916,23 @@ WHERE
 
                     <xsl:choose>
                         <!-- if "Create" button is within a <form>, append elements to <form> -->
-                        <xsl:when test="$target/ancestor::form[contains-token(@class, 'form-horizontal')]">
+<!--                        <xsl:when test="$target/ancestor::form[contains-token(@class, 'form-horizontal')]">
                             <xsl:for-each select="$target/ancestor::form[contains-token(@class, 'form-horizontal')]">
-                                <!-- remove the old form-actions <div> because we'll be appending a new one below -->
+                                 remove the old form-actions <div> because we'll be appending a new one below 
                                 <xsl:for-each select="./div[./div[contains-token(@class, 'form-actions')]]">
                                     <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
                                 </xsl:for-each>
-                                <!-- remove the current "Create" buttons from the form -->
+                                 remove the current "Create" buttons from the form 
                                 <xsl:for-each select="$target/ancestor::div[contains-token(@class, 'create-resource')]">
                                     <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
                                 </xsl:for-each>
 
                                 <xsl:result-document href="?." method="ixsl:append-content">
-                                    <!-- only append the <fieldset> from the $form, not the whole <form> -->
+                                     only append the <fieldset> from the $form, not the whole <form> 
                                     <xsl:copy-of select="$form//div[contains-token(@class, 'row-fluid')]"/>
                                 </xsl:result-document>
                             </xsl:for-each>
-                        </xsl:when>
+                        </xsl:when>-->
                         <!-- if "Create" button is ReadMode, append form as row -->
                         <xsl:when test="$target/ancestor::div[@id = 'content-body']">
                             <xsl:for-each select="$target/ancestor::div[@id = 'content-body']">

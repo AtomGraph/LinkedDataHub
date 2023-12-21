@@ -1270,6 +1270,7 @@ WHERE
         <xsl:variable name="resource" select="key('resources', $about, $doc)" as="element()"/>
         <xsl:variable name="div-id" select="generate-id($resource)" as="xs:string"/>
         
+        <!-- TO-DO: refactor to use asynchronous HTTP requests -->
         <xsl:variable name="types" select="distinct-values($resource/rdf:type/@rdf:resource)" as="xs:anyURI*"/>
         <xsl:variable name="query-string" select="'DESCRIBE $Type' || ' VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }'" as="xs:string"/>
         <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': $query-string, 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
@@ -1281,12 +1282,17 @@ WHERE
         <xsl:variable name="property-metadata" select="document($request-uri)" as="document-node()"/>
 
         <xsl:for-each select="$container">
-            <xsl:result-document href="?." method="ixsl:replace-content">
-                <xsl:apply-templates select="$resource" mode="bs2:RowForm">
+            <xsl:variable name="row" as="node()*">
+                <xsl:apply-templates select="$resource" mode="bs2:Row">
+                    <xsl:with-param name="mode" select="xs:anyURI('&ac;EditMode')"/>
                     <xsl:with-param name="id" select="$div-id"/>
                     <xsl:with-param name="type-metadata" select="$type-metadata" tunnel="yes"/>
                     <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/>
                 </xsl:apply-templates>
+            </xsl:variable>
+
+            <xsl:result-document href="?." method="ixsl:replace-content">
+                <xsl:copy-of select="$row/*"/> <!-- inject the content of div.row-fluid -->
             </xsl:result-document>
         </xsl:for-each>
         <xsl:apply-templates select="id($div-id, ixsl:page())" mode="ldh:PostConstruct"/>
@@ -1307,6 +1313,7 @@ WHERE
             -->
     </xsl:template>
     
+    <!-- currently unused -->
     <xsl:template name="onTypeMetadataLoad">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="container" as="element()"/>
@@ -1318,9 +1325,11 @@ WHERE
                 <xsl:variable name="type-metadata" select="?body" as="document-node()"/>
                 <xsl:for-each select="$container">
                     <xsl:result-document href="?." method="ixsl:replace-content">
-                        <xsl:apply-templates select="$resource" mode="bs2:RowForm">
+                        <xsl:apply-templates select="$resource" mode="bs2:Row">
+                            <xsl:with-param name="mode" select="xs:anyURI('&ac;EditMode')"/>
                             <xsl:with-param name="id" select="$div-id"/>
                             <xsl:with-param name="type-metadata" select="$type-metadata" tunnel="yes"/>
+                            <!-- <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/> -->
                         </xsl:apply-templates>
                     </xsl:result-document>
                 </xsl:for-each>
@@ -1328,8 +1337,11 @@ WHERE
             <xsl:otherwise>
                 <xsl:for-each select="$container">
                     <xsl:result-document href="?." method="ixsl:replace-content">
-                        <xsl:apply-templates select="$resource" mode="bs2:RowForm">
+                        <xsl:apply-templates select="$resource" mode="bs2:Row">
+                            <xsl:with-param name="mode" select="xs:anyURI('&ac;EditMode')"/>
                             <xsl:with-param name="id" select="$div-id"/>
+                            <!-- <xsl:with-param name="type-metadata" select="$type-metadata" tunnel="yes"/> -->
+                            <!-- <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/> -->
                         </xsl:apply-templates>
                     </xsl:result-document>
                 </xsl:for-each>
