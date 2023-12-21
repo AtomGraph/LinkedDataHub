@@ -1345,7 +1345,7 @@ WHERE
             </xsl:result-document>
         </xsl:for-each>
         <!-- initialize SPARQL editor -->
-        <xsl:apply-templates select=".//textarea[contains-token(@class, 'sparql-query-form')]" mode="ldh:PostConstruct"/>
+        <xsl:apply-templates select="$container//textarea[contains-token(@class, 'sparql-query-form')]" mode="ldh:PostConstruct"/>
 
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
     </xsl:template>
