@@ -432,11 +432,11 @@ extension-element-prefixes="ixsl"
     <!-- BLOCK -->
 
     <!-- append div.resource-content to chart instances which is then rendered by client.xsl -->
-    <xsl:template match="*[@rdf:about][spin:query/@rdf:resource][ldh:chartType/@rdf:resource]" mode="bs2:Block" priority="1">
+<!--    <xsl:template match="*[@rdf:about][spin:query/@rdf:resource][ldh:chartType/@rdf:resource]" mode="bs2:Block" priority="1">
         <xsl:next-match/>
         
         <div id="{generate-id()}-content" about="{@rdf:about}" class="content resource-content" data-content-value="{@rdf:about}" />
-    </xsl:template>
+    </xsl:template>-->
 
     <!-- embed file content -->
     <xsl:template match="*[@rdf:about][dct:format]" mode="bs2:Block" priority="2">
@@ -462,8 +462,8 @@ extension-element-prefixes="ixsl"
     
     <!-- ROW -->
     
-    <!-- TO-DO: move to a vocab-specific stylesheet -->
-    <xsl:template match="*[sp:text/text()]" mode="bs2:Row" priority="1">
+    <!-- query and chart overrides TO-DO: move to a vocab-specific stylesheet -->
+    <xsl:template match="*[@rdf:about][sp:text/text()] | *[@rdf:about][spin:query/@rdf:resource][ldh:chartType/@rdf:resource]" mode="bs2:Row" priority="1">
         <xsl:param name="id" select="generate-id()" as="xs:string?"/>
         <xsl:param name="class" select="'row-fluid content override-content'" as="xs:string?"/>
         <xsl:param name="about" select="@rdf:about" as="xs:anyURI?"/>
