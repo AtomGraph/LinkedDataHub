@@ -19,6 +19,41 @@ xmlns:ldt="&ldt;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 exclude-result-prefixes="#all">
     
+    <!-- BLOCK MODE -->
+
+    <xsl:template match="*[ldh:chartType/@rdf:resource] | *[@rdf:nodeID]/ldh:chartType/@rdf:resource/@rdf:nodeID[key('resources', .)[not(* except rdf:type[@rdf:resource = '&xsd;string'])]]" mode="bs2:Block">
+        <xsl:param name="method" select="'get'" as="xs:string"/>
+        <xsl:param name="action" select="xs:anyURI('')" as="xs:anyURI"/>
+        <xsl:param name="id" as="xs:string?"/>
+        <xsl:param name="class" select="'sparql-query-form form-horizontal'" as="xs:string?"/>
+        <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
+        <xsl:param name="enctype" as="xs:string?"/>
+        <xsl:param name="textarea-id" select="'id' || ac:uuid()" as="xs:string"/>
+        <xsl:param name="mode" as="xs:anyURI*"/>
+        <xsl:param name="service" as="xs:anyURI?"/>
+        <xsl:param name="endpoint" as="xs:anyURI?"/>
+        <xsl:param name="query" select="sp:text" as="xs:string"/>
+        <xsl:param name="show-properties" select="false()" as="xs:boolean"/>
+
+        <xsl:apply-templates select="." mode="bs2:Header"/>
+        
+        <xsl:variable name="doc" as="document-node()">
+            <xsl:document>
+                <rdf:RDF>
+                    <xsl:copy-of select="."/>
+                </rdf:RDF>
+            </xsl:document>
+        </xsl:variable>
+
+        <xsl:apply-templates select="." mode="bs2:Chart"/>
+        
+        <xsl:if test="$show-properties">
+            <xsl:apply-templates select="." mode="bs2:PropertyList"/>
+        </xsl:if>
+    </xsl:template>
+
+    <!-- FORM CONTROL MODE -->
+    
     <!-- override the value of ldh:chartType with a dropdown of ac:Chart subclasses (currently in the LDH vocabulary) -->
     <xsl:template match="ldh:chartType/@rdf:resource | ldh:chartType/@rdf:nodeID" mode="bs2:FormControl">
         <xsl:param name="type-label" select="true()" as="xs:boolean"/>
