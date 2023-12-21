@@ -43,7 +43,9 @@ exclude-result-prefixes="#all">
             </xsl:document>
         </xsl:variable>
 
-        <xsl:apply-templates select="$doc" mode="bs2:Chart"/>
+        <xsl:apply-templates select="$doc" mode="bs2:Chart">
+            <xsl:with-param name="canvas-id" select="generate-id() || '-chart-canvas'"/>
+        </xsl:apply-templates>
         
         <xsl:if test="$show-properties">
             <xsl:apply-templates select="." mode="bs2:PropertyList"/>
