@@ -1269,11 +1269,30 @@ WHERE
         <xsl:variable name="doc" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(xs:anyURI(ixsl:location())) || '`'), 'results')" as="document-node()"/>
         <xsl:variable name="resource" select="key('resources', $about, $doc)" as="element()"/>
         <xsl:variable name="div-id" select="generate-id($resource)" as="xs:string"/>
+        
         <xsl:variable name="types" select="distinct-values($resource/rdf:type/@rdf:resource)" as="xs:anyURI*"/>
         <xsl:variable name="query-string" select="'DESCRIBE $Type' || ' VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }'" as="xs:string"/>
+        <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': $query-string, 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
+        <xsl:variable name="type-metadata" select="document($request-uri)" as="document-node()"/>
 
+        <xsl:variable name="property-uris" select="distinct-values($resource/*/concat(namespace-uri(), local-name()))" as="xs:string*"/>
+        <xsl:variable name="query-string" select="'DESCRIBE $Type' || ' VALUES $Type { ' || string-join(for $uri in $property-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>
+        <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': $query-string, 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
+        <xsl:variable name="property-metadata" select="document($request-uri)" as="document-node()"/>
+
+        <xsl:for-each select="$container">
+            <xsl:result-document href="?." method="ixsl:replace-content">
+                <xsl:apply-templates select="$resource" mode="bs2:RowForm">
+                    <xsl:with-param name="id" select="$div-id"/>
+                    <xsl:with-param name="type-metadata" select="$type-metadata" tunnel="yes"/>
+                    <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/>
+                </xsl:apply-templates>
+            </xsl:result-document>
+        </xsl:for-each>
+
+        <!--
         <xsl:variable name="request" as="item()*">
-            <ixsl:schedule-action http-request="map{ 'method': 'POST', 'href': resolve-uri('ns', $ldt:base), 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': resolve-uri('ns', $ldt:base), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                 <xsl:call-template name="onTypeMetadataLoad">
                     <xsl:with-param name="container" select="$container"/>
                     <xsl:with-param name="resource" select="$resource"/>
@@ -1282,6 +1301,7 @@ WHERE
             </ixsl:schedule-action>
         </xsl:variable>
         <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+            -->
     </xsl:template>
     
     <xsl:template name="onTypeMetadataLoad">
