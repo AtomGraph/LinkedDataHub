@@ -1042,14 +1042,43 @@ extension-element-prefixes="ixsl"
     <!-- ROW FORM -->
 
     <!-- hide constraint violations and HTTP responses in the form - they are displayed as errors on the edited resources -->
-    <xsl:template match="*[rdf:type/@rdf:resource = ('&spin;ConstraintViolation', '&sh;ValidationResult', '&sh;ValidationReport', '&http;Response')]" mode="bs2:Form" priority="3" use-when="system-property('xsl:product-name') = 'SAXON'"/>
+    <xsl:template match="*[rdf:type/@rdf:resource = ('&spin;ConstraintViolation', '&sh;ValidationResult', '&sh;ValidationReport', '&http;Response')]" mode="bs2:RowForm" priority="3" use-when="system-property('xsl:product-name') = 'SAXON'"/>
 
     <!-- hide instances of system classes -->
     <!-- <xsl:template match="*[not($ldh:renderSystemResources)][@rdf:about = ac:absolute-path(base-uri()) and rdf:type/@rdf:resource = ('&def;Root', '&dh;Container', '&dh;Item')] | *[not($ldh:renderSystemResources)][rdf:type/@rdf:resource = '&ldh;Content']" mode="bs2:RowForm" priority="2.5" use-when="system-property('xsl:product-name') = 'SAXON'"/> -->
 
     <!-- hide object blank nodes that only have a single rdf:type property from constructed models, unless the type is owl:NamedIndividual -->
-    <xsl:template match="*[@rdf:nodeID][$ac:forClass or $ldh:forShape][$ac:method = 'GET'][key('predicates-by-object', @rdf:nodeID)][not(* except rdf:type or rdf:type/@rdf:resource = '&owl;NamedIndividual')]" mode="bs2:Form" priority="2" use-when="system-property('xsl:product-name') = 'SAXON'"/>
-        
+    <xsl:template match="*[@rdf:nodeID][$ac:forClass or $ldh:forShape][$ac:method = 'GET'][key('predicates-by-object', @rdf:nodeID)][not(* except rdf:type or rdf:type/@rdf:resource = '&owl;NamedIndividual')]" mode="bs2:RowForm" priority="2" use-when="system-property('xsl:product-name') = 'SAXON'"/>
+    
+    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:RowForm" use-when="system-property('xsl:product-name') = 'SAXON'">
+        <xsl:param name="id" select="generate-id()" as="xs:string?"/>
+        <xsl:param name="content-value" as="xs:anyURI?"/>
+        <xsl:param name="class" select="'row-fluid'" as="xs:string?"/>
+        <xsl:param name="typeof" select="rdf:type/@rdf:resource/xs:anyURI(.)" as="xs:anyURI*"/>
+
+        <div>
+            <xsl:if test="$id">
+                <xsl:attribute name="id" select="$id"/>
+            </xsl:if>
+            <xsl:if test="$class">
+                <xsl:attribute name="class" select="$class"/>
+            </xsl:if>
+            <xsl:if test="$typeof">
+                <xsl:attribute name="typeof" select="$typeof"/>
+            </xsl:if>
+            
+            <!--<xsl:apply-templates select="." mode="bs2:Left"/>-->
+
+            <div class="main span7 offset2">
+                <xsl:apply-templates select="." mode="bs2:FormControl"/>
+           </div>
+
+            <!--<xsl:apply-templates select="." mode="bs2:Right"/>-->
+        </div>
+    </xsl:template>
+    
+    <!-- FORM -->
+    
     <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:Form"> <!-- use-when="system-property('xsl:product-name') = 'SAXON'" -->
         <xsl:param name="id" select="'form-' || generate-id()" as="xs:string?"/>
         <xsl:param name="class" select="'form-horizontal'" as="xs:string?"/>
@@ -1159,14 +1188,6 @@ extension-element-prefixes="ixsl"
         </div>
     </xsl:template>
     
-    <!-- FORM -->
-
-<!--    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:Form">
-        <xsl:apply-templates select="." mode="bs2:FormControl">
-            <xsl:sort select="ac:label(.)"/>
-        </xsl:apply-templates>
-    </xsl:template>
-    -->
     <!-- FORM CONTROL -->
         
     <!-- turn off blank node resources from constructor graph (only those that are objects) -->
