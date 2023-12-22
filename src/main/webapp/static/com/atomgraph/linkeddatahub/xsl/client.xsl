@@ -1295,7 +1295,8 @@ WHERE
                 <xsl:copy-of select="$row/*"/> <!-- inject the content of div.row-fluid -->
             </xsl:result-document>
         </xsl:for-each>
-        <xsl:apply-templates select="id($div-id, ixsl:page())" mode="ldh:PostConstruct"/>
+        <!-- initialize SPARQL editor -->
+        <xsl:apply-templates select="$container//textarea[contains-token(@class, 'sparql-query-string')]" mode="ldh:PostConstruct"/>
 
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
 
