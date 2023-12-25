@@ -120,6 +120,23 @@ exclude-result-prefixes="#all"
         <xsl:for-each select="$container//div[@class = 'bar']">
             <ixsl:set-style name="width" select="'66%'" object="."/>
         </xsl:for-each>
+        
+        <xsl:variable name="row" as="element()*">
+            <xsl:apply-templates select="." mode="bs2:Row">
+                <xsl:with-param name="graph" select="$graph" tunnel="yes"/>
+                <xsl:with-param name="mode" select="$mode"/>
+            </xsl:apply-templates>
+        </xsl:variable>
+
+        <xsl:for-each select="$container">
+            <xsl:result-document href="?." method="ixsl:replace-content">
+                <xsl:copy-of select="$row/*"/>
+            </xsl:result-document>
+        </xsl:for-each>
+
+        <xsl:call-template name="ldh:ContentLoaded">
+            <xsl:with-param name="container" select="$container"/>
+        </xsl:call-template>
 
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(base-uri()), map{}, $query-uri)" as="xs:anyURI"/>
         <xsl:variable name="request" as="item()*">
