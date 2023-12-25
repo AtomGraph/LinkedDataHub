@@ -697,8 +697,8 @@ WHERE
                     <xsl:variable name="category" select="if ($category) then $category else (if (rdf:RDF) then distinct-values(rdf:RDF/*/*/concat(namespace-uri(), local-name()))[1] else srx:sparql/srx:head/srx:variable[1]/@name)" as="xs:string?"/>
                     <xsl:variable name="series" select="if (exists($series)) then $series else (if (rdf:RDF) then distinct-values(rdf:RDF/*/*/concat(namespace-uri(), local-name())) else srx:sparql/srx:head/srx:variable/@name)" as="xs:string*"/>
 
-                    <!-- create results container element if it doesn't exist -->
-                    <xsl:if test="not(id($results-container-id, ixsl:page()))">
+                    <!-- create results container element if it doesn't exist and we're not rendering chart content -->
+                    <xsl:if test="not($container/@typeof = ('&ldh;GraphChart', '&ldh;ResultSetChart')) and not(id($results-container-id, ixsl:page()))">
                         <!-- TO-DO: find a better solution. $container in ContentMode is the whole .content row but in ReadMode it's .main -->
                         <xsl:for-each select="if ($container//div[contains-token(@class, 'main')]) then $container//div[contains-token(@class, 'main')] else $container">
                             <xsl:variable name="active-mode" select="xs:anyURI('&ac;ChartMode')" as="xs:anyURI"/>
