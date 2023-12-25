@@ -118,6 +118,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="chart-type" select="xs:anyURI(ldh:chartType/@rdf:resource)" as="xs:anyURI?"/>
         <xsl:variable name="category" select="ldh:categoryProperty/@rdf:resource | ldh:categoryVarName" as="xs:string?"/>
         <xsl:variable name="series" select="ldh:seriesProperty/@rdf:resource | ldh:seriesVarName" as="xs:string*"/>
+        <xsl:variable name="canvas-id" select="generate-id() || '-chart-canvas'" as="xs:string?"/>
 
         <xsl:for-each select="$container//div[@class = 'bar']">
             <ixsl:set-style name="width" select="'66%'" object="."/>
@@ -127,6 +128,7 @@ exclude-result-prefixes="#all"
             <xsl:apply-templates select="." mode="bs2:Row">
                 <xsl:with-param name="graph" select="$graph" tunnel="yes"/>
                 <xsl:with-param name="mode" select="$mode"/>
+                <xsl:with-param name="canvas-id" select="$canvas-id" tunnel="yes"/>
             </xsl:apply-templates>
         </xsl:variable>
 
@@ -269,7 +271,8 @@ exclude-result-prefixes="#all"
         <xsl:param name="chart-type" as="xs:anyURI"/>
         <xsl:param name="category" as="xs:string?"/>
         <xsl:param name="series" as="xs:string*"/>
-        
+        <xsl:param name="canvas-id" as="xs:string"/>
+
         <xsl:variable name="response" select="." as="map(*)"/>
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = ('application/rdf+xml', 'application/sparql-results+xml')">
@@ -296,7 +299,7 @@ exclude-result-prefixes="#all"
                                 <xsl:with-param name="endpoint" select="$endpoint"/>
                                 <xsl:with-param name="results-uri" select="$results-uri"/>
                                 <xsl:with-param name="container" select="$container"/>
-                                <xsl:with-param name="chart-canvas-id" select="$container/@id || '-chart-canvas'"/>
+                                <xsl:with-param name="chart-canvas-id" select="$canvas-id"/>
                                 <xsl:with-param name="content-uri" select="$content-uri"/>
                                 <xsl:with-param name="chart-type" select="$chart-type"/>
                                 <xsl:with-param name="category" select="$category"/>

@@ -32,6 +32,7 @@ exclude-result-prefixes="#all">
         <xsl:param name="service" as="xs:anyURI?"/>
         <xsl:param name="endpoint" as="xs:anyURI?"/>
         <xsl:param name="show-properties" select="false()" as="xs:boolean"/>
+        <xsl:param name="canvas-id" select="generate-id() || '-chart-canvas'" as="xs:string?" tunnel="yes"/>
 
         <xsl:apply-templates select="." mode="bs2:Header"/>
         
@@ -44,7 +45,7 @@ exclude-result-prefixes="#all">
         </xsl:variable>
 
         <xsl:apply-templates select="$doc" mode="bs2:Chart">
-            <xsl:with-param name="canvas-id" select="generate-id() || '-chart-canvas'"/>
+            <xsl:with-param name="canvas-id" select="$canvas-id"/>
         </xsl:apply-templates>
         
         <xsl:if test="$show-properties">
