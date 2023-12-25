@@ -110,6 +110,7 @@ exclude-result-prefixes="#all"
     <xsl:template match="*[@rdf:about][spin:query/@rdf:resource][ldh:chartType/@rdf:resource]" mode="ldh:RenderContent" priority="1">
         <xsl:param name="container" as="element()"/>
         <xsl:param name="this" as="xs:anyURI"/>
+        <xsl:param name="graph" as="xs:anyURI?"/>
         <xsl:param name="content-uri" select="xs:anyURI($container/@about)" as="xs:anyURI"/>
         <xsl:param name="content-id" select="ixsl:get($container, 'id')" as="xs:string"/>
         <xsl:variable name="query-uri" select="xs:anyURI(spin:query/@rdf:resource)" as="xs:anyURI"/>
