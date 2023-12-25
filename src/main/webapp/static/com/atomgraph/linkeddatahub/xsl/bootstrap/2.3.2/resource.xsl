@@ -431,13 +431,6 @@ extension-element-prefixes="ixsl"
     
     <!-- BLOCK -->
 
-    <!-- append div.resource-content to chart instances which is then rendered by client.xsl -->
-<!--    <xsl:template match="*[@rdf:about][spin:query/@rdf:resource][ldh:chartType/@rdf:resource]" mode="bs2:Block" priority="1">
-        <xsl:next-match/>
-        
-        <div id="{generate-id()}-content" about="{@rdf:about}" class="content resource-content" data-content-value="{@rdf:about}" />
-    </xsl:template>-->
-
     <!-- embed file content -->
     <xsl:template match="*[@rdf:about][dct:format]" mode="bs2:Block" priority="2">
         <xsl:param name="id" select="generate-id()" as="xs:string?"/>
@@ -532,23 +525,23 @@ extension-element-prefixes="ixsl"
                 </xsl:variable>
         
                 <xsl:choose>
-                    <xsl:when test="$mode = '&ac;TableMode'">
+<!--                    <xsl:when test="$mode = '&ac;TableMode'">
                         <xsl:apply-templates select="$doc" mode="xhtml:Table"/>
                     </xsl:when>
                     <xsl:when test="$mode = '&ac;GridMode'">
                         <xsl:apply-templates select="$doc" mode="bs2:Grid"/>
-                    </xsl:when>
+                    </xsl:when>-->
                     <xsl:when test="$mode = '&ac;MapMode'">
                         <xsl:apply-templates select="$doc" mode="bs2:Map">
                             <xsl:with-param name="id" select="generate-id() || '-map-canvas'"/>
                         </xsl:apply-templates>
                     </xsl:when>
-                    <xsl:when test="$mode = '&ac;ChartMode'">
+<!--                    <xsl:when test="$mode = '&ac;ChartMode'">
                         <xsl:apply-templates select="$doc" mode="bs2:Chart">
                             <xsl:with-param name="canvas-id" select="generate-id() || '-chart-canvas'"/>
                             <xsl:with-param name="show-save" select="false()"/>
                         </xsl:apply-templates>
-                    </xsl:when>
+                    </xsl:when>-->
                     <xsl:when test="$mode = '&ac;GraphMode'">
                         <xsl:apply-templates select=".." mode="bs2:Graph"/>
                     </xsl:when>

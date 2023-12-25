@@ -296,7 +296,9 @@ exclude-result-prefixes="#all"
 
         <xsl:for-each select="$container">
             <xsl:result-document href="?." method="ixsl:replace-content">
-                <xsl:copy-of select="$row/*"/>
+                <div class="well">
+                    <xsl:copy-of select="$row/*"/>
+                </div>
             </xsl:result-document>
         </xsl:for-each>
 
@@ -304,8 +306,7 @@ exclude-result-prefixes="#all"
             <xsl:with-param name="container" select="$container"/>
         </xsl:call-template>
 
-        <xsl:variable name="textarea-id" select="$row//textarea[@name = 'query']/ixsl:get(., 'id')" as="xs:string"/>
-        <xsl:apply-templates select="id($textarea-id, ixsl:page())" mode="ldh:PostConstruct"/>
+        <xsl:apply-templates select="$container/*" mode="ldh:PostConstruct"/>
     </xsl:template>
     
     <!-- .xhtml-content referenced from .resource-content (XHTML transclusion) -->
