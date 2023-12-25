@@ -154,6 +154,7 @@ exclude-result-prefixes="#all"
                     <xsl:with-param name="category" select="$category"/>
                     <xsl:with-param name="series" select="$series"/>
                     <xsl:with-param name="container" select="$container"/>
+                    <xsl:with-param name="canvas-id" select="$canvas-id"/>
                 </xsl:call-template>
             </ixsl:schedule-action>
         </xsl:variable>

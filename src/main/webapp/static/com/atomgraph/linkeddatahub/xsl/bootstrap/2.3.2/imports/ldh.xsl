@@ -32,7 +32,7 @@ exclude-result-prefixes="#all">
         <xsl:param name="service" as="xs:anyURI?"/>
         <xsl:param name="endpoint" as="xs:anyURI?"/>
         <xsl:param name="show-properties" select="false()" as="xs:boolean"/>
-        <xsl:param name="canvas-id" select="generate-id() || '-chart-canvas'" as="xs:string?" tunnel="yes"/>
+        <xsl:param name="canvas-id" select="generate-id() || '-chart-canvas'" as="xs:string" tunnel="yes"/>
 
         <xsl:apply-templates select="." mode="bs2:Header"/>
         
