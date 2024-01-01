@@ -182,18 +182,20 @@ exclude-result-prefixes="#all"
         <xsl:variable name="chart-canvas-id" select="ancestor::fieldset/following-sibling::div/@id" as="xs:string"/>
         <xsl:variable name="results" select="if (ixsl:contains(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`'), 'results')) then ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`'), 'results') else root(ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`'), 'content'))" as="document-node()"/>
         
-        <xsl:if test="$chart-type and ($category or $results/rdf:RDF) and exists($series)">
-            <xsl:variable name="data-table" select="if ($results/rdf:RDF) then ac:rdf-data-table($results, $category, $series) else ac:sparql-results-data-table($results, $category, $series)"/>
-            <ixsl:set-property name="data-table" select="$data-table" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`')"/>
-
-            <xsl:call-template name="ldh:RenderChart">
-                <xsl:with-param name="data-table" select="$data-table"/>
-                <xsl:with-param name="canvas-id" select="$chart-canvas-id"/>
-                <xsl:with-param name="chart-type" select="$chart-type"/>
-                <xsl:with-param name="category" select="$category"/>
-                <xsl:with-param name="series" select="$series"/>
-            </xsl:call-template>
+        <xsl:if test="not($chart-type) or not($category or $results/rdf:RDF) or empty($series)">
+            <xsl:message select="'Chart control values missing for content \'' || $content-id || '\''" terminate="yes"/>
         </xsl:if>
+
+        <xsl:variable name="data-table" select="if ($results/rdf:RDF) then ac:rdf-data-table($results, $category, $series) else ac:sparql-results-data-table($results, $category, $series)"/>
+        <ixsl:set-property name="data-table" select="$data-table" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`')"/>
+
+        <xsl:call-template name="ldh:RenderChart">
+            <xsl:with-param name="data-table" select="$data-table"/>
+            <xsl:with-param name="canvas-id" select="$chart-canvas-id"/>
+            <xsl:with-param name="chart-type" select="$chart-type"/>
+            <xsl:with-param name="category" select="$category"/>
+            <xsl:with-param name="series" select="$series"/>
+        </xsl:call-template>
     </xsl:template>
 
     <!-- category onchange -->
