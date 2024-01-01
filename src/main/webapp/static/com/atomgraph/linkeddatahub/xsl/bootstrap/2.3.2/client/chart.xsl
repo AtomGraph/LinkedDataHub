@@ -183,7 +183,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="results" select="if (ixsl:contains(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`'), 'results')) then ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`'), 'results') else root(ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`'), 'content'))" as="document-node()"/>
         
         <xsl:if test="not($chart-type) or not($category or $results/rdf:RDF) or empty($series)">
-            <xsl:message select="'Chart control values missing for content &apos;' || $content-id || '&apos;'" terminate="yes"/>
+            <xsl:message terminate="yes">Chart control values missing for content '<xsl:value-of select="$content-id"/>'</xsl:message>
         </xsl:if>
 
         <xsl:variable name="data-table" select="if ($results/rdf:RDF) then ac:rdf-data-table($results, $category, $series) else ac:sparql-results-data-table($results, $category, $series)"/>
