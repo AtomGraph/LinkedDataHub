@@ -57,16 +57,15 @@ exclude-result-prefixes="#all">
     <xsl:template match="*[ldh:chartType/@rdf:resource] | *[@rdf:nodeID]/ldh:chartType/@rdf:resource/@rdf:nodeID[key('resources', .)[not(* except rdf:type[@rdf:resource = '&xsd;string'])]]" mode="bs2:Block" use-when="system-property('xsl:product-name') eq 'SaxonJS'">
         <xsl:param name="canvas-id" select="generate-id() || '-chart-canvas'" as="xs:string"/>
         <xsl:param name="canvas-class" select="'chart-canvas'" as="xs:string?"/>
-        <xsl:param name="method" select="'post'" as="xs:string"/>
-<!--        <xsl:param name="doc-type" select="xs:anyURI('&dh;Item')" as="xs:anyURI"/>-->
+        <xsl:param name="method" select="'patch'" as="xs:string"/>
         <xsl:param name="type" select="xs:anyURI(rdf:type/@rdf:resource)" as="xs:anyURI"/>
-        <xsl:param name="action" select="ac:build-uri(resolve-uri('charts/', $ldt:base), map{ 'forClass': string($type) })" as="xs:anyURI"/>
+        <xsl:param name="action" select="xs:anyURI('')" as="xs:anyURI"/>
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" select="'form-horizontal'" as="xs:string?"/>
         <xsl:param name="button-class" select="'btn'" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
         <xsl:param name="enctype" as="xs:string?"/>
-        <xsl:param name="chart-type" select="xs:anyURI('&ac;Table')" as="xs:anyURI?"/> <!-- table is the default chart type -->
+        <xsl:param name="chart-type" select="xs:anyURI(ldh:chartType/@rdf:resource)" as="xs:anyURI"/>
         <xsl:param name="category" as="xs:string?"/>
         <xsl:param name="series" as="xs:string*"/>
         <xsl:param name="chart-type-id" select="'chart-type'" as="xs:string"/>
