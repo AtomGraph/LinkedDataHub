@@ -79,6 +79,8 @@ exclude-result-prefixes="#all">
         <xsl:param name="show-controls" select="true()" as="xs:boolean"/>
         <xsl:param name="show-save" select="true()" as="xs:boolean"/>
 
+        <xsl:apply-templates select="." mode="bs2:Header"/>
+
         <!-- <xsl:if test="$show-controls"> -->
             <form method="{$method}" action="{$action}">
                 <xsl:if test="$id">
