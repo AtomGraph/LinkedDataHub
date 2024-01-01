@@ -55,7 +55,7 @@ exclude-result-prefixes="#all">
     </xsl:template>-->
     
     <xsl:template match="*[ldh:chartType/@rdf:resource] | *[@rdf:nodeID]/ldh:chartType/@rdf:resource/@rdf:nodeID[key('resources', .)[not(* except rdf:type[@rdf:resource = '&xsd;string'])]]" mode="bs2:Block" use-when="system-property('xsl:product-name') eq 'SaxonJS'">
-        <xsl:param name="canvas-id" as="xs:string"/>
+        <xsl:param name="canvas-id" select="generate-id() || '-chart-canvas'" as="xs:string"/>
         <xsl:param name="canvas-class" select="'chart-canvas'" as="xs:string?"/>
         <xsl:param name="method" select="'post'" as="xs:string"/>
 <!--        <xsl:param name="doc-type" select="xs:anyURI('&dh;Item')" as="xs:anyURI"/>-->
