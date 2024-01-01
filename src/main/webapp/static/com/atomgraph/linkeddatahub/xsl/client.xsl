@@ -696,12 +696,7 @@ WHERE
                     <xsl:variable name="results" select="." as="document-node()"/>
                     <xsl:variable name="category" select="if ($category) then $category else (if (rdf:RDF) then distinct-values(rdf:RDF/*/*/concat(namespace-uri(), local-name()))[1] else srx:sparql/srx:head/srx:variable[1]/@name)" as="xs:string?"/>
                     <xsl:variable name="series" select="if (exists($series)) then $series else (if (rdf:RDF) then distinct-values(rdf:RDF/*/*/concat(namespace-uri(), local-name())) else srx:sparql/srx:head/srx:variable/@name)" as="xs:string*"/>
-<xsl:message>
-$results: <xsl:copy-of select="$results"/>
 
-$category: <xsl:value-of select="$category"/>
-$series: <xsl:value-of select="$series"/>
-</xsl:message>
                     <!-- if we're rendering SPARQL query and not a chart resource -->
                     <xsl:choose>
                         <xsl:when test="$query-string">
@@ -763,6 +758,13 @@ $series: <xsl:value-of select="$series"/>
                         </xsl:otherwise>
                     </xsl:choose>
                     
+<xsl:message>
+$content-uri: <xsl:copy-of select="$content-uri"/>
+$results: <xsl:copy-of select="$results"/>
+$category: <xsl:value-of select="$category"/>
+$series: <xsl:value-of select="$series"/>
+</xsl:message>
+
                     <!-- create new cache entry using content URI as key -->
                     <ixsl:set-property name="{'`' || $content-uri || '`'}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
                     <ixsl:set-property name="results" select="$results" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`')"/>
