@@ -754,7 +754,7 @@ WHERE
                         <xsl:otherwise>
                             <xsl:if test="not($category)">
                                 <xsl:variable name="category-select" select="$container//select[contains-token(@class, 'chart-category')]" as="element()"/>
-                                <xsl:for-each test="rdf:RDF">
+                                <xsl:for-each select="rdf:RDF">
                                     <xsl:variable name="option" as="element()">
                                         <option value="">
                                             <!-- URI is the default category -->
@@ -786,7 +786,7 @@ WHERE
                                     </xsl:for-each-group>
                                 </xsl:for-each>
 
-                                <xsl:for-each select="" test="srx:sparql">
+                                <xsl:for-each select="srx:sparql">
                                     <xsl:for-each select="srx:head/srx:variable">
                                         <!-- leave the original variable order so it can be controlled from query -->
 
