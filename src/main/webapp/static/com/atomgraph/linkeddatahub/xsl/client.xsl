@@ -752,55 +752,53 @@ WHERE
                         </xsl:when>
                         <!-- chart instance -->
                         <xsl:otherwise>
-                            <xsl:variable name="category-select" select="$container//select[contains-token(@class, 'chart-category')]" as="element()"/>
-                            <xsl:for-each select="rdf:RDF">
-                                <xsl:variable name="option" as="element()">
-                                    <option value="">
-                                        <!-- URI is the default category -->
-                                        <xsl:if test="not($category)">
-                                            <xsl:attribute name="selected" select="'selected'"/>
-                                        </xsl:if>
-
-                                        <xsl:text>[URI/ID]</xsl:text>
-                                    </option>
-                                </xsl:variable>
-                                <xsl:sequence select="ixsl:call($category-select, 'add', [ $option ])[current-date() lt xs:date('2000-01-01')]"/>
-
-                                <xsl:for-each-group select="*/*" group-by="concat(namespace-uri(), local-name())">
-                                    <xsl:sort select="ac:property-label(.)" order="ascending" lang="{$ldt:lang}" use-when="system-property('xsl:product-name') = 'SAXON'"/>
-                                    <xsl:sort select="ac:property-label(.)" order="ascending" use-when="system-property('xsl:product-name') eq 'SaxonJS'"/>
-
-                                    <xsl:variable name="option" as="element()">
-                                        <option value="{current-grouping-key()}">
-                                            <xsl:if test="$category = current-grouping-key()">
+                            <xsl:if test="$results/rdf:RDF">
+                                <xsl:for-each select="$container//select[contains-token(@class, 'chart-category')]">
+                                    <xsl:result-document href="?." method="ixsl:replace-content">
+                                        <option value="">
+                                            <!-- URI is the default category -->
+                                            <xsl:if test="not($category)">
                                                 <xsl:attribute name="selected" select="'selected'"/>
                                             </xsl:if>
 
-                                            <xsl:value-of>
-                                                <xsl:apply-templates select="current-group()[1]" mode="ac:property-label"/>
-                                            </xsl:value-of>
+                                            <xsl:text>[URI/ID]</xsl:text>
                                         </option>
-                                    </xsl:variable>
-                                    <xsl:sequence select="ixsl:call($category-select, 'add', [ $option ])[current-date() lt xs:date('2000-01-01')]"/>
-                                </xsl:for-each-group>
-                            </xsl:for-each>
 
-                            <xsl:for-each select="srx:sparql">
-                                <xsl:for-each select="srx:head/srx:variable">
-                                    <!-- leave the original variable order so it can be controlled from query -->
+                                        <xsl:for-each-group select="$results/rdf:RDF/*/*" group-by="concat(namespace-uri(), local-name())">
+                                            <xsl:sort select="ac:property-label(.)" order="ascending" lang="{$ldt:lang}" use-when="system-property('xsl:product-name') = 'SAXON'"/>
+                                            <xsl:sort select="ac:property-label(.)" order="ascending" use-when="system-property('xsl:product-name') eq 'SaxonJS'"/>
 
-                                    <xsl:variable name="option" as="element()">
-                                        <option value="{@name}">
-                                            <xsl:if test="$category = @name">
-                                                <xsl:attribute name="selected" select="'selected'"/>
-                                            </xsl:if>
+                                            <option value="{current-grouping-key()}">
+                                                <xsl:if test="$category = current-grouping-key()">
+                                                    <xsl:attribute name="selected" select="'selected'"/>
+                                                </xsl:if>
 
-                                            <xsl:value-of select="@name"/>
-                                        </option>
-                                    </xsl:variable>
-                                    <xsl:sequence select="ixsl:call($category-select, 'add', [ $option ])[current-date() lt xs:date('2000-01-01')]"/>
+                                                <xsl:value-of>
+                                                    <xsl:apply-templates select="current-group()[1]" mode="ac:property-label"/>
+                                                </xsl:value-of>
+                                            </option>
+                                        </xsl:for-each-group>
+                                    </xsl:result-document>
                                 </xsl:for-each>
-                            </xsl:for-each>
+                            </xsl:if>
+
+                            <xsl:if test="$results/srx:sparql">
+                                <xsl:for-each select="$container//select[contains-token(@class, 'chart-category')]">
+                                    <xsl:result-document href="?." method="ixsl:replace-content">
+                                        <xsl:for-each select="$results//srx:head/srx:variable">
+                                            <!-- leave the original variable order so it can be controlled from query -->
+
+                                            <option value="{@name}">
+                                                <xsl:if test="$category = @name">
+                                                    <xsl:attribute name="selected" select="'selected'"/>
+                                                </xsl:if>
+
+                                                <xsl:value-of select="@name"/>
+                                            </option>
+                                        </xsl:for-each>
+                                    </xsl:result-document>
+                                </xsl:for-each>
+                            </xsl:if>
                             
                             <!-- post-process the container -->
                             <xsl:call-template name="ldh:ContentLoaded">
