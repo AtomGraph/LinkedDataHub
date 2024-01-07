@@ -247,8 +247,6 @@ WHERE
         <xsl:for-each select="ixsl:page()//button[contains(@class, 'btn-run-query')]"> <!-- TO-DO: use the 'elements-by-class' key -->
             <ixsl:set-attribute name="type" select="'button'"/> <!-- instead of "submit" -->
         </xsl:for-each>
-        <!-- initialize SPARQL editors -->
-        <!-- <xsl:apply-templates select="ixsl:page()//textarea[contains(@class, 'sparql-query-string')]" mode="ldh:PostConstruct"/> --> <!-- TO-DO: use the 'elements-by-class' key -->
         <!-- only show first time message for authenticated agents -->
         <xsl:if test="$acl:agent and not(contains(ixsl:get(ixsl:page(), 'cookie'), 'LinkedDataHub.first-time-message'))">
             <xsl:for-each select="ixsl:page()//body">
@@ -257,10 +255,6 @@ WHERE
                 </xsl:result-document>
             </xsl:for-each>
         </xsl:if>
-        <!-- initialize form if we're in editing mode -->
-<!--        <xsl:if test="ixsl:query-params()?mode = '&ac;EditMode'">
-            <xsl:apply-templates select="id('content-body', ixsl:page())" mode="ldh:PostConstruct"/>
-        </xsl:if>-->
         <!-- initialize LinkedDataHub.apps (and the search dropdown, if it's shown) -->
         <ixsl:set-property name="apps" select="$ldh:apps" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
         <!-- #search-service may be missing (e.g. suppressed by extending stylesheet) -->
@@ -403,11 +397,11 @@ WHERE
     </xsl:template>
     
     <!-- copied from rdf.xsl which is not imported -->
-    <xsl:template match="rdf:type/@rdf:resource" priority="1">
+<!--    <xsl:template match="rdf:type/@rdf:resource" priority="1">
         <span title="{.}" class="btn btn-type">
             <xsl:next-match/>
         </span>
-    </xsl:template>
+    </xsl:template>-->
     
     <!-- if document has a topic, show it as the typeahead value instead -->
     <xsl:template match="*[*][key('resources', foaf:primaryTopic/@rdf:resource)]" mode="ldh:Typeahead">
