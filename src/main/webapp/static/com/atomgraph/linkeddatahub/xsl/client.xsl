@@ -397,8 +397,8 @@ WHERE
                 <xsl:sequence select="substring-after(., '#')"/>
             </xsl:when>
             <xsl:when test="string-length(tokenize(., '/')[last()]) &gt; 0">
-                <xsl:sequence use-when="function-available('url:decode')" select="translate(url:decode(tokenize(., '/')[last()], 'UTF-8'), '_', ' ')"/>
-                <xsl:sequence use-when="not(function-available('url:decode'))" select="translate(tokenize(., '/')[last()], '_', ' ')"/>
+<!--                <xsl:sequence use-when="function-available('url:decode')" select="translate(url:decode(tokenize(., '/')[last()], 'UTF-8'), '_', ' ')"/>-->
+                <xsl:sequence select="translate(tokenize(., '/')[last()], '_', ' ')"/> <!-- use-when="not(function-available('url:decode'))" -->
             </xsl:when>
             <xsl:otherwise>
                 <xsl:sequence select="."/>
