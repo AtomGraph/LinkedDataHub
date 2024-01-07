@@ -109,7 +109,7 @@ exclude-result-prefixes="#all"
     </xsl:template>
     
     <xsl:template name="ldh:RenderChartForm">
-        <xsl:context-item as="element()" use="required"/> <!-- chart query result (rdf:RDF or srx:sparql) -->
+        <xsl:context-item as="document-node()" use="required"/> <!-- chart query result (rdf:RDF or srx:sparql) -->
         <xsl:param name="container" as="element()"/>
         <xsl:param name="category" as="xs:string?"/>
         <xsl:param name="series" as="xs:string*"/>
