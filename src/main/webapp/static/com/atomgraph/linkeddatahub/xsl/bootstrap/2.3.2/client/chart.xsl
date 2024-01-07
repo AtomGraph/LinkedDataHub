@@ -106,6 +106,96 @@ exclude-result-prefixes="#all"
         </xsl:call-template>
     </xsl:template>
     
+    <xsl:template name="ldh:RenderChartForm">
+        <xsl:context-item as="element()" use="required"/> <!-- chart query result (rdf:RDF or srx:sparql) -->
+        <xsl:param name="container" as="element()"/>
+        
+        <xsl:variable name="results" select="." as="document-node()"/>
+
+        <xsl:if test="rdf:RDF">
+            <xsl:for-each select="$container//select[contains-token(@class, 'chart-category')]">
+                <xsl:result-document href="?." method="ixsl:replace-content">
+                    <option value="">
+                        <!-- URI is the default category -->
+                        <xsl:if test="not($category)">
+                            <xsl:attribute name="selected" select="'selected'"/>
+                        </xsl:if>
+
+                        <xsl:text>[URI/ID]</xsl:text>
+                    </option>
+
+                    <xsl:for-each-group select="$results/rdf:RDF/*/*" group-by="concat(namespace-uri(), local-name())">
+                        <xsl:sort select="ac:property-label(.)" order="ascending" lang="{$ldt:lang}" use-when="system-property('xsl:product-name') = 'SAXON'"/>
+                        <xsl:sort select="ac:property-label(.)" order="ascending" use-when="system-property('xsl:product-name') eq 'SaxonJS'"/>
+
+                        <option value="{current-grouping-key()}">
+                            <xsl:if test="$category = current-grouping-key()">
+                                <xsl:attribute name="selected" select="'selected'"/>
+                            </xsl:if>
+
+                            <xsl:value-of>
+                                <xsl:apply-templates select="current-group()[1]" mode="ac:property-label"/>
+                            </xsl:value-of>
+                        </option>
+                    </xsl:for-each-group>
+                </xsl:result-document>
+            </xsl:for-each>
+
+            <xsl:for-each select="$container//select[contains-token(@class, 'chart-series')]">
+                <xsl:result-document href="?." method="ixsl:replace-content">
+                    <xsl:for-each-group select="$results/rdf:RDF/*/*" group-by="concat(namespace-uri(), local-name())">
+                        <xsl:sort select="ac:property-label(.)" order="ascending" lang="{$ldt:lang}" use-when="system-property('xsl:product-name') = 'SAXON'"/>
+                        <xsl:sort select="ac:property-label(.)" order="ascending" use-when="system-property('xsl:product-name') eq 'SaxonJS'"/>
+
+                        <option value="{current-grouping-key()}">
+                            <xsl:if test="$series = current-grouping-key()">
+                                <xsl:attribute name="selected" select="'selected'"/>
+                            </xsl:if>
+
+                            <xsl:value-of>
+                                <xsl:apply-templates select="current-group()[1]" mode="ac:property-label"/>
+                            </xsl:value-of>
+                        </option>
+                    </xsl:for-each-group>
+                </xsl:result-document>
+            </xsl:for-each>
+        </xsl:if>
+
+        <xsl:if test="srx:sparql">
+            <xsl:for-each select="$container//select[contains-token(@class, 'chart-category')]">
+                <xsl:result-document href="?." method="ixsl:replace-content">
+                    <xsl:for-each select="$results//srx:head/srx:variable">
+                        <!-- leave the original variable order so it can be controlled from query -->
+
+                        <option value="{@name}">
+                            <xsl:if test="$category = @name">
+                                <xsl:attribute name="selected" select="'selected'"/>
+                            </xsl:if>
+
+                            <xsl:value-of select="@name"/>
+                        </option>
+                    </xsl:for-each>
+                </xsl:result-document>
+            </xsl:for-each>
+
+            <xsl:for-each select="$container//select[contains-token(@class, 'chart-series')]">
+                <xsl:result-document href="?." method="ixsl:replace-content">
+                    <xsl:for-each select="$results//srx:head/srx:variable">
+                        <!-- leave the original variable order so it can be controlled from query -->
+
+                        <option value="{@name}">
+                            <xsl:if test="$series = @name">
+                                <xsl:attribute name="selected" select="'selected'"/>
+                            </xsl:if>
+
+                            <xsl:value-of select="@name"/>
+                        </option>
+                    </xsl:for-each>
+                </xsl:result-document>
+            </xsl:for-each>
+        </xsl:if>
+    </xsl:template>
+    
     <!-- chart content -->
     <xsl:template match="*[@rdf:about][spin:query/@rdf:resource][ldh:chartType/@rdf:resource]" mode="ldh:RenderContent" priority="1">
         <xsl:param name="container" as="element()"/>
