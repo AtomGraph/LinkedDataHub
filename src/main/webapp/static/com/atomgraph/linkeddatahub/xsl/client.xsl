@@ -1391,6 +1391,54 @@ $series: <xsl:value-of select="$series"/>
     
     <!-- disable inline editing form (do nothing if the button is disabled) -->
     
+    <xsl:template match="div[@about][@typeof = ('&ldh;ResultSetChart', '&ldh;GraphChart')]//button[contains-token(@class, 'btn-cancel')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick" priority="1">
+        <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
+        <xsl:variable name="container" select="ancestor::div[@about][@typeof][1]" as="element()"/>
+        <xsl:variable name="about" select="$container/@about" as="xs:anyURI"/>
+
+        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+        
+        <xsl:message>ixsl:get(., 'baseURI'): <xsl:value-of select="ixsl:get(., 'baseURI')"/></xsl:message>
+        <xsl:message>base-uri(): <xsl:value-of select="base-uri()"/></xsl:message>
+        <xsl:message>ixsl:location(): <xsl:value-of select="ixsl:location()"/></xsl:message>
+
+        <!-- not using base-uri() because it goes stale when DOM is replaced -->
+        <xsl:variable name="doc" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(xs:anyURI(ixsl:location())) || '`'), 'results')" as="document-node()"/>
+        <xsl:variable name="resource" select="key('resources', $about, $doc)" as="element()"/>
+
+        <xsl:variable name="row" as="node()*">
+            <xsl:apply-templates select="$resource" mode="bs2:Row"/>
+        </xsl:variable>
+
+        <xsl:for-each select="$container">
+            <xsl:result-document href="?." method="ixsl:replace-content">
+                <xsl:copy-of select="$row/*"/> <!-- inject the content of div.row-fluid -->
+            </xsl:result-document>
+        </xsl:for-each>
+        
+        <xsl:variable name="category" select="$container//select[contains-token(@class, 'chart-category')]/ixsl:get(., 'value')" as="xs:string?"/>
+        <xsl:variable name="series" as="xs:string*">
+            <xsl:for-each select="$container//select[contains-token(@class, 'chart-series')]">
+                <xsl:variable name="select" select="." as="element()"/>
+                <xsl:for-each select="0 to xs:integer(ixsl:get(., 'selectedOptions.length')) - 1">
+                    <xsl:sequence select="ixsl:get(ixsl:call(ixsl:get($select, 'selectedOptions'), 'item', [ . ]), 'value')"/>
+                </xsl:for-each>
+            </xsl:for-each>
+        </xsl:variable>
+        <xsl:for-each select="$doc">
+            <xsl:call-template name="ldh:RenderChartForm">
+                <xsl:with-param name="container" select="$container"/>
+                <xsl:with-param name="category" select="$category"/>
+                <xsl:with-param name="series" select="$series"/>
+            </xsl:call-template>
+        </xsl:for-each>
+        
+        <!-- initialize event listeners -->
+        <xsl:apply-templates select="$container/*" mode="ldh:PostConstruct"/>
+
+        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
+    </xsl:template>
+    
     <xsl:template match="div[@about][@typeof]//button[contains-token(@class, 'btn-cancel')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="container" select="ancestor::div[@about][@typeof][1]" as="element()"/>
