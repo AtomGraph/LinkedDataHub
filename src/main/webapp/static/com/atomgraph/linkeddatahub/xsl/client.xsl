@@ -1410,7 +1410,10 @@ $series: <xsl:value-of select="$series"/>
         <xsl:variable name="doc" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(xs:anyURI(ixsl:location())) || '`'), 'results')" as="document-node()"/>
         <xsl:variable name="chart" select="key('resources', $about, $doc)" as="element()"/>
 
-        <xsl:apply-templates select="$chart" mode="ldh:RenderContent"/>
+        <xsl:apply-templates select="$chart" mode="ldh:RenderContent">
+            <xsl:with-param name="this" select="ancestor::div[@about][1]/@about"/>
+            <xsl:with-param name="container" select="$container"/>
+        </xsl:apply-templates>
         
         <!-- initialize event listeners -->
         <xsl:apply-templates select="$container/*" mode="ldh:PostConstruct"/>
