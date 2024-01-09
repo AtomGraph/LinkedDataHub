@@ -1305,137 +1305,18 @@ $series: <xsl:value-of select="$series"/>
         <!-- store the new request object -->
         <ixsl:set-property name="request" select="$request" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
     </xsl:template>
-
-    <!-- enable inline editing form (do nothing if the button is disabled) -->
-    
-    <xsl:template match="div[contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'btn-edit')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick">
-        <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
-        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'row-fluid')]" as="element()"/>
-        <xsl:variable name="about" select="$container/@about" as="xs:anyURI"/>
-
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
-        
-        <xsl:message>ixsl:get(., 'baseURI'): <xsl:value-of select="ixsl:get(., 'baseURI')"/></xsl:message>
-        <xsl:message>base-uri(): <xsl:value-of select="base-uri()"/></xsl:message>
-        <xsl:message>ixsl:location(): <xsl:value-of select="ixsl:location()"/></xsl:message>
-        
-        <!-- not using base-uri() because it goes stale when DOM is replaced -->
-        <xsl:variable name="doc" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(xs:anyURI(ixsl:location())) || '`'), 'results')" as="document-node()"/>
-        <xsl:variable name="resource" select="key('resources', $about, $doc)" as="element()"/>
-        <xsl:variable name="div-id" select="generate-id($resource)" as="xs:string"/>
-        
-        <!-- TO-DO: refactor to use asynchronous HTTP requests -->
-        <xsl:variable name="types" select="distinct-values($resource/rdf:type/@rdf:resource)" as="xs:anyURI*"/>
-        <xsl:variable name="query-string" select="'DESCRIBE $Type VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }'" as="xs:string"/>
-        <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': $query-string, 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
-        <xsl:variable name="type-metadata" select="document($request-uri)" as="document-node()"/>
-
-        <xsl:variable name="property-uris" select="distinct-values($resource/*/concat(namespace-uri(), local-name()))" as="xs:string*"/>
-        <xsl:variable name="query-string" select="'DESCRIBE $Type VALUES $Type { ' || string-join(for $uri in $property-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>
-        <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': $query-string, 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
-        <xsl:variable name="property-metadata" select="document($request-uri)" as="document-node()"/>
-
-        <xsl:variable name="query-string" select="$constraint-query || ' VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }'" as="xs:string"/>
-        <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': $query-string, 'accept': 'application/sparql-results+xml' })" as="xs:anyURI"/>
-        <xsl:variable name="constraints" select="document($request-uri)" as="document-node()"/>
-
-        <xsl:for-each select="$container">
-            <xsl:variable name="row" as="node()*">
-                <xsl:apply-templates select="$resource" mode="bs2:RowForm"> <!-- bs2:Row -->
-                    <!-- <xsl:with-param name="mode" select="xs:anyURI('&ac;EditMode')"/> -->
-                    <xsl:with-param name="id" select="$div-id"/>
-                    <xsl:with-param name="type-metadata" select="$type-metadata" tunnel="yes"/>
-                    <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/>
-                    <xsl:with-param name="constraints" select="$constraints" tunnel="yes"/>
-                </xsl:apply-templates>
-            </xsl:variable>
-
-            <xsl:result-document href="?." method="ixsl:replace-content">
-                <xsl:copy-of select="$row/*"/> <!-- inject the content of div.row-fluid -->
-            </xsl:result-document>
-        </xsl:for-each>
-        <!-- initialize event listeners -->
-        <xsl:apply-templates select="$container/*" mode="ldh:PostConstruct"/>
-
-        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
-    </xsl:template>
-
-    <xsl:template match="div[@about][@typeof]//button[contains-token(@class, 'btn-save')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick" priority="1">
-        <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ 'btn-save' ])[current-date() lt xs:date('2000-01-01')]"/>
-    </xsl:template>
-    
-    <!-- disable inline editing form (do nothing if the button is disabled) -->
-    
-    <xsl:template match="div[@about][@typeof = ('&ldh;ResultSetChart', '&ldh;GraphChart')]//button[contains-token(@class, 'btn-cancel')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick" priority="1">
-        <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
-        <xsl:variable name="container" select="ancestor::div[@about][@typeof][1]" as="element()"/>
-        <xsl:variable name="content-uri" select="xs:anyURI($container/@about)" as="xs:anyURI"/>
-        <xsl:variable name="content-id" select="ixsl:get($container, 'id')" as="xs:string"/>
-        <xsl:variable name="about" select="$container/@about" as="xs:anyURI"/>
-
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
-        
-        <xsl:message>ixsl:get(., 'baseURI'): <xsl:value-of select="ixsl:get(., 'baseURI')"/></xsl:message>
-        <xsl:message>base-uri(): <xsl:value-of select="base-uri()"/></xsl:message>
-        <xsl:message>ixsl:location(): <xsl:value-of select="ixsl:location()"/></xsl:message>
-
-        <!-- not using base-uri() because it goes stale when DOM is replaced -->
-        <xsl:variable name="doc" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(xs:anyURI(ixsl:location())) || '`'), 'results')" as="document-node()"/>
-        <xsl:variable name="chart" select="key('resources', $about, $doc)" as="element()"/>
-
-        <xsl:apply-templates select="$chart" mode="ldh:RenderContent">
-            <xsl:with-param name="this" select="ancestor::div[@about][1]/@about"/>
-            <xsl:with-param name="container" select="$container"/>
-        </xsl:apply-templates>
-        
-        <!-- initialize event listeners -->
-        <xsl:apply-templates select="$container/*" mode="ldh:PostConstruct"/>
-
-        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
-    </xsl:template>
-    
-    <!-- TO-DO: unify -->
-    <xsl:template match="div[@about][@typeof]//button[contains-token(@class, 'btn-cancel')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick">
-        <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
-        <xsl:variable name="container" select="ancestor::div[@about][@typeof][1]" as="element()"/>
-        <xsl:variable name="about" select="$container/@about" as="xs:anyURI"/>
-
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
-        
-        <xsl:message>ixsl:get(., 'baseURI'): <xsl:value-of select="ixsl:get(., 'baseURI')"/></xsl:message>
-        <xsl:message>base-uri(): <xsl:value-of select="base-uri()"/></xsl:message>
-        <xsl:message>ixsl:location(): <xsl:value-of select="ixsl:location()"/></xsl:message>
-
-        <!-- not using base-uri() because it goes stale when DOM is replaced -->
-        <xsl:variable name="doc" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(xs:anyURI(ixsl:location())) || '`'), 'results')" as="document-node()"/>
-        <xsl:variable name="resource" select="key('resources', $about, $doc)" as="element()"/>
-
-        <xsl:variable name="row" as="node()*">
-            <xsl:apply-templates select="$resource" mode="bs2:Row"/>
-        </xsl:variable>
-
-        <xsl:for-each select="$container">
-            <xsl:result-document href="?." method="ixsl:replace-content">
-                <xsl:copy-of select="$row/*"/> <!-- inject the content of div.row-fluid -->
-            </xsl:result-document>
-        </xsl:for-each>
-        <!-- initialize event listeners -->
-        <xsl:apply-templates select="$container/*" mode="ldh:PostConstruct"/>
-
-        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
-    </xsl:template>
     
     <!-- open editing form (do nothing if the button is disabled) -->
     
-    <xsl:template match="a[contains-token(@class, 'btn-edit')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick">
+<!--    <xsl:template match="a[contains-token(@class, 'btn-edit')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="href" select="@href" as="xs:anyURI"/>
 
-        <!-- toggle .active class -->
+         toggle .active class 
         <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', true() ])[current-date() lt xs:date('2000-01-01')]"/>
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
-        <!-- abort the previous request, if any -->
+         abort the previous request, if any 
         <xsl:if test="ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub'), 'request')">
             <xsl:message>Aborting HTTP request that has already been sent</xsl:message>
             <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'LinkedDataHub.request'), 'abort', [])"/>
@@ -1448,7 +1329,7 @@ $series: <xsl:value-of select="$series"/>
                 </xsl:call-template>
             </ixsl:schedule-action>
         </xsl:variable>
-        <!-- store the new request object -->
+         store the new request object 
         <ixsl:set-property name="request" select="$request" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
 
         <xsl:if test="$href">
@@ -1457,7 +1338,7 @@ $series: <xsl:value-of select="$series"/>
                 <xsl:with-param name="container" select="id('content-body', ixsl:page())"/>
             </xsl:call-template>
         </xsl:if>
-    </xsl:template>
+    </xsl:template>-->
     
     <xsl:template match="button[contains-token(@class, 'btn-delete')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick">
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(base-uri()), ldh:query-params(xs:anyURI('&ac;EditMode')), base-uri())" as="xs:anyURI"/>
