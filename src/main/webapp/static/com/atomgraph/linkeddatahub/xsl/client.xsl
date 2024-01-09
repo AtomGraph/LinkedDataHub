@@ -1358,59 +1358,10 @@ $series: <xsl:value-of select="$series"/>
         <xsl:apply-templates select="$container/*" mode="ldh:PostConstruct"/>
 
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
-
-        <!--
-        <xsl:variable name="request" as="item()*">
-            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': resolve-uri('ns', $ldt:base), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-                <xsl:call-template name="onTypeMetadataLoad">
-                    <xsl:with-param name="container" select="$container"/>
-                    <xsl:with-param name="resource" select="$resource"/>
-                    <xsl:with-param name="div-id" select="$div-id"/>
-                </xsl:call-template>
-            </ixsl:schedule-action>
-        </xsl:variable>
-        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
-            -->
     </xsl:template>
-    
-    <!-- currently unused -->
-    <xsl:template name="onTypeMetadataLoad">
-        <xsl:context-item as="map(*)" use="required"/>
-        <xsl:param name="container" as="element()"/>
-        <xsl:param name="resource" as="element()"/>
-        <xsl:param name="div-id" as="xs:string"/>
 
-        <xsl:choose>
-            <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
-                <xsl:variable name="type-metadata" select="?body" as="document-node()"/>
-                <xsl:for-each select="$container">
-                    <xsl:result-document href="?." method="ixsl:replace-content">
-                        <xsl:apply-templates select="$resource" mode="bs2:Row">
-                            <xsl:with-param name="mode" select="xs:anyURI('&ac;EditMode')"/>
-                            <xsl:with-param name="id" select="$div-id"/>
-                            <xsl:with-param name="type-metadata" select="$type-metadata" tunnel="yes"/>
-                            <!-- <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/> -->
-                        </xsl:apply-templates>
-                    </xsl:result-document>
-                </xsl:for-each>
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:for-each select="$container">
-                    <xsl:result-document href="?." method="ixsl:replace-content">
-                        <xsl:apply-templates select="$resource" mode="bs2:Row">
-                            <xsl:with-param name="mode" select="xs:anyURI('&ac;EditMode')"/>
-                            <xsl:with-param name="id" select="$div-id"/>
-                            <!-- <xsl:with-param name="type-metadata" select="$type-metadata" tunnel="yes"/> -->
-                            <!-- <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/> -->
-                        </xsl:apply-templates>
-                    </xsl:result-document>
-                </xsl:for-each>
-            </xsl:otherwise>
-        </xsl:choose>
-
-        <xsl:apply-templates select="id($div-id, ixsl:page())" mode="ldh:PostConstruct"/>
-        
-        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
+    <xsl:template match="div[@about][@typeof]//button[contains-token(@class, 'btn-save')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick" priority="1">
+        <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ 'btn-save' ])[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
     
     <!-- disable inline editing form (do nothing if the button is disabled) -->
