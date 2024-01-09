@@ -1310,12 +1310,14 @@ $series: <xsl:value-of select="$series"/>
         
         <!-- TO-DO: refactor to use asynchronous HTTP requests -->
         <xsl:variable name="types" select="distinct-values($resource/rdf:type/@rdf:resource)" as="xs:anyURI*"/>
-        <xsl:variable name="query-string" select="'DESCRIBE $Type' || ' VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }'" as="xs:string"/>
+        <xsl:variable name="query-string" select="'DESCRIBE $Type VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }'" as="xs:string"/>
+        <xsl:message>$types: <xsl:value-of select="$types"/> $query-string: <xsl:value-of select="$query-string"/></xsl:message>
         <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': $query-string, 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
         <xsl:variable name="type-metadata" select="document($request-uri)" as="document-node()"/>
 
         <xsl:variable name="property-uris" select="distinct-values($resource/*/concat(namespace-uri(), local-name()))" as="xs:string*"/>
-        <xsl:variable name="query-string" select="'DESCRIBE $Type' || ' VALUES $Type { ' || string-join(for $uri in $property-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>
+        <xsl:message>$property-uris: <xsl:value-of select="$property-uris"/> $query-string: <xsl:value-of select="$query-string"/></xsl:message>
+        <xsl:variable name="query-string" select="'DESCRIBE $Type VALUES $Type { ' || string-join(for $uri in $property-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>
         <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': $query-string, 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
         <xsl:variable name="property-metadata" select="document($request-uri)" as="document-node()"/>
 
