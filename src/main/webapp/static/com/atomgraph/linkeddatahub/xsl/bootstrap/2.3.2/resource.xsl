@@ -1060,13 +1060,13 @@ extension-element-prefixes="ixsl"
                 <xsl:attribute name="typeof" select="$typeof"/>
             </xsl:if>
             
-            <!--<xsl:apply-templates select="." mode="bs2:Left"/>-->
+            <xsl:apply-templates select="." mode="bs2:Left"/>
 
             <div class="main span7 offset2">
-                <xsl:apply-templates select="." mode="bs2:FormControl"/>
+                <xsl:apply-templates select="." mode="bs2:Form"/>
            </div>
 
-            <!--<xsl:apply-templates select="." mode="bs2:Right"/>-->
+            <xsl:apply-templates select="." mode="bs2:Right"/>
         </div>
     </xsl:template>
     
