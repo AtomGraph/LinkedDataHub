@@ -1409,47 +1409,8 @@ $series: <xsl:value-of select="$series"/>
         <!-- not using base-uri() because it goes stale when DOM is replaced -->
         <xsl:variable name="doc" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(xs:anyURI(ixsl:location())) || '`'), 'results')" as="document-node()"/>
         <xsl:variable name="chart" select="key('resources', $about, $doc)" as="element()"/>
-        <xsl:variable name="query-uri" select="xs:anyURI($chart/spin:query/@rdf:resource)" as="xs:anyURI"/>
-        <xsl:variable name="chart-type" select="xs:anyURI($chart/ldh:chartType/@rdf:resource)" as="xs:anyURI?"/>
-        <xsl:variable name="category" select="$chart/ldh:categoryProperty/@rdf:resource | $chart/ldh:categoryVarName" as="xs:string?"/>
-        <xsl:variable name="series" select="$chart/ldh:seriesProperty/@rdf:resource | $chart/ldh:seriesVarName" as="xs:string*"/>
-        <xsl:variable name="canvas-id" select="generate-id() || '-chart-canvas'" as="xs:string?"/>
-        
-        <xsl:variable name="row" as="node()*">
-            <xsl:apply-templates select="$chart" mode="bs2:Row"/>
-        </xsl:variable>
 
-        <xsl:for-each select="$container">
-            <xsl:result-document href="?." method="ixsl:replace-content">
-                <xsl:copy-of select="$row/*"/> <!-- inject the content of div.row-fluid -->
-            </xsl:result-document>
-        </xsl:for-each>
-        <!-- TO-DO: call onSPARQLResultsLoad -->
-        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(base-uri()), map{}, $query-uri)" as="xs:anyURI"/>
-        <xsl:variable name="request" as="item()*">
-            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-                <xsl:call-template name="onChartQueryLoad">
-                    <xsl:with-param name="this" select="ancestor::div[@about][1]/@about"/>
-                    <xsl:with-param name="content-uri" select="$content-uri"/>
-                    <xsl:with-param name="content-id" select="$content-id"/>
-                    <xsl:with-param name="query-uri" select="$query-uri"/>
-                    <xsl:with-param name="chart-type" select="$chart-type"/>
-                    <xsl:with-param name="category" select="$category"/>
-                    <xsl:with-param name="series" select="$series"/>
-                    <xsl:with-param name="container" select="$container"/>
-                    <xsl:with-param name="canvas-id" select="$canvas-id"/>
-                </xsl:call-template>
-            </ixsl:schedule-action>
-        </xsl:variable>
-        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
-        
-<!--        <xsl:for-each select="$doc">
-            <xsl:call-template name="ldh:RenderChartForm">
-                <xsl:with-param name="container" select="$container"/>
-                <xsl:with-param name="category" select="$category"/>
-                <xsl:with-param name="series" select="$series"/>
-            </xsl:call-template>
-        </xsl:for-each>-->
+        <xsl:apply-templates select="$chart" mode="ldh:RenderContent"/>
         
         <!-- initialize event listeners -->
         <xsl:apply-templates select="$container/*" mode="ldh:PostConstruct"/>
