@@ -172,6 +172,22 @@ WHERE
     LIMIT   10
   }
 ]]></xsl:param>
+    <xsl:param name="constraint-query" as="xs:string">
+        <![CDATA[
+            PREFIX  ldh:  <https://w3id.org/atomgraph/linkeddatahub#>
+            PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+            PREFIX  sp:   <http://spinrdf.org/sp#>
+            PREFIX  spin: <http://spinrdf.org/spin#>
+
+            SELECT  $Type ?property
+            WHERE
+              { $Type (rdfs:subClassOf)*/spin:constraint  ?constraint .
+                ?constraint  a             ldh:MissingPropertyValue ;
+                          sp:arg1          ?property
+              }
+        ]]>
+        <!-- VALUES $Type goes here -->
+    </xsl:param>
     <xsl:param name="force-exclude-all-namespaces" select="true()"/> <!-- used by xml-to-string.xsl -->
     <xsl:param name="system-containers" as="map(xs:anyURI, map(xs:string, xs:string))">
         <xsl:map>
@@ -1311,15 +1327,17 @@ $series: <xsl:value-of select="$series"/>
         <!-- TO-DO: refactor to use asynchronous HTTP requests -->
         <xsl:variable name="types" select="distinct-values($resource/rdf:type/@rdf:resource)" as="xs:anyURI*"/>
         <xsl:variable name="query-string" select="'DESCRIBE $Type VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }'" as="xs:string"/>
-        <xsl:message>$types: <xsl:value-of select="$types"/> $query-string: <xsl:value-of select="$query-string"/></xsl:message>
         <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': $query-string, 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
         <xsl:variable name="type-metadata" select="document($request-uri)" as="document-node()"/>
 
         <xsl:variable name="property-uris" select="distinct-values($resource/*/concat(namespace-uri(), local-name()))" as="xs:string*"/>
-        <xsl:message>$property-uris: <xsl:value-of select="$property-uris"/> $query-string: <xsl:value-of select="$query-string"/></xsl:message>
         <xsl:variable name="query-string" select="'DESCRIBE $Type VALUES $Type { ' || string-join(for $uri in $property-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>
         <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': $query-string, 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
         <xsl:variable name="property-metadata" select="document($request-uri)" as="document-node()"/>
+
+        <xsl:variable name="query-string" select="$constructor-query || ' VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }'" as="xs:string"/>
+        <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': $query-string, 'accept': 'application/sparql-results+xml' })" as="xs:anyURI"/>
+        <xsl:variable name="constraints" select="document($request-uri)" as="document-node()"/>
 
         <xsl:for-each select="$container">
             <xsl:variable name="row" as="node()*">
@@ -1328,6 +1346,7 @@ $series: <xsl:value-of select="$series"/>
                     <xsl:with-param name="id" select="$div-id"/>
                     <xsl:with-param name="type-metadata" select="$type-metadata" tunnel="yes"/>
                     <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/>
+                    <xsl:with-param name="constraints" select="$constraints" tunnel="yes"/>
                 </xsl:apply-templates>
             </xsl:variable>
 
