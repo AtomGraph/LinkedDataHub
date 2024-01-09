@@ -1394,6 +1394,8 @@ $series: <xsl:value-of select="$series"/>
     <xsl:template match="div[@about][@typeof = ('&ldh;ResultSetChart', '&ldh;GraphChart')]//button[contains-token(@class, 'btn-cancel')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick" priority="1">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="container" select="ancestor::div[@about][@typeof][1]" as="element()"/>
+        <xsl:variable name="content-uri" select="xs:anyURI($container/@about)" as="xs:anyURI"/>
+        <xsl:variable name="content-id" select="ixsl:get($container, 'id')" as="xs:string"/>
         <xsl:variable name="about" select="$container/@about" as="xs:anyURI"/>
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
@@ -1404,8 +1406,13 @@ $series: <xsl:value-of select="$series"/>
 
         <!-- not using base-uri() because it goes stale when DOM is replaced -->
         <xsl:variable name="doc" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(xs:anyURI(ixsl:location())) || '`'), 'results')" as="document-node()"/>
-        <xsl:variable name="resource" select="key('resources', $about, $doc)" as="element()"/>
-
+        <xsl:variable name="chart" select="key('resources', $about, $doc)" as="element()"/>
+        <xsl:variable name="query-uri" select="xs:anyURI($chart/spin:query/@rdf:resource)" as="xs:anyURI"/>
+        <xsl:variable name="chart-type" select="xs:anyURI($chart/ldh:chartType/@rdf:resource)" as="xs:anyURI?"/>
+        <xsl:variable name="category" select="$chart/ldh:categoryProperty/@rdf:resource | $chart/ldh:categoryVarName" as="xs:string?"/>
+        <xsl:variable name="series" select="$chart/ldh:seriesProperty/@rdf:resource | $chart/ldh:seriesVarName" as="xs:string*"/>
+        <xsl:variable name="canvas-id" select="generate-id() || '-chart-canvas'" as="xs:string?"/>
+        
         <xsl:variable name="row" as="node()*">
             <xsl:apply-templates select="$resource" mode="bs2:Row"/>
         </xsl:variable>
@@ -1415,23 +1422,32 @@ $series: <xsl:value-of select="$series"/>
                 <xsl:copy-of select="$row/*"/> <!-- inject the content of div.row-fluid -->
             </xsl:result-document>
         </xsl:for-each>
-        
-        <xsl:variable name="category" select="$container//select[contains-token(@class, 'chart-category')]/ixsl:get(., 'value')" as="xs:string?"/>
-        <xsl:variable name="series" as="xs:string*">
-            <xsl:for-each select="$container//select[contains-token(@class, 'chart-series')]">
-                <xsl:variable name="select" select="." as="element()"/>
-                <xsl:for-each select="0 to xs:integer(ixsl:get(., 'selectedOptions.length')) - 1">
-                    <xsl:sequence select="ixsl:get(ixsl:call(ixsl:get($select, 'selectedOptions'), 'item', [ . ]), 'value')"/>
-                </xsl:for-each>
-            </xsl:for-each>
+        <!-- TO-DO: call onSPARQLResultsLoad -->
+        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(base-uri()), map{}, $query-uri)" as="xs:anyURI"/>
+        <xsl:variable name="request" as="item()*">
+            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+                <xsl:call-template name="onChartQueryLoad">
+                    <xsl:with-param name="this" select="ancestor::div[@about][1]/@about"/>
+                    <xsl:with-param name="content-uri" select="$content-uri"/>
+                    <xsl:with-param name="content-id" select="$content-id"/>
+                    <xsl:with-param name="query-uri" select="$query-uri"/>
+                    <xsl:with-param name="chart-type" select="$chart-type"/>
+                    <xsl:with-param name="category" select="$category"/>
+                    <xsl:with-param name="series" select="$series"/>
+                    <xsl:with-param name="container" select="$container"/>
+                    <xsl:with-param name="canvas-id" select="$canvas-id"/>
+                </xsl:call-template>
+            </ixsl:schedule-action>
         </xsl:variable>
-        <xsl:for-each select="$doc">
+        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+        
+<!--        <xsl:for-each select="$doc">
             <xsl:call-template name="ldh:RenderChartForm">
                 <xsl:with-param name="container" select="$container"/>
                 <xsl:with-param name="category" select="$category"/>
                 <xsl:with-param name="series" select="$series"/>
             </xsl:call-template>
-        </xsl:for-each>
+        </xsl:for-each>-->
         
         <!-- initialize event listeners -->
         <xsl:apply-templates select="$container/*" mode="ldh:PostConstruct"/>
