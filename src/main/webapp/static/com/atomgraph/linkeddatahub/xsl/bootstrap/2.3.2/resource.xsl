@@ -1062,7 +1062,7 @@ extension-element-prefixes="ixsl"
             
             <xsl:apply-templates select="." mode="bs2:Left"/>
 
-            <div class="main span7 offset2">
+            <div class="main span7">
                 <xsl:apply-templates select="." mode="bs2:Form"/>
            </div>
 
