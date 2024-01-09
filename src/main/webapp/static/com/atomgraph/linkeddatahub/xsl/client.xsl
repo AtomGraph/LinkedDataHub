@@ -1416,7 +1416,7 @@ $series: <xsl:value-of select="$series"/>
         <xsl:variable name="canvas-id" select="generate-id() || '-chart-canvas'" as="xs:string?"/>
         
         <xsl:variable name="row" as="node()*">
-            <xsl:apply-templates select="$resource" mode="bs2:Row"/>
+            <xsl:apply-templates select="$chart" mode="bs2:Row"/>
         </xsl:variable>
 
         <xsl:for-each select="$container">
