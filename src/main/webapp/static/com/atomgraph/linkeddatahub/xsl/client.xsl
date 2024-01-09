@@ -753,8 +753,8 @@ WHERE
                                 </xsl:for-each>
                             </xsl:if>
 
-                            <xsl:variable name="category" select="if (rdf:RDF) then distinct-values($results/rdf:RDF/*/*/concat(namespace-uri(), local-name()))[1] else srx:sparql/srx:head/srx:variable[1]/@name" as="xs:string?"/>
-                            <xsl:variable name="series" select="if (rdf:RDF) then distinct-values($results/rdf:RDF/*/*/concat(namespace-uri(), local-name())) else srx:sparql/srx:head/srx:variable/@name" as="xs:string*"/>
+                            <xsl:variable name="category" select="if (rdf:RDF) then distinct-values($results/rdf:RDF/*/*/concat(namespace-uri(), local-name()))[1] else $results/srx:sparql/srx:head/srx:variable[1]/@name" as="xs:string?"/>
+                            <xsl:variable name="series" select="if (rdf:RDF) then distinct-values($results/rdf:RDF/*/*/concat(namespace-uri(), local-name())) else $results/srx:sparql/srx:head/srx:variable/@name" as="xs:string*"/>
 
                             <xsl:message>$category: <xsl:value-of select="$category"/> $series: <xsl:value-of select="$series"/></xsl:message>
                             
