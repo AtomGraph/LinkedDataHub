@@ -756,6 +756,8 @@ WHERE
                             <xsl:variable name="category" select="if (rdf:RDF) then distinct-values($results/rdf:RDF/*/*/concat(namespace-uri(), local-name()))[1] else srx:sparql/srx:head/srx:variable[1]/@name" as="xs:string?"/>
                             <xsl:variable name="series" select="if (rdf:RDF) then distinct-values($results/rdf:RDF/*/*/concat(namespace-uri(), local-name())) else srx:sparql/srx:head/srx:variable/@name" as="xs:string*"/>
 
+                            <xsl:message>$category: <xsl:value-of select="$category"/> $series: <xsl:value-of select="$series"/></xsl:message>
+                            
                             <xsl:for-each select="id($results-container-id, ixsl:page())">
                                 <xsl:result-document href="?." method="ixsl:replace-content">
                                     <xsl:apply-templates select="$results" mode="bs2:Chart">
@@ -771,6 +773,8 @@ WHERE
                         </xsl:when>
                         <!-- chart instance -->
                         <xsl:otherwise>
+                            <xsl:message>$category: <xsl:value-of select="$category"/> $series: <xsl:value-of select="$series"/></xsl:message>
+
                             <xsl:call-template name="ldh:RenderChartForm">
                                 <xsl:with-param name="container" select="$container"/>
                                 <xsl:with-param name="category" select="$category"/>
@@ -1421,6 +1425,7 @@ $series: <xsl:value-of select="$series"/>
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
     </xsl:template>
     
+    <!-- TO-DO: unify -->
     <xsl:template match="div[@about][@typeof]//button[contains-token(@class, 'btn-cancel')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="container" select="ancestor::div[@about][@typeof][1]" as="element()"/>
