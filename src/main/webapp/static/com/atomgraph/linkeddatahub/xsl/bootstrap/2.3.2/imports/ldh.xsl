@@ -21,38 +21,6 @@ xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 exclude-result-prefixes="#all">
     
     <!-- BLOCK MODE -->
-
-<!--    <xsl:template match="*[ldh:chartType/@rdf:resource] | *[@rdf:nodeID]/ldh:chartType/@rdf:resource/@rdf:nodeID[key('resources', .)[not(* except rdf:type[@rdf:resource = '&xsd;string'])]]" mode="bs2:Block" use-when="system-property('xsl:product-name') eq 'SaxonJS'">
-        <xsl:param name="method" select="'get'" as="xs:string"/>
-        <xsl:param name="action" select="xs:anyURI('')" as="xs:anyURI"/>
-        <xsl:param name="id" as="xs:string?"/>
-        <xsl:param name="class" as="xs:string?"/>
-        <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
-        <xsl:param name="enctype" as="xs:string?"/>
-        <xsl:param name="mode" as="xs:anyURI*"/>
-        <xsl:param name="service" as="xs:anyURI?"/>
-        <xsl:param name="endpoint" as="xs:anyURI?"/>
-        <xsl:param name="show-properties" select="false()" as="xs:boolean"/>
-        <xsl:param name="canvas-id" select="generate-id() || '-chart-canvas'" as="xs:string" tunnel="yes"/>
-
-        <xsl:apply-templates select="." mode="bs2:Header"/>
-        
-        <xsl:variable name="doc" as="document-node()">
-            <xsl:document>
-                <rdf:RDF>
-                    <xsl:copy-of select="."/>
-                </rdf:RDF>
-            </xsl:document>
-        </xsl:variable>
-
-        <xsl:apply-templates select="$doc" mode="bs2:Chart">
-            <xsl:with-param name="canvas-id" select="$canvas-id"/>
-        </xsl:apply-templates>
-        
-        <xsl:if test="$show-properties">
-            <xsl:apply-templates select="." mode="bs2:PropertyList"/>
-        </xsl:if>
-    </xsl:template>-->
     
     <xsl:template match="*[ldh:chartType/@rdf:resource] | *[@rdf:nodeID]/ldh:chartType/@rdf:resource/@rdf:nodeID[key('resources', .)[not(* except rdf:type[@rdf:resource = '&xsd;string'])]]" mode="bs2:Block" use-when="system-property('xsl:product-name') eq 'SaxonJS'">
         <xsl:param name="canvas-id" select="generate-id() || '-chart-canvas'" as="xs:string"/>
@@ -144,50 +112,11 @@ exclude-result-prefixes="#all">
                         </div>
                         <div class="span4">
                             <label for="{$category-id}">Category</label>
-                            <select id="{$category-id}" name="ou" class="input-large chart-category">
-<!--                                <option value="">
-                                     URI is the default category 
-                                    <xsl:if test="not($category)">
-                                        <xsl:attribute name="selected" select="'selected'"/>
-                                    </xsl:if>
-
-                                    <xsl:text>[URI/ID]</xsl:text>
-                                </option>-->
-
-<!--                                <xsl:for-each-group select="*/*" group-by="concat(namespace-uri(), local-name())">
-                                    <xsl:sort select="ac:property-label(.)" order="ascending" lang="{$ldt:lang}" use-when="system-property('xsl:product-name') = 'SAXON'"/>
-                                    <xsl:sort select="ac:property-label(.)" order="ascending" use-when="system-property('xsl:product-name') eq 'SaxonJS'"/>
-
-                                    <option value="{current-grouping-key()}">
-                                        <xsl:if test="$category = current-grouping-key()">
-                                            <xsl:attribute name="selected" select="'selected'"/>
-                                        </xsl:if>
-
-                                        <xsl:value-of>
-                                            <xsl:apply-templates select="current-group()[1]" mode="ac:property-label"/>
-                                        </xsl:value-of>
-                                    </option>
-                                </xsl:for-each-group>-->
-                            </select>
+                            <select id="{$category-id}" name="ou" class="input-large chart-category"></select>
                         </div>
                         <div class="span4">
                             <label for="{$series-id}">Series</label>
-                            <select id="{$series-id}" name="ou" multiple="multiple" class="input-large chart-series">
-<!--                                <xsl:for-each-group select="*/*" group-by="concat(namespace-uri(), local-name())">
-                                    <xsl:sort select="ac:property-label(.)" order="ascending" lang="{$ldt:lang}" use-when="system-property('xsl:product-name') = 'SAXON'"/>
-                                    <xsl:sort select="ac:property-label(.)" order="ascending" use-when="system-property('xsl:product-name') eq 'SaxonJS'"/>
-
-                                    <option value="{current-grouping-key()}">
-                                        <xsl:if test="$series = current-grouping-key()">
-                                            <xsl:attribute name="selected" select="'selected'"/>
-                                        </xsl:if>
-
-                                        <xsl:value-of>
-                                            <xsl:apply-templates select="current-group()[1]" mode="ac:property-label"/>
-                                        </xsl:value-of>
-                                    </option>
-                                </xsl:for-each-group>-->
-                            </select>
+                            <select id="{$series-id}" name="ou" multiple="multiple" class="input-large chart-series"></select>
                         </div>
                     </div>
                 </fieldset>
