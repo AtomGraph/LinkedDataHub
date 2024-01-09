@@ -1341,8 +1341,9 @@ $series: <xsl:value-of select="$series"/>
 
         <xsl:for-each select="$container">
             <xsl:variable name="row" as="node()*">
-                <xsl:apply-templates select="$resource" mode="bs2:Row">
-                    <xsl:with-param name="mode" select="xs:anyURI('&ac;EditMode')"/>
+                <xsl:apply-templates select="$resource" mode="bs2:Form"> <!-- bs2:Row -->
+                    <!-- <xsl:with-param name="mode" select="xs:anyURI('&ac;EditMode')"/> -->
+                    <xsl:with-param name="method" select="'PATCH'"/>
                     <xsl:with-param name="id" select="$div-id"/>
                     <xsl:with-param name="type-metadata" select="$type-metadata" tunnel="yes"/>
                     <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/>
