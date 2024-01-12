@@ -417,12 +417,20 @@ WHERE
 
         <!-- <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/> -->
         
-        <xsl:for-each select=".//input[@name = ('sb', 'su', 'pu', 'ob', 'ou', 'ol', 'll', 'lt')][@value]">
-            <xsl:message>
-                @name: <xsl:value-of select="@name"/>
-                @value: <xsl:value-of select="ixsl:get(., 'value')"/>
-            </xsl:message>
-        </xsl:for-each>
+        <xsl:for-each-group select=".//input[@name = ('sb', 'su', 'pu', 'ob', 'ou', 'ol', 'll', 'lt')][@value]" group-starting-with="@name = ('sb', 'su')">
+            <xsl:variable name="subject" select="current-grouping-key()" as="element()"/>
+            <xsl:for-each-group select="current-group()" group-starting-with="@name = 'pu'">
+                <xsl:variable name="property" select="current-grouping-key()" as="element()"/>
+                <xsl:for-each select="current-group()">
+                
+                    <xsl:message>
+                        subj: <xsl:value-of select="ixsl:get($subject, 'value')"/>
+                        prop: <xsl:value-of select="ixsl:get($property, 'value')"/>
+                        obj: <xsl:value-of select="ixsl:get(., 'value')"/>
+                    </xsl:message>
+                </xsl:for-each>
+            </xsl:for-each-group>
+        </xsl:for-each-group>
     </xsl:template>
     
     <!-- submit instance creation form -->
