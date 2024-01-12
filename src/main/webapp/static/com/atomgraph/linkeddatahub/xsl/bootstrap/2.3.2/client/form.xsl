@@ -420,7 +420,7 @@ WHERE
         <xsl:for-each select=".//input[@name = ('sb', 'su', 'pu', 'ob', 'ou', 'ol', 'll', 'lt')][@value]">
             <xsl:message>
                 @name: <xsl:value-of select="@name"/>
-                @value: <xsl:value-of select="@value"/>
+                @value: <xsl:value-of select="ixsl:get(., 'value')"/>
             </xsl:message>
         </xsl:for-each>
     </xsl:template>
