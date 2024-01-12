@@ -417,9 +417,9 @@ WHERE
 
         <!-- <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/> -->
         
-        <xsl:for-each-group select=".//input[@name = ('sb', 'su', 'pu', 'ob', 'ou', 'ol', 'll', 'lt')][@value]" group-starting-with="input[@name = ('sb', 'su')]">
+        <xsl:for-each-group select=".//input[@name = ('sb', 'su', 'pu', 'ob', 'ou', 'ol', 'll', 'lt')][@value] | .//select[@name = ('sb', 'su', 'pu', 'ob', 'ou', 'ol', 'll', 'lt')][@value]" group-starting-with=".[@name = ('sb', 'su')]">
             <xsl:variable name="subject" select="current-group()[1]" as="element()"/>
-            <xsl:for-each-group select="current-group()[position() &gt; 1]" group-starting-with="input[@name = 'pu']">
+            <xsl:for-each-group select="current-group()[position() &gt; 1]" group-starting-with=".[@name = 'pu']">
                 <xsl:variable name="property" select="current-group()[1]" as="element()"/>
                 <xsl:for-each select="current-group()[position() &gt; 1]">
                     <xsl:message>
