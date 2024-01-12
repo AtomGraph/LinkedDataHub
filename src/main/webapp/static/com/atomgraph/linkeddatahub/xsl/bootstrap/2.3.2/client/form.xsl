@@ -403,7 +403,24 @@ WHERE
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
     </xsl:template>
     
-    <!-- submit form -->
+    <!-- submit instance update form -->
+    
+    <xsl:template match="div[@about][@typeof]//form[contains-token(@class, 'form-horizontal')]" mode="ixsl:onsubmit" priority="1">
+        <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
+        <xsl:variable name="form" select="." as="element()"/>
+        <xsl:variable name="id" select="ixsl:get(., 'id')" as="xs:string"/>
+        <xsl:variable name="method" select="ixsl:get(., 'method')" as="xs:string"/>
+        <xsl:variable name="action" select="ixsl:get(., 'action')" as="xs:anyURI"/>
+        <xsl:variable name="enctype" select="ixsl:get(., 'enctype')" as="xs:string"/>
+        <xsl:variable name="accept" select="'application/xhtml+xml'" as="xs:string"/>
+        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(base-uri()), map{}, $action)" as="xs:anyURI"/>
+
+        <!-- <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/> -->
+        
+        <xsl:message>instance update</xsl:message>
+    </xsl:template>
+    
+    <!-- submit instance creation form -->
     
     <xsl:template match="form[contains-token(@class, 'form-horizontal')]" mode="ixsl:onsubmit">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
