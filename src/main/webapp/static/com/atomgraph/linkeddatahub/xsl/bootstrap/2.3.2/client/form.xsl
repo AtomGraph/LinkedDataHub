@@ -419,10 +419,9 @@ WHERE
         
         <xsl:for-each-group select=".//input[@name = ('sb', 'su', 'pu', 'ob', 'ou', 'ol', 'll', 'lt')][@value]" group-starting-with="input[@name = ('sb', 'su')]">
             <xsl:variable name="subject" select="current-group()[1]" as="element()"/>
-            <xsl:for-each-group select="current-group()" group-starting-with="input[@name = 'pu']">
+            <xsl:for-each-group select="current-group()[position() &gt; 1]" group-starting-with="input[@name = 'pu']">
                 <xsl:variable name="property" select="current-group()[1]" as="element()"/>
-                <xsl:for-each select="current-group()">
-                
+                <xsl:for-each select="current-group()[position() &gt; 1]">
                     <xsl:message>
                         subj: <xsl:value-of select="ixsl:get($subject, 'value')"/>
                         prop: <xsl:value-of select="ixsl:get($property, 'value')"/>
