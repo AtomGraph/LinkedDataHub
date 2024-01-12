@@ -417,7 +417,11 @@ WHERE
 
         <!-- <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/> -->
         
-        <xsl:message>instance update</xsl:message>
+        <xsl:for-each select=".//input[@name = ('sb', 'su', 'pu', 'ob', 'ou', 'ol', 'll', 'lt')][@value]">
+            @name: <xsl:value-of select="@name"/>
+            @value: <xsl:value-of select="@value"/>
+            
+        </xsl:for-each>
     </xsl:template>
     
     <!-- submit instance creation form -->
