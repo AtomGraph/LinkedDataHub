@@ -457,7 +457,7 @@ WHERE
                     </xsl:variable>
                     
                     <xsl:message>
-                        <xsl:copy-of select="$triple"/>
+                        <xsl:value-of select="serialize($triple, { 'method': 'adaptive' })"/>
 <!--                        subj: <xsl:value-of select="ixsl:get($subj-input, 'value')"/>
                         prop: <xsl:value-of select="ixsl:get($pred-input, 'value')"/>
                         obj: <xsl:value-of select="ixsl:get(., 'value')"/>-->
