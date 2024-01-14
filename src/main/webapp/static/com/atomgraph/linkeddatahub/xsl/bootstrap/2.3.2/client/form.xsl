@@ -307,7 +307,7 @@ WHERE
         <!-- if the URI is external, dereference it through the proxy -->
         <!-- add a bogus query parameter to give the RDF/XML document a different URL in the browser cache, otherwise it will clash with the HTML representation -->
         <!-- this is due to broken browser behavior re. Vary and conditional requests: https://stackoverflow.com/questions/60799116/firefox-if-none-match-headers-ignore-content-type-and-vary/60802443 -->
-        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ixsl:location()), map{ 'param': 'dummy' }, ac:document-uri(ixsl:location()), $graph, ())" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(xs:anyURI(ixsl:location())), map{ 'param': 'dummy' }, ac:document-uri(xs:anyURI(ixsl:location())), $graph, ())" as="xs:anyURI"/>
         <xsl:variable name="doc" select="document(ac:document-uri($request-uri))" as="document-node()"/>
         <xsl:variable name="resource" select="key('resources', $about, $doc)" as="element()"/>
         <xsl:variable name="div-id" select="generate-id($resource)" as="xs:string"/>
