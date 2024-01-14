@@ -443,23 +443,21 @@ WHERE
                             </xsl:choose>
                             <!-- predicate -->
                             <string key="predicate"><xsl:value-of select="ixsl:get($pred-input, 'value')"/></string>
-                            <xsl:for-each-group group-adjacent="@name = ('ol', 'll')">
-                                <!-- object -->
-                                <xsl:choose>
-                                    <!-- blank node -->
-                                    <xsl:when test="@name = 'ob'">
-                                        <string key="subject">_:<xsl:value-of select="ixsl:get(., 'value')"/></string>
-                                    </xsl:when>
-                                    <!-- blank node -->
-                                    <xsl:when test="@name = 'ol'">
-                                        <string key="subject">&quot;<xsl:value-of select="ixsl:get(., 'value')"/>&quot;</string>
-                                    </xsl:when>
-                                    <!-- URI -->
-                                    <xsl:otherwise>
-                                        <string key="subject"><xsl:value-of select="ixsl:get(., 'value')"/></string>
-                                    </xsl:otherwise>
-                                </xsl:choose>
-                            </xsl:for-each-group>
+                            <!-- object -->
+                            <xsl:choose>
+                                <!-- blank node -->
+                                <xsl:when test="@name = 'ob'">
+                                    <string key="subject">_:<xsl:value-of select="ixsl:get(., 'value')"/></string>
+                                </xsl:when>
+                                <!-- blank node -->
+                                <xsl:when test="@name = 'ol'">
+                                    <string key="subject">&quot;<xsl:value-of select="ixsl:get(., 'value')"/>&quot;</string>
+                                </xsl:when>
+                                <!-- URI -->
+                                <xsl:otherwise>
+                                    <string key="subject"><xsl:value-of select="ixsl:get(., 'value')"/></string>
+                                </xsl:otherwise>
+                            </xsl:choose>
                         </map>
                     </xsl:variable>
                     
