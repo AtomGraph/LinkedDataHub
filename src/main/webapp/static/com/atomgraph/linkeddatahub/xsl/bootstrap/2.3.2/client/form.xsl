@@ -424,57 +424,11 @@ WHERE
 
         <!-- <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/> -->
         
-        <xsl:for-each-group select=".//input[@name = ('sb', 'su', 'pu', 'ob', 'ou', 'ol', 'll', 'lt')][ixsl:get(., 'value')] | .//select[@name = ('sb', 'su', 'pu', 'ob', 'ou', 'ol', 'll', 'lt')][ixsl:get(., 'value')]" group-starting-with=".[@name = ('sb', 'su')]">
-            <xsl:variable name="subj-input" select="current-group()[1]" as="element()"/>
-            <xsl:for-each-group select="current-group()[position() &gt; 1]" group-starting-with=".[@name = 'pu']">
-                <xsl:variable name="pred-input" select="current-group()[1]" as="element()"/>
-                <xsl:for-each-group select="current-group()[position() &gt; 1]" group-adjacent=".[@name = 'ol'] or .[@name = 'll']">
-                    <xsl:variable name="triple" as="element()">
-                        <map>
-                            <!-- subject -->
-                            <xsl:choose>
-                                <!-- blank node -->
-                                <xsl:when test="$subj-input/@name = 'sb'">
-                                    <string key="subject">_:<xsl:value-of select="ixsl:get($subj-input, 'value')"/></string>
-                                </xsl:when>
-                                <!-- URI -->
-                                <xsl:otherwise>
-                                    <string key="subject"><xsl:value-of select="ixsl:get($subj-input, 'value')"/></string>
-                                </xsl:otherwise>
-                            </xsl:choose>
-                            <!-- predicate -->
-                            <string key="predicate"><xsl:value-of select="ixsl:get($pred-input, 'value')"/></string>
-                            <!-- object -->
-                            <xsl:choose>
-                                <!-- language-tagged literal -->
-                                <xsl:when test="current-grouping-key()">
-                                    <string key="subject">&quot;<xsl:value-of select="current-group()[@name = 'ol']/ixsl:get(., 'value')"/>&quot;@<xsl:value-of select="current-group()[@name = 'll']/ixsl:get(., 'value')"/></string>
-                                </xsl:when>
-                                <!-- literal -->
-                                <xsl:when test="@name = 'ol'">
-                                    <string key="subject">&quot;<xsl:value-of select="ixsl:get(., 'value')"/>&quot;</string>
-                                </xsl:when>
-                                <!-- blank node -->
-                                <xsl:when test="@name = 'ob'">
-                                    <string key="subject">_:<xsl:value-of select="ixsl:get(., 'value')"/></string>
-                                </xsl:when>
-                                <!-- URI -->
-                                <xsl:otherwise>
-                                    <string key="subject"><xsl:value-of select="ixsl:get(., 'value')"/></string>
-                                </xsl:otherwise>
-                            </xsl:choose>
-                        </map>
-                    </xsl:variable>
-                    
-                    <xsl:message>
-                        <xsl:value-of select="serialize($triple, map{ 'method': 'adaptive' })"/>
-<!--                        subj: <xsl:value-of select="ixsl:get($subj-input, 'value')"/>
-                        prop: <xsl:value-of select="ixsl:get($pred-input, 'value')"/>
-                        obj: <xsl:value-of select="ixsl:get(., 'value')"/>-->
-                    </xsl:message>
-                </xsl:for-each-group>
-            </xsl:for-each-group>
-        </xsl:for-each-group>
+        <xsl:variable name="elements" select=".//input | .//select" as="element()*"/>
+        <xsl:variable name="triples" select="ldh:parse-rdf-post($elements)" as="element()*"/>
+        <xsl:message>
+            <xsl:value-of select="serialize($triples, map{ 'method': 'adaptive' })"/>
+        </xsl:message>
     </xsl:template>
     
     <!-- submit instance creation form -->
