@@ -149,7 +149,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="elements" as="element()*"/>
 
         <xsl:variable name="inputs" select="$elements[self::input or self::select][@name = ('sb', 'su', 'pu', 'ob', 'ou', 'ol', 'll', 'lt')][ixsl:get(., 'value')]" as="element()*"/>
-        <xsl:iterate select="">
+        <xsl:iterate select="$inputs">
             <xsl:param name="subj-input" select="if ($inputs[1]/@name = ('sb', 'su')) then $inputs[1] else ()" as="element()?"/>
             <xsl:param name="pred-input" as="element()?"/>
             <xsl:param name="skip-input" as="element()?"/>
