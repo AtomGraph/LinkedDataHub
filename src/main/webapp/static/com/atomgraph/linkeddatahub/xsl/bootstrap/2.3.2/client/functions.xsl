@@ -145,67 +145,76 @@ exclude-result-prefixes="#all"
     </xsl:function>
 
     <!-- parses RDF/POST inputs into a sequence of SPARQL.js triple maps (they need to be wrapped into <array key="triples">) -->
+    <!-- see https://atomgraph.github.io/RDF-POST/ for the specification -->
     <xsl:function name="ldh:parse-rdf-post" as="element()*">
         <xsl:param name="elements" as="element()*"/>
 
-        <xsl:variable name="inputs" select="$elements[self::input or self::select][@name = ('sb', 'su', 'pu', 'ob', 'ou', 'ol', 'll', 'lt')][ixsl:get(., 'value')]" as="element()*"/>
-        <xsl:iterate select="$inputs">
-            <xsl:param name="subj-input" select="if ($inputs[1]/@name = ('sb', 'su')) then $inputs[1] else ()" as="element()?"/>
-            <xsl:param name="pred-input" as="element()?"/>
-            <xsl:param name="skip-input" as="element()?"/>
-            <xsl:variable name="next-input" select="subsequence($inputs, position() + 1, 1)" as="element()?"/>
-            <xsl:variable name="subj-input" select="if (@name = ('sb', 'su')) then . else $subj-input" as="element()?"/>
-            <xsl:variable name="pred-input" select="if (@name = 'pu') then . else $pred-input" as="element()?"/>
-            <xsl:if test="@name = ('ol', 'ou', 'll', 'lt') and (not($skip-input) or not(. is $skip-input))">
-                <json:map>
-                    <!-- subject -->
-                    <xsl:choose>
-                        <!-- blank node -->
-                        <xsl:when test="$subj-input/@name = 'sb'">
-                            <json:string key="subject">_:<xsl:value-of select="$subj-input/ixsl:get(., 'value')"/></json:string>
-                        </xsl:when>
-                        <!-- URI -->
-                        <xsl:when test="$subj-input/@name = 'su'">
-                            <json:string key="subject"><xsl:value-of select="$subj-input/ixsl:get(., 'value')"/></json:string>
-                        </xsl:when>
-                    </xsl:choose>
-                    <!-- predicate -->
-                    <json:string key="predicate"><xsl:value-of select="$pred-input/ixsl:get(., 'value')"/></json:string>
-                    <!-- object -->
-                    <xsl:choose>
-                        <!-- typed literal -->
-                        <xsl:when test="@name = 'ol' and $next-input/@name = 'lt'">
-                            <json:string key="object">&quot;<xsl:value-of select="ixsl:get(., 'value')"/>&quot;^^<xsl:value-of select="$next-input/ixsl:get(., 'value')"/></json:string>
-                        </xsl:when>
-                        <!-- typed literal -->
-                        <xsl:when test="@name = 'lt' and $next-input/@name = 'ol'">
-                            <json:string key="object">&quot;<xsl:value-of select="$next-input/ixsl:get(., 'value')"/>&quot;^^<xsl:value-of select="ixsl:get(., 'value')"/></json:string>
-                        </xsl:when>
-                        <!-- language-tagged literal -->
-                        <xsl:when test="@name = 'ol' and $next-input/@name = 'll'">
-                            <json:string key="object">&quot;<xsl:value-of select="ixsl:get(., 'value')"/>&quot;@<xsl:value-of select="$next-input/ixsl:get(., 'value')"/></json:string>
-                        </xsl:when>
-                        <!-- language-tagged literal -->
-                        <xsl:when test="@name = 'll' and $next-input/@name = 'ol'">
-                            <json:string key="object">&quot;<xsl:value-of select="$next-input/ixsl:get(., 'value')"/>&quot;@<xsl:value-of select="ixsl:get(., 'value')"/></json:string>
-                        </xsl:when>
-                        <!-- plain literal -->
-                        <xsl:when test="@name = 'ol'">
-                            <json:string key="object">&quot;<xsl:value-of select="ixsl:get(., 'value')"/>&quot;</json:string>
-                        </xsl:when>
-                        <!-- URI -->
-                        <xsl:when test="@name = 'ou'">
-                            <json:string key="object"><xsl:value-of select="ixsl:get(., 'value')"/></json:string>
-                        </xsl:when>
-                    </xsl:choose>
-                </json:map>
-            </xsl:if>
-            <xsl:next-iteration>
-                <xsl:with-param name="subj-input" select="$subj-input"/>
-                <xsl:with-param name="pred-input" select="$pred-input"/>
-                <xsl:with-param name="skip-input" select="if ($skip-input) then () else (if ((@name = 'ol' and $next-input/@name = ('ll', 'lt')) or (@name = ('ll', 'lt') and $next-input/@name = 'ol')) then $next-input else ())" as="element()?"/>
-            </xsl:next-iteration>
-        </xsl:iterate>
+        <xsl:variable name="inputs" select="$elements[self::input or self::select][@name = ('rdf', 'sb', 'su', 'pu', 'ob', 'ou', 'ol', 'll', 'lt')]" as="element()*"/>
+        <xsl:choose>
+            <xsl:when test="$inputs[1]/@name = 'rdf'">
+                <xsl:variable name="value-inputs" select="subsequence($inputs, 2)[ixsl:get(., 'value')]" as="element()*"/> <!-- skip the initial <input name="rdf"/> -->
+                <xsl:iterate select="$value-inputs">
+                    <xsl:param name="subj-input" select="if ($value-inputs[1]/@name = ('sb', 'su')) then $value-inputs[1] else ()" as="element()?"/>
+                    <xsl:param name="pred-input" as="element()?"/>
+                    <xsl:param name="skip-input" as="element()?"/>
+                    <xsl:variable name="next-input" select="subsequence($value-inputs, position() + 1, 1)" as="element()?"/>
+                    <xsl:variable name="subj-input" select="if (@name = ('sb', 'su')) then . else $subj-input" as="element()?"/>
+                    <xsl:variable name="pred-input" select="if (@name = 'pu') then . else $pred-input" as="element()?"/>
+                    <xsl:if test="@name = ('ol', 'ou', 'll', 'lt') and (not($skip-input) or not(. is $skip-input))">
+                        <json:map>
+                            <!-- subject -->
+                            <xsl:choose>
+                                <!-- blank node -->
+                                <xsl:when test="$subj-input/@name = 'sb'">
+                                    <json:string key="subject">_:<xsl:value-of select="$subj-input/ixsl:get(., 'value')"/></json:string>
+                                </xsl:when>
+                                <!-- URI -->
+                                <xsl:when test="$subj-input/@name = 'su'">
+                                    <json:string key="subject"><xsl:value-of select="$subj-input/ixsl:get(., 'value')"/></json:string>
+                                </xsl:when>
+                            </xsl:choose>
+                            <!-- predicate -->
+                            <json:string key="predicate"><xsl:value-of select="$pred-input/ixsl:get(., 'value')"/></json:string>
+                            <!-- object -->
+                            <xsl:choose>
+                                <!-- typed literal -->
+                                <xsl:when test="@name = 'ol' and $next-input/@name = 'lt'">
+                                    <json:string key="object">&quot;<xsl:value-of select="ixsl:get(., 'value')"/>&quot;^^<xsl:value-of select="$next-input/ixsl:get(., 'value')"/></json:string>
+                                </xsl:when>
+                                <!-- typed literal -->
+                                <xsl:when test="@name = 'lt' and $next-input/@name = 'ol'">
+                                    <json:string key="object">&quot;<xsl:value-of select="$next-input/ixsl:get(., 'value')"/>&quot;^^<xsl:value-of select="ixsl:get(., 'value')"/></json:string>
+                                </xsl:when>
+                                <!-- language-tagged literal -->
+                                <xsl:when test="@name = 'ol' and $next-input/@name = 'll'">
+                                    <json:string key="object">&quot;<xsl:value-of select="ixsl:get(., 'value')"/>&quot;@<xsl:value-of select="$next-input/ixsl:get(., 'value')"/></json:string>
+                                </xsl:when>
+                                <!-- language-tagged literal -->
+                                <xsl:when test="@name = 'll' and $next-input/@name = 'ol'">
+                                    <json:string key="object">&quot;<xsl:value-of select="$next-input/ixsl:get(., 'value')"/>&quot;@<xsl:value-of select="ixsl:get(., 'value')"/></json:string>
+                                </xsl:when>
+                                <!-- plain literal -->
+                                <xsl:when test="@name = 'ol'">
+                                    <json:string key="object">&quot;<xsl:value-of select="ixsl:get(., 'value')"/>&quot;</json:string>
+                                </xsl:when>
+                                <!-- URI -->
+                                <xsl:when test="@name = 'ou'">
+                                    <json:string key="object"><xsl:value-of select="ixsl:get(., 'value')"/></json:string>
+                                </xsl:when>
+                            </xsl:choose>
+                        </json:map>
+                    </xsl:if>
+                    <xsl:next-iteration>
+                        <xsl:with-param name="subj-input" select="$subj-input"/>
+                        <xsl:with-param name="pred-input" select="$pred-input"/>
+                        <xsl:with-param name="skip-input" select="if ($skip-input) then () else (if ((@name = 'ol' and $next-input/@name = ('ll', 'lt')) or (@name = ('ll', 'lt') and $next-input/@name = 'ol')) then $next-input else ())" as="element()?"/>
+                    </xsl:next-iteration>
+                </xsl:iterate>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:message>Invalid RDF/POST content: must start with &lt;input name="rdf"/&gt;</xsl:message>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:function>
     
 </xsl:stylesheet>
