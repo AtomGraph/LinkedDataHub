@@ -420,14 +420,51 @@ WHERE
         <xsl:variable name="action" select="ixsl:get(., 'action')" as="xs:anyURI"/>
         <xsl:variable name="enctype" select="ixsl:get(., 'enctype')" as="xs:string"/>
         <xsl:variable name="accept" select="'application/xhtml+xml'" as="xs:string"/>
+        <xsl:variable name="this" select="xs:anyURI(ancestor::div[@about][1]/@about)" as="xs:anyURI"/>
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(base-uri()), map{}, $action)" as="xs:anyURI"/>
 
         <!-- <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/> -->
         
         <xsl:variable name="elements" select=".//input | .//select" as="element()*"/>
         <xsl:variable name="triples" select="ldh:parse-rdf-post($elements)" as="element()*"/>
+        <xsl:variable name="where-pattern" as="element()">
+            <json:map>
+                <json:string key="type">bgp</json:string>
+                <json:array key="triples">
+                    <json:map>
+                        <json:string key="subject"><xsl:sequence select="$this"/></json:string>
+                        <json:string key="predicate">?p</json:string>
+                        <json:string key="object">?o</json:string>
+                    </json:map>
+                </json:array>
+            </json:map>
+        </xsl:variable>
+        <xsl:variable name="update" as="element()">
+            <json:map>
+                <json:string key="type">update</json:string>
+                <json:array key="updates">
+                    <json:map>
+                        <json:string key="updateType">insertdelete</json:string>
+                        <json:array key="delete">
+                            <xsl:sequence select="$where-pattern"/>
+                        </json:array>
+                        <json:array key="insert">
+                            <json:map>
+                                <json:string key="type">bgp</json:string>
+                                <json:array key="triples">
+                                    <xsl:sequence select="$triples"/>
+                                </json:array>
+                            </json:map>
+                        </json:array>
+                        <json:array key="where">
+                            <xsl:sequence select="$where-pattern"/>
+                        </json:array>
+                    </json:map>
+                </json:array>
+            </json:map>
+        </xsl:variable>
         <xsl:message>
-            <xsl:value-of select="serialize($triples, map{ 'method': 'adaptive' })"/>
+            <xsl:value-of select="serialize($update, map{ 'method': 'adaptive' })"/>
         </xsl:message>
     </xsl:template>
     
