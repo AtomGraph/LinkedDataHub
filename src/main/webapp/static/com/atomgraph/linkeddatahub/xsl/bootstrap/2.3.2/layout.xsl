@@ -436,6 +436,7 @@ LIMIT   100
         </xsl:if>
         <xsl:if test="$load-sparql-builder">
             <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/SPARQLBuilder.js', $ac:contextUri)}" defer="defer"></script>
+            <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/SPARQL.js', $ac:contextUri)}" defer="defer"></script>
         </xsl:if>
         <xsl:if test="$load-sparql-map">
             <link href="{resolve-uri('static/com/atomgraph/linkeddatahub/css/ol.css', $ac:contextUri)}" rel="stylesheet" type="text/css"></link>

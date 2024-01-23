@@ -439,7 +439,7 @@ WHERE
                 </json:array>
             </json:map>
         </xsl:variable>
-        <xsl:variable name="update" as="element()">
+        <xsl:variable name="update-xml" as="element()">
             <json:map>
                 <json:string key="type">update</json:string>
                 <json:array key="updates">
@@ -463,8 +463,11 @@ WHERE
                 </json:array>
             </json:map>
         </xsl:variable>
+        <xsl:variable name="update-json-string" select="xml-to-json($update-xml)" as="xs:string"/>
+        <xsl:variable name="update-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $update-json-string ])"/>
+<!--        <xsl:variable name="update-string" select="ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromQuery', [ $query-json ]), 'toString', [])" as="xs:string"/>-->
         <xsl:message>
-            <xsl:value-of select="serialize($update, map{ 'method': 'adaptive' })"/>
+            <xsl:value-of select="$update-json-string"/>
         </xsl:message>
     </xsl:template>
     
