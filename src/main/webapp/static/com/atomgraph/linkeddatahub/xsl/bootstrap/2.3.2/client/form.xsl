@@ -466,9 +466,29 @@ WHERE
         <xsl:variable name="update-json-string" select="xml-to-json($update-xml)" as="xs:string"/>
         <xsl:variable name="update-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $update-json-string ])"/>
         <xsl:variable name="update-string" select="ixsl:call($sparql-generator, 'stringify', [ $update-json ])" as="xs:string"/>
-        <xsl:message>
-            <xsl:value-of select="$update-string"/>
-        </xsl:message>
+        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(base-uri()), map{}, $action)" as="xs:anyURI"/>
+        <xsl:variable name="request" as="item()*">
+            <ixsl:schedule-action http-request="map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+                <xsl:call-template name="onPatchCompleted">
+                </xsl:call-template>
+            </ixsl:schedule-action>
+        </xsl:variable>
+        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+    </xsl:template>
+    
+    <xsl:template name="onPatchCompleted">
+        <xsl:context-item as="map(*)" use="required"/>
+
+        <xsl:choose>
+            <xsl:when test="?status = 200">
+                <xsl:message>
+                    PATCH succeeded
+                </xsl:message>
+            </xsl:when>
+            <xsl:otherwise>
+                PATCH failed
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:template>
     
     <!-- submit instance creation form -->
