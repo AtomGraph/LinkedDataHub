@@ -531,15 +531,14 @@ WHERE
         
         <xsl:variable name="etag" select="?headers?etag" as="xs:string?"/>
         <xsl:message>ETag: <xsl:value-of select="$etag"/></xsl:message>
-        <ixsl:set-property name="etag" select="$etag" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $uri || '`')"/>
-        <xsl:message>?headers: <xsl:value-of select="serialize(?headers, map{ 'method': 'adaptive' })"/></xsl:message>
         
         <xsl:for-each select="?body">
             <xsl:variable name="results" select="." as="document-node()"/>
             <ixsl:set-property name="{'`' || $uri || '`'}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
             <!-- store document under window.LinkedDataHub.contents[$content-uri].results -->
             <ixsl:set-property name="results" select="." object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $uri || '`')"/>
-            <!-- store entity tag under window.LinkedDataHub.contents[$content-uri].etag -->
+            <!-- store ETag header value under window.LinkedDataHub.contents[$content-uri].etag -->
+            <ixsl:set-property name="etag" select="$etag" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $uri || '`')"/>
 
             <!-- render current document's created/modified datetime -->
             <xsl:for-each select="id('created-modified-date', ixsl:page())">
