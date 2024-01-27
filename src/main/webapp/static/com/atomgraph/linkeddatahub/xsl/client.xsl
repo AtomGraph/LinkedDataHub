@@ -534,7 +534,7 @@ WHERE
         <xsl:message>ETag: <xsl:value-of select="$entity-tag"/></xsl:message>
         <ixsl:set-property name="entity-tag" select="$entity-tag" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $uri || '`')"/>
         -->
-        <xsl:message>?headers: <xsl:value-of select="serialize(?headers, map{ 'method': 'adaptive' })"/>
+        <xsl:message>?headers: <xsl:value-of select="serialize(?headers, map{ 'method': 'adaptive' })"/></xsl:message>
         
         <xsl:for-each select="?body">
             <xsl:variable name="results" select="." as="document-node()"/>
