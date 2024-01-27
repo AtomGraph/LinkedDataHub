@@ -529,9 +529,12 @@ WHERE
             <ixsl:set-property name="control" select="true()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.acl-modes')"/>
         </xsl:if>
         
+        <!--
         <xsl:variable name="entity-tag" select="?headers?ETag" as="xs:string?"/>
         <xsl:message>ETag: <xsl:value-of select="$entity-tag"/></xsl:message>
         <ixsl:set-property name="entity-tag" select="$entity-tag" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $uri || '`')"/>
+        -->
+        <xsl:message>?headers: <xsl:value-of select="serialize(?headers, map{ 'method': 'adaptive' })"/>
         
         <xsl:for-each select="?body">
             <xsl:variable name="results" select="." as="document-node()"/>
