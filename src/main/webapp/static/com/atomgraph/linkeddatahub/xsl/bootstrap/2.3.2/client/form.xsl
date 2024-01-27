@@ -416,14 +416,15 @@ WHERE
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="form" select="." as="element()"/>
         <xsl:variable name="id" select="ixsl:get(., 'id')" as="xs:string"/>
-<!--        <xsl:variable name="method" select="ixsl:get(., 'method')" as="xs:string"/>-->
         <xsl:variable name="action" select="ixsl:get(., 'action')" as="xs:anyURI"/>
         <xsl:variable name="enctype" select="ixsl:get(., 'enctype')" as="xs:string"/>
         <xsl:variable name="accept" select="'application/xhtml+xml'" as="xs:string"/>
         <xsl:variable name="this" select="xs:anyURI(ancestor::div[@about][1]/@about)" as="xs:anyURI"/>
-        <!-- <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(base-uri()), map{}, $action)" as="xs:anyURI"/> -->
+        <xsl:message>base-uri(): <xsl:value-of select="base-uri()"/></xsl:message>
+        <xsl:variable name="entity-tag" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || base-uri() || '`'), 'entity-tag')" as="xs:string"/>
+        <xsl:message>$entity-tag: <xsl:value-of select="$entity-tag"/></xsl:message>
 
-        <!-- <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/> -->
+        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
         
         <xsl:variable name="elements" select=".//input | .//select" as="element()*"/>
         <xsl:variable name="triples" select="ldh:parse-rdf-post($elements)" as="element()*"/>
@@ -478,6 +479,8 @@ WHERE
     
     <xsl:template name="onPatchCompleted">
         <xsl:context-item as="map(*)" use="required"/>
+
+        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
 
         <xsl:choose>
             <xsl:when test="?status = 200">

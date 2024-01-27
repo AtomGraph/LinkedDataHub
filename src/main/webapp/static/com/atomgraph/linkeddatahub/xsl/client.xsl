@@ -529,11 +529,16 @@ WHERE
             <ixsl:set-property name="control" select="true()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.acl-modes')"/>
         </xsl:if>
         
+        <xsl:variable name="entity-tag" select="?headers?ETag" as="xs:string?"/>
+        <xsl:message>ETag: <xsl:value-of select="$entity-tag"/></xsl:message>
+        <ixsl:set-property name="entity-tag" select="$entity-tag" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $uri || '`')"/>
+        
         <xsl:for-each select="?body">
             <xsl:variable name="results" select="." as="document-node()"/>
             <ixsl:set-property name="{'`' || $uri || '`'}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
-            <!-- store document under window.LinkedDataHub[$content-uri].results -->
+            <!-- store document under window.LinkedDataHub.contents[$content-uri].results -->
             <ixsl:set-property name="results" select="." object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $uri || '`')"/>
+            <!-- store entity tag under window.LinkedDataHub.contents[$content-uri].entity-tag -->
 
             <!-- render current document's created/modified datetime -->
             <xsl:for-each select="id('created-modified-date', ixsl:page())">
