@@ -421,8 +421,8 @@ WHERE
         <xsl:variable name="accept" select="'application/xhtml+xml'" as="xs:string"/>
         <xsl:variable name="this" select="xs:anyURI(ancestor::div[@about][1]/@about)" as="xs:anyURI"/>
         <xsl:message>base-uri(): <xsl:value-of select="base-uri()"/></xsl:message>
-        <xsl:variable name="entity-tag" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || base-uri() || '`'), 'entity-tag')" as="xs:string"/>
-        <xsl:message>$entity-tag: <xsl:value-of select="$entity-tag"/></xsl:message>
+        <xsl:variable name="etag" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || base-uri() || '`'), 'etag')" as="xs:string"/>
+        <xsl:message>$etag: <xsl:value-of select="$etag"/></xsl:message>
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
         
