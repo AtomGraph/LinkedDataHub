@@ -111,6 +111,7 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
                     :
                     URI.create(uriInfo.getQueryParameters().getFirst(AC.uri.getLocalName())),
                 uriInfo.getQueryParameters().getFirst(AC.endpoint.getLocalName()) == null ? null : URI.create(uriInfo.getQueryParameters().getFirst(AC.endpoint.getLocalName())),
+                uriInfo.getQueryParameters().getFirst(AC.query.getLocalName()) == null ? null : uriInfo.getQueryParameters().getFirst(AC.query.getLocalName()),
                 uriInfo.getQueryParameters().getFirst(AC.accept.getLocalName()) == null ? null : MediaType.valueOf(uriInfo.getQueryParameters().getFirst(AC.accept.getLocalName())),
                 uriInfo.getQueryParameters().getFirst(AC.mode.getLocalName()) == null ? null : URI.create(uriInfo.getQueryParameters().getFirst(AC.mode.getLocalName())),
                 system, httpServletRequest, dataManager, agentContext, providers);
@@ -127,8 +128,9 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
      * @param service application's SPARQL service
      * @param securityContext JAX-RS security context
      * @param crc request context
-     * @param uri <code>uri</code> URL param
-     * @param endpoint <code>endpoint</code> URL param
+     * @param uri Linked Data URI
+     * @param endpoint SPARQL endpoint URI
+     * @param query SPARQL query
      * @param accept <code>accept</code> URL param
      * @param mode <code>mode</code> URL param
      * @param system system application
@@ -140,11 +142,11 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
     protected ProxyResourceBase(@Context UriInfo uriInfo, @Context Request request, @Context HttpHeaders httpHeaders, MediaTypes mediaTypes,
             com.atomgraph.linkeddatahub.apps.model.Application application, Optional<Service> service,
             @Context SecurityContext securityContext, @Context ContainerRequestContext crc,
-            @QueryParam("uri") URI uri, @QueryParam("endpoint") URI endpoint, @QueryParam("accept") MediaType accept, @QueryParam("mode") URI mode,
+            @QueryParam("uri") URI uri, @QueryParam("endpoint") URI endpoint, @QueryParam("query") String query, @QueryParam("accept") MediaType accept, @QueryParam("mode") URI mode,
             com.atomgraph.linkeddatahub.Application system, @Context HttpServletRequest httpServletRequest, DataManager dataManager, Optional<AgentContext> agentContext,
             @Context Providers providers)
     {
-        super(uriInfo, request, httpHeaders, mediaTypes, uri, endpoint, accept, mode, system.getExternalClient(), httpServletRequest);
+        super(uriInfo, request, httpHeaders, mediaTypes, uri, endpoint, query, accept, mode, system.getExternalClient(), httpServletRequest);
         this.uriInfo = uriInfo;
         this.application = application;
         this.service = service.get();
@@ -156,7 +158,7 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
 
         List<jakarta.ws.rs.core.MediaType> readableMediaTypesList = new ArrayList<>();
         readableMediaTypesList.addAll(mediaTypes.getReadable(Model.class));
-        readableMediaTypesList.addAll(mediaTypes.getReadable(ResultSet.class)); // not in the superclass
+        readableMediaTypesList.addAll(mediaTypes.getReadable(ResultSet.class));
         this.readableMediaTypes = readableMediaTypesList.toArray(MediaType[]::new);
         
         if (agentContext.isPresent())

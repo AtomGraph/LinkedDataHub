@@ -120,13 +120,13 @@ import com.atomgraph.linkeddatahub.vocabulary.LDHC;
 import com.atomgraph.linkeddatahub.vocabulary.Google;
 import com.atomgraph.linkeddatahub.vocabulary.LAPP;
 import com.atomgraph.linkeddatahub.writer.Mode;
-import com.atomgraph.linkeddatahub.writer.ModelXSLTWriterBase;
+import com.atomgraph.linkeddatahub.writer.ResultSetXSLTWriter;
+import com.atomgraph.linkeddatahub.writer.XSLTWriterBase;
 import com.atomgraph.linkeddatahub.writer.factory.ModeFactory;
 import com.atomgraph.linkeddatahub.writer.function.DecodeURI;
-import com.atomgraph.processor.vocabulary.AP;
-import com.atomgraph.processor.vocabulary.LDT;
+import com.atomgraph.server.mapper.NotAcceptableExceptionMapper;
+import com.atomgraph.server.vocabulary.LDT;
 import com.atomgraph.server.mapper.OntologyExceptionMapper;
-import com.atomgraph.server.mapper.ParameterExceptionMapper;
 import com.atomgraph.server.mapper.jena.DatatypeFormatExceptionMapper;
 import com.atomgraph.server.mapper.jena.QueryParseExceptionMapper;
 import com.atomgraph.server.mapper.jena.RiotExceptionMapper;
@@ -303,7 +303,6 @@ public class Application extends ResourceConfig
             servletConfig.getServletContext().getInitParameter(A.maxGetRequestSize.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(A.maxGetRequestSize.getURI())) : null,
             servletConfig.getServletContext().getInitParameter(A.cacheModelLoads.getURI()) != null ? Boolean.parseBoolean(servletConfig.getServletContext().getInitParameter(A.cacheModelLoads.getURI())) : true,
             servletConfig.getServletContext().getInitParameter(A.preemptiveAuth.getURI()) != null ? Boolean.parseBoolean(servletConfig.getServletContext().getInitParameter(A.preemptiveAuth.getURI())) : false,
-            servletConfig.getServletContext().getInitParameter(AP.cacheSitemap.getURI()) != null ? Boolean.parseBoolean(servletConfig.getServletContext().getInitParameter(AP.cacheSitemap.getURI())) : true,
             new PrefixMapper(servletConfig.getServletContext().getInitParameter(AC.prefixMapping.getURI()) != null ? servletConfig.getServletContext().getInitParameter(AC.prefixMapping.getURI()) : null),
             com.atomgraph.client.Application.getSource(servletConfig.getServletContext(), servletConfig.getServletContext().getInitParameter(AC.stylesheet.getURI()) != null ? servletConfig.getServletContext().getInitParameter(AC.stylesheet.getURI()) : null),
             servletConfig.getServletContext().getInitParameter(AC.cacheStylesheet.getURI()) != null ? Boolean.parseBoolean(servletConfig.getServletContext().getInitParameter(AC.cacheStylesheet.getURI())) : false,
@@ -362,7 +361,6 @@ public class Application extends ResourceConfig
      * @param maxGetRequestSize maximum <code>GET</code> request size
      * @param cacheModelLoads true if model loads should be cached
      * @param preemptiveAuth true if HTTP Basic auth credentials should be sent preemptively
-     * @param cacheSitemap true if app's ontology should be cached
      * @param locationMapper Jena's <code>LocationMapper</code> instance
      * @param stylesheet stylesheet URI
      * @param cacheStylesheet true if stylesheet should be cached
@@ -403,7 +401,7 @@ public class Application extends ResourceConfig
      * @param googleClientSecret client secret for Google's OAuth
      */
     public Application(final ServletConfig servletConfig, final MediaTypes mediaTypes,
-            final Integer maxGetRequestSize, final boolean cacheModelLoads, final boolean preemptiveAuth, final boolean cacheSitemap,
+            final Integer maxGetRequestSize, final boolean cacheModelLoads, final boolean preemptiveAuth,
             final LocationMapper locationMapper, final Source stylesheet, final boolean cacheStylesheet, final boolean resolvingUncached,
             final String clientKeyStoreURIString, final String clientKeyStorePassword,
             final String secretaryCertAlias,
@@ -670,7 +668,7 @@ public class Application extends ResourceConfig
             ontModelSpec = OntModelSpec.OWL_MEM_RDFS_INF;
             ontModelSpec.setImportModelGetter(dataManager);
             OntDocumentManager.getInstance().setFileManager((FileManager)dataManager);
-            OntDocumentManager.getInstance().setCacheModels(cacheSitemap); // need to re-set after changing FileManager
+            OntDocumentManager.getInstance().setCacheModels(true); // need to re-set after changing FileManager
             ontModelSpec.setDocumentManager(OntDocumentManager.getInstance());
 
             if (mailUser != null && mailPassword !=  null) // enable SMTP authentication
@@ -723,10 +721,10 @@ public class Application extends ResourceConfig
                 }
                 
                 // register HTTPS URL of translations.rdf so it doesn't have to be requested repeatedly
-                try (InputStream translations = servletConfig.getServletContext().getResourceAsStream(ModelXSLTWriterBase.TRANSLATIONS_PATH))
+                try (InputStream translations = servletConfig.getServletContext().getResourceAsStream(XSLTWriterBase.TRANSLATIONS_PATH))
                 {
                     TreeInfo doc = xsltProc.getUnderlyingConfiguration().buildDocumentTree(new StreamSource(translations));
-                    xsltProc.getUnderlyingConfiguration().getGlobalDocumentPool().add(doc, baseURI.resolve(ModelXSLTWriterBase.TRANSLATIONS_PATH).toString());
+                    xsltProc.getUnderlyingConfiguration().getGlobalDocumentPool().add(doc, baseURI.resolve(XSLTWriterBase.TRANSLATIONS_PATH).toString());
                 }
             }
             catch (XPathException | TransformerException ex)
@@ -808,6 +806,7 @@ public class Application extends ResourceConfig
         register(new QueryParamProvider());
         register(new UpdateRequestProvider());
         register(new ModelXSLTWriter(getXsltExecutable(), getOntModelSpec(), getDataManager(), getMessageDigest())); // writes (X)HTML responses
+        register(new ResultSetXSLTWriter(getXsltExecutable(), getOntModelSpec(), getDataManager(), getMessageDigest())); // writes (X)HTML responses
 
         final com.atomgraph.linkeddatahub.Application system = this;
         register(new AbstractBinder()
@@ -967,10 +966,10 @@ public class Application extends ResourceConfig
         register(SPINConstraintViolationExceptionMapper.class);
         register(SHACLConstraintViolationExceptionMapper.class);
         register(DatatypeFormatExceptionMapper.class);
-        register(ParameterExceptionMapper.class);
         register(QueryExecExceptionMapper.class);
         register(RiotExceptionMapper.class);
         register(RiotParseExceptionMapper.class); // move to Processor?
+        register(NotAcceptableExceptionMapper.class);
         register(ClientErrorExceptionMapper.class);
         register(HttpHostConnectExceptionMapper.class);
         register(BadGatewayExceptionMapper.class);

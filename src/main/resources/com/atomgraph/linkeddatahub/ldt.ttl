@@ -1,0 +1,199 @@
+@base           <https://www.w3.org/ns/ldt> .
+
+@prefix :	<#> .
+@prefix rdf:	<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:	<http://www.w3.org/2001/XMLSchema#> .
+@prefix owl:	<http://www.w3.org/2002/07/owl#> .
+@prefix sd:	<http://www.w3.org/ns/sparql-service-description#> .
+@prefix sp:	<http://spinrdf.org/sp#> .
+@prefix spin:	<http://spinrdf.org/spin#> .
+@prefix spl:    <http://spinrdf.org/spl#> .
+@prefix dct:	<http://purl.org/dc/terms/> .
+@prefix vann:	<http://purl.org/vocab/vann/> .
+
+: a owl:Ontology ;
+    owl:imports <http://spinrdf.org/sp>, <http://spinrdf.org/spin>, sd: ;
+    owl:versionInfo "1.1.4" ;
+    rdfs:label "Linked Data Templates ontology" ;
+    rdfs:comment "Must be imported and reused by LDT applications" ;
+    dct:created "2012-10-26T01:04:00+03:00"^^xsd:dateTime ;
+    dct:modified "2012-12-19T02:29:00+03:00"^^xsd:dateTime, "2013-03-09T12:33:00+03:00"^^xsd:dateTime, "2014-08-24T02:04:00+02:00"^^xsd:dateTime, "2018-05-21T23:42:00+02:00"^^xsd:dateTime ;
+    vann:preferredNamespaceUri "https://www.w3.org/ns/ldt#" ;
+    vann:preferredNamespacePrefix "ldt";
+    dct:license <http://www.opendatacommons.org/licenses/pddl/1.0/> .
+
+# PROPERTIES
+
+# Application
+
+:base a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain :Application ;
+    rdfs:label "Base URI" ;
+    rdfs:comment "Base URI uniquely identifies the application" ;
+    rdfs:isDefinedBy : .
+
+:ontology a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain :Application ;
+    rdfs:range :Ontology ;
+    rdfs:label "Ontology" ;
+    rdfs:comment "Application ontology with domain classes and LDT templates" ;
+    rdfs:isDefinedBy : .
+
+:service a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain :Application ;
+    rdfs:range sd:Service ;
+    rdfs:label "SPARQL service" ;
+    rdfs:comment "Service implementing SPARQL Protocol and Graph Store Protocol" ;
+    rdfs:isDefinedBy : .
+
+# hypermedia 
+
+:arg a owl:ObjectProperty ;
+    rdfs:domain :View ;
+    rdfs:label "Argument" ;
+    rdfs:comment "Template call argument" ;
+    rdfs:isDefinedBy : .
+
+:paramName a owl:DatatypeProperty ;
+    rdfs:range xsd:string ;
+    rdfs:label "Parameter name" ;
+    rdfs:comment "Local name of the parameter property" ;
+    rdfs:isDefinedBy : .
+
+# Class
+
+:path a owl:AnnotationProperty, :InheritedProperty ;
+    # rdfs:domain rdfs:Class ;
+    # rdfs:range xsd:string ;
+    rdfs:label "Path" ;
+    rdfs:comment "Base-relative URI template for URI building (JAX-RS syntax)" ;
+    rdfs:seeAlso <http://docs.oracle.com/cd/E19798-01/821-1841/6nmq2cp26/index.html> ,
+        <http://www.w3.org/TR/rdf11-concepts/#section-skolemization> ;
+    rdfs:isDefinedBy : .
+
+:fragment a owl:AnnotationProperty, :InheritedProperty ;
+    # rdfs:domain rdfs:Class ;
+    # rdfs:range xsd:string ;
+    rdfs:label "Fragment" ;
+    rdfs:comment "URI fragment template for blank node skolemization (JAX-RS syntax)" ;
+    rdfs:seeAlso <http://docs.oracle.com/cd/E19798-01/821-1841/6nmq2cp26/index.html>,
+        <http://www.w3.org/TR/rdf11-concepts/#section-skolemization> ;
+    rdfs:isDefinedBy : .
+
+# Template
+
+:extends a owl:ObjectProperty ;
+    rdfs:domain :Template ;
+    rdfs:range :Template ;
+    rdfs:label "Extends" ;
+    rdfs:comment "Super-template from which this template will inherit properties" ;
+    rdfs:isDefinedBy : .
+
+:match a owl:DatatypeProperty, :InheritedProperty ;
+    rdfs:domain :Template ;
+    rdfs:range xsd:string ;
+    rdfs:label "Match" ;
+    rdfs:comment "Base-relative URI template for URI matching (JAX-RS syntax)" ;
+    rdfs:seeAlso <http://docs.oracle.com/cd/E19798-01/821-1841/6nmq2cp26/index.html> ;
+    rdfs:isDefinedBy : .
+
+:query a owl:ObjectProperty, :InheritedProperty ;
+    rdfs:subPropertyOf spin:query ;
+    rdfs:domain :Template ;
+    rdfs:range :Query ;
+    rdfs:label "Query" ;
+    rdfs:comment "SPIN query to retrieve resource description (DESCRIBE or CONSTRUCT)" ;
+    rdfs:isDefinedBy : .
+
+:update a owl:ObjectProperty, :InheritedProperty ;
+    rdfs:subPropertyOf spin:update ;
+    rdfs:domain :Template ;
+    rdfs:range :Update ;
+    rdfs:label "Update" ;
+    rdfs:comment "SPIN update to remove resource description" ;
+    rdfs:isDefinedBy : .
+
+:param a owl:ObjectProperty ;
+    rdfs:domain :Template ;
+    rdfs:range :Parameter ;
+    rdfs:label "Parameter" ;
+    rdfs:comment "Template parameter" ;
+    rdfs:seeAlso spin:constraint ;
+    rdfs:isDefinedBy : .
+
+:priority a owl:DatatypeProperty, :InheritedProperty ;
+    rdfs:domain :Template ;
+    rdfs:range xsd:float ;
+    rdfs:label "Priority" ;
+    rdfs:comment "Template priority (overrides URI template priority)" ;
+    rdfs:seeAlso <https://www.w3.org/TR/xslt20/#conflict> ;
+    rdfs:isDefinedBy : .
+
+:cacheControl a owl:DatatypeProperty, :InheritedProperty ;
+    rdfs:domain :Template ;
+    rdfs:range xsd:string ;
+    rdfs:label "Cache control" ;
+    rdfs:comment "Value of the HTTP Cache-Control response header" ;
+    rdfs:seeAlso <http://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html#sec13.1.3> ;
+    rdfs:isDefinedBy : .
+
+:loadClass a owl:ObjectProperty, :InheritedProperty ;
+    rdfs:domain :Template ;
+    rdfs:label "Load class";
+    rdfs:comment "Indicates the Java class that will handle requests matched by this template. Needs to start with 'java:' URI scheme." ;
+    rdfs:seeAlso <http://jena.hpl.hp.com/2005/11/Assembler#loadClass> ;
+    rdfs:isDefinedBy : .
+
+:lang a owl:ObjectProperty, :InheritedProperty ;
+    rdfs:domain :Template ;
+    rdfs:range rdf:List ;
+    rdfs:label "Content language" ;
+    rdfs:comment "List of  BCP 47 language tags" ;
+    rdfs:seeAlso <https://www.w3.org/International/articles/language-tags/> ;
+    rdfs:isDefinedBy : .
+
+# CLASSES
+
+:InheritedProperty a rdfs:Class ;
+    rdfs:subClassOf owl:AnnotationProperty ;
+    rdfs:label "Inherited property" ;
+    rdfs:comment "Values of this property are inherited by subclasses that do not have this property" ;
+    rdfs:isDefinedBy : .
+
+:Application a rdfs:Class ;
+    rdfs:label "Application" ;
+    rdfs:comment "Declarative Linked Data application which structure is defined by its ontology and data is access via its SPARQL service" ;
+    rdfs:isDefinedBy : .
+
+:Ontology a rdfs:Class ;
+    rdfs:subClassOf owl:Ontology ;
+    rdfs:label "Ontology" ;
+    rdfs:comment "Ontology annotated with Linked Data Templates" ;
+    rdfs:isDefinedBy : .
+
+:Template a rdfs:Class ;
+    rdfs:label "Resource template" ;
+    rdfs:comment "A class of RDF resources that share the same URI template and SPARQL query template" ;
+    rdfs:isDefinedBy : .
+
+:Query a rdfs:Class ;
+    rdfs:subClassOf sp:Query, [ a owl:Class ;
+        owl:unionOf (sp:Describe sp:Construct) ;
+        rdfs:label "Graph query forms"
+    ] ;
+    rdfs:label "Query" ;
+    rdfs:isDefinedBy : .
+
+:Update a rdfs:Class ;
+    rdfs:subClassOf sp:Update ;
+    rdfs:label "Update" ;
+    rdfs:isDefinedBy : .
+
+:Parameter a rdfs:Class ;
+    rdfs:subClassOf spl:Argument ;
+    rdfs:label "Parameter" ;
+    rdfs:comment "Represents a query parameter that has predicate, value type, default value etc." ;
+    rdfs:isDefinedBy : .
+
+spl:Argument a spin:ConstructTemplate .

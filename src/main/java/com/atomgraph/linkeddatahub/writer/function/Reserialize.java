@@ -46,6 +46,9 @@ import org.apache.jena.riot.system.StreamRDFLib;
 public class Reserialize implements ExtensionFunction
 {
 
+    /**
+     * The RDF syntax language used by this function.
+     */
     public static Lang LANG = Lang.RDFXML;
     
     private final Processor processor;

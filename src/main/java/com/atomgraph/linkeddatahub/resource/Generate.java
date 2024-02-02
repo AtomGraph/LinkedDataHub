@@ -27,8 +27,8 @@ import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.server.util.Skolemizer;
 import com.atomgraph.linkeddatahub.vocabulary.LDH;
 import com.atomgraph.linkeddatahub.vocabulary.VoID;
-import com.atomgraph.processor.vocabulary.DH;
-import com.atomgraph.processor.vocabulary.SIOC;
+import com.atomgraph.linkeddatahub.vocabulary.DH;
+import com.atomgraph.linkeddatahub.vocabulary.SIOC;
 import com.atomgraph.spinrdf.vocabulary.SP;
 import com.atomgraph.spinrdf.vocabulary.SPIN;
 import java.net.URI;
@@ -169,7 +169,16 @@ public class Generate extends GraphStoreImpl
         }
     }
     
-     public Resource createContainerSelect(Model model, String title, Query query, Resource service)
+    /**
+     * Creates <code>SELECT</code> SPARQL query.
+     * 
+     * @param model RDF model
+     * @param title query title
+     * @param query query object
+     * @param service SPARQL service resource
+     * @return query resource
+     */
+    public Resource createContainerSelect(Model model, String title, Query query, Resource service)
     {
         return model.createResource().
             addProperty(RDF.type, SP.Select).
@@ -178,6 +187,16 @@ public class Generate extends GraphStoreImpl
             addProperty(LDH.service, service);
     }
     
+    /**
+     * Creates a container document.
+     * 
+     * @param model RDF model
+     * @param graphURI named graph URI
+     * @param parent parent document resource
+     * @param title document title
+     * @param content document content
+     * @return container resource
+     */
     public Resource createContainer(Model model, URI graphURI, Resource parent, String title, Resource content)
     {
         return model.createResource(graphURI.toString()).
@@ -189,6 +208,13 @@ public class Generate extends GraphStoreImpl
             addProperty(ResourceFactory.createProperty(RDF.getURI(), "_1"), content);
     }
     
+    /**
+     * Creates content resource.
+     * 
+     * @param model RDF model
+     * @param query query resource
+     * @return content resource
+     */
     public Resource createContent(Model model, Resource query)
     {
         return model.createResource().

@@ -1,3 +1,14 @@
+## [4.0.8] - 2023-07-11
+### Changed
+- Dependency on `com.atomgraph.server` (new module) instead of `com.atomgraph.processor`
+- JAX-RS application now registers the `NotAcceptableExceptionMapper` so that the `406 Not Acceptable` responses are mapped correctly
+- Ontologies are now cached by default
+- Bumped Jena version in Dockerfile from 4.3.2 to 4.7.0 in order to avoid the Log4Shell CVE warning
+
+## [4.0.6] - 2023-07-01
+### Added
+- (X)HTML writer for SPARQL XML Results
+
 ## [4.0.5] - 2023-06-23
 ### Added
 - New Varnish proxy cache between nginx and LinkedDataHub (`varnish-frontend` service) in order to improve performance

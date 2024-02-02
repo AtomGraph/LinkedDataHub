@@ -1,0 +1,96 @@
+@base           <https://www.w3.org/ns/ldt/document-hierarchy> .
+
+@prefix :	<#> .
+@prefix rdf:	<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:	<http://www.w3.org/2001/XMLSchema#> .
+@prefix owl:	<http://www.w3.org/2002/07/owl#> .
+@prefix ldt:	<https://www.w3.org/ns/ldt#> .
+@prefix sp:	<http://spinrdf.org/sp#> .
+@prefix spin:	<http://spinrdf.org/spin#> .
+@prefix dct:	<http://purl.org/dc/terms/> .
+@prefix vann:	<http://purl.org/vocab/vann/> .
+@prefix sioc:	<http://rdfs.org/sioc/ns#> .
+@prefix foaf:	<http://xmlns.com/foaf/0.1/> .
+
+: a owl:Ontology ;
+    owl:imports foaf:, sioc:, sp: ;
+    owl:versionInfo "1.1.5" ;
+    rdfs:label "Document hierarchy" ;
+    dct:created "2016-08-31T21:54:00+02:00"^^xsd:dateTime ;
+    dct:modified "2019-12-13T12:06:00+01:00"^^xsd:dateTime ;
+    vann:preferredNamespaceUri "https://www.w3.org/ns/ldt/document-hierarchy#" ;
+    vann:preferredNamespacePrefix "dh";
+    dct:license <http://www.opendatacommons.org/licenses/pddl/1.0/> .
+
+# PROPERTIES
+
+:slug a owl:DatatypeProperty ;
+    rdfs:domain foaf:Document ;
+    rdfs:range xsd:string ;
+    rdfs:label "URI slug" ;
+    rdfs:comment "A string that will be used to build URI from template such as /{slug}" ;
+    rdfs:isDefinedBy : .
+
+# CLASSES
+
+:Document a rdfs:Class ;
+    rdfs:subClassOf foaf:Document ;
+    ldt:path "{slug}/" ;
+    rdfs:label "Document" ;
+    spin:constructor :DocumentConstructor ;
+    rdfs:isDefinedBy : .
+
+:Container a rdfs:Class ;
+    rdfs:subClassOf :Document, sioc:Container ;
+    spin:constructor :ContainerConstructor ;
+    rdfs:label "Container" ;
+    rdfs:comment "An area in which content Items are contained" ;
+    rdfs:isDefinedBy : .
+
+:Item a rdfs:Class ;
+    rdfs:subClassOf :Document, sioc:Item ;
+    spin:constructor :ItemConstructor ;
+    rdfs:label "Item" ;
+    rdfs:comment "An Item is something which can be in a Container" ;
+    rdfs:isDefinedBy : .
+
+# QUERIES
+
+:DocumentConstructor a sp:Construct, sp:Query ;
+  sp:text """
+      PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
+      PREFIX dh:      <https://www.w3.org/ns/ldt/document-hierarchy#>
+
+      CONSTRUCT {
+        ?this dh:slug ?slug .
+      }
+      WHERE {
+        BIND (STRUUID() AS ?slug)
+}""" ;
+    rdfs:label "Document constructor" ;
+    rdfs:isDefinedBy : .
+
+:ContainerConstructor a sp:Construct, sp:Query ;
+  sp:text """
+      PREFIX dh:      <https://www.w3.org/ns/ldt/document-hierarchy#>
+      PREFIX sioc:    <http://rdfs.org/sioc/ns#>
+
+      CONSTRUCT {
+        ?this sioc:has_parent [ a dh:Container ] .
+      }
+      WHERE {}""" ;
+    rdfs:label "Container constructor" ;
+    rdfs:isDefinedBy : .
+
+:ItemConstructor a sp:Construct, sp:Query ;
+  sp:text """
+      PREFIX dh:      <https://www.w3.org/ns/ldt/document-hierarchy#>
+      PREFIX sioc:    <http://rdfs.org/sioc/ns#>
+
+      CONSTRUCT {
+        ?this sioc:has_container [ a dh:Container ] .
+      }
+      WHERE {}""" ;
+    rdfs:label "Container constructor" ;
+    rdfs:isDefinedBy : .

@@ -27,8 +27,8 @@ import com.atomgraph.linkeddatahub.server.util.PatchUpdateVisitor;
 import com.atomgraph.linkeddatahub.server.util.Skolemizer;
 import com.atomgraph.linkeddatahub.vocabulary.Default;
 import com.atomgraph.linkeddatahub.vocabulary.NFO;
-import com.atomgraph.processor.vocabulary.DH;
-import com.atomgraph.processor.vocabulary.SIOC;
+import com.atomgraph.linkeddatahub.vocabulary.DH;
+import com.atomgraph.linkeddatahub.vocabulary.SIOC;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -490,8 +490,8 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
      * List allowed HTTP methods for the given graph URI.
      * Exceptions apply to the application's Root document, owner's WebID document, and secretary's WebID document.
      * 
-     * @param graphUri
-     * @return 
+     * @param graphUri ma,ed graph URI
+     * @return list of HTTP methods
      */
     public Set<String> getAllowedMethods(URI graphUri)
     {
