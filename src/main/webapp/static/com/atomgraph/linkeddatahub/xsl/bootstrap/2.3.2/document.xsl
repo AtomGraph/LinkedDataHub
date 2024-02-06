@@ -212,7 +212,7 @@ extension-element-prefixes="ixsl"
     <xsl:template match="rdf:RDF" mode="bs2:Map">
         <xsl:param name="id" as="xs:string"/>
         <xsl:param name="class" select="'map-canvas'" as="xs:string?"/>
-        <xsl:param name="draggable" select="true()" as="xs:boolean?"/> <!-- counter-intuitive but needed in order to trigger "ixsl:ondragstart" on the map and then cancel it -->
+        <xsl:param name="draggable" select="false()" as="xs:boolean?"/> <!-- OpenLayers handles the map drag and drop events -->
 
         <div>
             <xsl:if test="$id">
