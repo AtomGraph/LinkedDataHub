@@ -245,8 +245,7 @@ public class Item extends GraphStoreImpl
         final Model existingGraph = getDatasetAccessor().getModel(getURI().toString());
         if (existingGraph == null) throw new NotFoundException("Named graph with URI <" + getURI() + "> not found");
         
-        EntityTag entityTag = getEntityTag(existingGraph);
-        ResponseBuilder rb = getRequest().evaluatePreconditions(entityTag);
+        ResponseBuilder rb = this.getResponseBuilder(existingGraph, null);
         if (rb != null) return rb.build(); // preconditions not met
 
         updateRequest.getOperations().forEach(update ->
