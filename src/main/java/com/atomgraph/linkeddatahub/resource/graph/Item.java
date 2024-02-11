@@ -51,7 +51,6 @@ import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Context;
-import jakarta.ws.rs.core.EntityTag;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Request;
 import jakarta.ws.rs.core.Response;
@@ -242,11 +241,10 @@ public class Item extends GraphStoreImpl
     {
         if (updateRequest == null) throw new BadRequestException("SPARQL update not specified");
 
-        final Model existingGraph = getDatasetAccessor().getModel(getURI().toString());
-        if (existingGraph == null) throw new NotFoundException("Named graph with URI <" + getURI() + "> not found");
+        final Model existingModel = getDatasetAccessor().getModel(getURI().toString());
+        if (existingModel == null) throw new NotFoundException("Named graph with URI <" + getURI() + "> not found");
         
-        EntityTag entityTag = getEntityTag(existingGraph);
-        ResponseBuilder rb = getRequest().evaluatePreconditions(entityTag);
+        ResponseBuilder rb = evaluatePreconditions(existingModel, null);
         if (rb != null) return rb.build(); // preconditions not met
 
         updateRequest.getOperations().forEach(update ->
