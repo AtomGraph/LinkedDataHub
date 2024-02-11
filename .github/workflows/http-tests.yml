@@ -7,7 +7,7 @@ jobs:
     name: Build Docker image and run HTTP test suite against it
     runs-on: ubuntu-latest
     env:
-      ASF_ARCHIVE: http://archive.apache.org/dist/
+      ASF_ARCHIVE: https://archive.apache.org/dist/
       JENA_VERSION: 4.7.0
       BASE_URI: https://localhost:4443/
       OWNER_CERT_PWD: changeit
