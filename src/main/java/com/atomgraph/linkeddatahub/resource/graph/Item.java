@@ -264,9 +264,9 @@ public class Item extends GraphStoreImpl
                 throw new WebApplicationException("SPARQL update used with PATCH method cannot contain the GRAPH keyword", UNPROCESSABLE_ENTITY.getStatusCode()); // 422 Unprocessable Entity
             }
 
+            if (!(update instanceof UpdateModify)) throw new WebApplicationException("Only UpdateModify form of SPARQL Update is supported", UNPROCESSABLE_ENTITY.getStatusCode()); // 422 Unprocessable Entity
             // set WITH <graphUri>
-            if (!(update instanceof UpdateModify updateModify)) throw new WebApplicationException("Only UpdateModify form of SPARQL Update is supported", UNPROCESSABLE_ENTITY.getStatusCode()); // 422 Unprocessable Entity
-            updateModify.setWithIRI(NodeFactory.createURI(getURI().toString())); // ignore the @QueryParam("graph") value
+            //updateModify.setWithIRI(NodeFactory.createURI(getURI().toString())); // ignore the @QueryParam("graph") value
         });
 
         // update model in memory, then PUT to the named graph. TO-DO: validation
