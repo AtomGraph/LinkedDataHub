@@ -275,8 +275,11 @@ public class Item extends GraphStoreImpl
         getDatasetAccessor().putModel(getURI().toString(), dataset.getDefaultModel());
         //getService().getEndpointAccessor().update(updateRequest, Collections.<URI>emptyList(), Collections.<URI>emptyList());
         
-        return Response.ok().build();
-        //return getResponseBuilder(dataset.getDefaultModel(), null).build();
+        //return Response.ok().build();
+        return getResponseBuilder(dataset.getDefaultModel(), null).
+            status(Response.Status.NO_CONTENT).
+            entity(null).
+            build();
     }
     
     /**
