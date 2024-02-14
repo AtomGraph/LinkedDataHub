@@ -540,7 +540,7 @@ exclude-result-prefixes="#all"
             </xsl:when>
             <xsl:when test="$active-mode = '&ac;ChartMode'">
                 <xsl:apply-templates select="$results" mode="bs2:Chart">
-                    <xsl:with-param name="id" select="$container-id || '-chart-canvas'"/>
+                    <xsl:with-param name="canvas-id" select="$container-id || '-chart-canvas'"/>
                     <xsl:with-param name="endpoint" select="if (not($endpoint = sd:endpoint())) then $endpoint else ()" tunnel="yes"/>
                 </xsl:apply-templates>
             </xsl:when>
@@ -847,7 +847,7 @@ exclude-result-prefixes="#all"
 
     <!-- container mode tabs -->
     
-    <xsl:template match="*[contains-token(@class, 'resource-content')]//div/ul[@class = 'nav nav-tabs']/li[not(contains-token(@class, 'active'))]/a" mode="ixsl:onclick">
+    <xsl:template match="*[contains-token(@class, 'resource-content')]//div/ul[contains-token(@class, 'nav-tabs')]/li[not(contains-token(@class, 'active'))]/a" mode="ixsl:onclick">
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'resource-content')]" as="element()"/>
         <xsl:variable name="results-container" select="$container//div[contains-token(@class, 'container-results')]" as="element()"/> <!-- results in the middle column -->
         <xsl:variable name="content-uri" select="xs:anyURI($container/@about)" as="xs:anyURI"/>

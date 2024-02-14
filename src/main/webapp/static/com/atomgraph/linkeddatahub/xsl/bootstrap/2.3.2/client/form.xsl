@@ -110,6 +110,15 @@ WHERE
         <xsl:sequence select="ixsl:call(ixsl:call(ixsl:window(), 'jQuery', [ . ]), 'wymeditor', [])[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
 
+    <xsl:template match="textarea[@id][contains-token(@class, 'sparql-query-string')]" mode="ldh:PostConstruct" priority="1">
+        <xsl:variable name="textarea-id" select="ixsl:get(., 'id')" as="xs:string"/>
+        <!-- initialize YASQE SPARQL editor on the textarea -->
+        <xsl:variable name="js-statement" as="element()">
+            <root statement="YASQE.fromTextArea(document.getElementById('{$textarea-id}'), {{ persistent: null }})"/>
+        </xsl:variable>
+        <ixsl:set-property name="{$textarea-id}" select="ixsl:eval(string($js-statement/@statement))" object="ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe')"/>
+    </xsl:template>
+    
     <!-- TO-DO: phase out as regular ixsl: event templates -->
     <xsl:template match="fieldset//input" mode="ldh:PostConstruct" priority="1">
         <!-- subject value change -->
@@ -171,7 +180,7 @@ WHERE
         </xsl:choose>
     </xsl:template>
     
-    <xsl:template match="input[@class = 'target-id']" mode="form" priority="1">
+<!--    <xsl:template match="input[@class = 'target-id']" mode="form" priority="1">
         <xsl:param name="target-id" as="xs:string?" tunnel="yes"/>
         
         <xsl:copy>
@@ -180,7 +189,7 @@ WHERE
                 <xsl:attribute name="value" select="$target-id"/>
             </xsl:if>
         </xsl:copy>
-    </xsl:template>
+    </xsl:template>-->
 
     <!-- regenerates slug literal UUID because form (X)HTML can be cached -->
     <xsl:template match="input[@name = 'ol'][ancestor::div[@class = 'controls']/preceding-sibling::input[@name = 'pu']/@value = '&dh;slug']" mode="form" priority="1">
@@ -279,7 +288,215 @@ WHERE
     
     <!-- EVENT HANDLERS -->
     
-    <xsl:template match="form[contains-token(@class, 'form-horizontal')] | form[ancestor::div[contains-token(@class, 'modal')]]" mode="ixsl:onsubmit">
+    <!-- enable inline editing form (do nothing if the button is disabled) -->
+    
+    <xsl:template match="div[contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'btn-edit')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick">
+        <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
+        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'row-fluid')]" as="element()"/>
+        <xsl:variable name="about" select="$container/@about" as="xs:anyURI"/>
+        <xsl:variable name="graph" as="xs:anyURI?"/>
+
+        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+        
+        <xsl:message>ixsl:get(., 'baseURI'): <xsl:value-of select="ixsl:get(., 'baseURI')"/></xsl:message>
+        <xsl:message>base-uri(): <xsl:value-of select="base-uri()"/></xsl:message>
+        <xsl:message>ixsl:location(): <xsl:value-of select="ixsl:location()"/></xsl:message>
+        
+        <!-- not using base-uri() because it goes stale when DOM is replaced -->
+        <!-- <xsl:variable name="doc" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(xs:anyURI(ixsl:location())) || '`'), 'results')" as="document-node()"/> -->
+        
+        <!-- if the URI is external, dereference it through the proxy -->
+        <!-- add a bogus query parameter to give the RDF/XML document a different URL in the browser cache, otherwise it will clash with the HTML representation -->
+        <!-- this is due to broken browser behavior re. Vary and conditional requests: https://stackoverflow.com/questions/60799116/firefox-if-none-match-headers-ignore-content-type-and-vary/60802443 -->
+        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(base-uri()), map{ 'param': 'dummy', 'accept': 'application/rdf+xml' }, ac:absolute-path(base-uri()), $graph, ())" as="xs:anyURI"/>
+        <xsl:variable name="doc" select="document(ac:document-uri($request-uri))" as="document-node()"/>
+        <xsl:variable name="resource" select="key('resources', $about, $doc)" as="element()"/>
+        <xsl:variable name="div-id" select="generate-id($resource)" as="xs:string"/>
+        
+        <!-- TO-DO: refactor to use asynchronous HTTP requests -->
+        <xsl:variable name="types" select="distinct-values($resource/rdf:type/@rdf:resource)" as="xs:anyURI*"/>
+        <xsl:variable name="query-string" select="'DESCRIBE $Type VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }'" as="xs:string"/>
+        <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': $query-string, 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
+        <xsl:variable name="type-metadata" select="if (exists($types)) then document($request-uri) else ()" as="document-node()?"/>
+
+        <xsl:variable name="property-uris" select="distinct-values($resource/*/concat(namespace-uri(), local-name()))" as="xs:string*"/>
+        <xsl:variable name="query-string" select="'DESCRIBE $Type VALUES $Type { ' || string-join(for $uri in $property-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>
+        <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': $query-string, 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
+        <xsl:variable name="property-metadata" select="document($request-uri)" as="document-node()"/>
+
+        <xsl:variable name="query-string" select="$constraint-query || ' VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }'" as="xs:string"/>
+        <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': $query-string, 'accept': 'application/sparql-results+xml' })" as="xs:anyURI"/>
+        <xsl:variable name="constraints" select="if (exists($types)) then document($request-uri) else ()" as="document-node()?"/>
+
+        <xsl:for-each select="$container">
+            <xsl:variable name="row" as="node()*">
+                <xsl:apply-templates select="$resource" mode="bs2:RowForm"> <!-- bs2:Row -->
+                    <!-- <xsl:with-param name="mode" select="xs:anyURI('&ac;EditMode')"/> -->
+                    <xsl:with-param name="id" select="$div-id"/>
+                    <xsl:with-param name="type-metadata" select="$type-metadata" tunnel="yes"/>
+                    <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/>
+                    <xsl:with-param name="constraints" select="$constraints" tunnel="yes"/>
+                </xsl:apply-templates>
+            </xsl:variable>
+
+            <xsl:result-document href="?." method="ixsl:replace-content">
+                <xsl:copy-of select="$row/*"/> <!-- inject the content of div.row-fluid -->
+            </xsl:result-document>
+        </xsl:for-each>
+        <!-- initialize event listeners -->
+        <xsl:apply-templates select="$container/*" mode="ldh:PostConstruct"/>
+
+        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
+    </xsl:template>
+
+    <!-- disable inline editing form (do nothing if the button is disabled) -->
+    
+    <xsl:template match="div[@about][@typeof = ('&ldh;ResultSetChart', '&ldh;GraphChart')]//button[contains-token(@class, 'btn-cancel')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick" priority="1">
+        <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
+        <xsl:variable name="container" select="ancestor::div[@about][@typeof][1]" as="element()"/>
+        <xsl:variable name="content-uri" select="xs:anyURI($container/@about)" as="xs:anyURI"/>
+        <xsl:variable name="content-id" select="ixsl:get($container, 'id')" as="xs:string"/>
+        <xsl:variable name="about" select="$container/@about" as="xs:anyURI"/>
+
+        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+        
+        <xsl:message>ixsl:get(., 'baseURI'): <xsl:value-of select="ixsl:get(., 'baseURI')"/></xsl:message>
+        <xsl:message>base-uri(): <xsl:value-of select="base-uri()"/></xsl:message>
+        <xsl:message>ixsl:location(): <xsl:value-of select="ixsl:location()"/></xsl:message>
+
+        <!-- not using base-uri() because it goes stale when DOM is replaced -->
+        <xsl:variable name="doc" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(xs:anyURI(ixsl:location())) || '`'), 'results')" as="document-node()"/>
+        <xsl:variable name="chart" select="key('resources', $about, $doc)" as="element()"/>
+
+        <xsl:apply-templates select="$chart" mode="ldh:RenderContent">
+            <xsl:with-param name="this" select="ancestor::div[@about][1]/@about"/>
+            <xsl:with-param name="container" select="$container"/>
+        </xsl:apply-templates>
+        
+        <!-- initialize event listeners -->
+        <xsl:apply-templates select="$container/*" mode="ldh:PostConstruct"/>
+
+        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
+    </xsl:template>
+    
+    <!-- TO-DO: unify -->
+    <xsl:template match="div[@about][@typeof]//button[contains-token(@class, 'btn-cancel')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick">
+        <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
+        <xsl:variable name="container" select="ancestor::div[@about][@typeof][1]" as="element()"/>
+        <xsl:variable name="about" select="$container/@about" as="xs:anyURI"/>
+
+        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+        
+        <xsl:message>ixsl:get(., 'baseURI'): <xsl:value-of select="ixsl:get(., 'baseURI')"/></xsl:message>
+        <xsl:message>base-uri(): <xsl:value-of select="base-uri()"/></xsl:message>
+        <xsl:message>ixsl:location(): <xsl:value-of select="ixsl:location()"/></xsl:message>
+
+        <!-- not using base-uri() because it goes stale when DOM is replaced -->
+        <xsl:variable name="doc" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(xs:anyURI(ixsl:location())) || '`'), 'results')" as="document-node()"/>
+        <xsl:variable name="resource" select="key('resources', $about, $doc)" as="element()"/>
+
+        <xsl:variable name="row" as="node()*">
+            <xsl:apply-templates select="$resource" mode="bs2:Row"/>
+        </xsl:variable>
+
+        <xsl:for-each select="$container">
+            <xsl:result-document href="?." method="ixsl:replace-content">
+                <xsl:copy-of select="$row/*"/> <!-- inject the content of div.row-fluid -->
+            </xsl:result-document>
+        </xsl:for-each>
+        <!-- initialize event listeners -->
+        <xsl:apply-templates select="$container/*" mode="ldh:PostConstruct"/>
+
+        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
+    </xsl:template>
+    
+    <!-- submit instance update form -->
+    
+    <xsl:template match="div[@about][@typeof]//form[contains-token(@class, 'form-horizontal')]" mode="ixsl:onsubmit" priority="1">
+        <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
+        <xsl:variable name="form" select="." as="element()"/>
+        <xsl:variable name="id" select="ixsl:get(., 'id')" as="xs:string"/>
+        <xsl:variable name="action" select="ixsl:get(., 'action')" as="xs:anyURI"/>
+        <xsl:variable name="enctype" select="ixsl:get(., 'enctype')" as="xs:string"/>
+        <xsl:variable name="accept" select="'application/xhtml+xml'" as="xs:string"/>
+        <xsl:variable name="this" select="xs:anyURI(ancestor::div[@about][1]/@about)" as="xs:anyURI"/>
+        <xsl:message>base-uri(): <xsl:value-of select="base-uri()"/></xsl:message>
+        <xsl:variable name="etag" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(base-uri()) || '`'), 'etag')" as="xs:string"/>
+        <xsl:message>$etag: <xsl:value-of select="$etag"/></xsl:message>
+
+        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+        
+        <xsl:variable name="elements" select=".//input | .//select" as="element()*"/>
+        <xsl:variable name="triples" select="ldh:parse-rdf-post($elements)" as="element()*"/>
+        <xsl:variable name="where-pattern" as="element()">
+            <json:map>
+                <json:string key="type">bgp</json:string>
+                <json:array key="triples">
+                    <json:map>
+                        <json:string key="subject"><xsl:sequence select="$this"/></json:string>
+                        <json:string key="predicate">?p</json:string>
+                        <json:string key="object">?o</json:string>
+                    </json:map>
+                </json:array>
+            </json:map>
+        </xsl:variable>
+        <xsl:variable name="update-xml" as="element()">
+            <json:map>
+                <json:string key="type">update</json:string>
+                <json:array key="updates">
+                    <json:map>
+                        <json:string key="updateType">insertdelete</json:string>
+                        <json:array key="delete">
+                            <xsl:sequence select="$where-pattern"/>
+                        </json:array>
+                        <json:array key="insert">
+                            <json:map>
+                                <json:string key="type">bgp</json:string>
+                                <json:array key="triples">
+                                    <xsl:sequence select="$triples"/>
+                                </json:array>
+                            </json:map>
+                        </json:array>
+                        <json:array key="where">
+                            <xsl:sequence select="$where-pattern"/>
+                        </json:array>
+                    </json:map>
+                </json:array>
+            </json:map>
+        </xsl:variable>
+        <xsl:variable name="update-json-string" select="xml-to-json($update-xml)" as="xs:string"/>
+        <xsl:variable name="update-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $update-json-string ])"/>
+        <xsl:variable name="update-string" select="ixsl:call($sparql-generator, 'stringify', [ $update-json ])" as="xs:string"/>
+        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(base-uri()), map{}, $action)" as="xs:anyURI"/>
+        <xsl:variable name="request" as="item()*">
+            <ixsl:schedule-action http-request="map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string, 'headers': map{ 'If-Match': $etag, 'Accept': 'application/rdf+xml' } }">
+                <xsl:call-template name="onPatchCompleted">
+                </xsl:call-template>
+            </ixsl:schedule-action>
+        </xsl:variable>
+        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+    </xsl:template>
+    
+    <xsl:template name="onPatchCompleted">
+        <xsl:context-item as="map(*)" use="required"/>
+
+        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
+
+        <xsl:choose>
+            <xsl:when test="?status = 204">
+                <xsl:message>
+                    PATCH succeeded
+                </xsl:message>
+            </xsl:when>
+            <xsl:otherwise>
+                PATCH failed
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:template>
+    
+    <!-- submit instance creation form -->
+    
+    <xsl:template match="form[contains-token(@class, 'form-horizontal')]" mode="ixsl:onsubmit">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="form" select="." as="element()"/>
         <xsl:variable name="id" select="ixsl:get(., 'id')" as="xs:string"/>
@@ -310,7 +527,7 @@ WHERE
                         <xsl:call-template name="ldh:FormLoaded">
                             <xsl:with-param name="action" select="$action"/>
                             <xsl:with-param name="form" select="$form"/>
-                            <xsl:with-param name="target-id" select="$form/input[@class = 'target-id']/@value"/>
+                            <!-- <xsl:with-param name="target-id" select="$form/input[@class = 'target-id']/@value"/> -->
                         </xsl:call-template>
                     </ixsl:schedule-action>
                 </xsl:variable>
@@ -364,11 +581,9 @@ WHERE
         <xsl:variable name="bnode-ids" select="distinct-values($form//input[@name = ('sb', 'ob')]/ixsl:get(., 'value')[starts-with(., 'A')])" as="xs:string*"/>
          <!-- find the last bnode ID on the form so that we can change this resources ID to +1. Will only work with Jena's ID format A1, A2, ... -->
         <xsl:variable name="max-bnode-id" select="if (empty($bnode-ids)) then 0 else max(for $bnode-id in $bnode-ids return xs:integer(substring-after($bnode-id, 'A')))" as="xs:integer"/>
-        <!--- show a modal form if this button is in a <fieldset>, meaning on a resource-level and not form level. Otherwise (e.g. for the "Create" button) show normal form -->
-        <xsl:variable name="modal-form" select="exists(ancestor::fieldset)" as="xs:boolean"/>
         <xsl:variable name="forClass" select="input[@class = 'forClass']/@value" as="xs:anyURI"/>
-        <xsl:variable name="create-graph" select="empty($form) or $modal-form" as="xs:boolean"/>
-        <xsl:variable name="query-params" select="map:merge((map{ 'forClass': string($forClass) }, if ($modal-form) then map{ 'mode': '&ac;ModalMode' } else (), if ($create-graph) then map{ 'createGraph': string(true()) } else ()))" as="map(xs:string, xs:string*)"/>
+        <xsl:variable name="create-graph" select="empty($form)" as="xs:boolean"/>
+        <xsl:variable name="query-params" select="map:merge((map{ 'forClass': string($forClass) }, if ($create-graph) then map{ 'createGraph': string(true()) } else ()))" as="map(xs:string, xs:string*)"/>
         <xsl:variable name="href" select="ac:build-uri(ac:absolute-path(@href), $query-params)" as="xs:anyURI"/>
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
@@ -383,13 +598,11 @@ WHERE
         </xsl:variable>
         <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
 
-        <xsl:if test="not($modal-form)">
-            <xsl:call-template name="ldh:PushState">
-                <xsl:with-param name="href" select="ldh:href($ldt:base, ac:absolute-path(base-uri()), map{}, $href)"/>
-                <!--<xsl:with-param name="title" select="/html/head/title"/>-->
-                <xsl:with-param name="container" select="id('content-body', ixsl:page())"/>
-            </xsl:call-template>
-        </xsl:if>
+<!--        <xsl:call-template name="ldh:PushState">
+            <xsl:with-param name="href" select="ldh:href($ldt:base, ac:absolute-path(base-uri()), map{}, $href)"/>
+            <xsl:with-param name="title" select="/html/head/title"/>
+            <xsl:with-param name="container" select="id('content-body', ixsl:page())"/>
+        </xsl:call-template>-->
     </xsl:template>
     
     <!-- appends new SHACL-constructed instance to the form -->
@@ -400,10 +613,10 @@ WHERE
          <!-- find the last bnode ID on the form so that we can change this resources ID to +1. Will only work with Jena's ID format A1, A2, ... -->
         <xsl:variable name="max-bnode-id" select="if (empty($bnode-ids)) then 0 else max(for $bnode-id in $bnode-ids return xs:integer(substring-after($bnode-id, 'A')))" as="xs:integer"/>
         <!--- show a modal form if this button is in a <fieldset>, meaning on a resource-level and not form level. Otherwise (e.g. for the "Create" button) show normal form -->
-        <xsl:variable name="modal-form" select="exists(ancestor::fieldset)" as="xs:boolean"/>
+<!--        <xsl:variable name="modal-form" select="exists(ancestor::fieldset)" as="xs:boolean"/>-->
         <xsl:variable name="forShape" select="input[@class = 'forShape']/@value" as="xs:anyURI"/>
-        <xsl:variable name="create-graph" select="empty($form) or $modal-form" as="xs:boolean"/>
-        <xsl:variable name="query-params" select="map:merge((map{ 'forShape': string($forShape) }, if ($modal-form) then map{ 'mode': '&ac;ModalMode' } else (), if ($create-graph) then map{ 'createGraph': string(true()) } else ()))" as="map(xs:string, xs:string*)"/>
+        <xsl:variable name="create-graph" select="empty($form)" as="xs:boolean"/>
+        <xsl:variable name="query-params" select="map:merge((map{ 'forShape': string($forShape) }, if ($create-graph) then map{ 'createGraph': string(true()) } else ()))" as="map(xs:string, xs:string*)"/>
         <!-- do not use @href from the HTML because it does not update with AJAX document loads -->
         <xsl:variable name="href" select="ac:build-uri(ac:absolute-path(base-uri()), $query-params)" as="xs:anyURI"/>
 
@@ -419,13 +632,10 @@ WHERE
         </xsl:variable>
         <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
 
-        <xsl:if test="not($modal-form)">
-            <xsl:call-template name="ldh:PushState">
-                <xsl:with-param name="href" select="ldh:href($ldt:base, ac:absolute-path(base-uri()), map{}, $href)"/>
-                <!--<xsl:with-param name="title" select="/html/head/title"/>-->
-                <xsl:with-param name="container" select="id('content-body', ixsl:page())"/>
-            </xsl:call-template>
-        </xsl:if>
+<!--        <xsl:call-template name="ldh:PushState">
+            <xsl:with-param name="href" select="ldh:href($ldt:base, ac:absolute-path(base-uri()), map{}, $href)"/>
+            <xsl:with-param name="container" select="id('content-body', ixsl:page())"/>
+        </xsl:call-template>-->
     </xsl:template>
     
     <!-- types (classes with constructors) are looked up in the <ns> endpoint -->
@@ -853,9 +1063,9 @@ WHERE
         <xsl:variable name="event" select="ixsl:event()"/>
         <xsl:variable name="action" select="ixsl:get(ixsl:get($event, 'detail'), 'action')" as="xs:anyURI"/>
         <xsl:variable name="form" select="ixsl:get(ixsl:get($event, 'detail'), 'target')" as="element()"/> <!-- not ixsl:get(ixsl:event(), 'target') because that's the whole document -->
-        <xsl:variable name="target-id" select="$form/input[@class = 'target-id']/@value" as="xs:string?"/>
+<!--        <xsl:variable name="target-id" select="$form/input[@class = 'target-id']/@value" as="xs:string?"/>-->
         <!-- $target-id is of the "Create" button, need to replace the preceding typeahead input instead -->
-        <xsl:variable name="typeahead-span" select="if ($target-id) then id($target-id, ixsl:page())/ancestor::div[@class = 'controls']//span[descendant::input[@name = 'ou']] else ()" as="element()?"/>
+<!--        <xsl:variable name="typeahead-span" select="if ($target-id) then id($target-id, ixsl:page())/ancestor::div[@class = 'controls']//span[descendant::input[@name = 'ou']] else ()" as="element()?"/>-->
         <xsl:variable name="response" select="ixsl:get(ixsl:get($event, 'detail'), 'response')"/>
         <xsl:variable name="html" select="if (ixsl:contains($event, 'detail.xml')) then ixsl:get($event, 'detail.xml') else ()" as="document-node()?"/>
 
@@ -878,7 +1088,7 @@ WHERE
                 <xsl:with-param name="container" select="$container"/>
                 <xsl:with-param name="action" select="$action"/>
                 <xsl:with-param name="form" select="$form"/>
-                <xsl:with-param name="target-id" select="$target-id"/>
+<!--                <xsl:with-param name="target-id" select="$target-id"/>-->
             </xsl:call-template>
         </xsl:for-each>
     </xsl:template>
@@ -888,9 +1098,7 @@ WHERE
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="container" as="element()"/>
         <xsl:param name="add-class" as="xs:string?"/>
-        <xsl:param name="target-id" as="xs:string?"/>
         <xsl:param name="new-form-id" as="xs:string?"/>
-        <xsl:param name="new-target-id" as="xs:string?"/>
         <xsl:param name="max-bnode-id" as="xs:integer?"/>
 
         <xsl:choose>
@@ -899,108 +1107,77 @@ WHERE
                     <xsl:variable name="event" select="ixsl:event()"/>
                     <xsl:variable name="target" select="ixsl:get($event, 'target')"/>
                     <xsl:variable name="modal" select="exists(id($container/@id)//div[contains-token(@class, 'modal-constructor')])" as="xs:boolean"/>
-                    <xsl:variable name="target-id" select="$target/@id" as="xs:string?"/>
                     <xsl:variable name="doc-id" select="concat('id', ixsl:call(ixsl:window(), 'generateUUID', []))" as="xs:string"/>
                     
-                    <xsl:choose>
-                        <xsl:when test="$modal">
-                            <xsl:variable name="modal-div" as="element()">
-                                <xsl:apply-templates select="id($container/@id)//div[contains-token(@class, 'modal-constructor')]" mode="form">
-                                    <xsl:with-param name="target-id" select="$target-id" tunnel="yes"/>
-                                    <xsl:with-param name="doc-id" select="$doc-id" tunnel="yes"/>
-<!--                                    <xsl:with-param name="max-bnode-id" select="$max-bnode-id" tunnel="yes"/>-->
-                                </xsl:apply-templates>
-                            </xsl:variable>
-                            <xsl:variable name="form-id" select="$modal-div//form/@id" as="xs:string"/>
-                            
-                            <xsl:if test="$add-class">
-                                <xsl:sequence select="$modal-div//form/ixsl:call(ixsl:get(., 'classList'), 'toggle', [ $add-class, true() ])[current-date() lt xs:date('2000-01-01')]"/>
-                            </xsl:if>
+                    <xsl:variable name="form" as="element()">
+                        <xsl:apply-templates select="id($container/@id)//form" mode="form">
+                            <xsl:with-param name="doc-id" select="$doc-id" tunnel="yes"/>
+                            <!-- only rewrite bnode labels if "Create" button was called within <form> -->
+                            <xsl:with-param name="max-bnode-id" select="if ($target/ancestor::form[contains-token(@class, 'form-horizontal')]) then $max-bnode-id else ()" tunnel="yes"/>
+                        </xsl:apply-templates>
+                    </xsl:variable>
+                    <xsl:variable name="form-id" select="$form/@id" as="xs:string"/>
 
-                            <xsl:for-each select="ixsl:page()//body">
+                    <xsl:if test="$add-class">
+                        <xsl:sequence select="$form/ixsl:call(ixsl:get(., 'classList'), 'toggle', [ $add-class, true() ])[current-date() lt xs:date('2000-01-01')]"/>
+                    </xsl:if>
+
+                    <xsl:choose>
+                        <!-- if "Create" button is within a <form>, append elements to <form> -->
+<!--                        <xsl:when test="$target/ancestor::form[contains-token(@class, 'form-horizontal')]">
+                            <xsl:for-each select="$target/ancestor::form[contains-token(@class, 'form-horizontal')]">
+                                 remove the old form-actions <div> because we'll be appending a new one below 
+                                <xsl:for-each select="./div[./div[contains-token(@class, 'form-actions')]]">
+                                    <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
+                                </xsl:for-each>
+                                 remove the current "Create" buttons from the form 
+                                <xsl:for-each select="$target/ancestor::div[contains-token(@class, 'create-resource')]">
+                                    <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
+                                </xsl:for-each>
+
                                 <xsl:result-document href="?." method="ixsl:append-content">
-                                    <!-- append modal div to body -->
-                                    <xsl:copy-of select="$modal-div"/>
+                                     only append the <fieldset> from the $form, not the whole <form> 
+                                    <xsl:copy-of select="$form//div[contains-token(@class, 'row-fluid')]"/>
+                                </xsl:result-document>
+                            </xsl:for-each>
+                        </xsl:when>-->
+                        <!-- if "Create" button is ReadMode, append form as row -->
+                        <xsl:when test="$target/ancestor::div[@id = 'content-body']">
+                            <xsl:for-each select="$target/ancestor::div[@id = 'content-body']">
+                                <!-- remove the current "Create" buttons from the row -->
+                                <xsl:for-each select="$target/ancestor::div[contains-token(@class, 'create-resource')]">
+                                    <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
+                                </xsl:for-each>
+
+                                <xsl:result-document href="?." method="ixsl:append-content">
+                                    <div id="id{ac:uuid()}" class="row-fluid"> <!-- typeof -->
+                                        <xsl:copy-of select="$form"/>
+                                    </div>
                                 </xsl:result-document>
                             </xsl:for-each>
                             
-                            <!-- add event listeners to the descendants of the form. TO-DO: replace with XSLT -->
-                            <xsl:if test="id($form-id, ixsl:page())">
-                                <xsl:apply-templates select="id($form-id, ixsl:page())" mode="ldh:PostConstruct"/>
-                            </xsl:if>
-                            
-                            <xsl:if test="$new-target-id">
-                                <!-- overwrite target-id input's value with the provided value -->
-                                <xsl:for-each select="id($form-id, ixsl:page())//input[@class = 'target-id']"> <!-- why @class and not @name?? -->
-                                    <ixsl:set-property name="value" select="$new-target-id" object="."/>
-                                </xsl:for-each>
-                            </xsl:if>
-                            <xsl:if test="$new-form-id">
-                                <!-- overwrite form @id with the provided value -->
-                                <ixsl:set-property name="id" select="$new-form-id" object="id($form-id, ixsl:page())"/>
-                            </xsl:if>
+                            <!-- a hack to change the request method to POST as we want to append partial data and not replace the whole graph as with PUT in EditMode -->
+                            <ixsl:set-attribute name="action" select="replace($form/@action, '_method=PUT', '_method=POST')" object="id($form-id, ixsl:page())"/>
                         </xsl:when>
+                        <!-- there's no <form> so we're not in EditMode - replace the whole content -->
                         <xsl:otherwise>
-                            <xsl:variable name="form" as="element()">
-                                <xsl:apply-templates select="id($container/@id)//form" mode="form">
-                                    <xsl:with-param name="target-id" select="$target-id" tunnel="yes"/>
-                                    <xsl:with-param name="doc-id" select="$doc-id" tunnel="yes"/>
-                                    <!-- only rewrite bnode labels if "Create" button was called within <form> -->
-                                    <xsl:with-param name="max-bnode-id" select="if ($target/ancestor::form[contains-token(@class, 'form-horizontal')]) then $max-bnode-id else ()" tunnel="yes"/>
-                                </xsl:apply-templates>
-                            </xsl:variable>
-                            <xsl:variable name="form-id" select="$form/@id" as="xs:string"/>
-                            
-                            <xsl:if test="$add-class">
-                                <xsl:sequence select="$form/ixsl:call(ixsl:get(., 'classList'), 'toggle', [ $add-class, true() ])[current-date() lt xs:date('2000-01-01')]"/>
-                            </xsl:if>
-                            
-                            <xsl:choose>
-                                <!-- if "Create" button is within the <form>, append elements to <form> -->
-                                <xsl:when test="$target/ancestor::form[contains-token(@class, 'form-horizontal')]">
-                                    <xsl:for-each select="$target/ancestor::form[contains-token(@class, 'form-horizontal')]">
-                                        <!-- remove the old form-actions <div> because we'll be appending a new one below -->
-                                        <xsl:for-each select="./div[./div[contains-token(@class, 'form-actions')]]">
-                                            <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
-                                        </xsl:for-each>
-                                        <!-- remove the current "Create" buttons from the form -->
-                                        <xsl:for-each select="$target/ancestor::div[contains-token(@class, 'create-resource')]">
-                                            <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
-                                        </xsl:for-each>
-
-                                        <xsl:result-document href="?." method="ixsl:append-content">
-                                            <!-- only append the <fieldset> from the $form, not the whole <form> -->
-                                            <xsl:copy-of select="$form//div[contains-token(@class, 'row-fluid')]"/>
-                                        </xsl:result-document>
-                                    </xsl:for-each>
-                                </xsl:when>
-                                <!-- there's no <form> so we're not in EditMode - replace the whole content -->
-                                <xsl:otherwise>
-                                    <xsl:for-each select="$container">
-                                        <xsl:result-document href="?." method="ixsl:replace-content">
-                                            <xsl:copy-of select="$form"/>
-                                        </xsl:result-document>
-                                    </xsl:for-each>
-                                </xsl:otherwise>
-                            </xsl:choose>
-                            
-                            <!-- add event listeners to the descendants of the form. TO-DO: replace with XSLT -->
-                            <xsl:if test="id($form-id, ixsl:page())">
-                                <xsl:apply-templates select="id($form-id, ixsl:page())" mode="ldh:PostConstruct"/>
-                            </xsl:if>
-                    
-                            <xsl:if test="$new-target-id">
-                                <!-- overwrite target-id input's value with the provided value -->
-                                <xsl:for-each select="id($form-id, ixsl:page())//input[@class = 'target-id']"> <!-- why @class and not @name?? -->
-                                    <ixsl:set-property name="value" select="$new-target-id" object="."/>
-                                </xsl:for-each>
-                            </xsl:if>
-                            <xsl:if test="$new-form-id">
-                                <!-- overwrite form's @id with the provided value -->
-                                <ixsl:set-property name="id" select="$new-form-id" object="id($form-id, ixsl:page())"/>
-                            </xsl:if>
+                            <xsl:for-each select="$container">
+                                <xsl:result-document href="?." method="ixsl:replace-content">
+                                    <xsl:copy-of select="$form"/>
+                                </xsl:result-document>
+                            </xsl:for-each>
                         </xsl:otherwise>
                     </xsl:choose>
+
+                    <!-- add event listeners to the descendants of the form. TO-DO: replace with XSLT -->
+                    <xsl:if test="id($form-id, ixsl:page())">
+                        <xsl:apply-templates select="id($form-id, ixsl:page())" mode="ldh:PostConstruct"/>
+                    </xsl:if>
+
+                    <xsl:if test="$new-form-id">
+                        <!-- overwrite form's @id with the provided value -->
+                        <ixsl:set-property name="id" select="$new-form-id" object="id($form-id, ixsl:page())"/>
+                    </xsl:if>
                     
                     <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
                 </xsl:for-each>
@@ -1118,9 +1295,9 @@ WHERE
         <xsl:param name="container" select="id('content-body', ixsl:page())" as="element()"/>
         <xsl:param name="action" as="xs:anyURI"/>
         <xsl:param name="form" as="element()"/>
-        <xsl:param name="target-id" as="xs:string?"/>
+<!--        <xsl:param name="target-id" as="xs:string?"/>-->
         <!-- $target-id is of the "Create" button, need to replace the preceding typeahead input instead -->
-        <xsl:param name="typeahead-span" select="if ($target-id) then id($target-id, ixsl:page())/ancestor::div[@class = 'controls']//span[descendant::input[@name = 'ou']] else ()" as="element()?"/>
+<!--        <xsl:param name="typeahead-span" select="if ($target-id) then id($target-id, ixsl:page())/ancestor::div[@class = 'controls']//span[descendant::input[@name = 'ou']] else ()" as="element()?"/>-->
         
         <xsl:choose>
             <!-- special case for add/clone data forms: redirect to the container -->
@@ -1228,7 +1405,7 @@ WHERE
                         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
                     </xsl:when>
                     <!-- render the created resource as a typeahead input -->
-                    <xsl:when test="$typeahead-span">
+<!--                    <xsl:when test="$typeahead-span">
                         <xsl:variable name="request" as="item()*">
                             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $created-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                                 <xsl:call-template name="onTypeaheadResourceLoad">
@@ -1239,7 +1416,7 @@ WHERE
                             </ixsl:schedule-action>
                         </xsl:variable>
                         <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
-                    </xsl:when>
+                    </xsl:when>-->
                     <!-- if the form submit did not originate from a typeahead (target), load the created resource -->
                     <xsl:otherwise>
                         <xsl:variable name="request" as="item()*">
@@ -1262,7 +1439,7 @@ WHERE
                     <xsl:variable name="doc-id" select="concat('id', ixsl:call(ixsl:window(), 'generateUUID', []))" as="xs:string"/>
                     <xsl:variable name="form" as="element()">
                         <xsl:apply-templates select="//form[@class = 'form-horizontal']" mode="form">
-                            <xsl:with-param name="target-id" select="$target-id" tunnel="yes"/>
+                            <!-- <xsl:with-param name="target-id" select="$target-id" tunnel="yes"/> -->
                             <xsl:with-param name="doc-id" select="$doc-id" tunnel="yes"/>
                         </xsl:apply-templates>
                     </xsl:variable>
@@ -1292,18 +1469,31 @@ WHERE
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
                 <xsl:for-each select="?body">
-                    <xsl:variable name="resource" select="key('resources', $resource-uri)" as="element()"/>
+                    <xsl:variable name="resource" select="key('resources', $resource-uri)" as="element()?"/>
 
-                    <!-- remove modal constructor form -->
-                    <xsl:if test="$modal-form">
-                        <xsl:sequence select="ixsl:call($modal-form/.., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
-                    </xsl:if>
+                    <xsl:choose>
+                        <xsl:when test="$resource">
+                            <!-- remove modal constructor form -->
+    <!--                        <xsl:if test="$modal-form">
+                                <xsl:sequence select="ixsl:call($modal-form/.., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
+                            </xsl:if>-->
 
-                    <xsl:for-each select="$typeahead-span">
-                        <xsl:result-document href="?." method="ixsl:replace-content">
-                            <xsl:apply-templates select="$resource" mode="ldh:Typeahead"/>
-                        </xsl:result-document>
-                    </xsl:for-each>
+                            <xsl:for-each select="$typeahead-span">
+                                <xsl:result-document href="?." method="ixsl:replace-content">
+                                    <xsl:apply-templates select="$resource" mode="ldh:Typeahead"/>
+                                </xsl:result-document>
+                            </xsl:for-each>
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <!-- resource description not found, render lookup input -->
+                            <xsl:call-template name="bs2:Lookup">
+                                <xsl:with-param name="class" select="'resource-typeahead typeahead'"/>
+<!--                                <xsl:with-param name="id" select="'input-' || $uuid"/>-->
+                                <xsl:with-param name="list-class" select="'resource-typeahead typeahead dropdown-menu'"/>
+                                <xsl:with-param name="value" select="$resource-uri"/>
+                            </xsl:call-template>
+                        </xsl:otherwise>
+                    </xsl:choose>
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>

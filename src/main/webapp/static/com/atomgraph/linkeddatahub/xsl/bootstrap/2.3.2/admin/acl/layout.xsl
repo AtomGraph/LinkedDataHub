@@ -30,7 +30,7 @@ exclude-result-prefixes="#all">
     <xsl:template match="rdf:RDF" mode="bs2:NavBarNavList">
         <xsl:if test="$foaf:Agent//@rdf:about">
             <ul class="nav pull-right">
-                <li>
+<!--                <li>
                     <xsl:if test="$ac:mode = '&ac;QueryEditorMode'">
                         <xsl:attribute name="class" select="'active'"/>
                     </xsl:if>
@@ -40,7 +40,7 @@ exclude-result-prefixes="#all">
                             <xsl:apply-templates select="key('resources', 'sparql-editor', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
                         </xsl:value-of>
                     </a>
-                </li>
+                </li>-->
 
                 <xsl:variable name="notification-query" as="xs:string">
                     <![CDATA[

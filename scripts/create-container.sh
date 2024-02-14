@@ -132,7 +132,7 @@ turtle+="<${parent}${encoded_slug}/> sioc:has_parent <${parent}> .\n"
 if [ -n "$content" ] ; then
     turtle+="<${parent}${encoded_slug}/> rdf:_1 <${content}> .\n"
 else
-    content_triples="a ldh:Content; rdf:value ldh:SelectChildren"
+    content_triples="a ldh:Content; rdf:value ldh:ChildrenView"
     if [ -n "$mode" ] ; then
         content_triples+="; ac:mode <${mode}> "
     fi

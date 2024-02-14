@@ -8,6 +8,7 @@
 @prefix sioc:	<http://rdfs.org/sioc/ns#> .
 @prefix foaf:	<http://xmlns.com/foaf/0.1/> .
 @prefix dct:	<http://purl.org/dc/terms/> .
+@prefix spin:	<http://spinrdf.org/spin#> .
 
 <>
 {
@@ -18,7 +19,7 @@
         rdf:_1 <#select-children> .
 
     <#select-children> a ldh:Content ;
-        rdf:value ldh:SelectChildren .
+        rdf:value ldh:ChildrenView .
 
 }
 
@@ -33,7 +34,7 @@
         rdf:_1 <queries/#select-children> .
 
     <queries/#select-children> a ldh:Content ;
-        rdf:value ldh:SelectChildren .
+        rdf:value ldh:ChildrenView .
 
 }
 
@@ -48,13 +49,11 @@
     <queries/select-instances/#this> a sp:Select ;
         dct:title "Select instances" ;
         dct:description "Selects instances of type from the default graph" ;
-        sp:text """
-SELECT DISTINCT ?s
+        sp:text """SELECT DISTINCT ?s
 WHERE
   { ?s  a   $type ;
         ?p  ?o
-  }
-    """ .
+  }""" .
 
 }
 
@@ -69,8 +68,7 @@ WHERE
     <queries/select-instances-in-graphs/#this> a sp:Select ;
         dct:title "Select instances in graphs" ;
         dct:description "Selects instances of type from named graphs" ;
-        sp:text """
-SELECT DISTINCT ?s
+        sp:text """SELECT DISTINCT ?s
 WHERE
   { GRAPH ?g
       { ?s  a   $type ;
@@ -90,7 +88,7 @@ WHERE
         rdf:_1 <files/#select-children> .
 
     <files/#select-children> a ldh:Content ;
-        rdf:value ldh:SelectChildren .
+        rdf:value ldh:ChildrenView .
 
 }
 
@@ -103,7 +101,7 @@ WHERE
         rdf:_1 <imports/#select-children> .
 
     <imports/#select-children> a ldh:Content ;
-        rdf:value ldh:SelectChildren .
+        rdf:value ldh:ChildrenView .
 
 }
 
@@ -116,28 +114,30 @@ WHERE
         rdf:_1 <geo/#select-geo> .
 
     <geo/#select-geo> a ldh:Content ;
-        rdf:value <geo/#select-geo-query> ;
+        rdf:value <geo/#select-geo-view> .
+
+    <geo/#select-geo-view> a ldh:View ;
+        dct:title "Geo view" ;
+        spin:query <geo/#select-geo-query> ;
         ac:mode ac:MapMode .
 
     <geo/#select-geo-query> a sp:Select ;
         dct:title "Select geo resources" ;
-        sp:text """
-    PREFIX  geo:  <http://www.w3.org/2003/01/geo/wgs84_pos#>
-    PREFIX  dct:  <http://purl.org/dc/terms/>
+        sp:text """PREFIX  geo:  <http://www.w3.org/2003/01/geo/wgs84_pos#>
+PREFIX  dct:  <http://purl.org/dc/terms/>
 
-    SELECT  DISTINCT ?resource
-    WHERE
-    { GRAPH ?graph
-      { ?resource  geo:lat  ?lat ;
-                  geo:long  ?long
-        OPTIONAL
-          { ?resource  a                    ?type }
-        OPTIONAL
-          { ?resource  dct:title  ?title }
-      }
-    }
-    ORDER BY ?title
-    """ .
+SELECT  DISTINCT ?resource
+WHERE
+{ GRAPH ?graph
+  { ?resource  geo:lat  ?lat ;
+              geo:long  ?long
+    OPTIONAL
+      { ?resource  a                    ?type }
+    OPTIONAL
+      { ?resource  dct:title  ?title }
+  }
+}
+ORDER BY ?title""" .
 
 }
 
@@ -150,33 +150,22 @@ WHERE
         rdf:_1 <latest/#select-latest> .
 
     <latest/#select-latest> a ldh:Content ;
-        rdf:value <latest/#select-latest-query> .
+        rdf:value <latest/#select-latest-view> .
+
+    <latest/#select-latest-view> a ldh:View ;
+        dct:title "Latest resources view" ;
+        spin:query <latest/#select-latest-query> .
 
     <latest/#select-latest-query> a sp:Select ;
         dct:title "Select latest" ;
-        sp:text """
-    PREFIX  dct:  <http://purl.org/dc/terms/>
+        sp:text """PREFIX  dct:  <http://purl.org/dc/terms/>
 
-    SELECT DISTINCT  ?dated
-    WHERE
-    { GRAPH ?graph
-      { ?dated  dct:created  ?created }
-    }
-    ORDER BY DESC(?created)
-    """ .
-
+SELECT DISTINCT  ?dated
+WHERE
+{ GRAPH ?graph
+  { ?dated  dct:created  ?created }
 }
-
-<charts/>
-{
-
-    <charts/> a dh:Container ;
-        dct:title "Charts" ;
-        dct:description "Saved charts" ;
-        rdf:_1 <charts/#select-children> .
-
-    <charts/#select-children> a ldh:Content ;
-        rdf:value ldh:SelectChildren .
+ORDER BY DESC(?created)""" .
 
 }
 
@@ -189,7 +178,7 @@ WHERE
         rdf:_1 <apps/#select-children> .
 
     <apps/#select-children> a ldh:Content ;
-        rdf:value ldh:SelectChildren .
+        rdf:value ldh:ChildrenView .
 
 }
 
@@ -202,6 +191,6 @@ WHERE
         rdf:_1 <services/#select-children> .
 
     <services/#select-children> a ldh:Content ;
-        rdf:value ldh:SelectChildren .
+        rdf:value ldh:ChildrenView .
 
 }
