@@ -16,6 +16,7 @@
  */
 package com.atomgraph.linkeddatahub.resource;
 
+import com.atomgraph.client.vocabulary.AC;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Request;
 import jakarta.ws.rs.core.Response;
@@ -30,6 +31,8 @@ import com.atomgraph.core.model.impl.dataset.ServiceImpl;
 import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.server.util.OntologyModelGetter;
+import com.atomgraph.spinrdf.vocabulary.SP;
+import com.atomgraph.spinrdf.vocabulary.SPIN;
 import java.net.URI;
 import java.util.List;
 import java.util.Optional;
@@ -47,7 +50,15 @@ import jakarta.ws.rs.core.UriInfo;
 import org.apache.jena.ontology.Ontology;
 import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.query.Query;
+import org.apache.jena.query.QueryExecution;
+import org.apache.jena.query.QuerySolutionMap;
+import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.rdf.model.Statement;
+import org.apache.jena.rdf.model.StmtIterator;
 import org.apache.jena.update.UpdateRequest;
+import org.apache.jena.vocabulary.RDF;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,7 +73,9 @@ public class Namespace extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
     private static final Logger log = LoggerFactory.getLogger(Namespace.class);
 
     private final URI uri;
+    private final UriInfo uriInfo;
     private final Application application;
+    private final Ontology ontology;
     private final com.atomgraph.linkeddatahub.Application system;
 
     /**
@@ -83,7 +96,9 @@ public class Namespace extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
     {
         super(request, new ServiceImpl(DatasetFactory.create(ontology.get().getOntModel()), mediaTypes), mediaTypes);
         this.uri = uriInfo.getAbsolutePath();
+        this.uriInfo = uriInfo;
         this.application = application;
+        this.ontology = ontology.get();
         this.system = system;
     }
 
@@ -95,10 +110,18 @@ public class Namespace extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
         // if query param is not provided and the app is end-user, return the namespace ontology associated with this document
         if (query == null)
         {
+            if (getUriInfo().getQueryParameters().containsKey(AC.forClass.getLocalName()))
+            {
+                String forClass = getUriInfo().getQueryParameters().getFirst(AC.forClass.getLocalName());
+                Model constructed = constructForClass(forClass);
+                return getResponseBuilder(constructed).build();
+            }
+            
             if (getApplication().canAs(EndUserApplication.class))
             {
                 String ontologyURI = getURI().toString() + "#"; // TO-DO: hard-coding "#" is not great. Replace with RDF property lookup.
                 if (log.isDebugEnabled()) log.debug("Returning namespace ontology from OntDocumentManager: {}", ontologyURI);
+                // not returning the injected in-memory ontology because it has inferences applied to it
                 OntologyModelGetter modelGetter = new OntologyModelGetter(getApplication().as(EndUserApplication.class),
                         getSystem().getOntModelSpec(), getSystem().getOntologyQuery(), getSystem().getClient(), getSystem().getMediaTypes());
                 return getResponseBuilder(modelGetter.getModel(ontologyURI)).build();
@@ -129,6 +152,42 @@ public class Namespace extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
         throw new WebApplicationException("SPARQL updates are not allowed on the <ns> endpoint", Status.METHOD_NOT_ALLOWED);
     }
     
+    public Model constructForClass(String forClass)
+    {
+        if (forClass == null) throw new IllegalArgumentException("forClass URI string cannot be null");
+
+        Resource cls = getOntology().getModel().createResource(forClass);
+        Model model = ModelFactory.createDefaultModel();
+        Resource instance = model.createResource();
+        QuerySolutionMap qsm = new QuerySolutionMap();
+        qsm.add(com.atomgraph.client.vocabulary.SPIN.THIS_VAR_NAME, instance);
+
+        StmtIterator it = cls.listProperties(SPIN.constructor);
+        try
+        {
+            while (it.hasNext())
+            {
+                Statement stmt = it.next();
+                String constructString = stmt.getObject().asResource().getProperty(SP.text).getString();
+                instance.addProperty(RDF.type, cls);
+                
+                try (QueryExecution qex = QueryExecution.model(model).
+                    query(constructString).
+                    initialBinding(qsm).
+                    build())
+                {
+                    qex.execConstruct(model);
+                }
+            }
+        }
+        finally
+        {
+            it.close();
+        }
+        
+        return model;
+    }
+    
     /**
      * Returns URI of this resource.
      * 
@@ -140,6 +199,16 @@ public class Namespace extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
     }
     
     /**
+     * Returns URI info for the current request.
+     * 
+     * @return URI info
+     */
+    public UriInfo getUriInfo()
+    {
+        return uriInfo;
+    }
+    
+    /**
      * Returns the current application.
      * 
      * @return application resource
@@ -147,6 +216,16 @@ public class Namespace extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
     public Application getApplication()
     {
         return application;
+    }
+    
+    /**
+     * Returns the ontology of the current application.
+     * 
+     * @return application ontology
+     */
+    public Ontology getOntology()
+    {
+        return ontology;
     }
     
     /**
