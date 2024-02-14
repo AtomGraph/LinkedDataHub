@@ -483,7 +483,7 @@ WHERE
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
 
         <xsl:choose>
-            <xsl:when test="?status = 200">
+            <xsl:when test="?status = 204">
                 <xsl:message>
                     PATCH succeeded
                 </xsl:message>
