@@ -577,32 +577,19 @@ WHERE
     <!-- appends new SPIN-constructed instance to the form -->
     <xsl:template match="a[contains-token(@class, 'add-constructor')][input[@class = 'forClass']/@value]" mode="ixsl:onclick" priority="1">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
-        <xsl:variable name="form" select="ancestor::form" as="element()?"/>
-        <xsl:variable name="bnode-ids" select="distinct-values($form//input[@name = ('sb', 'ob')]/ixsl:get(., 'value')[starts-with(., 'A')])" as="xs:string*"/>
-         <!-- find the last bnode ID on the form so that we can change this resources ID to +1. Will only work with Jena's ID format A1, A2, ... -->
-        <xsl:variable name="max-bnode-id" select="if (empty($bnode-ids)) then 0 else max(for $bnode-id in $bnode-ids return xs:integer(substring-after($bnode-id, 'A')))" as="xs:integer"/>
         <xsl:variable name="forClass" select="input[@class = 'forClass']/@value" as="xs:anyURI"/>
-        <xsl:variable name="create-graph" select="empty($form)" as="xs:boolean"/>
-        <xsl:variable name="query-params" select="map:merge((map{ 'forClass': string($forClass) }, if ($create-graph) then map{ 'createGraph': string(true()) } else ()))" as="map(xs:string, xs:string*)"/>
-        <xsl:variable name="href" select="ac:build-uri(ac:absolute-path(@href), $query-params)" as="xs:anyURI"/>
+        <xsl:variable name="constructor" select="ldh:construct-forClass($forClass)" as="document-node()"/>
+        <xsl:variable name="classes" select="for $class-uri in map:keys($default-classes) return key('resources', $class-uri, document(ac:document-uri($class-uri)))" as="element()*"/>
 
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
-        
-        <xsl:variable name="request" as="item()*">
-            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
-                <xsl:call-template name="onAddForm">
-                    <xsl:with-param name="container" select="id('content-body', ixsl:page())"/>
-                    <xsl:with-param name="max-bnode-id" select="$max-bnode-id"/>
-                </xsl:call-template>
-            </ixsl:schedule-action>
-        </xsl:variable>
-        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:apply-templates select="$constructor" mode="bs2:RowForm">
+            <xsl:with-param name="classes" select="$classes"/>
+            <!-- <xsl:with-param name="constructor-query" select="$constructor-query" tunnel="yes"/> -->
+            <xsl:with-param name="constraint-query" select="$constraint-query" tunnel="yes"/>
+            <!-- <xsl:with-param name="shape-query" select="$shape-query" tunnel="yes"/> -->
+            <xsl:with-param name="base-uri" select="ac:absolute-path(base-uri())" tunnel="yes"/> <!-- ac:absolute-path(base-uri()) is empty on constructed documents -->
+            <xsl:sort select="ac:label(.)"/>
+        </xsl:apply-templates>
 
-<!--        <xsl:call-template name="ldh:PushState">
-            <xsl:with-param name="href" select="ldh:href($ldt:base, ac:absolute-path(base-uri()), map{}, $href)"/>
-            <xsl:with-param name="title" select="/html/head/title"/>
-            <xsl:with-param name="container" select="id('content-body', ixsl:page())"/>
-        </xsl:call-template>-->
     </xsl:template>
     
     <!-- appends new SHACL-constructed instance to the form -->
