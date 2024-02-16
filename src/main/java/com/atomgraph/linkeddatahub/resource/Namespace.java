@@ -16,6 +16,7 @@
  */
 package com.atomgraph.linkeddatahub.resource;
 
+import com.atomgraph.client.util.Constructor;
 import com.atomgraph.client.vocabulary.AC;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Request;
@@ -31,8 +32,6 @@ import com.atomgraph.core.model.impl.dataset.ServiceImpl;
 import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.server.util.OntologyModelGetter;
-import com.atomgraph.spinrdf.vocabulary.SP;
-import com.atomgraph.spinrdf.vocabulary.SPIN;
 import java.net.URI;
 import java.util.List;
 import java.util.Optional;
@@ -47,18 +46,15 @@ import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Response.Status;
 import jakarta.ws.rs.core.SecurityContext;
 import jakarta.ws.rs.core.UriInfo;
+import org.apache.jena.iri.IRI;
+import org.apache.jena.iri.IRIFactory;
 import org.apache.jena.ontology.Ontology;
 import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.query.Query;
-import org.apache.jena.query.QueryExecution;
-import org.apache.jena.query.QuerySolutionMap;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
-import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.rdf.model.Statement;
-import org.apache.jena.rdf.model.StmtIterator;
+import org.apache.jena.riot.system.Checker;
 import org.apache.jena.update.UpdateRequest;
-import org.apache.jena.vocabulary.RDF;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -110,11 +106,18 @@ public class Namespace extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
         // if query param is not provided and the app is end-user, return the namespace ontology associated with this document
         if (query == null)
         {
+            // construct instances for a list of ontology classes whose URIs are provided as ?forClass
             if (getUriInfo().getQueryParameters().containsKey(AC.forClass.getLocalName()))
             {
-                String forClass = getUriInfo().getQueryParameters().getFirst(AC.forClass.getLocalName());
-                Model constructed = constructForClass(forClass);
-                return getResponseBuilder(constructed).build();
+                List<String> forClasses = getUriInfo().getQueryParameters().get(AC.forClass.getLocalName());
+                Model instances = ModelFactory.createDefaultModel();
+                
+                forClasses.stream().
+                    map(forClass -> getOntology().getOntModel().getOntClass(checkURI(forClass).toString())).
+                    filter(forClass -> forClass != null).
+                    forEach(forClass -> new Constructor().construct(forClass, instances, getApplication().getBase().getURI()));
+                
+                return getResponseBuilder(instances).build();
             }
             
             if (getApplication().canAs(EndUserApplication.class))
@@ -152,40 +155,21 @@ public class Namespace extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
         throw new WebApplicationException("SPARQL updates are not allowed on the <ns> endpoint", Status.METHOD_NOT_ALLOWED);
     }
     
-    public Model constructForClass(String forClass)
+    /**
+     * Checks URI syntax. Throws exception if invalid.
+     * 
+     * @param classIRIStr URI string
+     * @return IRI
+     */
+    public static IRI checkURI(String classIRIStr)
     {
-        if (forClass == null) throw new IllegalArgumentException("forClass URI string cannot be null");
+        if (classIRIStr == null) throw new IllegalArgumentException("URI String cannot be null");
 
-        Resource cls = getOntology().getModel().createResource(forClass);
-        Model model = ModelFactory.createDefaultModel();
-        Resource instance = model.createResource();
-        QuerySolutionMap qsm = new QuerySolutionMap();
-        qsm.add(com.atomgraph.client.vocabulary.SPIN.THIS_VAR_NAME, instance);
+        IRI classIRI = IRIFactory.iriImplementation().create(classIRIStr);
+        // throws Exceptions on bad URIs:
+        Checker.iriViolations(classIRI);
 
-        StmtIterator it = cls.listProperties(SPIN.constructor);
-        try
-        {
-            while (it.hasNext())
-            {
-                Statement stmt = it.next();
-                String constructString = stmt.getObject().asResource().getProperty(SP.text).getString();
-                instance.addProperty(RDF.type, cls);
-                
-                try (QueryExecution qex = QueryExecution.model(model).
-                    query(constructString).
-                    initialBinding(qsm).
-                    build())
-                {
-                    qex.execConstruct(model);
-                }
-            }
-        }
-        finally
-        {
-            it.close();
-        }
-        
-        return model;
+        return classIRI;
     }
     
     /**

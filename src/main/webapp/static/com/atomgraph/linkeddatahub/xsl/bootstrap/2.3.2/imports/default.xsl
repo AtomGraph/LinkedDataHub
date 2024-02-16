@@ -174,6 +174,14 @@ exclude-result-prefixes="#all"
         </xsl:message>
     </xsl:function>
     
+    <xsl:function name="ldh:construct" as="document-node()" cache="yes">
+        <xsl:param name="forClass" as="xs:anyURI"/>
+        <xsl:variable name="results-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'forClass': $forClass })" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="ldh:href($ldt:base, $ldt:base, map{}, $results-uri)" as="xs:anyURI"/>
+            
+        <xsl:sequence select="document(resolve-uri)"/>
+    </xsl:function>
+    
     <xsl:function name="ldh:listSuperClasses" as="attribute()*" cache="yes">
         <xsl:param name="class" as="xs:anyURI"/>
         
