@@ -576,20 +576,70 @@ WHERE
     
     <!-- appends new SPIN-constructed instance to the form -->
     <xsl:template match="a[contains-token(@class, 'add-constructor')][input[@class = 'forClass']/@value]" mode="ixsl:onclick" priority="1">
-        <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
+        <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:variable name="event" select="ixsl:event()"/>
+        <xsl:variable name="target" select="ixsl:get($event, 'target')"/>
+        <xsl:variable name="container" select="id('content-body', ixsl:page())" as="element()"/>
         <xsl:variable name="forClass" select="input[@class = 'forClass']/@value" as="xs:anyURI"/>
         <xsl:variable name="constructor" select="ldh:construct-forClass($forClass)" as="document-node()"/>
         <xsl:variable name="classes" select="for $class-uri in map:keys($default-classes) return key('resources', $class-uri, document(ac:document-uri($class-uri)))" as="element()*"/>
 
-        <xsl:apply-templates select="$constructor" mode="bs2:RowForm">
-            <xsl:with-param name="classes" select="$classes"/>
-            <!-- <xsl:with-param name="constructor-query" select="$constructor-query" tunnel="yes"/> -->
-            <xsl:with-param name="constraint-query" select="$constraint-query" tunnel="yes"/>
-            <!-- <xsl:with-param name="shape-query" select="$shape-query" tunnel="yes"/> -->
-            <xsl:with-param name="base-uri" select="ac:absolute-path(base-uri())" tunnel="yes"/> <!-- ac:absolute-path(base-uri()) is empty on constructed documents -->
-            <xsl:sort select="ac:label(.)"/>
-        </xsl:apply-templates>
+        <xsl:variable name="form" as="element()">
+            <xsl:apply-templates select="$constructor" mode="bs2:RowForm">
+                <xsl:with-param name="classes" select="$classes"/>
+                <!-- <xsl:with-param name="constructor-query" select="$constructor-query" tunnel="yes"/> -->
+                <xsl:with-param name="constraint-query" select="$constraint-query" tunnel="yes"/>
+                <!-- <xsl:with-param name="shape-query" select="$shape-query" tunnel="yes"/> -->
+                <xsl:with-param name="base-uri" select="ac:absolute-path(base-uri())" tunnel="yes"/> <!-- ac:absolute-path(base-uri()) is empty on constructed documents -->
+                <xsl:sort select="ac:label(.)"/>
+            </xsl:apply-templates>
+        </xsl:variable>
+<!--        <xsl:variable name="form-id" select="$form/@id" as="xs:string"/>-->
 
+<!--        <xsl:if test="$add-class">
+            <xsl:sequence select="$form/ixsl:call(ixsl:get(., 'classList'), 'toggle', [ $add-class, true() ])[current-date() lt xs:date('2000-01-01')]"/>
+        </xsl:if>-->
+
+        <xsl:choose>
+            <!-- if "Create" button is ReadMode, append form as row -->
+            <xsl:when test="$target/ancestor::div[@id = 'content-body']">
+                <xsl:for-each select="$target/ancestor::div[@id = 'content-body']">
+                    <!-- remove the current "Create" buttons from the row -->
+                    <xsl:for-each select="$target/ancestor::div[contains-token(@class, 'create-resource')]">
+                        <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
+                    </xsl:for-each>
+
+                    <xsl:result-document href="?." method="ixsl:append-content">
+                        <div id="id{ac:uuid()}" class="row-fluid"> <!-- typeof -->
+                            <xsl:copy-of select="$form"/>
+                        </div>
+                    </xsl:result-document>
+                </xsl:for-each>
+
+                <!-- a hack to change the request method to POST as we want to append partial data and not replace the whole graph as with PUT in EditMode -->
+                <ixsl:set-attribute name="action" select="replace($form/@action, '_method=PUT', '_method=POST')" object="id($form-id, ixsl:page())"/>
+            </xsl:when>
+            <!-- there's no <form> so we're not in EditMode - replace the whole content -->
+            <xsl:otherwise>
+                <xsl:for-each select="$container">
+                    <xsl:result-document href="?." method="ixsl:replace-content">
+                        <xsl:copy-of select="$form"/>
+                    </xsl:result-document>
+                </xsl:for-each>
+            </xsl:otherwise>
+        </xsl:choose>
+
+        <!-- add event listeners to the descendants of the form. TO-DO: replace with XSLT -->
+        <xsl:if test="id($form-id, ixsl:page())">
+            <xsl:apply-templates select="id($form-id, ixsl:page())" mode="ldh:PostConstruct"/>
+        </xsl:if>
+
+<!--        <xsl:if test="$new-form-id">
+             overwrite form's @id with the provided value 
+            <ixsl:set-property name="id" select="$new-form-id" object="id($form-id, ixsl:page())"/>
+        </xsl:if>-->
+
+        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
     </xsl:template>
     
     <!-- appends new SHACL-constructed instance to the form -->
