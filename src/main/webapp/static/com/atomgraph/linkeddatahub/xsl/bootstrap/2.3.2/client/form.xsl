@@ -630,9 +630,9 @@ WHERE
         </xsl:choose>
 
         <!-- add event listeners to the descendants of the form. TO-DO: replace with XSLT -->
-        <xsl:if test="id($form-id, ixsl:page())">
+<!--        <xsl:if test="id($form-id, ixsl:page())">
             <xsl:apply-templates select="id($form-id, ixsl:page())" mode="ldh:PostConstruct"/>
-        </xsl:if>
+        </xsl:if>-->
 
 <!--        <xsl:if test="$new-form-id">
              overwrite form's @id with the provided value 
