@@ -592,7 +592,7 @@ WHERE
                 <xsl:with-param name="constraint-query" select="$constraint-query" tunnel="yes"/>
                 <!-- <xsl:with-param name="shape-query" select="$shape-query" tunnel="yes"/> -->
                 <xsl:with-param name="base-uri" select="ac:absolute-path(base-uri())" tunnel="yes"/> <!-- ac:absolute-path(base-uri()) is empty on constructed documents -->
-                <xsl:sort select="ac:label(.)"/>
+                <!-- <xsl:sort select="ac:label(.)"/> -->
             </xsl:apply-templates>
         </xsl:variable>
 <!--        <xsl:variable name="form-id" select="$form/@id" as="xs:string"/>-->
