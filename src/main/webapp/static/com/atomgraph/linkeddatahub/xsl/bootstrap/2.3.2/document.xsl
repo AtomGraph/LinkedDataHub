@@ -569,9 +569,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="constructor-query" as="xs:string?"/>
 
         <xsl:document>
-            <xsl:variable name="constructors" select="ldh:query-result(map{}, resolve-uri('ns', $ldt:base), $constructor-query || ' VALUES $Type { ' || string-join(for $type in $forClass return '&lt;' || $type || '&gt;', ' ') || ' }')" as="document-node()?"/>
-            <!-- ldh:construct() expects ($forClass, $constructor*) map -->
-            <xsl:variable name="constructed-doc" select="ldh:construct(map{ $forClass: $constructors//srx:result[srx:binding[@name = 'Type'] = $forClass]/srx:binding[@name = 'construct']/srx:literal/string() })" as="document-node()"/>
+            <xsl:variable name="constructed-doc" select="ldh:construct-forClass($forClass)" as="document-node()"/>
 
             <xsl:apply-templates select="$constructed-doc" mode="ldh:SetDocumentURI"/>
         </xsl:document>

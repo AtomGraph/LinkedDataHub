@@ -1215,8 +1215,7 @@ extension-element-prefixes="ixsl"
                     <xsl:sequence select="ldh:reserialize($constructor)"/>
                 </xsl:when>
                 <xsl:otherwise>
-                    <!-- ldh:construct() expects ($forClass, $constructor*) map -->
-                    <xsl:sequence select="ldh:construct(map:merge(for $type in $forClass return map{ $type: $constructors//srx:result[srx:binding[@name = 'Type'] = $type]/srx:binding[@name = 'construct']/srx:literal/string() }))"/>
+                    <xsl:sequence select="ldh:construct-forClass($forClass)"/>
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:param>
