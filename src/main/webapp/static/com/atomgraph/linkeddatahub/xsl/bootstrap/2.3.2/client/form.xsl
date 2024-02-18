@@ -412,14 +412,14 @@ WHERE
     
     <!-- submit instance update form -->
     
-    <xsl:template match="div[@about][@typeof]//form[contains-token(@class, 'form-horizontal')]" mode="ixsl:onsubmit" priority="1">
+    <xsl:template match="div[contains-token(@class, 'row-fluid')][@typeof]//form[contains-token(@class, 'form-horizontal')]" mode="ixsl:onsubmit" priority="1">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="form" select="." as="element()"/>
         <xsl:variable name="id" select="ixsl:get(., 'id')" as="xs:string"/>
         <xsl:variable name="action" select="ixsl:get(., 'action')" as="xs:anyURI"/>
         <xsl:variable name="enctype" select="ixsl:get(., 'enctype')" as="xs:string"/>
         <xsl:variable name="accept" select="'application/xhtml+xml'" as="xs:string"/>
-        <xsl:variable name="this" select="xs:anyURI(ancestor::div[@about][1]/@about)" as="xs:anyURI"/>
+        <xsl:variable name="this" select="if (ancestor::div[@typeof][1]/@about) then ancestor::div[@typeof][1]/@about else '_:this'" as="xs:string"/> <!-- URI of existing instance or bnode for new instance -->
         <xsl:message>base-uri(): <xsl:value-of select="base-uri()"/></xsl:message>
         <xsl:variable name="etag" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(base-uri()) || '`'), 'etag')" as="xs:string"/>
         <xsl:message>$etag: <xsl:value-of select="$etag"/></xsl:message>
@@ -464,6 +464,10 @@ WHERE
                 </json:array>
             </json:map>
         </xsl:variable>
+<xsl:message>
+    <xsl:copy-of select="$update-xml"/>
+</xsl:message>
+
         <xsl:variable name="update-json-string" select="xml-to-json($update-xml)" as="xs:string"/>
         <xsl:variable name="update-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $update-json-string ])"/>
         <xsl:variable name="update-string" select="ixsl:call($sparql-generator, 'stringify', [ $update-json ])" as="xs:string"/>
