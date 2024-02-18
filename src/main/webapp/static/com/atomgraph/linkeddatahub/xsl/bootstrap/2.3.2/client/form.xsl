@@ -465,7 +465,7 @@ WHERE
             </json:map>
         </xsl:variable>
 <xsl:message>
-    <xsl:copy-of select="$update-xml"/>
+    <xsl:value-of select="serialize($update-xml)"/>
 </xsl:message>
 
         <xsl:variable name="update-json-string" select="xml-to-json($update-xml)" as="xs:string"/>
