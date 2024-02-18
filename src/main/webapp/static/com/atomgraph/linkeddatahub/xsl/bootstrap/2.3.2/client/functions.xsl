@@ -153,17 +153,17 @@ exclude-result-prefixes="#all"
         <xsl:choose>
             <xsl:when test="$inputs[1]/@name = 'rdf'">
                 <xsl:variable name="value-inputs" select="subsequence($inputs, 2)[ixsl:contains(., 'value')]" as="element()*"/> <!-- skip the initial <input name="rdf"/> -->
-                <xsl:message>count($value-inputs): <xsl:value-of select="count($value-inputs)"/></xsl:message>
                 <xsl:variable name="value-inputs" select="$value-inputs[not(ixsl:get(., 'value') = '')]" as="element()*"/> <!-- filter out empty values -->
-                <xsl:message>count($value-inputs): <xsl:value-of select="count($value-inputs)"/></xsl:message>
                 <xsl:iterate select="$value-inputs">
                     <xsl:param name="subj-input" select="if ($value-inputs[1]/@name = ('sb', 'su')) then $value-inputs[1] else ()" as="element()?"/>
                     <xsl:param name="pred-input" as="element()?"/>
-                    <xsl:param name="skip-input" as="element()?"/>
+                    <xsl:param name="skip-to-input" as="element()?"/>
                     <xsl:variable name="next-input" select="subsequence($value-inputs, position() + 1, 1)" as="element()?"/>
                     <xsl:variable name="subj-input" select="if (@name = ('sb', 'su')) then . else $subj-input" as="element()?"/>
                     <xsl:variable name="pred-input" select="if (@name = 'pu') then . else $pred-input" as="element()?"/>
-                    <xsl:if test="@name = ('ol', 'ou', 'll', 'lt') and (not($skip-input) or not(. is $skip-input))">
+
+                    <!-- output triple when object is reached and inputs are not being skipped -->
+                    <xsl:if test="@name = ('ou', 'ob', 'ol', 'll', 'lt') and ((not($skip-to-input) and not(position() = last())) or . is $skip-to-input)">
                         <json:map>
                             <!-- subject -->
                             <xsl:choose>
@@ -204,13 +204,35 @@ exclude-result-prefixes="#all"
                                 <xsl:when test="@name = 'ou'">
                                     <json:string key="object"><xsl:value-of select="ixsl:get(., 'value')"/></json:string>
                                 </xsl:when>
+                                <!-- blank node -->
+                                <xsl:when test="@name = 'ob'">
+                                    <json:string key="object">_:<xsl:value-of select="ixsl:get(., 'value')"/></json:string>
+                                </xsl:when>
                             </xsl:choose>
                         </json:map>
                     </xsl:if>
                     <xsl:next-iteration>
                         <xsl:with-param name="subj-input" select="$subj-input"/>
                         <xsl:with-param name="pred-input" select="$pred-input"/>
-                        <xsl:with-param name="skip-input" select="if ($skip-input) then () else (if ((@name = 'ol' and $next-input/@name = ('ll', 'lt')) or (@name = ('ll', 'lt') and $next-input/@name = 'ol')) then $next-input else ())" as="element()?"/>
+                        <xsl:with-param name="skip-to-input" as="element()?">
+                          <xsl:choose>
+                            <!-- pred is expected, but there is no pu= ahead -->
+                            <xsl:when test="@name = ('su', 'sb') and not($next-input/@name = 'pu')">
+                              <!-- skip to the next subj -->
+                              <xsl:sequence select="(for $input in subsequence($value-inputs, position() + 1) return $input[@name = ('su', 'sb' )])[1]"/>
+                            </xsl:when>
+                            <!-- obj is expected, but there is no &ob=, &ou=, or &ol= ahead -->
+                            <xsl:when test="@name = 'pu' and not($next-input/@name = ('ob', 'ou', 'ol'))">
+                              <!-- skip to the next pred or subj, whichever comes first -->
+                              <xsl:sequence select="(for $input in subsequence($value-inputs, position() + 1) return $input[@name = ('su', 'sb', 'pu')])[1]"/>
+                            </xsl:when>
+                            <!-- &lt= or &ll= is seen, but there is no &ol= ahead -->
+                            <xsl:when test="(@name = 'ol' and not($next-input/@name = ('ll', 'lt'))) or (@name = ('ll', 'lt') and not($next-input/@name = 'ol'))">
+                              <!-- skip to the next non-literal obj, pred or subj, whichever comes first -->
+                              <xsl:sequence select="(for $input in subsequence($value-inputs, position() + 1) return $input[@name = ('su', 'sb', 'pu', 'ob', 'ou')])[1]"/>
+                            </xsl:when>
+                          </xsl:choose>
+                        </xsl:with-param>
                     </xsl:next-iteration>
                 </xsl:iterate>
             </xsl:when>
