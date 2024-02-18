@@ -464,11 +464,11 @@ WHERE
                 </json:array>
             </json:map>
         </xsl:variable>
+        <xsl:variable name="update-json-string" select="xml-to-json($update-xml)" as="xs:string"/>
 <xsl:message>
-    <xsl:value-of select="serialize($update-xml)"/>
+    <xsl:value-of select="$update-json-string"/>
 </xsl:message>
 
-        <xsl:variable name="update-json-string" select="xml-to-json($update-xml)" as="xs:string"/>
         <xsl:variable name="update-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $update-json-string ])"/>
         <xsl:variable name="update-string" select="ixsl:call($sparql-generator, 'stringify', [ $update-json ])" as="xs:string"/>
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(base-uri()), map{}, $action)" as="xs:anyURI"/>
