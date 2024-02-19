@@ -180,6 +180,14 @@ exclude-result-prefixes="#all"
                             <json:string key="predicate"><xsl:value-of select="$pred-input/ixsl:get(., 'value')"/></json:string>
                             <!-- object -->
                             <xsl:choose>
+                                <!-- blank node -->
+                                <xsl:when test="@name = 'ob'">
+                                    <json:string key="object">_:<xsl:value-of select="ixsl:get(., 'value')"/></json:string>
+                                </xsl:when>
+                                <!-- URI -->
+                                <xsl:when test="@name = 'ou'">
+                                    <json:string key="object"><xsl:value-of select="ixsl:get(., 'value')"/></json:string>
+                                </xsl:when>
                                 <!-- typed literal -->
                                 <xsl:when test="@name = 'ol' and $next-input/@name = 'lt'">
                                     <json:string key="object">&quot;<xsl:value-of select="ixsl:get(., 'value')"/>&quot;^^<xsl:value-of select="$next-input/ixsl:get(., 'value')"/></json:string>
@@ -199,14 +207,6 @@ exclude-result-prefixes="#all"
                                 <!-- plain literal -->
                                 <xsl:when test="@name = 'ol'">
                                     <json:string key="object">&quot;<xsl:value-of select="ixsl:get(., 'value')"/>&quot;</json:string>
-                                </xsl:when>
-                                <!-- URI -->
-                                <xsl:when test="@name = 'ou'">
-                                    <json:string key="object"><xsl:value-of select="ixsl:get(., 'value')"/></json:string>
-                                </xsl:when>
-                                <!-- blank node -->
-                                <xsl:when test="@name = 'ob'">
-                                    <json:string key="object">_:<xsl:value-of select="ixsl:get(., 'value')"/></json:string>
                                 </xsl:when>
                             </xsl:choose>
                         </json:map>
