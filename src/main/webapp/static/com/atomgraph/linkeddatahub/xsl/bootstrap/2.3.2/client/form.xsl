@@ -410,16 +410,16 @@ WHERE
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
     </xsl:template>
     
-    <!-- submit instance update form -->
+    <!-- submit instance update form using PATCH -->
     
-    <xsl:template match="div[contains-token(@class, 'row-fluid')][@typeof]//form[contains-token(@class, 'form-horizontal')]" mode="ixsl:onsubmit" priority="1">
+    <xsl:template match="div[@about][contains-token(@class, 'row-fluid')][@typeof]//form[contains-token(@class, 'form-horizontal')]" mode="ixsl:onsubmit" priority="1">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="form" select="." as="element()"/>
         <xsl:variable name="id" select="ixsl:get(., 'id')" as="xs:string"/>
         <xsl:variable name="action" select="ixsl:get(., 'action')" as="xs:anyURI"/>
         <xsl:variable name="enctype" select="ixsl:get(., 'enctype')" as="xs:string"/>
         <xsl:variable name="accept" select="'application/xhtml+xml'" as="xs:string"/>
-        <xsl:variable name="about" select="ancestor::div[@typeof][1]/@about" as="xs:anyURI?"/> <!-- instance URI (empty for new instance) -->
+        <xsl:variable name="about" select="ancestor::div[@typeof][1]/@about" as="xs:anyURI"/>
         <xsl:message>base-uri(): <xsl:value-of select="base-uri()"/></xsl:message>
         <xsl:variable name="etag" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(base-uri()) || '`'), 'etag')" as="xs:string"/>
         <xsl:message>$etag: <xsl:value-of select="$etag"/></xsl:message>
@@ -428,66 +428,41 @@ WHERE
         
         <xsl:variable name="elements" select=".//input | .//select" as="element()*"/>
         <xsl:variable name="triples" select="ldh:parse-rdf-post($elements)" as="element()*"/>
+        <xsl:variable name="where-pattern" as="element()">
+            <json:map>
+                <json:string key="type">bgp</json:string>
+                <json:array key="triples">
+                    <json:map>
+                        <json:string key="subject"><xsl:sequence select="$about"/></json:string>
+                        <json:string key="predicate">?p</json:string>
+                        <json:string key="object">?o</json:string>
+                    </json:map>
+                </json:array>
+            </json:map>
+        </xsl:variable>
         <xsl:variable name="update-xml" as="element()">
-            <xsl:choose>
-                <!-- execute INSERT/DELETE to update existing instance -->
-                <xsl:when test="$about">
-                    <xsl:variable name="where-pattern" as="element()">
-                        <json:map>
-                            <json:string key="type">bgp</json:string>
-                            <json:array key="triples">
-                                <json:map>
-                                    <json:string key="subject"><xsl:sequence select="$about"/></json:string>
-                                    <json:string key="predicate">?p</json:string>
-                                    <json:string key="object">?o</json:string>
-                                </json:map>
-                            </json:array>
-                        </json:map>
-                    </xsl:variable>
-                    
+            <json:map>
+                <json:string key="type">update</json:string>
+                <json:array key="updates">
                     <json:map>
-                        <json:string key="type">update</json:string>
-                        <json:array key="updates">
+                        <json:string key="updateType">insertdelete</json:string>
+                        <json:array key="delete">
+                            <xsl:sequence select="$where-pattern"/>
+                        </json:array>
+                        <json:array key="insert">
                             <json:map>
-                                <json:string key="updateType">insertdelete</json:string>
-                                <json:array key="delete">
-                                    <xsl:sequence select="$where-pattern"/>
-                                </json:array>
-                                <json:array key="insert">
-                                    <json:map>
-                                        <json:string key="type">bgp</json:string>
-                                        <json:array key="triples">
-                                            <xsl:sequence select="$triples"/>
-                                        </json:array>
-                                    </json:map>
-                                </json:array>
-                                <json:array key="where">
-                                    <xsl:sequence select="$where-pattern"/>
+                                <json:string key="type">bgp</json:string>
+                                <json:array key="triples">
+                                    <xsl:sequence select="$triples"/>
                                 </json:array>
                             </json:map>
                         </json:array>
-                    </json:map>
-                </xsl:when>
-                <!-- execute INSERT DATA to create a new instance -->
-                <xsl:otherwise>
-                    <json:map>
-                        <json:string key="type">update</json:string>
-                        <json:array key="updates">
-                            <json:map>
-                                <json:string key="updateType">insert</json:string>
-                                <json:array key="insert">
-                                    <json:map>
-                                        <json:string key="type">bgp</json:string>
-                                        <json:array key="triples">
-                                            <xsl:sequence select="$triples"/>
-                                        </json:array>
-                                    </json:map>
-                                </json:array>
-                            </json:map>
+                        <json:array key="where">
+                            <xsl:sequence select="$where-pattern"/>
                         </json:array>
                     </json:map>
-                </xsl:otherwise>
-            </xsl:choose>
+                </json:array>
+            </json:map>
         </xsl:variable>
         <xsl:variable name="update-json-string" select="xml-to-json($update-xml)" as="xs:string"/>
 <xsl:message>
