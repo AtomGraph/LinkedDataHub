@@ -610,11 +610,11 @@ WHERE
         <xsl:variable name="target" select="ixsl:get($event, 'target')"/>
         <xsl:variable name="container" select="id('content-body', ixsl:page())" as="element()"/>
         <xsl:variable name="forClass" select="input[@class = 'forClass']/@value" as="xs:anyURI"/>
-        <xsl:variable name="constructor" select="ldh:construct-forClass($forClass)" as="document-node()"/>
+        <xsl:variable name="constructed-doc" select="ldh:construct-forClass($forClass)" as="document-node()"/>
         <xsl:variable name="doc-uri" select="resolve-uri(ac:uuid() || '/', base-uri())" as="xs:anyURI"/>
         <xsl:message>base-uri(): <xsl:value-of select="base-uri()"/> $doc-uri: <xsl:value-of select="$doc-uri"/></xsl:message>
         <!-- set document URI instead of blank node -->
-        <xsl:variable name="constructor" as="document-node()">
+        <xsl:variable name="constructed-doc" as="document-node()">
             <xsl:document>
                 <xsl:apply-templates select="$constructed-doc" mode="ldh:SetDocumentURI">
                     <xsl:with-param name="doc-uri" select="$doc-uri" tunnel="yes"/>
@@ -625,7 +625,7 @@ WHERE
         <xsl:variable name="classes" select="()" as="element()*"/>
 
         <xsl:variable name="form" as="element()*">
-            <xsl:apply-templates select="$constructor" mode="bs2:RowForm">
+            <xsl:apply-templates select="$constructed-doc" mode="bs2:RowForm">
                 <xsl:with-param name="classes" select="$classes"/>
                 <!-- <xsl:with-param name="constructor-query" select="$constructor-query" tunnel="yes"/> -->
                 <xsl:with-param name="constraint-query" select="$constraint-query" tunnel="yes"/>
