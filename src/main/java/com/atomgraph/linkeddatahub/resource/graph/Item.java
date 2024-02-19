@@ -98,6 +98,7 @@ import org.apache.jena.shacl.ValidationReport;
 import org.apache.jena.sparql.modify.request.UpdateDataInsert;
 import org.apache.jena.sparql.modify.request.UpdateModify;
 import org.apache.jena.sparql.vocabulary.FOAF;
+import org.apache.jena.update.Update;
 import org.apache.jena.update.UpdateAction;
 import org.apache.jena.update.UpdateRequest;
 import org.apache.jena.util.ResourceUtils;
@@ -251,32 +252,37 @@ public class Item extends GraphStoreImpl
     {
         if (updateRequest == null) throw new BadRequestException("SPARQL update not specified");
 
-        final Model existingModel = getDatasetAccessor().getModel(getURI().toString());
-        if (existingModel == null) throw new NotFoundException("Named graph with URI <" + getURI() + "> not found");
-        
-        ResponseBuilder rb = evaluatePreconditions(existingModel, null);
-        if (rb != null) return rb.build(); // preconditions not met
+        Update update = updateRequest.getOperations().get(0);
+        if (!(update instanceof UpdateModify) && !(update instanceof UpdateDataInsert))
+            throw new WebApplicationException("Only INSERT DATA and INSERT/WHERE forms of SPARQL Update is supported by PATCH", UNPROCESSABLE_ENTITY.getStatusCode()); // 422 Unprocessable Entity
 
-        updateRequest.getOperations().forEach(update ->
+        // check for GRAPH keyword which is disallowed
+        PatchUpdateVisitor visitor = new PatchUpdateVisitor();
+        update.visit(visitor);
+        if (visitor.containsNamedGraph())
         {
-            // check for GRAPH keyword which is disallowed
-            PatchUpdateVisitor visitor = new PatchUpdateVisitor();
-            update.visit(visitor);
-            if (visitor.containsNamedGraph())
-            {
-                if (log.isWarnEnabled()) log.debug("SPARQL update used with PATCH method cannot contain the GRAPH keyword");
-                throw new WebApplicationException("SPARQL update used with PATCH method cannot contain the GRAPH keyword", UNPROCESSABLE_ENTITY.getStatusCode()); // 422 Unprocessable Entity
-            }
+            if (log.isWarnEnabled()) log.debug("SPARQL update used with PATCH method cannot contain the GRAPH keyword");
+            throw new WebApplicationException("SPARQL update used with PATCH method cannot contain the GRAPH keyword", UNPROCESSABLE_ENTITY.getStatusCode()); // 422 Unprocessable Entity
+        }
+        // no need to set WITH <graphUri> since we'll be updating model in memory before persisting it
 
-            if (!(update instanceof UpdateModify) && !(update instanceof UpdateDataInsert))
-                throw new WebApplicationException("Only INSERT DATA and INSERT/WHERE forms of SPARQL Update is supported by PATCH", UNPROCESSABLE_ENTITY.getStatusCode()); // 422 Unprocessable Entity
-            // no need to set WITH <graphUri> since we'll be updating model in memory before persisting it
-        });
+        final Dataset dataset;
+        if (update instanceof UpdateModify) // updating existing instance
+        {
+            final Model existingModel = getDatasetAccessor().getModel(getURI().toString());
+            if (existingModel == null) throw new NotFoundException("Named graph with URI <" + getURI() + "> not found");
 
-        // update model in memory
-        Dataset dataset = DatasetFactory.wrap(existingModel);
-        UpdateAction.execute(updateRequest, dataset);
+            ResponseBuilder rb = evaluatePreconditions(existingModel, null);
+            if (rb != null) return rb.build(); // preconditions not met
 
+            if (updateRequest.getOperations().size() > 1)
+                throw new WebApplicationException("Only a single SPARQL Update is supported by PATCH", UNPROCESSABLE_ENTITY.getStatusCode()); // 422 Unprocessable Entity
+
+            dataset = DatasetFactory.wrap(existingModel);
+        }
+        else dataset = DatasetFactory.create(); // creating new instance
+        
+        UpdateAction.execute(updateRequest, dataset); // update model in memory
         validate(dataset.getDefaultModel()); // validate model
         new Skolemizer(getURI().toString()).apply(dataset.getDefaultModel()); // skolemize model
         getDatasetAccessor().putModel(getURI().toString(), dataset.getDefaultModel()); // PUT model to a named graph
