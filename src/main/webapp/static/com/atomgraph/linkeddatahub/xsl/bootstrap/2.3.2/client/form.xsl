@@ -601,8 +601,8 @@ WHERE
 
         <xsl:variable name="form" as="element()*">
             <xsl:apply-templates select="$constructed-doc" mode="bs2:RowForm">
-                <xsl:with-param name="method" select="'put'"/>
-                <xsl:with-param name="action" select="$doc-uri"/>
+                <xsl:with-param name="method" select="'post'"/>
+                <xsl:with-param name="action" select="ldh:href($ldt:base, ac:absolute-path(base-uri()), map{}, ac:build-uri($doc-uri, map{ '_method': 'PUT' }))" as="xs:anyURI"/>
                 <xsl:with-param name="classes" select="$classes"/>
                 <!-- <xsl:with-param name="constructor-query" select="$constructor-query" tunnel="yes"/> -->
                 <xsl:with-param name="constraint-query" select="$constraint-query" tunnel="yes"/>
