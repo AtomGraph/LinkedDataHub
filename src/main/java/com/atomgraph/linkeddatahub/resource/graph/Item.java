@@ -252,6 +252,9 @@ public class Item extends GraphStoreImpl
     {
         if (updateRequest == null) throw new BadRequestException("SPARQL update not specified");
 
+        if (updateRequest.getOperations().size() > 1)
+            throw new WebApplicationException("Only a single SPARQL Update is supported by PATCH", UNPROCESSABLE_ENTITY.getStatusCode()); // 422 Unprocessable Entity
+
         Update update = updateRequest.getOperations().get(0);
         if (!(update instanceof UpdateModify) && !(update instanceof UpdateDataInsert))
             throw new WebApplicationException("Only INSERT DATA and INSERT/WHERE forms of SPARQL Update are supported by PATCH", UNPROCESSABLE_ENTITY.getStatusCode()); // 422 Unprocessable Entity
@@ -275,23 +278,14 @@ public class Item extends GraphStoreImpl
             ResponseBuilder rb = evaluatePreconditions(existingModel, null);
             if (rb != null) return rb.build(); // preconditions not met
 
-            if (updateRequest.getOperations().size() > 1)
-                throw new WebApplicationException("Only a single SPARQL Update is supported by PATCH", UNPROCESSABLE_ENTITY.getStatusCode()); // 422 Unprocessable Entity
-
             dataset = DatasetFactory.wrap(existingModel);
             UpdateAction.execute(updateRequest, dataset); // update model in memory
-            //validate(dataset.getDefaultModel()); // validate model
-            //new Skolemizer(getURI().toString()).apply(dataset.getDefaultModel()); // skolemize model
-            //getDatasetAccessor().putModel(getURI().toString(), dataset.getDefaultModel()); // PUT model to a named graph
             put(dataset.getDefaultModel(), Boolean.FALSE, getURI());
         }
         else
         {
             dataset = DatasetFactory.create(); // creating new instance
             UpdateAction.execute(updateRequest, dataset); // update model in memory
-            //validate(dataset.getDefaultModel()); // validate model
-            //new Skolemizer(getURI().toString()).apply(dataset.getDefaultModel()); // skolemize model
-            //getDatasetAccessor().putModel(getURI().toString(), dataset.getDefaultModel()); // PUT model to a named graph
             post(dataset.getDefaultModel(), Boolean.FALSE, getURI());
         }
         

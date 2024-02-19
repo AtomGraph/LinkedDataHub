@@ -611,6 +611,16 @@ WHERE
         <xsl:variable name="container" select="id('content-body', ixsl:page())" as="element()"/>
         <xsl:variable name="forClass" select="input[@class = 'forClass']/@value" as="xs:anyURI"/>
         <xsl:variable name="constructor" select="ldh:construct-forClass($forClass)" as="document-node()"/>
+        <xsl:variable name="doc-uri" select="resolve-uri(ac:uuid() || '/', base-uri())" as="xs:anyURI"/>
+        <xsl:message>base-uri(): <xsl:value-of select="base-uri()"/> $doc-uri: <xsl:value-of select="$doc-uri"/></xsl:message>
+        <!-- set document URI instead of blank node -->
+        <xsl:variable name="constructor" as="document-node()">
+            <xsl:document>
+                <xsl:apply-templates select="$constructed-doc" mode="ldh:SetDocumentURI">
+                    <xsl:with-param name="doc-uri" select="$doc-uri" tunnel="yes"/>
+                </xsl:apply-templates>
+            </xsl:document>
+        </xsl:variable>
         <!-- <xsl:variable name="classes" select="for $class-uri in map:keys($default-classes) return key('resources', $class-uri, document(ac:document-uri($class-uri)))" as="element()*"/> -->
         <xsl:variable name="classes" select="()" as="element()*"/>
 
