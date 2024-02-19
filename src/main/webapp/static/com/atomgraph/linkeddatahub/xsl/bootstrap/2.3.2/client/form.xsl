@@ -471,12 +471,17 @@ WHERE
                 <!-- execute INSERT DATA to create a new instance -->
                 <xsl:otherwise>
                     <json:map>
-                        <json:string key="type">insert</json:string>
-                        <json:array key="insert">
+                        <json:string key="type">update</json:string>
+                        <json:array key="updates">
                             <json:map>
-                                <json:string key="type">bgp</json:string>
-                                <json:array key="triples">
-                                    <xsl:sequence select="$triples"/>
+                                <json:string key="updateType">insert</json:string>
+                                <json:array key="insert">
+                                    <json:map>
+                                        <json:string key="type">bgp</json:string>
+                                        <json:array key="triples">
+                                            <xsl:sequence select="$triples"/>
+                                        </json:array>
+                                    </json:map>
                                 </json:array>
                             </json:map>
                         </json:array>
