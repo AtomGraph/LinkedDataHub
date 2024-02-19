@@ -1051,6 +1051,8 @@ extension-element-prefixes="ixsl"
         <xsl:param name="content-value" as="xs:anyURI?"/>
         <xsl:param name="class" select="'row-fluid'" as="xs:string?"/>
         <xsl:param name="typeof" select="rdf:type/@rdf:resource/xs:anyURI(.)" as="xs:anyURI*"/>
+        <xsl:param name="method" select="'patch'" as="xs:string"/>
+        <xsl:param name="action" select="ldh:href($ldt:base, ac:absolute-path($base-uri), map{}, ac:build-uri(ac:absolute-path($base-uri), map{ 'mode': for $mode in $ac:mode return string($mode) }))" as="xs:anyURI"/>
 
         <div>
             <xsl:if test="$id">
@@ -1066,7 +1068,10 @@ extension-element-prefixes="ixsl"
             <xsl:apply-templates select="." mode="bs2:Left"/>
 
             <div class="main span7">
-                <xsl:apply-templates select="." mode="bs2:Form"/>
+                <xsl:apply-templates select="." mode="bs2:Form">
+                    <xsl:with-param name="method" select="$method"/>
+                    <xsl:with-param name="action" select="$action"/>
+                </xsl:apply-templates>
            </div>
 
             <xsl:apply-templates select="." mode="bs2:Right"/>

@@ -626,6 +626,8 @@ WHERE
 
         <xsl:variable name="form" as="element()*">
             <xsl:apply-templates select="$constructed-doc" mode="bs2:RowForm">
+                <xsl:with-param name="method" select="'put'"/>
+                <xsl:with-param name="action" select="$doc-uri"/>
                 <xsl:with-param name="classes" select="$classes"/>
                 <!-- <xsl:with-param name="constructor-query" select="$constructor-query" tunnel="yes"/> -->
                 <xsl:with-param name="constraint-query" select="$constraint-query" tunnel="yes"/>

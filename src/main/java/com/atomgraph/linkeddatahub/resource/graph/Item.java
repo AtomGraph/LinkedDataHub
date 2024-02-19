@@ -95,7 +95,6 @@ import org.apache.jena.rdf.model.StmtIterator;
 import org.apache.jena.shacl.ShaclValidator;
 import org.apache.jena.shacl.Shapes;
 import org.apache.jena.shacl.ValidationReport;
-import org.apache.jena.sparql.modify.request.UpdateDataInsert;
 import org.apache.jena.sparql.modify.request.UpdateModify;
 import org.apache.jena.sparql.vocabulary.FOAF;
 import org.apache.jena.update.Update;
@@ -256,8 +255,7 @@ public class Item extends GraphStoreImpl
             throw new WebApplicationException("Only a single SPARQL Update is supported by PATCH", UNPROCESSABLE_ENTITY.getStatusCode()); // 422 Unprocessable Entity
 
         Update update = updateRequest.getOperations().get(0);
-        if (!(update instanceof UpdateModify) && !(update instanceof UpdateDataInsert))
-            throw new WebApplicationException("Only INSERT DATA and INSERT/WHERE forms of SPARQL Update are supported by PATCH", UNPROCESSABLE_ENTITY.getStatusCode()); // 422 Unprocessable Entity
+        if (!(update instanceof UpdateModify)) throw new WebApplicationException("Only INSERT/WHERE form of SPARQL Update are supported by PATCH", UNPROCESSABLE_ENTITY.getStatusCode()); // 422 Unprocessable Entity
 
         // check for GRAPH keyword which is disallowed
         PatchUpdateVisitor visitor = new PatchUpdateVisitor();
@@ -270,24 +268,15 @@ public class Item extends GraphStoreImpl
         // no need to set WITH <graphUri> since we'll be updating model in memory before persisting it
 
         final Dataset dataset;
-        if (update instanceof UpdateModify) // updating existing instance
-        {
-            final Model existingModel = getDatasetAccessor().getModel(getURI().toString());
-            if (existingModel == null) throw new NotFoundException("Named graph with URI <" + getURI() + "> not found");
+        final Model existingModel = getDatasetAccessor().getModel(getURI().toString());
+        if (existingModel == null) throw new NotFoundException("Named graph with URI <" + getURI() + "> not found");
 
-            ResponseBuilder rb = evaluatePreconditions(existingModel, null);
-            if (rb != null) return rb.build(); // preconditions not met
+        ResponseBuilder rb = evaluatePreconditions(existingModel, null);
+        if (rb != null) return rb.build(); // preconditions not met
 
-            dataset = DatasetFactory.wrap(existingModel);
-            UpdateAction.execute(updateRequest, dataset); // update model in memory
-            put(dataset.getDefaultModel(), Boolean.FALSE, getURI());
-        }
-        else
-        {
-            dataset = DatasetFactory.create(); // creating new instance
-            UpdateAction.execute(updateRequest, dataset); // update model in memory
-            post(dataset.getDefaultModel(), Boolean.FALSE, getURI());
-        }
+        dataset = DatasetFactory.wrap(existingModel);
+        UpdateAction.execute(updateRequest, dataset); // update model in memory
+        put(dataset.getDefaultModel(), Boolean.FALSE, getURI());
         
         return getResponseBuilder(dataset.getDefaultModel(), null).
             status(Response.Status.NO_CONTENT).
