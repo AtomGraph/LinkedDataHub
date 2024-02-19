@@ -95,6 +95,7 @@ import org.apache.jena.rdf.model.StmtIterator;
 import org.apache.jena.shacl.ShaclValidator;
 import org.apache.jena.shacl.Shapes;
 import org.apache.jena.shacl.ValidationReport;
+import org.apache.jena.sparql.modify.request.UpdateDataInsert;
 import org.apache.jena.sparql.modify.request.UpdateModify;
 import org.apache.jena.sparql.vocabulary.FOAF;
 import org.apache.jena.update.UpdateAction;
@@ -267,7 +268,8 @@ public class Item extends GraphStoreImpl
                 throw new WebApplicationException("SPARQL update used with PATCH method cannot contain the GRAPH keyword", UNPROCESSABLE_ENTITY.getStatusCode()); // 422 Unprocessable Entity
             }
 
-            if (!(update instanceof UpdateModify)) throw new WebApplicationException("Only UpdateModify form of SPARQL Update is supported", UNPROCESSABLE_ENTITY.getStatusCode()); // 422 Unprocessable Entity
+            if (!(update instanceof UpdateModify) && !(update instanceof UpdateDataInsert))
+                throw new WebApplicationException("Only INSERT DATA and INSERT/WHERE forms of SPARQL Update is supported by PATCH", UNPROCESSABLE_ENTITY.getStatusCode()); // 422 Unprocessable Entity
             // no need to set WITH <graphUri> since we'll be updating model in memory before persisting it
         });
 
