@@ -29,7 +29,11 @@ import com.atomgraph.linkeddatahub.vocabulary.DH;
 import com.atomgraph.linkeddatahub.vocabulary.Default;
 import com.atomgraph.linkeddatahub.vocabulary.NFO;
 import com.atomgraph.linkeddatahub.vocabulary.SIOC;
+import com.atomgraph.server.exception.SHACLConstraintViolationException;
+import com.atomgraph.server.exception.SPINConstraintViolationException;
 import static com.atomgraph.server.status.UnprocessableEntityStatus.UNPROCESSABLE_ENTITY;
+import com.atomgraph.server.util.Validator;
+import com.atomgraph.spinrdf.constraints.ConstraintViolation;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
@@ -79,22 +83,21 @@ import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.jena.atlas.RuntimeIOException;
 import org.apache.jena.datatypes.xsd.XSDDateTime;
-import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.ontology.Ontology;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.query.DatasetFactory;
-import org.apache.jena.query.QueryExecution;
-import org.apache.jena.query.QueryExecutionFactory;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ResIterator;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.rdf.model.StmtIterator;
+import org.apache.jena.shacl.ShaclValidator;
+import org.apache.jena.shacl.Shapes;
+import org.apache.jena.shacl.ValidationReport;
 import org.apache.jena.sparql.modify.request.UpdateModify;
 import org.apache.jena.sparql.vocabulary.FOAF;
 import org.apache.jena.update.UpdateAction;
-import org.apache.jena.update.UpdateExecutionFactory;
 import org.apache.jena.update.UpdateRequest;
 import org.apache.jena.util.ResourceUtils;
 import org.apache.jena.vocabulary.DCTerms;
@@ -265,17 +268,17 @@ public class Item extends GraphStoreImpl
             }
 
             if (!(update instanceof UpdateModify)) throw new WebApplicationException("Only UpdateModify form of SPARQL Update is supported", UNPROCESSABLE_ENTITY.getStatusCode()); // 422 Unprocessable Entity
-            // set WITH <graphUri>
-            //updateModify.setWithIRI(NodeFactory.createURI(getURI().toString())); // ignore the @QueryParam("graph") value
+            // no need to set WITH <graphUri> since we'll be updating model in memory before persisting it
         });
 
-        // update model in memory, then PUT to the named graph. TO-DO: validation
+        // update model in memory
         Dataset dataset = DatasetFactory.wrap(existingModel);
         UpdateAction.execute(updateRequest, dataset);
-        getDatasetAccessor().putModel(getURI().toString(), dataset.getDefaultModel());
-        //getService().getEndpointAccessor().update(updateRequest, Collections.<URI>emptyList(), Collections.<URI>emptyList());
+
+        validate(dataset.getDefaultModel()); // validate model
+        new Skolemizer(getURI().toString()).apply(dataset.getDefaultModel()); // skolemize model
+        getDatasetAccessor().putModel(getURI().toString(), dataset.getDefaultModel()); // PUT model to a named graph
         
-        //return Response.ok().build();
         return getResponseBuilder(dataset.getDefaultModel(), null).
             status(Response.Status.NO_CONTENT).
             entity(null).
@@ -654,6 +657,34 @@ public class Item extends GraphStoreImpl
         }
 
         return super.getWritableMediaTypes(clazz);
+    }
+    
+    /**
+     * Validates model against SPIN and SHACL constraints.
+     * 
+     * @param model RDF model
+     * @return validated model
+     */
+    public Model validate(Model model)
+    {
+        // SPIN validation
+        List<ConstraintViolation> cvs = new Validator(getOntology().getOntModel()).validate(model);
+        if (!cvs.isEmpty())
+        {
+            if (log.isDebugEnabled()) log.debug("SPIN constraint violations: {}", cvs);
+            throw new SPINConstraintViolationException(cvs, model);
+        }
+
+        // SHACL validation
+        Shapes shapes = Shapes.parse(getOntology().getOntModel().getGraph());
+        ValidationReport report = ShaclValidator.get().validate(shapes, model.getGraph());
+        if (!report.conforms())
+        {
+            if (log.isDebugEnabled()) log.debug("SHACL constraint violations: {}", report);
+            throw new SHACLConstraintViolationException(report, model);
+        }
+    
+        return model;
     }
     
     /**
