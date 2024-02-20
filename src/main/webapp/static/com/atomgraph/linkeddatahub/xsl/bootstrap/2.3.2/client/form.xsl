@@ -598,11 +598,13 @@ WHERE
         </xsl:variable>
         <!-- <xsl:variable name="classes" select="for $class-uri in map:keys($default-classes) return key('resources', $class-uri, document(ac:document-uri($class-uri)))" as="element()*"/> -->
         <xsl:variable name="classes" select="()" as="element()*"/>
+        <!-- PUT dh:Container and dh:Item instances, POST others -->
+        <xsl:variable name="query-params" select="if ($forClass = ('&dh;Container', '&dh;Item')) then map{ '_method': 'PUT' } else map{}" as="map(xs:string, xs:string*)"/>
 
         <xsl:variable name="form" as="element()*">
             <xsl:apply-templates select="$constructed-doc" mode="bs2:RowForm">
                 <xsl:with-param name="method" select="'post'"/>
-                <xsl:with-param name="action" select="ldh:href($ldt:base, ac:absolute-path(base-uri()), map{}, ac:build-uri($doc-uri, map{ '_method': 'PUT' }))" as="xs:anyURI"/>
+                <xsl:with-param name="action" select="ldh:href($ldt:base, ac:absolute-path(base-uri()), map{}, ac:build-uri($doc-uri, $query-params))" as="xs:anyURI"/>
                 <xsl:with-param name="classes" select="$classes"/>
                 <!-- <xsl:with-param name="constructor-query" select="$constructor-query" tunnel="yes"/> -->
                 <xsl:with-param name="constraint-query" select="$constraint-query" tunnel="yes"/>
