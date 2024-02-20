@@ -909,6 +909,7 @@ $series: <xsl:value-of select="$series"/>
                 </xsl:if>
 
                 <xsl:apply-templates select="?body" mode="ldh:HTMLDocumentLoaded">
+                    <xsl:with-param name="href" select="$href"/>
                     <xsl:with-param name="endpoint" select="$endpoint"/>
                     <xsl:with-param name="container" select="id($body-id, ixsl:page())"/>
                     <xsl:with-param name="push-state" select="$push-state"/>
