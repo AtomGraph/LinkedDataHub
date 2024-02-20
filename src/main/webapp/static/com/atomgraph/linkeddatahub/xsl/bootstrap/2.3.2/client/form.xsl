@@ -586,7 +586,7 @@ WHERE
         <xsl:variable name="container" select="id('content-body', ixsl:page())" as="element()"/>
         <xsl:variable name="forClass" select="input[@class = 'forClass']/@value" as="xs:anyURI"/>
         <xsl:variable name="constructed-doc" select="ldh:construct-forClass($forClass)" as="document-node()"/>
-        <xsl:variable name="doc-uri" select="resolve-uri(ac:uuid() || '/', ldh:base-uri(.))" as="xs:anyURI"/>
+        <xsl:variable name="doc-uri" select="if ($forClass = ('&dh;Container', '&dh;Item')) then resolve-uri(ac:uuid() || '/', ldh:base-uri(.)) else xs:anyURI(ldh:base-uri(.) || '#id' || ac:uuid())" as="xs:anyURI"/>
         <xsl:message>ldh:base-uri(.): <xsl:value-of select="ldh:base-uri(.)"/> $doc-uri: <xsl:value-of select="$doc-uri"/></xsl:message>
         <!-- set document URI instead of blank node -->
         <xsl:variable name="constructed-doc" as="document-node()">
