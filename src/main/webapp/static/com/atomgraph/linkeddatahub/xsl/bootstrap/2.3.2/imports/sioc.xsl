@@ -37,7 +37,7 @@ exclude-result-prefixes="#all">
         <xsl:param name="disabled" select="false()" as="xs:boolean"/>
         <xsl:param name="required" select="false()" as="xs:boolean"/>
         <xsl:param name="type-label" select="true()" as="xs:boolean"/>
-        <xsl:param name="base-uri" select="base-uri()" as="xs:anyURI" tunnel="yes"/>
+        <xsl:param name="base-uri" select="ldh:base-uri(.)" as="xs:anyURI" tunnel="yes"/>
         <xsl:param name="container" select="ac:absolute-path($base-uri)" as="xs:anyURI"/>
 
         <span>

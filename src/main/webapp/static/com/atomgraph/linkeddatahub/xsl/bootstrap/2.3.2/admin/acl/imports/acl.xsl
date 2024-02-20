@@ -63,7 +63,7 @@ exclude-result-prefixes="#all">
 
     <xsl:template match="*[lacl:requestAccessTo/@rdf:resource]" mode="bs2:Block" priority="1">
         <xsl:param name="method" select="'post'" as="xs:string"/>
-        <xsl:param name="action" select="ac:build-uri(base-uri(), map{ 'forClass': '&acl;Authorization' })" as="xs:anyURI"/> <!-- TO-DO: fix! -->
+        <xsl:param name="action" select="ac:build-uri(ldh:base-uri(.), map{ 'forClass': '&acl;Authorization' })" as="xs:anyURI"/> <!-- TO-DO: fix! -->
         <xsl:param name="id" select="concat('form-', generate-id())" as="xs:string?"/>
         <xsl:param name="class" select="'form-horizontal'" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>

@@ -299,16 +299,16 @@ WHERE
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
         
         <xsl:message>ixsl:get(., 'baseURI'): <xsl:value-of select="ixsl:get(., 'baseURI')"/></xsl:message>
-        <xsl:message>base-uri(): <xsl:value-of select="base-uri()"/></xsl:message>
+        <xsl:message>ldh:base-uri(.): <xsl:value-of select="ldh:base-uri(.)"/></xsl:message>
         <xsl:message>ixsl:location(): <xsl:value-of select="ixsl:location()"/></xsl:message>
         
-        <!-- not using base-uri() because it goes stale when DOM is replaced -->
+        <!-- not using ldh:base-uri(.) because it goes stale when DOM is replaced -->
         <!-- <xsl:variable name="doc" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(xs:anyURI(ixsl:location())) || '`'), 'results')" as="document-node()"/> -->
         
         <!-- if the URI is external, dereference it through the proxy -->
         <!-- add a bogus query parameter to give the RDF/XML document a different URL in the browser cache, otherwise it will clash with the HTML representation -->
         <!-- this is due to broken browser behavior re. Vary and conditional requests: https://stackoverflow.com/questions/60799116/firefox-if-none-match-headers-ignore-content-type-and-vary/60802443 -->
-        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(base-uri()), map{ 'param': 'dummy', 'accept': 'application/rdf+xml' }, ac:absolute-path(base-uri()), $graph, ())" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{ 'param': 'dummy', 'accept': 'application/rdf+xml' }, ac:absolute-path(ldh:base-uri(.)), $graph, ())" as="xs:anyURI"/>
         <xsl:variable name="doc" select="document(ac:document-uri($request-uri))" as="document-node()"/>
         <xsl:variable name="resource" select="key('resources', $about, $doc)" as="element()"/>
         <xsl:variable name="div-id" select="generate-id($resource)" as="xs:string"/>
@@ -361,10 +361,10 @@ WHERE
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
         
         <xsl:message>ixsl:get(., 'baseURI'): <xsl:value-of select="ixsl:get(., 'baseURI')"/></xsl:message>
-        <xsl:message>base-uri(): <xsl:value-of select="base-uri()"/></xsl:message>
+        <xsl:message>ldh:base-uri(.): <xsl:value-of select="ldh:base-uri(.)"/></xsl:message>
         <xsl:message>ixsl:location(): <xsl:value-of select="ixsl:location()"/></xsl:message>
 
-        <!-- not using base-uri() because it goes stale when DOM is replaced -->
+        <!-- not using ldh:base-uri(.) because it goes stale when DOM is replaced -->
         <xsl:variable name="doc" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(xs:anyURI(ixsl:location())) || '`'), 'results')" as="document-node()"/>
         <xsl:variable name="chart" select="key('resources', $about, $doc)" as="element()"/>
 
@@ -388,10 +388,10 @@ WHERE
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
         
         <xsl:message>ixsl:get(., 'baseURI'): <xsl:value-of select="ixsl:get(., 'baseURI')"/></xsl:message>
-        <xsl:message>base-uri(): <xsl:value-of select="base-uri()"/></xsl:message>
+        <xsl:message>ldh:base-uri(.): <xsl:value-of select="ldh:base-uri(.)"/></xsl:message>
         <xsl:message>ixsl:location(): <xsl:value-of select="ixsl:location()"/></xsl:message>
 
-        <!-- not using base-uri() because it goes stale when DOM is replaced -->
+        <!-- not using ldh:base-uri(.) because it goes stale when DOM is replaced -->
         <xsl:variable name="doc" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(xs:anyURI(ixsl:location())) || '`'), 'results')" as="document-node()"/>
         <xsl:variable name="resource" select="key('resources', $about, $doc)" as="element()"/>
 
@@ -420,8 +420,8 @@ WHERE
         <xsl:variable name="enctype" select="ixsl:get(., 'enctype')" as="xs:string"/>
         <xsl:variable name="accept" select="'application/xhtml+xml'" as="xs:string"/>
         <xsl:variable name="about" select="ancestor::div[@typeof][1]/@about" as="xs:anyURI"/>
-        <xsl:message>base-uri(): <xsl:value-of select="base-uri()"/></xsl:message>
-        <xsl:variable name="etag" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(base-uri()) || '`'), 'etag')" as="xs:string"/>
+        <xsl:message>ldh:base-uri(.): <xsl:value-of select="ldh:base-uri(.)"/></xsl:message>
+        <xsl:variable name="etag" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(ldh:base-uri(.)) || '`'), 'etag')" as="xs:string"/>
         <xsl:message>$etag: <xsl:value-of select="$etag"/></xsl:message>
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
@@ -471,7 +471,7 @@ WHERE
 
         <xsl:variable name="update-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $update-json-string ])"/>
         <xsl:variable name="update-string" select="ixsl:call($sparql-generator, 'stringify', [ $update-json ])" as="xs:string"/>
-        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(base-uri()), map{}, $action)" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, $action)" as="xs:anyURI"/>
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string, 'headers': map{ 'If-Match': $etag, 'Accept': 'application/rdf+xml' } }">
                 <xsl:call-template name="onPatchCompleted">
@@ -508,7 +508,7 @@ WHERE
         <xsl:variable name="action" select="ixsl:get(., 'action')" as="xs:anyURI"/>
         <xsl:variable name="enctype" select="ixsl:get(., 'enctype')" as="xs:string"/>
         <xsl:variable name="accept" select="'application/xhtml+xml'" as="xs:string"/>
-        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(base-uri()), map{}, $action)" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, $action)" as="xs:anyURI"/>
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
         
@@ -544,7 +544,7 @@ WHERE
         <xsl:variable name="property-control-group" select="../.." as="element()"/>
         <xsl:variable name="property" select="../preceding-sibling::*/select/option[ixsl:get(., 'selected') = true()]/ixsl:get(., 'value')" as="xs:anyURI"/>
         <xsl:variable name="forClass" select="preceding-sibling::input/@value" as="xs:anyURI*"/>
-        <xsl:variable name="href" select="ac:build-uri(ac:absolute-path(base-uri()), map{ 'forClass': for $class in $forClass return string($class) })" as="xs:anyURI"/>
+        <xsl:variable name="href" select="ac:build-uri(ac:absolute-path(ldh:base-uri(.)), map{ 'forClass': for $class in $forClass return string($class) })" as="xs:anyURI"/>
         
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
         
@@ -586,8 +586,8 @@ WHERE
         <xsl:variable name="container" select="id('content-body', ixsl:page())" as="element()"/>
         <xsl:variable name="forClass" select="input[@class = 'forClass']/@value" as="xs:anyURI"/>
         <xsl:variable name="constructed-doc" select="ldh:construct-forClass($forClass)" as="document-node()"/>
-        <xsl:variable name="doc-uri" select="resolve-uri(ac:uuid() || '/', base-uri())" as="xs:anyURI"/>
-        <xsl:message>base-uri(): <xsl:value-of select="base-uri()"/> $doc-uri: <xsl:value-of select="$doc-uri"/></xsl:message>
+        <xsl:variable name="doc-uri" select="resolve-uri(ac:uuid() || '/', ldh:base-uri(.))" as="xs:anyURI"/>
+        <xsl:message>ldh:base-uri(.): <xsl:value-of select="ldh:base-uri(.)"/> $doc-uri: <xsl:value-of select="$doc-uri"/></xsl:message>
         <!-- set document URI instead of blank node -->
         <xsl:variable name="constructed-doc" as="document-node()">
             <xsl:document>
@@ -604,12 +604,12 @@ WHERE
         <xsl:variable name="form" as="element()*">
             <xsl:apply-templates select="$constructed-doc" mode="bs2:RowForm">
                 <xsl:with-param name="method" select="'post'"/>
-                <xsl:with-param name="action" select="ldh:href($ldt:base, ac:absolute-path(base-uri()), map{}, ac:build-uri($doc-uri, $query-params))" as="xs:anyURI"/>
+                <xsl:with-param name="action" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, ac:build-uri($doc-uri, $query-params))" as="xs:anyURI"/>
                 <xsl:with-param name="classes" select="$classes"/>
                 <!-- <xsl:with-param name="constructor-query" select="$constructor-query" tunnel="yes"/> -->
                 <xsl:with-param name="constraint-query" select="$constraint-query" tunnel="yes"/>
                 <!-- <xsl:with-param name="shape-query" select="$shape-query" tunnel="yes"/> -->
-                <xsl:with-param name="base-uri" select="ac:absolute-path(base-uri())" tunnel="yes"/> <!-- ac:absolute-path(base-uri()) is empty on constructed documents -->
+                <xsl:with-param name="base-uri" select="ac:absolute-path(ldh:base-uri(.))" tunnel="yes"/> <!-- ac:absolute-path(ldh:base-uri(.)) is empty on constructed documents -->
                 <!-- <xsl:sort select="ac:label(.)"/> -->
             </xsl:apply-templates>
         </xsl:variable>
@@ -674,7 +674,7 @@ WHERE
         <xsl:variable name="create-graph" select="empty($form)" as="xs:boolean"/>
         <xsl:variable name="query-params" select="map:merge((map{ 'forShape': string($forShape) }, if ($create-graph) then map{ 'createGraph': string(true()) } else ()))" as="map(xs:string, xs:string*)"/>
         <!-- do not use @href from the HTML because it does not update with AJAX document loads -->
-        <xsl:variable name="href" select="ac:build-uri(ac:absolute-path(base-uri()), $query-params)" as="xs:anyURI"/>
+        <xsl:variable name="href" select="ac:build-uri(ac:absolute-path(ldh:base-uri(.)), $query-params)" as="xs:anyURI"/>
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
         
@@ -689,7 +689,7 @@ WHERE
         <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
 
 <!--        <xsl:call-template name="ldh:PushState">
-            <xsl:with-param name="href" select="ldh:href($ldt:base, ac:absolute-path(base-uri()), map{}, $href)"/>
+            <xsl:with-param name="href" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, $href)"/>
             <xsl:with-param name="container" select="id('content-body', ixsl:page())"/>
         </xsl:call-template>-->
     </xsl:template>
@@ -758,7 +758,7 @@ WHERE
         <xsl:variable name="query-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $query-json-string ])"/>
         <xsl:variable name="query-string" select="ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromQuery', [ $query-json ]), 'toString', [])" as="xs:string"/>
         <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': string($query-string) })" as="xs:anyURI"/>
-        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(base-uri()), map{}, $results-uri)" as="xs:anyURI"/> <!-- proxy the results -->
+        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, $results-uri)" as="xs:anyURI"/> <!-- proxy the results -->
         <!-- TO-DO: use <ixsl:schedule-action> instead of document() -->
         <xsl:variable name="results" select="document($request-uri)" as="document-node()"/>
         
@@ -847,7 +847,7 @@ WHERE
             <!-- a node shape was selected -->
             <xsl:when test="$resource/rdf:type/@rdf:resource = '&sh;NodeShape'">
                 <xsl:variable name="forShape" select="$resource/@rdf:about" as="xs:anyURI"/>
-                <xsl:variable name="href" select="ac:build-uri(ac:absolute-path(base-uri()), map{ 'forShape': string($forShape) })" as="xs:anyURI"/>
+                <xsl:variable name="href" select="ac:build-uri(ac:absolute-path(ldh:base-uri(.)), map{ 'forShape': string($forShape) })" as="xs:anyURI"/>
                 <xsl:variable name="request" as="item()*">
                     <!-- use Control-Cache: no-cache to get fresh HTML -->
                     <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml', 'Cache-Control': 'no-cache' } }">
@@ -861,7 +861,7 @@ WHERE
             <!-- a class with constructor was selected -->
             <xsl:otherwise>
                 <xsl:variable name="forClass" select="$resource/@rdf:about" as="xs:anyURI"/>
-                <xsl:variable name="href" select="ac:build-uri(ac:absolute-path(base-uri()), map{ 'forClass': string($forClass) })" as="xs:anyURI"/>
+                <xsl:variable name="href" select="ac:build-uri(ac:absolute-path(ldh:base-uri(.)), map{ 'forClass': string($forClass) })" as="xs:anyURI"/>
                 <xsl:variable name="request" as="item()*">
                     <!-- use Control-Cache: no-cache to get fresh HTML -->
                     <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml', 'Cache-Control': 'no-cache' } }">
