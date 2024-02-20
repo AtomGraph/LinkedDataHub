@@ -66,6 +66,12 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="upper-case(substring($labels[1], 1, 1)) || substring($labels[1], 2)"/>
     </xsl:function>
     
+    <xsl:function name="ldh:base-uri" as="xs:anyURI" use-when="system-property('xsl:product-name') = 'SAXON'">
+        <xsl:param select="arg" as="node()"/>
+        
+        <xsl:sequence select="base-uri($arg)"/>
+    </xsl:function>
+    
     <xsl:function name="ldh:href" as="xs:anyURI">
         <xsl:param name="base" as="xs:anyURI"/>
         <xsl:param name="absolute-path" as="xs:anyURI"/>

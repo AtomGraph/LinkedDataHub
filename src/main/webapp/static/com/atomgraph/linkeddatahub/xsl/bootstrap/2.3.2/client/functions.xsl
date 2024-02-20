@@ -33,6 +33,12 @@ extension-element-prefixes="ixsl"
 exclude-result-prefixes="#all"
 >
 
+    <xsl:function name="ldh:base-uri" as="xs:anyURI">
+        <xsl:param select="arg" as="node()"/> <!-- ignored -->
+
+        <xsl:sequence select="xs:anyURI(ixsl:get(ixsl:window(), 'location.href'))"/>
+    </xsl:function>
+    
     <xsl:function name="ldt:base" as="xs:anyURI">
         <xsl:sequence select="xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.base'))"/>
     </xsl:function>
