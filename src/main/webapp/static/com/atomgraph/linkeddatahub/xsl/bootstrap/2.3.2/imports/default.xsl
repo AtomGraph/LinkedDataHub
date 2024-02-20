@@ -67,7 +67,7 @@ exclude-result-prefixes="#all"
     </xsl:function>
     
     <xsl:function name="ldh:base-uri" as="xs:anyURI" use-when="system-property('xsl:product-name') = 'SAXON'">
-        <xsl:param select="arg" as="node()"/>
+        <xsl:param name="arg" as="node()"/>
         
         <xsl:sequence select="base-uri($arg)"/>
     </xsl:function>

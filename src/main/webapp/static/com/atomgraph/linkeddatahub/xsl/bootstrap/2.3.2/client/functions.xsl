@@ -34,7 +34,7 @@ exclude-result-prefixes="#all"
 >
 
     <xsl:function name="ldh:base-uri" as="xs:anyURI">
-        <xsl:param select="arg" as="node()"/> <!-- ignored -->
+        <xsl:param name="arg" as="node()"/> <!-- ignored -->
 
         <xsl:sequence select="xs:anyURI(ixsl:get(ixsl:window(), 'location.href'))"/>
     </xsl:function>
