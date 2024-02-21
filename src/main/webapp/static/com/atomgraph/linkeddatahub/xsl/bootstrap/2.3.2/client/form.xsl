@@ -555,7 +555,7 @@ WHERE
         <xsl:param name="resources" as="element()*"/>
 
         <xsl:choose>
-            <xsl:when test="(?status = 200 and starts-with(?media-type, 'application/rdf+xml')) or ?status = 201">
+            <xsl:when test="?status = (200, 201)">
                 <xsl:variable name="classes" select="()" as="element()*"/>
 
                 <xsl:for-each select="$container">
