@@ -562,6 +562,7 @@ WHERE
                     <xsl:result-document href="?." method="ixsl:replace-content">
                         <xsl:apply-templates select="$resources" mode="bs2:Row">
                             <xsl:with-param name="classes" select="$classes"/>
+                            <xsl:with-param name="type-content" select="false()"/>
                             <xsl:sort select="ac:label(.)"/>
                         </xsl:apply-templates>
                     </xsl:result-document>
