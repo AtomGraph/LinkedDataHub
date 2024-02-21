@@ -503,19 +503,21 @@ WHERE
     
     <xsl:template match="form[contains-token(@class, 'form-horizontal')]" mode="ixsl:onsubmit">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
+        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'row-fluid')]" as="element()"/>
         <xsl:variable name="form" select="." as="element()"/>
         <xsl:variable name="id" select="ixsl:get(., 'id')" as="xs:string"/>
         <xsl:variable name="method" select="ixsl:get(., 'method')" as="xs:string"/>
         <xsl:variable name="action" select="ixsl:get(., 'action')" as="xs:anyURI"/>
         <xsl:variable name="enctype" select="ixsl:get(., 'enctype')" as="xs:string"/>
-        <xsl:variable name="accept" select="'application/xhtml+xml'" as="xs:string"/>
+        <xsl:variable name="accept" select="'application/rdf+xml'" as="xs:string"/>
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, $action)" as="xs:anyURI"/>
-
         <xsl:variable name="elements" select=".//input | .//textarea | .//select" as="element()*"/>
         <xsl:variable name="triples" select="ldh:parse-rdf-post($elements)" as="element()*"/>
+        <xsl:variable name="resources" select="ldh:triples-to-descriptions($triples)" as="element()*"/>
+
         <xsl:message>form.form-horizontal ixsl:onsubmit</xsl:message>
         <xsl:message>$triples: <xsl:value-of select="serialize($triples)"/></xsl:message>
-        <xsl:message>RDF/XML: <xsl:value-of select="serialize(ldh:triples-to-descriptions($triples))"/></xsl:message>
+        <xsl:message>RDF/XML: <xsl:value-of select="serialize($resources)"/></xsl:message>
         
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
         
@@ -535,14 +537,63 @@ WHERE
                 <xsl:variable name="form-data" select="ldh:new('URLSearchParams', [ ldh:new('FormData', [ $form ]) ])"/>
                 <xsl:variable name="request" as="item()*">
                     <ixsl:schedule-action http-request="map{ 'method': $method, 'href': $request-uri, 'media-type': $enctype, 'body': $form-data, 'headers': map{ 'Accept': $accept } }">
-                        <xsl:call-template name="ldh:FormLoaded">
-                            <xsl:with-param name="action" select="$action"/>
-                            <xsl:with-param name="form" select="$form"/>
-                            <!-- <xsl:with-param name="target-id" select="$form/input[@class = 'target-id']/@value"/> -->
+                        <xsl:call-template name="ldh:ResourceUpdated">
+                            <xsl:with-param name="container" select="$container"/>
+                            <xsl:with-param name="resources" select="$resources"/>
                         </xsl:call-template>
                     </ixsl:schedule-action>
                 </xsl:variable>
                 <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:template>
+    
+    <!-- after inline resource creation/editing form is submitted  -->
+    <xsl:template name="ldh:ResourceUpdated">
+        <xsl:context-item as="map(*)" use="required"/>
+        <xsl:param name="container" as="element()"/>
+        <xsl:param name="resources" as="element()*"/>
+
+        <xsl:choose>
+            <xsl:when test="(?status = 200 and starts-with(?media-type, 'application/rdf+xml')) or ?status = 201">
+                <xsl:variable name="classes" select="()" as="element()*"/>
+
+                <xsl:for-each select="$container">
+                    <xsl:result-document href="?." method="ixsl:replace-content">
+                        <xsl:apply-templates select="." mode="bs2:Row">
+                            <xsl:with-param name="classes" select="$classes"/>
+                            <xsl:sort select="ac:label(.)"/>
+                        </xsl:apply-templates>
+                    </xsl:result-document>
+                </xsl:for-each>
+            </xsl:when>
+            <!-- POST or PUT constraint violation response is 422 Unprocessable Entity, bad RDF syntax is 400 Bad Request -->
+            <xsl:when test="?status = (400, 422) and starts-with(?media-type, ''application/rdf+xml'')"> <!-- allow 'application/xhtml+xml;charset=UTF-8' as well -->
+                <xsl:message>NOTHING</xsl:message>
+                <!--
+                <xsl:for-each select="?body">
+                    <xsl:variable name="form-id" select="ixsl:get($form, 'id')" as="xs:string"/>
+                    <xsl:variable name="doc-id" select="concat('id', ixsl:call(ixsl:window(), 'generateUUID', []))" as="xs:string"/>
+                    <xsl:variable name="form" as="element()">
+                        <xsl:apply-templates select="//form[@class = 'form-horizontal']" mode="form">
+                            <xsl:with-param name="doc-id" select="$doc-id" tunnel="yes"/>
+                        </xsl:apply-templates>
+                    </xsl:variable>
+                    
+                    <xsl:result-document href="#{$form-id}" method="ixsl:replace-content">
+                        <xsl:copy-of select="$form/*"/>
+                    </xsl:result-document>
+
+                    <xsl:apply-templates select="id($form-id, ixsl:page())" mode="ldh:PostConstruct"/>
+                    
+                    <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
+                </xsl:for-each>
+                -->
+            </xsl:when>
+            <!-- error response -->
+            <xsl:otherwise>
+                <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
+                <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ ?message ])"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
