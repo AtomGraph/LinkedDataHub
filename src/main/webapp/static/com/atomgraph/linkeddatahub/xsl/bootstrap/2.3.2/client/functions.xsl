@@ -155,7 +155,7 @@ exclude-result-prefixes="#all"
     <xsl:function name="ldh:parse-rdf-post" as="element()*">
         <xsl:param name="elements" as="element()*"/>
 
-        <xsl:variable name="inputs" select="$elements[self::input or self::select][@name = ('rdf', 'sb', 'su', 'pu', 'ob', 'ou', 'ol', 'll', 'lt')]" as="element()*"/>
+        <xsl:variable name="inputs" select="$elements[@name = ('rdf', 'sb', 'su', 'pu', 'ob', 'ou', 'ol', 'll', 'lt')]" as="element()*"/>
         <xsl:choose>
             <xsl:when test="$inputs[1]/@name = 'rdf'">
                 <xsl:variable name="value-inputs" select="subsequence($inputs, 2)[ixsl:contains(., 'value')]" as="element()*"/> <!-- skip the initial <input name="rdf"/> -->
