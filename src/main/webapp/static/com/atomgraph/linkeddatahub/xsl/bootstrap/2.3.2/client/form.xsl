@@ -560,7 +560,7 @@ WHERE
 
                 <xsl:for-each select="$container">
                     <xsl:result-document href="?." method="ixsl:replace-content">
-                        <xsl:apply-templates select="." mode="bs2:Row">
+                        <xsl:apply-templates select="$resources" mode="bs2:Row">
                             <xsl:with-param name="classes" select="$classes"/>
                             <xsl:sort select="ac:label(.)"/>
                         </xsl:apply-templates>
