@@ -514,7 +514,8 @@ WHERE
         <xsl:variable name="elements" select=".//input | .//select" as="element()*"/>
         <xsl:variable name="triples" select="ldh:parse-rdf-post($elements)" as="element()*"/>
         <xsl:message>form.form-horizontal ixsl:onsubmit</xsl:message>
-        <xsl:message><xsl:value-of select="serialize(ldh:triples-to-descriptions($triples))"/></xsl:message>
+        <xsl:message>$triples: <xsl:value-of select="serialize($triples)"/></xsl:message>
+        <xsl:message>RDF/XML: <xsl:value-of select="serialize(ldh:triples-to-descriptions($triples))"/></xsl:message>
         
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
         
