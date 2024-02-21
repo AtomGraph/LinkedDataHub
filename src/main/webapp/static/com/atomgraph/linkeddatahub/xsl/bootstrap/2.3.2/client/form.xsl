@@ -513,7 +513,11 @@ WHERE
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, $action)" as="xs:anyURI"/>
         <xsl:variable name="elements" select=".//input | .//textarea | .//select" as="element()*"/>
         <xsl:variable name="triples" select="ldh:parse-rdf-post($elements)" as="element()*"/>
-        <xsl:variable name="resources" select="ldh:triples-to-descriptions($triples)" as="element()*"/>
+        <xsl:variable name="resources" as="document-node()">
+            <xsl:document>
+                <xsl:sequence select="ldh:triples-to-descriptions($triples)"/>
+            </xsl:document>
+        </xsl:variable>
 
         <xsl:message>form.form-horizontal ixsl:onsubmit</xsl:message>
         <xsl:message>$triples: <xsl:value-of select="serialize($triples)"/></xsl:message>
@@ -552,7 +556,7 @@ WHERE
     <xsl:template name="ldh:ResourceUpdated">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="container" as="element()"/>
-        <xsl:param name="resources" as="element()*"/>
+        <xsl:param name="resources" as="document-node()"/>
 
         <xsl:choose>
             <xsl:when test="?status = (200, 201)">
@@ -560,7 +564,7 @@ WHERE
 
                 <xsl:for-each select="$container">
                     <xsl:result-document href="?." method="ixsl:replace-content">
-                        <xsl:apply-templates select="$resources" mode="bs2:Row">
+                        <xsl:apply-templates select="$resources/*" mode="bs2:Row">
                             <xsl:with-param name="classes" select="$classes"/>
                             <xsl:with-param name="type-content" select="false()"/>
                             <xsl:sort select="ac:label(.)"/>
