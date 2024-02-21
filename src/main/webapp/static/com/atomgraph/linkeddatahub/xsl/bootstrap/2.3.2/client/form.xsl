@@ -568,7 +568,7 @@ WHERE
                 </xsl:for-each>
             </xsl:when>
             <!-- POST or PUT constraint violation response is 422 Unprocessable Entity, bad RDF syntax is 400 Bad Request -->
-            <xsl:when test="?status = (400, 422) and starts-with(?media-type, ''application/rdf+xml'')"> <!-- allow 'application/xhtml+xml;charset=UTF-8' as well -->
+            <xsl:when test="?status = (400, 422) and starts-with(?media-type, 'application/rdf+xml')"> <!-- allow 'application/xhtml+xml;charset=UTF-8' as well -->
                 <xsl:message>NOTHING</xsl:message>
                 <!--
                 <xsl:for-each select="?body">
