@@ -270,7 +270,7 @@ exclude-result-prefixes="#all"
                     <xsl:variable name="local-name" select="substring-before(json:string[@key = 'predicate'], $namespace)" as="xs:string"/>
                     
                     <xsl:message>
-                        $namespace: <xsl:value-of select="$namespace"/> $name: <xsl:value-of select="$name"/>
+                        $namespace: <xsl:value-of select="$namespace"/> $local-name: <xsl:value-of select="$local-name"/>
                     </xsl:message>
                     
                     <!-- predicate -->
