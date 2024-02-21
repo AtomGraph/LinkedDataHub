@@ -426,7 +426,7 @@ WHERE
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
         
-        <xsl:variable name="elements" select=".//input | .//select" as="element()*"/>
+        <xsl:variable name="elements" select=".//input | .//textarea | .//select" as="element()*"/>
         <xsl:variable name="triples" select="ldh:parse-rdf-post($elements)" as="element()*"/>
         <xsl:variable name="where-pattern" as="element()">
             <json:map>
@@ -511,7 +511,7 @@ WHERE
         <xsl:variable name="accept" select="'application/xhtml+xml'" as="xs:string"/>
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, $action)" as="xs:anyURI"/>
 
-        <xsl:variable name="elements" select=".//input | .//select" as="element()*"/>
+        <xsl:variable name="elements" select=".//input | .//textarea | .//select" as="element()*"/>
         <xsl:variable name="triples" select="ldh:parse-rdf-post($elements)" as="element()*"/>
         <xsl:message>form.form-horizontal ixsl:onsubmit</xsl:message>
         <xsl:message>$triples: <xsl:value-of select="serialize($triples)"/></xsl:message>

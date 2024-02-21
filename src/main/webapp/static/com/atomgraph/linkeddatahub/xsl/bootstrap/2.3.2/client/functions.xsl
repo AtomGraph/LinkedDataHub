@@ -288,6 +288,7 @@ exclude-result-prefixes="#all"
                                     <xsl:attribute name="xml:lang" select="substring-after(., '&quot;@')"/>
                                     <xsl:sequence select="substring-before(substring-after(., '&quot;'), '&quot;@')"/>
                                 </xsl:when>
+                                <!-- TO-DO: XMLLiteral! -->
                                 <!-- plain literal -->
                                 <xsl:when test="starts-with(., '&quot;') and ends-with(., '&quot;')">
                                     <xsl:sequence select="substring-before(substring-after(., '&quot;'), '&quot;')"/>
