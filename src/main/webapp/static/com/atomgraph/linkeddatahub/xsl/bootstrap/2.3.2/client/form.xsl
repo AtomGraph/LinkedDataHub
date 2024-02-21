@@ -574,7 +574,7 @@ WHERE
                 
                 <xsl:for-each select="$container">
                     <xsl:result-document href="?." method="ixsl:replace-content">
-                        <xsl:copy-of select="$row"/>
+                        <xsl:copy-of select="$row/*"/>
                     </xsl:result-document>
                 </xsl:for-each>
                 
