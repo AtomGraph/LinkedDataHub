@@ -473,7 +473,8 @@ WHERE
         <xsl:variable name="update-string" select="ixsl:call($sparql-generator, 'stringify', [ $update-json ])" as="xs:string"/>
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, $action)" as="xs:anyURI"/>
         <xsl:variable name="request" as="item()*">
-            <ixsl:schedule-action http-request="map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string, 'headers': map{ 'If-Match': $etag, 'Accept': 'application/rdf+xml' } }">
+            <!-- If-Match header checks preconditions, i.e. that the graph has not been modified in the meanwhile --> 
+            <ixsl:schedule-action http-request="map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string, 'headers': map{ 'If-Match': $etag, 'Accept': 'application/rdf+xml', 'Cache-Control': 'no-cache' } }">
                 <xsl:call-template name="onPatchCompleted">
                 </xsl:call-template>
             </ixsl:schedule-action>
@@ -510,6 +511,11 @@ WHERE
         <xsl:variable name="accept" select="'application/xhtml+xml'" as="xs:string"/>
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, $action)" as="xs:anyURI"/>
 
+        <xsl:variable name="elements" select=".//input | .//select" as="element()*"/>
+        <xsl:variable name="triples" select="ldh:parse-rdf-post($elements)" as="element()*"/>
+        <xsl:message>form.form-horizontal ixsl:onsubmit</xsl:message>
+        <xsl:message><xsl:value-of select="serialize(ldh:triples-to-descriptions($triples))"/></xsl:message>
+        
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
         
         <!-- pre-process form before submitting it -->

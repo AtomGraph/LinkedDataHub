@@ -248,4 +248,59 @@ exclude-result-prefixes="#all"
         </xsl:choose>
     </xsl:function>
     
+    <!-- parses SPARQL.js triple maps into RDF/XML. Depends on the SPARQL.js serialization used in the ldh:parse-rdf-post function -->
+    <xsl:function name="ldh:triples-to-descriptions" as="element()*">
+        <xsl:param name="triples" as="element()*"/>
+        
+        <xsl:for-each-group select="$triples" group-by="json:string[@key = 'subject']">
+            <rdf:Description>
+                <!-- subject -->
+                <xsl:choose>
+                    <xsl:when test="starts-with('_:', current-grouping-key())">
+                        <xsl:attribute name="rdf:nodeID" select="current-grouping-key()"/>
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <xsl:attribute name="rdf:about" select="current-grouping-key()"/>
+                    </xsl:otherwise>
+                </xsl:choose>
+
+                <xsl:for-each select="current-group()">
+                    <!-- split predicate URI into namespace and local name -->
+                    <xsl:variable name="namespace" select="xs:anyURI(if (contains(json:string[@key = 'predicate'], '#')) then substring-before(json:string[@key = 'predicate'], '#') || '#' else string-join(tokenize(json:string[@key = 'predicate'], '/')[not(position() = last())], '/') || '/')" as="xs:anyURI"/>
+                    <xsl:variable name="local-name" select="substring-before(json:string[@key = 'predicate'], $namespace)" as="xs:string"/>
+
+                    <!-- predicate -->
+                    <xsl:element namespace="ns:{$local-name}" name="{$namespace}">
+                        <xsl:for-each select="json:string[@key = 'object']">
+                            <!-- object -->
+                            <xsl:choose>
+                                <!-- language-tagged literal -->
+                                <xsl:when test="starts-with(., '&quot;') and contains(., '&quot;^^')">
+                                    <xsl:attribute name="xml:lang" select="substring-after(., '&quot;^^')"/>
+                                    <xsl:sequence select="substring-before(substring-after(., '&quot;'), '&quot;^^')"/>
+                                </xsl:when>
+                                <!-- typed literal -->
+                                <xsl:when test="starts-with(., '&quot;') and contains(., '&quot;@')">
+                                    <xsl:attribute name="xml:lang" select="substring-after(., '&quot;@')"/>
+                                    <xsl:sequence select="substring-before(substring-after(., '&quot;'), '&quot;@')"/>
+                                </xsl:when>
+                                <!-- plain literal -->
+                                <xsl:when test="starts-with(., '&quot;') and ends-with(., '&quot;')">
+                                    <xsl:sequence select="substring-before(substring-after(., '&quot;'), '&quot;')"/>
+                                </xsl:when>
+                                <!-- blank node -->
+                                <xsl:when test="starts-with(., '_:')">
+                                    <xsl:attribute name="rdf:nodeID" select="substring-after(., '_:')"/>
+                                </xsl:when>
+                                <xsl:otherwise>
+                                    <xsl:attribute name="rdf:resource" select="."/>
+                                </xsl:otherwise>
+                            </xsl:choose>
+                        </xsl:for-each>
+                    </xsl:element>
+                </xsl:for-each>
+            </rdf:Description>
+        </xsl:for-each-group>
+    </xsl:function>
+    
 </xsl:stylesheet>
