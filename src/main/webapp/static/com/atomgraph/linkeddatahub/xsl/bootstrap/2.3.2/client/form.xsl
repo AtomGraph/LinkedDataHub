@@ -515,7 +515,9 @@ WHERE
         <xsl:variable name="triples" select="ldh:parse-rdf-post($elements)" as="element()*"/>
         <xsl:variable name="resources" as="document-node()">
             <xsl:document>
-                <xsl:sequence select="ldh:triples-to-descriptions($triples)"/>
+                <rdf:RDF>
+                    <xsl:sequence select="ldh:triples-to-descriptions($triples)"/>
+                </rdf:RDF>
             </xsl:document>
         </xsl:variable>
 
@@ -561,16 +563,24 @@ WHERE
         <xsl:choose>
             <xsl:when test="?status = (200, 201)">
                 <xsl:variable name="classes" select="()" as="element()*"/>
-
+                <xsl:variable name="row" as="element()">
+                    <xsl:apply-templates select="$resources/rdf:RDF/*" mode="bs2:Row">
+                        <xsl:with-param name="classes" select="$classes"/>
+                        <xsl:with-param name="style" select="()"/> <!-- TO-DO: remove? -->
+                        <xsl:with-param name="type-content" select="false()"/>
+                        <xsl:sort select="ac:label(.)"/>
+                    </xsl:apply-templates>
+                </xsl:variable>
+                
                 <xsl:for-each select="$container">
                     <xsl:result-document href="?." method="ixsl:replace-content">
-                        <xsl:apply-templates select="$resources/*" mode="bs2:Row">
-                            <xsl:with-param name="classes" select="$classes"/>
-                            <xsl:with-param name="type-content" select="false()"/>
-                            <xsl:sort select="ac:label(.)"/>
-                        </xsl:apply-templates>
+                        <xsl:copy-of select="$row"/>
                     </xsl:result-document>
                 </xsl:for-each>
+                
+                <xsl:apply-templates select="id($row//form/@id, ixsl:page())" mode="ldh:PostConstruct"/>
+
+                <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
             </xsl:when>
             <!-- POST or PUT constraint violation response is 422 Unprocessable Entity, bad RDF syntax is 400 Bad Request -->
             <xsl:when test="?status = (400, 422) and starts-with(?media-type, 'application/rdf+xml')"> <!-- allow 'application/xhtml+xml;charset=UTF-8' as well -->

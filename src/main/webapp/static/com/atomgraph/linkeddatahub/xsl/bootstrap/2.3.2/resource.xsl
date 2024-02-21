@@ -463,6 +463,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="typeof" select="rdf:type/@rdf:resource/xs:anyURI(.)" as="xs:anyURI*"/>
         <!-- <xsl:param name="content-value" as="xs:anyURI?"/> -->
         <xsl:param name="mode" as="xs:anyURI?"/>
+        <xsl:param name="style" select="'display: none;'" as="xs:string?"/> <!-- TO-DO: remove? -->
 
         <xsl:next-match>
             <xsl:with-param name="id" select="$id"/>
@@ -471,7 +472,7 @@ extension-element-prefixes="ixsl"
             <xsl:with-param name="typeof" select="$typeof"/>
             <!-- <xsl:with-param name="content-value" select="$content-value"/> -->
             <xsl:with-param name="mode" select="$mode"/>
-            <xsl:with-param name="style" select="'display: none;'"/>
+            <xsl:with-param name="style" select="'$style"/>
         </xsl:next-match>
     </xsl:template>
     
