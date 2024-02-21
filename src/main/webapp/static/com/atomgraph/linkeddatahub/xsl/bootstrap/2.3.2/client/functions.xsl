@@ -268,9 +268,13 @@ exclude-result-prefixes="#all"
                     <!-- split predicate URI into namespace and local name -->
                     <xsl:variable name="namespace" select="xs:anyURI(if (contains(json:string[@key = 'predicate'], '#')) then substring-before(json:string[@key = 'predicate'], '#') || '#' else string-join(tokenize(json:string[@key = 'predicate'], '/')[not(position() = last())], '/') || '/')" as="xs:anyURI"/>
                     <xsl:variable name="local-name" select="substring-before(json:string[@key = 'predicate'], $namespace)" as="xs:string"/>
-
+                    
+                    <xsl:message>
+                        $namespace: <xsl:value-of select="$namespace"/> $name: <xsl:value-of select="$name"/>
+                    </xsl:message>
+                    
                     <!-- predicate -->
-                    <xsl:element namespace="ns:{$local-name}" name="{$namespace}">
+                    <xsl:element namespace="{$namespace}" name="ns:{$local-name}">
                         <xsl:for-each select="json:string[@key = 'object']">
                             <!-- object -->
                             <xsl:choose>
