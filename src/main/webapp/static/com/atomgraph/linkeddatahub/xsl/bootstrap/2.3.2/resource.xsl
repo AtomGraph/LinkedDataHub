@@ -472,7 +472,7 @@ extension-element-prefixes="ixsl"
             <xsl:with-param name="typeof" select="$typeof"/>
             <!-- <xsl:with-param name="content-value" select="$content-value"/> -->
             <xsl:with-param name="mode" select="$mode"/>
-            <xsl:with-param name="style" select="'$style"/>
+            <xsl:with-param name="style" select="$style"/>
         </xsl:next-match>
     </xsl:template>
     
