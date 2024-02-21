@@ -504,7 +504,7 @@ WHERE
     <xsl:template match="form[contains-token(@class, 'form-horizontal')]" mode="ixsl:onsubmit">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'content')]" as="element()"/>
-        <xsl:variable name="form" select="." as="element()"/>
+        <!-- <xsl:variable name="form" select="." as="element()"/> -->
         <xsl:variable name="id" select="ixsl:get(., 'id')" as="xs:string"/>
         <xsl:variable name="method" select="ixsl:get(., 'method')" as="xs:string"/>
         <xsl:variable name="action" select="ixsl:get(., 'action')" as="xs:anyURI"/>
@@ -659,52 +659,29 @@ WHERE
         <!-- PUT dh:Container and dh:Item instances, POST others -->
         <xsl:variable name="query-params" select="if ($forClass = ('&dh;Container', '&dh;Item')) then map{ '_method': 'PUT' } else map{}" as="map(xs:string, xs:string*)"/>
 
-        <xsl:variable name="form" as="element()*">
-            <xsl:apply-templates select="$constructed-doc" mode="bs2:RowForm">
-                <xsl:with-param name="method" select="'post'"/>
-                <xsl:with-param name="action" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, ac:build-uri($doc-uri, $query-params))" as="xs:anyURI"/>
-                <xsl:with-param name="classes" select="$classes"/>
-                <!-- <xsl:with-param name="constructor-query" select="$constructor-query" tunnel="yes"/> -->
-                <xsl:with-param name="constraint-query" select="$constraint-query" tunnel="yes"/>
-                <!-- <xsl:with-param name="shape-query" select="$shape-query" tunnel="yes"/> -->
-                <xsl:with-param name="base-uri" select="ac:absolute-path(ldh:base-uri(.))" tunnel="yes"/> <!-- ac:absolute-path(ldh:base-uri(.)) is empty on constructed documents -->
-                <!-- <xsl:sort select="ac:label(.)"/> -->
-            </xsl:apply-templates>
-        </xsl:variable>
-<!--        <xsl:variable name="form-id" select="$form/@id" as="xs:string"/>-->
-
 <!--        <xsl:if test="$add-class">
             <xsl:sequence select="$form/ixsl:call(ixsl:get(., 'classList'), 'toggle', [ $add-class, true() ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:if>-->
 
-        <xsl:choose>
-            <!-- if "Create" button is ReadMode, append form as row -->
-            <xsl:when test="$target/ancestor::div[@id = 'content-body']">
-                <xsl:for-each select="$target/ancestor::div[@id = 'content-body']">
-                    <!-- remove the current "Create" buttons from the row -->
-                    <xsl:for-each select="$target/ancestor::div[contains-token(@class, 'create-resource')]">
-                        <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
-                    </xsl:for-each>
+        <xsl:for-each select="$target/ancestor::div[@id = 'content-body']">
+            <!-- remove the current "Create" buttons from the row -->
+            <xsl:for-each select="$target/ancestor::div[contains-token(@class, 'create-resource')]">
+                <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
+            </xsl:for-each>
 
-                    <xsl:result-document href="?." method="ixsl:append-content">
-                        <div id="id{ac:uuid()}" class="row-fluid"> <!-- typeof -->
-                            <xsl:copy-of select="$form"/>
-                        </div>
-                    </xsl:result-document>
-                </xsl:for-each>
-
-                <!-- a hack to change the request method to POST as we want to append partial data and not replace the whole graph as with PUT in EditMode -->
-                <!-- <ixsl:set-attribute name="action" select="replace($form/@action, '_method=PUT', '_method=POST')" object="id($form/@id, ixsl:page())"/> -->
-            </xsl:when>
-            <!-- there's no <form> so we're not in EditMode - replace the whole content -->
-            <xsl:otherwise>
-                <xsl:for-each select="$container">
-                    <xsl:result-document href="?." method="ixsl:replace-content">
-                        <xsl:copy-of select="$form"/>
-                    </xsl:result-document>
-                </xsl:for-each>
-            </xsl:otherwise>
-        </xsl:choose>
+            <xsl:result-document href="?." method="ixsl:append-content">
+                <xsl:apply-templates select="$constructed-doc" mode="bs2:RowForm">
+                    <xsl:with-param name="method" select="'post'"/>
+                    <xsl:with-param name="action" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, ac:build-uri($doc-uri, $query-params))" as="xs:anyURI"/>
+                    <xsl:with-param name="classes" select="$classes"/>
+                    <!-- <xsl:with-param name="constructor-query" select="$constructor-query" tunnel="yes"/> -->
+                    <xsl:with-param name="constraint-query" select="$constraint-query" tunnel="yes"/>
+                    <!-- <xsl:with-param name="shape-query" select="$shape-query" tunnel="yes"/> -->
+                    <xsl:with-param name="base-uri" select="ac:absolute-path(ldh:base-uri(.))" tunnel="yes"/> <!-- ac:absolute-path(ldh:base-uri(.)) is empty on constructed documents -->
+                    <!-- <xsl:sort select="ac:label(.)"/> -->
+                </xsl:apply-templates>
+            </xsl:result-document>
+        </xsl:for-each>
 
         <!-- add event listeners to the descendants of the form. TO-DO: replace with XSLT -->
 <!--        <xsl:if test="id($form-id, ixsl:page())">

@@ -1048,8 +1048,9 @@ extension-element-prefixes="ixsl"
 
     <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:RowForm">
         <xsl:param name="id" select="generate-id()" as="xs:string?"/>
-        <xsl:param name="content-value" as="xs:anyURI?"/>
-        <xsl:param name="class" select="'row-fluid'" as="xs:string?"/>
+        <!-- <xsl:param name="content-value" as="xs:anyURI?"/> -->
+        <xsl:param name="class" select="'row-fluid content'" as="xs:string?"/>
+        <xsl:param name="about" select="@rdf:about" as="xs:anyURI?"/>
         <xsl:param name="typeof" select="rdf:type/@rdf:resource/xs:anyURI(.)" as="xs:anyURI*"/>
         <xsl:param name="base-uri" select="ldh:base-uri(.)" as="xs:anyURI" tunnel="yes"/>
         <xsl:param name="method" select="'patch'" as="xs:string"/>
@@ -1061,6 +1062,9 @@ extension-element-prefixes="ixsl"
             </xsl:if>
             <xsl:if test="$class">
                 <xsl:attribute name="class" select="$class"/>
+            </xsl:if>
+            <xsl:if test="$about">
+                <xsl:attribute name="about" select="$about"/>
             </xsl:if>
             <xsl:if test="$typeof">
                 <xsl:attribute name="typeof" select="$typeof"/>
