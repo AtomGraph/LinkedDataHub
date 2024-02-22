@@ -348,26 +348,26 @@ exclude-result-prefixes="#all"
     
     <!-- SET DOCUMENT URI -->
     
-    <xsl:template match="rdf:Description[@rdf:nodeID][rdf:type/@rdf:resource = ('&dh;Container', '&dh;Item')]" mode="ldh:SetDocumentURI" priority="1">
-        <xsl:param name="doc-uri" as="xs:anyURI" tunnel="yes"/>
-
+    <xsl:template match="rdf:Description[@rdf:nodeID]" mode="ldh:SetResourceURI" priority="1">
+        <xsl:param name="forClass" as="xs:anyURI" tunnel="yes"/>
+        <xsl:param name="this" as="xs:anyURI" tunnel="yes"/>
+        
         <xsl:copy>
             <xsl:choose>
-                <!-- add document URI if it's provided -->
-                <xsl:when test="$doc-uri">
-                    <xsl:attribute name="rdf:about" select="$doc-uri"/>
+                <xsl:when test="rdf:type/@rdf:resource = $forClass">
+                    <xsl:attribute name="rdf:about" select="$this"/> <!-- suppress @rdf:nodeID -->
+
+                    <xsl:apply-templates select="node()" mode="#current"/>
                 </xsl:when>
                 <xsl:otherwise>
-                    <xsl:apply-templates select="@*" mode="#current"/>
+                    <xsl:apply-templates select="@* | node()" mode="#current"/>
                 </xsl:otherwise>
             </xsl:choose>
-
-            <xsl:apply-templates select="node()" mode="#current"/>
         </xsl:copy>
     </xsl:template>
 
     <!-- identity transform -->
-    <xsl:template match="@* | node()" mode="ldh:SetDocumentURI">
+    <xsl:template match="@* | node()" mode="ldh:SetResourceURI">
         <xsl:copy>
             <xsl:apply-templates select="@* | node()" mode="#current"/>
         </xsl:copy>

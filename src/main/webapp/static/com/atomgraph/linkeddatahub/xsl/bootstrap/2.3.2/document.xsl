@@ -571,7 +571,7 @@ extension-element-prefixes="ixsl"
         <xsl:document>
             <xsl:variable name="constructed-doc" select="ldh:construct-forClass($forClass)" as="document-node()"/>
 
-            <xsl:apply-templates select="$constructed-doc" mode="ldh:SetDocumentURI"/>
+            <xsl:apply-templates select="$constructed-doc" mode="ldh:SetResourceURI"/>
         </xsl:document>
     </xsl:template>
 

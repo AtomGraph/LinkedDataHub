@@ -659,13 +659,15 @@ WHERE
         <xsl:variable name="container" select="id('content-body', ixsl:page())" as="element()"/>
         <xsl:variable name="forClass" select="input[@class = 'forClass']/@value" as="xs:anyURI"/>
         <xsl:variable name="constructed-doc" select="ldh:construct-forClass($forClass)" as="document-node()"/>
-        <xsl:variable name="doc-uri" select="if ($forClass = ('&dh;Container', '&dh;Item')) then resolve-uri(ac:uuid() || '/', ldh:base-uri(.)) else xs:anyURI(ldh:base-uri(.) || '#id' || ac:uuid())" as="xs:anyURI"/>
+        <xsl:variable name="doc-uri" select="if ($forClass = ('&dh;Container', '&dh;Item')) then resolve-uri(ac:uuid() || '/', ldh:base-uri(.)) else ldh:base-uri(.)" as="xs:anyURI"/>
+        <xsl:variable name="this" select="if ($forClass = ('&dh;Container', '&dh;Item')) then $doc-uri else xs:anyURI($doc-uri || '#id' || ac:uuid())" as="xs:anyURI"/>
         <xsl:message>ldh:base-uri(.): <xsl:value-of select="ldh:base-uri(.)"/> $doc-uri: <xsl:value-of select="$doc-uri"/></xsl:message>
         <!-- set document URI instead of blank node -->
         <xsl:variable name="constructed-doc" as="document-node()">
             <xsl:document>
-                <xsl:apply-templates select="$constructed-doc" mode="ldh:SetDocumentURI">
-                    <xsl:with-param name="doc-uri" select="$doc-uri" tunnel="yes"/>
+                <xsl:apply-templates select="$constructed-doc" mode="ldh:SetResourceURI">
+                    <xsl:with-param name="forClass" select="$forClass" tunnel="yes"/>
+                    <xsl:with-param name="this" select="$doc-uri" tunnel="yes"/>
                 </xsl:apply-templates>
             </xsl:document>
         </xsl:variable>
