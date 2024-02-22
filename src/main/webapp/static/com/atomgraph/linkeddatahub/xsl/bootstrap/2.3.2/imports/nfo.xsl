@@ -25,7 +25,7 @@ exclude-result-prefixes="#all">
         <xsl:apply-templates select="key('resources', 'file', document('../translations.rdf'))" mode="#current"/>
     </xsl:template>
 
-    <xsl:template match="*[@rdf:*[local-name() = 'nodeID']]/nfo:fileName/@rdf:*[local-name() = 'nodeID'][key('resources', .)[not(* except rdf:type[@rdf:resource = '&xsd;string'])]]" mode="bs2:FormControl">
+    <xsl:template match="nfo:fileName/@rdf:nodeID[key('resources', .)[not(* except rdf:type[@rdf:resource = '&xsd;string'])]]" mode="bs2:FormControl">
         <xsl:param name="id" select="generate-id()" as="xs:string"/>
         <xsl:param name="class" as="xs:string?"/>
         <xsl:param name="accept" as="xs:string?"/>
@@ -50,7 +50,7 @@ exclude-result-prefixes="#all">
         </xsl:next-match>
     </xsl:template>
 
-    <xsl:template match="*[@rdf:*[local-name() = 'nodeID']]/nfo:fileName/@rdf:*[local-name() = 'nodeID'][key('resources', .)[not(* except rdf:type[@rdf:resource = '&xsd;string'])]]" mode="bs2:FormControlTypeLabel">
+    <xsl:template match="nfo:fileName/@rdf:nodeID[key('resources', .)[not(* except rdf:type[@rdf:resource = '&xsd;string'])]]" mode="bs2:FormControlTypeLabel">
         <xsl:param name="type" as="xs:string?"/>
 
         <xsl:if test="not($type = 'hidden')">

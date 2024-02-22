@@ -22,7 +22,7 @@ exclude-result-prefixes="#all">
     
     <!-- BLOCK MODE -->
     
-    <xsl:template match="*[ldh:chartType/@rdf:resource] | *[@rdf:nodeID]/ldh:chartType/@rdf:resource/@rdf:nodeID[key('resources', .)[not(* except rdf:type[@rdf:resource = '&xsd;string'])]]" mode="bs2:Block" use-when="system-property('xsl:product-name') eq 'SaxonJS'">
+    <xsl:template match="*[ldh:chartType/@rdf:resource] | ldh:chartType/@rdf:resource/@rdf:nodeID[key('resources', .)[not(* except rdf:type[@rdf:resource = '&xsd;string'])]]" mode="bs2:Block" use-when="system-property('xsl:product-name') eq 'SaxonJS'">
         <xsl:param name="canvas-id" select="generate-id() || '-chart-canvas'" as="xs:string"/>
         <xsl:param name="canvas-class" select="'chart-canvas'" as="xs:string?"/>
         <xsl:param name="method" select="'patch'" as="xs:string"/>
