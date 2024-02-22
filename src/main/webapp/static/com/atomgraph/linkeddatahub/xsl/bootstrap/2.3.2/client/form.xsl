@@ -412,7 +412,7 @@ WHERE
     
     <!-- submit instance update form using PATCH -->
     
-    <xsl:template match="div[@about][contains-token(@class, 'row-fluid')][@typeof]//form[contains-token(@class, 'form-horizontal')]" mode="ixsl:onsubmit" priority="1">
+    <xsl:template match="div[@about][contains-token(@class, 'row-fluid')][@typeof]//form[contains-token(@class, 'form-horizontal')][upper-case(@method) = 'PATCH']" mode="ixsl:onsubmit" priority="1">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="form" select="." as="element()"/>
         <xsl:variable name="id" select="ixsl:get(., 'id')" as="xs:string"/>
@@ -499,7 +499,7 @@ WHERE
         </xsl:choose>
     </xsl:template>
     
-    <!-- submit instance creation form -->
+    <!-- submit instance creation form using POST -->
     
     <xsl:template match="form[contains-token(@class, 'form-horizontal')]" mode="ixsl:onsubmit">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
