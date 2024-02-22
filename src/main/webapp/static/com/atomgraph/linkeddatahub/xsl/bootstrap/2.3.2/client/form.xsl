@@ -680,11 +680,14 @@ WHERE
             <xsl:sequence select="$form/ixsl:call(ixsl:get(., 'classList'), 'toggle', [ $add-class, true() ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:if>-->
 
-        <xsl:for-each select="$target/ancestor::div[@id = 'content-body']">
-            <!-- remove the current "Create" buttons from the row -->
-            <xsl:for-each select="$target/ancestor::div[contains-token(@class, 'create-resource')]">
+        <xsl:for-each select="$container">
+            <!-- TO-DO: switch to ReadMode -->
+            <!-- remove the current "Create" button -->
+            <!-- 
+            <xsl:for-each select="$container/div[contains-token(@class, 'create-resource')]">
                 <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:for-each>
+            -->
 
             <xsl:result-document href="?." method="ixsl:append-content">
                 <xsl:apply-templates select="$constructed-doc" mode="bs2:RowForm">
