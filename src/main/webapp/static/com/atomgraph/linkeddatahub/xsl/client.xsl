@@ -987,7 +987,7 @@ $series: <xsl:value-of select="$series"/>
                     <!-- if ldh:ContentMode is active but no mode param explicitly is specified, change the page's URL to reflect that -->
                     <xsl:when test="not(exists($query-params?mode)) and id('content-body', ixsl:page())/div[contains-token(@class, 'row-fluid')][1]/ul[contains-token(@class, 'nav-tabs')]/li[contains-token(@class, 'content-mode')][contains-token(@class, 'active')]">
                         <xsl:variable name="fragment" select="substring-after($href, '#')" as="xs:string"/>
-                        <xsl:sequence select="xs:anyURI(ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, ac:build-uri(ac:absolute-path(ldh:base-uri(.)), map:merge(($query-params, map{ 'mode': '&ldh;ContentMode' } ))), $fragment))"/>
+                        <xsl:sequence select="xs:anyURI(ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, ac:build-uri($href, map:merge(($query-params, map{ 'mode': '&ldh;ContentMode' } ))), $fragment))"/>
                     </xsl:when>
                     <xsl:otherwise>
                         <xsl:sequence select="$href"/>
@@ -1328,40 +1328,6 @@ $series: <xsl:value-of select="$series"/>
         <!-- store the new request object -->
         <ixsl:set-property name="request" select="$request" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
     </xsl:template>
-    
-    <!-- open editing form (do nothing if the button is disabled) -->
-    
-<!--    <xsl:template match="a[contains-token(@class, 'btn-edit')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick">
-        <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
-        <xsl:variable name="href" select="@href" as="xs:anyURI"/>
-
-         toggle .active class 
-        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', true() ])[current-date() lt xs:date('2000-01-01')]"/>
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
-
-         abort the previous request, if any 
-        <xsl:if test="ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub'), 'request')">
-            <xsl:message>Aborting HTTP request that has already been sent</xsl:message>
-            <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'LinkedDataHub.request'), 'abort', [])"/>
-        </xsl:if>
-
-        <xsl:variable name="request" as="item()*">
-            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
-                <xsl:call-template name="onAddForm">
-                    <xsl:with-param name="container" select="id('content-body', ixsl:page())"/>
-                </xsl:call-template>
-            </ixsl:schedule-action>
-        </xsl:variable>
-         store the new request object 
-        <ixsl:set-property name="request" select="$request" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
-
-        <xsl:if test="$href">
-            <xsl:call-template name="ldh:PushState">
-                <xsl:with-param name="href" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, $href)"/>
-                <xsl:with-param name="container" select="id('content-body', ixsl:page())"/>
-            </xsl:call-template>
-        </xsl:if>
-    </xsl:template>-->
     
     <xsl:template match="button[contains-token(@class, 'btn-delete')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick">
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), ldh:query-params(xs:anyURI('&ac;EditMode')), ldh:base-uri(.))" as="xs:anyURI"/>
