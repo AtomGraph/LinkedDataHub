@@ -711,9 +711,7 @@ WHERE
                     </div>
 
                     <div class="modal-body">
-                        <xsl:result-document href="?." method="ixsl:append-content">
-                            <xsl:copy-of select="$form"/>
-                        </xsl:result-document>
+                        <xsl:copy-of select="$form"/>
                     </div>
                 </div>
             </xsl:result-document>
