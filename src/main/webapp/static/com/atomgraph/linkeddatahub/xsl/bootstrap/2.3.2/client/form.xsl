@@ -652,7 +652,7 @@ WHERE
     </xsl:template>
     
     <!-- shows new SPIN-constructed document as a modal form. TO-DO: use @data- attribute instead of hidden input -->
-    <xsl:template match="div[contains-token(@class, 'action-bar')]//*[contains-token(@class, 'add-constructor')][input[@class = 'forClass']/@value]" mode="ixsl:onclick" priority="1">
+    <xsl:template match="div[contains-token(@class, 'action-bar')]//*[contains-token(@class, 'add-constructor')][input[@class = 'forClass']/@value]" mode="ixsl:onclick" priority="2">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])[current-date() lt xs:date('2000-01-01')]"/>
         <xsl:variable name="event" select="ixsl:event()"/>
         <xsl:variable name="target" select="ixsl:get($event, 'target')"/>
