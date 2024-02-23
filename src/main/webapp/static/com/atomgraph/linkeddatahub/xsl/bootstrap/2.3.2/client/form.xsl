@@ -589,7 +589,7 @@ WHERE
                 <xsl:variable name="request" as="item()*">
                     <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $created-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
                         <xsl:call-template name="ldh:DocumentLoaded">
-                            <xsl:with-param name="href" select="ldh:absolute-path($created-uri)"/> <!-- ldh:href()? -->
+                            <xsl:with-param name="href" select="ac:absolute-path($created-uri)"/>
                         </xsl:call-template>
                     </ixsl:schedule-action>
                 </xsl:variable>
