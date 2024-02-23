@@ -693,28 +693,30 @@ WHERE
                     <!-- <xsl:sort select="ac:label(.)"/> -->
                 </xsl:apply-templates>
             </xsl:variable>
-            
-            <div class="modal modal-constructor fade in">
-                <!--
-                <xsl:if test="$id">
-                    <xsl:attribute name="id" select="$id"/>
-                </xsl:if>
-                -->
 
-                <div class="modal-header">
-                    <button type="button" class="close">&#215;</button>
+            <xsl:result-document href="?." method="ixsl:append-content">
+                <div class="modal modal-constructor fade in">
+                    <!--
+                    <xsl:if test="$id">
+                        <xsl:attribute name="id" select="$id"/>
+                    </xsl:if>
+                    -->
 
-                    <legend>
-                        <!-- <xsl:value-of select="$legend-label"/> -->
-                    </legend>
+                    <div class="modal-header">
+                        <button type="button" class="close">&#215;</button>
+
+                        <legend>
+                            <!-- <xsl:value-of select="$legend-label"/> -->
+                        </legend>
+                    </div>
+
+                    <div class="modal-body">
+                        <xsl:result-document href="?." method="ixsl:append-content">
+                            <xsl:copy-of select="$form"/>
+                        </xsl:result-document>
+                    </div>
                 </div>
-
-                <div class="modal-body">
-                    <xsl:result-document href="?." method="ixsl:append-content">
-                        <xsl:copy-of select="$form"/>
-                    </xsl:result-document>
-                </div>
-            </div>
+            </xsl:result-document>
 
             <xsl:if test="id($form/@id, ixsl:page())">
                 <xsl:apply-templates select="id($form/@id, ixsl:page())" mode="ldh:PostConstruct"/>
