@@ -695,9 +695,11 @@ WHERE
             </xsl:variable>
             
             <div class="modal modal-constructor fade in">
+                <!--
                 <xsl:if test="$id">
                     <xsl:attribute name="id" select="$id"/>
                 </xsl:if>
+                -->
 
                 <div class="modal-header">
                     <button type="button" class="close">&#215;</button>
