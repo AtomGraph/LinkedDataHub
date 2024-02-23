@@ -660,7 +660,7 @@ extension-element-prefixes="ixsl"
         </xsl:next-match>
     </xsl:template>
     
-    <xsl:template match="rdf:RDF" mode="bs2:Form" use-when="system-property('xsl:product-name') = 'SAXON'">
+    <xsl:template match="rdf:RDF" mode="bs2:Form">
         <xsl:param name="method" select="'post'" as="xs:string"/>
         <xsl:param name="base-uri" select="ldh:base-uri(.)" as="xs:anyURI" tunnel="yes"/>
         <xsl:param name="action" select="ldh:href($ldt:base, ac:absolute-path($base-uri), map{}, ac:build-uri(ac:absolute-path($base-uri), map{ '_method': 'PUT', 'mode': for $mode in $ac:mode return string($mode) }))" as="xs:anyURI"/>
