@@ -1049,7 +1049,6 @@ extension-element-prefixes="ixsl"
         <xsl:param name="class" select="'row-fluid content'" as="xs:string?"/>
         <xsl:param name="about" select="@rdf:about" as="xs:anyURI?"/>
         <xsl:param name="typeof" select="rdf:type/@rdf:resource/xs:anyURI(.)" as="xs:anyURI*"/>
-        <xsl:param name="base-uri" select="ldh:base-uri(.)" as="xs:anyURI" tunnel="yes"/>
         <xsl:param name="method" select="'patch'" as="xs:string"/>
         <xsl:param name="base-uri" select="ldh:base-uri(.)" as="xs:anyURI" tunnel="yes"/>
         <xsl:param name="action" select="ldh:href($ldt:base, ac:absolute-path($base-uri), map{}, ac:build-uri(ac:absolute-path($base-uri), map{ 'mode': for $mode in $ac:mode return string($mode) }))" as="xs:anyURI"/>
