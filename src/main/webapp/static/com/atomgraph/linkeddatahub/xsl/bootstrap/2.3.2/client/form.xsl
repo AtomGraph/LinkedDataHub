@@ -503,7 +503,7 @@ WHERE
     
     <xsl:template match="form[contains-token(@class, 'form-horizontal')]" mode="ixsl:onsubmit">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
-        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'content')]" as="element()"/>
+        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'content')]" as="element()?"/> <!-- no container means the form was modal -->
         <xsl:variable name="form" select="." as="element()"/>
         <xsl:variable name="id" select="ixsl:get(., 'id')" as="xs:string"/>
         <xsl:variable name="method" select="ixsl:get(., 'method')" as="xs:string"/>
@@ -557,11 +557,12 @@ WHERE
     <!-- after inline resource creation/editing form is submitted  -->
     <xsl:template name="ldh:ResourceUpdated">
         <xsl:context-item as="map(*)" use="required"/>
-        <xsl:param name="container" as="element()"/>
+        <xsl:param name="container" as="element()?"/>
         <xsl:param name="resources" as="document-node()"/>
 
         <xsl:choose>
-            <xsl:when test="?status = (200, 201)">
+            <!-- POST data appended successfully -->
+            <xsl:when test="?status = 200">
                 <xsl:variable name="classes" select="()" as="element()*"/>
                 <xsl:variable name="row" as="element()">
                     <xsl:apply-templates select="$resources/rdf:RDF/*" mode="bs2:Row">
@@ -582,9 +583,23 @@ WHERE
 
                 <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
             </xsl:when>
+            <!-- POST created new document successfully, redirect to it -->
+            <xsl:when test="?status = 201 and ?headers?location">
+                <xsl:variable name="created-uri" select="?headers?location" as="xs:anyURI"/>
+                <xsl:variable name="request" as="item()*">
+                    <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $created-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
+                        <xsl:call-template name="ldh:DocumentLoaded">
+                            <xsl:with-param name="href" select="ldh:absolute-path($created-uri)"/> <!-- ldh:href()? -->
+                        </xsl:call-template>
+                    </ixsl:schedule-action>
+                </xsl:variable>
+
+                <!-- store the new request object -->
+                <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+            </xsl:when>
             <!-- POST or PUT constraint violation response is 422 Unprocessable Entity, bad RDF syntax is 400 Bad Request -->
             <xsl:when test="?status = (400, 422) and starts-with(?media-type, 'application/rdf+xml')"> <!-- allow 'application/xhtml+xml;charset=UTF-8' as well -->
-                <xsl:message>NOTHING</xsl:message>
+                <xsl:message>CONSTRAINT VIOLATION!</xsl:message>
                 <!--
                 <xsl:for-each select="?body">
                     <xsl:variable name="form-id" select="ixsl:get($form, 'id')" as="xs:string"/>
@@ -659,8 +674,8 @@ WHERE
         <xsl:variable name="container" select="id('content-body', ixsl:page())" as="element()"/>
         <xsl:variable name="forClass" select="input[@class = 'forClass']/@value" as="xs:anyURI"/>
         <xsl:variable name="constructed-doc" select="ldh:construct-forClass($forClass)" as="document-node()"/>
-        <xsl:variable name="doc-uri" select="if ($forClass = ('&dh;Container', '&dh;Item')) then resolve-uri(ac:uuid() || '/', ldh:base-uri(.)) else ldh:base-uri(.)" as="xs:anyURI"/>
-        <xsl:variable name="this" select="if ($forClass = ('&dh;Container', '&dh;Item')) then $doc-uri else xs:anyURI($doc-uri || '#id' || ac:uuid())" as="xs:anyURI"/>
+        <xsl:variable name="doc-uri" select="resolve-uri(ac:uuid() || '/', ldh:base-uri(.))" as="xs:anyURI"/> <!-- build a relative URI for the child document -->
+        <xsl:variable name="this" select="$doc-uri" as="xs:anyURI"/>
         <xsl:message>ldh:base-uri(.): <xsl:value-of select="ldh:base-uri(.)"/> $doc-uri: <xsl:value-of select="$doc-uri"/> $this: <xsl:value-of select="$doc-uri"/></xsl:message>
         <!-- set document URI instead of blank node -->
         <xsl:variable name="constructed-doc" as="document-node()">
@@ -673,9 +688,6 @@ WHERE
         </xsl:variable>
         <!-- <xsl:variable name="classes" select="for $class-uri in map:keys($default-classes) return key('resources', $class-uri, document(ac:document-uri($class-uri)))" as="element()*"/> -->
         <xsl:variable name="classes" select="()" as="element()*"/>
-        <!-- PUT dh:Container and dh:Item instances, POST others -->
-        <xsl:variable name="query-params" select="if ($forClass = ('&dh;Container', '&dh;Item')) then map{ '_method': 'PUT' } else map{}" as="map(xs:string, xs:string*)"/>
-
 <!--        <xsl:if test="$add-class">
             <xsl:sequence select="$form/ixsl:call(ixsl:get(., 'classList'), 'toggle', [ $add-class, true() ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:if>-->
@@ -683,8 +695,8 @@ WHERE
         <xsl:for-each select="$container">
             <xsl:variable name="form" as="element()*">
                 <xsl:apply-templates select="$constructed-doc" mode="bs2:Form">
-                    <xsl:with-param name="method" select="'post'"/>
-                    <xsl:with-param name="action" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, ac:build-uri($doc-uri, $query-params))" as="xs:anyURI"/>
+                    <xsl:with-param name="method" select="'put'"/>
+                    <xsl:with-param name="action" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, ac:build-uri($doc-uri, map{ '_method': 'PUT' } else map{}))" as="xs:anyURI"/>
                     <xsl:with-param name="classes" select="$classes"/>
                     <!-- <xsl:with-param name="constructor-query" select="$constructor-query" tunnel="yes"/> -->
                     <xsl:with-param name="constraint-query" select="$constraint-query" tunnel="yes"/>
@@ -732,8 +744,8 @@ WHERE
         <xsl:variable name="container" select="id('content-body', ixsl:page())" as="element()"/>
         <xsl:variable name="forClass" select="input[@class = 'forClass']/@value" as="xs:anyURI"/>
         <xsl:variable name="constructed-doc" select="ldh:construct-forClass($forClass)" as="document-node()"/>
-        <xsl:variable name="doc-uri" select="if ($forClass = ('&dh;Container', '&dh;Item')) then resolve-uri(ac:uuid() || '/', ldh:base-uri(.)) else ldh:base-uri(.)" as="xs:anyURI"/>
-        <xsl:variable name="this" select="if ($forClass = ('&dh;Container', '&dh;Item')) then $doc-uri else xs:anyURI($doc-uri || '#id' || ac:uuid())" as="xs:anyURI"/>
+        <xsl:variable name="doc-uri" select="ldh:base-uri(.)" as="xs:anyURI"/>
+        <xsl:variable name="this" select="xs:anyURI($doc-uri || '#id' || ac:uuid())" as="xs:anyURI"/>
         <xsl:message>ldh:base-uri(.): <xsl:value-of select="ldh:base-uri(.)"/> $doc-uri: <xsl:value-of select="$doc-uri"/> $this: <xsl:value-of select="$doc-uri"/></xsl:message>
         <!-- set document URI instead of blank node -->
         <xsl:variable name="constructed-doc" as="document-node()">
@@ -746,16 +758,12 @@ WHERE
         </xsl:variable>
         <!-- <xsl:variable name="classes" select="for $class-uri in map:keys($default-classes) return key('resources', $class-uri, document(ac:document-uri($class-uri)))" as="element()*"/> -->
         <xsl:variable name="classes" select="()" as="element()*"/>
-        <!-- PUT dh:Container and dh:Item instances, POST others -->
-        <xsl:variable name="query-params" select="if ($forClass = ('&dh;Container', '&dh;Item')) then map{ '_method': 'PUT' } else map{}" as="map(xs:string, xs:string*)"/>
 
 <!--        <xsl:if test="$add-class">
             <xsl:sequence select="$form/ixsl:call(ixsl:get(., 'classList'), 'toggle', [ $add-class, true() ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:if>-->
 
         <xsl:for-each select="$container">
-            <!-- TO-DO: switch to ReadMode -->
-            <!-- remove the current "Create" button -->
             <!-- 
             <xsl:for-each select="$container/div[contains-token(@class, 'create-resource')]">
                 <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
@@ -765,7 +773,7 @@ WHERE
             <xsl:result-document href="?." method="ixsl:append-content">
                 <xsl:apply-templates select="$constructed-doc" mode="bs2:RowForm">
                     <xsl:with-param name="method" select="'post'"/>
-                    <xsl:with-param name="action" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, ac:build-uri($doc-uri, $query-params))" as="xs:anyURI"/>
+                    <xsl:with-param name="action" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, $doc-uri)" as="xs:anyURI"/>
                     <xsl:with-param name="classes" select="$classes"/>
                     <!-- <xsl:with-param name="constructor-query" select="$constructor-query" tunnel="yes"/> -->
                     <xsl:with-param name="constraint-query" select="$constraint-query" tunnel="yes"/>
