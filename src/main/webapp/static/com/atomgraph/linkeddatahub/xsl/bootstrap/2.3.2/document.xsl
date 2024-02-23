@@ -705,7 +705,7 @@ extension-element-prefixes="ixsl"
             <xsl:apply-templates mode="bs2:Exception"/>
 
             <!-- show the current document on the top -->
-            <xsl:apply-templates select="*[@rdf:about = ac:absolute-path(ldh:base-uri(.))]" mode="bs2:FormControl">
+            <xsl:apply-templates select="*[@rdf:about = ac:absolute-path(ldh:base-uri(.))]" mode="#current">
                 <xsl:with-param name="inline" select="false()" tunnel="yes"/>
                 <xsl:with-param name="constructors" select="$constructors" tunnel="yes"/>
                 <xsl:with-param name="constraints" select="$constraints" tunnel="yes"/>
@@ -713,7 +713,7 @@ extension-element-prefixes="ixsl"
                 <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/>
             </xsl:apply-templates>
             <!-- show the rest of the resources (contents, instances) below it -->
-            <xsl:apply-templates select="*[not(@rdf:about = ac:absolute-path(ldh:base-uri(.)))]" mode="bs2:FormControl">
+            <xsl:apply-templates select="*[not(@rdf:about = ac:absolute-path(ldh:base-uri(.)))]" mode="#current">
                 <xsl:sort select="ac:label(.)"/>
                 <xsl:with-param name="inline" select="false()" tunnel="yes"/>
                 <xsl:with-param name="constructors" select="$constructors" tunnel="yes"/>
