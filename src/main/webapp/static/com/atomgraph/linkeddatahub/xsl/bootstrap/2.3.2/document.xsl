@@ -636,7 +636,7 @@ extension-element-prefixes="ixsl"
     
     <!-- ROW FORM -->
 
-    <xsl:template match="rdf:RDF[$ac:forClass = ('&ldh;CSVImport', '&ldh;RDFImport')][$ac:method = 'GET']" mode="bs2:RowForm" priority="2" use-when="system-property('xsl:product-name') = 'SAXON'">
+    <xsl:template match="rdf:RDF[$ac:forClass = ('&ldh;CSVImport', '&ldh;RDFImport')][$ac:method = 'GET']" mode="bs2:Form" priority="2" use-when="system-property('xsl:product-name') = 'SAXON'">
         <xsl:param name="action" select="ac:build-uri(resolve-uri('importer', $ldt:base), map{ '_method': 'PUT', 'forClass': string($ac:forClass), 'mode': '&ac;EditMode' })" as="xs:anyURI"/>
         <xsl:param name="classes" as="element()*"/>
 
@@ -646,7 +646,7 @@ extension-element-prefixes="ixsl"
         </xsl:next-match>
     </xsl:template>
     
-    <xsl:template match="rdf:RDF[$ac:forClass][$ac:method = 'GET']" mode="bs2:RowForm" priority="1" use-when="system-property('xsl:product-name') = 'SAXON'">
+    <xsl:template match="rdf:RDF[$ac:forClass][$ac:method = 'GET']" mode="bs2:Form" priority="1" use-when="system-property('xsl:product-name') = 'SAXON'">
         <xsl:param name="base-uri" as="xs:anyURI" tunnel="yes"/>
         <!-- document resource might not always be present in the form (e.g. ldh:Content only) -->
         <xsl:param name="document-uri" select="if (key('resources-by-type', ('&dh;Container', '&dh;Item'))/@rdf:about) then key('resources-by-type', ('&dh;Container', '&dh;Item'))/@rdf:about else $base-uri" as="xs:anyURI"/> <!-- $doc-uri of the constructed document -->
@@ -660,7 +660,7 @@ extension-element-prefixes="ixsl"
         </xsl:next-match>
     </xsl:template>
     
-    <xsl:template match="rdf:RDF" mode="bs2:RowForm" use-when="system-property('xsl:product-name') = 'SAXON'">
+    <xsl:template match="rdf:RDF" mode="bs2:Form" use-when="system-property('xsl:product-name') = 'SAXON'">
         <xsl:param name="method" select="'post'" as="xs:string"/>
         <xsl:param name="base-uri" select="ldh:base-uri(.)" as="xs:anyURI" tunnel="yes"/>
         <xsl:param name="action" select="ldh:href($ldt:base, ac:absolute-path($base-uri), map{}, ac:build-uri(ac:absolute-path($base-uri), map{ '_method': 'PUT', 'mode': for $mode in $ac:mode return string($mode) }))" as="xs:anyURI"/>
@@ -705,7 +705,7 @@ extension-element-prefixes="ixsl"
             <xsl:apply-templates mode="bs2:Exception"/>
 
             <!-- show the current document on the top -->
-            <xsl:apply-templates select="*[@rdf:about = ac:absolute-path(ldh:base-uri(.))]" mode="#current">
+            <xsl:apply-templates select="*[@rdf:about = ac:absolute-path(ldh:base-uri(.))]" mode="bs2:FormControl">
                 <xsl:with-param name="inline" select="false()" tunnel="yes"/>
                 <xsl:with-param name="constructors" select="$constructors" tunnel="yes"/>
                 <xsl:with-param name="constraints" select="$constraints" tunnel="yes"/>
@@ -713,7 +713,7 @@ extension-element-prefixes="ixsl"
                 <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/>
             </xsl:apply-templates>
             <!-- show the rest of the resources (contents, instances) below it -->
-            <xsl:apply-templates select="*[not(@rdf:about = ac:absolute-path(ldh:base-uri(.)))]" mode="#current">
+            <xsl:apply-templates select="*[not(@rdf:about = ac:absolute-path(ldh:base-uri(.)))]" mode="bs2:FormControl">
                 <xsl:sort select="ac:label(.)"/>
                 <xsl:with-param name="inline" select="false()" tunnel="yes"/>
                 <xsl:with-param name="constructors" select="$constructors" tunnel="yes"/>
@@ -723,6 +723,7 @@ extension-element-prefixes="ixsl"
                 <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/>
             </xsl:apply-templates>
 
+            <!--
             <xsl:if test="$create-resource">
                 <div class="create-resource row-fluid">
                     <div class="main offset2 span7">
@@ -732,6 +733,7 @@ extension-element-prefixes="ixsl"
                     </div>
                 </div>
             </xsl:if>
+            -->
 
             <div class="row-fluid">
                 <div class="form-actions main offset2 span7">
