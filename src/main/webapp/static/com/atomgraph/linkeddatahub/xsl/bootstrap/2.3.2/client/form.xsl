@@ -717,7 +717,7 @@ WHERE
             </div>
 
             <xsl:if test="id($form/@id, ixsl:page())">
-                <xsl:apply-templates select="id($form-id, ixsl:page())" mode="ldh:PostConstruct"/>
+                <xsl:apply-templates select="id($form/@id, ixsl:page())" mode="ldh:PostConstruct"/>
             </xsl:if>
         </xsl:for-each>
 
