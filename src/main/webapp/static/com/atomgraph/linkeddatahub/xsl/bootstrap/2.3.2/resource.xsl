@@ -944,8 +944,6 @@ extension-element-prefixes="ixsl"
         <xsl:param name="id" select="concat('constructor-', generate-id())" as="xs:string?"/>
         <xsl:param name="subclasses" as="attribute()*"/>
         <xsl:param name="with-label" select="false()" as="xs:boolean"/>
-        <xsl:param name="modal-form" select="false()" as="xs:boolean"/>
-        <xsl:param name="create-graph" select="false()" as="xs:boolean"/>
         <xsl:param name="base-uri" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI" tunnel="yes"/>
         <xsl:variable name="forClass" select="@rdf:about" as="xs:anyURI"/>
 
@@ -985,9 +983,7 @@ extension-element-prefixes="ixsl"
 
                                 <!-- won't traverse blank nodes, only URI resources -->
                                 <li>
-                                    <xsl:variable name="query-params" select="map:merge((map{ 'forClass': string(current-grouping-key()) }, if ($modal-form) then map{ 'mode': '&ac;ModalMode' } else (), if ($create-graph) then map{ 'createGraph': string(true()) } else ()))" as="map(xs:string, xs:string*)"/>
-                                    <xsl:variable name="href" select="ac:build-uri(ac:absolute-path($base-uri), $query-params)" as="xs:anyURI"/>
-                                    <a href="{$href}" class="btn add-constructor" title="{current-grouping-key()}">
+                                    <button class="btn add-constructor" title="{current-grouping-key()}">
                                         <xsl:if test="$id">
                                             <xsl:attribute name="id" select="$id"/>
                                         </xsl:if>
@@ -997,16 +993,14 @@ extension-element-prefixes="ixsl"
                                         <xsl:value-of>
                                             <xsl:apply-templates select="." mode="ac:label"/>
                                         </xsl:value-of>
-                                    </a>
+                                    </button>
                                 </li>
                             </xsl:for-each-group>
                         </ul>
                     </div>
                 </xsl:when>
                 <xsl:otherwise>
-                    <xsl:variable name="query-params" select="map:merge((map{ 'forClass': string($forClass) }, if ($modal-form) then map{ 'mode': '&ac;ModalMode' } else (), if ($create-graph) then map{ 'createGraph': string(true()) } else ()))" as="map(xs:string, xs:string*)"/>
-                    <xsl:variable name="href" select="ac:build-uri(ac:absolute-path($base-uri), $query-params)" as="xs:anyURI"/>
-                    <a href="{$href}" title="{@rdf:about}">
+                    <button title="{@rdf:about}">
                         <xsl:if test="$id">
                             <xsl:attribute name="id" select="$id"/>
                         </xsl:if>
@@ -1030,7 +1024,7 @@ extension-element-prefixes="ixsl"
 
                         <!-- we don't want to give a name to this input as it would be included in the RDF/POST payload -->
                         <input type="hidden" class="forClass" value="{@rdf:about}"/>
-                    </a>
+                    </button>
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:if>

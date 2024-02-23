@@ -651,8 +651,79 @@ WHERE
         </xsl:for-each>
     </xsl:template>
     
-    <!-- appends new SPIN-constructed instance to the form -->
-    <xsl:template match="a[contains-token(@class, 'add-constructor')][input[@class = 'forClass']/@value]" mode="ixsl:onclick" priority="1">
+    <!-- shows new SPIN-constructed document as a modal form. TO-DO: use @data- attribute instead of hidden input -->
+    <xsl:template match="div[contains-token(@class, 'action-bar')]//*[contains-token(@class, 'add-constructor')][input[@class = 'forClass']/@value]" mode="ixsl:onclick" priority="1">
+        <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:variable name="event" select="ixsl:event()"/>
+        <xsl:variable name="target" select="ixsl:get($event, 'target')"/>
+        <xsl:variable name="container" select="id('content-body', ixsl:page())" as="element()"/>
+        <xsl:variable name="forClass" select="input[@class = 'forClass']/@value" as="xs:anyURI"/>
+        <xsl:variable name="constructed-doc" select="ldh:construct-forClass($forClass)" as="document-node()"/>
+        <xsl:variable name="doc-uri" select="if ($forClass = ('&dh;Container', '&dh;Item')) then resolve-uri(ac:uuid() || '/', ldh:base-uri(.)) else ldh:base-uri(.)" as="xs:anyURI"/>
+        <xsl:variable name="this" select="if ($forClass = ('&dh;Container', '&dh;Item')) then $doc-uri else xs:anyURI($doc-uri || '#id' || ac:uuid())" as="xs:anyURI"/>
+        <xsl:message>ldh:base-uri(.): <xsl:value-of select="ldh:base-uri(.)"/> $doc-uri: <xsl:value-of select="$doc-uri"/> $this: <xsl:value-of select="$doc-uri"/></xsl:message>
+        <!-- set document URI instead of blank node -->
+        <xsl:variable name="constructed-doc" as="document-node()">
+            <xsl:document>
+                <xsl:apply-templates select="$constructed-doc" mode="ldh:SetResourceURI">
+                    <xsl:with-param name="forClass" select="$forClass" tunnel="yes"/>
+                    <xsl:with-param name="this" select="$this" tunnel="yes"/>
+                </xsl:apply-templates>
+            </xsl:document>
+        </xsl:variable>
+        <!-- <xsl:variable name="classes" select="for $class-uri in map:keys($default-classes) return key('resources', $class-uri, document(ac:document-uri($class-uri)))" as="element()*"/> -->
+        <xsl:variable name="classes" select="()" as="element()*"/>
+        <!-- PUT dh:Container and dh:Item instances, POST others -->
+        <xsl:variable name="query-params" select="if ($forClass = ('&dh;Container', '&dh;Item')) then map{ '_method': 'PUT' } else map{}" as="map(xs:string, xs:string*)"/>
+
+<!--        <xsl:if test="$add-class">
+            <xsl:sequence select="$form/ixsl:call(ixsl:get(., 'classList'), 'toggle', [ $add-class, true() ])[current-date() lt xs:date('2000-01-01')]"/>
+        </xsl:if>-->
+
+        <xsl:for-each select="$container">
+            <xsl:variable name="form" as="element()*">
+                <xsl:apply-templates select="$constructed-doc" mode="bs2:Form">
+                    <xsl:with-param name="method" select="'post'"/>
+                    <xsl:with-param name="action" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, ac:build-uri($doc-uri, $query-params))" as="xs:anyURI"/>
+                    <xsl:with-param name="classes" select="$classes"/>
+                    <!-- <xsl:with-param name="constructor-query" select="$constructor-query" tunnel="yes"/> -->
+                    <xsl:with-param name="constraint-query" select="$constraint-query" tunnel="yes"/>
+                    <!-- <xsl:with-param name="shape-query" select="$shape-query" tunnel="yes"/> -->
+                    <xsl:with-param name="base-uri" select="ac:absolute-path(ldh:base-uri(.))" tunnel="yes"/> <!-- ac:absolute-path(ldh:base-uri(.)) is empty on constructed documents -->
+                    <!-- <xsl:sort select="ac:label(.)"/> -->
+                </xsl:apply-templates>
+            </xsl:variable>
+            
+            <div class="modal modal-constructor fade in">
+                <xsl:if test="$id">
+                    <xsl:attribute name="id" select="$id"/>
+                </xsl:if>
+
+                <div class="modal-header">
+                    <button type="button" class="close">&#215;</button>
+
+                    <legend>
+                        <!-- <xsl:value-of select="$legend-label"/> -->
+                    </legend>
+                </div>
+
+                <div class="modal-body">
+                    <xsl:result-document href="?." method="ixsl:append-content">
+                        <xsl:copy-of select="$form"/>
+                    </xsl:result-document>
+                </div>
+            </div>
+
+            <xsl:if test="id($form/@id, ixsl:page())">
+                <xsl:apply-templates select="id($form-id, ixsl:page())" mode="ldh:PostConstruct"/>
+            </xsl:if>
+        </xsl:for-each>
+
+        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
+    </xsl:template>
+    
+    <!-- appends new SPIN-constructed instance to the form TO-DO: use @data- attribute instead of hidden input -->
+    <xsl:template match="*[contains-token(@class, 'add-constructor')][input[@class = 'forClass']/@value]" mode="ixsl:onclick" priority="1">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])[current-date() lt xs:date('2000-01-01')]"/>
         <xsl:variable name="event" select="ixsl:event()"/>
         <xsl:variable name="target" select="ixsl:get($event, 'target')"/>
