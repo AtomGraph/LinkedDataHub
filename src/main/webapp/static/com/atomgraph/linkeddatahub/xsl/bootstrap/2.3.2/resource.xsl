@@ -1046,13 +1046,16 @@ extension-element-prefixes="ixsl"
 
     <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:RowForm">
         <xsl:param name="id" select="generate-id()" as="xs:string?"/>
-        <!-- <xsl:param name="content-value" as="xs:anyURI?"/> -->
         <xsl:param name="class" select="'row-fluid content'" as="xs:string?"/>
         <xsl:param name="about" select="@rdf:about" as="xs:anyURI?"/>
         <xsl:param name="typeof" select="rdf:type/@rdf:resource/xs:anyURI(.)" as="xs:anyURI*"/>
         <xsl:param name="base-uri" select="ldh:base-uri(.)" as="xs:anyURI" tunnel="yes"/>
         <xsl:param name="method" select="'patch'" as="xs:string"/>
+        <xsl:param name="base-uri" select="ldh:base-uri(.)" as="xs:anyURI" tunnel="yes"/>
         <xsl:param name="action" select="ldh:href($ldt:base, ac:absolute-path($base-uri), map{}, ac:build-uri(ac:absolute-path($base-uri), map{ 'mode': for $mode in $ac:mode return string($mode) }))" as="xs:anyURI"/>
+        <xsl:param name="enctype" as="xs:string?"/> <!-- select="'multipart/form-data'"  -->
+        <xsl:param name="button-class" select="'btn btn-primary wymupdate'" as="xs:string?"/>
+        <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
 
         <div>
             <xsl:if test="$id">
@@ -1071,13 +1074,7 @@ extension-element-prefixes="ixsl"
             <xsl:apply-templates select="." mode="bs2:Left"/>
 
             <div class="main span7">
-                <form method="{$method}" action="{$action}">
-                    <xsl:if test="$id">
-                        <xsl:attribute name="id" select="$id"/>
-                    </xsl:if>
-                    <xsl:if test="$class">
-                        <xsl:attribute name="class" select="$class"/>
-                    </xsl:if>
+                <form method="{$method}" action="{$action}" class="form-horizontal">
                     <xsl:if test="$accept-charset">
                         <xsl:attribute name="accept-charset" select="$accept-charset"/>
                     </xsl:if>
@@ -1135,14 +1132,6 @@ extension-element-prefixes="ixsl"
 
     <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:Form"> <!-- use-when="system-property('xsl:product-name') = 'SAXON'" -->
         <xsl:param name="id" select="'form-' || generate-id()" as="xs:string?"/>
-        <xsl:param name="class" select="'form-horizontal'" as="xs:string?"/>
-        <xsl:param name="method" select="'patch'" as="xs:string"/>
-        <xsl:param name="base-uri" select="ldh:base-uri(.)" as="xs:anyURI" tunnel="yes"/>
-        <xsl:param name="action" select="ldh:href($ldt:base, ac:absolute-path($base-uri), map{}, ac:build-uri(ac:absolute-path($base-uri), map{ 'mode': for $mode in $ac:mode return string($mode) }))" as="xs:anyURI"/>
-        <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
-        <xsl:param name="enctype" as="xs:string?"/> <!-- select="'multipart/form-data'"  -->
-        <xsl:param name="button-class" select="'btn btn-primary wymupdate'" as="xs:string?"/>
-        <!-- <xsl:param name="create-resource" select="true()" as="xs:boolean"/> -->
         <xsl:param name="classes" as="element()*"/>
         <xsl:param name="types" select="distinct-values(rdf:type/@rdf:resource)" as="xs:anyURI*"/>
         <xsl:param name="constructor-query" as="xs:string?" tunnel="yes"/>
