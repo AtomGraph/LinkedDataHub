@@ -826,9 +826,7 @@ exclude-result-prefixes="#all"
                 </xsl:apply-templates>
             </xsl:when>
             <xsl:when test="$resource">
-                <span>
-                    <xsl:apply-templates select="$resource" mode="ldh:Typeahead"/>
-                </span>
+                <xsl:apply-templates select="$resource" mode="ldh:Typeahead"/>
                 
                 <xsl:if test="$constructor">
                     <xsl:text> </xsl:text>
@@ -944,9 +942,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="required" select="false()" as="xs:boolean"/>
         <xsl:param name="type-label" select="true()" as="xs:boolean"/>
 
-        <span>
-            <xsl:apply-templates select="key('resources', .)" mode="ldh:Typeahead"/>
-        </span>
+        <xsl:apply-templates select="key('resources', .)" mode="ldh:Typeahead"/>
         <xsl:text> </xsl:text>
 
         <xsl:variable name="forClass" select="key('resources', .)/rdf:type/@rdf:resource" as="xs:anyURI"/>

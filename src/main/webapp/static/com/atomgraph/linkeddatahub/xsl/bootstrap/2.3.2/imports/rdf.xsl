@@ -117,11 +117,9 @@ exclude-result-prefixes="#all">
 
         <xsl:choose>
             <xsl:when test="if ($type-metadata) then key('resources', ., $type-metadata) else false()">
-                <span>
-                    <xsl:apply-templates select="key('resources', ., $type-metadata)" mode="ldh:Typeahead">
-                        <xsl:with-param name="class" select="'btn add-typeahead add-type-typeahead'"/>
-                    </xsl:apply-templates>
-                </span>
+                <xsl:apply-templates select="key('resources', ., $type-metadata)" mode="ldh:Typeahead">
+                    <xsl:with-param name="class" select="'btn add-typeahead add-type-typeahead'"/>
+                </xsl:apply-templates>
             </xsl:when>
             <xsl:otherwise>
                 <xsl:call-template name="bs2:Lookup">

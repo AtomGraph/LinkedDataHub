@@ -222,11 +222,9 @@ exclude-result-prefixes="#all"
                 <xsl:when test="$predicate">
                     <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': 'DESCRIBE &lt;' || $predicate || '&gt;', 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
 
-                    <span>
-                        <xsl:apply-templates select="key('resources', $predicate, document($request-uri))" mode="ldh:Typeahead">
-                            <xsl:with-param name="class" select="'btn add-typeahead add-property-typeahead'"/>
-                        </xsl:apply-templates>
-                    </span>
+                    <xsl:apply-templates select="key('resources', $predicate, document($request-uri))" mode="ldh:Typeahead">
+                        <xsl:with-param name="class" select="'btn add-typeahead add-property-typeahead'"/>
+                    </xsl:apply-templates>
                 </xsl:when>
                 <xsl:otherwise>
                     <xsl:variable name="uuid" select="ixsl:call(ixsl:window(), 'generateUUID', [])" as="xs:string"/>
@@ -396,11 +394,9 @@ exclude-result-prefixes="#all"
             <xsl:when test="$object-type">
                 <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': 'DESCRIBE &lt;' || $object-type || '&gt;', 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
 
-                <span>
-                    <xsl:apply-templates select="key('resources', $object-type, document($request-uri))" mode="ldh:Typeahead">
-                        <xsl:with-param name="class" select="'btn add-typeahead add-class-typeahead'"/>
-                    </xsl:apply-templates>
-                </span>
+                <xsl:apply-templates select="key('resources', $object-type, document($request-uri))" mode="ldh:Typeahead">
+                    <xsl:with-param name="class" select="'btn add-typeahead add-class-typeahead'"/>
+                </xsl:apply-templates>
             </xsl:when>
             <xsl:otherwise>
                 <xsl:variable name="uuid" select="ixsl:call(ixsl:window(), 'generateUUID', [])" as="xs:string"/>
