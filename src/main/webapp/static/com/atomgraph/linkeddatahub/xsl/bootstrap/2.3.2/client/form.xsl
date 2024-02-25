@@ -1194,7 +1194,7 @@ WHERE
             </xsl:variable>
             
             <xsl:result-document href="?." method="ixsl:replace-content">
-                <xsl:sequence select="$lookup"/>
+                <xsl:sequence select="$lookup/*"/>
             </xsl:result-document>
         </xsl:for-each>
 
