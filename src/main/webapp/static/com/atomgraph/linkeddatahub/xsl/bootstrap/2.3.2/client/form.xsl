@@ -116,6 +116,9 @@ WHERE
         <xsl:variable name="js-statement" as="element()">
             <root statement="YASQE.fromTextArea(document.getElementById('{$textarea-id}'), {{ persistent: null }})"/>
         </xsl:variable>
+<xsl:message>
+textarea.sparql-query-string ldh:PostConstruct $textarea-id: <xsl:value-of select="$textarea-id"/>
+</xsl:message>
         <ixsl:set-property name="{$textarea-id}" select="ixsl:eval(string($js-statement/@statement))" object="ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe')"/>
     </xsl:template>
     
