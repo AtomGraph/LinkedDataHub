@@ -1203,7 +1203,8 @@ extension-element-prefixes="ixsl"
                             </rdf:RDF>
                         </xsl:document>
                     </xsl:variable>
-                    <xsl:sequence select="ldh:reserialize($constructor)"/>
+                    <xsl:message>Shapes TO-DO: reserialize?</xsl:message>
+                    <xsl:sequence select="$constructor"/> <!-- ldh:reserialize($constructor) -->
                 </xsl:when>
                 <xsl:otherwise>
                     <xsl:sequence select="ldh:construct-forClass($forClass)"/>
