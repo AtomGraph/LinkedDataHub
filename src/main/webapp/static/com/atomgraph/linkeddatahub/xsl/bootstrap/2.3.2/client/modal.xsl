@@ -179,31 +179,33 @@ LIMIT   10
                                             </xsl:value-of>
                                         </label>
                                         <div class="controls">
-                                            <span>
+                                            <span data-for-class="&dh;Container &dh;Item">
                                                 <input type="text" name="ou" id="upload-rdf-doc" class="resource-typeahead typeahead"/>
                                                 <ul class="resource-typeahead typeahead dropdown-menu" id="ul-upload-rdf-doc" style="display: none;"></ul>
                                             </span>
-
+                                            
+                                            <!--
                                             <input type="hidden" class="forClass" value="&dh;Container" autocomplete="off"/>
                                             <input type="hidden" class="forClass" value="&dh;Item" autocomplete="off"/>
+                                            -->
                                             <div class="btn-group">
                                                 <button type="button" class="btn dropdown-toggle create-action"></button>
                                                 <ul class="dropdown-menu">
                                                     <li>
-                                                        <a href="{ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), ldh:query-params(xs:anyURI('&ac;ModalMode'), xs:anyURI('&dh;Container')), ac:absolute-path(ldh:base-uri(.)))}" class="btn add-constructor" title="&dh;Container" id="{generate-id()}-upload-rdf-container">
+                                                        <button data-for-class="&dh;Container" href="{ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), ldh:query-params(xs:anyURI('&ac;ModalMode'), xs:anyURI('&dh;Container')), ac:absolute-path(ldh:base-uri(.)))}" class="btn add-constructor" title="&dh;Container" id="{generate-id()}-upload-rdf-container">
                                                             <xsl:value-of>
                                                                 <xsl:apply-templates select="key('resources', '&dh;Container', document(ac:document-uri('&dh;')))" mode="ac:label"/>
                                                             </xsl:value-of>
 
-                                                            <input type="hidden" class="forClass" value="&dh;Container"/>
-                                                        </a>
-                                                        <a href="{ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), ldh:query-params(xs:anyURI('&ac;ModalMode'), xs:anyURI('&dh;Item')), ac:absolute-path(ldh:base-uri(.)))}" class="btn add-constructor" title="&dh;Item" id="{generate-id()}-upload-rdf-item">
+                                                            <!-- <input type="hidden" class="forClass" value="&dh;Container"/> -->
+                                                        </button>
+                                                        <button data-for-class="&dh;Item" href="{ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), ldh:query-params(xs:anyURI('&ac;ModalMode'), xs:anyURI('&dh;Item')), ac:absolute-path(ldh:base-uri(.)))}" class="btn add-constructor" title="&dh;Item" id="{generate-id()}-upload-rdf-item">
                                                             <xsl:value-of>
                                                                 <xsl:apply-templates select="key('resources', '&dh;Item', document(ac:document-uri('&dh;')))" mode="ac:label"/>
                                                             </xsl:value-of>
 
-                                                            <input type="hidden" class="forClass" value="&dh;Item"/>
-                                                        </a>
+                                                            <!-- <input type="hidden" class="forClass" value="&dh;Item"/> -->
+                                                        </button>
                                                     </li>
                                                 </ul>
                                             </div>
@@ -287,28 +289,30 @@ LIMIT   10
                                                 <ul class="resource-typeahead typeahead dropdown-menu" id="ul-upload-rdf-doc" style="display: none;"></ul>
                                             </span>
 
+                                            <!--
                                             <input type="hidden" class="forClass" value="&dh;Container" autocomplete="off"/>
                                             <input type="hidden" class="forClass" value="&dh;Item" autocomplete="off"/>
+                                            -->
                                             <div class="btn-group">
                                                 <button type="button" class="btn dropdown-toggle create-action"></button>
                                                 <ul class="dropdown-menu">
                                                     <li>
-                                                        <a href="{ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), ldh:query-params(xs:anyURI('&ac;ModalMode'), xs:anyURI('&dh;Container')), ac:absolute-path(ldh:base-uri(.)))}" class="btn add-constructor" title="&dh;Container" id="{generate-id()}-remote-rdf-container">
+                                                        <button data-for-class="&dh;Container" href="{ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), ldh:query-params(xs:anyURI('&ac;ModalMode'), xs:anyURI('&dh;Container')), ac:absolute-path(ldh:base-uri(.)))}" class="btn add-constructor" title="&dh;Container" id="{generate-id()}-remote-rdf-container">
                                                             <xsl:value-of>
                                                                 <xsl:apply-templates select="key('resources', '&dh;Container', document(ac:document-uri('&dh;')))" mode="ac:label"/>
                                                             </xsl:value-of>
 
-                                                            <input type="hidden" class="forClass" value="&dh;Container"/>
-                                                        </a>
+                                                            <!-- <input type="hidden" class="forClass" value="&dh;Container"/> -->
+                                                        </button>
                                                     </li>
                                                     <li>
-                                                        <a href="{ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), ldh:query-params(xs:anyURI('&ac;ModalMode'), xs:anyURI('&dh;Item')), ac:absolute-path(ldh:base-uri(.)))}" type="button" class="btn add-constructor" title="&dh;Item" id="{generate-id()}-remote-rdf-item">
+                                                        <button data-for-class="&dh;Item" href="{ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), ldh:query-params(xs:anyURI('&ac;ModalMode'), xs:anyURI('&dh;Item')), ac:absolute-path(ldh:base-uri(.)))}" type="button" class="btn add-constructor" title="&dh;Item" id="{generate-id()}-remote-rdf-item">
                                                             <xsl:value-of>
                                                                 <xsl:apply-templates select="key('resources', '&dh;Item', document(ac:document-uri('&dh;')))" mode="ac:label"/>
                                                             </xsl:value-of>
 
-                                                            <input type="hidden" class="forClass" value="&dh;Item"/>
-                                                        </a>
+                                                            <!-- <input type="hidden" class="forClass" value="&dh;Item"/> -->
+                                                        </button>
                                                     </li>
                                                 </ul>
                                             </div>
@@ -405,17 +409,20 @@ LIMIT   10
                                             </xsl:value-of>
                                         </label>
                                         <div class="controls">
-                                            <span>
+                                            <span data-for-class="&def;Root &dh;Container">
                                                 <input type="text" name="ou" class="resource-typeahead typeahead" id="generate-containers-parent" autocomplete="off"/>
                                                 <ul class="resource-typeahead typeahead dropdown-menu" id="ul-parent-container" style="display: none;"></ul>
                                             </span>
 
+                                            <!--
                                             <input type="hidden" class="forClass" value="&def;Root" autocomplete="off"/>
                                             <input type="hidden" class="forClass" value="&dh;Container" autocomplete="off"/>
-
+                                            -->
+                                            <!--
                                             <a href="{ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), ldh:query-params(xs:anyURI('&ac;ModalMode'), xs:anyURI('&dh;Container')), ac:absolute-path(ldh:base-uri(.)))}" class="btn add-constructor create-action" title="&dh;Container" id="{generate-id()}-generate-containers-parent">
                                                 <input type="hidden" class="forClass" value="&dh;Container"/>
                                             </a>
+                                            -->
 
                                             <span class="help-inline">
                                                 <xsl:value-of>
@@ -446,16 +453,19 @@ LIMIT   10
                                             </xsl:value-of>
                                         </label>
                                         <div class="controls">
-                                            <span>
+                                            <span data-for-class="&sd;Service">
                                                 <input type="text" name="ou" class="resource-typeahead typeahead" id="source-service" autocomplete="off"/>
                                                 <ul class="resource-typeahead typeahead dropdown-menu" id="ul-source-service" style="display: none;"></ul>
                                             </span>
 
+                                            <!--
                                             <input type="hidden" class="forClass" value="&sd;Service" autocomplete="off"/>
-
+                                            -->
+                                            <!--
                                             <a href="{ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), ldh:query-params(xs:anyURI('&ac;ModalMode'), xs:anyURI('&sd;Service')), ac:absolute-path(ldh:base-uri(.)))}" class="btn add-constructor create-action" title="&sd;Service" id="{generate-id()}-generate-containers-service">
                                                 <input type="hidden" class="forClass" value="&sd;Service"/>
                                             </a>
+                                            -->
 
                                             <span class="help-inline">
                                                 <xsl:value-of>

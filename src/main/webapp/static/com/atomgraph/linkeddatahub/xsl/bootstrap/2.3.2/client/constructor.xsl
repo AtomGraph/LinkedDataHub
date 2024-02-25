@@ -230,6 +230,7 @@ exclude-result-prefixes="#all"
                     <xsl:variable name="uuid" select="ixsl:call(ixsl:window(), 'generateUUID', [])" as="xs:string"/>
 
                     <xsl:call-template name="bs2:Lookup">
+                        <xsl:with-param name="forClass" select="xs:anyURI('&rdf;Property')"/>
                         <xsl:with-param name="class" select="'property-typeahead typeahead'"/>
                         <xsl:with-param name="id" select="'input-' || $uuid"/>
                         <xsl:with-param name="list-class" select="'property-typeahead typeahead dropdown-menu'"/>
@@ -238,7 +239,7 @@ exclude-result-prefixes="#all"
             </xsl:choose>
 
             <!-- used by typeahead to set $Type -->
-            <input type="hidden" class="forClass" value="&rdf;Property" autocomplete="off"/>
+            <!-- <input type="hidden" class="forClass" value="&rdf;Property" autocomplete="off"/> -->
         </label>
     </xsl:template>
     
@@ -402,6 +403,7 @@ exclude-result-prefixes="#all"
                 <xsl:variable name="uuid" select="ixsl:call(ixsl:window(), 'generateUUID', [])" as="xs:string"/>
 
                 <xsl:call-template name="bs2:Lookup">
+                    <xsl:with-param name="forClass" select="xs:anyURI('&rdfs;Class')"/>
                     <xsl:with-param name="class" select="'class-typeahead typeahead'"/>
                     <xsl:with-param name="id" select="'input-' || $uuid"/>
                     <xsl:with-param name="list-class" select="'class-typeahead typeahead dropdown-menu'"/>
@@ -410,7 +412,7 @@ exclude-result-prefixes="#all"
         </xsl:choose>
         
         <!-- used by typeahead to set $Type -->
-        <input type="hidden" class="forClass" value="&rdfs;Class" autocomplete="off"/>
+        <!-- <input type="hidden" class="forClass" value="&rdfs;Class" autocomplete="off"/> -->
     </xsl:template>
     
     <!-- EVENT HANDLERS -->

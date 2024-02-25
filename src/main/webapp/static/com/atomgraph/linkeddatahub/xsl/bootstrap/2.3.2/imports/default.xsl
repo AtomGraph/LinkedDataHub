@@ -826,21 +826,23 @@ exclude-result-prefixes="#all"
                 </xsl:apply-templates>
             </xsl:when>
             <xsl:when test="$resource">
-                <xsl:apply-templates select="$resource" mode="ldh:Typeahead"/>
+                <xsl:variable name="forClass" select="key('resources', key('resources-by-type', ../../rdf:type/@rdf:resource, $constructor)/*[concat(namespace-uri(), local-name()) = current()/../concat(namespace-uri(), local-name())]/@rdf:nodeID, $constructor)/rdf:type/@rdf:resource[not(. = '&rdfs;Class')]" as="xs:anyURI?"/>
+                <xsl:apply-templates select="$resource" mode="ldh:Typeahead">
+                    <xsl:with-param name="forClass" select="forClass"/>
+                </xsl:apply-templates>
                 
                 <xsl:if test="$constructor">
                     <xsl:text> </xsl:text>
-                    <xsl:variable name="forClass" select="key('resources', key('resources-by-type', ../../rdf:type/@rdf:resource, $constructor)/*[concat(namespace-uri(), local-name()) = current()/../concat(namespace-uri(), local-name())]/@rdf:nodeID, $constructor)/rdf:type/@rdf:resource[not(. = '&rdfs;Class')]" as="xs:anyURI?"/>
                     <xsl:if test="$forClass">
                         <!-- forClass input is required by typeahead's FILTER ($Type IN ()) in client.xsl -->
-                        <xsl:choose>
+<!--                        <xsl:choose>
                             <xsl:when test="not($forClass = ('&rdfs;Resource', '&rdfs;Literal')) and ldh:query-result(map{}, resolve-uri('ns', $ldt:base), $constructor-query || ' VALUES $Type { ' || string-join(for $type in $forClass return '&lt;' || $type || '&gt;', ' ') || ' }')//srx:binding[@name = 'construct']/srx:literal">
                                 <xsl:variable name="subclasses" select="ldh:listSubClasses($forClass, false(), $ldt:ontology)" as="attribute()*"/>
-                                <!-- add subclasses as forClass -->
+                                 add subclasses as forClass 
                                 <xsl:for-each select="distinct-values(ldh:listSubClasses($forClass, false(), $ldt:ontology))[not(. = $forClass)]">
                                     <input type="hidden" class="forClass" value="{.}"/>
                                 </xsl:for-each>
-                                <!-- bs2:Constructor sets forClass -->
+                                 bs2:Constructor sets forClass 
                                 <xsl:apply-templates select="key('resources', $forClass, document(ac:document-uri($forClass)))" mode="bs2:Constructor">
                                     <xsl:with-param name="modal-form" select="true()"/>
                                     <xsl:with-param name="subclasses" select="$subclasses"/>
@@ -848,10 +850,10 @@ exclude-result-prefixes="#all"
                                 </xsl:apply-templates>
                             </xsl:when>
                             <xsl:otherwise>
-                                <!-- $forClass URI cannot be resolved to an RDF document -->
+                                 $forClass URI cannot be resolved to an RDF document 
                                 <input type="hidden" class="forClass" value="{$forClass}"/>
                             </xsl:otherwise>
-                        </xsl:choose>
+                        </xsl:choose>-->
 
                         <xsl:if test="$type-label">
                             <xsl:apply-templates select="." mode="bs2:FormControlTypeLabel">
@@ -983,7 +985,7 @@ exclude-result-prefixes="#all"
         </xsl:if>
     </xsl:template>
 
-    <!-- blank nodes that only have non-XSD rdf:type and no other properties become resource typeaheads -->
+    <!-- blank nodes that only have non-XSD rdf:type and no other properties become resource lookups -->
     <xsl:template match="*[@rdf:about or @rdf:nodeID]/*/@rdf:nodeID[key('resources', .)[not(* except rdf:type[not(starts-with(@rdf:resource, '&xsd;'))])]]" mode="bs2:FormControl" priority="1">
         <xsl:param name="type" select="'text'" as="xs:string"/>
         <xsl:param name="id" select="generate-id()" as="xs:string"/>
@@ -993,17 +995,13 @@ exclude-result-prefixes="#all"
         <xsl:param name="type-label" select="true()" as="xs:boolean"/>
         <xsl:variable name="forClass" select="key('resources', .)/rdf:type/@rdf:resource" as="xs:anyURI*"/>
 
-        <span>
-            <xsl:if test="exists($forClass)">
-                <xsl:attribute name="data-forClass" select="string-join($forClass, ' ')"/>
-            </xsl:if>
-            
-            <xsl:call-template name="bs2:Lookup">
-                <xsl:with-param name="type" select="$type"/>
-                <xsl:with-param name="id" select="$id"/>
-                <xsl:with-param name="class" select="$class"/>
-            </xsl:call-template>
-        </span>
+        <xsl:call-template name="bs2:Lookup">
+            <xsl:with-param name="type" select="$type"/>
+            <xsl:with-param name="id" select="$id"/>
+            <xsl:with-param name="class" select="$class"/>
+            <xsl:with-param name="forClass" select="$forClass"/>
+        </xsl:call-template>
+        
 <!--        <xsl:text> </xsl:text>
 
         <xsl:variable name="forClass-shapes" select="ldh:query-result(map{}, resolve-uri('ns', $ldt:base), $shape-query || ' VALUES $Type { ' || string-join(for $type in $forClass return '&lt;' || $type || '&gt;', ' ') || ' }')" as="document-node()"/>

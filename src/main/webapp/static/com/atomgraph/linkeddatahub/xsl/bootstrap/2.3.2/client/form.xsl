@@ -1148,12 +1148,16 @@ WHERE
         <xsl:variable name="uuid" select="ixsl:call(ixsl:window(), 'generateUUID', [])" as="xs:string"/>
         
         <xsl:for-each select="..">
-            <xsl:result-document href="?." method="ixsl:replace-content">
+            <xsl:variable name="lookup" as="element()">
                 <xsl:call-template name="bs2:Lookup">
                     <xsl:with-param name="id" select="'input-' || $uuid"/>
                     <xsl:with-param name="class" select="$lookup-class"/>
                     <xsl:with-param name="list-class" select="$lookup-list-class"/>
                 </xsl:call-template>
+            </xsl:variable>
+            
+            <xsl:result-document href="?." method="ixsl:replace-content">
+                <xsl:sequence select="$lookup/*"/>
             </xsl:result-document>
         </xsl:for-each>
         <xsl:for-each select="../..">
@@ -1181,12 +1185,16 @@ WHERE
         <xsl:variable name="uuid" select="ixsl:call(ixsl:window(), 'generateUUID', [])" as="xs:string"/>
         
         <xsl:for-each select="..">
-            <xsl:result-document href="?." method="ixsl:replace-content">
+            <xsl:variable name="lookup" as="element()">
                 <xsl:call-template name="bs2:Lookup">
-                    <xsl:with-param name="class" select="$lookup-class"/>
                     <xsl:with-param name="id" select="'input-' || $uuid"/>
+                    <xsl:with-param name="class" select="$lookup-class"/>
                     <xsl:with-param name="list-class" select="$lookup-list-class"/>
                 </xsl:call-template>
+            </xsl:variable>
+            
+            <xsl:result-document href="?." method="ixsl:replace-content">
+                <xsl:sequence select="$lookup"/>
             </xsl:result-document>
         </xsl:for-each>
 
