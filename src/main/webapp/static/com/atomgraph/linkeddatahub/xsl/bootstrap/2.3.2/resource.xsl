@@ -1212,6 +1212,8 @@ extension-element-prefixes="ixsl"
             </xsl:choose>
         </xsl:param>
         <xsl:param name="type-constraints" select="$constraints//srx:result[srx:binding[@name = 'Type'] = $forClass]" as="element()*"/>
+<xsl:message>$forClass: <xsl:value-of select="$forClass"/></xsl:message>
+<xsl:message>$type-constraints: <xsl:value-of select="serialize($type-constraints)"/></xsl:message>
         <xsl:param name="template" select="$constructor/rdf:RDF/*[@rdf:nodeID][every $type in rdf:type/@rdf:resource satisfies current()/rdf:type/@rdf:resource = $type][* except rdf:type]" as="element()*"/>
         <xsl:param name="template-properties" select="true()" as="xs:boolean" tunnel="yes"/>
         <xsl:param name="traversed-ids" select="@rdf:*" as="xs:string*" tunnel="yes"/>
