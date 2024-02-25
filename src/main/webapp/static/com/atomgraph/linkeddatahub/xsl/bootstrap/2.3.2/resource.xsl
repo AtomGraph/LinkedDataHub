@@ -995,7 +995,7 @@ extension-element-prefixes="ixsl"
                     </div>
                 </xsl:when>
                 <xsl:otherwise>
-                    <button title="{@rdf:about}" data-forClass="{current-grouping-key()}">
+                    <button title="{@rdf:about}" data-forClass="{@rdf:about}">
                         <xsl:if test="$id">
                             <xsl:attribute name="id" select="$id"/>
                         </xsl:if>
