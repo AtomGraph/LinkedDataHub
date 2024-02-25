@@ -518,7 +518,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="value" as="xs:string?"/>
         <xsl:param name="list-class" select="'resource-typeahead typeahead dropdown-menu'" as="xs:string"/>
         <xsl:param name="list-id" select="concat('ul-', $id)" as="xs:string"/>
-        <xsl:param name="forClass" as="xs:anyURI"/>
+        <xsl:param name="forClass" as="xs:anyURI*"/>
         
         <span>
             <xsl:if test="exists($forClass)">

@@ -676,8 +676,6 @@ WHERE
     <!-- shows new SPIN-constructed document as a modal form -->
     <xsl:template match="div[contains-token(@class, 'action-bar')]//button[contains-token(@class, 'add-constructor')][ixsl:contains(., 'dataset.forClass')]" mode="ixsl:onclick" priority="2">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])[current-date() lt xs:date('2000-01-01')]"/>
-        <xsl:variable name="event" select="ixsl:event()"/>
-        <xsl:variable name="target" select="ixsl:get($event, 'target')"/>
         <xsl:variable name="container" select="id('content-body', ixsl:page())" as="element()"/>
         <xsl:variable name="forClass" select="ixsl:get(., 'dataset.forClass')" as="xs:anyURI"/>
         <xsl:message>forClass: <xsl:value-of select="$forClass"/></xsl:message>
@@ -748,8 +746,6 @@ WHERE
     <!-- appends new SPIN-constructed instance to the form -->
     <xsl:template match="button[contains-token(@class, 'add-constructor')][ixsl:contains(., 'dataset.forClass')]" mode="ixsl:onclick" priority="1">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])[current-date() lt xs:date('2000-01-01')]"/>
-        <xsl:variable name="event" select="ixsl:event()"/>
-        <xsl:variable name="target" select="ixsl:get($event, 'target')"/>
         <xsl:variable name="container" select="id('content-body', ixsl:page())" as="element()"/>
         <xsl:variable name="forClass" select="ixsl:get(., 'dataset.forClass')" as="xs:anyURI"/>
         <xsl:message>forClass: <xsl:value-of select="$forClass"/></xsl:message>
