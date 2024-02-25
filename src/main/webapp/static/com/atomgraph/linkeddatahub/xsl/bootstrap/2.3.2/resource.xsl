@@ -1219,7 +1219,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="show-subject" select="not(starts-with(@rdf:about, $base-uri) or @rdf:nodeID)" as="xs:boolean" tunnel="yes"/>
         <xsl:param name="required" select="false()" as="xs:boolean"/>
 <xsl:message>bs2:FormControl $forClass: <xsl:value-of select="$forClass"/></xsl:message>
-<xsl:message>$type-constraints: <xsl:value-of select="serialize($type-constraints)"/></xsl:message>
+<xsl:message>$type-constraints//srx:binding[@name = 'property']: <xsl:value-of select="$type-constraints//srx:binding[@name = 'property']"/></xsl:message>
 
         <fieldset>
             <xsl:if test="$id">
