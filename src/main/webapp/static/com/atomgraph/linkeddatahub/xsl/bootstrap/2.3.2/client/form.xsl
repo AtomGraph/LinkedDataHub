@@ -116,9 +116,6 @@ WHERE
         <xsl:variable name="js-statement" as="element()">
             <root statement="YASQE.fromTextArea(document.getElementById('{$textarea-id}'), {{ persistent: null }})"/>
         </xsl:variable>
-<xsl:message>
-textarea.sparql-query-string ldh:PostConstruct $textarea-id: <xsl:value-of select="$textarea-id"/>
-</xsl:message>
         <ixsl:set-property name="{$textarea-id}" select="ixsl:eval(string($js-statement/@statement))" object="ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe')"/>
     </xsl:template>
     
@@ -800,7 +797,6 @@ textarea.sparql-query-string ldh:PostConstruct $textarea-id: <xsl:value-of selec
 
             <!-- add event listeners to the descendants of the form. TO-DO: replace with XSLT -->
             <xsl:if test="id($row-form//form/@id, ixsl:page())">
-                <xsl:message>count(id($row-form//form/@id, ixsl:page())): <xsl:value-of select="count(id($row-form//form/@id, ixsl:page()))"/></xsl:message>
                 <xsl:apply-templates select="id($row-form//form/@id, ixsl:page())" mode="ldh:PostConstruct"/>
             </xsl:if>
         </xsl:for-each>

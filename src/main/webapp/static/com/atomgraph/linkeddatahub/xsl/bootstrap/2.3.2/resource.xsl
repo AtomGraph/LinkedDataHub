@@ -1076,7 +1076,7 @@ extension-element-prefixes="ixsl"
             <div class="main span7">
                 <form method="{$method}" action="{$action}" class="form-horizontal">
                     <xsl:if test="$form-id">
-                        <xsl:attribute name="id" select="$id"/>
+                        <xsl:attribute name="id" select="$form-id"/>
                     </xsl:if>
                     <xsl:if test="$accept-charset">
                         <xsl:attribute name="accept-charset" select="$accept-charset"/>
