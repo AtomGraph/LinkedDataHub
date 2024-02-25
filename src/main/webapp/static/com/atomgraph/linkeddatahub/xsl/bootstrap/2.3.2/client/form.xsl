@@ -715,7 +715,9 @@ WHERE
                 <xsl:variable name="query-string" select="$constraint-query || ' VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }'" as="xs:string"/>
                 <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': $query-string, 'accept': 'application/sparql-results+xml' })" as="xs:anyURI"/>
                 <xsl:variable name="constraints" select="if (exists($types)) then document($request-uri) else ()" as="document-node()?"/>
-                
+<xsl:message>exists($types): <xsl:value-of select="exists($types)"/> exists($constraints): <xsl:value-of select="exists($constraints)"/></xsl:message>
+<xsl:message>$constraints: <xsl:value-of select="serialize($constraints)"/></xsl:message>
+
                 <xsl:apply-templates select="$constructed-doc" mode="bs2:Form">
                     <xsl:with-param name="method" select="'post'"/> <!-- browsers do not allow PUT form method -->
                     <xsl:with-param name="action" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, $doc-uri)" as="xs:anyURI"/>
