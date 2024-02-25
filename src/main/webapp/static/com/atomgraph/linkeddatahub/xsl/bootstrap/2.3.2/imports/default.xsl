@@ -693,7 +693,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="traversed-ids" as="xs:string*" tunnel="yes"/>
         <xsl:param name="inline" select="false()" as="xs:boolean" tunnel="yes"/>
         <xsl:param name="type-label" select="true()" as="xs:boolean"/>
-        <!-- <xsl:param name="constructor" as="document-node()?"/> -->
+        <xsl:param name="constructor" as="document-node()?"/>
         <xsl:variable name="resource" select="key('resources', .)"/>
         <xsl:variable name="doc-uri" select="if (starts-with($ldt:base, .)) then xs:anyURI(.) else ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(.)), 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
 
