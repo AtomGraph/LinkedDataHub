@@ -711,6 +711,7 @@ extension-element-prefixes="ixsl"
                 <xsl:with-param name="inline" select="false()" tunnel="yes"/>
                 <xsl:with-param name="constructors" select="$constructors" tunnel="yes"/>
                 <xsl:with-param name="constraints" select="$constraints" tunnel="yes"/>
+                <xsl:with-param name="shapes" select="$shapes" tunnel="yes"/>
                 <xsl:with-param name="type-metadata" select="$type-metadata" tunnel="yes"/>
                 <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/>
             </xsl:apply-templates>

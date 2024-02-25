@@ -1127,6 +1127,7 @@ extension-element-prefixes="ixsl"
 
     <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:Form"> <!-- use-when="system-property('xsl:product-name') = 'SAXON'" -->
         <xsl:param name="classes" as="element()*"/>
+        <!--
         <xsl:param name="types" select="distinct-values(rdf:type/@rdf:resource)" as="xs:anyURI*"/>
         <xsl:param name="constructor-query" as="xs:string?" tunnel="yes"/>
         <xsl:param name="constraint-query" as="xs:string?" tunnel="yes"/>
@@ -1137,14 +1138,17 @@ extension-element-prefixes="ixsl"
         <xsl:param name="type-metadata" select="if (exists($types)) then ldh:send-request(resolve-uri('ns', $ldt:base), 'POST', 'application/sparql-query', 'DESCRIBE $Type' || ' VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }', map{ 'Accept': 'application/rdf+xml' }) else ()" as="document-node()?" tunnel="yes"/>
         <xsl:param name="property-uris" select="distinct-values(*/concat(namespace-uri(), local-name()))" as="xs:string*"/>
         <xsl:param name="property-metadata" select="if (exists($property-uris)) then ldh:send-request(resolve-uri('ns', $ldt:base), 'POST', 'application/sparql-query', 'DESCRIBE $Type' || ' VALUES $Type { ' || string-join(for $uri in $property-uris return '&lt;' || $uri || '&gt;', ' ') || ' }', map{ 'Accept': 'application/rdf+xml' }) else ()" as="document-node()?" tunnel="yes"/>
+        -->
 
         <xsl:apply-templates select="." mode="bs2:FormControl">
             <xsl:with-param name="inline" select="false()" tunnel="yes"/>
+            <!--
             <xsl:with-param name="constructors" select="$constructors" tunnel="yes"/>
             <xsl:with-param name="constraints" select="$constraints" tunnel="yes"/>
             <xsl:with-param name="shapes" select="$shapes" tunnel="yes"/>
             <xsl:with-param name="type-metadata" select="$type-metadata" tunnel="yes"/>
             <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/>
+            -->
         </xsl:apply-templates>
     </xsl:template>
     
