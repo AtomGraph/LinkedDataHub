@@ -49,7 +49,7 @@ exclude-result-prefixes="#all">
         <xsl:param name="hidden" select="false()" as="xs:boolean"/>
         <!-- types are required on document instances -->
         <xsl:param name="required" select="@rdf:resource = ('&def;Root', '&dh;Container', '&dh;Item')" as="xs:boolean"/>
-        <xsl:param name="for" select="generate-id((node() | @rdf:resource | @rdf:nodeID)[1])" as="xs:string"/>
+        <xsl:param name="for" select="generate-id(@rdf:resource)" as="xs:string"/>
 
         <xsl:choose>
             <xsl:when test="$hidden"> <!-- can't apply bs2:FormControl on @rdf:resource here as that pattern/mode is off -->

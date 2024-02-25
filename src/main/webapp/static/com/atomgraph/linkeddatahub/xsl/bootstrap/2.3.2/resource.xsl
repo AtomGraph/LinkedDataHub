@@ -1185,7 +1185,7 @@ extension-element-prefixes="ixsl"
     <xsl:template match="rdf:type[@rdf:resource]" mode="bs2:FormControl" priority="1"/>
     
     <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:FormControl">
-        <xsl:param name="id" select="concat('form-control-', generate-id())" as="xs:string?"/>
+        <xsl:param name="id" select="concat('fieldset-', generate-id())" as="xs:string?"/>
         <xsl:param name="class" as="xs:string?"/>
         <xsl:param name="legend" select="true()" as="xs:boolean"/>
         <xsl:param name="property-metadata" as="document-node()?" tunnel="yes"/>
