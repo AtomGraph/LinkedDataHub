@@ -699,6 +699,7 @@ WHERE
         </xsl:if>-->
 
         <xsl:for-each select="$container">
+            <xsl:variable name="resource" select="key('resources-by-type', $forClass, $constructed-doc)" as="element()"/>
             <xsl:variable name="form" as="element()*">
                 <!-- TO-DO: refactor to use asynchronous HTTP requests -->
                 <xsl:variable name="types" select="distinct-values($resource/rdf:type/@rdf:resource)" as="xs:anyURI*"/>
