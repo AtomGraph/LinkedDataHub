@@ -828,7 +828,7 @@ exclude-result-prefixes="#all"
             <xsl:when test="$resource">
                 <xsl:variable name="forClass" select="key('resources', key('resources-by-type', ../../rdf:type/@rdf:resource, $constructor)/*[concat(namespace-uri(), local-name()) = current()/../concat(namespace-uri(), local-name())]/@rdf:nodeID, $constructor)/rdf:type/@rdf:resource[not(. = '&rdfs;Class')]" as="xs:anyURI?"/>
                 <xsl:apply-templates select="$resource" mode="ldh:Typeahead">
-                    <xsl:with-param name="forClass" select="forClass"/>
+                    <xsl:with-param name="forClass" select="$forClass"/>
                 </xsl:apply-templates>
                 
                 <xsl:if test="$constructor">
