@@ -948,9 +948,6 @@ extension-element-prefixes="ixsl"
         <xsl:variable name="forClass" select="@rdf:about" as="xs:anyURI"/>
 
         <xsl:if test="doc-available(ac:document-uri($forClass))">
-            <!-- this is used for typeahead's FILTER $Type -->
-            <input type="hidden" class="forClass" value="{$forClass}"/>
-
             <!-- if $forClass subclasses are provided, render a dropdown with multiple constructor choices. Otherwise, only render a single constructor button for $forClass -->
             <xsl:choose>
                 <xsl:when test="exists($subclasses)">
@@ -983,12 +980,10 @@ extension-element-prefixes="ixsl"
 
                                 <!-- won't traverse blank nodes, only URI resources -->
                                 <li>
-                                    <button class="btn add-constructor" title="{current-grouping-key()}">
+                                    <button class="btn add-constructor" title="{current-grouping-key()}" data-forClass="{current-grouping-key()}">
                                         <xsl:if test="$id">
                                             <xsl:attribute name="id" select="$id"/>
                                         </xsl:if>
-                                        <!-- we don't want to give a name to this input as it would be included in the RDF/POST payload -->
-                                        <input type="hidden" class="forClass" value="{current-grouping-key()}"/>
                                         
                                         <xsl:value-of>
                                             <xsl:apply-templates select="." mode="ac:label"/>
@@ -1000,7 +995,7 @@ extension-element-prefixes="ixsl"
                     </div>
                 </xsl:when>
                 <xsl:otherwise>
-                    <button title="{@rdf:about}">
+                    <button title="{@rdf:about}" data-forClass="{current-grouping-key()}">
                         <xsl:if test="$id">
                             <xsl:attribute name="id" select="$id"/>
                         </xsl:if>
@@ -1021,9 +1016,6 @@ extension-element-prefixes="ixsl"
                                 </xsl:apply-templates>
                             </xsl:otherwise>
                         </xsl:choose>
-
-                        <!-- we don't want to give a name to this input as it would be included in the RDF/POST payload -->
-                        <input type="hidden" class="forClass" value="{@rdf:about}"/>
                     </button>
                 </xsl:otherwise>
             </xsl:choose>
@@ -1369,7 +1361,7 @@ extension-element-prefixes="ixsl"
         <!--<xsl:param name="label" select="true()" as="xs:boolean"/>-->
         <xsl:param name="template" as="element()*"/>
         <xsl:param name="id" select="generate-id()" as="xs:string"/>
-        <xsl:param name="forClass" as="xs:anyURI*"/>
+        <!-- <xsl:param name="forClass" as="xs:anyURI*"/> -->
         <xsl:param name="property-metadata" as="document-node()?"/>
         <xsl:variable name="seq-properties" select="for $property in ../rdf:Description/*/concat(namespace-uri(), local-name())[starts-with(., '&rdf;' || '_')] return xs:anyURI($property)" as="xs:anyURI*"/>
         <xsl:variable name="max-seq-index" select="if (empty($seq-properties)) then 0 else max(for $seq-property in $seq-properties return xs:integer(substring-after($seq-property, '&rdf;' || '_')))" as="xs:integer"/>
@@ -1425,9 +1417,12 @@ extension-element-prefixes="ixsl"
 
             <div class="controls">
                 <!-- $forClass value is used in client.xsl -->
+                <!-- 
                 <xsl:for-each select="$forClass">
                     <input type="hidden" name="forClass" value="{.}"/>
                 </xsl:for-each>
+                -->
+                
                 <button type="button" id="button-{generate-id()}" class="btn add-value">
                     <xsl:apply-templates select="key('resources', 'add', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ldh:logo">
                         <xsl:with-param name="class" select="'btn add-value'"/>
@@ -1507,35 +1502,41 @@ extension-element-prefixes="ixsl"
         <xsl:param name="class" select="'btn add-typeahead'" as="xs:string?"/>
         <xsl:param name="disabled" select="false()" as="xs:boolean"/>
         <xsl:param name="title" select="(@rdf:about, @rdf:nodeID)[1]" as="xs:string?"/>
+        <xsl:param name="forClass" select="rdf:type/@rdf:resource" as="xs:anyURI*"/>
 
-        <button type="button">
-            <xsl:if test="$id">
-                <xsl:attribute name="id" select="$id"/>
-            </xsl:if>
-            <xsl:if test="$class">
-                <xsl:attribute name="class" select="$class"/>
-            </xsl:if>
-            <xsl:if test="$disabled">
-                <xsl:attribute name="disabled" select="'disabled'"/>
-            </xsl:if>
-            <xsl:if test="$title">
-                <xsl:attribute name="title" select="$title"/>
-            </xsl:if>
-            
-            <span class="pull-left">
-                <xsl:value-of>
-                    <xsl:apply-templates select="." mode="ac:label"/>
-                </xsl:value-of>
-            </span>
-            <span class="caret pull-right"></span>
-            
-            <xsl:if test="@rdf:about">
-                <input type="hidden" name="ou" value="{@rdf:about}"/>
-            </xsl:if>
-            <xsl:if test="@rdf:nodeID">
-                <input type="hidden" name="ob" value="{@rdf:nodeID}"/>
-            </xsl:if>
-        </button>
+        <span>
+            <button type="button">
+                <xsl:if test="$id">
+                    <xsl:attribute name="id" select="$id"/>
+                </xsl:if>
+                <xsl:if test="$class">
+                    <xsl:attribute name="class" select="$class"/>
+                </xsl:if>
+                <xsl:if test="$disabled">
+                    <xsl:attribute name="disabled" select="'disabled'"/>
+                </xsl:if>
+                <xsl:if test="$title">
+                    <xsl:attribute name="title" select="$title"/>
+                </xsl:if>
+                <xsl:if test="exists($forClass)">
+                    <xsl:attribute name="forClass" select="string-join($forClass, ' ')"/>
+                </xsl:if>
+
+                <span class="pull-left">
+                    <xsl:value-of>
+                        <xsl:apply-templates select="." mode="ac:label"/>
+                    </xsl:value-of>
+                </span>
+                <span class="caret pull-right"></span>
+
+                <xsl:if test="@rdf:about">
+                    <input type="hidden" name="ou" value="{@rdf:about}"/>
+                </xsl:if>
+                <xsl:if test="@rdf:nodeID">
+                    <input type="hidden" name="ob" value="{@rdf:nodeID}"/>
+                </xsl:if>
+            </button>
+        </span>
     </xsl:template>
     
 </xsl:stylesheet>

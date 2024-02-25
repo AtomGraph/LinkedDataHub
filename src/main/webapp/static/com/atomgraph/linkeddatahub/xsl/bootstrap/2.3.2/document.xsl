@@ -131,13 +131,13 @@ extension-element-prefixes="ixsl"
     <xsl:template match="rdf:RDF" mode="bs2:ModeTabs">
         <xsl:param name="has-content" as="xs:boolean"/>
         <xsl:param name="active-mode" as="xs:anyURI?"/>
-        <xsl:param name="forClass" as="xs:anyURI?"/>
+        <!-- <xsl:param name="forClass" as="xs:anyURI?"/> -->
         <xsl:param name="ajax-rendering" select="true()" as="xs:boolean"/>
         <xsl:param name="base-uri" select="ldh:base-uri(.)" as="xs:anyURI"/>
 
         <div class="row-fluid">
             <ul class="nav nav-tabs offset2 span7">
-                <li class="content-mode{if ((empty($active-mode) and $has-content and not($forClass)) or $active-mode = '&ldh;ContentMode') then ' active' else() }">
+                <li class="content-mode{if ((empty($active-mode) and $has-content)) or $active-mode = '&ldh;ContentMode') then ' active' else() }">
                     <a href="{ldh:href($ldt:base, ac:absolute-path(ac:absolute-path(ldh:base-uri(.))), ldh:query-params(xs:anyURI('&ldh;ContentMode')), ac:absolute-path(ldh:base-uri(.)))}">
                         <xsl:value-of>
                             <xsl:apply-templates select="key('resources', 'content', document('translations.rdf'))" mode="ac:label"/>

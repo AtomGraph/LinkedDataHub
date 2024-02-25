@@ -45,7 +45,7 @@ exclude-result-prefixes="#all">
     <!-- shortened version of @rdf:resource bs2:FormControl -->
     <xsl:template match="rdf:type[@rdf:resource]" mode="bs2:TypeControl">
         <xsl:param name="this" select="xs:anyURI(concat(namespace-uri(), local-name()))" as="xs:anyURI"/>
-        <xsl:param name="forClass" as="xs:anyURI?"/> 
+        <!-- <xsl:param name="forClass" as="xs:anyURI?"/>  -->
         <xsl:param name="hidden" select="false()" as="xs:boolean"/>
         <!-- types are required on document instances -->
         <xsl:param name="required" select="@rdf:resource = ('&def;Root', '&dh;Container', '&dh;Item')" as="xs:boolean"/>
@@ -92,9 +92,11 @@ exclude-result-prefixes="#all">
                             </div>
                         </xsl:if>
 
+                        <!--
                         <xsl:if test="$forClass">
                             <input type="hidden" class="forClass" value="{$forClass}"/>
                         </xsl:if>
+                        -->
 
                         <xsl:apply-templates select="@rdf:resource" mode="#current"/>
                     </div>
@@ -113,23 +115,23 @@ exclude-result-prefixes="#all">
         <xsl:param name="lookup-class" select="'type-typeahead typeahead'" as="xs:string"/>
         <xsl:param name="lookup-list-class" select="'type-typeahead typeahead dropdown-menu'" as="xs:string"/>
 
-        <span>
-            <xsl:choose>
-                <xsl:when test="if ($type-metadata) then key('resources', ., $type-metadata) else false()">
+        <xsl:choose>
+            <xsl:when test="if ($type-metadata) then key('resources', ., $type-metadata) else false()">
+                <span>
                     <xsl:apply-templates select="key('resources', ., $type-metadata)" mode="ldh:Typeahead">
                         <xsl:with-param name="class" select="'btn add-typeahead add-type-typeahead'"/>
                     </xsl:apply-templates>
-                </xsl:when>
-                <xsl:otherwise>
-                    <xsl:call-template name="bs2:Lookup">
-                        <xsl:with-param name="class" select="$lookup-class"/>
-                        <xsl:with-param name="id" select="$id"/>
-                        <xsl:with-param name="value" select="."/>
-                        <xsl:with-param name="list-class" select="$lookup-list-class"/>
-                    </xsl:call-template>
-                </xsl:otherwise>
-            </xsl:choose>
-        </span>
+                </span>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:call-template name="bs2:Lookup">
+                    <xsl:with-param name="class" select="$lookup-class"/>
+                    <xsl:with-param name="id" select="$id"/>
+                    <xsl:with-param name="value" select="."/>
+                    <xsl:with-param name="list-class" select="$lookup-list-class"/>
+                </xsl:call-template>
+            </xsl:otherwise>
+        </xsl:choose>
         
         <span class="help-inline">
             <xsl:value-of select="ac:label(key('resources', '&owl;Class', document(ac:document-uri('&owl;'))))"/>

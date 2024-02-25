@@ -392,26 +392,26 @@ exclude-result-prefixes="#all"
     <xsl:template name="ldh:ConstructorResourceObject">
         <xsl:param name="object-type" as="xs:anyURI?"/>
 
-        <span>
-            <xsl:choose>
-                <xsl:when test="$object-type">
-                    <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': 'DESCRIBE &lt;' || $object-type || '&gt;', 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
+        <xsl:choose>
+            <xsl:when test="$object-type">
+                <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': 'DESCRIBE &lt;' || $object-type || '&gt;', 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
 
+                <span>
                     <xsl:apply-templates select="key('resources', $object-type, document($request-uri))" mode="ldh:Typeahead">
                         <xsl:with-param name="class" select="'btn add-typeahead add-class-typeahead'"/>
                     </xsl:apply-templates>
-                </xsl:when>
-                <xsl:otherwise>
-                    <xsl:variable name="uuid" select="ixsl:call(ixsl:window(), 'generateUUID', [])" as="xs:string"/>
+                </span>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:variable name="uuid" select="ixsl:call(ixsl:window(), 'generateUUID', [])" as="xs:string"/>
 
-                    <xsl:call-template name="bs2:Lookup">
-                        <xsl:with-param name="class" select="'class-typeahead typeahead'"/>
-                        <xsl:with-param name="id" select="'input-' || $uuid"/>
-                        <xsl:with-param name="list-class" select="'class-typeahead typeahead dropdown-menu'"/>
-                    </xsl:call-template>
-                </xsl:otherwise>
-            </xsl:choose>
-        </span>
+                <xsl:call-template name="bs2:Lookup">
+                    <xsl:with-param name="class" select="'class-typeahead typeahead'"/>
+                    <xsl:with-param name="id" select="'input-' || $uuid"/>
+                    <xsl:with-param name="list-class" select="'class-typeahead typeahead dropdown-menu'"/>
+                </xsl:call-template>
+            </xsl:otherwise>
+        </xsl:choose>
         
         <!-- used by typeahead to set $Type -->
         <input type="hidden" class="forClass" value="&rdfs;Class" autocomplete="off"/>

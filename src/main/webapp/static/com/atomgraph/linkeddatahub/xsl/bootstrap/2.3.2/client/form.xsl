@@ -673,13 +673,13 @@ WHERE
         </xsl:for-each>
     </xsl:template>
     
-    <!-- shows new SPIN-constructed document as a modal form. TO-DO: use @data- attribute instead of hidden input -->
-    <xsl:template match="div[contains-token(@class, 'action-bar')]//*[contains-token(@class, 'add-constructor')][input[@class = 'forClass']/@value]" mode="ixsl:onclick" priority="2">
+    <!-- shows new SPIN-constructed document as a modal form -->
+    <xsl:template match="div[contains-token(@class, 'action-bar')]//*[contains-token(@class, 'add-constructor')][ixsl:contains($container, 'dataset.forClass')]" mode="ixsl:onclick" priority="2">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])[current-date() lt xs:date('2000-01-01')]"/>
         <xsl:variable name="event" select="ixsl:event()"/>
         <xsl:variable name="target" select="ixsl:get($event, 'target')"/>
         <xsl:variable name="container" select="id('content-body', ixsl:page())" as="element()"/>
-        <xsl:variable name="forClass" select="input[@class = 'forClass']/@value" as="xs:anyURI"/>
+        <xsl:variable name="forClass" select="ixsl:get($container, 'dataset.forClass')" as="xs:anyURI"/>
         <xsl:variable name="constructed-doc" select="ldh:construct-forClass($forClass)" as="document-node()"/>
         <xsl:variable name="doc-uri" select="resolve-uri(ac:uuid() || '/', ldh:base-uri(.))" as="xs:anyURI"/> <!-- build a relative URI for the child document -->
         <xsl:variable name="this" select="$doc-uri" as="xs:anyURI"/>
@@ -744,13 +744,15 @@ WHERE
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
     </xsl:template>
     
-    <!-- appends new SPIN-constructed instance to the form TO-DO: use @data- attribute instead of hidden input -->
-    <xsl:template match="*[contains-token(@class, 'add-constructor')][input[@class = 'forClass']/@value]" mode="ixsl:onclick" priority="1">
+            <xsl:variable name="active-mode" select="xs:anyURI(ixsl:get($container, 'dataset.contentMode'))" as="xs:anyURI"/>
+
+    <!-- appends new SPIN-constructed instance to the form -->
+    <xsl:template match="*[contains-token(@class, 'add-constructor')][ixsl:contains($container, 'dataset.forClass')]" mode="ixsl:onclick" priority="1">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])[current-date() lt xs:date('2000-01-01')]"/>
         <xsl:variable name="event" select="ixsl:event()"/>
         <xsl:variable name="target" select="ixsl:get($event, 'target')"/>
         <xsl:variable name="container" select="id('content-body', ixsl:page())" as="element()"/>
-        <xsl:variable name="forClass" select="input[@class = 'forClass']/@value" as="xs:anyURI"/>
+        <xsl:variable name="forClass" select="ixsl:get($container, 'dataset.forClass')" as="xs:anyURI"/>
         <xsl:variable name="constructed-doc" select="ldh:construct-forClass($forClass)" as="document-node()"/>
         <xsl:variable name="doc-uri" select="ldh:base-uri(.)" as="xs:anyURI"/>
         <xsl:variable name="this" select="xs:anyURI($doc-uri || '#id' || ac:uuid())" as="xs:anyURI"/>
@@ -867,7 +869,7 @@ WHERE
         <xsl:param name="menu" select="following-sibling::ul" as="element()"/>
         <xsl:param name="delay" select="400" as="xs:integer"/>
         <xsl:param name="endpoint" select="sd:endpoint()" as="xs:anyURI"/>
-        <xsl:param name="resource-types" select="if (ancestor::div[@class = 'controls']//input[@class = 'forClass']/@value) then ancestor::div[@class = 'controls']//input[@class = 'forClass']/@value else ancestor::label//input[@class = 'forClass']/@value" as="xs:anyURI*"/>
+        <xsl:param name="forClass" select="../span/ixsl:get(., 'dataset.forClass')" as="xs:anyURI*"/>
         <xsl:param name="select-string" select="$select-labelled-string" as="xs:string?"/>
         <xsl:param name="limit" select="100" as="xs:integer?"/>
         <xsl:param name="label-var-name" select="'label'" as="xs:string"/>
@@ -890,14 +892,14 @@ WHERE
         <xsl:variable name="select-xml" as="document-node()">
             <xsl:document>
                 <xsl:choose>
-                    <!-- do not FILTER by $resource-types if the only type is rdfs:Resource -->
-                    <xsl:when test="empty($resource-types[not(. = '&rdfs;Resource')])">
+                    <!-- do not FILTER by $forClass if the only type is rdfs:Resource -->
+                    <xsl:when test="empty($forClass[not(. = '&rdfs;Resource')])">
                         <xsl:sequence select="$select-xml"/>
                     </xsl:when>
                     <xsl:otherwise>
                         <xsl:apply-templates select="$select-xml" mode="ldh:add-filter-in">
                             <xsl:with-param name="var-name" select="$type-var-name" tunnel="yes"/>
-                            <xsl:with-param name="values" select="$resource-types" tunnel="yes"/>
+                            <xsl:with-param name="values" select="$forClass" tunnel="yes"/>
                         </xsl:apply-templates>
                     </xsl:otherwise>
                 </xsl:choose>
@@ -963,7 +965,7 @@ WHERE
                         <xsl:with-param name="query" select="ixsl:get(., 'value')"/>
                         <xsl:with-param name="uri" select="$results-uri"/>
                         <!-- we don't want to use rdfs:Resource as a type because a filter in typeahead:process would not select any resources with this type -->
-                        <xsl:with-param name="resource-types" select="$resource-types[not(. = '&rdfs;Resource')]"/>
+                        <xsl:with-param name="resource-types" select="$forClass[not(. = '&rdfs;Resource')]"/>
                     </xsl:call-template>
                 </ixsl:schedule-action>
             </xsl:when>
@@ -1189,7 +1191,7 @@ WHERE
     
     <xsl:template match="form//input[contains-token(@class, 'resource-typeahead')]" mode="ixsl:onfocusin">
         <xsl:variable name="menu" select="following-sibling::ul" as="element()"/>
-        <xsl:variable name="forClass" select="../following-sibling::input[@class = 'forClass']/@value/xs:anyURI(.)" as="xs:anyURI*"/>
+        <xsl:variable name="forClass" select="../span/ixsl:get(., 'dataset.forClass')" as="xs:anyURI*"/>
         <xsl:variable name="item-doc" as="document-node()">
             <xsl:document>
                 <rdf:RDF>
