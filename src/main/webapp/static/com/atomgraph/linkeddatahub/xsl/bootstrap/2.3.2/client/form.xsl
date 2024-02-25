@@ -769,18 +769,12 @@ WHERE
         <!-- <xsl:variable name="classes" select="for $class-uri in map:keys($default-classes) return key('resources', $class-uri, document(ac:document-uri($class-uri)))" as="element()*"/> -->
         <xsl:variable name="classes" select="()" as="element()*"/>
 
-<!--        <xsl:if test="$add-class">
-            <xsl:sequence select="$form/ixsl:call(ixsl:get(., 'classList'), 'toggle', [ $add-class, true() ])[current-date() lt xs:date('2000-01-01')]"/>
-        </xsl:if>-->
-
         <xsl:for-each select="$container">
-            <!-- 
             <xsl:for-each select="$container/div[contains-token(@class, 'create-resource')]">
                 <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:for-each>
-            -->
 
-            <xsl:result-document href="?." method="ixsl:append-content">
+            <xsl:variable name="row-form" as="element()*">
                 <xsl:apply-templates select="$constructed-doc" mode="bs2:RowForm">
                     <xsl:with-param name="method" select="'post'"/>
                     <xsl:with-param name="action" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, $doc-uri)" as="xs:anyURI"/>
@@ -791,18 +785,17 @@ WHERE
                     <xsl:with-param name="base-uri" select="ac:absolute-path(ldh:base-uri(.))" tunnel="yes"/> <!-- ac:absolute-path(ldh:base-uri(.)) is empty on constructed documents -->
                     <!-- <xsl:sort select="ac:label(.)"/> -->
                 </xsl:apply-templates>
+            </xsl:variable>
+            
+            <xsl:result-document href="?." method="ixsl:append-content">
+                <xsl:copy-of select="$row-form//form"/>
             </xsl:result-document>
+
+            <!-- add event listeners to the descendants of the form. TO-DO: replace with XSLT -->
+            <xsl:if test="id($row-form//form/@id, ixsl:page())">
+                <xsl:apply-templates select="id($row-form//form/@id, ixsl:page())" mode="ldh:PostConstruct"/>
+            </xsl:if>
         </xsl:for-each>
-
-        <!-- add event listeners to the descendants of the form. TO-DO: replace with XSLT -->
-<!--        <xsl:if test="id($form-id, ixsl:page())">
-            <xsl:apply-templates select="id($form-id, ixsl:page())" mode="ldh:PostConstruct"/>
-        </xsl:if>-->
-
-<!--        <xsl:if test="$new-form-id">
-             overwrite form's @id with the provided value 
-            <ixsl:set-property name="id" select="$new-form-id" object="id($form-id, ixsl:page())"/>
-        </xsl:if>-->
 
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
     </xsl:template>
