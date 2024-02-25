@@ -674,12 +674,12 @@ WHERE
     </xsl:template>
     
     <!-- shows new SPIN-constructed document as a modal form -->
-    <xsl:template match="div[contains-token(@class, 'action-bar')]//*[contains-token(@class, 'add-constructor')][ixsl:contains(., 'dataset.forclass')]" mode="ixsl:onclick" priority="2">
+    <xsl:template match="div[contains-token(@class, 'action-bar')]//*[contains-token(@class, 'add-constructor')][ixsl:contains(., 'dataset.forClass')]" mode="ixsl:onclick" priority="2">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])[current-date() lt xs:date('2000-01-01')]"/>
         <xsl:variable name="event" select="ixsl:event()"/>
         <xsl:variable name="target" select="ixsl:get($event, 'target')"/>
         <xsl:variable name="container" select="id('content-body', ixsl:page())" as="element()"/>
-        <xsl:variable name="forClass" select="ixsl:get(., 'dataset.forclass')" as="xs:anyURI"/>
+        <xsl:variable name="forClass" select="ixsl:get(., 'dataset.forClass')" as="xs:anyURI"/>
         <xsl:variable name="constructed-doc" select="ldh:construct-forClass($forClass)" as="document-node()"/>
         <xsl:variable name="doc-uri" select="resolve-uri(ac:uuid() || '/', ldh:base-uri(.))" as="xs:anyURI"/> <!-- build a relative URI for the child document -->
         <xsl:variable name="this" select="$doc-uri" as="xs:anyURI"/>
@@ -745,12 +745,12 @@ WHERE
     </xsl:template>
     
     <!-- appends new SPIN-constructed instance to the form -->
-    <xsl:template match="*[contains-token(@class, 'add-constructor')][ixsl:contains(., 'dataset.forclass')]" mode="ixsl:onclick" priority="1">
+    <xsl:template match="*[contains-token(@class, 'add-constructor')][ixsl:contains(., 'dataset.forClass')]" mode="ixsl:onclick" priority="1">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])[current-date() lt xs:date('2000-01-01')]"/>
         <xsl:variable name="event" select="ixsl:event()"/>
         <xsl:variable name="target" select="ixsl:get($event, 'target')"/>
         <xsl:variable name="container" select="id('content-body', ixsl:page())" as="element()"/>
-        <xsl:variable name="forClass" select="ixsl:get(., 'dataset.forclass')" as="xs:anyURI"/>
+        <xsl:variable name="forClass" select="ixsl:get(., 'dataset.forClass')" as="xs:anyURI"/>
         <xsl:variable name="constructed-doc" select="ldh:construct-forClass($forClass)" as="document-node()"/>
         <xsl:variable name="doc-uri" select="ldh:base-uri(.)" as="xs:anyURI"/>
         <xsl:variable name="this" select="xs:anyURI($doc-uri || '#id' || ac:uuid())" as="xs:anyURI"/>
@@ -867,7 +867,7 @@ WHERE
         <xsl:param name="menu" select="following-sibling::ul" as="element()"/>
         <xsl:param name="delay" select="400" as="xs:integer"/>
         <xsl:param name="endpoint" select="sd:endpoint()" as="xs:anyURI"/>
-        <xsl:param name="forClass" select="../span/ixsl:get(., 'dataset.forclass')" as="xs:anyURI*"/>
+        <xsl:param name="forClass" select="../span/ixsl:get(., 'dataset.forClass')" as="xs:anyURI*"/>
         <xsl:param name="select-string" select="$select-labelled-string" as="xs:string?"/>
         <xsl:param name="limit" select="100" as="xs:integer?"/>
         <xsl:param name="label-var-name" select="'label'" as="xs:string"/>
@@ -1189,7 +1189,7 @@ WHERE
     
     <xsl:template match="form//input[contains-token(@class, 'resource-typeahead')]" mode="ixsl:onfocusin">
         <xsl:variable name="menu" select="following-sibling::ul" as="element()"/>
-        <xsl:variable name="forClass" select="../span/ixsl:get(., 'dataset.forclass')" as="xs:anyURI*"/>
+        <xsl:variable name="forClass" select="../span/ixsl:get(., 'dataset.forClass')" as="xs:anyURI*"/>
         <xsl:variable name="item-doc" as="document-node()">
             <xsl:document>
                 <rdf:RDF>

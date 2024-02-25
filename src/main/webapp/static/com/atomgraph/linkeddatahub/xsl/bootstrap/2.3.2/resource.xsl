@@ -980,7 +980,7 @@ extension-element-prefixes="ixsl"
 
                                 <!-- won't traverse blank nodes, only URI resources -->
                                 <li>
-                                    <button class="btn add-constructor" title="{current-grouping-key()}" data-forClass="{current-grouping-key()}">
+                                    <button class="btn add-constructor" title="{current-grouping-key()}" data-for-class="{current-grouping-key()}">
                                         <xsl:if test="$id">
                                             <xsl:attribute name="id" select="$id"/>
                                         </xsl:if>
@@ -995,7 +995,7 @@ extension-element-prefixes="ixsl"
                     </div>
                 </xsl:when>
                 <xsl:otherwise>
-                    <button title="{@rdf:about}" data-forClass="{@rdf:about}">
+                    <button title="{@rdf:about}" data-for-class="{@rdf:about}">
                         <xsl:if test="$id">
                             <xsl:attribute name="id" select="$id"/>
                         </xsl:if>
