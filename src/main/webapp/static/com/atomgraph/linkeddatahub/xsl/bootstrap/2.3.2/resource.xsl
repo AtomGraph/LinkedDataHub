@@ -1194,7 +1194,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="type-shapes" select="if ($shapes) then key('shapes-by-target-class', $forClass, $shapes) else ()" as="element()*"/>
         <xsl:param name="constructor" as="document-node()?">
             <!-- SHACL shapes take priority over SPIN constructors -->
-            <xsl:choose use-when="system-property('xsl:product-name') = 'SAXON'">
+            <xsl:choose>
                 <xsl:when test="exists($type-shapes)">
                     <xsl:variable name="constructor" as="document-node()">
                         <xsl:document>
