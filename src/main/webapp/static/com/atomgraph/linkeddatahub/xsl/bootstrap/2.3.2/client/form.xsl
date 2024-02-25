@@ -718,7 +718,7 @@ WHERE
 <xsl:message>exists($types): <xsl:value-of select="exists($types)"/> exists($constraints): <xsl:value-of select="exists($constraints)"/></xsl:message>
 <xsl:message>$constraints: <xsl:value-of select="serialize($constraints)"/></xsl:message>
 
-                <xsl:apply-templates select="$constructed-doc" mode="bs2:Form">
+                <xsl:apply-templates select="$constructed-doc" mode="bs2:Form"> <!-- document level template -->
                     <xsl:with-param name="method" select="'post'"/> <!-- browsers do not allow PUT form method -->
                     <xsl:with-param name="action" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, $doc-uri)" as="xs:anyURI"/>
                     <xsl:with-param name="form-actions-class" select="'form-actions modal-footer'" as="xs:string?"/>

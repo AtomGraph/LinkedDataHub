@@ -1167,6 +1167,7 @@ LIMIT   100
 
     <!-- FORM CONTROL -->
 
+    <!--
     <xsl:template match="*[rdf:type/@rdf:resource = ('&def;Root', '&dh;Container', '&dh;Item')]" mode="bs2:FormControl">
         <xsl:param name="id" select="concat('form-control-', generate-id())" as="xs:string?"/>
         <xsl:param name="class" as="xs:string?"/>
@@ -1191,6 +1192,7 @@ LIMIT   100
             <xsl:with-param name="container" select="$container" as="xs:anyURI"/>
         </xsl:next-match>
     </xsl:template>
+    -->
     
     <!-- NAVBAR ACTIONS -->
 
