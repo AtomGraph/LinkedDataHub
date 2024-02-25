@@ -700,14 +700,30 @@ WHERE
 
         <xsl:for-each select="$container">
             <xsl:variable name="form" as="element()*">
+                <!-- TO-DO: refactor to use asynchronous HTTP requests -->
+                <xsl:variable name="types" select="distinct-values($resource/rdf:type/@rdf:resource)" as="xs:anyURI*"/>
+                <xsl:variable name="query-string" select="'DESCRIBE $Type VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }'" as="xs:string"/>
+                <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': $query-string, 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
+                <xsl:variable name="type-metadata" select="if (exists($types)) then document($request-uri) else ()" as="document-node()?"/>
+
+                <xsl:variable name="property-uris" select="distinct-values($resource/*/concat(namespace-uri(), local-name()))" as="xs:string*"/>
+                <xsl:variable name="query-string" select="'DESCRIBE $Type VALUES $Type { ' || string-join(for $uri in $property-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>
+                <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': $query-string, 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
+                <xsl:variable name="property-metadata" select="document($request-uri)" as="document-node()"/>
+
+                <xsl:variable name="query-string" select="$constraint-query || ' VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }'" as="xs:string"/>
+                <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': $query-string, 'accept': 'application/sparql-results+xml' })" as="xs:anyURI"/>
+                <xsl:variable name="constraints" select="if (exists($types)) then document($request-uri) else ()" as="document-node()?"/>
+                
                 <xsl:apply-templates select="$constructed-doc" mode="bs2:Form">
                     <xsl:with-param name="method" select="'post'"/> <!-- browsers do not allow PUT form method -->
                     <xsl:with-param name="action" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, $doc-uri)" as="xs:anyURI"/>
                     <xsl:with-param name="form-actions-class" select="'form-actions modal-footer'" as="xs:string?"/>
                     <xsl:with-param name="classes" select="$classes"/>
-                    <!-- <xsl:with-param name="constructor-query" select="$constructor-query" tunnel="yes"/> -->
-                    <xsl:with-param name="constraint-query" select="$constraint-query" tunnel="yes"/>
-                    <!-- <xsl:with-param name="shape-query" select="$shape-query" tunnel="yes"/> -->
+                    <xsl:with-param name="type-metadata" select="$type-metadata" tunnel="yes"/>
+                    <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/>
+                    <xsl:with-param name="constraints" select="$constraints" tunnel="yes"/>
+                    <!-- <xsl:with-param name="shapes" select="$shapes" tunnel="yes"/> -->
                     <xsl:with-param name="base-uri" select="ac:absolute-path(ldh:base-uri(.))" tunnel="yes"/> <!-- ac:absolute-path(ldh:base-uri(.)) is empty on constructed documents -->
                     <!-- <xsl:sort select="ac:label(.)"/> -->
                 </xsl:apply-templates>
