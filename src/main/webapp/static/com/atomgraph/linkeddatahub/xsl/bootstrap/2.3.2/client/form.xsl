@@ -770,7 +770,9 @@ WHERE
         <xsl:variable name="classes" select="()" as="element()*"/>
 
         <xsl:for-each select="$container">
-            <xsl:for-each select="$container/div[contains-token(@class, 'create-resource')]">
+            <xsl:variable name="create-resource" select="$container/div[contains-token(@class, 'create-resource')]" as="element()"/>
+            <!-- remove preceding Create button block -->
+            <xsl:for-each select="$create-resource">
                 <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:for-each>
 
@@ -789,6 +791,9 @@ WHERE
             
             <xsl:result-document href="?." method="ixsl:append-content">
                 <xsl:copy-of select="$row-form"/>
+                
+                <!-- append following Create button block -->
+                <xsl:sequence select="$create-resource"/>
             </xsl:result-document>
 
             <!-- add event listeners to the descendants of the form. TO-DO: replace with XSLT -->
