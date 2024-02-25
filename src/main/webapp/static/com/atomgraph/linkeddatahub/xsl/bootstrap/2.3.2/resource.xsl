@@ -1049,6 +1049,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="class" select="'row-fluid content'" as="xs:string?"/>
         <xsl:param name="about" select="@rdf:about" as="xs:anyURI?"/>
         <xsl:param name="typeof" select="rdf:type/@rdf:resource/xs:anyURI(.)" as="xs:anyURI*"/>
+        <xsl:param name="form-id" select="'form-' || generate-id()" as="xs:string?"/>
         <xsl:param name="method" select="'patch'" as="xs:string"/>
         <xsl:param name="base-uri" select="ldh:base-uri(.)" as="xs:anyURI" tunnel="yes"/>
         <xsl:param name="action" select="ldh:href($ldt:base, ac:absolute-path($base-uri), map{}, ac:build-uri(ac:absolute-path($base-uri), map{ 'mode': for $mode in $ac:mode return string($mode) }))" as="xs:anyURI"/>
@@ -1074,6 +1075,9 @@ extension-element-prefixes="ixsl"
 
             <div class="main span7">
                 <form method="{$method}" action="{$action}" class="form-horizontal">
+                    <xsl:if test="$form-id">
+                        <xsl:attribute name="id" select="$id"/>
+                    </xsl:if>
                     <xsl:if test="$accept-charset">
                         <xsl:attribute name="accept-charset" select="$accept-charset"/>
                     </xsl:if>
@@ -1130,7 +1134,6 @@ extension-element-prefixes="ixsl"
     <xsl:template match="*[@rdf:nodeID][key('predicates-by-object', @rdf:nodeID)][not(* except rdf:type or rdf:type/@rdf:resource = '&owl;NamedIndividual')]" mode="bs2:Form" priority="2"/>
 
     <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:Form"> <!-- use-when="system-property('xsl:product-name') = 'SAXON'" -->
-        <xsl:param name="id" select="'form-' || generate-id()" as="xs:string?"/>
         <xsl:param name="classes" as="element()*"/>
         <xsl:param name="types" select="distinct-values(rdf:type/@rdf:resource)" as="xs:anyURI*"/>
         <xsl:param name="constructor-query" as="xs:string?" tunnel="yes"/>

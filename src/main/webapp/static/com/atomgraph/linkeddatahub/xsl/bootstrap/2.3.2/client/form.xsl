@@ -788,7 +788,7 @@ WHERE
             </xsl:variable>
             
             <xsl:result-document href="?." method="ixsl:append-content">
-                <xsl:copy-of select="$row-form//form"/>
+                <xsl:copy-of select="$row-form"/>
             </xsl:result-document>
 
             <!-- add event listeners to the descendants of the form. TO-DO: replace with XSLT -->
