@@ -1104,10 +1104,10 @@ WHERE
     
     <!-- remove div.row-fluid (button is within <legend>) -->
     <xsl:template match="fieldset/legend/div/button[contains-token(@class, 'btn-remove-resource')]" mode="ixsl:onclick" priority="1">
-        <xsl:sequence select="ixsl:call(../../../../.., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:sequence select="ixsl:call(../../../../../.., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
 
-    <!-- remove <fieldset> (button is within <fieldset>) -->
+    <!-- remove <fieldset> (button is within <fieldset>) TO-DO: unused? -->
     <xsl:template match="fieldset/div/button[contains-token(@class, 'btn-remove-resource')]" mode="ixsl:onclick" priority="1">
         <xsl:sequence select="ixsl:call(../.., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
