@@ -539,7 +539,8 @@ WHERE
                     <xsl:variable name="violations" select="key('violations-by-root', ($resource-uri, $resource-bnode), $body) | key('violations-by-focus-node', ($resource-uri, $resource-bnode), $body)" as="element()*"/>
                     <xsl:message>$violations: <xsl:value-of select="serialize($violations)"/></xsl:message>
 
-                    <xsl:for-each select="./div[contains-token(@class, 'control-group')]">
+                    <!-- iterate control groups as properties -->
+                    <xsl:for-each select="./div[contains-token(@class, 'control-group')][input[@name = 'pu']]">
                         <xsl:variable name="predicate" select="input[@name = 'pu']/ixsl:get(., 'value')" as="xs:anyURI"/>
                         
                         <xsl:choose>
