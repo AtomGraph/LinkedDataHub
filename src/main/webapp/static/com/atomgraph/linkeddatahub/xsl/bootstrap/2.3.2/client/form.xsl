@@ -147,69 +147,6 @@ WHERE
         </xsl:if>
     </xsl:template>
     
-    <!-- form identity transform -->
-    
-    <xsl:template match="@for | @id" mode="form" priority="1">
-        <xsl:param name="doc-id" as="xs:string" tunnel="yes"/>
-        
-        <xsl:attribute name="{name()}" select="concat($doc-id, .)"/>
-    </xsl:template>
-    
-    <!-- required when adding multiple new instances to the form: increase bnode ID counters to avoid clashes with existing IDs. Only works with Jena's A1, A2, ... naming scheme -->
-    <xsl:template match="input[@name = ('sb', 'ob')]/@value[starts-with(., 'A')]" mode="form" priority="1">
-        <xsl:param name="bnode-number" select="number(substring-after(., 'A'))" as="xs:double"/>
-        <xsl:param name="max-bnode-id" as="xs:integer?" tunnel="yes"/>
-        
-        <xsl:choose>
-            <xsl:when test="exists($max-bnode-id)">
-                <xsl:attribute name="value" select="'A' || ($bnode-number + $max-bnode-id + 1)"/> <!-- increase the counter -->
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:copy-of select="."/>
-            </xsl:otherwise>
-        </xsl:choose>
-    </xsl:template>
-    
-    <!-- also replace <legend> text to match the updated bnode label -->
-    <xsl:template match="fieldset/legend/text()[starts-with(., 'A')][../following-sibling::input[@name = 'sb']/@value = .]" mode="form" priority="1">
-        <xsl:param name="bnode-number" select="number(substring-after(., 'A'))" as="xs:double"/>
-        <xsl:param name="max-bnode-id" as="xs:integer?" tunnel="yes"/>
-        
-        <xsl:choose>
-            <xsl:when test="exists($max-bnode-id)">
-                <xsl:sequence select="'A' || ($bnode-number + $max-bnode-id + 1)"/> <!-- increase the counter -->
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:copy-of select="."/>
-            </xsl:otherwise>
-        </xsl:choose>
-    </xsl:template>
-    
-<!--    <xsl:template match="input[@class = 'target-id']" mode="form" priority="1">
-        <xsl:param name="target-id" as="xs:string?" tunnel="yes"/>
-        
-        <xsl:copy>
-            <xsl:apply-templates select="@*" mode="#current"/>
-            <xsl:if test="$target-id">
-                <xsl:attribute name="value" select="$target-id"/>
-            </xsl:if>
-        </xsl:copy>
-    </xsl:template>-->
-
-    <!-- regenerates slug literal UUID because form (X)HTML can be cached -->
-    <xsl:template match="input[@name = 'ol'][ancestor::div[@class = 'controls']/preceding-sibling::input[@name = 'pu']/@value = '&dh;slug']" mode="form" priority="1">
-        <xsl:copy>
-            <xsl:apply-templates select="@*" mode="#current"/>
-            <xsl:attribute name="value" select="ixsl:call(ixsl:window(), 'generateUUID', [])"/>
-        </xsl:copy>
-    </xsl:template>
-        
-    <xsl:template match="@* | node()" mode="form">
-        <xsl:copy>
-            <xsl:apply-templates select="@* | node()" mode="#current"/>
-        </xsl:copy>
-    </xsl:template>
-    
     <xsl:template match="*" mode="ldh:FormPreSubmit">
         <xsl:apply-templates mode="#current"/>
     </xsl:template>
@@ -435,6 +372,11 @@ WHERE
         <xsl:variable name="accept" select="'application/rdf+xml'" as="xs:string"/>
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, $action)" as="xs:anyURI"/>
         <xsl:variable name="elements" select=".//input | .//textarea | .//select" as="element()*"/>
+        <xsl:message>
+            <xsl:for-each select="$elements">
+                @name: <xsl:value-of select="@name"/> ixsl:contains(., 'value'): <xsl:value-of select="ixsl:contains(., 'value')"/>
+            </xsl:for-each>
+        </xsl:message>
         <xsl:variable name="triples" select="ldh:parse-rdf-post($elements)" as="element()*"/>
         <xsl:variable name="resources" as="document-node()">
             <xsl:document>
