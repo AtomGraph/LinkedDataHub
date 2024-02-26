@@ -519,7 +519,7 @@ WHERE
             </xsl:when>
             <!-- POST or PUT constraint violation response is 422 Unprocessable Entity, bad RDF syntax is 400 Bad Request -->
             <xsl:when test="?status = (400, 422) and starts-with(?media-type, 'application/rdf+xml')"> <!-- allow 'application/rdf+xml;charset=UTF-8' as well -->
-                <xsl:param name="violations" select="key('violations-by-value', $resources//*/@rdf:resource, ?body) | key('violations-by-root', $resources//(@rdf:about, @rdf:nodeID), ?body) | key('violations-by-focus-node', $resources//(@rdf:about, @rdf:nodeID), ?body)" as="element()*"/>
+                <xsl:variable name="violations" select="key('violations-by-value', $resources//*/@rdf:resource, ?body) | key('violations-by-root', $resources//(@rdf:about, @rdf:nodeID), ?body) | key('violations-by-focus-node', $resources//(@rdf:about, @rdf:nodeID), ?body)" as="element()*"/>
                 <xsl:message>CONSTRAINT VIOLATIONS: <xsl:value-of select="serialize($violations)"/></xsl:message>
                 
                 <xsl:for-each select="$form//div[contains-token(@class, 'violations')]">
