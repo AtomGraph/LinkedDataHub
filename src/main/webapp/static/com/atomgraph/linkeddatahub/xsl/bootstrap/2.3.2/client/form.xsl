@@ -544,7 +544,7 @@ WHERE
                         
                         <xsl:choose>
                             <!-- if there are violations specific to the predicate of this control group, set error class on the group -->
-                            <xsl:when test="$violations[spin:violationPath/@rdf:resource = $pu]">
+                            <xsl:when test="$violations[spin:violationPath/@rdf:resource = $predicate]">
                                 <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'error', true() ])[current-date() lt xs:date('2000-01-01')]"/>
                             </xsl:when>
                             <!-- otherwise, remove the error class -->
