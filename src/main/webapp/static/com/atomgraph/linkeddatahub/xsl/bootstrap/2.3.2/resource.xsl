@@ -1125,30 +1125,11 @@ extension-element-prefixes="ixsl"
     <!-- hide object blank nodes that only have a single rdf:type property from constructed models, unless the type is owl:NamedIndividual -->
     <xsl:template match="*[@rdf:nodeID][key('predicates-by-object', @rdf:nodeID)][not(* except rdf:type or rdf:type/@rdf:resource = '&owl;NamedIndividual')]" mode="bs2:Form" priority="2"/>
 
-    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:Form"> <!-- use-when="system-property('xsl:product-name') = 'SAXON'" -->
+    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:Form">
         <xsl:param name="classes" as="element()*"/>
-        <!--
-        <xsl:param name="types" select="distinct-values(rdf:type/@rdf:resource)" as="xs:anyURI*"/>
-        <xsl:param name="constructor-query" as="xs:string?" tunnel="yes"/>
-        <xsl:param name="constraint-query" as="xs:string?" tunnel="yes"/>
-        <xsl:param name="shape-query" as="xs:string?" tunnel="yes"/>
-        <xsl:param name="constructors" select="if ($constructor-query and exists($types)) then (ldh:query-result(map{}, resolve-uri('ns', $ldt:base), $constructor-query || ' VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }')) else ()" as="document-node()?" tunnel="yes"/>
-        <xsl:param name="constraints" select="if ($constraint-query and exists($types)) then (ldh:query-result(map{}, resolve-uri('ns', $ldt:base), $constraint-query || ' VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }')) else ()" as="document-node()?" tunnel="yes"/>
-        <xsl:param name="shapes" select="if ($shape-query and exists($types)) then (ldh:query-result(map{}, resolve-uri('ns', $ldt:base), $shape-query || ' VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }')) else ()" as="document-node()?" tunnel="yes"/>
-        <xsl:param name="type-metadata" select="if (exists($types)) then ldh:send-request(resolve-uri('ns', $ldt:base), 'POST', 'application/sparql-query', 'DESCRIBE $Type' || ' VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }', map{ 'Accept': 'application/rdf+xml' }) else ()" as="document-node()?" tunnel="yes"/>
-        <xsl:param name="property-uris" select="distinct-values(*/concat(namespace-uri(), local-name()))" as="xs:string*"/>
-        <xsl:param name="property-metadata" select="if (exists($property-uris)) then ldh:send-request(resolve-uri('ns', $ldt:base), 'POST', 'application/sparql-query', 'DESCRIBE $Type' || ' VALUES $Type { ' || string-join(for $uri in $property-uris return '&lt;' || $uri || '&gt;', ' ') || ' }', map{ 'Accept': 'application/rdf+xml' }) else ()" as="document-node()?" tunnel="yes"/>
-        -->
 
         <xsl:apply-templates select="." mode="bs2:FormControl">
             <xsl:with-param name="inline" select="false()" tunnel="yes"/>
-            <!--
-            <xsl:with-param name="constructors" select="$constructors" tunnel="yes"/>
-            <xsl:with-param name="constraints" select="$constraints" tunnel="yes"/>
-            <xsl:with-param name="shapes" select="$shapes" tunnel="yes"/>
-            <xsl:with-param name="type-metadata" select="$type-metadata" tunnel="yes"/>
-            <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/>
-            -->
         </xsl:apply-templates>
     </xsl:template>
     
@@ -1218,8 +1199,6 @@ extension-element-prefixes="ixsl"
         <xsl:param name="base-uri" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI" tunnel="yes"/>
         <xsl:param name="show-subject" select="not(starts-with(@rdf:about, $base-uri) or @rdf:nodeID)" as="xs:boolean" tunnel="yes"/>
         <xsl:param name="required" select="false()" as="xs:boolean"/>
-<xsl:message>bs2:FormControl $forClass: <xsl:value-of select="$forClass"/></xsl:message>
-<xsl:message>$type-constraints//srx:binding[@name = 'property']: <xsl:value-of select="$type-constraints//srx:binding[@name = 'property']"/></xsl:message>
 
         <fieldset>
             <xsl:if test="$id">
@@ -1313,7 +1292,9 @@ extension-element-prefixes="ixsl"
                 <xsl:with-param name="type-metadata" select="$type-metadata" tunnel="yes"/>
             </xsl:apply-templates>
 
-            <xsl:apply-templates select="$violations" mode="bs2:Violation"/>
+            <div class="violations" style="display: none">
+                <xsl:apply-templates select="$violations" mode="bs2:Violation"/>
+            </div>
             
             <!-- create inputs for both resource description and constructor template properties -->
             <xsl:apply-templates select="* | $template/*[not(concat(namespace-uri(), local-name()) = current()/*/concat(namespace-uri(), local-name()))][not(self::rdf:type)]" mode="#current">

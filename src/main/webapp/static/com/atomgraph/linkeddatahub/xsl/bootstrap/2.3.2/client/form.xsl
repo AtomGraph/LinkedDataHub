@@ -463,6 +463,7 @@ WHERE
                     <ixsl:schedule-action http-request="map{ 'method': $method, 'href': $request-uri, 'media-type': $enctype, 'body': $form-data, 'headers': map{ 'Accept': $accept } }">
                         <xsl:call-template name="ldh:ResourceUpdated">
                             <xsl:with-param name="container" select="$container"/>
+                            <xsl:with-param name="form" select="$form"/>
                             <xsl:with-param name="resources" select="$resources"/>
                         </xsl:call-template>
                     </ixsl:schedule-action>
@@ -476,6 +477,7 @@ WHERE
     <xsl:template name="ldh:ResourceUpdated">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="container" as="element()?"/>
+        <xsl:param name="form" as="element()"/>
         <xsl:param name="resources" as="document-node()"/>
 
         <xsl:choose>
@@ -516,8 +518,17 @@ WHERE
                 <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:when>
             <!-- POST or PUT constraint violation response is 422 Unprocessable Entity, bad RDF syntax is 400 Bad Request -->
-            <xsl:when test="?status = (400, 422) and starts-with(?media-type, 'application/rdf+xml')"> <!-- allow 'application/xhtml+xml;charset=UTF-8' as well -->
-                <xsl:message>CONSTRAINT VIOLATION!</xsl:message>
+            <xsl:when test="?status = (400, 422) and starts-with(?media-type, 'application/rdf+xml')"> <!-- allow 'application/rdf+xml;charset=UTF-8' as well -->
+                <xsl:param name="violations" select="key('violations-by-value', $resources//*/@rdf:resource, ?body) | key('violations-by-root', $resources//(@rdf:about, @rdf:nodeID), ?body) | key('violations-by-focus-node', $resources//(@rdf:about, @rdf:nodeID), ?body)" as="element()*"/>
+                <xsl:message>CONSTRAINT VIOLATIONS: <xsl:value-of select="serialize($violations)"/></xsl:message>
+                
+                <xsl:for-each select="$form//div[contains-token(@class, 'violations')]">
+                    <xsl:apply-templates select="$violations" mode="bs2:Violation"/>
+                    <ixsl:set-style name="display" select="'block'"/>
+                </xsl:for-each>
+                
+                <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
+
                 <!--
                 <xsl:for-each select="?body">
                     <xsl:variable name="form-id" select="ixsl:get($form, 'id')" as="xs:string"/>
@@ -715,8 +726,6 @@ WHERE
                 <xsl:variable name="query-string" select="$constraint-query || ' VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }'" as="xs:string"/>
                 <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': $query-string, 'accept': 'application/sparql-results+xml' })" as="xs:anyURI"/>
                 <xsl:variable name="constraints" select="if (exists($types)) then document($request-uri) else ()" as="document-node()?"/>
-<xsl:message>exists($types): <xsl:value-of select="exists($types)"/> exists($constraints): <xsl:value-of select="exists($constraints)"/></xsl:message>
-<xsl:message>$constraints: <xsl:value-of select="serialize($constraints)"/></xsl:message>
 
                 <xsl:apply-templates select="$constructed-doc" mode="bs2:Form"> <!-- document level template -->
                     <xsl:with-param name="method" select="'post'"/> <!-- browsers do not allow PUT form method -->
