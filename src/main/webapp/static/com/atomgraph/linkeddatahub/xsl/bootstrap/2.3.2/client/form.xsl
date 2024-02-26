@@ -532,10 +532,26 @@ WHERE
                         $resource-uri: <xsl:value-of select="$resource-uri"/>
                         $resource-bnode: <xsl:value-of select="$resource-bnode"/>
                     </xsl:message>
+                    <!-- select violations specific to this resource -->
                     <!-- TO-DO: key('violations-by-value', $resources//*/@rdf:resource, ?body) -->
                     <xsl:variable name="violations" select="key('violations-by-root', ($resource-uri, $resource-bnode), $body) | key('violations-by-focus-node', ($resource-uri, $resource-bnode), $body)" as="element()*"/>
                     <xsl:message>$violations: <xsl:value-of select="serialize($violations)"/></xsl:message>
 
+                    <xsl:for-each select="./div[contains-token(@class, 'control-group')]">
+                        <xsl:variable name="predicate" select="input[@name = 'pu']/ixsl:get(., 'value')" as="xs:anyURI"/>
+                        
+                        <xsl:choose>
+                            <!-- if there are violations specific to the predicate of this control group, set error class on the group -->
+                            <xsl:when test="$violations[spin:violationPath/@rdf:resource = $pu]">
+                                <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'error', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+                            </xsl:when>
+                            <!-- otherwise, remove the error class -->
+                            <xsl:otherwise>
+                                <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'error', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+                            </xsl:otherwise>
+                        </xsl:choose>
+                    </xsl:for-each>
+                    
                     <xsl:for-each select="./div[contains-token(@class, 'violations')]">
                         <xsl:choose>
                             <!-- render violations if they exist for this resource -->
@@ -1161,14 +1177,14 @@ WHERE
         </xsl:for-each>
     </xsl:template>
     
-    <!-- remove div.row-fluid (button is within <legend>) -->
-    <xsl:template match="fieldset/legend/div/button[contains-token(@class, 'btn-remove-resource')]" mode="ixsl:onclick" priority="1">
-        <xsl:sequence select="ixsl:call(../../../../../.., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
+    <!-- remove the whole div.row-fluid containing the form -->
+    <xsl:template match="div[contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'btn-remove-resource')]" mode="ixsl:onclick" priority="2">
+        <xsl:sequence select="ixsl:call(ancestor::div[contains-token(@class, 'row-fluid')][1], 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
 
-    <!-- remove <fieldset> (button is within <fieldset>) TO-DO: unused? -->
-    <xsl:template match="fieldset/div/button[contains-token(@class, 'btn-remove-resource')]" mode="ixsl:onclick" priority="1">
-        <xsl:sequence select="ixsl:call(../.., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
+    <!-- remove <fieldset> -->
+    <xsl:template match="fieldset//button[contains-token(@class, 'btn-remove-resource')]" mode="ixsl:onclick" priority="1">
+        <xsl:sequence select="ixsl:call(ancestor::fieldset, 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
 
     <!-- remove <div class="control-group"> -->
