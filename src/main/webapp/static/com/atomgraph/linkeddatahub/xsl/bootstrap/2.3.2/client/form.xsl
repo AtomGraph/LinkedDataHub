@@ -533,7 +533,7 @@ WHERE
                         $resource-bnode: <xsl:value-of select="$resource-bnode"/>
                     </xsl:message>
                     <!-- TO-DO: key('violations-by-value', $resources//*/@rdf:resource, ?body) -->
-                    <xsl:variable name="violations" select="key('violations-by-root', ($resource-uri, $resource-bnode), $body) | key('violations-by-focus-node', $resource-uri, $resource-bnode), $body)" as="element()*"/>
+                    <xsl:variable name="violations" select="key('violations-by-root', ($resource-uri, $resource-bnode), $body) | key('violations-by-focus-node', ($resource-uri, $resource-bnode), $body)" as="element()*"/>
                     <xsl:message>$violations: <xsl:value-of select="serialize($violations)"/></xsl:message>
 
                     <xsl:for-each select="div[contains-token(@class, 'violations')]">
