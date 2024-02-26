@@ -64,6 +64,9 @@ WHERE
 ]]>
     </xsl:param>
 
+    <xsl:key name="violations-by-value" match="*" use="ldh:violationValue/text()"/>
+    <xsl:key name="violations-by-focus-node" match="*" use="sh:focusNode/@rdf:resource | sh:focusNode/@rdf:nodeID"/>
+
     <!-- TEMPLATES -->
 
     <!-- provide a property label which otherwise would default to local-name() client-side -->
@@ -519,37 +522,38 @@ WHERE
             </xsl:when>
             <!-- POST or PUT constraint violation response is 422 Unprocessable Entity, bad RDF syntax is 400 Bad Request -->
             <xsl:when test="?status = (400, 422) and starts-with(?media-type, 'application/rdf+xml')"> <!-- allow 'application/rdf+xml;charset=UTF-8' as well -->
-                <xsl:variable name="violations" select="key('violations-by-value', $resources//*/@rdf:resource, ?body) | key('violations-by-root', $resources//(@rdf:about, @rdf:nodeID), ?body) | key('violations-by-focus-node', $resources//(@rdf:about, @rdf:nodeID), ?body)" as="element()*"/>
                 <xsl:message>CONSTRAINT VIOLATIONS: <xsl:value-of select="serialize($violations)"/></xsl:message>
                 
-                <xsl:for-each select="$form//div[contains-token(@class, 'violations')]">
-                    <xsl:result-document href="?." method="ixsl:replace-content">
-                        <xsl:apply-templates select="$violations" mode="bs2:Violation"/>
-                        <ixsl:set-style name="display" select="'block'"/>
-                    </xsl:result-document>
+                <xsl:variable name="body" select="?body" as="document-node()"/>
+                <!-- iterate each form fieldset as resource -->
+                <xsl:for-each select="$form/fieldset">
+                    <xsl:variable name="resource-uri" select=".//input[@name = 'su']/ixsl:get(., 'value')" as="xs:anyURI?"/>
+                    <xsl:variable name="resource-bnode" select=".//input[@name = 'sb']/ixsl:get(., 'value')" as="xs:string?"/>
+                    <xsl:message>
+                        $resource-uri: <xsl:value-of select="$resource-uri"/>
+                        $resource-bnode: <xsl:value-of select="$resource-bnode"/>
+                    </xsl:message>
+                    <!-- TO-DO: key('violations-by-value', $resources//*/@rdf:resource, ?body) -->
+                    <xsl:variable name="violations" select="key('violations-by-root', ($resource-uri, $resource-bnode), $body) | key('violations-by-focus-node', $resource-uri, $resource-bnode), $body)" as="element()*"/>
+
+                    <xsl:for-each select="div[contains-token(@class, 'violations')]">
+                        <xsl:choose>
+                            <!-- render violations if they exist for this resource -->
+                            <xsl:when test="exists($violations)">
+                                <xsl:result-document href="?." method="ixsl:replace-content">
+                                    <xsl:apply-templates select="$violations" mode="bs2:Violation"/>
+                                </xsl:result-document>
+                                <ixsl:set-style name="display" select="'block'"/>
+                            </xsl:when>
+                            <!-- hide any previous violations if this resource now has none -->
+                            <xsl:otherwise>
+                                <ixsl:set-style name="display" select="'none'"/>
+                            </xsl:otherwise>
+                        </xsl:choose>
+                    </xsl:for-each>
                 </xsl:for-each>
                 
                 <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
-
-                <!--
-                <xsl:for-each select="?body">
-                    <xsl:variable name="form-id" select="ixsl:get($form, 'id')" as="xs:string"/>
-                    <xsl:variable name="doc-id" select="concat('id', ixsl:call(ixsl:window(), 'generateUUID', []))" as="xs:string"/>
-                    <xsl:variable name="form" as="element()">
-                        <xsl:apply-templates select="//form[@class = 'form-horizontal']" mode="form">
-                            <xsl:with-param name="doc-id" select="$doc-id" tunnel="yes"/>
-                        </xsl:apply-templates>
-                    </xsl:variable>
-                    
-                    <xsl:result-document href="#{$form-id}" method="ixsl:replace-content">
-                        <xsl:copy-of select="$form/*"/>
-                    </xsl:result-document>
-
-                    <xsl:apply-templates select="id($form-id, ixsl:page())" mode="ldh:PostConstruct"/>
-                    
-                    <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
-                </xsl:for-each>
-                -->
             </xsl:when>
             <!-- error response -->
             <xsl:otherwise>
