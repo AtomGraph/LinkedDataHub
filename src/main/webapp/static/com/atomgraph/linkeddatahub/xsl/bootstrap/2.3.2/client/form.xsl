@@ -15,6 +15,7 @@
     <!ENTITY sh         "http://www.w3.org/ns/shacl#">
     <!ENTITY sioc       "http://rdfs.org/sioc/ns#">
     <!ENTITY sp         "http://spinrdf.org/sp#">
+    <!ENTITY spin       "http://spinrdf.org/spin#">
     <!ENTITY dct        "http://purl.org/dc/terms/">
     <!ENTITY foaf       "http://xmlns.com/foaf/0.1/">
 ]>
@@ -37,6 +38,7 @@ xmlns:typeahead="&typeahead;"
 xmlns:ldt="&ldt;"
 xmlns:sd="&sd;"
 xmlns:sh="&sh;"
+xmlns:spin="&spin;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 extension-element-prefixes="ixsl"
 exclude-result-prefixes="#all"
