@@ -536,7 +536,7 @@ WHERE
                     <xsl:variable name="violations" select="key('violations-by-root', ($resource-uri, $resource-bnode), $body) | key('violations-by-focus-node', ($resource-uri, $resource-bnode), $body)" as="element()*"/>
                     <xsl:message>$violations: <xsl:value-of select="serialize($violations)"/></xsl:message>
 
-                    <xsl:for-each select="div[contains-token(@class, 'violations')]">
+                    <xsl:for-each select="./div[contains-token(@class, 'violations')]">
                         <xsl:choose>
                             <!-- render violations if they exist for this resource -->
                             <xsl:when test="exists($violations)">
