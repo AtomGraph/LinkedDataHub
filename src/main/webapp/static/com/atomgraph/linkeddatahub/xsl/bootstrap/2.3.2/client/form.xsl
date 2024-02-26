@@ -523,8 +523,10 @@ WHERE
                 <xsl:message>CONSTRAINT VIOLATIONS: <xsl:value-of select="serialize($violations)"/></xsl:message>
                 
                 <xsl:for-each select="$form//div[contains-token(@class, 'violations')]">
-                    <xsl:apply-templates select="$violations" mode="bs2:Violation"/>
-                    <ixsl:set-style name="display" select="'block'"/>
+                    <xsl:result-document href="?." method="ixsl:replace-content">
+                        <xsl:apply-templates select="$violations" mode="bs2:Violation"/>
+                        <ixsl:set-style name="display" select="'block'"/>
+                    </xsl:result-document>
                 </xsl:for-each>
                 
                 <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
