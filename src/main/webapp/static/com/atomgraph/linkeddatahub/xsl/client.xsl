@@ -21,7 +21,6 @@
     <!ENTITY sd         "http://www.w3.org/ns/sparql-service-description#">
     <!ENTITY sh         "http://www.w3.org/ns/shacl#">
     <!ENTITY sp         "http://spinrdf.org/sp#">
-    <!ENTITY spin       "http://spinrdf.org/spin#">
     <!ENTITY dct        "http://purl.org/dc/terms/">
     <!ENTITY foaf       "http://xmlns.com/foaf/0.1/">
     <!ENTITY sioc       "http://rdfs.org/sioc/ns#">
@@ -60,7 +59,6 @@ xmlns:http="&http;"
 xmlns:sd="&sd;"
 xmlns:sh="&sh;"
 xmlns:sp="&sp;"
-xmlns:spin="&spin;"
 xmlns:dct="&dct;"
 xmlns:foaf="&foaf;"
 xmlns:sioc="&sioc;"

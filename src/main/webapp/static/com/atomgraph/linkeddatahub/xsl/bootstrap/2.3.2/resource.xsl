@@ -461,7 +461,6 @@ extension-element-prefixes="ixsl"
         <xsl:param name="class" select="'row-fluid content override-content'" as="xs:string?"/>
         <xsl:param name="about" select="@rdf:about" as="xs:anyURI?"/>
         <xsl:param name="typeof" select="rdf:type/@rdf:resource/xs:anyURI(.)" as="xs:anyURI*"/>
-        <!-- <xsl:param name="content-value" as="xs:anyURI?"/> -->
         <xsl:param name="mode" as="xs:anyURI?"/>
         <xsl:param name="style" select="'display: none;'" as="xs:string?"/> <!-- TO-DO: remove? -->
 
@@ -470,7 +469,6 @@ extension-element-prefixes="ixsl"
             <xsl:with-param name="class" select="$class"/>
             <xsl:with-param name="about" select="$about"/>
             <xsl:with-param name="typeof" select="$typeof"/>
-            <!-- <xsl:with-param name="content-value" select="$content-value"/> -->
             <xsl:with-param name="mode" select="$mode"/>
             <xsl:with-param name="style" select="$style"/>
         </xsl:next-match>
