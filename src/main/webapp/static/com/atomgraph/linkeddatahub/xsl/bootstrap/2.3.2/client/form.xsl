@@ -374,7 +374,7 @@ WHERE
         <xsl:variable name="elements" select=".//input | .//textarea | .//select" as="element()*"/>
         <xsl:message>
             <xsl:for-each select="$elements">
-                @name: <xsl:value-of select="@name"/> ixsl:contains(., 'value'): <xsl:value-of select="ixsl:contains(., 'value')"/>
+                @name: <xsl:value-of select="@name"/> ixsl:get(., 'value'): <xsl:value-of select="if (ixsl:contains(., 'value')) ixsl:get(., 'value') else ()"/>
             </xsl:for-each>
         </xsl:message>
         <xsl:variable name="triples" select="ldh:parse-rdf-post($elements)" as="element()*"/>
