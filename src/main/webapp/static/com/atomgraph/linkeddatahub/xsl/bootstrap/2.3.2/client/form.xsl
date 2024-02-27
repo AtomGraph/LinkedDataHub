@@ -159,7 +159,7 @@ WHERE
     </xsl:template>
     
     <!-- remove names of RDF/POST inputs with empty values -->
-    <xsl:template match="input[@name = ('ob', 'ou')][not(ixsl:get(., 'value'))]" mode="ldh:FormPreSubmit" priority="2">
+    <xsl:template match="input[@name = ('ob', 'ou', 'ol')][not(ixsl:get(., 'value'))]" mode="ldh:FormPreSubmit" priority="2">
         <ixsl:remove-attribute name="name"/>
     </xsl:template>
     
@@ -393,7 +393,7 @@ WHERE
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
         
         <!-- pre-process form before submitting it -->
-        <xsl:apply-templates select="." mode="ldh:FormPreSubmit"/>
+        <!-- <xsl:apply-templates select="." mode="ldh:FormPreSubmit"/> -->
             
         <xsl:choose>
             <!-- we need to handle multipart requests specially because of Saxon-JS 2 limitations: https://saxonica.plan.io/issues/4732 -->

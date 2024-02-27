@@ -257,7 +257,7 @@ exclude-result-prefixes="#all"
                 <!-- subject -->
                 <xsl:choose>
                     <xsl:when test="starts-with('_:', current-grouping-key())">
-                        <xsl:attribute name="rdf:nodeID" select="current-grouping-key()"/>
+                        <xsl:attribute name="rdf:nodeID" select="substring-after(current-grouping-key(), '_:')"/>
                     </xsl:when>
                     <xsl:otherwise>
                         <xsl:attribute name="rdf:about" select="current-grouping-key()"/>
