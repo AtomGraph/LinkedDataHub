@@ -279,12 +279,12 @@ exclude-result-prefixes="#all"
                             <xsl:choose>
                                 <!-- language-tagged literal -->
                                 <xsl:when test="starts-with(., '&quot;') and contains(., '&quot;^^')">
-                                    <xsl:attribute name="xml:lang" select="substring-after(., '&quot;^^')"/>
+                                    <xsl:attribute name="rdf:datatype" select="substring-after(., '&quot;^^')"/>
                                     <xsl:sequence select="substring-before(substring-after(., '&quot;'), '&quot;^^')"/>
                                 </xsl:when>
                                 <!-- typed literal -->
                                 <xsl:when test="starts-with(., '&quot;') and contains(., '&quot;@')">
-                                    <xsl:attribute name="rdf:datatype" select="substring-after(., '&quot;@')"/>
+                                    <xsl:attribute name="xml:lang" select="substring-after(., '&quot;@')"/>
                                     <xsl:sequence select="substring-before(substring-after(., '&quot;'), '&quot;@')"/>
                                 </xsl:when>
                                 <!-- TO-DO: XMLLiteral! -->
