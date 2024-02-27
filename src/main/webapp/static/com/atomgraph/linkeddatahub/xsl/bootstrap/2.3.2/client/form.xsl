@@ -407,7 +407,7 @@ WHERE
             <xsl:otherwise>
                 <!-- <xsl:variable name="form-data" select="ldh:new('URLSearchParams', [ ldh:new('FormData', [ $form ]) ])"/> -->
                 <xsl:variable name="request" as="item()*">
-                    <ixsl:schedule-action http-request="map{ 'method': $method, 'href': $request-uri, 'media-type': $enctype, 'body': $resources, 'headers': map{ 'Accept': $accept } }">
+                    <ixsl:schedule-action http-request="map{ 'method': $method, 'href': $request-uri, 'media-type': 'application/rdf+xml', 'body': $resources, 'headers': map{ 'Accept': $accept } }">
                         <xsl:call-template name="ldh:ResourceUpdated">
                             <xsl:with-param name="container" select="$container"/>
                             <xsl:with-param name="form" select="$form"/>
