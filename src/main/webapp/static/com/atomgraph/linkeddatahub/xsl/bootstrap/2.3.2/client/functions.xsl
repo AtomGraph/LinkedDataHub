@@ -167,7 +167,7 @@ exclude-result-prefixes="#all"
                     <xsl:variable name="next-input" select="subsequence($value-inputs, position() + 1, 1)" as="element()?"/>
                     <xsl:variable name="subj-input" select="if (@name = ('sb', 'su')) then . else $subj-input" as="element()?"/>
                     <xsl:variable name="pred-input" select="if (@name = 'pu') then . else $pred-input" as="element()?"/>
-<xsl:message>@name: <xsl:value-of select="@name"/> $skip-to-input/@name: <xsl:value-of select="$skip-to-input/@name"/> $skip-to-input/ixsl:get(., 'value'): <xsl:value-of select="$skip-to-input/ixsl:get(., 'value')"/></xsl:message>
+<xsl:message>@name: <xsl:value-of select="@name"/> ixsl:get(., 'value'): <xsl:value-of select="ixsl:get(., 'value')"/> $skip-to-input/@name: <xsl:value-of select="$skip-to-input/@name"/> $skip-to-input/ixsl:get(., 'value'): <xsl:value-of select="$skip-to-input/ixsl:get(., 'value')"/></xsl:message>
                     <!-- output triple when object is reached and inputs are not being skipped -->
                     <xsl:if test="@name = ('ou', 'ob', 'ol', 'll', 'lt') and ((not($skip-to-input) and not(position() = last())) or . is $skip-to-input)">
                         <json:map>
