@@ -254,11 +254,11 @@ exclude-result-prefixes="#all"
     <xsl:function name="ldh:triples-to-descriptions" as="element()*">
         <xsl:param name="triples" as="element()*"/>
         
-        <xsl:for-each-group select="$triples" group-by="json:string[@key = 'subject']/text()">
+        <xsl:for-each-group select="$triples" group-by="json:string[@key = 'subject']">
             <rdf:Description>
                 <!-- subject -->
                 <xsl:choose>
-                    <xsl:when test="starts-with('_:', current-grouping-key())">
+                    <xsl:when test="starts-with(current-grouping-key(), '_:')">
                         <xsl:attribute name="rdf:nodeID" select="substring-after(current-grouping-key(), '_:')"/>
                     </xsl:when>
                     <xsl:otherwise>
