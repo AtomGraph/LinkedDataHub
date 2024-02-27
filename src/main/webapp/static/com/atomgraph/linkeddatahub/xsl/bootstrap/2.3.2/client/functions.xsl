@@ -254,7 +254,7 @@ exclude-result-prefixes="#all"
     <xsl:function name="ldh:triples-to-descriptions" as="element()*">
         <xsl:param name="triples" as="element()*"/>
         
-        <xsl:for-each-group select="$triples" group-by="json:string[@key = 'subject']">
+        <xsl:for-each-group select="$triples" group-by="json:string[@key = 'subject']/text()">
             <rdf:Description>
                 <!-- subject -->
                 <xsl:choose>
