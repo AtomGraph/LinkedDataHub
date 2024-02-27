@@ -153,19 +153,15 @@ WHERE
     
     <xsl:template match="text()" mode="ldh:FormPreSubmit"/>
     
-    <!-- trim whitespace in bnode/URI values. TO-DO: has no effect, refactor using the formdata event: https://developer.mozilla.org/en-US/docs/Web/API/HTMLFormElement/formdata_event -->
-    <!--
+    <!-- trim whitespace in bnode/URI values -->
     <xsl:template match="input[@name = ('ob', 'ou')][ixsl:get(., 'value')]" mode="ldh:FormPreSubmit" priority="1">
         <ixsl:set-attribute name="value" select="normalize-space(ixsl:get(., 'value'))"/>
     </xsl:template>
-    -->
     
-    <!-- remove names of RDF/POST inputs with empty values. TO-DO: has no effect, refactor using the formdata event: https://developer.mozilla.org/en-US/docs/Web/API/HTMLFormElement/formdata_event -->
-    <!--
-    <xsl:template match="input[@name = ('ob', 'ou', 'ol')][not(ixsl:get(., 'value'))]" mode="ldh:FormPreSubmit" priority="2">
+    <!-- remove names of RDF/POST inputs with empty values -->
+    <xsl:template match="input[@name = ('ob', 'ou')][not(ixsl:get(., 'value'))]" mode="ldh:FormPreSubmit" priority="2">
         <ixsl:remove-attribute name="name"/>
     </xsl:template>
-    -->
     
     <!-- adjust datetime-local values to the implicit timezone -->
     <xsl:template match="input[@type = 'datetime-local'][ixsl:get(., 'value')]" mode="ldh:FormPreSubmit" priority="1">
