@@ -169,7 +169,7 @@ exclude-result-prefixes="#all"
                     <xsl:variable name="pred-input" select="if (@name = 'pu') then . else $pred-input" as="element()?"/>
 <xsl:message>ITERATE: @name: <xsl:value-of select="@name"/> ixsl:get(., 'value'): <xsl:value-of select="ixsl:get(., 'value')"/> $skip-to-input/@name: <xsl:value-of select="$skip-to-input/@name"/> $skip-to-input/ixsl:get(., 'value'): <xsl:value-of select="$skip-to-input/ixsl:get(., 'value')"/></xsl:message>
                     <!-- output triple when object is reached and inputs are not being skipped -->
-                    <xsl:if test="@name = ('ou', 'ob', 'ol', 'll', 'lt') and (not($skip-to-input) or . is $skip-to-input)">
+                    <xsl:if test="@name = ('ou', 'ob', 'ol') and (not($skip-to-input) or . is $skip-to-input)">
 <xsl:message>OUTPUT @name: <xsl:value-of select="@name"/> ixsl:get(., 'value'): <xsl:value-of select="ixsl:get(., 'value')"/> $skip-to-input/@name: <xsl:value-of select="$skip-to-input/@name"/> $skip-to-input/ixsl:get(., 'value'): <xsl:value-of select="$skip-to-input/ixsl:get(., 'value')"/></xsl:message>
 
                         <json:map>
@@ -219,6 +219,7 @@ exclude-result-prefixes="#all"
                             </xsl:choose>
                         </json:map>
                     </xsl:if>
+
                     <xsl:next-iteration>
                         <xsl:with-param name="subj-input" select="$subj-input"/>
                         <xsl:with-param name="pred-input" select="$pred-input"/>
