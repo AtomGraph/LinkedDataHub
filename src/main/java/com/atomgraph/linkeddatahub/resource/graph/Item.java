@@ -100,7 +100,6 @@ import org.apache.jena.vocabulary.DCTerms;
 import org.apache.jena.vocabulary.RDF;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
-import org.glassfish.jersey.server.internal.process.MappableException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -668,7 +667,7 @@ public class Item extends GraphStoreImpl
         }
         catch (SPINConstraintViolationException | SHACLConstraintViolationException ex)
         {
-            throw new MappableException(ex); // needed in order to trigger the exception mapper
+            throw new WebApplicationException(ex); // needed in order to trigger the exception mapper
         }
         
         throw new InternalServerErrorException("Could not obtain ValidatingModelProvider instance");
