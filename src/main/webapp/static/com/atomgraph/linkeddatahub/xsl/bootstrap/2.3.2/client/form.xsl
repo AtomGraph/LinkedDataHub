@@ -405,7 +405,6 @@ WHERE
                 <xsl:sequence select="js:fetchDispatchXML($request-uri, $method, $headers, $form-data, ., 'multipartFormLoad')[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:when>
             <xsl:otherwise>
-                <!-- <xsl:variable name="form-data" select="ldh:new('URLSearchParams', [ ldh:new('FormData', [ $form ]) ])"/> -->
                 <xsl:variable name="request" as="item()*">
                     <ixsl:schedule-action http-request="map{ 'method': $method, 'href': $request-uri, 'media-type': 'application/rdf+xml', 'body': $resources, 'headers': map{ 'Accept': $accept } }">
                         <xsl:call-template name="ldh:ResourceUpdated">

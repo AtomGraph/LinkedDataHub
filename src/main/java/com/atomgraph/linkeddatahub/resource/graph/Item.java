@@ -29,6 +29,8 @@ import com.atomgraph.linkeddatahub.vocabulary.DH;
 import com.atomgraph.linkeddatahub.vocabulary.Default;
 import com.atomgraph.linkeddatahub.vocabulary.NFO;
 import com.atomgraph.linkeddatahub.vocabulary.SIOC;
+import com.atomgraph.server.exception.SHACLConstraintViolationException;
+import com.atomgraph.server.exception.SPINConstraintViolationException;
 import static com.atomgraph.server.status.UnprocessableEntityStatus.UNPROCESSABLE_ENTITY;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
@@ -98,6 +100,7 @@ import org.apache.jena.vocabulary.DCTerms;
 import org.apache.jena.vocabulary.RDF;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
+import org.glassfish.jersey.server.internal.process.MappableException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -658,9 +661,16 @@ public class Item extends GraphStoreImpl
      */
     public Model validate(Model model)
     {
-        MessageBodyReader<Model> reader = getProviders().getMessageBodyReader(Model.class, null, null, com.atomgraph.core.MediaType.APPLICATION_NTRIPLES_TYPE);
-        if (reader instanceof ValidatingModelProvider validatingModelProvider) return validatingModelProvider.processRead(model);
-
+        try
+        {
+            MessageBodyReader<Model> reader = getProviders().getMessageBodyReader(Model.class, null, null, com.atomgraph.core.MediaType.APPLICATION_NTRIPLES_TYPE);
+            if (reader instanceof ValidatingModelProvider validatingModelProvider) return validatingModelProvider.processRead(model);
+        }
+        catch (SPINConstraintViolationException | SHACLConstraintViolationException ex)
+        {
+            throw new MappableException(ex); // needed in order to trigger the exception mapper
+        }
+        
         throw new InternalServerErrorException("Could not obtain ValidatingModelProvider instance");
     }
     
