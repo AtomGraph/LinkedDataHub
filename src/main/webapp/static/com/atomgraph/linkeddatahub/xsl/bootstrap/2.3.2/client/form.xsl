@@ -424,7 +424,7 @@ WHERE
     <!-- after inline resource creation/editing form is submitted  -->
     <xsl:template name="ldh:ResourceUpdated">
         <xsl:context-item as="map(*)" use="required"/>
-        <xsl:param name="uri" as="xs:anyURI"/>
+        <xsl:param name="doc-uri" as="xs:anyURI"/>
         <xsl:param name="container" as="element()?"/>
         <xsl:param name="form" as="element()"/>
         <xsl:param name="resources" as="document-node()"/>
@@ -435,7 +435,7 @@ WHERE
                 <xsl:variable name="etag" select="?headers?etag" as="xs:string"/>
                 <xsl:message>$etag: <xsl:value-of select="$etag"/></xsl:message>
                 <!-- store ETag header value under window.LinkedDataHub.contents[$content-uri].etag -->
-                <ixsl:set-property name="etag" select="$etag" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $uri || '`')"/>
+                <ixsl:set-property name="etag" select="$etag" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $doc-uri || '`')"/>
 
                 <xsl:variable name="classes" select="()" as="element()*"/>
                 <xsl:variable name="row" as="element()">
