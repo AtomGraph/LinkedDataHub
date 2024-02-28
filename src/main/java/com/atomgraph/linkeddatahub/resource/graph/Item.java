@@ -29,8 +29,6 @@ import com.atomgraph.linkeddatahub.vocabulary.DH;
 import com.atomgraph.linkeddatahub.vocabulary.Default;
 import com.atomgraph.linkeddatahub.vocabulary.NFO;
 import com.atomgraph.linkeddatahub.vocabulary.SIOC;
-import com.atomgraph.server.exception.SHACLConstraintViolationException;
-import com.atomgraph.server.exception.SPINConstraintViolationException;
 import static com.atomgraph.server.status.UnprocessableEntityStatus.UNPROCESSABLE_ENTITY;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
@@ -660,15 +658,8 @@ public class Item extends GraphStoreImpl
      */
     public Model validate(Model model)
     {
-        try
-        {
-            MessageBodyReader<Model> reader = getProviders().getMessageBodyReader(Model.class, null, null, com.atomgraph.core.MediaType.APPLICATION_NTRIPLES_TYPE);
-            if (reader instanceof ValidatingModelProvider validatingModelProvider) return validatingModelProvider.processRead(model);
-        }
-        catch (SPINConstraintViolationException | SHACLConstraintViolationException ex)
-        {
-            throw ex; // needed in order to trigger the exception mapper
-        }
+        MessageBodyReader<Model> reader = getProviders().getMessageBodyReader(Model.class, null, null, com.atomgraph.core.MediaType.APPLICATION_NTRIPLES_TYPE);
+        if (reader instanceof ValidatingModelProvider validatingModelProvider) return validatingModelProvider.processRead(model);
         
         throw new InternalServerErrorException("Could not obtain ValidatingModelProvider instance");
     }
