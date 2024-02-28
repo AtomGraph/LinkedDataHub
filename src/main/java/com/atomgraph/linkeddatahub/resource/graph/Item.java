@@ -51,7 +51,6 @@ import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Context;
-import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Request;
 import jakarta.ws.rs.core.Response;
@@ -276,7 +275,6 @@ public class Item extends GraphStoreImpl
         return getResponseBuilder(dataset.getDefaultModel(), null).
             status(Response.Status.NO_CONTENT).
             entity(null).
-            header(HttpHeaders.CONTENT_TYPE, null). // needs to be explicitly unset for some reason
             build();
     }
     

@@ -38,6 +38,7 @@ import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.container.ContainerResponseContext;
 import jakarta.ws.rs.container.ContainerResponseFilter;
 import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,10 +48,10 @@ import org.slf4j.LoggerFactory;
  * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
  */
 @Priority(Priorities.USER + 300)
-public class ResponseHeaderFilter implements ContainerResponseFilter
+public class ResponseHeadersFilter implements ContainerResponseFilter
 {
 
-    private static final Logger log = LoggerFactory.getLogger(ResponseHeaderFilter.class);
+    private static final Logger log = LoggerFactory.getLogger(ResponseHeadersFilter.class);
 
     @Inject jakarta.inject.Provider<Application> app;
     @Inject jakarta.inject.Provider<Optional<Dataset>> dataset;
@@ -59,6 +60,9 @@ public class ResponseHeaderFilter implements ContainerResponseFilter
     @Override
     public void filter(ContainerRequestContext request, ContainerResponseContext response)throws IOException
     {
+        if (response.getStatusInfo().equals(Response.Status.NO_CONTENT))
+            response.getHeaders().remove(HttpHeaders.CONTENT_TYPE); // needs to be explicitly unset for some reason
+        
         if (request.getSecurityContext().getUserPrincipal() instanceof Agent)
         {
             Agent agent = ((Agent)(request.getSecurityContext().getUserPrincipal()));
