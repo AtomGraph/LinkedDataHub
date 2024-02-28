@@ -29,11 +29,7 @@ import com.atomgraph.linkeddatahub.vocabulary.DH;
 import com.atomgraph.linkeddatahub.vocabulary.Default;
 import com.atomgraph.linkeddatahub.vocabulary.NFO;
 import com.atomgraph.linkeddatahub.vocabulary.SIOC;
-import com.atomgraph.server.exception.SHACLConstraintViolationException;
-import com.atomgraph.server.exception.SPINConstraintViolationException;
 import static com.atomgraph.server.status.UnprocessableEntityStatus.UNPROCESSABLE_ENTITY;
-import com.atomgraph.server.util.Validator;
-import com.atomgraph.spinrdf.constraints.ConstraintViolation;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
@@ -92,9 +88,6 @@ import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.rdf.model.StmtIterator;
-import org.apache.jena.shacl.ShaclValidator;
-import org.apache.jena.shacl.Shapes;
-import org.apache.jena.shacl.ValidationReport;
 import org.apache.jena.sparql.modify.request.UpdateModify;
 import org.apache.jena.sparql.vocabulary.FOAF;
 import org.apache.jena.update.Update;
@@ -231,7 +224,7 @@ public class Item extends GraphStoreImpl
         new Skolemizer(getURI().toString()).apply(model);
         
         if (log.isDebugEnabled()) log.debug("PUT Model to named graph with URI: {} Did it already exist? {}", getURI(), existingGraph);
-        getDatasetAccessor().putModel(getURI().toString(), model);
+        getDatasetAccessor().putModel(getURI().toString(), model); // TO-DO: catch exceptions
 
         if (existingGraph) return Response.ok().build();
         else return Response.created(getURI()).build();
@@ -276,6 +269,7 @@ public class Item extends GraphStoreImpl
 
         dataset = DatasetFactory.wrap(existingModel);
         UpdateAction.execute(updateRequest, dataset); // update model in memory
+        validate(dataset.getDefaultModel()); // this would normally be done transparently by the ValidatingModelProvider
         put(dataset.getDefaultModel(), Boolean.FALSE, getURI());
         
         return getResponseBuilder(dataset.getDefaultModel(), null).
@@ -320,9 +314,7 @@ public class Item extends GraphStoreImpl
         try
         {
             Model model = parseModel(multiPart);
-            MessageBodyReader<Model> reader = getProviders().getMessageBodyReader(Model.class, null, null, com.atomgraph.core.MediaType.APPLICATION_NTRIPLES_TYPE);
-            if (reader instanceof ValidatingModelProvider validatingModelProvider) model = validatingModelProvider.processRead(model);
-            
+            validate(model);
             if (log.isTraceEnabled()) log.trace("POST Graph Store request with RDF payload: {} payload size(): {}", model, model.size());
 
             final boolean existingGraph = getDatasetAccessor().containsModel(getURI().toString());
@@ -666,24 +658,10 @@ public class Item extends GraphStoreImpl
      */
     public Model validate(Model model)
     {
-        // SPIN validation
-        List<ConstraintViolation> cvs = new Validator(getOntology().getOntModel()).validate(model);
-        if (!cvs.isEmpty())
-        {
-            if (log.isDebugEnabled()) log.debug("SPIN constraint violations: {}", cvs);
-            throw new SPINConstraintViolationException(cvs, model);
-        }
+        MessageBodyReader<Model> reader = getProviders().getMessageBodyReader(Model.class, null, null, com.atomgraph.core.MediaType.APPLICATION_NTRIPLES_TYPE);
+        if (reader instanceof ValidatingModelProvider validatingModelProvider) return validatingModelProvider.processRead(model);
 
-        // SHACL validation
-        Shapes shapes = Shapes.parse(getOntology().getOntModel().getGraph());
-        ValidationReport report = ShaclValidator.get().validate(shapes, model.getGraph());
-        if (!report.conforms())
-        {
-            if (log.isDebugEnabled()) log.debug("SHACL constraint violations: {}", report);
-            throw new SHACLConstraintViolationException(report, model);
-        }
-    
-        return model;
+        throw new InternalServerErrorException("Could not obtain ValidatingModelProvider instance");
     }
     
     /**

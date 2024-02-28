@@ -98,24 +98,6 @@ public class ValidatingModelProvider extends com.atomgraph.server.io.ValidatingM
         this.messageDigest = messageDigest;
     }
     
-//    @Override
-//    public Model read(Model model, InputStream is, Lang lang, String baseURI)
-//    {
-//        if (lang == null) throw new IllegalArgumentException("Lang must be not null");
-//
-//        CollectingErrorHandler errorHandler = new CollectingErrorHandler(); // collect parse errors. do not throw exceptions
-//        //ParserProfile parserProfile = RiotLib.profile(baseURI, true, true, errorHandler);
-//        read(model, is, lang, baseURI, errorHandler);
-//
-//        if (!errorHandler.getViolations().isEmpty())
-//        {
-//            if (log.isDebugEnabled()) log.debug("RDF syntax errors detected while parsing model: {}", errorHandler.getViolations());
-//            throw new RDFSyntaxException(errorHandler.getViolations(), model);
-//        }
-//
-//        return model;
-//    }
-    
     @Override
     public Model write(Model model, OutputStream os, Lang lang, String baseURI)
     {
