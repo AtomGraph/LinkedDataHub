@@ -206,6 +206,7 @@ public class Item extends GraphStoreImpl
                     addProperty(RDF.type, DH.Item); // TO-DO: replace with foaf:Document?
 
             resource.addLiteral(DCTerms.created, ResourceFactory.createTypedLiteral(GregorianCalendar.getInstance()));
+            if (getAgentContext().isPresent()) resource.addProperty(DCTerms.creator, getAgentContext().get().getAgent());
         }
         else // updating existing graph
         {
