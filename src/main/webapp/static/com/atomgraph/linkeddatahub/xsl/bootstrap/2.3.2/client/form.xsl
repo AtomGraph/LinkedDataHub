@@ -527,6 +527,7 @@ WHERE
     
     <xsl:template match="div[@about][contains-token(@class, 'row-fluid')][@typeof]//form[contains-token(@class, 'form-horizontal')][upper-case(@method) = 'PATCH']" mode="ixsl:onsubmit" priority="1">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
+        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'content')]" as="element()"/>
         <xsl:variable name="form" select="." as="element()"/>
         <xsl:variable name="id" select="ixsl:get(., 'id')" as="xs:string"/>
         <xsl:variable name="action" select="ixsl:get(., 'action')" as="xs:anyURI"/>
@@ -581,14 +582,24 @@ WHERE
 <xsl:message>
     <xsl:value-of select="$update-json-string"/>
 </xsl:message>
-
         <xsl:variable name="update-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $update-json-string ])"/>
         <xsl:variable name="update-string" select="ixsl:call($sparql-generator, 'stringify', [ $update-json ])" as="xs:string"/>
+        <xsl:variable name="resources" as="document-node()">
+            <xsl:document>
+                <rdf:RDF>
+                    <xsl:sequence select="ldh:triples-to-descriptions($triples)"/>
+                </rdf:RDF>
+            </xsl:document>
+        </xsl:variable>
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, $action)" as="xs:anyURI"/>
+        
         <xsl:variable name="request" as="item()*">
             <!-- If-Match header checks preconditions, i.e. that the graph has not been modified in the meanwhile --> 
             <ixsl:schedule-action http-request="map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string, 'headers': map{ 'If-Match': $etag, 'Accept': 'application/rdf+xml', 'Cache-Control': 'no-cache' } }">
                 <xsl:call-template name="ldh:ResourceUpdated">
+                    <xsl:with-param name="container" select="$container"/>
+                    <xsl:with-param name="form" select="$form"/>
+                    <xsl:with-param name="resources" select="$resources"/>
                 </xsl:call-template>
             </ixsl:schedule-action>
         </xsl:variable>
