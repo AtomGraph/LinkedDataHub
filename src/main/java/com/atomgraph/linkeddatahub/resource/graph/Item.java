@@ -667,7 +667,7 @@ public class Item extends GraphStoreImpl
         }
         catch (SPINConstraintViolationException | SHACLConstraintViolationException ex)
         {
-            throw new WebApplicationException(ex); // needed in order to trigger the exception mapper
+            throw ex; // needed in order to trigger the exception mapper
         }
         
         throw new InternalServerErrorException("Could not obtain ValidatingModelProvider instance");
