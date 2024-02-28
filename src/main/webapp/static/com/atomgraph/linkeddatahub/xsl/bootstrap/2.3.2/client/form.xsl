@@ -432,10 +432,12 @@ WHERE
         <xsl:choose>
             <!-- POST data appended successfully -->
             <xsl:when test="?status = (200, 204)">
-                <xsl:variable name="etag" select="?headers?etag" as="xs:string"/>
-                <xsl:message>$etag: <xsl:value-of select="$etag"/></xsl:message>
-                <!-- store ETag header value under window.LinkedDataHub.contents[$content-uri].etag -->
-                <ixsl:set-property name="etag" select="$etag" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $doc-uri || '`')"/>
+                <xsl:variable name="etag" select="?headers?etag" as="xs:string?"/>
+                <xsl:if test="$etag">
+                    <xsl:message>$etag: <xsl:value-of select="$etag"/></xsl:message>
+                    <!-- store ETag header value under window.LinkedDataHub.contents[$doc-uri].etag -->
+                    <ixsl:set-property name="etag" select="$etag" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $doc-uri || '`')"/>
+                </xsl:if>
 
                 <xsl:variable name="classes" select="()" as="element()*"/>
                 <xsl:variable name="row" as="element()">
