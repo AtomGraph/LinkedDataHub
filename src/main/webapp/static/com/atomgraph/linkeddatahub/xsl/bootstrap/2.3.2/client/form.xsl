@@ -370,7 +370,9 @@ WHERE
         <xsl:variable name="action" select="ixsl:get(., 'action')" as="xs:anyURI"/>
         <xsl:variable name="enctype" select="ixsl:get(., 'enctype')" as="xs:string"/>
         <xsl:variable name="accept" select="'application/rdf+xml'" as="xs:string"/>
-        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, $action)" as="xs:anyURI"/>
+
+        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+
         <xsl:variable name="elements" select=".//input | .//textarea | .//select" as="element()*"/>
         <xsl:message>
             <xsl:for-each select="$elements">
@@ -385,12 +387,11 @@ WHERE
                 </rdf:RDF>
             </xsl:document>
         </xsl:variable>
+        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, $action)" as="xs:anyURI"/>
 
         <xsl:message>form.form-horizontal ixsl:onsubmit</xsl:message>
         <xsl:message>$triples: <xsl:value-of select="serialize($triples)"/></xsl:message>
         <xsl:message>RDF/XML: <xsl:value-of select="serialize($resources)"/></xsl:message>
-        
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
         
         <!-- pre-process form before submitting it -->
         <!-- <xsl:apply-templates select="." mode="ldh:FormPreSubmit"/> -->
@@ -408,6 +409,7 @@ WHERE
                 <xsl:variable name="request" as="item()*">
                     <ixsl:schedule-action http-request="map{ 'method': $method, 'href': $request-uri, 'media-type': 'application/rdf+xml', 'body': $resources, 'headers': map{ 'Accept': $accept } }">
                         <xsl:call-template name="ldh:ResourceUpdated">
+                            <xsl:with-param name="doc-uri" select="ac:absolute-path(ldh:base-uri(.))"/>
                             <xsl:with-param name="container" select="$container"/>
                             <xsl:with-param name="form" select="$form"/>
                             <xsl:with-param name="resources" select="$resources"/>
@@ -422,6 +424,7 @@ WHERE
     <!-- after inline resource creation/editing form is submitted  -->
     <xsl:template name="ldh:ResourceUpdated">
         <xsl:context-item as="map(*)" use="required"/>
+        <xsl:param name="uri" as="xs:anyURI"/>
         <xsl:param name="container" as="element()?"/>
         <xsl:param name="form" as="element()"/>
         <xsl:param name="resources" as="document-node()"/>
@@ -429,6 +432,11 @@ WHERE
         <xsl:choose>
             <!-- POST data appended successfully -->
             <xsl:when test="?status = (200, 204)">
+                <xsl:variable name="etag" select="?headers?etag" as="xs:string"/>
+                <xsl:message>$etag: <xsl:value-of select="$etag"/></xsl:message>
+                <!-- store ETag header value under window.LinkedDataHub.contents[$content-uri].etag -->
+                <ixsl:set-property name="etag" select="$etag" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $uri || '`')"/>
+
                 <xsl:variable name="classes" select="()" as="element()*"/>
                 <xsl:variable name="row" as="element()">
                     <xsl:apply-templates select="$resources/rdf:RDF/*" mode="bs2:Row">
@@ -597,6 +605,7 @@ WHERE
             <!-- If-Match header checks preconditions, i.e. that the graph has not been modified in the meanwhile --> 
             <ixsl:schedule-action http-request="map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string, 'headers': map{ 'If-Match': $etag, 'Accept': 'application/rdf+xml', 'Cache-Control': 'no-cache' } }">
                 <xsl:call-template name="ldh:ResourceUpdated">
+                    <xsl:with-param name="doc-uri" select="ac:absolute-path(ldh:base-uri(.))"/>
                     <xsl:with-param name="container" select="$container"/>
                     <xsl:with-param name="form" select="$form"/>
                     <xsl:with-param name="resources" select="$resources"/>
