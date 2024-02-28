@@ -428,7 +428,7 @@ WHERE
 
         <xsl:choose>
             <!-- POST data appended successfully -->
-            <xsl:when test="?status = 200">
+            <xsl:when test="?status = (200, 204)">
                 <xsl:variable name="classes" select="()" as="element()*"/>
                 <xsl:variable name="row" as="element()">
                     <xsl:apply-templates select="$resources/rdf:RDF/*" mode="bs2:Row">
@@ -588,28 +588,11 @@ WHERE
         <xsl:variable name="request" as="item()*">
             <!-- If-Match header checks preconditions, i.e. that the graph has not been modified in the meanwhile --> 
             <ixsl:schedule-action http-request="map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string, 'headers': map{ 'If-Match': $etag, 'Accept': 'application/rdf+xml', 'Cache-Control': 'no-cache' } }">
-                <xsl:call-template name="onPatchCompleted">
+                <xsl:call-template name="ldh:ResourceUpdated">
                 </xsl:call-template>
             </ixsl:schedule-action>
         </xsl:variable>
         <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
-    </xsl:template>
-    
-    <xsl:template name="onPatchCompleted">
-        <xsl:context-item as="map(*)" use="required"/>
-
-        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
-
-        <xsl:choose>
-            <xsl:when test="?status = 204">
-                <xsl:message>
-                    PATCH succeeded
-                </xsl:message>
-            </xsl:when>
-            <xsl:otherwise>
-                PATCH failed
-            </xsl:otherwise>
-        </xsl:choose>
     </xsl:template>
     
     <xsl:template match="button[contains-token(@class, 'add-value')]" mode="ixsl:onclick">
