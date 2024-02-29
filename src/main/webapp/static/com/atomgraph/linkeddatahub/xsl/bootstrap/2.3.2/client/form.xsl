@@ -370,6 +370,8 @@ WHERE
         <xsl:variable name="action" select="ixsl:get(., 'action')" as="xs:anyURI"/>
         <xsl:variable name="enctype" select="ixsl:get(., 'enctype')" as="xs:string"/>
         <xsl:variable name="accept" select="'application/rdf+xml'" as="xs:string"/>
+        <xsl:variable name="etag" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(ldh:base-uri(.)) || '`'), 'etag')" as="xs:string"/>
+        <xsl:message>$etag: <xsl:value-of select="$etag"/></xsl:message>
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
@@ -407,7 +409,8 @@ WHERE
             </xsl:when>
             <xsl:otherwise>
                 <xsl:variable name="request" as="item()*">
-                    <ixsl:schedule-action http-request="map{ 'method': $method, 'href': $request-uri, 'media-type': 'application/rdf+xml', 'body': $resources, 'headers': map{ 'Accept': $accept } }">
+                    <!-- If-Match header checks preconditions, i.e. that the graph has not been modified in the meanwhile --> 
+                    <ixsl:schedule-action http-request="map{ 'method': $method, 'href': $request-uri, 'media-type': 'application/rdf+xml', 'body': $resources, 'headers': map{ 'If-Match': $etag, 'Accept': $accept } }">
                         <xsl:call-template name="ldh:ResourceUpdated">
                             <xsl:with-param name="doc-uri" select="ac:absolute-path(ldh:base-uri(.))"/>
                             <xsl:with-param name="container" select="$container"/>
@@ -419,6 +422,109 @@ WHERE
                 <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:otherwise>
         </xsl:choose>
+    </xsl:template>
+    
+    <!-- submit instance update form using PATCH -->
+    
+    <xsl:template match="div[@about][contains-token(@class, 'row-fluid')][@typeof]//form[contains-token(@class, 'form-horizontal')][upper-case(@method) = 'PATCH']" mode="ixsl:onsubmit" priority="1">
+        <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
+        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'content')]" as="element()"/>
+        <xsl:variable name="form" select="." as="element()"/>
+        <xsl:variable name="id" select="ixsl:get(., 'id')" as="xs:string"/>
+        <xsl:variable name="action" select="ixsl:get(., 'action')" as="xs:anyURI"/>
+        <xsl:variable name="enctype" select="ixsl:get(., 'enctype')" as="xs:string"/>
+        <xsl:variable name="accept" select="'application/xhtml+xml'" as="xs:string"/>
+        <xsl:variable name="about" select="ancestor::div[@typeof][1]/@about" as="xs:anyURI"/>
+        <xsl:message>ldh:base-uri(.): <xsl:value-of select="ldh:base-uri(.)"/></xsl:message>
+        <xsl:variable name="etag" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(ldh:base-uri(.)) || '`'), 'etag')" as="xs:string"/>
+        <xsl:message>$etag: <xsl:value-of select="$etag"/></xsl:message>
+
+        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+        
+        <xsl:variable name="elements" select=".//input | .//textarea | .//select" as="element()*"/>
+        <xsl:variable name="triples" select="ldh:parse-rdf-post($elements)" as="element()*"/>
+        <xsl:variable name="where-pattern" as="element()">
+            <json:map>
+                <json:string key="type">bgp</json:string>
+                <json:array key="triples">
+                    <json:map>
+                        <json:string key="subject"><xsl:sequence select="$about"/></json:string>
+                        <json:string key="predicate">?p</json:string>
+                        <json:string key="object">?o</json:string>
+                    </json:map>
+                </json:array>
+            </json:map>
+        </xsl:variable>
+        <xsl:variable name="update-xml" as="element()">
+            <json:map>
+                <json:string key="type">update</json:string>
+                <json:array key="updates">
+                    <json:map>
+                        <json:string key="updateType">insertdelete</json:string>
+                        <json:array key="delete">
+                            <xsl:sequence select="$where-pattern"/>
+                        </json:array>
+                        <json:array key="insert">
+                            <json:map>
+                                <json:string key="type">bgp</json:string>
+                                <json:array key="triples">
+                                    <xsl:sequence select="$triples"/>
+                                </json:array>
+                            </json:map>
+                        </json:array>
+                        <json:array key="where">
+                            <xsl:sequence select="$where-pattern"/>
+                        </json:array>
+                    </json:map>
+                </json:array>
+            </json:map>
+        </xsl:variable>
+        <xsl:variable name="update-json-string" select="xml-to-json($update-xml)" as="xs:string"/>
+<xsl:message>
+    <xsl:value-of select="$update-json-string"/>
+</xsl:message>
+        <xsl:variable name="update-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $update-json-string ])"/>
+        <xsl:variable name="update-string" select="ixsl:call($sparql-generator, 'stringify', [ $update-json ])" as="xs:string"/>
+        <xsl:variable name="resources" as="document-node()">
+            <xsl:document>
+                <rdf:RDF>
+                    <xsl:sequence select="ldh:triples-to-descriptions($triples)"/>
+                </rdf:RDF>
+            </xsl:document>
+        </xsl:variable>
+        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, $action)" as="xs:anyURI"/>
+        
+        <xsl:variable name="request" as="item()*">
+            <!-- If-Match header checks preconditions, i.e. that the graph has not been modified in the meanwhile --> 
+            <ixsl:schedule-action http-request="map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string, 'headers': map{ 'If-Match': $etag, 'Accept': 'application/rdf+xml', 'Cache-Control': 'no-cache' } }">
+                <xsl:call-template name="ldh:ResourceUpdated">
+                    <xsl:with-param name="doc-uri" select="ac:absolute-path(ldh:base-uri(.))"/>
+                    <xsl:with-param name="container" select="$container"/>
+                    <xsl:with-param name="form" select="$form"/>
+                    <xsl:with-param name="resources" select="$resources"/>
+                </xsl:call-template>
+            </ixsl:schedule-action>
+        </xsl:variable>
+        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+    </xsl:template>
+    
+    <xsl:template match="button[contains-token(@class, 'add-value')]" mode="ixsl:onclick">
+        <xsl:variable name="property-control-group" select="../.." as="element()"/>
+        <xsl:variable name="property" select="../preceding-sibling::*/select/option[ixsl:get(., 'selected') = true()]/ixsl:get(., 'value')" as="xs:anyURI"/>
+        <xsl:variable name="forClass" select="preceding-sibling::input/@value" as="xs:anyURI*"/>
+        <xsl:variable name="href" select="ac:build-uri(ac:absolute-path(ldh:base-uri(.)), map{ 'forClass': for $class in $forClass return string($class) })" as="xs:anyURI"/>
+        
+        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+        
+        <xsl:variable name="request" as="item()*">
+            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
+                <xsl:call-template name="onAddValue">
+                    <xsl:with-param name="property-control-group" select="$property-control-group"/>
+                    <xsl:with-param name="property" select="$property"/>
+                </xsl:call-template>
+            </ixsl:schedule-action>
+        </xsl:variable>
+        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
     
     <!-- after inline resource creation/editing form is submitted  -->
@@ -531,109 +637,6 @@ WHERE
                 <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ ?message ])"/>
             </xsl:otherwise>
         </xsl:choose>
-    </xsl:template>
-    
-    <!-- submit instance update form using PATCH -->
-    
-    <xsl:template match="div[@about][contains-token(@class, 'row-fluid')][@typeof]//form[contains-token(@class, 'form-horizontal')][upper-case(@method) = 'PATCH']" mode="ixsl:onsubmit" priority="1">
-        <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
-        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'content')]" as="element()"/>
-        <xsl:variable name="form" select="." as="element()"/>
-        <xsl:variable name="id" select="ixsl:get(., 'id')" as="xs:string"/>
-        <xsl:variable name="action" select="ixsl:get(., 'action')" as="xs:anyURI"/>
-        <xsl:variable name="enctype" select="ixsl:get(., 'enctype')" as="xs:string"/>
-        <xsl:variable name="accept" select="'application/xhtml+xml'" as="xs:string"/>
-        <xsl:variable name="about" select="ancestor::div[@typeof][1]/@about" as="xs:anyURI"/>
-        <xsl:message>ldh:base-uri(.): <xsl:value-of select="ldh:base-uri(.)"/></xsl:message>
-        <xsl:variable name="etag" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(ldh:base-uri(.)) || '`'), 'etag')" as="xs:string"/>
-        <xsl:message>$etag: <xsl:value-of select="$etag"/></xsl:message>
-
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
-        
-        <xsl:variable name="elements" select=".//input | .//textarea | .//select" as="element()*"/>
-        <xsl:variable name="triples" select="ldh:parse-rdf-post($elements)" as="element()*"/>
-        <xsl:variable name="where-pattern" as="element()">
-            <json:map>
-                <json:string key="type">bgp</json:string>
-                <json:array key="triples">
-                    <json:map>
-                        <json:string key="subject"><xsl:sequence select="$about"/></json:string>
-                        <json:string key="predicate">?p</json:string>
-                        <json:string key="object">?o</json:string>
-                    </json:map>
-                </json:array>
-            </json:map>
-        </xsl:variable>
-        <xsl:variable name="update-xml" as="element()">
-            <json:map>
-                <json:string key="type">update</json:string>
-                <json:array key="updates">
-                    <json:map>
-                        <json:string key="updateType">insertdelete</json:string>
-                        <json:array key="delete">
-                            <xsl:sequence select="$where-pattern"/>
-                        </json:array>
-                        <json:array key="insert">
-                            <json:map>
-                                <json:string key="type">bgp</json:string>
-                                <json:array key="triples">
-                                    <xsl:sequence select="$triples"/>
-                                </json:array>
-                            </json:map>
-                        </json:array>
-                        <json:array key="where">
-                            <xsl:sequence select="$where-pattern"/>
-                        </json:array>
-                    </json:map>
-                </json:array>
-            </json:map>
-        </xsl:variable>
-        <xsl:variable name="update-json-string" select="xml-to-json($update-xml)" as="xs:string"/>
-<xsl:message>
-    <xsl:value-of select="$update-json-string"/>
-</xsl:message>
-        <xsl:variable name="update-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $update-json-string ])"/>
-        <xsl:variable name="update-string" select="ixsl:call($sparql-generator, 'stringify', [ $update-json ])" as="xs:string"/>
-        <xsl:variable name="resources" as="document-node()">
-            <xsl:document>
-                <rdf:RDF>
-                    <xsl:sequence select="ldh:triples-to-descriptions($triples)"/>
-                </rdf:RDF>
-            </xsl:document>
-        </xsl:variable>
-        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, $action)" as="xs:anyURI"/>
-        
-        <xsl:variable name="request" as="item()*">
-            <!-- If-Match header checks preconditions, i.e. that the graph has not been modified in the meanwhile --> 
-            <ixsl:schedule-action http-request="map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string, 'headers': map{ 'If-Match': $etag, 'Accept': 'application/rdf+xml', 'Cache-Control': 'no-cache' } }">
-                <xsl:call-template name="ldh:ResourceUpdated">
-                    <xsl:with-param name="doc-uri" select="ac:absolute-path(ldh:base-uri(.))"/>
-                    <xsl:with-param name="container" select="$container"/>
-                    <xsl:with-param name="form" select="$form"/>
-                    <xsl:with-param name="resources" select="$resources"/>
-                </xsl:call-template>
-            </ixsl:schedule-action>
-        </xsl:variable>
-        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
-    </xsl:template>
-    
-    <xsl:template match="button[contains-token(@class, 'add-value')]" mode="ixsl:onclick">
-        <xsl:variable name="property-control-group" select="../.." as="element()"/>
-        <xsl:variable name="property" select="../preceding-sibling::*/select/option[ixsl:get(., 'selected') = true()]/ixsl:get(., 'value')" as="xs:anyURI"/>
-        <xsl:variable name="forClass" select="preceding-sibling::input/@value" as="xs:anyURI*"/>
-        <xsl:variable name="href" select="ac:build-uri(ac:absolute-path(ldh:base-uri(.)), map{ 'forClass': for $class in $forClass return string($class) })" as="xs:anyURI"/>
-        
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
-        
-        <xsl:variable name="request" as="item()*">
-            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
-                <xsl:call-template name="onAddValue">
-                    <xsl:with-param name="property-control-group" select="$property-control-group"/>
-                    <xsl:with-param name="property" select="$property"/>
-                </xsl:call-template>
-            </ixsl:schedule-action>
-        </xsl:variable>
-        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
     
     <!-- toggles the .control-group for subject URI/bnode ID editing -->
