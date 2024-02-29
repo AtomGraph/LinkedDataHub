@@ -163,8 +163,11 @@ public class Item extends GraphStoreImpl
         if (log.isDebugEnabled()) log.debug("POST Model to named graph with URI: {} Did it already exist? {}", getURI(), existingGraph);
         getDatasetAccessor().add(getURI().toString(), model);
 
-        if (existingGraph) return Response.ok().build();
-        else return Response.created(getURI()).build();
+        if (existingGraph) return Response.ok().
+            tag(getEntityTag(model)).
+            build();
+        else return Response.created(getURI()).
+            build();
     }
     
     @Override
@@ -228,8 +231,10 @@ public class Item extends GraphStoreImpl
         if (log.isDebugEnabled()) log.debug("PUT Model to named graph with URI: {} Did it already exist? {}", getURI(), existingGraph);
         getDatasetAccessor().putModel(getURI().toString(), model); // TO-DO: catch exceptions
 
-        if (existingGraph) return Response.ok().build();
-        else return Response.created(getURI()).build();
+        if (existingGraph) return Response.ok().
+            build();
+        else return Response.created(getURI()).
+            build();
     }
     
     /**
