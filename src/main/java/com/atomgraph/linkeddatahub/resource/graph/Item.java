@@ -149,8 +149,8 @@ public class Item extends GraphStoreImpl
     {
         if (log.isTraceEnabled()) log.trace("POST Graph Store request with RDF payload: {} payload size(): {}", model, model.size());
 
-        final boolean existingGraph = getDatasetAccessor().containsModel(getURI().toString());
-        if (!existingGraph) throw new NotFoundException("Named graph with URI <" + getURI() + "> not found");
+        final Model existingModel = getDatasetAccessor().getModel(getURI().toString());
+        if (existingModel == null) throw new NotFoundException("Named graph with URI <" + getURI() + "> not found"); // directly-identified graph has to exist
         
         model.createResource(getURI().toString()).
             removeAll(DCTerms.modified).
@@ -160,13 +160,11 @@ public class Item extends GraphStoreImpl
         new Skolemizer(getURI().toString()).apply(model);
         
         // is this implemented correctly? The specification is not very clear.
-        if (log.isDebugEnabled()) log.debug("POST Model to named graph with URI: {} Did it already exist? {}", getURI(), existingGraph);
+        if (log.isDebugEnabled()) log.debug("POST Model to named graph with URI: {}", getURI());
         getDatasetAccessor().add(getURI().toString(), model);
 
-        if (existingGraph) return Response.ok().
-            tag(getEntityTag(model)).
-            build();
-        else return Response.created(getURI()).
+        return Response.ok().
+            tag(getEntityTag(existingModel.add(model))).
             build();
     }
     
