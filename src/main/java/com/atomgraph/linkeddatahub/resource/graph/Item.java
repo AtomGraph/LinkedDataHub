@@ -227,7 +227,7 @@ public class Item extends GraphStoreImpl
 
         new Skolemizer(getURI().toString()).apply(model);
         
-        if (log.isDebugEnabled()) log.debug("PUT Model to named graph with URI: {} Did it already exist? {}", getURI(), existingGraph);
+        if (log.isDebugEnabled()) log.debug("PUT Model to named graph with URI: {} Did it already exist? {}", getURI(), existingModel == null);
         getDatasetAccessor().putModel(getURI().toString(), model); // TO-DO: catch exceptions
 
 //        if (existingGraph) return Response.ok().
