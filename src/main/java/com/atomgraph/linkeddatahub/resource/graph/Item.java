@@ -274,7 +274,8 @@ public class Item extends GraphStoreImpl
         final Model existingModel = getDatasetAccessor().getModel(getURI().toString());
         if (existingModel == null) throw new NotFoundException("Named graph with URI <" + getURI() + "> not found");
 
-        ResponseBuilder rb = evaluatePreconditions(existingModel, null);
+        com.atomgraph.core.model.impl.Response response = getInternalResponse(existingModel, null);
+        ResponseBuilder rb = response.evaluatePreconditions();
         if (rb != null) return rb.build(); // preconditions not met
 
         dataset = DatasetFactory.wrap(existingModel);
@@ -282,7 +283,7 @@ public class Item extends GraphStoreImpl
         validate(dataset.getDefaultModel()); // this would normally be done transparently by the ValidatingModelProvider
         put(dataset.getDefaultModel(), Boolean.FALSE, getURI());
         
-        return getInternalResponse(existingModel, null).getResponseBuilder().
+        return response.getResponseBuilder().
             status(Response.Status.NO_CONTENT).
             entity(null). // 'Content-Type' header has to be explicitly unset in ResponseHeadersFilter
             header(HttpHeaders.CONTENT_LOCATION, getURI()).
