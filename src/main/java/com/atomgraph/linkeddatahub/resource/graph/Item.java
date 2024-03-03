@@ -167,7 +167,7 @@ public class Item extends GraphStoreImpl
 //        return Response.ok().
 //            tag(getEntityTag(existingModel)).
 //            build();
-        return getResponseBuilder(existingModel, null).
+        return getInternalResponse(existingModel, null).getResponseBuilder().
             build();
     }
     
@@ -234,7 +234,7 @@ public class Item extends GraphStoreImpl
 
 //        if (existingGraph) return Response.ok().
 //            build();
-        if (existingGraph) return getResponseBuilder(model, null).
+        if (existingGraph) return getInternalResponse(model, null).getResponseBuilder().
             build();
         else return Response.created(getURI()).
             build();
@@ -282,7 +282,7 @@ public class Item extends GraphStoreImpl
         validate(dataset.getDefaultModel()); // this would normally be done transparently by the ValidatingModelProvider
         put(dataset.getDefaultModel(), Boolean.FALSE, getURI());
         
-        return getResponseBuilder(dataset.getDefaultModel(), null).
+        return getInternalResponse(existingModel, null).getResponseBuilder().
             status(Response.Status.NO_CONTENT).
             entity(null). // 'Content-Type' header has to be explicitly unset in ResponseHeadersFilter
             header(HttpHeaders.CONTENT_LOCATION, getURI()).
@@ -409,6 +409,24 @@ public class Item extends GraphStoreImpl
             throw new WebApplicationException("Cannot delete document", Response.status(Response.Status.METHOD_NOT_ALLOWED).allow(allowedMethods).build());
         
         return super.delete(false, getURI());
+    }
+    
+    /**
+     * Get internal response object.
+     * 
+     * @param model RDF model
+     * @param graphUri graph URI
+     * @return response
+     */
+    public com.atomgraph.core.model.impl.Response getInternalResponse(Model model, URI graphUri) // TO-DO: graphUri not required?
+    {
+        return new com.atomgraph.core.model.impl.Response(getRequest(),
+                model,
+                getLastModified(model, graphUri),
+                getEntityTag(model),
+                getWritableMediaTypes(Model.class),
+                getLanguages(),
+                getEncodings());
     }
     
     /**
