@@ -164,8 +164,10 @@ public class Item extends GraphStoreImpl
         getDatasetAccessor().add(getURI().toString(), model);
         existingModel.add(model); // append new data to existing model
 
-        return Response.ok().
-            tag(getEntityTag(existingModel)).
+//        return Response.ok().
+//            tag(getEntityTag(existingModel)).
+//            build();
+        return getResponseBuilder(existingModel, null).
             build();
     }
     
@@ -230,7 +232,9 @@ public class Item extends GraphStoreImpl
         if (log.isDebugEnabled()) log.debug("PUT Model to named graph with URI: {} Did it already exist? {}", getURI(), existingGraph);
         getDatasetAccessor().putModel(getURI().toString(), model); // TO-DO: catch exceptions
 
-        if (existingGraph) return Response.ok().
+//        if (existingGraph) return Response.ok().
+//            build();
+        if (existingGraph) return getResponseBuilder(model, null).
             build();
         else return Response.created(getURI()).
             build();
@@ -282,7 +286,7 @@ public class Item extends GraphStoreImpl
             status(Response.Status.NO_CONTENT).
             entity(null). // 'Content-Type' header has to be explicitly unset in ResponseHeadersFilter
             header(HttpHeaders.CONTENT_LOCATION, getURI()).
-            tag(getEntityTag(dataset.getDefaultModel())).
+            //tag(getEntityTag(dataset.getDefaultModel())).
             build();
     }
     
