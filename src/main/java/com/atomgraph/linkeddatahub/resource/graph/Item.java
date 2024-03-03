@@ -161,8 +161,7 @@ public class Item extends GraphStoreImpl
         
         // is this implemented correctly? The specification is not very clear.
         if (log.isDebugEnabled()) log.debug("POST Model to named graph with URI: {}", getURI());
-        getDatasetAccessor().add(getURI().toString(), model);
-        existingModel.add(model); // append new data to existing model
+        getDatasetAccessor().add(getURI().toString(), model); // append new data to existing model
 
 //        return Response.ok().
 //            tag(getEntityTag(existingModel)).
@@ -192,10 +191,9 @@ public class Item extends GraphStoreImpl
             throw new WebApplicationException("Document URI <" + getURI() + "> does not end with a slash", UNPROCESSABLE_ENTITY.getStatusCode()); // 422 Unprocessable Entity
         }
         
-        final boolean existingGraph = getDatasetAccessor().containsModel(getURI().toString());
-        
+        final Model existingModel = getDatasetAccessor().getModel(getURI().toString());
         Resource resource = model.createResource(getURI().toString());
-        if (!existingGraph) // creating new graph and attaching it to the document hierarchy
+        if (existingModel == null) // creating new graph and attaching it to the document hierarchy
         {
             URI parentURI = getURI().resolve("..");
             Resource parent = model.createResource(parentURI.toString());
@@ -234,7 +232,7 @@ public class Item extends GraphStoreImpl
 
 //        if (existingGraph) return Response.ok().
 //            build();
-        if (existingGraph) return getInternalResponse(model, null).getResponseBuilder().
+        if (existingModel != null) return getInternalResponse(existingModel, null).getResponseBuilder().
             build();
         else return Response.created(getURI()).
             build();
