@@ -162,9 +162,10 @@ public class Item extends GraphStoreImpl
         // is this implemented correctly? The specification is not very clear.
         if (log.isDebugEnabled()) log.debug("POST Model to named graph with URI: {}", getURI());
         getDatasetAccessor().add(getURI().toString(), model);
+        existingModel.add(model); // append new data to existing model
 
         return Response.ok().
-            tag(getEntityTag(existingModel.add(model))).
+            tag(getEntityTag(existingModel)).
             build();
     }
     
