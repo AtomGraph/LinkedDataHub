@@ -237,7 +237,7 @@ public class Item extends GraphStoreImpl
             if (log.isDebugEnabled()) log.debug("PUT Model into existing named graph with URI: {}", getURI());
             getDatasetAccessor().putModel(getURI().toString(), model); // TO-DO: catch exceptions
 
-            if (existingGraph) return getInternalResponse(existingModel, null).getResponseBuilder().
+            return getInternalResponse(existingModel, null).getResponseBuilder().
                 build();
         }
     }
