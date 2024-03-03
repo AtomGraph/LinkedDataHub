@@ -191,9 +191,11 @@ public class Item extends GraphStoreImpl
             throw new WebApplicationException("Document URI <" + getURI() + "> does not end with a slash", UNPROCESSABLE_ENTITY.getStatusCode()); // 422 Unprocessable Entity
         }
         
-        final Model existingModel = getDatasetAccessor().getModel(getURI().toString());
+        new Skolemizer(getURI().toString()).apply(model);
+        final boolean existingGraph = getDatasetAccessor().containsModel(getURI().toString());
+        
         Resource resource = model.createResource(getURI().toString());
-        if (existingModel == null) // creating new graph and attaching it to the document hierarchy
+        if (!existingGraph) // creating new graph and attaching it to the document hierarchy
         {
             URI parentURI = getURI().resolve("..");
             Resource parent = model.createResource(parentURI.toString());
@@ -209,6 +211,12 @@ public class Item extends GraphStoreImpl
 
             resource.addLiteral(DCTerms.created, ResourceFactory.createTypedLiteral(GregorianCalendar.getInstance()));
             if (getAgentContext().isPresent()) resource.addProperty(DCTerms.creator, getAgentContext().get().getAgent());
+
+            if (log.isDebugEnabled()) log.debug("PUT Model into new named graph with URI: {}", getURI());
+            getDatasetAccessor().putModel(getURI().toString(), model); // TO-DO: catch exceptions
+
+            return Response.created(getURI()).
+                build();
         }
         else // updating existing graph
         {
@@ -223,19 +231,15 @@ public class Item extends GraphStoreImpl
 
             resource.removeAll(DCTerms.modified).
                 addLiteral(DCTerms.modified, ResourceFactory.createTypedLiteral(GregorianCalendar.getInstance()));
+
+            final Model existingModel = getDatasetAccessor().getModel(getURI().toString());
+
+            if (log.isDebugEnabled()) log.debug("PUT Model into existing named graph with URI: {}", getURI());
+            getDatasetAccessor().putModel(getURI().toString(), model); // TO-DO: catch exceptions
+
+            if (existingGraph) return getInternalResponse(existingModel, null).getResponseBuilder().
+                build();
         }
-
-        new Skolemizer(getURI().toString()).apply(model);
-        
-        if (log.isDebugEnabled()) log.debug("PUT Model to named graph with URI: {} Did it already exist? {}", getURI(), existingModel == null);
-        getDatasetAccessor().putModel(getURI().toString(), model); // TO-DO: catch exceptions
-
-//        if (existingGraph) return Response.ok().
-//            build();
-        if (existingModel != null) return getInternalResponse(existingModel, null).getResponseBuilder().
-            build();
-        else return Response.created(getURI()).
-            build();
     }
     
     /**
