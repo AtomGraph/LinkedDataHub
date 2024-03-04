@@ -272,7 +272,7 @@ WHERE
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
                 <xsl:variable name="resource" select="key('resources', $about, ?body)" as="element()"/> <!-- TO-DO: handle error -->
-                <xsl:variable name="div-id" select="generate-id($resource)" as="xs:string"/>
+                <!-- <xsl:variable name="div-id" select="generate-id($resource)" as="xs:string"/> -->
                 <xsl:variable name="types" select="distinct-values($resource/rdf:type/@rdf:resource)" as="xs:anyURI*"/>
                 <xsl:variable name="query-string" select="'DESCRIBE $Type VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }'" as="xs:string"/>
                 <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': $query-string, 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
@@ -320,7 +320,7 @@ WHERE
                 <xsl:for-each select="$container">
                     <xsl:variable name="row" as="node()*">
                         <xsl:apply-templates select="$resource" mode="bs2:RowForm">
-                            <xsl:with-param name="id" select="$div-id"/>
+                            <!-- <xsl:with-param name="id" select="$div-id"/> -->
                             <xsl:with-param name="type-metadata" select="$type-metadata" tunnel="yes"/>
                             <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/>
                             <xsl:with-param name="constraints" select="$constraints" tunnel="yes"/>
