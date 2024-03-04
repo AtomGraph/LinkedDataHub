@@ -257,6 +257,7 @@ WHERE
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'If-Match': $etag, 'Accept': 'application/rdf+xml' } }">
                 <xsl:call-template name="ldh:LoadEditedDocument">
                     <xsl:with-param name="container" select="$container"/>
+                    <xsl:with-param name="about" select="$about"/>
                 </xsl:call-template>
             </ixsl:schedule-action>
         </xsl:variable>
@@ -266,6 +267,7 @@ WHERE
     <xsl:template name="ldh:LoadEditedDocument">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="container" as="element()"/>
+        <xsl:param name="about" as="xs:anyURI"/>
 
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
