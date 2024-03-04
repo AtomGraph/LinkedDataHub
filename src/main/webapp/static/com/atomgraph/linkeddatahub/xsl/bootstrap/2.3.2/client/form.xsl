@@ -263,7 +263,7 @@ WHERE
         <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
 
-    <xsl:call-template name="ldh:LoadEditedDocument">
+    <xsl:template name="ldh:LoadEditedDocument">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="container" as="element()"/>
 
@@ -284,9 +284,9 @@ WHERE
             </ixsl:schedule-action>
         </xsl:variable>
         <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
-    </xsl:call-template>
+    </xsl:template>
     
-    <xsl:call-template name="ldh:LoadTypeMetadata">
+    <xsl:template name="ldh:LoadTypeMetadata">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="container" as="element()"/>
         <xsl:param name="resource" as="element()"/>
@@ -331,7 +331,7 @@ WHERE
                 <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ ?message ])"/>
             </xsl:otherwise>
         </xsl:choose>
-    </xsl:call-template>
+    </xsl:template>
     
     <!-- disable inline editing form (do nothing if the button is disabled) -->
     
