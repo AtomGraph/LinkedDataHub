@@ -267,23 +267,31 @@ WHERE
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="container" as="element()"/>
 
-        <xsl:variable name="doc" select="document(ac:document-uri($request-uri))" as="document-node()"/>
-        <xsl:variable name="resource" select="key('resources', $about, $doc)" as="element()"/> <!-- TO-DO: handle error -->
-        <xsl:variable name="div-id" select="generate-id($resource)" as="xs:string"/>
-        <xsl:variable name="types" select="distinct-values($resource/rdf:type/@rdf:resource)" as="xs:anyURI*"/>
-        <xsl:variable name="query-string" select="'DESCRIBE $Type VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }'" as="xs:string"/>
-        <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': $query-string, 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
+        <xsl:choose>
+            <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
+                <xsl:variable name="resource" select="key('resources', $about, ?body)" as="element()"/> <!-- TO-DO: handle error -->
+                <xsl:variable name="div-id" select="generate-id($resource)" as="xs:string"/>
+                <xsl:variable name="types" select="distinct-values($resource/rdf:type/@rdf:resource)" as="xs:anyURI*"/>
+                <xsl:variable name="query-string" select="'DESCRIBE $Type VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }'" as="xs:string"/>
+                <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': $query-string, 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
 
-        <xsl:variable name="request" as="item()*">
-            <!-- If-Match header checks preconditions, i.e. that the graph has not been modified in the meanwhile --> 
-            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-                <xsl:call-template name="ldh:LoadTypeMetadata">
-                    <xsl:with-param name="container" select="$container"/>
-                    <xsl:with-param name="resource" select="$resource"/>
-                </xsl:call-template>
-            </ixsl:schedule-action>
-        </xsl:variable>
-        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+                <xsl:variable name="request" as="item()*">
+                    <!-- If-Match header checks preconditions, i.e. that the graph has not been modified in the meanwhile --> 
+                    <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+                        <xsl:call-template name="ldh:LoadTypeMetadata">
+                            <xsl:with-param name="container" select="$container"/>
+                            <xsl:with-param name="resource" select="$resource"/>
+                        </xsl:call-template>
+                    </ixsl:schedule-action>
+                </xsl:variable>
+                <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+            </xsl:when>
+            <!-- error response -->
+            <xsl:otherwise>
+                <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
+                <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ ?message ])"/>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:template>
     
     <xsl:template name="ldh:LoadTypeMetadata">
