@@ -244,52 +244,95 @@ WHERE
         <xsl:message>ldh:base-uri(.): <xsl:value-of select="ldh:base-uri(.)"/></xsl:message>
         <xsl:message>ixsl:location(): <xsl:value-of select="ixsl:location()"/></xsl:message>
         
-        <!-- not using ldh:base-uri(.) because it goes stale when DOM is replaced -->
-        <!-- <xsl:variable name="doc" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(xs:anyURI(ixsl:location())) || '`'), 'results')" as="document-node()"/> -->
+        <xsl:variable name="etag" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(ldh:base-uri(.)) || '`'), 'etag')" as="xs:string"/>
+        <xsl:message>ldh:LoadEditedDocument $etag: <xsl:value-of select="$etag"/></xsl:message>
         
         <!-- if the URI is external, dereference it through the proxy -->
         <!-- add a bogus query parameter to give the RDF/XML document a different URL in the browser cache, otherwise it will clash with the HTML representation -->
         <!-- this is due to broken browser behavior re. Vary and conditional requests: https://stackoverflow.com/questions/60799116/firefox-if-none-match-headers-ignore-content-type-and-vary/60802443 -->
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{ 'param': 'dummy', 'accept': 'application/rdf+xml' }, ac:absolute-path(ldh:base-uri(.)), $graph, ())" as="xs:anyURI"/>
-        <xsl:variable name="doc" select="document(ac:document-uri($request-uri))" as="document-node()"/>
-        <xsl:variable name="resource" select="key('resources', $about, $doc)" as="element()"/>
-        <xsl:variable name="div-id" select="generate-id($resource)" as="xs:string"/>
         
-        <!-- TO-DO: refactor to use asynchronous HTTP requests -->
+        <xsl:variable name="request" as="item()*">
+            <!-- If-Match header checks preconditions, i.e. that the graph has not been modified in the meanwhile --> 
+            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'If-Match': $etag, 'Accept': 'application/rdf+xml' } }">
+                <xsl:call-template name="ldh:LoadEditedDocument">
+                    <xsl:with-param name="container" select="$container"/>
+                </xsl:call-template>
+            </ixsl:schedule-action>
+        </xsl:variable>
+        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+    </xsl:template>
+
+    <xsl:call-template name="ldh:LoadEditedDocument">
+        <xsl:context-item as="map(*)" use="required"/>
+        <xsl:param name="container" as="element()"/>
+
+        <xsl:variable name="doc" select="document(ac:document-uri($request-uri))" as="document-node()"/>
+        <xsl:variable name="resource" select="key('resources', $about, $doc)" as="element()"/> <!-- TO-DO: handle error -->
+        <xsl:variable name="div-id" select="generate-id($resource)" as="xs:string"/>
         <xsl:variable name="types" select="distinct-values($resource/rdf:type/@rdf:resource)" as="xs:anyURI*"/>
         <xsl:variable name="query-string" select="'DESCRIBE $Type VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }'" as="xs:string"/>
         <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': $query-string, 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
-        <xsl:variable name="type-metadata" select="if (exists($types)) then document($request-uri) else ()" as="document-node()?"/>
 
-        <xsl:variable name="property-uris" select="distinct-values($resource/*/concat(namespace-uri(), local-name()))" as="xs:string*"/>
-        <xsl:variable name="query-string" select="'DESCRIBE $Type VALUES $Type { ' || string-join(for $uri in $property-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>
-        <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': $query-string, 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
-        <xsl:variable name="property-metadata" select="document($request-uri)" as="document-node()"/>
+        <xsl:variable name="request" as="item()*">
+            <!-- If-Match header checks preconditions, i.e. that the graph has not been modified in the meanwhile --> 
+            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+                <xsl:call-template name="ldh:LoadTypeMetadata">
+                    <xsl:with-param name="container" select="$container"/>
+                    <xsl:with-param name="resource" select="$resource"/>
+                </xsl:call-template>
+            </ixsl:schedule-action>
+        </xsl:variable>
+        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+    </xsl:call-template>
+    
+    <xsl:call-template name="ldh:LoadTypeMetadata">
+        <xsl:context-item as="map(*)" use="required"/>
+        <xsl:param name="container" as="element()"/>
+        <xsl:param name="resource" as="element()"/>
 
-        <xsl:variable name="query-string" select="$constraint-query || ' VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }'" as="xs:string"/>
-        <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': $query-string, 'accept': 'application/sparql-results+xml' })" as="xs:anyURI"/>
-        <xsl:variable name="constraints" select="if (exists($types)) then document($request-uri) else ()" as="document-node()?"/>
+        <xsl:choose>
+            <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
+                <xsl:variable name="type-metadata" select="?body" as="document-node()?"/>
 
-        <xsl:for-each select="$container">
-            <xsl:variable name="row" as="node()*">
-                <xsl:apply-templates select="$resource" mode="bs2:RowForm">
-                    <xsl:with-param name="id" select="$div-id"/>
-                    <xsl:with-param name="type-metadata" select="$type-metadata" tunnel="yes"/>
-                    <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/>
-                    <xsl:with-param name="constraints" select="$constraints" tunnel="yes"/>
-                </xsl:apply-templates>
-            </xsl:variable>
+                <!-- TO-DO: refactor to use asynchronous HTTP requests -->
+                <xsl:variable name="property-uris" select="distinct-values($resource/*/concat(namespace-uri(), local-name()))" as="xs:string*"/>
+                <xsl:variable name="query-string" select="'DESCRIBE $Type VALUES $Type { ' || string-join(for $uri in $property-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>
+                <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': $query-string, 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
+                <xsl:variable name="property-metadata" select="document($request-uri)" as="document-node()"/>
 
-            <xsl:result-document href="?." method="ixsl:replace-content">
-                <xsl:copy-of select="$row/*"/> <!-- inject the content of div.row-fluid -->
-            </xsl:result-document>
-        </xsl:for-each>
-        <!-- initialize event listeners -->
-        <xsl:apply-templates select="$container/*" mode="ldh:PostConstruct"/>
+                <xsl:variable name="query-string" select="$constraint-query || ' VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }'" as="xs:string"/>
+                <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': $query-string, 'accept': 'application/sparql-results+xml' })" as="xs:anyURI"/>
+                <xsl:variable name="constraints" select="if (exists($types)) then document($request-uri) else ()" as="document-node()?"/>
+                
+                <xsl:for-each select="$container">
+                    <xsl:variable name="row" as="node()*">
+                        <xsl:apply-templates select="$resource" mode="bs2:RowForm">
+                            <xsl:with-param name="id" select="$div-id"/>
+                            <xsl:with-param name="type-metadata" select="$type-metadata" tunnel="yes"/>
+                            <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/>
+                            <xsl:with-param name="constraints" select="$constraints" tunnel="yes"/>
+                        </xsl:apply-templates>
+                    </xsl:variable>
 
-        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
-    </xsl:template>
+                    <xsl:result-document href="?." method="ixsl:replace-content">
+                        <xsl:copy-of select="$row/*"/> <!-- inject the content of div.row-fluid -->
+                    </xsl:result-document>
+                </xsl:for-each>
 
+                <!-- initialize event listeners -->
+                <xsl:apply-templates select="$container/*" mode="ldh:PostConstruct"/>
+
+                <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
+            </xsl:when>
+            <!-- error response -->
+            <xsl:otherwise>
+                <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
+                <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ ?message ])"/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:call-template>
+    
     <!-- disable inline editing form (do nothing if the button is disabled) -->
     
     <xsl:template match="div[@about][@typeof = ('&ldh;ResultSetChart', '&ldh;GraphChart')]//button[contains-token(@class, 'btn-cancel')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick" priority="1">
