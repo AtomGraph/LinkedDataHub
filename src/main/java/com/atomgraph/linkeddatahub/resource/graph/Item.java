@@ -286,11 +286,12 @@ public class Item extends GraphStoreImpl
         validate(dataset.getDefaultModel()); // this would normally be done transparently by the ValidatingModelProvider
         put(dataset.getDefaultModel(), Boolean.FALSE, getURI());
         
+        
         return getInternalResponse(dataset.getDefaultModel(), null).getResponseBuilder().  // entity tag of the updated graph
             status(Response.Status.NO_CONTENT).
             entity(null). // 'Content-Type' header has to be explicitly unset in ResponseHeadersFilter
             header(HttpHeaders.CONTENT_LOCATION, getURI()).
-            //tag(getEntityTag(dataset.getDefaultModel())).
+            tag(getInternalResponse(dataset.getDefaultModel(), null).getVariantEntityTag()). // TO-DO: optimize!
             build();
     }
     
