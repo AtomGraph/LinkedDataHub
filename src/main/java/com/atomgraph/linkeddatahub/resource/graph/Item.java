@@ -163,10 +163,11 @@ public class Item extends GraphStoreImpl
         if (log.isDebugEnabled()) log.debug("POST Model to named graph with URI: {}", getURI());
         getDatasetAccessor().add(getURI().toString(), model); // append new data to existing model
 
-//        return Response.ok().
-//            tag(getEntityTag(existingModel)).
-//            build();
-        return getInternalResponse(existingModel, null).getResponseBuilder().
+        getInternalResponse(existingModel, null).evaluatePreconditions();
+        Model updatedModel = existingModel.add(model);
+        
+        return Response.ok().
+            tag(getInternalResponse(updatedModel, null).getVariantEntityTag()). // entity tag of the updated graph
             build();
     }
     
