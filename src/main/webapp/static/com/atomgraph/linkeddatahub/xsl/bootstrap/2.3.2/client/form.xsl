@@ -283,6 +283,7 @@ WHERE
                         <xsl:call-template name="ldh:LoadTypeMetadata">
                             <xsl:with-param name="container" select="$container"/>
                             <xsl:with-param name="resource" select="$resource"/>
+                            <xsl:with-param name="types" select="$types"/>
                         </xsl:call-template>
                     </ixsl:schedule-action>
                 </xsl:variable>
@@ -300,6 +301,7 @@ WHERE
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="container" as="element()"/>
         <xsl:param name="resource" as="element()"/>
+        <xsl:param name="types" as="xs:anyURI*"/>
 
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
