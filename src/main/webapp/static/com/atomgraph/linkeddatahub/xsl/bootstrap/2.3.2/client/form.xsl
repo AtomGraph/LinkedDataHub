@@ -248,13 +248,11 @@ WHERE
         <xsl:message>ldh:LoadEditedDocument $etag: <xsl:value-of select="$etag"/></xsl:message>
         
         <!-- if the URI is external, dereference it through the proxy -->
-        <!-- add a bogus query parameter to give the RDF/XML document a different URL in the browser cache, otherwise it will clash with the HTML representation -->
-        <!-- this is due to broken browser behavior re. Vary and conditional requests: https://stackoverflow.com/questions/60799116/firefox-if-none-match-headers-ignore-content-type-and-vary/60802443 -->
-        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{ 'param': 'dummy', 'accept': 'application/rdf+xml' }, ac:absolute-path(ldh:base-uri(.)), $graph, ())" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, ac:absolute-path(ldh:base-uri(.)), $graph, ())" as="xs:anyURI"/>
         
         <xsl:variable name="request" as="item()*">
             <!-- If-Match header checks preconditions, i.e. that the graph has not been modified in the meanwhile --> 
-            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'If-Match': $etag, 'Accept': 'application/rdf+xml' } }">
+            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                 <xsl:call-template name="ldh:LoadEditedDocument">
                     <xsl:with-param name="container" select="$container"/>
                     <xsl:with-param name="about" select="$about"/>
