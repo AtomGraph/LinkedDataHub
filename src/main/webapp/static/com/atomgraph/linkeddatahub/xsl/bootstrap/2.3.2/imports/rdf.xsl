@@ -78,7 +78,7 @@ exclude-result-prefixes="#all">
                     <div class="controls">
                         <xsl:if test="not($required)">
                             <div class="btn-group pull-right">
-                                <button type="button">
+                                <button type="button" tabindex="-1">
                                     <xsl:attribute name="title">
                                         <xsl:value-of>
                                             <xsl:apply-templates select="key('resources', 'remove-stmt', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
