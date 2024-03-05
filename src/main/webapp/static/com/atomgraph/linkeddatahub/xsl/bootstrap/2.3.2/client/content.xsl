@@ -390,7 +390,7 @@ exclude-result-prefixes="#all"
     <!-- XHTML content edit button onclick -->
     <!-- Should not be triggered for embedded XHTML (.resource-content .xhtml-content), that's why we check we're at .row-fluid level -->
     
-    <xsl:template match="div[contains-token(@class, 'xhtml-content')][contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'btn-edit')]" mode="ixsl:onclick">
+    <xsl:template match="div[contains-token(@class, 'xhtml-content')][contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'btn-edit')]" mode="ixsl:onclick" priority="1"> <!-- prioritize over form.xsl -->
         <xsl:variable name="button" select="." as="element()"/>
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'xhtml-content')][contains-token(@class, 'row-fluid')]" as="element()"/>
 
@@ -456,7 +456,7 @@ exclude-result-prefixes="#all"
     
     <!-- resource content edit button onclick -->
     
-    <xsl:template match="div[contains-token(@class, 'resource-content')][contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'btn-edit')]" mode="ixsl:onclick">
+    <xsl:template match="div[contains-token(@class, 'resource-content')][contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'btn-edit')]" priority="1"> <!-- prioritize over form.xsl -->
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'resource-content')][contains-token(@class, 'row-fluid')]" as="element()"/>
         <xsl:variable name="content-value" select="ixsl:get($container, 'dataset.contentValue')" as="xs:anyURI"/> <!-- get the value of the @data-content-value attribute -->
         <xsl:variable name="mode" select="if (ixsl:contains($container, 'dataset.contentMode')) then xs:anyURI(ixsl:get($container, 'dataset.contentMode')) else ()" as="xs:anyURI?"/> <!-- get the value of the @data-content-mode attribute -->
