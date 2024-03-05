@@ -1542,7 +1542,7 @@ exclude-result-prefixes="#all"
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
 
         <xsl:choose>
-            <xsl:when test="?status = 200">
+            <xsl:when test="?status = 204">
                 <xsl:for-each select="$container">
                     <!-- set @about attribute -->
                     <ixsl:set-attribute name="about" select="$content-uri"/>
@@ -1576,7 +1576,7 @@ exclude-result-prefixes="#all"
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
 
         <xsl:choose>
-            <xsl:when test="?status = 200">
+            <xsl:when test="?status = 204">
                 <xsl:for-each select="$container">
                     <!-- set @about attribute -->
                     <ixsl:set-attribute name="about" select="$content-uri"/>
