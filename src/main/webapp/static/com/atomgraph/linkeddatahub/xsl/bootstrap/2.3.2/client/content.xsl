@@ -291,6 +291,7 @@ exclude-result-prefixes="#all"
             <xsl:apply-templates select="." mode="bs2:Row">
                 <xsl:with-param name="graph" select="$graph" tunnel="yes"/>
                 <xsl:with-param name="mode" select="$mode"/>
+                <xsl:with-param name="show-edit-button" select="false()" tunnel="yes"/>
             </xsl:apply-templates>
         </xsl:variable>
 
@@ -323,6 +324,7 @@ exclude-result-prefixes="#all"
                 <xsl:with-param name="mode" select="$mode"/>
                 <xsl:with-param name="transclude" select="true()"/>
                 <xsl:with-param name="base" select="ac:document-uri(@rdf:about)"/>
+                <xsl:with-param name="show-edit-button" select="false()" tunnel="yes"/>
             </xsl:apply-templates>
         </xsl:variable>
 
@@ -352,6 +354,7 @@ exclude-result-prefixes="#all"
             <xsl:apply-templates select="." mode="bs2:Row">
                 <xsl:with-param name="graph" select="$graph" tunnel="yes"/>
                 <xsl:with-param name="mode" select="$mode"/>
+                <xsl:with-param name="show-edit-button" select="false()" tunnel="yes"/>
             </xsl:apply-templates>
         </xsl:variable>
 
