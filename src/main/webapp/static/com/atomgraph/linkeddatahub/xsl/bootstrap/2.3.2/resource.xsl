@@ -655,6 +655,8 @@ extension-element-prefixes="ixsl"
     <!-- ACTIONS -->
 
     <xsl:template match="*[@rdf:about]" mode="bs2:Actions" priority="1">
+        <xsl:param name="show-edit-button" select="true()" as="xs:boolean" tunnel="yes"/>
+        
         <div class="pull-right">
             <!--
             <xsl:if test="doc-available($app-request-uri)">
@@ -706,9 +708,11 @@ extension-element-prefixes="ixsl"
                 </xsl:value-of>
             </button>
             
-            <button type="button" class="btn btn-edit">
-                <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
-            </button>
+            <xsl:if test="$show-edit-button">
+                <button type="button" class="btn btn-edit">
+                    <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
+                </button>
+            </xsl:if>
         </div>
     </xsl:template>
     
