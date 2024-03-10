@@ -459,8 +459,9 @@ WHERE
                 <xsl:variable name="form-data" select="ldh:new('FormData', [ $form ])"/>
                 <xsl:variable name="headers" select="ldh:new-object()"/>
                 <ixsl:set-property name="Accept" select="$accept" object="$headers"/>
+                <ixsl:set-property name="If-Match" select="$etag" object="$headers"/>
                 
-                <xsl:sequence select="js:fetchDispatchXML($request-uri, $method, $headers, $form-data, ., 'multipartFormLoad')[current-date() lt xs:date('2000-01-01')]"/>
+                <xsl:sequence select="js:fetchDispatchXML($request-uri, $method, $headers, $form-data, ., 'MultipartResourceUpdated')[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:when>
             <xsl:otherwise>
                 <xsl:variable name="request" as="item()*">
@@ -1348,20 +1349,17 @@ WHERE
     <!-- CALLBACKS -->
     
     <!-- the same logic as onFormLoad but handles only responses to multipart requests invoked via JS function fetchDispatchXML() -->
-    <xsl:template match="." mode="ixsl:onmultipartFormLoad">
+    <xsl:template match="." mode="ixsl:onMultipartResourceUpdated">
         <xsl:param name="container" select="id('content-body', ixsl:page())" as="element()"/>
         <xsl:variable name="event" select="ixsl:event()"/>
         <xsl:variable name="action" select="ixsl:get(ixsl:get($event, 'detail'), 'action')" as="xs:anyURI"/>
         <xsl:variable name="form" select="ixsl:get(ixsl:get($event, 'detail'), 'target')" as="element()"/> <!-- not ixsl:get(ixsl:event(), 'target') because that's the whole document -->
-<!--        <xsl:variable name="target-id" select="$form/input[@class = 'target-id']/@value" as="xs:string?"/>-->
-        <!-- $target-id is of the "Create" button, need to replace the preceding typeahead input instead -->
-<!--        <xsl:variable name="typeahead-span" select="if ($target-id) then id($target-id, ixsl:page())/ancestor::div[@class = 'controls']//span[descendant::input[@name = 'ou']] else ()" as="element()?"/>-->
         <xsl:variable name="response" select="ixsl:get(ixsl:get($event, 'detail'), 'response')"/>
-        <xsl:variable name="html" select="if (ixsl:contains($event, 'detail.xml')) then ixsl:get($event, 'detail.xml') else ()" as="document-node()?"/>
-
+        <xsl:variable name="xml" select="if (ixsl:contains($event, 'detail.xml')) then ixsl:get($event, 'detail.xml') else ()" as="document-node()?"/>
+        <!-- imitate an <ixsl:schedule-action> response map -->
         <xsl:variable name="response" as="map(*)">
             <xsl:map>
-                <xsl:map-entry key="'body'" select="$html"/>
+                <xsl:map-entry key="'body'" select="$xml"/>
                 <xsl:map-entry key="'status'" select="ixsl:get($response, 'status')"/>
                 <xsl:map-entry key="'media-type'" select="ixsl:call(ixsl:get($response, 'headers'), 'get', [ 'Content-Type' ])"/>
                 <xsl:map-entry key="'headers'">
@@ -1374,11 +1372,11 @@ WHERE
         </xsl:variable>
         
         <xsl:for-each select="$response">
-            <xsl:call-template name="ldh:FormLoaded">
+            <xsl:call-template name="ldh:ResourceUpdated">
+                <xsl:with-param name="doc-uri" select="ac:absolute-path(ldh:base-uri(.))"/>
                 <xsl:with-param name="container" select="$container"/>
-                <xsl:with-param name="action" select="$action"/>
                 <xsl:with-param name="form" select="$form"/>
-<!--                <xsl:with-param name="target-id" select="$target-id"/>-->
+                <xsl:with-param name="resources" select="$resources"/>
             </xsl:call-template>
         </xsl:for-each>
     </xsl:template>
