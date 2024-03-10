@@ -137,18 +137,18 @@ public class Item extends GraphStoreImpl
     {
         super(request, uriInfo, mediaTypes, application, ontology, service, securityContext, agentContext, providers, system);
         
-        URI uri = getUriInfo().getAbsolutePath();
+        URI uri = uriInfo.getAbsolutePath();
         allowedMethods = new HashSet<>();
         allowedMethods.add(HttpMethod.GET);
         allowedMethods.add(HttpMethod.POST);
-        
-        if (!getOwnerDocURI().equals(uri) &&
-            !getSecretaryDocURI().equals(uri))
+
+        if (!ownerDocURI.equals(uri) &&
+            !secretaryDocURI.equals(uri))
             allowedMethods.add(HttpMethod.PUT);
 
-        if (!getApplication().getBaseURI().equals(uri) &&
-            !getOwnerDocURI().equals(uri) &&
-            !getSecretaryDocURI().equals(uri))
+        if (!application.getBaseURI().equals(uri) &&
+            !ownerDocURI.equals(uri) &&
+            !secretaryDocURI.equals(uri))
             allowedMethods.add(HttpMethod.DELETE);
     }
 
