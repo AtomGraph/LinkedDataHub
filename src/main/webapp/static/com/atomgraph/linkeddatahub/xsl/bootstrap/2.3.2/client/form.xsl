@@ -461,7 +461,7 @@ WHERE
                 <ixsl:set-property name="Accept" select="$accept" object="$headers"/>
                 <ixsl:set-property name="If-Match" select="$etag" object="$headers"/>
                 
-                <xsl:sequence select="js:fetchDispatchXML($request-uri, $method, $headers, $form-data, ., 'MultipartResourceUpdated')[current-date() lt xs:date('2000-01-01')]"/>
+                <xsl:sequence select="js:fetchDispatchXML($request-uri, $method, $headers, $form-data, ., $resources, 'MultipartResourceUpdated')[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:when>
             <xsl:otherwise>
                 <xsl:variable name="request" as="item()*">
@@ -1352,7 +1352,7 @@ WHERE
     <xsl:template match="." mode="ixsl:onMultipartResourceUpdated">
         <xsl:param name="container" select="id('content-body', ixsl:page())" as="element()"/>
         <xsl:variable name="event" select="ixsl:event()"/>
-        <xsl:variable name="action" select="ixsl:get(ixsl:get($event, 'detail'), 'action')" as="xs:anyURI"/>
+        <xsl:variable name="resources" select="ixsl:get(ixsl:get($event, 'detail'), 'resources')" as="document-node()"/>
         <xsl:variable name="form" select="ixsl:get(ixsl:get($event, 'detail'), 'target')" as="element()"/> <!-- not ixsl:get(ixsl:event(), 'target') because that's the whole document -->
         <xsl:variable name="response" select="ixsl:get(ixsl:get($event, 'detail'), 'response')"/>
         <xsl:variable name="xml" select="if (ixsl:contains($event, 'detail.xml')) then ixsl:get($event, 'detail.xml') else ()" as="document-node()?"/>
