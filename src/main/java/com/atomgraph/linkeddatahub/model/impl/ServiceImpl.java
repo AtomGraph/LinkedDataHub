@@ -184,6 +184,7 @@ public class ServiceImpl extends ResourceImpl implements Service
     }
     
     @Override
+    @Deprecated
     public DatasetAccessor getDatasetAccessor()
     {
         return new DatasetAccessorImpl(getGraphStoreClient());
@@ -220,6 +221,7 @@ public class ServiceImpl extends ResourceImpl implements Service
     }
     
     @Override
+    @Deprecated
     public DatasetQuadAccessor getDatasetQuadAccessor()
     {
         return new DatasetQuadAccessorImpl(getQuadStoreClient());

@@ -1056,6 +1056,7 @@ LIMIT   100
             </button>
             
             <ul class="dropdown-menu">
+                <!--
                 <li>
                     <button type="button" title="{ac:label(key('resources', 'add-data-title', document('translations.rdf')))}" class="btn btn-add-data">
                         <xsl:value-of>
@@ -1063,6 +1064,7 @@ LIMIT   100
                         </xsl:value-of>
                     </button>
                 </li>
+                -->
                 <li>
                     <button type="button" title="{ac:label(key('resources', 'generate-containers-title', document('translations.rdf')))}" class="btn btn-generate-containers">
                         <xsl:value-of>

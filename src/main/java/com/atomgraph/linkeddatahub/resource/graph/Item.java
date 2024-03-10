@@ -113,6 +113,8 @@ public class Item extends GraphStoreImpl
     
     private static final Logger log = LoggerFactory.getLogger(Item.class);
 
+    private final Set<String> allowedMethods;
+    
     /**
      * Constructs resource.
      * 
@@ -134,6 +136,20 @@ public class Item extends GraphStoreImpl
         @Context Providers providers, com.atomgraph.linkeddatahub.Application system)
     {
         super(request, uriInfo, mediaTypes, application, ontology, service, securityContext, agentContext, providers, system);
+        
+        URI uri = getUriInfo().getAbsolutePath();
+        allowedMethods = new HashSet<>();
+        allowedMethods.add(HttpMethod.GET);
+        allowedMethods.add(HttpMethod.POST);
+        
+        if (!getOwnerDocURI().equals(uri) &&
+            !getSecretaryDocURI().equals(uri))
+            allowedMethods.add(HttpMethod.PUT);
+
+        if (!getApplication().getBaseURI().equals(uri) &&
+            !getOwnerDocURI().equals(uri) &&
+            !getSecretaryDocURI().equals(uri))
+            allowedMethods.add(HttpMethod.DELETE);
     }
 
     @Override
@@ -149,8 +165,8 @@ public class Item extends GraphStoreImpl
     {
         if (log.isTraceEnabled()) log.trace("POST Graph Store request with RDF payload: {} payload size(): {}", model, model.size());
 
-        final Model existingModel = getDatasetAccessor().getModel(getURI().toString());
-        if (existingModel == null) throw new NotFoundException("Named graph with URI <" + getURI() + "> not found"); // directly-identified graph has to exist
+        final Model existingModel = getService().getGraphStoreClient().getModel(getURI().toString());
+        // if (existingModel == null) throw new NotFoundException("Named graph with URI <" + getURI() + "> not found"); // directly-identified graph has to exist
         
         model.createResource(getURI().toString()).
             removeAll(DCTerms.modified).
@@ -178,11 +194,10 @@ public class Item extends GraphStoreImpl
     {
         if (log.isTraceEnabled()) log.trace("PUT Graph Store request with RDF payload: {} payload size(): {}", model, model.size());
 
-        Set<String> allowedMethods = getAllowedMethods(getURI());
-        if (!allowedMethods.contains(HttpMethod.PUT))
+        if (!getAllowedMethods().contains(HttpMethod.PUT))
         {
             if (log.isErrorEnabled()) log.error("Method '{}' is not allowed on document URI <{}>", HttpMethod.PUT, getURI());
-            throw new WebApplicationException("Method '" + HttpMethod.PUT + "' is not allowed on document URI <" + getURI() + ">", Response.status(Response.Status.METHOD_NOT_ALLOWED).allow(allowedMethods).build());
+            throw new WebApplicationException("Method '" + HttpMethod.PUT + "' is not allowed on document URI <" + getURI() + ">", Response.status(Response.Status.METHOD_NOT_ALLOWED).allow(getAllowedMethods()).build());
         }
         
         // enforce that document URIs always end with a slash
@@ -305,7 +320,7 @@ public class Item extends GraphStoreImpl
     {
         Response.ResponseBuilder rb = Response.ok();
         
-        rb.allow(getAllowedMethods(getURI()));
+        rb.allow(getAllowedMethods());
         
         String acceptWritable = StringUtils.join(getWritableMediaTypes(Model.class), ",");
         rb.header("Accept-Post", acceptWritable);
@@ -409,9 +424,8 @@ public class Item extends GraphStoreImpl
     @Override
     public Response delete(@QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUriUnused)
     {
-        Set<String> allowedMethods = getAllowedMethods(getURI());
-        if (!allowedMethods.contains(HttpMethod.DELETE))
-            throw new WebApplicationException("Cannot delete document", Response.status(Response.Status.METHOD_NOT_ALLOWED).allow(allowedMethods).build());
+        if (!getAllowedMethods().contains(HttpMethod.DELETE))
+            throw new WebApplicationException("Cannot delete document", Response.status(Response.Status.METHOD_NOT_ALLOWED).allow(getAllowedMethods()).build());
         
         return super.delete(false, getURI());
     }
@@ -435,28 +449,14 @@ public class Item extends GraphStoreImpl
     }
     
     /**
-     * List allowed HTTP methods for the given graph URI.
+     * List allowed HTTP methods for the current graph URI.
      * Exceptions apply to the application's Root document, owner's WebID document, and secretary's WebID document.
      * 
-     * @param graphUri ma,ed graph URI
      * @return list of HTTP methods
      */
-    public Set<String> getAllowedMethods(URI graphUri)
+    public Set<String> getAllowedMethods()
     {
-        Set<String> methods = new HashSet<>();
-        methods.add(HttpMethod.GET);
-        methods.add(HttpMethod.POST);
-        
-        if (!getOwnerDocURI().equals(graphUri) &&
-            !getSecretaryDocURI().equals(graphUri))
-            methods.add(HttpMethod.PUT);
-
-        if (!getApplication().getBaseURI().equals(graphUri) &&
-            !getOwnerDocURI().equals(graphUri) &&
-            !getSecretaryDocURI().equals(graphUri))
-            methods.add(HttpMethod.DELETE);
-
-        return methods;
+        return allowedMethods;
     }
     
     /**
