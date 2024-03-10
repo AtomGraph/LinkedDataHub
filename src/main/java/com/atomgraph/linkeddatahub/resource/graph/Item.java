@@ -177,7 +177,7 @@ public class Item extends GraphStoreImpl
         
         // is this implemented correctly? The specification is not very clear.
         if (log.isDebugEnabled()) log.debug("POST Model to named graph with URI: {}", getURI());
-        getDatasetAccessor().add(getURI().toString(), model); // append new data to existing model
+        getService().getGraphStoreClient().add(getURI().toString(), model); // append new data to existing model
 
         getInternalResponse(existingModel, null).evaluatePreconditions();
         Model updatedModel = existingModel.add(model);
@@ -208,7 +208,7 @@ public class Item extends GraphStoreImpl
         }
         
         new Skolemizer(getURI().toString()).apply(model);
-        final boolean existingGraph = getDatasetAccessor().containsModel(getURI().toString());
+        final boolean existingGraph = getService().getGraphStoreClient().containsModel(getURI().toString());
         
         Resource resource = model.createResource(getURI().toString());
         if (!existingGraph) // creating new graph and attaching it to the document hierarchy
@@ -229,7 +229,7 @@ public class Item extends GraphStoreImpl
             if (getAgentContext().isPresent()) resource.addProperty(DCTerms.creator, getAgentContext().get().getAgent());
 
             if (log.isDebugEnabled()) log.debug("PUT Model into new named graph with URI: {}", getURI());
-            getDatasetAccessor().putModel(getURI().toString(), model); // TO-DO: catch exceptions
+            getService().getGraphStoreClient().putModel(getURI().toString(), model); // TO-DO: catch exceptions
 
             return Response.created(getURI()).
                 build();
@@ -248,10 +248,10 @@ public class Item extends GraphStoreImpl
             resource.removeAll(DCTerms.modified).
                 addLiteral(DCTerms.modified, ResourceFactory.createTypedLiteral(GregorianCalendar.getInstance()));
 
-            final Model existingModel = getDatasetAccessor().getModel(getURI().toString());
+            final Model existingModel = getService().getGraphStoreClient().getModel(getURI().toString());
 
             if (log.isDebugEnabled()) log.debug("PUT Model into existing named graph with URI: {}", getURI());
-            getDatasetAccessor().putModel(getURI().toString(), model); // TO-DO: catch exceptions
+            getService().getGraphStoreClient().putModel(getURI().toString(), model); // TO-DO: catch exceptions
 
             return getInternalResponse(existingModel, null).getResponseBuilder().
                 build();
@@ -289,7 +289,7 @@ public class Item extends GraphStoreImpl
         // no need to set WITH <graphUri> since we'll be updating model in memory before persisting it
 
         final Dataset dataset;
-        final Model existingModel = getDatasetAccessor().getModel(getURI().toString());
+        final Model existingModel = getService().getGraphStoreClient().getModel(getURI().toString());
         if (existingModel == null) throw new NotFoundException("Named graph with URI <" + getURI() + "> not found");
 
         com.atomgraph.core.model.impl.Response response = getInternalResponse(existingModel, null);
@@ -349,7 +349,7 @@ public class Item extends GraphStoreImpl
             validate(model);
             if (log.isTraceEnabled()) log.trace("POST Graph Store request with RDF payload: {} payload size(): {}", model, model.size());
 
-            final boolean existingGraph = getDatasetAccessor().containsModel(getURI().toString());
+            final boolean existingGraph = getService().getGraphStoreClient().containsModel(getURI().toString());
             if (!existingGraph) throw new NotFoundException("Named graph with URI <" + getURI() + "> not found");
 
             new Skolemizer(getURI().toString()).apply(model); // skolemize before writing files (they require absolute URIs)

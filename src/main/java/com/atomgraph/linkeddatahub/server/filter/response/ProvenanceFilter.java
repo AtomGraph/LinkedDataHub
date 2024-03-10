@@ -78,7 +78,7 @@ public class ProvenanceFilter implements ContainerResponseFilter
             }
             
             if (log.isDebugEnabled()) log.debug("PUTting {} triples of provenance metadata", graph.getModel().size());
-            getService().get().getDatasetAccessor().putModel(graphGraphUri, model);
+            getService().get().getGraphStoreClient().putModel(graphGraphUri, model);
         }
     }
     

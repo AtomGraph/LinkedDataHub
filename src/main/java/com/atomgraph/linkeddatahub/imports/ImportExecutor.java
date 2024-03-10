@@ -187,7 +187,7 @@ public class ImportExecutor
                 addProperty(PROV.wasGeneratedBy, provImport); // connect Response to dataset
             provImport.addProperty(PROV.endedAtTime, provImport.getModel().createTypedLiteral(Calendar.getInstance()));
             
-            appendProvGraph(provImport, service.getDatasetAccessor());
+            appendProvGraph(provImport, service.getGraphStoreClient());
         };
     }
     
@@ -210,7 +210,7 @@ public class ImportExecutor
                 addProperty(PROV.wasGeneratedBy, provImport); // connect Response to dataset
             provImport.addProperty(PROV.endedAtTime, provImport.getModel().createTypedLiteral(Calendar.getInstance()));
             
-            appendProvGraph(provImport, service.getDatasetAccessor());
+            appendProvGraph(provImport, service.getGraphStoreClient());
         };
     }
 
@@ -242,7 +242,7 @@ public class ImportExecutor
                             addProperty(PROV.wasGeneratedBy, provImport); // connect Response to exception
                         provImport.addProperty(PROV.endedAtTime, importInst.getModel().createTypedLiteral(Calendar.getInstance()));
                         
-                        appendProvGraph(provImport, service.getDatasetAccessor());
+                        appendProvGraph(provImport, service.getGraphStoreClient());
                     }
                     // could not parse CSV
                     
@@ -258,7 +258,7 @@ public class ImportExecutor
                         }
                         provImport.addProperty(PROV.endedAtTime, importInst.getModel().createTypedLiteral(Calendar.getInstance()));
                         
-                        appendProvGraph(provImport, service.getDatasetAccessor());
+                        appendProvGraph(provImport, service.getGraphStoreClient());
                     }
                     // could not save RDF
                 }
