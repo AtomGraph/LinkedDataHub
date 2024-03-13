@@ -200,6 +200,7 @@ exclude-result-prefixes="#all"
                 <xsl:call-template name="ldh:ViewQueryLoad">
                     <xsl:with-param name="this" select="$this"/>
                     <xsl:with-param name="container" select="$container"/>
+                    <xsl:with-param name="mode" select="$mode"/>
                     <xsl:with-param name="content-uri" select="$content-uri"/>
                     <xsl:with-param name="query-uri" select="$query-uri"/>
                     <xsl:with-param name="service-uri" select="$service-uri"/>
@@ -213,6 +214,7 @@ exclude-result-prefixes="#all"
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="this" as="xs:anyURI"/>
         <xsl:param name="container" as="element()"/>
+        <xsl:param name="mode" as="xs:anyURI?"/>
         <xsl:param name="content-uri" as="xs:anyURI"/>
         <xsl:param name="query-uri" as="xs:anyURI"/>
         <xsl:param name="service-uri" as="xs:anyURI?"/>
