@@ -208,8 +208,8 @@ exclude-result-prefixes="#all"
     </xsl:template>
     
     <xsl:template name="ldh:ViewQueryLoad">
-        <xsl:param name="container" as="element()"/>
         <xsl:context-item as="map(*)" use="required"/>
+        <xsl:param name="container" as="element()"/>
         <xsl:param name="query-uri" as="xs:anyURI"/>
         <xsl:param name="service-uri" as="xs:anyURI?"/>
 
