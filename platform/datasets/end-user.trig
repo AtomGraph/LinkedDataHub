@@ -85,26 +85,10 @@ WHERE
     <files/> a dh:Container ;
         dct:title "Files" ;
         dct:description "Uploaded files" ;
-        rdf:_1 <files/#select-files> .
+        rdf:_1 <files/#select-children> .
 
-    <files/#select-files> a ldh:Content ;
-        rdf:value <files/#select-files-view> .
-
-    <files/#select-files-view> a ldh:View ;
-        dct:title "Files view" ;
-        spin:query <files/#select-files-query> ;
-        ac:mode ac:MapMode .
-
-    <files/#select-files-query> a sp:Select ;
-        dct:title "Select file resources" ;
-        sp:text """PREFIX  nfo:  <http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#>
-
-SELECT DISTINCT  ?s
-WHERE
-  { GRAPH ?g
-      { ?s  a  nfo:FileDataObject }
-  }
-    """ .
+    <files/#select-children> a ldh:Content ;
+        rdf:value ldh:ChildrenView .
 
 }
 
