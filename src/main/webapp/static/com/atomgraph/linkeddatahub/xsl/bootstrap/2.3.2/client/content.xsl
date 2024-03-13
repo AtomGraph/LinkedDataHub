@@ -202,6 +202,7 @@ exclude-result-prefixes="#all"
                     <xsl:with-param name="container" select="$container"/>
                     <xsl:with-param name="mode" select="$mode"/>
                     <xsl:with-param name="refresh-content" select="$refresh-content"/>
+                    <xsl:with-param name="content" select="."/>
                     <xsl:with-param name="content-uri" select="$content-uri"/>
                     <xsl:with-param name="query-uri" select="$query-uri"/>
                     <xsl:with-param name="service-uri" select="$service-uri"/>
@@ -217,6 +218,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="container" as="element()"/>
         <xsl:param name="mode" as="xs:anyURI?"/>
         <xsl:param name="refresh-content" as="xs:boolean?"/>
+        <xsl:param name="content" as="element()"/>
         <xsl:param name="content-uri" as="xs:anyURI"/>
         <xsl:param name="query-uri" as="xs:anyURI"/>
         <xsl:param name="service-uri" as="xs:anyURI?"/>
@@ -280,7 +282,7 @@ exclude-result-prefixes="#all"
                             <xsl:call-template name="ldh:RenderContainer">
                                 <xsl:with-param name="container" select="$container"/>
                                 <xsl:with-param name="content-uri" select="$content-uri"/>
-                                <xsl:with-param name="content" select="."/>
+                                <xsl:with-param name="content" select="$content"/> <!-- unused? -->
                                 <xsl:with-param name="select-string" select="$select-string"/>
                                 <xsl:with-param name="select-xml" select="$select-xml"/>
                                 <xsl:with-param name="endpoint" select="$endpoint"/>
