@@ -1,6 +1,6 @@
 /* global contextUri, baseUri, requestUri, absolutePath, lang, xslt2proc, UriBuilder, SaxonJS, ontologyUri, contextUri */
 
-var fetchDispatchXML = function(url, method, headers, body, target, resources, eventName)
+var fetchDispatchXML = function(url, method, headers, body, target, resources, container, eventName)
 {
     let request = new Request(url, { "method": method, "headers": headers, "body": body });
     
@@ -11,7 +11,7 @@ var fetchDispatchXML = function(url, method, headers, body, target, resources, e
         then(function(xmlString)
         {
             let xml = new DOMParser().parseFromString(xmlString, "text/xml");
-            let event = new CustomEvent(eventName, { "detail": { "action": url, "response": response, "xml": xml, "target": target, "resources": resources } } );
+            let event = new CustomEvent(eventName, { "detail": { "action": url, "response": response, "xml": xml, "target": target, "resources": resources, "container": container } } );
             // no need to add event listeners here, that is done by IXSL
             document.dispatchEvent(event);
         });
@@ -22,7 +22,7 @@ var fetchDispatchXML = function(url, method, headers, body, target, resources, e
         then(function(xmlString)
         {
             let xml = new DOMParser().parseFromString(xmlString, "text/xml");
-            let event = new CustomEvent(eventName, { "detail": { "response": response, "xml": xml, "target": target, "resources": resources } } );
+            let event = new CustomEvent(eventName, { "detail": { "response": response, "xml": xml, "target": target, "resources": resources, "container": container } } );
             // no need to add event listeners here, that is done by IXSL
             document.dispatchEvent(event);
         });
