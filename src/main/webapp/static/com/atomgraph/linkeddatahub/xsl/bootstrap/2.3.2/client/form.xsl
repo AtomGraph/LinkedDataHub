@@ -1350,6 +1350,7 @@ WHERE
     
     <!-- the same logic as onFormLoad but handles only responses to multipart requests invoked via JS function fetchDispatchXML() -->
     <xsl:template match="." mode="ixsl:onMultipartResourceUpdated">
+        <xsl:message>MultipartResourceUpdated ixsl:contains($event, 'detail.xml'): <xsl:value-of select="ixsl:contains($event, 'detail.xml')"/></xsl:message>
         <xsl:variable name="event" select="ixsl:event()"/>
         <xsl:variable name="container" select="ixsl:get(ixsl:get($event, 'detail'), 'container')" as="element()"/>
         <xsl:variable name="resources" select="ixsl:get(ixsl:get($event, 'detail'), 'resources')" as="document-node()"/>
