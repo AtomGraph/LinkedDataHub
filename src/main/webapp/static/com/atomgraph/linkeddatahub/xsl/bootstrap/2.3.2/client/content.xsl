@@ -201,6 +201,7 @@ exclude-result-prefixes="#all"
                     <xsl:with-param name="this" select="$this"/>
                     <xsl:with-param name="container" select="$container"/>
                     <xsl:with-param name="mode" select="$mode"/>
+                    <xsl:with-param name="refresh-content" select="$refresh-content"/>
                     <xsl:with-param name="content-uri" select="$content-uri"/>
                     <xsl:with-param name="query-uri" select="$query-uri"/>
                     <xsl:with-param name="service-uri" select="$service-uri"/>
@@ -215,6 +216,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="this" as="xs:anyURI"/>
         <xsl:param name="container" as="element()"/>
         <xsl:param name="mode" as="xs:anyURI?"/>
+        <xsl:param name="refresh-content" as="xs:boolean?"/>
         <xsl:param name="content-uri" as="xs:anyURI"/>
         <xsl:param name="query-uri" as="xs:anyURI"/>
         <xsl:param name="service-uri" as="xs:anyURI?"/>
