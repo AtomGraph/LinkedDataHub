@@ -198,6 +198,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                 <xsl:call-template name="ldh:ViewQueryLoad">
+                    <xsl:with-param name="this" select="$this"/>
                     <xsl:with-param name="container" select="$container"/>
                     <xsl:with-param name="query-uri" select="$query-uri"/>
                     <xsl:with-param name="service-uri" select="$service-uri"/>
@@ -209,6 +210,7 @@ exclude-result-prefixes="#all"
     
     <xsl:template name="ldh:ViewQueryLoad">
         <xsl:context-item as="map(*)" use="required"/>
+        <xsl:param name="this" as="xs:anyURI"/>
         <xsl:param name="container" as="element()"/>
         <xsl:param name="query-uri" as="xs:anyURI"/>
         <xsl:param name="service-uri" as="xs:anyURI?"/>
