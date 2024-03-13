@@ -191,7 +191,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="mode" as="xs:anyURI?"/>
         <xsl:param name="refresh-content" as="xs:boolean?"/>
         <xsl:param name="base-uri" select="ldh:base-uri(.)" as="xs:anyURI"/>
-        <!-- <xsl:param name="content-uri" select="if ($container/@about) then $container/@about else xs:anyURI(ac:absolute-path($base-uri) || '#' || $container/@id)" as="xs:anyURI"/> -->
+        <xsl:param name="content-uri" select="if ($container/@about) then $container/@about else xs:anyURI(ac:absolute-path($base-uri) || '#' || $container/@id)" as="xs:anyURI"/>
         <xsl:variable name="query-uri" select="xs:anyURI(spin:query/@rdf:resource)" as="xs:anyURI"/>
         <xsl:variable name="service-uri" select="xs:anyURI(ldh:service/@rdf:resource)" as="xs:anyURI?"/>
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, ac:document-uri($query-uri))" as="xs:anyURI"/>
@@ -200,6 +200,7 @@ exclude-result-prefixes="#all"
                 <xsl:call-template name="ldh:ViewQueryLoad">
                     <xsl:with-param name="this" select="$this"/>
                     <xsl:with-param name="container" select="$container"/>
+                    <xsl:with-param name="content-uri" select="$content-uri"/>
                     <xsl:with-param name="query-uri" select="$query-uri"/>
                     <xsl:with-param name="service-uri" select="$service-uri"/>
                 </xsl:call-template>
@@ -212,6 +213,7 @@ exclude-result-prefixes="#all"
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="this" as="xs:anyURI"/>
         <xsl:param name="container" as="element()"/>
+        <xsl:param name="content-uri" as="xs:anyURI"/>
         <xsl:param name="query-uri" as="xs:anyURI"/>
         <xsl:param name="service-uri" as="xs:anyURI?"/>
 
