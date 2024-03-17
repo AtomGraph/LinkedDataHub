@@ -444,6 +444,7 @@ WHERE
                 </rdf:RDF>
             </xsl:document>
         </xsl:variable>
+        <xsl:variable name="doc-uri" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, $action)" as="xs:anyURI"/>
 
         <xsl:message>form.form-horizontal ixsl:onsubmit</xsl:message>
@@ -461,14 +462,15 @@ WHERE
                 <ixsl:set-property name="Accept" select="$accept" object="$headers"/>
                 <ixsl:set-property name="If-Match" select="$etag" object="$headers"/>
                 
-                <xsl:sequence select="js:fetchDispatchXML($request-uri, $method, $headers, $form-data, ., $resources, $container, 'MultipartResourceUpdated')[current-date() lt xs:date('2000-01-01')]"/>
+                <!-- TO-DO: refactor fetchDispatchXML using IXSL -->
+                <xsl:sequence select="js:fetchDispatchXML($request-uri, $method, $headers, $form-data, ., $doc-uri, $resources, $container, 'MultipartResourceUpdated')[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:when>
             <xsl:otherwise>
                 <xsl:variable name="request" as="item()*">
                     <!-- If-Match header checks preconditions, i.e. that the graph has not been modified in the meanwhile --> 
                     <ixsl:schedule-action http-request="map{ 'method': $method, 'href': $request-uri, 'media-type': 'application/rdf+xml', 'body': $resources, 'headers': map{ 'If-Match': $etag, 'Accept': $accept } }">
                         <xsl:call-template name="ldh:ResourceUpdated">
-                            <xsl:with-param name="doc-uri" select="ac:absolute-path(ldh:base-uri(.))"/>
+                            <xsl:with-param name="doc-uri" select="$doc-uri"/>
                             <xsl:with-param name="container" select="$container"/>
                             <xsl:with-param name="form" select="$form"/>
                             <xsl:with-param name="resources" select="$resources"/>
@@ -1351,7 +1353,7 @@ WHERE
     <!-- the same logic as onFormLoad but handles only responses to multipart requests invoked via JS function fetchDispatchXML() -->
     <xsl:template match="." mode="ixsl:onMultipartResourceUpdated">
         <xsl:variable name="event" select="ixsl:event()"/>
-        <xsl:message>MultipartResourceUpdated ixsl:contains($event, 'detail.xml'): <xsl:value-of select="ixsl:contains($event, 'detail.xml')"/></xsl:message>
+        <xsl:variable name="doc-uri" as="xs:anyURI"/>
         <xsl:variable name="container" select="ixsl:get(ixsl:get($event, 'detail'), 'container')" as="element()"/>
         <xsl:variable name="resources" select="ixsl:get(ixsl:get($event, 'detail'), 'resources')" as="document-node()"/>
         <xsl:variable name="form" select="ixsl:get(ixsl:get($event, 'detail'), 'target')" as="element()"/> <!-- not ixsl:get(ixsl:event(), 'target') because that's the whole document -->
@@ -1374,7 +1376,7 @@ WHERE
         
         <xsl:for-each select="$response">
             <xsl:call-template name="ldh:ResourceUpdated">
-                <xsl:with-param name="doc-uri" select="ac:absolute-path(ldh:base-uri($xml))"/>
+                <xsl:with-param name="doc-uri" select="$doc-uri"/>
                 <xsl:with-param name="container" select="$container"/>
                 <xsl:with-param name="form" select="$form"/>
                 <xsl:with-param name="resources" select="$resources"/>
