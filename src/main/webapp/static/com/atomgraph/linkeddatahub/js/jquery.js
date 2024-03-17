@@ -7,25 +7,45 @@ var fetchDispatchXML = function(url, method, headers, body, target, resources, c
     fetch(request).
     then(function(response)
     {
-        response.text().
-        then(function(xmlString)
+        const contentLength = response.headers.get("Content-Length");
+        if (contentLength && parseInt(contentLength) > 0)
         {
-            let xml = new DOMParser().parseFromString(xmlString, "text/xml");
-            let event = new CustomEvent(eventName, { "detail": { "action": url, "response": response, "xml": xml, "target": target, "resources": resources, "container": container } } );
+            response.text().
+            then(function(xmlString)
+            {
+                let xml = new DOMParser().parseFromString(xmlString, "text/xml");
+                let event = new CustomEvent(eventName, { "detail": { "action": url, "response": response, "xml": xml, "target": target, "resources": resources, "container": container } } );
+                // no need to add event listeners here, that is done by IXSL
+                document.dispatchEvent(event);
+            });
+        }
+        else
+        {
+            let event = new CustomEvent(eventName, { "detail": { "action": url, "response": response, "target": target, "resources": resources, "container": container } } );
             // no need to add event listeners here, that is done by IXSL
             document.dispatchEvent(event);
-        });
+        }
     }).
     catch(function(response)
     {
-        response.text().
-        then(function(xmlString)
+        const contentLength = response.headers.get("Content-Length");
+        if (contentLength && parseInt(contentLength) > 0)
         {
-            let xml = new DOMParser().parseFromString(xmlString, "text/xml");
-            let event = new CustomEvent(eventName, { "detail": { "response": response, "xml": xml, "target": target, "resources": resources, "container": container } } );
+            response.text().
+            then(function(xmlString)
+            {
+                let xml = new DOMParser().parseFromString(xmlString, "text/xml");
+                let event = new CustomEvent(eventName, { "detail": { "response": response, "xml": xml, "target": target, "resources": resources, "container": container } } );
+                // no need to add event listeners here, that is done by IXSL
+                document.dispatchEvent(event);
+            });
+        }
+        else
+        {
+            let event = new CustomEvent(eventName, { "detail": { "response": response, "target": target, "resources": resources, "container": container } } );
             // no need to add event listeners here, that is done by IXSL
             document.dispatchEvent(event);
-        });
+        }
     });
 };
 
