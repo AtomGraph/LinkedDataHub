@@ -133,7 +133,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="active-mode" as="xs:anyURI?"/>
         <!-- <xsl:param name="forClass" as="xs:anyURI?"/> -->
         <xsl:param name="ajax-rendering" select="true()" as="xs:boolean"/>
-        <xsl:param name="base-uri" select="ldh:base-uri(.)" as="xs:anyURI"/>
+        <xsl:param name="base-uri" select="ac:absolute-path($ldh:requestUri)" as="xs:anyURI"/> <!-- make sure mode tabs always link to the local document (not the proxy-loaded doc) -->
 
         <div class="row-fluid">
             <ul class="nav nav-tabs offset2 span7">
