@@ -132,7 +132,8 @@ extension-element-prefixes="ixsl"
         <xsl:param name="has-content" as="xs:boolean"/>
         <xsl:param name="active-mode" as="xs:anyURI?"/>
         <xsl:param name="ajax-rendering" select="true()" as="xs:boolean"/>
-        <xsl:param name="base-uri" select="ac:absolute-path($ldh:requestUri)" as="xs:anyURI"/> <!-- make sure mode tabs always link to the local document (not the proxy-loaded doc) -->
+        <xsl:param name="absolute-path" select="ac:absolute-path($ldh:requestUri)" as="xs:anyURI"/> <!-- make sure mode tabs always link to the local document (not the proxy-loaded doc) -->
+        <xsl:param name="base-uri" select="ldh:base-uri(.)" as="xs:anyURI"/>
 
         <div class="row-fluid">
             <ul class="nav nav-tabs offset2 span7">
@@ -147,31 +148,31 @@ extension-element-prefixes="ixsl"
                 <xsl:for-each select="key('resources', '&ac;ReadMode', document(ac:document-uri('&ac;')))">
                     <xsl:apply-templates select="." mode="bs2:ModeTabsItem">
                         <xsl:with-param name="active" select="@rdf:about = $active-mode or (empty($active-mode) and not($has-content))"/>
-                        <xsl:with-param name="base-uri" select="$base-uri" tunnel="yes"/>
-                        <xsl:with-param name="uri" select="ldh:base-uri(.)"/>
+                        <xsl:with-param name="absolute-path" select="$absolute-path" tunnel="yes"/>
+                        <xsl:with-param name="base-uri" select="$base-uri"/>
                     </xsl:apply-templates>
                 </xsl:for-each>
                 <xsl:for-each select="key('resources', '&ac;MapMode', document(ac:document-uri('&ac;')))">
                     <xsl:apply-templates select="." mode="bs2:ModeTabsItem">
                         <xsl:with-param name="active" select="@rdf:about = $active-mode"/>
-                        <xsl:with-param name="base-uri" select="$base-uri" tunnel="yes"/>
-                        <xsl:with-param name="uri" select="ldh:base-uri(.)"/>
+                        <xsl:with-param name="absolute-path" select="$absolute-path" tunnel="yes"/>
+                        <xsl:with-param name="base-uri" select="$base-uri"/>
                     </xsl:apply-templates>
                 </xsl:for-each>
                 <xsl:if test="$ajax-rendering">
                     <xsl:for-each select="key('resources', '&ac;ChartMode', document(ac:document-uri('&ac;')))">
                         <xsl:apply-templates select="." mode="bs2:ModeTabsItem">
                             <xsl:with-param name="active" select="@rdf:about = $active-mode"/>
-                            <xsl:with-param name="base-uri" select="$base-uri" tunnel="yes"/>
-                            <xsl:with-param name="uri" select="ldh:base-uri(.)"/>
+                            <xsl:with-param name="absolute-path" select="$absolute-path" tunnel="yes"/>
+                            <xsl:with-param name="base-uri" select="$base-uri"/>
                         </xsl:apply-templates>
                     </xsl:for-each>
                 </xsl:if>
                 <xsl:for-each select="key('resources', '&ac;GraphMode', document(ac:document-uri('&ac;')))">
                     <xsl:apply-templates select="." mode="bs2:ModeTabsItem">
                         <xsl:with-param name="active" select="@rdf:about = $active-mode"/>
-                        <xsl:with-param name="base-uri" select="$base-uri" tunnel="yes"/>
-                        <xsl:with-param name="uri" select="ldh:base-uri(.)"/>
+                        <xsl:with-param name="absolute-path" select="$absolute-path" tunnel="yes"/>
+                        <xsl:with-param name="base-uri" select="$base-uri"/>
                     </xsl:apply-templates>
                 </xsl:for-each>
             </ul>
