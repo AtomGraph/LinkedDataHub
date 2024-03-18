@@ -131,7 +131,6 @@ extension-element-prefixes="ixsl"
     <xsl:template match="rdf:RDF" mode="bs2:ModeTabs" use-when="system-property('xsl:product-name') = 'SAXON'">
         <xsl:param name="has-content" as="xs:boolean"/>
         <xsl:param name="active-mode" as="xs:anyURI?"/>
-        <!-- <xsl:param name="forClass" as="xs:anyURI?"/> -->
         <xsl:param name="ajax-rendering" select="true()" as="xs:boolean"/>
         <xsl:param name="base-uri" select="ac:absolute-path($ldh:requestUri)" as="xs:anyURI"/> <!-- make sure mode tabs always link to the local document (not the proxy-loaded doc) -->
 
@@ -149,12 +148,14 @@ extension-element-prefixes="ixsl"
                     <xsl:apply-templates select="." mode="bs2:ModeTabsItem">
                         <xsl:with-param name="active" select="@rdf:about = $active-mode or (empty($active-mode) and not($has-content))"/>
                         <xsl:with-param name="base-uri" select="$base-uri" tunnel="yes"/>
+                        <xsl:with-param name="uri" select="ldh:base-uri(.)"/>
                     </xsl:apply-templates>
                 </xsl:for-each>
                 <xsl:for-each select="key('resources', '&ac;MapMode', document(ac:document-uri('&ac;')))">
                     <xsl:apply-templates select="." mode="bs2:ModeTabsItem">
                         <xsl:with-param name="active" select="@rdf:about = $active-mode"/>
                         <xsl:with-param name="base-uri" select="$base-uri" tunnel="yes"/>
+                        <xsl:with-param name="uri" select="ldh:base-uri(.)"/>
                     </xsl:apply-templates>
                 </xsl:for-each>
                 <xsl:if test="$ajax-rendering">
@@ -162,6 +163,7 @@ extension-element-prefixes="ixsl"
                         <xsl:apply-templates select="." mode="bs2:ModeTabsItem">
                             <xsl:with-param name="active" select="@rdf:about = $active-mode"/>
                             <xsl:with-param name="base-uri" select="$base-uri" tunnel="yes"/>
+                            <xsl:with-param name="uri" select="ldh:base-uri(.)"/>
                         </xsl:apply-templates>
                     </xsl:for-each>
                 </xsl:if>
@@ -169,6 +171,7 @@ extension-element-prefixes="ixsl"
                     <xsl:apply-templates select="." mode="bs2:ModeTabsItem">
                         <xsl:with-param name="active" select="@rdf:about = $active-mode"/>
                         <xsl:with-param name="base-uri" select="$base-uri" tunnel="yes"/>
+                        <xsl:with-param name="uri" select="ldh:base-uri(.)"/>
                     </xsl:apply-templates>
                 </xsl:for-each>
             </ul>

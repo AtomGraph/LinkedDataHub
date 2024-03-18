@@ -404,6 +404,7 @@ extension-element-prefixes="ixsl"
     
     <xsl:template match="*[@rdf:about]" mode="bs2:ModeTabsItem">
         <xsl:param name="base-uri" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI" tunnel="yes"/>
+        <xsl:param name="uri" as="xs:anyURI?"/>
         <xsl:param name="active" as="xs:boolean"/>
         <xsl:param name="mode-classes" as="map(xs:string, xs:string)">
             <xsl:map>
@@ -421,7 +422,7 @@ extension-element-prefixes="ixsl"
                 <xsl:attribute name="class" select="$class"/>
             </xsl:if>
 
-            <a href="{ldh:href($ldt:base, ac:absolute-path($base-uri), ldh:query-params(xs:anyURI(@rdf:about)), ldh:base-uri(.))}">
+            <a href="{ldh:href($ldt:base, ac:absolute-path($base-uri), ldh:query-params(xs:anyURI(@rdf:about)), $uri)}">
                 <xsl:value-of>
                     <xsl:apply-templates select="." mode="ac:label"/>
                 </xsl:value-of>
