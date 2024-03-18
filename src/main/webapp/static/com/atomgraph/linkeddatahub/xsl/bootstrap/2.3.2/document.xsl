@@ -138,7 +138,8 @@ extension-element-prefixes="ixsl"
         <div class="row-fluid">
             <ul class="nav nav-tabs offset2 span7">
                 <li class="content-mode{if ((empty($active-mode) and $has-content) or $active-mode = '&ldh;ContentMode') then ' active' else() }">
-                    <a href="{ldh:href($ldt:base, ac:absolute-path(ac:absolute-path(ldh:base-uri(.))), ldh:query-params(xs:anyURI('&ldh;ContentMode')), ac:absolute-path(ldh:base-uri(.)))}">
+                    <!-- make sure mode tabs always link to the local document (not the proxy-loaded doc) -->
+                    <a href="{ldh:href($ldt:base, ac:absolute-path($ldh:requestUri), ldh:query-params(xs:anyURI('&ldh;ContentMode')), ac:absolute-path(ldh:base-uri(.)))}">
                         <xsl:value-of>
                             <xsl:apply-templates select="key('resources', 'content', document('translations.rdf'))" mode="ac:label"/>
                         </xsl:value-of>
