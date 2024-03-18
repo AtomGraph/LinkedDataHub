@@ -421,7 +421,7 @@ extension-element-prefixes="ixsl"
                 <xsl:attribute name="class" select="$class"/>
             </xsl:if>
 
-            <a href="{ldh:href($ldt:base, ac:absolute-path($base-uri), ldh:query-params(xs:anyURI(@rdf:about)))}">
+            <a href="{ldh:href($ldt:base, ac:absolute-path($base-uri), ldh:query-params(xs:anyURI(@rdf:about)), ldh:base-uri(.))}">
                 <xsl:value-of>
                     <xsl:apply-templates select="." mode="ac:label"/>
                 </xsl:value-of>
