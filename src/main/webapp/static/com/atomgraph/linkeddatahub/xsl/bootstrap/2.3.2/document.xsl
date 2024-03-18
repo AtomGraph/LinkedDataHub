@@ -128,7 +128,7 @@ extension-element-prefixes="ixsl"
     
     <!-- MODE TABS -->
     
-    <xsl:template match="rdf:RDF" mode="bs2:ModeTabs">
+    <xsl:template match="rdf:RDF" mode="bs2:ModeTabs" use-when="system-property('xsl:product-name') = 'SAXON'">
         <xsl:param name="has-content" as="xs:boolean"/>
         <xsl:param name="active-mode" as="xs:anyURI?"/>
         <!-- <xsl:param name="forClass" as="xs:anyURI?"/> -->
