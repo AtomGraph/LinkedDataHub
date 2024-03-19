@@ -143,6 +143,7 @@ LIMIT   10
                                     <ul class="resource-typeahead typeahead dropdown-menu" id="ul-upload-rdf-doc" style="display: none;"></ul>
                                 </span>
 
+                                <!--
                                 <div class="btn-group">
                                     <button type="button" class="btn dropdown-toggle create-action"></button>
                                     <ul class="dropdown-menu">
@@ -162,6 +163,7 @@ LIMIT   10
                                         </li>
                                     </ul>
                                 </div>
+                                -->
                                 <span class="help-inline">
                                     <xsl:value-of>
                                         <xsl:apply-templates select="key('resources', '&dh;Document', document(ac:document-uri('&dh;')))" mode="ac:label"/>
@@ -646,7 +648,7 @@ LIMIT   10
                         <xsl:variable name="request" as="item()*">
                             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
                                 <xsl:call-template name="ldh:DocumentLoaded">
-                                    <xsl:with-param name="href" select="ac:absolute-path($uri)"/>
+                                    <xsl:with-param name="href" select="ac:build-uri(ac:absolute-path($uri), map{ 'mode': '&ac;ReadMode'})"/>
                                 </xsl:call-template>
                             </ixsl:schedule-action>
                         </xsl:variable>
