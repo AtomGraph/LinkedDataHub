@@ -480,6 +480,7 @@ LIMIT   10
     
     <!-- validate form before submitting it and show errors on required control-groups where input values are missing -->
     <xsl:template match="form[@id = 'form-add-data'] | form[@id = 'form-clone-data'] | form[@id = 'form-generate-containers']" mode="ixsl:onsubmit" priority="1">
+        <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="control-groups" select="descendant::div[contains-token(@class, 'control-group')][contains-token(@class, 'required')]" as="element()*"/>
         <xsl:choose>
             <!-- input values missing, throw an error -->
