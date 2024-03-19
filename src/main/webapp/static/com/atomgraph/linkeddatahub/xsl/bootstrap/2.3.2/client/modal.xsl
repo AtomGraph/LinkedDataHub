@@ -496,7 +496,8 @@ LIMIT   10
                 <xsl:variable name="action" select="ixsl:get(., 'action')" as="xs:anyURI"/>
                 <xsl:variable name="enctype" select="ixsl:get(., 'enctype')" as="xs:string"/>
                 <xsl:variable name="form-data" select="ldh:new('URLSearchParams', [ ldh:new('FormData', [ $form ]) ])"/>
-                
+                <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, $action)" as="xs:anyURI"/>
+
                 <xsl:variable name="request" as="item()*">
                     <ixsl:schedule-action http-request="map{ 'method': $method, 'href': $request-uri, 'media-type': $enctype, 'body': $form-data, 'headers': map{ 'Accept': $accept } }">
                         <xsl:call-template name="ldh:ModalFormSubmit">
