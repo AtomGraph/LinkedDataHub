@@ -1190,9 +1190,9 @@ extension-element-prefixes="ixsl"
                     <xsl:message>Shapes TO-DO: reserialize?</xsl:message>
                     <xsl:sequence select="$constructor"/> <!-- ldh:reserialize($constructor) -->
                 </xsl:when>
-                <xsl:otherwise>
+                <xsl:when test="exists($forClass)">
                     <xsl:sequence select="ldh:construct-forClass($forClass)"/>
-                </xsl:otherwise>
+                </xsl:when>
             </xsl:choose>
         </xsl:param>
         <xsl:param name="type-constraints" select="$constraints//srx:result[srx:binding[@name = 'Type'] = $forClass]" as="element()*"/>
