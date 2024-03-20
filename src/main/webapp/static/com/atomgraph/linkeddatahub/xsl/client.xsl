@@ -1479,7 +1479,9 @@ $series: <xsl:value-of select="$series"/>
 
     <!-- file drop -->
 
-    <xsl:template match="div" mode="ixsl:ondragover"/> <!-- [$ac:mode = '&ac;ReadMode'][acl:mode() = '&acl;Write'] -->
+    <xsl:template match="div" mode="ixsl:ondragover"> <!-- [$ac:mode = '&ac;ReadMode'][acl:mode() = '&acl;Write'] -->
+        <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
+    </xsl:template>
 
     <xsl:template match="div" mode="ixsl:ondrop"> <!-- [$ac:mode = '&ac;ReadMode'][acl:mode() = '&acl;Write'] -->
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
