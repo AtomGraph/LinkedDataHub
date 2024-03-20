@@ -1516,10 +1516,7 @@ $series: <xsl:value-of select="$series"/>
                             <ixsl:set-property name="Content-Type" select="$media-type" object="$headers"/>
                             <ixsl:set-property name="Accept" select="'application/rdf+xml'" object="$headers"/>
 
-        <!--                    <ixsl:schedule-action http-request="map{ 'method': 'POST', 'href': $base-uri, 'media-type': $media-type, 'body': $file, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-                            </ixsl:schedule-action>-->
-
-                            <xsl:sequence select="js:fetchDispatchXML($base-uri, 'POST', $headers, $file, ., (), 'fileUpload')[current-date() lt xs:date('2000-01-01')]"/>
+                            <xsl:sequence select="js:fetchDispatchXML($base-uri, 'POST', $headers, $file, ., (), (), (), 'RDFFileUpload')[current-date() lt xs:date('2000-01-01')]"/>
                         </xsl:when>
                         <xsl:otherwise>
                             <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ 'The file extension or media type is not a supported RDF triple syntax' ])[current-date() lt xs:date('2000-01-01')]"/>
@@ -1532,7 +1529,7 @@ $series: <xsl:value-of select="$series"/>
 
     <!-- this callback will be invoked for every uploaded file -->
     
-    <xsl:template match="." mode="ixsl:onfileUpload">
+    <xsl:template match="." mode="ixsl:onRDFFileUpload">
         <xsl:variable name="event" select="ixsl:event()"/>
         <xsl:variable name="response" select="ixsl:get(ixsl:get($event, 'detail'), 'response')"/>
         
