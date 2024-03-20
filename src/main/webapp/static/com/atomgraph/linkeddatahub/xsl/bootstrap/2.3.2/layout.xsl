@@ -1183,6 +1183,7 @@ LIMIT   100
                 </button>
             </div>
 
+            <!--
             <div class="pull-right">
                 <a href="{ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), ldh:query-params(xs:anyURI('&ac;EditMode')), ac:absolute-path(ldh:base-uri(.)))}" title="{ac:label(key('resources', 'nav-bar-action-edit-graph-title', document('translations.rdf')))}">
                     <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="ldh:logo">
@@ -1192,6 +1193,7 @@ LIMIT   100
                     <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
                 </a>
             </div>
+            -->
             
             <xsl:if test="$ldh:ajaxRendering">
                 <div class="pull-right">
