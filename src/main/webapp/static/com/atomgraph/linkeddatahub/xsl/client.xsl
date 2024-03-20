@@ -1516,6 +1516,8 @@ $series: <xsl:value-of select="$series"/>
                             <ixsl:set-property name="Content-Type" select="$media-type" object="$headers"/>
                             <ixsl:set-property name="Accept" select="'application/rdf+xml'" object="$headers"/>
 
+                            <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+
                             <xsl:sequence select="js:fetchDispatchXML($base-uri, 'POST', $headers, $file, ., (), (), (), 'RDFFileUpload')[current-date() lt xs:date('2000-01-01')]"/>
                         </xsl:when>
                         <xsl:otherwise>
@@ -1532,8 +1534,6 @@ $series: <xsl:value-of select="$series"/>
     <xsl:template match="." mode="ixsl:onRDFFileUpload">
         <xsl:variable name="event" select="ixsl:event()"/>
         <xsl:variable name="response" select="ixsl:get(ixsl:get($event, 'detail'), 'response')"/>
-        
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
         
         <!-- abort the previous request, if any -->
         <xsl:if test="ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub'), 'request')">

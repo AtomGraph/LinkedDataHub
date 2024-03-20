@@ -349,7 +349,7 @@ WHERE
     
     <xsl:template match="div[@about][@typeof = ('&ldh;ResultSetChart', '&ldh;GraphChart')]//button[contains-token(@class, 'btn-cancel')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick" priority="1">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
-        <xsl:variable name="container" select="ancestor::div[@about][@typeof][1]" as="element()"/>
+        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'row-fluid')]" as="element()"/>
         <xsl:variable name="content-uri" select="xs:anyURI($container/@about)" as="xs:anyURI"/>
         <xsl:variable name="content-id" select="ixsl:get($container, 'id')" as="xs:string"/>
         <xsl:variable name="about" select="$container/@about" as="xs:anyURI"/>
