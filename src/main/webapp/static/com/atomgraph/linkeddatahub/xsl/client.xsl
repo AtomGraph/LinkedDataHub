@@ -1479,11 +1479,11 @@ $series: <xsl:value-of select="$series"/>
 
     <!-- file drop -->
 
-    <xsl:template match="div" mode="ixsl:ondragover"> <!-- [$ac:mode = '&ac;ReadMode'][acl:mode() = '&acl;Write'] -->
+    <xsl:template match="div[ixsl:query-params()?mode = '&ac;ReadMode'][acl:mode() = '&acl;Write']" mode="ixsl:ondragover">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
     </xsl:template>
 
-    <xsl:template match="div" mode="ixsl:ondrop"> <!-- [$ac:mode = '&ac;ReadMode'][acl:mode() = '&acl;Write'] -->
+    <xsl:template match="div[ixsl:query-params()?mode = '&ac;ReadMode'][acl:mode() = '&acl;Write']" mode="ixsl:ondrop">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:message>$ac:mode: <xsl:value-of select="$ac:mode"/> acl:mode(): <xsl:value-of select="acl:mode()"/></xsl:message>
         <xsl:variable name="base-uri" select="ldh:base-uri(.)" as="xs:anyURI"/>
