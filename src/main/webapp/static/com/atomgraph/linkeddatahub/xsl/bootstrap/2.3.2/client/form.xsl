@@ -271,8 +271,16 @@ WHERE
 
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
+                <xsl:variable name="etag" select="?headers?etag" as="xs:string?"/>
+                <xsl:message>ETag: <xsl:value-of select="$etag"/></xsl:message>
+                
+                <ixsl:set-property name="{'`' || ac:absolute-path(ldh:base-uri(.)) || '`'}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
+                <!-- store document under window.LinkedDataHub.contents[$content-uri].results -->
+                <ixsl:set-property name="results" select="?body" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(ldh:base-uri(.)) || '`')"/>
+                <!-- store ETag header value under window.LinkedDataHub.contents[$content-uri].etag -->
+                <ixsl:set-property name="etag" select="$etag" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(ldh:base-uri(.)) || '`')"/>
+
                 <xsl:variable name="resource" select="key('resources', $about, ?body)" as="element()"/> <!-- TO-DO: handle error -->
-                <!-- <xsl:variable name="div-id" select="generate-id($resource)" as="xs:string"/> -->
                 <xsl:variable name="types" select="distinct-values($resource/rdf:type/@rdf:resource)" as="xs:anyURI*"/>
                 <xsl:variable name="query-string" select="'DESCRIBE $Type VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }'" as="xs:string"/>
                 <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': $query-string, 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
