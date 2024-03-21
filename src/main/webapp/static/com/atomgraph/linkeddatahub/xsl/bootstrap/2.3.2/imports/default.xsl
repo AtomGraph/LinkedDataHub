@@ -1164,11 +1164,11 @@ exclude-result-prefixes="#all"
     
     <xsl:template match="text()[../@xml:lang]" mode="xhtml:DefinitionDescription">
         <dd>
-            <xsl:apply-templates select="."/>
-            
             <span class="label label-info pull-right">
                 <xsl:value-of select="../@xml:lang"/>
             </span>
+
+            <xsl:apply-templates select="."/>
         </dd>
     </xsl:template>
     
