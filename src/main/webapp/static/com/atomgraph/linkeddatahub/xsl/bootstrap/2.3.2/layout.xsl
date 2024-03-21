@@ -797,8 +797,8 @@ LIMIT   100
             <xsl:if test="$about">
                 <xsl:attribute name="about" select="$about"/>
             </xsl:if>
-            <xsl:if test="$typeof">
-                <xsl:attribute name="typeof" select="$typeof"/>
+            <xsl:if test="exists($typeof)">
+                <xsl:attribute name="typeof" select="string-join($typeof, ' ')"/>
             </xsl:if>
             
             <xsl:apply-templates select="." mode="bs2:ModeTabs">
