@@ -1051,6 +1051,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="enctype" select="if ($typeof = '&nfo;FileDataObject') then 'multipart/form-data' else ()" as="xs:string?"/>
         <xsl:param name="button-class" select="'btn btn-primary wymupdate'" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
+        <xsl:param name="show-cancel-button" select="true()" as="xs:boolean"/>
 
         <div>
             <xsl:if test="$id">
@@ -1110,11 +1111,13 @@ extension-element-prefixes="ixsl"
                             <xsl:apply-templates select="key('resources', 'reset', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
                         </button>
 
-                        <button type="button" class="btn btn-cancel">
-                            <xsl:value-of>
-                                <xsl:apply-templates select="key('resources', 'cancel', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                            </xsl:value-of>
-                        </button>
+                        <xsl:if test="$show-cancel-button">
+                            <button type="button" class="btn btn-cancel">
+                                <xsl:value-of>
+                                    <xsl:apply-templates select="key('resources', 'cancel', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                                </xsl:value-of>
+                            </button>
+                        </xsl:if>
                     </div>
                 </form>
            </div>

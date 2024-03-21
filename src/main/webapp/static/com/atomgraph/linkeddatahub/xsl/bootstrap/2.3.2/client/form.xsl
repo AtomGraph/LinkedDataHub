@@ -864,7 +864,7 @@ WHERE
                     <xsl:with-param name="constraints" select="$constraints" tunnel="yes"/>
                     <!-- <xsl:with-param name="shapes" select="$shapes" tunnel="yes"/> -->
                     <xsl:with-param name="base-uri" select="ac:absolute-path(ldh:base-uri(.))" tunnel="yes"/> <!-- ac:absolute-path(ldh:base-uri(.)) is empty on constructed documents -->
-                    <!-- <xsl:sort select="ac:label(.)"/> -->
+                    <xsl:with-param name="show-cancel-button" select="false()"/>
                 </xsl:apply-templates>
             </xsl:variable>
             
