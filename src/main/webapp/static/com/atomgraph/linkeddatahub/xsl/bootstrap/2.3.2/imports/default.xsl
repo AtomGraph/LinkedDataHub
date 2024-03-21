@@ -1159,4 +1159,17 @@ exclude-result-prefixes="#all"
         </xsl:choose>
     </xsl:template>
     
+    <!-- DEFINITIONS -->
+    <!-- show language tag if it's present TO-DO: move to Web-Client -->
+    
+    <xsl:template match="text()[@xml:lang]" mode="xhtml:DefinitionDescription">
+        <dd>
+            <xsl:apply-templates select="."/>
+            
+            <span class="label label-info pull-right">
+                <xsl:value-of select="@xml:lang"/>
+            </span>
+        </dd>
+    </xsl:template>
+    
 </xsl:stylesheet>
