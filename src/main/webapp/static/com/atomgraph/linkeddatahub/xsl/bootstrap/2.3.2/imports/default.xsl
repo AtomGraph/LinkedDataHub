@@ -1162,7 +1162,7 @@ exclude-result-prefixes="#all"
     <!-- DEFINITIONS -->
     <!-- show language tag if it's present TO-DO: move to Web-Client -->
     
-    <xsl:template match="text()[@xml:lang]" mode="xhtml:DefinitionDescription">
+    <xsl:template match="text()[../@xml:lang]" mode="xhtml:DefinitionDescription">
         <dd>
             <xsl:apply-templates select="."/>
             
