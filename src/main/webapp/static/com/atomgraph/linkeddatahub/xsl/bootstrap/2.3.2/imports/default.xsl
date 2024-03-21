@@ -1167,7 +1167,7 @@ exclude-result-prefixes="#all"
             <xsl:apply-templates select="."/>
             
             <span class="label label-info pull-right">
-                <xsl:value-of select="@xml:lang"/>
+                <xsl:value-of select="../@xml:lang"/>
             </span>
         </dd>
     </xsl:template>
