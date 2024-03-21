@@ -274,28 +274,30 @@ WHERE
                 <xsl:variable name="etag" select="?headers?etag" as="xs:string?"/>
                 <xsl:message>ETag: <xsl:value-of select="$etag"/></xsl:message>
                 
-                <ixsl:set-property name="{'`' || ac:absolute-path(ldh:base-uri(.)) || '`'}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
-                <!-- store document under window.LinkedDataHub.contents[$content-uri].results -->
-                <ixsl:set-property name="results" select="?body" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(ldh:base-uri(.)) || '`')"/>
-                <!-- store ETag header value under window.LinkedDataHub.contents[$content-uri].etag -->
-                <ixsl:set-property name="etag" select="$etag" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(ldh:base-uri(.)) || '`')"/>
+                <xsl:for-each select="?body">
+                    <ixsl:set-property name="{'`' || ac:absolute-path(ldh:base-uri(.)) || '`'}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
+                    <!-- store document under window.LinkedDataHub.contents[$content-uri].results -->
+                    <ixsl:set-property name="results" select="." object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(ldh:base-uri(.)) || '`')"/>
+                    <!-- store ETag header value under window.LinkedDataHub.contents[$content-uri].etag -->
+                    <ixsl:set-property name="etag" select="$etag" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(ldh:base-uri(.)) || '`')"/>
 
-                <xsl:variable name="resource" select="key('resources', $about, ?body)" as="element()"/> <!-- TO-DO: handle error -->
-                <xsl:variable name="types" select="distinct-values($resource/rdf:type/@rdf:resource)" as="xs:anyURI*"/>
-                <xsl:variable name="query-string" select="'DESCRIBE $Type VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }'" as="xs:string"/>
-                <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': $query-string, 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
+                    <xsl:variable name="resource" select="key('resources', $about)" as="element()"/> <!-- TO-DO: handle error -->
+                    <xsl:variable name="types" select="distinct-values($resource/rdf:type/@rdf:resource)" as="xs:anyURI*"/>
+                    <xsl:variable name="query-string" select="'DESCRIBE $Type VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }'" as="xs:string"/>
+                    <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': $query-string, 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
 
-                <xsl:variable name="request" as="item()*">
-                    <!-- If-Match header checks preconditions, i.e. that the graph has not been modified in the meanwhile --> 
-                    <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-                        <xsl:call-template name="ldh:LoadTypeMetadata">
-                            <xsl:with-param name="container" select="$container"/>
-                            <xsl:with-param name="resource" select="$resource"/>
-                            <xsl:with-param name="types" select="$types"/>
-                        </xsl:call-template>
-                    </ixsl:schedule-action>
-                </xsl:variable>
-                <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+                    <xsl:variable name="request" as="item()*">
+                        <!-- If-Match header checks preconditions, i.e. that the graph has not been modified in the meanwhile --> 
+                        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+                            <xsl:call-template name="ldh:LoadTypeMetadata">
+                                <xsl:with-param name="container" select="$container"/>
+                                <xsl:with-param name="resource" select="$resource"/>
+                                <xsl:with-param name="types" select="$types"/>
+                            </xsl:call-template>
+                        </ixsl:schedule-action>
+                    </xsl:variable>
+                    <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+                </xsl:for-each>
             </xsl:when>
             <!-- error response -->
             <xsl:otherwise>
