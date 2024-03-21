@@ -324,9 +324,9 @@ exclude-result-prefixes="#all"
         </xsl:choose>
     </xsl:template>
 
-    <!-- SELECT query -->
+    <!-- SPIN query. DO not restrict rdf:type because it could be sp:Select/sp:Ask/sp:Describe/sp:Construct but also ldh:Constructor -->
     
-    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = ('&sp;Select', '&sp;Ask', '&sp;Describe', '&sp;Construct')][sp:text]" mode="ldh:RenderContent" priority="1">
+    <xsl:template match="*[@rdf:about][sp:text]" mode="ldh:RenderContent" priority="1">
         <xsl:param name="this" as="xs:anyURI"/>
         <xsl:param name="container" as="element()"/>
         <xsl:param name="graph" as="xs:anyURI?"/>
