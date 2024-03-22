@@ -602,6 +602,8 @@ WHERE
                 <!-- append the property control group at the end of the fieldset -->
                 <xsl:copy-of select="$property-control-group"/>
             </xsl:result-document>
+            
+            <xsl:apply-templates select="id($form/@id, ixsl:page())" mode="ldh:PostConstruct"/>
         </xsl:for-each>
         
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
