@@ -580,6 +580,7 @@ WHERE
     <xsl:template match="div[@typeof][contains-token(@class, 'row-fluid')]//form//button[contains-token(@class, 'add-value')]" mode="ixsl:onclick">
         <xsl:variable name="form" select="ancestor::form" as="element()?"/>
         <xsl:variable name="property-control-group" select="../.." as="element()"/>
+        <xsl:variable name="fieldset" select="$property-control-group/.." as="element()"/>
         <xsl:variable name="property-uri" select="../preceding-sibling::*/select/option[ixsl:get(., 'selected') = true()]/ixsl:get(., 'value')" as="xs:anyURI"/>
         <xsl:variable name="seq-property" select="starts-with($property-uri, '&rdf;_')" as="xs:boolean"/>
         <xsl:variable name="forClass" select="ancestor::div[@typeof][contains-token(@class, 'row-fluid')]/@typeof" as="xs:anyURI*"/>
@@ -590,7 +591,7 @@ WHERE
         <xsl:variable name="constructed-doc" select="ldh:construct-forClass($forClass)" as="document-node()"/> <!-- TO-DO: asynchronous request -->
         <xsl:variable name="property" select="$constructed-doc//rdf:Description/*[concat(namespace-uri(), local-name()) = $property-uri]" as="element()"/>
 
-        <xsl:for-each select="$form">
+        <xsl:for-each select="$fieldset">
             <xsl:result-document href="?." method="ixsl:append-content">
                 <xsl:apply-templates select="$property" mode="bs2:FormControl"/>
             </xsl:result-document>
