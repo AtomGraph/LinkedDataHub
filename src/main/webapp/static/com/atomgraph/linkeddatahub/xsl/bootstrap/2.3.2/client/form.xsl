@@ -589,7 +589,8 @@ WHERE
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
         <xsl:variable name="constructed-doc" select="ldh:construct-forClass($forClass)" as="document-node()"/> <!-- TO-DO: asynchronous request -->
-        <xsl:variable name="property" select="$constructed-doc//rdf:Description/*[concat(namespace-uri(), local-name()) = $property-uri]" as="element()"/>
+        <xsl:variable name="resource" select="key('resources-by-type', $forClass, $constructed-doc)" as="element()"/>
+        <xsl:variable name="property" select="$resource/*[concat(namespace-uri(), local-name()) = $property-uri]" as="element()"/>
 
         <xsl:for-each select="$fieldset">
             <xsl:result-document href="?." method="ixsl:append-content">
