@@ -577,12 +577,12 @@ WHERE
     
     <!-- add new property to form -->
     
-    <xsl:template match="div[@typeof]//form//button[contains-token(@class, 'add-value')]" mode="ixsl:onclick">
+    <xsl:template match="div[@typeof][contains-token(@class, 'row-fluid')]//form//button[contains-token(@class, 'add-value')]" mode="ixsl:onclick">
         <xsl:variable name="form" select="ancestor::form" as="element()?"/>
         <xsl:variable name="property-control-group" select="../.." as="element()"/>
         <xsl:variable name="property-uri" select="../preceding-sibling::*/select/option[ixsl:get(., 'selected') = true()]/ixsl:get(., 'value')" as="xs:anyURI"/>
         <xsl:variable name="seq-property" select="starts-with($property-uri, '&rdf;_')" as="xs:boolean"/>
-        <xsl:variable name="forClass" select="(ancestor::div[@typeof])[1]/@typeof" as="xs:anyURI*"/>
+        <xsl:variable name="forClass" select="ancestor::div[@typeof][contains-token(@class, 'row-fluid')]/@typeof" as="xs:anyURI*"/>
         <xsl:message>$forClass: <xsl:value-of select="$forClass"/></xsl:message>
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
