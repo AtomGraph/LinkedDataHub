@@ -604,7 +604,7 @@ WHERE
             </xsl:result-document>
             
             <!-- initialize the last property control group after it's appended -->
-            <xsl:apply-templates select="./div[contains-token(@class, 'control-group')][input/@name = 'pu']" mode="ldh:PostConstruct"/>
+            <xsl:apply-templates select="(./div[contains-token(@class, 'control-group')][input/@name = 'pu'])[last()]" mode="ldh:PostConstruct"/>
         </xsl:for-each>
         
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
