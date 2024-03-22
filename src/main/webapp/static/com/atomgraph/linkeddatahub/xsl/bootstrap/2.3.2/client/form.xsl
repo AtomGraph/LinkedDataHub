@@ -592,9 +592,15 @@ WHERE
         <xsl:variable name="resource" select="key('resources-by-type', $forClass, $constructed-doc)" as="element()"/>
         <xsl:variable name="property" select="$resource/*[concat(namespace-uri(), local-name()) = $property-uri]" as="element()"/>
 
+        <!-- remove the current property control group from the current position -->
+        <xsl:sequence select="ixsl:call($property-control-group, 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
+
         <xsl:for-each select="$fieldset">
             <xsl:result-document href="?." method="ixsl:append-content">
                 <xsl:apply-templates select="$property" mode="bs2:FormControl"/>
+                
+                <!-- append the property control group at the end of the fieldset -->
+                <xsl:copy-of select="$property-control-group"/>
             </xsl:result-document>
         </xsl:for-each>
         
