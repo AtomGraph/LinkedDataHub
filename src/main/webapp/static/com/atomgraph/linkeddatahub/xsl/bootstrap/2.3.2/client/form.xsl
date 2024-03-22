@@ -330,7 +330,6 @@ WHERE
                 <xsl:for-each select="$container">
                     <xsl:variable name="row" as="node()*">
                         <xsl:apply-templates select="$resource" mode="bs2:RowForm">
-                            <!-- <xsl:with-param name="id" select="$div-id"/> -->
                             <xsl:with-param name="type-metadata" select="$type-metadata" tunnel="yes"/>
                             <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/>
                             <xsl:with-param name="constraints" select="$constraints" tunnel="yes"/>
@@ -576,23 +575,28 @@ WHERE
         <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
     
-    <xsl:template match="button[contains-token(@class, 'add-value')]" mode="ixsl:onclick">
+    <!-- add new property to form -->
+    
+    <xsl:template match="div[@typeof]//form//button[contains-token(@class, 'add-value')]" mode="ixsl:onclick">
+        <xsl:variable name="form" select="ancestor::form" as="element()?"/>
         <xsl:variable name="property-control-group" select="../.." as="element()"/>
-        <xsl:variable name="property" select="../preceding-sibling::*/select/option[ixsl:get(., 'selected') = true()]/ixsl:get(., 'value')" as="xs:anyURI"/>
-        <xsl:variable name="forClass" select="preceding-sibling::input/@value" as="xs:anyURI*"/>
-        <xsl:variable name="href" select="ac:build-uri(ac:absolute-path(ldh:base-uri(.)), map{ 'forClass': for $class in $forClass return string($class) })" as="xs:anyURI"/>
-        
+        <xsl:variable name="property-uri" select="../preceding-sibling::*/select/option[ixsl:get(., 'selected') = true()]/ixsl:get(., 'value')" as="xs:anyURI"/>
+        <xsl:variable name="seq-property" select="starts-with($property-uri, '&rdf;_')" as="xs:boolean"/>
+        <xsl:variable name="forClass" select="(ancestor::div[@typeof])[1]/@typeof" as="xs:anyURI*"/>
+        <xsl:message>$forClass: <xsl:value-of select="$forClass"/></xsl:message>
+
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+
+        <xsl:variable name="constructed-doc" select="ldh:construct-forClass($forClass)" as="document-node()"/> <!-- TO-DO: asynchronous request -->
+        <xsl:variable name="property" select="$constructed-doc//rdf:Description/*[concat(namespace-uri(), local-name()) = $property-uri]" as="element()"/>
+
+        <xsl:for-each select="$form">
+            <xsl:result-document href="?." method="ixsl:append-content">
+                <xsl:apply-templates select="$property" mode="bs2:FormControl"/>
+            </xsl:result-document>
+        </xsl:for-each>
         
-        <xsl:variable name="request" as="item()*">
-            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
-                <xsl:call-template name="onAddValue">
-                    <xsl:with-param name="property-control-group" select="$property-control-group"/>
-                    <xsl:with-param name="property" select="$property"/>
-                </xsl:call-template>
-            </ixsl:schedule-action>
-        </xsl:variable>
-        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
     </xsl:template>
     
     <!-- after inline resource creation/editing form is submitted  -->
