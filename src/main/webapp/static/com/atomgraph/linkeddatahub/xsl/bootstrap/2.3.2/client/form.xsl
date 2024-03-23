@@ -1073,7 +1073,7 @@ WHERE
     
     <xsl:template match="ul[contains-token(@class, 'dropdown-menu')][contains-token(@class, 'type-typeahead')]/li" mode="ixsl:onmousedown" priority="1">
         <xsl:param name="typeahead-class" select="'btn add-typeahead add-type-typeahead'" as="xs:string"/>
-        <xsl:variable name="container" select="id('content-body', ixsl:page())" as="element()"/>
+        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'row-fluid')]" as="element()"/>
         <xsl:variable name="doc-uri" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
         <xsl:variable name="resource-id" select="input[@name = ('ou', 'ob')]/ixsl:get(., 'value')" as="xs:string"/> <!-- can be URI resource or blank node ID -->
         <xsl:variable name="typeahead-doc" select="ixsl:get(ixsl:window(), 'LinkedDataHub.typeahead.rdfXml')" as="document-node()"/>
@@ -1117,15 +1117,9 @@ WHERE
                 <xsl:variable name="classes" select="()" as="element()*"/>
 
                 <xsl:for-each select="$container">
-                    <xsl:variable name="create-resource" select="$container/div[contains-token(@class, 'create-resource')]" as="element()"/>
-                    <!-- remove preceding Create button block -->
-                    <xsl:for-each select="$create-resource">
-                        <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
-                    </xsl:for-each>
-
                     <!-- TO-DO: unify with .btn-edit onclick -->
                     <xsl:variable name="resource" select="key('resources-by-type', $forClass, $constructed-doc)[not(key('predicates-by-object', @rdf:nodeID))]" as="element()"/>
-                    <xsl:variable name="row-form" as="element()*">
+                    <xsl:variable name="fieldset" as="element()*">
                         <!-- TO-DO: refactor to use asynchronous HTTP requests -->
                         <xsl:variable name="types" select="distinct-values($resource/rdf:type/@rdf:resource)" as="xs:anyURI*"/>
                         <xsl:variable name="query-string" select="'DESCRIBE $Type VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }'" as="xs:string"/>
@@ -1141,7 +1135,7 @@ WHERE
                         <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': $query-string, 'accept': 'application/sparql-results+xml' })" as="xs:anyURI"/>
                         <xsl:variable name="constraints" select="if (exists($types)) then document($request-uri) else ()" as="document-node()?"/>
 
-                        <xsl:apply-templates select="$constructed-doc" mode="bs2:RowForm">
+                        <xsl:apply-templates select="$resource" mode="bs2:Form">
                             <xsl:with-param name="method" select="'post'"/>
                             <xsl:with-param name="action" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, $doc-uri)" as="xs:anyURI"/>
                             <xsl:with-param name="classes" select="$classes"/>
@@ -1154,17 +1148,13 @@ WHERE
                         </xsl:apply-templates>
                     </xsl:variable>
 
-                    <xsl:message>ixsl:append-content</xsl:message>
                     <xsl:result-document href="?." method="ixsl:append-content">
-                        <xsl:copy-of select="$row-form"/>
-
-                        <!-- append following Create button block -->
-                        <xsl:sequence select="$create-resource"/>
+                        <xsl:copy-of select="$fieldset"/>
                     </xsl:result-document>
 
-                    <!-- add event listeners to the descendants of the form. TO-DO: replace with XSLT -->
-                    <xsl:if test="id($row-form//form/@id, ixsl:page())">
-                        <xsl:apply-templates select="id($row-form//form/@id, ixsl:page())" mode="ldh:PostConstruct"/>
+                    <!-- add event listeners to the descendants of the fieldset TO-DO: replace with XSLT -->
+                    <xsl:if test="id($fieldset/@id, ixsl:page())">
+                        <xsl:apply-templates select="id($fieldset/@id, ixsl:page())" mode="ldh:PostConstruct"/>
                     </xsl:if>
                 </xsl:for-each>
 

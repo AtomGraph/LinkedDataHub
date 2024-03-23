@@ -1206,8 +1206,6 @@ extension-element-prefixes="ixsl"
         <xsl:param name="show-subject" select="not(starts-with(@rdf:about, $base-uri) or @rdf:nodeID)" as="xs:boolean" tunnel="yes"/>
         <xsl:param name="required" select="false()" as="xs:boolean"/>
 
-        <xsl:message>bs2:FormControl</xsl:message>
-        
         <fieldset>
             <xsl:if test="$id">
                 <xsl:attribute name="id" select="$id"/>
