@@ -1053,6 +1053,8 @@ extension-element-prefixes="ixsl"
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
         <xsl:param name="show-cancel-button" select="true()" as="xs:boolean"/>
 
+        <xsl:message>bs2:RowForm</xsl:message>
+
         <div>
             <xsl:if test="$id">
                 <xsl:attribute name="id" select="$id"/>
