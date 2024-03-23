@@ -597,7 +597,10 @@ WHERE
 
         <xsl:for-each select="$fieldset">
             <xsl:result-document href="?." method="ixsl:append-content">
-                <xsl:apply-templates select="$property" mode="bs2:FormControl"/>
+                <xsl:apply-templates select="$property" mode="bs2:FormControl">
+                    <!-- generate fresh $for value because otherwise we can generate existing IDs from the same constructor -->
+                    <xsl:with-param name="for" select="'id' || ac:uuid()"/>
+                </xsl:apply-templates>
                 
                 <!-- append the property control group at the end of the fieldset -->
                 <xsl:copy-of select="$property-control-group"/>

@@ -677,15 +677,15 @@ exclude-result-prefixes="#all"
                     </div>
                 </xsl:if>
 
-                <xsl:apply-templates select="node() | @rdf:*[local-name() = ('resource', 'nodeID')]" mode="#current">
+                <xsl:apply-templates select="node() | @rdf:*" mode="#current">
                     <xsl:with-param name="required" select="$required"/>
                     <xsl:with-param name="constructor" select="$constructor"/>
                 </xsl:apply-templates>
             </div>
             
-            <xsl:if test="(@xml:*[local-name() = 'lang'] | @rdf:*[local-name() = 'datatype'])">
+            <xsl:if test="@xml:lang or @rdf:datatype">
                 <div class="controls">
-                    <xsl:apply-templates select="@xml:*[local-name() = 'lang'] | @rdf:*[local-name() = 'datatype']" mode="#current"/>
+                    <xsl:apply-templates select="@xml:lang | @rdf:datatype" mode="#current"/>
                 </div>
             </xsl:if>
         </div>
