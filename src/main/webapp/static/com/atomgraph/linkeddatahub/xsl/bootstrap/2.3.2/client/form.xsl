@@ -589,7 +589,7 @@ WHERE
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
         <xsl:variable name="constructed-doc" select="ldh:construct-forClass($forClass)" as="document-node()"/> <!-- TO-DO: asynchronous request -->
-        <xsl:variable name="resource" select="key('resources-by-type', $forClass, $constructed-doc)" as="element()"/>
+        <xsl:variable name="resource" select="key('resources-by-type', $forClass, $constructed-doc)[* except rdf:type]" as="element()"/>
         <xsl:variable name="property" select="$resource/*[concat(namespace-uri(), local-name()) = $property-uri]" as="element()"/>
 
         <!-- remove the current property control group from the current position -->
@@ -765,7 +765,7 @@ WHERE
         <xsl:variable name="classes" select="()" as="element()*"/>
 
         <xsl:for-each select="$container">
-            <xsl:variable name="resource" select="key('resources-by-type', $forClass, $constructed-doc)" as="element()"/>
+            <xsl:variable name="resource" select="key('resources-by-type', $forClass, $constructed-doc)[* except rdf:type]" as="element()"/>
             <xsl:variable name="form" as="element()*">
                 <!-- TO-DO: refactor to use asynchronous HTTP requests -->
                 <xsl:variable name="types" select="distinct-values($resource/rdf:type/@rdf:resource)" as="xs:anyURI*"/>
@@ -856,7 +856,7 @@ WHERE
                 <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:for-each>
 
-            <xsl:variable name="resource" select="key('resources-by-type', $forClass, $constructed-doc)" as="element()"/>
+            <xsl:variable name="resource" select="key('resources-by-type', $forClass, $constructed-doc)[* except rdf:type]" as="element()"/>
             <xsl:variable name="row-form" as="element()*">
                 <!-- TO-DO: refactor to use asynchronous HTTP requests -->
                 <xsl:variable name="types" select="distinct-values($resource/rdf:type/@rdf:resource)" as="xs:anyURI*"/>
@@ -1124,7 +1124,7 @@ WHERE
                     </xsl:for-each>
 
                     <!-- TO-DO: unify with .btn-edit onclick -->
-                    <xsl:variable name="resource" select="key('resources-by-type', $forClass, $constructed-doc)" as="element()"/>
+                    <xsl:variable name="resource" select="key('resources-by-type', $forClass, $constructed-doc)[* except rdf:type]" as="element()"/>
                     <xsl:variable name="row-form" as="element()*">
                         <!-- TO-DO: refactor to use asynchronous HTTP requests -->
                         <xsl:variable name="types" select="distinct-values($resource/rdf:type/@rdf:resource)" as="xs:anyURI*"/>
