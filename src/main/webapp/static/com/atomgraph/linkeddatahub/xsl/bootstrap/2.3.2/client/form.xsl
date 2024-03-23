@@ -1148,8 +1148,14 @@ WHERE
                         </xsl:apply-templates>
                     </xsl:variable>
 
+                    <!-- remove the "old" property controls -->
+                    <xsl:for-each select=".//div[contains-token(@class, 'control-group')][.//button[contains-token(@class, 'add-value')]]">
+                        <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
+                    </xsl:for-each>
+                    
                     <xsl:result-document href="?." method="ixsl:append-content">
-                        <xsl:copy-of select="$fieldset/*"/>
+                        <!-- add property form controls, except for rdf:type -->
+                        <xsl:copy-of select="$fieldset/div[contains-token(@class, 'control-group')][not(input[@name = 'pu']/@value = '&rdf;type')]"/>
                     </xsl:result-document>
 
                     <!-- add event listeners to the descendants of the fieldset TO-DO: replace with XSLT -->
