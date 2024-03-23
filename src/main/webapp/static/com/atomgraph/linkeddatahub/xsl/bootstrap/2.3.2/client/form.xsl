@@ -752,6 +752,7 @@ WHERE
         <xsl:variable name="this" select="$doc-uri" as="xs:anyURI"/>
         <xsl:message>ldh:base-uri(.): <xsl:value-of select="ldh:base-uri(.)"/> $doc-uri: <xsl:value-of select="$doc-uri"/> $this: <xsl:value-of select="$doc-uri"/></xsl:message>
         <!-- set document URI instead of blank node -->
+        <!--
         <xsl:variable name="constructed-doc" as="document-node()">
             <xsl:document>
                 <xsl:apply-templates select="$constructed-doc" mode="ldh:SetResourceURI">
@@ -760,6 +761,7 @@ WHERE
                 </xsl:apply-templates>
             </xsl:document>
         </xsl:variable>
+        -->
         <xsl:variable name="classes" select="()" as="element()*"/>
 
         <xsl:for-each select="$container">
@@ -835,6 +837,7 @@ WHERE
         <xsl:variable name="this" select="xs:anyURI($doc-uri || '#id' || ac:uuid())" as="xs:anyURI"/>
         <xsl:message>ldh:base-uri(.): <xsl:value-of select="ldh:base-uri(.)"/> $doc-uri: <xsl:value-of select="$doc-uri"/> $this: <xsl:value-of select="$doc-uri"/></xsl:message>
         <!-- set document URI instead of blank node -->
+        <!--
         <xsl:variable name="constructed-doc" as="document-node()">
             <xsl:document>
                 <xsl:apply-templates select="$constructed-doc" mode="ldh:SetResourceURI">
@@ -843,7 +846,7 @@ WHERE
                 </xsl:apply-templates>
             </xsl:document>
         </xsl:variable>
-        <!-- <xsl:variable name="classes" select="for $class-uri in map:keys($default-classes) return key('resources', $class-uri, document(ac:document-uri($class-uri)))" as="element()*"/> -->
+        -->
         <xsl:variable name="classes" select="()" as="element()*"/>
 
         <xsl:for-each select="$container">
@@ -1070,6 +1073,7 @@ WHERE
     
     <xsl:template match="ul[contains-token(@class, 'dropdown-menu')][contains-token(@class, 'type-typeahead')]/li" mode="ixsl:onmousedown" priority="1">
         <xsl:param name="typeahead-class" select="'btn add-typeahead add-type-typeahead'" as="xs:string"/>
+        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'row-fluid')]" as="element()"/>
         <xsl:variable name="resource-id" select="input[@name = ('ou', 'ob')]/ixsl:get(., 'value')" as="xs:string"/> <!-- can be URI resource or blank node ID -->
         <xsl:variable name="typeahead-doc" select="ixsl:get(ixsl:window(), 'LinkedDataHub.typeahead.rdfXml')" as="document-node()"/>
         <xsl:variable name="resource" select="key('resources', $resource-id, $typeahead-doc)" as="element()"/>
@@ -1107,16 +1111,62 @@ WHERE
             <!-- a class with constructor was selected -->
             <xsl:otherwise>
                 <xsl:variable name="forClass" select="$resource/@rdf:about" as="xs:anyURI"/>
-                <xsl:variable name="href" select="ac:build-uri(ac:absolute-path(ldh:base-uri(.)), map{ 'forClass': string($forClass) })" as="xs:anyURI"/>
-                <xsl:variable name="request" as="item()*">
-                    <!-- use Control-Cache: no-cache to get fresh HTML -->
-                    <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml', 'Cache-Control': 'no-cache' } }">
-                        <xsl:call-template name="onAddConstructor">
-                            <xsl:with-param name="control-group" select="$control-group"/>
-                        </xsl:call-template>
-                    </ixsl:schedule-action>
-                </xsl:variable>
-                <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+                <xsl:message>forClass: <xsl:value-of select="$forClass"/></xsl:message>
+                <xsl:variable name="constructed-doc" select="ldh:construct-forClass($forClass)" as="document-node()"/>
+                <xsl:variable name="classes" select="()" as="element()*"/>
+
+                <xsl:for-each select="$container">
+                    <xsl:variable name="create-resource" select="$container/div[contains-token(@class, 'create-resource')]" as="element()"/>
+                    <!-- remove preceding Create button block -->
+                    <xsl:for-each select="$create-resource">
+                        <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
+                    </xsl:for-each>
+
+                    <!-- TO-DO: unify with .btn-edit onclick -->
+                    <xsl:variable name="resource" select="key('resources-by-type', $forClass, $constructed-doc)" as="element()"/>
+                    <xsl:variable name="row-form" as="element()*">
+                        <!-- TO-DO: refactor to use asynchronous HTTP requests -->
+                        <xsl:variable name="types" select="distinct-values($resource/rdf:type/@rdf:resource)" as="xs:anyURI*"/>
+                        <xsl:variable name="query-string" select="'DESCRIBE $Type VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }'" as="xs:string"/>
+                        <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': $query-string, 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
+                        <xsl:variable name="type-metadata" select="if (exists($types)) then document($request-uri) else ()" as="document-node()?"/>
+
+                        <xsl:variable name="property-uris" select="distinct-values($resource/*/concat(namespace-uri(), local-name()))" as="xs:string*"/>
+                        <xsl:variable name="query-string" select="'DESCRIBE $Type VALUES $Type { ' || string-join(for $uri in $property-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>
+                        <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': $query-string, 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
+                        <xsl:variable name="property-metadata" select="document($request-uri)" as="document-node()"/>
+
+                        <xsl:variable name="query-string" select="$constraint-query || ' VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }'" as="xs:string"/>
+                        <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': $query-string, 'accept': 'application/sparql-results+xml' })" as="xs:anyURI"/>
+                        <xsl:variable name="constraints" select="if (exists($types)) then document($request-uri) else ()" as="document-node()?"/>
+
+                        <xsl:apply-templates select="$constructed-doc" mode="bs2:RowForm">
+                            <xsl:with-param name="method" select="'post'"/>
+                            <xsl:with-param name="action" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, $doc-uri)" as="xs:anyURI"/>
+                            <xsl:with-param name="classes" select="$classes"/>
+                            <xsl:with-param name="type-metadata" select="$type-metadata" tunnel="yes"/>
+                            <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/>
+                            <xsl:with-param name="constraints" select="$constraints" tunnel="yes"/>
+                            <!-- <xsl:with-param name="shapes" select="$shapes" tunnel="yes"/> -->
+                            <xsl:with-param name="base-uri" select="ac:absolute-path(ldh:base-uri(.))" tunnel="yes"/> <!-- ac:absolute-path(ldh:base-uri(.)) is empty on constructed documents -->
+                            <xsl:with-param name="show-cancel-button" select="false()"/>
+                        </xsl:apply-templates>
+                    </xsl:variable>
+
+                    <xsl:result-document href="?." method="ixsl:append-content">
+                        <xsl:copy-of select="$row-form"/>
+
+                        <!-- append following Create button block -->
+                        <xsl:sequence select="$create-resource"/>
+                    </xsl:result-document>
+
+                    <!-- add event listeners to the descendants of the form. TO-DO: replace with XSLT -->
+                    <xsl:if test="id($row-form//form/@id, ixsl:page())">
+                        <xsl:apply-templates select="id($row-form//form/@id, ixsl:page())" mode="ldh:PostConstruct"/>
+                    </xsl:if>
+                </xsl:for-each>
+
+                <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
@@ -1614,11 +1664,6 @@ WHERE
 
                     <xsl:choose>
                         <xsl:when test="$resource">
-                            <!-- remove modal constructor form -->
-    <!--                        <xsl:if test="$modal-form">
-                                <xsl:sequence select="ixsl:call($modal-form/.., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
-                            </xsl:if>-->
-
                             <xsl:for-each select="$typeahead-span">
                                 <xsl:variable name="typeahead" as="element()">
                                     <xsl:apply-templates select="$resource" mode="ldh:Typeahead"/>
