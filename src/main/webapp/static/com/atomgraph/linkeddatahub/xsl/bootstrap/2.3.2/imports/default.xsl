@@ -678,6 +678,7 @@ exclude-result-prefixes="#all"
                 </xsl:if>
 
                 <xsl:apply-templates select="node() | @rdf:*" mode="#current">
+                    <xsl:with-param name="id" select="$for"/>
                     <xsl:with-param name="required" select="$required"/>
                     <xsl:with-param name="constructor" select="$constructor"/>
                 </xsl:apply-templates>
