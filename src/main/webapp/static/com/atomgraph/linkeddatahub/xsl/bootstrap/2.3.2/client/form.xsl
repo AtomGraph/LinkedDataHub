@@ -1073,7 +1073,8 @@ WHERE
     
     <xsl:template match="ul[contains-token(@class, 'dropdown-menu')][contains-token(@class, 'type-typeahead')]/li" mode="ixsl:onmousedown" priority="1">
         <xsl:param name="typeahead-class" select="'btn add-typeahead add-type-typeahead'" as="xs:string"/>
-        <xsl:variable name="container" select="ancestor::fieldset" as="element()"/>
+        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'row-fluid')]" as="element()"/>
+        <xsl:variable name="fieldset" select="ancestor::fieldset" as="element()"/>
         <xsl:variable name="doc-uri" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
         <xsl:variable name="resource-id" select="input[@name = ('ou', 'ob')]/ixsl:get(., 'value')" as="xs:string"/> <!-- can be URI resource or blank node ID -->
         <xsl:variable name="typeahead-doc" select="ixsl:get(ixsl:window(), 'LinkedDataHub.typeahead.rdfXml')" as="document-node()"/>
@@ -1116,10 +1117,13 @@ WHERE
                 <xsl:variable name="constructed-doc" select="ldh:construct-forClass($forClass)" as="document-node()"/>
                 <xsl:variable name="classes" select="()" as="element()*"/>
 
-                <xsl:for-each select="$container">
+                <!-- update @typeof value -->
+                <ixsl:set-attribute name="typeof" select="$forClass" object="$container"/>
+                
+                <xsl:for-each select="$fieldset">
                     <!-- TO-DO: unify with .btn-edit onclick -->
                     <xsl:variable name="resource" select="key('resources-by-type', $forClass, $constructed-doc)[not(key('predicates-by-object', @rdf:nodeID))]" as="element()"/>
-                    <xsl:variable name="fieldset" as="element()*">
+                    <xsl:variable name="new-fieldset" as="element()*">
                         <!-- TO-DO: refactor to use asynchronous HTTP requests -->
                         <xsl:variable name="types" select="distinct-values($resource/rdf:type/@rdf:resource)" as="xs:anyURI*"/>
                         <xsl:variable name="query-string" select="'DESCRIBE $Type VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }'" as="xs:string"/>
@@ -1155,12 +1159,12 @@ WHERE
                     
                     <xsl:result-document href="?." method="ixsl:append-content">
                         <!-- add property form controls, except for rdf:type -->
-                        <xsl:copy-of select="$fieldset/div[contains-token(@class, 'control-group')][not(input[@name = 'pu']/@value = '&rdf;type')]"/>
+                        <xsl:copy-of select="$new-fieldset/div[contains-token(@class, 'control-group')][not(input[@name = 'pu']/@value = '&rdf;type')]"/>
                     </xsl:result-document>
 
                     <!-- add event listeners to the descendants of the fieldset TO-DO: replace with XSLT -->
-                    <xsl:if test="id($fieldset/@id, ixsl:page())">
-                        <xsl:apply-templates select="id($fieldset/@id, ixsl:page())" mode="ldh:PostConstruct"/>
+                    <xsl:if test="id(@id, ixsl:page())">
+                        <xsl:apply-templates select="id(@id, ixsl:page())" mode="ldh:PostConstruct"/>
                     </xsl:if>
                 </xsl:for-each>
 
