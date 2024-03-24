@@ -224,6 +224,7 @@ WHERE
         </xsl:map>
     </xsl:param>
     <xsl:param name="body-id" select="'visible-body'" as="xs:string"/>
+    <!--
     <xsl:param name="default-classes" as="map(xs:string, xs:anyURI)">
         <xsl:map>
             <xsl:map-entry key="'&lapp;Application'" select="resolve-uri('apps/', $ldt:base)"/>
@@ -239,6 +240,7 @@ WHERE
             <xsl:map-entry key="'&ldh;ResultSetChart'" select="resolve-uri('charts/', $ldt:base)"/>
         </xsl:map>
     </xsl:param>
+    -->
     
     <xsl:key name="resources" match="*[*][@rdf:about] | *[*][@rdf:nodeID]" use="@rdf:about | @rdf:nodeID"/>
     <xsl:key name="elements-by-class" match="*" use="tokenize(@class, ' ')"/>
