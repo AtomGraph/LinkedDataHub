@@ -1306,9 +1306,11 @@ WHERE
             <!-- If-Match header checks preconditions, i.e. that the graph has not been modified in the meanwhile --> 
             <ixsl:schedule-action http-request="map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string, 'headers': map{ 'If-Match': $etag, 'Accept': 'application/rdf+xml', 'Cache-Control': 'no-cache' } }">
                 <xsl:call-template name="ldh:ResourceDeleted">
+                    <!--
                     <xsl:with-param name="doc-uri" select="ac:absolute-path(ldh:base-uri(.))"/>
                     <xsl:with-param name="container" select="$container"/>
                     <xsl:with-param name="form" select="$form"/>
+                    -->
                 </xsl:call-template>
             </ixsl:schedule-action>
         </xsl:variable>
