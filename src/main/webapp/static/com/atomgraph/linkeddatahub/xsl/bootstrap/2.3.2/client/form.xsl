@@ -430,9 +430,9 @@ WHERE
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'row-fluid')]" as="element()?"/> <!-- no container means the form was modal -->
         <xsl:variable name="form" select="." as="element()"/>
-        <xsl:variable name="id" select="ixsl:get(., 'id')" as="xs:string"/>
-        <xsl:variable name="action" select="ixsl:get(., 'action')" as="xs:anyURI"/>
-        <xsl:variable name="enctype" select="ixsl:get(., 'enctype')" as="xs:string"/>
+        <xsl:variable name="id" select="ixsl:get($form, 'id')" as="xs:string"/>
+        <xsl:variable name="action" select="ixsl:get($form, 'action')" as="xs:anyURI"/>
+        <xsl:variable name="enctype" select="ixsl:get($form, 'enctype')" as="xs:string"/>
         <xsl:variable name="accept" select="'application/rdf+xml'" as="xs:string"/>
         <xsl:variable name="etag" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(ldh:base-uri(.)) || '`'), 'etag')" as="xs:string"/>
         <xsl:message>$etag: <xsl:value-of select="$etag"/></xsl:message>
@@ -497,9 +497,9 @@ WHERE
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'row-fluid')]" as="element()?"/>
         <xsl:variable name="form" select="." as="element()"/>
-        <xsl:variable name="id" select="ixsl:get(., 'id')" as="xs:string"/>
-        <xsl:variable name="action" select="ixsl:get(., 'action')" as="xs:anyURI"/>
-        <xsl:variable name="enctype" select="ixsl:get(., 'enctype')" as="xs:string"/>
+        <xsl:variable name="id" select="ixsl:get($form, 'id')" as="xs:string"/>
+        <xsl:variable name="action" select="ixsl:get($form, 'action')" as="xs:anyURI"/>
+        <xsl:variable name="enctype" select="ixsl:get($form, 'enctype')" as="xs:string"/>
         <xsl:variable name="accept" select="'application/xhtml+xml'" as="xs:string"/>
         <xsl:variable name="about" select="ancestor::div[@typeof][1]/@about" as="xs:anyURI"/>
         <xsl:message>ldh:base-uri(.): <xsl:value-of select="ldh:base-uri(.)"/></xsl:message>
@@ -1263,7 +1263,7 @@ WHERE
     <xsl:template match="div[contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'btn-remove-resource')]" mode="ixsl:onclick" priority="2">
         <xsl:variable name="about" select="ancestor::div[@typeof][1]/@about" as="xs:anyURI"/>
         <xsl:variable name="form" select="ancestor::form" as="element()"/>
-        <xsl:variable name="action" select="ixsl:get(., 'action')" as="xs:anyURI"/>
+        <xsl:variable name="action" select="ixsl:get($form, 'action')" as="xs:anyURI"/>
         <xsl:message>ldh:base-uri(.): <xsl:value-of select="ldh:base-uri(.)"/></xsl:message>
         <xsl:variable name="etag" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path($action) || '`'), 'etag')" as="xs:string"/>
         <xsl:message>$etag: <xsl:value-of select="$etag"/></xsl:message>
