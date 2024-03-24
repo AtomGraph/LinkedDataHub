@@ -1323,7 +1323,16 @@ WHERE
     </xsl:template>
 
     <xsl:template name="ldh:ResourceDeleted">
-        <xsl:message>Resource deleted</xsl:message>
+        <xsl:context-item as="map(*)" use="required"/>
+
+        <xsl:choose>
+            <xsl:when test="?status = 204">
+                <xsl:message>Resource deleted</xsl:message>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ ?message ])"/>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:template>
     
     <!-- remove <fieldset> -->
