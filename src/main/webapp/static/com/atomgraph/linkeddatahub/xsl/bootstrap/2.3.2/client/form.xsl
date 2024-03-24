@@ -755,7 +755,6 @@ WHERE
         <xsl:variable name="this" select="$doc-uri" as="xs:anyURI"/>
         <xsl:message>ldh:base-uri(.): <xsl:value-of select="ldh:base-uri(.)"/> $doc-uri: <xsl:value-of select="$doc-uri"/> $this: <xsl:value-of select="$doc-uri"/></xsl:message>
         <!-- set document URI instead of blank node -->
-        <!--
         <xsl:variable name="constructed-doc" as="document-node()">
             <xsl:document>
                 <xsl:apply-templates select="$constructed-doc" mode="ldh:SetResourceURI">
@@ -764,7 +763,6 @@ WHERE
                 </xsl:apply-templates>
             </xsl:document>
         </xsl:variable>
-        -->
         <xsl:variable name="classes" select="()" as="element()*"/>
 
         <xsl:for-each select="$container">
@@ -840,7 +838,6 @@ WHERE
         <xsl:variable name="this" select="xs:anyURI($doc-uri || '#id' || ac:uuid())" as="xs:anyURI"/>
         <xsl:message>ldh:base-uri(.): <xsl:value-of select="ldh:base-uri(.)"/> $doc-uri: <xsl:value-of select="$doc-uri"/> $this: <xsl:value-of select="$doc-uri"/></xsl:message>
         <!-- set document URI instead of blank node -->
-        <!--
         <xsl:variable name="constructed-doc" as="document-node()">
             <xsl:document>
                 <xsl:apply-templates select="$constructed-doc" mode="ldh:SetResourceURI">
@@ -849,7 +846,6 @@ WHERE
                 </xsl:apply-templates>
             </xsl:document>
         </xsl:variable>
-        -->
         <xsl:variable name="classes" select="()" as="element()*"/>
 
         <xsl:for-each select="$container">
@@ -1265,9 +1261,64 @@ WHERE
     
     <!-- remove the whole div.row-fluid containing the form -->
     <xsl:template match="div[contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'btn-remove-resource')]" mode="ixsl:onclick" priority="2">
+        <xsl:variable name="about" select="ancestor::div[@typeof][1]/@about" as="xs:anyURI"/>
+
         <xsl:sequence select="ixsl:call(ancestor::div[contains-token(@class, 'row-fluid')][1], 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
+
+        <xsl:variable name="where-pattern" as="element()">
+            <json:map>
+                <json:string key="type">bgp</json:string>
+                <json:array key="triples">
+                    <json:map>
+                        <json:string key="subject"><xsl:sequence select="$about"/></json:string>
+                        <json:string key="predicate">?p</json:string>
+                        <json:string key="object">?o</json:string>
+                    </json:map>
+                </json:array>
+            </json:map>
+        </xsl:variable>
+        <xsl:variable name="update-xml" as="element()">
+            <json:map>
+                <json:string key="type">update</json:string>
+                <json:array key="updates">
+                    <json:map>
+                        <json:string key="updateType">insertdelete</json:string>
+                        <json:array key="delete">
+                            <xsl:sequence select="$where-pattern"/>
+                        </json:array>
+                        <json:array key="insert"/>
+                        <json:array key="where">
+                            <xsl:sequence select="$where-pattern"/>
+                        </json:array>
+                    </json:map>
+                </json:array>
+            </json:map>
+        </xsl:variable>
+        <xsl:variable name="update-json-string" select="xml-to-json($update-xml)" as="xs:string"/>
+<xsl:message>
+    <xsl:value-of select="$update-json-string"/>
+</xsl:message>
+        <xsl:variable name="update-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $update-json-string ])"/>
+        <xsl:variable name="update-string" select="ixsl:call($sparql-generator, 'stringify', [ $update-json ])" as="xs:string"/>
+        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, $action)" as="xs:anyURI"/>
+        
+        <xsl:variable name="request" as="item()*">
+            <!-- If-Match header checks preconditions, i.e. that the graph has not been modified in the meanwhile --> 
+            <ixsl:schedule-action http-request="map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string, 'headers': map{ 'If-Match': $etag, 'Accept': 'application/rdf+xml', 'Cache-Control': 'no-cache' } }">
+                <xsl:call-template name="ldh:ResourceDeleted">
+                    <xsl:with-param name="doc-uri" select="ac:absolute-path(ldh:base-uri(.))"/>
+                    <xsl:with-param name="container" select="$container"/>
+                    <xsl:with-param name="form" select="$form"/>
+                </xsl:call-template>
+            </ixsl:schedule-action>
+        </xsl:variable>
+        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
 
+    <xsl:template name="ldh:ResourceDeleted">
+        <xsl:message>Resource deleted</xsl:message>
+    </xsl:template>
+    
     <!-- remove <fieldset> -->
     <xsl:template match="fieldset//button[contains-token(@class, 'btn-remove-resource')]" mode="ixsl:onclick" priority="1">
         <xsl:sequence select="ixsl:call(ancestor::fieldset, 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
