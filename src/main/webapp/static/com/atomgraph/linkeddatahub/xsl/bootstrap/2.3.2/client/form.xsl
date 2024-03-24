@@ -1262,6 +1262,8 @@ WHERE
     <!-- remove the whole div.row-fluid containing the form -->
     <xsl:template match="div[contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'btn-remove-resource')]" mode="ixsl:onclick" priority="2">
         <xsl:variable name="about" select="ancestor::div[@typeof][1]/@about" as="xs:anyURI"/>
+        <xsl:variable name="form" select="ancestor::form" as="element()"/>
+        <xsl:variable name="action" select="ixsl:get(., 'action')" as="xs:anyURI"/>
 
         <xsl:sequence select="ixsl:call(ancestor::div[contains-token(@class, 'row-fluid')][1], 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
 
