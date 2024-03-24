@@ -608,6 +608,9 @@ exclude-result-prefixes="#all"
         </div>
     </xsl:template>
 
+    <!-- turn off default form controls for rdf:type as we are handling it specially with bs2:TypeControl -->
+    <xsl:template match="rdf:type[@rdf:resource]" mode="bs2:FormControl" priority="1"/>
+
     <!-- property -->
     <xsl:template match="*[@rdf:about or @rdf:nodeID]/*" mode="bs2:FormControl">
         <xsl:param name="this" select="xs:anyURI(concat(namespace-uri(), local-name()))" as="xs:anyURI"/>

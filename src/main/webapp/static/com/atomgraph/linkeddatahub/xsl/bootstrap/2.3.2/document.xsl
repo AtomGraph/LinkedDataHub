@@ -641,7 +641,7 @@ extension-element-prefixes="ixsl"
     
     <!-- ROW FORM -->
 
-    <xsl:template match="rdf:RDF[$ac:forClass = ('&ldh;CSVImport', '&ldh;RDFImport')][$ac:method = 'GET']" mode="bs2:Form" priority="2" use-when="system-property('xsl:product-name') = 'SAXON'">
+<!--    <xsl:template match="rdf:RDF[$ac:forClass = ('&ldh;CSVImport', '&ldh;RDFImport')][$ac:method = 'GET']" mode="bs2:Form" priority="2" use-when="system-property('xsl:product-name') = 'SAXON'">
         <xsl:param name="action" select="ac:build-uri(resolve-uri('importer', $ldt:base), map{ '_method': 'PUT', 'forClass': string($ac:forClass), 'mode': '&ac;EditMode' })" as="xs:anyURI"/>
         <xsl:param name="classes" as="element()*"/>
 
@@ -654,8 +654,8 @@ extension-element-prefixes="ixsl"
     
     <xsl:template match="rdf:RDF[$ac:forClass][$ac:method = 'GET']" mode="bs2:Form" priority="1" use-when="system-property('xsl:product-name') = 'SAXON'">
         <xsl:param name="base-uri" as="xs:anyURI" tunnel="yes"/>
-        <!-- document resource might not always be present in the form (e.g. ldh:Content only) -->
-        <xsl:param name="document-uri" select="if (key('resources-by-type', ('&dh;Container', '&dh;Item'))/@rdf:about) then key('resources-by-type', ('&dh;Container', '&dh;Item'))/@rdf:about else $base-uri" as="xs:anyURI"/> <!-- $doc-uri of the constructed document -->
+         document resource might not always be present in the form (e.g. ldh:Content only) 
+        <xsl:param name="document-uri" select="if (key('resources-by-type', ('&dh;Container', '&dh;Item'))/@rdf:about) then key('resources-by-type', ('&dh;Container', '&dh;Item'))/@rdf:about else $base-uri" as="xs:anyURI"/>  $doc-uri of the constructed document 
         <xsl:param name="action" select="ac:build-uri($document-uri, map{ '_method': 'PUT', 'forClass': string($ac:forClass), 'mode': '&ac;EditMode' })" as="xs:anyURI"/>
         <xsl:param name="classes" as="element()*"/>
 
@@ -664,7 +664,7 @@ extension-element-prefixes="ixsl"
             <xsl:with-param name="action" select="$action"/>
             <xsl:with-param name="classes" select="$classes"/>
         </xsl:next-match>
-    </xsl:template>
+    </xsl:template>-->
     
     <xsl:template match="rdf:RDF" mode="bs2:Form">
         <xsl:param name="method" select="'post'" as="xs:string"/>
