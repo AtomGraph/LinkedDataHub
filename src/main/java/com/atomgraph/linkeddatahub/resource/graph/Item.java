@@ -200,8 +200,9 @@ public class Item extends GraphStoreImpl
             throw new WebApplicationException("Method '" + HttpMethod.PUT + "' is not allowed on document URI <" + getURI() + ">", Response.status(Response.Status.METHOD_NOT_ALLOWED).allow(getAllowedMethods()).build());
         }
         
-        // enforce that document URIs always end with a slash
-        if (!getURI().toString().endsWith("/"))
+        Resource resource = model.createResource(getURI().toString());
+        // enforce that request URI always end with a slash and is present in the RDF document
+        if (!getURI().toString().endsWith("/") || !model.containsResource(resource))
         {
             if (log.isErrorEnabled()) log.error("Document URI <{}> does not end with a slash", getURI());
             throw new WebApplicationException("Document URI <" + getURI() + "> does not end with a slash", UNPROCESSABLE_ENTITY.getStatusCode()); // 422 Unprocessable Entity
@@ -210,7 +211,6 @@ public class Item extends GraphStoreImpl
         new Skolemizer(getURI().toString()).apply(model);
         final boolean existingGraph = getService().getGraphStoreClient().containsModel(getURI().toString());
         
-        Resource resource = model.createResource(getURI().toString());
         if (!existingGraph) // creating new graph and attaching it to the document hierarchy
         {
             URI parentURI = getURI().resolve("..");
