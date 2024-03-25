@@ -981,7 +981,7 @@ $series: <xsl:value-of select="$series"/>
                         <xsl:variable name="mode" select="xs:anyURI(map:get($mode-classes, $mode-class))" as="xs:anyURI"/>
                         <xsl:message>$nav-tab-class: <xsl:value-of select="$nav-tab-class"/> $mode-class: <xsl:value-of select="$mode-class"/> $mode: <xsl:value-of select="$mode"/></xsl:message>
                         <xsl:variable name="fragment" select="substring-after($href, '#')" as="xs:string"/>
-                        <xsl:sequence select="xs:anyURI(ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, ac:build-uri($href, map:merge(($query-params, map{ 'mode': '&ldh;ContentMode' } ))), $fragment))"/>
+                        <xsl:sequence select="xs:anyURI(ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, ac:build-uri($href, map:merge(($query-params, map{ 'mode': string($mode) } ))), $fragment))"/>
                     </xsl:when>
                     <xsl:otherwise>
                         <xsl:sequence select="$href"/>
