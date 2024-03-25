@@ -224,23 +224,6 @@ WHERE
         </xsl:map>
     </xsl:param>
     <xsl:param name="body-id" select="'visible-body'" as="xs:string"/>
-    <!--
-    <xsl:param name="default-classes" as="map(xs:string, xs:anyURI)">
-        <xsl:map>
-            <xsl:map-entry key="'&lapp;Application'" select="resolve-uri('apps/', $ldt:base)"/>
-            <xsl:map-entry key="'&sd;Service'" select="resolve-uri('services/', $ldt:base)"/>
-            <xsl:map-entry key="'&nfo;FileDataObject'" select="resolve-uri('files/', $ldt:base)"/>
-            <xsl:map-entry key="'&sp;Construct'" select="resolve-uri('queries/', $ldt:base)"/>
-            <xsl:map-entry key="'&sp;Describe'" select="resolve-uri('queries/', $ldt:base)"/>
-            <xsl:map-entry key="'&sp;Select'" select="resolve-uri('queries/', $ldt:base)"/>
-            <xsl:map-entry key="'&sp;Ask'" select="resolve-uri('queries/', $ldt:base)"/>
-            <xsl:map-entry key="'&ldh;RDFImport'" select="resolve-uri('imports/', $ldt:base)"/>
-            <xsl:map-entry key="'&ldh;CSVImport'" select="resolve-uri('imports/', $ldt:base)"/>
-            <xsl:map-entry key="'&ldh;GraphChart'" select="resolve-uri('charts/', $ldt:base)"/>
-            <xsl:map-entry key="'&ldh;ResultSetChart'" select="resolve-uri('charts/', $ldt:base)"/>
-        </xsl:map>
-    </xsl:param>
-    -->
     
     <xsl:key name="resources" match="*[*][@rdf:about] | *[*][@rdf:nodeID]" use="@rdf:about | @rdf:nodeID"/>
     <xsl:key name="elements-by-class" match="*" use="tokenize(@class, ' ')"/>
@@ -982,8 +965,21 @@ $series: <xsl:value-of select="$series"/>
             <xsl:variable name="query-params" select="if (contains($href, '?')) then ldh:parse-query-params(substring-after($href, '?')) else map{}" as="map(xs:string, xs:string*)"/>
             <xsl:variable name="href" as="xs:anyURI">
                 <xsl:choose>
-                    <!-- if ldh:ContentMode is active but no mode param explicitly is specified, change the page's URL to reflect that -->
-                    <xsl:when test="not(exists($query-params?mode)) and id('content-body', ixsl:page())/div[contains-token(@class, 'row-fluid')][1]/ul[contains-token(@class, 'nav-tabs')]/li[contains-token(@class, 'content-mode')][contains-token(@class, 'active')]">
+                    <!-- if ?mode param is not explicitly specified, change the page's URL to reflect that (there's always an active mode) -->
+                    <xsl:when test="not(exists($query-params?mode))">
+                        <xsl:variable name="mode-classes" as="map(xs:string, xs:string)">
+                            <xsl:map>
+                                <xsl:map-entry key="'content-mode'" select="'&ldh;ContentMode'"/>
+                                <xsl:map-entry key="'read-mode'" select="'&ac;ReadMode'"/>
+                                <xsl:map-entry key="'map-mode'" select="'&ac;MapMode'"/>
+                                <xsl:map-entry key="'chart-mode'" select="'&ac;ChartMode'"/>
+                                <xsl:map-entry key="'graph-mode'" select="'&ac;GraphMode'"/>
+                            </xsl:map>
+                        </xsl:variable>
+                        <xsl:variable name="nav-tab-class" select="id('content-body', ixsl:page())/div[contains-token(@class, 'row-fluid')][1]/ul[contains-token(@class, 'nav-tabs')]/li[contains-token(@class, 'active')]/@class" as="xs:string"/>
+                        <xsl:variable name="mode-class" select="map:keys($mode-classes)[contains-token($nav-tab-class, .)]" as="xs:string"/>
+                        <xsl:variable name="mode" select="map:get($mode-classes, $mode-class)" as="xs:anyURI"/>
+                        <xsl:message>$nav-tab-class: <xsl:variable name="$nav-tab-class"/> $mode-class: <xsl:value-of select="$mode-class"/> $mode: <xsl:value-of select="$mode"/></xsl:message>
                         <xsl:variable name="fragment" select="substring-after($href, '#')" as="xs:string"/>
                         <xsl:sequence select="xs:anyURI(ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, ac:build-uri($href, map:merge(($query-params, map{ 'mode': '&ldh;ContentMode' } ))), $fragment))"/>
                     </xsl:when>
