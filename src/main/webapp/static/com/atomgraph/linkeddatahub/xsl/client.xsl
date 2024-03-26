@@ -1042,7 +1042,7 @@ $series: <xsl:value-of select="$series"/>
                 <xsl:variable name="results" select="?body" as="document-node()"/>
                 
                 <xsl:for-each select="$backlinks-container">
-                    <xsl:variable name="doc-uri" select="ldh:base-uri(.)" as="xs:anyURI"/>
+                    <xsl:variable name="doc-uri" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
                     <xsl:result-document href="?." method="ixsl:append-content">
                         <ul class="well well-small nav nav-list">
                             <xsl:apply-templates select="$results/rdf:RDF/rdf:Description[not(@rdf:about = $doc-uri)]" mode="bs2:List">
@@ -1160,11 +1160,12 @@ $series: <xsl:value-of select="$series"/>
     
     <xsl:template name="onDelete">
         <xsl:context-item as="map(*)" use="required"/>
+        <xsl:param name="doc-uri" as="xs:anyURI"/>
         
         <xsl:choose>
             <xsl:when test="?status = 204"> <!-- No Content -->
-                <xsl:variable name="href" select="resolve-uri('..', ldh:base-uri(.))" as="xs:anyURI"/>
-                <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, $href)" as="xs:anyURI"/>
+                <xsl:variable name="href" select="resolve-uri('..', $doc-uri))" as="xs:anyURI"/>
+                <xsl:variable name="request-uri" select="ldh:href($ldt:base, $doc-uri, map{}, $href)" as="xs:anyURI"/>
 
                 <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
@@ -1329,7 +1330,9 @@ $series: <xsl:value-of select="$series"/>
         <xsl:if test="ixsl:call(ixsl:window(), 'confirm', [ ac:label(key('resources', 'are-you-sure', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))) ])">
             <xsl:variable name="request" as="item()*">
                 <ixsl:schedule-action http-request="map{ 'method': 'DELETE', 'href': $request-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
-                    <xsl:call-template name="onDelete"/>
+                    <xsl:call-template name="onDelete">
+                        <xsl:with-param name="doc-uri" select="ac:absolute-path(ldh:base-uri(.))"/>
+                    </xsl:call-template>
                 </ixsl:schedule-action>
             </xsl:variable>
             <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
