@@ -1164,7 +1164,7 @@ $series: <xsl:value-of select="$series"/>
         
         <xsl:choose>
             <xsl:when test="?status = 204"> <!-- No Content -->
-                <xsl:variable name="href" select="resolve-uri('..', $doc-uri))" as="xs:anyURI"/>
+                <xsl:variable name="href" select="resolve-uri('..', $doc-uri)" as="xs:anyURI"/>
                 <xsl:variable name="request-uri" select="ldh:href($ldt:base, $doc-uri, map{}, $href)" as="xs:anyURI"/>
 
                 <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
