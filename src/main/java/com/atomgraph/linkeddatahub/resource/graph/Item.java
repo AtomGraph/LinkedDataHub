@@ -302,7 +302,7 @@ public class Item extends GraphStoreImpl
         put(dataset.getDefaultModel(), Boolean.FALSE, getURI());
         
         
-        return getInternalResponse(dataset.getDefaultModel(), null).getResponseBuilder().  // entity tag of the updated graph
+        return getInternalResponse(dataset.getDefaultModel(), null).getResponseBuilder(). // entity tag of the updated graph
             status(Response.Status.NO_CONTENT).
             entity(null). // 'Content-Type' header has to be explicitly unset in ResponseHeadersFilter
             header(HttpHeaders.CONTENT_LOCATION, getURI()).

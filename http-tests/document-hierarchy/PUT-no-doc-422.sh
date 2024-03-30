@@ -23,9 +23,9 @@ pushd . > /dev/null && cd "$SCRIPT_ROOT/admin/acl"
 
 popd > /dev/null
 
-# replace the graph (note that the request URI does not end with a slash)
+# replace the graph (note that the request URI ends with a slash but is not present in the request body)
 
-item="${END_USER_BASE_URL}no-slash"
+item="${END_USER_BASE_URL}slash/"
 
 (
 curl -k -w "%{http_code}\n" -o /dev/null -s \
@@ -35,7 +35,7 @@ curl -k -w "%{http_code}\n" -o /dev/null -s \
   -H "Content-Type: application/n-triples" \
   --data-binary @- \
   "$item" <<EOF
-<${item}> <http://example.com/default-predicate> "named object PUT" .
+<http://example.com/> <http://example.com/default-predicate> "named object PUT" .
 EOF
 ) \
 | grep -q "$STATUS_UNPROCESSABLE_ENTITY"
