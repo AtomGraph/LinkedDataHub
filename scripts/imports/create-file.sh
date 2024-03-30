@@ -140,13 +140,6 @@ fi
 
 target="${container}${encoded_slug}/"
 
-if [ -n "$proxy" ]; then
-    # rewrite target hostname to proxy hostname
-    target_host=$(echo "$target" | cut -d '/' -f 1,2,3)
-    proxy_host=$(echo "$proxy" | cut -d '/' -f 1,2,3)
-    target="${target/$target_host/$proxy_host}"
-fi
-
 # https://stackoverflow.com/questions/19116016/what-is-the-right-way-to-post-multipart-form-data-using-curl
 
 rdf_post+="-F \"rdf=\"\n"
@@ -171,6 +164,15 @@ if [ -n "$description" ] ; then
     rdf_post+="-F \"sb=file\"\n"
     rdf_post+="-F \"pu=http://purl.org/dc/terms/description\"\n"
     rdf_post+="-F \"ol=${description}\"\n"
+fi
+
+# rewrite target URL *after* building the request body (which does not need the rewritten URLs)
+
+if [ -n "$proxy" ]; then
+    # rewrite target hostname to proxy hostname
+    target_host=$(echo "$target" | cut -d '/' -f 1,2,3)
+    proxy_host=$(echo "$proxy" | cut -d '/' -f 1,2,3)
+    target="${target/$target_host/$proxy_host}"
 fi
 
 # POST RDF/POST multipart form from stdin to the server
