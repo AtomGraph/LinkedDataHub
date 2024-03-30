@@ -21,6 +21,7 @@ import com.atomgraph.linkeddatahub.model.Service;
 import java.io.InputStream;
 import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.core.Response;
+import java.io.IOException;
 import java.net.URI;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.query.Query;
@@ -31,6 +32,8 @@ import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
 import org.glassfish.jersey.uri.UriComponent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Reads RDF from input stream and writes it into a named graph.
@@ -40,6 +43,8 @@ import org.glassfish.jersey.uri.UriComponent;
  */
 public class RDFGraphStoreOutput
 {
+
+    private static final Logger log = LoggerFactory.getLogger(RDFGraphStoreOutput.class);
 
     private final Service service, adminService;
     private final LinkedDataClient ldc;
@@ -93,8 +98,15 @@ public class RDFGraphStoreOutput
                 dataset.listNames().forEachRemaining(graphUri ->
                     {
                         Model namedModel = dataset.getNamedModel(graphUri);
-                         // exceptions get swallowed by the client? TO-DO: wait for completion
-                        if (!namedModel.isEmpty()) getLinkedDataClient().put(URI.create(graphUri), namedModel);
+                        if (!namedModel.isEmpty())
+                            try (Response cr = getLinkedDataClient().put(URI.create(graphUri), namedModel))
+                            {
+                                if (!cr.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
+                                {
+                                    if (log.isErrorEnabled()) log.error("RDF document with URI <{}> could not be successfully created using PUT. Status code: {}", graphUri, cr.getStatus());
+                                    throw new RuntimeException(new IOException("RDF document with URI <" + graphUri + "> could not be successfully created using PUT. Status code: " + cr.getStatus()));
+                                }
+                            }
                         
                         // purge cache entries that include the graph URI
                         if (getService().getBackendProxy() != null) ban(getService().getClient(), getService().getBackendProxy(), graphUri).close();
@@ -107,8 +119,14 @@ public class RDFGraphStoreOutput
         {
             if (getGraphURI() == null) throw new IllegalStateException("Neither RDFImport query nor graph name is specified");
             
-            getLinkedDataClient().put(URI.create(getGraphURI()), model); // exceptions get swallowed by the client? TO-DO: wait for completion
-            
+            try (Response cr = getLinkedDataClient().put(URI.create(getGraphURI()), model))
+            {
+                if (!cr.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
+                {
+                    if (log.isErrorEnabled()) log.error("RDF document with URI <{}> could not be successfully created using PUT. Status code: {}", getGraphURI(), cr.getStatus());
+                    throw new RuntimeException(new IOException("RDF document with URI <" + getGraphURI() + "> could not be successfully created using PUT. Status code: " + cr.getStatus()));
+                }
+            }
             // purge cache entries that include the graph URI
             if (getService().getBackendProxy() != null) ban(getService().getClient(), getService().getBackendProxy(), getGraphURI()).close();
             if (getAdminService() != null && getAdminService().getBackendProxy() != null) ban(getAdminService().getClient(), getAdminService().getBackendProxy(), getGraphURI()).close();
