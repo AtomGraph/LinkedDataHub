@@ -39,7 +39,7 @@ curl -k -w "%{http_code}\n" -o /dev/null -f -s \
   -H "Content-Type: application/sparql-update" \
   "$END_USER_BASE_URL" \
    --data-binary "$update" \
-| grep -q "$STATUS_OK"
+| grep -q "$STATUS_NO_CONTENT"
 
 # check that the graph is changed
 
