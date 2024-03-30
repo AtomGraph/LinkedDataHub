@@ -18,6 +18,7 @@ package com.atomgraph.linkeddatahub.imports.stream;
 
 import com.atomgraph.core.client.LinkedDataClient;
 import com.atomgraph.linkeddatahub.model.Service;
+import com.atomgraph.linkeddatahub.server.exception.ImportException;
 import java.io.InputStream;
 import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.core.Response;
@@ -104,7 +105,7 @@ public class RDFGraphStoreOutput
                                 if (!cr.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
                                 {
                                     if (log.isErrorEnabled()) log.error("RDF document with URI <{}> could not be successfully created using PUT. Status code: {}", graphUri, cr.getStatus());
-                                    throw new RuntimeException(new IOException("RDF document with URI <" + graphUri + "> could not be successfully created using PUT. Status code: " + cr.getStatus()));
+                                    throw new ImportException(new IOException("RDF document with URI <" + graphUri + "> could not be successfully created using PUT. Status code: " + cr.getStatus()));
                                 }
                             }
                         
@@ -124,7 +125,7 @@ public class RDFGraphStoreOutput
                 if (!cr.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
                 {
                     if (log.isErrorEnabled()) log.error("RDF document with URI <{}> could not be successfully created using PUT. Status code: {}", getGraphURI(), cr.getStatus());
-                    throw new RuntimeException(new IOException("RDF document with URI <" + getGraphURI() + "> could not be successfully created using PUT. Status code: " + cr.getStatus()));
+                    throw new ImportException(new IOException("RDF document with URI <" + getGraphURI() + "> could not be successfully created using PUT. Status code: " + cr.getStatus()));
                 }
             }
             // purge cache entries that include the graph URI

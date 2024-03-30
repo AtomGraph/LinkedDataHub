@@ -19,6 +19,7 @@ package com.atomgraph.linkeddatahub.imports.stream.csv;
 import static com.atomgraph.core.MediaType.APPLICATION_NTRIPLES_TYPE;
 import com.atomgraph.core.client.LinkedDataClient;
 import com.atomgraph.linkeddatahub.model.Service;
+import com.atomgraph.linkeddatahub.server.exception.ImportException;
 import com.univocity.parsers.common.ParsingContext;
 import com.univocity.parsers.common.processor.RowProcessor;
 import jakarta.ws.rs.client.Client;
@@ -115,7 +116,7 @@ public class CSVGraphStoreRowProcessor implements RowProcessor // extends com.at
                     if (!cr.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
                     {
                         if (log.isErrorEnabled()) log.error("RDF document with URI <{}> could not be successfully created using PUT. Status code: {}", graphURI, cr.getStatus());
-                        throw new RuntimeException(new IOException("RDF document with URI <" + graphURI + "> could not be successfully created using PUT. Status code: " + cr.getStatus()));
+                        throw new ImportException(new IOException("RDF document with URI <" + graphURI + "> could not be successfully created using PUT. Status code: " + cr.getStatus()));
                     }
 
                     return Response.status(cr.getStatus()).

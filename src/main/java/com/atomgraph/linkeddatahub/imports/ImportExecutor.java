@@ -33,7 +33,6 @@ import com.atomgraph.linkeddatahub.server.exception.ImportException;
 import com.atomgraph.linkeddatahub.server.util.Skolemizer;
 import com.atomgraph.linkeddatahub.vocabulary.PROV;
 import com.atomgraph.linkeddatahub.vocabulary.VoID;
-import com.atomgraph.server.vocabulary.HTTP;
 import com.univocity.parsers.common.TextParsingException;
 import java.net.URI;
 import java.util.Calendar;
@@ -54,11 +53,7 @@ import org.apache.jena.query.Query;
 import org.apache.jena.query.Syntax;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
-import org.apache.jena.rdf.model.Property;
-import org.apache.jena.rdf.model.RDFNode;
-import org.apache.jena.rdf.model.ResIterator;
 import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.util.ResourceUtils;
 import org.apache.jena.vocabulary.DCTerms;
 import org.apache.jena.vocabulary.RDF;
 import org.slf4j.Logger;
@@ -234,6 +229,7 @@ public class ImportExecutor
                 
                 if (t instanceof CompletionException)
                 {
+                    // could not parse CSV
                     if (t.getCause() instanceof TextParsingException tpe) 
                     {
                         Resource exception = provImport.getModel().createResource().
@@ -244,38 +240,18 @@ public class ImportExecutor
                         
                         appendProvGraph(provImport, service.getGraphStoreClient());
                     }
-                    // could not parse CSV
-                    
+                    // could not save RDF
                     if (t.getCause() instanceof ImportException ie) 
                     {
-                        Model excModel = ie.getModel();
-                        if (excModel != null)
-                        {
-                            Resource response = getResource(excModel, RDF.type, HTTP.Response); // find Response
-                            provImport.getModel().add(ResourceUtils.reachableClosure(response));
-                            response = getResource(provImport.getModel(), RDF.type, HTTP.Response); // find again in prov Model
-                            response.addProperty(PROV.wasGeneratedBy, provImport); // connect Response to Import
-                        }
+                        Resource exception = provImport.getModel().createResource().
+                            addProperty(RDF.type, PROV.Entity).
+                            addLiteral(DCTerms.description, ie.getMessage()).
+                            addProperty(PROV.wasGeneratedBy, provImport); // connect Response to exception
+                        
                         provImport.addProperty(PROV.endedAtTime, importInst.getModel().createTypedLiteral(Calendar.getInstance()));
                         
                         appendProvGraph(provImport, service.getGraphStoreClient());
                     }
-                    // could not save RDF
-                }
-                
-                return null;
-            }
-
-            public Resource getResource(Model model, Property property, RDFNode object)
-            {
-                ResIterator it = model.listSubjectsWithProperty(RDF.type, HTTP.Response);
-                try
-                {
-                    if (it.hasNext()) return it.next();
-                }
-                finally
-                {
-                    it.close();
                 }
                 
                 return null;
