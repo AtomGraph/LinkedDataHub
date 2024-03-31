@@ -31,7 +31,7 @@ container=$(./create-container.sh \
   -b "$END_USER_BASE_URL" \
   --title "Concepts" \
   --slug "concepts" \
-  --parent "$END_USER_BASE_URL")
+  --container "$END_USER_BASE_URL")
 
 # import RDF
 
