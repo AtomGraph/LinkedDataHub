@@ -100,12 +100,29 @@ public class RDFGraphStoreOutput
                     {
                         Model namedModel = dataset.getNamedModel(graphUri);
                         if (!namedModel.isEmpty())
-                            try (Response cr = getLinkedDataClient().put(URI.create(graphUri), namedModel))
+                            try (Response headResponse = getLinkedDataClient().head(URI.create(graphUri)))
                             {
-                                if (!cr.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
+                                if (headResponse.getStatus() == Response.Status.OK.getStatusCode()) // POST if graph already exists
                                 {
-                                    if (log.isErrorEnabled()) log.error("RDF document with URI <{}> could not be successfully created using PUT. Status code: {}", graphUri, cr.getStatus());
-                                    throw new ImportException(new IOException("RDF document with URI <" + graphUri + "> could not be successfully created using PUT. Status code: " + cr.getStatus()));
+                                    try (Response cr = getLinkedDataClient().post(URI.create(graphUri), namedModel))
+                                    {
+                                        if (!cr.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
+                                        {
+                                            if (log.isErrorEnabled()) log.error("RDF document with URI <{}> could not be successfully created using PUT. Status code: {}", graphUri, cr.getStatus());
+                                            throw new ImportException(new IOException("RDF document with URI <" + graphUri + "> could not be successfully created using PUT. Status code: " + cr.getStatus()));
+                                        }
+                                    }
+                                }
+                                else // PUT to create graph
+                                {
+                                    try (Response cr = getLinkedDataClient().put(URI.create(graphUri), namedModel))
+                                    {
+                                        if (!cr.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
+                                        {
+                                            if (log.isErrorEnabled()) log.error("RDF document with URI <{}> could not be successfully created using PUT. Status code: {}", graphUri, cr.getStatus());
+                                            throw new ImportException(new IOException("RDF document with URI <" + graphUri + "> could not be successfully created using PUT. Status code: " + cr.getStatus()));
+                                        }
+                                    }
                                 }
                             }
                         
@@ -120,14 +137,32 @@ public class RDFGraphStoreOutput
         {
             if (getGraphURI() == null) throw new IllegalStateException("Neither RDFImport query nor graph name is specified");
             
-            try (Response cr = getLinkedDataClient().put(URI.create(getGraphURI()), model))
+            try (Response headResponse = getLinkedDataClient().head(URI.create(getGraphURI())))
             {
-                if (!cr.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
+                if (headResponse.getStatus() == Response.Status.OK.getStatusCode()) // POST if graph already exists
                 {
-                    if (log.isErrorEnabled()) log.error("RDF document with URI <{}> could not be successfully created using PUT. Status code: {}", getGraphURI(), cr.getStatus());
-                    throw new ImportException(new IOException("RDF document with URI <" + getGraphURI() + "> could not be successfully created using PUT. Status code: " + cr.getStatus()));
+                    try (Response cr = getLinkedDataClient().post(URI.create(getGraphURI()), model))
+                    {
+                        if (!cr.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
+                        {
+                            if (log.isErrorEnabled()) log.error("RDF document with URI <{}> could not be successfully created using PUT. Status code: {}", getGraphURI(), cr.getStatus());
+                            throw new ImportException(new IOException("RDF document with URI <" + getGraphURI() + "> could not be successfully created using PUT. Status code: " + cr.getStatus()));
+                        }
+                    }
+                }
+                else // PUT to create graph
+                {
+                    try (Response cr = getLinkedDataClient().put(URI.create(getGraphURI()), model))
+                    {
+                        if (!cr.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
+                        {
+                            if (log.isErrorEnabled()) log.error("RDF document with URI <{}> could not be successfully created using PUT. Status code: {}", getGraphURI(), cr.getStatus());
+                            throw new ImportException(new IOException("RDF document with URI <" + getGraphURI() + "> could not be successfully created using PUT. Status code: " + cr.getStatus()));
+                        }
+                    }
                 }
             }
+                
             // purge cache entries that include the graph URI
             if (getService().getBackendProxy() != null) ban(getService().getClient(), getService().getBackendProxy(), getGraphURI()).close();
             if (getAdminService() != null && getAdminService().getBackendProxy() != null) ban(getAdminService().getClient(), getAdminService().getBackendProxy(), getGraphURI()).close();
