@@ -21,11 +21,21 @@ pushd . > /dev/null && cd "$SCRIPT_ROOT/admin/acl"
 
 popd > /dev/null
 
-pushd . > /dev/null && cd "$SCRIPT_ROOT/imports"
+pushd . > /dev/null && cd "$SCRIPT_ROOT"
+
+# create item
+
+item=$(./create-item.sh \
+  -f "$AGENT_CERT_FILE" \
+  -p "$AGENT_CERT_PWD" \
+  -b "$END_USER_BASE_URL" \
+  --title "Concepts" \
+  --slug "concepts" \
+  --parent "$END_USER_BASE_URL")
 
 # import RDF
 
-item="${END_USER_BASE_URL}concepts/"
+cd imports
 
 ./import-rdf.sh \
   -f "$AGENT_CERT_FILE" \
