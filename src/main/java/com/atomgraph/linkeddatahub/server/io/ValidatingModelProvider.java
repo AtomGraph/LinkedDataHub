@@ -188,10 +188,10 @@ public class ValidatingModelProvider extends com.atomgraph.server.io.ValidatingM
                 Query query = QueryFactory.create(queryString);
                 
                 // query resource's rdf:type does not match its query string
-                if (resource.hasProperty(RDF.type, SP.Ask) && !query.isAskType() ||
-                        resource.hasProperty(RDF.type, SP.Select) && !query.isSelectType() ||
-                        resource.hasProperty(RDF.type, SP.Describe) && !query.isDescribeType() ||
-                        resource.hasProperty(RDF.type, SP.Construct) && !query.isConstructType())
+                if ((resource.hasProperty(RDF.type, SP.Ask) && !query.isAskType()) ||
+                        (resource.hasProperty(RDF.type, SP.Select) && !query.isSelectType()) ||
+                        (resource.hasProperty(RDF.type, SP.Describe) && !query.isDescribeType()) ||
+                        (resource.hasProperty(RDF.type, SP.Construct) && !query.isConstructType()))
                 {
                     if (log.isDebugEnabled()) log.debug("Bad request - SPARQL query's type does not match its query string");
                     List<ConstraintViolation> cvs = new ArrayList<>();
