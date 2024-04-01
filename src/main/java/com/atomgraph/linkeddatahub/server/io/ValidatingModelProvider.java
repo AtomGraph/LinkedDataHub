@@ -58,6 +58,7 @@ import jakarta.ws.rs.core.SecurityContext;
 import java.util.HashMap;
 import java.util.Map;
 import org.apache.commons.codec.binary.Hex;
+import org.apache.jena.query.Query;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.rdf.model.StmtIterator;
 import org.apache.jena.riot.RDFFormat;
@@ -184,7 +185,21 @@ public class ValidatingModelProvider extends com.atomgraph.server.io.ValidatingM
             try
             {
                 String queryString = resource.getProperty(SP.text).getString();
-                QueryFactory.create(queryString);
+                Query query = QueryFactory.create(queryString);
+                
+                // query resource's rdf:type does not match its query string
+                if (resource.hasProperty(RDF.type, SP.Ask) && !query.isAskType() ||
+                        resource.hasProperty(RDF.type, SP.Select) && !query.isSelectType() ||
+                        resource.hasProperty(RDF.type, SP.Describe) && !query.isDescribeType() ||
+                        resource.hasProperty(RDF.type, SP.Construct) && !query.isConstructType())
+                {
+                    if (log.isDebugEnabled()) log.debug("Bad request - SPARQL query's type does not match its query string");
+                    List<ConstraintViolation> cvs = new ArrayList<>();
+                    List<SimplePropertyPath> paths = new ArrayList<>();
+                    paths.add(new ObjectPropertyPath(resource, SP.text));
+                    cvs.add(new ConstraintViolation(resource, paths, null, "SPARQL query's type does not match its query string", null));
+                    throw new SPINConstraintViolationException(cvs, resource.getModel());
+                }
             }
             catch (QueryParseException ex)
             {
