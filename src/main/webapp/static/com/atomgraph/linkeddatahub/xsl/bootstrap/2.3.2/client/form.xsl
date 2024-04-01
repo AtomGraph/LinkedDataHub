@@ -113,6 +113,16 @@ WHERE
     <xsl:template match="textarea[contains-token(@class, 'wymeditor')]" mode="ldh:PostConstruct" priority="1">
         <!-- call .wymeditor() on textarea to show WYMEditor -->
         <xsl:sequence select="ixsl:call(ixsl:call(ixsl:window(), 'jQuery', [ . ]), 'wymeditor', [])[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:variable name="wymeditor" select="ixsl:call(ixsl:get(ixsl:window(), 'jQuery'), 'getWymeditorByTextarea', [ . ])" as="item()"/>
+        <xsl:variable name="char-count" select="sum(.//text()/string-length())" as="xs:integer"/>
+        <xsl:variable name="container" select="ixsl:get($wymeditor, 'container')" as="element()"/>
+        
+        <!-- attempt to infer WYMEditor height from the length of textarea's content -->
+        <xsl:for-each select="$container//iframe">
+            <xsl:variable name="height-in-em" select="$char-count idiv 16" as="xs:integer"/>
+            <xsl:variable name="height-in-em" select="if ($height &lt; 30) then 30 else if ($height &gt; 200) then 200 else $height" as="xs:integer"/>
+            <ixsl:set-property name="height" select="string($height-in-em) || 'em'" object="."/>
+        </xsl:for-each>
     </xsl:template>
 
     <xsl:template match="textarea[@id][contains-token(@class, 'sparql-query-string')]" mode="ldh:PostConstruct" priority="1">
