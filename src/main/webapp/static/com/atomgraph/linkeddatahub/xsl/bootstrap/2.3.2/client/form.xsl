@@ -120,6 +120,7 @@ WHERE
         <!-- attempt to infer WYMEditor height from the length of textarea's content (though min 30em and max 100em) -->
         <xsl:for-each select="$iframe">
             <xsl:variable name="height-in-em" select="$char-count idiv 16" as="xs:integer"/>
+            <xsl:message>$char-count: <xsl:value-of select="$char-count"/> $height-in-em: <xsl:value-of select="$height-in-em"/></xsl:message>
             <xsl:variable name="height-in-em" select="if ($height &lt; 30) then 30 else if ($height &gt; 100) then 100 else $height" as="xs:integer"/>
             <ixsl:set-style name="height" select="string($height-in-em) || 'em'" object="."/>
         </xsl:for-each>
