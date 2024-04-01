@@ -182,7 +182,7 @@ public class Item extends GraphStoreImpl
         getInternalResponse(existingModel, null).evaluatePreconditions();
         Model updatedModel = existingModel.add(model);
         
-        return Response.ok().
+        return Response.noContent().
             tag(getInternalResponse(updatedModel, null).getVariantEntityTag()). // entity tag of the updated graph
             build();
     }
