@@ -50,4 +50,4 @@ curl -k -w "%{http_code}\n" -o /dev/null -s \
 <http://s> <http://p> <http://o> .
 EOF
 ) \
-| grep -q "$STATUS_OK"
+| grep -q "$STATUS_NO_CONTENT"

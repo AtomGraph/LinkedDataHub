@@ -32,7 +32,7 @@ curl -k -w "%{http_code}\n" -o /dev/null -f -s \
 <${END_USER_BASE_URL}named-subject-post> <http://example.com/another-predicate> "another named object POST" .
 EOF
 ) \
-| grep -q "$STATUS_OK"
+| grep -q "$STATUS_NO_CONTENT"
 
 # check that resource is accessible
 
