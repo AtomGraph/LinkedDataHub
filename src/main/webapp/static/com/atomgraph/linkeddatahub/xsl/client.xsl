@@ -1535,23 +1535,31 @@ $series: <xsl:value-of select="$series"/>
     <xsl:template match="." mode="ixsl:onRDFFileUpload">
         <xsl:variable name="event" select="ixsl:event()"/>
         <xsl:variable name="response" select="ixsl:get(ixsl:get($event, 'detail'), 'response')"/>
+        <xsl:variable name="status" select="ixsl:get($response, 'status')" as="xs:integer"/>
         
-        <!-- abort the previous request, if any -->
-        <xsl:if test="ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub'), 'request')">
-            <xsl:message>Aborting HTTP request that has already been sent</xsl:message>
-            <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'LinkedDataHub.request'), 'abort', [])"/>
-        </xsl:if>
-        
-        <xsl:variable name="request" as="item()*">
-            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': ldh:base-uri(.), 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
-                <xsl:call-template name="ldh:DocumentLoaded">
-                    <xsl:with-param name="href" select="ldh:base-uri(.)"/>
-                </xsl:call-template>
-            </ixsl:schedule-action>
-        </xsl:variable>
-        
-        <!-- store the new request object -->
-        <ixsl:set-property name="request" select="$request" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+        <xsl:choose>
+            <xsl:when test="$status = (200, 204)">
+                <!-- abort the previous request, if any -->
+                <xsl:if test="ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub'), 'request')">
+                    <xsl:message>Aborting HTTP request that has already been sent</xsl:message>
+                    <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'LinkedDataHub.request'), 'abort', [])"/>
+                </xsl:if>
+
+                <xsl:variable name="request" as="item()*">
+                    <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': ldh:base-uri(.), 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
+                        <xsl:call-template name="ldh:DocumentLoaded">
+                            <xsl:with-param name="href" select="ldh:base-uri(.)"/>
+                        </xsl:call-template>
+                    </ixsl:schedule-action>
+                </xsl:variable>
+
+                <!-- store the new request object -->
+                <ixsl:set-property name="request" select="$request" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ ?message ])[current-date() lt xs:date('2000-01-01')]"/>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:template>
     
 </xsl:stylesheet>
