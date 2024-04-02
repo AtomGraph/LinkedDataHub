@@ -1511,6 +1511,7 @@ WHERE
             <xsl:map>
                 <xsl:map-entry key="'body'" select="$xml"/>
                 <xsl:map-entry key="'status'" select="ixsl:get($response, 'status')"/>
+                <xsl:map-entry key="'message'" select="ixsl:get($response, 'statusText')"/>
                 <xsl:map-entry key="'media-type'" select="ixsl:call(ixsl:get($response, 'headers'), 'get', [ 'Content-Type' ])"/>
                 <xsl:map-entry key="'headers'">
                     <xsl:map>
