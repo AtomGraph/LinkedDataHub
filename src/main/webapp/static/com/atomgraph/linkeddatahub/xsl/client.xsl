@@ -1535,7 +1535,7 @@ $series: <xsl:value-of select="$series"/>
     <xsl:template match="." mode="ixsl:onRDFFileUpload">
         <xsl:variable name="event" select="ixsl:event()"/>
         <xsl:variable name="response" select="ixsl:get(ixsl:get($event, 'detail'), 'response')"/>
-        <xsl:variable name="status" select="ixsl:get($response, 'status')" as="xs:integer"/>
+        <xsl:variable name="status" select="ixsl:get($response, 'status')" as="xs:double"/>
         
         <xsl:choose>
             <xsl:when test="$status = (200, 204)">
