@@ -892,13 +892,10 @@ extension-element-prefixes="ixsl"
     <xsl:template match="*[*][@rdf:about]" mode="bs2:ShapeConstructor" use-when="system-property('xsl:product-name') = 'SAXON'">
         <xsl:param name="id" select="concat('constructor-', generate-id())" as="xs:string?"/>
         <xsl:param name="with-label" select="false()" as="xs:boolean"/>
-        <xsl:param name="modal-form" select="false()" as="xs:boolean"/>
-        <xsl:param name="create-graph" select="false()" as="xs:boolean"/>
-        <xsl:variable name="forShape" select="@rdf:about" as="xs:anyURI"/>
-        <xsl:variable name="query-params" select="map:merge((map{ 'forShape': string($forShape) }, if ($modal-form) then map{ 'mode': '&ac;ModalMode' } else (), if ($create-graph) then map{ 'createGraph': string(true()) } else ()))" as="map(xs:string, xs:string*)"/>
-        <xsl:variable name="href" select="ac:build-uri(ac:absolute-path(ldh:base-uri(.)), $query-params)" as="xs:anyURI"/>
+        <xsl:param name="base-uri" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI" tunnel="yes"/>
+<!--        <xsl:variable name="forShape" select="@rdf:about" as="xs:anyURI"/>-->
         
-        <a href="{$href}" title="{@rdf:about}">
+        <button title="{@rdf:about}" data-for-shape="{@rdf:about}">
             <xsl:if test="$id">
                 <xsl:attribute name="id" select="$id"/>
             </xsl:if>
@@ -919,10 +916,7 @@ extension-element-prefixes="ixsl"
                     </xsl:apply-templates>
                 </xsl:otherwise>
             </xsl:choose>
-
-            <!-- we don't want to give a name to this input as it would be included in the RDF/POST payload -->
-            <input type="hidden" class="forShape" value="{@rdf:about}"/>
-        </a>
+        </button>
     </xsl:template>
     
     <!-- CONSTRUCTOR -->
@@ -948,10 +942,10 @@ extension-element-prefixes="ixsl"
         <xsl:param name="subclasses" as="attribute()*"/>
         <xsl:param name="with-label" select="false()" as="xs:boolean"/>
         <xsl:param name="base-uri" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI" tunnel="yes"/>
-        <xsl:variable name="forClass" select="@rdf:about" as="xs:anyURI"/>
+<!--        <xsl:variable name="forClass" select="@rdf:about" as="xs:anyURI"/>-->
 
-        <xsl:if test="doc-available(ac:document-uri($forClass))">
-            <!-- if $forClass subclasses are provided, render a dropdown with multiple constructor choices. Otherwise, only render a single constructor button for $forClass -->
+        <xsl:if test="doc-available(ac:document-uri(@rdf:about))">
+            <!-- if subclasses exist, render a dropdown with multiple constructor choices. Otherwise, only render a single constructor button -->
             <xsl:choose>
                 <xsl:when test="exists($subclasses)">
                     <div class="btn-group">
@@ -974,9 +968,9 @@ extension-element-prefixes="ixsl"
                             </xsl:choose>
                         </button>
                         <ul class="dropdown-menu">
-                            <xsl:variable name="self-and-subclasses" select="key('resources', $forClass, document(ac:document-uri($forClass))), $subclasses/.." as="element()*"/>
+                            <xsl:variable name="self-and-subclasses" select="key('resources', @rdf:about, document(ac:document-uri(@rdf:about))), $subclasses/.." as="element()*"/>
 
-                            <!-- apply on the "deepest" subclass of $forClass and its subclasses -->
+                            <!-- apply on the "deepest" subclass and its subclasses -->
                             <!-- eliminate matches where a class is a subclass of itself (happens in inferenced ontology models) -->
                             <xsl:for-each-group select="$self-and-subclasses[let $about := @rdf:about return not($about = $self-and-subclasses[not(@rdf:about = $about)]/rdfs:subClassOf/@rdf:resource)]" group-by="@rdf:about">
                                 <xsl:sort select="ac:label(.)" order="ascending" lang="{$ldt:lang}"/>
@@ -1160,9 +1154,6 @@ extension-element-prefixes="ixsl"
     </xsl:template>
     
     <!-- FORM CONTROL -->
-    
-    <!-- turn off blank node resources from constructor graph (only those that are objects) -->
-    <!-- <xsl:template match="*[@rdf:nodeID][$ac:forClass or $ldh:forShape][rdf:type/starts-with(@rdf:resource, '&xsd;')] | *[@rdf:nodeID][$ac:forClass or $ldh:forShape][count(key('predicates-by-object', @rdf:nodeID)) &gt; 0][rdf:type/@rdf:resource = '&rdfs;Resource']" mode="bs2:FormControl" priority="2" use-when="system-property('xsl:product-name') = 'SAXON'"/> -->
     
     <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:FormControl">
         <xsl:param name="id" select="concat('fieldset-', generate-id())" as="xs:string?"/>

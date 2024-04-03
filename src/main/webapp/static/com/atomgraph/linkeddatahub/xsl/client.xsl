@@ -1557,6 +1557,7 @@ $series: <xsl:value-of select="$series"/>
                 <ixsl:set-property name="request" select="$request" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
             </xsl:when>
             <xsl:otherwise>
+                <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
                 <xsl:variable name="message" select="ixsl:get($response, 'statusText')" as="xs:string"/>
                 <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ $message ])[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:otherwise>

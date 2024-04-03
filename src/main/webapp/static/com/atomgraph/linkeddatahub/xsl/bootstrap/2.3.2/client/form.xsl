@@ -912,36 +912,89 @@ WHERE
     </xsl:template>
     
     <!-- appends new SHACL-constructed instance to the form -->
-    <xsl:template match="a[contains-token(@class, 'add-constructor')][input[@class = 'forShape']/@value]" mode="ixsl:onclick" priority="1">
-        <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
-        <xsl:variable name="form" select="ancestor::form" as="element()?"/>
-        <xsl:variable name="bnode-ids" select="distinct-values($form//input[@name = ('sb', 'ob')]/ixsl:get(., 'value')[starts-with(., 'A')])" as="xs:string*"/>
-         <!-- find the last bnode ID on the form so that we can change this resources ID to +1. Will only work with Jena's ID format A1, A2, ... -->
-        <xsl:variable name="max-bnode-id" select="if (empty($bnode-ids)) then 0 else max(for $bnode-id in $bnode-ids return xs:integer(substring-after($bnode-id, 'A')))" as="xs:integer"/>
-        <!--- show a modal form if this button is in a <fieldset>, meaning on a resource-level and not form level. Otherwise (e.g. for the "Create" button) show normal form -->
-<!--        <xsl:variable name="modal-form" select="exists(ancestor::fieldset)" as="xs:boolean"/>-->
-        <xsl:variable name="forShape" select="input[@class = 'forShape']/@value" as="xs:anyURI"/>
-        <xsl:variable name="create-graph" select="empty($form)" as="xs:boolean"/>
-        <xsl:variable name="query-params" select="map:merge((map{ 'forShape': string($forShape) }, if ($create-graph) then map{ 'createGraph': string(true()) } else ()))" as="map(xs:string, xs:string*)"/>
-        <!-- do not use @href from the HTML because it does not update with AJAX document loads -->
-        <xsl:variable name="href" select="ac:build-uri(ac:absolute-path(ldh:base-uri(.)), $query-params)" as="xs:anyURI"/>
-
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
-        
-        <xsl:variable name="request" as="item()*">
-            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
-                <xsl:call-template name="onAddForm">
-                    <xsl:with-param name="container" select="id('content-body', ixsl:page())"/>
-                    <xsl:with-param name="max-bnode-id" select="$max-bnode-id"/>
-                </xsl:call-template>
-            </ixsl:schedule-action>
+    <xsl:template match="a[contains-token(@class, 'add-constructor')][ixsl:contains(., 'dataset.forShape')]" mode="ixsl:onclick" priority="1">
+        <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:variable name="container" select="id('content-body', ixsl:page())" as="element()"/>
+        <xsl:variable name="forShape" select="ixsl:get(., 'dataset.forShape')" as="xs:anyURI"/>
+        <xsl:message>forShape: <xsl:value-of select="$forShape"/></xsl:message>
+        <xsl:variable name="shape-doc" select="document(ac:document-uri($forShape))" as="document-node()?"/>
+        <xsl:variable name="shape" select="key('resources', $forClass, $shape-doc)" as="element()"/>
+        <xsl:variable name="constructed-doc" as="document-node()">
+            <xsl:document>
+                <rdf:RDF>
+                    <xsl:apply-templates select="$shape" mode="ldh:Shape"/>
+                </rdf:RDF>
+            </xsl:document>
         </xsl:variable>
-        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:variable name="doc-uri" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
+        <xsl:variable name="this" select="xs:anyURI($doc-uri || '#id' || ac:uuid())" as="xs:anyURI"/>
+        <xsl:message>ldh:base-uri(.): <xsl:value-of select="ldh:base-uri(.)"/> $doc-uri: <xsl:value-of select="$doc-uri"/> $this: <xsl:value-of select="$doc-uri"/></xsl:message>
+        <!-- set document URI instead of blank node -->
+        <xsl:variable name="constructed-doc" as="document-node()">
+            <xsl:document>
+                <xsl:apply-templates select="$constructed-doc" mode="ldh:SetResourceURI">
+                    <xsl:with-param name="forClass" select="$shape/sh:targetClass/@rdf:resource" tunnel="yes"/>
+                    <xsl:with-param name="this" select="$this" tunnel="yes"/>
+                </xsl:apply-templates>
+            </xsl:document>
+        </xsl:variable>
+        <xsl:variable name="classes" select="()" as="element()*"/>
 
-<!--        <xsl:call-template name="ldh:PushState">
-            <xsl:with-param name="href" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, $href)"/>
-            <xsl:with-param name="container" select="id('content-body', ixsl:page())"/>
-        </xsl:call-template>-->
+        <xsl:for-each select="$container">
+            <xsl:variable name="create-resource" select="$container/div[contains-token(@class, 'create-resource')]" as="element()"/>
+            <!-- remove preceding Create button block -->
+            <xsl:for-each select="$create-resource">
+                <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
+            </xsl:for-each>
+
+            <xsl:variable name="resource" select="key('resources-by-type', $forShape, $constructed-doc)[not(key('predicates-by-object', @rdf:nodeID))]" as="element()"/>
+            <xsl:variable name="row-form" as="element()*">
+                <!-- TO-DO: refactor to use asynchronous HTTP requests -->
+                <!--
+                <xsl:variable name="types" select="distinct-values($resource/rdf:type/@rdf:resource)" as="xs:anyURI*"/>
+                <xsl:variable name="query-string" select="'DESCRIBE $Type VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }'" as="xs:string"/>
+                <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': $query-string, 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
+                <xsl:variable name="type-metadata" select="if (exists($types)) then document($request-uri) else ()" as="document-node()?"/>
+
+                <xsl:variable name="property-uris" select="distinct-values($resource/*/concat(namespace-uri(), local-name()))" as="xs:string*"/>
+                <xsl:variable name="query-string" select="'DESCRIBE $Type VALUES $Type { ' || string-join(for $uri in $property-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>
+                <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': $query-string, 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
+                <xsl:variable name="property-metadata" select="document($request-uri)" as="document-node()"/>
+
+                <xsl:variable name="query-string" select="$constraint-query || ' VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }'" as="xs:string"/>
+                <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': $query-string, 'accept': 'application/sparql-results+xml' })" as="xs:anyURI"/>
+                <xsl:variable name="constraints" select="if (exists($types)) then document($request-uri) else ()" as="document-node()?"/>
+                -->
+
+                <xsl:apply-templates select="$constructed-doc" mode="bs2:RowForm">
+                    <xsl:with-param name="method" select="'post'"/>
+                    <xsl:with-param name="action" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, $doc-uri)" as="xs:anyURI"/>
+                    <xsl:with-param name="classes" select="$classes"/>
+                    <!--
+                    <xsl:with-param name="type-metadata" select="$type-metadata" tunnel="yes"/>
+                    <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/>
+                    <xsl:with-param name="constraints" select="$constraints" tunnel="yes"/>
+                    -->
+                    <xsl:with-param name="shapes" select="$shapes" tunnel="yes"/>
+                    <xsl:with-param name="base-uri" select="ac:absolute-path(ldh:base-uri(.))" tunnel="yes"/> <!-- ac:absolute-path(ldh:base-uri(.)) is empty on constructed documents -->
+                    <xsl:with-param name="show-cancel-button" select="false()"/>
+                </xsl:apply-templates>
+            </xsl:variable>
+            
+            <xsl:result-document href="?." method="ixsl:append-content">
+                <xsl:copy-of select="$row-form"/>
+                
+                <!-- append following Create button block -->
+                <xsl:sequence select="$create-resource"/>
+            </xsl:result-document>
+
+            <!-- add event listeners to the descendants of the form. TO-DO: replace with XSLT -->
+            <xsl:if test="id($row-form//form/@id, ixsl:page())">
+                <xsl:apply-templates select="id($row-form//form/@id, ixsl:page())" mode="ldh:PostConstruct"/>
+            </xsl:if>
+        </xsl:for-each>
+
+        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
     </xsl:template>
     
     <!-- types (classes with constructors) are looked up in the <ns> endpoint -->
