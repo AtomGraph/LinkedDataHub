@@ -918,7 +918,7 @@ WHERE
         <xsl:variable name="forShape" select="ixsl:get(., 'dataset.forShape')" as="xs:anyURI"/>
         <xsl:message>forShape: <xsl:value-of select="$forShape"/></xsl:message>
         <xsl:variable name="shape-doc" select="document(ac:document-uri($forShape))" as="document-node()?"/>
-        <xsl:variable name="shape" select="key('resources', $forClass, $shape-doc)" as="element()"/>
+        <xsl:variable name="shape" select="key('resources', $forShape, $shape-doc)" as="element()"/>
         <xsl:variable name="constructed-doc" as="document-node()">
             <xsl:document>
                 <rdf:RDF>
