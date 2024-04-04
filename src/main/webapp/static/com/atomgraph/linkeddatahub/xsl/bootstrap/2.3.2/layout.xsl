@@ -218,12 +218,9 @@ LIMIT   100
         <!-- VALUES $Type goes here -->
     </xsl:variable>
     
-    <xsl:key name="resources-by-primary-topic" match="*[@rdf:about] | *[@rdf:nodeID]" use="foaf:primaryTopic/@rdf:resource"/>
     <xsl:key name="violations-by-root" match="*[@rdf:about] | *[@rdf:nodeID]" use="spin:violationRoot/@rdf:resource | spin:violationRoot/@rdf:nodeID"/>
     <xsl:key name="violations-by-value" match="*" use="ldh:violationValue/text()"/>
     <xsl:key name="violations-by-focus-node" match="*" use="sh:focusNode/@rdf:resource | sh:focusNode/@rdf:nodeID"/>
-    <xsl:key name="resources-by-container" match="*[@rdf:about] | *[@rdf:nodeID]" use="sioc:has_parent/@rdf:resource | sioc:has_container/@rdf:resource"/>
-    <xsl:key name="shapes-by-target-class" match="*[@rdf:about] | *[@rdf:nodeID]" use="sh:targetClass/@rdf:resource | sh:targetClass/@rdf:resource"/>
 
     <rdf:Description rdf:about="">
     </rdf:Description>
