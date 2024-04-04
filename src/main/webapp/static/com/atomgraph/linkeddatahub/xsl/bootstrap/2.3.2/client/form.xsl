@@ -1085,8 +1085,9 @@ WHERE
                         </rdf:RDF>
                     </xsl:document>
                 </xsl:variable>
-                
-                <ixsl:set-attribute name="typeof" select="$shape/sh:targetClass/@rdf:resource" object="$container"/>
+                <xsl:variable name="forClass" select="$shape/sh:targetClass/@rdf:resource" as="xs:anyURI"/>
+
+                <ixsl:set-attribute name="typeof" select="$forClass" object="$container"/>
                 
                 <xsl:for-each select="$fieldset">
                     <!-- TO-DO: unify with .btn-edit onclick -->
