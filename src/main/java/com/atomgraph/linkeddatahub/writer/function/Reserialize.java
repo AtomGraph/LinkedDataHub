@@ -43,6 +43,7 @@ import org.apache.jena.riot.system.StreamRDFLib;
  * 
  * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
  */
+@Deprecated
 public class Reserialize implements ExtensionFunction
 {
 
