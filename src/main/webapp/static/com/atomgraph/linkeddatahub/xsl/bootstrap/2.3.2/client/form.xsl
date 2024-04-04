@@ -1086,6 +1086,8 @@ WHERE
                         </rdf:RDF>
                     </xsl:document>
                 </xsl:variable>
+                <xsl:message>$shape-doc: <xsl:value-of select="serialize($shape-doc)"/></xsl:message>
+                <xsl:message>$constructed-doc: <xsl:value-of select="serialize($constructed-doc)"/></xsl:message>
                 <xsl:variable name="classes" select="()" as="element()*"/>
                 <xsl:variable name="forClass" select="$shape/sh:targetClass/@rdf:resource" as="xs:anyURI"/>
 
