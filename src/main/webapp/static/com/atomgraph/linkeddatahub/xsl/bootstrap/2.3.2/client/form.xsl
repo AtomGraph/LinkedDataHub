@@ -1085,6 +1085,7 @@ WHERE
                         </rdf:RDF>
                     </xsl:document>
                 </xsl:variable>
+                <xsl:variable name="classes" select="()" as="element()*"/>
                 <xsl:variable name="forClass" select="$shape/sh:targetClass/@rdf:resource" as="xs:anyURI"/>
 
                 <ixsl:set-attribute name="typeof" select="$forClass" object="$container"/>
