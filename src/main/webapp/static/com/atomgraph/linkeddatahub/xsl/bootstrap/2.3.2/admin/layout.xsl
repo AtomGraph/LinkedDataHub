@@ -136,7 +136,7 @@ exclude-result-prefixes="#all">
         </xsl:next-match>
     </xsl:template>-->
     
-    <!-- add ldh:Constructor to the creatable class list below the form. Needs to pass parameters from signup.xsl and request-access.xsl!!! -->
+    <!-- add "Create" button to the creatable class list below the form. Needs to pass parameters from signup.xsl and request-access.xsl!!! -->
     <xsl:template match="rdf:RDF[$ac:method = 'GET']" mode="bs2:RowForm" use-when="system-property('xsl:product-name') = 'SAXON'">
         <xsl:param name="id" select="concat('form-', generate-id())" as="xs:string?"/>
         <xsl:param name="class" select="'form-horizontal'" as="xs:string?"/>

@@ -567,11 +567,10 @@ extension-element-prefixes="ixsl"
     </xsl:template>
 
     <!-- CONSTRUCTOR -->
-    
+
+    <!--    
     <xsl:template match="rdf:RDF" mode="ldh:Constructor" as="document-node()">
         <xsl:param name="forClass" as="xs:anyURI"/>
-        <xsl:param name="createGraph" as="xs:boolean"/>
-        <xsl:param name="constructor-query" as="xs:string?"/>
 
         <xsl:document>
             <xsl:variable name="constructed-doc" select="ldh:construct-forClass($forClass)" as="document-node()"/>
@@ -579,6 +578,7 @@ extension-element-prefixes="ixsl"
             <xsl:apply-templates select="$constructed-doc" mode="ldh:SetResourceURI"/>
         </xsl:document>
     </xsl:template>
+    -->
 
     <!-- SHAPE -->
     

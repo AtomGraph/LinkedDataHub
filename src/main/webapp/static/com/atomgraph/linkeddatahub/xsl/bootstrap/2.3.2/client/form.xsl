@@ -1085,6 +1085,8 @@ WHERE
                 <xsl:variable name="shapes" select="ldh:query-result(map{ '$Shape': $forShape }, resolve-uri('ns', $ldt:base), $shape-query)" as="document-node()"/>
                 <xsl:variable name="shape" select="key('resources', $forShape, $shapes)" as="element()"/>
                 <xsl:variable name="forClass" select="$shape/sh:targetClass/@rdf:resource" as="xs:anyURI"/>
+                <xsl:variable name="doc-uri" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
+                <xsl:variable name="this" select="xs:anyURI($doc-uri || '#id' || ac:uuid())" as="xs:anyURI"/>
                 <xsl:variable name="constructed-doc" as="document-node()">
                     <!-- <xsl:document>
                         <rdf:RDF> -->
@@ -1165,7 +1167,17 @@ WHERE
             <xsl:otherwise>
                 <xsl:variable name="forClass" select="$resource/@rdf:about" as="xs:anyURI"/>
                 <xsl:message>forClass: <xsl:value-of select="$forClass"/></xsl:message>
+                <xsl:variable name="doc-uri" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
+                <xsl:variable name="this" select="xs:anyURI($doc-uri || '#id' || ac:uuid())" as="xs:anyURI"/>
                 <xsl:variable name="constructed-doc" select="ldh:construct-forClass($forClass)" as="document-node()"/>
+                <xsl:variable name="constructed-doc" as="document-node()">
+                    <xsl:document>
+                        <xsl:apply-templates select="$constructed-doc" mode="ldh:SetResourceURI">
+                            <xsl:with-param name="forClass" select="$forClass" tunnel="yes"/>
+                            <xsl:with-param name="this" select="$this" tunnel="yes"/>
+                        </xsl:apply-templates>
+                    </xsl:document>
+                </xsl:variable>
                 <xsl:variable name="classes" select="()" as="element()*"/>
 
                 <!-- update @typeof value -->
