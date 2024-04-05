@@ -1082,7 +1082,7 @@ WHERE
                 <xsl:message>forShape: <xsl:value-of select="$forShape"/></xsl:message>
                 <!-- TO-DO: refactor to use asynchronous HTTP requests -->
                 <xsl:variable name="request-uri" select="ac:build-uri(ac:document-uri($forShape), map{ 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
-                <xsl:variable name="shapes" select="ldh:query-result(map{ '$Shape': $ldh:forShape }, resolve-uri('ns', $ldt:base), $shape-query)" as="document-node()"/>
+                <xsl:variable name="shapes" select="ldh:query-result(map{ '$Shape': $forShape }, resolve-uri('ns', $ldt:base), $shape-query)" as="document-node()"/>
                 <xsl:variable name="shape" select="key('resources', $forShape, $shapes)" as="element()"/>
                 <xsl:variable name="forClass" select="$shape/sh:targetClass/@rdf:resource" as="xs:anyURI"/>
                 <xsl:variable name="constructed-doc" as="document-node()">
