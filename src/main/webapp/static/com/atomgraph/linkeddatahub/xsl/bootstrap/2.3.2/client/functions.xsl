@@ -74,7 +74,9 @@ exclude-result-prefixes="#all"
     <xsl:function name="ldh:reserialize" as="document-node()">
         <xsl:param name="doc" as="document-node()"/>
         
-        <xsl:apply-templates select="$doc" mode="ldh:Reserialize"/>
+        <xsl:document>
+            <xsl:apply-templates select="$doc" mode="ldh:Reserialize"/>
+        </xsl:document>
     </xsl:function>
     
     <xsl:template match="rdf:RDF" mode="ldh:Reserialize" priority="1">
