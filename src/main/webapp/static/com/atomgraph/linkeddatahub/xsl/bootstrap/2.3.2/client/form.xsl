@@ -640,7 +640,11 @@ WHERE
                     <!-- store ETag header value under window.LinkedDataHub.contents[$doc-uri].etag -->
                     <ixsl:set-property name="etag" select="$etag" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $doc-uri || '`')"/>
                 </xsl:if>
-
+                
+                <xsl:message>
+                    $resources: <xsl:value-of select="serialize($resources)"/>
+                </xsl:message>
+                
                 <xsl:variable name="classes" select="()" as="element()*"/>
                 <xsl:variable name="row" as="element()">
                     <xsl:apply-templates select="$resources/rdf:RDF/*" mode="bs2:Row">
