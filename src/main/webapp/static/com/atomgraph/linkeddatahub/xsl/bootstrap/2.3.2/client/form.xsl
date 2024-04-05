@@ -1086,6 +1086,7 @@ WHERE
                         </rdf:RDF>
                     </xsl:document>
                 </xsl:variable>
+                <xsl:variable name="constructed-doc" select="ldh:reserialize($constructor)" as="document-node()"/>
                 <xsl:message>$shape-doc: <xsl:value-of select="serialize($shape-doc)"/></xsl:message>
                 <xsl:message>$constructed-doc: <xsl:value-of select="serialize($constructed-doc)"/></xsl:message>
                 <xsl:variable name="classes" select="()" as="element()*"/>
