@@ -1081,8 +1081,10 @@ WHERE
                 <xsl:variable name="forShape" select="$resource/@rdf:about" as="xs:anyURI"/>
                 <xsl:message>forShape: <xsl:value-of select="$forShape"/></xsl:message>
                 <!-- TO-DO: refactor to use asynchronous HTTP requests -->
-                <xsl:variable name="request-uri" select="ac:build-uri(ac:document-uri($forShape), map{ 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
-                <xsl:variable name="shapes" select="ldh:query-result(map{ '$Shape': $forShape }, resolve-uri('ns', $ldt:base), $shape-query)" as="document-node()"/>
+                <!-- <xsl:variable name="shapes" select="ldh:query-result(map{ '$Shape': $forShape }, resolve-uri('ns', $ldt:base), $shape-query)" as="document-node()"/> -->
+                <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': replace($shape-query, '$Shape', concat('&lt;', $forShape, '&gt;'), 'q'), 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
+                <xsl:variable name="shapes" select="document($request-uri)" as="document-node()"/>
+                <xsl:message>$shapes: <xsl:value-of select="serialize($shapes)"/></xsl:message>
                 <xsl:variable name="shape" select="key('resources', $forShape, $shapes)" as="element()"/>
                 <xsl:variable name="forClass" select="$shape/sh:targetClass/@rdf:resource" as="xs:anyURI"/>
                 <xsl:variable name="doc-uri" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
@@ -1103,7 +1105,6 @@ WHERE
                         </xsl:apply-templates>
                     </xsl:document>
                 </xsl:variable>
-                <xsl:message>$shapes: <xsl:value-of select="serialize($shapes)"/></xsl:message>
                 <xsl:message>$constructed-doc: <xsl:value-of select="serialize($constructed-doc)"/></xsl:message>
                 <xsl:variable name="classes" select="()" as="element()*"/>
 
