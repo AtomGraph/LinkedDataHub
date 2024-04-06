@@ -1086,8 +1086,8 @@ WHERE
         <xsl:variable name="constructed-doc" as="document-node()">
             <xsl:apply-templates select="$shapes" mode="ldh:Shape"/>
         </xsl:variable>
-        -->
         <xsl:variable name="constructed-doc" select="ldh:reserialize($constructed-doc)" as="document-node()"/>
+        -->
         <xsl:variable name="constructed-doc" select="ldh:construct-forClass($forClass)" as="document-node()"/>
         <xsl:variable name="constructed-doc" as="document-node()">
             <xsl:document>
