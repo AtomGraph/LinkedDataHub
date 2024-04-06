@@ -921,27 +921,27 @@ exclude-result-prefixes="#all"
         <xsl:param name="type-label" select="true()" as="xs:boolean"/>
 
         <xsl:apply-templates select="key('resources', .)" mode="ldh:Typeahead"/>
-        <xsl:text> </xsl:text>
+<!--        <xsl:text> </xsl:text>
 
         <xsl:variable name="forClass" select="key('resources', .)/rdf:type/@rdf:resource" as="xs:anyURI"/>
         <xsl:variable name="forClass-shapes" select="ldh:query-result(map{}, resolve-uri('ns', $ldt:base), $shape-query || ' VALUES $Type { ' || string-join(for $type in $forClass return '&lt;' || $type || '&gt;', ' ') || ' }')" as="document-node()"/>
-        <!-- forClass input is used by typeahead's FILTER ($Type IN ()) in client.xsl -->
+         forClass input is used by typeahead's FILTER ($Type IN ()) in client.xsl 
         <xsl:choose>
-            <!-- SHACL shapes -->
+             SHACL shapes 
             <xsl:when test="not($forClass = '&rdfs;Resource') and $forClass-shapes//rdf:Description[sh:targetClass/@rdf:resource = $forClass]">
                 <xsl:apply-templates select="$forClass-shapes//rdf:Description[sh:targetClass/@rdf:resource = $forClass]" mode="bs2:ShapeConstructor">
                     <xsl:with-param name="modal-form" select="true()"/>
                     <xsl:with-param name="create-graph" select="true()"/>
                 </xsl:apply-templates>
             </xsl:when>
-            <!-- SPIN constraints -->
+             SPIN constraints 
             <xsl:when test="not($forClass = '&rdfs;Resource') and ldh:query-result(map{}, resolve-uri('ns', $ldt:base), $constructor-query || ' VALUES $Type { ' || string-join(for $type in $forClass return '&lt;' || $type || '&gt;', ' ') || ' }')//srx:binding[@name = 'construct']/srx:literal">
                 <xsl:variable name="subclasses" select="ldh:listSubClasses($forClass, false(), $ldt:ontology)" as="attribute()*"/>
-                <!-- add subclasses as forClass -->
+                 add subclasses as forClass 
                 <xsl:for-each select="distinct-values($subclasses)[not(. = $forClass)]">
                     <input type="hidden" class="forClass" value="{.}"/>
                 </xsl:for-each>
-                <!-- bs2:Constructor sets forClass -->
+                 bs2:Constructor sets forClass 
                 <xsl:apply-templates select="key('resources', $forClass, document(ac:document-uri($forClass)))" mode="bs2:Constructor">
                     <xsl:with-param name="modal-form" select="true()"/>
                     <xsl:with-param name="subclasses" select="$subclasses"/>
@@ -949,9 +949,9 @@ exclude-result-prefixes="#all"
                 </xsl:apply-templates>
             </xsl:when>
             <xsl:otherwise>
-                <input type="hidden" class="forClass" value="{$forClass}"/> <!-- required by $Type FILTER -->
+                <input type="hidden" class="forClass" value="{$forClass}"/>  required by $Type FILTER 
             </xsl:otherwise>
-        </xsl:choose>
+        </xsl:choose>-->
 
         <xsl:if test="$type-label">
             <xsl:apply-templates select="." mode="bs2:FormControlTypeLabel">
