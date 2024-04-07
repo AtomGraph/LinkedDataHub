@@ -1074,7 +1074,7 @@ WHERE
             </xsl:result-document>
         </xsl:for-each>
 
-        <xsl:variable name="forClass" select="$resource/@rdf:about" as="xs:anyURI"/>
+        <xsl:variable name="forClass" select="if ($resource/rdf:type/@rdf:resource = '&sh;NodeShape') then $resource/sh:targetClass/@rdf:resource else $resource/@rdf:about" as="xs:anyURI"/>
         <xsl:message>forClass: <xsl:value-of select="$forClass"/></xsl:message>
         <xsl:variable name="doc-uri" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
         <xsl:variable name="this" select="xs:anyURI($doc-uri || '#id' || ac:uuid())" as="xs:anyURI"/>
