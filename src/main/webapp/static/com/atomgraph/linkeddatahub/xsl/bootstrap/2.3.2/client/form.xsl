@@ -1073,7 +1073,7 @@ WHERE
             </xsl:result-document>
         </xsl:for-each>
 
-        <xsl:variable name="forClass" select="if ($resource/rdf:type/@rdf:resource = '&sh;NodeShape') then $resource/sh:targetClass/@rdf:resource else $resource/@rdf:about" as="xs:anyURI"/>
+        <xsl:variable name="forClass" select="$resource/@rdf:about" as="xs:anyURI"/>
         <xsl:message>forClass: <xsl:value-of select="$forClass"/></xsl:message>
         <xsl:variable name="doc-uri" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
         <xsl:variable name="this" select="xs:anyURI($doc-uri || '#id' || ac:uuid())" as="xs:anyURI"/>
@@ -1081,13 +1081,21 @@ WHERE
         <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': replace($shape-query, '$Type', concat('&lt;', $forClass, '&gt;'), 'q'), 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
         <xsl:variable name="shapes" select="document($request-uri)" as="document-node()"/>
         <xsl:message>$shapes: <xsl:value-of select="serialize($shapes)"/></xsl:message>
-        <!--
-        <xsl:variable name="constructed-doc" as="document-node()">
+        <xsl:variable name="shape-instance-doc" as="document-node()">
             <xsl:apply-templates select="$shapes" mode="ldh:Shape"/>
         </xsl:variable>
-        <xsl:variable name="constructed-doc" select="ldh:reserialize($constructed-doc)" as="document-node()"/>
-        -->
+        <xsl:variable name="shape-instance-doc" select="ldh:reserialize($shape-instance-doc)" as="document-node()"/>
+        <xsl:message>$shape-instance-doc: <xsl:value-of select="serialize($shape-instance-doc)"/></xsl:message>
         <xsl:variable name="constructed-doc" select="ldh:construct-forClass($forClass)" as="document-node()"/>
+        <!-- merge SHACL-based constructor with SPIN-based constructor -->
+        <xsl:variable name="constructed-doc" as="document-node()">
+            <xsl:document>
+                <rdf:RDF>
+                    <xsl:copy-of select="$shape-instance-doc/rdf:RDF/rdf:Description"/>
+                    <xsl:copy-of select="$constructed-doc/rdf:RDF/rdf:Description"/>
+                </rdf:RDF>
+            </xsl:document>
+        </xsl:variable>
         <xsl:variable name="constructed-doc" as="document-node()">
             <xsl:document>
                 <xsl:apply-templates select="$constructed-doc" mode="ldh:SetResourceURI">
@@ -1096,6 +1104,7 @@ WHERE
                 </xsl:apply-templates>
             </xsl:document>
         </xsl:variable>
+        <xsl:message>$constructed-doc: <xsl:value-of select="serialize($constructed-doc)"/></xsl:message>
         <xsl:variable name="classes" select="()" as="element()*"/>
 
         <!-- update @typeof value -->
