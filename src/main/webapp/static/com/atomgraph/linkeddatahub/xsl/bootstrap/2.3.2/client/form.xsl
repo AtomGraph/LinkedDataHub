@@ -1110,7 +1110,7 @@ WHERE
                 <rdf:RDF>
                     <xsl:for-each-group select="$shape-instance-doc/rdf:RDF/rdf:Description, $constructed-doc/rdf:RDF/rdf:Description" group-by="@rdf:about, @rdf:nodeID">
                         <xsl:copy>
-                            <xsl:apply-templates select="@*"/>
+                            <xsl:copy-of select="@*"/>
                             <xsl:for-each-group select="current-group()/*" group-by="@rdf:resource, @rdf:nodeID, node(), @rdf:datatype, @xml:lang">
                                 <xsl:sequence select="."/>
                             </xsl:for-each-group>
