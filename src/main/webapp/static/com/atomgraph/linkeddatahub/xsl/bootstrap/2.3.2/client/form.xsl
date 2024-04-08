@@ -50,18 +50,17 @@ PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX  sh:   <http://www.w3.org/ns/shacl#>
 PREFIX  spin: <http://spinrdf.org/spin#>
 
-SELECT  ?classOrShape
+SELECT  ?class
 WHERE
-  {   { ?classOrShape (rdfs:subClassOf)*/spin:constructor ?constructor
-        FILTER ( ! strstarts(str(?classOrShape), "http://spinrdf.org/spin#") )
+  {   { ?class (rdfs:subClassOf)*/spin:constructor ?constructor
+        FILTER ( ! strstarts(str(?class), "http://spinrdf.org/spin#") )
       }
     UNION
-      { ?classOrShape
-                  a  sh:NodeShape
+      { ?shape  a               sh:NodeShape ;
+                sh:targetClass  ?class
       }
-    ?classOrShape
-              rdfs:label  ?label
-    FILTER isURI(?classOrShape)
+    ?class  rdfs:label  ?label
+    FILTER isURI(?class)
   }
 ]]>
     </xsl:param>
