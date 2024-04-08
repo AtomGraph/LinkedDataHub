@@ -1091,8 +1091,14 @@ WHERE
         <xsl:variable name="constructed-doc" as="document-node()">
             <xsl:document>
                 <rdf:RDF>
-                    <xsl:copy-of select="$shape-instance-doc/rdf:RDF/rdf:Description"/>
-                    <xsl:copy-of select="$constructed-doc/rdf:RDF/rdf:Description"/>
+                    <xsl:for-each-group select="$shape-instance-doc/rdf:RDF/rdf:Description, $constructed-doc/rdf:RDF/rdf:Description" group-by="@rdf:about, @rdf:nodeID">
+                      <xsl:copy>
+                        <xsl:apply-templates select="@*"/>
+                        <xsl:for-each-group select="current-group()/*" group-by="@rdf:resource, @rdf:nodeID, node(), @rdf:datatype, @xml:lang">
+                          <xsl:sequence select="current-group()[1]"/>
+                        </xsl:for-each-group>
+                      </xsl:copy>
+                    </xsl:for-each-group>
                 </rdf:RDF>
             </xsl:document>
         </xsl:variable>
