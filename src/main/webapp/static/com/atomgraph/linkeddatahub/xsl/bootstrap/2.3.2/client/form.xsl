@@ -1080,7 +1080,6 @@ WHERE
         <!-- TO-DO: refactor to use asynchronous HTTP requests -->
         <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': replace($shape-query, '$Type', concat('&lt;', $forClass, '&gt;'), 'q'), 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
         <xsl:variable name="shapes" select="document($request-uri)" as="document-node()"/>
-        <xsl:message>$shapes: <xsl:value-of select="serialize($shapes)"/></xsl:message>
         <xsl:variable name="shape-instance-doc" as="document-node()">
             <xsl:apply-templates select="$shapes" mode="ldh:Shape"/>
         </xsl:variable>
@@ -1093,7 +1092,6 @@ WHERE
                 </xsl:apply-templates>
             </xsl:document>
         </xsl:variable>
-        <xsl:message>$shape-instance-doc: <xsl:value-of select="serialize($shape-instance-doc)"/></xsl:message>
         <xsl:variable name="constructed-doc" select="ldh:construct-forClass($forClass)" as="document-node()"/>
         <xsl:variable name="constructed-doc" as="document-node()">
             <xsl:document>
@@ -1103,7 +1101,6 @@ WHERE
                 </xsl:apply-templates>
             </xsl:document>
         </xsl:variable>
-        <xsl:message>$constructed-doc: <xsl:value-of select="serialize($constructed-doc)"/></xsl:message>
         <!-- merge SHACL-based constructor with SPIN-based constructor -->
         <xsl:variable name="constructed-doc" as="document-node()">
             <xsl:document>
@@ -1119,7 +1116,6 @@ WHERE
                 </rdf:RDF>
             </xsl:document>
         </xsl:variable>
-        <xsl:message>merged $constructed-doc: <xsl:value-of select="serialize($constructed-doc)"/></xsl:message>
         <xsl:variable name="classes" select="()" as="element()*"/>
 
         <!-- update @typeof value -->
@@ -1151,6 +1147,7 @@ WHERE
                     <xsl:with-param name="type-metadata" select="$type-metadata" tunnel="yes"/>
                     <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/>
                     <xsl:with-param name="constraints" select="$constraints" tunnel="yes"/>
+                    <xsl:with-param name="shapes" select="$shapes" tunnel="yes"/>
                     <xsl:with-param name="base-uri" select="ac:absolute-path(ldh:base-uri(.))" tunnel="yes"/> <!-- ac:absolute-path(ldh:base-uri(.)) is empty on constructed documents -->
                     <xsl:with-param name="show-cancel-button" select="false()"/>
                 </xsl:apply-templates>
