@@ -1085,8 +1085,24 @@ WHERE
             <xsl:apply-templates select="$shapes" mode="ldh:Shape"/>
         </xsl:variable>
         <xsl:variable name="shape-instance-doc" select="ldh:reserialize($shape-instance-doc)" as="document-node()"/>
+        <xsl:variable name="shape-instance-doc" as="document-node()">
+            <xsl:document>
+                <xsl:apply-templates select="$shape-instance-doc" mode="ldh:SetResourceURI">
+                    <xsl:with-param name="forClass" select="$forClass" tunnel="yes"/>
+                    <xsl:with-param name="this" select="$this" tunnel="yes"/>
+                </xsl:apply-templates>
+            </xsl:document>
+        </xsl:variable>
         <xsl:message>$shape-instance-doc: <xsl:value-of select="serialize($shape-instance-doc)"/></xsl:message>
         <xsl:variable name="constructed-doc" select="ldh:construct-forClass($forClass)" as="document-node()"/>
+        <xsl:variable name="constructed-doc" as="document-node()">
+            <xsl:document>
+                <xsl:apply-templates select="$constructed-doc" mode="ldh:SetResourceURI">
+                    <xsl:with-param name="forClass" select="$forClass" tunnel="yes"/>
+                    <xsl:with-param name="this" select="$this" tunnel="yes"/>
+                </xsl:apply-templates>
+            </xsl:document>
+        </xsl:variable>
         <!-- merge SHACL-based constructor with SPIN-based constructor -->
         <xsl:variable name="constructed-doc" as="document-node()">
             <xsl:document>
@@ -1100,14 +1116,6 @@ WHERE
                       </xsl:copy>
                     </xsl:for-each-group>
                 </rdf:RDF>
-            </xsl:document>
-        </xsl:variable>
-        <xsl:variable name="constructed-doc" as="document-node()">
-            <xsl:document>
-                <xsl:apply-templates select="$constructed-doc" mode="ldh:SetResourceURI">
-                    <xsl:with-param name="forClass" select="$forClass" tunnel="yes"/>
-                    <xsl:with-param name="this" select="$this" tunnel="yes"/>
-                </xsl:apply-templates>
             </xsl:document>
         </xsl:variable>
         <xsl:message>$constructed-doc: <xsl:value-of select="serialize($constructed-doc)"/></xsl:message>
