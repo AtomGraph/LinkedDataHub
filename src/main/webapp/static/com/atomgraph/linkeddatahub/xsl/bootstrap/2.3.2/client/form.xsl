@@ -1103,6 +1103,7 @@ WHERE
                 </xsl:apply-templates>
             </xsl:document>
         </xsl:variable>
+        <xsl:message>$constructed-doc: <xsl:value-of select="serialize($constructed-doc)"/></xsl:message>
         <!-- merge SHACL-based constructor with SPIN-based constructor -->
         <xsl:variable name="constructed-doc" as="document-node()">
             <xsl:document>
@@ -1118,7 +1119,7 @@ WHERE
                 </rdf:RDF>
             </xsl:document>
         </xsl:variable>
-        <xsl:message>$constructed-doc: <xsl:value-of select="serialize($constructed-doc)"/></xsl:message>
+        <xsl:message>merged $constructed-doc: <xsl:value-of select="serialize($constructed-doc)"/></xsl:message>
         <xsl:variable name="classes" select="()" as="element()*"/>
 
         <!-- update @typeof value -->
