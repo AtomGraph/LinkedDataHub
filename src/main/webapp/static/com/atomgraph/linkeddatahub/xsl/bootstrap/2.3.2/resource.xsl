@@ -1170,7 +1170,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="shapes" as="document-node()?" tunnel="yes"/>
         <xsl:param name="type-shapes" select="if ($shapes) then key('shapes-by-target-class', $forClass, $shapes) else ()" as="element()*"/>
         <xsl:param name="constructor" as="document-node()?">
-            <!-- SHACL shapes take priority over SPIN constructors -->
+            <!-- SHACL shapes take priority over SPIN constructors TO-DO: merge constructors -->
             <xsl:choose>
                 <xsl:when test="exists($type-shapes)">
                     <xsl:variable name="constructor" as="document-node()">

@@ -631,6 +631,9 @@ exclude-result-prefixes="#all"
         <xsl:param name="cloneable" select="false()" as="xs:boolean"/>
         <xsl:param name="type-constraints" as="element()*"/>
         <xsl:param name="type-shapes" as="element()*"/>
+        <xsl:message>
+            $type-shapes: <xsl:copy-of select="$type-shapes"/>
+        </xsl:message>
         <!-- only the first property that has a mandatory constraint is required, the following ones are not -->
         <xsl:param name="required" select="($type-shapes[sh:path/@rdf:resource = $this][sh:minCount &gt;= count(preceding-sibling::*[concat(namespace-uri(), local-name()) = $this])]) or ($type-constraints//srx:binding[@name = 'property'][srx:uri = $this] and not(preceding-sibling::*[concat(namespace-uri(), local-name()) = $this]))" as="xs:boolean"/>
         <xsl:param name="id" select="generate-id()" as="xs:string"/>
