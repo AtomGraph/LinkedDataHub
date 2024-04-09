@@ -637,7 +637,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="for" select="generate-id((node() | @rdf:resource | @rdf:nodeID)[1])" as="xs:string"/>
         <xsl:param name="class" select="concat('control-group', if ($error) then ' error' else (), if ($required) then ' required' else ())" as="xs:string?"/>
         <xsl:message>
-            $type-shapes: <xsl:copy-of select="$type-shapes"/>
+            $type-shapes: <xsl:copy-of select="serialize($type-shapes)"/>
         </xsl:message>
         
         <div>
