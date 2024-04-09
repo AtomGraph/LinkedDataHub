@@ -1169,7 +1169,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="constraints" as="document-node()?" tunnel="yes"/>
         <xsl:param name="shapes" as="document-node()?" tunnel="yes"/>
         <!-- include both sh:NodeShape and its connected sh:PropertyShapes in $type-shapes -->
-        <xsl:param name="type-shapes" select="if ($shapes) then key('shapes-by-target-class', $forClass, $shapes), key('resources', key('shapes-by-target-class', $forClass, $shapes)/sh:property/@rdf:resource) else ()" as="element()*"/>
+        <xsl:param name="type-shapes" select="if ($shapes) then (key('shapes-by-target-class', $forClass, $shapes), key('resources', key('shapes-by-target-class', $forClass, $shapes)/sh:property/@rdf:resource)) else ()" as="element()*"/>
         <xsl:param name="constructor" as="document-node()?">
             <!-- SHACL shapes take priority over SPIN constructors TO-DO: merge constructors -->
             <xsl:choose>
