@@ -705,8 +705,8 @@ WHERE
                         <xsl:variable name="predicate" select="input[@name = 'pu']/ixsl:get(., 'value')" as="xs:anyURI"/>
                         
                         <xsl:choose>
-                            <!-- if there are violations specific to the predicate of this control group, set error class on the group -->
-                            <xsl:when test="$violations[spin:violationPath/@rdf:resource = $predicate]">
+                            <!-- if there are SPIN or SHACL violations specific to the predicate of this control group, set error class on the group -->
+                            <xsl:when test="$violations[spin:violationPath/@rdf:resource = $predicate or sh:resultPath/@rdf:resource = $predicate]">
                                 <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'error', true() ])[current-date() lt xs:date('2000-01-01')]"/>
                             </xsl:when>
                             <!-- otherwise, remove the error class -->
