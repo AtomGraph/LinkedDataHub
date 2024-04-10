@@ -336,12 +336,17 @@ WHERE
                 <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': $query-string, 'accept': 'application/sparql-results+xml' })" as="xs:anyURI"/>
                 <xsl:variable name="constraints" select="if (exists($types)) then document($request-uri) else ()" as="document-node()?"/>
                 
+                <xsl:variable name="query-string" select="$shape-query || ' VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }'" as="xs:string"/>
+                <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': $query-string, 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
+                <xsl:variable name="shapes" select="document($request-uri)" as="document-node()"/>
+
                 <xsl:for-each select="$container">
                     <xsl:variable name="row" as="node()*">
                         <xsl:apply-templates select="$resource" mode="bs2:RowForm">
                             <xsl:with-param name="type-metadata" select="$type-metadata" tunnel="yes"/>
                             <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/>
                             <xsl:with-param name="constraints" select="$constraints" tunnel="yes"/>
+                            <xsl:with-param name="shapes" select="$shapes" tunnel="yes"/>
                         </xsl:apply-templates>
                     </xsl:variable>
 
@@ -884,6 +889,10 @@ WHERE
                 <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': $query-string, 'accept': 'application/sparql-results+xml' })" as="xs:anyURI"/>
                 <xsl:variable name="constraints" select="if (exists($types)) then document($request-uri) else ()" as="document-node()?"/>
 
+                <xsl:variable name="query-string" select="$shape-query || ' VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }'" as="xs:string"/>
+                <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': $query-string, 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
+                <xsl:variable name="shapes" select="document($request-uri)" as="document-node()"/>
+
                 <xsl:apply-templates select="$constructed-doc" mode="bs2:RowForm">
                     <xsl:with-param name="method" select="'post'"/>
                     <xsl:with-param name="action" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, $doc-uri)" as="xs:anyURI"/>
@@ -891,7 +900,7 @@ WHERE
                     <xsl:with-param name="type-metadata" select="$type-metadata" tunnel="yes"/>
                     <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/>
                     <xsl:with-param name="constraints" select="$constraints" tunnel="yes"/>
-                    <!-- <xsl:with-param name="shapes" select="$shapes" tunnel="yes"/> -->
+                    <xsl:with-param name="shapes" select="$shapes" tunnel="yes"/>
                     <xsl:with-param name="base-uri" select="ac:absolute-path(ldh:base-uri(.))" tunnel="yes"/> <!-- ac:absolute-path(ldh:base-uri(.)) is empty on constructed documents -->
                     <xsl:with-param name="show-cancel-button" select="false()"/>
                 </xsl:apply-templates>
