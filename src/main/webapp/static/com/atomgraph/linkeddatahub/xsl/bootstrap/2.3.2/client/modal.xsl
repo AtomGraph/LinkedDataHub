@@ -643,7 +643,7 @@ LIMIT   10
                 <xsl:variable name="uri" select="$control-group/descendant::input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
                 
                 <xsl:choose>
-                    <xsl:when test="?status = 200">
+                    <xsl:when test="?status = (200, 204)">
                         <!-- load document -->
                         <xsl:variable name="request" as="item()*">
                             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
