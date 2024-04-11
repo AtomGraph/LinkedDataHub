@@ -168,7 +168,7 @@
             <!-- comes with atomgraph/letsencrypt-tomcat -->
             <groupId>org.apache.tomcat</groupId>
             <artifactId>tomcat-coyote</artifactId>
-            <version>10.1.2</version>
+            <version>10.1.19</version>
             <type>jar</type>
         </dependency>
     </dependencies>
