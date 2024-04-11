@@ -752,7 +752,7 @@ WHERE
 {
 
     <ontologies/> a dh:Container ;
-        sioc:has_parent </> ;
+        sioc:has_parent <> ;
         dct:title "Ontologies" ;
         dct:description "Manage ontologies that define application domain" ;
         rdf:_1 <ontologies/#select-children> .
