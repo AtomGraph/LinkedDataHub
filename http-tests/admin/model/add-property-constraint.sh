@@ -13,7 +13,7 @@ pushd . > /dev/null && cd "$SCRIPT_ROOT/admin/model"
 
 namespace_doc="${END_USER_BASE_URL}ns"
 namespace="${namespace_doc}#"
-ontology_doc="${ADMIN_BASE_URL}model/ontologies/namespace/"
+ontology_doc="${ADMIN_BASE_URL}ontologies/namespace/"
 constraint="${namespace_doc}#NewConstraint"
 
 ./add-property-constraint.sh \
@@ -22,7 +22,6 @@ constraint="${namespace_doc}#NewConstraint"
   -b "$ADMIN_BASE_URL" \
   --uri "$constraint" \
   --label "New constraint" \
-  --slug new-constraint \
   --property "http://rdfs.org/sioc/ns#content" \
   "$ontology_doc"
 
@@ -34,7 +33,6 @@ constraint="${namespace_doc}#NewConstraint"
   -b "$ADMIN_BASE_URL" \
   --uri "${namespace_doc}#ConstrainedClass" \
   --label "Constrained class" \
-  --slug constrained-class \
   --constraint "$constraint" \
   --sub-class-of "https://www.w3.org/ns/ldt/document-hierarchy#Item" \
   "$ontology_doc"

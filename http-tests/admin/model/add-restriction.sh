@@ -13,7 +13,7 @@ pushd . > /dev/null && cd "$SCRIPT_ROOT/admin/model"
 
 namespace_doc="${END_USER_BASE_URL}ns"
 namespace="${namespace_doc}#"
-ontology_doc="${ADMIN_BASE_URL}model/ontologies/namespace/"
+ontology_doc="${ADMIN_BASE_URL}ontologies/namespace/"
 restriction="${namespace_doc}#Restriction"
 
 ./add-restriction.sh \
@@ -22,7 +22,6 @@ restriction="${namespace_doc}#Restriction"
   -b "$ADMIN_BASE_URL" \
   --uri "$restriction" \
   --label "Topic of document" \
-  --slug topic-of-document \
   --on-property "http://xmlns.com/foaf/0.1/primaryTopic" \
   --all-values-from "http://www.w3.org/2000/01/rdf-schema#Resource" \
   "$ontology_doc"

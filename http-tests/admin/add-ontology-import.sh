@@ -10,7 +10,7 @@ pushd . > /dev/null && cd "$SCRIPT_ROOT/admin"
 
 namespace_doc="${END_USER_BASE_URL}ns"
 namespace="${namespace_doc}#"
-ontology_doc="${ADMIN_BASE_URL}model/ontologies/namespace/"
+ontology_doc="${ADMIN_BASE_URL}ontologies/namespace/"
 import_uri="http://www.w3.org/ns/auth/acl"
 
 # add ontology import
