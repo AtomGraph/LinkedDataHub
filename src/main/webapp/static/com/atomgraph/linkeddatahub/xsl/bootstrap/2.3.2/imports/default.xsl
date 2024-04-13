@@ -571,7 +571,7 @@ exclude-result-prefixes="#all"
             </span>
             <div class="controls">
                 <span class="input-prepend input-append">
-                    <input type="hidden" class="su" value="{.}"/>
+                    <input type="hidden" name="su" value="{.}"/>
                     
                     <span class="add-on">
                         <xsl:value-of select="ac:absolute-path(ldh:base-uri(.))"/>
