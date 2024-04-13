@@ -640,31 +640,6 @@ extension-element-prefixes="ixsl"
     </xsl:template>
     
     <!-- ROW FORM -->
-
-<!--    <xsl:template match="rdf:RDF[$ac:forClass = ('&ldh;CSVImport', '&ldh;RDFImport')][$ac:method = 'GET']" mode="bs2:Form" priority="2" use-when="system-property('xsl:product-name') = 'SAXON'">
-        <xsl:param name="action" select="ac:build-uri(resolve-uri('importer', $ldt:base), map{ '_method': 'PUT', 'forClass': string($ac:forClass), 'mode': '&ac;EditMode' })" as="xs:anyURI"/>
-        <xsl:param name="classes" as="element()*"/>
-
-        <xsl:next-match>
-            <xsl:with-param name="action" select="$action"/>
-            <xsl:with-param name="classes" select="$classes"/>
-            <xsl:with-param name="enctype" select="'multipart/form-data'"/>
-        </xsl:next-match>
-    </xsl:template>
-    
-    <xsl:template match="rdf:RDF[$ac:forClass][$ac:method = 'GET']" mode="bs2:Form" priority="1" use-when="system-property('xsl:product-name') = 'SAXON'">
-        <xsl:param name="base-uri" as="xs:anyURI" tunnel="yes"/>
-         document resource might not always be present in the form (e.g. ldh:Content only) 
-        <xsl:param name="document-uri" select="if (key('resources-by-type', ('&dh;Container', '&dh;Item'))/@rdf:about) then key('resources-by-type', ('&dh;Container', '&dh;Item'))/@rdf:about else $base-uri" as="xs:anyURI"/>  $doc-uri of the constructed document 
-        <xsl:param name="action" select="ac:build-uri($document-uri, map{ '_method': 'PUT', 'forClass': string($ac:forClass), 'mode': '&ac;EditMode' })" as="xs:anyURI"/>
-        <xsl:param name="classes" as="element()*"/>
-
-        <xsl:next-match>
-            <xsl:with-param name="document-uri" select="$document-uri" tunnel="yes"/>
-            <xsl:with-param name="action" select="$action"/>
-            <xsl:with-param name="classes" select="$classes"/>
-        </xsl:next-match>
-    </xsl:template>-->
     
     <xsl:template match="rdf:RDF" mode="bs2:Form">
         <xsl:param name="method" select="'post'" as="xs:string"/>
@@ -679,11 +654,6 @@ extension-element-prefixes="ixsl"
         <xsl:param name="create-resource" select="true()" as="xs:boolean"/>
         <xsl:param name="classes" as="element()*"/>
         <xsl:param name="types" select="distinct-values(rdf:Description/rdf:type/@rdf:resource)" as="xs:anyURI*"/>
-        <!--
-        <xsl:param name="constructor-query" as="xs:string?" tunnel="yes"/>
-        <xsl:param name="constraint-query" as="xs:string?" tunnel="yes"/>
-        <xsl:param name="shape-query" as="xs:string?" tunnel="yes"/>
-        -->
         <xsl:param name="constructors" select="if (exists($types)) then (ldh:query-result(map{}, resolve-uri('ns', $ldt:base), $constructor-query || ' VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }')) else ()" as="document-node()?" tunnel="yes"/>
         <xsl:param name="constraints" select="if (exists($types)) then (ldh:query-result(map{}, resolve-uri('ns', $ldt:base), $constraint-query || ' VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }')) else ()" as="document-node()?" tunnel="yes"/>
         <xsl:param name="shapes" select="if (exists($types)) then (ldh:query-result(map{}, resolve-uri('ns', $ldt:base), $shape-query || ' VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }')) else ()" as="document-node()?" tunnel="yes"/>

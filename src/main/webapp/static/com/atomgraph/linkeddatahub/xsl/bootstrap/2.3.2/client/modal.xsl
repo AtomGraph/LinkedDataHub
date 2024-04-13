@@ -574,6 +574,14 @@ LIMIT   10
         </xsl:choose>
     </xsl:template>
     
+    <xsl:template match="input[contains-token(@class, 'subject-slug')]" mode="ixsl:onkeyup" priority="1">
+        <xsl:param name="text" select="ixsl:get(., 'value')" as="xs:string?"/>
+        <xsl:param name="su-input" select="preceding-sibling::input[@name = 'su']" as="element()"/>
+        
+        <!-- URL-encode the slug value, resolve it against base URI and add trailing slash -->
+        <ixsl:set-property name="value" select="ac:absolute-path(ldh:base-uri(.)) || encode-for-uri($text) || '/'" object="$su-input"/>
+    </xsl:template>
+    
     <!-- CALLBACKS -->
     
     <!-- show "Add data"/"Save as" form -->
