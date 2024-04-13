@@ -553,13 +553,54 @@ exclude-result-prefixes="#all"
 
     <!-- FORM CONTROL -->
     
+    <xsl:template match="*[rdf:type/@rdf:resource = ('&dh;Container', '&dh;Item')]/@rdf:about" mode="bs2:FormControl" priority="1">
+        <xsl:param name="type" select="'text'" as="xs:string"/>
+        <xsl:param name="id" select="generate-id()" as="xs:string"/>
+        <xsl:param name="class" select="'subject input-xxlarge'" as="xs:string?"/>
+        <xsl:param name="disabled" select="false()" as="xs:boolean"/>
+        <xsl:param name="document-uri" as="xs:anyURI?" tunnel="yes"/>
+
+        <div class="control-group">
+            <xsl:if test="$type = 'hidden'">
+                <xsl:attribute name="style" select="'display: none'"/>
+            </xsl:if>
+            
+            <span class="control-label">
+                <select class="subject-type input-medium disabled">
+                    <option value="su" selected="selected">URI</option>
+                </select>
+            </span>
+            <div class="controls">
+                <span class="input-prepend input-append">
+                    <input type="hidden" class="su" value="{.}"/>
+                    
+                    <span class="add-on">
+                        <xsl:value-of select="$document-uri"/>
+                    </span>
+                    
+                    <xsl:call-template name="xhtml:Input">
+                        <!-- <xsl:with-param name="name" select="'su'"/> -->
+                        <xsl:with-param name="type" select="'text'"/>
+                        <!-- <xsl:with-param name="id" select="$id"/> -->
+                        <xsl:with-param name="value" select="substring-after(., $document-uri)"/>
+                        <xsl:with-param name="class" select="$class"/>
+                        <xsl:with-param name="disabled" select="$disabled"/>
+                    </xsl:call-template>
+                    
+                    <span class="add-on">/</span>
+                </span>
+            </div>
+
+            <hr/>
+        </div>
+    </xsl:template>
+    
     <!-- resource -->
     <xsl:template match="*[*]/@rdf:about | *[*]/@rdf:nodeID" mode="bs2:FormControl">
         <xsl:param name="type" select="'text'" as="xs:string"/>
         <xsl:param name="id" select="generate-id()" as="xs:string"/>
         <xsl:param name="class" select="'subject input-xxlarge'" as="xs:string?"/>
         <xsl:param name="disabled" select="false()" as="xs:boolean"/>
-        <!--        <xsl:param name="auto" select="local-name() = 'nodeID' or starts-with(., $ldt:base)" as="xs:boolean"/>-->
         <xsl:param name="document-uri" as="xs:anyURI?" tunnel="yes"/>
         <xsl:param name="about" select="xs:anyURI($document-uri || '#id' || ac:uuid())" as="xs:anyURI?"/>
 
