@@ -14,7 +14,6 @@ print_usage()
     printf "\n"
     printf "  --label LABEL                        Label of the query\n"
     printf "  --comment COMMENT                    Description of the query (optional)\n"
-    printf "  --slug STRING                        String that will be used as URI path segment (optional)\n"
     printf "\n"
     printf "  --uri URI                            URI of the query (optional)\n"
     printf "  --query-file ABS_PATH                Absolute path to the text file with the SPARQL query string\n"
@@ -22,11 +21,6 @@ print_usage()
 }
 
 hash turtle 2>/dev/null || { echo >&2 "turtle not on \$PATH. Need to set \$JENA_HOME. Aborting."; exit 1; }
-
-urlencode() {
-  python -c 'import urllib.parse, sys; print(urllib.parse.quote(sys.argv[1], sys.argv[2]))' \
-    "$1" "$urlencode_safe"
-}
 
 args=()
 while [[ $# -gt 0 ]]
@@ -56,11 +50,6 @@ do
         ;;
         --comment)
         comment="$2"
-        shift # past argument
-        shift # past value
-        ;;
-        --slug)
-        slug="$2"
         shift # past argument
         shift # past value
         ;;
@@ -119,12 +108,6 @@ else
     query="_:query" # blank node
 fi
 
-if [ -z "$slug" ] ; then
-    slug=$(uuidgen | tr '[:upper:]' '[:lower:]') # lowercase
-fi
-encoded_slug=$(urlencode "$slug")
-
-container="${base}model/queries/"
 query_string=$(<"$query_file") # read query string from file
 
 args+=("-f")
@@ -135,19 +118,11 @@ args+=("-t")
 args+=("text/turtle") # content type
 
 turtle+="@prefix ldh:	<https://w3id.org/atomgraph/linkeddatahub#> .\n"
-turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy#> .\n"
 turtle+="@prefix sp:	<http://spinrdf.org/sp#> .\n"
 turtle+="@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .\n"
-turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
-turtle+="@prefix foaf:	<http://xmlns.com/foaf/0.1/> .\n"
-turtle+="@prefix sioc:	<http://rdfs.org/sioc/ns#> .\n"
 turtle+="${query} a sp:Select .\n"
 turtle+="${query} rdfs:label \"${label}\" .\n"
 turtle+="${query} sp:text \"\"\"${query_string}\"\"\" .\n"
-turtle+="<${container}${encoded_slug}/> a dh:Item .\n"
-turtle+="<${container}${encoded_slug}/> foaf:primaryTopic ${query} .\n"
-turtle+="<${container}${encoded_slug}/> sioc:has_container <${container}> .\n"
-turtle+="<${container}${encoded_slug}/> dct:title \"${label}\" .\n"
 
 if [ -n "$comment" ] ; then
     turtle+="${query} rdfs:comment \"${comment}\" .\n"

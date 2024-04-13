@@ -14,7 +14,6 @@ print_usage()
     printf "\n"
     printf "  --label LABEL                        Label of the restriction\n"
     printf "  --comment COMMENT                    Description of the restriction (optional)\n"
-    printf "  --slug STRING                        String that will be used as URI path segment (optional)\n"
     printf "\n"
     printf "  --uri URI                            URI of the restriction (optional)\n"
     printf "  --on-property PROPERTY_URI           URI of the restricted property (optional)\n"
@@ -23,11 +22,6 @@ print_usage()
 }
 
 hash turtle 2>/dev/null || { echo >&2 "turtle not on \$PATH. Need to set \$JENA_HOME. Aborting."; exit 1; }
-
-urlencode() {
-  python -c 'import urllib.parse, sys; print(urllib.parse.quote(sys.argv[1], sys.argv[2]))' \
-    "$1" "$urlencode_safe"
-}
 
 args=()
 while [[ $# -gt 0 ]]
@@ -57,11 +51,6 @@ do
         ;;
         --comment)
         comment="$2"
-        shift # past argument
-        shift # past value
-        ;;
-        --slug)
-        slug="$2"
         shift # past argument
         shift # past value
         ;;
@@ -121,13 +110,6 @@ else
     restriction="_:restriction" # blank node
 fi
 
-if [ -z "$slug" ] ; then
-    slug=$(uuidgen | tr '[:upper:]' '[:lower:]') # lowercase
-fi
-encoded_slug=$(urlencode "$slug")
-
-container="${base}model/restrictions/"
-
 args+=("-f")
 args+=("$cert_pem_file")
 args+=("-p")
@@ -135,20 +117,12 @@ args+=("$cert_password")
 args+=("-t")
 args+=("text/turtle") # content type
 
-turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy#> .\n"
 turtle+="@prefix owl:	<http://www.w3.org/2002/07/owl#> .\n"
 turtle+="@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .\n"
 turtle+="@prefix owl:	<http://www.w3.org/2002/07/owl#> .\n"
-turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
-turtle+="@prefix foaf:	<http://xmlns.com/foaf/0.1/> .\n"
 turtle+="@prefix spin:	<http://spinrdf.org/spin#> .\n"
-turtle+="@prefix sioc:	<http://rdfs.org/sioc/ns#> .\n"
 turtle+="${restriction} a owl:Restriction .\n"
 turtle+="${restriction} rdfs:label \"${label}\" .\n"
-turtle+="_:item a dh:Item .\n"
-turtle+="_:item foaf:primaryTopic ${restriction} .\n"
-turtle+="_:item sioc:has_container <${container}> .\n"
-turtle+="_:item dct:title \"${label}\" .\n"
 
 if [ -n "$comment" ] ; then
     turtle+="${restriction} rdfs:comment \"${comment}\" .\n"

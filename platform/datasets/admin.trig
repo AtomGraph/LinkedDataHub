@@ -74,8 +74,7 @@ WHERE
       { ?s  a   $type ;
             ?p  ?o
       }
-  }
-    """ .
+  }""" .
 
 }
 
@@ -85,10 +84,24 @@ WHERE
     <files/> a dh:Container ;
         dct:title "Files" ;
         dct:description "Uploaded files" ;
-        rdf:_1 <files/#select-children> .
+        rdf:_1 <files/#select-files> .
 
-    <files/#select-children> a ldh:Content ;
-        rdf:value ldh:ChildrenView .
+    <files/#select-files> a ldh:Content ;
+        rdf:value <files/#select-files-view> .
+
+    <files/#select-files-view> a ldh:View ;
+        dct:title "File view" ;
+        spin:query <files/#select-files-query> .
+
+    <files/#select-files-query> a sp:Select ;
+        dct:title "Select file resources" ;
+        sp:text """PREFIX  nfo:  <http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#>
+
+SELECT DISTINCT  ?s
+WHERE
+  { GRAPH ?g
+      { ?s  a  nfo:FileDataObject }
+  }""" .
 
 }
 
@@ -98,10 +111,27 @@ WHERE
     <imports/> a dh:Container ;
         dct:title "Imports" ;
         dct:description "Data imports" ;
-        rdf:_1 <imports/#select-children> .
+        rdf:_1 <imports/#select-imports> .
 
-    <imports/#select-children> a ldh:Content ;
-        rdf:value ldh:ChildrenView .
+    <imports/#select-imports> a ldh:Content ;
+        rdf:value <imports/#select-imports-view> .
+
+    <imports/#select-imports-view> a ldh:View ;
+        dct:title "Import view" ;
+        spin:query <imports/#select-imports-query> .
+
+    <imports/#select-imports-query> a sp:Select ;
+        dct:title "Select import resources" ;
+        sp:text """PREFIX  ldh:  <https://w3id.org/atomgraph/linkeddatahub#>
+
+SELECT DISTINCT  ?s
+WHERE
+  { GRAPH ?g
+      {   { ?s  a  ldh:CSVImport }
+        UNION
+          { ?s  a  ldh:RDFImport }
+      }
+  }""" .
 
 }
 
@@ -175,10 +205,24 @@ ORDER BY DESC(?created)""" .
     <apps/> a dh:Container ;
         dct:title "Apps" ;
         dct:description "Linked Data applications" ;
-        rdf:_1 <apps/#select-children> .
+        rdf:_1 <apps/#select-apps> .
 
-    <apps/#select-children> a ldh:Content ;
-        rdf:value ldh:ChildrenView .
+    <apps/#select-apps> a ldh:Content ;
+        rdf:value <apps/#select-apps-view> .
+
+    <apps/#select-apps-view> a ldh:View ;
+        dct:title "Application view" ;
+        spin:query <apps/#select-apps-query> .
+
+    <apps/#select-apps-query> a sp:Select ;
+        dct:title "Select application resources" ;
+        sp:text """PREFIX  lapp: <https://w3id.org/atomgraph/linkeddatahub/apps#>
+
+SELECT DISTINCT  ?s
+WHERE
+  { GRAPH ?g
+      { ?s  a  lapp:Application }
+  }""" .
 
 }
 
@@ -188,10 +232,24 @@ ORDER BY DESC(?created)""" .
     <services/> a dh:Container ;
         dct:title "Services" ;
         dct:description "SPARQL services" ;
-        rdf:_1 <services/#select-children> .
+        rdf:_1 <services/#select-services> .
 
-    <services/#select-children> a ldh:Content ;
-        rdf:value ldh:ChildrenView .
+    <services/#select-services> a ldh:Content ;
+        rdf:value <services/#select-services-view> .
+
+    <services/#select-services-view> a ldh:View ;
+        dct:title "Service view" ;
+        spin:query <services/#select-services-query> .
+
+    <services/#select-services-query> a sp:Select ;
+        dct:title "Select service resources" ;
+        sp:text """PREFIX  sd:   <http://www.w3.org/ns/sparql-service-description#>
+
+SELECT DISTINCT  ?s
+WHERE
+  { GRAPH ?g
+      { ?s  a  sd:Service }
+  }""" .
 
 }
 
@@ -686,48 +744,20 @@ WHERE
 
 }
 
-### MODEL ###
+### ONTOLOGIES ###
 
 # CONTAINERS
 
-<model/>
+<ontologies/>
 {
 
-    <model/> a dh:Container ;
+    <ontologies/> a dh:Container ;
         sioc:has_parent <> ;
-        dct:title "Model" ;
-        dct:description "Manage application model: classes, properties, constraints etc." ;
-        rdf:_1 <model/#select-children> .
-
-    <model/#select-children> a ldh:Content ;
-        rdf:value ldh:ChildrenView .
-
-}
-
-<model/ontologies/>
-{
-
-    <model/ontologies/> a dh:Container ;
-        sioc:has_parent <model/> ;
         dct:title "Ontologies" ;
         dct:description "Manage ontologies that define application domain" ;
-        rdf:_1 <model/ontologies/#select-children> .
+        rdf:_1 <ontologies/#select-children> .
 
-    <model/ontologies/#select-children> a ldh:Content ;
-        rdf:value ldh:ChildrenView .
-
-}
-
-<model/shapes/>
-{
-
-    <model/shapes/> a dh:Container ;
-        sioc:has_parent <model/> ;
-        dct:title "Shapes" ;
-        dct:description "Manage shapes that describe and validate data" ;
-        rdf:_1 <model/shapes/#select-children> .
-
-    <model/shapes/#select-children> a ldh:Content ;
+    <ontologies/#select-children> a ldh:Content ;
         rdf:value ldh:ChildrenView .
 
 }
@@ -736,11 +766,11 @@ WHERE
 
 # namespace
 
-<model/ontologies/namespace/>
+<ontologies/namespace/>
 {
 
-    <model/ontologies/namespace/> a dh:Item ;
-        sioc:has_container <model/ontologies/> ;
+    <ontologies/namespace/> a dh:Item ;
+        sioc:has_container <ontologies/> ;
         dct:title "Namespace" ;
         foaf:primaryTopic ns: .
 

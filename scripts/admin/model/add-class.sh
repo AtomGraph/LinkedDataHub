@@ -14,7 +14,6 @@ print_usage()
     printf "\n"
     printf "  --label LABEL                        Label of the class\n"
     printf "  --comment COMMENT                    Description of the class (optional)\n"
-    printf "  --slug STRING                        String that will be used as URI path segment (optional)\n"
     printf "\n"
     printf "  --uri URI                            URI of the class (optional)\n"
     printf "  --constructor CONSTRUCT_URI          URI of the constructor CONSTRUCT query (optional)\n"
@@ -24,11 +23,6 @@ print_usage()
 }
 
 hash turtle 2>/dev/null || { echo >&2 "turtle not on \$PATH. Need to set \$JENA_HOME. Aborting."; exit 1; }
-
-urlencode() {
-  python -c 'import urllib.parse, sys; print(urllib.parse.quote(sys.argv[1], sys.argv[2]))' \
-    "$1" "$urlencode_safe"
-}
 
 args=()
 super_classes=() # --super-class-of can have multiple values, so we need an array
@@ -59,11 +53,6 @@ do
         ;;
         --comment)
         comment="$2"
-        shift # past argument
-        shift # past value
-        ;;
-        --slug)
-        slug="$2"
         shift # past argument
         shift # past value
         ;;
@@ -123,13 +112,6 @@ else
     class="_:class" # blank node
 fi
 
-if [ -z "$slug" ] ; then
-    slug=$(uuidgen | tr '[:upper:]' '[:lower:]') # lowercase
-fi
-encoded_slug=$(urlencode "$slug")
-
-container="${base}model/classes/"
-
 args+=("-f")
 args+=("$cert_pem_file")
 args+=("-p")
@@ -147,10 +129,6 @@ turtle+="@prefix spin:	<http://spinrdf.org/spin#> .\n"
 turtle+="@prefix sioc:	<http://rdfs.org/sioc/ns#> .\n"
 turtle+="${class} a owl:Class .\n"
 turtle+="${class} rdfs:label \"${label}\" .\n"
-turtle+="<${container}${encoded_slug}/> a dh:Item .\n"
-turtle+="<${container}${encoded_slug}/> foaf:primaryTopic ${class} .\n"
-turtle+="<${container}${encoded_slug}/> sioc:has_container <${container}> .\n"
-turtle+="<${container}${encoded_slug}/> dct:title \"${label}\" .\n"
 
 if [ -n "$comment" ] ; then
     turtle+="${class} rdfs:comment \"${comment}\" .\n"

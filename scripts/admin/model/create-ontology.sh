@@ -92,7 +92,7 @@ if [ -z "$label" ] ; then
     exit 1
 fi
 
-container="${base}model/ontologies/"
+container="${base}ontologies/"
 
 # allow explicit URIs
 if [ -n "$uri" ] ; then

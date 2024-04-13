@@ -14,18 +14,12 @@ print_usage()
     printf "\n"
     printf "  --label LABEL                        Label of the constraint\n"
     printf "  --comment COMMENT                    Description of the constraint (optional)\n"
-    printf "  --slug STRING                        String that will be used as URI path segment (optional)\n"
     printf "\n"
     printf "  --uri URI                            URI of the constraint (optional)\n"
     printf "  --property PROPERTY_URI              URI of the constrained property\n"
 }
 
 hash turtle 2>/dev/null || { echo >&2 "turtle not on \$PATH. Need to set \$JENA_HOME. Aborting."; exit 1; }
-
-urlencode() {
-  python -c 'import urllib.parse, sys; print(urllib.parse.quote(sys.argv[1], sys.argv[2]))' \
-    "$1" "$urlencode_safe"
-}
 
 args=()
 while [[ $# -gt 0 ]]
@@ -55,11 +49,6 @@ do
         ;;
         --comment)
         comment="$2"
-        shift # past argument
-        shift # past value
-        ;;
-        --slug)
-        slug="$2"
         shift # past argument
         shift # past value
         ;;
@@ -113,13 +102,6 @@ else
     constraint="_:constraint" # blank node
 fi
 
-if [ -z "$slug" ] ; then
-    slug=$(uuidgen | tr '[:upper:]' '[:lower:]') # lowercase
-fi
-encoded_slug=$(urlencode "$slug")
-
-container="${base}model/constraints/"
-
 args+=("-f")
 args+=("$cert_pem_file")
 args+=("-p")
@@ -128,19 +110,11 @@ args+=("-t")
 args+=("text/turtle") # content type
 
 turtle+="@prefix ldh:	<https://w3id.org/atomgraph/linkeddatahub#> .\n"
-turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy#> .\n"
 turtle+="@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .\n"
-turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
-turtle+="@prefix foaf:	<http://xmlns.com/foaf/0.1/> .\n"
 turtle+="@prefix sp:	<http://spinrdf.org/sp#> .\n"
-turtle+="@prefix sioc:	<http://rdfs.org/sioc/ns#> .\n"
 turtle+="${constraint} a ldh:MissingPropertyValue .\n"
 turtle+="${constraint} rdfs:label \"${label}\" .\n"
 turtle+="${constraint} sp:arg1 <${property}> .\n"
-turtle+="<${container}${encoded_slug}/> a dh:Item .\n"
-turtle+="<${container}${encoded_slug}/> foaf:primaryTopic ${constraint} .\n"
-turtle+="<${container}${encoded_slug}/> sioc:has_container <${container}> .\n"
-turtle+="<${container}${encoded_slug}/> dct:title \"${label}\" .\n"
 
 if [ -n "$comment" ] ; then
     turtle+="${constraint} rdfs:comment \"${comment}\" .\n"

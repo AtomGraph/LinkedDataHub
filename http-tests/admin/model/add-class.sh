@@ -13,7 +13,7 @@ pushd . > /dev/null && cd "$SCRIPT_ROOT/admin/model"
 
 namespace_doc="${END_USER_BASE_URL}ns"
 namespace="${namespace_doc}#"
-ontology_doc="${ADMIN_BASE_URL}model/ontologies/namespace/"
+ontology_doc="${ADMIN_BASE_URL}ontologies/namespace/"
 class="${namespace_doc}#NewClass"
 
 ./add-class.sh \
@@ -22,7 +22,6 @@ class="${namespace_doc}#NewClass"
   -b "$ADMIN_BASE_URL" \
   --uri "$class" \
   --label "New class" \
-  --slug new-class \
   --sub-class-of "https://www.w3.org/ns/ldt/document-hierarchy#Item" \
   "$ontology_doc"
 
