@@ -19,6 +19,10 @@ package com.atomgraph.linkeddatahub.resource.graph;
 import com.atomgraph.client.vocabulary.AC;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.core.model.EndpointAccessor;
+import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
+import com.atomgraph.linkeddatahub.client.LinkedDataClient;
+import com.atomgraph.linkeddatahub.model.CSVImport;
+import com.atomgraph.linkeddatahub.model.RDFImport;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.io.ValidatingModelProvider;
 import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
@@ -27,6 +31,7 @@ import com.atomgraph.linkeddatahub.server.util.PatchUpdateVisitor;
 import com.atomgraph.linkeddatahub.server.util.Skolemizer;
 import com.atomgraph.linkeddatahub.vocabulary.DH;
 import com.atomgraph.linkeddatahub.vocabulary.Default;
+import com.atomgraph.linkeddatahub.vocabulary.LDH;
 import com.atomgraph.linkeddatahub.vocabulary.NFO;
 import com.atomgraph.linkeddatahub.vocabulary.SIOC;
 import static com.atomgraph.server.status.UnprocessableEntityStatus.UNPROCESSABLE_ENTITY;
@@ -95,6 +100,7 @@ import org.apache.jena.update.Update;
 import org.apache.jena.update.UpdateAction;
 import org.apache.jena.update.UpdateRequest;
 import org.apache.jena.util.ResourceUtils;
+import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.vocabulary.DCTerms;
 import org.apache.jena.vocabulary.RDF;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
@@ -178,6 +184,8 @@ public class Item extends GraphStoreImpl
         // is this implemented correctly? The specification is not very clear.
         if (log.isDebugEnabled()) log.debug("POST Model to named graph with URI: {}", getURI());
         getService().getGraphStoreClient().add(getURI().toString(), model); // append new data to existing model
+        
+        submitImports(model);
 
         getInternalResponse(existingModel, null).evaluatePreconditions();
         Model updatedModel = existingModel.add(model);
@@ -599,6 +607,36 @@ public class Item extends GraphStoreImpl
         {
             if (log.isErrorEnabled()) log.error("File I/O error", ex);
             throw new InternalServerErrorException(ex);
+        }
+    }
+    
+    public void submitImports(Model model)
+    {
+        if (model == null) throw new IllegalArgumentException("Model cannot be null");
+
+        ExtendedIterator<Resource> it = model.listSubjectsWithProperty(RDF.type, LDH.CSVImport).
+            andThen(model.listSubjectsWithProperty(RDF.type, LDH.RDFImport)).
+            filterKeep(_import -> { return _import.canAs(CSVImport.class) || _import.canAs(RDFImport.class); }); // canAs(Import.class) would require InfModel
+        try
+        {
+            Service adminService = getApplication().canAs(EndUserApplication.class) ? getApplication().as(EndUserApplication.class).getAdminApplication().getService() : null;
+            LinkedDataClient ldc = LinkedDataClient.create(getSystem().getClient(), getSystem().getMediaTypes()).
+                delegation(getUriInfo().getBaseUri(), getAgentContext().orElse(null));
+
+            while (it.hasNext())
+            {
+                Resource _import = it.next();
+
+                // start the import asynchroniously
+                if (_import.canAs(CSVImport.class))
+                    getSystem().submitImport(_import.as(CSVImport.class), getApplication(), getApplication().getService(), adminService, getUriInfo().getBaseUri().toString(), ldc);
+                if (_import.canAs(RDFImport.class))
+                    getSystem().submitImport(_import.as(RDFImport.class), getApplication(), getApplication().getService(), adminService, getUriInfo().getBaseUri().toString(), ldc);
+            }
+        }
+        finally
+        {
+            it.close();
         }
     }
 

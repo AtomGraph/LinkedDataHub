@@ -52,6 +52,7 @@ import org.slf4j.LoggerFactory;
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
+@Deprecated
 public class ImportItem extends Item
 {
     private static final Logger log = LoggerFactory.getLogger(ImportItem.class);

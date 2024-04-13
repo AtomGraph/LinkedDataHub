@@ -176,11 +176,11 @@ public class Dispatcher
      * 
      * @return endpoint resource
      */
-    @Path("imports/{path: .+}/")
-    public Class getImportItem()
-    {
-        return getProxyClass().orElse(ImportItem.class);
-    }
+//    @Path("imports/{path: .+}/")
+//    public Class getImportItem()
+//    {
+//        return getProxyClass().orElse(ImportItem.class);
+//    }
 
     /**
      * Returns the endpoint for synchronous RDF imports.
