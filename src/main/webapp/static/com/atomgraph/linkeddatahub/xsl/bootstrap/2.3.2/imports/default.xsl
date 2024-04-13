@@ -571,17 +571,17 @@ exclude-result-prefixes="#all"
             </span>
             <div class="controls">
                 <span class="input-prepend input-append">
-                    <input type="hidden" class="su" value="{ac:absolute-path(ldh:base-uri(.))}"/>
+                    <input type="hidden" class="su" value="{.}"/>
                     
                     <span class="add-on">
-                        <xsl:value-of select="$document-uri"/>
+                        <xsl:value-of select="ac:absolute-path(ldh:base-uri(.))"/>
                     </span>
                     
                     <xsl:call-template name="xhtml:Input">
                         <!-- <xsl:with-param name="name" select="'su'"/> -->
                         <xsl:with-param name="type" select="'text'"/>
                         <!-- <xsl:with-param name="id" select="$id"/> -->
-                        <xsl:with-param name="value" select="substring-after(., ac:absolute-path(ldh:base-uri(.)))"/>
+                        <xsl:with-param name="value" select="substring-before(substring-after(., ac:absolute-path(ldh:base-uri(.))), '/')"/>
                         <xsl:with-param name="class" select="$class"/>
                         <xsl:with-param name="disabled" select="$disabled"/>
                     </xsl:call-template>
