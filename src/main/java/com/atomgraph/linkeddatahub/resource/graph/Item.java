@@ -239,6 +239,8 @@ public class Item extends GraphStoreImpl
             if (log.isDebugEnabled()) log.debug("PUT Model into new named graph with URI: {}", getURI());
             getService().getGraphStoreClient().putModel(getURI().toString(), model); // TO-DO: catch exceptions
 
+            submitImports(model);
+
             return Response.created(getURI()).
                 build();
         }
@@ -260,6 +262,8 @@ public class Item extends GraphStoreImpl
 
             if (log.isDebugEnabled()) log.debug("PUT Model into existing named graph with URI: {}", getURI());
             getService().getGraphStoreClient().putModel(getURI().toString(), model); // TO-DO: catch exceptions
+
+            submitImports(model);
 
             return getInternalResponse(existingModel, null).getResponseBuilder().
                 build();
