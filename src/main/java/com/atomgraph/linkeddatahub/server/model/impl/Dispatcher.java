@@ -20,14 +20,12 @@ import com.atomgraph.client.vocabulary.AC;
 import com.atomgraph.linkeddatahub.apps.model.Dataset;
 import com.atomgraph.linkeddatahub.resource.Add;
 import com.atomgraph.linkeddatahub.resource.Generate;
-import com.atomgraph.linkeddatahub.resource.ImportItem;
 import com.atomgraph.linkeddatahub.resource.Namespace;
 import com.atomgraph.linkeddatahub.resource.Transform;
 import com.atomgraph.linkeddatahub.resource.admin.Clear;
 import com.atomgraph.linkeddatahub.resource.admin.RequestAccess;
 import com.atomgraph.linkeddatahub.resource.admin.SignUp;
 import com.atomgraph.linkeddatahub.resource.graph.Item;
-import com.atomgraph.linkeddatahub.vocabulary.LDH;
 import java.util.Optional;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.Path;
@@ -170,17 +168,6 @@ public class Dispatcher
     {
         return getProxyClass().orElse(com.atomgraph.linkeddatahub.resource.upload.sha1.Item.class);
     }
-    
-    /**
-     * Returns the endpoint for asynchronous CSV and RDF imports.
-     * 
-     * @return endpoint resource
-     */
-//    @Path("imports/{path: .+}/")
-//    public Class getImportItem()
-//    {
-//        return getProxyClass().orElse(ImportItem.class);
-//    }
 
     /**
      * Returns the endpoint for synchronous RDF imports.
