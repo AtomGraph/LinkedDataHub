@@ -938,7 +938,6 @@ WHERE
         <xsl:param name="delay" select="400" as="xs:integer"/>
         <xsl:param name="endpoint" select="sd:endpoint()" as="xs:anyURI"/>
         <xsl:param name="forClass" select="../ixsl:get(., 'dataset.forClass')" as="xs:anyURI*"/>
-        <xsl:message>typeahead $forClass: <xsl:value-of select="$forClass"/></xsl:message>
         <xsl:param name="select-string" select="$select-labelled-string" as="xs:string?"/>
         <xsl:param name="limit" select="100" as="xs:integer?"/>
         <xsl:param name="label-var-name" select="'label'" as="xs:string"/>
@@ -991,7 +990,8 @@ WHERE
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, $results-uri)" as="xs:anyURI"/> <!-- proxy the results -->
         <!-- TO-DO: use <ixsl:schedule-action> instead of document() -->
         <xsl:variable name="results" select="document($request-uri)" as="document-node()"/>
-        
+        <xsl:message>typeahead $forClass: <xsl:value-of select="$forClass"/></xsl:message>
+
         <xsl:choose>
             <xsl:when test="$key-code = 'Escape'">
                 <xsl:call-template name="typeahead:hide">
