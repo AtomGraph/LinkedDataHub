@@ -522,7 +522,7 @@ exclude-result-prefixes="#all"
         
         <span>
             <xsl:if test="exists($forClass)">
-                <xsl:attribute name="data-forClass" select="string-join($forClass, ' ')"/>
+                <xsl:attribute name="data-for-class" select="string-join($forClass, ' ')"/>
             </xsl:if>
             
             <xsl:call-template name="xhtml:Input">
