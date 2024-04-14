@@ -117,13 +117,11 @@ turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
 turtle+="@prefix foaf:	<http://xmlns.com/foaf/0.1/> .\n"
 turtle+="@prefix sp:	<http://spinrdf.org/sp#> .\n"
-turtle+="@prefix sioc:	<http://rdfs.org/sioc/ns#> .\n"
 turtle+="_:query a sp:Construct .\n"
 turtle+="_:query dct:title \"${title}\" .\n"
 turtle+="_:query sp:text \"\"\"${query}\"\"\" .\n"
 turtle+="<${container}${encoded_slug}/> a dh:Item .\n"
 turtle+="<${container}${encoded_slug}/> foaf:primaryTopic _:query .\n"
-turtle+="<${container}${encoded_slug}/> sioc:has_container <${container}> .\n"
 turtle+="<${container}${encoded_slug}/> dct:title \"${title}\" .\n"
 
 if [ -n "$description" ] ; then

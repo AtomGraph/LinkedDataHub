@@ -120,12 +120,10 @@ turtle+="@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
 turtle+="@prefix foaf:	<http://xmlns.com/foaf/0.1/> .\n"
 turtle+="@prefix sp:	<http://spinrdf.org/sp#> .\n"
-turtle+="@prefix sioc:	<http://rdfs.org/sioc/ns#> .\n"
 turtle+="${ontology} a owl:Ontology .\n"
 turtle+="${ontology} rdfs:label \"${label}\" .\n"
 turtle+="<${container}${encoded_slug}/> a dh:Item .\n"
 turtle+="<${container}${encoded_slug}/> foaf:primaryTopic ${ontology} .\n"
-turtle+="<${container}${encoded_slug}/> sioc:has_container <${container}> .\n"
 turtle+="<${container}${encoded_slug}/> dct:title \"${label}\" .\n"
 
 if [ -n "$comment" ] ; then
