@@ -575,11 +575,16 @@ LIMIT   10
     </xsl:template>
     
     <xsl:template match="input[contains-token(@class, 'subject-slug')]" mode="ixsl:onkeyup" priority="1">
-        <xsl:param name="text" select="ixsl:get(., 'value')" as="xs:string?"/>
+        <xsl:param name="slug" select="ixsl:get(., 'value')" as="xs:string?"/>
         <xsl:param name="su-input" select="preceding-sibling::input[@name = 'su']" as="element()"/>
-        
+        <xsl:param name="form" select="ancestor::form" as="element()?"/>
         <!-- URL-encode the slug value, resolve it against base URI and add trailing slash -->
-        <ixsl:set-property name="value" select="ac:absolute-path(ldh:base-uri(.)) || encode-for-uri($text) || '/'" object="$su-input"/>
+        <xsl:param name="new-uri" select="ac:absolute-path(ldh:base-uri(.)) || encode-for-uri($slug) || '/'" as="xs:string"/>
+
+        <!-- set it as the new subject URI ("su" input value) -->
+        <ixsl:set-property name="value" select="$new-uri" object="$su-input"/>
+        <!-- also set it as the new form action value -->
+        <ixsl:set-property name="action" select="$new-uri" object="$form"/>
     </xsl:template>
     
     <!-- CALLBACKS -->
