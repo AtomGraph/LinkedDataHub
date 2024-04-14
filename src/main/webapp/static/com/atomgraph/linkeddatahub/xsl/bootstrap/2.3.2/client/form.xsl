@@ -937,7 +937,8 @@ WHERE
         <xsl:param name="menu" select="following-sibling::ul" as="element()"/>
         <xsl:param name="delay" select="400" as="xs:integer"/>
         <xsl:param name="endpoint" select="sd:endpoint()" as="xs:anyURI"/>
-        <xsl:param name="forClass" select="../span/ixsl:get(., 'dataset.forClass')" as="xs:anyURI*"/>
+        <xsl:param name="forClass" select="../ixsl:get(., 'dataset.forClass')" as="xs:anyURI*"/>
+        <xsl:message>typeahead $forClass: <xsl:value-of select="$forClass"/></xsl:message>
         <xsl:param name="select-string" select="$select-labelled-string" as="xs:string?"/>
         <xsl:param name="limit" select="100" as="xs:integer?"/>
         <xsl:param name="label-var-name" select="'label'" as="xs:string"/>
@@ -1414,7 +1415,7 @@ WHERE
     
     <xsl:template match="form//input[contains-token(@class, 'resource-typeahead')]" mode="ixsl:onfocusin">
         <xsl:variable name="menu" select="following-sibling::ul" as="element()"/>
-        <xsl:variable name="forClass" select="../span/ixsl:get(., 'dataset.forClass')" as="xs:anyURI*"/>
+        <xsl:variable name="forClass" select="../ixsl:get(., 'dataset.forClass')" as="xs:anyURI*"/>
         <xsl:variable name="item-doc" as="document-node()">
             <xsl:document>
                 <rdf:RDF>
