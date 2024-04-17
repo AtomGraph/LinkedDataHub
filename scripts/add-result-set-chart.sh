@@ -128,19 +128,28 @@ args+=("$cert_password")
 args+=("-t")
 args+=("text/turtle") # content type
 
+if [ -z "$fragment" ] ; then
+    # relative URI that will be resolved against the request URI
+    subject="<#${fragment}>"
+else
+    subject="_:subject"
+fi
+
 turtle+="@prefix ldh:	<https://w3id.org/atomgraph/linkeddatahub#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
 turtle+="@prefix spin:  <http://spinrdf.org/spin#> .\n"
-turtle+="_:chart a ldh:ResultSetChart .\n"
-turtle+="_:chart dct:title \"${title}\" .\n"
-turtle+="_:chart spin:query <${query}> .\n"
-turtle+="_:chart ldh:chartType <${chart_type}> .\n"
-turtle+="_:chart ldh:categoryVarName \"${category_var_name}\" .\n"
-turtle+="_:chart ldh:seriesVarName \"${series_var_name}\" .\n"
+turtle+="${subject} a ldh:ResultSetChart .\n"
+turtle+="${subject} dct:title \"${title}\" .\n"
+turtle+="${subject} spin:query <${query}> .\n"
+turtle+="${subject} ldh:chartType <${chart_type}> .\n"
+turtle+="${subject} ldh:categoryVarName \"${category_var_name}\" .\n"
+turtle+="${subject} ldh:seriesVarName \"${series_var_name}\" .\n"
 
 if [ -n "$description" ] ; then
-    turtle+="_:chart dct:description \"${description}\" .\n"
+    turtle+="${subject} dct:description \"${description}\" .\n"
 fi
 
 # submit Turtle doc to the server
-echo -e "$turtle" | turtle --base="$base" | ./post.sh "${args[@]}"
+# turtle --base="$base" |
+
+echo -e "$turtle" | ./post.sh "${args[@]}"

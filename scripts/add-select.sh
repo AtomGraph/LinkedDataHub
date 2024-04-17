@@ -111,19 +111,27 @@ args+=("$cert_password")
 args+=("-t")
 args+=("text/turtle") # content type
 
+if [ -z "$fragment" ] ; then
+    # relative URI that will be resolved against the request URI
+    subject="<#${fragment}>"
+else
+    subject="_:subject"
+fi
+
 turtle+="@prefix ldh:	<https://w3id.org/atomgraph/linkeddatahub#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
 turtle+="@prefix sp:	<http://spinrdf.org/sp#> .\n"
-turtle+="_:query a sp:Select .\n"
-turtle+="_:query dct:title \"${title}\" .\n"
-turtle+="_:query sp:text \"\"\"${query}\"\"\" .\n"
+turtle+="${subject} a sp:Select .\n"
+turtle+="${subject} dct:title \"${title}\" .\n"
+turtle+="${subject} sp:text \"\"\"${query}\"\"\" .\n"
 
 if [ -n "$service" ] ; then
-    turtle+="_:query ldh:service <${service}> .\n"
+    turtle+="${subject} ldh:service <${service}> .\n"
 fi
 if [ -n "$description" ] ; then
-    turtle+="_:query dct:description \"${description}\" .\n"
+    turtle+="${subject} dct:description \"${description}\" .\n"
 fi
 
 # submit Turtle doc to the server
-echo -e "$turtle" | turtle --base="$base" | ./post.sh "${args[@]}"
+turtle --base="$base" | 
+echo -e "$turtle" | ./post.sh "${args[@]}"
