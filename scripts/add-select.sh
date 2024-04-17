@@ -133,5 +133,6 @@ if [ -n "$description" ] ; then
 fi
 
 # submit Turtle doc to the server
-turtle --base="$base" | 
+#turtle --base="$base" | 
+
 echo -e "$turtle" | ./post.sh "${args[@]}"
