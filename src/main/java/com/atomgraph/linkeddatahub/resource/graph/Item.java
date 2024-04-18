@@ -254,15 +254,6 @@ public class Item extends GraphStoreImpl
         }
         else // updating existing graph
         {
-            // TO-DO: enforce that only document with application's base URI can have the def:Root type
-//            if (!resource.hasProperty(RDF.type, Default.Root) &&
-//                !resource.hasProperty(RDF.type, DH.Container) &&
-//                !resource.hasProperty(RDF.type, DH.Item))
-//            {
-//                if (log.isErrorEnabled()) log.error("Named graph <{}> must contain a document resource (instance of dh:Container or dh:Item)", getURI());
-//                throw new WebApplicationException("Named graph <" + getURI() + "> must contain a document resource (instance of dh:Container or dh:Item)", UNPROCESSABLE_ENTITY.getStatusCode()); // 422 Unprocessable Entity
-//            }
-            
             resource.removeAll(DCTerms.modified).
                 addLiteral(DCTerms.modified, ResourceFactory.createTypedLiteral(GregorianCalendar.getInstance()));
             
