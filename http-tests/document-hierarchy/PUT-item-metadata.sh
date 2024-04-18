@@ -45,7 +45,7 @@ item_ntriples=$(./get.sh \
   "$item"
  )
 
-# check that a default RDF type was assigned to the new document
+# check that the default RDF type was assigned to the new document
 
 echo "$item_ntriples" | grep "<${item}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.w3.org/ns/ldt/document-hierarchy#Item>"
 
@@ -53,12 +53,51 @@ echo "$item_ntriples" | grep "<${item}> <http://www.w3.org/1999/02/22-rdf-syntax
 
 echo "$item_ntriples" | grep "<${item}> <http://rdfs.org/sioc/ns#has_container> <"
 
+# check that dct:creator was assigned to the new document
+
+echo "$item_ntriples" | grep "<${item}> <http://purl.org/dc/terms/creator> <"
+
 # check that dct:created was assigned to the new document
 
 echo "$item_ntriples" | grep "<${item}> <http://purl.org/dc/terms/created> \""
 
-# check that dct:created was assigned to the new document
+# write the same data again into the existing graph
+
+(
+curl -k -w "%{http_code}\n" -o /dev/null -s \
+  -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
+  -X PUT \
+  -H "Accept: application/n-triples" \
+  -H "Content-Type: application/n-triples" \
+  --data-binary @- \
+  "$item" <<EOF
+<${item}> <http://example.com/default-predicate> "named object PUT" .
+EOF
+) \
+| grep -q "$STATUS_OK"
+
+
+
+# check that the default RDF type is still assigned to the document
+
+echo "$item_ntriples" | grep "<${item}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.w3.org/ns/ldt/document-hierarchy#Item>"
+
+# check that sioc:has_container is still assigned to the document
+
+echo "$item_ntriples" | grep "<${item}> <http://rdfs.org/sioc/ns#has_container> <"
+
+# check that dct:creator is still assigned to the document
 
 echo "$item_ntriples" | grep "<${item}> <http://purl.org/dc/terms/creator> <"
+
+# check that dct:created is still assigned to the document
+
+echo "$item_ntriples" | grep "<${item}> <http://purl.org/dc/terms/created> \""
+
+# check that dct:modified is assigned to the document
+
+echo "$item_ntriples" | grep "<${item}> <http://purl.org/dc/terms/modified> \""
+
+# write the same data again into the existing graph
 
 popd > /dev/null
