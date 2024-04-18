@@ -38,13 +38,27 @@ EOF
 
 pushd . > /dev/null && cd "$SCRIPT_ROOT"
 
-# check that a default RDF type was assigned to the new document
-
-./get.sh \
+item_ntriples=$(./get.sh \
   -f "$AGENT_CERT_FILE" \
   -p "$AGENT_CERT_PWD" \
   --accept 'application/n-triples' \
-  "$item" \
-| grep "<${item}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.w3.org/ns/ldt/document-hierarchy#Item>"
+  "$item"
+ )
+
+# check that a default RDF type was assigned to the new document
+
+echo "$item_ntriples" | grep "<${item}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.w3.org/ns/ldt/document-hierarchy#Item>"
+
+# check that sioc:has_container was assigned to the new document
+
+echo "$item_ntriples" | grep "<${item}> <http://rdfs.org/sioc/ns#has_container> <"
+
+# check that dct:created was assigned to the new document
+
+echo "$item_ntriples" | grep "<${item}> <http://purl.org/dc/terms/created> \""
+
+# check that dct:created was assigned to the new document
+
+echo "$item_ntriples" | grep "<${item}> <http://purl.org/dc/terms/creator> <"
 
 popd > /dev/null
