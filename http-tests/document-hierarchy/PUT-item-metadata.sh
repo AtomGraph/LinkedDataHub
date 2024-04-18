@@ -72,7 +72,7 @@ curl -k -w "%{http_code}\n" -o /dev/null -s \
   --data-binary @- \
   "$item" <<EOF
 <${item}> <http://example.com/default-predicate> "named object PUT" .
-<${item}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.w3.org/ns/ldt/document-hierarchy#Item>
+<${item}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.w3.org/ns/ldt/document-hierarchy#Item> .
 EOF
 ) \
 | grep -q "$STATUS_OK"
