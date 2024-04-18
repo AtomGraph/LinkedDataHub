@@ -78,6 +78,12 @@ EOF
 ) \
 | grep -q "$STATUS_OK"
 
+item_ntriples=$(./get.sh \
+  -f "$AGENT_CERT_FILE" \
+  -p "$AGENT_CERT_PWD" \
+  --accept 'application/n-triples' \
+  "$item"
+ )
 
 # check that the default RDF type is still assigned to the document
 
