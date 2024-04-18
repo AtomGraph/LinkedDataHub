@@ -172,7 +172,6 @@ public class Item extends GraphStoreImpl
         if (log.isTraceEnabled()) log.trace("POST Graph Store request with RDF payload: {} payload size(): {}", model, model.size());
 
         final Model existingModel = getService().getGraphStoreClient().getModel(getURI().toString());
-        // if (existingModel == null) throw new NotFoundException("Named graph with URI <" + getURI() + "> not found"); // directly-identified graph has to exist
         
         model.createResource(getURI().toString()).
             removeAll(DCTerms.modified).
@@ -217,22 +216,31 @@ public class Item extends GraphStoreImpl
         }
         
         new Skolemizer(getURI().toString()).apply(model);
-        final boolean existingGraph = getService().getGraphStoreClient().containsModel(getURI().toString());
-        
-        if (!existingGraph) // creating new graph and attaching it to the document hierarchy
+        //final boolean existingGraph = getService().getGraphStoreClient().containsModel(getURI().toString());
+        Model existingModel = null;
+        try
         {
-            URI parentURI = getURI().resolve("..");
-            Resource parent = model.createResource(parentURI.toString());
-            
-            resource.removeAll(SIOC.HAS_PARENT).
-                removeAll(SIOC.HAS_CONTAINER);
+            existingModel = getService().getGraphStoreClient().getModel(getURI().toString());
+        }
+        catch (NotFoundException ex)
+        {
+            //if (existingModel == null) existingModel = null;
+        }
 
-            if (resource.hasProperty(RDF.type, DH.Container))
-                resource.addProperty(SIOC.HAS_PARENT, parent);
-            else
-                resource.addProperty(SIOC.HAS_CONTAINER, parent).
-                    addProperty(RDF.type, DH.Item); // TO-DO: replace with foaf:Document?
+        Resource parent = model.createResource(getURI().resolve("..").toString());
 
+        resource.removeAll(SIOC.HAS_PARENT).
+            removeAll(SIOC.HAS_CONTAINER);
+
+        // TO-DO: enforce that only document with application's base URI can have the def:Root type
+        if (resource.hasProperty(RDF.type, DH.Container))
+            resource.addProperty(SIOC.HAS_PARENT, parent);
+        else
+            resource.addProperty(SIOC.HAS_CONTAINER, parent).
+                addProperty(RDF.type, DH.Item); // TO-DO: replace with foaf:Document?
+
+        if (existingModel == null) // creating new graph and attaching it to the document hierarchy
+        {
             resource.addLiteral(DCTerms.created, ResourceFactory.createTypedLiteral(GregorianCalendar.getInstance()));
             if (getAgentContext().isPresent()) resource.addProperty(DCTerms.creator, getAgentContext().get().getAgent());
 
@@ -247,19 +255,28 @@ public class Item extends GraphStoreImpl
         else // updating existing graph
         {
             // TO-DO: enforce that only document with application's base URI can have the def:Root type
-            if (!resource.hasProperty(RDF.type, Default.Root) &&
-                !resource.hasProperty(RDF.type, DH.Container) &&
-                !resource.hasProperty(RDF.type, DH.Item))
-            {
-                if (log.isErrorEnabled()) log.error("Named graph <{}> must contain a document resource (instance of dh:Container or dh:Item)", getURI());
-                throw new WebApplicationException("Named graph <" + getURI() + "> must contain a document resource (instance of dh:Container or dh:Item)", UNPROCESSABLE_ENTITY.getStatusCode()); // 422 Unprocessable Entity
-            }
-
+//            if (!resource.hasProperty(RDF.type, Default.Root) &&
+//                !resource.hasProperty(RDF.type, DH.Container) &&
+//                !resource.hasProperty(RDF.type, DH.Item))
+//            {
+//                if (log.isErrorEnabled()) log.error("Named graph <{}> must contain a document resource (instance of dh:Container or dh:Item)", getURI());
+//                throw new WebApplicationException("Named graph <" + getURI() + "> must contain a document resource (instance of dh:Container or dh:Item)", UNPROCESSABLE_ENTITY.getStatusCode()); // 422 Unprocessable Entity
+//            }
+            
             resource.removeAll(DCTerms.modified).
                 addLiteral(DCTerms.modified, ResourceFactory.createTypedLiteral(GregorianCalendar.getInstance()));
-
-            final Model existingModel = getService().getGraphStoreClient().getModel(getURI().toString());
-
+            
+            // retain metadata from existing document resource
+            StmtIterator it = existingModel.createResource(getURI().toString()).listProperties();
+            try
+            {
+                model.add(it);
+            }
+            finally
+            {
+                it.close();
+            }
+            
             if (log.isDebugEnabled()) log.debug("PUT Model into existing named graph with URI: {}", getURI());
             getService().getGraphStoreClient().putModel(getURI().toString(), model); // TO-DO: catch exceptions
 

@@ -61,7 +61,7 @@ echo "$item_ntriples" | grep "<${item}> <http://purl.org/dc/terms/creator> <"
 
 echo "$item_ntriples" | grep "<${item}> <http://purl.org/dc/terms/created> \""
 
-# write the same data again into the existing graph
+# write data again into the existing graph (with rdf:type added)
 
 (
 curl -k -w "%{http_code}\n" -o /dev/null -s \
@@ -72,10 +72,10 @@ curl -k -w "%{http_code}\n" -o /dev/null -s \
   --data-binary @- \
   "$item" <<EOF
 <${item}> <http://example.com/default-predicate> "named object PUT" .
+<${item}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.w3.org/ns/ldt/document-hierarchy#Item>
 EOF
 ) \
 | grep -q "$STATUS_OK"
-
 
 
 # check that the default RDF type is still assigned to the document
