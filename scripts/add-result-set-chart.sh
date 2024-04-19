@@ -152,4 +152,4 @@ fi
 # submit Turtle doc to the server
 # turtle --base="$base" |
 
-echo -e "$turtle" | ./post.sh "${args[@]}"
+echo -e "$turtle" |  turtle --base="$base" | ./post.sh "${args[@]}"

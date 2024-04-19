@@ -254,9 +254,6 @@ public class Item extends GraphStoreImpl
         }
         else // updating existing graph
         {
-            resource.removeAll(DCTerms.modified).
-                addLiteral(DCTerms.modified, ResourceFactory.createTypedLiteral(GregorianCalendar.getInstance()));
-            
             // retain metadata from existing document resource
             StmtIterator it = existingModel.createResource(getURI().toString()).listProperties();
             try
@@ -267,7 +264,10 @@ public class Item extends GraphStoreImpl
             {
                 it.close();
             }
-            
+
+            resource.removeAll(DCTerms.modified).
+                addLiteral(DCTerms.modified, ResourceFactory.createTypedLiteral(GregorianCalendar.getInstance()));
+
             if (log.isDebugEnabled()) log.debug("PUT Model into existing named graph with URI: {}", getURI());
             getService().getGraphStoreClient().putModel(getURI().toString(), model); // TO-DO: catch exceptions
 
