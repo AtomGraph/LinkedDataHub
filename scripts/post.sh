@@ -14,6 +14,7 @@ print_usage()
     printf "  -t, --content-type MEDIA_TYPE        Media type of the RDF body (e.g. text/turtle)\n"
 }
 
+hash turtle 2>/dev/null || { echo >&2 "turtle not on \$PATH. Need to set \$JENA_HOME. Aborting."; exit 1; }
 hash curl 2>/dev/null || { echo >&2 "curl not on \$PATH. Aborting."; exit 1; }
 
 unknown=()
@@ -67,14 +68,16 @@ if [ "$#" -ne 1 ]; then
     exit 1
 fi
 
-target="$1"
+url="$1"
 
 if [ -n "$proxy" ]; then
     # rewrite target hostname to proxy hostname
-    target_host=$(echo "$target" | cut -d '/' -f 1,2,3)
+    url_host=$(echo "$url" | cut -d '/' -f 1,2,3)
     proxy_host=$(echo "$proxy" | cut -d '/' -f 1,2,3)
-    target="${target/$target_host/$proxy_host}"
+    final_url="${url/$url_host/$proxy_host}"
+else
+    final_url="$url"
 fi
 
-# POST RDF document from stdin to the server and print request URL
-cat - | curl -w '%{url_effective}\n' -v -k -E "$cert_pem_file":"$cert_password" -d @- -H "Content-Type: ${content_type}" -H "Accept: text/turtle" -o /dev/null "$target"
+# resolve RDF document from stdin against base URL and POST to the server and print request URL
+cat - | turtle --base="$url" | curl -w '%{url_effective}\n' -v -k -E "$cert_pem_file":"$cert_password" -d @- -H "Content-Type: ${content_type}" -H "Accept: text/turtle" -o /dev/null "$final_url"

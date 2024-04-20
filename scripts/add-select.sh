@@ -111,7 +111,7 @@ args+=("$cert_password")
 args+=("-t")
 args+=("text/turtle") # content type
 
-if [ -z "$fragment" ] ; then
+if [ -n "$fragment" ] ; then
     # relative URI that will be resolved against the request URI
     subject="<#${fragment}>"
 else
@@ -133,6 +133,4 @@ if [ -n "$description" ] ; then
 fi
 
 # submit Turtle doc to the server
-#turtle --base="$base" | 
-
-echo -e "$turtle" |  turtle --base="$base" | ./post.sh "${args[@]}"
+echo -e "$turtle" | ./post.sh "${args[@]}"

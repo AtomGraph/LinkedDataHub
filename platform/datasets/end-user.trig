@@ -199,6 +199,36 @@ ORDER BY DESC(?created)""" .
 
 }
 
+<charts/>
+{
+
+    <charts/> a dh:Container ;
+        dct:title "Charts" ;
+        dct:description "Saved charts" ;
+        rdf:_1 <charts/#select-children> .
+
+    <charts/#select-charts> a ldh:Content ;
+        rdf:value <charts/#select-charts-view> .
+
+    <charts/#select-charts-view> a ldh:View ;
+        dct:title "Chart view" ;
+        spin:query <charts/#select-charts-query> .
+
+    <charts/#select-charts-query> a sp:Select ;
+        dct:title "Select chart resources" ;
+        sp:text """PREFIX  ldh:  <https://w3id.org/atomgraph/linkeddatahub#>
+
+SELECT DISTINCT  ?s
+WHERE
+  { GRAPH ?g
+      {   { ?s  a  ldh:GraphChart }
+        UNION
+          { ?s  a  ldh:ResultSetChart }
+      }
+  }""" .
+
+}
+
 <apps/>
 {
 
