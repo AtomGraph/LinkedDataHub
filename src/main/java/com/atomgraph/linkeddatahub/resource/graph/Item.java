@@ -30,7 +30,6 @@ import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.server.util.PatchUpdateVisitor;
 import com.atomgraph.linkeddatahub.server.util.Skolemizer;
 import com.atomgraph.linkeddatahub.vocabulary.DH;
-import com.atomgraph.linkeddatahub.vocabulary.Default;
 import com.atomgraph.linkeddatahub.vocabulary.LDH;
 import com.atomgraph.linkeddatahub.vocabulary.NFO;
 import com.atomgraph.linkeddatahub.vocabulary.SIOC;
@@ -255,11 +254,11 @@ public class Item extends GraphStoreImpl
         else // updating existing graph
         {
             // retain metadata from existing document resource
-            StmtIterator it = existingModel.createResource(getURI().toString()).listProperties(DCTerms.created).
+            ExtendedIterator<Statement> it = existingModel.createResource(getURI().toString()).listProperties(DCTerms.created).
                 andThen(existingModel.createResource(getURI().toString()).listProperties(DCTerms.creator));
             try
             {
-                model.add(it);
+                it.forEach(stmt -> model.add(stmt));
             }
             finally
             {
