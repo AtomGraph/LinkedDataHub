@@ -150,4 +150,4 @@ if [ -n "$description" ] ; then
 fi
 
 # submit Turtle doc to the server
-echo -e "$turtle" | turtle | ./post.sh "${args[@]}"
+echo -e "$turtle" | ./post.sh "${args[@]}"
