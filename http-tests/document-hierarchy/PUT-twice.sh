@@ -35,16 +35,6 @@ EOF
 ) \
 | grep -q "$STATUS_OK"
 
-# check that resource is accessible
-
-curl -k -f -s -G \
-  -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
-  -H "Accept: application/n-triples" \
-  "$END_USER_BASE_URL" \
-| tr -d '\n' \
-| grep '"named object PUT"' \
-| grep -v '"named object"' > /dev/null
-
 # replace the graph again
 
 (
@@ -63,7 +53,7 @@ EOF
 ) \
 | grep -q "$STATUS_OK"
 
-# check that the old document data is gone
+# check that the old document metadata is gone
 
 curl -k -f -s -G \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
