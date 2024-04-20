@@ -255,7 +255,8 @@ public class Item extends GraphStoreImpl
         else // updating existing graph
         {
             // retain metadata from existing document resource
-            StmtIterator it = existingModel.createResource(getURI().toString()).listProperties();
+            StmtIterator it = existingModel.createResource(getURI().toString()).listProperties(DCTerms.created).
+                andThen(existingModel.createResource(getURI().toString()).listProperties(DCTerms.creator));
             try
             {
                 model.add(it);
