@@ -72,14 +72,9 @@ owl:Ontology spin:constructor [
     ldh:template :OntologyClassView .
 
 :OntologyClassView a ldh:View ;
-    rdfs:label "Ontology class view" ;
-    spin:query :OntologyClasses ;
+    dct:title "Ontology class view" ;
+    spin:query :SelectOntologyClasses ;
     ac:mode ac:TableMode ;
-    rdfs:isDefinedBy : .
-
-:OntologyClasses a ldh:Content ;
-    rdfs:label "Classes defined by this ontology" ;
-    rdf:value :SelectOntologyClasses ;
     rdfs:isDefinedBy : .
 
 :SelectOntologyClasses a sp:Select ;
@@ -223,15 +218,10 @@ acl:Authorization spin:constructor [
         a ldh:MissingPropertyValue ;
         sp:arg1 acl:mode
     ] ;
-    ldh:template :AuthorizationAgents .
-
-:AuthorizationAgents a ldh:Content ;
-    rdfs:label "Agents authorized by this authorization" ;
-    rdf:value :AuthorizationAgentView ;
-    rdfs:isDefinedBy : .
+    ldh:template :AuthorizationAgentView .
 
 :AuthorizationAgentView a ldh:View ;
-    rdfs:label "Authorization agent view" ;
+    dct:title "Authorization agent view" ;
     spin:query :SelectAuthorizationAgents ;
     rdfs:isDefinedBy : .
 

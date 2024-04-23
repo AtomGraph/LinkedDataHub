@@ -16,6 +16,7 @@
 @prefix foaf:	<http://xmlns.com/foaf/0.1/> .
 @prefix nfo:	<http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#> .
 @prefix sioc:	<http://rdfs.org/sioc/ns#> .
+@prefix dct:	<http://purl.org/dc/terms/> .
 
 : a owl:Ontology ;
     owl:imports dh:, ac:, <http://spinrdf.org/spin>, foaf:, sd:, nfo:, owl: ;
@@ -231,9 +232,32 @@
     rdfs:label "Model chart constructor" ;
     rdfs:isDefinedBy : .
 
+# XHTML
+
+:XHTML a rdfs:Class, owl:Class ;
+    rdfs:subClassOf :Block ;
+    rdfs:label "XHTML" ;
+    spin:constructor :XHTMLConstructor ;
+    spin:constraint :MissingValue ;
+    rdfs:isDefinedBy : .
+
+:XHTMLConstructor a :Constructor ;
+  sp:text """
+      PREFIX rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+      PREFIX spin:  <http://spinrdf.org/spin#>
+      PREFIX sp:    <http://spinrdf.org/sp#>
+
+      CONSTRUCT {
+          $this rdf:value "<div xmlns=\"http://www.w3.org/1999/xhtml\"></div>"^^rdf:XMLLiteral .
+      }
+      WHERE {}""" ;
+    rdfs:label "View constructor" ;
+    rdfs:isDefinedBy : .
+
 # view
 
 :View a rdfs:Class, owl:Class ;
+    rdfs:subClassOf :Block ;
     rdfs:label "View" ;
     spin:constructor :ViewConstructor ;
     spin:constraint :MissingQuery ;
@@ -253,30 +277,29 @@
 
 # content
 
-:Content a rdfs:Class, owl:Class ;
-    rdfs:subClassOf rdf:List ;
-    rdfs:label "Content" ;
-    spin:constructor :ContentInstanceConstructor ;
-    spin:constraint :MissingValue ;
+:Block a rdfs:Class, owl:Class ;
+    rdfs:label "Block" ;
+    # spin:constructor :BlockInstanceConstructor ;
+    # spin:constraint :MissingValue ;
     rdfs:isDefinedBy : .
 
-:ContentInstanceConstructor a :Constructor ;
+:BlockInstanceConstructor a :Constructor ;
   sp:text """
       PREFIX ldh:   <https://w3id.org/atomgraph/linkeddatahub#>
       PREFIX ac:    <https://w3id.org/atomgraph/client#>
       PREFIX rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
       PREFIX rdfs:  <http://www.w3.org/2000/01/rdf-schema#>
       PREFIX xsd:   <http://www.w3.org/2001/XMLSchema#>
-      PREFIX sd:    <http://www.w3.org/ns/sparql-service-description#>
+      PREFIX dct:   <http://purl.org/dc/terms/>
 
       CONSTRUCT {
-          $this rdf:value [ a rdfs:Resource ] ;
+          $this # rdf:value [ a rdfs:Resource ] ;
             ldh:graph [ a rdfs:Resource ] ;
-            ac:mode [ a rdfs:Resource ] ;
-            rdfs:label [ a xsd:string ] .
+            # ac:mode [ a rdfs:Resource ] ;
+            dct:title [ a xsd:string ] .
       }
       WHERE {}""" ;
-    rdfs:label "Content constructor" ;
+    rdfs:label "Block constructor" ;
     rdfs:isDefinedBy : .
 
 # exception
@@ -409,7 +432,7 @@ WHERE
 # CONTENTS
 
 :ChildrenView a :View ;
-    rdfs:label "Children view" ;
+    dct:title "Children view" ;
     spin:query :SelectChildren ;
     rdfs:isDefinedBy : .
 
@@ -478,7 +501,7 @@ ac:ChartMode a ac:Mode, ac:ContainerMode ;
 
 # https://www.w3.org/ns/ldt/document-hierarchy
 
-dh:Item spin:constructor :TitleConstructor, :DescriptionConstructor, :PrimaryTopicConstructor, :ContentConstructor .
+dh:Item spin:constructor :TitleConstructor, :DescriptionConstructor, :PrimaryTopicConstructor, :BlockConstructor .
     # spin:constraint :MissingContainer .
 
 :PrimaryTopicConstructor a :Constructor ;
@@ -519,28 +542,26 @@ dh:Item spin:constructor :TitleConstructor, :DescriptionConstructor, :PrimaryTop
         WHERE {}""" ;
     rdfs:isDefinedBy : .
 
-:ContentConstructor a :Constructor ;
+:BlockConstructor a :Constructor ;
     rdfs:label "Content constructor" ;
     sp:text """
         PREFIX ldh:     <https://w3id.org/atomgraph/linkeddatahub#>
         PREFIX rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 
         CONSTRUCT {
-          $this rdf:_1 [ a ldh:Content ] .
+          $this rdf:_1 [ a ldh:Block ] .
         }
         WHERE {}""" ;
     rdfs:isDefinedBy : .
 
-:ViewContentConstructor a :Constructor ;
+:ChildrenViewContructor a :Constructor ;
     rdfs:label "Container content constructor" ;
     sp:text """
         PREFIX ldh:     <https://w3id.org/atomgraph/linkeddatahub#>
         PREFIX rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 
         CONSTRUCT {
-            $this rdf:_1 [ a ldh:Content ;
-                rdf:value ldh:ChildrenView
-            ] .
+            $this rdf:_1 [ a ldh:ChildrenView ] .
         }
         WHERE {}""" ;
     rdfs:isDefinedBy : .
@@ -551,7 +572,7 @@ dh:Item spin:constructor :TitleConstructor, :DescriptionConstructor, :PrimaryTop
     sp:arg1 sioc:has_container ;
     rdfs:isDefinedBy : .
 
-dh:Container spin:constructor :TitleConstructor, :DescriptionConstructor, :PrimaryTopicConstructor, :ViewContentConstructor .
+dh:Container spin:constructor :TitleConstructor, :DescriptionConstructor, :PrimaryTopicConstructor, :ChildrenViewContructor .
     # spin:constraint :MissingParent .
 
 :MissingParent a :MissingPropertyValue ;
