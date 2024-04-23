@@ -790,7 +790,7 @@ LIMIT   100
                 <xsl:with-param name="ajax-rendering" select="$ldh:ajaxRendering"/>
             </xsl:apply-templates>
 
-            <xsl:variable name="undescribed-objects" select="rdf:Description/*/@rdf:resource[not(key('resources', .)]" as="xs:anyURI*"/>
+            <xsl:variable name="undescribed-objects" select="rdf:Description/*/@rdf:resource[not(key('resources', .))]" as="xs:anyURI*"/>
             <xsl:message>$undescribed-objects: <xsl:value-of select="$undescribed-objects"/></xsl:message>
             
             <xsl:choose>
