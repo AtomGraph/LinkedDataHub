@@ -790,6 +790,9 @@ LIMIT   100
                 <xsl:with-param name="ajax-rendering" select="$ldh:ajaxRendering"/>
             </xsl:apply-templates>
 
+            <xsl:variable name="undescribed-objects" select="rdf:Description/*/@rdf:resource[not(key('resources', .)]" as="xs:anyURI*"/>
+            <xsl:message>$undescribed-objects: <xsl:value-of select="$undescribed-objects"/></xsl:message>
+            
             <xsl:choose>
                 <!-- error responses always rendered in bs2:Row mode, no matter what $ac:mode specifies -->
                 <xsl:when test="key('resources-by-type', '&http;Response') and not(key('resources-by-type', '&spin;ConstraintViolation')) and not(key('resources-by-type', '&sh;ValidationResult'))">
