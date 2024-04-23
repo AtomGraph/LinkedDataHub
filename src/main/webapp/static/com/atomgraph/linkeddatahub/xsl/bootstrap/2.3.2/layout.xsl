@@ -218,6 +218,28 @@ LIMIT   100
         ]]>
         <!-- VALUES $Type goes here -->
     </xsl:variable>
+    <xsl:param name="object-metadata-query" as="xs:string">
+        <![CDATA[
+            PREFIX  dct:  <http://purl.org/dc/terms/>
+            PREFIX  schema2: <https://schema.org/>
+            PREFIX  schema1: <http://schema.org/>
+            PREFIX  skos: <http://www.w3.org/2004/02/skos/core#>
+            PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+            PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
+            PREFIX  sioc: <http://rdfs.org/sioc/ns#>
+            PREFIX  dc:   <http://purl.org/dc/elements/1.1/>
+
+            CONSTRUCT 
+              { 
+                $this rdfs:label ?label .
+              }
+            WHERE
+              { GRAPH ?graph
+                  { $this ((((((((rdfs:label|dc:title)|dct:title)|foaf:name)|foaf:givenName)|foaf:familyName)|sioc:name)|skos:prefLabel)|schema1:name)|schema2:name ?label }
+              }
+        ]]>
+        <!-- VALUES $Type goes here -->
+    </xsl:param>
     
     <xsl:key name="violations-by-root" match="*[@rdf:about] | *[@rdf:nodeID]" use="spin:violationRoot/@rdf:resource | spin:violationRoot/@rdf:nodeID"/>
     <xsl:key name="violations-by-value" match="*" use="ldh:violationValue/text()"/>
@@ -790,9 +812,6 @@ LIMIT   100
                 <xsl:with-param name="ajax-rendering" select="$ldh:ajaxRendering"/>
             </xsl:apply-templates>
 
-            <xsl:variable name="undescribed-objects" select="rdf:Description/*/@rdf:resource[not(key('resources', .))]" as="xs:anyURI*"/>
-            <xsl:message>$undescribed-objects: <xsl:value-of select="$undescribed-objects"/></xsl:message>
-            
             <xsl:choose>
                 <!-- error responses always rendered in bs2:Row mode, no matter what $ac:mode specifies -->
                 <xsl:when test="key('resources-by-type', '&http;Response') and not(key('resources-by-type', '&spin;ConstraintViolation')) and not(key('resources-by-type', '&sh;ValidationResult'))">

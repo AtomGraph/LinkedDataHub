@@ -141,12 +141,12 @@ SELECT DISTINCT  ?resource
 WHERE
   {
     {
-        GRAPH ?graph
-          { ?resource  a  $Type .
-            ?resource ((((((((rdfs:label|dc:title)|dct:title)|foaf:name)|foaf:givenName)|foaf:familyName)|sioc:name)|skos:prefLabel)|schema1:name)|schema2:name $label
-            FILTER isURI(?resource)
-          }
-    }
+    GRAPH ?graph
+      { ?resource  a  $Type .
+        ?resource ((((((((rdfs:label|dc:title)|dct:title)|foaf:name)|foaf:givenName)|foaf:familyName)|sioc:name)|skos:prefLabel)|schema1:name)|schema2:name $label
+        FILTER isURI(?resource)
+      }
+  }
     UNION
     {
         ?resource  a  $Type .
@@ -184,6 +184,28 @@ WHERE
               { $Type (rdfs:subClassOf)*/spin:constraint  ?constraint .
                 ?constraint  a             ldh:MissingPropertyValue ;
                           sp:arg1          ?property
+              }
+        ]]>
+        <!-- VALUES $Type goes here -->
+    </xsl:param>
+    <xsl:param name="object-metadata-query" as="xs:string">
+        <![CDATA[
+            PREFIX  dct:  <http://purl.org/dc/terms/>
+            PREFIX  schema2: <https://schema.org/>
+            PREFIX  schema1: <http://schema.org/>
+            PREFIX  skos: <http://www.w3.org/2004/02/skos/core#>
+            PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+            PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
+            PREFIX  sioc: <http://rdfs.org/sioc/ns#>
+            PREFIX  dc:   <http://purl.org/dc/elements/1.1/>
+
+            CONSTRUCT 
+              { 
+                $this rdfs:label ?label .
+              }
+            WHERE
+              { GRAPH ?graph
+                  { $this ((((((((rdfs:label|dc:title)|dct:title)|foaf:name)|foaf:givenName)|foaf:familyName)|sioc:name)|skos:prefLabel)|schema1:name)|schema2:name ?label }
               }
         ]]>
         <!-- VALUES $Type goes here -->
@@ -401,9 +423,15 @@ WHERE
     </xsl:template>
     
     <xsl:template match="@rdf:resource | @rdf:nodeID | srx:uri" mode="ac:object-label" priority="1">
+        <xsl:param name="object-metadata" as="document-node()?" tunnel="yes"/>
+        <xsl:message>$object-metadata: <xsl:value-of select="$object-metadata"/></xsl:message>
+        
         <xsl:choose>
             <xsl:when test="key('resources', .)">
                 <xsl:apply-templates select="key('resources', .)" mode="ac:label"/>
+            </xsl:when>
+            <xsl:when test="$object-metadata/key('resources', .)">
+                <xsl:apply-templates select="$object-metadata/key('resources', .)" mode="ac:label"/>
             </xsl:when>
             <xsl:when test="doc-available(ac:document-uri(.)) and key('resources', ., document(ac:document-uri(.)))">
                 <xsl:apply-templates select="key('resources', ., document(ac:document-uri(.)))" mode="ac:label"/>
@@ -412,8 +440,7 @@ WHERE
                 <xsl:sequence select="substring-after(., '#')"/>
             </xsl:when>
             <xsl:when test="string-length(tokenize(., '/')[last()]) &gt; 0">
-<!--                <xsl:sequence use-when="function-available('url:decode')" select="translate(url:decode(tokenize(., '/')[last()], 'UTF-8'), '_', ' ')"/>-->
-                <xsl:sequence select="translate(tokenize(., '/')[last()], '_', ' ')"/> <!-- use-when="not(function-available('url:decode'))" -->
+                <xsl:sequence select="translate(tokenize(., '/')[last()], '_', ' ')"/>
             </xsl:when>
             <xsl:otherwise>
                 <xsl:sequence select="."/>
@@ -432,13 +459,6 @@ WHERE
             </img>
         </a>
     </xsl:template>
-    
-    <!-- copied from rdf.xsl which is not imported -->
-<!--    <xsl:template match="rdf:type/@rdf:resource" priority="1">
-        <span title="{.}" class="btn btn-type">
-            <xsl:next-match/>
-        </span>
-    </xsl:template>-->
     
     <!-- if document has a topic, show it as the typeahead value instead -->
     <xsl:template match="*[*][key('resources', foaf:primaryTopic/@rdf:resource)]" mode="ldh:Typeahead">
