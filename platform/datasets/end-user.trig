@@ -18,8 +18,7 @@
         dct:description "Root container" ;
         rdf:_1 <#select-children> .
 
-    <#select-children> a ldh:Content ;
-        rdf:value ldh:ChildrenView .
+    <#select-children> a ldh:ChildrenView .
 
 }
 
@@ -31,10 +30,28 @@
     <queries/> a dh:Container ;
         dct:title "Queries" ;
         dct:description "SPARQL queries" ;
-        rdf:_1 <queries/#select-children> .
+        rdf:_1 <queries/#select-queries> .
 
-    <queries/#select-children> a ldh:Content ;
-        rdf:value ldh:ChildrenView .
+    <queries/#select-queries> a ldh:View ;
+        dct:title "Query view" ;
+        spin:query <queries/#select-queries-query> .
+
+    <queries/#select-queries-query> a sp:Select ;
+        dct:title "Select query resources" ;
+        sp:text """PREFIX  sp:  <http://spinrdf.org/sp>
+
+SELECT DISTINCT  ?s
+WHERE
+  { GRAPH ?g
+      {   { ?s  a  sp:Select }
+        UNION
+          { ?s  a  sp:Construct }
+        UNION
+          { ?s  a  sp:Describe }
+        UNION
+          { ?s  a  sp:Ask }
+      }
+  }""" .
 
 }
 
@@ -86,10 +103,7 @@ WHERE
         dct:description "Uploaded files" ;
         rdf:_1 <files/#select-files> .
 
-    <files/#select-files> a ldh:Content ;
-        rdf:value <files/#select-files-view> .
-
-    <files/#select-files-view> a ldh:View ;
+    <files/#select-files> a ldh:View ;
         dct:title "File view" ;
         spin:query <files/#select-files-query> .
 
@@ -113,10 +127,7 @@ WHERE
         dct:description "Data imports" ;
         rdf:_1 <imports/#select-imports> .
 
-    <imports/#select-imports> a ldh:Content ;
-        rdf:value <imports/#select-imports-view> .
-
-    <imports/#select-imports-view> a ldh:View ;
+    <imports/#select-imports> a ldh:View ;
         dct:title "Import view" ;
         spin:query <imports/#select-imports-query> .
 
@@ -143,10 +154,7 @@ WHERE
         dct:description "Geolocated resources" ;
         rdf:_1 <geo/#select-geo> .
 
-    <geo/#select-geo> a ldh:Content ;
-        rdf:value <geo/#select-geo-view> .
-
-    <geo/#select-geo-view> a ldh:View ;
+    <geo/#select-geo> a ldh:View ;
         dct:title "Geo view" ;
         spin:query <geo/#select-geo-query> ;
         ac:mode ac:MapMode .
@@ -179,10 +187,7 @@ ORDER BY ?title""" .
         dct:description "Latest resources" ;
         rdf:_1 <latest/#select-latest> .
 
-    <latest/#select-latest> a ldh:Content ;
-        rdf:value <latest/#select-latest-view> .
-
-    <latest/#select-latest-view> a ldh:View ;
+    <latest/#select-latest> a ldh:View ;
         dct:title "Latest resources view" ;
         spin:query <latest/#select-latest-query> .
 
@@ -205,12 +210,9 @@ ORDER BY DESC(?created)""" .
     <charts/> a dh:Container ;
         dct:title "Charts" ;
         dct:description "Saved charts" ;
-        rdf:_1 <charts/#select-children> .
+        rdf:_1 <charts/#select-charts> .
 
-    <charts/#select-charts> a ldh:Content ;
-        rdf:value <charts/#select-charts-view> .
-
-    <charts/#select-charts-view> a ldh:View ;
+    <charts/#select-charts> a ldh:View ;
         dct:title "Chart view" ;
         spin:query <charts/#select-charts-query> .
 
@@ -237,10 +239,7 @@ WHERE
         dct:description "Linked Data applications" ;
         rdf:_1 <apps/#select-apps> .
 
-    <apps/#select-apps> a ldh:Content ;
-        rdf:value <apps/#select-apps-view> .
-
-    <apps/#select-apps-view> a ldh:View ;
+    <apps/#select-apps> a ldh:View ;
         dct:title "Application view" ;
         spin:query <apps/#select-apps-query> .
 
@@ -264,10 +263,7 @@ WHERE
         dct:description "SPARQL services" ;
         rdf:_1 <services/#select-services> .
 
-    <services/#select-services> a ldh:Content ;
-        rdf:value <services/#select-services-view> .
-
-    <services/#select-services-view> a ldh:View ;
+    <services/#select-services> a ldh:View ;
         dct:title "Service view" ;
         spin:query <services/#select-services-query> .
 

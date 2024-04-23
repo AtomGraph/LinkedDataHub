@@ -11,7 +11,7 @@ print_usage()
     printf "  -p, --cert-password CERT_PASSWORD    Password of the WebID certificate\n"
     printf "  --proxy PROXY_URL                    The host this request will be proxied through (optional)\n"
     printf "\n"
-    printf "  --value RESOURCE_URI                 URI of the content element (query, chart etc.)\n"
+    printf "  --query QUERY_URI                    URI of a SELECT query\n"
     printf "  --mode MODE_URI                      URI of the content mode (list, grid etc.) (optional)\n"
 }
 
@@ -38,8 +38,8 @@ do
         shift # past argument
         shift # past value
         ;;
-        --value)
-        value="$2"
+        --query)
+        query="$2"
         shift # past argument
         shift # past value
         ;;
@@ -64,7 +64,7 @@ if [ -z "$cert_password" ] ; then
     print_usage
     exit 1
 fi
-if [ -z "$value" ] ; then
+if [ -z "$query" ] ; then
     print_usage
     exit 1
 fi
@@ -98,8 +98,8 @@ PREFIX  xsd:  <http://www.w3.org/2001/XMLSchema#>
 
 INSERT {
   <${this}> ?property ?block .
-  ?block a ldh:Content ;
-      rdf:value <${value}> .
+  ?block a ldh:View ;
+      spin:query <${query}> .
   ${mode_bgp}
 }
 WHERE
