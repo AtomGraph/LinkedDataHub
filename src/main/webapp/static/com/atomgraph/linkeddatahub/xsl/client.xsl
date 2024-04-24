@@ -425,14 +425,15 @@ WHERE
     <xsl:template match="@rdf:resource | @rdf:nodeID | srx:uri" mode="ac:object-label" priority="1">
         <xsl:param name="object-metadata" as="document-node()?" tunnel="yes"/>
         <xsl:message>ac:object-label(<xsl:value-of select="."/>) exists($object-metadata): <xsl:value-of select="exists($object-metadata)"/></xsl:message>
-        
+        <xsl:variable name="this" as="." as="xs:anyURI"/>
+
         <xsl:choose>
             <xsl:when test="key('resources', .)">
                 <xsl:apply-templates select="key('resources', .)" mode="ac:label"/>
             </xsl:when>
-            <xsl:when test="$object-metadata/key('resources', .)">
+            <xsl:when test="$object-metadata!key('resources', $this, .)">
                 <xsl:message>ac:object-label(<xsl:value-of select="."/>) $object-metadata: <xsl:value-of select="serialize($object-metadata)"/></xsl:message>
-                <xsl:apply-templates select="$object-metadata/key('resources', .)" mode="ac:label"/>
+                <xsl:apply-templates select="$object-metadata!key('resources', $this, .)" mode="ac:label"/>
             </xsl:when>
             <xsl:when test="doc-available(ac:document-uri(.)) and key('resources', ., document(ac:document-uri(.)))">
                 <xsl:apply-templates select="key('resources', ., document(ac:document-uri(.)))" mode="ac:label"/>
