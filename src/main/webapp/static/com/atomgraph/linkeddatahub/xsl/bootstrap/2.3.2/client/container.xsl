@@ -439,7 +439,7 @@ exclude-result-prefixes="#all"
         <xsl:message>ldh:RenderContainerMode $object-uris: <xsl:value-of select="$object-uris"/></xsl:message>
         
         <xsl:variable name="request" as="item()*">
-            <ixsl:schedule-action http-request="map{ 'method': 'POST', 'href': sd:endpoint(), 'media-type': 'application/sparql-query', 'body': $query-string } }">
+            <ixsl:schedule-action http-request="map{ 'method': 'POST', 'href': sd:endpoint(), 'media-type': 'application/sparql-query', 'body': $query-string }">
                 <xsl:call-template name="ldh:LoadContainerObjectDescriptions">
                     <xsl:with-param name="container" select="$container"/>
                     <xsl:with-param name="content-id" select="$content-id"/>
