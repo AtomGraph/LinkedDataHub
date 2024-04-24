@@ -424,7 +424,8 @@ WHERE
     
     <xsl:template match="@rdf:resource | @rdf:nodeID | srx:uri" mode="ac:object-label" priority="1">
         <xsl:param name="object-metadata" as="document-node()?" tunnel="yes"/>
-        <xsl:message>$object-metadata: <xsl:value-of select="$object-metadata"/></xsl:message>
+        <xsl:message>exists($object-metadata): <xsl:value-of select="exists($object-metadata)"/></xsl:message>
+        <xsl:message>$object-metadata: <xsl:value-of select="serialize($object-metadata)"/></xsl:message>
         
         <xsl:choose>
             <xsl:when test="key('resources', .)">
