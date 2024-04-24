@@ -13,9 +13,10 @@
     <!ENTITY http   "http://www.w3.org/2011/http#">
     <!ENTITY sc     "http://www.w3.org/2011/http-statusCodes#">
     <!ENTITY acl    "http://www.w3.org/ns/auth/acl#">
+    <!ENTITY sd     "http://www.w3.org/ns/sparql-service-description#">
+    <!ENTITY sh     "http://www.w3.org/ns/shacl#">
     <!ENTITY ldt    "https://www.w3.org/ns/ldt#">
     <!ENTITY dh     "https://www.w3.org/ns/ldt/document-hierarchy#">
-    <!ENTITY sh     "http://www.w3.org/ns/shacl#">
     <!ENTITY dct    "http://purl.org/dc/terms/">
     <!ENTITY foaf   "http://xmlns.com/foaf/0.1/">
     <!ENTITY sioc   "http://rdfs.org/sioc/ns#">
@@ -38,9 +39,10 @@ xmlns:rdfs="&rdfs;"
 xmlns:owl="&owl;"
 xmlns:http="&http;"
 xmlns:acl="&acl;"
+xmlns:sd="&sd;"
+xmlns:sh="&sh;"
 xmlns:ldt="&ldt;"
 xmlns:dh="&dh;"
-xmlns:sh="&sh;"
 xmlns:dct="&dct;"
 xmlns:foaf="&foaf;"
 xmlns:sioc="&sioc;"
@@ -240,7 +242,7 @@ extension-element-prefixes="ixsl"
         </xsl:param>
         <xsl:param name="anchor-column" as="xs:boolean" select="true()" tunnel="yes"/>
         <xsl:param name="object-uris" select="rdf:Description/*/@rdf:resource[not(key('resources', .))]" as="xs:anyURI*"/>
-        <xsl:param name="object-metadata" select="if (exists($object-uris)) then ldh:send-request(resolve-uri('ns', $ldt:base), 'POST', 'application/sparql-query', $object-metadata-query || ' VALUES $this { ' || string-join(for $uri in $object-uris return '&lt;' || $uri || '&gt;', ' ') || ' }', map{ 'Accept': 'application/rdf+xml' }) else ()" as="document-node()?" tunnel="yes"/>
+        <xsl:param name="object-metadata" select="if (exists($object-uris)) then ldh:send-request($sd:endpoint, 'POST', 'application/sparql-query', $object-metadata-query || ' VALUES $this { ' || string-join(for $uri in $object-uris return '&lt;' || $uri || '&gt;', ' ') || ' }', map{ 'Accept': 'application/rdf+xml' }) else ()" as="document-node()?" tunnel="yes"/>
         <xsl:message>xhtml:Table $object-uris: <xsl:value-of select="$object-uris"/></xsl:message>
         <xsl:message>xhtml:Table $object-metadata: <xsl:value-of select="serialize($object-metadata)"/></xsl:message>
         
