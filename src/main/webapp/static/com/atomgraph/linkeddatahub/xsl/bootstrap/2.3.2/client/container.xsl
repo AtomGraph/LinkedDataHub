@@ -541,7 +541,9 @@ exclude-result-prefixes="#all"
         <xsl:param name="message" as="xs:string"/>
 
         <!-- update progress bar -->
-        <ixsl:set-style name="display" select="'none'" object="$container//div[@class = 'progress-bar']"/>
+        <xsl:for-each select="$container//div[@class = 'progress-bar']">
+            <ixsl:set-style name="display" select="'none'" object="."/>
+        </xsl:for-each>
 
         <xsl:for-each select="$container">
             <xsl:result-document href="?." method="ixsl:replace-content">
