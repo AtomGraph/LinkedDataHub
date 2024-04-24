@@ -308,6 +308,10 @@ exclude-result-prefixes="#all"
         <xsl:param name="body" as="item()?"/>
         <xsl:param name="headers" as="map(xs:string, xs:string)"/>
         
+        <xsl:message>
+            ldh:send-request !!!!
+        </xsl:message>
+        
         <xsl:message use-when="system-property('xsl:product-name') = 'SAXON'" terminate="yes">
             Not implemented -- com.atomgraph.linkeddatahub.writer.function.SendHTTPRequest needs to be registered as an extension function
         </xsl:message>
