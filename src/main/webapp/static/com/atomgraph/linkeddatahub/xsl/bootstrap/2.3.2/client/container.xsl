@@ -434,7 +434,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="results" as="document-node()"/>
         <xsl:param name="active-mode" as="xs:anyURI"/>
         <xsl:param name="select-xml" as="document-node()"/>
-        <xsl:param name="object-uris" select="$results/rdf:RDF/rdf:Description/*/@rdf:resource[not(key('resources', .))]" as="xs:anyURI*"/>
+        <xsl:param name="object-uris" select="distinct-values($results/rdf:RDF/rdf:Description/*/@rdf:resource[not(key('resources', .))])" as="xs:string*"/>
         <xsl:variable name="query-string" select="$object-metadata-query || ' VALUES $this { ' || string-join(for $uri in $object-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>
         <xsl:message>ldh:RenderContainerMode $object-uris: <xsl:value-of select="$object-uris"/></xsl:message>
         
