@@ -439,8 +439,8 @@ exclude-result-prefixes="#all"
         <xsl:message>ldh:RenderContainerMode $object-uris: <xsl:value-of select="$object-uris"/></xsl:message>
         
         <xsl:variable name="request" as="item()*">
-            <ixsl:schedule-action http-request="map{ 'method': 'POST', 'href': sd:endpoint(), 'media-type': 'application/sparql-query', 'body': $query-string }">
-                <xsl:call-template name="ldh:LoadContainerObjectDescriptions">
+            <ixsl:schedule-action http-request="map{ 'method': 'POST', 'href': sd:endpoint(), 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+                <xsl:call-template name="ldh:LoadContainerObjectMetadata">
                     <xsl:with-param name="container" select="$container"/>
                     <xsl:with-param name="content-id" select="$content-id"/>
                     <xsl:with-param name="content-uri" select="$content-uri"/>
@@ -455,7 +455,7 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
     
-    <xsl:template name="ldh:LoadContainerObjectDescriptions">
+    <xsl:template name="ldh:LoadContainerObjectMetadata">
         <xsl:param name="container" as="element()"/>
         <xsl:param name="content-id" as="xs:string"/>
         <xsl:param name="content-uri" as="xs:anyURI"/>
@@ -468,7 +468,7 @@ exclude-result-prefixes="#all"
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
                 <xsl:variable name="object-metadata" select="?body" as="document-node()"/>
-                <xsl:message>ldh:LoadContainerObjectDescriptions $object-metadata: <xsl:value-of select="serialize($object-metadata)"/></xsl:message>
+                <xsl:message>ldh:LoadContainerObjectMetadata $object-metadata: <xsl:value-of select="serialize($object-metadata)"/></xsl:message>
 
                 <xsl:for-each select="$container">
                     <xsl:result-document href="?." method="ixsl:replace-content">
