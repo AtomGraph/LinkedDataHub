@@ -359,6 +359,7 @@ WHERE
                 <xsl:sequence select="schema2:name/text()"/>
             </xsl:when>
             <xsl:otherwise>
+                <xsl:message>ac:label xsl:next-match: <xsl:value-of select="@rdf:about"/></xsl:message>
                 <xsl:next-match/>
             </xsl:otherwise>
         </xsl:choose>
