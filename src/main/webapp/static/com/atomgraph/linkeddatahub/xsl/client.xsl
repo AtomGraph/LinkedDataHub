@@ -359,7 +359,6 @@ WHERE
                 <xsl:sequence select="schema2:name/text()"/>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:message>ac:label xsl:next-match: <xsl:value-of select="@rdf:about"/></xsl:message>
                 <xsl:next-match/>
             </xsl:otherwise>
         </xsl:choose>
@@ -436,9 +435,11 @@ WHERE
                 <xsl:message>ac:object-label(<xsl:value-of select="."/>) $object-metadata: <xsl:value-of select="serialize($object-metadata)"/></xsl:message>
                 <xsl:apply-templates select="$object-metadata!key('resources', $this, .)" mode="ac:label"/>
             </xsl:when>
+            <!--
             <xsl:when test="doc-available(ac:document-uri(.)) and key('resources', ., document(ac:document-uri(.)))">
                 <xsl:apply-templates select="key('resources', ., document(ac:document-uri(.)))" mode="ac:label"/>
             </xsl:when>
+            -->
             <xsl:when test="contains(., '#') and not(ends-with(., '#'))">
                 <xsl:sequence select="substring-after(., '#')"/>
             </xsl:when>
