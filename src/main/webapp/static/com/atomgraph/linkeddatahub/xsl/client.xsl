@@ -190,8 +190,16 @@ WHERE
     </xsl:param>
     <xsl:param name="object-metadata-query" as="xs:string">
         <![CDATA[
-            PREFIX  xsd:  <http://www.w3.org/2001/XMLSchema#>
             PREFIX  rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+            PREFIX  xsd:  <http://www.w3.org/2001/XMLSchema#>
+            PREFIX  dct:  <http://purl.org/dc/terms/>
+            PREFIX  schema2: <https://schema.org/>
+            PREFIX  schema1: <http://schema.org/>
+            PREFIX  skos: <http://www.w3.org/2004/02/skos/core#>
+            PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+            PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
+            PREFIX  sioc: <http://rdfs.org/sioc/ns#>
+            PREFIX  dc:   <http://purl.org/dc/elements/1.1/>
 
             CONSTRUCT 
               { 
@@ -201,6 +209,7 @@ WHERE
               { GRAPH ?graph
                   { ?this  ?p  ?literal
                     FILTER ( ( datatype(?literal) = xsd:string ) || ( datatype(?literal) = rdf:langString ) )
+                    FILTER ( ?p IN (rdfs:label, dc:title, dct:title, foaf:name, foaf:givenName, foaf:familyName, sioc:name, skos:prefLabel, schema1:name, schema2:name) )
                   }
               }
         ]]>
