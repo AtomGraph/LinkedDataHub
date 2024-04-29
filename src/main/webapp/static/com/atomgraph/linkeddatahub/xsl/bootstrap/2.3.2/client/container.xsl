@@ -1435,7 +1435,7 @@ exclude-result-prefixes="#all"
                                 <xsl:with-param name="content-uri" select="$content-uri"/>
                                 <xsl:with-param name="endpoint" select="$endpoint"/>
                                 <xsl:with-param name="content" select="$content"/>
-                                <xsl:with-param name="results" select="$results"/>
+                                <xsl:with-param name="results" select="$sorted-results"/>
                                 <xsl:with-param name="active-mode" select="$active-mode"/>
                                 <xsl:with-param name="select-xml" select="$select-xml"/>
                             </xsl:call-template>
