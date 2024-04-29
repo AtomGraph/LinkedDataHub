@@ -439,21 +439,17 @@ exclude-result-prefixes="#all"
                 <xsl:variable name="object-metadata" select="?body" as="document-node()"/>
                 <xsl:message>ldh:LoadContainerObjectMetadata $object-metadata: <xsl:value-of select="serialize($object-metadata)"/></xsl:message>
 
-                <xsl:for-each select="$container">
-                    <xsl:result-document href="?." method="ixsl:replace-content">
-                        <xsl:call-template name="ldh:RenderContainerMode">
-                            <xsl:with-param name="container" select="$container"/>
-                            <xsl:with-param name="content-id" select="$content-id"/>
-                            <xsl:with-param name="content-uri" select="$content-uri"/>
-                            <xsl:with-param name="endpoint" select="$endpoint"/>
-                            <xsl:with-param name="content" select="$content"/>
-                            <xsl:with-param name="results" select="$results"/>
-                            <xsl:with-param name="object-metadata" select="$object-metadata"/>
-                            <xsl:with-param name="active-mode" select="$active-mode"/>
-                            <xsl:with-param name="select-xml" select="$select-xml"/>
-                        </xsl:call-template>
-                    </xsl:result-document>
-                </xsl:for-each>
+                <xsl:call-template name="ldh:RenderContainerMode">
+                    <xsl:with-param name="container" select="$container"/>
+                    <xsl:with-param name="content-id" select="$content-id"/>
+                    <xsl:with-param name="content-uri" select="$content-uri"/>
+                    <xsl:with-param name="endpoint" select="$endpoint"/>
+                    <xsl:with-param name="content" select="$content"/>
+                    <xsl:with-param name="results" select="$results"/>
+                    <xsl:with-param name="object-metadata" select="$object-metadata"/>
+                    <xsl:with-param name="active-mode" select="$active-mode"/>
+                    <xsl:with-param name="select-xml" select="$select-xml"/>
+                </xsl:call-template>
             </xsl:when>
             <xsl:otherwise>
                 <!-- error response - could not load results -->
