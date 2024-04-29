@@ -926,8 +926,8 @@ exclude-result-prefixes="#all"
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="map{ 'method': 'POST', 'href': sd:endpoint(), 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                 <xsl:call-template name="ldh:LoadContainerObjectMetadata">
-                    <xsl:with-param name="container" select="$container"/>
-                    <xsl:with-param name="content-id" select="$content-id"/>
+                    <xsl:with-param name="container" select="$results-container"/>
+                    <xsl:with-param name="content-id" select="$container/@id"/>
                     <xsl:with-param name="content-uri" select="$content-uri"/>
                     <xsl:with-param name="endpoint" select="$endpoint"/>
                     <xsl:with-param name="content" select="$content"/>
@@ -1430,7 +1430,7 @@ exclude-result-prefixes="#all"
                     <xsl:variable name="request" as="item()*">
                         <ixsl:schedule-action http-request="map{ 'method': 'POST', 'href': sd:endpoint(), 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                             <xsl:call-template name="ldh:LoadContainerObjectMetadata">
-                                <xsl:with-param name="container" select="$container"/>
+                                <xsl:with-param name="container" select="$content-container//div[contains-token(@class, 'container-results')]"/>
                                 <xsl:with-param name="content-id" select="$content-id"/>
                                 <xsl:with-param name="content-uri" select="$content-uri"/>
                                 <xsl:with-param name="endpoint" select="$endpoint"/>
