@@ -923,17 +923,21 @@ exclude-result-prefixes="#all"
         
         <ixsl:set-property name="dataset.contentMode" select="$active-mode" object="$container"/>
 
-        <xsl:call-template name="ldh:RenderContainerMode">
-            <xsl:with-param name="container" select="$results-container"/>
-            <xsl:with-param name="content-id" select="$container/@id"/>
-            <xsl:with-param name="content-uri" select="$content-uri"/>
-            <xsl:with-param name="content" select="$content"/>
-            <xsl:with-param name="active-mode" select="$active-mode"/>
-            <xsl:with-param name="results" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`'), 'results')"/>
-            <xsl:with-param name="select-xml" select="$select-xml"/>
-            <xsl:with-param name="endpoint" select="$endpoint"/>
-        </xsl:call-template>
-
+        <xsl:variable name="request" as="item()*">
+            <ixsl:schedule-action http-request="map{ 'method': 'POST', 'href': sd:endpoint(), 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+                <xsl:call-template name="ldh:LoadContainerObjectMetadata">
+                    <xsl:with-param name="container" select="$container"/>
+                    <xsl:with-param name="content-id" select="$content-id"/>
+                    <xsl:with-param name="content-uri" select="$content-uri"/>
+                    <xsl:with-param name="endpoint" select="$endpoint"/>
+                    <xsl:with-param name="content" select="$content"/>
+                    <xsl:with-param name="results" select="$results"/>
+                    <xsl:with-param name="active-mode" select="$active-mode"/>
+                    <xsl:with-param name="select-xml" select="$select-xml"/>
+                </xsl:call-template>
+            </ixsl:schedule-action>
+        </xsl:variable>
+        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
 
     <!-- pager prev links -->
@@ -1423,16 +1427,21 @@ exclude-result-prefixes="#all"
                     <xsl:variable name="object-uris" select="distinct-values($sorted-results/rdf:RDF/rdf:Description/*/@rdf:resource[not(key('resources', .))])" as="xs:string*"/>
                     <xsl:variable name="query-string" select="$object-metadata-query || ' VALUES $this { ' || string-join(for $uri in $object-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>
 
-                    <xsl:call-template name="ldh:RenderContainerMode">
-                        <xsl:with-param name="container" select="$content-container//div[contains-token(@class, 'container-results')]"/>
-                        <xsl:with-param name="content-id" select="$content-id"/>
-                        <xsl:with-param name="content-uri" select="$content-uri"/>
-                        <xsl:with-param name="content" select="$content"/>
-                        <xsl:with-param name="endpoint" select="$endpoint"/>
-                        <xsl:with-param name="results" select="$sorted-results"/>
-                        <xsl:with-param name="select-xml" select="$select-xml"/>
-                        <xsl:with-param name="active-mode" select="$active-mode"/>
-                    </xsl:call-template>
+                    <xsl:variable name="request" as="item()*">
+                        <ixsl:schedule-action http-request="map{ 'method': 'POST', 'href': sd:endpoint(), 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+                            <xsl:call-template name="ldh:LoadContainerObjectMetadata">
+                                <xsl:with-param name="container" select="$container"/>
+                                <xsl:with-param name="content-id" select="$content-id"/>
+                                <xsl:with-param name="content-uri" select="$content-uri"/>
+                                <xsl:with-param name="endpoint" select="$endpoint"/>
+                                <xsl:with-param name="content" select="$content"/>
+                                <xsl:with-param name="results" select="$results"/>
+                                <xsl:with-param name="active-mode" select="$active-mode"/>
+                                <xsl:with-param name="select-xml" select="$select-xml"/>
+                            </xsl:call-template>
+                        </ixsl:schedule-action>
+                    </xsl:variable>
+                    <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
 
                     <!-- hide progress bar -->
                      <xsl:for-each select="$container//div[@class = 'progress-bar']">
