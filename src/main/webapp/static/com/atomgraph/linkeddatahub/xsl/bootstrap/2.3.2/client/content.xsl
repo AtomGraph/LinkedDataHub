@@ -437,6 +437,7 @@ exclude-result-prefixes="#all"
                         <xsl:with-param name="graph" select="$graph" tunnel="yes"/>
                         <xsl:with-param name="mode" select="$mode"/>
                         <xsl:with-param name="show-edit-button" select="$show-edit-button" tunnel="yes"/>
+                        <xsl:with-param name="object-metadata" select="$object-metadata" tunnel="yes"/>
                     </xsl:apply-templates>
                 </xsl:variable>
 
