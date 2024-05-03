@@ -494,7 +494,6 @@ extension-element-prefixes="ixsl"
         <xsl:param name="class" select="'row-fluid'" as="xs:string?"/>
         <xsl:param name="about" select="@rdf:about" as="xs:anyURI?"/>
         <xsl:param name="typeof" select="rdf:type/@rdf:resource/xs:anyURI(.)" as="xs:anyURI*"/>
-        <!-- <xsl:param name="content-value" as="xs:anyURI?"/> -->
         <xsl:param name="mode" as="xs:anyURI?"/>
         <xsl:param name="style" as="xs:string?"/>
         <xsl:param name="type-content" select="true()" as="xs:boolean"/>
@@ -528,23 +527,11 @@ extension-element-prefixes="ixsl"
                 </xsl:variable>
         
                 <xsl:choose>
-<!--                    <xsl:when test="$mode = '&ac;TableMode'">
-                        <xsl:apply-templates select="$doc" mode="xhtml:Table"/>
-                    </xsl:when>
-                    <xsl:when test="$mode = '&ac;GridMode'">
-                        <xsl:apply-templates select="$doc" mode="bs2:Grid"/>
-                    </xsl:when>-->
                     <xsl:when test="$mode = '&ac;MapMode'">
                         <xsl:apply-templates select="$doc" mode="bs2:Map">
                             <xsl:with-param name="id" select="generate-id() || '-map-canvas'"/>
                         </xsl:apply-templates>
                     </xsl:when>
-<!--                    <xsl:when test="$mode = '&ac;ChartMode'">
-                        <xsl:apply-templates select="$doc" mode="bs2:Chart">
-                            <xsl:with-param name="canvas-id" select="generate-id() || '-chart-canvas'"/>
-                            <xsl:with-param name="show-save" select="false()"/>
-                        </xsl:apply-templates>
-                    </xsl:when>-->
                     <xsl:when test="$mode = '&ac;GraphMode'">
                         <xsl:apply-templates select=".." mode="bs2:Graph"/>
                     </xsl:when>

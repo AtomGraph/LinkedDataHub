@@ -218,6 +218,33 @@ LIMIT   100
         ]]>
         <!-- VALUES $Type goes here -->
     </xsl:variable>
+    <xsl:param name="object-metadata-query" as="xs:string">
+        <![CDATA[
+            PREFIX  rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+            PREFIX  xsd:  <http://www.w3.org/2001/XMLSchema#>
+            PREFIX  dct:  <http://purl.org/dc/terms/>
+            PREFIX  schema2: <https://schema.org/>
+            PREFIX  schema1: <http://schema.org/>
+            PREFIX  skos: <http://www.w3.org/2004/02/skos/core#>
+            PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+            PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
+            PREFIX  sioc: <http://rdfs.org/sioc/ns#>
+            PREFIX  dc:   <http://purl.org/dc/elements/1.1/>
+
+            CONSTRUCT 
+              { 
+                ?this ?p ?literal .
+              }
+            WHERE
+              { GRAPH ?graph
+                  { ?this  ?p  ?literal
+                    FILTER ( ( datatype(?literal) = xsd:string ) || ( datatype(?literal) = rdf:langString ) )
+                    FILTER ( ?p IN (rdfs:label, dc:title, dct:title, foaf:name, foaf:givenName, foaf:familyName, sioc:name, skos:prefLabel, schema1:name, schema2:name) )
+                  }
+              }
+        ]]>
+        <!-- VALUES $Type goes here -->
+    </xsl:param>
     
     <xsl:key name="violations-by-root" match="*[@rdf:about] | *[@rdf:nodeID]" use="spin:violationRoot/@rdf:resource | spin:violationRoot/@rdf:nodeID"/>
     <xsl:key name="violations-by-value" match="*" use="ldh:violationValue/text()"/>

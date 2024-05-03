@@ -308,6 +308,10 @@ exclude-result-prefixes="#all"
         <xsl:param name="body" as="item()?"/>
         <xsl:param name="headers" as="map(xs:string, xs:string)"/>
         
+        <xsl:message>
+            ldh:send-request !!!!
+        </xsl:message>
+        
         <xsl:message use-when="system-property('xsl:product-name') = 'SAXON'" terminate="yes">
             Not implemented -- com.atomgraph.linkeddatahub.writer.function.SendHTTPRequest needs to be registered as an extension function
         </xsl:message>
@@ -748,8 +752,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="inline" select="false()" as="xs:boolean" tunnel="yes"/>
         <xsl:param name="type-label" select="true()" as="xs:boolean"/>
         <xsl:param name="constructor" as="document-node()?"/>
-        <xsl:variable name="resource" select="key('resources', .)"/>
-        <xsl:variable name="doc-uri" select="if (starts-with($ldt:base, .)) then xs:anyURI(.) else ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(.)), 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
+        <xsl:param name="object-metadata" as="document-node()?" tunnel="yes"/>
 
         <xsl:choose>
             <xsl:when test="$type = 'hidden'">
@@ -760,11 +763,11 @@ exclude-result-prefixes="#all"
                     <xsl:with-param name="disabled" select="$disabled"/>
                 </xsl:apply-templates>
             </xsl:when>
-            <xsl:when test="starts-with(., $ldt:base) and doc-available($doc-uri)">
+            <xsl:when test="exists($object-metadata)">
                 <xsl:choose>
-                    <xsl:when test="key('resources', ., document(ac:document-uri($doc-uri)))">
+                    <xsl:when test="key('resources', ., $object-metadata)">
                         <xsl:variable name="forClass" select="if ($constructor) then distinct-values(key('resources', key('resources-by-type', ../../rdf:type/@rdf:resource, $constructor)/*[concat(namespace-uri(), local-name()) = current()/../concat(namespace-uri(), local-name())]/@rdf:nodeID, $constructor)/rdf:type/@rdf:resource[not(. = '&rdfs;Class')]) else ()" as="xs:anyURI?"/>
-                        <xsl:apply-templates select="key('resources', ., document(ac:document-uri($doc-uri)))" mode="ldh:Typeahead">
+                        <xsl:apply-templates select="key('resources', ., $object-metadata)" mode="ldh:Typeahead">
                             <xsl:with-param name="forClass" select="$forClass"/>
                         </xsl:apply-templates>
 
