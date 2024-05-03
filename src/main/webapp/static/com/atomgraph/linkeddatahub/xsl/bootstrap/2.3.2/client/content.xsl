@@ -406,6 +406,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="map{ 'method': 'POST', 'href': sd:endpoint(), 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                 <xsl:call-template name="ldh:LoadContentObjectMetadata">
+                    <xsl:with-param name="container" select="$container"/>
                     <xsl:with-param name="resource" select="."/>
                     <xsl:with-param name="graph" select="$graph"/>
                     <xsl:with-param name="mode" select="$mode"/>
@@ -418,6 +419,7 @@ exclude-result-prefixes="#all"
     
     <xsl:template name="ldh:LoadContentObjectMetadata">
         <xsl:context-item as="map(*)" use="required"/>
+        <xsl:param name="container" as="element()"/>
         <xsl:param name="resource" as="element()"/>
         <xsl:param name="graph" as="xs:anyURI?"/>
         <xsl:param name="mode" as="xs:anyURI?"/>
