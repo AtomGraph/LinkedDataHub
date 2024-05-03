@@ -276,7 +276,7 @@ exclude-result-prefixes="#all"
                             <ixsl:set-property name="select-xml" select="$select-xml" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`')"/>
                             <!-- update progress bar -->
                             <xsl:for-each select="$container//div[@class = 'bar']">
-                                <ixsl:set-style name="width" select="'75%'" object="."/>
+                                <ixsl:set-style name="width" select="'63%'" object="."/>
                             </xsl:for-each>
 
                             <xsl:call-template name="ldh:RenderContainer">
@@ -394,29 +394,66 @@ exclude-result-prefixes="#all"
         <xsl:param name="graph" as="xs:anyURI?"/>
         <xsl:param name="mode" as="xs:anyURI?"/>
         <xsl:param name="refresh-content" as="xs:boolean?"/>
+        <xsl:param name="show-edit-button" select="false()" as="xs:boolean?"/>
+        <xsl:variable name="object-uris" select="distinct-values(*/@rdf:resource[not(key('resources', .))])" as="xs:string*"/>
+        <xsl:variable name="query-string" select="$object-metadata-query || ' VALUES $this { ' || string-join(for $uri in $object-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>
 
-        <!-- hide progress bar -->
-        <ixsl:set-style name="display" select="'none'" object="$container//div[@class = 'progress-bar']"/>
-        
-        <xsl:variable name="row" as="node()*">
-            <xsl:apply-templates select="." mode="bs2:Row">
-                <xsl:with-param name="graph" select="$graph" tunnel="yes"/>
-                <xsl:with-param name="mode" select="$mode"/>
-                <xsl:with-param name="show-edit-button" select="false()" tunnel="yes"/>
-            </xsl:apply-templates>
-        </xsl:variable>
-
-        <xsl:for-each select="$container">
-            <xsl:result-document href="?." method="ixsl:replace-content">
-                <xsl:copy-of select="$row/*"/> <!-- inject the content of div.row-fluid -->
-            </xsl:result-document>
+        <xsl:for-each select="$container//div[@class = 'bar']">
+            <!-- update progress bar -->
+            <ixsl:set-style name="width" select="'75%'" object="."/>
         </xsl:for-each>
-
-        <xsl:call-template name="ldh:ContentLoaded">
-            <xsl:with-param name="container" select="$container"/>
-        </xsl:call-template>
+        
+        <xsl:variable name="request" as="item()*">
+            <ixsl:schedule-action http-request="map{ 'method': 'POST', 'href': sd:endpoint(), 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+                <xsl:call-template name="ldh:LoadContentObjectMetadata">
+                    <xsl:with-param name="resource" select="."/>
+                    <xsl:with-param name="graph" select="$graph"/>
+                    <xsl:with-param name="mode" select="$mode"/>
+                    <xsl:with-param name="show-edit-button" select="$show-edit-button"/>
+                </xsl:call-template>
+            </ixsl:schedule-action>
+        </xsl:variable>
+        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
     
+    <xsl:template name="ldh:LoadContentObjectMetadata">
+        <xsl:context-item as="map(*)" use="required"/>
+        <xsl:param name="resource" as="element()"/>
+        <xsl:param name="graph" as="xs:anyURI?"/>
+        <xsl:param name="mode" as="xs:anyURI?"/>
+        <xsl:param name="show-edit-button" as="xs:boolean?"/>
+
+        <xsl:choose>
+            <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
+                <xsl:variable name="object-metadata" select="?body" as="document-node()"/>
+                
+                <!-- hide progress bar -->
+                <ixsl:set-style name="display" select="'none'" object="$container//div[@class = 'progress-bar']"/>
+
+                <xsl:variable name="row" as="node()*">
+                    <xsl:apply-templates select="$resource" mode="bs2:Row">
+                        <xsl:with-param name="graph" select="$graph" tunnel="yes"/>
+                        <xsl:with-param name="mode" select="$mode"/>
+                        <xsl:with-param name="show-edit-button" select="$show-edit-button" tunnel="yes"/>
+                    </xsl:apply-templates>
+                </xsl:variable>
+
+                <xsl:for-each select="$container">
+                    <xsl:result-document href="?." method="ixsl:replace-content">
+                        <xsl:copy-of select="$row/*"/> <!-- inject the content of div.row-fluid -->
+                    </xsl:result-document>
+                </xsl:for-each>
+
+                <xsl:call-template name="ldh:ContentLoaded">
+                    <xsl:with-param name="container" select="$container"/>
+                </xsl:call-template>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ ?message ])[current-date() lt xs:date('2000-01-01')]"/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:template>
+
     <xsl:template name="ldh:ContentLoaded">
         <xsl:param name="container" as="element()"/>
 

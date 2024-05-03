@@ -243,8 +243,6 @@ extension-element-prefixes="ixsl"
         <xsl:param name="anchor-column" as="xs:boolean" select="true()" tunnel="yes"/>
         <xsl:param name="object-uris" select="rdf:Description/*/@rdf:resource[not(key('resources', .))]" as="xs:anyURI*"/>
         <xsl:param name="object-metadata" select="if (exists($object-uris)) then ldh:send-request($sd:endpoint, 'POST', 'application/sparql-query', $object-metadata-query || ' VALUES $this { ' || string-join(for $uri in $object-uris return '&lt;' || $uri || '&gt;', ' ') || ' }', map{ 'Accept': 'application/rdf+xml' }) else ()" as="document-node()?" tunnel="yes"/>
-        <xsl:message>xhtml:Table $object-uris: <xsl:value-of select="$object-uris"/></xsl:message>
-        <xsl:message>xhtml:Table $object-metadata: <xsl:value-of select="serialize($object-metadata)"/></xsl:message>
         
         <xsl:next-match>
             <xsl:with-param name="id" select="$id"/>

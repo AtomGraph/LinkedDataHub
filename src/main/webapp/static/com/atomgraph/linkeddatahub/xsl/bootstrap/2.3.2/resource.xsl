@@ -494,7 +494,6 @@ extension-element-prefixes="ixsl"
         <xsl:param name="class" select="'row-fluid'" as="xs:string?"/>
         <xsl:param name="about" select="@rdf:about" as="xs:anyURI?"/>
         <xsl:param name="typeof" select="rdf:type/@rdf:resource/xs:anyURI(.)" as="xs:anyURI*"/>
-        <!-- <xsl:param name="content-value" as="xs:anyURI?"/> -->
         <xsl:param name="mode" as="xs:anyURI?"/>
         <xsl:param name="style" as="xs:string?"/>
         <xsl:param name="type-content" select="true()" as="xs:boolean"/>

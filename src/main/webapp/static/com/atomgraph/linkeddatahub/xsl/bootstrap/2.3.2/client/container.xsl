@@ -425,6 +425,7 @@ exclude-result-prefixes="#all"
     </xsl:template>
 
     <xsl:template name="ldh:LoadContainerObjectMetadata">
+        <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="container" as="element()"/>
         <xsl:param name="content-id" as="xs:string"/>
         <xsl:param name="content-uri" as="xs:anyURI"/>
@@ -437,8 +438,11 @@ exclude-result-prefixes="#all"
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
                 <xsl:variable name="object-metadata" select="?body" as="document-node()"/>
-                <xsl:message>ldh:LoadContainerObjectMetadata $object-metadata: <xsl:value-of select="serialize($object-metadata)"/></xsl:message>
 
+                <xsl:for-each select="$container//div[@class = 'bar']">
+                    <ixsl:set-style name="width" select="'88%'" object="."/>
+                </xsl:for-each>
+        
                 <xsl:call-template name="ldh:RenderContainerMode">
                     <xsl:with-param name="container" select="$container"/>
                     <xsl:with-param name="content-id" select="$content-id"/>
