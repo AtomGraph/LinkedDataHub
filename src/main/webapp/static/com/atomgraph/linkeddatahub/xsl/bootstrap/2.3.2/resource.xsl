@@ -797,7 +797,7 @@ extension-element-prefixes="ixsl"
         </div>
     </xsl:template>
     
-    <!-- resource content -->
+    <!-- object content -->
     
     <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;Object'][rdf:value/@rdf:resource]" mode="bs2:RowContent" priority="2">
         <xsl:param name="id" select="if (contains(@rdf:about, ac:absolute-path(ldh:base-uri(.)) || '#')) then substring-after(@rdf:about, ac:absolute-path(ldh:base-uri(.)) || '#') else generate-id()" as="xs:string?"/>
@@ -813,6 +813,57 @@ extension-element-prefixes="ixsl"
         
         <!-- @data-content-value is used to retrieve $content-value in client.xsl -->
         <div about="{@rdf:about}" data-content-value="{rdf:value/@rdf:resource}">
+            <xsl:if test="$id">
+                <xsl:attribute name="id" select="$id"/>
+            </xsl:if>
+            <xsl:if test="$class">
+                <xsl:attribute name="class" select="$class"/>
+            </xsl:if>
+            <xsl:if test="$graph">
+                <xsl:attribute name="data-content-graph" select="$graph"/>
+            </xsl:if>
+            <xsl:if test="$mode">
+                <xsl:attribute name="data-content-mode" select="$mode"/>
+            </xsl:if>
+            <xsl:if test="$draggable = true()">
+                <xsl:attribute name="draggable" select="'true'"/>
+            </xsl:if>
+            <xsl:if test="$draggable = false()">
+                <xsl:attribute name="draggable" select="'false'"/>
+            </xsl:if>
+            
+            <xsl:apply-templates select="." mode="bs2:Left">
+                <xsl:with-param name="class" select="$left-class"/>
+            </xsl:apply-templates>
+            
+            <div>
+                <xsl:if test="$main-class">
+                    <xsl:attribute name="class" select="$main-class"/>
+                </xsl:if>
+            </div>
+            
+            <xsl:apply-templates select="." mode="bs2:Right">
+                <xsl:with-param name="class" select="$right-class"/>
+            </xsl:apply-templates>
+        </div>
+    </xsl:template>
+    
+    <!-- view content -->
+    
+    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;View'][rdf:value/@rdf:resource]" mode="bs2:RowContent" priority="2">
+        <xsl:param name="id" select="if (contains(@rdf:about, ac:absolute-path(ldh:base-uri(.)) || '#')) then substring-after(@rdf:about, ac:absolute-path(ldh:base-uri(.)) || '#') else generate-id()" as="xs:string?"/>
+        <xsl:param name="class" select="'row-fluid content resource-content'" as="xs:string?"/>
+        <xsl:param name="graph" select="ldh:graph/@rdf:resource" as="xs:anyURI?"/>
+        <!-- <xsl:param name="mode" select="ac:mode/@rdf:resource" as="xs:anyURI?"/> -->
+        <xsl:param name="left-class" select="'left-nav span2'" as="xs:string?"/>
+        <xsl:param name="main-class" select="'main span7'" as="xs:string?"/>
+        <xsl:param name="right-class" select="'right-nav span3'" as="xs:string?"/>
+        <xsl:param name="draggable" select="$acl:mode = '&acl;Write'" as="xs:boolean?"/>
+
+        <xsl:apply-templates select="." mode="bs2:RowContentHeader"/>
+        
+        <!-- @data-content-value is used to retrieve $content-value in client.xsl -->
+        <div about="{@rdf:about}" data-content-value="{spin:query/@rdf:resource}">
             <xsl:if test="$id">
                 <xsl:attribute name="id" select="$id"/>
             </xsl:if>
