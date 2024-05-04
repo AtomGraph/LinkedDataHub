@@ -244,14 +244,32 @@
 :XHTMLConstructor a :Constructor ;
   sp:text """
       PREFIX rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-      PREFIX spin:  <http://spinrdf.org/spin#>
-      PREFIX sp:    <http://spinrdf.org/sp#>
 
       CONSTRUCT {
           $this rdf:value "<div xmlns=\"http://www.w3.org/1999/xhtml\"></div>"^^rdf:XMLLiteral .
       }
       WHERE {}""" ;
-    rdfs:label "View constructor" ;
+    rdfs:label "XHTML constructor" ;
+    rdfs:isDefinedBy : .
+
+# object
+
+:Object a rdfs:Class, owl:Class ;
+    rdfs:subClassOf :Block ;
+    rdfs:label "Object" ;
+    spin:constructor :ObjectConstructor ;
+    spin:constraint :MissingValue ;
+    rdfs:isDefinedBy : .
+
+:ObjectConstructor a :Constructor ;
+  sp:text """
+      PREFIX rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+
+      CONSTRUCT {
+          $this rdf:value [ a rdf:Resource ] .
+      }
+      WHERE {}""" ;
+    rdfs:label "Object constructor" ;
     rdfs:isDefinedBy : .
 
 # view

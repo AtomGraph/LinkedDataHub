@@ -340,7 +340,7 @@ extension-element-prefixes="ixsl"
     <!-- LEFT NAV -->
     
     <!-- disable .left-nav for XHTML content instances -->
-    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;Content'][rdf:value[@rdf:parseType = 'Literal']/xhtml:div]" mode="bs2:Left" priority="2"/>
+    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;XHTML'][rdf:value[@rdf:parseType = 'Literal']/xhtml:div]" mode="bs2:Left" priority="2"/>
 
     <xsl:template match="*[*][@rdf:about or @rdf:nodeID]" mode="bs2:Left" priority="1">
         <xsl:param name="id" as="xs:string?"/>
@@ -359,7 +359,7 @@ extension-element-prefixes="ixsl"
     <!-- RIGHT NAV -->
     
     <!-- .resource-content instances -->
-    <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;Content'][rdf:value/@rdf:resource]" mode="bs2:Right" priority="1">
+    <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;Object'][rdf:value/@rdf:resource]" mode="bs2:Right" priority="1">
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" select="'right-nav span3'" as="xs:string?"/>
         
@@ -487,7 +487,7 @@ extension-element-prefixes="ixsl"
     </xsl:template>
     
     <!-- hide instances of system classes -->
-    <xsl:template match="*[not($ldh:renderSystemResources)][@rdf:about = ac:absolute-path(ldh:base-uri(.)) and rdf:type/@rdf:resource = ('&def;Root', '&dh;Container', '&dh;Item')] | *[not($ldh:renderSystemResources)][rdf:type/@rdf:resource = '&ldh;Content']" mode="bs2:Row" priority="1" use-when="system-property('xsl:product-name') = 'SAXON'"/>
+    <xsl:template match="*[not($ldh:renderSystemResources)][@rdf:about = ac:absolute-path(ldh:base-uri(.)) and rdf:type/@rdf:resource = ('&def;Root', '&dh;Container', '&dh;Item')] | *[not($ldh:renderSystemResources)][rdf:type/@rdf:resource = ('&ldh;XHTML', '&ldh;Object', '&ldh;View')]" mode="bs2:Row" priority="1" use-when="system-property('xsl:product-name') = 'SAXON'"/>
 
     <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:Row">
         <xsl:param name="id" select="generate-id()" as="xs:string?"/>
@@ -752,7 +752,7 @@ extension-element-prefixes="ixsl"
     
     <!-- XHTML content -->
     
-    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;Content'][rdf:value[@rdf:parseType = 'Literal']/xhtml:div]" mode="bs2:RowContent" priority="2">
+    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;XHTML'][rdf:value[@rdf:parseType = 'Literal']/xhtml:div]" mode="bs2:RowContent" priority="2">
         <xsl:param name="id" select="if (contains(@rdf:about, ac:absolute-path(ldh:base-uri(.)) || '#')) then substring-after(@rdf:about, ac:absolute-path(ldh:base-uri(.)) || '#') else generate-id()" as="xs:string?"/>
         <xsl:param name="class" select="'row-fluid content xhtml-content'" as="xs:string?"/>
         <xsl:param name="left-class" as="xs:string?"/>
@@ -799,7 +799,7 @@ extension-element-prefixes="ixsl"
     
     <!-- resource content -->
     
-    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;Content'][rdf:value/@rdf:resource]" mode="bs2:RowContent" priority="2">
+    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;Object'][rdf:value/@rdf:resource]" mode="bs2:RowContent" priority="2">
         <xsl:param name="id" select="if (contains(@rdf:about, ac:absolute-path(ldh:base-uri(.)) || '#')) then substring-after(@rdf:about, ac:absolute-path(ldh:base-uri(.)) || '#') else generate-id()" as="xs:string?"/>
         <xsl:param name="class" select="'row-fluid content resource-content'" as="xs:string?"/>
         <xsl:param name="graph" select="ldh:graph/@rdf:resource" as="xs:anyURI?"/>
@@ -852,7 +852,7 @@ extension-element-prefixes="ixsl"
 
     <!-- ROW CONTENT HEADER -->
     
-    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;Content']" mode="bs2:RowContentHeader" priority="1">
+    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;Object']" mode="bs2:RowContentHeader" priority="1">
         <xsl:variable name="anchor" as="node()*">
             <xsl:for-each select="@rdf:about">
                 <xsl:apply-templates select="key('resources', ., document(ac:document-uri(.)))" mode="xhtml:Anchor">
@@ -1014,7 +1014,7 @@ extension-element-prefixes="ixsl"
     <xsl:template match="*[rdf:type/@rdf:resource = ('&spin;ConstraintViolation', '&sh;ValidationResult', '&sh;ValidationReport', '&http;Response')]" mode="bs2:RowForm" priority="3" use-when="system-property('xsl:product-name') = 'SAXON'"/>
 
     <!-- hide instances of system classes -->
-    <!-- <xsl:template match="*[not($ldh:renderSystemResources)][@rdf:about = ac:absolute-path(ldh:base-uri(.)) and rdf:type/@rdf:resource = ('&def;Root', '&dh;Container', '&dh;Item')] | *[not($ldh:renderSystemResources)][rdf:type/@rdf:resource = '&ldh;Content']" mode="bs2:RowForm" priority="2.5" use-when="system-property('xsl:product-name') = 'SAXON'"/> -->
+    <!-- <xsl:template match="*[not($ldh:renderSystemResources)][@rdf:about = ac:absolute-path(ldh:base-uri(.)) and rdf:type/@rdf:resource = ('&def;Root', '&dh;Container', '&dh;Item')] | *[not($ldh:renderSystemResources)][rdf:type/@rdf:resource = ('&ldh;XHTML', '&ldh;Object', '&ldh;View')]" mode="bs2:RowForm" priority="2.5" use-when="system-property('xsl:product-name') = 'SAXON'"/> -->
 
     <!-- hide object blank nodes that only have a single rdf:type property from constructed models, unless the type is owl:NamedIndividual -->
     <xsl:template match="*[@rdf:nodeID][$ac:method = 'GET'][key('predicates-by-object', @rdf:nodeID)][not(* except rdf:type or rdf:type/@rdf:resource = '&owl;NamedIndividual')]" mode="bs2:RowForm" priority="2" use-when="system-property('xsl:product-name') = 'SAXON'"/>
@@ -1304,7 +1304,7 @@ extension-element-prefixes="ixsl"
     <!-- TYPE CONTROL -->
 
     <!-- hide type control -->
-    <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;Content']" mode="bs2:TypeControl" priority="1">
+    <xsl:template match="*[rdf:type/@rdf:resource = ('&ldh;XHTML', '&ldh;Object', '&ldh;View')]" mode="bs2:TypeControl" priority="1">
         <xsl:next-match>
             <xsl:with-param name="hidden" select="true()"/>
         </xsl:next-match>
@@ -1325,7 +1325,7 @@ extension-element-prefixes="ixsl"
     
     <!-- hide property dropdown for content instances -->
     
-    <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;Content']" mode="bs2:PropertyControl" priority="1"/>
+    <xsl:template match="*[rdf:type/@rdf:resource = ('&ldh;XHTML', '&ldh;Object', '&ldh;View')]" mode="bs2:PropertyControl" priority="1"/>
     
     <xsl:template match="*[@rdf:about or @rdf:nodeID]" mode="bs2:PropertyControl">
         <xsl:param name="class" as="xs:string?"/>

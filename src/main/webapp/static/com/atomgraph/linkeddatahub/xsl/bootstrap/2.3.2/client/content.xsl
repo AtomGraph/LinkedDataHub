@@ -42,8 +42,47 @@ extension-element-prefixes="ixsl"
 exclude-result-prefixes="#all"
 >
 
-    <xsl:variable name="content-append-string" as="xs:string">
+    <xsl:variable name="block-append-string" as="xs:string">
         <!-- same as in append-content.sh CLI script -->
+        <![CDATA[
+            PREFIX  ldh:  <https://w3id.org/atomgraph/linkeddatahub#>
+            PREFIX  ac:   <https://w3id.org/atomgraph/client#>
+            PREFIX  rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+            PREFIX  xsd:  <http://www.w3.org/2001/XMLSchema#>
+
+            INSERT
+            {
+                $this ?property $block .
+                $block a $type ;
+                    $valueProperty $value ;
+                    ac:mode $mode .
+            }
+            WHERE
+            {
+                { SELECT  (( MAX(?index) + 1 ) AS ?next)
+                  WHERE
+                    { $this
+                                ?seq      ?oldBlock .
+                      {
+                          ?oldBlock  a  ldh:XHTML
+                      }
+                      UNION
+                      {
+                          ?oldBlock  a  ldh:Object
+                      }
+                      UNION
+                      {
+                          ?oldBlock  a  ldh:View
+                      }
+                      BIND(xsd:integer(substr(str(?seq), 45)) AS ?index)
+                    }
+                }
+                BIND(iri(concat(str(rdf:), "_", str(coalesce(?next, 1)))) AS ?property)
+            }
+        ]]>
+    </xsl:variable>
+<!--    <xsl:variable name="content-append-string" as="xs:string">
+         same as in append-content.sh CLI script 
         <![CDATA[
             PREFIX  ldh:  <https://w3id.org/atomgraph/linkeddatahub#>
             PREFIX  ac:   <https://w3id.org/atomgraph/client#>
@@ -62,16 +101,16 @@ exclude-result-prefixes="#all"
                 { SELECT  (( MAX(?index) + 1 ) AS ?next)
                   WHERE
                     { $this
-                                ?seq      ?oldContent .
-                      ?oldContent  a  ldh:Content
+                                ?seq      ?oldBlock .
+                      ?oldBlock  a  ldh:Content
                       BIND(xsd:integer(substr(str(?seq), 45)) AS ?index)
                     }
                 }
                 BIND(iri(concat(str(rdf:), "_", str(coalesce(?next, 1)))) AS ?property)
             }
         ]]>
-    </xsl:variable>
-    <xsl:variable name="content-update-string" as="xs:string">
+    </xsl:variable>-->
+    <xsl:variable name="block-update-string" as="xs:string">
         <![CDATA[
             PREFIX ldh: <https://w3id.org/atomgraph/linkeddatahub#>
             PREFIX ac:  <https://w3id.org/atomgraph/client#>
@@ -80,22 +119,23 @@ exclude-result-prefixes="#all"
             DELETE
             {
                 $this ?seq $content .
-                $content a ldh:Content ;
-                    rdf:value ?oldValue ;
+                $content a ?oldType ;
+                    ?oldValueProperty ?oldValue ;
                     ac:mode ?oldMode .
             }
             INSERT
             {
                 $this ?seq $content .
-                $content a ldh:Content ;
-                    rdf:value $value ;
+                $content a $type ;
+                    $valueProperty $value ;
                     ac:mode $mode .
             }
             WHERE
             {
                 $this ?seq $content .
-                $content a ldh:Content ;
-                    rdf:value ?oldValue .
+                $content a ?oldType ;
+                    ?oldValueProperty ?oldValue .
+                FILTER (?oldType IN (ldh:XHTML, ldh:Object, ldh:View))
                 OPTIONAL
                 {
                     $content ac:mode ?oldMode
@@ -358,7 +398,7 @@ exclude-result-prefixes="#all"
     
     <!-- .xhtml-content referenced from .resource-content (XHTML transclusion) -->
     
-    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;Content'][rdf:value[@rdf:parseType = 'Literal']/xhtml:div]" mode="ldh:RenderContent" priority="1">
+    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;Block'][rdf:value[@rdf:parseType = 'Literal']/xhtml:div]" mode="ldh:RenderContent" priority="1">
         <xsl:param name="container" as="element()"/>
         <xsl:param name="mode" as="xs:anyURI?"/>
         <xsl:param name="refresh-content" as="xs:boolean?"/>
@@ -489,7 +529,7 @@ exclude-result-prefixes="#all"
             <xsl:document>
                 <rdf:RDF>
                     <rdf:Description>
-                        <rdf:type rdf:resource="&ldh;Content"/>
+                        <rdf:type rdf:resource="&ldh;XHTML"/>
                         <rdf:value rdf:parseType="Literal">
                             <xsl:copy-of select="$container/div[contains-token(@class, 'main')]/*[not(. is $button)]"/> <!-- filter out the "Edit" button -->
                         </rdf:value>
@@ -559,7 +599,7 @@ exclude-result-prefixes="#all"
             <xsl:document>
                 <rdf:RDF>
                     <rdf:Description rdf:nodeID="A1">
-                        <rdf:type rdf:resource="&ldh;Content"/>
+                        <rdf:type rdf:resource="&ldh;View"/>
                         <rdf:value rdf:nodeID="A2"/>
                         <ac:mode rdf:nodeID="A3"/>
                     </rdf:Description>
@@ -655,9 +695,11 @@ exclude-result-prefixes="#all"
 
         <xsl:variable name="content-id" select="$container/@id" as="xs:string"/>
         <xsl:variable name="content-uri" select="if ($container/@about) then $container/@about else xs:anyURI(ac:absolute-path(ldh:base-uri(.)) || '#' || $content-id)" as="xs:anyURI"/>
-        <xsl:variable name="update-string" select="if ($container/@about) then $content-update-string else $content-append-string" as="xs:string"/>
+        <xsl:variable name="update-string" select="if ($container/@about) then $block-update-string else $block-append-string" as="xs:string"/>
         <xsl:variable name="update-string" select="replace($update-string, '$this', '&lt;' || ac:absolute-path(ldh:base-uri(.)) || '&gt;', 'q')" as="xs:string"/>
-        <xsl:variable name="update-string" select="replace($update-string, '$content', '&lt;' || $content-uri || '&gt;', 'q')" as="xs:string"/>
+        <xsl:variable name="update-string" select="replace($update-string, '$type', '&lt;&ldh;XHTML&gt;', 'q')" as="xs:string"/>
+        <xsl:variable name="update-string" select="replace($update-string, '$block', '&lt;' || $content-uri || '&gt;', 'q')" as="xs:string"/>
+        <xsl:variable name="update-string" select="replace($update-string, '$valueProperty', '&lt;&rdf;value&gt;', 'q')" as="xs:string"/>
         <xsl:variable name="update-string" select="replace($update-string, '$value', '&quot;' || $content-string || '&quot;^^&lt;&rdf;XMLLiteral&gt;', 'q')" as="xs:string"/>
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, ac:absolute-path(ldh:base-uri(.)))" as="xs:anyURI"/>
         <xsl:variable name="request" as="item()*">
@@ -690,9 +732,11 @@ exclude-result-prefixes="#all"
 
                 <xsl:variable name="content-id" select="$container/@id" as="xs:string"/>
                 <xsl:variable name="content-uri" select="if ($container/@about) then $container/@about else xs:anyURI(ac:absolute-path(ldh:base-uri(.)) || '#' || $content-id)" as="xs:anyURI"/>
-                <xsl:variable name="update-string" select="if ($container/@about) then $content-update-string else $content-append-string" as="xs:string"/>
+                <xsl:variable name="update-string" select="if ($container/@about) then $block-update-string else $block-append-string" as="xs:string"/>
                 <xsl:variable name="update-string" select="replace($update-string, '$this', '&lt;' || ac:absolute-path(ldh:base-uri(.)) || '&gt;', 'q')" as="xs:string"/>
-                <xsl:variable name="update-string" select="replace($update-string, '$content', '&lt;' || $content-uri || '&gt;', 'q')" as="xs:string"/>
+                <xsl:variable name="update-string" select="replace($update-string, '$type', '&lt;&ldh;Object&gt;', 'q')" as="xs:string"/>
+                <xsl:variable name="update-string" select="replace($update-string, '$block', '&lt;' || $content-uri || '&gt;', 'q')" as="xs:string"/>
+                <xsl:variable name="update-string" select="replace($update-string, '$valueProperty', '&lt;&rdf;value&gt;', 'q')" as="xs:string"/>
                 <xsl:variable name="update-string" select="replace($update-string, '$value', '&lt;' || $content-value || '&gt;', 'q')" as="xs:string"/>
                 <xsl:variable name="update-string" select="if ($mode) then replace($update-string, '$mode', '&lt;' || $mode || '&gt;', 'q') else $update-string" as="xs:string"/>
                 <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, ac:absolute-path(ldh:base-uri(.)))" as="xs:anyURI"/>
@@ -887,9 +931,11 @@ exclude-result-prefixes="#all"
                 <xsl:variable name="content-value" select="$query-uri" as="xs:anyURI"/>
                 <xsl:variable name="content-id" select="$container/@id" as="xs:string"/>
                 <xsl:variable name="content-uri" select="if ($container/@about) then $container/@about else xs:anyURI(ac:absolute-path($base-uri) || '#' || $content-id)" as="xs:anyURI"/>
-                <xsl:variable name="update-string" select="if ($container/@about) then $content-update-string else $content-append-string" as="xs:string"/>
+                <xsl:variable name="update-string" select="if ($container/@about) then $block-update-string else $block-append-string" as="xs:string"/>
                 <xsl:variable name="update-string" select="replace($update-string, '$this', '&lt;' || ac:absolute-path($base-uri) || '&gt;', 'q')" as="xs:string"/>
-                <xsl:variable name="update-string" select="replace($update-string, '$content', '&lt;' || $content-uri || '&gt;', 'q')" as="xs:string"/>
+                <xsl:variable name="update-string" select="replace($update-string, '$type', '&lt;&ldh;View&gt;', 'q')" as="xs:string"/>
+                <xsl:variable name="update-string" select="replace($update-string, '$block', '&lt;' || $content-uri || '&gt;', 'q')" as="xs:string"/>
+                <xsl:variable name="update-string" select="replace($update-string, '$valueProperty', '&lt;&spin;query&gt;', 'q')" as="xs:string"/>
                 <xsl:variable name="update-string" select="replace($update-string, '$value', '&lt;' || $content-value || '&gt;', 'q')" as="xs:string"/>
                 <xsl:variable name="update-string" select="if ($mode) then replace($update-string, '$mode', '&lt;' || $mode || '&gt;', 'q') else $update-string" as="xs:string"/>
                 <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path($base-uri), map{}, ac:absolute-path($base-uri))" as="xs:anyURI"/>
@@ -1019,7 +1065,7 @@ exclude-result-prefixes="#all"
             <xsl:document>
                 <rdf:RDF>
                     <rdf:Description rdf:nodeID="A1">
-                        <rdf:type rdf:resource="&ldh;Content"/>
+                        <rdf:type rdf:resource="&ldh;View"/>
                         <rdf:value rdf:nodeID="A2"/>
                         <ac:mode rdf:nodeID="A3"/>
                     </rdf:Description>
@@ -1057,7 +1103,7 @@ exclude-result-prefixes="#all"
             <xsl:document>
                 <rdf:RDF>
                     <rdf:Description rdf:nodeID="A1">
-                        <rdf:type rdf:resource="&ldh;Content"/>
+                        <rdf:type rdf:resource="&ldh;XHTML"/>
                         <rdf:value rdf:parseType="Literal">
                             <xhtml:div/>
                         </rdf:value>
@@ -1089,7 +1135,7 @@ exclude-result-prefixes="#all"
             <xsl:document>
                 <rdf:RDF>
                     <rdf:Description>
-                        <rdf:type rdf:resource="&ldh;Content"/>
+                        <rdf:type rdf:resource="&ldh;XHTML"/>
                         <rdf:value rdf:parseType="Literal">
                             <xhtml:div/>
                         </rdf:value>
@@ -1151,7 +1197,7 @@ exclude-result-prefixes="#all"
             <xsl:document>
                 <rdf:RDF>
                     <rdf:Description rdf:nodeID="A1">
-                        <rdf:type rdf:resource="&ldh;Content"/>
+                        <rdf:type rdf:resource="&ldh;View"/>
                         <rdf:value rdf:nodeID="A2"/>
                         <ac:mode rdf:nodeID="A3"/>
                     </rdf:Description>

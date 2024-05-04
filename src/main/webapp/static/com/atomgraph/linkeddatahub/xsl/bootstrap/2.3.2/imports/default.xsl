@@ -1088,7 +1088,7 @@ exclude-result-prefixes="#all"
     
     <!-- FORM CONTROL TYPE LABEL -->
 
-    <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;Content']/rdf:value/@rdf:* | *[rdf:type/@rdf:resource = '&ldh;Content']/rdf:value/xhtml:*" mode="bs2:FormControlTypeLabel" priority="1">
+    <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;Object']/rdf:value/@rdf:* | *[rdf:type/@rdf:resource = '&ldh;XHTML']/rdf:value/xhtml:*" mode="bs2:FormControlTypeLabel" priority="1">
         <select class="help-inline content-type">
             <option value="&rdfs;Resource">
                 <xsl:if test="self::attribute()">

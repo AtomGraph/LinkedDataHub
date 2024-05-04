@@ -71,14 +71,14 @@ WHERE
     <!-- TEMPLATES -->
 
     <!-- provide a property label which otherwise would default to local-name() client-side -->
-    <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;Content']/rdfs:label | *[rdf:type/@rdf:resource = '&ldh;Content']/ac:mode" mode="bs2:FormControl">
+    <xsl:template match="*[rdf:type/@rdf:resource = ('&ldh;XHTML', '&ldh;Object', '&ldh;View')]/rdfs:label | *[rdf:type/@rdf:resource = ('&ldh;XHTML', '&ldh;Object', '&ldh;View')]/ac:mode" mode="bs2:FormControl">
         <xsl:next-match>
             <xsl:with-param name="label" select="ac:property-label(.)"/>
         </xsl:next-match>
     </xsl:template>
 
     <!-- make sure content value input is shown as required -->
-    <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;Content']/rdf:value" mode="bs2:FormControl">
+    <xsl:template match="*[rdf:type/@rdf:resource = ('&ldh;XHTML', '&ldh;Object', '&ldh;View')]/rdf:value" mode="bs2:FormControl">
         <xsl:next-match>
             <xsl:with-param name="label" select="ac:property-label(.)"/>
             <xsl:with-param name="required" select="true()"/>
@@ -86,7 +86,7 @@ WHERE
     </xsl:template>
     
     <!-- hide content type input (template borrowed from rdf.xsl which is not included client-side) -->
-    <xsl:template match="rdf:type[@rdf:resource = '&ldh;Content']" mode="bs2:TypeControl">
+    <xsl:template match="rdf:type[@rdf:resource = ('&ldh;XHTML', '&ldh;Object', '&ldh;View')]" mode="bs2:TypeControl">
         <xsl:apply-templates select="." mode="xhtml:Input">
             <xsl:with-param name="type" select="'hidden'"/>
         </xsl:apply-templates>
@@ -1211,7 +1211,7 @@ WHERE
             <xsl:document>
                 <rdf:RDF>
                     <rdf:Description rdf:nodeID="A1">
-                        <rdf:type rdf:resource="&ldh;Content"/>
+                        <rdf:type rdf:resource="&ldh;View"/>
                         <rdf:value rdf:nodeID="A2"/>
                         <ac:mode rdf:nodeID="A3"/>
                     </rdf:Description>
@@ -1245,7 +1245,7 @@ WHERE
             <xsl:document>
                 <rdf:RDF>
                     <rdf:Description rdf:nodeID="A1">
-                        <rdf:type rdf:resource="&ldh;Content"/>
+                        <rdf:type rdf:resource="&ldh;XHTML"/>
                         <rdf:value rdf:parseType="Literal">
                             <xhtml:div/>
                         </rdf:value>
