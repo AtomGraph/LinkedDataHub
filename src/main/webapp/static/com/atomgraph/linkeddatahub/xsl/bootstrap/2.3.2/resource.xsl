@@ -854,7 +854,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="id" select="if (contains(@rdf:about, ac:absolute-path(ldh:base-uri(.)) || '#')) then substring-after(@rdf:about, ac:absolute-path(ldh:base-uri(.)) || '#') else generate-id()" as="xs:string?"/>
         <xsl:param name="class" select="'row-fluid content resource-content'" as="xs:string?"/>
         <xsl:param name="graph" select="ldh:graph/@rdf:resource" as="xs:anyURI?"/>
-        <!-- <xsl:param name="mode" select="ac:mode/@rdf:resource" as="xs:anyURI?"/> -->
+        <xsl:param name="mode" select="ac:mode/@rdf:resource" as="xs:anyURI?"/>
         <xsl:param name="left-class" select="'left-nav span2'" as="xs:string?"/>
         <xsl:param name="main-class" select="'main span7'" as="xs:string?"/>
         <xsl:param name="right-class" select="'right-nav span3'" as="xs:string?"/>
