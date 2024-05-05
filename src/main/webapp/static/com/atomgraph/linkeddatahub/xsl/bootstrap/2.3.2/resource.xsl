@@ -747,7 +747,7 @@ extension-element-prefixes="ixsl"
             <xsl:if test="doc-available(ac:document-uri(.))">
                 <xsl:apply-templates select="key('resources', ., document(ac:document-uri(.)))" mode="bs2:RowContent"/>
             </xsl:if>
-            <!-- TO-DO: sho error otherwise -->
+            <!-- TO-DO: show error otherwise -->
         </xsl:for-each>
     </xsl:template>
 
@@ -853,7 +853,7 @@ extension-element-prefixes="ixsl"
     
     <!-- view content -->
     
-    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;View'][rdf:value/@rdf:resource]" mode="bs2:RowContent" priority="2">
+    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;View'][spin:query/@rdf:resource]" mode="bs2:RowContent" priority="2">
         <xsl:param name="id" select="if (contains(@rdf:about, ac:absolute-path(ldh:base-uri(.)) || '#')) then substring-after(@rdf:about, ac:absolute-path(ldh:base-uri(.)) || '#') else generate-id()" as="xs:string?"/>
         <xsl:param name="class" select="'row-fluid content resource-content'" as="xs:string?"/>
         <xsl:param name="graph" select="ldh:graph/@rdf:resource" as="xs:anyURI?"/>
