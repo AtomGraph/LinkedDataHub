@@ -148,19 +148,20 @@ LIMIT   100
 
     <!-- the query has to support services that do not belong to any app. Use type URIs because that is what triggers Varnish invalidation. -->
     <xsl:variable name="app-query" as="xs:string">
-        DESCRIBE  ?resource
-        WHERE
-          { GRAPH ?graph
-              {
-                  { ?resource  a &lt;&lapp;Application&gt; ;
-                        &lt;&ldt;base&gt;     ?base
-                  }
-                  UNION
-                  { ?resource  a &lt;&sd;Service&gt; ;
-                        &lt;&sd;endpoint&gt;  ?endpoint
+        <![CDATA[
+            DESCRIBE ?resource
+            WHERE
+              { GRAPH ?graph
+                  {   { ?resource  a                    <https://w3id.org/atomgraph/linkeddatahub/apps#Application> ;
+                                  <https://www.w3.org/ns/ldt#base>  ?base
+                      }
+                    UNION
+                      { ?resource  a                    <http://www.w3.org/ns/sparql-service-description#Service> ;
+                                  <http://www.w3.org/ns/sparql-service-description#endpoint>  ?endpoint
+                      }
                   }
               }
-          }
+        ]]>
     </xsl:variable>
     <xsl:variable name="app-request-uri" select="ac:build-uri(resolve-uri('sparql', $ldt:base), map{ 'query': $app-query })" as="xs:anyURI"/>
     <xsl:variable name="template-query" as="xs:string">

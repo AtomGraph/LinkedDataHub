@@ -166,9 +166,37 @@
     rdfs:label "RDF import constructor" ;
     rdfs:isDefinedBy : .
 
+# content block
+
+:Block a rdfs:Class, owl:Class ;
+    rdfs:label "Block" ;
+    # spin:constructor :BlockInstanceConstructor ;
+    # spin:constraint :MissingValue ;
+    rdfs:isDefinedBy : .
+
+:BlockInstanceConstructor a :Constructor ;
+  sp:text """
+      PREFIX ldh:   <https://w3id.org/atomgraph/linkeddatahub#>
+      PREFIX ac:    <https://w3id.org/atomgraph/client#>
+      PREFIX rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+      PREFIX rdfs:  <http://www.w3.org/2000/01/rdf-schema#>
+      PREFIX xsd:   <http://www.w3.org/2001/XMLSchema#>
+      PREFIX dct:   <http://purl.org/dc/terms/>
+
+      CONSTRUCT {
+          $this # rdf:value [ a rdfs:Resource ] ;
+            ldh:graph [ a rdfs:Resource ] ;
+            # ac:mode [ a rdfs:Resource ] ;
+            dct:title [ a xsd:string ] .
+      }
+      WHERE {}""" ;
+    rdfs:label "Block constructor" ;
+    rdfs:isDefinedBy : .
+
 # charts
 
 :Chart a rdfs:Class, owl:Class ;
+    rdfs:subClassOf :Block ;
     rdfs:label "Chart" ;
     spin:constructor :ChartConstructor ;
     spin:constraint :MissingQuery, :MissingChartType ;
@@ -291,33 +319,6 @@
       }
       WHERE {}""" ;
     rdfs:label "View constructor" ;
-    rdfs:isDefinedBy : .
-
-# content
-
-:Block a rdfs:Class, owl:Class ;
-    rdfs:label "Block" ;
-    # spin:constructor :BlockInstanceConstructor ;
-    # spin:constraint :MissingValue ;
-    rdfs:isDefinedBy : .
-
-:BlockInstanceConstructor a :Constructor ;
-  sp:text """
-      PREFIX ldh:   <https://w3id.org/atomgraph/linkeddatahub#>
-      PREFIX ac:    <https://w3id.org/atomgraph/client#>
-      PREFIX rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-      PREFIX rdfs:  <http://www.w3.org/2000/01/rdf-schema#>
-      PREFIX xsd:   <http://www.w3.org/2001/XMLSchema#>
-      PREFIX dct:   <http://purl.org/dc/terms/>
-
-      CONSTRUCT {
-          $this # rdf:value [ a rdfs:Resource ] ;
-            ldh:graph [ a rdfs:Resource ] ;
-            # ac:mode [ a rdfs:Resource ] ;
-            dct:title [ a xsd:string ] .
-      }
-      WHERE {}""" ;
-    rdfs:label "Block constructor" ;
     rdfs:isDefinedBy : .
 
 # exception
