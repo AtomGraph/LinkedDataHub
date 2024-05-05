@@ -743,8 +743,11 @@ extension-element-prefixes="ixsl"
             </xsl:perform-sort>
         </xsl:variable>
         
-        <xsl:for-each select="$predicates">
-            <xsl:apply-templates select="key('resources', @rdf:resource)" mode="bs2:RowContent"/>
+        <xsl:for-each select="$predicates/@rdf:resource">
+            <xsl:if test="doc-available(ac:document-uri(.))">
+                <xsl:apply-templates select="key('resources', ., document(ac:document-uri(.)))" mode="bs2:RowContent"/>
+            </xsl:if>
+            <!-- TO-DO: sho error otherwise -->
         </xsl:for-each>
     </xsl:template>
 
