@@ -208,7 +208,7 @@ exclude-result-prefixes="#all"
         <xsl:attribute name="class" select="concat($class, ' ', 'btn-run-query')"/>
     </xsl:template>
 
-    <!-- CONTAINER -->
+    <!-- VIEW -->
     
     <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;View'][spin:query/@rdf:resource]" mode="ldh:RenderContent" priority="1">
         <xsl:param name="this" as="xs:anyURI"/>
