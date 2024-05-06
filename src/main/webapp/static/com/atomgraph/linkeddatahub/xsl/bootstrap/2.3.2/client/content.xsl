@@ -60,7 +60,7 @@ exclude-result-prefixes="#all"
             {
                 { SELECT  (( MAX(?index) + 1 ) AS ?next)
                   WHERE
-                    { ?this  ?seq  ?oldBlock .
+                    { $this  ?seq  ?oldBlock .
                       FILTER(strstarts(str(?seq), concat(str(rdf:), "_")))
                       BIND(xsd:integer(substr(str(?seq), 45)) AS ?index)
                     }
@@ -131,25 +131,17 @@ exclude-result-prefixes="#all"
     </xsl:variable>
     <xsl:variable name="content-delete-string" as="xs:string">
         <![CDATA[
-            PREFIX ldh: <https://w3id.org/atomgraph/linkeddatahub#>
-            PREFIX  ac: <https://w3id.org/atomgraph/client#>
-            PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-
             DELETE
             {
-                $this ?seq $content .
-                $content a ldh:Content ;
-                    rdf:value ?value ;
-                    ac:mode ?mode .
+                $this ?seq $block .
+                $block ?p ?o .
             }
             WHERE
             {
-                $this ?seq $content .
-                $content a ldh:Content ;
-                    rdf:value ?value .
+                $this ?seq $block .
                 OPTIONAL
                 {
-                    $content ac:mode ?mode
+                    $block ?p ?o
                 }
             }
         ]]>
@@ -352,14 +344,13 @@ exclude-result-prefixes="#all"
 
     <!-- SPIN query. DO not restrict rdf:type because it could be sp:Select/sp:Ask/sp:Describe/sp:Construct but also ldh:Constructor -->
     
-    <xsl:template match="*[@rdf:about][sp:text]" mode="ldh:RenderContent" priority="1">
+<!--    <xsl:template match="*[@rdf:about][sp:text]" mode="ldh:RenderContent" priority="1">
         <xsl:param name="this" as="xs:anyURI"/>
         <xsl:param name="container" as="element()"/>
         <xsl:param name="graph" as="xs:anyURI?"/>
         <xsl:param name="mode" as="xs:anyURI?"/>
         <xsl:param name="refresh-content" as="xs:boolean?"/>
         <xsl:param name="base-uri" select="ldh:base-uri(.)" as="xs:anyURI"/>
-        <!-- <xsl:param name="content-uri" select="if ($container/@about) then $container/@about else xs:anyURI(ac:absolute-path($base-uri) || '#' || $container/@id)" as="xs:anyURI"/> -->
         
         <xsl:variable name="row" as="element()*">
             <xsl:apply-templates select="." mode="bs2:Row">
@@ -380,7 +371,7 @@ exclude-result-prefixes="#all"
         </xsl:call-template>
 
         <xsl:apply-templates select="$container/*" mode="ldh:PostConstruct"/>
-    </xsl:template>
+    </xsl:template>-->
     
     <!-- .xhtml-content referenced from .resource-content (XHTML transclusion) -->
     
@@ -974,7 +965,7 @@ exclude-result-prefixes="#all"
 
                     <xsl:variable name="content-uri" select="$container/@about" as="xs:anyURI"/>
                     <xsl:variable name="update-string" select="replace($content-delete-string, '$this', '&lt;' || ac:absolute-path(ldh:base-uri(.)) || '&gt;', 'q')" as="xs:string"/>
-                    <xsl:variable name="update-string" select="replace($update-string, '$content', '&lt;' || $content-uri || '&gt;', 'q')" as="xs:string"/>
+                    <xsl:variable name="update-string" select="replace($update-string, '$block', '&lt;' || $content-uri || '&gt;', 'q')" as="xs:string"/>
                     <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, ac:absolute-path(ldh:base-uri(.)))" as="xs:anyURI"/>
                     <xsl:variable name="request" as="item()*">
                         <ixsl:schedule-action http-request="map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string }">
