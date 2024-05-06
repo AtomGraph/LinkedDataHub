@@ -866,7 +866,7 @@ extension-element-prefixes="ixsl"
         <xsl:apply-templates select="." mode="bs2:RowContentHeader"/>
         
         <!-- @data-content-value is used to retrieve $content-value in client.xsl -->
-        <div about="{@rdf:about}" data-content-value="{spin:query/@rdf:resource}">
+        <div about="{@rdf:about}" data-content-value="{@rdf:about}">
             <xsl:if test="$id">
                 <xsl:attribute name="id" select="$id"/>
             </xsl:if>
