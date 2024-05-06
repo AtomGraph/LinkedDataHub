@@ -384,7 +384,7 @@ exclude-result-prefixes="#all"
     
     <!-- .xhtml-content referenced from .resource-content (XHTML transclusion) -->
     
-    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;Block'][rdf:value[@rdf:parseType = 'Literal']/xhtml:div]" mode="ldh:RenderContent" priority="1">
+    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;XHTML'][rdf:value[@rdf:parseType = 'Literal']/xhtml:div]" mode="ldh:RenderContent" priority="1">
         <xsl:param name="container" as="element()"/>
         <xsl:param name="mode" as="xs:anyURI?"/>
         <xsl:param name="refresh-content" as="xs:boolean?"/>
@@ -413,15 +413,14 @@ exclude-result-prefixes="#all"
         </xsl:call-template>
     </xsl:template>
     
-    <!-- default content (RDF resource) -->
+    <!-- object block (RDF resource) -->
     
-    <xsl:template match="*[*][@rdf:about]" mode="ldh:RenderContent">
+    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;Object'][rdf:value/@rdf:resource]" mode="ldh:RenderContent">
         <xsl:param name="container" as="element()"/>
-        <xsl:param name="graph" as="xs:anyURI?"/>
+        <xsl:param name="graph" select="ldh:graph/@rdf:resource" as="xs:anyURI?"/>
         <xsl:param name="mode" as="xs:anyURI?"/>
         <xsl:param name="refresh-content" as="xs:boolean?"/>
         <xsl:param name="show-edit-button" select="false()" as="xs:boolean?"/>
-        <xsl:variable name="object-uris" select="distinct-values(*/@rdf:resource[not(key('resources', .))])" as="xs:string*"/>
         <xsl:variable name="query-string" select="$object-metadata-query || ' VALUES $this { ' || string-join(for $uri in $object-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>
 
         <xsl:for-each select="$container//div[@class = 'bar']">
@@ -429,11 +428,16 @@ exclude-result-prefixes="#all"
             <ixsl:set-style name="width" select="'75%'" object="."/>
         </xsl:for-each>
         
+        <xsl:variable name="request-uri" select="ac:build-uri(xs:anyURI(rdf:value/@rdf:resource), map{ 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
+        <!-- TO-DO: load asynchronously -->
+        <xsl:variable name="resource" select="key('resources', rdf:value/@rdf:resource, document($request-uri))" as="element()?"/>
+        <xsl:variable name="object-uris" select="distinct-values($resource/*/@rdf:resource[not(key('resources', .))])" as="xs:string*"/>
+
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="map{ 'method': 'POST', 'href': sd:endpoint(), 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                 <xsl:call-template name="ldh:LoadContentObjectMetadata">
                     <xsl:with-param name="container" select="$container"/>
-                    <xsl:with-param name="resource" select="."/>
+                    <xsl:with-param name="resource" select="$resource"/>
                     <xsl:with-param name="graph" select="$graph"/>
                     <xsl:with-param name="mode" select="$mode"/>
                     <xsl:with-param name="show-edit-button" select="$show-edit-button"/>
