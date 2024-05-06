@@ -45,7 +45,6 @@ exclude-result-prefixes="#all"
     <xsl:variable name="block-append-string" as="xs:string">
         <!-- same as in append-content.sh CLI script -->
         <![CDATA[
-            PREFIX  ldh:  <https://w3id.org/atomgraph/linkeddatahub#>
             PREFIX  ac:   <https://w3id.org/atomgraph/client#>
             PREFIX  rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
             PREFIX  xsd:  <http://www.w3.org/2001/XMLSchema#>
@@ -61,19 +60,8 @@ exclude-result-prefixes="#all"
             {
                 { SELECT  (( MAX(?index) + 1 ) AS ?next)
                   WHERE
-                    { $this
-                                ?seq      ?oldBlock .
-                      {
-                          ?oldBlock  a  ldh:XHTML
-                      }
-                      UNION
-                      {
-                          ?oldBlock  a  ldh:Object
-                      }
-                      UNION
-                      {
-                          ?oldBlock  a  ldh:View
-                      }
+                    { ?this  ?seq  ?oldBlock .
+                      FILTER(strstarts(str(?seq), concat(str(rdf:), "_")))
                       BIND(xsd:integer(substr(str(?seq), 45)) AS ?index)
                     }
                 }
@@ -112,7 +100,6 @@ exclude-result-prefixes="#all"
     </xsl:variable>-->
     <xsl:variable name="block-update-string" as="xs:string">
         <![CDATA[
-            PREFIX ldh: <https://w3id.org/atomgraph/linkeddatahub#>
             PREFIX ac:  <https://w3id.org/atomgraph/client#>
             PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 
@@ -135,7 +122,6 @@ exclude-result-prefixes="#all"
                 $this ?seq $content .
                 $content a ?oldType ;
                     ?oldValueProperty ?oldValue .
-                FILTER (?oldType IN (ldh:XHTML, ldh:Object, ldh:View))
                 OPTIONAL
                 {
                     $content ac:mode ?oldMode
