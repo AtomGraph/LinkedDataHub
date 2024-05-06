@@ -427,7 +427,7 @@ exclude-result-prefixes="#all"
             <ixsl:set-style name="width" select="'75%'" object="."/>
         </xsl:for-each>
         
-        <xsl:variable name="request-uri" select="ac:build-uri(ac:document-uri(rdf:value/@rdf:resource), map{ 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="ac:build-uri($ldt:base, map{ 'uri': ac:document-uri(rdf:value/@rdf:resource), 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
         <!-- TO-DO: load asynchronously -->
         <xsl:variable name="resource" select="key('resources', rdf:value/@rdf:resource, document($request-uri))" as="element()?"/>
         <xsl:variable name="object-uris" select="distinct-values($resource/*/@rdf:resource[not(key('resources', .))])" as="xs:string*"/>
