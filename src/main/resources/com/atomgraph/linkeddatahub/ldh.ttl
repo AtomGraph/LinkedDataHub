@@ -580,7 +580,7 @@ dh:Item spin:constructor :TitleConstructor, :DescriptionConstructor, :PrimaryTop
         PREFIX rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 
         CONSTRUCT {
-            $this rdf:_1 [ a ldh:ChildrenView ] .
+            $this rdf:_1 ldh:ChildrenView .
         }
         WHERE {}""" ;
     rdfs:isDefinedBy : .
