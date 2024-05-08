@@ -392,6 +392,23 @@ exclude-result-prefixes="#all"
 
         <xsl:variable name="request-uri" select="ac:build-uri($ldt:base, map{ 'uri': ac:document-uri(rdf:value/@rdf:resource), 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
         <!-- TO-DO: load asynchronously -->
+            <!-- content could not be loaded as RDF (e.g. binary file) -->
+            <!--
+            <xsl:when test="?status = 406">
+                <xsl:for-each select="$container">
+                    <xsl:result-document href="?." method="ixsl:replace-content">
+                        <div class="offset2 span7 main">
+                            <object data="{$content-value}"/>
+                        </div>
+                    </xsl:result-document>
+                </xsl:for-each>
+                
+                <xsl:call-template name="ldh:BlockRendered">
+                    <xsl:with-param name="container" select="$container"/>
+                </xsl:call-template>
+            </xsl:when>
+            -->
+            
         <xsl:variable name="resource" select="key('resources', rdf:value/@rdf:resource, document($request-uri))" as="element()?"/>
         <xsl:variable name="object-uris" select="distinct-values($resource/*/@rdf:resource[not(key('resources', .))])" as="xs:string*"/>
         <xsl:variable name="query-string" select="$object-metadata-query || ' VALUES $this { ' || string-join(for $uri in $object-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>
@@ -1543,25 +1560,11 @@ exclude-result-prefixes="#all"
                 <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:when>
             -->
-            <!-- content could not be loaded as RDF (e.g. binary file) -->
-            <xsl:when test="?status = 406">
-                <xsl:for-each select="$container">
-                    <xsl:result-document href="?." method="ixsl:replace-content">
-                        <div class="offset2 span7 main">
-                            <object data="{$content-value}"/>
-                        </div>
-                    </xsl:result-document>
-                </xsl:for-each>
-                
-                <xsl:call-template name="ldh:BlockRendered">
-                    <xsl:with-param name="container" select="$container"/>
-                </xsl:call-template>
-            </xsl:when>
             <xsl:otherwise>
                 <xsl:for-each select="$container//div[contains-token(@class, 'main')]">
                     <xsl:result-document href="?." method="ixsl:replace-content">
                         <div class="alert alert-block">
-                            <strong>Could not load content resource: <a href="{$content-value}"><xsl:value-of select="$content-value"/></a></strong>
+                            <strong>Could not load content block: <a href="{$content-uri}"><xsl:value-of select="$content-uri"/></a></strong>
                         </div>
                     </xsl:result-document>
                 </xsl:for-each>
