@@ -371,7 +371,7 @@ exclude-result-prefixes="#all"
     
     <!-- container -->
     
-    <xsl:template name="ldh:RenderContainer">
+    <xsl:template name="ldh:RenderView">
         <xsl:param name="container" as="element()"/>
         <xsl:param name="content-uri" select="xs:anyURI($container/@about)" as="xs:anyURI"/>
         <xsl:param name="content" as="element()?"/>
@@ -443,7 +443,7 @@ exclude-result-prefixes="#all"
                     <ixsl:set-style name="width" select="'88%'" object="."/>
                 </xsl:for-each>
         
-                <xsl:call-template name="ldh:RenderContainerMode">
+                <xsl:call-template name="ldh:RenderViewMode">
                     <xsl:with-param name="container" select="$container"/>
                     <xsl:with-param name="content-id" select="$content-id"/>
                     <xsl:with-param name="content-uri" select="$content-uri"/>
@@ -466,7 +466,7 @@ exclude-result-prefixes="#all"
     </xsl:template>
     
     <!-- $container here is the inner result container, not the content container! -->
-    <xsl:template name="ldh:RenderContainerMode">
+    <xsl:template name="ldh:RenderViewMode">
         <xsl:param name="container" as="element()"/>
         <xsl:param name="content-id" as="xs:string"/>
         <xsl:param name="content-uri" as="xs:anyURI"/>
@@ -970,7 +970,7 @@ exclude-result-prefixes="#all"
         <!-- store the transformed query XML -->
         <ixsl:set-property name="select-xml" select="$select-xml" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`')"/>
         
-        <xsl:call-template name="ldh:RenderContainer">
+        <xsl:call-template name="ldh:RenderView">
             <xsl:with-param name="container" select="$container"/>
             <xsl:with-param name="content-uri" select="$content-uri"/>
             <xsl:with-param name="content" select="$content"/>
@@ -1012,7 +1012,7 @@ exclude-result-prefixes="#all"
         <!-- store the transformed query XML -->
         <ixsl:set-property name="select-xml" select="$select-xml" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`')"/>
         
-        <xsl:call-template name="ldh:RenderContainer">
+        <xsl:call-template name="ldh:RenderView">
             <xsl:with-param name="container" select="$container"/>
             <xsl:with-param name="content-uri" select="$content-uri"/>
             <xsl:with-param name="content" select="$content"/>
@@ -1053,7 +1053,7 @@ exclude-result-prefixes="#all"
         <!-- store the transformed query XML -->
         <ixsl:set-property name="select-xml" select="$select-xml" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`')"/>
 
-        <xsl:call-template name="ldh:RenderContainer">
+        <xsl:call-template name="ldh:RenderView">
             <xsl:with-param name="container" select="$container"/>
             <xsl:with-param name="content-uri" select="$content-uri"/>
             <xsl:with-param name="content" select="$content"/>
@@ -1093,7 +1093,7 @@ exclude-result-prefixes="#all"
         <!-- store the transformed query XML -->
         <ixsl:set-property name="select-xml" select="$select-xml" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`')"/>
 
-        <xsl:call-template name="ldh:RenderContainer">
+        <xsl:call-template name="ldh:RenderView">
             <xsl:with-param name="container" select="$container"/>
             <xsl:with-param name="content-uri" select="$content-uri"/>
             <xsl:with-param name="content" select="$content"/>
@@ -1233,7 +1233,7 @@ exclude-result-prefixes="#all"
         <!-- store the transformed query XML -->
         <ixsl:set-property name="select-xml" select="$select-xml" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`')"/>
 
-        <xsl:call-template name="ldh:RenderContainer">
+        <xsl:call-template name="ldh:RenderView">
             <xsl:with-param name="container" select="$container"/>
             <xsl:with-param name="content-uri" select="$content-uri"/>
             <xsl:with-param name="content" select="$content"/>
@@ -1273,7 +1273,7 @@ exclude-result-prefixes="#all"
         <!-- store the transformed query XML -->
         <ixsl:set-property name="select-xml" select="$select-xml" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`')"/>
 
-        <xsl:call-template name="ldh:RenderContainer">
+        <xsl:call-template name="ldh:RenderView">
             <xsl:with-param name="container" select="$container"/>
             <xsl:with-param name="content-uri" select="$content-uri"/>
             <xsl:with-param name="content" select="$content"/>

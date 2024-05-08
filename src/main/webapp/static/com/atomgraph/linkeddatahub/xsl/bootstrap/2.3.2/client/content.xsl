@@ -69,35 +69,6 @@ exclude-result-prefixes="#all"
             }
         ]]>
     </xsl:variable>
-<!--    <xsl:variable name="content-append-string" as="xs:string">
-         same as in append-content.sh CLI script 
-        <![CDATA[
-            PREFIX  ldh:  <https://w3id.org/atomgraph/linkeddatahub#>
-            PREFIX  ac:   <https://w3id.org/atomgraph/client#>
-            PREFIX  rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-            PREFIX  xsd:  <http://www.w3.org/2001/XMLSchema#>
-
-            INSERT
-            {
-                $this ?property $content .
-                $content a ldh:Content ;
-                    rdf:value $value ;
-                    ac:mode $mode .
-            }
-            WHERE
-            {
-                { SELECT  (( MAX(?index) + 1 ) AS ?next)
-                  WHERE
-                    { $this
-                                ?seq      ?oldBlock .
-                      ?oldBlock  a  ldh:Content
-                      BIND(xsd:integer(substr(str(?seq), 45)) AS ?index)
-                    }
-                }
-                BIND(iri(concat(str(rdf:), "_", str(coalesce(?next, 1)))) AS ?property)
-            }
-        ]]>
-    </xsl:variable>-->
     <xsl:variable name="block-update-string" as="xs:string">
         <![CDATA[
             PREFIX ac:  <https://w3id.org/atomgraph/client#>
@@ -130,6 +101,7 @@ exclude-result-prefixes="#all"
         ]]>
     </xsl:variable>
     <xsl:variable name="content-delete-string" as="xs:string">
+        <!-- TO-DO: refactor to update the following index properties -->
         <![CDATA[
             DELETE
             {
@@ -149,33 +121,31 @@ exclude-result-prefixes="#all"
     <xsl:variable name="content-swap-string" as="xs:string">
         <![CDATA[
             PREFIX  xsd:  <http://www.w3.org/2001/XMLSchema#>
-            PREFIX  ldh:  <https://w3id.org/atomgraph/linkeddatahub#>
-            PREFIX  ac:   <https://w3id.org/atomgraph/client#>
             PREFIX  rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 
             DELETE {
-              $this ?sourceSeq $sourceContent .
-              $this ?targetSeq $targetContent .
+              $this ?sourceSeq $sourceBlock .
+              $this ?targetSeq $targetBlock .
               $this ?seq ?content .
             }
             INSERT {
-              $this ?newSourceSeq $sourceContent .
-              $this ?newTargetSeq $targetContent .
+              $this ?newSourceSeq $sourceBlock .
+              $this ?newTargetSeq $targetBlock .
               $this ?newSeq ?content .
             }
             WHERE
-              { $this  ?sourceSeq  $sourceContent
+              { $this  ?sourceSeq  $sourceBlock
                 BIND(xsd:integer(substr(str(?sourceSeq), 45)) AS ?sourceIndex)
-                $this  ?targetSeq  $targetContent
+                $this  ?targetSeq  $targetBlock
                 BIND(xsd:integer(substr(str(?targetSeq), 45)) AS ?targetIndex)
                 BIND(if(( ?sourceIndex < ?targetIndex ), ( ?targetIndex - 1 ), ?targetIndex) AS ?newTargetIndex)
                 BIND(if(( ?sourceIndex < ?targetIndex ), ?targetIndex, ( ?targetIndex + 1 )) AS ?newSourceIndex)
                 BIND(IRI(concat(str(rdf:), "_", str(?newSourceIndex))) AS ?newSourceSeq)
                 BIND(IRI(concat(str(rdf:), "_", str(?newTargetIndex))) AS ?newTargetSeq)
                 OPTIONAL
-                  { $this  ?sourceSeq  $sourceContent
+                  { $this  ?sourceSeq  $sourceBlock
                     BIND(xsd:integer(substr(str(?sourceSeq), 45)) AS ?sourceIndex)
-                    $this  ?targetSeq  $targetContent
+                    $this  ?targetSeq  $targetBlock
                     BIND(xsd:integer(substr(str(?targetSeq), 45)) AS ?targetIndex)
                     $this  ?seq  ?content
                     FILTER strstarts(str(?seq), str(rdf:_))
@@ -202,7 +172,7 @@ exclude-result-prefixes="#all"
 
     <!-- VIEW -->
     
-    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;View'][spin:query/@rdf:resource]" mode="ldh:RenderContent" priority="1">
+    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;View'][spin:query/@rdf:resource]" mode="ldh:RenderBlock" priority="1">
         <xsl:param name="this" as="xs:anyURI"/>
         <xsl:param name="container" as="element()"/>
         <xsl:param name="graph" as="xs:anyURI?"/>
@@ -297,7 +267,7 @@ exclude-result-prefixes="#all"
                                 <ixsl:set-style name="width" select="'63%'" object="."/>
                             </xsl:for-each>
 
-                            <xsl:call-template name="ldh:RenderContainer">
+                            <xsl:call-template name="ldh:RenderView">
                                 <xsl:with-param name="container" select="$container"/>
                                 <xsl:with-param name="content-uri" select="$content-uri"/>
                                 <xsl:with-param name="content" select="$content"/> <!-- unused? -->
@@ -344,7 +314,7 @@ exclude-result-prefixes="#all"
 
     <!-- SPIN query. DO not restrict rdf:type because it could be sp:Select/sp:Ask/sp:Describe/sp:Construct but also ldh:Constructor -->
     
-<!--    <xsl:template match="*[@rdf:about][sp:text]" mode="ldh:RenderContent" priority="1">
+<!--    <xsl:template match="*[@rdf:about][sp:text]" mode="ldh:RenderBlock" priority="1">
         <xsl:param name="this" as="xs:anyURI"/>
         <xsl:param name="container" as="element()"/>
         <xsl:param name="graph" as="xs:anyURI?"/>
@@ -375,7 +345,7 @@ exclude-result-prefixes="#all"
     
     <!-- .xhtml-content referenced from .resource-content (XHTML transclusion) -->
     
-    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;XHTML'][rdf:value[@rdf:parseType = 'Literal']/xhtml:div]" mode="ldh:RenderContent" priority="1">
+    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;XHTML'][rdf:value[@rdf:parseType = 'Literal']/xhtml:div]" mode="ldh:RenderBlock" priority="1">
         <xsl:param name="container" as="element()"/>
         <xsl:param name="mode" as="xs:anyURI?"/>
         <xsl:param name="refresh-content" as="xs:boolean?"/>
@@ -406,7 +376,7 @@ exclude-result-prefixes="#all"
     
     <!-- object block (RDF resource) -->
     
-    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;Object'][rdf:value/@rdf:resource]" mode="ldh:RenderContent">
+    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;Object'][rdf:value/@rdf:resource]" mode="ldh:RenderBlock">
         <xsl:param name="container" as="element()"/>
         <xsl:param name="graph" select="ldh:graph/@rdf:resource" as="xs:anyURI?"/>
         <xsl:param name="mode" as="xs:anyURI?"/>
@@ -1356,7 +1326,7 @@ exclude-result-prefixes="#all"
             <ixsl:set-style name="width" select="'50%'" object="."/>
         </xsl:for-each>
                 
-        <xsl:apply-templates select="$value" mode="ldh:RenderContent">
+        <xsl:apply-templates select="$value" mode="ldh:RenderBlock">
             <xsl:with-param name="this" select="id('content-body', ixsl:page())/@about"/>
             <xsl:with-param name="container" select="$container//div[contains-token(@class, 'sparql-query-results')]"/>
             <xsl:with-param name="content-uri" select="$content-uri"/>
@@ -1517,7 +1487,7 @@ exclude-result-prefixes="#all"
                     <ixsl:set-style name="width" select="'50%'" object="."/>
                 </xsl:for-each>
 
-                <xsl:apply-templates select="$value" mode="ldh:RenderContent">
+                <xsl:apply-templates select="$value" mode="ldh:RenderBlock">
                     <xsl:with-param name="this" select="$this"/>
                     <xsl:with-param name="container" select="$container"/>
                     <xsl:with-param name="graph" select="$graph"/>
@@ -1769,7 +1739,7 @@ exclude-result-prefixes="#all"
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
 
         <xsl:choose>
-            <xsl:when test="?status = 200">
+            <xsl:when test="?status = (200, 204)">
                 <xsl:for-each select="$container">
                     <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
                 </xsl:for-each>
