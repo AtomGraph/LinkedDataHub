@@ -1109,30 +1109,32 @@ exclude-result-prefixes="#all"
     
     <xsl:template match="*[@rdf:about or @rdf:nodeID]/*/@rdf:nodeID[key('resources', .)[not(* except rdf:type[not(starts-with(@rdf:resource, '&xsd;'))])]]" mode="bs2:FormControlTypeLabel">
         <xsl:param name="type" as="xs:string?"/>
-        <xsl:param name="forClass" as="xs:anyURI?"/>
+        <xsl:param name="forClass" as="xs:anyURI*"/>
 
         <xsl:if test="not($type = 'hidden')">
             <xsl:choose>
-                <xsl:when test="$forClass">
+                <xsl:when test="exists($forClass)">
                     <span class="help-inline">
-                        <xsl:choose>
-                            <xsl:when test="doc-available(ac:document-uri($forClass))">
-                                <xsl:choose>
-                                    <xsl:when test="$forClass = '&rdfs;Resource'">Resource</xsl:when>
-                                    <xsl:when test="key('resources', $forClass, document(ac:document-uri($forClass)))">
-                                        <xsl:value-of>
-                                            <xsl:apply-templates select="key('resources', $forClass, document(ac:document-uri($forClass)))" mode="ac:label"/>
-                                        </xsl:value-of>
-                                    </xsl:when>
-                                    <xsl:otherwise>
-                                        <xsl:value-of select="$forClass"/>
-                                    </xsl:otherwise>
-                                </xsl:choose>
-                            </xsl:when>
-                            <xsl:otherwise>
-                                <xsl:value-of select="$forClass"/>
-                            </xsl:otherwise>
-                        </xsl:choose>
+                        <xsl:for-each select="$forClass">
+                            <xsl:choose>
+                                <xsl:when test="doc-available(ac:document-uri(.))">
+                                    <xsl:choose>
+                                        <xsl:when test=". = '&rdfs;Resource'">Resource</xsl:when>
+                                        <xsl:when test="key('resources', ., document(ac:document-uri(.)))">
+                                            <xsl:value-of>
+                                                <xsl:apply-templates select="key('resources', ., document(ac:document-uri(.)))" mode="ac:label"/>
+                                            </xsl:value-of>
+                                        </xsl:when>
+                                        <xsl:otherwise>
+                                            <xsl:value-of select="."/>
+                                        </xsl:otherwise>
+                                    </xsl:choose>
+                                </xsl:when>
+                                <xsl:otherwise>
+                                    <xsl:value-of select="."/>
+                                </xsl:otherwise>
+                            </xsl:choose>
+                        </xsl:for-each>
                     </span>
                 </xsl:when>
                 <xsl:otherwise>
