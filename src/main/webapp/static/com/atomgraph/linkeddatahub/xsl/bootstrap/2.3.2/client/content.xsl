@@ -1182,7 +1182,7 @@ exclude-result-prefixes="#all"
         </xsl:variable>
         <xsl:variable name="controls" as="node()*">
             <xsl:apply-templates select="$constructor//spin:query/@rdf:*" mode="bs2:FormControl">
-                <xsl:with-param name="forClass" select="(xs:anyURI('&sp;Describe'), xs:anyURI('&sp;Construct'), xs:anyURI('&sp;Select'), xs:anyURI('&sp;Ask'))"/>
+                <xsl:with-param name="forClass" select="(xs:anyURI('&sp;Describe'), xs:anyURI('&sp;Construct'), xs:anyURI('&sp;Select'), xs:anyURI('&sp;Ask'))" as="xs:anyURI*"/>
             </xsl:apply-templates>
             <xsl:apply-templates select="$constructor//ac:mode/@rdf:*" mode="bs2:FormControl">
                 <xsl:with-param name="class" select="'content-mode'"/>
