@@ -388,6 +388,8 @@ exclude-result-prefixes="#all"
             <ixsl:set-style name="width" select="'75%'" object="."/>
         </xsl:for-each>
         
+        <!-- TO-DO: ldh:href($ldt:base, if (starts-with($graph, $ldt:base)) then $graph else ac:absolute-path(xs:anyURI(ixsl:location())), map{}, $content-value, $graph, ()) -->
+
         <xsl:variable name="request-uri" select="ac:build-uri($ldt:base, map{ 'uri': ac:document-uri(rdf:value/@rdf:resource), 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
         <!-- TO-DO: load asynchronously -->
         <xsl:variable name="resource" select="key('resources', rdf:value/@rdf:resource, document($request-uri))" as="element()?"/>
@@ -1440,7 +1442,7 @@ exclude-result-prefixes="#all"
         </xsl:for-each>
 
         <!-- don't use ldh:base-uri(.) because its value comes from the last HTML document load -->
-        <xsl:variable name="request-uri" select="ldh:href($ldt:base, if (starts-with($graph, $ldt:base)) then $graph else ac:absolute-path(xs:anyURI(ixsl:location())), map{}, $content-value, $graph, ())" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, ac:document-uri($content-uri))" as="xs:anyURI"/>
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': ac:document-uri($request-uri), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                 <xsl:call-template name="onBlockLoad">
