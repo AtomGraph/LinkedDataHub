@@ -232,7 +232,7 @@ exclude-result-prefixes="#all"
             </xsl:result-document>
         </xsl:for-each>
 
-        <xsl:call-template name="ldh:BlockLoaded">
+        <xsl:call-template name="ldh:BlockRendered">
             <xsl:with-param name="container" select="$container"/>
         </xsl:call-template>
 

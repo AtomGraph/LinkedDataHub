@@ -175,8 +175,8 @@ exclude-result-prefixes="#all"
     <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;View'][spin:query/@rdf:resource]" mode="ldh:RenderBlock" priority="1">
         <xsl:param name="this" as="xs:anyURI"/>
         <xsl:param name="container" as="element()"/>
-        <xsl:param name="graph" as="xs:anyURI?"/>
-        <xsl:param name="mode" as="xs:anyURI?"/>
+        <xsl:param name="graph" select="ldh:graph/@rdf:resource" as="xs:anyURI?"/>
+        <xsl:param name="mode" select="ac:mode/@rdf:resource" as="xs:anyURI?"/>
         <xsl:param name="refresh-content" as="xs:boolean?"/>
         <xsl:param name="base-uri" select="ldh:base-uri(.)" as="xs:anyURI"/>
         <xsl:param name="content-uri" select="if ($container/@about) then $container/@about else xs:anyURI(ac:absolute-path($base-uri) || '#' || $container/@id)" as="xs:anyURI"/>
@@ -289,7 +289,7 @@ exclude-result-prefixes="#all"
                                 </xsl:result-document>
                             </xsl:for-each>
 
-                            <xsl:call-template name="ldh:BlockLoaded">
+                            <xsl:call-template name="ldh:BlockRendered">
                                 <xsl:with-param name="container" select="$container"/>
                             </xsl:call-template>
                         </xsl:otherwise>
@@ -305,7 +305,7 @@ exclude-result-prefixes="#all"
                     </xsl:result-document>
                 </xsl:for-each>
 
-                <xsl:call-template name="ldh:BlockLoaded">
+                <xsl:call-template name="ldh:BlockRendered">
                     <xsl:with-param name="container" select="$container"/>
                 </xsl:call-template>
             </xsl:otherwise>
@@ -336,7 +336,7 @@ exclude-result-prefixes="#all"
             </xsl:result-document>
         </xsl:for-each>
 
-        <xsl:call-template name="ldh:BlockLoaded">
+        <xsl:call-template name="ldh:BlockRendered">
             <xsl:with-param name="container" select="$container"/>
         </xsl:call-template>
 
@@ -369,7 +369,7 @@ exclude-result-prefixes="#all"
             </xsl:result-document>
         </xsl:for-each>
 
-        <xsl:call-template name="ldh:BlockLoaded">
+        <xsl:call-template name="ldh:BlockRendered">
             <xsl:with-param name="container" select="$container"/>
         </xsl:call-template>
     </xsl:template>
@@ -379,7 +379,7 @@ exclude-result-prefixes="#all"
     <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;Object'][rdf:value/@rdf:resource]" mode="ldh:RenderBlock">
         <xsl:param name="container" as="element()"/>
         <xsl:param name="graph" select="ldh:graph/@rdf:resource" as="xs:anyURI?"/>
-        <xsl:param name="mode" as="xs:anyURI?"/>
+        <xsl:param name="mode" select="ac:mode/@rdf:resource" as="xs:anyURI?"/>
         <xsl:param name="refresh-content" as="xs:boolean?"/>
         <xsl:param name="show-edit-button" select="false()" as="xs:boolean?"/>
 
@@ -396,7 +396,7 @@ exclude-result-prefixes="#all"
 
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="map{ 'method': 'POST', 'href': sd:endpoint(), 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-                <xsl:call-template name="ldh:LoadContentObjectMetadata">
+                <xsl:call-template name="ldh:LoadBlockObjectMetadata">
                     <xsl:with-param name="container" select="$container"/>
                     <xsl:with-param name="resource" select="$resource"/>
                     <xsl:with-param name="graph" select="$graph"/>
@@ -408,7 +408,7 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
     
-    <xsl:template name="ldh:LoadContentObjectMetadata">
+    <xsl:template name="ldh:LoadBlockObjectMetadata">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="container" as="element()"/>
         <xsl:param name="resource" as="element()"/>
@@ -438,7 +438,7 @@ exclude-result-prefixes="#all"
                     </xsl:result-document>
                 </xsl:for-each>
 
-                <xsl:call-template name="ldh:BlockLoaded">
+                <xsl:call-template name="ldh:BlockRendered">
                     <xsl:with-param name="container" select="$container"/>
                 </xsl:call-template>
             </xsl:when>
@@ -448,7 +448,7 @@ exclude-result-prefixes="#all"
         </xsl:choose>
     </xsl:template>
 
-    <xsl:template name="ldh:BlockLoaded">
+    <xsl:template name="ldh:BlockRendered">
         <xsl:param name="container" as="element()"/>
 
         <!-- insert "Edit" button if the agent has acl:Write access -->
@@ -915,7 +915,7 @@ exclude-result-prefixes="#all"
                     </xsl:result-document>
                 </xsl:for-each>
                 
-                <xsl:call-template name="ldh:BlockLoaded">
+                <xsl:call-template name="ldh:BlockRendered">
                     <xsl:with-param name="container" select="$container"/>
                 </xsl:call-template>
             </xsl:otherwise>
@@ -996,7 +996,7 @@ exclude-result-prefixes="#all"
             <!-- updating existing content -->
             <xsl:when test="$container/@about">
                 <xsl:for-each select="$container">
-                    <xsl:call-template name="ldh:LoadContent"/>
+                    <xsl:call-template name="ldh:LoadBlock"/>
                 </xsl:for-each>
             </xsl:when> 
             <!-- remove content that hasn't been saved yet -->
@@ -1413,15 +1413,15 @@ exclude-result-prefixes="#all"
     
     <!-- load content -->
     
-    <xsl:template name="ldh:LoadContent">
+    <xsl:template name="ldh:LoadBlock">
         <xsl:context-item as="element()" use="required"/> <!-- container element -->
         <xsl:param name="acl-modes" as="xs:anyURI*"/>
         <xsl:param name="refresh-content" as="xs:boolean?"/>
         <xsl:variable name="this" select="ancestor::div[@about][1]/@about" as="xs:anyURI"/>
         <xsl:variable name="content-uri" select="(@about, $this)[1]" as="xs:anyURI"/> <!-- fallback to @about for charts, queries etc. -->
-        <xsl:variable name="content-value" select="if (contains-token(@class, 'override-content')) then @about else ixsl:get(., 'dataset.contentValue')" as="xs:anyURI"/> <!-- get the value of the @data-content-value attribute -->
-        <xsl:variable name="graph" select="if (ixsl:contains(., 'dataset.contentGraph')) then xs:anyURI(ixsl:get(., 'dataset.contentGraph')) else ()" as="xs:anyURI?"/> <!-- get the value of the @data-content-graph attribute -->
-        <xsl:variable name="mode" select="if (ixsl:contains(., 'dataset.contentMode')) then xs:anyURI(ixsl:get(., 'dataset.contentMode')) else ()" as="xs:anyURI?"/> <!-- get the value of the @data-content-mode attribute -->
+<!--        <xsl:variable name="content-value" select="if (contains-token(@class, 'override-content')) then @about else ixsl:get(., 'dataset.contentValue')" as="xs:anyURI"/>  get the value of the @data-content-value attribute 
+        <xsl:variable name="graph" select="if (ixsl:contains(., 'dataset.contentGraph')) then xs:anyURI(ixsl:get(., 'dataset.contentGraph')) else ()" as="xs:anyURI?"/>  get the value of the @data-content-graph attribute 
+        <xsl:variable name="mode" select="if (ixsl:contains(., 'dataset.contentMode')) then xs:anyURI(ixsl:get(., 'dataset.contentMode')) else ()" as="xs:anyURI?"/>  get the value of the @data-content-mode attribute -->
         <xsl:variable name="container" select="." as="element()"/>
         <xsl:variable name="progress-container" select="if (contains-token(@class, 'row-fluid')) then ./div[contains-token(@class, 'main')] else ." as="element()"/>
 
@@ -1439,17 +1439,17 @@ exclude-result-prefixes="#all"
             </xsl:result-document>
         </xsl:for-each>
 
-        <!-- don't use ldh:base-uri(.) because it's value comes from the last HTML document load -->
+        <!-- don't use ldh:base-uri(.) because its value comes from the last HTML document load -->
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, if (starts-with($graph, $ldt:base)) then $graph else ac:absolute-path(xs:anyURI(ixsl:location())), map{}, $content-value, $graph, ())" as="xs:anyURI"/>
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': ac:document-uri($request-uri), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-                <xsl:call-template name="onContentValueLoad">
+                <xsl:call-template name="onBlockLoad">
                     <xsl:with-param name="this" select="$this"/>
                     <xsl:with-param name="content-uri" select="$content-uri"/>
-                    <xsl:with-param name="content-value" select="$content-value"/>
+<!--                    <xsl:with-param name="content-value" select="$content-value"/>-->
                     <xsl:with-param name="container" select="$container"/>
-                    <xsl:with-param name="graph" select="$graph"/>
-                    <xsl:with-param name="mode" select="$mode"/>
+<!--                    <xsl:with-param name="graph" select="$graph"/>
+                    <xsl:with-param name="mode" select="$mode"/>-->
                     <xsl:with-param name="acl-modes" select="$acl-modes"/>
                     <xsl:with-param name="refresh-content" select="$refresh-content"/>
                 </xsl:call-template>
@@ -1460,38 +1460,38 @@ exclude-result-prefixes="#all"
     
     <!-- embed content -->
     
-    <xsl:template name="onContentValueLoad">
+    <xsl:template name="onBlockLoad">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="this" as="xs:anyURI"/>
         <xsl:param name="container" as="element()"/>
-        <xsl:param name="container-id" select="ixsl:get($container, 'id')" as="xs:string"/>
+        <!-- <xsl:param name="container-id" select="ixsl:get($container, 'id')" as="xs:string"/> -->
         <xsl:param name="content-uri" as="xs:anyURI"/>
-        <xsl:param name="content-value" as="xs:anyURI"/>
+<!--        <xsl:param name="content-value" as="xs:anyURI"/>
         <xsl:param name="graph" as="xs:anyURI?"/>
-        <xsl:param name="mode" as="xs:anyURI?"/>
+        <xsl:param name="mode" as="xs:anyURI?"/>-->
         <xsl:param name="acl-modes" as="xs:anyURI*"/>
         <xsl:param name="refresh-content" as="xs:boolean?"/>
         
         <!-- for some reason Saxon-JS 2.3 does not see this variable if it's inside <xsl:when> -->
-        <xsl:variable name="value" select="key('resources', $content-value, ?body)" as="element()?"/>
+        <xsl:variable name="block" select="key('resources', $content-uri, ?body)" as="element()?"/>
         <xsl:choose>
-            <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml' and $value">
+            <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml' and $block">
                 <xsl:variable name="results" select="?body" as="document-node()"/>
                 <!-- create new cache entry using content URI as key -->
                 <ixsl:set-property name="{'`' || $content-uri || '`'}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
                 <!-- store this content element -->
-                <ixsl:set-property name="content" select="$value" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`')"/>
+                <ixsl:set-property name="content" select="$block" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`')"/>
 
                 <xsl:for-each select="$container//div[@class = 'bar']">
                     <!-- update progress bar -->
                     <ixsl:set-style name="width" select="'50%'" object="."/>
                 </xsl:for-each>
 
-                <xsl:apply-templates select="$value" mode="ldh:RenderBlock">
+                <xsl:apply-templates select="$block" mode="ldh:RenderBlock">
                     <xsl:with-param name="this" select="$this"/>
                     <xsl:with-param name="container" select="$container"/>
-                    <xsl:with-param name="graph" select="$graph"/>
-                    <xsl:with-param name="mode" select="$mode"/>
+<!--                    <xsl:with-param name="graph" select="$graph"/>
+                    <xsl:with-param name="mode" select="$mode"/>-->
                     <xsl:with-param name="refresh-content" select="$refresh-content"/>
                 </xsl:apply-templates>
             
@@ -1529,13 +1529,13 @@ exclude-result-prefixes="#all"
                 <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, $results-uri)" as="xs:anyURI"/>
                 <xsl:variable name="request" as="item()*">
                     <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': ac:document-uri($request-uri), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-                        <xsl:call-template name="onContentValueLoad">
+                        <xsl:call-template name="onBlockLoad">
                             <xsl:with-param name="this" select="$this"/>
                             <xsl:with-param name="content-uri" select="$content-uri"/>
-                            <xsl:with-param name="content-value" select="$content-value"/>
+<!--                            <xsl:with-param name="content-value" select="$content-value"/>-->
                             <xsl:with-param name="container" select="$container"/>
-                            <xsl:with-param name="graph" select="$graph"/>
-                            <xsl:with-param name="mode" select="$mode"/>
+<!--                            <xsl:with-param name="graph" select="$graph"/>
+                            <xsl:with-param name="mode" select="$mode"/>-->
                             <xsl:with-param name="acl-modes" select="$acl-modes"/>
                         </xsl:call-template>
                     </ixsl:schedule-action>
@@ -1552,7 +1552,7 @@ exclude-result-prefixes="#all"
                     </xsl:result-document>
                 </xsl:for-each>
                 
-                <xsl:call-template name="ldh:BlockLoaded">
+                <xsl:call-template name="ldh:BlockRendered">
                     <xsl:with-param name="container" select="$container"/>
                 </xsl:call-template>
             </xsl:when>
@@ -1565,7 +1565,7 @@ exclude-result-prefixes="#all"
                     </xsl:result-document>
                 </xsl:for-each>
                 
-                <xsl:call-template name="ldh:BlockLoaded">
+                <xsl:call-template name="ldh:BlockRendered">
                     <xsl:with-param name="container" select="$container"/>
                 </xsl:call-template>
             </xsl:otherwise>
@@ -1598,7 +1598,7 @@ exclude-result-prefixes="#all"
                         </xsl:result-document>
                     </xsl:for-each>
 
-                    <xsl:call-template name="ldh:BlockLoaded">
+                    <xsl:call-template name="ldh:BlockRendered">
                         <xsl:with-param name="container" select="$container"/>
                     </xsl:call-template>
                 </xsl:for-each>
@@ -1612,7 +1612,7 @@ exclude-result-prefixes="#all"
                     </xsl:result-document>
                 </xsl:for-each>
                 
-                <xsl:call-template name="ldh:BlockLoaded">
+                <xsl:call-template name="ldh:BlockRendered">
                     <xsl:with-param name="container" select="$container"/>
                 </xsl:call-template>
             </xsl:otherwise>
@@ -1682,7 +1682,7 @@ exclude-result-prefixes="#all"
                         </xsl:when>
                     </xsl:choose>
                     
-                    <xsl:call-template name="ldh:LoadContent"/>
+                    <xsl:call-template name="ldh:LoadBlock"/>
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
@@ -1721,7 +1721,7 @@ exclude-result-prefixes="#all"
                         </xsl:when>
                     </xsl:choose>
                     
-                    <xsl:call-template name="ldh:LoadContent"/>
+                    <xsl:call-template name="ldh:LoadBlock"/>
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>

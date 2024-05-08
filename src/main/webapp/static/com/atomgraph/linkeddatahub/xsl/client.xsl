@@ -579,7 +579,7 @@ WHERE
             <xsl:if test="not(empty($resource-content-ids))">
                 <xsl:variable name="containers" select="id($resource-content-ids, ixsl:page())" as="element()*"/>
                 <xsl:for-each select="$containers">
-                    <xsl:call-template name="ldh:LoadContent">
+                    <xsl:call-template name="ldh:LoadBlock">
                         <xsl:with-param name="acl-modes" select="$acl-modes"/>
                         <xsl:with-param name="refresh-content" select="$refresh-content"/>
                     </xsl:call-template>
@@ -593,7 +593,7 @@ WHERE
                     <xsl:for-each select="$containers">
                         <xsl:variable name="container" select="." as="element()"/>
                         
-                        <xsl:call-template name="ldh:BlockLoaded">
+                        <xsl:call-template name="ldh:BlockRendered">
                             <xsl:with-param name="container" select="$container"/>
                         </xsl:call-template>
                     </xsl:for-each>
@@ -826,7 +826,7 @@ WHERE
                             </xsl:call-template>
                             
                             <!-- post-process the container -->
-                            <xsl:call-template name="ldh:BlockLoaded">
+                            <xsl:call-template name="ldh:BlockRendered">
                                 <xsl:with-param name="container" select="$container"/>
                             </xsl:call-template>
                         </xsl:otherwise>
