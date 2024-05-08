@@ -593,7 +593,7 @@ WHERE
                     <xsl:for-each select="$containers">
                         <xsl:variable name="container" select="." as="element()"/>
                         
-                        <xsl:call-template name="ldh:ContentLoaded">
+                        <xsl:call-template name="ldh:BlockLoaded">
                             <xsl:with-param name="container" select="$container"/>
                         </xsl:call-template>
                     </xsl:for-each>
@@ -826,7 +826,7 @@ WHERE
                             </xsl:call-template>
                             
                             <!-- post-process the container -->
-                            <xsl:call-template name="ldh:ContentLoaded">
+                            <xsl:call-template name="ldh:BlockLoaded">
                                 <xsl:with-param name="container" select="$container"/>
                             </xsl:call-template>
                         </xsl:otherwise>

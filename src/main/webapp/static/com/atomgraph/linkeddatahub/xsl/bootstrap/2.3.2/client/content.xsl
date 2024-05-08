@@ -289,7 +289,7 @@ exclude-result-prefixes="#all"
                                 </xsl:result-document>
                             </xsl:for-each>
 
-                            <xsl:call-template name="ldh:ContentLoaded">
+                            <xsl:call-template name="ldh:BlockLoaded">
                                 <xsl:with-param name="container" select="$container"/>
                             </xsl:call-template>
                         </xsl:otherwise>
@@ -305,7 +305,7 @@ exclude-result-prefixes="#all"
                     </xsl:result-document>
                 </xsl:for-each>
 
-                <xsl:call-template name="ldh:ContentLoaded">
+                <xsl:call-template name="ldh:BlockLoaded">
                     <xsl:with-param name="container" select="$container"/>
                 </xsl:call-template>
             </xsl:otherwise>
@@ -336,7 +336,7 @@ exclude-result-prefixes="#all"
             </xsl:result-document>
         </xsl:for-each>
 
-        <xsl:call-template name="ldh:ContentLoaded">
+        <xsl:call-template name="ldh:BlockLoaded">
             <xsl:with-param name="container" select="$container"/>
         </xsl:call-template>
 
@@ -369,7 +369,7 @@ exclude-result-prefixes="#all"
             </xsl:result-document>
         </xsl:for-each>
 
-        <xsl:call-template name="ldh:ContentLoaded">
+        <xsl:call-template name="ldh:BlockLoaded">
             <xsl:with-param name="container" select="$container"/>
         </xsl:call-template>
     </xsl:template>
@@ -438,7 +438,7 @@ exclude-result-prefixes="#all"
                     </xsl:result-document>
                 </xsl:for-each>
 
-                <xsl:call-template name="ldh:ContentLoaded">
+                <xsl:call-template name="ldh:BlockLoaded">
                     <xsl:with-param name="container" select="$container"/>
                 </xsl:call-template>
             </xsl:when>
@@ -448,7 +448,7 @@ exclude-result-prefixes="#all"
         </xsl:choose>
     </xsl:template>
 
-    <xsl:template name="ldh:ContentLoaded">
+    <xsl:template name="ldh:BlockLoaded">
         <xsl:param name="container" as="element()"/>
 
         <!-- insert "Edit" button if the agent has acl:Write access -->
@@ -915,7 +915,7 @@ exclude-result-prefixes="#all"
                     </xsl:result-document>
                 </xsl:for-each>
                 
-                <xsl:call-template name="ldh:ContentLoaded">
+                <xsl:call-template name="ldh:BlockLoaded">
                     <xsl:with-param name="container" select="$container"/>
                 </xsl:call-template>
             </xsl:otherwise>
@@ -1552,7 +1552,7 @@ exclude-result-prefixes="#all"
                     </xsl:result-document>
                 </xsl:for-each>
                 
-                <xsl:call-template name="ldh:ContentLoaded">
+                <xsl:call-template name="ldh:BlockLoaded">
                     <xsl:with-param name="container" select="$container"/>
                 </xsl:call-template>
             </xsl:when>
@@ -1565,7 +1565,7 @@ exclude-result-prefixes="#all"
                     </xsl:result-document>
                 </xsl:for-each>
                 
-                <xsl:call-template name="ldh:ContentLoaded">
+                <xsl:call-template name="ldh:BlockLoaded">
                     <xsl:with-param name="container" select="$container"/>
                 </xsl:call-template>
             </xsl:otherwise>
@@ -1598,7 +1598,7 @@ exclude-result-prefixes="#all"
                         </xsl:result-document>
                     </xsl:for-each>
 
-                    <xsl:call-template name="ldh:ContentLoaded">
+                    <xsl:call-template name="ldh:BlockLoaded">
                         <xsl:with-param name="container" select="$container"/>
                     </xsl:call-template>
                 </xsl:for-each>
@@ -1612,7 +1612,7 @@ exclude-result-prefixes="#all"
                     </xsl:result-document>
                 </xsl:for-each>
                 
-                <xsl:call-template name="ldh:ContentLoaded">
+                <xsl:call-template name="ldh:BlockLoaded">
                     <xsl:with-param name="container" select="$container"/>
                 </xsl:call-template>
             </xsl:otherwise>
