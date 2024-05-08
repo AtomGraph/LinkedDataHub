@@ -1159,8 +1159,8 @@ exclude-result-prefixes="#all"
         </xsl:for-each>
     </xsl:template>
     
-    <!-- appends new resource content instance to the content list -->
-    <xsl:template match="div[contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'create-action')][contains-token(@class, 'add-resource-content')]" mode="ixsl:onclick">
+    <!-- appends new view instance to the content list -->
+    <xsl:template match="div[contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'create-action')][contains-token(@class, 'add-view-content')]" mode="ixsl:onclick">
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'row-fluid')]" as="element()"/>
         <!-- TO-DO: reuse identical constructor from form.xsl -->
         <xsl:variable name="constructor" as="document-node()">
@@ -1168,6 +1168,74 @@ exclude-result-prefixes="#all"
                 <rdf:RDF>
                     <rdf:Description rdf:nodeID="A1">
                         <rdf:type rdf:resource="&ldh;View"/>
+                        <spin:query rdf:nodeID="A2"/>
+                        <ac:mode rdf:nodeID="A3"/>
+                    </rdf:Description>
+                    <rdf:Description rdf:nodeID="A2">
+                        <rdf:type rdf:resource="&sp;Query"/>
+                    </rdf:Description>
+                    <rdf:Description rdf:nodeID="A3">
+                        <rdf:type rdf:resource="&rdfs;Resource"/>
+                    </rdf:Description>
+                </rdf:RDF>
+            </xsl:document>
+        </xsl:variable>
+        <xsl:variable name="controls" as="node()*">
+            <xsl:apply-templates select="$constructor//spin:query/@rdf:*" mode="bs2:FormControl"/>
+            <xsl:apply-templates select="$constructor//ac:mode/@rdf:*" mode="bs2:FormControl">
+                <xsl:with-param name="class" select="'content-mode'"/>
+                <xsl:with-param name="type-label" select="false()"/>
+            </xsl:apply-templates>
+        </xsl:variable>
+        
+        <!-- move the current row of controls to the bottom of the content list -->
+        <xsl:for-each select="$container/..">
+            <xsl:result-document href="?." method="ixsl:append-content">
+                <xsl:copy-of select="$container"/>
+            </xsl:result-document>
+        </xsl:for-each>
+
+        <!-- add .content.resource-content to div.row-fluid -->
+        <xsl:for-each select="$container">
+            <xsl:variable name="content-id" select="'id' || ac:uuid()" as="xs:string"/>
+            <ixsl:set-attribute name="id" select="$content-id"/>
+            <ixsl:set-attribute name="draggable" select="'true'"/>
+
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'content', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'resource-content', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+        </xsl:for-each>
+        
+        <xsl:for-each select="ancestor::div[contains-token(@class, 'main')]">
+            <xsl:result-document href="?." method="ixsl:replace-content">
+                <div>
+                    <xsl:copy-of select="$controls"/>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="btn btn-primary btn-save">
+                        <xsl:value-of>
+                            <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                        </xsl:value-of>
+                    </button>
+                    <button type="button" class="btn btn-cancel">
+                        <xsl:value-of>
+                            <xsl:apply-templates select="key('resources', 'cancel', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                        </xsl:value-of>
+                    </button>
+                </div>
+            </xsl:result-document>
+        </xsl:for-each>
+    </xsl:template>
+    
+    <!-- appends new object instance to the content list -->
+    <xsl:template match="div[contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'create-action')][contains-token(@class, 'add-object-content')]" mode="ixsl:onclick">
+        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'row-fluid')]" as="element()"/>
+        <!-- TO-DO: reuse identical constructor from form.xsl -->
+        <xsl:variable name="constructor" as="document-node()">
+            <xsl:document>
+                <rdf:RDF>
+                    <rdf:Description rdf:nodeID="A1">
+                        <rdf:type rdf:resource="&ldh;Object"/>
                         <rdf:value rdf:nodeID="A2"/>
                         <ac:mode rdf:nodeID="A3"/>
                     </rdf:Description>
@@ -1438,9 +1506,6 @@ exclude-result-prefixes="#all"
         <xsl:param name="refresh-content" as="xs:boolean?"/>
         <xsl:variable name="this" select="ancestor::div[@about][1]/@about" as="xs:anyURI"/>
         <xsl:variable name="content-uri" select="(@about, $this)[1]" as="xs:anyURI"/> <!-- fallback to @about for charts, queries etc. -->
-<!--        <xsl:variable name="content-value" select="if (contains-token(@class, 'override-content')) then @about else ixsl:get(., 'dataset.contentValue')" as="xs:anyURI"/>  get the value of the @data-content-value attribute 
-        <xsl:variable name="graph" select="if (ixsl:contains(., 'dataset.contentGraph')) then xs:anyURI(ixsl:get(., 'dataset.contentGraph')) else ()" as="xs:anyURI?"/>  get the value of the @data-content-graph attribute 
-        <xsl:variable name="mode" select="if (ixsl:contains(., 'dataset.contentMode')) then xs:anyURI(ixsl:get(., 'dataset.contentMode')) else ()" as="xs:anyURI?"/>  get the value of the @data-content-mode attribute -->
         <xsl:variable name="container" select="." as="element()"/>
         <xsl:variable name="progress-container" select="if (contains-token(@class, 'row-fluid')) then ./div[contains-token(@class, 'main')] else ." as="element()"/>
 
@@ -1462,13 +1527,10 @@ exclude-result-prefixes="#all"
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, ac:document-uri($content-uri))" as="xs:anyURI"/>
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': ac:document-uri($request-uri), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-                <xsl:call-template name="onBlockLoad">
+                <xsl:call-template name="ldh:BlockLoaded">
                     <xsl:with-param name="this" select="$this"/>
                     <xsl:with-param name="content-uri" select="$content-uri"/>
-<!--                    <xsl:with-param name="content-value" select="$content-value"/>-->
                     <xsl:with-param name="container" select="$container"/>
-<!--                    <xsl:with-param name="graph" select="$graph"/>
-                    <xsl:with-param name="mode" select="$mode"/>-->
                     <xsl:with-param name="acl-modes" select="$acl-modes"/>
                     <xsl:with-param name="refresh-content" select="$refresh-content"/>
                 </xsl:call-template>
@@ -1479,15 +1541,11 @@ exclude-result-prefixes="#all"
     
     <!-- embed content -->
     
-    <xsl:template name="onBlockLoad">
+    <xsl:template name="ldh:BlockLoaded">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="this" as="xs:anyURI"/>
         <xsl:param name="container" as="element()"/>
-        <!-- <xsl:param name="container-id" select="ixsl:get($container, 'id')" as="xs:string"/> -->
         <xsl:param name="content-uri" as="xs:anyURI"/>
-<!--        <xsl:param name="content-value" as="xs:anyURI"/>
-        <xsl:param name="graph" as="xs:anyURI?"/>
-        <xsl:param name="mode" as="xs:anyURI?"/>-->
         <xsl:param name="acl-modes" as="xs:anyURI*"/>
         <xsl:param name="refresh-content" as="xs:boolean?"/>
         
@@ -1509,8 +1567,6 @@ exclude-result-prefixes="#all"
                 <xsl:apply-templates select="$block" mode="ldh:RenderBlock">
                     <xsl:with-param name="this" select="$this"/>
                     <xsl:with-param name="container" select="$container"/>
-<!--                    <xsl:with-param name="graph" select="$graph"/>
-                    <xsl:with-param name="mode" select="$mode"/>-->
                     <xsl:with-param name="refresh-content" select="$refresh-content"/>
                 </xsl:apply-templates>
             
@@ -1549,7 +1605,7 @@ exclude-result-prefixes="#all"
                 <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, $results-uri)" as="xs:anyURI"/>
                 <xsl:variable name="request" as="item()*">
                     <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': ac:document-uri($request-uri), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-                        <xsl:call-template name="onBlockLoad">
+                        <xsl:call-template name="ldh:BlockLoaded">
                             <xsl:with-param name="this" select="$this"/>
                             <xsl:with-param name="content-uri" select="$content-uri"/>
                             <xsl:with-param name="container" select="$container"/>
