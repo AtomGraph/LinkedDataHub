@@ -460,6 +460,8 @@ exclude-result-prefixes="#all"
                 <xsl:call-template name="ldh:BlockRendered">
                     <xsl:with-param name="container" select="$container"/>
                 </xsl:call-template>
+                
+                <xsl:apply-templates select="$container/*" mode="ldh:PostConstruct"/>
             </xsl:when>
             <xsl:otherwise>
                 <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ ?message ])[current-date() lt xs:date('2000-01-01')]"/>
