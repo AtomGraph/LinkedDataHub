@@ -595,9 +595,11 @@ exclude-result-prefixes="#all"
         -->
         <xsl:variable name="controls" as="node()*">
             <xsl:for-each select="$block">
-                <span data-for-class="&rdfs;Resource">
-                    <xsl:apply-templates select="rdf:value/@rdf:resource" mode="bs2:FormControl"/>
-                </span>
+                <xsl:call-template name="bs2:Lookup">
+                    <xsl:with-param name="value" select="rdf:value/@rdf:resource"/>
+                    <xsl:with-param name="forClass" select="xs:anyURI('&rdfs;Resource')"/>
+                </xsl:call-template>
+<!--                <xsl:apply-templates select="rdf:value/@rdf:resource" mode="bs2:FormControl"/>-->
                 <xsl:apply-templates select="ac:mode/@rdf:resource" mode="bs2:FormControl">
                     <xsl:with-param name="class" select="'content-mode'"/>
                     <xsl:with-param name="type-label" select="false()"/>

@@ -1537,7 +1537,6 @@ WHERE
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="resource-uri" as="xs:anyURI"/>
         <xsl:param name="typeahead-span" as="element()"/>
-        <!-- <xsl:param name="modal-form" as="element()?"/> -->
 
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
@@ -1551,16 +1550,19 @@ WHERE
                                     <xsl:apply-templates select="$resource" mode="ldh:Typeahead"/>
                                 </xsl:variable>
                                 
+                                <!--
                                 <xsl:result-document href="?." method="ixsl:replace-content">
                                     <xsl:sequence select="$typeahead"/>
                                 </xsl:result-document>
+                                -->
+                                <!-- replace span with typeahead (instead of only its content, which is what ixsl:replace-content does) -->
+                                <xsl:sequence select="ixsl:call($typeahead-span, 'replaceWith', [ $typeahead ])[current-date() lt xs:date('2000-01-01')]"/>
                             </xsl:for-each>
                         </xsl:when>
                         <xsl:otherwise>
                             <!-- resource description not found, render lookup input -->
                             <xsl:call-template name="bs2:Lookup">
                                 <xsl:with-param name="class" select="'resource-typeahead typeahead'"/>
-<!--                                <xsl:with-param name="id" select="'input-' || $uuid"/>-->
                                 <xsl:with-param name="list-class" select="'resource-typeahead typeahead dropdown-menu'"/>
                                 <xsl:with-param name="value" select="$resource-uri"/>
                             </xsl:call-template>

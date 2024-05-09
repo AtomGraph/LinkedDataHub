@@ -1477,7 +1477,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="title" select="(@rdf:about, @rdf:nodeID)[1]" as="xs:string?"/>
         <xsl:param name="forClass" select="rdf:type/@rdf:resource" as="xs:anyURI*"/>
 
-        <span>
+        <!-- <span> -->
             <button type="button">
                 <xsl:if test="$id">
                     <xsl:attribute name="id" select="$id"/>
@@ -1509,7 +1509,7 @@ extension-element-prefixes="ixsl"
                     <input type="hidden" name="ob" value="{@rdf:nodeID}"/>
                 </xsl:if>
             </button>
-        </span>
+        <!-- </span> -->
     </xsl:template>
     
 </xsl:stylesheet>
