@@ -595,7 +595,9 @@ exclude-result-prefixes="#all"
         -->
         <xsl:variable name="controls" as="node()*">
             <xsl:for-each select="$block">
-                <xsl:apply-templates select="rdf:value/@rdf:resource" mode="bs2:FormControl"/>
+                <span data-for-class="&rdfs;Resource">
+                    <xsl:apply-templates select="rdf:value/@rdf:resource" mode="bs2:FormControl"/>
+                </span>
                 <xsl:apply-templates select="ac:mode/@rdf:resource" mode="bs2:FormControl">
                     <xsl:with-param name="class" select="'content-mode'"/>
                     <xsl:with-param name="type-label" select="false()"/>
