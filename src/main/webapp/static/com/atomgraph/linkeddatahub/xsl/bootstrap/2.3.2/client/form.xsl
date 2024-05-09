@@ -1404,7 +1404,7 @@ WHERE
         <xsl:param name="lookup-list-class" select="'resource-typeahead typeahead dropdown-menu'" as="xs:string"/>
         <xsl:variable name="uuid" select="ixsl:call(ixsl:window(), 'generateUUID', [])" as="xs:string"/>
         
-        <xsl:variable name="lookup" as="element()">
+        <xsl:variable name="lookup">
             <xsl:call-template name="bs2:Lookup">
                 <xsl:with-param name="id" select="'input-' || $uuid"/>
                 <xsl:with-param name="class" select="$lookup-class"/>
@@ -1419,7 +1419,6 @@ WHERE
         -->
         <!-- replace span with typeahead (instead of only its content, which is what ixsl:replace-content does) -->
         <xsl:sequence select="ixsl:call(., 'replaceWith', [ $lookup ])[current-date() lt xs:date('2000-01-01')]"/>
-
 
         <xsl:for-each select="id('input-' || $uuid, ixsl:page())">
             <xsl:sequence select="ixsl:call(., 'focus', [])[current-date() lt xs:date('2000-01-01')]"/>
