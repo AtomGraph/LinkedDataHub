@@ -1412,13 +1412,18 @@ WHERE
             </xsl:call-template>
         </xsl:variable>
 
-        <!--
-        <xsl:result-document href="?." method="ixsl:replace-content">
-            <xsl:sequence select="$lookup"/>
-        </xsl:result-document>
-        -->
+        <!-- workaround for https://saxonica.plan.io/issues/6303 -->
+        <xsl:variable name="this" select="." a="element()"/>
+        <xsl:for-each select="..">
+            <xsl:result-document href="?." method="ixsl:replace-content">
+                <xsl:sequence select="$this/preceding-sibling::node()"/>
+                <xsl:sequence select="$lookup"/>
+                <xsl:sequence select="$this/following-sibling::node()"/>
+            </xsl:result-document>
+        </xsl:for-each>
+
         <!-- replace span with typeahead (instead of only its content, which is what ixsl:replace-content does) -->
-        <xsl:sequence select="ixsl:call(., 'replaceWith', [ $lookup ])[current-date() lt xs:date('2000-01-01')]"/>
+<!--        <xsl:sequence select="ixsl:call(., 'replaceWith', [ $lookup ])[current-date() lt xs:date('2000-01-01')]"/>-->
 
         <xsl:for-each select="id('input-' || $uuid, ixsl:page())">
             <xsl:sequence select="ixsl:call(., 'focus', [])[current-date() lt xs:date('2000-01-01')]"/>
