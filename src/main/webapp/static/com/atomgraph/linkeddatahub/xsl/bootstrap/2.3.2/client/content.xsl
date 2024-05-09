@@ -574,7 +574,7 @@ exclude-result-prefixes="#all"
             $block: <xsl:value-of select="serialize($block)"/>
         </xsl:message>
         
-        <!--
+        <!-- TO-DO: load from ontology? -->
         <xsl:variable name="constructor" as="document-node()">
             <xsl:document>
                 <rdf:RDF>
@@ -592,7 +592,6 @@ exclude-result-prefixes="#all"
                 </rdf:RDF>
             </xsl:document>
         </xsl:variable>
-        -->
         <xsl:variable name="controls" as="node()*">
             <xsl:for-each select="$block">
                 <xsl:call-template name="bs2:Lookup">
@@ -600,7 +599,7 @@ exclude-result-prefixes="#all"
                     <xsl:with-param name="forClass" select="xs:anyURI('&rdfs;Resource')"/>
                 </xsl:call-template>
 <!--                <xsl:apply-templates select="rdf:value/@rdf:resource" mode="bs2:FormControl"/>-->
-                <xsl:apply-templates select="ac:mode/@rdf:resource" mode="bs2:FormControl">
+                <xsl:apply-templates select="(ac:mode/@rdf:resource, $constructor//ac:mode/@rdf:nodeID)[1]" mode="bs2:FormControl">
                     <xsl:with-param name="class" select="'content-mode'"/>
                     <xsl:with-param name="type-label" select="false()"/>
                 </xsl:apply-templates>
