@@ -1011,6 +1011,7 @@ WHERE
                         <xsl:variable name="typeahead" as="element()">
                             <xsl:apply-templates select="$resource" mode="ldh:Typeahead">
                                 <xsl:with-param name="class" select="$typeahead-class"/>
+                                <xsl:with-param name="forClass" select="$forClass"/>
                             </xsl:apply-templates>
                         </xsl:variable>
                         
@@ -1080,6 +1081,7 @@ WHERE
             <xsl:variable name="typeahead" as="element()">
                 <xsl:apply-templates select="$resource" mode="ldh:Typeahead">
                     <xsl:with-param name="class" select="$typeahead-class"/>
+                    <xsl:with-param name="forClass" select="$forClass"/>
                 </xsl:apply-templates>
             </xsl:variable>
             
@@ -1417,7 +1419,7 @@ WHERE
         <xsl:for-each select="..">
             <xsl:result-document href="?." method="ixsl:replace-content">
                 <xsl:sequence select="$this/preceding-sibling::node()"/>
-                <xsl:sequence select="$lookup"/>
+                <xsl:sequence select="$lookup/*"/>
                 <xsl:sequence select="$this/following-sibling::node()"/>
             </xsl:result-document>
         </xsl:for-each>
@@ -1556,6 +1558,7 @@ WHERE
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="resource-uri" as="xs:anyURI"/>
         <xsl:param name="typeahead-span" as="element()"/>
+        <xsl:param name="forClass" select="ixsl:get($typeahead-span, 'dataset.forClass')" as="xs:anyURI"/>
 
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
@@ -1566,7 +1569,9 @@ WHERE
                         <xsl:when test="$resource">
                             <xsl:for-each select="$typeahead-span">
                                 <xsl:variable name="typeahead" as="element()">
-                                    <xsl:apply-templates select="$resource" mode="ldh:Typeahead"/>
+                                    <xsl:apply-templates select="$resource" mode="ldh:Typeahead">
+                                        <xsl:with-param name="forClass" select="$forClass"/>
+                                    </xsl:apply-templates>
                                 </xsl:variable>
                                 
                                 <!--

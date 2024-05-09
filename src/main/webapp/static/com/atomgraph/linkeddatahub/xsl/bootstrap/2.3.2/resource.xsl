@@ -1475,7 +1475,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="class" select="'btn add-typeahead'" as="xs:string?"/>
         <xsl:param name="disabled" select="false()" as="xs:boolean"/>
         <xsl:param name="title" select="(@rdf:about, @rdf:nodeID)[1]" as="xs:string?"/>
-        <xsl:param name="forClass" select="rdf:type/@rdf:resource" as="xs:anyURI*"/>
+        <xsl:param name="forClass" as="xs:anyURI*"/>
 
         <span>
             <xsl:if test="exists($forClass)">

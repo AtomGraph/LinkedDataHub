@@ -967,7 +967,9 @@ exclude-result-prefixes="#all"
         <xsl:param name="type-label" select="true()" as="xs:boolean"/>
         <xsl:variable name="forClass" select="key('resources', .)/rdf:type/@rdf:resource" as="xs:anyURI"/>
 
-        <xsl:apply-templates select="key('resources', .)" mode="ldh:Typeahead"/>
+        <xsl:apply-templates select="key('resources', .)" mode="ldh:Typeahead">
+            <xsl:with-param name="forClass" select="$forClass"/>
+        </xsl:apply-templates>
 <!--        <xsl:text> </xsl:text>
 
         <xsl:variable name="forClass-shapes" select="ldh:query-result(map{}, resolve-uri('ns', $ldt:base), $shape-query || ' VALUES $Type { ' || string-join(for $type in $forClass return '&lt;' || $type || '&gt;', ' ') || ' }')" as="document-node()"/>
