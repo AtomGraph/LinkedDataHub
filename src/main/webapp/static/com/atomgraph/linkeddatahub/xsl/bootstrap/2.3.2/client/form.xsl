@@ -1601,25 +1601,11 @@ WHERE
                                     </xsl:apply-templates>
                                 </xsl:variable>
                                 <xsl:message>
-                                    onTypeaheadResourceLoad $typeahead-span: <xsl:value-of select="serialize($typeahead-span)"/>
+                                    onTypeaheadResourceLoad $typeahead-span: <xsl:value-of select="serialize(.)"/> $typeahead: <xsl:value-of select="serialize($typeahead)"/>
                                 </xsl:message>
-                                <!--
                                 <xsl:result-document href="?." method="ixsl:replace-content">
-                                    <xsl:sequence select="$typeahead"/>
+                                    <xsl:sequence select="$typeahead/span/*"/>
                                 </xsl:result-document>
-                                -->
-                                <!-- replace span with typeahead (instead of only its content, which is what ixsl:replace-content does) -->
-<!--                                <xsl:sequence select="ixsl:call(., 'replaceWith', [ $typeahead ])[current-date() lt xs:date('2000-01-01')]"/>-->
-
-                                <!-- workaround for https://saxonica.plan.io/issues/6303 -->
-                                <xsl:variable name="this" select="." as="element()"/>
-                                <xsl:for-each select="..">
-                                    <xsl:result-document href="?." method="ixsl:replace-content">
-                                        <xsl:sequence select="$this/preceding-sibling::node()"/>
-                                        <xsl:sequence select="$typeahead/span/*"/>
-                                        <xsl:sequence select="$this/following-sibling::node()"/>
-                                    </xsl:result-document>
-                                </xsl:for-each>
                             </xsl:for-each>
                         </xsl:when>
                         <xsl:otherwise>
