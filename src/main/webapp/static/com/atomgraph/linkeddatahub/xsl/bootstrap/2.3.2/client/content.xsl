@@ -743,6 +743,7 @@ exclude-result-prefixes="#all"
             </xsl:for-each>
         </xsl:if>-->
         
+        <!--
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                 <xsl:call-template name="onTypeaheadResourceLoad">
@@ -752,6 +753,7 @@ exclude-result-prefixes="#all"
             </ixsl:schedule-action>
         </xsl:variable>
         <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+        -->
     </xsl:template>
 
     <!-- save XHTML block onclick -->
