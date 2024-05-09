@@ -666,7 +666,6 @@ exclude-result-prefixes="#all"
         <xsl:variable name="block-uri" select="$container/@about" as="xs:anyURI"/>
 <!--        <xsl:variable name="content-value" select="ixsl:get($container, 'dataset.contentValue')" as="xs:anyURI"/>  get the value of the @data-content-value attribute 
         <xsl:variable name="mode" select="if (ixsl:contains($container, 'dataset.contentMode')) then xs:anyURI(ixsl:get($container, 'dataset.contentMode')) else ()" as="xs:anyURI?"/>  get the value of the @data-content-mode attribute -->
-        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, $content-value)"/>
         <!-- if this .resource-content transcludes .xhtml-content, redefine content container as the inner .xhtml-content -->
         <xsl:variable name="content-container" select="if ($container/div[contains-token(@class, 'xhtml-content')]) then $container/div[contains-token(@class, 'xhtml-content')] else $container" as="element()"/>
 
@@ -744,6 +743,7 @@ exclude-result-prefixes="#all"
         </xsl:if>-->
         
         <!--
+        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, $content-value)"/>
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                 <xsl:call-template name="onTypeaheadResourceLoad">
