@@ -569,7 +569,11 @@ exclude-result-prefixes="#all"
         <!-- TO-DO: refactor asynchronously -->
         <xsl:variable name="request-uri" select="ac:build-uri($ldt:base, map{ 'uri': ac:document-uri($block-uri), 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
         <xsl:variable name="block" select="key('resources', $block-uri, document($request-uri))" as="element()"/>
-
+        <xsl:message>
+            $request-uri: <xsl:value-of select="$request-uri"/>
+            $block: <xsl:value-of select="serialize($block)"/>
+        </xsl:message>
+        
         <!--
         <xsl:variable name="constructor" as="document-node()">
             <xsl:document>
