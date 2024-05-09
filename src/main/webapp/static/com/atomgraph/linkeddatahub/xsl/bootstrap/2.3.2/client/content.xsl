@@ -564,10 +564,13 @@ exclude-result-prefixes="#all"
         <xsl:variable name="block-uri" select="$container/@about" as="xs:anyURI"/>
 <!--        <xsl:variable name="content-value" select="ixsl:get($container, 'dataset.contentValue')" as="xs:anyURI"/>  get the value of the @data-content-value attribute 
         <xsl:variable name="mode" select="if (ixsl:contains($container, 'dataset.contentMode')) then xs:anyURI(ixsl:get($container, 'dataset.contentMode')) else ()" as="xs:anyURI?"/>  get the value of the @data-content-mode attribute -->
-        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, $content-value)"/>
         <!-- if this .resource-content transcludes .xhtml-content, redefine content container as the inner .xhtml-content -->
         <xsl:variable name="content-container" select="if ($container/div[contains-token(@class, 'xhtml-content')]) then $container/div[contains-token(@class, 'xhtml-content')] else $container" as="element()"/>
+        <!-- TO-DO: refactor asynchronously -->
+        <xsl:variable name="request-uri" select="ac:build-uri($ldt:base, map{ 'uri': ac:document-uri($block-uri), 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
+        <xsl:variable name="block" select="key('resources', $block-uri, document($request-uri))" as="element()"/>
 
+        <!--
         <xsl:variable name="constructor" as="document-node()">
             <xsl:document>
                 <rdf:RDF>
@@ -585,12 +588,15 @@ exclude-result-prefixes="#all"
                 </rdf:RDF>
             </xsl:document>
         </xsl:variable>
+        -->
         <xsl:variable name="controls" as="node()*">
-            <xsl:apply-templates select="$constructor//rdf:value/@rdf:*" mode="bs2:FormControl"/>
-            <xsl:apply-templates select="$constructor//ac:mode/@rdf:*" mode="bs2:FormControl">
-                <xsl:with-param name="class" select="'content-mode'"/>
-                <xsl:with-param name="type-label" select="false()"/>
-            </xsl:apply-templates>
+            <xsl:for-each select="$block">
+                <xsl:apply-templates select="rdf:value/@rdf:resource" mode="bs2:FormControl"/>
+                <xsl:apply-templates select="ac:mode/@rdf:resource" mode="bs2:FormControl">
+                    <xsl:with-param name="class" select="'content-mode'"/>
+                    <xsl:with-param name="type-label" select="false()"/>
+                </xsl:apply-templates>
+            </xsl:for-each>
         </xsl:variable>
         
         <xsl:for-each select="$container">
@@ -641,10 +647,11 @@ exclude-result-prefixes="#all"
             </xsl:for-each>
         </xsl:if>-->
         
+        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, xs:anyURI(ac:document-uri($block//rdf:value/@rdf:resource)))"/>
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                 <xsl:call-template name="onTypeaheadResourceLoad">
-                    <xsl:with-param name="resource-uri" select="$content-value"/>
+                    <xsl:with-param name="resource-uri" select="$block//rdf:value/@rdf:resource"/>
                     <xsl:with-param name="typeahead-span" select="$container/div[contains-token(@class, 'main')]//span[1]"/>
                 </xsl:call-template>
             </ixsl:schedule-action>
