@@ -1014,9 +1014,13 @@ WHERE
                             </xsl:apply-templates>
                         </xsl:variable>
                         
+                        <!--
                         <xsl:result-document href="?." method="ixsl:replace-content">
                             <xsl:sequence select="$typeahead/*"/>
                         </xsl:result-document>
+                        -->
+                        <!-- replace span with typeahead (instead of only its content, which is what ixsl:replace-content does) -->
+                        <xsl:sequence select="ixsl:call(., 'replaceWith', [ $typeahead ])[current-date() lt xs:date('2000-01-01')]"/>
                     </xsl:for-each>
                 </xsl:for-each>
             </xsl:when>
@@ -1079,9 +1083,13 @@ WHERE
                 </xsl:apply-templates>
             </xsl:variable>
             
+            <!--
             <xsl:result-document href="?." method="ixsl:replace-content">
                 <xsl:sequence select="$typeahead/*"/>
             </xsl:result-document>
+            -->
+            <!-- replace span with typeahead (instead of only its content, which is what ixsl:replace-content does) -->
+            <xsl:sequence select="ixsl:call(., 'replaceWith', [ $typeahead ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
 
         <xsl:variable name="forClass" select="$resource/@rdf:about" as="xs:anyURI"/>
@@ -1198,9 +1206,13 @@ WHERE
                 </xsl:apply-templates>
             </xsl:variable>
             
+            <!--
             <xsl:result-document href="?." method="ixsl:replace-content">
                 <xsl:sequence select="$typeahead/*"/>
             </xsl:result-document>
+            -->
+            <!-- replace span with typeahead (instead of only its content, which is what ixsl:replace-content does) -->
+            <xsl:sequence select="ixsl:call(., 'replaceWith', [ $typeahead ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
     </xsl:template>
 
