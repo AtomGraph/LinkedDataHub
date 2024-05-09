@@ -775,7 +775,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="content-uri" select="if ($container/@about) then $container/@about else xs:anyURI(ac:absolute-path(ldh:base-uri(.)) || '#' || $content-id)" as="xs:anyURI"/>
         <xsl:variable name="update-string" select="if ($container/@about) then $block-update-string else $block-append-string" as="xs:string"/>
         <xsl:variable name="update-string" select="replace($update-string, '$this', '&lt;' || ac:absolute-path(ldh:base-uri(.)) || '&gt;', 'q')" as="xs:string"/>
-        <xsl:variable name="update-string" select="replace($update-string, '$type', '&lt;' || $block-type ||, 'q')" as="xs:string"/>
+        <xsl:variable name="update-string" select="replace($update-string, '$type', '&lt;' || $block-type || '&gt;', 'q')" as="xs:string"/>
         <xsl:variable name="update-string" select="replace($update-string, '$block', '&lt;' || $content-uri || '&gt;', 'q')" as="xs:string"/>
         <xsl:variable name="update-string" select="replace($update-string, '$valueProperty', '&lt;&rdf;value&gt;', 'q')" as="xs:string"/>
         <xsl:variable name="update-string" select="replace($update-string, '$value', '&quot;' || $content-string || '&quot;^^&lt;&rdf;XMLLiteral&gt;', 'q')" as="xs:string"/>
@@ -813,7 +813,7 @@ exclude-result-prefixes="#all"
                 <xsl:variable name="content-uri" select="if ($container/@about) then $container/@about else xs:anyURI(ac:absolute-path(ldh:base-uri(.)) || '#' || $content-id)" as="xs:anyURI"/>
                 <xsl:variable name="update-string" select="if ($container/@about) then $block-update-string else $block-append-string" as="xs:string"/>
                 <xsl:variable name="update-string" select="replace($update-string, '$this', '&lt;' || ac:absolute-path(ldh:base-uri(.)) || '&gt;', 'q')" as="xs:string"/>
-                <xsl:variable name="update-string" select="replace($update-string, '$type', '&lt;' || $block-type ||, 'q')" as="xs:string"/>
+                <xsl:variable name="update-string" select="replace($update-string, '$type', '&lt;' || $block-type || '&gt;', 'q')" as="xs:string"/>
                 <xsl:variable name="update-string" select="replace($update-string, '$block', '&lt;' || $content-uri || '&gt;', 'q')" as="xs:string"/>
                 <xsl:variable name="update-string" select="replace($update-string, '$valueProperty', '&lt;&rdf;value&gt;', 'q')" as="xs:string"/>
                 <xsl:variable name="update-string" select="replace($update-string, '$value', '&lt;' || $content-value || '&gt;', 'q')" as="xs:string"/>
@@ -855,7 +855,7 @@ exclude-result-prefixes="#all"
                 <xsl:variable name="content-uri" select="if ($container/@about) then $container/@about else xs:anyURI(ac:absolute-path(ldh:base-uri(.)) || '#' || $content-id)" as="xs:anyURI"/>
                 <xsl:variable name="update-string" select="if ($container/@about) then $block-update-string else $block-append-string" as="xs:string"/>
                 <xsl:variable name="update-string" select="replace($update-string, '$this', '&lt;' || ac:absolute-path(ldh:base-uri(.)) || '&gt;', 'q')" as="xs:string"/>
-                <xsl:variable name="update-string" select="replace($update-string, '$type', '&lt;' || $block-type ||, 'q')" as="xs:string"/>
+                <xsl:variable name="update-string" select="replace($update-string, '$type', '&lt;' || $block-type || '&gt;', 'q')" as="xs:string"/>
                 <xsl:variable name="update-string" select="replace($update-string, '$block', '&lt;' || $content-uri || '&gt;', 'q')" as="xs:string"/>
                 <xsl:variable name="update-string" select="replace($update-string, '$valueProperty', '&lt;&rdf;value&gt;', 'q')" as="xs:string"/>
                 <xsl:variable name="update-string" select="replace($update-string, '$value', '&lt;' || $content-value || '&gt;', 'q')" as="xs:string"/>
