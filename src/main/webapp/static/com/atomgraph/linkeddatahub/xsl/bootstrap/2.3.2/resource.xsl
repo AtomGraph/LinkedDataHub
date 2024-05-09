@@ -1477,7 +1477,11 @@ extension-element-prefixes="ixsl"
         <xsl:param name="title" select="(@rdf:about, @rdf:nodeID)[1]" as="xs:string?"/>
         <xsl:param name="forClass" select="rdf:type/@rdf:resource" as="xs:anyURI*"/>
 
-        <!-- <span> -->
+        <span>
+            <xsl:if test="exists($forClass)">
+                <xsl:attribute name="data-for-class" select="string-join($forClass, ' ')"/>
+            </xsl:if>
+                
             <button type="button">
                 <xsl:if test="$id">
                     <xsl:attribute name="id" select="$id"/>
@@ -1490,9 +1494,6 @@ extension-element-prefixes="ixsl"
                 </xsl:if>
                 <xsl:if test="$title">
                     <xsl:attribute name="title" select="$title"/>
-                </xsl:if>
-                <xsl:if test="exists($forClass)">
-                    <xsl:attribute name="data-for-class" select="string-join($forClass, ' ')"/>
                 </xsl:if>
 
                 <span class="pull-left">
@@ -1509,7 +1510,7 @@ extension-element-prefixes="ixsl"
                     <input type="hidden" name="ob" value="{@rdf:nodeID}"/>
                 </xsl:if>
             </button>
-        <!-- </span> -->
+        </span>
     </xsl:template>
     
 </xsl:stylesheet>
