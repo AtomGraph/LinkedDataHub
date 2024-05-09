@@ -1402,7 +1402,7 @@ WHERE
             </xsl:variable>
             
             <xsl:result-document href="?." method="ixsl:replace-content">
-                <xsl:sequence select="$lookup/*"/>
+                <xsl:sequence select="$lookup"/>
             </xsl:result-document>
         </xsl:for-each>
 
@@ -1556,7 +1556,7 @@ WHERE
                                 </xsl:result-document>
                                 -->
                                 <!-- replace span with typeahead (instead of only its content, which is what ixsl:replace-content does) -->
-                                <xsl:sequence select="ixsl:call($typeahead-span, 'replaceWith', [ $typeahead ])[current-date() lt xs:date('2000-01-01')]"/>
+                                <xsl:sequence select="ixsl:call(., 'replaceWith', [ $typeahead ])[current-date() lt xs:date('2000-01-01')]"/>
                             </xsl:for-each>
                         </xsl:when>
                         <xsl:otherwise>
