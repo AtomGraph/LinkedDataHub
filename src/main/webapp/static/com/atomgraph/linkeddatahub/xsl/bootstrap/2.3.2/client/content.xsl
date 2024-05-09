@@ -135,8 +135,10 @@ exclude-result-prefixes="#all"
             }
             WHERE
               { $this  ?sourceSeq  $sourceBlock
+                FILTER(strstarts(str(?sourceSeq), concat(str(rdf:), "_")))
                 BIND(xsd:integer(substr(str(?sourceSeq), 45)) AS ?sourceIndex)
                 $this  ?targetSeq  $targetBlock
+                FILTER(strstarts(str(?targetSeq), concat(str(rdf:), "_")))
                 BIND(xsd:integer(substr(str(?targetSeq), 45)) AS ?targetIndex)
                 BIND(if(( ?sourceIndex < ?targetIndex ), ( ?targetIndex - 1 ), ?targetIndex) AS ?newTargetIndex)
                 BIND(if(( ?sourceIndex < ?targetIndex ), ?targetIndex, ( ?targetIndex + 1 )) AS ?newSourceIndex)
@@ -144,8 +146,10 @@ exclude-result-prefixes="#all"
                 BIND(IRI(concat(str(rdf:), "_", str(?newTargetIndex))) AS ?newTargetSeq)
                 OPTIONAL
                   { $this  ?sourceSeq  $sourceBlock
+                    FILTER(strstarts(str(?sourceSeq), concat(str(rdf:), "_")))
                     BIND(xsd:integer(substr(str(?sourceSeq), 45)) AS ?sourceIndex)
                     $this  ?targetSeq  $targetBlock
+                    FILTER(strstarts(str(?targetSeq), concat(str(rdf:), "_")))
                     BIND(xsd:integer(substr(str(?targetSeq), 45)) AS ?targetIndex)
                     $this  ?seq  ?content
                     FILTER strstarts(str(?seq), str(rdf:_))

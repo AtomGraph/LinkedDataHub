@@ -1382,7 +1382,7 @@ WHERE
             </xsl:variable>
             
             <xsl:result-document href="?." method="ixsl:replace-content">
-                <xsl:sequence select="$lookup/span/*"/>
+                <xsl:sequence select="$lookup/*"/>
             </xsl:result-document>
         </xsl:for-each>
         <xsl:for-each select="../..">
@@ -1422,7 +1422,7 @@ WHERE
         <xsl:for-each select="..">
             <xsl:result-document href="?." method="ixsl:replace-content">
                 <xsl:sequence select="$this/preceding-sibling::node()"/>
-                <xsl:sequence select="$lookup/*"/>
+                <xsl:sequence select="$lookup/span/*"/>
                 <xsl:sequence select="$this/following-sibling::node()"/>
             </xsl:result-document>
         </xsl:for-each>
