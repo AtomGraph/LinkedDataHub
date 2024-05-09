@@ -1604,7 +1604,7 @@ WHERE
                                     onTypeaheadResourceLoad $typeahead-span: <xsl:value-of select="serialize(.)"/> $typeahead: <xsl:value-of select="serialize($typeahead)"/>
                                 </xsl:message>
                                 <xsl:result-document href="?." method="ixsl:replace-content">
-                                    <xsl:sequence select="$typeahead/span/*"/>
+                                    <xsl:sequence select="$typeahead/*"/>
                                 </xsl:result-document>
                             </xsl:for-each>
                         </xsl:when>
