@@ -1413,7 +1413,7 @@ WHERE
         </xsl:variable>
 
         <!-- workaround for https://saxonica.plan.io/issues/6303 -->
-        <xsl:variable name="this" select="." a="element()"/>
+        <xsl:variable name="this" select="." as="element()"/>
         <xsl:for-each select="..">
             <xsl:result-document href="?." method="ixsl:replace-content">
                 <xsl:sequence select="$this/preceding-sibling::node()"/>
