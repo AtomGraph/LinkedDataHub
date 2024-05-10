@@ -119,7 +119,6 @@ exclude-result-prefixes="#all">
             <xsl:when test="if ($type-metadata) then key('resources', ., $type-metadata) else false()">
                 <xsl:apply-templates select="key('resources', ., $type-metadata)" mode="ldh:Typeahead">
                     <xsl:with-param name="class" select="'btn add-typeahead add-type-typeahead'"/>
-                    <xsl:with-param name="forClass" select="xs:anyURI('&rdfs;Class')"/>
                 </xsl:apply-templates>
             </xsl:when>
             <xsl:otherwise>

@@ -767,9 +767,7 @@ exclude-result-prefixes="#all"
                 <xsl:choose>
                     <xsl:when test="key('resources', ., $object-metadata)">
                         <xsl:variable name="forClass" select="if ($constructor) then distinct-values(key('resources', key('resources-by-type', ../../rdf:type/@rdf:resource, $constructor)/*[concat(namespace-uri(), local-name()) = current()/../concat(namespace-uri(), local-name())]/@rdf:nodeID, $constructor)/rdf:type/@rdf:resource[not(. = '&rdfs;Class')]) else ()" as="xs:anyURI?"/>
-                        <xsl:apply-templates select="key('resources', ., $object-metadata)" mode="ldh:Typeahead">
-                            <xsl:with-param name="forClass" select="$forClass"/>
-                        </xsl:apply-templates>
+                        <xsl:apply-templates select="key('resources', ., $object-metadata)" mode="ldh:Typeahead"/>
 
                         <xsl:if test="$type-label">
                             <xsl:apply-templates select="." mode="bs2:FormControlTypeLabel">
@@ -875,9 +873,7 @@ exclude-result-prefixes="#all"
             </xsl:when>
             <xsl:when test="$resource">
                 <xsl:variable name="forClass" select="if ($constructor) then distinct-values(key('resources', key('resources-by-type', ../../rdf:type/@rdf:resource, $constructor)/*[concat(namespace-uri(), local-name()) = current()/../concat(namespace-uri(), local-name())]/@rdf:nodeID, $constructor)/rdf:type/@rdf:resource[not(. = '&rdfs;Class')]) else ()" as="xs:anyURI?"/>
-                <xsl:apply-templates select="$resource" mode="ldh:Typeahead">
-                    <xsl:with-param name="forClass" select="$forClass"/>
-                </xsl:apply-templates>
+                <xsl:apply-templates select="$resource" mode="ldh:Typeahead"/>
 
                 <xsl:if test="$type-label">
                     <xsl:apply-templates select="." mode="bs2:FormControlTypeLabel">
@@ -967,10 +963,9 @@ exclude-result-prefixes="#all"
         <xsl:param name="type-label" select="true()" as="xs:boolean"/>
         <xsl:variable name="forClass" select="key('resources', .)/rdf:type/@rdf:resource" as="xs:anyURI"/>
 
-        <xsl:apply-templates select="key('resources', .)" mode="ldh:Typeahead">
-            <xsl:with-param name="forClass" select="$forClass"/>
-        </xsl:apply-templates>
-<!--        <xsl:text> </xsl:text>
+        <xsl:apply-templates select="key('resources', .)" mode="ldh:Typeahead"/>
+
+        <!--        <xsl:text> </xsl:text>
 
         <xsl:variable name="forClass-shapes" select="ldh:query-result(map{}, resolve-uri('ns', $ldt:base), $shape-query || ' VALUES $Type { ' || string-join(for $type in $forClass return '&lt;' || $type || '&gt;', ' ') || ' }')" as="document-node()"/>
          forClass input is used by typeahead's FILTER ($Type IN ()) in client.xsl 

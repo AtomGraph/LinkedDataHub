@@ -1011,12 +1011,11 @@ WHERE
                         <xsl:variable name="typeahead" as="element()">
                             <xsl:apply-templates select="$resource" mode="ldh:Typeahead">
                                 <xsl:with-param name="class" select="$typeahead-class"/>
-                                <xsl:with-param name="forClass" select="$forClass"/>
                             </xsl:apply-templates>
                         </xsl:variable>
                         
                         <xsl:result-document href="?." method="ixsl:replace-content">
-                            <xsl:sequence select="$typeahead/*"/>
+                            <xsl:sequence select="$typeahead"/>
                         </xsl:result-document>
                     </xsl:for-each>
                 </xsl:for-each>
@@ -1070,7 +1069,7 @@ WHERE
         <xsl:variable name="typeahead-doc" select="ixsl:get(ixsl:window(), 'LinkedDataHub.typeahead.rdfXml')" as="document-node()"/>
         <xsl:variable name="resource" select="key('resources', $resource-id, $typeahead-doc)" as="element()"/>
         <xsl:variable name="control-group" select="ancestor::div[contains-token(@class, 'control-group')]" as="element()"/>
-        <xsl:variable name="forClass" select="../../ixsl:get(., 'dataset.forClass') ! tokenize(.) ! xs:anyURI(.)" as="xs:anyURI*"/>
+        <!-- <xsl:variable name="forClass" select="../../ixsl:get(., 'dataset.forClass') ! tokenize(.) ! xs:anyURI(.)" as="xs:anyURI*"/> -->
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
@@ -1078,12 +1077,11 @@ WHERE
             <xsl:variable name="typeahead" as="element()">
                 <xsl:apply-templates select="$resource" mode="ldh:Typeahead">
                     <xsl:with-param name="class" select="$typeahead-class"/>
-                    <xsl:with-param name="forClass" select="$forClass"/>
                 </xsl:apply-templates>
             </xsl:variable>
             
             <xsl:result-document href="?." method="ixsl:replace-content">
-                <xsl:sequence select="$typeahead/*"/>
+                <xsl:sequence select="$typeahead"/>
             </xsl:result-document>
         </xsl:for-each>
 
@@ -1193,18 +1191,17 @@ WHERE
         <xsl:variable name="resource-id" select="input[@name = ('ou', 'ob')]/ixsl:get(., 'value')" as="xs:string"/> <!-- can be URI resource or blank node ID -->
         <xsl:variable name="typeahead-doc" select="ixsl:get(ixsl:window(), 'LinkedDataHub.typeahead.rdfXml')" as="document-node()"/>
         <xsl:variable name="resource" select="key('resources', $resource-id, $typeahead-doc)" as="element()"/>
-        <xsl:variable name="forClass" select="../../ixsl:get(., 'dataset.forClass') ! tokenize(.) ! xs:anyURI(.)" as="xs:anyURI*"/>
+        <!-- <xsl:variable name="forClass" select="../../ixsl:get(., 'dataset.forClass') ! tokenize(.) ! xs:anyURI(.)" as="xs:anyURI*"/> -->
 
         <xsl:for-each select="../..">
             <xsl:variable name="typeahead" as="element()">
                 <xsl:apply-templates select="$resource" mode="ldh:Typeahead">
                     <xsl:with-param name="class" select="$typeahead-class"/>
-                    <xsl:with-param name="forClass" select="$forClass"/>
                 </xsl:apply-templates>
             </xsl:variable>
             
             <xsl:result-document href="?." method="ixsl:replace-content">
-                <xsl:sequence select="$typeahead/*"/>
+                <xsl:sequence select="$typeahead"/>
             </xsl:result-document>
         </xsl:for-each>
     </xsl:template>
@@ -1546,7 +1543,7 @@ WHERE
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="resource-uri" as="xs:anyURI"/>
         <xsl:param name="typeahead-span" as="element()"/>
-        <xsl:param name="forClass" select="ixsl:get($typeahead-span, 'dataset.forClass')" as="xs:anyURI"/>
+        <!-- <xsl:param name="forClass" select="ixsl:get($typeahead-span, 'dataset.forClass')" as="xs:anyURI"/> -->
 
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
@@ -1557,13 +1554,11 @@ WHERE
                         <xsl:when test="$resource">
                             <xsl:for-each select="$typeahead-span">
                                 <xsl:variable name="typeahead" as="element()">
-                                    <xsl:apply-templates select="$resource" mode="ldh:Typeahead">
-                                        <xsl:with-param name="forClass" select="$forClass"/>
-                                    </xsl:apply-templates>
+                                    <xsl:apply-templates select="$resource" mode="ldh:Typeahead"/>
                                 </xsl:variable>
 
                                 <xsl:result-document href="?." method="ixsl:replace-content">
-                                    <xsl:sequence select="$typeahead/*"/>
+                                    <xsl:sequence select="$typeahead"/>
                                 </xsl:result-document>
                             </xsl:for-each>
                         </xsl:when>

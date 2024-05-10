@@ -224,7 +224,6 @@ exclude-result-prefixes="#all"
 
                     <xsl:apply-templates select="key('resources', $predicate, document($request-uri))" mode="ldh:Typeahead">
                         <xsl:with-param name="class" select="'btn add-typeahead add-property-typeahead'"/>
-                        <xsl:with-param name="forClass" select="xs:anyURI('&rdf;Property')"/>
                     </xsl:apply-templates>
                 </xsl:when>
                 <xsl:otherwise>
@@ -398,7 +397,6 @@ exclude-result-prefixes="#all"
 
                 <xsl:apply-templates select="key('resources', $object-type, document($request-uri))" mode="ldh:Typeahead">
                     <xsl:with-param name="class" select="'btn add-typeahead add-class-typeahead'"/>
-                    <xsl:with-param name="forClass" select="xs:anyURI('&rdfs;Class')"/>
                 </xsl:apply-templates>
             </xsl:when>
             <xsl:otherwise>
