@@ -743,8 +743,8 @@ extension-element-prefixes="ixsl"
             </xsl:perform-sort>
         </xsl:variable>
         <xsl:comment>
-            <xsl:for-each select="$predicates/@rdf:resource">
-                <xsl:value-of select="."/>
+            <xsl:for-each select="$predicates">
+                <xsl:value-of select="local-name()"/>
             </xsl:for-each>
         </xsl:comment>
         <xsl:for-each select="$predicates/@rdf:resource">
