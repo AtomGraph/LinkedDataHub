@@ -497,7 +497,7 @@ exclude-result-prefixes="#all"
     <!-- XHTML block edit button onclick -->
     <!-- Should not be triggered for embedded XHTML (.resource-content .xhtml-content), that's why we check we're at .row-fluid level -->
     
-    <xsl:template match="div[contains-token(@class, 'xhtml-content')][contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'btn-edit')]" mode="ixsl:onclick" priority="1"> <!-- prioritize over form.xsl -->
+    <xsl:template match="div[@typeof = '&ldh;XHTML'][contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'btn-edit')]" mode="ixsl:onclick" priority="1"> <!-- prioritize over form.xsl -->
         <xsl:variable name="button" select="." as="element()"/>
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'xhtml-content')][contains-token(@class, 'row-fluid')]" as="element()"/>
 
@@ -563,13 +563,12 @@ exclude-result-prefixes="#all"
     
     <!-- object block edit button onclick -->
     
-    <xsl:template match="div[contains-token(@class, 'resource-content')][contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'btn-edit')]" mode="ixsl:onclick" priority="1"> <!-- prioritize over form.xsl -->
+    <xsl:template match="div[@typeof = '&ldh;Object'][contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'btn-edit')]" mode="ixsl:onclick" priority="1"> <!-- prioritize over form.xsl -->
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'resource-content')][contains-token(@class, 'row-fluid')]" as="element()"/>
         <xsl:variable name="block-uri" select="$container/@about" as="xs:anyURI"/>
-<!--        <xsl:variable name="content-value" select="ixsl:get($container, 'dataset.contentValue')" as="xs:anyURI"/>  get the value of the @data-content-value attribute 
-        <xsl:variable name="mode" select="if (ixsl:contains($container, 'dataset.contentMode')) then xs:anyURI(ixsl:get($container, 'dataset.contentMode')) else ()" as="xs:anyURI?"/>  get the value of the @data-content-mode attribute -->
         <!-- if this .resource-content transcludes .xhtml-content, redefine content container as the inner .xhtml-content -->
-        <xsl:variable name="content-container" select="if ($container/div[contains-token(@class, 'xhtml-content')]) then $container/div[contains-token(@class, 'xhtml-content')] else $container" as="element()"/>
+        <!-- <xsl:variable name="content-container" select="if ($container/div[contains-token(@class, 'xhtml-content')]) then $container/div[contains-token(@class, 'xhtml-content')] else $container" as="element()"/> -->
+        <xsl:variable name="content-container" select="$container" as="element()"/>
         <!-- TO-DO: refactor asynchronously -->
         <xsl:variable name="request-uri" select="ac:build-uri($ldt:base, map{ 'uri': ac:document-uri($block-uri), 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
         <xsl:variable name="block" select="key('resources', $block-uri, document($request-uri))" as="element()"/>
@@ -672,13 +671,17 @@ exclude-result-prefixes="#all"
     
     <!-- view block edit button onclick -->
     
-    <xsl:template match="div[contains-token(@class, 'view-content')][contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'btn-edit')]" mode="ixsl:onclick" priority="1"> <!-- prioritize over form.xsl -->
+    <xsl:template match="div[@typeof = '&ldh;View'][contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'btn-edit')]" mode="ixsl:onclick" priority="1"> <!-- prioritize over form.xsl -->
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'resource-content')][contains-token(@class, 'row-fluid')]" as="element()"/>
         <xsl:variable name="block-uri" select="$container/@about" as="xs:anyURI"/>
-<!--        <xsl:variable name="content-value" select="ixsl:get($container, 'dataset.contentValue')" as="xs:anyURI"/>  get the value of the @data-content-value attribute 
-        <xsl:variable name="mode" select="if (ixsl:contains($container, 'dataset.contentMode')) then xs:anyURI(ixsl:get($container, 'dataset.contentMode')) else ()" as="xs:anyURI?"/>  get the value of the @data-content-mode attribute -->
-        <!-- if this .resource-content transcludes .xhtml-content, redefine content container as the inner .xhtml-content -->
-        <xsl:variable name="content-container" select="if ($container/div[contains-token(@class, 'xhtml-content')]) then $container/div[contains-token(@class, 'xhtml-content')] else $container" as="element()"/>
+        <xsl:variable name="content-container" select="$container" as="element()"/>
+        <!-- TO-DO: refactor asynchronously -->
+        <xsl:variable name="request-uri" select="ac:build-uri($ldt:base, map{ 'uri': ac:document-uri($block-uri), 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
+        <xsl:variable name="block" select="key('resources', $block-uri, document($request-uri))" as="element()"/>
+        <xsl:message>
+            $request-uri: <xsl:value-of select="$request-uri"/>
+            $block: <xsl:value-of select="serialize($block)"/>
+        </xsl:message>
 
         <xsl:variable name="constructor" as="document-node()">
             <xsl:document>
@@ -698,11 +701,13 @@ exclude-result-prefixes="#all"
             </xsl:document>
         </xsl:variable>
         <xsl:variable name="controls" as="node()*">
-            <xsl:apply-templates select="$constructor//spin:query/@rdf:*" mode="bs2:FormControl"/>
-            <xsl:apply-templates select="$constructor//ac:mode/@rdf:*" mode="bs2:FormControl">
-                <xsl:with-param name="class" select="'content-mode'"/>
-                <xsl:with-param name="type-label" select="false()"/>
-            </xsl:apply-templates>
+            <xsl:for-each select="$block">
+                <xsl:apply-templates select="$constructor//spin:query/@rdf:*" mode="bs2:FormControl"/>
+                <xsl:apply-templates select="(ac:mode/@rdf:resource, $constructor//ac:mode/@rdf:nodeID)[1]" mode="bs2:FormControl">
+                    <xsl:with-param name="class" select="'content-mode'"/>
+                    <xsl:with-param name="type-label" select="false()"/>
+                </xsl:apply-templates>
+            </xsl:for-each>
         </xsl:variable>
         
         <xsl:for-each select="$container">
@@ -796,7 +801,7 @@ exclude-result-prefixes="#all"
                 <xsl:call-template name="onXHTMLContentUpdate">
                     <xsl:with-param name="container" select="$container"/>
                     <xsl:with-param name="content-uri" select="$content-uri"/>
-<!--                    <xsl:with-param name="content-value" select="$content-value"/>-->
+                    <xsl:with-param name="content-value" select="$content-value"/>
                 </xsl:call-template>
             </ixsl:schedule-action>
         </xsl:variable>
@@ -1363,6 +1368,7 @@ exclude-result-prefixes="#all"
         <xsl:for-each select="$container">
             <xsl:variable name="content-id" select="'id' || ac:uuid()" as="xs:string"/>
             <ixsl:set-attribute name="id" select="$content-id"/>
+            <ixsl:set-attribute name="typeof" select="'&ldh;View'"/>
             <ixsl:set-attribute name="draggable" select="'true'"/>
 
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'content', true() ])[current-date() lt xs:date('2000-01-01')]"/>

@@ -758,6 +758,7 @@ extension-element-prefixes="ixsl"
     <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;XHTML'][rdf:value[@rdf:parseType = 'Literal']/xhtml:div]" mode="bs2:RowContent" priority="2">
         <xsl:param name="id" select="if (contains(@rdf:about, ac:absolute-path(ldh:base-uri(.)) || '#')) then substring-after(@rdf:about, ac:absolute-path(ldh:base-uri(.)) || '#') else generate-id()" as="xs:string?"/>
         <xsl:param name="class" select="'row-fluid content xhtml-content'" as="xs:string?"/>
+        <xsl:param name="typeof" select="rdf:type/@rdf:resource" as="xs:anyURI*"/>
         <xsl:param name="left-class" as="xs:string?"/>
         <xsl:param name="main-class" select="'main span7 offset2'" as="xs:string?"/>
         <xsl:param name="right-class" select="'right-nav span3'" as="xs:string?"/>
@@ -771,6 +772,9 @@ extension-element-prefixes="ixsl"
             </xsl:if>
             <xsl:if test="$class">
                 <xsl:attribute name="class" select="$class"/>
+            </xsl:if>
+            <xsl:if test="exists($typeof)">
+                <xsl:attribute name="typeof" select="string-join($typeof, ' ')"/>
             </xsl:if>
             <xsl:if test="$draggable = true()">
                 <xsl:attribute name="draggable" select="'true'"/>
@@ -802,7 +806,7 @@ extension-element-prefixes="ixsl"
     
     <!-- content block -->
     
-    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = ('&ldh;View', '&ldh;Object')][rdf:value/@rdf:resource]" mode="bs2:RowContent" priority="2">
+    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = ('&ldh;View', '&ldh;Object', '&ldh;Chart')][rdf:value/@rdf:resource]" mode="bs2:RowContent" priority="2">
         <xsl:param name="id" select="if (contains(@rdf:about, ac:absolute-path(ldh:base-uri(.)) || '#')) then substring-after(@rdf:about, ac:absolute-path(ldh:base-uri(.)) || '#') else generate-id()" as="xs:string?"/>
         <xsl:param name="class" select="'row-fluid content resource-content'" as="xs:string?"/>
 <!--        <xsl:param name="graph" select="ldh:graph/@rdf:resource" as="xs:anyURI?"/>
