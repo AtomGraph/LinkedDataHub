@@ -807,6 +807,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="class" select="'row-fluid content resource-content'" as="xs:string?"/>
 <!--        <xsl:param name="graph" select="ldh:graph/@rdf:resource" as="xs:anyURI?"/>
         <xsl:param name="mode" select="ac:mode/@rdf:resource" as="xs:anyURI?"/>-->
+        <xsl:param name="typeof" select="rdf:type/@rdf:resource" as="xs:anyURI*"/>
         <xsl:param name="left-class" select="'left-nav span2'" as="xs:string?"/>
         <xsl:param name="main-class" select="'main span7'" as="xs:string?"/>
         <xsl:param name="right-class" select="'right-nav span3'" as="xs:string?"/>
@@ -821,12 +822,9 @@ extension-element-prefixes="ixsl"
             <xsl:if test="$class">
                 <xsl:attribute name="class" select="$class"/>
             </xsl:if>
-<!--            <xsl:if test="$graph">
-                <xsl:attribute name="data-content-graph" select="$graph"/>
+            <xsl:if test="exists($typeof)">
+                <xsl:attribute name="typeof" select="string-join($typeof, ' ')"/>
             </xsl:if>
-            <xsl:if test="$mode">
-                <xsl:attribute name="data-content-mode" select="$mode"/>
-            </xsl:if>-->
             <xsl:if test="$draggable = true()">
                 <xsl:attribute name="draggable" select="'true'"/>
             </xsl:if>
@@ -1475,45 +1473,35 @@ extension-element-prefixes="ixsl"
         <xsl:param name="class" select="'btn add-typeahead'" as="xs:string?"/>
         <xsl:param name="disabled" select="false()" as="xs:boolean"/>
         <xsl:param name="title" select="(@rdf:about, @rdf:nodeID)[1]" as="xs:string?"/>
-        <!-- <xsl:param name="forClass" as="xs:anyURI*"/> -->
-
-        <!--
-        <span>
-            <xsl:if test="exists($forClass)">
-                <xsl:attribute name="data-for-class" select="string-join($forClass, ' ')"/>
-            </xsl:if>
-        -->
                 
-            <button type="button">
-                <xsl:if test="$id">
-                    <xsl:attribute name="id" select="$id"/>
-                </xsl:if>
-                <xsl:if test="$class">
-                    <xsl:attribute name="class" select="$class"/>
-                </xsl:if>
-                <xsl:if test="$disabled">
-                    <xsl:attribute name="disabled" select="'disabled'"/>
-                </xsl:if>
-                <xsl:if test="$title">
-                    <xsl:attribute name="title" select="$title"/>
-                </xsl:if>
+        <button type="button">
+            <xsl:if test="$id">
+                <xsl:attribute name="id" select="$id"/>
+            </xsl:if>
+            <xsl:if test="$class">
+                <xsl:attribute name="class" select="$class"/>
+            </xsl:if>
+            <xsl:if test="$disabled">
+                <xsl:attribute name="disabled" select="'disabled'"/>
+            </xsl:if>
+            <xsl:if test="$title">
+                <xsl:attribute name="title" select="$title"/>
+            </xsl:if>
 
-                <span class="pull-left">
-                    <xsl:value-of>
-                        <xsl:apply-templates select="." mode="ac:label"/>
-                    </xsl:value-of>
-                </span>
-                <span class="caret pull-right"></span>
+            <span class="pull-left">
+                <xsl:value-of>
+                    <xsl:apply-templates select="." mode="ac:label"/>
+                </xsl:value-of>
+            </span>
+            <span class="caret pull-right"></span>
 
-                <xsl:if test="@rdf:about">
-                    <input type="hidden" name="ou" value="{@rdf:about}"/>
-                </xsl:if>
-                <xsl:if test="@rdf:nodeID">
-                    <input type="hidden" name="ob" value="{@rdf:nodeID}"/>
-                </xsl:if>
-            </button>
-        
-        <!-- </span> -->
+            <xsl:if test="@rdf:about">
+                <input type="hidden" name="ou" value="{@rdf:about}"/>
+            </xsl:if>
+            <xsl:if test="@rdf:nodeID">
+                <input type="hidden" name="ob" value="{@rdf:nodeID}"/>
+            </xsl:if>
+        </button>
     </xsl:template>
     
 </xsl:stylesheet>
