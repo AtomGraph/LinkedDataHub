@@ -847,7 +847,7 @@ exclude-result-prefixes="#all"
     
     <!-- save view block onclick -->
     
-    <xsl:template match="div[contains-token(@class, 'resource-content')][contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'btn-save')]" mode="ixsl:onclick">
+    <xsl:template match="div[contains-token(@class, 'view-content')][contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'btn-save')]" mode="ixsl:onclick">
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'resource-content')][contains-token(@class, 'row-fluid')]" as="element()"/>
 <!--        <xsl:variable name="old-content-value" select="ixsl:get($container, 'dataset.contentValue')" as="xs:anyURI"/>-->
         <xsl:variable name="block-type" select="xs:anyURI('&ldh;View')" as="xs:anyURI"/>
