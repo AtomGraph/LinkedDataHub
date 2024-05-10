@@ -1295,6 +1295,7 @@ exclude-result-prefixes="#all"
         <xsl:for-each select="$container">
             <xsl:variable name="content-id" select="'id' || ac:uuid()" as="xs:string"/>
             <ixsl:set-attribute name="id" select="$content-id"/>
+            <ixsl:set-attribute name="typeof" select="'&ldh;XHTML'"/>
             <ixsl:set-attribute name="draggable" select="'true'"/>
 
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'content', true() ])[current-date() lt xs:date('2000-01-01')]"/>
@@ -1437,6 +1438,7 @@ exclude-result-prefixes="#all"
         <xsl:for-each select="$container">
             <xsl:variable name="content-id" select="'id' || ac:uuid()" as="xs:string"/>
             <ixsl:set-attribute name="id" select="$content-id"/>
+            <ixsl:set-attribute name="typeof" select="'&ldh;Object'"/>
             <ixsl:set-attribute name="draggable" select="'true'"/>
 
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'content', true() ])[current-date() lt xs:date('2000-01-01')]"/>
