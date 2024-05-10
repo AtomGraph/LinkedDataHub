@@ -742,7 +742,11 @@ extension-element-prefixes="ixsl"
                 <xsl:sort select="xs:integer(substring-after(local-name(), '_'))"/>
             </xsl:perform-sort>
         </xsl:variable>
-        
+        <xsl:comment>
+            <xsl:for-each select="$predicates/@rdf:resource">
+                <xsl:value-of select="."/>
+            </xsl:for-each>
+        </xsl:comment>
         <xsl:for-each select="$predicates/@rdf:resource">
             <xsl:if test="doc-available(ac:document-uri(.))">
                 <xsl:apply-templates select="key('resources', ., document(ac:document-uri(.)))" mode="bs2:RowContent"/>
