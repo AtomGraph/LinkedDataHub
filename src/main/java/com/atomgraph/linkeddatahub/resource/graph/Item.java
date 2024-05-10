@@ -231,12 +231,14 @@ public class Item extends GraphStoreImpl
         resource.removeAll(SIOC.HAS_PARENT).
             removeAll(SIOC.HAS_CONTAINER);
 
-        // TO-DO: enforce that only document with application's base URI can have the def:Root type
-        if (resource.hasProperty(RDF.type, DH.Container))
-            resource.addProperty(SIOC.HAS_PARENT, parent);
-        else
-            resource.addProperty(SIOC.HAS_CONTAINER, parent).
-                addProperty(RDF.type, DH.Item); // TO-DO: replace with foaf:Document?
+        if (!getApplication().getBaseURI().equals(getURI())) // don't update Root document's metadata
+        {
+            if (resource.hasProperty(RDF.type, DH.Container))
+                resource.addProperty(SIOC.HAS_PARENT, parent);
+            else
+                resource.addProperty(SIOC.HAS_CONTAINER, parent).
+                    addProperty(RDF.type, DH.Item); // TO-DO: replace with foaf:Document?
+        }
 
         if (existingModel == null) // creating new graph and attaching it to the document hierarchy
         {
@@ -320,7 +322,6 @@ public class Item extends GraphStoreImpl
         UpdateAction.execute(updateRequest, dataset); // update model in memory
         validate(dataset.getDefaultModel()); // this would normally be done transparently by the ValidatingModelProvider
         put(dataset.getDefaultModel(), Boolean.FALSE, getURI());
-        
         
         return getInternalResponse(dataset.getDefaultModel(), null).getResponseBuilder(). // entity tag of the updated graph
             status(Response.Status.NO_CONTENT).
