@@ -735,7 +735,7 @@ extension-element-prefixes="ixsl"
     
     <!-- CONTENT LIST -->
     
-    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="ldh:ContentList">
+    <xsl:template match="*[*][@rdf:about]" mode="ldh:ContentList">
         <!-- sort rdf:_1, rdf:_2, ... properties by index -->
         <xsl:variable name="predicates" as="element()*">
             <xsl:perform-sort select="*[namespace-uri() = '&rdf;'][starts-with(local-name(), '_')]">
@@ -743,6 +743,7 @@ extension-element-prefixes="ixsl"
             </xsl:perform-sort>
         </xsl:variable>
 
+        <xsl:variable name="about" select="@rdf:about" as="xs:anyURI"/>
         <xsl:for-each select="$predicates"> <!-- do not iterate $predicates/@rdf:resource sequence as it will be sorted differently -->
             <xsl:for-each select="@rdf:resource">
                 <!--
@@ -750,7 +751,7 @@ extension-element-prefixes="ixsl"
                     <xsl:apply-templates select="key('resources', ., document(ac:document-uri(.)))" mode="bs2:RowContent"/>
                 </xsl:if>
                 -->
-                <div class="row-fluid content" about="{.}" id="{if (contains(@rdf:about, ac:absolute-path(ldh:base-uri(.)) || '#')) then substring-after(@rdf:about, ac:absolute-path(ldh:base-uri(.)) || '#') else generate-id()}">
+                <div class="row-fluid content" about="{.}" id="{if (contains($about, ac:absolute-path(ldh:base-uri(.)) || '#')) then substring-after($about, ac:absolute-path(ldh:base-uri(.)) || '#') else generate-id()}">
                     <div class="left-nav span2"></div>
                     <div class="main span7"></div>
                     <div class="right-nav span3"></div>
