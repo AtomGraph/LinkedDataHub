@@ -797,9 +797,16 @@ extension-element-prefixes="ixsl"
                 <xsl:attribute name="draggable" select="'false'"/>
             </xsl:if>
             
+            <!--
             <xsl:apply-templates select="." mode="bs2:Left">
                 <xsl:with-param name="class" select="$left-class"/>
             </xsl:apply-templates>
+            -->
+            <div>
+                <xsl:if test="$left-class">
+                    <xsl:attribute name="class" select="$left-class"/>
+                </xsl:if>
+            </div>
 
             <div>
                 <xsl:if test="$main-class">
@@ -812,9 +819,17 @@ extension-element-prefixes="ixsl"
                 </xsl:apply-templates>
             </div>
             
+            <!--
             <xsl:apply-templates select="." mode="bs2:Right">
                 <xsl:with-param name="class" select="$right-class"/>
             </xsl:apply-templates>
+            -->
+            
+            <div>
+                <xsl:if test="$right-class">
+                    <xsl:attribute name="class" select="$right-class"/>
+                </xsl:if>
+            </div>
         </div>
     </xsl:template>
     
@@ -850,19 +865,34 @@ extension-element-prefixes="ixsl"
                 <xsl:attribute name="draggable" select="'false'"/>
             </xsl:if>
             
+            <!--
             <xsl:apply-templates select="." mode="bs2:Left">
                 <xsl:with-param name="class" select="$left-class"/>
             </xsl:apply-templates>
-            
+            -->
+            <div>
+                <xsl:if test="$left-class">
+                    <xsl:attribute name="class" select="$left-class"/>
+                </xsl:if>
+            </div>
+
             <div>
                 <xsl:if test="$main-class">
                     <xsl:attribute name="class" select="$main-class"/>
                 </xsl:if>
             </div>
             
+            <!--
             <xsl:apply-templates select="." mode="bs2:Right">
                 <xsl:with-param name="class" select="$right-class"/>
             </xsl:apply-templates>
+            -->
+            
+            <div>
+                <xsl:if test="$right-class">
+                    <xsl:attribute name="class" select="$right-class"/>
+                </xsl:if>
+            </div>
         </div>
     </xsl:template>
 
