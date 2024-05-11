@@ -735,7 +735,7 @@ extension-element-prefixes="ixsl"
     
     <!-- CONTENT LIST -->
     
-    <xsl:template match="*[*][@rdf:about]" mode="ldh:ContentList">
+    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="ldh:ContentList">
         <!-- sort rdf:_1, rdf:_2, ... properties by index -->
         <xsl:variable name="predicates" as="element()*">
             <xsl:perform-sort select="*[namespace-uri() = '&rdf;'][starts-with(local-name(), '_')]">
@@ -743,34 +743,38 @@ extension-element-prefixes="ixsl"
             </xsl:perform-sort>
         </xsl:variable>
 
-        <xsl:variable name="about" select="@rdf:about" as="xs:anyURI"/>
-        <xsl:for-each select="$predicates"> <!-- do not iterate $predicates/@rdf:resource sequence as it will be sorted differently -->
-            <xsl:for-each select="@rdf:resource">
+        <xsl:variable name="this" select="@rdf:about" as="xs:anyURI"/>
+        <xsl:for-each select="$predicates"> <!-- do not0 iterate $predicates/@rdf:resource sequence as it will be sorted differently -->
+            <xsl:apply-templates select="@rdf:resource" mode="bs2:RowContent"/>
+            <!-- <xsl:for-each select="@rdf:resource"> -->
                 <!--
                 <xsl:if test="doc-available(ac:document-uri(.))">
                     <xsl:apply-templates select="key('resources', ., document(ac:document-uri(.)))" mode="bs2:RowContent"/>
                 </xsl:if>
                 -->
+
+                <!--
                 <div class="row-fluid content" about="{.}" id="{if (contains($about, ac:absolute-path(ldh:base-uri(.)) || '#')) then substring-after($about, ac:absolute-path(ldh:base-uri(.)) || '#') else generate-id()}">
                     <div class="left-nav span2"></div>
                     <div class="main span7"></div>
                     <div class="right-nav span3"></div>
                 </div>
+                -->
                 <!-- TO-DO: show error otherwise -->
-            </xsl:for-each>
+            <!-- </xsl:for-each> -->
         </xsl:for-each>
     </xsl:template>
 
     <!-- ROW BLOCKS -->
     
-    <!-- XHTML block -->
+    <!-- XHTML block (render server-side as the block data is available here) -->
     
-    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;XHTML'][rdf:value[@rdf:parseType = 'Literal']/xhtml:div]" mode="bs2:RowContent" priority="2">
-        <xsl:param name="id" select="if (contains(@rdf:about, ac:absolute-path(ldh:base-uri(.)) || '#')) then substring-after(@rdf:about, ac:absolute-path(ldh:base-uri(.)) || '#') else generate-id()" as="xs:string?"/>
-        <xsl:param name="class" select="'row-fluid content xhtml-content'" as="xs:string?"/>
-        <xsl:param name="typeof" select="rdf:type/@rdf:resource" as="xs:anyURI*"/>
+    <xsl:template match="@rdf:resource[key('resources', .)[rdf:type/@rdf:resource = '&ldh;XHTML'][rdf:value[@rdf:parseType = 'Literal']/xhtml:div]]" mode="bs2:RowContent" priority="2">
+        <xsl:param name="id" select="if (contains(., ac:absolute-path(ldh:base-uri(.)) || '#')) then substring-after(., ac:absolute-path(ldh:base-uri(.)) || '#') else generate-id()" as="xs:string?"/>
+        <xsl:param name="class" select="'row-fluid content'" as="xs:string?"/>
+<!--        <xsl:param name="typeof" select="rdf:type/@rdf:resource" as="xs:anyURI*"/>-->
         <xsl:param name="left-class" as="xs:string?"/>
-        <xsl:param name="main-class" select="'main span7 offset2'" as="xs:string?"/>
+        <xsl:param name="main-class" select="'main offset2 span7'" as="xs:string?"/>
         <xsl:param name="right-class" select="'right-nav span3'" as="xs:string?"/>
         <xsl:param name="transclude" select="false()" as="xs:boolean"/>
         <xsl:param name="base" as="xs:anyURI?"/>
@@ -783,9 +787,9 @@ extension-element-prefixes="ixsl"
             <xsl:if test="$class">
                 <xsl:attribute name="class" select="$class"/>
             </xsl:if>
-            <xsl:if test="exists($typeof)">
+<!--            <xsl:if test="exists($typeof)">
                 <xsl:attribute name="typeof" select="string-join($typeof, ' ')"/>
-            </xsl:if>
+            </xsl:if>-->
             <xsl:if test="$draggable = true()">
                 <xsl:attribute name="draggable" select="'true'"/>
             </xsl:if>
@@ -816,12 +820,12 @@ extension-element-prefixes="ixsl"
     
     <!-- content block -->
     
-    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = ('&ldh;View', '&ldh;Object', '&ldh;Chart')][rdf:value/@rdf:resource]" mode="bs2:RowContent" priority="2">
-        <xsl:param name="id" select="if (contains(@rdf:about, ac:absolute-path(ldh:base-uri(.)) || '#')) then substring-after(@rdf:about, ac:absolute-path(ldh:base-uri(.)) || '#') else generate-id()" as="xs:string?"/>
-        <xsl:param name="class" select="'row-fluid content resource-content'" as="xs:string?"/>
+    <xsl:template match="@rdf:resource" mode="bs2:RowContent" priority="1">
+        <xsl:param name="id" select="if (contains(., ac:absolute-path(ldh:base-uri(.)) || '#')) then substring-after(., ac:absolute-path(ldh:base-uri(.)) || '#') else generate-id()" as="xs:string?"/>
+        <xsl:param name="class" select="'row-fluid content'" as="xs:string?"/>
 <!--        <xsl:param name="graph" select="ldh:graph/@rdf:resource" as="xs:anyURI?"/>
         <xsl:param name="mode" select="ac:mode/@rdf:resource" as="xs:anyURI?"/>-->
-        <xsl:param name="typeof" select="rdf:type/@rdf:resource" as="xs:anyURI*"/>
+<!--        <xsl:param name="typeof" select="rdf:type/@rdf:resource" as="xs:anyURI*"/>-->
         <xsl:param name="left-class" select="'left-nav span2'" as="xs:string?"/>
         <xsl:param name="main-class" select="'main span7'" as="xs:string?"/>
         <xsl:param name="right-class" select="'right-nav span3'" as="xs:string?"/>
@@ -836,9 +840,9 @@ extension-element-prefixes="ixsl"
             <xsl:if test="$class">
                 <xsl:attribute name="class" select="$class"/>
             </xsl:if>
-            <xsl:if test="exists($typeof)">
+<!--            <xsl:if test="exists($typeof)">
                 <xsl:attribute name="typeof" select="string-join($typeof, ' ')"/>
-            </xsl:if>
+            </xsl:if>-->
             <xsl:if test="$draggable = true()">
                 <xsl:attribute name="draggable" select="'true'"/>
             </xsl:if>

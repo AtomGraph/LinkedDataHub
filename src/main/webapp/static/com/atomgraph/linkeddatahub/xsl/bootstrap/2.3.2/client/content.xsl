@@ -459,6 +459,9 @@ exclude-result-prefixes="#all"
                 </xsl:variable>
 
                 <xsl:for-each select="$container">
+                    <ixsl:set-attribute name="typeof" select="$row/@typeof" object="."/>
+                    <ixsl:set-attribute name="draggable" select="$row/@draggable" object="."/>
+
                     <xsl:result-document href="?." method="ixsl:replace-content">
                         <xsl:copy-of select="$row/*"/> <!-- inject the content of div.row-fluid -->
                     </xsl:result-document>
@@ -800,7 +803,7 @@ exclude-result-prefixes="#all"
 
     <!-- save XHTML block onclick -->
     
-    <xsl:template match="div[contains-token(@class, 'xhtml-content')][contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'btn-save')]" mode="ixsl:onclick">
+    <xsl:template match="div[@typeof = '&ldh;XHTML'][contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'btn-save')]" mode="ixsl:onclick">
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'xhtml-content')][contains-token(@class, 'row-fluid')]" as="element()"/>
         <xsl:variable name="textarea" select="ancestor::div[contains-token(@class, 'main')]//textarea[contains-token(@class, 'wymeditor')]" as="element()"/>
 <!--        <xsl:variable name="old-content-string" select="string($textarea)" as="xs:string"/>-->
