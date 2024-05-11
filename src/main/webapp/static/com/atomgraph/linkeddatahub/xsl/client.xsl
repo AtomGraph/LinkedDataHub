@@ -577,7 +577,7 @@ WHERE
         
             <!-- this has to go after <xsl:result-document href="#{$container-id}"> because otherwise new elements will be injected and the $resource-content-ids lookup will not work anymore -->
             <!-- load resource contents -->
-            <xsl:variable name="resource-content-ids" select="key('elements-by-class', 'content', ixsl:page())/@id | key('elements-by-class', 'override-content', ixsl:page())/@id" as="xs:string*"/>
+            <xsl:variable name="resource-content-ids" select="key('elements-by-class', 'resource-content', ixsl:page())/@id | key('elements-by-class', 'override-content', ixsl:page())/@id" as="xs:string*"/>
             <xsl:if test="not(empty($resource-content-ids))">
                 <xsl:variable name="containers" select="id($resource-content-ids, ixsl:page())" as="element()*"/>
                 <xsl:for-each select="$containers">
