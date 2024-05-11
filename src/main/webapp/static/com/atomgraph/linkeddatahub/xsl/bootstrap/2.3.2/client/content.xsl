@@ -564,7 +564,7 @@ exclude-result-prefixes="#all"
     <!-- Should not be triggered for embedded XHTML (.resource-content .xhtml-content), that's why we check we're at .row-fluid level -->
     
     <!-- <xsl:template match="div[@typeof = '&ldh;XHTML'][contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'btn-edit')]" mode="ixsl:onclick" priority="1">--> <!-- prioritize over form.xsl -->
-    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;XHTML'][rdf:value/@rdf:resource]" mode="ldh:RenderBlockForm" priority="1">
+    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;XHTML'][rdf:value[@rdf:parseType = 'Literal']/xhtml:div]" mode="ldh:RenderBlockForm" priority="1">
         <xsl:param name="button" select="." as="element()"/>
         <xsl:param name="container" as="element()"/>
 
