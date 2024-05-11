@@ -664,7 +664,7 @@ exclude-result-prefixes="#all"
             </xsl:for-each>
         </xsl:if>-->
         
-        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, xs:anyURI(ac:document-uri($block//rdf:value/@rdf:resource)))"/>
+        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, xs:anyURI(ac:document-uri(rdf:value/@rdf:resource)))"/>
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                 <xsl:call-template name="onTypeaheadResourceLoad">
@@ -757,7 +757,7 @@ exclude-result-prefixes="#all"
         </xsl:if>-->
         
         <!--
-        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, $content-value)"/>
+        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, xs:anyURI(ac:document-uri(spin:query/@rdf:resource)))"/>
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                 <xsl:call-template name="onTypeaheadResourceLoad">
