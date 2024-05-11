@@ -505,6 +505,7 @@ exclude-result-prefixes="#all"
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': ac:document-uri($request-uri), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                 <xsl:call-template name="ldh:BlockFormLoaded">
                     <xsl:with-param name="button" select="$button"/>
+                    <xsl:with-param name="container" select="$container"/>
                     <xsl:with-param name="block-uri" select="$block-uri"/>
                 </xsl:call-template>
             </ixsl:schedule-action>
