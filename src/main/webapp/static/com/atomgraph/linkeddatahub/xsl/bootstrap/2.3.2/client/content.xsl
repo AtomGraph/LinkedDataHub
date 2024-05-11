@@ -583,24 +583,26 @@ exclude-result-prefixes="#all"
             </xsl:document>
         </xsl:variable>
         -->
+        <!--
         <xsl:variable name="controls" as="node()*">
             <xsl:apply-templates select="rdf:value/xhtml:*" mode="bs2:FormControl"/>
         </xsl:variable>
+        -->
+        <xsl:variable name="this" select="." as="element()"/>
         
         <xsl:for-each select="$container">
             <xsl:result-document href="?." method="ixsl:replace-content">
-                <xsl:for-each select="$container/div[contains-token(@class, 'left-nav')]">
-                    <xsl:copy-of select="."/>
-                </xsl:for-each>
-                
+                <xsl:apply-templates select="$this" mode="bs2:FormControl"/>
+            </xsl:result-document>
+            
+            <!-- initialize wymeditor textarea -->
+            <xsl:apply-templates select="key('elements-by-class', 'wymeditor', .)" mode="ldh:PostConstruct"/>
+        </xsl:for-each>
+        
+            <!--
+            <xsl:result-document href="?." method="ixsl:append-content">
                 <xsl:for-each select="$container/div[contains-token(@class, 'main')]">
                     <xsl:copy>
-                        <xsl:copy-of select="@*"/>
-
-                        <div>
-                            <xsl:copy-of select="$controls"/>
-                        </div>
-
                         <div class="form-actions">
                             <button type="button" class="btn btn-primary btn-save">
                                 <xsl:value-of>
@@ -620,15 +622,8 @@ exclude-result-prefixes="#all"
                         </div>
                     </xsl:copy>
                 </xsl:for-each>
-                
-                <xsl:for-each select="$container/div[contains-token(@class, 'right-nav')]">
-                    <xsl:copy-of select="."/>
-                </xsl:for-each>
             </xsl:result-document>
-            
-            <!-- initialize wymeditor textarea -->
-            <xsl:apply-templates select="key('elements-by-class', 'wymeditor', .)" mode="ldh:PostConstruct"/>
-        </xsl:for-each>
+            -->
     </xsl:template>
     
     <!-- object block edit button onclick -->
