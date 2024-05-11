@@ -592,7 +592,7 @@ exclude-result-prefixes="#all"
         
         <xsl:for-each select="$container">
             <xsl:result-document href="?." method="ixsl:replace-content">
-                <xsl:apply-templates select="$this" mode="bs2:FormControl"/>
+                <xsl:apply-templates select="$this" mode="bs2:RowForm"/>
             </xsl:result-document>
             
             <!-- initialize wymeditor textarea -->
