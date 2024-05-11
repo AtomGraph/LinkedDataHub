@@ -498,11 +498,6 @@ exclude-result-prefixes="#all"
         <xsl:variable name="button" select="." as="element()"/>
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'content')][contains-token(@class, 'row-fluid')]" as="element()"/>
         <xsl:variable name="block-uri" select="$container/@about" as="xs:anyURI"/>
-
-        <xsl:message>
-            $block: <xsl:value-of select="serialize($block)"/>
-        </xsl:message>
-        
         <!-- don't use ldh:base-uri(.) because its value comes from the last HTML document load -->
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, ac:document-uri($block-uri))" as="xs:anyURI"/>
         <xsl:variable name="request" as="item()*">
@@ -527,6 +522,10 @@ exclude-result-prefixes="#all"
         
         <!-- for some reason Saxon-JS 2.3 does not see this variable if it's inside <xsl:when> -->
         <xsl:variable name="block" select="key('resources', $block-uri, ?body)" as="element()?"/>
+        <xsl:message>
+            $block: <xsl:value-of select="serialize($block)"/>
+        </xsl:message>
+
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml' and $block">
                 <xsl:message>ldh:BlockFormLoaded AAA</xsl:message>
