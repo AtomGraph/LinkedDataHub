@@ -750,7 +750,11 @@ extension-element-prefixes="ixsl"
                     <xsl:apply-templates select="key('resources', ., document(ac:document-uri(.)))" mode="bs2:RowContent"/>
                 </xsl:if>
                 -->
-                <div class="row-fluid content" about="{.}" id="{if (contains(@rdf:about, ac:absolute-path(ldh:base-uri(.)) || '#')) then substring-after(@rdf:about, ac:absolute-path(ldh:base-uri(.)) || '#') else generate-id()}"/>
+                <div class="row-fluid content" about="{.}" id="{if (contains(@rdf:about, ac:absolute-path(ldh:base-uri(.)) || '#')) then substring-after(@rdf:about, ac:absolute-path(ldh:base-uri(.)) || '#') else generate-id()}">
+                    <div class="left-nav span2"></div>
+                    <div class="main span7"></div>
+                    <div class="right-nav span3"></div>
+                </div>
                 <!-- TO-DO: show error otherwise -->
             </xsl:for-each>
         </xsl:for-each>
