@@ -270,11 +270,11 @@
     rdfs:isDefinedBy : .
 
 :XHTMLConstructor a :Constructor ;
-  sp:text """
+    sp:text """
       PREFIX rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 
       CONSTRUCT {
-          $this rdf:value "<div xmlns=\"http://www.w3.org/1999/xhtml\"></div>"^^rdf:XMLLiteral .
+          $this rdf:value "<div xmlns=\\"http://www.w3.org/1999/xhtml\\"></div>"^^rdf:XMLLiteral .
       }
       WHERE {}""" ;
     rdfs:label "XHTML constructor" ;
