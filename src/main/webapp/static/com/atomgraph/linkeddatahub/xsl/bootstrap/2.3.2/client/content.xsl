@@ -572,33 +572,31 @@ exclude-result-prefixes="#all"
             <xsl:apply-templates select="rdf:value/xhtml:*" mode="bs2:FormControl"/>
         </xsl:variable>
         
+        <xsl:message>$container: <xsl:value-of select="serialize($container)"/></xsl:message>
+
         <xsl:for-each select="$container/div[contains-token(@class, 'main')]">
             <xsl:result-document href="?." method="ixsl:replace-content">
-                <xsl:copy>
-                    <xsl:copy-of select="@*"/>
+                <div>
+                    <xsl:copy-of select="$controls"/>
+                </div>
 
-                    <div>
-                        <xsl:copy-of select="$controls"/>
-                    </div>
-
-                    <div class="form-actions">
-                        <button type="button" class="btn btn-primary btn-save">
-                            <xsl:value-of>
-                                <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                            </xsl:value-of>
-                        </button>
-                        <button type="button" class="btn btn-delete">
-                            <xsl:value-of>
-                                <xsl:apply-templates select="key('resources', 'delete', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                            </xsl:value-of>
-                        </button>
-                        <button type="button" class="btn btn-cancel">
-                            <xsl:value-of>
-                                <xsl:apply-templates select="key('resources', 'cancel', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                            </xsl:value-of>
-                        </button>
-                    </div>
-                </xsl:copy>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-primary btn-save">
+                        <xsl:value-of>
+                            <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                        </xsl:value-of>
+                    </button>
+                    <button type="button" class="btn btn-delete">
+                        <xsl:value-of>
+                            <xsl:apply-templates select="key('resources', 'delete', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                        </xsl:value-of>
+                    </button>
+                    <button type="button" class="btn btn-cancel">
+                        <xsl:value-of>
+                            <xsl:apply-templates select="key('resources', 'cancel', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                        </xsl:value-of>
+                    </button>
+                </div>
             </xsl:result-document>
             
             <!-- initialize wymeditor textarea -->
