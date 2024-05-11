@@ -780,7 +780,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="base" as="xs:anyURI?"/>
         <xsl:param name="draggable" select="$acl:mode = '&acl;Write'" as="xs:boolean?"/>
 
-        <div about="{@rdf:about}">
+        <div about="{.}">
             <xsl:if test="$id">
                 <xsl:attribute name="id" select="$id"/>
             </xsl:if>
@@ -813,7 +813,7 @@ extension-element-prefixes="ixsl"
                     <xsl:attribute name="class" select="$main-class"/>
                 </xsl:if>
 
-                <xsl:apply-templates select="rdf:value[@rdf:parseType = 'Literal']/xhtml:div" mode="ldh:XHTMLContent">
+                <xsl:apply-templates select="key('resources', .)/rdf:value[@rdf:parseType = 'Literal']/xhtml:div" mode="ldh:XHTMLContent">
                     <xsl:with-param name="transclude" select="$transclude" tunnel="yes"/>
                     <xsl:with-param name="base" select="$base" tunnel="yes"/>
                 </xsl:apply-templates>
@@ -848,7 +848,7 @@ extension-element-prefixes="ixsl"
 
         <xsl:apply-templates select="." mode="bs2:RowContentHeader"/>
         
-        <div about="{@rdf:about}"> <!-- data-content-value="{@rdf:about}" -->
+        <div about="{.}"> <!-- data-content-value="{@rdf:about}" -->
             <xsl:if test="$id">
                 <xsl:attribute name="id" select="$id"/>
             </xsl:if>
