@@ -563,67 +563,47 @@ exclude-result-prefixes="#all"
     <!-- XHTML block edit button onclick -->
     <!-- Should not be triggered for embedded XHTML (.resource-content .xhtml-content), that's why we check we're at .row-fluid level -->
     
-    <!-- <xsl:template match="div[@typeof = '&ldh;XHTML'][contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'btn-edit')]" mode="ixsl:onclick" priority="1">--> <!-- prioritize over form.xsl -->
     <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;XHTML'][rdf:value[@rdf:parseType = 'Literal']/xhtml:div]" mode="ldh:RenderBlockForm" priority="1">
         <xsl:param name="button" select="." as="element()"/>
         <xsl:param name="container" as="element()"/>
         <xsl:message>ldh:RenderBlockForm ldh:XHTML</xsl:message>
 
-        <!--
-        <xsl:variable name="constructor" as="document-node()">
-            <xsl:document>
-                <rdf:RDF>
-                    <rdf:Description>
-                        <rdf:type rdf:resource="&ldh;XHTML"/>
-                        <rdf:value rdf:parseType="Literal">
-                            <xsl:copy-of select="$container/div[contains-token(@class, 'main')]/*[not(. is $button)]"/>
-                        </rdf:value>
-                    </rdf:Description>
-                </rdf:RDF>
-            </xsl:document>
-        </xsl:variable>
-        -->
-        <!--
         <xsl:variable name="controls" as="node()*">
             <xsl:apply-templates select="rdf:value/xhtml:*" mode="bs2:FormControl"/>
         </xsl:variable>
-        -->
-        <xsl:variable name="this" select="." as="element()"/>
         
-        <xsl:for-each select="$container">
+        <xsl:for-each select="$container/div[contains-token(@class, 'main')]">
             <xsl:result-document href="?." method="ixsl:replace-content">
-                <xsl:apply-templates select="$this" mode="bs2:RowForm"/>
+                <xsl:copy>
+                    <xsl:copy-of select="@*"/>
+
+                    <div>
+                        <xsl:copy-of select="$controls"/>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-primary btn-save">
+                            <xsl:value-of>
+                                <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                            </xsl:value-of>
+                        </button>
+                        <button type="button" class="btn btn-delete">
+                            <xsl:value-of>
+                                <xsl:apply-templates select="key('resources', 'delete', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                            </xsl:value-of>
+                        </button>
+                        <button type="button" class="btn btn-cancel">
+                            <xsl:value-of>
+                                <xsl:apply-templates select="key('resources', 'cancel', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                            </xsl:value-of>
+                        </button>
+                    </div>
+                </xsl:copy>
             </xsl:result-document>
             
             <!-- initialize wymeditor textarea -->
             <xsl:apply-templates select="key('elements-by-class', 'wymeditor', .)" mode="ldh:PostConstruct"/>
         </xsl:for-each>
-        
-            <!--
-            <xsl:result-document href="?." method="ixsl:append-content">
-                <xsl:for-each select="$container/div[contains-token(@class, 'main')]">
-                    <xsl:copy>
-                        <div class="form-actions">
-                            <button type="button" class="btn btn-primary btn-save">
-                                <xsl:value-of>
-                                    <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                                </xsl:value-of>
-                            </button>
-                            <button type="button" class="btn btn-delete">
-                                <xsl:value-of>
-                                    <xsl:apply-templates select="key('resources', 'delete', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                                </xsl:value-of>
-                            </button>
-                            <button type="button" class="btn btn-cancel">
-                                <xsl:value-of>
-                                    <xsl:apply-templates select="key('resources', 'cancel', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                                </xsl:value-of>
-                            </button>
-                        </div>
-                    </xsl:copy>
-                </xsl:for-each>
-            </xsl:result-document>
-            -->
     </xsl:template>
     
     <!-- object block edit button onclick -->
