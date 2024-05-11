@@ -569,20 +569,22 @@ exclude-result-prefixes="#all"
         <xsl:param name="container" as="element()"/>
         <xsl:message>ldh:RenderBlockForm ldh:XHTML</xsl:message>
 
+        <!--
         <xsl:variable name="constructor" as="document-node()">
             <xsl:document>
                 <rdf:RDF>
                     <rdf:Description>
                         <rdf:type rdf:resource="&ldh;XHTML"/>
                         <rdf:value rdf:parseType="Literal">
-                            <xsl:copy-of select="$container/div[contains-token(@class, 'main')]/*[not(. is $button)]"/> <!-- filter out the "Edit" button -->
+                            <xsl:copy-of select="$container/div[contains-token(@class, 'main')]/*[not(. is $button)]"/>
                         </rdf:value>
                     </rdf:Description>
                 </rdf:RDF>
             </xsl:document>
         </xsl:variable>
+        -->
         <xsl:variable name="controls" as="node()*">
-            <xsl:apply-templates select="$constructor//rdf:value/xhtml:*" mode="bs2:FormControl"/>
+            <xsl:apply-templates select="rdf:value/xhtml:*" mode="bs2:FormControl"/>
         </xsl:variable>
         
         <xsl:for-each select="$container">
