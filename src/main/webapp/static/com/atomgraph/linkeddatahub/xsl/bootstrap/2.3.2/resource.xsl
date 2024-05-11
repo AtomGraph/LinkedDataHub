@@ -742,22 +742,16 @@ extension-element-prefixes="ixsl"
                 <xsl:sort select="xs:integer(substring-after(local-name(), '_'))"/>
             </xsl:perform-sort>
         </xsl:variable>
-        <xsl:comment>
-            <xsl:for-each select="$predicates">
-                <xsl:value-of select="local-name()"/>
-            </xsl:for-each>
-        </xsl:comment>
-        <xsl:comment>
-            <xsl:for-each select="$predicates/@rdf:resource">
-                <xsl:value-of select="."/>
-            </xsl:for-each>
-        </xsl:comment>
+
         <xsl:for-each select="$predicates"> <!-- do not iterate $predicates/@rdf:resource sequence as it will be sorted differently -->
             <xsl:for-each select="@rdf:resource">
-            <xsl:if test="doc-available(ac:document-uri(.))">
-                <xsl:apply-templates select="key('resources', ., document(ac:document-uri(.)))" mode="bs2:RowContent"/>
-            </xsl:if>
-            <!-- TO-DO: show error otherwise -->
+                <!--
+                <xsl:if test="doc-available(ac:document-uri(.))">
+                    <xsl:apply-templates select="key('resources', ., document(ac:document-uri(.)))" mode="bs2:RowContent"/>
+                </xsl:if>
+                -->
+                <div class="row-fluid content" about="{.}"/>
+                <!-- TO-DO: show error otherwise -->
             </xsl:for-each>
         </xsl:for-each>
     </xsl:template>
