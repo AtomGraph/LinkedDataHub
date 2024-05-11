@@ -494,6 +494,24 @@ exclude-result-prefixes="#all"
     
     <!-- EVENT LISTENERS -->
     
+    <xsl:template match="div[contains-token(@class, 'content')][contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'btn-edit')]" mode="ixsl:onclick" priority="1"> <!-- prioritize over form.xsl -->
+        <xsl:variable name="button" select="." as="element()"/>
+        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'content')][contains-token(@class, 'row-fluid')]" as="element()"/>
+        <xsl:variable name="block-uri" select="$container/@about" as="xs:anyURI"/>
+
+        <!-- TO-DO: refactor asynchronously -->
+        <xsl:variable name="request-uri" select="ac:build-uri($ldt:base, map{ 'uri': ac:document-uri($block-uri), 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
+        <xsl:variable name="block" select="key('resources', $block-uri, document($request-uri))" as="element()"/>
+        <xsl:message>
+            $request-uri: <xsl:value-of select="$request-uri"/>
+            $block: <xsl:value-of select="serialize($block)"/>
+        </xsl:message>
+
+        <xsl:apply-templates select="$block" mode="ldh:RenderBlockForm">
+            <xsl:with-param name="container" select="$container"/>
+        </xsl:apply-templates>
+    </xsl:template>
+    
     <!-- XHTML block edit button onclick -->
     <!-- Should not be triggered for embedded XHTML (.resource-content .xhtml-content), that's why we check we're at .row-fluid level -->
     
@@ -563,20 +581,9 @@ exclude-result-prefixes="#all"
     
     <!-- object block edit button onclick -->
     
-    <xsl:template match="div[@typeof = '&ldh;Object'][contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'btn-edit')]" mode="ixsl:onclick" priority="1"> <!-- prioritize over form.xsl -->
-        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'resource-content')][contains-token(@class, 'row-fluid')]" as="element()"/>
-        <xsl:variable name="block-uri" select="$container/@about" as="xs:anyURI"/>
-        <!-- if this .resource-content transcludes .xhtml-content, redefine content container as the inner .xhtml-content -->
-        <!-- <xsl:variable name="content-container" select="if ($container/div[contains-token(@class, 'xhtml-content')]) then $container/div[contains-token(@class, 'xhtml-content')] else $container" as="element()"/> -->
-        <xsl:variable name="content-container" select="$container" as="element()"/>
-        <!-- TO-DO: refactor asynchronously -->
-        <xsl:variable name="request-uri" select="ac:build-uri($ldt:base, map{ 'uri': ac:document-uri($block-uri), 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
-        <xsl:variable name="block" select="key('resources', $block-uri, document($request-uri))" as="element()"/>
-        <xsl:message>
-            $request-uri: <xsl:value-of select="$request-uri"/>
-            $block: <xsl:value-of select="serialize($block)"/>
-        </xsl:message>
-        
+    <!-- <xsl:template match="div[@typeof = '&ldh;Object'][contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'btn-edit')]" mode="ixsl:onclick" priority="1"> --> <!-- prioritize over form.xsl --> 
+    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;Object'][rdf:value/@rdf:resource]" mode="ldh:RenderBlockForm" priority="1">
+        <xsl:param name="container" as="element()"/>
         <!-- TO-DO: load from ontology? -->
         <xsl:variable name="constructor" as="document-node()">
             <xsl:document>
@@ -596,17 +603,15 @@ exclude-result-prefixes="#all"
             </xsl:document>
         </xsl:variable>
         <xsl:variable name="controls" as="node()*">
-            <xsl:for-each select="$block">
-                <xsl:call-template name="bs2:Lookup">
-                    <xsl:with-param name="value" select="rdf:value/@rdf:resource"/>
-                    <xsl:with-param name="forClass" select="xs:anyURI('&rdfs;Resource')"/>
-                </xsl:call-template>
+            <xsl:call-template name="bs2:Lookup">
+                <xsl:with-param name="value" select="rdf:value/@rdf:resource"/>
+                <xsl:with-param name="forClass" select="xs:anyURI('&rdfs;Resource')"/>
+            </xsl:call-template>
 <!--                <xsl:apply-templates select="rdf:value/@rdf:resource" mode="bs2:FormControl"/>-->
-                <xsl:apply-templates select="(ac:mode/@rdf:resource, $constructor//ac:mode/@rdf:nodeID)[1]" mode="bs2:FormControl">
-                    <xsl:with-param name="class" select="'content-mode'"/>
-                    <xsl:with-param name="type-label" select="false()"/>
-                </xsl:apply-templates>
-            </xsl:for-each>
+            <xsl:apply-templates select="(ac:mode/@rdf:resource, $constructor//ac:mode/@rdf:nodeID)[1]" mode="bs2:FormControl">
+                <xsl:with-param name="class" select="'content-mode'"/>
+                <xsl:with-param name="type-label" select="false()"/>
+            </xsl:apply-templates>
         </xsl:variable>
         
         <xsl:for-each select="$container">
@@ -671,18 +676,9 @@ exclude-result-prefixes="#all"
     
     <!-- view block edit button onclick -->
     
-    <xsl:template match="div[@typeof = '&ldh;View'][contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'btn-edit')]" mode="ixsl:onclick" priority="1"> <!-- prioritize over form.xsl -->
-        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'resource-content')][contains-token(@class, 'row-fluid')]" as="element()"/>
-        <xsl:variable name="block-uri" select="$container/@about" as="xs:anyURI"/>
-        <xsl:variable name="content-container" select="$container" as="element()"/>
-        <!-- TO-DO: refactor asynchronously -->
-        <xsl:variable name="request-uri" select="ac:build-uri($ldt:base, map{ 'uri': ac:document-uri($block-uri), 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
-        <xsl:variable name="block" select="key('resources', $block-uri, document($request-uri))" as="element()"/>
-        <xsl:message>
-            $request-uri: <xsl:value-of select="$request-uri"/>
-            $block: <xsl:value-of select="serialize($block)"/>
-        </xsl:message>
-
+    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;View'][spin:query/@rdf:resource]" mode="ldh:RenderBlockForm" priority="1">
+    <!-- <xsl:template match="div[@typeof = '&ldh;View'][contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'btn-edit')]" mode="ixsl:onclick" priority="1"> --> <!-- prioritize over form.xsl --> 
+        <xsl:param name="container" as="element()"/>
         <xsl:variable name="constructor" as="document-node()">
             <xsl:document>
                 <rdf:RDF>
@@ -701,13 +697,11 @@ exclude-result-prefixes="#all"
             </xsl:document>
         </xsl:variable>
         <xsl:variable name="controls" as="node()*">
-            <xsl:for-each select="$block">
-                <xsl:apply-templates select="$constructor//spin:query/@rdf:*" mode="bs2:FormControl"/>
-                <xsl:apply-templates select="(ac:mode/@rdf:resource, $constructor//ac:mode/@rdf:nodeID)[1]" mode="bs2:FormControl">
-                    <xsl:with-param name="class" select="'content-mode'"/>
-                    <xsl:with-param name="type-label" select="false()"/>
-                </xsl:apply-templates>
-            </xsl:for-each>
+            <xsl:apply-templates select="$constructor//spin:query/@rdf:*" mode="bs2:FormControl"/>
+            <xsl:apply-templates select="(ac:mode/@rdf:resource, $constructor//ac:mode/@rdf:nodeID)[1]" mode="bs2:FormControl">
+                <xsl:with-param name="class" select="'content-mode'"/>
+                <xsl:with-param name="type-label" select="false()"/>
+            </xsl:apply-templates>
         </xsl:variable>
         
         <xsl:for-each select="$container">
@@ -774,7 +768,7 @@ exclude-result-prefixes="#all"
 
     <!-- save XHTML block onclick -->
     
-    <xsl:template match="div[@typeof = '&ldh;XHTML'][contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'btn-save')]" mode="ixsl:onclick">
+    <xsl:template match="div[contains-token(@class, 'xhtml-content')][contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'btn-save')]" mode="ixsl:onclick">
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'xhtml-content')][contains-token(@class, 'row-fluid')]" as="element()"/>
         <xsl:variable name="textarea" select="ancestor::div[contains-token(@class, 'main')]//textarea[contains-token(@class, 'wymeditor')]" as="element()"/>
 <!--        <xsl:variable name="old-content-string" select="string($textarea)" as="xs:string"/>-->
@@ -810,7 +804,7 @@ exclude-result-prefixes="#all"
 
     <!-- save object block onclick -->
     
-    <xsl:template match="div[@typeof = '&ldh;Object'][contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'btn-save')]" mode="ixsl:onclick">
+    <xsl:template match="div[contains-token(@class, 'resource-content')][contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'btn-save')]" mode="ixsl:onclick">
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'resource-content')][contains-token(@class, 'row-fluid')]" as="element()"/>
 <!--        <xsl:variable name="old-content-value" select="ixsl:get($container, 'dataset.contentValue')" as="xs:anyURI"/>-->
         <xsl:variable name="block-type" select="xs:anyURI('&ldh;Object')" as="xs:anyURI"/>
@@ -852,7 +846,7 @@ exclude-result-prefixes="#all"
     
     <!-- save view block onclick -->
     
-    <xsl:template match="div[@typeof = '&ldh;View'][contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'btn-save')]" mode="ixsl:onclick">
+    <xsl:template match="div[contains-token(@class, 'view-content')][contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'btn-save')]" mode="ixsl:onclick">
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'resource-content')][contains-token(@class, 'row-fluid')]" as="element()"/>
 <!--        <xsl:variable name="old-content-value" select="ixsl:get($container, 'dataset.contentValue')" as="xs:anyURI"/>-->
         <xsl:variable name="block-type" select="xs:anyURI('&ldh;View')" as="xs:anyURI"/>
@@ -1295,7 +1289,7 @@ exclude-result-prefixes="#all"
         <xsl:for-each select="$container">
             <xsl:variable name="content-id" select="'id' || ac:uuid()" as="xs:string"/>
             <ixsl:set-attribute name="id" select="$content-id"/>
-            <ixsl:set-attribute name="typeof" select="'&ldh;XHTML'"/>
+            <!-- <ixsl:set-attribute name="typeof" select="'&ldh;XHTML'"/> -->
             <ixsl:set-attribute name="draggable" select="'true'"/>
 
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'content', true() ])[current-date() lt xs:date('2000-01-01')]"/>
@@ -1369,7 +1363,7 @@ exclude-result-prefixes="#all"
         <xsl:for-each select="$container">
             <xsl:variable name="content-id" select="'id' || ac:uuid()" as="xs:string"/>
             <ixsl:set-attribute name="id" select="$content-id"/>
-            <ixsl:set-attribute name="typeof" select="'&ldh;View'"/>
+            <!-- <ixsl:set-attribute name="typeof" select="'&ldh;View'"/> -->
             <ixsl:set-attribute name="draggable" select="'true'"/>
 
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'content', true() ])[current-date() lt xs:date('2000-01-01')]"/>
@@ -1438,7 +1432,7 @@ exclude-result-prefixes="#all"
         <xsl:for-each select="$container">
             <xsl:variable name="content-id" select="'id' || ac:uuid()" as="xs:string"/>
             <ixsl:set-attribute name="id" select="$content-id"/>
-            <ixsl:set-attribute name="typeof" select="'&ldh;Object'"/>
+            <!-- <ixsl:set-attribute name="typeof" select="'&ldh;Object'"/> -->
             <ixsl:set-attribute name="draggable" select="'true'"/>
 
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'content', true() ])[current-date() lt xs:date('2000-01-01')]"/>
