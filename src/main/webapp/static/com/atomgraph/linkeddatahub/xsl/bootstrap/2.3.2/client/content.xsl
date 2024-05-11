@@ -499,25 +499,64 @@ exclude-result-prefixes="#all"
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'content')][contains-token(@class, 'row-fluid')]" as="element()"/>
         <xsl:variable name="block-uri" select="$container/@about" as="xs:anyURI"/>
 
-        <!-- TO-DO: refactor asynchronously -->
-        <xsl:variable name="request-uri" select="ac:build-uri($ldt:base, map{ 'uri': ac:document-uri($block-uri), 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
-        <xsl:variable name="block" select="key('resources', $block-uri, document($request-uri))" as="element()"/>
-        <xsl:message>
-            $request-uri: <xsl:value-of select="$request-uri"/>
-            $block: <xsl:value-of select="serialize($block)"/>
-        </xsl:message>
+        <!-- don't use ldh:base-uri(.) because its value comes from the last HTML document load -->
+        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, ac:document-uri($block-uri))" as="xs:anyURI"/>
+        <xsl:variable name="request" as="item()*">
+            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': ac:document-uri($request-uri), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+                <xsl:call-template name="ldh:BlockFormLoaded">
+                    <xsl:with-param name="button" select="$button"/>
+                    <xsl:with-param name="block-uri" select="$block-uri"/>
+                </xsl:call-template>
+            </ixsl:schedule-action>
+        </xsl:variable>
+        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+    </xsl:template>
+    
+    <xsl:template name="ldh:BlockFormLoaded">
+        <xsl:context-item as="map(*)" use="required"/>
+        <xsl:param name="button" as="element()"/>
+        <xsl:param name="container" as="element()"/>
+        <xsl:param name="block-uri" as="xs:anyURI"/>
 
-        <xsl:apply-templates select="$block" mode="ldh:RenderBlockForm">
-            <xsl:with-param name="container" select="$container"/>
-        </xsl:apply-templates>
+        <!-- for some reason Saxon-JS 2.3 does not see this variable if it's inside <xsl:when> -->
+        <xsl:variable name="block" select="key('resources', $block-uri, ?body)" as="element()?"/>
+        <xsl:choose>
+            <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml' and $block">
+                <xsl:variable name="results" select="?body" as="document-node()"/>
+                <!-- create new cache entry using content URI as key -->
+                <ixsl:set-property name="{'`' || $content-uri || '`'}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
+                <!-- store this content element -->
+                <ixsl:set-property name="content" select="$block" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`')"/>
+
+<!--                <xsl:for-each select="$container//div[@class = 'bar']">
+                     update progress bar 
+                    <ixsl:set-style name="width" select="'50%'" object="."/>
+                </xsl:for-each>-->
+
+                <xsl:apply-templates select="$block" mode="ldh:RenderBlockForm">
+                    <xsl:with-param name="button" select="$button"/>
+                    <xsl:with-param name="container" select="$container"/>
+                </xsl:apply-templates>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:for-each select="$container//div[contains-token(@class, 'main')]">
+                    <xsl:result-document href="?." method="ixsl:replace-content">
+                        <div class="alert alert-block">
+                            <strong>Could not load content block: <a href="{$block-uri}"><xsl:value-of select="$block-uri"/></a></strong>
+                        </div>
+                    </xsl:result-document>
+                </xsl:for-each>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:template>
     
     <!-- XHTML block edit button onclick -->
     <!-- Should not be triggered for embedded XHTML (.resource-content .xhtml-content), that's why we check we're at .row-fluid level -->
     
-    <xsl:template match="div[@typeof = '&ldh;XHTML'][contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'btn-edit')]" mode="ixsl:onclick" priority="1"> <!-- prioritize over form.xsl -->
-        <xsl:variable name="button" select="." as="element()"/>
-        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'xhtml-content')][contains-token(@class, 'row-fluid')]" as="element()"/>
+    <!-- <xsl:template match="div[@typeof = '&ldh;XHTML'][contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'btn-edit')]" mode="ixsl:onclick" priority="1">--> <!-- prioritize over form.xsl -->
+    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;XHTML'][rdf:value/@rdf:resource]" mode="ldh:RenderBlockForm" priority="1">
+        <xsl:param name="button" select="." as="element()"/>
+        <xsl:param name="container" as="element()"/>
 
         <xsl:variable name="constructor" as="document-node()">
             <xsl:document>
@@ -756,18 +795,16 @@ exclude-result-prefixes="#all"
             </xsl:for-each>
         </xsl:if>-->
         
-        <!--
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, xs:anyURI(ac:document-uri(spin:query/@rdf:resource)))"/>
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                 <xsl:call-template name="onTypeaheadResourceLoad">
-                    <xsl:with-param name="resource-uri" select="$content-value"/>
+                    <xsl:with-param name="resource-uri" select="spin:query/@rdf:resource"/>
                     <xsl:with-param name="typeahead-span" select="$container/div[contains-token(@class, 'main')]//span[1]"/>
                 </xsl:call-template>
             </ixsl:schedule-action>
         </xsl:variable>
         <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
-        -->
     </xsl:template>
 
     <!-- save XHTML block onclick -->
