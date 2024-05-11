@@ -499,6 +499,10 @@ exclude-result-prefixes="#all"
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'content')][contains-token(@class, 'row-fluid')]" as="element()"/>
         <xsl:variable name="block-uri" select="$container/@about" as="xs:anyURI"/>
 
+        <xsl:message>
+            $block: <xsl:value-of select="serialize($block)"/>
+        </xsl:message>
+        
         <!-- don't use ldh:base-uri(.) because its value comes from the last HTML document load -->
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, ac:document-uri($block-uri))" as="xs:anyURI"/>
         <xsl:variable name="request" as="item()*">
@@ -519,10 +523,14 @@ exclude-result-prefixes="#all"
         <xsl:param name="container" as="element()"/>
         <xsl:param name="block-uri" as="xs:anyURI"/>
 
+        <xsl:message>ldh:BlockFormLoaded</xsl:message>
+        
         <!-- for some reason Saxon-JS 2.3 does not see this variable if it's inside <xsl:when> -->
         <xsl:variable name="block" select="key('resources', $block-uri, ?body)" as="element()?"/>
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml' and $block">
+                <xsl:message>ldh:BlockFormLoaded AAA</xsl:message>
+
                 <xsl:variable name="results" select="?body" as="document-node()"/>
                 <!-- create new cache entry using content URI as key -->
                 <ixsl:set-property name="{'`' || $block-uri || '`'}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
@@ -540,6 +548,8 @@ exclude-result-prefixes="#all"
                 </xsl:apply-templates>
             </xsl:when>
             <xsl:otherwise>
+                <xsl:message>ldh:BlockFormLoaded BBB</xsl:message>
+
                 <xsl:for-each select="$container//div[contains-token(@class, 'main')]">
                     <xsl:result-document href="?." method="ixsl:replace-content">
                         <div class="alert alert-block">
