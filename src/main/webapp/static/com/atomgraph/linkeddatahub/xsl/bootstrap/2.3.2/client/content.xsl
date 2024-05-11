@@ -369,7 +369,7 @@ exclude-result-prefixes="#all"
 
         <xsl:for-each select="$container">
             <ixsl:set-attribute name="typeof" select="$row/@typeof" object="."/>
-            <ixsl:set-attribute name="draggable" select="$row/@draggable" object="."/>
+<!--            <ixsl:set-attribute name="draggable" select="$row/@draggable" object="."/>-->
 
             <xsl:result-document href="?." method="ixsl:replace-content">
                 <xsl:copy-of select="$row/*"/> <!-- inject the content of div.row-fluid -->
@@ -460,7 +460,7 @@ exclude-result-prefixes="#all"
 
                 <xsl:for-each select="$container">
                     <ixsl:set-attribute name="typeof" select="$row/@typeof" object="."/>
-                    <ixsl:set-attribute name="draggable" select="$row/@draggable" object="."/>
+                    <!-- <ixsl:set-attribute name="draggable" select="$row/@draggable" object="."/> -->
 
                     <xsl:result-document href="?." method="ixsl:replace-content">
                         <xsl:copy-of select="$row/*"/> <!-- inject the content of div.row-fluid -->
