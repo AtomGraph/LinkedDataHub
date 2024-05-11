@@ -567,6 +567,7 @@ exclude-result-prefixes="#all"
     <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;XHTML'][rdf:value[@rdf:parseType = 'Literal']/xhtml:div]" mode="ldh:RenderBlockForm" priority="1">
         <xsl:param name="button" select="." as="element()"/>
         <xsl:param name="container" as="element()"/>
+        <xsl:message>ldh:RenderBlockForm ldh:XHTML</xsl:message>
 
         <xsl:variable name="constructor" as="document-node()">
             <xsl:document>
@@ -634,7 +635,8 @@ exclude-result-prefixes="#all"
     <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;Object'][rdf:value/@rdf:resource]" mode="ldh:RenderBlockForm" priority="1">
         <xsl:param name="container" as="element()"/>
         <xsl:param name="content-container" select="$container" as="element()"/>
-        
+        <xsl:message>ldh:RenderBlockForm ldh:Object</xsl:message>
+
         <!-- TO-DO: load from ontology? -->
         <xsl:variable name="constructor" as="document-node()">
             <xsl:document>
@@ -731,6 +733,7 @@ exclude-result-prefixes="#all"
     <!-- <xsl:template match="div[@typeof = '&ldh;View'][contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'btn-edit')]" mode="ixsl:onclick" priority="1"> --> <!-- prioritize over form.xsl --> 
         <xsl:param name="container" as="element()"/>
         <xsl:param name="content-container" select="$container" as="element()"/>
+        <xsl:message>ldh:RenderBlockForm ldh:View</xsl:message>
 
         <xsl:variable name="constructor" as="document-node()">
             <xsl:document>
