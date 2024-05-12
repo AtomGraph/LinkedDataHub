@@ -948,6 +948,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="content-uri" select="xs:anyURI($container/@about)" as="xs:anyURI"/>
         <xsl:variable name="content" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`'), 'content')" as="element()"/>
         <xsl:variable name="active-class" select="tokenize($container//ul[contains-token(@class, 'nav-tabs')]/li[contains-token(@class, 'active')], ' ')[not(. = 'active')]" as="xs:string"/>
+        <xsl:message>$active-class: <xsl:value-of select="$active-class"/></xsl:message>
         <xsl:variable name="active-mode" select="map:get($class-modes, $active-class)" as="xs:anyURI"/>
         <xsl:variable name="select-string" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`'), 'select-query')" as="xs:string"/>
         <xsl:variable name="select-xml" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`'), 'select-xml')" as="document-node()"/>
