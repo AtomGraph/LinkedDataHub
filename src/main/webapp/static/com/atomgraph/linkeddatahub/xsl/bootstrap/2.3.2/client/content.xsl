@@ -76,26 +76,26 @@ exclude-result-prefixes="#all"
 
             DELETE
             {
-                $this ?seq $content .
-                $content a ?oldType ;
+                $this ?seq $block .
+                $block a ?oldType ;
                     ?oldValueProperty ?oldValue ;
                     ac:mode ?oldMode .
             }
             INSERT
             {
-                $this ?seq $content .
-                $content a $type ;
+                $this ?seq $block .
+                $block a $type ;
                     $valueProperty $value ;
                     ac:mode $mode .
             }
             WHERE
             {
-                $this ?seq $content .
-                $content a ?oldType ;
+                $this ?seq $block .
+                $block a ?oldType ;
                     ?oldValueProperty ?oldValue .
                 OPTIONAL
                 {
-                    $content ac:mode ?oldMode
+                    $block ac:mode ?oldMode
                 }
             }
         ]]>
@@ -459,7 +459,7 @@ exclude-result-prefixes="#all"
                 </xsl:variable>
 
                 <xsl:for-each select="$container">
-                    <ixsl:set-attribute name="typeof" select="$row/@typeof" object="."/>
+<!--                    <ixsl:set-attribute name="typeof" select="$row/@typeof" object="."/>-->
                     <!-- <ixsl:set-attribute name="draggable" select="$row/@draggable" object="."/> -->
 
                     <xsl:result-document href="?." method="ixsl:replace-content">
@@ -1324,8 +1324,8 @@ exclude-result-prefixes="#all"
         <xsl:for-each select="$container">
             <xsl:variable name="content-id" select="'id' || ac:uuid()" as="xs:string"/>
             <ixsl:set-attribute name="id" select="$content-id"/>
-            <!-- <ixsl:set-attribute name="typeof" select="'&ldh;XHTML'"/> -->
-            <ixsl:set-attribute name="draggable" select="'true'"/>
+            <ixsl:set-attribute name="typeof" select="'&ldh;XHTML'"/>
+<!--            <ixsl:set-attribute name="draggable" select="'true'"/>-->
 
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'content', true() ])[current-date() lt xs:date('2000-01-01')]"/>
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'xhtml-content', true() ])[current-date() lt xs:date('2000-01-01')]"/>
@@ -1389,6 +1389,8 @@ exclude-result-prefixes="#all"
         
         <!-- move the current row of controls to the bottom of the content list -->
         <xsl:for-each select="$container/..">
+            <ixsl:set-attribute name="typeof" select="'&ldh;View'" object="."/>
+
             <xsl:result-document href="?." method="ixsl:append-content">
                 <xsl:copy-of select="$container"/>
             </xsl:result-document>
@@ -1458,6 +1460,8 @@ exclude-result-prefixes="#all"
         
         <!-- move the current row of controls to the bottom of the content list -->
         <xsl:for-each select="$container/..">
+            <ixsl:set-attribute name="typeof" select="'&ldh;Object'" object="."/>
+
             <xsl:result-document href="?." method="ixsl:append-content">
                 <xsl:copy-of select="$container"/>
             </xsl:result-document>
