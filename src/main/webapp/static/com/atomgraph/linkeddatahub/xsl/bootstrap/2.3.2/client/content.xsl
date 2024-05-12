@@ -711,7 +711,6 @@ exclude-result-prefixes="#all"
     <!-- view block edit button onclick -->
     
     <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;View'][spin:query/@rdf:resource]" mode="ldh:RenderBlockForm" priority="1">
-    <!-- <xsl:template match="div[@typeof = '&ldh;View'][contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'btn-edit')]" mode="ixsl:onclick" priority="1"> --> <!-- prioritize over form.xsl --> 
         <xsl:param name="container" as="element()"/>
         <xsl:param name="content-container" select="$container" as="element()"/>
         <xsl:message>ldh:RenderBlockForm ldh:View</xsl:message>
@@ -806,7 +805,6 @@ exclude-result-prefixes="#all"
     <xsl:template match="div[@typeof = '&ldh;XHTML'][contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'btn-save')]" mode="ixsl:onclick">
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'xhtml-content')][contains-token(@class, 'row-fluid')]" as="element()"/>
         <xsl:variable name="textarea" select="ancestor::div[contains-token(@class, 'main')]//textarea[contains-token(@class, 'wymeditor')]" as="element()"/>
-<!--        <xsl:variable name="old-content-string" select="string($textarea)" as="xs:string"/>-->
         <xsl:variable name="block-type" select="xs:anyURI('&ldh;XHTML')" as="xs:anyURI"/>
         <xsl:variable name="wymeditor" select="ixsl:call(ixsl:get(ixsl:window(), 'jQuery'), 'getWymeditorByTextarea', [ $textarea ])" as="item()"/>
         <!-- update the textarea with WYMEditor content -->
@@ -839,9 +837,8 @@ exclude-result-prefixes="#all"
 
     <!-- save object block onclick -->
     
-    <xsl:template match="div[contains-token(@class, 'resource-content')][contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'btn-save')]" mode="ixsl:onclick">
+    <xsl:template match="div[@typeof = '&ldh;Object'][contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'btn-save')]" mode="ixsl:onclick">
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'resource-content')][contains-token(@class, 'row-fluid')]" as="element()"/>
-<!--        <xsl:variable name="old-content-value" select="ixsl:get($container, 'dataset.contentValue')" as="xs:anyURI"/>-->
         <xsl:variable name="block-type" select="xs:anyURI('&ldh;Object')" as="xs:anyURI"/>
         <xsl:variable name="content-value" select="ixsl:get($container//div[contains-token(@class, 'main')]//input[@name = 'ou'], 'value')" as="xs:anyURI"/>
         <xsl:variable name="mode" select="ixsl:get(key('elements-by-class', 'content-mode', $container), 'value')" as="xs:anyURI?"/>
@@ -881,9 +878,8 @@ exclude-result-prefixes="#all"
     
     <!-- save view block onclick -->
     
-    <xsl:template match="div[contains-token(@class, 'view-content')][contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'btn-save')]" mode="ixsl:onclick">
+    <xsl:template match="div[@typeof = '&ldh;View'][contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'btn-save')]" mode="ixsl:onclick">
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'resource-content')][contains-token(@class, 'row-fluid')]" as="element()"/>
-<!--        <xsl:variable name="old-content-value" select="ixsl:get($container, 'dataset.contentValue')" as="xs:anyURI"/>-->
         <xsl:variable name="block-type" select="xs:anyURI('&ldh;View')" as="xs:anyURI"/>
         <xsl:variable name="content-value" select="ixsl:get($container//div[contains-token(@class, 'main')]//input[@name = 'ou'], 'value')" as="xs:anyURI"/>
         <xsl:variable name="mode" select="ixsl:get(key('elements-by-class', 'content-mode', $container), 'value')" as="xs:anyURI?"/>
@@ -925,7 +921,6 @@ exclude-result-prefixes="#all"
     
     <xsl:template match="div[contains-token(@class, 'content')][contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'btn-save-query')]" mode="ixsl:onclick">
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'resource-content')][contains-token(@class, 'row-fluid')]" as="element()"/>
-<!--        <xsl:variable name="old-content-value" select="ixsl:get($container, 'dataset.contentValue')" as="xs:anyURI"/>-->
         <xsl:variable name="content-value" select="ixsl:get($container//div[contains-token(@class, 'main')]//input[@name = 'ou'], 'value')" as="xs:anyURI"/>
         <xsl:variable name="textarea" select="ancestor::form/descendant::textarea[@name = 'query']" as="element()"/>
         <xsl:variable name="yasqe" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe'), $textarea/ixsl:get(., 'id'))"/>
@@ -1389,8 +1384,6 @@ exclude-result-prefixes="#all"
         
         <!-- move the current row of controls to the bottom of the content list -->
         <xsl:for-each select="$container/..">
-            <ixsl:set-attribute name="typeof" select="'&ldh;View'" object="."/>
-
             <xsl:result-document href="?." method="ixsl:append-content">
                 <xsl:copy-of select="$container"/>
             </xsl:result-document>
@@ -1400,7 +1393,7 @@ exclude-result-prefixes="#all"
         <xsl:for-each select="$container">
             <xsl:variable name="content-id" select="'id' || ac:uuid()" as="xs:string"/>
             <ixsl:set-attribute name="id" select="$content-id"/>
-            <!-- <ixsl:set-attribute name="typeof" select="'&ldh;View'"/> -->
+            <ixsl:set-attribute name="typeof" select="'&ldh;View'"/>
             <ixsl:set-attribute name="draggable" select="'true'"/>
 
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'content', true() ])[current-date() lt xs:date('2000-01-01')]"/>
@@ -1460,8 +1453,6 @@ exclude-result-prefixes="#all"
         
         <!-- move the current row of controls to the bottom of the content list -->
         <xsl:for-each select="$container/..">
-            <ixsl:set-attribute name="typeof" select="'&ldh;Object'" object="."/>
-
             <xsl:result-document href="?." method="ixsl:append-content">
                 <xsl:copy-of select="$container"/>
             </xsl:result-document>
@@ -1471,7 +1462,7 @@ exclude-result-prefixes="#all"
         <xsl:for-each select="$container">
             <xsl:variable name="content-id" select="'id' || ac:uuid()" as="xs:string"/>
             <ixsl:set-attribute name="id" select="$content-id"/>
-            <!-- <ixsl:set-attribute name="typeof" select="'&ldh;Object'"/> -->
+            <ixsl:set-attribute name="typeof" select="'&ldh;Object'"/>
             <ixsl:set-attribute name="draggable" select="'true'"/>
 
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'content', true() ])[current-date() lt xs:date('2000-01-01')]"/>
