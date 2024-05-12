@@ -349,17 +349,17 @@ exclude-result-prefixes="#all"
     
     <!-- .xhtml-content referenced from .resource-content (XHTML transclusion) -->
     
-    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;XHTML'][rdf:value[@rdf:parseType = 'Literal']/xhtml:div]" mode="ldh:RenderBlock" priority="1">
+<!--    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;XHTML'][rdf:value[@rdf:parseType = 'Literal']/xhtml:div]" mode="ldh:RenderBlock" priority="1">
         <xsl:param name="container" as="element()"/>
         <xsl:param name="mode" as="xs:anyURI?"/>
         <xsl:param name="refresh-content" as="xs:boolean?"/>
 
-        <!-- hide progress bar -->
+         hide progress bar 
         <ixsl:set-style name="display" select="'none'" object="$container//div[@class = 'progress-bar']"/>
 
         <xsl:variable name="row" as="node()*">
             <xsl:apply-templates select="." mode="bs2:RowContent">
-                <xsl:with-param name="class" select="'content xhtml-content'"/> <!-- no .row-fluid -->
+                <xsl:with-param name="class" select="'content xhtml-content'"/>  no .row-fluid 
                 <xsl:with-param name="mode" select="$mode"/>
                 <xsl:with-param name="transclude" select="true()"/>
                 <xsl:with-param name="base" select="ac:document-uri(@rdf:about)"/>
@@ -369,22 +369,23 @@ exclude-result-prefixes="#all"
 
         <xsl:for-each select="$container">
             <ixsl:set-attribute name="typeof" select="'&ldh;XHTML'" object="."/>
-<!--            <ixsl:set-attribute name="draggable" select="$row/@draggable" object="."/>-->
+            <ixsl:set-attribute name="draggable" select="$row/@draggable" object="."/>
 
             <xsl:result-document href="?." method="ixsl:replace-content">
-                <xsl:copy-of select="$row/*"/> <!-- inject the content of div.row-fluid -->
+                <xsl:copy-of select="$row/*"/>  inject the content of div.row-fluid 
             </xsl:result-document>
         </xsl:for-each>
 
         <xsl:call-template name="ldh:BlockRendered">
             <xsl:with-param name="container" select="$container"/>
         </xsl:call-template>
-    </xsl:template>
+    </xsl:template>-->
     
     <!-- object block (RDF resource) -->
     
     <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;Object'][rdf:value/@rdf:resource]" mode="ldh:RenderBlock">
         <xsl:param name="container" as="element()"/>
+        <xsl:param name="block-type" select="rdf:type/@rdf:resource" as="xs:anyURI"/>
         <xsl:param name="graph" select="ldh:graph/@rdf:resource" as="xs:anyURI?"/>
         <xsl:param name="mode" select="ac:mode/@rdf:resource" as="xs:anyURI?"/>
         <xsl:param name="refresh-content" as="xs:boolean?"/>
@@ -424,6 +425,7 @@ exclude-result-prefixes="#all"
             <ixsl:schedule-action http-request="map{ 'method': 'POST', 'href': sd:endpoint(), 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                 <xsl:call-template name="ldh:LoadBlockObjectMetadata">
                     <xsl:with-param name="container" select="$container"/>
+                    <xsl:with-param name="block-type" select="$block-type"/>
                     <xsl:with-param name="resource" select="$resource"/>
                     <xsl:with-param name="graph" select="$graph"/>
                     <xsl:with-param name="mode" select="$mode"/>
@@ -437,6 +439,7 @@ exclude-result-prefixes="#all"
     <xsl:template name="ldh:LoadBlockObjectMetadata">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="container" as="element()"/>
+        <xsl:param name="block-type" as="xs:anyURI"/>
         <xsl:param name="resource" as="element()"/>
         <xsl:param name="graph" as="xs:anyURI?"/>
         <xsl:param name="mode" as="xs:anyURI?"/>
@@ -458,14 +461,16 @@ exclude-result-prefixes="#all"
                     </xsl:apply-templates>
                 </xsl:variable>
 
-                <xsl:message>$row/@typeof: <xsl:value-of select="$row/@typeof"/></xsl:message>
+                <xsl:message>$row/@typeof: <xsl:value-of select="$row/@typeof"/> $block-type: <xsl:value-of select="$block-type"/></xsl:message>
                 <xsl:for-each select="$container">
-                    <ixsl:set-attribute name="typeof" select="$row/@typeof" object="."/>
+                    <ixsl:set-attribute name="shit" select="'WTF'" object="."/>
                     <!-- <ixsl:set-attribute name="draggable" select="$row/@draggable" object="."/> -->
 
                     <xsl:result-document href="?." method="ixsl:replace-content">
                         <xsl:copy-of select="$row/*"/> <!-- inject the content of div.row-fluid -->
                     </xsl:result-document>
+                    
+                    <ixsl:set-attribute name="typeof" select="$block-type" object="."/>
                 </xsl:for-each>
 
                 <xsl:call-template name="ldh:BlockRendered">

@@ -765,7 +765,7 @@ extension-element-prefixes="ixsl"
 
         <xsl:apply-templates select="key('resources', .)" mode="bs2:RowContentHeader"/>
 
-        <div about="{.}">
+        <div about="{.}" typeof="{key('resources', .)/rdf:type/@rdf:resource}">
             <xsl:if test="$id">
                 <xsl:attribute name="id" select="$id"/>
             </xsl:if>
