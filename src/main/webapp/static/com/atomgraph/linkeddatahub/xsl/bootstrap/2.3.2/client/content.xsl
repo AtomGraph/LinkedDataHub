@@ -733,7 +733,11 @@ exclude-result-prefixes="#all"
             </xsl:document>
         </xsl:variable>
         <xsl:variable name="controls" as="node()*">
-            <xsl:apply-templates select="$constructor//spin:query/@rdf:*" mode="bs2:FormControl"/>
+            <xsl:call-template name="bs2:Lookup">
+                <xsl:with-param name="value" select="spin:query/@rdf:resource"/>
+                <xsl:with-param name="forClass" select="xs:anyURI('&sp;Select')"/>
+            </xsl:call-template>
+            <!-- <xsl:apply-templates select="$constructor//spin:query/@rdf:*" mode="bs2:FormControl"/> -->
             <xsl:apply-templates select="(ac:mode/@rdf:resource, $constructor//ac:mode/@rdf:nodeID)[1]" mode="bs2:FormControl">
                 <xsl:with-param name="class" select="'content-mode'"/>
                 <xsl:with-param name="type-label" select="false()"/>
