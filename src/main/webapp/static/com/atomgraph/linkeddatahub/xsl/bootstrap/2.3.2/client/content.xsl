@@ -179,6 +179,7 @@ exclude-result-prefixes="#all"
     <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;View'][spin:query/@rdf:resource]" mode="ldh:RenderBlock" priority="1">
         <xsl:param name="this" as="xs:anyURI"/>
         <xsl:param name="container" as="element()"/>
+        <xsl:param name="block-type" select="rdf:type/@rdf:resource" as="xs:anyURI"/>
         <xsl:param name="graph" select="ldh:graph/@rdf:resource" as="xs:anyURI?"/>
         <xsl:param name="mode" select="ac:mode/@rdf:resource" as="xs:anyURI?"/>
         <xsl:param name="refresh-content" as="xs:boolean?"/>
@@ -186,6 +187,11 @@ exclude-result-prefixes="#all"
         <xsl:param name="content-uri" select="if ($container/@about) then $container/@about else xs:anyURI(ac:absolute-path($base-uri) || '#' || $container/@id)" as="xs:anyURI"/>
         <xsl:variable name="query-uri" select="xs:anyURI(spin:query/@rdf:resource)" as="xs:anyURI"/>
         <xsl:variable name="service-uri" select="xs:anyURI(ldh:service/@rdf:resource)" as="xs:anyURI?"/>
+        
+        <xsl:for-each select="$container">
+            <ixsl:set-attribute name="typeof" select="$block-type" object="."/>
+        </xsl:for-each>
+
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, ac:document-uri($query-uri))" as="xs:anyURI"/>
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
@@ -461,16 +467,13 @@ exclude-result-prefixes="#all"
                     </xsl:apply-templates>
                 </xsl:variable>
 
-                <xsl:message>$row/@typeof: <xsl:value-of select="$row/@typeof"/> $block-type: <xsl:value-of select="$block-type"/></xsl:message>
                 <xsl:for-each select="$container">
-                    <ixsl:set-attribute name="shit" select="'WTF'" object="."/>
+                    <ixsl:set-attribute name="typeof" select="$block-type" object="."/>
                     <!-- <ixsl:set-attribute name="draggable" select="$row/@draggable" object="."/> -->
 
                     <xsl:result-document href="?." method="ixsl:replace-content">
                         <xsl:copy-of select="$row/*"/> <!-- inject the content of div.row-fluid -->
                     </xsl:result-document>
-                    
-                    <ixsl:set-attribute name="typeof" select="$block-type" object="."/>
                 </xsl:for-each>
 
                 <xsl:call-template name="ldh:BlockRendered">
@@ -1973,19 +1976,19 @@ exclude-result-prefixes="#all"
                 <xsl:for-each select="$container">
                     <!-- set @about attribute -->
                     <ixsl:set-attribute name="about" select="$content-uri"/>
-                    <!-- update @data-content-value value -->
+<!--                     update @data-content-value value 
                     <ixsl:set-property name="dataset.contentValue" select="$content-value" object="."/>
 
                     <xsl:choose>
                         <xsl:when test="$mode">
-                            <!-- update @data-content-mode value -->
+                             update @data-content-mode value 
                             <ixsl:set-property name="dataset.contentMode" select="$mode" object="."/>
                         </xsl:when>
                         <xsl:when test="ixsl:contains(., 'dataset.contentMode')">
-                            <!-- remove @data-content-mode -->
+                             remove @data-content-mode 
                             <ixsl:remove-property name="dataset.contentMode" object="."/>
                         </xsl:when>
-                    </xsl:choose>
+                    </xsl:choose>-->
                     
                     <xsl:call-template name="ldh:LoadBlock"/>
                 </xsl:for-each>
