@@ -368,7 +368,7 @@ exclude-result-prefixes="#all"
         </xsl:variable>
 
         <xsl:for-each select="$container">
-            <ixsl:set-attribute name="typeof" select="$row/@typeof" object="."/>
+            <ixsl:set-attribute name="typeof" select="'&ldh;XHTML'" object="."/>
 <!--            <ixsl:set-attribute name="draggable" select="$row/@draggable" object="."/>-->
 
             <xsl:result-document href="?." method="ixsl:replace-content">
@@ -458,8 +458,9 @@ exclude-result-prefixes="#all"
                     </xsl:apply-templates>
                 </xsl:variable>
 
+                <xsl:message>$row/@typeof: <xsl:value-of select="$row/@typeof"/></xsl:message>
                 <xsl:for-each select="$container">
-<!--                    <ixsl:set-attribute name="typeof" select="$row/@typeof" object="."/>-->
+                    <ixsl:set-attribute name="typeof" select="$row/@typeof" object="."/>
                     <!-- <ixsl:set-attribute name="draggable" select="$row/@draggable" object="."/> -->
 
                     <xsl:result-document href="?." method="ixsl:replace-content">
