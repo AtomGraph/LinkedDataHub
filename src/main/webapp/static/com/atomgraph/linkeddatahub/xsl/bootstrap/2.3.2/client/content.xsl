@@ -898,7 +898,7 @@ exclude-result-prefixes="#all"
                 <xsl:variable name="update-string" select="replace($update-string, '$this', '&lt;' || ac:absolute-path(ldh:base-uri(.)) || '&gt;', 'q')" as="xs:string"/>
                 <xsl:variable name="update-string" select="replace($update-string, '$type', '&lt;' || $block-type || '&gt;', 'q')" as="xs:string"/>
                 <xsl:variable name="update-string" select="replace($update-string, '$block', '&lt;' || $content-uri || '&gt;', 'q')" as="xs:string"/>
-                <xsl:variable name="update-string" select="replace($update-string, '$valueProperty', '&lt;&rdf;value&gt;', 'q')" as="xs:string"/>
+                <xsl:variable name="update-string" select="replace($update-string, '$valueProperty', '&lt;&spin;query&gt;', 'q')" as="xs:string"/>
                 <xsl:variable name="update-string" select="replace($update-string, '$value', '&lt;' || $content-value || '&gt;', 'q')" as="xs:string"/>
                 <xsl:variable name="update-string" select="if ($mode) then replace($update-string, '$mode', '&lt;' || $mode || '&gt;', 'q') else $update-string" as="xs:string"/>
                 <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, ac:absolute-path(ldh:base-uri(.)))" as="xs:anyURI"/>
