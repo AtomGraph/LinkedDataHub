@@ -402,14 +402,60 @@ exclude-result-prefixes="#all"
             <ixsl:set-style name="width" select="'75%'" object="."/>
         </xsl:for-each>
         
-        <!-- TO-DO: ldh:href($ldt:base, if (starts-with($graph, $ldt:base)) then $graph else ac:absolute-path(xs:anyURI(ixsl:location())), map{}, $content-value, $graph, ()) -->
+        <xsl:variable name="request-uri" select="ldh:href($ldt:base, if (starts-with($graph, $ldt:base)) then $graph else ac:absolute-path(xs:anyURI(ixsl:location())), map{}, (ac:document-uri(rdf:value/@rdf:resource), $graph, ())" as="xs:anyURI"/>
+        <xsl:variable name="request" as="item()*">
+            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+                <xsl:call-template name="ldh:LoadBlockObjectValue">
+                    <xsl:with-param name="container" select="$container"/>
+                    <xsl:with-param name="block-uri" select="$block-uri"/>
+                    <xsl:with-param name="block-type" select="$block-type"/>
+                    <xsl:with-param name="graph" select="$graph"/>
+                    <xsl:with-param name="mode" select="$mode"/>
+                    <xsl:with-param name="show-edit-button" select="$show-edit-button"/>
+                </xsl:call-template>
+            </ixsl:schedule-action>
+        </xsl:variable>
+        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+    </xsl:template>
 
-        <xsl:variable name="request-uri" select="ac:build-uri($ldt:base, map{ 'uri': ac:document-uri(rdf:value/@rdf:resource), 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
-        <!-- TO-DO: load asynchronously -->
-            <!-- content could not be loaded as RDF (e.g. binary file) -->
-            <!--
+    <xsl:template name="ldh:LoadBlockObjectValue">
+        <xsl:context-item as="map(*)" use="required"/>
+        <xsl:param name="container" as="element()"/>
+        <xsl:param name="block-uri" as="xs:anyURI"/>
+        <xsl:param name="block-type" as="xs:anyURI"/>
+        <xsl:param name="graph" as="xs:anyURI?"/>
+        <xsl:param name="mode" as="xs:anyURI?"/>
+        <xsl:param name="show-edit-button" as="xs:boolean?"/>
+
+        <xsl:choose>
+            <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
+                <xsl:for-each select="?body">
+                    <xsl:for-each select="$container//div[@class = 'bar']">
+                        <!-- update progress bar -->
+                        <ixsl:set-style name="width" select="'88%'" object="."/>
+                    </xsl:for-each>
+                    
+                    <xsl:variable name="resource" select="key('resources', $block-uri)" as="element()?"/>
+                    <xsl:variable name="object-uris" select="distinct-values($resource/*/@rdf:resource[not(key('resources', .))])" as="xs:string*"/>
+                    <xsl:variable name="query-string" select="$object-metadata-query || ' VALUES $this { ' || string-join(for $uri in $object-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>
+
+                    <xsl:variable name="request" as="item()*">
+                        <ixsl:schedule-action http-request="map{ 'method': 'POST', 'href': sd:endpoint(), 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+                            <xsl:call-template name="ldh:LoadBlockObjectMetadata">
+                                <xsl:with-param name="container" select="$container"/>
+                                <xsl:with-param name="block-type" select="$block-type"/>
+                                <xsl:with-param name="resource" select="$resource"/>
+                                <xsl:with-param name="graph" select="$graph"/>
+                                <xsl:with-param name="mode" select="$mode"/>
+                                <xsl:with-param name="show-edit-button" select="$show-edit-button"/>
+                            </xsl:call-template>
+                        </ixsl:schedule-action>
+                    </xsl:variable>
+                    <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+                </xsl:for-each>
+            </xsl:when>
             <xsl:when test="?status = 406">
-                <xsl:for-each select="$container">
+                <xsl:for-each select="$container//div[contains-token(@class, 'main')]">
                     <xsl:result-document href="?." method="ixsl:replace-content">
                         <div class="offset2 span7 main">
                             <object data="{$content-value}"/>
@@ -421,25 +467,20 @@ exclude-result-prefixes="#all"
                     <xsl:with-param name="container" select="$container"/>
                 </xsl:call-template>
             </xsl:when>
-            -->
-            
-        <xsl:variable name="resource" select="key('resources', rdf:value/@rdf:resource, document($request-uri))" as="element()?"/>
-        <xsl:variable name="object-uris" select="distinct-values($resource/*/@rdf:resource[not(key('resources', .))])" as="xs:string*"/>
-        <xsl:variable name="query-string" select="$object-metadata-query || ' VALUES $this { ' || string-join(for $uri in $object-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>
+            <xsl:otherwise>
+                <xsl:for-each select="$container//div[contains-token(@class, 'main')]">
+                    <xsl:result-document href="?." method="ixsl:replace-content">
+                        <div class="alert alert-block">
+                            <strong>Could not load content block: <a href="{$block-uri}"><xsl:value-of select="$block-uri"/></a></strong>
+                        </div>
+                    </xsl:result-document>
+                </xsl:for-each>
 
-        <xsl:variable name="request" as="item()*">
-            <ixsl:schedule-action http-request="map{ 'method': 'POST', 'href': sd:endpoint(), 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-                <xsl:call-template name="ldh:LoadBlockObjectMetadata">
+                <xsl:call-template name="ldh:BlockRendered">
                     <xsl:with-param name="container" select="$container"/>
-                    <xsl:with-param name="block-type" select="$block-type"/>
-                    <xsl:with-param name="resource" select="$resource"/>
-                    <xsl:with-param name="graph" select="$graph"/>
-                    <xsl:with-param name="mode" select="$mode"/>
-                    <xsl:with-param name="show-edit-button" select="$show-edit-button"/>
                 </xsl:call-template>
-            </ixsl:schedule-action>
-        </xsl:variable>
-        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:template>
     
     <xsl:template name="ldh:LoadBlockObjectMetadata">
@@ -705,7 +746,7 @@ exclude-result-prefixes="#all"
             </xsl:for-each>
         </xsl:if>-->
         
-        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, xs:anyURI(ac:document-uri(rdf:value/@rdf:resource)))"/>
+        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, xs:anyURI(ac:document-uri(rdf:value/@rdf:resource)))" as="xs:anyURI"/>
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                 <xsl:call-template name="onTypeaheadResourceLoad">
@@ -801,7 +842,7 @@ exclude-result-prefixes="#all"
             </xsl:for-each>
         </xsl:if>-->
         
-        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, xs:anyURI(ac:document-uri(spin:query/@rdf:resource)))"/>
+        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, xs:anyURI(ac:document-uri(spin:query/@rdf:resource)))" as="xs:anyURI"/>
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                 <xsl:call-template name="onTypeaheadResourceLoad">
