@@ -403,7 +403,7 @@ exclude-result-prefixes="#all"
             <ixsl:set-style name="width" select="'75%'" object="."/>
         </xsl:for-each>
         
-        <xsl:variable name="request-uri" select="ldh:href($ldt:base, if (starts-with($graph, $ldt:base)) then $graph else ac:absolute-path(xs:anyURI(ixsl:location())), map{}, (ac:document-uri($resource-uri), $graph, ())" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="ldh:href($ldt:base, if (starts-with($graph, $ldt:base)) then $graph else ac:absolute-path(xs:anyURI(ixsl:location())), map{}, ac:document-uri($resource-uri), $graph, ())" as="xs:anyURI"/>
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                 <xsl:call-template name="ldh:LoadBlockObjectValue">
