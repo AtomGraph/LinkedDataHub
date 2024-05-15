@@ -392,6 +392,7 @@ exclude-result-prefixes="#all"
     <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;Object'][rdf:value/@rdf:resource]" mode="ldh:RenderBlock">
         <xsl:param name="container" as="element()"/>
         <xsl:param name="block-type" select="rdf:type/@rdf:resource" as="xs:anyURI"/>
+        <xsl:param name="resource-uri" select="rdf:value/@rdf:resource" as="xs:anyURI?"/>
         <xsl:param name="graph" select="ldh:graph/@rdf:resource" as="xs:anyURI?"/>
         <xsl:param name="mode" select="ac:mode/@rdf:resource" as="xs:anyURI?"/>
         <xsl:param name="refresh-content" as="xs:boolean?"/>
@@ -402,13 +403,13 @@ exclude-result-prefixes="#all"
             <ixsl:set-style name="width" select="'75%'" object="."/>
         </xsl:for-each>
         
-        <xsl:variable name="request-uri" select="ldh:href($ldt:base, if (starts-with($graph, $ldt:base)) then $graph else ac:absolute-path(xs:anyURI(ixsl:location())), map{}, (ac:document-uri(rdf:value/@rdf:resource), $graph, ())" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="ldh:href($ldt:base, if (starts-with($graph, $ldt:base)) then $graph else ac:absolute-path(xs:anyURI(ixsl:location())), map{}, (ac:document-uri($resource-uri), $graph, ())" as="xs:anyURI"/>
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                 <xsl:call-template name="ldh:LoadBlockObjectValue">
                     <xsl:with-param name="container" select="$container"/>
-                    <xsl:with-param name="block-uri" select="$block-uri"/>
                     <xsl:with-param name="block-type" select="$block-type"/>
+                    <xsl:with-param name="resource-uri" select="$block-uri"/>
                     <xsl:with-param name="graph" select="$graph"/>
                     <xsl:with-param name="mode" select="$mode"/>
                     <xsl:with-param name="show-edit-button" select="$show-edit-button"/>
@@ -421,8 +422,8 @@ exclude-result-prefixes="#all"
     <xsl:template name="ldh:LoadBlockObjectValue">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="container" as="element()"/>
-        <xsl:param name="block-uri" as="xs:anyURI"/>
         <xsl:param name="block-type" as="xs:anyURI"/>
+        <xsl:param name="resource-uri" as="xs:anyURI"/>
         <xsl:param name="graph" as="xs:anyURI?"/>
         <xsl:param name="mode" as="xs:anyURI?"/>
         <xsl:param name="show-edit-button" as="xs:boolean?"/>
@@ -435,7 +436,7 @@ exclude-result-prefixes="#all"
                         <ixsl:set-style name="width" select="'88%'" object="."/>
                     </xsl:for-each>
                     
-                    <xsl:variable name="resource" select="key('resources', $block-uri)" as="element()?"/>
+                    <xsl:variable name="resource" select="key('resources', $resource-uri)" as="element()?"/>
                     <xsl:variable name="object-uris" select="distinct-values($resource/*/@rdf:resource[not(key('resources', .))])" as="xs:string*"/>
                     <xsl:variable name="query-string" select="$object-metadata-query || ' VALUES $this { ' || string-join(for $uri in $object-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>
 
@@ -471,7 +472,7 @@ exclude-result-prefixes="#all"
                 <xsl:for-each select="$container//div[contains-token(@class, 'main')]">
                     <xsl:result-document href="?." method="ixsl:replace-content">
                         <div class="alert alert-block">
-                            <strong>Could not load content block: <a href="{$block-uri}"><xsl:value-of select="$block-uri"/></a></strong>
+                            <strong>Could not load resource: <a href="{$resource-uri}"><xsl:value-of select="$resource-uri"/></a></strong>
                         </div>
                     </xsl:result-document>
                 </xsl:for-each>

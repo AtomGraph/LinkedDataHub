@@ -193,13 +193,13 @@ extension-element-prefixes="ixsl"
                 <div class="main offset2 span7">
                     <p>
                         <button type="button" class="btn btn-primary create-action add-xhtml-content">
-                            <xsl:apply-templates select="key('resources', 'html', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                            <xsl:apply-templates select="key('resources', '&ldh;XHTML', document('&ldh;'))" mode="ac:label"/>
                         </button>
                         <button type="button" class="btn btn-primary create-action add-view-content">
-                            <xsl:apply-templates select="key('resources', 'resource', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                            <xsl:apply-templates select="key('resources', '&ldh;View', document('&ldh;'))" mode="ac:label"/>
                         </button>
                         <button type="button" class="btn btn-primary create-action add-object-content">
-                            <xsl:apply-templates select="key('resources', 'resource', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                            <xsl:apply-templates select="key('resources', '&ldh;Object', document('&ldh;'))" mode="ac:label"/>
                         </button>
                     </p>
                 </div>
