@@ -409,7 +409,7 @@ exclude-result-prefixes="#all"
                 <xsl:call-template name="ldh:LoadBlockObjectValue">
                     <xsl:with-param name="container" select="$container"/>
                     <xsl:with-param name="block-type" select="$block-type"/>
-                    <xsl:with-param name="resource-uri" select="$block-uri"/>
+                    <xsl:with-param name="resource-uri" select="$resource-uri"/>
                     <xsl:with-param name="graph" select="$graph"/>
                     <xsl:with-param name="mode" select="$mode"/>
                     <xsl:with-param name="show-edit-button" select="$show-edit-button"/>
