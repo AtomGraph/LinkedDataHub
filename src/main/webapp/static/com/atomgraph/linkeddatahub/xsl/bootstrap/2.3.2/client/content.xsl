@@ -126,12 +126,12 @@ exclude-result-prefixes="#all"
             DELETE {
               $this ?sourceSeq $sourceBlock .
               $this ?targetSeq $targetBlock .
-              $this ?seq ?content .
+              $this ?seq ?block .
             }
             INSERT {
               $this ?newSourceSeq $sourceBlock .
               $this ?newTargetSeq $targetBlock .
-              $this ?newSeq ?content .
+              $this ?newSeq ?block .
             }
             WHERE
               { $this  ?sourceSeq  $sourceBlock
@@ -151,7 +151,7 @@ exclude-result-prefixes="#all"
                     $this  ?targetSeq  $targetBlock
                     FILTER(strstarts(str(?targetSeq), concat(str(rdf:), "_")))
                     BIND(xsd:integer(substr(str(?targetSeq), 45)) AS ?targetIndex)
-                    $this  ?seq  ?content
+                    $this  ?seq  ?block
                     FILTER strstarts(str(?seq), str(rdf:_))
                     BIND(xsd:integer(substr(str(?seq), 45)) AS ?index)
                     BIND(( ( ?index > ?sourceIndex ) && ( ?index < ?targetIndex ) ) AS ?isBetweenSourceAndTarget)
@@ -1662,8 +1662,8 @@ exclude-result-prefixes="#all"
                 <xsl:sequence select="ixsl:call(., 'after', [ $drop-content ])"/>
 
                 <xsl:variable name="update-string" select="replace($content-swap-string, '$this', '&lt;' || ac:absolute-path(ldh:base-uri(.)) || '&gt;', 'q')" as="xs:string"/>
-                <xsl:variable name="update-string" select="replace($update-string, '$targetContent', '&lt;' || $content-uri || '&gt;', 'q')" as="xs:string"/>
-                <xsl:variable name="update-string" select="replace($update-string, '$sourceContent', '&lt;' || $drop-content-uri || '&gt;', 'q')" as="xs:string"/>
+                <xsl:variable name="update-string" select="replace($update-string, '$targetBlock', '&lt;' || $content-uri || '&gt;', 'q')" as="xs:string"/>
+                <xsl:variable name="update-string" select="replace($update-string, '$sourceBlock', '&lt;' || $drop-content-uri || '&gt;', 'q')" as="xs:string"/>
                 <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, ac:absolute-path(ldh:base-uri(.)))" as="xs:anyURI"/>
                 <xsl:variable name="request" as="item()*">
                     <ixsl:schedule-action http-request="map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string }">
