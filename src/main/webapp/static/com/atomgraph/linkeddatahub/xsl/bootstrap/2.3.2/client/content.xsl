@@ -459,7 +459,7 @@ exclude-result-prefixes="#all"
                 <xsl:for-each select="$container//div[contains-token(@class, 'main')]">
                     <xsl:result-document href="?." method="ixsl:replace-content">
                         <div class="offset2 span7 main">
-                            <object data="{$content-value}"/>
+                            <object data="{$resource-uri}"/>
                         </div>
                     </xsl:result-document>
                 </xsl:for-each>
