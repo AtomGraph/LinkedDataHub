@@ -293,7 +293,9 @@ public class Item extends GraphStoreImpl
     public Response patch(UpdateRequest updateRequest, @QueryParam("graph") URI graphUriUnused)
     {
         if (updateRequest == null) throw new BadRequestException("SPARQL update not specified");
-
+        if (log.isDebugEnabled()) log.debug("PATCH request on named graph with URI: {}", getURI());
+        if (log.isDebugEnabled()) log.debug("PATCH update string: {}", updateRequest.toString());
+        
         if (updateRequest.getOperations().size() > 1)
             throw new WebApplicationException("Only a single SPARQL Update is supported by PATCH", UNPROCESSABLE_ENTITY.getStatusCode()); // 422 Unprocessable Entity
 
