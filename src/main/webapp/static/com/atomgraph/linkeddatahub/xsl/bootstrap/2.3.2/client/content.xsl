@@ -699,10 +699,11 @@ exclude-result-prefixes="#all"
             </xsl:apply-templates>
             -->
         </xsl:variable>
-        
+
+        <xsl:variable name="this" select="." as="element()"/>
         <xsl:for-each select="$container">
             <xsl:variable name="row" as="element()*">
-                <xsl:apply-templates select="$constructor//rdf:Description[rdf:type/@rdf:resource = '&ldh;Object']" mode="bs2:RowForm">
+                <xsl:apply-templates select="$this" mode="bs2:RowForm">
                     <xsl:with-param name="constructors" select="$constructor" tunnel="yes"/>
                 </xsl:apply-templates>
             </xsl:variable>
@@ -780,9 +781,10 @@ exclude-result-prefixes="#all"
             -->
         </xsl:variable>
         
+        <xsl:variable name="this" select="." as="element()"/>
         <xsl:for-each select="$container">
             <xsl:variable name="row" as="element()*">
-                <xsl:apply-templates select="$constructor//rdf:Description[rdf:type/@rdf:resource = '&ldh;View']" mode="bs2:RowForm">
+                <xsl:apply-templates select="$this" mode="bs2:RowForm">
                     <xsl:with-param name="constructors" select="$constructor" tunnel="yes"/>
                 </xsl:apply-templates>
             </xsl:variable>
