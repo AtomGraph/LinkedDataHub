@@ -660,7 +660,6 @@ exclude-result-prefixes="#all"
     
     <!-- object block edit button onclick -->
     
-    <!-- <xsl:template match="div[@typeof = '&ldh;Object'][contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'btn-edit')]" mode="ixsl:onclick" priority="1"> --> <!-- prioritize over form.xsl --> 
     <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;Object'][rdf:value/@rdf:resource]" mode="ldh:RenderBlockForm" priority="1">
         <xsl:param name="container" as="element()"/>
         <xsl:param name="content-container" select="$container" as="element()"/>
@@ -674,6 +673,7 @@ exclude-result-prefixes="#all"
                         <rdf:type rdf:resource="&ldh;Object"/>
                         <rdf:value rdf:nodeID="A2"/>
                         <ac:mode rdf:nodeID="A3"/>
+                        <ldh:graph rdf:nodeID="A4"/>
                     </rdf:Description>
                     <rdf:Description rdf:nodeID="A2">
                         <rdf:type rdf:resource="&rdfs;Resource"/>
@@ -681,13 +681,13 @@ exclude-result-prefixes="#all"
                     <rdf:Description rdf:nodeID="A3">
                         <rdf:type rdf:resource="&rdfs;Resource"/>
                     </rdf:Description>
+                    <rdf:Description rdf:nodeID="A4">
+                        <rdf:type rdf:resource="&rdfs;Resource"/>
+                    </rdf:Description>
                 </rdf:RDF>
             </xsl:document>
         </xsl:variable>
         <xsl:variable name="controls" as="node()*">
-            <xsl:apply-templates select="$constructor//rdf:Description[rdf:type/@rdf:resource = '&ldh;Object']" mode="bs2:Form">
-                <xsl:with-param name="constructors" select="$constructor" tunnel="yes"/>
-            </xsl:apply-templates>
             <!--
             <xsl:call-template name="bs2:Lookup">
                 <xsl:with-param name="value" select="rdf:value/@rdf:resource"/>
@@ -702,19 +702,13 @@ exclude-result-prefixes="#all"
         
         <xsl:for-each select="$container">
             <xsl:result-document href="?." method="ixsl:replace-content">
-                <xsl:for-each select="$content-container/div[contains-token(@class, 'left-nav')]">
-                    <xsl:copy-of select="."/>
-                </xsl:for-each>
+                <xsl:apply-templates select="$constructor//rdf:Description[rdf:type/@rdf:resource = '&ldh;Object']" mode="bs2:RowForm">
+                    <xsl:with-param name="constructors" select="$constructor" tunnel="yes"/>
+                </xsl:apply-templates>
+            </xsl:result-document>
+        </xsl:for-each>
 
-                <xsl:for-each select="$content-container/div[contains-token(@class, 'main')]">
-                    <xsl:copy>
-                        <xsl:copy-of select="@*"/>
-                        
-                        <div>
-                            <xsl:copy-of select="$controls"/>
-                        </div>
-
-                        <div class="form-actions">
+<!--                        <div class="form-actions">
                             <button type="button" class="btn btn-primary btn-save">
                                 <xsl:value-of>
                                     <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
@@ -730,23 +724,7 @@ exclude-result-prefixes="#all"
                                     <xsl:apply-templates select="key('resources', 'cancel', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
                                 </xsl:value-of>
                             </button>
-                        </div>
-                    </xsl:copy>
-                    
-                    <xsl:for-each select="$content-container/div[contains-token(@class, 'right-nav')]">
-                        <xsl:copy-of select="."/>
-                    </xsl:for-each>
-                </xsl:for-each>
-            </xsl:result-document>
-        </xsl:for-each>
-        
-<!--        <xsl:if test="$mode">
-             set the select.content-mode value to $mode and remove its @name 
-            <xsl:for-each select="key('elements-by-class', 'content-mode', $container)">
-                <ixsl:set-property name="value" select="$mode" object="."/>
-                <ixsl:remove-attribute name="name"/>
-            </xsl:for-each>
-        </xsl:if>-->
+                        </div>-->
         
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, xs:anyURI(ac:document-uri(rdf:value/@rdf:resource)))" as="xs:anyURI"/>
         <xsl:variable name="request" as="item()*">
@@ -786,10 +764,7 @@ exclude-result-prefixes="#all"
             </xsl:document>
         </xsl:variable>
         <xsl:variable name="controls" as="node()*">
-            <xsl:apply-templates select="$constructor//rdf:Description[rdf:type/@rdf:resource = '&ldh;View']" mode="bs2:Form">
-                <xsl:with-param name="constructors" select="$constructor" tunnel="yes"/>
-            </xsl:apply-templates>
-            <!--
+             <!--
             <xsl:call-template name="bs2:Lookup">
                 <xsl:with-param name="value" select="spin:query/@rdf:resource"/>
                 <xsl:with-param name="forClass" select="xs:anyURI('&sp;Select')"/>
@@ -803,19 +778,13 @@ exclude-result-prefixes="#all"
         
         <xsl:for-each select="$container">
             <xsl:result-document href="?." method="ixsl:replace-content">
-                <xsl:for-each select="$content-container/div[contains-token(@class, 'left-nav')]">
-                    <xsl:copy-of select="."/>
-                </xsl:for-each>
-
-                <xsl:for-each select="$content-container/div[contains-token(@class, 'main')]">
-                    <xsl:copy>
-                        <xsl:copy-of select="@*"/>
-                        
-                        <div>
-                            <xsl:copy-of select="$controls"/>
-                        </div>
-
-                        <div class="form-actions">
+                <xsl:apply-templates select="$constructor//rdf:Description[rdf:type/@rdf:resource = '&ldh;View']" mode="bs2:RowForm">
+                    <xsl:with-param name="constructors" select="$constructor" tunnel="yes"/>
+                </xsl:apply-templates>
+            </xsl:result-document>
+        </xsl:for-each>
+        
+<!--                        <div class="form-actions">
                             <button type="button" class="btn btn-primary btn-save">
                                 <xsl:value-of>
                                     <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
@@ -831,23 +800,7 @@ exclude-result-prefixes="#all"
                                     <xsl:apply-templates select="key('resources', 'cancel', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
                                 </xsl:value-of>
                             </button>
-                        </div>
-                    </xsl:copy>
-                    
-                    <xsl:for-each select="$content-container/div[contains-token(@class, 'right-nav')]">
-                        <xsl:copy-of select="."/>
-                    </xsl:for-each>
-                </xsl:for-each>
-            </xsl:result-document>
-        </xsl:for-each>
-        
-<!--        <xsl:if test="$mode">
-             set the select.content-mode value to $mode and remove its @name 
-            <xsl:for-each select="key('elements-by-class', 'content-mode', $container)">
-                <ixsl:set-property name="value" select="$mode" object="."/>
-                <ixsl:remove-attribute name="name"/>
-            </xsl:for-each>
-        </xsl:if>-->
+                        </div>-->
         
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, xs:anyURI(ac:document-uri(spin:query/@rdf:resource)))" as="xs:anyURI"/>
         <xsl:variable name="request" as="item()*">

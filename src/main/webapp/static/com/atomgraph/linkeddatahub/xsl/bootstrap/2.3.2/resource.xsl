@@ -756,8 +756,8 @@ extension-element-prefixes="ixsl"
     <xsl:template match="@rdf:resource[key('resources', .)[rdf:type/@rdf:resource = '&ldh;XHTML'][rdf:value[@rdf:parseType = 'Literal']/xhtml:div]]" mode="bs2:RowContent" priority="2">
         <xsl:param name="id" select="if (contains(., ac:absolute-path(ldh:base-uri(.)) || '#')) then substring-after(., ac:absolute-path(ldh:base-uri(.)) || '#') else generate-id()" as="xs:string?"/>
         <xsl:param name="class" select="'row-fluid content xhtml-content'" as="xs:string?"/>
-        <xsl:param name="left-class" as="xs:string?"/>
-        <xsl:param name="main-class" select="'main offset2 span7'" as="xs:string?"/>
+        <xsl:param name="left-class" select="'left-nav span2'" as="xs:string?"/>
+        <xsl:param name="main-class" select="'main span7'" as="xs:string?"/>
         <xsl:param name="right-class" select="'right-nav span3'" as="xs:string?"/>
         <xsl:param name="transclude" select="false()" as="xs:boolean"/>
         <xsl:param name="base" as="xs:anyURI?"/>
