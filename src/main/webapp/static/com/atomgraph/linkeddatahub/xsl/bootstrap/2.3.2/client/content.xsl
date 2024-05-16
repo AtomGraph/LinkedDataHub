@@ -701,10 +701,14 @@ exclude-result-prefixes="#all"
         </xsl:variable>
         
         <xsl:for-each select="$container">
-            <xsl:result-document href="?." method="ixsl:replace-content">
+            <xsl:variable name="row" as="element()*">
                 <xsl:apply-templates select="$constructor//rdf:Description[rdf:type/@rdf:resource = '&ldh;Object']" mode="bs2:RowForm">
                     <xsl:with-param name="constructors" select="$constructor" tunnel="yes"/>
                 </xsl:apply-templates>
+            </xsl:variable>
+            
+            <xsl:result-document href="?." method="ixsl:replace-content">
+                <xsl:copy-of select="$row/*"/>
             </xsl:result-document>
         </xsl:for-each>
 
@@ -777,10 +781,14 @@ exclude-result-prefixes="#all"
         </xsl:variable>
         
         <xsl:for-each select="$container">
-            <xsl:result-document href="?." method="ixsl:replace-content">
+            <xsl:variable name="row" as="element()*">
                 <xsl:apply-templates select="$constructor//rdf:Description[rdf:type/@rdf:resource = '&ldh;View']" mode="bs2:RowForm">
                     <xsl:with-param name="constructors" select="$constructor" tunnel="yes"/>
                 </xsl:apply-templates>
+            </xsl:variable>
+            
+            <xsl:result-document href="?." method="ixsl:replace-content">
+                <xsl:copy-of select="$row/*"/>
             </xsl:result-document>
         </xsl:for-each>
         
