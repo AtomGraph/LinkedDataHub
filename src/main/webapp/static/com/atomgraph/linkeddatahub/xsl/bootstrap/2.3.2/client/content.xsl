@@ -174,6 +174,8 @@ exclude-result-prefixes="#all"
         <xsl:attribute name="class" select="concat($class, ' ', 'btn-run-query')"/>
     </xsl:template>
 
+    <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;XHTML']/rdf:value/xhtml:*" mode="bs2:FormControlTypeLabel" priority="1"/>
+
     <!-- VIEW -->
     
     <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;View'][spin:query/@rdf:resource]" mode="ldh:RenderBlock" priority="1">
@@ -403,6 +405,7 @@ exclude-result-prefixes="#all"
             <ixsl:set-style name="width" select="'75%'" object="."/>
         </xsl:for-each>
         
+        <!-- don't use ldh:base-uri(.) because its value comes from the last HTML document load -->
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, if (starts-with($graph, $ldt:base)) then $graph else ac:absolute-path(xs:anyURI(ixsl:location())), map{}, ac:document-uri($resource-uri), $graph, ())" as="xs:anyURI"/>
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
@@ -555,7 +558,6 @@ exclude-result-prefixes="#all"
         <xsl:variable name="button" select="." as="element()"/>
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'content')][contains-token(@class, 'row-fluid')]" as="element()"/>
         <xsl:variable name="block-uri" select="$container/@about" as="xs:anyURI"/>
-        <!-- don't use ldh:base-uri(.) because its value comes from the last HTML document load -->
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, ac:document-uri($block-uri))" as="xs:anyURI"/>
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': ac:document-uri($request-uri), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
@@ -592,11 +594,6 @@ exclude-result-prefixes="#all"
                 <ixsl:set-property name="{'`' || $block-uri || '`'}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
                 <!-- store this content element -->
                 <ixsl:set-property name="content" select="$block" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`')"/>
-
-<!--                <xsl:for-each select="$container//div[@class = 'bar']">
-                     update progress bar 
-                    <ixsl:set-style name="width" select="'50%'" object="."/>
-                </xsl:for-each>-->
 
                 <xsl:apply-templates select="$block" mode="ldh:RenderBlockForm">
                     <xsl:with-param name="button" select="$button"/>
@@ -688,15 +685,19 @@ exclude-result-prefixes="#all"
             </xsl:document>
         </xsl:variable>
         <xsl:variable name="controls" as="node()*">
+            <xsl:apply-templates select="$constructor//rdf:Description[rdf:type/@rdf:resource = '&ldh;Object']" mode="bs2:Form">
+                <xsl:with-param name="constructors" select="$constructor" tunnel="yes"/>
+            </xsl:apply-templates>
+            <!--
             <xsl:call-template name="bs2:Lookup">
                 <xsl:with-param name="value" select="rdf:value/@rdf:resource"/>
                 <xsl:with-param name="forClass" select="xs:anyURI('&rdfs;Resource')"/>
             </xsl:call-template>
-<!--                <xsl:apply-templates select="rdf:value/@rdf:resource" mode="bs2:FormControl"/>-->
             <xsl:apply-templates select="(ac:mode/@rdf:resource, $constructor//ac:mode/@rdf:nodeID)[1]" mode="bs2:FormControl">
                 <xsl:with-param name="class" select="'content-mode'"/>
                 <xsl:with-param name="type-label" select="false()"/>
             </xsl:apply-templates>
+            -->
         </xsl:variable>
         
         <xsl:for-each select="$container">
@@ -766,6 +767,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="content-container" select="$container" as="element()"/>
         <xsl:message>ldh:RenderBlockForm ldh:View</xsl:message>
 
+        <!-- TO-DO: load from ontology? -->
         <xsl:variable name="constructor" as="document-node()">
             <xsl:document>
                 <rdf:RDF>
@@ -784,15 +786,19 @@ exclude-result-prefixes="#all"
             </xsl:document>
         </xsl:variable>
         <xsl:variable name="controls" as="node()*">
+            <xsl:apply-templates select="$constructor//rdf:Description[rdf:type/@rdf:resource = '&ldh;View']" mode="bs2:Form">
+                <xsl:with-param name="constructors" select="$constructor" tunnel="yes"/>
+            </xsl:apply-templates>
+            <!--
             <xsl:call-template name="bs2:Lookup">
                 <xsl:with-param name="value" select="spin:query/@rdf:resource"/>
                 <xsl:with-param name="forClass" select="xs:anyURI('&sp;Select')"/>
             </xsl:call-template>
-            <!-- <xsl:apply-templates select="$constructor//spin:query/@rdf:*" mode="bs2:FormControl"/> -->
             <xsl:apply-templates select="(ac:mode/@rdf:resource, $constructor//ac:mode/@rdf:nodeID)[1]" mode="bs2:FormControl">
                 <xsl:with-param name="class" select="'content-mode'"/>
                 <xsl:with-param name="type-label" select="false()"/>
             </xsl:apply-templates>
+            -->
         </xsl:variable>
         
         <xsl:for-each select="$container">
@@ -1704,7 +1710,6 @@ exclude-result-prefixes="#all"
             </xsl:result-document>
         </xsl:for-each>
 
-        <!-- don't use ldh:base-uri(.) because its value comes from the last HTML document load -->
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, ac:document-uri($content-uri))" as="xs:anyURI"/>
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': ac:document-uri($request-uri), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
