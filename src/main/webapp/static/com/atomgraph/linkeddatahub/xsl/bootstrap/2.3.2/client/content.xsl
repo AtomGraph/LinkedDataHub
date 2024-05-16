@@ -735,7 +735,7 @@ exclude-result-prefixes="#all"
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                 <xsl:call-template name="onTypeaheadResourceLoad">
                     <xsl:with-param name="resource-uri" select="rdf:value/@rdf:resource"/>
-                    <xsl:with-param name="typeahead-span" select="$container/div[contains-token(@class, 'main')]//span[1]"/>
+                    <xsl:with-param name="typeahead-span" select="$container/div[contains-token(@class, 'control-group')][input[@name = 'pu']/@value = '&rdf;value']//span[1]"/>
                 </xsl:call-template>
             </ixsl:schedule-action>
         </xsl:variable>
@@ -815,7 +815,7 @@ exclude-result-prefixes="#all"
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                 <xsl:call-template name="onTypeaheadResourceLoad">
                     <xsl:with-param name="resource-uri" select="spin:query/@rdf:resource"/>
-                    <xsl:with-param name="typeahead-span" select="$container/div[contains-token(@class, 'main')]//span[1]"/>
+                    <xsl:with-param name="typeahead-span" select="$container/div[contains-token(@class, 'control-group')][input[@name = 'pu']/@value = '&spin;query']//span[1]"/>
                 </xsl:call-template>
             </ixsl:schedule-action>
         </xsl:variable>
