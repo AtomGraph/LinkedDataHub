@@ -798,12 +798,17 @@ exclude-result-prefixes="#all"
                 </xsl:choose>
             </xsl:when>
             <xsl:otherwise>
+                <!--
                 <xsl:apply-templates select="." mode="xhtml:Input">
                     <xsl:with-param name="type" select="$type"/>
                     <xsl:with-param name="id" select="$id"/>
                     <xsl:with-param name="class" select="$class"/>
                     <xsl:with-param name="disabled" select="$disabled"/>
                 </xsl:apply-templates>
+                -->
+                <xsl:call-template name="bs2:Lookup">
+                    <xsl:with-param name="forClass" select="$forClass"/>
+                </xsl:call-template>
 
                 <xsl:if test="$type-label">
                     <xsl:apply-templates select="." mode="bs2:FormControlTypeLabel">
