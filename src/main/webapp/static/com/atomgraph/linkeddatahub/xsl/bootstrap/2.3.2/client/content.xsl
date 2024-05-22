@@ -174,6 +174,13 @@ exclude-result-prefixes="#all"
         <xsl:attribute name="class" select="concat($class, ' ', 'btn-run-query')"/>
     </xsl:template>
 
+    <!-- TO-DO: move to spin.xsl? -->
+    <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;View']/spin:query/@rdf:resource" mode="bs2:FormControl" priority="1">
+        <xsl:next-match>
+            <xsl:with-param name="forClass" select="(xs:anyURI('&sp;Describe'), xs:anyURI('&sp;Construct'), xs:anyURI('&sp;Select'), xs:anyURI('&sp;Ask'))" as="xs:anyURI*"/>
+        </xsl:next-match>
+    </xsl:template>
+            
     <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;XHTML']/rdf:value/xhtml:*" mode="bs2:FormControlTypeLabel" priority="1"/>
 
     <!-- VIEW -->
@@ -1302,18 +1309,7 @@ exclude-result-prefixes="#all"
                 </rdf:RDF>
             </xsl:document>
         </xsl:variable>
-        <!--
-        <xsl:variable name="controls" as="node()*">
-            <xsl:apply-templates select="$constructor//spin:query/@rdf:*" mode="bs2:FormControl">
-                <xsl:with-param name="forClass" select="(xs:anyURI('&sp;Describe'), xs:anyURI('&sp;Construct'), xs:anyURI('&sp;Select'), xs:anyURI('&sp;Ask'))" as="xs:anyURI*"/>
-            </xsl:apply-templates>
-            <xsl:apply-templates select="$constructor//ac:mode/@rdf:*" mode="bs2:FormControl">
-                <xsl:with-param name="class" select="'content-mode'"/>
-                <xsl:with-param name="type-label" select="false()"/>
-            </xsl:apply-templates>
-        </xsl:variable>
-        -->
-        
+
         <!-- move the current row of controls to the bottom of the content list -->
         <xsl:for-each select="$container/..">
             <xsl:result-document href="?." method="ixsl:append-content">
@@ -1323,10 +1319,6 @@ exclude-result-prefixes="#all"
 
         <!-- add .content.resource-content to div.row-fluid -->
         <xsl:for-each select="$container">
-            <!--
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'content', true() ])[current-date() lt xs:date('2000-01-01')]"/>
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'resource-content', true() ])[current-date() lt xs:date('2000-01-01')]"/>
-            -->
             <xsl:variable name="row" as="element()*">
                 <xsl:apply-templates select="$constructor" mode="bs2:RowForm">
                     <xsl:with-param name="constructors" select="$constructor" tunnel="yes"/>
@@ -1337,33 +1329,14 @@ exclude-result-prefixes="#all"
                 <xsl:copy-of select="$row/*"/>
             </xsl:result-document>
 
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'content', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'resource-content', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+
             <xsl:variable name="content-id" select="'id' || ac:uuid()" as="xs:string"/>
             <ixsl:set-attribute name="id" select="$content-id"/>
             <ixsl:set-attribute name="typeof" select="'&ldh;View'"/>
             <ixsl:set-attribute name="draggable" select="'true'"/>
         </xsl:for-each>
-        <!--
-        <xsl:for-each select="ancestor::div[contains-token(@class, 'main')]">
-            <xsl:result-document href="?." method="ixsl:replace-content">
-                <div>
-                    <xsl:copy-of select="$controls"/>
-                </div>
-                
-                <div class="form-actions">
-                    <button type="button" class="btn btn-primary btn-save">
-                        <xsl:value-of>
-                            <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                        </xsl:value-of>
-                    </button>
-                    <button type="button" class="btn btn-cancel">
-                        <xsl:value-of>
-                            <xsl:apply-templates select="key('resources', 'cancel', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                        </xsl:value-of>
-                    </button>
-                </div>
-            </xsl:result-document>
-        </xsl:for-each>
-        -->
     </xsl:template>
     
     <!-- appends new object instance to the content list -->
