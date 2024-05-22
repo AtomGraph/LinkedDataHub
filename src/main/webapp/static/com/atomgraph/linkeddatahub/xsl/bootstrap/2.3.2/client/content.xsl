@@ -177,7 +177,7 @@ exclude-result-prefixes="#all"
     <!-- TO-DO: move to spin.xsl? -->
     <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;View']/spin:query/@rdf:resource" mode="bs2:FormControl" priority="1">
         <xsl:next-match>
-            <xsl:with-param name="forClass" select="(xs:anyURI('&sp;Describe'), xs:anyURI('&sp;Construct'), xs:anyURI('&sp;Select'), xs:anyURI('&sp;Ask'))" as="xs:anyURI*"/>
+            <xsl:with-param name="forClass" select="(xs:anyURI('&sp;Describe'), xs:anyURI('&sp;Construct'), xs:anyURI('&sp;Select'), xs:anyURI('&sp;Ask'))"/>
         </xsl:next-match>
     </xsl:template>
             
