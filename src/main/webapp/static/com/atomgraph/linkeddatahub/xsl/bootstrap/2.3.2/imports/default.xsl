@@ -753,6 +753,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="type-label" select="true()" as="xs:boolean"/>
         <xsl:param name="constructor" as="document-node()?"/>
         <xsl:param name="object-metadata" as="document-node()?" tunnel="yes"/>
+        <xsl:param name="forClass" select="if ($constructor) then distinct-values(key('resources', key('resources-by-type', ../../rdf:type/@rdf:resource, $constructor)/*[concat(namespace-uri(), local-name()) = current()/../concat(namespace-uri(), local-name())]/@rdf:nodeID, $constructor)/rdf:type/@rdf:resource[not(. = '&rdfs;Class')]) else ()" as="xs:anyURI?"/>
 
         <xsl:choose>
             <xsl:when test="$type = 'hidden'">
@@ -766,7 +767,6 @@ exclude-result-prefixes="#all"
             <xsl:when test="exists($object-metadata)">
                 <xsl:choose>
                     <xsl:when test="key('resources', ., $object-metadata)">
-                        <xsl:variable name="forClass" select="if ($constructor) then distinct-values(key('resources', key('resources-by-type', ../../rdf:type/@rdf:resource, $constructor)/*[concat(namespace-uri(), local-name()) = current()/../concat(namespace-uri(), local-name())]/@rdf:nodeID, $constructor)/rdf:type/@rdf:resource[not(. = '&rdfs;Class')]) else ()" as="xs:anyURI?"/>
                         <xsl:apply-templates select="key('resources', ., $object-metadata)" mode="ldh:Typeahead"/>
 
                         <xsl:if test="$type-label">
@@ -777,12 +777,17 @@ exclude-result-prefixes="#all"
                         </xsl:if>
                     </xsl:when>
                     <xsl:otherwise>
+                        <!--
                         <xsl:apply-templates select="." mode="xhtml:Input">
                             <xsl:with-param name="type" select="$type"/>
                             <xsl:with-param name="id" select="$id"/>
                             <xsl:with-param name="class" select="$class"/>
                             <xsl:with-param name="disabled" select="$disabled"/>
                         </xsl:apply-templates>
+                        -->
+                        <xsl:call-template name="bs2:Lookup">
+                            <xsl:with-param name="forClass" select="$forClass"/>
+                        </xsl:call-template>
 
                         <xsl:if test="$type-label">
                             <xsl:apply-templates select="." mode="bs2:FormControlTypeLabel">
