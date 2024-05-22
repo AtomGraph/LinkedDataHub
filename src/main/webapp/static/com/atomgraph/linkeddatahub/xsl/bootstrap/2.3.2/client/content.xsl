@@ -1302,6 +1302,7 @@ exclude-result-prefixes="#all"
                 </rdf:RDF>
             </xsl:document>
         </xsl:variable>
+        <!--
         <xsl:variable name="controls" as="node()*">
             <xsl:apply-templates select="$constructor//spin:query/@rdf:*" mode="bs2:FormControl">
                 <xsl:with-param name="forClass" select="(xs:anyURI('&sp;Describe'), xs:anyURI('&sp;Construct'), xs:anyURI('&sp;Select'), xs:anyURI('&sp;Ask'))" as="xs:anyURI*"/>
@@ -1311,6 +1312,7 @@ exclude-result-prefixes="#all"
                 <xsl:with-param name="type-label" select="false()"/>
             </xsl:apply-templates>
         </xsl:variable>
+        -->
         
         <!-- move the current row of controls to the bottom of the content list -->
         <xsl:for-each select="$container/..">
@@ -1321,15 +1323,26 @@ exclude-result-prefixes="#all"
 
         <!-- add .content.resource-content to div.row-fluid -->
         <xsl:for-each select="$container">
+            <!--
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'content', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'resource-content', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+            -->
+            <xsl:variable name="row" as="element()*">
+                <xsl:apply-templates select="$constructor" mode="bs2:RowForm">
+                    <xsl:with-param name="constructors" select="$constructor" tunnel="yes"/>
+                </xsl:apply-templates>
+            </xsl:variable>
+            
+            <xsl:result-document href="?." method="ixsl:replace-content">
+                <xsl:copy-of select="$row/*"/>
+            </xsl:result-document>
+
             <xsl:variable name="content-id" select="'id' || ac:uuid()" as="xs:string"/>
             <ixsl:set-attribute name="id" select="$content-id"/>
             <ixsl:set-attribute name="typeof" select="'&ldh;View'"/>
             <ixsl:set-attribute name="draggable" select="'true'"/>
-
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'content', true() ])[current-date() lt xs:date('2000-01-01')]"/>
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'resource-content', true() ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
-        
+        <!--
         <xsl:for-each select="ancestor::div[contains-token(@class, 'main')]">
             <xsl:result-document href="?." method="ixsl:replace-content">
                 <div>
@@ -1350,6 +1363,7 @@ exclude-result-prefixes="#all"
                 </div>
             </xsl:result-document>
         </xsl:for-each>
+        -->
     </xsl:template>
     
     <!-- appends new object instance to the content list -->
