@@ -16,7 +16,11 @@
     <> a def:Root ;
         dct:title "Root" ;
         dct:description "Root container" ;
-        rdf:_1 ldh:ChildrenView .
+        rdf:_1 <#select-children> .
+
+    <#select-children> a ldh:View ;
+        dct:title "Children view" ;
+        spin:query ldh:SelectChildren .
 
 }
 

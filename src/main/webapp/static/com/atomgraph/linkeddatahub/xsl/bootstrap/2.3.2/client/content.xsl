@@ -842,13 +842,14 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
 
-    <!-- save object block onclick -->
+    <!-- save object block form onsubmit -->
     
     <xsl:template match="div[@typeof = '&ldh;Object'][contains-token(@class, 'row-fluid')]//form[contains-token(@class, 'form-horizontal')]" mode="ixsl:onsubmit" priority="1"> <!-- prioritze over form.xsl -->
+        <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'resource-content')][contains-token(@class, 'row-fluid')]" as="element()"/>
         <xsl:variable name="block-type" select="xs:anyURI($container/@typeof)" as="xs:anyURI"/>
         <xsl:variable name="value-input" select="$container//div[contains-token(@class, 'control-group')][input[@name = 'pu']/@value = '&rdf;value']//input[@name = 'ou']" as="element()"/>
-        <xsl:variable name="mode-input" select="$container//div[contains-token(@class, 'control-group')][input[@name = 'pu']/@value = '&ac;mode']//input[@name = 'ou']" as="element()"/>
+        <xsl:variable name="mode-input" select="$container//div[contains-token(@class, 'control-group')][input[@name = 'pu']/@value = '&ac;mode']//select[@name = 'ou']" as="element()"/>
 
         <xsl:choose>
             <!-- input values missing, throw an error -->
@@ -883,13 +884,14 @@ exclude-result-prefixes="#all"
         </xsl:choose>
     </xsl:template>
     
-    <!-- save view block onclick -->
+    <!-- save view block form onsubmit -->
     
     <xsl:template match="div[@typeof = '&ldh;View'][contains-token(@class, 'row-fluid')]//form[contains-token(@class, 'form-horizontal')]" mode="ixsl:onsubmit" priority="1"> <!-- prioritze over form.xsl -->
+        <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'resource-content')][contains-token(@class, 'row-fluid')]" as="element()"/>
         <xsl:variable name="block-type" select="xs:anyURI($container/@typeof)" as="xs:anyURI"/>
         <xsl:variable name="query-input" select="$container//div[contains-token(@class, 'control-group')][input[@name = 'pu']/@value = '&spin;query']//input[@name = 'ou']" as="element()"/>
-        <xsl:variable name="mode-input" select="$container//div[contains-token(@class, 'control-group')][input[@name = 'pu']/@value = '&ac;mode']//input[@name = 'ou']" as="element()"/>
+        <xsl:variable name="mode-input" select="$container//div[contains-token(@class, 'control-group')][input[@name = 'pu']/@value = '&ac;mode']//select[@name = 'ou']" as="element()"/>
 
         <xsl:choose>
             <!-- input values missing, throw an error -->

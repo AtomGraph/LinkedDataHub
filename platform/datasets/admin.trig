@@ -16,7 +16,11 @@
     <> a def:Root ;
         dct:title "Root" ;
         dct:description "Root container" ;
-        rdf:_1 ldh:ChildrenView .
+        rdf:_1 <#select-children> .
+
+    <#select-children> a ldh:View ;
+        dct:title "Children view" ;
+        spin:query ldh:SelectChildren .
 
 }
 
@@ -412,7 +416,11 @@ WHERE
         sioc:has_parent <> ;
         dct:title "Access control" ;
         dct:description "Manage agents, user accounts and authorizations" ;
-        rdf:_1 ldh:ChildrenView .
+        rdf:_1 <acl/#select-children> .
+
+    <acl/#select-children> a ldh:View ;
+        dct:title "Children view" ;
+        spin:query ldh:SelectChildren .
 
 }
 
@@ -423,7 +431,11 @@ WHERE
         sioc:has_parent <acl/> ;
         dct:title "Authorizations" ;
         dct:description "Manage requests for access" ;
-        rdf:_1 ldh:ChildrenView .
+        rdf:_1 <acl/authorizations/#select-children> .
+
+    <acl/authorizations/#select-children> a ldh:View ;
+        dct:title "Children view" ;
+        spin:query ldh:SelectChildren .
 
 }
 
@@ -434,7 +446,11 @@ WHERE
         sioc:has_parent <acl/> ;
         dct:title "Authorization requests" ;
         dct:description "Manage who has access to which resources" ;
-        rdf:_1 ldh:ChildrenView .
+        rdf:_1 <acl/authorization-requests/#select-children> .
+
+    <acl/authorization-requests/#select-children> a ldh:View ;
+        dct:title "Children view" ;
+        spin:query ldh:SelectChildren .
 
 }
 
@@ -445,7 +461,11 @@ WHERE
         sioc:has_parent <acl/> ;
         dct:title "Agents" ;
         dct:description "Manage people and software agents that have access" ;
-        rdf:_1 ldh:ChildrenView .
+        rdf:_1 <acl/agents/#select-children> .
+
+    <acl/agents/#select-children> a ldh:View ;
+        dct:title "Children view" ;
+        spin:query ldh:SelectChildren .
 
 }
 
@@ -456,7 +476,11 @@ WHERE
         sioc:has_parent <acl/> ;
         dct:title "Public keys" ;
         dct:description "Manage RSA public keys" ;
-        rdf:_1 ldh:ChildrenView .
+        rdf:_1 <acl/public-keys/#select-children> .
+
+    <acl/public-keys/#select-children> a ldh:View ;
+        dct:title "Children view" ;
+        spin:query ldh:SelectChildren .
 
 }
 
@@ -467,7 +491,11 @@ WHERE
         sioc:has_parent <acl/> ;
         dct:title "Users" ;
         dct:description "Manage agent user accounts and credentials" ;
-        rdf:_1 ldh:ChildrenView .
+        rdf:_1 <acl/users/#select-children> .
+
+    <acl/users/#select-children> a ldh:View ;
+        dct:title "Children view" ;
+        spin:query ldh:SelectChildren .
 
 }
 
@@ -478,7 +506,11 @@ WHERE
         sioc:has_parent <acl/> ;
         dct:title "Groups" ;
         dct:description "Manage agent groups that have access" ;
-        rdf:_1 ldh:ChildrenView .
+        rdf:_1 <acl/groups/#select-children> .
+
+    <acl/groups/#select-children> a ldh:View ;
+        dct:title "Children view" ;
+        spin:query ldh:SelectChildren .
 
 }
 
@@ -759,7 +791,11 @@ WHERE
         sioc:has_parent <> ;
         dct:title "Ontologies" ;
         dct:description "Manage ontologies that define application domain" ;
-        rdf:_1 ldh:ChildrenView .
+        rdf:_1 <ontologies/#select-children> .
+
+    <ontologies/#select-children> a ldh:View ;
+        dct:title "Children view" ;
+        spin:query ldh:SelectChildren .
 
 }
 

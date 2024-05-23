@@ -176,18 +176,11 @@
 
 :BlockInstanceConstructor a :Constructor ;
   sp:text """
-      PREFIX ldh:   <https://w3id.org/atomgraph/linkeddatahub#>
-      PREFIX ac:    <https://w3id.org/atomgraph/client#>
-      PREFIX rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-      PREFIX rdfs:  <http://www.w3.org/2000/01/rdf-schema#>
       PREFIX xsd:   <http://www.w3.org/2001/XMLSchema#>
       PREFIX dct:   <http://purl.org/dc/terms/>
 
       CONSTRUCT {
-          $this # rdf:value [ a rdfs:Resource ] ;
-            ldh:graph [ a rdfs:Resource ] ;
-            # ac:mode [ a rdfs:Resource ] ;
-            dct:title [ a xsd:string ] .
+          $this dct:title [ a xsd:string ] .
       }
       WHERE {}""" ;
     rdfs:label "Block constructor" ;
@@ -292,9 +285,14 @@
 :ObjectConstructor a :Constructor ;
   sp:text """
       PREFIX rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+      PREFIX ldh:   <https://w3id.org/atomgraph/linkeddatahub#>
+      PREFIX rdfs:  <http://www.w3.org/2000/01/rdf-schema#>
+      PREFIX ac:    <https://w3id.org/atomgraph/client#>
 
       CONSTRUCT {
-          $this rdf:value [ a rdf:Resource ] .
+          $this rdf:value [ a rdf:Resource ] ;
+              ldh:graph [ a rdfs:Resource ] ;
+              ac:mode [ a rdfs:Resource ] .
       }
       WHERE {}""" ;
     rdfs:label "Object constructor" ;
@@ -449,11 +447,6 @@ WHERE
     rdfs:isDefinedBy : .
 
 # CONTENTS
-
-:ChildrenView a :View ;
-    dct:title "Children view" ;
-    spin:query :SelectChildren ;
-    rdfs:isDefinedBy : .
 
 :SelectChildren a sp:Select ;
     rdfs:label "Select children" ;
