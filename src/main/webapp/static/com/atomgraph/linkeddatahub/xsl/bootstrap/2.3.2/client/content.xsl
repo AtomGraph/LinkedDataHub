@@ -844,7 +844,7 @@ exclude-result-prefixes="#all"
 
     <!-- save object block onclick -->
     
-    <xsl:template match="div[@typeof = '&ldh;Object'][contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'btn-save')]" mode="ixsl:onclick">
+    <xsl:template match="div[@typeof = '&ldh;Object'][contains-token(@class, 'row-fluid')]//form[contains-token(@class, 'form-horizontal')]" mode="ixsl:onsubmit" priority="1"> <!-- prioritze over form.xsl -->
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'resource-content')][contains-token(@class, 'row-fluid')]" as="element()"/>
         <xsl:variable name="block-type" select="xs:anyURI($container/@typeof)" as="xs:anyURI"/>
         <xsl:variable name="value-input" select="$container//div[contains-token(@class, 'control-group')][input[@name = 'pu']/@value = '&rdf;value']//input[@name = 'ou']" as="element()"/>
@@ -885,7 +885,7 @@ exclude-result-prefixes="#all"
     
     <!-- save view block onclick -->
     
-    <xsl:template match="div[@typeof = '&ldh;View'][contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'btn-save')]" mode="ixsl:onclick">
+    <xsl:template match="div[@typeof = '&ldh;View'][contains-token(@class, 'row-fluid')]//form[contains-token(@class, 'form-horizontal')]" mode="ixsl:onsubmit" priority="1"> <!-- prioritze over form.xsl -->
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'resource-content')][contains-token(@class, 'row-fluid')]" as="element()"/>
         <xsl:variable name="block-type" select="xs:anyURI($container/@typeof)" as="xs:anyURI"/>
         <xsl:variable name="query-input" select="$container//div[contains-token(@class, 'control-group')][input[@name = 'pu']/@value = '&spin;query']//input[@name = 'ou']" as="element()"/>
