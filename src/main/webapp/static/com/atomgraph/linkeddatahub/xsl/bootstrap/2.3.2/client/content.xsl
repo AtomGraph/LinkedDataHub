@@ -175,7 +175,7 @@ exclude-result-prefixes="#all"
     </xsl:template>
 
     <!-- TO-DO: move to spin.xsl? -->
-    <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;View']/spin:query/@rdf:resource" mode="bs2:FormControl" priority="1">
+    <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;View']/spin:query/@rdf:resource | *[rdf:type/@rdf:resource = '&ldh;View']/spin:query/@rdf:nodeID[key('resources', .)[not(* except rdf:type[not(starts-with(@rdf:resource, '&xsd;'))])]]" mode="bs2:FormControl" priority="1">
         <xsl:next-match>
             <xsl:with-param name="forClass" select="(xs:anyURI('&sp;Describe'), xs:anyURI('&sp;Construct'), xs:anyURI('&sp;Select'), xs:anyURI('&sp;Ask'))"/>
         </xsl:next-match>
@@ -561,7 +561,7 @@ exclude-result-prefixes="#all"
     
     <!-- EVENT LISTENERS -->
     
-    <xsl:template match="div[contains-token(@class, 'content')][contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'btn-edit')]" mode="ixsl:onclick" priority="1"> <!-- prioritize over form.xsl -->
+    <xsl:template match="div[contains-token(@class, 'xhtml-content')][contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'btn-edit')]" mode="ixsl:onclick" priority="1"> <!-- prioritize over form.xsl -->
         <xsl:variable name="button" select="." as="element()"/>
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'content')][contains-token(@class, 'row-fluid')]" as="element()"/>
         <xsl:variable name="block-uri" select="$container/@about" as="xs:anyURI"/>
@@ -1139,9 +1139,9 @@ exclude-result-prefixes="#all"
         </xsl:choose>
     </xsl:template>
     
-    <!-- delete content onclick (increased priority to take precedence over document's .btn-delete) -->
+    <!-- delete content onclick (increased priority to take precedence over form.xsl .btn-remove-resource) -->
     
-    <xsl:template match="div[contains-token(@class, 'content')]//button[contains-token(@class, 'btn-delete')]" mode="ixsl:onclick" priority="1">
+    <xsl:template match="div[contains-token(@class, 'content')]//button[contains-token(@class, 'btn-remove-resource')]" mode="ixsl:onclick" priority="3">
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'content')]" as="element()"/>
 
         <xsl:if test="ixsl:call(ixsl:window(), 'confirm', [ ac:label(key('resources', 'are-you-sure', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))) ])">
