@@ -786,6 +786,7 @@ exclude-result-prefixes="#all"
                         </xsl:apply-templates>
                         -->
                         <xsl:call-template name="bs2:Lookup">
+                            <xsl:with-param name="value" select="."/>
                             <xsl:with-param name="forClass" select="$forClass"/>
                         </xsl:call-template>
 
@@ -807,6 +808,7 @@ exclude-result-prefixes="#all"
                 </xsl:apply-templates>
                 -->
                 <xsl:call-template name="bs2:Lookup">
+                    <xsl:with-param name="value" select="."/>
                     <xsl:with-param name="forClass" select="$forClass"/>
                 </xsl:call-template>
 

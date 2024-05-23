@@ -19,7 +19,6 @@
         rdf:_1 <#select-children> .
 
     <#select-children> a ldh:View ;
-        dct:title "Children view" ;
         spin:query ldh:SelectChildren .
 
 }

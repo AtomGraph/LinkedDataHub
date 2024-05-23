@@ -19,7 +19,6 @@
         rdf:_1 <#select-children> .
 
     <#select-children> a ldh:View ;
-        dct:title "Children view" ;
         spin:query ldh:SelectChildren .
 
 }
@@ -419,7 +418,6 @@ WHERE
         rdf:_1 <acl/#select-children> .
 
     <acl/#select-children> a ldh:View ;
-        dct:title "Children view" ;
         spin:query ldh:SelectChildren .
 
 }
@@ -434,7 +432,6 @@ WHERE
         rdf:_1 <acl/authorizations/#select-children> .
 
     <acl/authorizations/#select-children> a ldh:View ;
-        dct:title "Children view" ;
         spin:query ldh:SelectChildren .
 
 }
@@ -449,7 +446,6 @@ WHERE
         rdf:_1 <acl/authorization-requests/#select-children> .
 
     <acl/authorization-requests/#select-children> a ldh:View ;
-        dct:title "Children view" ;
         spin:query ldh:SelectChildren .
 
 }
@@ -464,7 +460,6 @@ WHERE
         rdf:_1 <acl/agents/#select-children> .
 
     <acl/agents/#select-children> a ldh:View ;
-        dct:title "Children view" ;
         spin:query ldh:SelectChildren .
 
 }
@@ -479,7 +474,6 @@ WHERE
         rdf:_1 <acl/public-keys/#select-children> .
 
     <acl/public-keys/#select-children> a ldh:View ;
-        dct:title "Children view" ;
         spin:query ldh:SelectChildren .
 
 }
@@ -494,7 +488,6 @@ WHERE
         rdf:_1 <acl/users/#select-children> .
 
     <acl/users/#select-children> a ldh:View ;
-        dct:title "Children view" ;
         spin:query ldh:SelectChildren .
 
 }
@@ -509,7 +502,6 @@ WHERE
         rdf:_1 <acl/groups/#select-children> .
 
     <acl/groups/#select-children> a ldh:View ;
-        dct:title "Children view" ;
         spin:query ldh:SelectChildren .
 
 }
@@ -794,7 +786,6 @@ WHERE
         rdf:_1 <ontologies/#select-children> .
 
     <ontologies/#select-children> a ldh:View ;
-        dct:title "Children view" ;
         spin:query ldh:SelectChildren .
 
 }

@@ -852,9 +852,9 @@ exclude-result-prefixes="#all"
         <xsl:variable name="mode-input" select="$container//div[contains-token(@class, 'control-group')][input[@name = 'pu']/@value = '&ac;mode']//select[@name = 'ou']" as="element()"/>
 
         <xsl:choose>
-            <!-- input values missing, throw an error -->
+            <!-- input values missing, show an error -->
             <xsl:when test="exists($value-input[not(ixsl:get(., 'value'))])">
-                <ixsl:set-style name="border-color" select="'#ff0039'" object="$value-input"/>
+                <xsl:sequence select="ixsl:call(ixsl:get($container//div[contains-token(@class, 'control-group')][input[@name = 'pu']/@value = '&rdf;value'], 'classList'), 'toggle', [ 'error', true() ])[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:when>
             <xsl:otherwise>
                 <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
@@ -894,9 +894,9 @@ exclude-result-prefixes="#all"
         <xsl:variable name="mode-input" select="$container//div[contains-token(@class, 'control-group')][input[@name = 'pu']/@value = '&ac;mode']//select[@name = 'ou']" as="element()"/>
 
         <xsl:choose>
-            <!-- input values missing, throw an error -->
+            <!-- input values missing, show an error -->
             <xsl:when test="exists($query-input[not(ixsl:get(., 'value'))])">
-                <ixsl:set-style name="border-color" select="'#ff0039'" object="$query-input"/>
+                <xsl:sequence select="ixsl:call(ixsl:get($container//div[contains-token(@class, 'control-group')][input[@name = 'pu']/@value = '&spin;query'], 'classList'), 'toggle', [ 'error', true() ])[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:when>
             <xsl:otherwise>
                 <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
@@ -1362,14 +1362,6 @@ exclude-result-prefixes="#all"
                 </rdf:RDF>
             </xsl:document>
         </xsl:variable>
-        <xsl:variable name="controls" as="node()*">
-            <xsl:apply-templates select="$constructor//rdf:value/@rdf:*" mode="bs2:FormControl"/>
-            <xsl:apply-templates select="$constructor//ac:mode/@rdf:*" mode="bs2:FormControl">
-                <xsl:with-param name="class" select="'content-mode'"/>
-                <xsl:with-param name="type-label" select="false()"/>
-            </xsl:apply-templates>
-        </xsl:variable>
-        
         <!-- move the current row of controls to the bottom of the content list -->
         <xsl:for-each select="$container/..">
             <xsl:result-document href="?." method="ixsl:append-content">
@@ -1379,34 +1371,23 @@ exclude-result-prefixes="#all"
 
         <!-- add .content.resource-content to div.row-fluid -->
         <xsl:for-each select="$container">
+            <xsl:variable name="row" as="element()*">
+                <xsl:apply-templates select="$constructor" mode="bs2:RowForm">
+                    <xsl:with-param name="constructors" select="$constructor" tunnel="yes"/>
+                </xsl:apply-templates>
+            </xsl:variable>
+            
+            <xsl:result-document href="?." method="ixsl:replace-content">
+                <xsl:copy-of select="$row/*"/>
+            </xsl:result-document>
+
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'content', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'resource-content', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+
             <xsl:variable name="content-id" select="'id' || ac:uuid()" as="xs:string"/>
             <ixsl:set-attribute name="id" select="$content-id"/>
             <ixsl:set-attribute name="typeof" select="'&ldh;Object'"/>
             <ixsl:set-attribute name="draggable" select="'true'"/>
-
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'content', true() ])[current-date() lt xs:date('2000-01-01')]"/>
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'resource-content', true() ])[current-date() lt xs:date('2000-01-01')]"/>
-        </xsl:for-each>
-        
-        <xsl:for-each select="ancestor::div[contains-token(@class, 'main')]">
-            <xsl:result-document href="?." method="ixsl:replace-content">
-                <div>
-                    <xsl:copy-of select="$controls"/>
-                </div>
-                
-                <div class="form-actions">
-                    <button type="button" class="btn btn-primary btn-save">
-                        <xsl:value-of>
-                            <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                        </xsl:value-of>
-                    </button>
-                    <button type="button" class="btn btn-cancel">
-                        <xsl:value-of>
-                            <xsl:apply-templates select="key('resources', 'cancel', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                        </xsl:value-of>
-                    </button>
-                </div>
-            </xsl:result-document>
         </xsl:for-each>
     </xsl:template>
     
