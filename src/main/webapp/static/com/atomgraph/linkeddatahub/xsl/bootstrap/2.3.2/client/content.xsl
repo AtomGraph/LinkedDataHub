@@ -1837,7 +1837,7 @@ exclude-result-prefixes="#all"
             <xsl:when test="?status = 204">
                 <xsl:for-each select="$container">
                     <!-- set @about attribute -->
-                    <ixsl:set-attribute name="about" select="$block-urii"/>
+                    <ixsl:set-attribute name="about" select="$block-uri"/>
 
                     <xsl:call-template name="ldh:LoadBlock"/>
                 </xsl:for-each>
