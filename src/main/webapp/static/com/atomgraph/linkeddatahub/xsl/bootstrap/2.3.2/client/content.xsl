@@ -844,7 +844,7 @@ exclude-result-prefixes="#all"
 
     <!-- save object block form onsubmit -->
     
-    <xsl:template match="div[@typeof = '&ldh;Object'][contains-token(@class, 'row-fluid')]//form[contains-token(@class, 'form-horizontal')]" mode="ixsl:onsubmit" priority="1"> <!-- prioritze over form.xsl -->
+    <xsl:template match="div[@typeof = '&ldh;Object'][contains-token(@class, 'row-fluid')]//form[contains-token(@class, 'form-horizontal')][upper-case(@method) = 'PATCH']" mode="ixsl:onsubmit" priority="2"> <!-- prioritze over form.xsl -->
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'resource-content')][contains-token(@class, 'row-fluid')]" as="element()"/>
         <xsl:variable name="block-type" select="xs:anyURI($container/@typeof)" as="xs:anyURI"/>
@@ -886,7 +886,7 @@ exclude-result-prefixes="#all"
     
     <!-- save view block form onsubmit -->
     
-    <xsl:template match="div[@typeof = '&ldh;View'][contains-token(@class, 'row-fluid')]//form[contains-token(@class, 'form-horizontal')]" mode="ixsl:onsubmit" priority="1"> <!-- prioritze over form.xsl -->
+    <xsl:template match="div[@typeof = '&ldh;View'][contains-token(@class, 'row-fluid')]//form[contains-token(@class, 'form-horizontal')][upper-case(@method) = 'PATCH']" mode="ixsl:onsubmit" priority="2"> <!-- prioritze over form.xsl -->
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'resource-content')][contains-token(@class, 'row-fluid')]" as="element()"/>
         <xsl:variable name="block-type" select="xs:anyURI($container/@typeof)" as="xs:anyURI"/>

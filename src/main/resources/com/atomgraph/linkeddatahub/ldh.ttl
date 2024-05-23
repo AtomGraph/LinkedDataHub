@@ -571,9 +571,12 @@ dh:Item spin:constructor :TitleConstructor, :DescriptionConstructor, :PrimaryTop
     sp:text """
         PREFIX ldh:     <https://w3id.org/atomgraph/linkeddatahub#>
         PREFIX rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+        PREFIX spin:    <http://spinrdf.org/spin#>
 
         CONSTRUCT {
-            $this rdf:_1 ldh:ChildrenView .
+            $this rdf:_1 [ a ldh:View ;
+                spin:query ldh:SelectChildren
+            ] .
         }
         WHERE {}""" ;
     rdfs:isDefinedBy : .
