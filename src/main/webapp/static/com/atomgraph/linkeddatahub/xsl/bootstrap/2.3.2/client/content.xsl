@@ -561,7 +561,8 @@ exclude-result-prefixes="#all"
     
     <!-- EVENT LISTENERS -->
     
-    <xsl:template match="div[contains-token(@class, 'xhtml-content')][contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'btn-edit')]" mode="ixsl:onclick" priority="1"> <!-- prioritize over form.xsl -->
+    <!-- render ldh:XHTML editing form. ldh:Object and ldh:View forms are rendered by form.xsl -->
+    <xsl:template match="div[@typeof = '&ldh;XHTML'][contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'btn-edit')]" mode="ixsl:onclick" priority="1"> <!-- prioritize over form.xsl -->
         <xsl:variable name="button" select="." as="element()"/>
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'content')][contains-token(@class, 'row-fluid')]" as="element()"/>
         <xsl:variable name="block-uri" select="$container/@about" as="xs:anyURI"/>
@@ -663,148 +664,6 @@ exclude-result-prefixes="#all"
             <!-- initialize wymeditor textarea -->
             <xsl:apply-templates select="key('elements-by-class', 'wymeditor', .)" mode="ldh:PostConstruct"/>
         </xsl:for-each>
-    </xsl:template>
-    
-    <!-- object block edit button onclick -->
-    
-    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;Object'][rdf:value/@rdf:resource]" mode="ldh:RenderBlockForm" priority="1">
-        <xsl:param name="container" as="element()"/>
-        <xsl:param name="content-container" select="$container" as="element()"/>
-        <xsl:message>ldh:RenderBlockForm ldh:Object</xsl:message>
-
-        <!-- TO-DO: load from ontology? -->
-        <xsl:variable name="constructor" as="document-node()">
-            <xsl:document>
-                <rdf:RDF>
-                    <rdf:Description rdf:nodeID="A1">
-                        <rdf:type rdf:resource="&ldh;Object"/>
-                        <rdf:value rdf:nodeID="A2"/>
-                        <ac:mode rdf:nodeID="A3"/>
-                        <ldh:graph rdf:nodeID="A4"/>
-                    </rdf:Description>
-                    <rdf:Description rdf:nodeID="A2">
-                        <rdf:type rdf:resource="&rdfs;Resource"/>
-                    </rdf:Description>
-                    <rdf:Description rdf:nodeID="A3">
-                        <rdf:type rdf:resource="&rdfs;Resource"/>
-                    </rdf:Description>
-                    <rdf:Description rdf:nodeID="A4">
-                        <rdf:type rdf:resource="&rdfs;Resource"/>
-                    </rdf:Description>
-                </rdf:RDF>
-            </xsl:document>
-        </xsl:variable>
-
-        <xsl:variable name="this" select="." as="element()"/>
-        <xsl:for-each select="$container">
-            <xsl:variable name="row" as="element()*">
-                <xsl:apply-templates select="$this" mode="bs2:RowForm">
-                    <xsl:with-param name="constructors" select="$constructor" tunnel="yes"/>
-                </xsl:apply-templates>
-            </xsl:variable>
-            
-            <xsl:result-document href="?." method="ixsl:replace-content">
-                <xsl:copy-of select="$row/*"/>
-            </xsl:result-document>
-        </xsl:for-each>
-
-<!--                        <div class="form-actions">
-                            <button type="button" class="btn btn-primary btn-save">
-                                <xsl:value-of>
-                                    <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                                </xsl:value-of>
-                            </button>
-                            <button type="button" class="btn btn-delete">
-                                <xsl:value-of>
-                                    <xsl:apply-templates select="key('resources', 'delete', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                                </xsl:value-of>
-                            </button>
-                            <button type="button" class="btn btn-cancel">
-                                <xsl:value-of>
-                                    <xsl:apply-templates select="key('resources', 'cancel', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                                </xsl:value-of>
-                            </button>
-                        </div>-->
-        
-        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, xs:anyURI(ac:document-uri(rdf:value/@rdf:resource)))" as="xs:anyURI"/>
-        <xsl:variable name="request" as="item()*">
-            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-                <xsl:call-template name="onTypeaheadResourceLoad">
-                    <xsl:with-param name="resource-uri" select="rdf:value/@rdf:resource"/>
-                    <xsl:with-param name="typeahead-span" select="$container//div[contains-token(@class, 'control-group')][input[@name = 'pu']/@value = '&rdf;value']//span[1]"/>
-                </xsl:call-template>
-            </ixsl:schedule-action>
-        </xsl:variable>
-        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
-    </xsl:template>
-    
-    <!-- view block edit button onclick -->
-    
-    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;View'][spin:query/@rdf:resource]" mode="ldh:RenderBlockForm" priority="1">
-        <xsl:param name="container" as="element()"/>
-        <xsl:param name="content-container" select="$container" as="element()"/>
-        <xsl:message>ldh:RenderBlockForm ldh:View</xsl:message>
-
-        <!-- TO-DO: load from ontology? -->
-        <xsl:variable name="constructor" as="document-node()">
-            <xsl:document>
-                <rdf:RDF>
-                    <rdf:Description rdf:nodeID="A1">
-                        <rdf:type rdf:resource="&ldh;View"/>
-                        <spin:query rdf:nodeID="A2"/>
-                        <ac:mode rdf:nodeID="A3"/>
-                    </rdf:Description>
-                    <rdf:Description rdf:nodeID="A2">
-                        <rdf:type rdf:resource="&rdfs;Resource"/>
-                    </rdf:Description>
-                    <rdf:Description rdf:nodeID="A3">
-                        <rdf:type rdf:resource="&rdfs;Resource"/>
-                    </rdf:Description>
-                </rdf:RDF>
-            </xsl:document>
-        </xsl:variable>
-
-        <xsl:variable name="this" select="." as="element()"/>
-        <xsl:for-each select="$container">
-            <xsl:variable name="row" as="element()*">
-                <xsl:apply-templates select="$this" mode="bs2:RowForm">
-                    <xsl:with-param name="constructors" select="$constructor" tunnel="yes"/>
-                </xsl:apply-templates>
-            </xsl:variable>
-            
-            <xsl:result-document href="?." method="ixsl:replace-content">
-                <xsl:copy-of select="$row/*"/>
-            </xsl:result-document>
-        </xsl:for-each>
-        
-<!--                        <div class="form-actions">
-                            <button type="button" class="btn btn-primary btn-save">
-                                <xsl:value-of>
-                                    <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                                </xsl:value-of>
-                            </button>
-                            <button type="button" class="btn btn-delete">
-                                <xsl:value-of>
-                                    <xsl:apply-templates select="key('resources', 'delete', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                                </xsl:value-of>
-                            </button>
-                            <button type="button" class="btn btn-cancel">
-                                <xsl:value-of>
-                                    <xsl:apply-templates select="key('resources', 'cancel', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                                </xsl:value-of>
-                            </button>
-                        </div>-->
-        
-        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, xs:anyURI(ac:document-uri(spin:query/@rdf:resource)))" as="xs:anyURI"/>
-        <xsl:variable name="request" as="item()*">
-            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-                <xsl:call-template name="onTypeaheadResourceLoad">
-                    <xsl:with-param name="resource-uri" select="spin:query/@rdf:resource"/>
-                    <xsl:with-param name="typeahead-span" select="$container//div[contains-token(@class, 'control-group')][input[@name = 'pu']/@value = '&spin;query']//span[1]"/>
-                </xsl:call-template>
-            </ixsl:schedule-action>
-        </xsl:variable>
-        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
 
     <!-- save XHTML block onclick -->
