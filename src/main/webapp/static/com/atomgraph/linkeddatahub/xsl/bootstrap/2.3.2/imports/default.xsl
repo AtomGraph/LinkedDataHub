@@ -764,6 +764,17 @@ exclude-result-prefixes="#all"
                     <xsl:with-param name="disabled" select="$disabled"/>
                 </xsl:apply-templates>
             </xsl:when>
+            <!-- object resource exists in the current document -->
+            <xsl:when test="key('resources', .)">
+                <xsl:apply-templates select="key('resources', .)" mode="ldh:Typeahead"/>
+
+                <xsl:if test="$type-label">
+                    <xsl:apply-templates select="." mode="bs2:FormControlTypeLabel">
+                        <xsl:with-param name="type" select="$type"/>
+                        <xsl:with-param name="forClass" select="$forClass"/>
+                    </xsl:apply-templates>
+                </xsl:if>
+            </xsl:when>
             <xsl:when test="exists($object-metadata)">
                 <xsl:choose>
                     <xsl:when test="key('resources', ., $object-metadata)">
