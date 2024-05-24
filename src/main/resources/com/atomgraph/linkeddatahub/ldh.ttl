@@ -311,9 +311,12 @@
   sp:text """
       PREFIX spin:  <http://spinrdf.org/spin#>
       PREFIX sp:    <http://spinrdf.org/sp#>
+      PREFIX rdfs:  <http://www.w3.org/2000/01/rdf-schema#>
+      PREFIX ac:    <https://w3id.org/atomgraph/client#>
 
       CONSTRUCT {
-          $this spin:query [ a sp:Select ] .
+          $this spin:query [ a sp:Select ] ;
+              ac:mode [ a rdfs:Resource ] .
       }
       WHERE {}""" ;
     rdfs:label "View constructor" ;
