@@ -1174,24 +1174,9 @@ exclude-result-prefixes="#all"
     <!-- appends new view instance to the content list -->
     <xsl:template match="div[contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'create-action')][contains-token(@class, 'add-view-content')]" mode="ixsl:onclick">
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'row-fluid')]" as="element()"/>
-        <!-- TO-DO: reuse identical constructor from form.xsl -->
-        <xsl:variable name="constructor" as="document-node()">
-            <xsl:document>
-                <rdf:RDF>
-                    <rdf:Description rdf:nodeID="A1">
-                        <rdf:type rdf:resource="&ldh;View"/>
-                        <spin:query rdf:nodeID="A2"/>
-                        <ac:mode rdf:nodeID="A3"/>
-                    </rdf:Description>
-                    <rdf:Description rdf:nodeID="A2">
-                        <rdf:type rdf:resource="&sp;Query"/>
-                    </rdf:Description>
-                    <rdf:Description rdf:nodeID="A3">
-                        <rdf:type rdf:resource="&rdfs;Resource"/>
-                    </rdf:Description>
-                </rdf:RDF>
-            </xsl:document>
-        </xsl:variable>
+        <xsl:variable name="forClass" select="xs:anyURI('&ldh;View')" as="xs:anyURI"/> <!-- ixsl:get(., 'dataset.forClass') -->
+        <xsl:message>forClass: <xsl:value-of select="$forClass"/></xsl:message>
+        <xsl:variable name="constructed-doc" select="ldh:construct-forClass($forClass)" as="document-node()"/>
 
         <!-- move the current row of controls to the bottom of the content list -->
         <xsl:for-each select="$container/..">
@@ -1203,8 +1188,8 @@ exclude-result-prefixes="#all"
         <!-- add .content.resource-content to div.row-fluid -->
         <xsl:for-each select="$container">
             <xsl:variable name="row" as="element()*">
-                <xsl:apply-templates select="$constructor" mode="bs2:RowForm">
-                    <xsl:with-param name="constructors" select="$constructor" tunnel="yes"/>
+                <xsl:apply-templates select="$constructed-doc" mode="bs2:RowForm">
+                    <!-- <xsl:with-param name="constructors" select="$constructor" tunnel="yes"/> -->
                 </xsl:apply-templates>
             </xsl:variable>
             
@@ -1217,7 +1202,7 @@ exclude-result-prefixes="#all"
 
             <xsl:variable name="content-id" select="'id' || ac:uuid()" as="xs:string"/>
             <ixsl:set-attribute name="id" select="$content-id"/>
-            <ixsl:set-attribute name="typeof" select="'&ldh;View'"/>
+            <ixsl:set-attribute name="typeof" select="$forClass"/>
             <ixsl:set-attribute name="draggable" select="'true'"/>
         </xsl:for-each>
     </xsl:template>
@@ -1225,24 +1210,10 @@ exclude-result-prefixes="#all"
     <!-- appends new object instance to the content list -->
     <xsl:template match="div[contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'create-action')][contains-token(@class, 'add-object-content')]" mode="ixsl:onclick">
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'row-fluid')]" as="element()"/>
-        <!-- TO-DO: reuse identical constructor from form.xsl -->
-        <xsl:variable name="constructor" as="document-node()">
-            <xsl:document>
-                <rdf:RDF>
-                    <rdf:Description rdf:nodeID="A1">
-                        <rdf:type rdf:resource="&ldh;Object"/>
-                        <rdf:value rdf:nodeID="A2"/>
-                        <ac:mode rdf:nodeID="A3"/>
-                    </rdf:Description>
-                    <rdf:Description rdf:nodeID="A2">
-                        <rdf:type rdf:resource="&rdfs;Resource"/>
-                    </rdf:Description>
-                    <rdf:Description rdf:nodeID="A3">
-                        <rdf:type rdf:resource="&rdfs;Resource"/>
-                    </rdf:Description>
-                </rdf:RDF>
-            </xsl:document>
-        </xsl:variable>
+        <xsl:variable name="forClass" select="xs:anyURI('&ldh;Object')" as="xs:anyURI"/> <!-- ixsl:get(., 'dataset.forClass') -->
+        <xsl:message>forClass: <xsl:value-of select="$forClass"/></xsl:message>
+        <xsl:variable name="constructed-doc" select="ldh:construct-forClass($forClass)" as="document-node()"/>
+        
         <!-- move the current row of controls to the bottom of the content list -->
         <xsl:for-each select="$container/..">
             <xsl:result-document href="?." method="ixsl:append-content">
@@ -1253,8 +1224,8 @@ exclude-result-prefixes="#all"
         <!-- add .content.resource-content to div.row-fluid -->
         <xsl:for-each select="$container">
             <xsl:variable name="row" as="element()*">
-                <xsl:apply-templates select="$constructor" mode="bs2:RowForm">
-                    <xsl:with-param name="constructors" select="$constructor" tunnel="yes"/>
+                <xsl:apply-templates select="$constructed-doc" mode="bs2:RowForm">
+                    <!-- <xsl:with-param name="constructors" select="$constructor" tunnel="yes"/> -->
                 </xsl:apply-templates>
             </xsl:variable>
             
@@ -1267,7 +1238,7 @@ exclude-result-prefixes="#all"
 
             <xsl:variable name="content-id" select="'id' || ac:uuid()" as="xs:string"/>
             <ixsl:set-attribute name="id" select="$content-id"/>
-            <ixsl:set-attribute name="typeof" select="'&ldh;Object'"/>
+            <ixsl:set-attribute name="typeof" select="$forClass"/>
             <ixsl:set-attribute name="draggable" select="'true'"/>
         </xsl:for-each>
     </xsl:template>
