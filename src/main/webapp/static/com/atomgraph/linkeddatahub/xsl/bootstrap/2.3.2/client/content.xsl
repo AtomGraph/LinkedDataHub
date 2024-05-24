@@ -174,16 +174,42 @@ exclude-result-prefixes="#all"
         <xsl:attribute name="class" select="concat($class, ' ', 'btn-run-query')"/>
     </xsl:template>
 
+    <!-- hide block type input (template borrowed from rdf.xsl which is not included client-side) -->
+    <xsl:template match="rdf:type[@rdf:resource = ('&ldh;XHTML', '&ldh;Object', '&ldh;View')]" mode="bs2:TypeControl">
+        <xsl:apply-templates select="." mode="xhtml:Input">
+            <xsl:with-param name="type" select="'hidden'"/>
+        </xsl:apply-templates>
+        <xsl:apply-templates select="node() | @rdf:resource | @rdf:nodeID" mode="xhtml:Input">
+            <xsl:with-param name="type" select="'hidden'"/>
+        </xsl:apply-templates>
+        <xsl:apply-templates select="@xml:lang | @rdf:datatype" mode="xhtml:Input">
+            <xsl:with-param name="type" select="'hidden'"/>
+        </xsl:apply-templates>
+    </xsl:template>
+
+    <!-- provide a property label which otherwise would default to local-name() client-side (since $property-metadata is not loaded) -->
+    <xsl:template match="*[rdf:type/@rdf:resource = ('&ldh;XHTML', '&ldh;Object', '&ldh;View')]/rdfs:label | *[rdf:type/@rdf:resource = ('&ldh;XHTML', '&ldh;Object', '&ldh;View')]/ac:mode" mode="bs2:FormControl">
+        <xsl:next-match>
+            <xsl:with-param name="label" select="ac:property-label(.)"/>
+        </xsl:next-match>
+    </xsl:template>
+
+    <!-- make sure block value input is shown as required without loading $constraints (workaround for better performance) -->
+    <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;View']/spin:query | *[rdf:type/@rdf:resource = ('&ldh;XHTML', '&ldh;Object')]/rdf:value" mode="bs2:FormControl">
+        <xsl:next-match>
+            <xsl:with-param name="label" select="ac:property-label(.)"/>
+            <xsl:with-param name="required" select="true()"/>
+        </xsl:next-match>
+    </xsl:template>
+
+    <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;XHTML']/rdf:value/xhtml:*" mode="bs2:FormControlTypeLabel" priority="1"/>
+
     <!-- TO-DO: move to spin.xsl? -->
-    <!--
     <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;View']/spin:query/@rdf:resource | *[rdf:type/@rdf:resource = '&ldh;View']/spin:query/@rdf:nodeID[key('resources', .)[not(* except rdf:type[not(starts-with(@rdf:resource, '&xsd;'))])]]" mode="bs2:FormControl" priority="1">
         <xsl:next-match>
             <xsl:with-param name="forClass" select="(xs:anyURI('&sp;Describe'), xs:anyURI('&sp;Construct'), xs:anyURI('&sp;Select'), xs:anyURI('&sp;Ask'))"/>
         </xsl:next-match>
     </xsl:template>
-    -->
-            
-    <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;XHTML']/rdf:value/xhtml:*" mode="bs2:FormControlTypeLabel" priority="1"/>
 
     <!-- VIEW -->
     
