@@ -205,13 +205,6 @@ exclude-result-prefixes="#all"
 
     <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;XHTML']/rdf:value/xhtml:*" mode="bs2:FormControlTypeLabel" priority="1"/>
 
-    <!-- TO-DO: move to spin.xsl? -->
-    <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;View']/spin:query/@rdf:resource | *[rdf:type/@rdf:resource = '&ldh;View']/spin:query/@rdf:nodeID[key('resources', .)[not(* except rdf:type[not(starts-with(@rdf:resource, '&xsd;'))])]]" mode="bs2:FormControl" priority="1">
-        <xsl:next-match>
-            <xsl:with-param name="forClass" select="(xs:anyURI('&sp;Describe'), xs:anyURI('&sp;Construct'), xs:anyURI('&sp;Select'), xs:anyURI('&sp;Ask'))"/>
-        </xsl:next-match>
-    </xsl:template>
-
     <!-- VIEW -->
     
     <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;View'][spin:query/@rdf:resource]" mode="ldh:RenderBlock" priority="1">
