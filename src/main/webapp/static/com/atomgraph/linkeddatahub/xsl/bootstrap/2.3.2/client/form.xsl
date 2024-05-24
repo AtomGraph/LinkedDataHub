@@ -346,7 +346,7 @@ WHERE
                 <xsl:variable name="object-metadata" select="document($request-uri)" as="document-node()"/>
                 <xsl:message>
                     $object-uris: <xsl:value-of select="$object-uris"/>
-                    $object-metadata: <xsl:value-of select="$object-metadata"/>
+                    $object-metadata: <xsl:value-of select="serialize($object-metadata)"/>
                 </xsl:message>
 
                 <xsl:for-each select="$container">
