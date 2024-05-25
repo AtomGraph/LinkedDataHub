@@ -1137,8 +1137,7 @@ exclude-result-prefixes="#all"
         
         <!-- add .content.xhtml-content to div.row-fluid -->
         <xsl:for-each select="$container">
-            <xsl:variable name="content-id" select="'id' || ac:uuid()" as="xs:string"/>
-            <ixsl:set-attribute name="id" select="$content-id"/>
+            <ixsl:set-attribute name="id" select="'id' || ac:uuid()"/>
             <ixsl:set-attribute name="typeof" select="'&ldh;XHTML'"/>
 <!--            <ixsl:set-attribute name="draggable" select="'true'"/>-->
 

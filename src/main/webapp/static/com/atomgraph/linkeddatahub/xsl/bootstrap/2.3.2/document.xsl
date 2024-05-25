@@ -598,20 +598,6 @@ extension-element-prefixes="ixsl"
         </xsl:if>
     </xsl:template>
 
-    <!-- CONSTRUCTOR -->
-
-    <!--    
-    <xsl:template match="rdf:RDF" mode="ldh:Constructor" as="document-node()">
-        <xsl:param name="forClass" as="xs:anyURI"/>
-
-        <xsl:document>
-            <xsl:variable name="constructed-doc" select="ldh:construct-forClass($forClass)" as="document-node()"/>
-
-            <xsl:apply-templates select="$constructed-doc" mode="ldh:SetResourceURI"/>
-        </xsl:document>
-    </xsl:template>
-    -->
-
     <!-- SHAPE -->
     
     <!-- converts sh:NodeShape into an rdf:Description of the new instance -->

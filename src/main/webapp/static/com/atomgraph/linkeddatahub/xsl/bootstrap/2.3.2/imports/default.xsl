@@ -352,14 +352,22 @@ exclude-result-prefixes="#all"
     
     <!-- SET DOCUMENT URI -->
     
-    <xsl:template match="rdf:Description[@rdf:nodeID]" mode="ldh:SetResourceURI" priority="1">
+    <xsl:template match="rdf:Description[@rdf:nodeID]" mode="ldh:SetResourceID" priority="1">
         <xsl:param name="forClass" as="xs:anyURI" tunnel="yes"/>
-        <xsl:param name="this" as="xs:anyURI" tunnel="yes"/>
+        <xsl:param name="about" as="xs:anyURI" tunnel="yes"/>
+        <xsl:param name="nodeID" as="xs:string" tunnel="yes"/>
         
         <xsl:copy>
             <xsl:choose>
                 <xsl:when test="rdf:type/@rdf:resource = $forClass">
-                    <xsl:attribute name="rdf:about" select="$this"/> <!-- suppress @rdf:nodeID -->
+                    <xsl:choose>
+                        <xsl:when test="$about">
+                            <xsl:attribute name="rdf:about" select="$about"/> <!-- suppress @rdf:nodeID -->
+                        </xsl:when>
+                        <xsl:when test="$nodeID">
+                            <xsl:attribute name="rdf:nodeID" select="$nodeID"/>
+                        </xsl:when>
+                    </xsl:choose>
 
                     <xsl:apply-templates select="node()" mode="#current"/>
                 </xsl:when>
@@ -371,7 +379,7 @@ exclude-result-prefixes="#all"
     </xsl:template>
 
     <!-- identity transform -->
-    <xsl:template match="@* | node()" mode="ldh:SetResourceURI">
+    <xsl:template match="@* | node()" mode="ldh:SetResourceID">
         <xsl:copy>
             <xsl:apply-templates select="@* | node()" mode="#current"/>
         </xsl:copy>
