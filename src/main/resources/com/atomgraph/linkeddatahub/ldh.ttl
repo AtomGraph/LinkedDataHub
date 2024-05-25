@@ -290,7 +290,7 @@
       PREFIX ac:    <https://w3id.org/atomgraph/client#>
 
       CONSTRUCT {
-          $this rdf:value [ a rdf:Resource ] ;
+          $this rdf:value [ a rdfs:Resource ] ;
               ldh:graph [ a rdfs:Resource ] ;
               ac:mode [ a rdfs:Resource ] .
       }
