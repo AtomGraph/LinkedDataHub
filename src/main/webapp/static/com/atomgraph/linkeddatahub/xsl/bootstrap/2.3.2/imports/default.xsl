@@ -354,8 +354,8 @@ exclude-result-prefixes="#all"
     
     <xsl:template match="rdf:Description[@rdf:nodeID]" mode="ldh:SetResourceID" priority="1">
         <xsl:param name="forClass" as="xs:anyURI" tunnel="yes"/>
-        <xsl:param name="about" as="xs:anyURI" tunnel="yes"/>
-        <xsl:param name="nodeID" as="xs:string" tunnel="yes"/>
+        <xsl:param name="about" as="xs:anyURI?" tunnel="yes"/>
+        <xsl:param name="nodeID" as="xs:string?" tunnel="yes"/>
         
         <xsl:copy>
             <xsl:choose>
