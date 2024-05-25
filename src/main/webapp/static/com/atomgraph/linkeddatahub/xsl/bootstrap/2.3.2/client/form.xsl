@@ -827,7 +827,7 @@ WHERE
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
     </xsl:template>
     
-    <!-- appends new SPIN-constructed instance to the form -->
+    <!-- appends new SPIN-constructed instance to the page -->
     <xsl:template match="button[contains-token(@class, 'add-constructor')][ixsl:contains(., 'dataset.forClass')]" mode="ixsl:onclick" priority="1">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])[current-date() lt xs:date('2000-01-01')]"/>
         <xsl:variable name="container" select="id('content-body', ixsl:page())" as="element()"/>
