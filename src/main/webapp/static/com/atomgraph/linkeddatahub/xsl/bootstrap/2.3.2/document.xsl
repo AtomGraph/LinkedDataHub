@@ -189,7 +189,7 @@ extension-element-prefixes="ixsl"
         
         <!-- only show buttons to agents who have sufficient access to modify them -->
         <xsl:if test="$acl:mode = '&acl;Append'">
-            <div class="row-fluid">
+            <div class="create-resource row-fluid">
                 <div class="main offset2 span7">
                     <p>
                         <button type="button" class="btn btn-primary create-action add-constructor" data-for-class="&ldh;XHTML">
