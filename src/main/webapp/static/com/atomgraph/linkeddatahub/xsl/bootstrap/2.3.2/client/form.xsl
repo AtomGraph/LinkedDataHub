@@ -828,10 +828,11 @@ WHERE
     </xsl:template>
     
     <!-- appends new SPIN-constructed instance to the page -->
-    <xsl:template match="button[contains-token(@class, 'add-constructor')][ixsl:contains(., 'dataset.forClass')]" mode="ixsl:onclick" priority="1">
+    <xsl:template match="button[contains-token(@class, 'add-constructor')][@data-for-class]" mode="ixsl:onclick" priority="1">
+        <xsl:param name="method" select="'post'" as="xs:string"/>
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])[current-date() lt xs:date('2000-01-01')]"/>
         <xsl:variable name="container" select="id('content-body', ixsl:page())" as="element()"/>
-        <xsl:variable name="forClass" select="ixsl:get(., 'dataset.forClass')" as="xs:anyURI"/>
+        <xsl:variable name="forClass" select="@data-for-class" as="xs:anyURI"/>
         <xsl:message>forClass: <xsl:value-of select="$forClass"/></xsl:message>
         <xsl:variable name="constructed-doc" select="ldh:construct-forClass($forClass)" as="document-node()"/>
         <xsl:variable name="doc-uri" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
@@ -877,7 +878,7 @@ WHERE
                 <xsl:variable name="shapes" select="document($request-uri)" as="document-node()"/>
 
                 <xsl:apply-templates select="$constructed-doc" mode="bs2:RowForm">
-                    <xsl:with-param name="method" select="'post'"/>
+                    <xsl:with-param name="method" select="$method"/>
                     <xsl:with-param name="action" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, $doc-uri)" as="xs:anyURI"/>
                     <xsl:with-param name="classes" select="$classes"/>
                     <xsl:with-param name="type-metadata" select="$type-metadata" tunnel="yes"/>

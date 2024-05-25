@@ -1108,8 +1108,8 @@ exclude-result-prefixes="#all"
         </xsl:choose>
     </xsl:template>
 
-    <!-- appends new XHTML content instance to the content list -->
-    <xsl:template match="div[contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'create-action')][contains-token(@class, 'add-xhtml-content')]" mode="ixsl:onclick">
+    <!-- appends new XHTML block to the content list -->
+    <xsl:template match="div[contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'add-constructor')][@data-for-class = '&ldh;XHTML']" mode="ixsl:onclick" priority="2"> <!-- prioritize over form.xsl -->
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'row-fluid')]" as="element()"/>
         <!-- TO-DO: reuse identical constructor from form.xsl -->
         <xsl:variable name="constructor" as="document-node()">
@@ -1171,76 +1171,11 @@ exclude-result-prefixes="#all"
         </xsl:for-each>
     </xsl:template>
     
-    <!-- appends new view instance to the content list -->
-    <xsl:template match="div[contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'create-action')][contains-token(@class, 'add-view-content')]" mode="ixsl:onclick">
-        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'row-fluid')]" as="element()"/>
-        <xsl:variable name="forClass" select="xs:anyURI('&ldh;View')" as="xs:anyURI"/> <!-- ixsl:get(., 'dataset.forClass') -->
-        <xsl:message>forClass: <xsl:value-of select="$forClass"/></xsl:message>
-        <xsl:variable name="constructed-doc" select="ldh:construct-forClass($forClass)" as="document-node()"/>
-
-        <!-- move the current row of controls to the bottom of the content list -->
-        <xsl:for-each select="$container/..">
-            <xsl:result-document href="?." method="ixsl:append-content">
-                <xsl:copy-of select="$container"/>
-            </xsl:result-document>
-        </xsl:for-each>
-
-        <!-- add .content.resource-content to div.row-fluid -->
-        <xsl:for-each select="$container">
-            <xsl:variable name="row" as="element()*">
-                <xsl:apply-templates select="$constructed-doc" mode="bs2:RowForm">
-                    <!-- <xsl:with-param name="constructors" select="$constructor" tunnel="yes"/> -->
-                </xsl:apply-templates>
-            </xsl:variable>
-            
-            <xsl:result-document href="?." method="ixsl:replace-content">
-                <xsl:copy-of select="$row/*"/>
-            </xsl:result-document>
-
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'content', true() ])[current-date() lt xs:date('2000-01-01')]"/>
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'resource-content', true() ])[current-date() lt xs:date('2000-01-01')]"/>
-
-            <xsl:variable name="content-id" select="'id' || ac:uuid()" as="xs:string"/>
-            <ixsl:set-attribute name="id" select="$content-id"/>
-            <ixsl:set-attribute name="typeof" select="$forClass"/>
-            <ixsl:set-attribute name="draggable" select="'true'"/>
-        </xsl:for-each>
-    </xsl:template>
-    
-    <!-- appends new object instance to the content list -->
-    <xsl:template match="div[contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'create-action')][contains-token(@class, 'add-object-content')]" mode="ixsl:onclick">
-        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'row-fluid')]" as="element()"/>
-        <xsl:variable name="forClass" select="xs:anyURI('&ldh;Object')" as="xs:anyURI"/> <!-- ixsl:get(., 'dataset.forClass') -->
-        <xsl:message>forClass: <xsl:value-of select="$forClass"/></xsl:message>
-        <xsl:variable name="constructed-doc" select="ldh:construct-forClass($forClass)" as="document-node()"/>
-        
-        <!-- move the current row of controls to the bottom of the content list -->
-        <xsl:for-each select="$container/..">
-            <xsl:result-document href="?." method="ixsl:append-content">
-                <xsl:copy-of select="$container"/>
-            </xsl:result-document>
-        </xsl:for-each>
-
-        <!-- add .content.resource-content to div.row-fluid -->
-        <xsl:for-each select="$container">
-            <xsl:variable name="row" as="element()*">
-                <xsl:apply-templates select="$constructed-doc" mode="bs2:RowForm">
-                    <!-- <xsl:with-param name="constructors" select="$constructor" tunnel="yes"/> -->
-                </xsl:apply-templates>
-            </xsl:variable>
-            
-            <xsl:result-document href="?." method="ixsl:replace-content">
-                <xsl:copy-of select="$row/*"/>
-            </xsl:result-document>
-
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'content', true() ])[current-date() lt xs:date('2000-01-01')]"/>
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'resource-content', true() ])[current-date() lt xs:date('2000-01-01')]"/>
-
-            <xsl:variable name="content-id" select="'id' || ac:uuid()" as="xs:string"/>
-            <ixsl:set-attribute name="id" select="$content-id"/>
-            <ixsl:set-attribute name="typeof" select="$forClass"/>
-            <ixsl:set-attribute name="draggable" select="'true'"/>
-        </xsl:for-each>
+    <!-- appends new resource block to the content list -->
+    <xsl:template match="div[contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'add-constructor')][@data-for-class = ('&ldh;View', '&ldh;Object')]" mode="ixsl:onclick" priority="2"> <!-- prioritize over form.xsl -->
+        <xsl:next-match>
+            <xsl:with-param name="method" select="'patch'"/>
+        </xsl:next-match>
     </xsl:template>
     
     <!-- submit SPARQL query form (prioritize over default template in form.xsl) -->
