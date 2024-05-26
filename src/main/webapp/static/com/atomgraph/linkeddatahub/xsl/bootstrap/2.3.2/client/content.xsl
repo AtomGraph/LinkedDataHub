@@ -180,12 +180,14 @@ exclude-result-prefixes="#all"
     </xsl:template>
 
     <!-- make sure block value input is shown as required without loading $constraints (workaround for better performance) -->
+    <!--
     <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;View']/spin:query | *[rdf:type/@rdf:resource = ('&ldh;XHTML', '&ldh;Object')]/rdf:value" mode="bs2:FormControl">
         <xsl:next-match>
             <xsl:with-param name="label" select="ac:property-label(.)"/>
             <xsl:with-param name="required" select="true()"/>
         </xsl:next-match>
     </xsl:template>
+    -->
 
     <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;XHTML']/rdf:value/xhtml:*" mode="bs2:FormControlTypeLabel" priority="1"/>
 
