@@ -694,6 +694,9 @@ exclude-result-prefixes="#all"
         <xsl:message>
             $type-shapes: <xsl:copy-of select="serialize($type-shapes)"/>
         </xsl:message>
+        <xsl:message>
+            Property-level $constructor: <xsl:copy-of select="serialize($constructor)"/>
+        </xsl:message>
         
         <div>
             <xsl:if test="$class">

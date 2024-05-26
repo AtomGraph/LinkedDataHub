@@ -152,6 +152,7 @@ exclude-result-prefixes="#all"
     </xsl:template>
 
     <!-- hide block type input (template borrowed from rdf.xsl which is not included client-side) -->
+    <!--
     <xsl:template match="rdf:type[@rdf:resource = ('&ldh;XHTML', '&ldh;Object', '&ldh;View')]" mode="bs2:TypeControl">
         <xsl:apply-templates select="." mode="xhtml:Input">
             <xsl:with-param name="type" select="'hidden'"/>
@@ -162,6 +163,13 @@ exclude-result-prefixes="#all"
         <xsl:apply-templates select="@xml:lang | @rdf:datatype" mode="xhtml:Input">
             <xsl:with-param name="type" select="'hidden'"/>
         </xsl:apply-templates>
+    </xsl:template>
+    -->
+    <!-- hide type control -->
+    <xsl:template match="*[rdf:type/@rdf:resource = ('&ldh;XHTML', '&ldh;Object', '&ldh;View')]" mode="bs2:TypeControl" priority="1">
+        <xsl:next-match>
+            <xsl:with-param name="hidden" select="true()"/>
+        </xsl:next-match>
     </xsl:template>
 
     <!-- provide a property label which otherwise would default to local-name() client-side (since $property-metadata is not loaded) -->
