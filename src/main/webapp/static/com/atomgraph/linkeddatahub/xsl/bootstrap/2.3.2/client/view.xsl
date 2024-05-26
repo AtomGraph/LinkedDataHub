@@ -1429,7 +1429,6 @@ exclude-result-prefixes="#all"
                         </xsl:for-each>
                     </xsl:if>
 
-<!--                    <ixsl:set-property name="dataset.contentMode" select="$active-mode" object="$container"/>-->
                     <xsl:variable name="object-uris" select="distinct-values($sorted-results/rdf:RDF/rdf:Description/*/@rdf:resource[not(key('resources', .))])" as="xs:string*"/>
                     <xsl:variable name="query-string" select="$object-metadata-query || ' VALUES $this { ' || string-join(for $uri in $object-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>
 
