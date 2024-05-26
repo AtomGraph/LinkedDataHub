@@ -694,9 +694,6 @@ exclude-result-prefixes="#all"
         <xsl:message>
             $type-shapes: <xsl:copy-of select="serialize($type-shapes)"/>
         </xsl:message>
-        <xsl:message>
-            Property-level $constructor: <xsl:copy-of select="serialize($constructor)"/>
-        </xsl:message>
         
         <div>
             <xsl:if test="$class">
@@ -768,8 +765,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="constructor" as="document-node()?"/>
         <xsl:param name="object-metadata" as="document-node()?" tunnel="yes"/>
         <xsl:param name="forClass" select="if ($constructor) then distinct-values(key('resources', key('resources-by-type', ../../rdf:type/@rdf:resource, $constructor)/*[concat(namespace-uri(), local-name()) = current()/../concat(namespace-uri(), local-name())]/@rdf:nodeID, $constructor)/rdf:type/@rdf:resource[not(. = '&rdfs;Class')]) else ()" as="xs:anyURI*"/>
-        <xsl:message><xsl:value-of select="."/> bs2:FormControl exists($constructor): <xsl:value-of select="exists($constructor)"/> $forClass: <xsl:value-of select="$forClass"/></xsl:message>
-        
+
         <xsl:choose>
             <xsl:when test="$type = 'hidden'">
                 <xsl:apply-templates select="." mode="xhtml:Input">

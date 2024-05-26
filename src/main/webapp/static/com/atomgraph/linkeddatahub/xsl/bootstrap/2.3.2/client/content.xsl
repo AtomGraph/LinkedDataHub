@@ -179,16 +179,6 @@ exclude-result-prefixes="#all"
         </xsl:next-match>
     </xsl:template>
 
-    <!-- make sure block value input is shown as required without loading $constraints (workaround for better performance) -->
-    <!--
-    <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;View']/spin:query | *[rdf:type/@rdf:resource = ('&ldh;XHTML', '&ldh;Object')]/rdf:value" mode="bs2:FormControl">
-        <xsl:next-match>
-            <xsl:with-param name="label" select="ac:property-label(.)"/>
-            <xsl:with-param name="required" select="true()"/>
-        </xsl:next-match>
-    </xsl:template>
-    -->
-
     <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;XHTML']/rdf:value/xhtml:*" mode="bs2:FormControlTypeLabel" priority="1"/>
 
     <!-- VIEW -->
@@ -1111,7 +1101,7 @@ exclude-result-prefixes="#all"
     </xsl:template>
 
     <!-- appends new XHTML block to the content list -->
-    <xsl:template match="div[contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'add-constructor')][@data-for-class = '&ldh;XHTML']" mode="ixsl:onclick" priority="2"> <!-- prioritize over form.xsl -->
+    <xsl:template match="div[contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'add-constructor')][@data-for-class = '&ldh;XHTMLAS']" mode="ixsl:onclick" priority="2"> <!-- prioritize over form.xsl -->
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'row-fluid')]" as="element()"/>
         <!-- TO-DO: reuse identical constructor from form.xsl -->
         <xsl:variable name="constructor" as="document-node()">
