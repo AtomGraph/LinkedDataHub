@@ -649,7 +649,7 @@ WHERE
                     <xsl:message>
                         Existing @about: <xsl:value-of select="@about"/>
                     </xsl:message>
-                    <ixsl:set-attribute name="about" select="$row/@about'"/>
+                    <ixsl:set-attribute name="about" select="$row/@about"/>
                 </xsl:for-each>
                 
                 <xsl:apply-templates select="id($row//form/@id, ixsl:page())" mode="ldh:PostConstruct"/>
