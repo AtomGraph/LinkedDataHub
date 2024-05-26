@@ -670,6 +670,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'xhtml-content')][contains-token(@class, 'row-fluid')]" as="element()"/>
         <xsl:variable name="textarea" select="ancestor::div[contains-token(@class, 'main')]//textarea[contains-token(@class, 'wymeditor')]" as="element()"/>
         <xsl:variable name="block-type" select="xs:anyURI($container/@typeof)" as="xs:anyURI"/>
+        <xsl:variable name="value-property-uri" select="xs:anyURI('&rdf;value')" as="xs:anyURI"/>
         <xsl:variable name="wymeditor" select="ixsl:call(ixsl:get(ixsl:window(), 'jQuery'), 'getWymeditorByTextarea', [ $textarea ])" as="item()"/>
         <!-- update the textarea with WYMEditor content -->
         <xsl:sequence select="ixsl:call($wymeditor, 'update', [])[current-date() lt xs:date('2000-01-01')]"/> <!-- update HTML in the textarea -->
@@ -688,7 +689,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="update-string" select="replace($update-string, '$seq', '&lt;' || $sequence-property || '&gt;', 'q')" as="xs:string"/>
         <xsl:variable name="update-string" select="replace($update-string, '$type', '&lt;' || $block-type || '&gt;', 'q')" as="xs:string"/>
         <xsl:variable name="update-string" select="replace($update-string, '$block', '&lt;' || $block-uri || '&gt;', 'q')" as="xs:string"/>
-        <xsl:variable name="update-string" select="replace($update-string, '$valueProperty', '&lt;&rdf;value&gt;', 'q')" as="xs:string"/>
+        <xsl:variable name="update-string" select="replace($update-string, '$valueProperty', '&lt;' || $value-property-uri || '&gt;', 'q')" as="xs:string"/>
         <xsl:variable name="update-string" select="replace($update-string, '$value', '&quot;' || $xhtml-string || '&quot;^^&lt;&rdf;XMLLiteral&gt;', 'q')" as="xs:string"/>
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, ac:absolute-path(ldh:base-uri(.)))" as="xs:anyURI"/>
         <xsl:variable name="request" as="item()*">
@@ -709,20 +710,21 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'content')][contains-token(@class, 'row-fluid')]" as="element()"/>
         <xsl:variable name="block-type" select="xs:anyURI($container/@typeof)" as="xs:anyURI"/>
-        <xsl:variable name="value-input" select="$container//div[contains-token(@class, 'control-group')][input[@name = 'pu']/@value = '&rdf;value']//input[@name = 'ou']" as="element()"/>
+        <xsl:variable name="value-property-uri" select="xs:anyURI('&rdf;value')" as="xs:anyURI"/>
+        <xsl:variable name="value-input" select="$container//div[contains-token(@class, 'control-group')][input[@name = 'pu']/@value = $value-property-uri]//input[@name = 'ou']" as="element()"/>
         <xsl:variable name="mode-input" select="$container//div[contains-token(@class, 'control-group')][input[@name = 'pu']/@value = '&ac;mode']//select[@name = 'ou']" as="element()"/>
+        <xsl:variable name="value-uri" select="$value-input => ixsl:get('value')" as="xs:anyURI"/>
 
         <xsl:choose>
             <!-- input values missing, show an error -->
-            <xsl:when test="exists($value-input[not(ixsl:get(., 'value'))])">
-                <xsl:sequence select="ixsl:call(ixsl:get($container//div[contains-token(@class, 'control-group')][input[@name = 'pu']/@value = '&rdf;value'], 'classList'), 'toggle', [ 'error', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+            <xsl:when test="not($value-uri)">
+                <xsl:sequence select="ixsl:call(ixsl:get($container//div[contains-token(@class, 'control-group')][input[@name = 'pu']/@value = $value-property-uri], 'classList'), 'toggle', [ 'error', true() ])[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:when>
             <xsl:otherwise>
                 <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
                 <xsl:variable name="content-id" select="$container/@id" as="xs:string"/>
                 <xsl:variable name="block-uri" select="if ($container/@about) then $container/@about else xs:anyURI(ac:absolute-path(ldh:base-uri(.)) || '#' || $content-id)" as="xs:anyURI"/>
-                <xsl:variable name="value-uri" select="$value-input => ixsl:get('value')" as="xs:anyURI"/>
                 <xsl:variable name="mode-uri" select="$mode-input => ixsl:get('value')" as="xs:anyURI?"/>
                 <xsl:variable name="sequence-number" select="count($container/preceding-sibling::div[@about][contains-token(@class, 'content')]) + 1" as="xs:integer"/>
                 <xsl:variable name="sequence-property" select="xs:anyURI('&rdf;_' || $sequence-number)" as="xs:anyURI"/>
@@ -732,7 +734,7 @@ exclude-result-prefixes="#all"
                 <xsl:variable name="update-string" select="replace($update-string, '$seq', '&lt;' || $sequence-property || '&gt;', 'q')" as="xs:string"/>
                 <xsl:variable name="update-string" select="replace($update-string, '$type', '&lt;' || $block-type || '&gt;', 'q')" as="xs:string"/>
                 <xsl:variable name="update-string" select="replace($update-string, '$block', '&lt;' || $block-uri || '&gt;', 'q')" as="xs:string"/>
-                <xsl:variable name="update-string" select="replace($update-string, '$valueProperty', '&lt;&rdf;value&gt;', 'q')" as="xs:string"/>
+                <xsl:variable name="update-string" select="replace($update-string, '$valueProperty', '&lt;' || $value-property-uri || '&gt;', 'q')" as="xs:string"/>
                 <xsl:variable name="update-string" select="replace($update-string, '$value', '&lt;' || $value-uri || '&gt;', 'q')" as="xs:string"/>
                 <xsl:variable name="update-string" select="if ($mode-uri) then replace($update-string, '$mode', '&lt;' || $mode-uri || '&gt;', 'q') else $update-string" as="xs:string"/>
                 <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, ac:absolute-path(ldh:base-uri(.)))" as="xs:anyURI"/>
@@ -755,20 +757,21 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'content')][contains-token(@class, 'row-fluid')]" as="element()"/>
         <xsl:variable name="block-type" select="xs:anyURI($container/@typeof)" as="xs:anyURI"/>
-        <xsl:variable name="query-input" select="$container//div[contains-token(@class, 'control-group')][input[@name = 'pu']/@value = '&spin;query']//input[@name = 'ou']" as="element()"/>
+        <xsl:variable name="value-property-uri" select="xs:anyURI('&spin;query')" as="xs:anyURI"/>
+        <xsl:variable name="value-input" select="$container//div[contains-token(@class, 'control-group')][input[@name = 'pu']/@value = $value-property-uri]//input[@name = 'ou']" as="element()"/>
         <xsl:variable name="mode-input" select="$container//div[contains-token(@class, 'control-group')][input[@name = 'pu']/@value = '&ac;mode']//select[@name = 'ou']" as="element()"/>
+        <xsl:variable name="value-uri" select="$value-input => ixsl:get('value')" as="xs:anyURI"/>
 
         <xsl:choose>
             <!-- input values missing, show an error -->
-            <xsl:when test="exists($query-input[not(ixsl:get(., 'value'))])">
-                <xsl:sequence select="ixsl:call(ixsl:get($container//div[contains-token(@class, 'control-group')][input[@name = 'pu']/@value = '&spin;query'], 'classList'), 'toggle', [ 'error', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+            <xsl:when test="not($value-uri)">
+                <xsl:sequence select="ixsl:call(ixsl:get($container//div[contains-token(@class, 'control-group')][input[@name = 'pu']/@value = $value-property-uri], 'classList'), 'toggle', [ 'error', true() ])[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:when>
             <xsl:otherwise>
                 <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
                 <xsl:variable name="content-id" select="$container/@id" as="xs:string"/>
                 <xsl:variable name="block-uri" select="if ($container/@about) then $container/@about else xs:anyURI(ac:absolute-path(ldh:base-uri(.)) || '#' || $content-id)" as="xs:anyURI"/>
-                <xsl:variable name="query-uri" select="$query-input => ixsl:get('value')" as="xs:anyURI"/>
                 <xsl:variable name="mode-uri" select="$mode-input => ixsl:get('value')" as="xs:anyURI?"/>
                 <xsl:variable name="sequence-number" select="count($container/preceding-sibling::div[@about][contains-token(@class, 'content')]) + 1" as="xs:integer"/>
                 <xsl:variable name="sequence-property" select="xs:anyURI('&rdf;_' || $sequence-number)" as="xs:anyURI"/>
@@ -778,8 +781,8 @@ exclude-result-prefixes="#all"
                 <xsl:variable name="update-string" select="replace($update-string, '$seq', '&lt;' || $sequence-property || '&gt;', 'q')" as="xs:string"/>
                 <xsl:variable name="update-string" select="replace($update-string, '$type', '&lt;' || $block-type || '&gt;', 'q')" as="xs:string"/>
                 <xsl:variable name="update-string" select="replace($update-string, '$block', '&lt;' || $block-uri || '&gt;', 'q')" as="xs:string"/>
-                <xsl:variable name="update-string" select="replace($update-string, '$valueProperty', '&lt;&spin;query&gt;', 'q')" as="xs:string"/>
-                <xsl:variable name="update-string" select="replace($update-string, '$value', '&lt;' || $query-uri || '&gt;', 'q')" as="xs:string"/>
+                <xsl:variable name="update-string" select="replace($update-string, '$valueProperty', '&lt;' || $value-property-uri || '&gt;', 'q')" as="xs:string"/>
+                <xsl:variable name="update-string" select="replace($update-string, '$value', '&lt;' || $value-uri || '&gt;', 'q')" as="xs:string"/>
                 <xsl:variable name="update-string" select="if ($mode-uri) then replace($update-string, '$mode', '&lt;' || $mode-uri || '&gt;', 'q') else $update-string" as="xs:string"/>
                 <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, ac:absolute-path(ldh:base-uri(.)))" as="xs:anyURI"/>
                 <xsl:variable name="request" as="item()*">
@@ -1100,8 +1103,8 @@ exclude-result-prefixes="#all"
         </xsl:choose>
     </xsl:template>
 
-    <!-- appends new XHTML block to the content list -->
-    <xsl:template match="div[contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'add-constructor')][@data-for-class = '&ldh;XHTMLAS']" mode="ixsl:onclick" priority="2"> <!-- prioritize over form.xsl -->
+    <!-- appends new XHTML block to the content list (custom specifically for ldh:XHTML blocks) -->
+    <xsl:template match="div[contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'add-constructor')][@data-for-class = '&ldh;XHTML']" mode="ixsl:onclick" priority="2"> <!-- prioritize over form.xsl -->
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'row-fluid')]" as="element()"/>
         <!-- TO-DO: reuse identical constructor from form.xsl -->
         <xsl:variable name="constructor" as="document-node()">
