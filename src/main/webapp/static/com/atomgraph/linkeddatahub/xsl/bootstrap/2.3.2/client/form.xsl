@@ -645,6 +645,11 @@ WHERE
                     <xsl:result-document href="?." method="ixsl:replace-content">
                         <xsl:copy-of select="$row/*"/>
                     </xsl:result-document>
+
+                    <xsl:message>
+                        Existing @about: <xsl:value-of select="@about"/>
+                    </xsl:message>
+                    <ixsl:set-attribute name="about" select="$row/@about'"/>
                 </xsl:for-each>
                 
                 <xsl:apply-templates select="id($row//form/@id, ixsl:page())" mode="ldh:PostConstruct"/>
@@ -785,6 +790,7 @@ WHERE
                 <xsl:variable name="constraints" select="if (exists($types)) then document($request-uri) else ()" as="document-node()?"/>
 
                 <xsl:apply-templates select="$constructed-doc" mode="bs2:Form"> <!-- document level template -->
+                    <xsl:with-param name="about" select="()"/> <!-- don't set @about on the container until after the resource is saved -->
                     <xsl:with-param name="method" select="'post'"/> <!-- browsers do not allow PUT form method -->
                     <xsl:with-param name="action" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, $doc-uri)" as="xs:anyURI"/>
                     <xsl:with-param name="form-actions-class" select="'form-actions modal-footer'" as="xs:string?"/>
@@ -878,6 +884,7 @@ WHERE
                 <xsl:variable name="shapes" select="document($request-uri)" as="document-node()"/>
 
                 <xsl:apply-templates select="$constructed-doc" mode="bs2:RowForm">
+                    <xsl:with-param name="about" select="()"/> <!-- don't set @about on the container until after the resource is saved -->
                     <xsl:with-param name="method" select="$method"/>
                     <xsl:with-param name="action" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, $doc-uri)" as="xs:anyURI"/>
                     <xsl:with-param name="classes" select="$classes"/>

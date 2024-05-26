@@ -677,7 +677,7 @@ exclude-result-prefixes="#all"
 
         <xsl:variable name="content-id" select="$container/@id" as="xs:string"/>
         <xsl:variable name="block-uri" select="$container/@about" as="xs:anyURI"/>
-        <xsl:variable name="sequence-number" select="count($container/preceding-sibling::div[contains-token(@class, 'content')]) + 1" as="xs:integer"/>
+        <xsl:variable name="sequence-number" select="count($container/preceding-sibling::div[@about][contains-token(@class, 'content')]) + 1" as="xs:integer"/>
         <xsl:variable name="sequence-property" select="xs:anyURI('&rdf;_' || $sequence-number)" as="xs:anyURI"/>
         <xsl:message>$sequence-number: <xsl:value-of select="$sequence-number"/> $sequence-property: <xsl:value-of select="$sequence-property"/></xsl:message>
         <xsl:variable name="update-string" select="$block-update-string" as="xs:string"/>
@@ -721,7 +721,7 @@ exclude-result-prefixes="#all"
                 <xsl:variable name="block-uri" select="$container/@about" as="xs:anyURI"/>
                 <xsl:variable name="value-uri" select="$value-input => ixsl:get('value')" as="xs:anyURI"/>
                 <xsl:variable name="mode-uri" select="$mode-input => ixsl:get('value')" as="xs:anyURI?"/>
-                <xsl:variable name="sequence-number" select="count($container/preceding-sibling::div[contains-token(@class, 'content')]) + 1" as="xs:integer"/>
+                <xsl:variable name="sequence-number" select="count($container/preceding-sibling::div[@about][contains-token(@class, 'content')]) + 1" as="xs:integer"/>
                 <xsl:variable name="sequence-property" select="xs:anyURI('&rdf;_' || $sequence-number)" as="xs:anyURI"/>
                 <xsl:message>$sequence-number: <xsl:value-of select="$sequence-number"/> $sequence-property: <xsl:value-of select="$sequence-property"/></xsl:message>
                 <xsl:variable name="update-string" select="$block-update-string" as="xs:string"/>
@@ -767,7 +767,7 @@ exclude-result-prefixes="#all"
                 <xsl:variable name="block-uri" select="$container/@about" as="xs:anyURI"/>
                 <xsl:variable name="query-uri" select="$query-input => ixsl:get('value')" as="xs:anyURI"/>
                 <xsl:variable name="mode-uri" select="$mode-input => ixsl:get('value')" as="xs:anyURI?"/>
-                <xsl:variable name="sequence-number" select="count($container/preceding-sibling::div[contains-token(@class, 'content')]) + 1" as="xs:integer"/>
+                <xsl:variable name="sequence-number" select="count($container/preceding-sibling::div[@about][contains-token(@class, 'content')]) + 1" as="xs:integer"/>
                 <xsl:variable name="sequence-property" select="xs:anyURI('&rdf;_' || $sequence-number)" as="xs:anyURI"/>
                 <xsl:message>$sequence-number: <xsl:value-of select="$sequence-number"/> $sequence-property: <xsl:value-of select="$sequence-property"/></xsl:message>
                 <xsl:variable name="update-string" select="$block-update-string" as="xs:string"/>
@@ -967,7 +967,7 @@ exclude-result-prefixes="#all"
                 <xsl:variable name="content-value" select="$query-uri" as="xs:anyURI"/>
                 <xsl:variable name="content-id" select="$container/@id" as="xs:string"/>
                 <xsl:variable name="block-uri" select="$container/@about" as="xs:anyURI"/>
-                <xsl:variable name="sequence-number" select="count($container/preceding-sibling::div[contains-token(@class, 'content')]) + 1" as="xs:integer"/>
+                <xsl:variable name="sequence-number" select="count($container/preceding-sibling::div[@about][contains-token(@class, 'content')]) + 1" as="xs:integer"/>
                 <xsl:variable name="sequence-property" select="xs:anyURI('&rdf;_' || $sequence-number)" as="xs:anyURI"/>
                 <xsl:message>$sequence-number: <xsl:value-of select="$sequence-number"/> $sequence-property: <xsl:value-of select="$sequence-property"/></xsl:message>
                 <xsl:variable name="update-string" select="$block-update-string" as="xs:string"/>
