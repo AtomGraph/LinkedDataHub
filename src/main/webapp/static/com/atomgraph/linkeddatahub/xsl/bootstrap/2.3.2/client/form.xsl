@@ -645,11 +645,6 @@ WHERE
                     <xsl:result-document href="?." method="ixsl:replace-content">
                         <xsl:copy-of select="$row/*"/>
                     </xsl:result-document>
-
-                    <xsl:message>
-                        Existing @about: <xsl:value-of select="@about"/>
-                    </xsl:message>
-                    <ixsl:set-attribute name="about" select="'TROLOLO!'"/>
                 </xsl:for-each>
                 
                 <xsl:apply-templates select="id($row//form/@id, ixsl:page())" mode="ldh:PostConstruct"/>
