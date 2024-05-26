@@ -841,14 +841,14 @@ WHERE
         <xsl:message>forClass: <xsl:value-of select="$forClass"/></xsl:message>
         <xsl:variable name="constructed-doc" select="ldh:construct-forClass($forClass)" as="document-node()"/>
         <xsl:variable name="doc-uri" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
-        <xsl:variable name="id" select="ac:uuid()" as="xs:string"/>
+        <xsl:variable name="this" select="xs:anyURI($doc-uri || '#id' || ac:uuid())" as="xs:anyURI"/>
         <xsl:message>ldh:base-uri(.): <xsl:value-of select="ldh:base-uri(.)"/> $doc-uri: <xsl:value-of select="$doc-uri"/> $this: <xsl:value-of select="$doc-uri"/></xsl:message>
         <!-- set document URI instead of blank node -->
         <xsl:variable name="constructed-doc" as="document-node()">
             <xsl:document>
                 <xsl:apply-templates select="$constructed-doc" mode="ldh:SetResourceID">
                     <xsl:with-param name="forClass" select="$forClass" tunnel="yes"/>
-                    <xsl:with-param name="nodeID" select="$id" tunnel="yes"/>
+                    <xsl:with-param name="about" select="$this" tunnel="yes"/>
                 </xsl:apply-templates>
             </xsl:document>
         </xsl:variable>
@@ -883,7 +883,6 @@ WHERE
                 <xsl:variable name="shapes" select="document($request-uri)" as="document-node()"/>
 
                 <xsl:apply-templates select="$constructed-doc" mode="bs2:RowForm">
-                    <xsl:with-param name="id" select="$id"/>
                     <xsl:with-param name="method" select="$method"/>
                     <xsl:with-param name="action" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, $doc-uri)" as="xs:anyURI"/>
                     <xsl:with-param name="classes" select="$classes"/>
