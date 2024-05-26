@@ -64,12 +64,15 @@ exclude-result-prefixes="#all"
             }
             WHERE
             {
-                $this $seq $block .
-                $block a ?oldType ;
-                    ?oldValueProperty ?oldValue .
                 OPTIONAL
                 {
-                    $block ac:mode ?oldMode
+                    $this $seq $block .
+                    $block a ?oldType ;
+                        ?oldValueProperty ?oldValue .
+                    OPTIONAL
+                    {
+                        $block ac:mode ?oldMode
+                    }
                 }
             }
         ]]>
