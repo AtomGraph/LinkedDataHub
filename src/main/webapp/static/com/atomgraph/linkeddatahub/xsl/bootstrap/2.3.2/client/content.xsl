@@ -151,20 +151,6 @@ exclude-result-prefixes="#all"
         <xsl:attribute name="class" select="concat($class, ' ', 'btn-run-query')"/>
     </xsl:template>
 
-    <!-- hide block type input (template borrowed from rdf.xsl which is not included client-side) -->
-    <!--
-    <xsl:template match="rdf:type[@rdf:resource = ('&ldh;XHTML', '&ldh;Object', '&ldh;View')]" mode="bs2:TypeControl">
-        <xsl:apply-templates select="." mode="xhtml:Input">
-            <xsl:with-param name="type" select="'hidden'"/>
-        </xsl:apply-templates>
-        <xsl:apply-templates select="node() | @rdf:resource | @rdf:nodeID" mode="xhtml:Input">
-            <xsl:with-param name="type" select="'hidden'"/>
-        </xsl:apply-templates>
-        <xsl:apply-templates select="@xml:lang | @rdf:datatype" mode="xhtml:Input">
-            <xsl:with-param name="type" select="'hidden'"/>
-        </xsl:apply-templates>
-    </xsl:template>
-    -->
     <!-- hide type control -->
     <xsl:template match="*[rdf:type/@rdf:resource = ('&ldh;XHTML', '&ldh;Object', '&ldh;View')]" mode="bs2:TypeControl" priority="1">
         <xsl:next-match>
@@ -410,6 +396,10 @@ exclude-result-prefixes="#all"
             <ixsl:set-style name="width" select="'75%'" object="."/>
         </xsl:for-each>
         
+        <xsl:for-each select="$container">
+            <ixsl:set-attribute name="typeof" select="$block-type" object="."/>
+        </xsl:for-each>
+
         <!-- don't use ldh:base-uri(.) because its value comes from the last HTML document load -->
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, if (starts-with($graph, $ldt:base)) then $graph else ac:absolute-path(xs:anyURI(ixsl:location())), map{}, ac:document-uri($resource-uri), $graph, ())" as="xs:anyURI"/>
         <xsl:variable name="request" as="item()*">
@@ -431,6 +421,7 @@ exclude-result-prefixes="#all"
     
     <xsl:template match="*[*][@rdf:about]" mode="ldh:RenderBlock">
         <xsl:param name="container" as="element()"/>
+        <xsl:param name="block-type" select="rdf:type/@rdf:resource" as="xs:anyURI"/>
         <xsl:param name="graph" as="xs:anyURI?"/>
         <xsl:param name="mode" as="xs:anyURI?"/>
         <xsl:param name="refresh-content" as="xs:boolean?"/>
@@ -443,10 +434,15 @@ exclude-result-prefixes="#all"
             <ixsl:set-style name="width" select="'75%'" object="."/>
         </xsl:for-each>
         
+        <xsl:for-each select="$container">
+            <ixsl:set-attribute name="typeof" select="$block-type" object="."/>
+        </xsl:for-each>
+
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="map{ 'method': 'POST', 'href': sd:endpoint(), 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                 <xsl:call-template name="ldh:LoadBlockObjectMetadata">
                     <xsl:with-param name="container" select="$container"/>
+                    <xsl:with-param name="block-type" select="$block-type"/>
                     <xsl:with-param name="resource" select="."/>
                     <xsl:with-param name="graph" select="$graph"/>
                     <xsl:with-param name="mode" select="$mode"/>
@@ -475,7 +471,9 @@ exclude-result-prefixes="#all"
                     </xsl:for-each>
                     
                     <xsl:variable name="resource" select="key('resources', $resource-uri)" as="element()?"/>
-                    <xsl:apply-templates select="$resource" mode="ldh:RenderBlock"/>
+                    <xsl:apply-templates select="$resource" mode="ldh:RenderBlock">
+                        <xsl:with-param name="container" select="$container"/>
+                    </xsl:apply-templates>
                     
                     <!--
                     <xsl:variable name="object-uris" select="distinct-values($resource/*/@rdf:resource[not(key('resources', .))])" as="xs:string*"/>
