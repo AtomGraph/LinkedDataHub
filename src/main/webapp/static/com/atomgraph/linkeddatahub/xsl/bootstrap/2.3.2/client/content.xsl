@@ -771,7 +771,7 @@ exclude-result-prefixes="#all"
                 <!-- only count blocks that have @about meaning they're already persisted. New blocks only have @id -->
                 <xsl:variable name="sequence-number" select="count($container/preceding-sibling::div[@about][contains-token(@class, 'content')]) + 1" as="xs:integer"/>
                 <xsl:variable name="sequence-property-uri" select="xs:anyURI('&rdf;_' || $sequence-number)" as="xs:anyURI"/>
-                <xsl:message>$sequence-number: <xsl:value-of select="$sequence-number"/> $sequence-property: <xsl:value-of select="$sequence-property"/></xsl:message>
+                <xsl:message>$sequence-number: <xsl:value-of select="$sequence-number"/> $sequence-property-uri: <xsl:value-of select="$sequence-property-uri"/></xsl:message>
                 <xsl:variable name="update-string" select="$block-update-string" as="xs:string"/>
                 <xsl:variable name="update-string" select="replace($update-string, '$this', '&lt;' || ac:absolute-path(ldh:base-uri(.)) || '&gt;', 'q')" as="xs:string"/>
                 <xsl:variable name="update-string" select="replace($update-string, '$seq', '&lt;' || $sequence-property-uri || '&gt;', 'q')" as="xs:string"/>
