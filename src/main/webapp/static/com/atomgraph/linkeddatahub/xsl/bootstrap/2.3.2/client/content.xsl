@@ -433,10 +433,6 @@ exclude-result-prefixes="#all"
             <!-- update progress bar -->
             <ixsl:set-style name="width" select="'75%'" object="."/>
         </xsl:for-each>
-        
-        <xsl:for-each select="$container">
-            <ixsl:set-attribute name="typeof" select="$block-type" object="."/>
-        </xsl:for-each>
 
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="map{ 'method': 'POST', 'href': sd:endpoint(), 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
@@ -474,25 +470,6 @@ exclude-result-prefixes="#all"
                     <xsl:apply-templates select="$resource" mode="ldh:RenderBlock">
                         <xsl:with-param name="container" select="$container"/>
                     </xsl:apply-templates>
-                    
-                    <!--
-                    <xsl:variable name="object-uris" select="distinct-values($resource/*/@rdf:resource[not(key('resources', .))])" as="xs:string*"/>
-                    <xsl:variable name="query-string" select="$object-metadata-query || ' VALUES $this { ' || string-join(for $uri in $object-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>
-
-                    <xsl:variable name="request" as="item()*">
-                        <ixsl:schedule-action http-request="map{ 'method': 'POST', 'href': sd:endpoint(), 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-                            <xsl:call-template name="ldh:LoadBlockObjectMetadata">
-                                <xsl:with-param name="container" select="$container"/>
-                                <xsl:with-param name="block-type" select="$block-type"/>
-                                <xsl:with-param name="resource" select="$resource"/>
-                                <xsl:with-param name="graph" select="$graph"/>
-                                <xsl:with-param name="mode" select="$mode"/>
-                                <xsl:with-param name="show-edit-button" select="$show-edit-button"/>
-                            </xsl:call-template>
-                        </ixsl:schedule-action>
-                    </xsl:variable>
-                    <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
-                    -->
                 </xsl:for-each>
             </xsl:when>
             <xsl:when test="?status = 406">
