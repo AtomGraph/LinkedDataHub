@@ -396,7 +396,7 @@ exclude-result-prefixes="#all"
     
     <!-- object block (RDF resource) -->
     
-    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;Object'][rdf:value/@rdf:resource]" mode="ldh:RenderBlock">
+    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;Object'][rdf:value/@rdf:resource]" mode="ldh:RenderBlock" priority="1">
         <xsl:param name="container" as="element()"/>
         <xsl:param name="block-type" select="rdf:type/@rdf:resource" as="xs:anyURI"/>
         <xsl:param name="resource-uri" select="rdf:value/@rdf:resource" as="xs:anyURI?"/>
@@ -427,6 +427,36 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
 
+    <!-- default block (RDF resource) -->
+    
+    <xsl:template match="*[*][@rdf:about]" mode="ldh:RenderBlock">
+        <xsl:param name="container" as="element()"/>
+        <xsl:param name="graph" as="xs:anyURI?"/>
+        <xsl:param name="mode" as="xs:anyURI?"/>
+        <xsl:param name="refresh-content" as="xs:boolean?"/>
+        <xsl:param name="show-edit-button" select="false()" as="xs:boolean?"/>
+        <xsl:variable name="object-uris" select="distinct-values(*/@rdf:resource[not(key('resources', .))])" as="xs:string*"/>
+        <xsl:variable name="query-string" select="$object-metadata-query || ' VALUES $this { ' || string-join(for $uri in $object-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>
+
+        <xsl:for-each select="$container//div[@class = 'bar']">
+            <!-- update progress bar -->
+            <ixsl:set-style name="width" select="'75%'" object="."/>
+        </xsl:for-each>
+        
+        <xsl:variable name="request" as="item()*">
+            <ixsl:schedule-action http-request="map{ 'method': 'POST', 'href': sd:endpoint(), 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+                <xsl:call-template name="ldh:LoadBlockObjectMetadata">
+                    <xsl:with-param name="container" select="$container"/>
+                    <xsl:with-param name="resource" select="."/>
+                    <xsl:with-param name="graph" select="$graph"/>
+                    <xsl:with-param name="mode" select="$mode"/>
+                    <xsl:with-param name="show-edit-button" select="$show-edit-button"/>
+                </xsl:call-template>
+            </ixsl:schedule-action>
+        </xsl:variable>
+        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+    </xsl:template>
+    
     <xsl:template name="ldh:LoadBlockObjectValue">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="container" as="element()"/>
@@ -445,6 +475,9 @@ exclude-result-prefixes="#all"
                     </xsl:for-each>
                     
                     <xsl:variable name="resource" select="key('resources', $resource-uri)" as="element()?"/>
+                    <xsl:apply-templates select="$resource" mode="ldh:RenderBlock"/>
+                    
+                    <!--
                     <xsl:variable name="object-uris" select="distinct-values($resource/*/@rdf:resource[not(key('resources', .))])" as="xs:string*"/>
                     <xsl:variable name="query-string" select="$object-metadata-query || ' VALUES $this { ' || string-join(for $uri in $object-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>
 
@@ -461,6 +494,7 @@ exclude-result-prefixes="#all"
                         </ixsl:schedule-action>
                     </xsl:variable>
                     <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+                    -->
                 </xsl:for-each>
             </xsl:when>
             <xsl:when test="?status = 406">
@@ -491,6 +525,8 @@ exclude-result-prefixes="#all"
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
+    
+    <!-- replaces the block with a row -->
     
     <xsl:template name="ldh:LoadBlockObjectMetadata">
         <xsl:context-item as="map(*)" use="required"/>
