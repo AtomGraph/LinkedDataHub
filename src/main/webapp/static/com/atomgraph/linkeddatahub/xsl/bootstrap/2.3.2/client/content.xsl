@@ -714,41 +714,18 @@ exclude-result-prefixes="#all"
         <xsl:variable name="value-input" select="$container//div[contains-token(@class, 'control-group')][input[@name = 'pu']/@value = $value-property-uri]//input[@name = 'ou']" as="element()"/>
         <xsl:variable name="mode-input" select="$container//div[contains-token(@class, 'control-group')][input[@name = 'pu']/@value = '&ac;mode']//select[@name = 'ou']" as="element()"/>
         <xsl:variable name="value-uri" select="$value-input => ixsl:get('value')" as="xs:anyURI"/>
+        <xsl:variable name="mode-uri" select="$mode-input => ixsl:get('value')" as="xs:anyURI?"/>
+        <xsl:variable name="block-id" select="$container/@id" as="xs:string"/>
+        <xsl:variable name="block-uri" select="if ($container/@about) then $container/@about else xs:anyURI(ac:absolute-path(ldh:base-uri(.)) || '#' || $block-id)" as="xs:anyURI"/>
 
-        <xsl:choose>
-            <!-- input values missing, show an error -->
-            <xsl:when test="not($value-uri)">
-                <xsl:sequence select="ixsl:call(ixsl:get($container//div[contains-token(@class, 'control-group')][input[@name = 'pu']/@value = $value-property-uri], 'classList'), 'toggle', [ 'error', true() ])[current-date() lt xs:date('2000-01-01')]"/>
-            </xsl:when>
-            <xsl:otherwise>
-                <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
-
-                <xsl:variable name="content-id" select="$container/@id" as="xs:string"/>
-                <xsl:variable name="block-uri" select="if ($container/@about) then $container/@about else xs:anyURI(ac:absolute-path(ldh:base-uri(.)) || '#' || $content-id)" as="xs:anyURI"/>
-                <xsl:variable name="mode-uri" select="$mode-input => ixsl:get('value')" as="xs:anyURI?"/>
-                <xsl:variable name="sequence-number" select="count($container/preceding-sibling::div[@about][contains-token(@class, 'content')]) + 1" as="xs:integer"/>
-                <xsl:variable name="sequence-property" select="xs:anyURI('&rdf;_' || $sequence-number)" as="xs:anyURI"/>
-                <xsl:message>$sequence-number: <xsl:value-of select="$sequence-number"/> $sequence-property: <xsl:value-of select="$sequence-property"/></xsl:message>
-                <xsl:variable name="update-string" select="$block-update-string" as="xs:string"/>
-                <xsl:variable name="update-string" select="replace($update-string, '$this', '&lt;' || ac:absolute-path(ldh:base-uri(.)) || '&gt;', 'q')" as="xs:string"/>
-                <xsl:variable name="update-string" select="replace($update-string, '$seq', '&lt;' || $sequence-property || '&gt;', 'q')" as="xs:string"/>
-                <xsl:variable name="update-string" select="replace($update-string, '$type', '&lt;' || $block-type || '&gt;', 'q')" as="xs:string"/>
-                <xsl:variable name="update-string" select="replace($update-string, '$block', '&lt;' || $block-uri || '&gt;', 'q')" as="xs:string"/>
-                <xsl:variable name="update-string" select="replace($update-string, '$valueProperty', '&lt;' || $value-property-uri || '&gt;', 'q')" as="xs:string"/>
-                <xsl:variable name="update-string" select="replace($update-string, '$value', '&lt;' || $value-uri || '&gt;', 'q')" as="xs:string"/>
-                <xsl:variable name="update-string" select="if ($mode-uri) then replace($update-string, '$mode', '&lt;' || $mode-uri || '&gt;', 'q') else $update-string" as="xs:string"/>
-                <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, ac:absolute-path(ldh:base-uri(.)))" as="xs:anyURI"/>
-                <xsl:variable name="request" as="item()*">
-                    <ixsl:schedule-action http-request="map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string }">
-                        <xsl:call-template name="onResourceContentUpdate">
-                            <xsl:with-param name="container" select="$container"/>
-                            <xsl:with-param name="block-uri" select="$block-uri"/>
-                        </xsl:call-template>
-                    </ixsl:schedule-action>
-                </xsl:variable>
-                <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
-            </xsl:otherwise>
-        </xsl:choose>
+        <xsl:call-template name="ldh:UpdateResourceBlock">
+            <xsl:with-param name="sequence-property" select="$sequence-property"/>
+            <xsl:with-param name="block-type" select="$block-type"/>
+            <xsl:with-param name="block-uri" select="$block-uri"/>
+            <xsl:with-param name="value-property-uri" select="$value-property-uri"/>
+            <xsl:with-param name="value-uri" select="$value-uri"/>
+            <xsl:with-param name="mode-uri" select="$mode-uri"/>
+        </xsl:call-template>
     </xsl:template>
     
     <!-- save view block form onsubmit -->
@@ -761,6 +738,27 @@ exclude-result-prefixes="#all"
         <xsl:variable name="value-input" select="$container//div[contains-token(@class, 'control-group')][input[@name = 'pu']/@value = $value-property-uri]//input[@name = 'ou']" as="element()"/>
         <xsl:variable name="mode-input" select="$container//div[contains-token(@class, 'control-group')][input[@name = 'pu']/@value = '&ac;mode']//select[@name = 'ou']" as="element()"/>
         <xsl:variable name="value-uri" select="$value-input => ixsl:get('value')" as="xs:anyURI"/>
+        <xsl:variable name="mode-uri" select="$mode-input => ixsl:get('value')" as="xs:anyURI?"/>
+        <xsl:variable name="block-id" select="$container/@id" as="xs:string"/>
+        <xsl:variable name="block-uri" select="if ($container/@about) then $container/@about else xs:anyURI(ac:absolute-path(ldh:base-uri(.)) || '#' || $block-id)" as="xs:anyURI"/>
+
+        <xsl:call-template name="ldh:UpdateResourceBlock">
+            <xsl:with-param name="sequence-property" select="$sequence-property"/>
+            <xsl:with-param name="block-type" select="$block-type"/>
+            <xsl:with-param name="block-uri" select="$block-uri"/>
+            <xsl:with-param name="value-property-uri" select="$value-property-uri"/>
+            <xsl:with-param name="value-uri" select="$value-uri"/>
+            <xsl:with-param name="mode-uri" select="$mode-uri"/>
+        </xsl:call-template>
+    </xsl:template>
+    
+    <xsl:template name="ldh:UpdateResourceBlock">
+        <xsl:context-item as="element()" use="required"/>
+        <xsl:param name="block-type" as="xs:anyURI"/>
+        <xsl:param name="block-uri" as="xs:anyURI"/>
+        <xsl:param name="value-property-uri" as="xs:anyURI"/>
+        <xsl:param name="value-uri" as="xs:anyURI"/>
+        <xsl:param name="mode-uri" as="xs:anyURI"/>
 
         <xsl:choose>
             <!-- input values missing, show an error -->
@@ -770,15 +768,13 @@ exclude-result-prefixes="#all"
             <xsl:otherwise>
                 <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
-                <xsl:variable name="content-id" select="$container/@id" as="xs:string"/>
-                <xsl:variable name="block-uri" select="if ($container/@about) then $container/@about else xs:anyURI(ac:absolute-path(ldh:base-uri(.)) || '#' || $content-id)" as="xs:anyURI"/>
-                <xsl:variable name="mode-uri" select="$mode-input => ixsl:get('value')" as="xs:anyURI?"/>
+                <!-- only count blocks that have @about meaning they're already persisted. New blocks only have @id -->
                 <xsl:variable name="sequence-number" select="count($container/preceding-sibling::div[@about][contains-token(@class, 'content')]) + 1" as="xs:integer"/>
-                <xsl:variable name="sequence-property" select="xs:anyURI('&rdf;_' || $sequence-number)" as="xs:anyURI"/>
+                <xsl:variable name="sequence-property-uri" select="xs:anyURI('&rdf;_' || $sequence-number)" as="xs:anyURI"/>
                 <xsl:message>$sequence-number: <xsl:value-of select="$sequence-number"/> $sequence-property: <xsl:value-of select="$sequence-property"/></xsl:message>
                 <xsl:variable name="update-string" select="$block-update-string" as="xs:string"/>
                 <xsl:variable name="update-string" select="replace($update-string, '$this', '&lt;' || ac:absolute-path(ldh:base-uri(.)) || '&gt;', 'q')" as="xs:string"/>
-                <xsl:variable name="update-string" select="replace($update-string, '$seq', '&lt;' || $sequence-property || '&gt;', 'q')" as="xs:string"/>
+                <xsl:variable name="update-string" select="replace($update-string, '$seq', '&lt;' || $sequence-property-uri || '&gt;', 'q')" as="xs:string"/>
                 <xsl:variable name="update-string" select="replace($update-string, '$type', '&lt;' || $block-type || '&gt;', 'q')" as="xs:string"/>
                 <xsl:variable name="update-string" select="replace($update-string, '$block', '&lt;' || $block-uri || '&gt;', 'q')" as="xs:string"/>
                 <xsl:variable name="update-string" select="replace($update-string, '$valueProperty', '&lt;' || $value-property-uri || '&gt;', 'q')" as="xs:string"/>
