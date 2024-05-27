@@ -719,7 +719,6 @@ exclude-result-prefixes="#all"
         <xsl:variable name="block-uri" select="if ($container/@about) then $container/@about else xs:anyURI(ac:absolute-path(ldh:base-uri(.)) || '#' || $block-id)" as="xs:anyURI"/>
 
         <xsl:call-template name="ldh:UpdateResourceBlock">
-            <xsl:with-param name="sequence-property" select="$sequence-property"/>
             <xsl:with-param name="block-type" select="$block-type"/>
             <xsl:with-param name="block-uri" select="$block-uri"/>
             <xsl:with-param name="value-property-uri" select="$value-property-uri"/>
@@ -743,7 +742,6 @@ exclude-result-prefixes="#all"
         <xsl:variable name="block-uri" select="if ($container/@about) then $container/@about else xs:anyURI(ac:absolute-path(ldh:base-uri(.)) || '#' || $block-id)" as="xs:anyURI"/>
 
         <xsl:call-template name="ldh:UpdateResourceBlock">
-            <xsl:with-param name="sequence-property" select="$sequence-property"/>
             <xsl:with-param name="block-type" select="$block-type"/>
             <xsl:with-param name="block-uri" select="$block-uri"/>
             <xsl:with-param name="value-property-uri" select="$value-property-uri"/>
