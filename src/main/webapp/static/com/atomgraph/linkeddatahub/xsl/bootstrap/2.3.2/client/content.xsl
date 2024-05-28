@@ -1026,9 +1026,9 @@ exclude-result-prefixes="#all"
         </xsl:if>
     </xsl:template>
     
-    <!-- XHTML content cancel onclick -->
+    <!-- XHTML content cancel onclick - prioritize over resource content -->
     
-    <xsl:template match="div[contains-token(@class, 'xhtml-content')]//button[contains-token(@class, 'btn-cancel')]" mode="ixsl:onclick" priority="1"> <!-- prioritize over form.xsl -->
+    <xsl:template match="div[contains-token(@class, 'xhtml-content')]//button[contains-token(@class, 'btn-cancel')]" mode="ixsl:onclick" priority="2">
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'xhtml-content')]" as="element()"/>
 
         <xsl:message>XHTML content cancel onclick</xsl:message>
@@ -1064,7 +1064,7 @@ exclude-result-prefixes="#all"
     <xsl:template match="div[contains-token(@class, 'content')]//button[contains-token(@class, 'btn-cancel')]" mode="ixsl:onclick" priority="1"> <!-- prioritize over form.xsl -->
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'content')]" as="element()"/>
 
-        <xsl:message>XHTML content cancel onclick</xsl:message>
+        <xsl:message>resource content</xsl:message>
 
         <xsl:choose>
             <!-- updating existing content -->
