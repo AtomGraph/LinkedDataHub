@@ -1031,6 +1031,8 @@ exclude-result-prefixes="#all"
     <xsl:template match="div[contains-token(@class, 'xhtml-content')]//button[contains-token(@class, 'btn-cancel')]" mode="ixsl:onclick" priority="1"> <!-- prioritize over form.xsl -->
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'xhtml-content')]" as="element()"/>
 
+        <xsl:message>XHTML content cancel onclick</xsl:message>
+        
         <xsl:choose>
             <!-- restore existing content -->
             <xsl:when test="$container/@about">
@@ -1061,6 +1063,8 @@ exclude-result-prefixes="#all"
     
     <xsl:template match="div[contains-token(@class, 'content')]//button[contains-token(@class, 'btn-cancel')]" mode="ixsl:onclick" priority="1"> <!-- prioritize over form.xsl -->
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'content')]" as="element()"/>
+
+        <xsl:message>XHTML content cancel onclick</xsl:message>
 
         <xsl:choose>
             <!-- updating existing content -->
