@@ -603,7 +603,9 @@ LIMIT   100
                 <xsl:apply-templates select="." mode="bs2:BreadCrumbBar"/>
                 
                 <div id="created-modified-date" class="span3">
-                    <!-- placeholder for client.xsl callbacks -->
+                    <p>
+                        <xsl:apply-templates select="key('resources', $ac:uri)" mode="bs2:Timestamp"/>
+                    </p>
                 </div>
             </div>
         </div>
