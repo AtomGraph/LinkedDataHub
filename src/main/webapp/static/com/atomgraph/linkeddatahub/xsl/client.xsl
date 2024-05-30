@@ -565,6 +565,26 @@ WHERE
             <ixsl:set-property name="results" select="." object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $uri || '`')"/>
             <!-- store ETag header value under window.LinkedDataHub.contents[$content-uri].etag -->
             <ixsl:set-property name="etag" select="$etag" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $uri || '`')"/>
+
+            <!-- render current document's created/modified datetime -->
+<!--            <xsl:for-each select="id('created-modified-date', ixsl:page())">
+                <xsl:result-document href="?." method="ixsl:replace-content">
+                    <p>
+                        <xsl:apply-templates select="key('resources', $uri, $results)" mode="bs2:Timestamp"/>
+                    </p>
+                </xsl:result-document>
+            </xsl:for-each>-->
+        
+            <xsl:variable name="post-construct-ids" select="key('elements-by-class', 'post-construct', ixsl:page())/@id" as="xs:string*"/>
+            <xsl:if test="not(empty($post-construct-ids))">
+                <xsl:variable name="containers" select="id($post-construct-ids, ixsl:page())" as="element()*"/>
+                <xsl:for-each select="$containers">
+                    <xsl:apply-templates select="." mode="ldh:PostConstruct"/>
+
+                    <!-- container could be hidden server-side -->
+                    <ixsl:set-style name="display" select="'block'"/>
+                </xsl:for-each>
+            </xsl:if>
             
             <xsl:if test="acl:mode() = '&acl;Write'">
                 <xsl:variable name="xhtml-content-ids" select="key('elements-by-class', 'xhtml-content', ixsl:page())/@id" as="xs:string*"/>
@@ -580,6 +600,19 @@ WHERE
                 </xsl:if>
             </xsl:if>
             
+            <!-- this has to go after <xsl:result-document href="#{$container-id}"> because otherwise new elements will be injected and the $resource-content-ids lookup will not work anymore -->
+            <!-- load resource contents -->
+            <xsl:variable name="resource-content-ids" select="key('elements-by-class', 'resource-content', ixsl:page())/@id" as="xs:string*"/>
+            <xsl:if test="not(empty($resource-content-ids))">
+                <xsl:variable name="containers" select="id($resource-content-ids, ixsl:page())" as="element()*"/>
+                <xsl:for-each select="$containers">
+                    <xsl:call-template name="ldh:LoadBlock">
+                        <xsl:with-param name="acl-modes" select="$acl-modes"/>
+                        <xsl:with-param name="refresh-content" select="$refresh-content"/>
+                    </xsl:call-template>
+                </xsl:for-each>
+            </xsl:if>
+            
             <!-- is a new instance of Service was created, reload the LinkedDataHub.apps data and re-render the service dropdown -->
             <xsl:if test="//ldt:base or //sd:endpoint">
                 <xsl:variable name="request" as="item()*">
@@ -588,6 +621,14 @@ WHERE
                     </ixsl:schedule-action>
                 </xsl:variable>
                 <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+            </xsl:if>
+            
+            <!-- initialize map -->
+            <xsl:if test="key('elements-by-class', 'map-canvas', ixsl:page())">
+                <xsl:call-template name="ldh:DrawMap">
+                    <xsl:with-param name="content-uri" select="$uri"/>
+                    <xsl:with-param name="canvas-id" select="key('elements-by-class', 'map-canvas', ixsl:page())/@id" />
+                </xsl:call-template>
             </xsl:if>
             
             <!-- initialize chart -->
@@ -946,47 +987,6 @@ $series: <xsl:value-of select="$series"/>
                 </xsl:result-document>
             </xsl:for-each>
 
-            <!-- render current document's created/modified datetime -->
-<!--            <xsl:for-each select="id('created-modified-date', ixsl:page())">
-                <xsl:result-document href="?." method="ixsl:replace-content">
-                    <p>
-                        <xsl:apply-templates select="key('resources', $uri, $results)" mode="bs2:Timestamp"/>
-                    </p>
-                </xsl:result-document>
-            </xsl:for-each>-->
-        
-            <xsl:variable name="post-construct-ids" select="key('elements-by-class', 'post-construct', ixsl:page())/@id" as="xs:string*"/>
-            <xsl:if test="not(empty($post-construct-ids))">
-                <xsl:variable name="containers" select="id($post-construct-ids, ixsl:page())" as="element()*"/>
-                <xsl:for-each select="$containers">
-                    <xsl:apply-templates select="." mode="ldh:PostConstruct"/>
-
-                    <!-- container could be hidden server-side -->
-                    <ixsl:set-style name="display" select="'block'"/>
-                </xsl:for-each>
-            </xsl:if>
-            
-            <!-- this has to go after <xsl:result-document href="#{$container-id}"> because otherwise new elements will be injected and the $resource-content-ids lookup will not work anymore -->
-            <!-- load resource contents -->
-            <xsl:variable name="resource-content-ids" select="key('elements-by-class', 'resource-content', ixsl:page())/@id" as="xs:string*"/>
-            <xsl:if test="not(empty($resource-content-ids))">
-                <xsl:variable name="containers" select="id($resource-content-ids, ixsl:page())" as="element()*"/>
-                <xsl:for-each select="$containers">
-                    <xsl:call-template name="ldh:LoadBlock">
-                        <xsl:with-param name="acl-modes" select="$acl-modes"/>
-                        <xsl:with-param name="refresh-content" select="$refresh-content"/>
-                    </xsl:call-template>
-                </xsl:for-each>
-            </xsl:if>
-            
-            <!-- initialize map -->
-            <xsl:if test="key('elements-by-class', 'map-canvas', ixsl:page())">
-                <xsl:call-template name="ldh:DrawMap">
-                    <xsl:with-param name="content-uri" select="$uri"/>
-                    <xsl:with-param name="canvas-id" select="key('elements-by-class', 'map-canvas', ixsl:page())/@id" />
-                </xsl:call-template>
-            </xsl:if>
-            
             <xsl:choose>
                 <!-- scroll fragment-identified element into view if fragment is provided-->
                 <xsl:when test="$fragment">
