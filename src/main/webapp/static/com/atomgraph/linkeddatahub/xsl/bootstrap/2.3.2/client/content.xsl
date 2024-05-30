@@ -315,37 +315,6 @@ exclude-result-prefixes="#all"
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
-
-    <!-- SPIN query. DO not restrict rdf:type because it could be sp:Select/sp:Ask/sp:Describe/sp:Construct but also ldh:Constructor -->
-    
-<!--    <xsl:template match="*[@rdf:about][sp:text]" mode="ldh:RenderBlock" priority="1">
-        <xsl:param name="this" as="xs:anyURI"/>
-        <xsl:param name="container" as="element()"/>
-        <xsl:param name="graph" as="xs:anyURI?"/>
-        <xsl:param name="mode" as="xs:anyURI?"/>
-        <xsl:param name="refresh-content" as="xs:boolean?"/>
-        <xsl:param name="base-uri" select="ldh:base-uri(.)" as="xs:anyURI"/>
-        
-        <xsl:variable name="row" as="element()*">
-            <xsl:apply-templates select="." mode="bs2:Row">
-                <xsl:with-param name="graph" select="$graph" tunnel="yes"/>
-                <xsl:with-param name="mode" select="$mode"/>
-                <xsl:with-param name="show-edit-button" select="false()" tunnel="yes"/>
-            </xsl:apply-templates>
-        </xsl:variable>
-
-        <xsl:for-each select="$container">
-            <xsl:result-document href="?." method="ixsl:replace-content">
-                <xsl:copy-of select="$row/*"/>
-            </xsl:result-document>
-        </xsl:for-each>
-
-        <xsl:call-template name="ldh:BlockRendered">
-            <xsl:with-param name="container" select="$container"/>
-        </xsl:call-template>
-
-        <xsl:apply-templates select="$container/*" mode="ldh:PostConstruct"/>
-    </xsl:template>-->
     
     <!-- object block (RDF resource) -->
     

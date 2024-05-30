@@ -55,7 +55,7 @@ exclude-result-prefixes="#all">
     
     <!-- BLOCK MODE -->
 
-    <xsl:template match="*[sp:text/text()] | sp:text/@rdf:nodeID[key('resources', .)[not(* except rdf:type[@rdf:resource = '&xsd;string'])]]" mode="bs2:Block" use-when="system-property('xsl:product-name') eq 'SaxonJS'">
+    <xsl:template match="*[sp:text/text()] | sp:text/@rdf:nodeID[key('resources', .)[not(* except rdf:type[@rdf:resource = '&xsd;string'])]]" mode="bs2:Block">
         <xsl:param name="method" select="'get'" as="xs:string"/>
         <xsl:param name="action" select="xs:anyURI('')" as="xs:anyURI"/>
         <xsl:param name="id" select="'id' || ac:uuid()" as="xs:string?"/>

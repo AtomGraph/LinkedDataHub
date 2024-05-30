@@ -575,24 +575,14 @@ WHERE
                 </xsl:result-document>
             </xsl:for-each>
         
-            <!-- this has to go after <xsl:result-document href="#{$container-id}"> because otherwise new elements will be injected and the $resource-content-ids lookup will not work anymore -->
-            <!-- load resource contents -->
-            <xsl:variable name="resource-content-ids" select="key('elements-by-class', 'resource-content', ixsl:page())/@id" as="xs:string*"/>
-            <xsl:if test="not(empty($resource-content-ids))">
-                <xsl:variable name="containers" select="id($resource-content-ids, ixsl:page())" as="element()*"/>
-                <xsl:for-each select="$containers">
-                    <xsl:call-template name="ldh:LoadBlock">
-                        <xsl:with-param name="acl-modes" select="$acl-modes"/>
-                        <xsl:with-param name="refresh-content" select="$refresh-content"/>
-                    </xsl:call-template>
-                </xsl:for-each>
-            </xsl:if>
-
             <xsl:variable name="post-construct-ids" select="key('elements-by-class', 'post-construct', ixsl:page())/@id" as="xs:string*"/>
             <xsl:if test="not(empty($post-construct-ids))">
                 <xsl:variable name="containers" select="id($post-construct-ids, ixsl:page())" as="element()*"/>
                 <xsl:for-each select="$containers">
                     <xsl:apply-templates select="." mode="ldh:PostConstruct"/>
+
+                    <!-- container could be hidden server-side -->
+                    <ixsl:set-style name="display" select="'block'"/>
                 </xsl:for-each>
             </xsl:if>
             
@@ -608,6 +598,19 @@ WHERE
                         </xsl:call-template>
                     </xsl:for-each>
                 </xsl:if>
+            </xsl:if>
+            
+            <!-- this has to go after <xsl:result-document href="#{$container-id}"> because otherwise new elements will be injected and the $resource-content-ids lookup will not work anymore -->
+            <!-- load resource contents -->
+            <xsl:variable name="resource-content-ids" select="key('elements-by-class', 'resource-content', ixsl:page())/@id" as="xs:string*"/>
+            <xsl:if test="not(empty($resource-content-ids))">
+                <xsl:variable name="containers" select="id($resource-content-ids, ixsl:page())" as="element()*"/>
+                <xsl:for-each select="$containers">
+                    <xsl:call-template name="ldh:LoadBlock">
+                        <xsl:with-param name="acl-modes" select="$acl-modes"/>
+                        <xsl:with-param name="refresh-content" select="$refresh-content"/>
+                    </xsl:call-template>
+                </xsl:for-each>
             </xsl:if>
             
             <!-- is a new instance of Service was created, reload the LinkedDataHub.apps data and re-render the service dropdown -->
