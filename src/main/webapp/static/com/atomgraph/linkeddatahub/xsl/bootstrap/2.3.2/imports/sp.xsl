@@ -37,7 +37,7 @@ exclude-result-prefixes="#all">
     
 <!--    <xsl:template match="*[sp:text/text()]" mode="bs2:Row" priority="1">
         <xsl:param name="id" select="generate-id()" as="xs:string?"/>
-        <xsl:param name="class" select="'row-fluid override-content'" as="xs:string?"/>
+        <xsl:param name="class" select="'row-fluid post-construct'" as="xs:string?"/>
         <xsl:param name="about" select="@rdf:about" as="xs:anyURI?"/>
         <xsl:param name="typeof" select="rdf:type/@rdf:resource/xs:anyURI(.)" as="xs:anyURI*"/>
         <xsl:param name="content-value" as="xs:anyURI?"/>
@@ -59,7 +59,7 @@ exclude-result-prefixes="#all">
         <xsl:param name="method" select="'get'" as="xs:string"/>
         <xsl:param name="action" select="xs:anyURI('')" as="xs:anyURI"/>
         <xsl:param name="id" select="'id' || ac:uuid()" as="xs:string?"/>
-        <xsl:param name="class" select="'sparql-query-form form-horizontal'" as="xs:string?"/>
+        <xsl:param name="class" select="'sparql-query-form form-horizontal'" as="xs:string?"/> <!-- .sparql-query-form will trigger ldh:PostConstruct and initialize YASQE -->
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
         <xsl:param name="enctype" as="xs:string?"/>
         <xsl:param name="textarea-id" select="'id' || ac:uuid()" as="xs:string"/>

@@ -577,7 +577,7 @@ WHERE
         
             <!-- this has to go after <xsl:result-document href="#{$container-id}"> because otherwise new elements will be injected and the $resource-content-ids lookup will not work anymore -->
             <!-- load resource contents -->
-            <xsl:variable name="resource-content-ids" select="key('elements-by-class', 'resource-content', ixsl:page())/@id | key('elements-by-class', 'override-content', ixsl:page())/@id" as="xs:string*"/>
+            <xsl:variable name="resource-content-ids" select="key('elements-by-class', 'resource-content', ixsl:page())/@id" as="xs:string*"/>
             <xsl:if test="not(empty($resource-content-ids))">
                 <xsl:variable name="containers" select="id($resource-content-ids, ixsl:page())" as="element()*"/>
                 <xsl:for-each select="$containers">
@@ -588,6 +588,11 @@ WHERE
                 </xsl:for-each>
             </xsl:if>
 
+            <xsl:variable name="post-construct-ids" select="key('elements-by-class', 'post-construct', ixsl:page())/@id" as="xs:string*"/>
+            <xsl:for-each select="$containers">
+                <xsl:apply-templates select="." mode="ldh:PostConstruct"/>
+            </xsl:for-each>
+            
             <xsl:if test="acl:mode() = '&acl;Write'">
                 <xsl:variable name="xhtml-content-ids" select="key('elements-by-class', 'xhtml-content', ixsl:page())/@id" as="xs:string*"/>
                 <xsl:if test="not(empty($xhtml-content-ids))">
