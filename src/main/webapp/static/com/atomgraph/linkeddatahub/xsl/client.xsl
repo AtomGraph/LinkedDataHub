@@ -565,15 +565,6 @@ WHERE
             <ixsl:set-property name="results" select="." object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $uri || '`')"/>
             <!-- store ETag header value under window.LinkedDataHub.contents[$content-uri].etag -->
             <ixsl:set-property name="etag" select="$etag" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $uri || '`')"/>
-
-            <!-- render current document's created/modified datetime -->
-<!--            <xsl:for-each select="id('created-modified-date', ixsl:page())">
-                <xsl:result-document href="?." method="ixsl:replace-content">
-                    <p>
-                        <xsl:apply-templates select="key('resources', $uri, $results)" mode="bs2:Timestamp"/>
-                    </p>
-                </xsl:result-document>
-            </xsl:for-each>-->
         
             <xsl:variable name="post-construct-ids" select="key('elements-by-class', 'post-construct', ixsl:page())/@id" as="xs:string*"/>
             <xsl:if test="not(empty($post-construct-ids))">

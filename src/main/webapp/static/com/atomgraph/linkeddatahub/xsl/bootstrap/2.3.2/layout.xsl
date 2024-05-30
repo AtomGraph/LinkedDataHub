@@ -602,9 +602,9 @@ LIMIT   100
             <div class="row-fluid">
                 <xsl:apply-templates select="." mode="bs2:BreadCrumbBar"/>
                 
-                <div id="created-modified-date" class="span3">
+                <div class="span3">
                     <p>
-                        <xsl:apply-templates select="key('resources', $ac:uri)" mode="bs2:Timestamp"/>
+                        <xsl:apply-templates select="key('resources', ac:absolute-path(ldh:base-uri(.)))" mode="bs2:Timestamp"/>
                     </p>
                 </div>
             </div>
