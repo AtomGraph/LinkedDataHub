@@ -589,9 +589,12 @@ WHERE
             </xsl:if>
 
             <xsl:variable name="post-construct-ids" select="key('elements-by-class', 'post-construct', ixsl:page())/@id" as="xs:string*"/>
-            <xsl:for-each select="$containers">
-                <xsl:apply-templates select="." mode="ldh:PostConstruct"/>
-            </xsl:for-each>
+            <xsl:if test="not(empty($post-construct-ids))">
+                <xsl:variable name="containers" select="id($post-construct-ids, ixsl:page())" as="element()*"/>
+                <xsl:for-each select="$containers">
+                    <xsl:apply-templates select="." mode="ldh:PostConstruct"/>
+                </xsl:for-each>
+            </xsl:if>
             
             <xsl:if test="acl:mode() = '&acl;Write'">
                 <xsl:variable name="xhtml-content-ids" select="key('elements-by-class', 'xhtml-content', ixsl:page())/@id" as="xs:string*"/>
