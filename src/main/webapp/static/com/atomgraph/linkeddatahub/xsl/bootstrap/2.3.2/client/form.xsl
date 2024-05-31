@@ -753,7 +753,7 @@ WHERE
     <!-- shows new SPIN-constructed document as a modal form -->
     <xsl:template match="div[contains-token(@class, 'action-bar')]//button[contains-token(@class, 'add-constructor')][@data-for-class]" mode="ixsl:onclick" priority="2">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])[current-date() lt xs:date('2000-01-01')]"/>
-        <xsl:variable name="container" select="id('content-body', ixsl:page())" as="element()"/>
+        <xsl:variable name="content-body" select="id('content-body', ixsl:page())" as="element()"/>
         <xsl:variable name="forClass" select="@data-for-class" as="xs:anyURI"/>
         <xsl:message>forClass: <xsl:value-of select="$forClass"/></xsl:message>
         <xsl:variable name="constructed-doc" select="ldh:construct-forClass($forClass)" as="document-node()"/>
@@ -771,7 +771,7 @@ WHERE
         </xsl:variable>
         <xsl:variable name="classes" select="()" as="element()*"/>
 
-        <xsl:for-each select="$container">
+        <xsl:for-each select="$content-body">
             <xsl:variable name="resource" select="key('resources-by-type', $forClass, $constructed-doc)[not(key('predicates-by-object', @rdf:nodeID))]" as="element()"/>
             <xsl:variable name="form" as="element()*">
                 <!-- TO-DO: refactor to use asynchronous HTTP requests -->
@@ -834,10 +834,11 @@ WHERE
     </xsl:template>
     
     <!-- appends new SPIN-constructed instance to the page -->
-    <xsl:template match="button[contains-token(@class, 'add-constructor')][@data-for-class]" mode="ixsl:onclick" priority="1">
+    <xsl:template match="div[contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'add-constructor')][@data-for-class]" mode="ixsl:onclick" priority="1">
         <xsl:param name="method" select="'post'" as="xs:string"/>
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])[current-date() lt xs:date('2000-01-01')]"/>
-        <xsl:variable name="container" select="id('content-body', ixsl:page())" as="element()"/>
+        <xsl:variable name="content-body" select="id('content-body', ixsl:page())" as="element()"/>
+        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'row-fluid')]" as="element()"/>
         <xsl:variable name="forClass" select="@data-for-class" as="xs:anyURI"/>
         <xsl:message>forClass: <xsl:value-of select="$forClass"/></xsl:message>
         <xsl:variable name="constructed-doc" select="ldh:construct-forClass($forClass)" as="document-node()"/>
@@ -855,15 +856,19 @@ WHERE
         </xsl:variable>
         <xsl:variable name="classes" select="()" as="element()*"/>
 
+        <xsl:for-each select="$content-body">
+            <xsl:result-document href="?." method="ixsl:append-content">
+                <!-- append a new Create button block -->
+                <xsl:sequence select="$container"/>
+            </xsl:result-document>
+        </xsl:for-each>
+        
         <xsl:for-each select="$container">
-            <xsl:variable name="create-resource" select="./div[contains-token(@class, 'create-resource')]" as="element()"/>
-            <!-- remove preceding Create button block -->
-            <xsl:for-each select="$create-resource">
-                <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
-            </xsl:for-each>
+            <!-- remove .create-resource -->
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'create-resource', false() ])[current-date() lt xs:date('2000-01-01')]"/>
 
-            <xsl:variable name="resource" select="key('resources-by-type', $forClass, $constructed-doc)[not(key('predicates-by-object', @rdf:nodeID))]" as="element()"/>
-            <xsl:variable name="row-form" as="element()*">
+            <xsl:result-document href="?." method="ixsl:replace-content">
+                <xsl:variable name="resource" select="key('resources-by-type', $forClass, $constructed-doc)[not(key('predicates-by-object', @rdf:nodeID))]" as="element()"/>
                 <!-- TO-DO: refactor to use asynchronous HTTP requests -->
                 <xsl:variable name="types" select="distinct-values($resource/rdf:type/@rdf:resource)" as="xs:anyURI*"/>
                 <xsl:variable name="query-string" select="'DESCRIBE $Type VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }'" as="xs:string"/>
@@ -895,19 +900,10 @@ WHERE
                     <xsl:with-param name="base-uri" select="ac:absolute-path(ldh:base-uri(.))" tunnel="yes"/> <!-- ac:absolute-path(ldh:base-uri(.)) is empty on constructed documents -->
                     <xsl:with-param name="show-cancel-button" select="false()"/>
                 </xsl:apply-templates>
-            </xsl:variable>
-            
-            <xsl:result-document href="?." method="ixsl:append-content">
-                <xsl:copy-of select="$row-form"/>
-                
-                <!-- append following Create button block -->
-                <xsl:sequence select="$create-resource"/>
             </xsl:result-document>
 
             <!-- add event listeners to the descendants of the form. TO-DO: replace with XSLT -->
-            <xsl:if test="id($row-form//form/@id, ixsl:page())">
-                <xsl:apply-templates select="id($row-form//form/@id, ixsl:page())" mode="ldh:PostConstruct"/>
-            </xsl:if>
+            <xsl:apply-templates select="." mode="ldh:PostConstruct"/>
         </xsl:for-each>
 
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>

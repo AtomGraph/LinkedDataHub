@@ -1059,6 +1059,10 @@ exclude-result-prefixes="#all"
 
         <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'content', true() ])[current-date() lt xs:date('2000-01-01')]"/>
         <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'xhtml-content', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+
+        <xsl:message>
+            ldh:XHTML .add-constructor onclick
+        </xsl:message>
         
         <!-- call the default handler in form.xsl -->
         <xsl:next-match/>
