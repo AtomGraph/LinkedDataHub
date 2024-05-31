@@ -856,7 +856,7 @@ WHERE
         <xsl:variable name="classes" select="()" as="element()*"/>
 
         <xsl:for-each select="$container">
-            <xsl:variable name="create-resource" select="$container/div[contains-token(@class, 'create-resource')]" as="element()"/>
+            <xsl:variable name="create-resource" select="./div[contains-token(@class, 'create-resource')]" as="element()"/>
             <!-- remove preceding Create button block -->
             <xsl:for-each select="$create-resource">
                 <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>

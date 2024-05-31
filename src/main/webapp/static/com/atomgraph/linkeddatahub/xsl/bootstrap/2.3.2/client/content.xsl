@@ -593,6 +593,7 @@ exclude-result-prefixes="#all"
                             <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
                         </xsl:value-of>
                     </button>
+                    <!--
                     <button type="button" class="btn btn-delete">
                         <xsl:value-of>
                             <xsl:apply-templates select="key('resources', 'delete', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
@@ -603,6 +604,7 @@ exclude-result-prefixes="#all"
                             <xsl:apply-templates select="key('resources', 'cancel', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
                         </xsl:value-of>
                     </button>
+                    -->
                 </div>
             </xsl:result-document>
             
@@ -1052,8 +1054,12 @@ exclude-result-prefixes="#all"
         </xsl:choose>
     </xsl:template>
 
+    <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;XHTML'][rdf:value[@rdf:parseType = 'Literal']/xhtml:*]" mode="bs2:FormControl" priority="2">
+        <xsl:apply-templates select="rdf:value/xhtml:*" mode="#current"/>
+    </xsl:template>
+
     <!-- appends new XHTML block to the content list (custom specifically for ldh:XHTML blocks) -->
-    <xsl:template match="div[contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'add-constructor')][@data-for-class = '&ldh;XHTML']" mode="ixsl:onclick" priority="2"> <!-- prioritize over form.xsl -->
+    <xsl:template match="div[contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'add-constructor')][@data-for-class = '&ldh;XHTMLas']" mode="ixsl:onclick" priority="2"> <!-- prioritize over form.xsl -->    
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'row-fluid')]" as="element()"/>
         <!-- TO-DO: reuse identical constructor from form.xsl -->
         <xsl:variable name="constructor" as="document-node()">
