@@ -1052,12 +1052,17 @@ exclude-result-prefixes="#all"
                 </xsl:for-each>
             </xsl:otherwise>
         </xsl:choose>
-    </xsl:template>
 
-    <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;XHTML'][rdf:value[@rdf:parseType = 'Literal']/xhtml:*]" mode="bs2:FormControl" priority="2">
-        <xsl:apply-templates select="rdf:value/xhtml:*" mode="#current"/>
-    </xsl:template>
+    <xsl:template match="div[contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'add-constructor')][@data-for-class = '&ldh;XHTML']" mode="ixsl:onclick" priority="2"> <!-- prioritize over form.xsl -->    
+        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'row-fluid')]" as="element()"/>
 
+        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'content', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'xhtml-content', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+        
+        <!-- call the default handler in form.xsl -->
+        <xsl:next-match/>
+    </xsl:template>
+    
     <!-- appends new XHTML block to the content list (custom specifically for ldh:XHTML blocks) -->
     <xsl:template match="div[contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'add-constructor')][@data-for-class = '&ldh;XHTMLas']" mode="ixsl:onclick" priority="2"> <!-- prioritize over form.xsl -->    
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'row-fluid')]" as="element()"/>
