@@ -1053,7 +1053,7 @@ exclude-result-prefixes="#all"
             </xsl:otherwise>
         </xsl:choose>
 
-    <xsl:template match="div[contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'add-constructor')][@data-for-class = '&ldh;XHTML']" mode="ixsl:onclick" priority="2"> <!-- prioritize over form.xsl -->    
+    <xsl:template match="div[contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'add-constructor')][@data-for-class = '&ldh;XHTML']" mode="ixsl:onclick" priority="2"> <!-- prioritize over form.xsl -->
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'row-fluid')]" as="element()"/>
 
         <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'content', true() ])[current-date() lt xs:date('2000-01-01')]"/>
@@ -1064,7 +1064,7 @@ exclude-result-prefixes="#all"
     </xsl:template>
     
     <!-- appends new XHTML block to the content list (custom specifically for ldh:XHTML blocks) -->
-    <xsl:template match="div[contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'add-constructor')][@data-for-class = '&ldh;XHTMLas']" mode="ixsl:onclick" priority="2"> <!-- prioritize over form.xsl -->    
+    <xsl:template match="div[contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'add-constructor')][@data-for-class = '&ldh;XHTMLas']" mode="ixsl:onclick" priority="2"> <!-- prioritize over form.xsl -->
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'row-fluid')]" as="element()"/>
         <!-- TO-DO: reuse identical constructor from form.xsl -->
         <xsl:variable name="constructor" as="document-node()">
