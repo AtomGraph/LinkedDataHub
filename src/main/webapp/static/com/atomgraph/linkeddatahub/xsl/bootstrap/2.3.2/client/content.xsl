@@ -966,10 +966,11 @@ exclude-result-prefixes="#all"
     <xsl:template match="div[contains-token(@class, 'content')]//button[contains-token(@class, 'btn-remove-resource')]" mode="ixsl:onclick" priority="3">
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'content')]" as="element()"/>
 
-        <xsl:if test="ixsl:call(ixsl:window(), 'confirm', [ ac:label(key('resources', 'are-you-sure', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))) ])">
-            <xsl:choose>
-                <!-- delete existing content -->
-                <xsl:when test="$container/@about">
+        <xsl:choose>
+            <!-- delete existing content -->
+            <xsl:when test="$container/@about">
+                <!-- show a confirmation prompt -->
+                <xsl:if test="ixsl:call(ixsl:window(), 'confirm', [ ac:label(key('resources', 'are-you-sure', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))) ])">
                     <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
                     <xsl:variable name="block-uri" select="$container/@about" as="xs:anyURI"/>
@@ -984,15 +985,15 @@ exclude-result-prefixes="#all"
                         </ixsl:schedule-action>
                     </xsl:variable>
                     <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
-                </xsl:when>
-                <!-- remove content that hasn't been saved yet -->
-                <xsl:otherwise>
-                    <xsl:for-each select="$container">
-                        <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
-                    </xsl:for-each>
-                </xsl:otherwise>
-            </xsl:choose>
-        </xsl:if>
+                </xsl:if>
+            </xsl:when>
+            <!-- remove content that hasn't been saved yet -->
+            <xsl:otherwise>
+                <xsl:for-each select="$container">
+                    <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
+                </xsl:for-each>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:template>
     
     <!-- XHTML content cancel onclick - prioritize over resource content -->
