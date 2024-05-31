@@ -141,6 +141,7 @@ button.add-typeahead { width: 219px; }
 .control-group.required .control-label { font-weight: bold; }
 .description { display: none; }
 .content .dl-horizontal { max-height: 35em; overflow: auto; }
+.xhtml-content .form-horizontal .control-label { display: none; }
 .xhtml-content .form-horizontal .controls { margin-left: 0; }
 /* .content .btn.add-typeahead { margin-top: -10px; } */
 object { display: block; margin: auto; max-height: 400px; overflow: hidden; width: 100%; }
