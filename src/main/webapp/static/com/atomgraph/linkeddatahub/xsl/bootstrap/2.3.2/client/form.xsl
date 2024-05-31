@@ -867,8 +867,8 @@ WHERE
             <!-- remove .create-resource -->
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'create-resource', false() ])[current-date() lt xs:date('2000-01-01')]"/>
 
-            <xsl:result-document href="?." method="ixsl:replace-content">
-                <xsl:variable name="resource" select="key('resources-by-type', $forClass, $constructed-doc)[not(key('predicates-by-object', @rdf:nodeID))]" as="element()"/>
+            <xsl:variable name="resource" select="key('resources-by-type', $forClass, $constructed-doc)[not(key('predicates-by-object', @rdf:nodeID))]" as="element()"/>
+            <xsl:variable name="row-form" as="element()*">
                 <!-- TO-DO: refactor to use asynchronous HTTP requests -->
                 <xsl:variable name="types" select="distinct-values($resource/rdf:type/@rdf:resource)" as="xs:anyURI*"/>
                 <xsl:variable name="query-string" select="'DESCRIBE $Type VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }'" as="xs:string"/>
@@ -900,6 +900,10 @@ WHERE
                     <xsl:with-param name="base-uri" select="ac:absolute-path(ldh:base-uri(.))" tunnel="yes"/> <!-- ac:absolute-path(ldh:base-uri(.)) is empty on constructed documents -->
                     <xsl:with-param name="show-cancel-button" select="false()"/>
                 </xsl:apply-templates>
+            </xsl:variable>
+                                
+            <xsl:result-document href="?." method="ixsl:replace-content">
+                <xsl:copy-of select="$row-form/*"/>
             </xsl:result-document>
 
             <!-- add event listeners to the descendants of the form. TO-DO: replace with XSLT -->
