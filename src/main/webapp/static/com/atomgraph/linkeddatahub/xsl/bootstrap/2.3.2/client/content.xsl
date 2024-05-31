@@ -1057,83 +1057,21 @@ exclude-result-prefixes="#all"
     <xsl:template match="div[contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'add-constructor')][@data-for-class = '&ldh;XHTML']" mode="ixsl:onclick" priority="2"> <!-- prioritize over form.xsl -->
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'row-fluid')]" as="element()"/>
 
-        <xsl:for-each select="$container">
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'content', true() ])[current-date() lt xs:date('2000-01-01')]"/>
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'xhtml-content', true() ])[current-date() lt xs:date('2000-01-01')]"/>
-        </xsl:for-each>
-
         <xsl:message>
             ldh:XHTML .add-constructor onclick
         </xsl:message>
         
         <!-- call the default handler in form.xsl -->
         <xsl:next-match/>
-    </xsl:template>
-    
-    <!-- appends new XHTML block to the content list (custom specifically for ldh:XHTML blocks) -->
-    <xsl:template match="div[contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'add-constructor')][@data-for-class = '&ldh;XHTMLas']" mode="ixsl:onclick" priority="2"> <!-- prioritize over form.xsl -->
-        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'row-fluid')]" as="element()"/>
-        <!-- TO-DO: reuse identical constructor from form.xsl -->
-        <xsl:variable name="constructor" as="document-node()">
-            <xsl:document>
-                <rdf:RDF>
-                    <rdf:Description>
-                        <rdf:type rdf:resource="&ldh;XHTML"/>
-                        <rdf:value rdf:parseType="Literal">
-                            <xhtml:div/>
-                        </rdf:value>
-                    </rdf:Description>
-                </rdf:RDF>
-            </xsl:document>
-        </xsl:variable>
-        <xsl:variable name="controls" as="node()*">
-            <xsl:apply-templates select="$constructor//rdf:value/xhtml:*" mode="bs2:FormControl"/>
-        </xsl:variable>
-
-        <!-- move the current row of controls to the bottom of the content list -->
-        <xsl:for-each select="$container/..">
-            <xsl:result-document href="?." method="ixsl:append-content">
-                <xsl:copy-of select="$container"/>
-            </xsl:result-document>
-        </xsl:for-each>
         
-        <!-- add .content.xhtml-content to div.row-fluid -->
         <xsl:for-each select="$container">
-            <ixsl:set-attribute name="id" select="'id' || ac:uuid()"/>
-            <ixsl:set-attribute name="typeof" select="'&ldh;XHTML'"/>
-<!--            <ixsl:set-attribute name="draggable" select="'true'"/>-->
-
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'content', true() ])[current-date() lt xs:date('2000-01-01')]"/>
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'xhtml-content', true() ])[current-date() lt xs:date('2000-01-01')]"/>
-        </xsl:for-each>
-        
-        <xsl:for-each select="ancestor::div[contains-token(@class, 'main')]">
-            <xsl:result-document href="?." method="ixsl:replace-content">
-                <div>
-                    <xsl:copy-of select="$controls"/>
-                </div>
-                
-                <div class="form-actions">
-                    <button type="button" class="btn btn-primary btn-save">
-                        <xsl:value-of>
-                            <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                        </xsl:value-of>
-                    </button>
-                    <button type="button" class="btn btn-cancel">
-                        <xsl:value-of>
-                            <xsl:apply-templates select="key('resources', 'cancel', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                        </xsl:value-of>
-                    </button>
-                </div>
-            </xsl:result-document>
-            
-            <!-- initialize wymeditor textarea -->
-            <xsl:apply-templates select="key('elements-by-class', 'wymeditor', .)" mode="ldh:PostConstruct"/>
         </xsl:for-each>
     </xsl:template>
     
     <!-- appends new resource block to the content list -->
-    <xsl:template match="div[contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'add-constructor')][@data-for-class = ('&ldh;View', '&ldh;Object')]" mode="ixsl:onclick" priority="2"> <!-- prioritize over form.xsl -->
+    <xsl:template match="div[contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'add-constructor')][@data-for-class = ('&ldh;XHTML', '&ldh;View', '&ldh;Object')]" mode="ixsl:onclick" priority="2"> <!-- prioritize over form.xsl -->
         <xsl:next-match>
             <xsl:with-param name="method" select="'patch'"/>
         </xsl:next-match>
