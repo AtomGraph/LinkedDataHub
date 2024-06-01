@@ -836,14 +836,15 @@ WHERE
     <!-- appends new SPIN-constructed instance to the page -->
     <xsl:template match="div[contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'add-constructor')][@data-for-class]" mode="ixsl:onclick" priority="1">
         <xsl:param name="method" select="'post'" as="xs:string"/>
+        <xsl:param name="container" select="ancestor::div[contains-token(@class, 'row-fluid')]" as="element()"/>
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])[current-date() lt xs:date('2000-01-01')]"/>
         <xsl:variable name="content-body" select="id('content-body', ixsl:page())" as="element()"/>
-        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'row-fluid')]" as="element()"/>
         <xsl:variable name="forClass" select="@data-for-class" as="xs:anyURI"/>
         <xsl:message>forClass: <xsl:value-of select="$forClass"/></xsl:message>
         <xsl:variable name="constructed-doc" select="ldh:construct-forClass($forClass)" as="document-node()"/>
         <xsl:variable name="doc-uri" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
-        <xsl:variable name="this" select="xs:anyURI($doc-uri || '#id' || ac:uuid())" as="xs:anyURI"/>
+        <xsl:variable name="id" select="ac:uuid()" as="xs:anyURI"/>
+        <xsl:variable name="this" select="xs:anyURI($doc-uri || '#id' || $id)" as="xs:anyURI"/>
         <xsl:message>ldh:base-uri(.): <xsl:value-of select="ldh:base-uri(.)"/> $doc-uri: <xsl:value-of select="$doc-uri"/> $this: <xsl:value-of select="$doc-uri"/></xsl:message>
         <!-- set document URI instead of blank node -->
         <xsl:variable name="constructed-doc" as="document-node()">
@@ -864,6 +865,8 @@ WHERE
         </xsl:for-each>
         
         <xsl:for-each select="$container">
+            <ixsl:set-attribute name="id" select="$id" object="$container"/>
+            <ixsl:set-attribute name="typeof" select="$forClass" object="$container"/>
             <!-- remove .create-resource -->
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'create-resource', false() ])[current-date() lt xs:date('2000-01-01')]"/>
 
@@ -1482,7 +1485,6 @@ WHERE
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="resource-uri" as="xs:anyURI"/>
         <xsl:param name="typeahead-span" as="element()"/>
-        <!-- <xsl:param name="forClass" select="ixsl:get($typeahead-span, 'dataset.forClass')" as="xs:anyURI"/> -->
 
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
