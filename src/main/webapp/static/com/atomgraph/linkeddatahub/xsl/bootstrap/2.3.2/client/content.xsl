@@ -1076,6 +1076,8 @@ exclude-result-prefixes="#all"
     
     <!-- appends new resource block to the content list -->
     <xsl:template match="div[contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'add-constructor')][@data-for-class = ('&ldh;View', '&ldh;Object')]" mode="ixsl:onclick" priority="2"> <!-- prioritize over form.xsl -->
+        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'row-fluid')]" as="element()"/>
+    
         <!-- call the default handler in form.xsl -->
         <xsl:next-match>
             <xsl:with-param name="method" select="'patch'"/>
