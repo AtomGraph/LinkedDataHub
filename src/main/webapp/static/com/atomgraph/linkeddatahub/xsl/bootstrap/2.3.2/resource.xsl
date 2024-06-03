@@ -455,6 +455,56 @@ extension-element-prefixes="ixsl"
     
     <!-- ROW -->
     
+    <!-- XHTML content overrides TO-DO: move to content.xsl -->
+    <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;XHTML'][rdf:value[@rdf:parseType = 'Literal']/xhtml:div]" mode="bs2:Row" priority="1">
+        <xsl:param name="id" select="if (contains(@rdf:about, ac:absolute-path(ldh:base-uri(.)) || '#')) then substring-after(@rdf:about, ac:absolute-path(ldh:base-uri(.)) || '#') else generate-id()" as="xs:string?"/>
+        <xsl:param name="class" select="'row-fluid content xhtml-content'" as="xs:string?"/>
+        <xsl:param name="about" select="@rdf:about" as="xs:anyURI?"/>
+        <xsl:param name="typeof" select="rdf:type/@rdf:resource/xs:anyURI(.)" as="xs:anyURI*"/>
+        <xsl:param name="main-class" select="'main span7'" as="xs:string?"/>
+        <xsl:param name="transclude" select="false()" as="xs:boolean"/>
+        <xsl:param name="base" as="xs:anyURI?"/>
+        <xsl:param name="draggable" select="$acl:mode = '&acl;Write'" as="xs:boolean?"/>
+
+        <xsl:apply-templates select="." mode="bs2:RowContentHeader"/>
+
+        <div>
+            <xsl:if test="$id">
+                <xsl:attribute name="id" select="$id"/>
+            </xsl:if>
+            <xsl:if test="$class">
+                <xsl:attribute name="class" select="$class"/>
+            </xsl:if>
+            <xsl:if test="$about">
+                <xsl:attribute name="about" select="$about"/>
+            </xsl:if>
+            <xsl:if test="exists($typeof)">
+                <xsl:attribute name="typeof" select="string-join($typeof, ' ')"/>
+            </xsl:if>
+            <xsl:if test="$draggable = true()">
+                <xsl:attribute name="draggable" select="'true'"/>
+            </xsl:if>
+            <xsl:if test="$draggable = false()">
+                <xsl:attribute name="draggable" select="'false'"/>
+            </xsl:if>
+            
+            <xsl:apply-templates select="." mode="bs2:Left"/>
+
+            <div>
+                <xsl:if test="$main-class">
+                    <xsl:attribute name="class" select="$main-class"/>
+                </xsl:if>
+
+                <xsl:apply-templates select="rdf:value[@rdf:parseType = 'Literal']/xhtml:div" mode="ldh:XHTMLContent">
+                    <xsl:with-param name="transclude" select="$transclude" tunnel="yes"/>
+                    <xsl:with-param name="base" select="$base" tunnel="yes"/>
+                </xsl:apply-templates>
+            </div>
+            
+            <xsl:apply-templates select="." mode="bs2:Right"/>
+        </div>
+    </xsl:template>
+    
     <!-- query and chart overrides TO-DO: move to a vocab-specific stylesheet -->
     <xsl:template match="*[@rdf:about][sp:text/text()] | *[@rdf:about][spin:query/@rdf:resource][ldh:chartType/@rdf:resource]" mode="bs2:Row" priority="1">
         <xsl:param name="id" select="if (contains(@rdf:about, ac:absolute-path(ldh:base-uri(.)) || '#')) then substring-after(@rdf:about, ac:absolute-path(ldh:base-uri(.)) || '#') else generate-id()" as="xs:string?"/>
@@ -751,54 +801,7 @@ extension-element-prefixes="ixsl"
     <!-- XHTML block (render server-side as the block data is available here) -->
     
     <xsl:template match="@rdf:resource[key('resources', .)[rdf:type/@rdf:resource = '&ldh;XHTML'][rdf:value[@rdf:parseType = 'Literal']/xhtml:div]]" mode="bs2:RowContent" priority="2">
-        <xsl:param name="id" select="if (contains(., ac:absolute-path(ldh:base-uri(.)) || '#')) then substring-after(., ac:absolute-path(ldh:base-uri(.)) || '#') else generate-id()" as="xs:string?"/>
-        <xsl:param name="class" select="'row-fluid content xhtml-content'" as="xs:string?"/>
-        <xsl:param name="left-class" select="'left-nav span2'" as="xs:string?"/>
-        <xsl:param name="main-class" select="'main span7'" as="xs:string?"/>
-        <xsl:param name="right-class" select="'right-nav span3'" as="xs:string?"/>
-        <xsl:param name="transclude" select="false()" as="xs:boolean"/>
-        <xsl:param name="base" as="xs:anyURI?"/>
-        <xsl:param name="draggable" select="$acl:mode = '&acl;Write'" as="xs:boolean?"/>
-
-        <xsl:apply-templates select="key('resources', .)" mode="bs2:RowContentHeader"/>
-
-        <div about="{.}" typeof="{key('resources', .)/rdf:type/@rdf:resource}">
-            <xsl:if test="$id">
-                <xsl:attribute name="id" select="$id"/>
-            </xsl:if>
-            <xsl:if test="$class">
-                <xsl:attribute name="class" select="$class"/>
-            </xsl:if>
-            <xsl:if test="$draggable = true()">
-                <xsl:attribute name="draggable" select="'true'"/>
-            </xsl:if>
-            <xsl:if test="$draggable = false()">
-                <xsl:attribute name="draggable" select="'false'"/>
-            </xsl:if>
-            
-            <div>
-                <xsl:if test="$left-class">
-                    <xsl:attribute name="class" select="$left-class"/>
-                </xsl:if>
-            </div>
-
-            <div>
-                <xsl:if test="$main-class">
-                    <xsl:attribute name="class" select="$main-class"/>
-                </xsl:if>
-
-                <xsl:apply-templates select="key('resources', .)/rdf:value[@rdf:parseType = 'Literal']/xhtml:div" mode="ldh:XHTMLContent">
-                    <xsl:with-param name="transclude" select="$transclude" tunnel="yes"/>
-                    <xsl:with-param name="base" select="$base" tunnel="yes"/>
-                </xsl:apply-templates>
-            </div>
-            
-            <div>
-                <xsl:if test="$right-class">
-                    <xsl:attribute name="class" select="$right-class"/>
-                </xsl:if>
-            </div>
-        </div>
+        <xsl:apply-templates select="key('resources', .)" mode="bs2:Row"/>
     </xsl:template>
     
     <!-- content block -->
