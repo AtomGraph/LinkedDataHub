@@ -867,6 +867,7 @@ WHERE
         <xsl:for-each select="$container">
             <ixsl:set-attribute name="id" select="$id" object="$container"/>
             <ixsl:set-attribute name="typeof" select="$forClass" object="$container"/>
+            
             <!-- remove .create-resource -->
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'create-resource', false() ])[current-date() lt xs:date('2000-01-01')]"/>
 

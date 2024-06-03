@@ -655,7 +655,7 @@ exclude-result-prefixes="#all"
 
     <!-- save object block form onsubmit -->
     
-    <xsl:template match="div[@typeof = '&ldh;Object'][contains-token(@class, 'row-fluid')]//form[contains-token(@class, 'form-horizontal')][upper-case(@method) = 'PATCH']" mode="ixsl:onsubmit" priority="2"> <!-- prioritze over form.xsl -->
+    <xsl:template match="div[@typeof = '&ldh;Object'][contains-token(@class, 'content')][contains-token(@class, 'row-fluid')]//form[contains-token(@class, 'form-horizontal')][upper-case(@method) = 'PATCH']" mode="ixsl:onsubmit" priority="2"> <!-- prioritze over form.xsl -->
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'content')][contains-token(@class, 'row-fluid')]" as="element()"/>
         <xsl:variable name="block-type" select="xs:anyURI($container/@typeof)" as="xs:anyURI"/>
@@ -679,7 +679,7 @@ exclude-result-prefixes="#all"
     
     <!-- save view block form onsubmit -->
     
-    <xsl:template match="div[@typeof = '&ldh;View'][contains-token(@class, 'row-fluid')]//form[contains-token(@class, 'form-horizontal')][upper-case(@method) = 'PATCH']" mode="ixsl:onsubmit" priority="2"> <!-- prioritze over form.xsl -->
+    <xsl:template match="div[@typeof = '&ldh;View'][contains-token(@class, 'content')][contains-token(@class, 'row-fluid')]//form[contains-token(@class, 'form-horizontal')][upper-case(@method) = 'PATCH']" mode="ixsl:onsubmit" priority="2"> <!-- prioritze over form.xsl -->
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'content')][contains-token(@class, 'row-fluid')]" as="element()"/>
         <xsl:variable name="block-type" select="xs:anyURI($container/@typeof)" as="xs:anyURI"/>
@@ -1064,6 +1064,7 @@ exclude-result-prefixes="#all"
         <!-- call the default handler in form.xsl -->
         <xsl:next-match/>
         
+        <xsl:message>Toggle .content.xhtml-content</xsl:message>
         <xsl:for-each select="$container">
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'content', true() ])[current-date() lt xs:date('2000-01-01')]"/>
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'xhtml-content', true() ])[current-date() lt xs:date('2000-01-01')]"/>
