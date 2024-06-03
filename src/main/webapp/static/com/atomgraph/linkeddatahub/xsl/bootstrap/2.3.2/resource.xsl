@@ -1380,13 +1380,6 @@ extension-element-prefixes="ixsl"
             </span>
 
             <div class="controls">
-                <!-- $forClass value is used in client.xsl -->
-                <!-- 
-                <xsl:for-each select="$forClass">
-                    <input type="hidden" name="forClass" value="{.}"/>
-                </xsl:for-each>
-                -->
-                
                 <button type="button" id="button-{generate-id()}" class="btn add-value">
                     <xsl:apply-templates select="key('resources', 'add', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ldh:logo">
                         <xsl:with-param name="class" select="'btn add-value'"/>
