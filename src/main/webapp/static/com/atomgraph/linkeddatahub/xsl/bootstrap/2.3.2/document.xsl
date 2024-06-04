@@ -214,8 +214,8 @@ extension-element-prefixes="ixsl"
         <xsl:param name="classes" as="element()*"/>
 
         <!-- select elements explicitly, because Saxon-JS chokes on text nodes here -->
-        <!-- hide the current document resource and the content resources -->
-        <xsl:apply-templates select="*" mode="#current">
+        <!-- hide the content resources - cannot suppress them in the resource-level bs2:Row because its being reused ldh:ContentList/bs2:RowContent modes -->
+        <xsl:apply-templates select="*[not(rdf:type/@rdf:resource = ('&ldh;XHTML', '&ldh;View', '&ldh;Object'))]" mode="#current">
             <xsl:sort select="ac:label(.)"/>
         </xsl:apply-templates>
         
