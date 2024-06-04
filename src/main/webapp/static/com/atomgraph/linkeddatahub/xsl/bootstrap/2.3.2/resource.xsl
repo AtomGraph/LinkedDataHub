@@ -851,7 +851,7 @@ extension-element-prefixes="ixsl"
 
     <!-- ROW BLOCKS -->
     
-    <xsl:template match="@rdf:resource[key('resources', .)" mode="bs2:RowContent" priority="2">
+    <xsl:template match="@rdf:resource[key('resources', .)]" mode="bs2:RowContent" priority="2">
         <xsl:apply-templates select="key('resources', .)" mode="bs2:Row"/>
     </xsl:template>
     
