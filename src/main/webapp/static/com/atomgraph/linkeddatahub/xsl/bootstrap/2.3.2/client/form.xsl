@@ -640,6 +640,10 @@ WHERE
                         <xsl:sort select="ac:label(.)"/>
                     </xsl:apply-templates>
                 </xsl:variable>
+                <xsl:message>
+                    $resources: <xsl:value-of select="serialize($resources)"/>
+                    $row: <xsl:value-of select="serialize($row)"/>
+                </xsl:message>
                 
                 <xsl:for-each select="$container">
                     <xsl:result-document href="?." method="ixsl:replace-content">
