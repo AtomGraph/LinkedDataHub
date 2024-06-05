@@ -313,6 +313,14 @@ exclude-result-prefixes="#all"
                         <xsl:for-each select="json:string[@key = 'object']">
                             <!-- object -->
                             <xsl:choose>
+                                <!-- XML literal -->
+                                <xsl:when test="starts-with(., '&quot;') and contains(., '&quot;^^') and substring-after(., '&quot;^^') = '&rdf;XMLLiteral'">
+                                    <xsl:attribute name="rdf:parseType" select="'Literal'"/>
+                                    
+                                    <div xmlns="http://www.w3.org/1999/xhtml">
+                                        <xsl:sequence select="parse-xml(substring-before(substring-after(., '&quot;'), '&quot;^^'))"/>
+                                    </div>
+                                </xsl:when>
                                 <!-- language-tagged literal -->
                                 <xsl:when test="starts-with(., '&quot;') and contains(., '&quot;^^')">
                                     <xsl:attribute name="rdf:datatype" select="substring-after(., '&quot;^^')"/>
