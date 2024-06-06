@@ -552,9 +552,9 @@ WHERE
             
             <xsl:variable name="js-statement" as="xs:string">
                 <![CDATA[
-                    function(res)
+                    function c14nCallback(res)
                     {
-                        document.dispatchEvent(new CustomEvent("CanonicalizeXMLCallback", { "detail": { "c14n-xml" : res} } ));
+                        document.dispatchEvent(new CustomEvent("CanonicalizeXMLCallback", { "detail": { "c14n-xml" : res  } } ));
                     }
                 ]]>
             </xsl:variable>
