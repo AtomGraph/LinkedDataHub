@@ -74,6 +74,8 @@ WHERE
         <xsl:param name="doc" as="document-node()"/>
         <xsl:param name="callback"/>
 
+        <xsl:message>ldh:CanonicalizeXML</xsl:message>
+        
         <xsl:variable name="js-statement" as="xs:string">
             <![CDATA[
                 function c14n(document, callback) {
@@ -89,6 +91,8 @@ WHERE
             ]]>
         </xsl:variable>
         <xsl:variable name="js-function" select="ixsl:eval(normalize-space($js-statement))"/> <!-- need normalize-space() due to Saxon-JS 2.4 bug: https://saxonica.plan.io/issues/5667 -->
+        
+        <xsl:message>ldh:CanonicalizeXML ixsl:call()</xsl:message>
         <xsl:sequence select="ixsl:call($js-function, 'call', [ $doc, $callback ])"/>
     </xsl:template>
     
