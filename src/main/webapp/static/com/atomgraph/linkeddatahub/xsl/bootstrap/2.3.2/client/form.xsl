@@ -550,7 +550,7 @@ WHERE
             ]]>
         </xsl:variable>
         <xsl:variable name="js-function" select="ixsl:eval(normalize-space($js-statement))"/> <!-- need normalize-space() due to Saxon-JS 2.4 bug: https://saxonica.plan.io/issues/5667 -->
-        <xsl:call-template mode="ldh:CanonicalizeXML">
+        <xsl:call-template name="ldh:CanonicalizeXML">
             <xsl:with-param name="element" select="root($triples[1])"/>
             <xsl:with-param name="callback" select="$js-function"/>
         </xsl:call-template>
