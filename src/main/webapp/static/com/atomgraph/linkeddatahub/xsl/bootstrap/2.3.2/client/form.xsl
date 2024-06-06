@@ -70,6 +70,37 @@ WHERE
 
     <!-- TEMPLATES -->
 
+    <xsl:template name="ldh:CanonicalizeXML" as="xs:string">
+        <xsl:param name="doc" as="document-node()"/>
+        <xsl:param name="callback"/>
+
+        <xsl:variable name="js-statement" as="xs:string">
+            <![CDATA[
+                function c14n(document, callback) {
+                    var canonicaliser = window["xml-c14n.js"]().createCanonicaliser("http://www.w3.org/2001/10/xml-exc-c14n#WithComments");
+                    canonicaliser.canonicalise(document.documentElement, function(err, res) {
+                        if (err) {
+                          return console.warn(err.stack);
+                        }
+                        
+                        calback(res);
+                    });
+                }
+            ]]>
+        </xsl:variable>
+        <xsl:variable name="js-function" select="ixsl:eval(normalize-space($js-statement))"/> <!-- need normalize-space() due to Saxon-JS 2.4 bug: https://saxonica.plan.io/issues/5667 -->
+        <xsl:sequence select="ixsl:call($js-function, 'call', [ $doc, $callback ])"/>
+    </xsl:template>
+    
+    <xsl:template match="." mode="ixsl:onCanonicalizeXMLCallback">
+        <xsl:variable name="event" select="ixsl:event()"/>
+        <xsl:variable name="c14n-xml" select="ixsl:get(ixsl:get($event, 'detail'), 'c14n-xml')" as="xs:string"/>
+
+        <xsl:message>
+            $c14n-xml: <xsl:value-of select="$c14n-xml"/>
+        </xsl:message>
+    </xsl:template>
+    
     <xsl:template match="*" mode="ldh:PostConstruct">
         <xsl:apply-templates mode="#current"/>
     </xsl:template>
@@ -506,6 +537,24 @@ WHERE
         
         <xsl:variable name="elements" select=".//input | .//textarea | .//select" as="element()*"/>
         <xsl:variable name="triples" select="ldh:parse-rdf-post($elements)" as="element()*"/>
+        <xsl:message>
+            $triples: <xsl:value-of select="serialize($triples)"/>
+        </xsl:message>
+        
+        <xsl:variable name="js-statement" as="xs:string">
+            <![CDATA[
+                function(res)
+                {
+                    document.dispatchEvent(new CustomEvent("CanonicalizeXMLCallback", { "detail": { "c14n-xml" : res} } ));
+                }
+            ]]>
+        </xsl:variable>
+        <xsl:variable name="js-function" select="ixsl:eval(normalize-space($js-statement))"/> <!-- need normalize-space() due to Saxon-JS 2.4 bug: https://saxonica.plan.io/issues/5667 -->
+        <xsl:call-template mode="ldh:CanonicalizeXML">
+            <xsl:with-param name="element" select="root($triples[1])"/>
+            <xsl:with-param name="callback" select="$js-function"/>
+        </xsl:call-template>
+        
         <xsl:variable name="where-pattern" as="element()">
             <json:map>
                 <json:string key="type">bgp</json:string>
