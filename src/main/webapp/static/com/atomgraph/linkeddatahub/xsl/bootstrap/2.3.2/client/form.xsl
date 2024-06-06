@@ -542,7 +542,7 @@ WHERE
         </xsl:message>
         
         <!-- canonicalize the XMLLiteral -->
-<!--        <xsl:for-each select="$triples//json:string[@key = 'object'][ends-with(., '^^&rdf;XMLLiteral')]">
+        <xsl:for-each select="$triples[json:string[@key = 'object'][ends-with(., '^^&rdf;XMLLiteral')]]/json:string[@key = 'object']">
             <xsl:variable name="xml-string" select="substring-before(substring-after(., '&quot;'), '&quot;^^')" as="xs:string"/>
             <xsl:variable name="xml-literal" select="parse-xml($xml-string)" as="document()"/>
             <xsl:message>
@@ -558,12 +558,12 @@ WHERE
                     }
                 ]]>
             </xsl:variable>
-            <xsl:variable name="js-function" select="ixsl:eval(normalize-space($js-statement))"/>  need normalize-space() due to Saxon-JS 2.4 bug: https://saxonica.plan.io/issues/5667 
+            <xsl:variable name="js-function" select="ixsl:eval(normalize-space($js-statement))"/> <!-- need normalize-space() due to Saxon-JS 2.4 bug: https://saxonica.plan.io/issues/5667 -->
             <xsl:call-template name="ldh:CanonicalizeXML">
                 <xsl:with-param name="doc" select="$xml-literal"/>
                 <xsl:with-param name="callback" select="$js-function"/>
             </xsl:call-template>
-        </xsl:for-each>-->
+        </xsl:for-each>
         
         <xsl:variable name="where-pattern" as="element()">
             <json:map>
