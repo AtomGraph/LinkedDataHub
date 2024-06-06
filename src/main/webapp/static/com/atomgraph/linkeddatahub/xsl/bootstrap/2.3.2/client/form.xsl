@@ -656,8 +656,6 @@ WHERE
                     <ixsl:set-attribute name="about" select="$row/@about"/>
                 </xsl:for-each>
                 
-                <xsl:apply-templates select="id($row//form/@id, ixsl:page())" mode="ldh:PostConstruct"/>
-
                 <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
             </xsl:when>
             <!-- POST created new document successfully, redirect to it -->
