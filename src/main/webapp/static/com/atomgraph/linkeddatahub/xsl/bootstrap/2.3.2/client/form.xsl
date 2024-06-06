@@ -552,13 +552,16 @@ WHERE
             
             <xsl:variable name="js-statement" as="xs:string">
                 <![CDATA[
-                    function c14nCallback(res)
-                    {
-                        document.dispatchEvent(new CustomEvent("CanonicalizeXMLCallback", { "detail": { "c14n-xml" : res  } } ));
+                    function (res) {
+                        document.dispatchEvent(new CustomEvent("CanonicalizeXMLCallback", { "detail": { "c14n-xml" : res } } ));
                     }
                 ]]>
             </xsl:variable>
             <xsl:variable name="js-function" select="ixsl:eval(normalize-space($js-statement))"/> <!-- need normalize-space() due to Saxon-JS 2.4 bug: https://saxonica.plan.io/issues/5667 -->
+            <xsl:message>
+                exists($xml-literal): <xsl:value-of select="$xml-literal"/>
+                exists($js-function): <xsl:value-of select="$js-function"/>
+            </xsl:message>
             <xsl:call-template name="ldh:CanonicalizeXML">
                 <xsl:with-param name="doc" select="$xml-literal"/>
                 <xsl:with-param name="callback" select="$js-function"/>
