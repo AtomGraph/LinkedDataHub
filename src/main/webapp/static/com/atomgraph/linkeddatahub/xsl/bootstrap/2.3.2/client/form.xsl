@@ -559,8 +559,8 @@ WHERE
             </xsl:variable>
             <xsl:variable name="js-function" select="ixsl:eval(normalize-space($js-statement))"/> <!-- need normalize-space() due to Saxon-JS 2.4 bug: https://saxonica.plan.io/issues/5667 -->
             <xsl:message>
-                exists($xml-literal): <xsl:value-of select="$xml-literal"/>
-                exists($js-function): <xsl:value-of select="$js-function"/>
+                exists($xml-literal): <xsl:value-of select="exists($xml-literal)"/>
+                exists($js-function): <xsl:value-of select="exists($js-function)"/>
             </xsl:message>
             <xsl:call-template name="ldh:CanonicalizeXML">
                 <xsl:with-param name="doc" select="$xml-literal"/>
