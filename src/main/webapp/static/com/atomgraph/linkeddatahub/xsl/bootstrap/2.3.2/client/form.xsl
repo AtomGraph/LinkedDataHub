@@ -82,8 +82,8 @@ WHERE
                     var canonicaliser = window["xml-c14n.js"]().createCanonicaliser("http://www.w3.org/2001/10/xml-exc-c14n#WithComments");
                     canonicaliser.canonicalise(document.documentElement, function(err, res) {
                         if (err) {
-                          return console.warn(err.message);
-                          return console.warn(err.stack);
+                          console.warn(err.message);
+                          console.warn(err.stack);
                         }
                         
                         calback(res);
