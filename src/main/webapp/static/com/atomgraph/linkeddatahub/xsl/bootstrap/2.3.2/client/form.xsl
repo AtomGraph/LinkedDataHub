@@ -79,6 +79,9 @@ WHERE
         <xsl:variable name="js-statement" as="xs:string">
             <![CDATA[
                 function c14n(document, callback) {
+                    console.log(document);
+                    console.log(callback);
+                    
                     var canonicaliser = window["xml-c14n.js"]().createCanonicaliser("http://www.w3.org/2001/10/xml-exc-c14n#WithComments");
                     canonicaliser.canonicalise(document.documentElement, function(err, res) {
                         if (err) {
