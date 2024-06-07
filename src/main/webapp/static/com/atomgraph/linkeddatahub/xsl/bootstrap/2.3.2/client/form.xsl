@@ -70,7 +70,7 @@ WHERE
 
     <!-- TEMPLATES -->
 
-    <xsl:template name="ldh:CanonicalizeXML" as="xs:string">
+    <xsl:template name="ldh:CanonicalizeXML">
         <xsl:param name="doc" as="document-node()"/>
         <xsl:param name="callback"/>
 
