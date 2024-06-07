@@ -79,17 +79,12 @@ WHERE
         <xsl:variable name="js-statement" as="xs:string">
             <![CDATA[
                 function c14n(document, callback) {
-                    console.log(document);
-                    console.log(callback);
+                    console.log("document", document);
+                    console.log("callback", callback);
                     
                     var canonicaliser = window["xml-c14n.js"]().createCanonicaliser("http://www.w3.org/2001/10/xml-exc-c14n#WithComments");
                     canonicaliser.canonicalise(document.documentElement, function(err, res) {
-                        if (err) {
-                          console.warn(err.message);
-                          console.warn(err.stack);
-                        }
-                        
-                        calback(res);
+                        callback(err, res);
                     });
                 }
             ]]>
@@ -560,8 +555,8 @@ WHERE
             
             <xsl:variable name="js-statement" as="xs:string">
                 <![CDATA[
-                    function (res) {
-                        document.dispatchEvent(new CustomEvent("CanonicalizeXMLCallback", { "detail": { "c14n-xml" : res } } ));
+                    function (err, res) {
+                        document.dispatchEvent(new CustomEvent("CanonicalizeXMLCallback", { "detail": { "c14n-xml" : res, "error": err } } ));
                     }
                 ]]>
             </xsl:variable>
