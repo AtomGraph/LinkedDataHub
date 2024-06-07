@@ -92,12 +92,13 @@ WHERE
         <xsl:variable name="js-function" select="ixsl:eval(normalize-space($js-statement))"/> <!-- need normalize-space() due to Saxon-JS 2.4 bug: https://saxonica.plan.io/issues/5667 -->
         
         <xsl:message>ldh:CanonicalizeXML ixsl:call()</xsl:message>
-        <xsl:sequence select="ixsl:call($js-function, 'call', [ $doc, $callback ])"/>
+        <xsl:sequence select="ixsl:call($js-function, 'call', [ (), $doc, $callback ])"/> <!-- first argument is 'this' (unused) -->
     </xsl:template>
     
     <xsl:template match="." mode="ixsl:onCanonicalizeXMLCallback">
         <xsl:variable name="event" select="ixsl:event()"/>
         <xsl:variable name="c14n-xml" select="ixsl:get(ixsl:get($event, 'detail'), 'c14n-xml')" as="xs:string"/>
+        <xsl:variable name="error" select="ixsl:get(ixsl:get($event, 'detail'), 'err')"/>
 
         <xsl:message>
             $c14n-xml: <xsl:value-of select="$c14n-xml"/>
