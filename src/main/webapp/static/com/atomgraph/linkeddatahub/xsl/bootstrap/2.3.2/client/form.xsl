@@ -72,7 +72,7 @@ WHERE
 
     <xsl:function name="ldh:canonicalize-xml">
         <xsl:param name="xml-string" as="xs:string"/>
-        <xsl:variable name="js-statement" as="xs:string">
+        <xsl:variable name="js-statement" as="element()">
             <root statement="
                 async function c14n(xmlStr) {{
                     function c14nPromise(canonicaliser, documentElement) {{
@@ -98,6 +98,7 @@ WHERE
                 await c14('{$xml-string}');
             "/>
         </xsl:variable>
+        <xsl:message>$js-statement: <xsl:value-of select="string($js-statement/@statement)"/></xsl:message>
         <xsl:sequence select="ixsl:eval(string($js-statement/@statement))[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:function>
     
