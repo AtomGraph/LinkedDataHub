@@ -71,35 +71,19 @@ WHERE
     <!-- TEMPLATES -->
 
     <xsl:function name="ldh:canonicalize-xml">
-        <xsl:param name="xml-string" as="xs:string"/>
+        <xsl:param name="doc" as="document-node()"/>
         <xsl:variable name="js-statement" as="element()">
             <root statement="
-                async function c14n(xmlStr) {{
-                    function c14nPromise(canonicaliser, documentElement) {{
-                        return new Promise((resolve, reject) => {{
-                            canonicaliser.canonicalise(documentElement, function(err, res) {{
-                                if (err) {{
-                                    return reject(err);
-                                }}
-                                resolve(res);
-                            }});
-                        }});
-                    }}
-                
-                    try {{
-                        var parser = new DOMParser().parseFromString(xmlStr, 'application/xml');
-                        var canonicaliser = window['xml-c14n.js']().createCanonicaliser('http://www.w3.org/2001/10/xml-exc-c14n#WithComments');
-                        return await c14nPromise(canonicaliser, document.documentElement);
-                    }} catch (err) {{
-                        console.warn(err.message);
-                    }}
-                }}
-                
-                await c14n('{$xml-string}');
+                function (document) {
+                    console.log('document', document);
+                    
+                    var canonicaliser = window['xml-c14n-sync.js']().createCanonicaliser('http://www.w3.org/2001/10/xml-exc-c14n#WithComments');
+                    return canonicaliser.canonicaliseSync(document.documentElement);
+                }
             "/>
         </xsl:variable>
-        <xsl:message>$js-statement: <xsl:value-of select="string($js-statement/@statement)"/></xsl:message>
-        <xsl:sequence select="ixsl:eval(string($js-statement/@statement))[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:variable name="js-function" select="ixsl:eval(normalize-space($js-statement))"/> <!-- need normalize-space() due to Saxon-JS 2.4 bug: https://saxonica.plan.io/issues/5667 -->
+        <xsl:sequence select="ixsl:call($js-function, 'call', [ (), $doc ])"/>
     </xsl:function>
     
 <!--    <xsl:template match="." mode="ixsl:onCanonicalizeXMLCallback">

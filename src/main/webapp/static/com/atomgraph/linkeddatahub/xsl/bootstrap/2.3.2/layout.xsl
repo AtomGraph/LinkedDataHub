@@ -465,10 +465,7 @@ LIMIT   100
             </script>
         </xsl:if>
         <xsl:if test="$load-xml-c14n">
-            <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/xml-c14n.js', $ac:contextUri)}" defer="defer"></script>
-            <!-- setImmediate() polyfill is required: https://github.com/deoxxa/xml-c14n/issues/6 -->
-            <!-- setImmediate.js copied from https://github.com/YuzuJS/setImmediate/blob/master/setImmediate.js -->
-            <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/setImmediate.js', $ac:contextUri)}" defer="defer"></script> 
+            <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/xml-c14n-sync.js', $ac:contextUri)}" defer="defer"></script>
         </xsl:if>
         <xsl:if test="$output-schema-org">
             <xsl:variable name="rdf" as="element()?">
