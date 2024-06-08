@@ -548,6 +548,9 @@ WHERE
         <xsl:variable name="triples" as="element()*">
             <xsl:apply-templates select="$triples" mode="ldh:CanonicalizeXML"/>
         </xsl:variable>
+        <xsl:message>
+            c14n $triples: <xsl:value-of select="serialize($triples)"/>
+        </xsl:message>
         
         <xsl:variable name="where-pattern" as="element()">
             <json:map>
