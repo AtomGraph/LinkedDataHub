@@ -71,7 +71,7 @@ WHERE
     <!-- TEMPLATES -->
 
     <xsl:function name="ldh:canonicalize-xml">
-        <xsl:param name="xml-str" as="xs:string"/>
+        <xsl:param name="xml-string" as="xs:string"/>
         <xsl:variable name="js-statement" as="xs:string">
             <![CDATA[
                 async function c14n(xmlStr) {
@@ -95,10 +95,10 @@ WHERE
                     }
                 }
                 
-                await c14("]]><xsl:value-of select="$xml-str"/><![CDATA[");
+                await c14("{$xml-string}");
             ]]>
         </xsl:variable>
-        <xsl:sequence select="ixsl:eval($js-statement)[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:sequence select="ixsl:eval(string($js-statement/@statement))[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:function>
     
 <!--    <xsl:template match="." mode="ixsl:onCanonicalizeXMLCallback">
