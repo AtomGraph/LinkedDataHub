@@ -86,15 +86,23 @@ WHERE
         <xsl:sequence select="ixsl:call($js-function, 'call', [ (), $doc ])"/>
     </xsl:function>
     
-<!--    <xsl:template match="." mode="ixsl:onCanonicalizeXMLCallback">
-        <xsl:variable name="event" select="ixsl:event()"/>
-        <xsl:variable name="c14n-xml" select="ixsl:get(ixsl:get($event, 'detail'), 'c14n-xml')" as="xs:string"/>
-        <xsl:variable name="error" select="ixsl:get(ixsl:get($event, 'detail'), 'err')"/>
-
+    <!-- canonicalize XML in rdf:XMLLiterals -->
+    <xsl:template match="json:string[@key = 'object'][ends-with(., '^^&rdf;XMLLiteral')]" mode="ldh:CanonicalizeXML" priority="1">
+        <xsl:variable name="xml-string" select="substring-before(substring-after(., '&quot;'), '&quot;^^')" as="xs:string"/>
+        <xsl:variable name="xml-literal" select="parse-xml($xml-string)" as="document-node()"/>
+        <xsl:variable name="xml-c14n-string" select="ldh:canonicalize-xml($xml-literal)" as="xs:string"/>
         <xsl:message>
-            $c14n-xml: <xsl:value-of select="$c14n-xml"/>
+            c14n: <xsl:value-of select="$xml-c14n-string"/>
         </xsl:message>
-    </xsl:template>-->
+        <xsl:sequence select="'&quot;' || $xml-c14n-string || '&quot;^^&rdf;XMLLiteral'"/>
+    </xsl:template>
+    
+    <!-- identity transform -->
+    <xsl:template match="@* | node()" mode="ldh:CanonicalizeXML">
+        <xsl:copy>
+            <xsl:apply-templates select="@* | node()" mode="#current"/>
+        </xsl:copy>
+    </xsl:template>
     
     <xsl:template match="*" mode="ldh:PostConstruct">
         <xsl:apply-templates mode="#current"/>
@@ -536,14 +544,10 @@ WHERE
             $triples: <xsl:value-of select="serialize($triples)"/>
         </xsl:message>
         
-        <!-- canonicalize the XMLLiteral -->
-        <xsl:for-each select="$triples[json:string[@key = 'object'][ends-with(., '^^&rdf;XMLLiteral')]]/json:string[@key = 'object']">
-            <xsl:variable name="xml-string" select="substring-before(substring-after(., '&quot;'), '&quot;^^')" as="xs:string"/>
-            <xsl:variable name="xml-literal" select="parse-xml($xml-string)" as="document-node()"/>
-            <xsl:message>
-                c14n: <xsl:value-of select="ldh:canonicalize-xml($xml-literal)"/>
-            </xsl:message>
-        </xsl:for-each>
+        <!-- canonicalize XML in rdf:XMLLiterals -->
+        <xsl:variable name="triples" as="element()*">
+            <xsl:apply-templates select="$triples" mode="ldh:CanonicalizeXML"/>
+        </xsl:variable>
         
         <xsl:variable name="where-pattern" as="element()">
             <json:map>
