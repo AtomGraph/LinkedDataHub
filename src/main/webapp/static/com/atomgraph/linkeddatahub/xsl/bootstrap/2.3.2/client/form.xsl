@@ -70,32 +70,36 @@ WHERE
 
     <!-- TEMPLATES -->
 
-    <xsl:template name="ldh:CanonicalizeXML">
+    <xsl:function name="ldh:canonicalize-xml">
         <xsl:param name="doc" as="document-node()"/>
-        <xsl:param name="callback"/>
-
-        <xsl:message>ldh:CanonicalizeXML</xsl:message>
-        
         <xsl:variable name="js-statement" as="xs:string">
             <![CDATA[
-                function c14n(document, callback) {
-                    console.log("document", document);
-                    console.log("callback", callback);
-                    
-                    var canonicaliser = window["xml-c14n.js"]().createCanonicaliser("http://www.w3.org/2001/10/xml-exc-c14n#WithComments");
-                    canonicaliser.canonicalise(document.documentElement, function(err, res) {
-                        callback(err, res);
+                function c14nPromise(canonicaliser, documentElement) {
+                  return new Promise((resolve, reject) => {
+                    canonicaliser.canonicalise(documentElement, function(err, res) {
+                      if (err) {
+                        return reject(err);
+                      }
+                      resolve(res);
                     });
+                  });
+                }
+
+                async function c14n(document) {
+                  try {
+                    var canonicaliser = window["xml-c14n.js"]().createCanonicaliser("http://www.w3.org/2001/10/xml-exc-c14n#WithComments");
+                    return await canonicalisePromise(canonicaliser, document.documentElement);
+                  } catch (err) {
+                    console.warn(err.message);
+                  }
                 }
             ]]>
         </xsl:variable>
         <xsl:variable name="js-function" select="ixsl:eval(normalize-space($js-statement))"/> <!-- need normalize-space() due to Saxon-JS 2.4 bug: https://saxonica.plan.io/issues/5667 -->
-        
-        <xsl:message>ldh:CanonicalizeXML ixsl:call()</xsl:message>
-        <xsl:sequence select="ixsl:call($js-function, 'call', [ (), $doc, $callback ])"/> <!-- first argument is 'this' (unused) -->
-    </xsl:template>
+        <xsl:sequence select="ixsl:call($js-function, 'call', [ (), $doc ])[current-date() lt xs:date('2000-01-01')]"/> <!-- first argument is 'this' (unused) -->
+    </xsl:function>
     
-    <xsl:template match="." mode="ixsl:onCanonicalizeXMLCallback">
+<!--    <xsl:template match="." mode="ixsl:onCanonicalizeXMLCallback">
         <xsl:variable name="event" select="ixsl:event()"/>
         <xsl:variable name="c14n-xml" select="ixsl:get(ixsl:get($event, 'detail'), 'c14n-xml')" as="xs:string"/>
         <xsl:variable name="error" select="ixsl:get(ixsl:get($event, 'detail'), 'err')"/>
@@ -103,7 +107,7 @@ WHERE
         <xsl:message>
             $c14n-xml: <xsl:value-of select="$c14n-xml"/>
         </xsl:message>
-    </xsl:template>
+    </xsl:template>-->
     
     <xsl:template match="*" mode="ldh:PostConstruct">
         <xsl:apply-templates mode="#current"/>
@@ -550,26 +554,8 @@ WHERE
             <xsl:variable name="xml-string" select="substring-before(substring-after(., '&quot;'), '&quot;^^')" as="xs:string"/>
             <xsl:variable name="xml-literal" select="parse-xml($xml-string)" as="document-node()"/>
             <xsl:message>
-                $xml-string: <xsl:value-of select="$xml-string"/>
-                $xml-literal: <xsl:value-of select="serialize($xml-literal)"/>
+                c14n: <xsl:value-of select="ixsl:get(ldh:canonicalize-xml($xml-literal), 'value')"/>
             </xsl:message>
-            
-            <xsl:variable name="js-statement" as="xs:string">
-                <![CDATA[
-                    function (err, res) {
-                        document.dispatchEvent(new CustomEvent("CanonicalizeXMLCallback", { "detail": { "c14n-xml" : res, "error": err } } ));
-                    }
-                ]]>
-            </xsl:variable>
-            <xsl:variable name="js-function" select="ixsl:eval(normalize-space($js-statement))"/> <!-- need normalize-space() due to Saxon-JS 2.4 bug: https://saxonica.plan.io/issues/5667 -->
-            <xsl:message>
-                exists($xml-literal): <xsl:value-of select="exists($xml-literal)"/>
-                exists($js-function): <xsl:value-of select="exists($js-function)"/>
-            </xsl:message>
-            <xsl:call-template name="ldh:CanonicalizeXML">
-                <xsl:with-param name="doc" select="$xml-literal"/>
-                <xsl:with-param name="callback" select="$js-function"/>
-            </xsl:call-template>
         </xsl:for-each>
         
         <xsl:variable name="where-pattern" as="element()">
