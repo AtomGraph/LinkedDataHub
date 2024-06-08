@@ -88,7 +88,7 @@ WHERE
                 async function c14n(document) {
                   try {
                     var canonicaliser = window["xml-c14n.js"]().createCanonicaliser("http://www.w3.org/2001/10/xml-exc-c14n#WithComments");
-                    return await canonicalisePromise(canonicaliser, document.documentElement);
+                    return await c14nPromise(canonicaliser, document.documentElement);
                   } catch (err) {
                     console.warn(err.message);
                   }
