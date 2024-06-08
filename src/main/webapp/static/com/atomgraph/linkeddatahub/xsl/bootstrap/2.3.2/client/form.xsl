@@ -71,10 +71,10 @@ WHERE
     <!-- TEMPLATES -->
 
     <xsl:function name="ldh:canonicalize-xml">
-        <xsl:param name="doc" as="document-node()"/>
+        <xsl:param name="xml-str" as="xs:string"/>
         <xsl:variable name="js-statement" as="xs:string">
             <![CDATA[
-                async function c14n(document) {
+                async function c14n(xmlStr) {
                     function c14nPromise(canonicaliser, documentElement) {
                         return new Promise((resolve, reject) => {
                             canonicaliser.canonicalise(documentElement, function(err, res) {
@@ -87,16 +87,18 @@ WHERE
                     }
                 
                     try {
+                        var parser = new DOMParser().parseFromString(xmlStr, "application/xml");
                         var canonicaliser = window["xml-c14n.js"]().createCanonicaliser("http://www.w3.org/2001/10/xml-exc-c14n#WithComments");
                         return await c14nPromise(canonicaliser, document.documentElement);
                     } catch (err) {
                         console.warn(err.message);
                     }
                 }
+                
+                await c14("]]><xsl:value-of select="$xml-str"/><![CDATA[");
             ]]>
         </xsl:variable>
-        <xsl:variable name="js-function" select="ixsl:eval(normalize-space($js-statement))"/> <!-- need normalize-space() due to Saxon-JS 2.4 bug: https://saxonica.plan.io/issues/5667 -->
-        <xsl:sequence select="ixsl:call($js-function, 'call', [ (), $doc ])[current-date() lt xs:date('2000-01-01')]"/> <!-- first argument is 'this' (unused) -->
+        <xsl:sequence select="ixsl:eval($js-statement)[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:function>
     
 <!--    <xsl:template match="." mode="ixsl:onCanonicalizeXMLCallback">
@@ -552,9 +554,8 @@ WHERE
         <!-- canonicalize the XMLLiteral -->
         <xsl:for-each select="$triples[json:string[@key = 'object'][ends-with(., '^^&rdf;XMLLiteral')]]/json:string[@key = 'object']">
             <xsl:variable name="xml-string" select="substring-before(substring-after(., '&quot;'), '&quot;^^')" as="xs:string"/>
-            <xsl:variable name="xml-literal" select="parse-xml($xml-string)" as="document-node()"/>
             <xsl:message>
-                c14n: <xsl:value-of select="ixsl:get(ldh:canonicalize-xml($xml-literal), 'value')"/>
+                c14n: <xsl:value-of select="ldh:canonicalize-xml($xml-string)"/>
             </xsl:message>
         </xsl:for-each>
         
