@@ -88,13 +88,17 @@ WHERE
     
     <!-- canonicalize XML in rdf:XMLLiterals -->
     <xsl:template match="json:string[@key = 'object'][ends-with(., '^^&rdf;XMLLiteral')]" mode="ldh:CanonicalizeXML" priority="1">
-        <xsl:variable name="xml-string" select="substring-before(substring-after(., '&quot;'), '&quot;^^')" as="xs:string"/>
-        <xsl:variable name="xml-literal" select="parse-xml($xml-string)" as="document-node()"/>
-        <xsl:variable name="xml-c14n-string" select="ldh:canonicalize-xml($xml-literal)" as="xs:string"/>
-        <xsl:message>
-            c14n: <xsl:value-of select="$xml-c14n-string"/>
-        </xsl:message>
-        <xsl:sequence select="'&quot;' || $xml-c14n-string || '&quot;^^&rdf;XMLLiteral'"/>
+        <xsl:copy>
+            <xsl:apply-templates select="@*" mode="#current"/>
+
+            <xsl:variable name="xml-string" select="substring-before(substring-after(., '&quot;'), '&quot;^^')" as="xs:string"/>
+            <xsl:variable name="xml-literal" select="parse-xml($xml-string)" as="document-node()"/>
+            <xsl:variable name="xml-c14n-string" select="ldh:canonicalize-xml($xml-literal)" as="xs:string"/>
+            <xsl:message>
+                c14n: <xsl:value-of select="$xml-c14n-string"/>
+            </xsl:message>
+            <xsl:sequence select="'&quot;' || $xml-c14n-string || '&quot;^^&rdf;XMLLiteral'"/>
+        </xsl:copy>
     </xsl:template>
     
     <!-- identity transform -->
