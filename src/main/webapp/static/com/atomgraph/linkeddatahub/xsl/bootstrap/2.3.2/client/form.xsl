@@ -74,24 +74,24 @@ WHERE
         <xsl:param name="doc" as="document-node()"/>
         <xsl:variable name="js-statement" as="xs:string">
             <![CDATA[
-                function c14nPromise(canonicaliser, documentElement) {
-                  return new Promise((resolve, reject) => {
-                    canonicaliser.canonicalise(documentElement, function(err, res) {
-                      if (err) {
-                        return reject(err);
-                      }
-                      resolve(res);
-                    });
-                  });
-                }
-
                 async function c14n(document) {
-                  try {
-                    var canonicaliser = window["xml-c14n.js"]().createCanonicaliser("http://www.w3.org/2001/10/xml-exc-c14n#WithComments");
-                    return await c14nPromise(canonicaliser, document.documentElement);
-                  } catch (err) {
-                    console.warn(err.message);
-                  }
+                    function c14nPromise(canonicaliser, documentElement) {
+                        return new Promise((resolve, reject) => {
+                            canonicaliser.canonicalise(documentElement, function(err, res) {
+                                if (err) {
+                                    return reject(err);
+                                }
+                                resolve(res);
+                            });
+                        });
+                    }
+                
+                    try {
+                        var canonicaliser = window["xml-c14n.js"]().createCanonicaliser("http://www.w3.org/2001/10/xml-exc-c14n#WithComments");
+                        return await c14nPromise(canonicaliser, document.documentElement);
+                    } catch (err) {
+                        console.warn(err.message);
+                    }
                 }
             ]]>
         </xsl:variable>
