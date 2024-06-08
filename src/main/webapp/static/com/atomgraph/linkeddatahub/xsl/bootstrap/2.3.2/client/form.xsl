@@ -95,7 +95,7 @@ WHERE
                     }}
                 }}
                 
-                await c14('{$xml-string}');
+                await c14n('{$xml-string}');
             "/>
         </xsl:variable>
         <xsl:message>$js-statement: <xsl:value-of select="string($js-statement/@statement)"/></xsl:message>
