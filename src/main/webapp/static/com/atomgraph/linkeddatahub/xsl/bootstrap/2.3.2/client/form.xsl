@@ -539,8 +539,9 @@ WHERE
         <!-- canonicalize the XMLLiteral -->
         <xsl:for-each select="$triples[json:string[@key = 'object'][ends-with(., '^^&rdf;XMLLiteral')]]/json:string[@key = 'object']">
             <xsl:variable name="xml-string" select="substring-before(substring-after(., '&quot;'), '&quot;^^')" as="xs:string"/>
+            <xsl:variable name="xml-literal" select="parse-xml($xml-string)" as="document-node()"/>
             <xsl:message>
-                c14n: <xsl:value-of select="ldh:canonicalize-xml($xml-string)"/>
+                c14n: <xsl:value-of select="ldh:canonicalize-xml($xml-literal)"/>
             </xsl:message>
         </xsl:for-each>
         
