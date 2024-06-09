@@ -47,6 +47,7 @@ import org.slf4j.LoggerFactory;
  * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
  */
 @Priority(Priorities.ENTITY_CODER + 10)
+@Deprecated
 public class UpdateRequestCleanupInterceptor implements ReaderInterceptor
 {
 

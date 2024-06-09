@@ -52,6 +52,7 @@ import org.slf4j.LoggerFactory;
  * @see com.atomgraph.linkeddatahub.server.filter.request.MultipartRDFPostCleanupFilter
  */
 @Priority(Priorities.ENTITY_CODER)
+@Deprecated
 public class RDFPostCleanupInterceptor implements ReaderInterceptor
 {
 

@@ -480,6 +480,17 @@ WHERE
             </xsl:for-each>
         </xsl:message>
         <xsl:variable name="triples" select="ldh:parse-rdf-post($elements)" as="element()*"/>
+        <xsl:message>
+            $triples: <xsl:value-of select="serialize($triples)"/>
+        </xsl:message>
+        
+        <!-- canonicalize XML in rdf:XMLLiterals -->
+        <xsl:variable name="triples" as="element()*">
+            <xsl:apply-templates select="$triples" mode="ldh:CanonicalizeXML"/>
+        </xsl:variable>
+        <xsl:message>
+            c14n $triples: <xsl:value-of select="serialize($triples)"/>
+        </xsl:message>
         <xsl:variable name="resources" as="document-node()">
             <xsl:document>
                 <rdf:RDF>
