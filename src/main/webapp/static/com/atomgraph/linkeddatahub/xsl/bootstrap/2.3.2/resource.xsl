@@ -650,7 +650,6 @@ extension-element-prefixes="ixsl"
                 <!-- render contents attached to the types of this resource using ldh:template -->
                 <xsl:variable name="types" select="rdf:type/@rdf:resource" as="xs:anyURI*" use-when="system-property('xsl:product-name') = 'SAXON'"/>
                 <xsl:variable name="content-values" select="if (exists($types) and doc-available(resolve-uri('ns?query=ASK%20%7B%7D', $ldt:base))) then (ldh:query-result(map{}, resolve-uri('ns', $ldt:base), $template-query || ' VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }')//srx:binding[@name = 'content']/srx:uri/xs:anyURI(.)) else ()" as="xs:anyURI*" use-when="system-property('xsl:product-name') = 'SAXON'"/>
-                <xsl:message use-when="system-property('xsl:product-name') = 'SAXON'">CONTENT VALUES: <xsl:value-of select="serialize($content-values)"/></xsl:message>
                 <xsl:for-each select="$content-values" use-when="system-property('xsl:product-name') = 'SAXON'">
                     <xsl:if test="doc-available(ac:document-uri(.))">
                         <xsl:apply-templates select="key('resources', ., document(ac:document-uri(.)))" mode="bs2:Row"/>
@@ -1465,35 +1464,42 @@ extension-element-prefixes="ixsl"
         <xsl:param name="class" select="'btn add-typeahead'" as="xs:string?"/>
         <xsl:param name="disabled" select="false()" as="xs:boolean"/>
         <xsl:param name="title" select="(@rdf:about, @rdf:nodeID)[1]" as="xs:string?"/>
-                
-        <button type="button">
-            <xsl:if test="$id">
-                <xsl:attribute name="id" select="$id"/>
-            </xsl:if>
-            <xsl:if test="$class">
-                <xsl:attribute name="class" select="$class"/>
-            </xsl:if>
-            <xsl:if test="$disabled">
-                <xsl:attribute name="disabled" select="'disabled'"/>
-            </xsl:if>
-            <xsl:if test="$title">
-                <xsl:attribute name="title" select="$title"/>
-            </xsl:if>
+        <xsl:param name="forClass" as="xs:anyURI*"/>
 
-            <span class="pull-left">
-                <xsl:value-of>
-                    <xsl:apply-templates select="." mode="ac:label"/>
-                </xsl:value-of>
-            </span>
-            <span class="caret pull-right"></span>
+        <span>
+            <xsl:if test="exists($forClass)">
+                <xsl:attribute name="data-for-class" select="string-join($forClass, ' ')"/>
+            </xsl:if>
+            
+            <button type="button">
+                <xsl:if test="$id">
+                    <xsl:attribute name="id" select="$id"/>
+                </xsl:if>
+                <xsl:if test="$class">
+                    <xsl:attribute name="class" select="$class"/>
+                </xsl:if>
+                <xsl:if test="$disabled">
+                    <xsl:attribute name="disabled" select="'disabled'"/>
+                </xsl:if>
+                <xsl:if test="$title">
+                    <xsl:attribute name="title" select="$title"/>
+                </xsl:if>
 
-            <xsl:if test="@rdf:about">
-                <input type="hidden" name="ou" value="{@rdf:about}"/>
-            </xsl:if>
-            <xsl:if test="@rdf:nodeID">
-                <input type="hidden" name="ob" value="{@rdf:nodeID}"/>
-            </xsl:if>
-        </button>
+                <span class="pull-left">
+                    <xsl:value-of>
+                        <xsl:apply-templates select="." mode="ac:label"/>
+                    </xsl:value-of>
+                </span>
+                <span class="caret pull-right"></span>
+
+                <xsl:if test="@rdf:about">
+                    <input type="hidden" name="ou" value="{@rdf:about}"/>
+                </xsl:if>
+                <xsl:if test="@rdf:nodeID">
+                    <input type="hidden" name="ob" value="{@rdf:nodeID}"/>
+                </xsl:if>
+            </button>
+        </span>
     </xsl:template>
     
 </xsl:stylesheet>

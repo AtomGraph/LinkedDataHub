@@ -1052,11 +1052,12 @@ WHERE
                         <xsl:variable name="typeahead" as="element()">
                             <xsl:apply-templates select="$resource" mode="ldh:Typeahead">
                                 <xsl:with-param name="class" select="$typeahead-class"/>
+                                <xsl:with-param name="forClass" select="$forClass"/>
                             </xsl:apply-templates>
                         </xsl:variable>
                         
                         <xsl:result-document href="?." method="ixsl:replace-content">
-                            <xsl:sequence select="$typeahead"/>
+                            <xsl:sequence select="$typeahead/*"/>
                         </xsl:result-document>
                     </xsl:for-each>
                 </xsl:for-each>
@@ -1118,11 +1119,12 @@ WHERE
             <xsl:variable name="typeahead" as="element()">
                 <xsl:apply-templates select="$resource" mode="ldh:Typeahead">
                     <xsl:with-param name="class" select="$typeahead-class"/>
+                    <xsl:with-param name="forClass" select="$forClass"/>
                 </xsl:apply-templates>
             </xsl:variable>
             
             <xsl:result-document href="?." method="ixsl:replace-content">
-                <xsl:sequence select="$typeahead"/>
+                <xsl:sequence select="$typeahead/*"/>
             </xsl:result-document>
         </xsl:for-each>
 
@@ -1238,11 +1240,12 @@ WHERE
             <xsl:variable name="typeahead" as="element()">
                 <xsl:apply-templates select="$resource" mode="ldh:Typeahead">
                     <xsl:with-param name="class" select="$typeahead-class"/>
+                    <xsl:with-param name="forClass" select="$forClass"/>
                 </xsl:apply-templates>
             </xsl:variable>
             
             <xsl:result-document href="?." method="ixsl:replace-content">
-                <xsl:sequence select="$typeahead"/>
+                <xsl:sequence select="$typeahead/*"/>
             </xsl:result-document>
         </xsl:for-each>
     </xsl:template>
@@ -1543,11 +1546,13 @@ WHERE
                         <xsl:when test="$resource">
                             <xsl:for-each select="$typeahead-span">
                                 <xsl:variable name="typeahead" as="element()">
-                                    <xsl:apply-templates select="$resource" mode="ldh:Typeahead"/>
+                                    <xsl:apply-templates select="$resource" mode="ldh:Typeahead">
+                                        <!-- <xsl:with-param name="forClass" select="$forClass"/> -->
+                                    </xsl:apply-templates>
                                 </xsl:variable>
 
                                 <xsl:result-document href="?." method="ixsl:replace-content">
-                                    <xsl:sequence select="$typeahead"/>
+                                    <xsl:sequence select="$typeahead/*"/>
                                 </xsl:result-document>
                             </xsl:for-each>
                         </xsl:when>
