@@ -100,13 +100,11 @@ import com.atomgraph.linkeddatahub.server.filter.request.OntologyFilter;
 import com.atomgraph.linkeddatahub.server.filter.request.AuthorizationFilter;
 import com.atomgraph.linkeddatahub.server.filter.request.auth.IDTokenFilter;
 import com.atomgraph.linkeddatahub.server.filter.request.ContentLengthLimitFilter;
-import com.atomgraph.linkeddatahub.server.filter.request.MultipartRDFPostCleanupFilter;
 import com.atomgraph.linkeddatahub.server.filter.request.auth.ProxiedWebIDFilter;
 import com.atomgraph.linkeddatahub.server.filter.response.ResponseHeadersFilter;
 import com.atomgraph.linkeddatahub.server.filter.response.BackendInvalidationFilter;
 import com.atomgraph.linkeddatahub.server.filter.response.XsltExecutableFilter;
-import com.atomgraph.linkeddatahub.server.interceptor.RDFPostCleanupInterceptor;
-import com.atomgraph.linkeddatahub.server.interceptor.UpdateRequestCleanupInterceptor;
+import com.atomgraph.linkeddatahub.server.interceptor.RDFPostMediaTypeInterceptor;
 import com.atomgraph.linkeddatahub.server.mapper.auth.oauth2.TokenExpiredExceptionMapper;
 import com.atomgraph.linkeddatahub.server.model.impl.Dispatcher;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
@@ -937,9 +935,7 @@ public class Application extends ResourceConfig
         register(IDTokenFilter.class);
         register(AuthorizationFilter.class);
         register(ContentLengthLimitFilter.class);
-        register(new RDFPostCleanupInterceptor()); // for application/x-www-form-urlencoded
-        register(new UpdateRequestCleanupInterceptor()); // for application/sparql-update
-        register(new MultipartRDFPostCleanupFilter()); // for multipart/form-data
+        register(new RDFPostMediaTypeInterceptor()); // for application/x-www-form-urlencoded
     }
 
     /**
