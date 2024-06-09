@@ -934,9 +934,9 @@ public class Application extends ResourceConfig
         register(IDTokenFilter.class);
         register(AuthorizationFilter.class);
         register(ContentLengthLimitFilter.class);
-        //register(new RDFPostCleanupInterceptor()); // for application/x-www-form-urlencoded
-        //register(new UpdateRequestCleanupInterceptor()); // for application/sparql-update
-        //register(new MultipartRDFPostCleanupFilter()); // for multipart/form-data
+        register(new RDFPostCleanupInterceptor()); // for application/x-www-form-urlencoded
+        register(new UpdateRequestCleanupInterceptor()); // for application/sparql-update
+        register(new MultipartRDFPostCleanupFilter()); // for multipart/form-data
     }
 
     /**
