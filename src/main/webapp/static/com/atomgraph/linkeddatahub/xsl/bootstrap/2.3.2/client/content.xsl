@@ -455,8 +455,10 @@ exclude-result-prefixes="#all"
             <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
                 <xsl:variable name="object-metadata" select="?body" as="document-node()"/>
                 
-                <!-- hide progress bar -->
-                <ixsl:set-style name="display" select="'none'" object="$container//div[@class = 'progress-bar']"/>
+                <!-- hide progress bar, if any -->
+                <xsl:for-each select="$container//div[@class = 'progress-bar']">
+                    <ixsl:set-style name="display" select="'none'"/>
+                </xsl:for-each>
 
                 <xsl:variable name="row" as="node()*">
                     <xsl:apply-templates select="$resource" mode="bs2:Row">
