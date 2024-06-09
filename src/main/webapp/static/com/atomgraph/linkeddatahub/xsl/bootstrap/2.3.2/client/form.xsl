@@ -1111,7 +1111,7 @@ WHERE
         <xsl:variable name="typeahead-doc" select="ixsl:get(ixsl:window(), 'LinkedDataHub.typeahead.rdfXml')" as="document-node()"/>
         <xsl:variable name="resource" select="key('resources', $resource-id, $typeahead-doc)" as="element()"/>
         <xsl:variable name="control-group" select="ancestor::div[contains-token(@class, 'control-group')]" as="element()"/>
-        <!-- <xsl:variable name="forClass" select="../../ixsl:get(., 'dataset.forClass') ! tokenize(.) ! xs:anyURI(.)" as="xs:anyURI*"/> -->
+        <xsl:variable name="forClass" select="../../ixsl:get(., 'dataset.forClass') ! tokenize(.) ! xs:anyURI(.)" as="xs:anyURI*"/>
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
@@ -1234,7 +1234,7 @@ WHERE
         <xsl:variable name="resource-id" select="input[@name = ('ou', 'ob')]/ixsl:get(., 'value')" as="xs:string"/> <!-- can be URI resource or blank node ID -->
         <xsl:variable name="typeahead-doc" select="ixsl:get(ixsl:window(), 'LinkedDataHub.typeahead.rdfXml')" as="document-node()"/>
         <xsl:variable name="resource" select="key('resources', $resource-id, $typeahead-doc)" as="element()"/>
-        <!-- <xsl:variable name="forClass" select="../../ixsl:get(., 'dataset.forClass') ! tokenize(.) ! xs:anyURI(.)" as="xs:anyURI*"/> -->
+        <xsl:variable name="forClass" select="../../ixsl:get(., 'dataset.forClass') ! tokenize(.) ! xs:anyURI(.)" as="xs:anyURI*"/>
 
         <xsl:for-each select="../..">
             <xsl:variable name="typeahead" as="element()">
