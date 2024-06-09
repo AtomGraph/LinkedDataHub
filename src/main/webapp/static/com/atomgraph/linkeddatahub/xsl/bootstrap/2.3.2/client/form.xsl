@@ -69,22 +69,6 @@ WHERE
     <xsl:key name="violations-by-focus-node" match="*" use="sh:focusNode/@rdf:resource | sh:focusNode/@rdf:nodeID"/>
 
     <!-- TEMPLATES -->
-
-    <xsl:function name="ldh:canonicalize-xml">
-        <xsl:param name="doc" as="document-node()"/>
-        <xsl:variable name="js-statement" as="xs:string">
-            <![CDATA[
-                function (document) {
-                    console.log('document', document);
-
-                    var canonicaliser = window['xml-c14n-sync.js']().createCanonicaliser('http://www.w3.org/2001/10/xml-exc-c14n#WithComments');
-                    return canonicaliser.canonicaliseSync(document.documentElement);
-                }
-            ]]>
-        </xsl:variable>
-        <xsl:variable name="js-function" select="ixsl:eval(normalize-space($js-statement))"/> <!-- need normalize-space() due to Saxon-JS 2.4 bug: https://saxonica.plan.io/issues/5667 -->
-        <xsl:sequence select="ixsl:call($js-function, 'call', [ (), $doc ])"/>
-    </xsl:function>
     
     <!-- canonicalize XML in rdf:XMLLiterals -->
     <xsl:template match="json:string[@key = 'object'][ends-with(., '^^&rdf;XMLLiteral')]" mode="ldh:CanonicalizeXML" priority="1">

@@ -354,5 +354,19 @@ exclude-result-prefixes="#all"
             </rdf:Description>
         </xsl:for-each-group>
     </xsl:function>
+
+    <xsl:function name="ldh:canonicalize-xml">
+        <xsl:param name="doc" as="document-node()"/>
+        <xsl:variable name="js-statement" as="xs:string">
+            <![CDATA[
+                function (document) {
+                    var canonicaliser = window['xml-c14n-sync.js']().createCanonicaliser('http://www.w3.org/2001/10/xml-exc-c14n#WithComments');
+                    return canonicaliser.canonicaliseSync(document.documentElement);
+                }
+            ]]>
+        </xsl:variable>
+        <xsl:variable name="js-function" select="ixsl:eval(normalize-space($js-statement))"/> <!-- need normalize-space() due to Saxon-JS 2.4 bug: https://saxonica.plan.io/issues/5667 -->
+        <xsl:sequence select="ixsl:call($js-function, 'call', [ (), $doc ])"/>
+    </xsl:function>
     
 </xsl:stylesheet>

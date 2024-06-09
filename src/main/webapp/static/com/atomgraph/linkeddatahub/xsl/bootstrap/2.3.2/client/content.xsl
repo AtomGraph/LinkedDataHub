@@ -518,11 +518,11 @@ exclude-result-prefixes="#all"
         <!-- update the textarea with WYMEditor content -->
         <xsl:sequence select="ixsl:call($wymeditor, 'update', [])[current-date() lt xs:date('2000-01-01')]"/> <!-- update HTML in the textarea -->
         <xsl:variable name="xhtml-string" select="ixsl:call(ixsl:call(ixsl:window(), 'jQuery', [ $textarea ]), 'val', [])" as="xs:string"/>
-        <xsl:variable name="xml-string" select="'&lt;div xmlns=&quot;http://www.w3.org/1999/xhtml&quot;&gt;' || $xhtml-string || '&lt;/div&gt;'" as="xs:string"/>
+        <xsl:variable name="xml-string" select="'&lt;div xmlns=\&quot;http://www.w3.org/1999/xhtml\&quot;&gt;' || $xhtml-string || '&lt;/div&gt;'" as="xs:string"/>
         <xsl:variable name="xml-literal" select="parse-xml($xml-string)" as="document-node()"/>
         <xsl:variable name="xml-c14n-string" select="ldh:canonicalize-xml($xml-literal)" as="xs:string"/>
         <xsl:variable name="block-value" select="$xml-literal" as="document-node()"/>
-        <xsl:message>$block-value: <xsl:value-of select="$block-value"/></xsl:message>
+        <xsl:message>$block-value: <xsl:value-of select="serialize($block-value)"/></xsl:message>
         
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
