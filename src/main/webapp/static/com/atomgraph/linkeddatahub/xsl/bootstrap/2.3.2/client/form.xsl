@@ -443,8 +443,10 @@ WHERE
     
     <!-- submit instance creation form using POST -->
     
-    <xsl:template match="form[contains-token(@class, 'form-horizontal')]" mode="ixsl:onsubmit">
-        <xsl:param name="method" select="ixsl:get(., 'method')" as="xs:string"/>
+    <xsl:template match="form[contains-token(@class, 'form-horizontal')][upper-case(@method) = 'POST']" mode="ixsl:onsubmit">
+        <xsl:param name="method" select="@method" as="xs:string"/>
+        <xsl:param name="elements" select=".//input | .//textarea | .//select" as="element()*"/>
+        <xsl:param name="triples" select="ldh:parse-rdf-post($elements)" as="element()*"/>
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'row-fluid')]" as="element()?"/> <!-- no container means the form was modal -->
         <xsl:variable name="form" select="." as="element()"/>
@@ -457,13 +459,11 @@ WHERE
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
-        <xsl:variable name="elements" select=".//input | .//textarea | .//select" as="element()*"/>
         <xsl:message>
             <xsl:for-each select="$elements">
                 @name: <xsl:value-of select="@name"/> ixsl:get(., 'value'): <xsl:value-of select="if (ixsl:contains(., 'value')) then ixsl:get(., 'value') else 'None'"/> ixsl:get(., 'value') = '': <xsl:value-of select="ixsl:get(., 'value') = ''"/>
             </xsl:for-each>
         </xsl:message>
-        <xsl:variable name="triples" select="ldh:parse-rdf-post($elements)" as="element()*"/>
         <xsl:message>
             $triples: <xsl:value-of select="serialize($triples)"/>
         </xsl:message>

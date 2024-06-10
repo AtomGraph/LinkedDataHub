@@ -474,6 +474,36 @@ exclude-result-prefixes="#all"
     
     <!-- EVENT LISTENERS -->
     
+    <!-- append new block form onsubmit (using POST) -->
+    
+    <xsl:template match="div[@typeof = ('&ldh;XHTML', '&ldh;View', '&ldh;Object')][contains-token(@class, 'row-fluid')]//form[contains-token(@class, 'form-horizontal')][upper-case(@method) = 'POST']" mode="ixsl:onsubmit" priority="2"> <!-- prioritize over form.xsl -->
+        <xsl:param name="elements" select=".//input | .//textarea | .//select" as="element()*"/>
+        <xsl:param name="triples" select="ldh:parse-rdf-post($elements)" as="element()*"/>
+        <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
+        
+        <xsl:variable name="block-id" select="$container/@id" as="xs:string"/>
+        <xsl:variable name="block-uri" select="xs:anyURI(.//input[@name = 'su'] => ixsl:get('value'))" as="xs:anyURI"/>
+        <xsl:variable name="sequence-number" select="count($container/preceding-sibling::div[@about][contains-token(@class, 'content')]) + 1" as="xs:integer"/>
+        <xsl:variable name="sequence-property" select="xs:anyURI('&rdf;_' || $sequence-number)" as="xs:anyURI"/>
+        <xsl:variable name="sequence-triple" as="element()">
+            <json:map>
+                <json:string key="subject"><xsl:sequence select="ac:absolute-path(ldh:base-uri(.))"/></json:string>
+                <json:string key="predicate"><xsl:sequence select="$sequence-property"/></json:string>
+                <json:string key="object"><xsl:sequence select="$block-uri"/></json:string>
+            </json:map>
+        </xsl:variable>
+        <xsl:message>
+            block $triples: <xsl:value-of select="serialize($triples)"/>
+        </xsl:message>
+        <xsl:message>
+            block $sequence-triple: <xsl:value-of select="serialize($sequence-triple)"/>
+        </xsl:message>
+        
+        <xsl:next-match>
+            <xsl:with-param name="triples" select="($triples, $sequence-triple)"/>
+        </xsl:next-match>
+    </xsl:template>
+    
     <!-- save query onclick -->
     
     <xsl:template match="div[contains-token(@class, 'content')][contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'btn-save-query')]" mode="ixsl:onclick">
@@ -792,9 +822,7 @@ exclude-result-prefixes="#all"
         </xsl:message>
         
         <!-- call the default handler in form.xsl -->
-        <xsl:next-match>
-            <xsl:with-param name="method" select="'patch'"/>
-        </xsl:next-match>
+        <xsl:next-match/>
         
         <xsl:message>Toggle .content.xhtml-content</xsl:message>
         <xsl:for-each select="$container">
