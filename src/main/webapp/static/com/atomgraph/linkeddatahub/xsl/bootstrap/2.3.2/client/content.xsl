@@ -844,9 +844,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'row-fluid')]" as="element()"/>
     
         <!-- call the default handler in form.xsl -->
-        <xsl:next-match>
-            <xsl:with-param name="method" select="'patch'"/>
-        </xsl:next-match>
+        <xsl:next-match/>
         
         <xsl:message>Toggle .content</xsl:message>
         <xsl:for-each select="$container">
