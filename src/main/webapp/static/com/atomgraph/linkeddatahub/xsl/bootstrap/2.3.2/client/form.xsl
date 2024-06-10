@@ -447,6 +447,13 @@ WHERE
         <xsl:param name="method" select="@method" as="xs:string"/>
         <xsl:param name="elements" select=".//input | .//textarea | .//select" as="element()*"/>
         <xsl:param name="triples" select="ldh:parse-rdf-post($elements)" as="element()*"/>
+        <xsl:param name="resources" as="document-node()">
+            <xsl:document>
+                <rdf:RDF>
+                    <xsl:sequence select="ldh:triples-to-descriptions($triples)"/>
+                </rdf:RDF>
+            </xsl:document>
+        </xsl:param>
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'row-fluid')]" as="element()?"/> <!-- no container means the form was modal -->
         <xsl:variable name="form" select="." as="element()"/>
@@ -475,13 +482,7 @@ WHERE
         <xsl:message>
             c14n $triples: <xsl:value-of select="serialize($triples)"/>
         </xsl:message>
-        <xsl:variable name="resources" as="document-node()">
-            <xsl:document>
-                <rdf:RDF>
-                    <xsl:sequence select="ldh:triples-to-descriptions($triples)"/>
-                </rdf:RDF>
-            </xsl:document>
-        </xsl:variable>
+
         <xsl:variable name="doc-uri" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, $action)" as="xs:anyURI"/>
 
