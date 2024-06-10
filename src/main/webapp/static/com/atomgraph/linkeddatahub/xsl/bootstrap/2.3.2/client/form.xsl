@@ -454,6 +454,7 @@ WHERE
                 </rdf:RDF>
             </xsl:document>
         </xsl:param>
+        <xsl:param name="request-body" select="$resources" as="document-node()"/>
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'row-fluid')]" as="element()?"/> <!-- no container means the form was modal -->
         <xsl:variable name="form" select="." as="element()"/>
@@ -496,7 +497,7 @@ WHERE
         <xsl:choose>
             <!-- we need to handle multipart requests specially because of Saxon-JS 2 limitations: https://saxonica.plan.io/issues/4732 -->
             <xsl:when test="$enctype = 'multipart/form-data'">
-                <xsl:variable name="form-data" select="ldh:new('FormData', [ $form ])"/>
+                <xsl:variable name="form-data" select="ldh:new('FormData', [ $form ])"/> <!-- only for file uploads! XMLLiterals will not be canonicalized -->
                 <xsl:variable name="headers" select="ldh:new-object()"/>
                 <ixsl:set-property name="Accept" select="$accept" object="$headers"/>
                 <ixsl:set-property name="If-Match" select="$etag" object="$headers"/>
@@ -507,7 +508,7 @@ WHERE
             <xsl:otherwise>
                 <xsl:variable name="request" as="item()*">
                     <!-- If-Match header checks preconditions, i.e. that the graph has not been modified in the meanwhile --> 
-                    <ixsl:schedule-action http-request="map{ 'method': $method, 'href': $request-uri, 'media-type': 'application/rdf+xml', 'body': $resources, 'headers': map{ 'If-Match': $etag, 'Accept': $accept } }">
+                    <ixsl:schedule-action http-request="map{ 'method': $method, 'href': $request-uri, 'media-type': 'application/rdf+xml', 'body': $request-body, 'headers': map{ 'If-Match': $etag, 'Accept': $accept } }">
                         <xsl:call-template name="ldh:ResourceUpdated">
                             <xsl:with-param name="doc-uri" select="$doc-uri"/>
                             <xsl:with-param name="container" select="$container"/>

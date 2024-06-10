@@ -500,12 +500,11 @@ exclude-result-prefixes="#all"
         </xsl:message>
         
         <xsl:next-match>
-            <!-- append $sequence-triple to $triples that are sent with the HTTP request, but not to $resources which are rendered after the block update (don't want to show it) -->
-            <xsl:with-param name="triples" select="($triples, $sequence-triple)"/>
-            <xsl:with-param name="resources" as="document-node()">
+            <!-- append $sequence-triple to $request-body that is sent with the HTTP request, but not to $resources which are rendered after the block update (don't want to show it) -->
+            <xsl:with-param name="request-body" as="document-node()">
                 <xsl:document>
                     <rdf:RDF>
-                        <xsl:sequence select="ldh:triples-to-descriptions($triples)"/>
+                        <xsl:sequence select="ldh:triples-to-descriptions(($triples, $sequence-triple))"/>
                     </rdf:RDF>
                 </xsl:document>
             </xsl:with-param>
