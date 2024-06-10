@@ -703,7 +703,7 @@ WHERE
                 
                 <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
             </xsl:when>
-            <!-- POST created new document successfully, redirect to it -->
+            <!-- PUT created new document successfully, redirect to it -->
             <xsl:when test="?status = 201 and ?headers?location">
                 <xsl:variable name="created-uri" select="?headers?location" as="xs:anyURI"/>
                 <xsl:variable name="request" as="item()*">

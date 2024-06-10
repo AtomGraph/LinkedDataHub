@@ -43,40 +43,6 @@ extension-element-prefixes="ixsl"
 exclude-result-prefixes="#all"
 >
 
-    <xsl:variable name="block-update-string" as="xs:string">
-        <![CDATA[
-            PREFIX ac:  <https://w3id.org/atomgraph/client#>
-            PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-
-            DELETE
-            {
-                $this $seq $block .
-                $block a ?oldType ;
-                    ?oldValueProperty ?oldValue ;
-                    ac:mode ?oldMode .
-            }
-            INSERT
-            {
-                $this $seq $block .
-                $block a $type ;
-                    $valueProperty $value ;
-                    ac:mode $mode .
-            }
-            WHERE
-            {
-                OPTIONAL
-                {
-                    $this $seq $block .
-                    $block a ?oldType ;
-                        ?oldValueProperty ?oldValue .
-                    OPTIONAL
-                    {
-                        $block ac:mode ?oldMode
-                    }
-                }
-            }
-        ]]>
-    </xsl:variable>
     <xsl:variable name="content-delete-string" as="xs:string">
         <!-- TO-DO: refactor to update the following index properties -->
         <![CDATA[
@@ -507,142 +473,6 @@ exclude-result-prefixes="#all"
     </xsl:template>
     
     <!-- EVENT LISTENERS -->
-
-    <!-- save XHTML block form onsubmit -->
-    
-    <xsl:template match="div[@typeof = '&ldh;XHTML'][contains-token(@class, 'row-fluid')]//form[contains-token(@class, 'form-horizontal')][upper-case(@method) = 'PATCH']" mode="ixsl:onsubmit" priority="1"> <!-- prioritize over form.xsl -->
-        <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
-        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'xhtml-content')][contains-token(@class, 'row-fluid')]" as="element()"/>
-        <xsl:variable name="textarea" select="ancestor::div[contains-token(@class, 'main')]//textarea[contains-token(@class, 'wymeditor')]" as="element()"/>
-        <xsl:variable name="block-type" select="xs:anyURI($container/@typeof)" as="xs:anyURI"/>
-        <xsl:variable name="value-property-uri" select="xs:anyURI('&rdf;value')" as="xs:anyURI"/>
-        <xsl:variable name="wymeditor" select="ixsl:call(ixsl:get(ixsl:window(), 'jQuery'), 'getWymeditorByTextarea', [ $textarea ])" as="item()"/>
-        <!-- update the textarea with WYMEditor content -->
-        <xsl:sequence select="ixsl:call($wymeditor, 'update', [])[current-date() lt xs:date('2000-01-01')]"/> <!-- update HTML in the textarea -->
-        <xsl:variable name="xhtml-string" select="ixsl:call(ixsl:call(ixsl:window(), 'jQuery', [ $textarea ]), 'val', [])" as="xs:string"/>
-        <xsl:variable name="xml-string" select="'&lt;div xmlns=&quot;http://www.w3.org/1999/xhtml&quot;&gt;' || $xhtml-string || '&lt;/div&gt;'" as="xs:string"/>
-        <xsl:variable name="xml-literal" select="parse-xml($xml-string)" as="document-node()"/>
-        <xsl:variable name="xml-c14n-string" select="ldh:canonicalize-xml($xml-literal)" as="xs:string"/>
-        <xsl:variable name="block-value" select="$xml-literal" as="document-node()"/>
-        <xsl:message>$block-value: <xsl:value-of select="serialize($block-value)"/></xsl:message>
-        
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
-
-        <xsl:variable name="block-id" select="$container/@id" as="xs:string"/>
-        <xsl:variable name="block-uri" select="if ($container/@about) then $container/@about else xs:anyURI(ac:absolute-path(ldh:base-uri(.)) || '#' || $block-id)" as="xs:anyURI"/>
-        <xsl:variable name="sequence-number" select="count($container/preceding-sibling::div[@about][contains-token(@class, 'content')]) + 1" as="xs:integer"/>
-        <xsl:variable name="sequence-property" select="xs:anyURI('&rdf;_' || $sequence-number)" as="xs:anyURI"/>
-        <xsl:message>$sequence-number: <xsl:value-of select="$sequence-number"/> $sequence-property: <xsl:value-of select="$sequence-property"/></xsl:message>
-        <xsl:variable name="update-string" select="$block-update-string" as="xs:string"/>
-        <xsl:variable name="update-string" select="replace($update-string, '$this', '&lt;' || ac:absolute-path(ldh:base-uri(.)) || '&gt;', 'q')" as="xs:string"/>
-        <xsl:variable name="update-string" select="replace($update-string, '$seq', '&lt;' || $sequence-property || '&gt;', 'q')" as="xs:string"/>
-        <xsl:variable name="update-string" select="replace($update-string, '$type', '&lt;' || $block-type || '&gt;', 'q')" as="xs:string"/>
-        <xsl:variable name="update-string" select="replace($update-string, '$block', '&lt;' || $block-uri || '&gt;', 'q')" as="xs:string"/>
-        <xsl:variable name="update-string" select="replace($update-string, '$valueProperty', '&lt;' || $value-property-uri || '&gt;', 'q')" as="xs:string"/>
-        <xsl:variable name="update-string" select="replace($update-string, '$value', '&quot;&quot;&quot;' || $xml-c14n-string || '&quot;&quot;&quot;^^&lt;&rdf;XMLLiteral&gt;', 'q')" as="xs:string"/>
-        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, ac:absolute-path(ldh:base-uri(.)))" as="xs:anyURI"/>
-        <xsl:variable name="request" as="item()*">
-            <ixsl:schedule-action http-request="map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string }">
-                <xsl:call-template name="onXHTMLContentUpdate">
-                    <xsl:with-param name="container" select="$container"/>
-                    <xsl:with-param name="block-uri" select="$block-uri"/>
-                    <xsl:with-param name="block-value" select="$block-value"/>
-                </xsl:call-template>
-            </ixsl:schedule-action>
-        </xsl:variable>
-        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
-    </xsl:template>
-
-    <!-- save object block form onsubmit -->
-    
-    <xsl:template match="div[@typeof = '&ldh;Object'][contains-token(@class, 'content')][contains-token(@class, 'row-fluid')]//form[contains-token(@class, 'form-horizontal')][upper-case(@method) = 'PATCH']" mode="ixsl:onsubmit" priority="2"> <!-- prioritize over form.xsl -->
-        <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
-        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'content')][contains-token(@class, 'row-fluid')]" as="element()"/>
-        <xsl:variable name="block-type" select="xs:anyURI($container/@typeof)" as="xs:anyURI"/>
-        <xsl:variable name="value-property-uri" select="xs:anyURI('&rdf;value')" as="xs:anyURI"/>
-        <xsl:variable name="value-input" select="$container//div[contains-token(@class, 'control-group')][input[@name = 'pu']/@value = $value-property-uri]//input[@name = 'ou']" as="element()"/>
-        <xsl:variable name="mode-input" select="$container//div[contains-token(@class, 'control-group')][input[@name = 'pu']/@value = '&ac;mode']//select[@name = 'ou']" as="element()"/>
-        <xsl:variable name="value-uri" select="$value-input => ixsl:get('value')" as="xs:anyURI"/>
-        <xsl:variable name="mode-uri" select="$mode-input => ixsl:get('value')" as="xs:anyURI?"/>
-        <xsl:variable name="block-id" select="$container/@id" as="xs:string"/>
-        <xsl:variable name="block-uri" select="if ($container/@about) then $container/@about else xs:anyURI(ac:absolute-path(ldh:base-uri(.)) || '#' || $block-id)" as="xs:anyURI"/>
-
-        <xsl:call-template name="ldh:UpdateResourceBlock">
-            <xsl:with-param name="container" select="$container"/>
-            <xsl:with-param name="block-type" select="$block-type"/>
-            <xsl:with-param name="block-uri" select="$block-uri"/>
-            <xsl:with-param name="value-property-uri" select="$value-property-uri"/>
-            <xsl:with-param name="value-uri" select="$value-uri"/>
-            <xsl:with-param name="mode-uri" select="$mode-uri"/>
-        </xsl:call-template>
-    </xsl:template>
-    
-    <!-- save view block form onsubmit -->
-    
-    <xsl:template match="div[@typeof = '&ldh;View'][contains-token(@class, 'content')][contains-token(@class, 'row-fluid')]//form[contains-token(@class, 'form-horizontal')][upper-case(@method) = 'PATCH']" mode="ixsl:onsubmit" priority="2"> <!-- prioritze over form.xsl -->
-        <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
-        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'content')][contains-token(@class, 'row-fluid')]" as="element()"/>
-        <xsl:variable name="block-type" select="xs:anyURI($container/@typeof)" as="xs:anyURI"/>
-        <xsl:variable name="value-property-uri" select="xs:anyURI('&spin;query')" as="xs:anyURI"/>
-        <xsl:variable name="value-input" select="$container//div[contains-token(@class, 'control-group')][input[@name = 'pu']/@value = $value-property-uri]//input[@name = 'ou']" as="element()"/>
-        <xsl:variable name="mode-input" select="$container//div[contains-token(@class, 'control-group')][input[@name = 'pu']/@value = '&ac;mode']//select[@name = 'ou']" as="element()"/>
-        <xsl:variable name="value-uri" select="$value-input => ixsl:get('value')" as="xs:anyURI"/>
-        <xsl:variable name="mode-uri" select="$mode-input => ixsl:get('value')" as="xs:anyURI?"/>
-        <xsl:variable name="block-id" select="$container/@id" as="xs:string"/>
-        <xsl:variable name="block-uri" select="if ($container/@about) then $container/@about else xs:anyURI(ac:absolute-path(ldh:base-uri(.)) || '#' || $block-id)" as="xs:anyURI"/>
-
-        <xsl:call-template name="ldh:UpdateResourceBlock">
-            <xsl:with-param name="container" select="$container"/>
-            <xsl:with-param name="block-type" select="$block-type"/>
-            <xsl:with-param name="block-uri" select="$block-uri"/>
-            <xsl:with-param name="value-property-uri" select="$value-property-uri"/>
-            <xsl:with-param name="value-uri" select="$value-uri"/>
-            <xsl:with-param name="mode-uri" select="$mode-uri"/>
-        </xsl:call-template>
-    </xsl:template>
-    
-    <xsl:template name="ldh:UpdateResourceBlock">
-        <xsl:context-item as="element()" use="required"/>
-        <xsl:param name="container" as="element()"/>
-        <xsl:param name="block-type" as="xs:anyURI"/>
-        <xsl:param name="block-uri" as="xs:anyURI"/>
-        <xsl:param name="value-property-uri" as="xs:anyURI"/>
-        <xsl:param name="value-uri" as="xs:anyURI"/>
-        <xsl:param name="mode-uri" as="xs:anyURI"/>
-
-        <xsl:choose>
-            <!-- input values missing, show an error -->
-            <xsl:when test="not($value-uri)">
-                <xsl:sequence select="ixsl:call(ixsl:get($container//div[contains-token(@class, 'control-group')][input[@name = 'pu']/@value = $value-property-uri], 'classList'), 'toggle', [ 'error', true() ])[current-date() lt xs:date('2000-01-01')]"/>
-            </xsl:when>
-            <xsl:otherwise>
-                <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
-
-                <!-- only count blocks that have @about meaning they're already persisted. New blocks only have @id -->
-                <xsl:variable name="sequence-number" select="count($container/preceding-sibling::div[@about][contains-token(@class, 'content')]) + 1" as="xs:integer"/>
-                <xsl:variable name="sequence-property-uri" select="xs:anyURI('&rdf;_' || $sequence-number)" as="xs:anyURI"/>
-                <xsl:message>$sequence-number: <xsl:value-of select="$sequence-number"/> $sequence-property-uri: <xsl:value-of select="$sequence-property-uri"/></xsl:message>
-                <xsl:variable name="update-string" select="$block-update-string" as="xs:string"/>
-                <xsl:variable name="update-string" select="replace($update-string, '$this', '&lt;' || ac:absolute-path(ldh:base-uri(.)) || '&gt;', 'q')" as="xs:string"/>
-                <xsl:variable name="update-string" select="replace($update-string, '$seq', '&lt;' || $sequence-property-uri || '&gt;', 'q')" as="xs:string"/>
-                <xsl:variable name="update-string" select="replace($update-string, '$type', '&lt;' || $block-type || '&gt;', 'q')" as="xs:string"/>
-                <xsl:variable name="update-string" select="replace($update-string, '$block', '&lt;' || $block-uri || '&gt;', 'q')" as="xs:string"/>
-                <xsl:variable name="update-string" select="replace($update-string, '$valueProperty', '&lt;' || $value-property-uri || '&gt;', 'q')" as="xs:string"/>
-                <xsl:variable name="update-string" select="replace($update-string, '$value', '&lt;' || $value-uri || '&gt;', 'q')" as="xs:string"/>
-                <xsl:variable name="update-string" select="if ($mode-uri) then replace($update-string, '$mode', '&lt;' || $mode-uri || '&gt;', 'q') else $update-string" as="xs:string"/>
-                <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, ac:absolute-path(ldh:base-uri(.)))" as="xs:anyURI"/>
-                <xsl:variable name="request" as="item()*">
-                    <ixsl:schedule-action http-request="map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string }">
-                        <xsl:call-template name="onResourceContentUpdate">
-                            <xsl:with-param name="container" select="$container"/>
-                            <xsl:with-param name="block-uri" select="$block-uri"/>
-                        </xsl:call-template>
-                    </ixsl:schedule-action>
-                </xsl:variable>
-                <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
-            </xsl:otherwise>
-        </xsl:choose>
-    </xsl:template>
     
     <!-- save query onclick -->
     
@@ -822,7 +652,7 @@ exclude-result-prefixes="#all"
                 <xsl:variable name="sequence-number" select="count($container/preceding-sibling::div[@about][contains-token(@class, 'content')]) + 1" as="xs:integer"/>
                 <xsl:variable name="sequence-property" select="xs:anyURI('&rdf;_' || $sequence-number)" as="xs:anyURI"/>
                 <xsl:message>$sequence-number: <xsl:value-of select="$sequence-number"/> $sequence-property: <xsl:value-of select="$sequence-property"/></xsl:message>
-                <xsl:variable name="update-string" select="$block-update-string" as="xs:string"/>
+                <xsl:variable name="update-string" select="''" as="xs:string"/> <!--TO-DO: fix. Was: $block-update-string -->
                 <xsl:variable name="update-string" select="replace($update-string, '$this', '&lt;' || ac:absolute-path(ldh:base-uri(.)) || '&gt;', 'q')" as="xs:string"/>
                 <xsl:variable name="update-string" select="replace($update-string, '$seq', '&lt;' || $sequence-property || '&gt;', 'q')" as="xs:string"/>
                 <xsl:variable name="update-string" select="replace($update-string, '$type', '&lt;&ldh;View&gt;', 'q')" as="xs:string"/>
@@ -1367,63 +1197,6 @@ exclude-result-prefixes="#all"
                 <xsl:call-template name="ldh:BlockRendered">
                     <xsl:with-param name="container" select="$container"/>
                 </xsl:call-template>
-            </xsl:otherwise>
-        </xsl:choose>
-    </xsl:template>
-
-    <!-- XHTML content update -->
-    
-    <xsl:template name="onXHTMLContentUpdate">
-        <xsl:context-item as="map(*)" use="required"/>
-        <xsl:param name="container" as="element()"/>
-        <xsl:param name="block-uri" as="xs:anyURI"/>
-        <xsl:param name="block-value" as="document-node()"/>
-
-        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
-
-        <xsl:choose>
-            <xsl:when test="?status = 204">
-                <xsl:for-each select="$container">
-                    <!-- set @about attribute -->
-                    <ixsl:set-attribute name="about" select="$block-uri"/>
-                </xsl:for-each>
-                
-                <xsl:for-each select="$container/div[contains-token(@class, 'main')]">
-                    <xsl:result-document href="?." method="ixsl:replace-content">
-                        <button type="button" class="btn btn-edit pull-right">
-                            <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
-                        </button>
-
-                        <xsl:copy-of select="$block-value"/>
-                    </xsl:result-document>
-                </xsl:for-each>
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ 'Could not update XHTML content' ])[current-date() lt xs:date('2000-01-01')]"/>
-            </xsl:otherwise>
-        </xsl:choose>
-    </xsl:template>
-
-    <!-- resource content update -->
-    
-    <xsl:template name="onResourceContentUpdate">
-        <xsl:context-item as="map(*)" use="required"/>
-        <xsl:param name="container" as="element()"/>
-        <xsl:param name="block-uri" as="xs:anyURI"/>
-
-        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
-
-        <xsl:choose>
-            <xsl:when test="?status = 204">
-                <xsl:for-each select="$container">
-                    <!-- set @about attribute -->
-                    <ixsl:set-attribute name="about" select="$block-uri"/>
-
-                    <xsl:call-template name="ldh:LoadBlock"/>
-                </xsl:for-each>
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ 'Could not update resource content' ])[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
