@@ -701,6 +701,12 @@ WHERE
                         Existing @about: <xsl:value-of select="@about"/>
                     </xsl:message>
                     <ixsl:set-attribute name="about" select="$row/@about"/>
+                    <ixsl:set-attribute name="class" select="$row/@class"/>
+
+                    <!-- if the updated resource is a content resource, load it -->
+                    <xsl:if test="contains-token($row/@class, 'resource-content')">
+                        <xsl:call-template name="ldh:LoadBlock"/>
+                    </xsl:if>
                 </xsl:for-each>
                 
                 <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
@@ -892,8 +898,8 @@ WHERE
         <xsl:message>forClass: <xsl:value-of select="$forClass"/></xsl:message>
         <xsl:variable name="constructed-doc" select="ldh:construct-forClass($forClass)" as="document-node()"/>
         <xsl:variable name="doc-uri" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
-        <xsl:variable name="id" select="ac:uuid()" as="xs:string"/>
-        <xsl:variable name="this" select="xs:anyURI($doc-uri || '#id' || $id)" as="xs:anyURI"/>
+        <xsl:variable name="id" select="'id' || ac:uuid()" as="xs:string"/>
+        <xsl:variable name="this" select="xs:anyURI($doc-uri || '#' || $id)" as="xs:anyURI"/>
         <xsl:message>ldh:base-uri(.): <xsl:value-of select="ldh:base-uri(.)"/> $doc-uri: <xsl:value-of select="$doc-uri"/> $this: <xsl:value-of select="$doc-uri"/></xsl:message>
         <!-- set document URI instead of blank node -->
         <xsl:variable name="constructed-doc" as="document-node()">
