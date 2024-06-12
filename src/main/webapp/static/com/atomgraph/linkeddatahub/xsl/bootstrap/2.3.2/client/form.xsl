@@ -708,7 +708,7 @@ WHERE
                         <xsl:call-template name="ldh:LoadBlock"/>
                     </xsl:if>
                     <xsl:if test="contains-token($row/@class, 'post-construct')">
-                        <xsl:call-template name="ldh:PostConstruct"/>
+                        <xsl:apply-templates select="." mode="ldh:PostConstruct"/>
                     </xsl:if>
                 </xsl:for-each>
                 
