@@ -575,7 +575,7 @@ LIMIT   100
             </xsl:if>
             
             <!-- if the current resource is an Item, hide the "Create" dropdown as items cannot have child documents -->
-            <xsl:if test="not(key('resources', ac:absolute-path($ldh:requestUri))/rdf:type/@rdf:resource = '&dh;Item')">
+            <xsl:if test="not(key('resources', ac:absolute-path($ldh:requestUri), document(ac:absolute-path($ldh:requestUri)))/rdf:type/@rdf:resource = '&dh;Item')">
                 <xsl:variable name="document-classes" select="key('resources', ('&dh;Container', '&dh;Item'), document(ac:document-uri('&def;')))" as="element()*"/>
                 <xsl:apply-templates select="." mode="bs2:Create">
                     <xsl:with-param name="class" select="'btn-group pull-left'"/>
@@ -1143,6 +1143,8 @@ LIMIT   100
                     <button type="button" title="{ac:label(key('resources', 'save-as-title', document('translations.rdf')))}">
                         <xsl:apply-templates select="key('resources', 'save-as', document('translations.rdf'))" mode="ldh:logo">
                             <!-- disable button if external document is not being browsed or the agent has no acl:Write access -->
+                            <xsl:message>ldh:base-uri(.): <xsl:value-of select="ldh:base-uri(.)"/></xsl:message>
+                            <xsl:message>$ldh:requestUri: <xsl:value-of select="$ldh:requestUri"/></xsl:message>
                             <xsl:with-param name="class" select="'btn' || (if ((ac:absolute-path(ldh:base-uri(.)) = ac:absolute-path($ldh:requestUri)) or not($acl:mode = '&acl;Write')) then ' disabled' else ())"/>
                         </xsl:apply-templates>
 
