@@ -703,8 +703,8 @@ WHERE
                     <ixsl:set-attribute name="about" select="$row/@about"/>
                     <ixsl:set-attribute name="class" select="$row/@class"/>
 
-                    <!-- if the updated resource is a content resource, load it -->
-                    <xsl:if test="contains-token($row/@class, 'resource-content')">
+                    <!-- if the updated resource is a content resource, load it TO-DO: this belongs in content.xsl -->
+                    <xsl:if test="contains-token($row/@class, 'content')">
                         <xsl:call-template name="ldh:LoadBlock"/>
                     </xsl:if>
                 </xsl:for-each>
