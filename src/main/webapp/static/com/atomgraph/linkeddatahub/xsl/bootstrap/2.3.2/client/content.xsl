@@ -863,7 +863,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="endpoint" select="($service/sd:endpoint/@rdf:resource/xs:anyURI(.), sd:endpoint())[1]" as="xs:anyURI"/>
         <xsl:variable name="content-id" select="ancestor::div[contains-token(@class, 'content')]/ixsl:get(., 'id')" as="xs:string"/>
 <!--        <xsl:variable name="content-uri" select="xs:anyURI(ac:absolute-path(ldh:base-uri(.)) || '#' || $content-id)" as="xs:anyURI"/>  build content URI -->
-        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'content')]" as="element()"/>
+        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'row-fluid')]" as="element()"/>
         <xsl:variable name="container-id" select="ixsl:get($container, 'id')" as="xs:string"/>
         <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': $query-string })" as="xs:anyURI"/>
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, $ldt:base, map{}, $results-uri)" as="xs:anyURI"/>
