@@ -270,7 +270,7 @@ exclude-result-prefixes="#all"
                 </xsl:for-each>
             </xsl:for-each>
         </xsl:variable>
-        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'content')]" as="element()?"/>
+        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'row-fluid')]" as="element()?"/>
         <xsl:variable name="content-id" select="$container/@id" as="xs:string"/>
         <xsl:variable name="content-uri" select="if ($container/@about) then $container/@about else xs:anyURI(ac:absolute-path(ldh:base-uri(.)) || '#' || $content-id)" as="xs:anyURI"/>
         <xsl:variable name="chart-canvas-id" select="ancestor::fieldset/following-sibling::div/@id" as="xs:string"/>
@@ -305,7 +305,7 @@ exclude-result-prefixes="#all"
                 </xsl:for-each>
             </xsl:for-each>
         </xsl:variable>
-        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'content')]" as="element()?"/>
+        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'row-fluid')]" as="element()?"/>
         <xsl:variable name="content-id" select="$container/@id" as="xs:string"/>
         <xsl:variable name="content-uri" select="if ($container/@about) then $container/@about else xs:anyURI(ac:absolute-path(ldh:base-uri(.)) || '#' || $content-id)" as="xs:anyURI"/>
         <xsl:variable name="chart-canvas-id" select="ancestor::fieldset/following-sibling::div/@id" as="xs:string"/>
@@ -338,7 +338,7 @@ exclude-result-prefixes="#all"
                 <xsl:sequence select="ixsl:get(ixsl:call(ixsl:get($select, 'selectedOptions'), 'item', [ . ]), 'value')"/>
             </xsl:for-each>
         </xsl:variable>
-        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'content')]" as="element()?"/>
+        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'row-fluid')]" as="element()?"/>
         <xsl:variable name="content-id" select="$container/@id" as="xs:string"/>
         <xsl:variable name="content-uri" select="if ($container/@about) then $container/@about else xs:anyURI(ac:absolute-path(ldh:base-uri(.)) || '#' || $content-id)" as="xs:anyURI"/>
         <xsl:variable name="chart-canvas-id" select="ancestor::fieldset/following-sibling::div/@id" as="xs:string"/>

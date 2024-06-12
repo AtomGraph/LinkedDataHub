@@ -853,8 +853,9 @@ exclude-result-prefixes="#all"
     
     <!-- submit SPARQL query form (prioritize over default template in form.xsl) -->
     
-    <xsl:template match="form[contains-token(@class, 'sparql-query-form')]" mode="ixsl:onsubmit" priority="1">
+    <xsl:template match="div[@typeof = ('&sp;Ask', '&sp;Select', '&sp;Describe', '&sp;Construct')][contains-token(@class, 'row-fluid')]//form[contains-token(@class, 'sparql-query-form ')]" mode="ixsl:onsubmit" priority="2"> <!-- prioritize over form.xsl -->
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
+        <xsl:message>.sparql-query-form onsubmit</xsl:message>
         <xsl:variable name="textarea-id" select="descendant::textarea[@name = 'query']/ixsl:get(., 'id')" as="xs:string"/>
         <xsl:variable name="yasqe" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe'), $textarea-id)"/>
         <xsl:variable name="query-string" select="ixsl:call($yasqe, 'getValue', [])" as="xs:string"/> <!-- get query string from YASQE -->
