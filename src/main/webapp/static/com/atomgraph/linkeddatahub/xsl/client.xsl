@@ -286,10 +286,6 @@ WHERE
             <xsl:with-param name="container" select="id($body-id, ixsl:page())"/>
             <xsl:with-param name="replace-content" select="false()"/>
         </xsl:apply-templates>
-        <!-- disable SPARQL editor's server-side submission -->
-        <xsl:for-each select="ixsl:page()//button[contains(@class, 'btn-run-query')]"> <!-- TO-DO: use the 'elements-by-class' key -->
-            <ixsl:set-attribute name="type" select="'button'"/> <!-- instead of "submit" -->
-        </xsl:for-each>
         <!-- only show first time message for authenticated agents -->
         <xsl:if test="$acl:agent and not(contains(ixsl:get(ixsl:page(), 'cookie'), 'LinkedDataHub.first-time-message'))">
             <xsl:for-each select="ixsl:page()//body">
