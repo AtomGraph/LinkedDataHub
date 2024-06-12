@@ -575,7 +575,7 @@ LIMIT   100
             </xsl:if>
             
             <!-- if the current resource is an Item, hide the "Create" dropdown as items cannot have child documents -->
-            <xsl:if test="not(key('resources', ac:absolute-path(ldh:base-uri(.)))/rdf:type/@rdf:resource = '&dh;Item')">
+            <xsl:if test="not(key('resources', ac:absolute-path($ldh:requestUri))/rdf:type/@rdf:resource = '&dh;Item')">
                 <xsl:variable name="document-classes" select="key('resources', ('&dh;Container', '&dh;Item'), document(ac:document-uri('&def;')))" as="element()*"/>
                 <xsl:apply-templates select="." mode="bs2:Create">
                     <xsl:with-param name="class" select="'btn-group pull-left'"/>
