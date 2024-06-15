@@ -620,7 +620,7 @@ WHERE
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="doc-uri" as="xs:anyURI"/>
         <xsl:param name="container" as="element()?"/>
-        <xsl:param name="form" as="element()"/>
+        <xsl:param name="form" as="element()?"/>
         <xsl:param name="resources" as="document-node()"/>
 
         <xsl:choose>
