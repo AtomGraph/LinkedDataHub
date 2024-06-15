@@ -533,6 +533,7 @@ exclude-result-prefixes="#all"
         </xsl:apply-templates>
         <xsl:variable name="triples" select="ldh:descriptions-to-triples($query)" as="element()*"/>
         <xsl:message>
+            $query: <xsl:value-of select="serialize($query)"/>
             $query triples: <xsl:value-of select="serialize($triples)"/>
         </xsl:message>
         <xsl:variable name="update-string" select="ldh:triples-to-sparql-update($about, $triples)" as="xs:string"/>
