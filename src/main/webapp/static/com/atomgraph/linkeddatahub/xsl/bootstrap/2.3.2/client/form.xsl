@@ -553,48 +553,7 @@ WHERE
             c14n $triples: <xsl:value-of select="serialize($triples)"/>
         </xsl:message>
         
-        <xsl:variable name="where-pattern" as="element()">
-            <json:map>
-                <json:string key="type">bgp</json:string>
-                <json:array key="triples">
-                    <json:map>
-                        <json:string key="subject"><xsl:sequence select="$about"/></json:string>
-                        <json:string key="predicate">?p</json:string>
-                        <json:string key="object">?o</json:string>
-                    </json:map>
-                </json:array>
-            </json:map>
-        </xsl:variable>
-        <xsl:variable name="update-xml" as="element()">
-            <json:map>
-                <json:string key="type">update</json:string>
-                <json:array key="updates">
-                    <json:map>
-                        <json:string key="updateType">insertdelete</json:string>
-                        <json:array key="delete">
-                            <xsl:sequence select="$where-pattern"/>
-                        </json:array>
-                        <json:array key="insert">
-                            <json:map>
-                                <json:string key="type">bgp</json:string>
-                                <json:array key="triples">
-                                    <xsl:sequence select="$triples"/>
-                                </json:array>
-                            </json:map>
-                        </json:array>
-                        <json:array key="where">
-                            <xsl:sequence select="$where-pattern"/>
-                        </json:array>
-                    </json:map>
-                </json:array>
-            </json:map>
-        </xsl:variable>
-        <xsl:variable name="update-json-string" select="xml-to-json($update-xml)" as="xs:string"/>
-<xsl:message>
-    <xsl:value-of select="$update-json-string"/>
-</xsl:message>
-        <xsl:variable name="update-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $update-json-string ])"/>
-        <xsl:variable name="update-string" select="ixsl:call($sparql-generator, 'stringify', [ $update-json ])" as="xs:string"/>
+        <xsl:variable name="update-string" select="ldh:triples-to-sparql-update($about, $triples)" as="xs:string"/>
         <xsl:variable name="resources" as="document-node()">
             <xsl:document>
                 <rdf:RDF>

@@ -532,6 +532,28 @@ exclude-result-prefixes="#all"
         <xsl:message>
             $query triples: <xsl:value-of select="serialize($triples)"/>
         </xsl:message>
+        <xsl:variable name="update-string" select="ldh:triples-to-sparql-update($about, $triples)" as="xs:string"/>
+        <xsl:variable name="resources" as="document-node()">
+            <xsl:document>
+                <rdf:RDF>
+                    <xsl:sequence select="ldh:triples-to-descriptions($triples)"/>
+                </rdf:RDF>
+            </xsl:document>
+        </xsl:variable>
+        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, $action)" as="xs:anyURI"/>
+        
+        <xsl:variable name="request" as="item()*">
+            <!-- If-Match header checks preconditions, i.e. that the graph has not been modified in the meanwhile --> 
+            <ixsl:schedule-action http-request="map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string, 'headers': map{ 'If-Match': $etag, 'Accept': 'application/rdf+xml', 'Cache-Control': 'no-cache' } }">
+                <xsl:call-template name="ldh:ResourceUpdated">
+                    <xsl:with-param name="doc-uri" select="ac:absolute-path(ldh:base-uri(.))"/>
+                    <xsl:with-param name="container" select="$container"/>
+                    <xsl:with-param name="form" select="$form"/>
+                    <xsl:with-param name="resources" select="$resources"/>
+                </xsl:call-template>
+            </ixsl:schedule-action>
+        </xsl:variable>
+        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
     
    <!-- identity transform -->
