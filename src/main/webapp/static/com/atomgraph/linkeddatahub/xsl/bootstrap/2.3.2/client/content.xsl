@@ -528,6 +528,9 @@ exclude-result-prefixes="#all"
         <xsl:variable name="doc" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(xs:anyURI(ixsl:location())) || '`'), 'results')" as="document-node()"/>
         <xsl:variable name="query" select="key('resources', $about, $doc)" as="element()"/>
 
+        <xsl:message>
+            $query-string: <xsl:value-of select="$query-string"/>
+        </xsl:message>
         <xsl:apply-templates select="$query" mode="ldh:SetQueryString">
             <xsl:with-param name="query-string" select="$query-string" tunnel="yes"/>
         </xsl:apply-templates>
