@@ -514,6 +514,7 @@ exclude-result-prefixes="#all"
     <!-- save query onclick -->
     
     <xsl:template match="div[contains-token(@class, 'content')][contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'btn-save-query')]" mode="ixsl:onclick">
+        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'content')][contains-token(@class, 'row-fluid')]" as="element()"/>
         <xsl:variable name="about" select="$container/@about" as="xs:anyURI"/>
         <xsl:variable name="textarea" select="ancestor::form/descendant::textarea[@name = 'query']" as="element()"/>
@@ -528,9 +529,6 @@ exclude-result-prefixes="#all"
         <xsl:variable name="doc" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(xs:anyURI(ixsl:location())) || '`'), 'results')" as="document-node()"/>
         <xsl:variable name="query" select="key('resources', $about, $doc)" as="element()"/>
 
-        <xsl:message>
-            $query-string: <xsl:value-of select="$query-string"/>
-        </xsl:message>
         <!-- replace the query string (sp:text value) on the query resource -->
         <xsl:variable name="query" as="element()">
             <xsl:apply-templates select="$query" mode="ldh:SetQueryString">
@@ -629,8 +627,9 @@ exclude-result-prefixes="#all"
     
     <!-- save chart onclick -->
     
-    <xsl:template match="div[contains-token(@class, 'content')][contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'btn-save-chart')]" mode="ixsl:onclick">
-        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'content')][contains-token(@class, 'row-fluid')]" as="element()"/>
+    <xsl:template match="div[@about][contains-token(@class, 'content')][contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'btn-save-chart')]" mode="ixsl:onclick">
+        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'content')]" as="element()"/>
         <xsl:variable name="textarea-id" select="descendant::textarea[@name = 'query']/ixsl:get(., 'id')" as="xs:string"/>
         <xsl:variable name="yasqe" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe'), $textarea-id)"/>
         <xsl:variable name="query-string" select="ixsl:call($yasqe, 'getValue', [])" as="xs:string"/> <!-- get query string from YASQE -->
@@ -649,86 +648,30 @@ exclude-result-prefixes="#all"
                 </xsl:for-each>
             </xsl:for-each>
         </xsl:variable>
-        <xsl:variable name="textarea" select="$container//descendant::textarea[@name = 'query']" as="element()"/>
-        <xsl:variable name="yasqe" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe'), $textarea/ixsl:get(., 'id'))"/>
-        <xsl:variable name="query-string" select="ixsl:call($yasqe, 'getValue', [])" as="xs:string?"/> <!-- get query string from YASQE -->
 
-        <xsl:message>SAVE CHART $query-string: <xsl:value-of select="$query-string"/></xsl:message>
+        <xsl:message>SAVE CHART query URI: <xsl:value-of select="$container/@about"/></xsl:message>
         
-        <!--
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
-        
-        <xsl:variable name="request" as="item()*">
-            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
-                <xsl:call-template name="onAddSaveChartForm">
-                    <xsl:with-param name="query-string" select="$query-string"/>
-                    <xsl:with-param name="service-uri" select="$service-uri"/>
-                    <xsl:with-param name="chart-type" select="$chart-type"/>
-                    <xsl:with-param name="category" select="$category"/>
-                    <xsl:with-param name="series" select="$series"/>
-                </xsl:call-template>
-            </ixsl:schedule-action>
+        <xsl:variable name="constructor" as="document-node()">
+            <xsl:document>
+                <rdf:RDF>
+                    <rdf:Description>
+                        <rdf:type rdf:resource="{$forClass}"/>
+                        <dct:title rdf:nodeID="title"/>
+                        <ldh:chartType rdf:resource="{$chart-type}"/>
+                        <ldh:categoryVarName><xsl:value-of select="$category"/></ldh:categoryVarName>
+                        <xsl:for-each select="$series">
+                            <ldh:seriesVarName><xsl:value-of select="."/></ldh:seriesVarName>
+                        </xsl:for-each>
+                        <spin:query rdf:resource="{$container/@about}"/>
+                    </rdf:Description>
+                    <rdf:Description rdf:nodeID="title">
+                        <rdf:type rdf:resource="&xsd;string"/>
+                    </rdf:Description>
+                </rdf:RDF>
+            </xsl:document>
         </xsl:variable>
-        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>-->
-    </xsl:template>
-    
-    <xsl:template name="onSPARQLQuerySave">
-        <xsl:context-item as="map(*)" use="required"/>
-        <xsl:param name="query-uri" as="xs:anyURI"/>
-        <xsl:param name="container" as="element()"/>
-        <xsl:param name="textarea" as="element()"/>
-        <xsl:param name="mode" as="xs:anyURI?"/>
-        <xsl:param name="base-uri" as="xs:anyURI?"/>
-
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
-
-        <xsl:choose>
-            <xsl:when test="?status = 200">
-                <xsl:variable name="content-value" select="$query-uri" as="xs:anyURI"/>
-                <xsl:variable name="content-id" select="$container/@id" as="xs:string"/>
-                <xsl:variable name="block-uri" select="if ($container/@about) then $container/@about else xs:anyURI(ac:absolute-path(ldh:base-uri(.)) || '#' || $content-id)" as="xs:anyURI"/>
-                <xsl:variable name="sequence-number" select="count($container/preceding-sibling::div[@about][contains-token(@class, 'content')]) + 1" as="xs:integer"/>
-                <xsl:variable name="sequence-property" select="xs:anyURI('&rdf;_' || $sequence-number)" as="xs:anyURI"/>
-                <xsl:message>$sequence-number: <xsl:value-of select="$sequence-number"/> $sequence-property: <xsl:value-of select="$sequence-property"/></xsl:message>
-                <xsl:variable name="update-string" select="''" as="xs:string"/> <!--TO-DO: fix. Was: $block-update-string -->
-                <xsl:variable name="update-string" select="replace($update-string, '$this', '&lt;' || ac:absolute-path(ldh:base-uri(.)) || '&gt;', 'q')" as="xs:string"/>
-                <xsl:variable name="update-string" select="replace($update-string, '$seq', '&lt;' || $sequence-property || '&gt;', 'q')" as="xs:string"/>
-                <xsl:variable name="update-string" select="replace($update-string, '$type', '&lt;&ldh;View&gt;', 'q')" as="xs:string"/>
-                <xsl:variable name="update-string" select="replace($update-string, '$block', '&lt;' || $block-uri || '&gt;', 'q')" as="xs:string"/>
-                <xsl:variable name="update-string" select="replace($update-string, '$valueProperty', '&lt;&spin;query&gt;', 'q')" as="xs:string"/>
-                <xsl:variable name="update-string" select="replace($update-string, '$value', '&lt;' || $content-value || '&gt;', 'q')" as="xs:string"/>
-                <xsl:variable name="update-string" select="if ($mode) then replace($update-string, '$mode', '&lt;' || $mode || '&gt;', 'q') else $update-string" as="xs:string"/>
-                <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path($base-uri), map{}, ac:absolute-path($base-uri))" as="xs:anyURI"/>
-                <xsl:variable name="request" as="item()*">
-                    <ixsl:schedule-action http-request="map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string }">
-                        <xsl:call-template name="onSPARQLContentUpdate">
-                            <xsl:with-param name="container" select="$container"/>
-                            <xsl:with-param name="content-uri" select="$block-uri"/>
-                            <xsl:with-param name="content-value" select="$content-value"/>
-                            <xsl:with-param name="mode" select="$mode"/>
-                        </xsl:call-template>
-                    </ixsl:schedule-action>
-                </xsl:variable>
-                <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
-            </xsl:when>
-            <!-- query string was invalid - show error -->
-            <xsl:when test="?status = 422">
-                <ixsl:set-style name="border-color" select="'#ff0039'" object="$textarea/following-sibling::div[contains-token(@class, 'CodeMirror')]"/> <!-- YASQE container -->
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:for-each select="$container//div[contains-token(@class, 'main')]">
-                    <xsl:result-document href="?." method="ixsl:replace-content">
-                        <div class="alert alert-block">
-                            <strong>Could not save content resource: <a href="{$query-uri}"><xsl:value-of select="$query-uri"/></a></strong>
-                        </div>
-                    </xsl:result-document>
-                </xsl:for-each>
-                
-                <xsl:call-template name="ldh:BlockRendered">
-                    <xsl:with-param name="container" select="$container"/>
-                </xsl:call-template>
-            </xsl:otherwise>
-        </xsl:choose>
+        
+        <xsl:message>Save chart $constructor: <xsl:value-of select="serialize($constructor)"/></xsl:message>
     </xsl:template>
     
     <!-- delete content onclick (increased priority to take precedence over form.xsl .btn-remove-resource) -->
