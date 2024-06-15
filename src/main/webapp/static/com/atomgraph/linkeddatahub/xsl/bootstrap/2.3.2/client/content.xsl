@@ -531,9 +531,12 @@ exclude-result-prefixes="#all"
         <xsl:message>
             $query-string: <xsl:value-of select="$query-string"/>
         </xsl:message>
-        <xsl:apply-templates select="$query" mode="ldh:SetQueryString">
-            <xsl:with-param name="query-string" select="$query-string" tunnel="yes"/>
-        </xsl:apply-templates>
+        <!-- replace the query string (sp:text value) on the query resource -->
+        <xsl:variable name="query" select="key('resources', $about, $doc)" as="element()">
+            <xsl:apply-templates select="$query" mode="ldh:SetQueryString">
+                <xsl:with-param name="query-string" select="$query-string" tunnel="yes"/>
+            </xsl:apply-templates>
+        </xsl:variable>
         <xsl:variable name="triples" select="ldh:descriptions-to-triples($query)" as="element()*"/>
         <xsl:message>
             $query: <xsl:value-of select="serialize($query)"/>
