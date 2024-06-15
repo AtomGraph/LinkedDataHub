@@ -355,6 +355,55 @@ exclude-result-prefixes="#all"
         </xsl:for-each-group>
     </xsl:function>
 
+    <!-- parses RDF/XML resources into SPARQL.js triples -->
+    <xsl:function name="ldh:descriptions-to-triples" as="element()*">
+        <xsl:param name="descriptions" as="element()*"/> <!-- rdf:Description sequence -->
+        
+        <xsl:for-each select="$descriptions">
+            <json:map>
+                <!-- subject -->
+                <xsl:choose>
+                    <!-- blank node -->
+                    <xsl:when test="@rdf:nodeID">
+                        <json:string key="subject">_:<xsl:value-of select="$subj-input/ixsl:get(., 'value')"/></json:string>
+                    </xsl:when>
+                    <!-- URI -->
+                    <xsl:when test="@rdf:about">
+                        <json:string key="subject"><xsl:value-of select="$subj-input/ixsl:get(., 'value')"/></json:string>
+                    </xsl:when>
+                </xsl:choose>
+                
+                <xsl:for-each select="*">
+                    <!-- predicate -->
+                    <json:string key="predicate"><xsl:value-of select="concat(namespace-uri(), local-name())"/></json:string>
+                    <!-- object -->
+                    <xsl:choose>
+                        <!-- blank node -->
+                        <xsl:when test="@rdf:nodeID">
+                            <json:string key="object">_:<xsl:value-of select="@rdf:nodeID"/></json:string>
+                        </xsl:when>
+                        <!-- URI -->
+                        <xsl:when test="@rdf:resource">
+                            <json:string key="object"><xsl:value-of select="@rdf:resource"/></json:string>
+                        </xsl:when>
+                        <!-- typed literal -->
+                        <xsl:when test="text() and @rdf:datatype">
+                            <json:string key="object">&quot;<xsl:value-of select="text()"/>&quot;^^<xsl:value-of select="@rdf:datatype"/></json:string>
+                        </xsl:when>
+                        <!-- language-tagged literal -->
+                        <xsl:when test="text() and @xml:lang">
+                            <json:string key="object">&quot;<xsl:value-of select="text()"/>&quot;@<xsl:value-of select="@xml:lang"/></json:string>
+                        </xsl:when>
+                        <!-- plain literal -->
+                        <xsl:when test="text()">
+                            <json:string key="object">&quot;<xsl:value-of select="text()"/>&quot;</json:string>
+                        </xsl:when>
+                    </xsl:choose>
+                </xsl:for-each>
+            </json:map>
+        </xsl:for-each>
+    </xsl:function>
+    
     <xsl:function name="ldh:canonicalize-xml">
         <xsl:param name="doc" as="document-node()"/>
         <xsl:variable name="js-statement" as="xs:string">

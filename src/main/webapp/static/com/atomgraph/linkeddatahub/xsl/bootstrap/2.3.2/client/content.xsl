@@ -515,72 +515,41 @@ exclude-result-prefixes="#all"
     
     <xsl:template match="div[contains-token(@class, 'content')][contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'btn-save-query')]" mode="ixsl:onclick">
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'content')][contains-token(@class, 'row-fluid')]" as="element()"/>
-        <xsl:variable name="content-value" select="ixsl:get($container//div[contains-token(@class, 'main')]//input[@name = 'ou'], 'value')" as="xs:anyURI"/>
+        <xsl:variable name="about" select="$container/@about" as="xs:anyURI"/>
         <xsl:variable name="textarea" select="ancestor::form/descendant::textarea[@name = 'query']" as="element()"/>
         <xsl:variable name="yasqe" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe'), $textarea/ixsl:get(., 'id'))"/>
         <xsl:variable name="query-string" select="ixsl:call($yasqe, 'getValue', [])" as="xs:string?"/> <!-- get query string from YASQE -->
         <xsl:variable name="service-uri" select="ancestor::form/descendant::select[contains-token(@class, 'input-query-service')]/ixsl:get(., 'value')" as="xs:anyURI?"/>
-        <xsl:variable name="title-input" select="ancestor::form/descendant::input[@name = 'title']" as="element()"/>
         <xsl:variable name="query-type" select="ldh:query-type($query-string)" as="xs:string?"/>
+        <!-- not using ldh:base-uri(.) because it goes stale when DOM is replaced -->
+        <xsl:variable name="doc" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(xs:anyURI(ixsl:location())) || '`'), 'results')" as="document-node()"/>
+        <xsl:variable name="query" select="key('resources', $about, $doc)" as="element()"/>
 
-        <xsl:choose>
-            <!-- query string value missing/invalid, throw an error -->
-            <xsl:when test="not($query-string) or not($query-type)">
-                <xsl:for-each select="$textarea/following-sibling::div[contains-token(@class, 'CodeMirror')]"> <!-- YASQE container -->
-                    <ixsl:set-style name="border-color" select="'#ff0039'"/>
-                    <xsl:sequence select="ixsl:call(., 'scrollIntoView', [])[current-date() lt xs:date('2000-01-01')]"/>
-                </xsl:for-each>
-                <ixsl:set-style name="border-color" select="''" object="$title-input"/>
-            </xsl:when>
-            <!-- query title value missing, throw an error -->
-            <xsl:when test="not($title-input/ixsl:get(., 'value'))">
-                <xsl:for-each select="$title-input">
-                    <ixsl:set-style name="border-color" select="'#ff0039'"/>
-                    <xsl:sequence select="ixsl:call(., 'scrollIntoView', [])[current-date() lt xs:date('2000-01-01')]"/>
-                </xsl:for-each>
-                <ixsl:set-style name="border-color" select="''" object="$textarea/following-sibling::div[contains-token(@class, 'CodeMirror')]"/> <!-- YASQE container -->
-            </xsl:when>
-            <xsl:otherwise>
-                <ixsl:set-style name="border-color" select="''" object="$title-input"/>
-                <ixsl:set-style name="border-color" select="''" object="$textarea/following-sibling::div[contains-token(@class, 'CodeMirror')]"/> <!-- YASQE container -->
-                <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
-
-                <xsl:variable name="forClass" select="xs:anyURI('&sp;' || upper-case(substring($query-type, 1, 1)) || lower-case(substring($query-type, 2)))" as="xs:anyURI"/>
-                <xsl:variable name="query-id" select="'id' || ac:uuid()" as="xs:string"/>
-                <xsl:variable name="query-uri" select="xs:anyURI(ac:absolute-path(ldh:base-uri(.)) || '#' || $query-id)" as="xs:anyURI"/>
-                <xsl:variable name="constructor" as="document-node()">
-                    <xsl:document>
-                        <rdf:RDF>
-                            <rdf:Description rdf:about="{$query-uri}">
-                                <rdf:type rdf:resource="&sp;Query"/>
-                                <rdf:type rdf:resource="{$forClass}"/>
-                                <dct:title><xsl:value-of select="$title-input/ixsl:get(., 'value')"/></dct:title>
-                                <sp:text rdf:datatype="&xsd;string"><xsl:value-of select="$query-string"/></sp:text>
-                                
-                                <xsl:if test="$service-uri">
-                                    <ldh:service rdf:resource="$service-uri"/>
-                                </xsl:if>
-                            </rdf:Description>
-                        </rdf:RDF>
-                    </xsl:document>
-                </xsl:variable>
-        
-                <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, ac:absolute-path(ldh:base-uri(.)))" as="xs:anyURI"/>
-                <xsl:variable name="request" as="item()*">
-                    <ixsl:schedule-action http-request="map{ 'method': 'POST', 'href': $request-uri, 'media-type': 'application/rdf+xml', 'body': $constructor }">
-                        <xsl:call-template name="onSPARQLQuerySave">
-                            <xsl:with-param name="query-uri" select="$query-uri"/>
-                            <xsl:with-param name="container" select="$container"/>
-                            <xsl:with-param name="textarea" select="$textarea"/>
-                            <xsl:with-param name="base-uri" select="ldh:base-uri(.)"/>
-                        </xsl:call-template>
-                    </ixsl:schedule-action>
-                </xsl:variable>
-                <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
-            </xsl:otherwise>
-        </xsl:choose>
+        <xsl:apply-templates select="$query" mode="ldh:SetQueryString">
+            <xsl:with-param name="query-string" select="$query-string" tunnel="yes"/>
+        </xsl:apply-templates>
+        <xsl:variable name="triples" select="ldh:descriptions-to-triples($query)" as="element()*"/>
+        <xsl:message>
+            $query triples: <xsl:value-of select="serialize($triples)"/>
+        </xsl:message>
     </xsl:template>
     
+   <!-- identity transform -->
+   
+    <xsl:template match="@* | node()" mode="ldh:SetQueryString">
+        <xsl:copy>
+            <xsl:apply-templates select="@* | node()" mode="#current"/>
+        </xsl:copy>
+    </xsl:template>
+    
+    <!-- set query string -->
+
+    <xsl:template match="sp:text/text()" mode="ldh:SetQueryString" priority="1">
+        <xsl:param name="query-string" as="xs:string" tunnel="yes"/>
+
+        <xsl:sequence select="$query-string"/>
+    </xsl:template>
+        
     <!-- open query onclick -->
     
     <xsl:template match="div[contains-token(@class, 'content')][contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'btn-open-query')]" mode="ixsl:onclick">
