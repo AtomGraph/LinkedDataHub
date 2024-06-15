@@ -365,11 +365,11 @@ exclude-result-prefixes="#all"
                 <xsl:choose>
                     <!-- blank node -->
                     <xsl:when test="../@rdf:nodeID">
-                        <json:string key="subject">_:<xsl:value-of select="@rdf:nodeID"/></json:string>
+                        <json:string key="subject">_:<xsl:value-of select="../@rdf:nodeID"/></json:string>
                     </xsl:when>
                     <!-- URI -->
                     <xsl:when test="../@rdf:about">
-                        <json:string key="subject"><xsl:value-of select="@rdf:about"/></json:string>
+                        <json:string key="subject"><xsl:value-of select="../@rdf:about"/></json:string>
                     </xsl:when>
                 </xsl:choose>
 
