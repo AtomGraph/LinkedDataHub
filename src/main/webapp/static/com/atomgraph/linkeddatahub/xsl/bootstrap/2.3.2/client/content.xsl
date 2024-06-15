@@ -532,7 +532,7 @@ exclude-result-prefixes="#all"
             $query-string: <xsl:value-of select="$query-string"/>
         </xsl:message>
         <!-- replace the query string (sp:text value) on the query resource -->
-        <xsl:variable name="query" select="key('resources', $about, $doc)" as="element()">
+        <xsl:variable name="query" as="element()">
             <xsl:apply-templates select="$query" mode="ldh:SetQueryString">
                 <xsl:with-param name="query-string" select="$query-string" tunnel="yes"/>
             </xsl:apply-templates>
