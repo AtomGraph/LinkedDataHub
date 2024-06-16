@@ -4,6 +4,7 @@
     <!ENTITY ac     "https://w3id.org/atomgraph/client#">
     <!ENTITY rdf    "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
     <!ENTITY xsd    "http://www.w3.org/2001/XMLSchema#">
+    <!ENTITY sd     "http://www.w3.org/ns/sparql-service-description#">
     <!ENTITY sp     "http://spinrdf.org/sp#">
 ]>
 <xsl:stylesheet version="2.0"
@@ -68,6 +69,7 @@ exclude-result-prefixes="#all">
         <xsl:param name="endpoint" as="xs:anyURI?"/>
         <xsl:param name="query" select="sp:text" as="xs:string"/>
         <xsl:param name="show-properties" select="false()" as="xs:boolean"/>
+        <xsl:param name="forClass" select="xs:anyURI('&sd;Service')" as="xs:anyURI"/>
 
         <xsl:apply-templates select="." mode="bs2:Header"/>
         
@@ -84,6 +86,26 @@ exclude-result-prefixes="#all">
             <xsl:if test="$enctype">
                 <xsl:attribute name="enctype" select="$enctype"/>
             </xsl:if>
+
+            <div class="control-group">
+                <label class="control-label">
+                    <xsl:apply-templates select="key('resources', '&ldh;service', document('&ldh;'))" mode="ac:label"/>
+                </label>
+                <div class="controls">
+                    <xsl:choose>
+                        <xsl:when test="$service">
+                            <xsl:apply-templates select="key('resources', $service, document(ac:document-uri($service)))" mode="ldh:Typeahead">
+                                <xsl:with-param name="forClass" select="$forClass"/>
+                            </xsl:apply-templates>
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <xsl:call-template name="bs2:Lookup">
+                                <xsl:with-param name="forClass" select="$forClass"/>
+                            </xsl:call-template>
+                        </xsl:otherwise>
+                    </xsl:choose>
+                </div>
+            </div>
 
             <textarea name="query" class="span12 sparql-query-string" rows="15">
                 <xsl:if test="$textarea-id">
