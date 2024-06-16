@@ -91,6 +91,12 @@ exclude-result-prefixes="#all">
             </xsl:if>
 
             <div class="control-group">
+                <xsl:call-template name="xhtml:Input">
+                    <xsl:with-param name="name" select="'pu'"/>
+                    <xsl:with-param name="type" select="'hidden'"/>
+                    <xsl:with-param name="value" select="'&ldh;service'"/>
+                </xsl:call-template>
+                
                 <label class="control-label">
                     <xsl:apply-templates select="key('resources', '&ldh;service', document(ac:document-uri('&ldh;')))" mode="ac:label"/>
                 </label>
