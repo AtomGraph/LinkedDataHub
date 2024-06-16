@@ -56,7 +56,7 @@ exclude-result-prefixes="#all">
     
     <!-- BLOCK MODE -->
 
-    <xsl:template match="*[sp:text/text()] | sp:text/@rdf:nodeID[key('resources', .)[not(* except rdf:type[@rdf:resource = '&xsd;string'])]]" mode="bs2:Block">
+    <xsl:template match="*[sp:text/text()]" mode="bs2:Block">
         <xsl:param name="method" select="'get'" as="xs:string"/>
         <xsl:param name="action" select="xs:anyURI('')" as="xs:anyURI"/>
         <xsl:param name="id" select="'id' || ac:uuid()" as="xs:string?"/>
@@ -65,12 +65,15 @@ exclude-result-prefixes="#all">
         <xsl:param name="enctype" as="xs:string?"/>
         <xsl:param name="textarea-id" select="'id' || ac:uuid()" as="xs:string"/>
         <xsl:param name="mode" as="xs:anyURI*"/>
-        <xsl:param name="service-uri" select="../ldh:service/@rdf:resource/xs:anyURI(.)" as="xs:anyURI?"/>
+        <xsl:param name="service-uri" select="ldh:service/@rdf:resource/xs:anyURI(.)" as="xs:anyURI?"/>
         <xsl:param name="endpoint" as="xs:anyURI?"/>
         <xsl:param name="query" select="sp:text" as="xs:string"/>
         <xsl:param name="show-properties" select="false()" as="xs:boolean"/>
         <xsl:param name="forClass" select="xs:anyURI('&sd;Service')" as="xs:anyURI"/>
-
+        <xsl:message>
+            $service-uri: <xsl:value-of select="$service-uri"/>
+        </xsl:message>
+        
         <xsl:apply-templates select="." mode="bs2:Header"/>
         
         <form method="{$method}" action="{$action}">
