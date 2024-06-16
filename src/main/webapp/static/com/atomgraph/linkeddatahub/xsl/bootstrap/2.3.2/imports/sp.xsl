@@ -65,7 +65,7 @@ exclude-result-prefixes="#all">
         <xsl:param name="enctype" as="xs:string?"/>
         <xsl:param name="textarea-id" select="'id' || ac:uuid()" as="xs:string"/>
         <xsl:param name="mode" as="xs:anyURI*"/>
-        <xsl:param name="service" as="xs:anyURI?"/>
+        <xsl:param name="service-uri" select="../ldh:service/@rdf:resource/xs:anyURI(.)" as="xs:anyURI?"/>
         <xsl:param name="endpoint" as="xs:anyURI?"/>
         <xsl:param name="query" select="sp:text" as="xs:string"/>
         <xsl:param name="show-properties" select="false()" as="xs:boolean"/>
@@ -93,8 +93,8 @@ exclude-result-prefixes="#all">
                 </label>
                 <div class="controls">
                     <xsl:choose>
-                        <xsl:when test="$service">
-                            <xsl:apply-templates select="key('resources', $service, document(ac:document-uri($service)))" mode="ldh:Typeahead">
+                        <xsl:when test="$service-uri">
+                            <xsl:apply-templates select="key('resources', $service-uri, document(ac:document-uri($service-uri)))" mode="ldh:Typeahead">
                                 <xsl:with-param name="forClass" select="$forClass"/>
                             </xsl:apply-templates>
                         </xsl:when>
