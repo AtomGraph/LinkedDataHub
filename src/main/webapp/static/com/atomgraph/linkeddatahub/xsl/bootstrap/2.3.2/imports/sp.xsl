@@ -89,7 +89,7 @@ exclude-result-prefixes="#all">
 
             <div class="control-group">
                 <label class="control-label">
-                    <xsl:apply-templates select="key('resources', '&ldh;service', document('&ldh;'))" mode="ac:label"/>
+                    <xsl:apply-templates select="key('resources', '&ldh;service', document(ac:document-uri('&ldh;')))" mode="ac:label"/>
                 </label>
                 <div class="controls">
                     <xsl:choose>

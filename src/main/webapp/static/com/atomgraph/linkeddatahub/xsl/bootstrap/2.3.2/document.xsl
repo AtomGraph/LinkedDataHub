@@ -193,13 +193,13 @@ extension-element-prefixes="ixsl"
                 <div class="main offset2 span7">
                     <p>
                         <button type="button" class="btn btn-primary create-action add-constructor" data-for-class="&ldh;XHTML">
-                            <xsl:apply-templates select="key('resources', '&ldh;XHTML', document('&ldh;'))" mode="ac:label"/>
+                            <xsl:apply-templates select="key('resources', '&ldh;XHTML', document(ac:document-uri('&ldh;')))" mode="ac:label"/>
                         </button>
                         <button type="button" class="btn btn-primary create-action add-constructor" data-for-class="&ldh;View">
-                            <xsl:apply-templates select="key('resources', '&ldh;View', document('&ldh;'))" mode="ac:label"/>
+                            <xsl:apply-templates select="key('resources', '&ldh;View', document(ac:document-uri('&ldh;')))" mode="ac:label"/>
                         </button>
                         <button type="button" class="btn btn-primary create-action add-constructor" data-for-class="&ldh;Object">
-                            <xsl:apply-templates select="key('resources', '&ldh;Object', document('&ldh;'))" mode="ac:label"/>
+                            <xsl:apply-templates select="key('resources', '&ldh;Object', document(ac:document-uri('&ldh;')))" mode="ac:label"/>
                         </button>
                     </p>
                 </div>
