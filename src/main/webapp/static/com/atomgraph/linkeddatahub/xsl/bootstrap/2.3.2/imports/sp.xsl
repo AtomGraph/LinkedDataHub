@@ -11,6 +11,7 @@
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 xmlns:xs="http://www.w3.org/2001/XMLSchema"
 xmlns:ixsl="http://saxonica.com/ns/interactiveXSLT"
+xmlns:xhtml="http://www.w3.org/1999/xhtml"
 xmlns:ldh="&ldh;"
 xmlns:ac="&ac;"
 xmlns:rdf="&rdf;"
