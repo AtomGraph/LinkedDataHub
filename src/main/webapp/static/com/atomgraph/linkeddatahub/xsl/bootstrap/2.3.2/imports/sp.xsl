@@ -113,7 +113,7 @@ exclude-result-prefixes="#all">
                             
                             <!-- schedule action if client-side -->
                             <xsl:if test="true()" use-when="system-property('xsl:product-name') eq 'SaxonJS'">
-                                <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, $query-uri)" as="xs:anyURI"/>
+                                <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, $service-uri)" as="xs:anyURI"/>
                                 <xsl:variable name="request" as="item()*">
                                     <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                                         <xsl:call-template name="onQueryServiceLoad">
