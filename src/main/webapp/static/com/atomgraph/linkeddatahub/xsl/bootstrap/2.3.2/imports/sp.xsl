@@ -4,6 +4,7 @@
     <!ENTITY ac     "https://w3id.org/atomgraph/client#">
     <!ENTITY rdf    "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
     <!ENTITY xsd    "http://www.w3.org/2001/XMLSchema#">
+    <!ENTITY ldt    "https://www.w3.org/ns/ldt#">
     <!ENTITY sd     "http://www.w3.org/ns/sparql-service-description#">
     <!ENTITY sp     "http://spinrdf.org/sp#">
 ]>
@@ -15,6 +16,7 @@ xmlns:xhtml="http://www.w3.org/1999/xhtml"
 xmlns:ldh="&ldh;"
 xmlns:ac="&ac;"
 xmlns:rdf="&rdf;"
+xmlns:ldt="&ldt;"
 xmlns:sp="&sp;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 exclude-result-prefixes="#all">
