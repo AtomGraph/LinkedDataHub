@@ -104,12 +104,25 @@ exclude-result-prefixes="#all">
                 <div class="controls">
                     <xsl:choose>
                         <xsl:when test="$service-uri">
-                            <xsl:message>
-                                $service: <xsl:value-of select="serialize(key('resources', $service-uri, document(ac:document-uri($service-uri))))"/>
-                            </xsl:message>
-                            <xsl:apply-templates select="key('resources', $service-uri, document(ac:document-uri($service-uri)))" mode="ldh:Typeahead">
+                            <!-- apply templates if server-side -->
+                            <xsl:apply-templates select="key('resources', $service-uri, document(ac:document-uri($service-uri)))" mode="ldh:Typeahead" use-when="system-property('xsl:product-name') = 'SAXON'">
                                 <xsl:with-param name="forClass" select="$forClass"/>
                             </xsl:apply-templates>
+                            
+                            <!-- schedule action if client-side -->
+                            <xsl:if test="true()" use-when="system-property('xsl:product-name') eq 'SaxonJS'">
+                                <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, $query-uri)" as="xs:anyURI"/>
+                                <xsl:variable name="request" as="item()*">
+                                    <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+                                        <xsl:call-template name="onQueryServiceLoad">
+                                            <xsl:with-param name="container" select="$container"/>
+                                            <xsl:with-param name="forClass" select="$forClass"/>
+                                            <xsl:with-param name="service-uri" select="$service-uri"/>
+                                        </xsl:call-template>
+                                    </ixsl:schedule-action>
+                                </xsl:variable>
+                                <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+                            </xsl:if>
                         </xsl:when>
                         <xsl:otherwise>
                             <xsl:call-template name="bs2:Lookup">
@@ -154,6 +167,42 @@ exclude-result-prefixes="#all">
         <xsl:if test="$show-properties">
             <xsl:apply-templates select="." mode="bs2:PropertyList"/>
         </xsl:if>
+    </xsl:template>
+
+    <xsl:template name="onQueryServiceLoad">
+        <xsl:context-item as="map(*)" use="required"/>
+        <xsl:param name="container" as="element()"/>
+        <xsl:param name="forClass" as="xs:anyURI"/>
+        <xsl:param name="service-uri" as="xs:anyURI"/>
+        
+        <xsl:choose>
+            <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
+                <xsl:variable name="results" select="?body" as="document-node()"/>
+
+                <xsl:message>
+                    $service: <xsl:value-of select="serialize(key('resources', $service-uri, $results))"/>
+                </xsl:message>
+
+                <xsl:result-document href="?." method="ixsl:append-content">
+                    <xsl:apply-templates select="key('resources', $service-uri, $results)" mode="ldh:Typeahead">
+                        <xsl:with-param name="forClass" select="$forClass"/>
+                    </xsl:apply-templates>
+                </xsl:result-document>
+            </xsl:when>
+            <xsl:otherwise>
+                <!-- error response - could not load service -->
+                <xsl:for-each select="$container">
+                    <xsl:result-document href="?." method="ixsl:replace-content">
+                        <div class="alert alert-block">
+                            <strong>Error during query execution:</strong>
+                            <pre>
+                                <xsl:value-of select="$response?message"/>
+                            </pre>
+                        </div>
+                    </xsl:result-document>
+                </xsl:for-each>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:template>
 
     <!-- FORM CONTROL MODE -->
