@@ -190,11 +190,12 @@ exclude-result-prefixes="#all">
                 </xsl:result-document>
             </xsl:when>
             <xsl:otherwise>
+                <xsl:variable name="response" select="." as="map(*)"/>
                 <!-- error response - could not load service -->
                 <xsl:for-each select="$container">
                     <xsl:result-document href="?." method="ixsl:replace-content">
                         <div class="alert alert-block">
-                            <strong>Error during query execution:</strong>
+                            <strong>Error loading service:</strong>
                             <pre>
                                 <xsl:value-of select="$response?message"/>
                             </pre>
