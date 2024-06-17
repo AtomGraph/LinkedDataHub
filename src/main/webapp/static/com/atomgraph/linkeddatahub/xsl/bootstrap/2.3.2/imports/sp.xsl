@@ -104,6 +104,9 @@ exclude-result-prefixes="#all">
                 <div class="controls">
                     <xsl:choose>
                         <xsl:when test="$service-uri">
+                            <xsl:message>
+                                $service: <xsl:value-of select="serialize(key('resources', $service-uri, document(ac:document-uri($service-uri))))"/>
+                            </xsl:message>
                             <xsl:apply-templates select="key('resources', $service-uri, document(ac:document-uri($service-uri)))" mode="ldh:Typeahead">
                                 <xsl:with-param name="forClass" select="$forClass"/>
                             </xsl:apply-templates>
