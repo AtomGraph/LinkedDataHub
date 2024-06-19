@@ -111,9 +111,12 @@ exclude-result-prefixes="#all">
                                 <xsl:with-param name="forClass" select="$forClass"/>
                             </xsl:apply-templates>
                             
+                            <xsl:message>
+                                document(ac:document-uri($service-uri))): <xsl:value-of select="serialize(document(ac:document-uri($service-uri)))"/>
+                            </xsl:message>
                             <!-- schedule action if client-side -->
-                            <xsl:if test="true()" use-when="system-property('xsl:product-name') eq 'SaxonJS'">
-                                <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, $service-uri)" as="xs:anyURI"/>
+<!--                            <xsl:if test="true()" use-when="system-property('xsl:product-name') eq 'SaxonJS'">
+                                <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, $query-uri)" as="xs:anyURI"/>
                                 <xsl:variable name="request" as="item()*">
                                     <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                                         <xsl:call-template name="onQueryServiceLoad">
@@ -124,7 +127,7 @@ exclude-result-prefixes="#all">
                                     </ixsl:schedule-action>
                                 </xsl:variable>
                                 <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
-                            </xsl:if>
+                            </xsl:if>-->
                         </xsl:when>
                         <xsl:otherwise>
                             <xsl:call-template name="bs2:Lookup">
