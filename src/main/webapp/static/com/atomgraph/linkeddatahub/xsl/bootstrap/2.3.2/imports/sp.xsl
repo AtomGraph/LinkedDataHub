@@ -111,11 +111,18 @@ exclude-result-prefixes="#all">
                                 <xsl:with-param name="forClass" select="$forClass"/>
                             </xsl:apply-templates>
                             
-                            <xsl:message>
-                                document(ac:document-uri($service-uri))): <xsl:value-of select="serialize(document(ac:document-uri($service-uri)))"/>
-                            </xsl:message>
-                            <!-- schedule action if client-side -->
-<!--                            <xsl:if test="true()" use-when="system-property('xsl:product-name') eq 'SaxonJS'">
+                            <xsl:if test="true()" use-when="system-property('xsl:product-name') eq 'SaxonJS'">
+                                <!-- need to explicitly request RDF/XML, otherwise we get HTML -->
+                                <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, ac:document-uri($service-uri))" as="xs:anyURI"/>
+                                <xsl:message>
+                                    $request-uri: <xsl:value-of select="$request-uri"/>
+                                </xsl:message>
+                                <!-- TO-DO: refactor asynchronously -->
+                                <xsl:apply-templates select="key('resources', $service-uri, document($request-uri))" mode="ldh:Typeahead">
+                                    <xsl:with-param name="forClass" select="$forClass"/>
+                                </xsl:apply-templates>
+                                
+                                <!--
                                 <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, $query-uri)" as="xs:anyURI"/>
                                 <xsl:variable name="request" as="item()*">
                                     <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
@@ -127,7 +134,8 @@ exclude-result-prefixes="#all">
                                     </ixsl:schedule-action>
                                 </xsl:variable>
                                 <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
-                            </xsl:if>-->
+                                -->
+                            </xsl:if>
                         </xsl:when>
                         <xsl:otherwise>
                             <xsl:call-template name="bs2:Lookup">
