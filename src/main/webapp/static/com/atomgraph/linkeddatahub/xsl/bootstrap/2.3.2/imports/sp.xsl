@@ -113,7 +113,7 @@ exclude-result-prefixes="#all">
                             
                             <xsl:if test="true()" use-when="system-property('xsl:product-name') eq 'SaxonJS'">
                                 <!-- need to explicitly request RDF/XML, otherwise we get HTML -->
-                                <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, ac:document-uri($service-uri))" as="xs:anyURI"/>
+                                <xsl:variable name="request-uri" select="ac:build-uri(ac:document-uri($service-uri), map{ 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
                                 <xsl:message>
                                     $request-uri: <xsl:value-of select="$request-uri"/>
                                 </xsl:message>
