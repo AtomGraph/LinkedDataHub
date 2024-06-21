@@ -991,10 +991,12 @@ $series: <xsl:value-of select="$series"/>
         <xsl:if test="$push-state">
             <!-- cannot use ixsl:query-params() because they're not up to date with $href at this point -->
             <xsl:variable name="query-params" select="if (contains($href, '?')) then ldh:parse-query-params(substring-after($href, '?')) else map{}" as="map(xs:string, xs:string*)"/>
+            <xsl:variable name="nav-tab-class" select="id('content-body', ixsl:page())/div[contains-token(@class, 'row-fluid')][1]/ul[contains-token(@class, 'nav-tabs')]/li[contains-token(@class, 'active')]/@class" as="xs:string?"/>
             <xsl:variable name="href" as="xs:anyURI">
                 <xsl:choose>
                     <!-- if ?mode param is not explicitly specified, change the page's URL to reflect that (there's always an active mode) -->
-                    <xsl:when test="not(exists($query-params?mode))">
+                    <!-- need to check .nav-tabs because they might not be rendered (e.g. in case of error response) -->
+                    <xsl:when test="not(exists($query-params?mode)) and $nav-tab-class">
                         <xsl:variable name="mode-classes" as="map(xs:string, xs:string)">
                             <xsl:map>
                                 <xsl:map-entry key="'content-mode'" select="'&ldh;ContentMode'"/>
@@ -1004,7 +1006,6 @@ $series: <xsl:value-of select="$series"/>
                                 <xsl:map-entry key="'graph-mode'" select="'&ac;GraphMode'"/>
                             </xsl:map>
                         </xsl:variable>
-                        <xsl:variable name="nav-tab-class" select="id('content-body', ixsl:page())/div[contains-token(@class, 'row-fluid')][1]/ul[contains-token(@class, 'nav-tabs')]/li[contains-token(@class, 'active')]/@class" as="xs:string"/>
                         <xsl:variable name="mode-class" select="map:keys($mode-classes)[contains-token($nav-tab-class, .)]" as="xs:string"/>
                         <xsl:variable name="mode" select="xs:anyURI(map:get($mode-classes, $mode-class))" as="xs:anyURI"/>
                         <xsl:message>$nav-tab-class: <xsl:value-of select="$nav-tab-class"/> $mode-class: <xsl:value-of select="$mode-class"/> $mode: <xsl:value-of select="$mode"/></xsl:message>
