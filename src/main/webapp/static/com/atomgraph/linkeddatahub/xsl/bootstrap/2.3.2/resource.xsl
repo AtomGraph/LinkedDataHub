@@ -1206,6 +1206,11 @@ extension-element-prefixes="ixsl"
                             </div>
                         </xsl:if>
 
+                        <xsl:message>
+                            $type-metadata: <xsl:value-of select="serialize($type-metadata)"/>
+                            $constructors: <xsl:value-of select="serialize($constructors)"/>
+                        </xsl:message>
+                        
                         <div class="pull-right">
                             <xsl:if test="exists($type-metadata) and exists($constructors)">
                                 <div class="btn-group">
