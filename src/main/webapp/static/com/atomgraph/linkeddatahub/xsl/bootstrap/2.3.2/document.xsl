@@ -748,7 +748,7 @@ extension-element-prefixes="ixsl"
 
     <!-- CREATE -->
     
-    <xsl:template match="rdf:RDF[$acl:mode = '&acl;Append'] | srx:sparql[$acl:mode = '&acl;Append']" mode="bs2:Create" priority="1">
+    <xsl:template match="rdf:RDF[not(key('resources-by-type', '&http;Response'))][$acl:mode = '&acl;Append'] | srx:sparql[$acl:mode = '&acl;Append']" mode="bs2:Create" priority="1">
         <xsl:param name="class" select="'btn-group'" as="xs:string?"/>
         <xsl:param name="classes" as="element()*"/>
         <xsl:param name="create-graph" select="false()" as="xs:boolean"/>

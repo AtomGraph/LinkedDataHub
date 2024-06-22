@@ -1156,12 +1156,12 @@ extension-element-prefixes="ixsl"
         <xsl:param name="violations" select="key('violations-by-value', */@rdf:resource) | key('violations-by-root', (@rdf:about, @rdf:nodeID)) | key('violations-by-focus-node', (@rdf:about, @rdf:nodeID))" as="element()*"/>
         <xsl:param name="forClass" select="distinct-values(rdf:type/@rdf:resource)" as="xs:anyURI*"/>
         <xsl:param name="type-metadata" as="document-node()?" tunnel="yes"/>
-        <xsl:param name="constructors" as="document-node()?" tunnel="yes"/>
+        <xsl:param name="constructors" as="document-node()?" tunnel="yes"/> <!-- not used to build $constructor -->
         <xsl:param name="constraints" as="document-node()?" tunnel="yes"/>
         <xsl:param name="shapes" as="document-node()?" tunnel="yes"/>
         <!-- include both sh:NodeShape and its connected sh:PropertyShapes in $type-shapes -->
         <xsl:param name="type-shapes" select="if ($shapes) then (key('shapes-by-target-class', $forClass, $shapes), key('resources', key('shapes-by-target-class', $forClass, $shapes)/sh:property/@rdf:resource, $shapes)) else ()" as="element()*"/>
-        <xsl:param name="constructor" as="document-node()?">
+        <xsl:param name="constructor" as="document-node()?" tunnel="yes">
             <!-- SHACL shapes take priority over SPIN constructors TO-DO: merge constructors -->
             <xsl:choose>
                 <xsl:when test="exists($type-shapes)">
@@ -1207,7 +1207,7 @@ extension-element-prefixes="ixsl"
                         </xsl:if>
 
                         <div class="pull-right">
-                            <xsl:if test="exists($type-metadata)">
+                            <xsl:if test="exists($type-metadata) and exists($constructors)">
                                 <div class="btn-group">
                                     <!-- show list of types that have constructors (excluding built-in system classes) -->
                                     <xsl:variable name="constructor-classes" select="distinct-values($constructors//srx:binding[@name = 'Type']/srx:uri)[not(starts-with(., '&dh;') or starts-with(., '&ldh;') or starts-with(., '&def;') or starts-with(., '&lapp;') or starts-with(., '&sp;') or starts-with(., '&nfo;'))]" as="xs:anyURI*"/>
