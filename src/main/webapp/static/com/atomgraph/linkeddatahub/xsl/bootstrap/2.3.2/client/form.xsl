@@ -952,6 +952,8 @@ WHERE
         <xsl:next-match>
             <xsl:with-param name="endpoint" select="resolve-uri('ns', $ldt:base)"/>
             <xsl:with-param name="select-string" select="$select-labelled-class-or-shape-string"/>
+            <!-- undefine $type-var-name in order not to set apply FILTER($Type) on the SPARQL query (since it's absent in the above query) -->
+            <xsl:with-param name="type-var-name" select="()"/>
         </xsl:next-match>
     </xsl:template>
     
@@ -965,7 +967,7 @@ WHERE
         <xsl:param name="select-string" select="$select-labelled-string" as="xs:string?"/>
         <xsl:param name="limit" select="100" as="xs:integer?"/>
         <xsl:param name="label-var-name" select="'label'" as="xs:string"/>
-        <xsl:param name="type-var-name" select="'Type'" as="xs:string"/>
+        <xsl:param name="type-var-name" select="'Type'" as="xs:string?"/>
         <xsl:variable name="key-code" select="ixsl:get(ixsl:event(), 'code')" as="xs:string"/>
         <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', [ $select-string ])"/>
         <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ ixsl:call($select-builder, 'build', []) ])" as="xs:string"/>
@@ -984,6 +986,10 @@ WHERE
         <xsl:variable name="select-xml" as="document-node()">
             <xsl:document>
                 <xsl:choose>
+                    <!-- do not apply FILTER if $type-par-name is not provided -->
+                    <xsl:when test="not($type-var-name)">
+                        <xsl:sequence select="$select-xml"/>
+                    </xsl:when>
                     <!-- do not FILTER by $forClass if the only type is rdfs:Resource -->
                     <xsl:when test="empty($forClass[not(. = '&rdfs;Resource')])">
                         <xsl:sequence select="$select-xml"/>
