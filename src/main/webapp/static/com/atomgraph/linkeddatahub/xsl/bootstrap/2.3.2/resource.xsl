@@ -1239,19 +1239,18 @@ extension-element-prefixes="ixsl"
                                                     key('resources', '<xsl:value-of select="."/>', $type-metadata): <xsl:value-of select="serialize(key('resources', ., $type-metadata))"/>
                                                 </xsl:message>
                                             
-                                            WTF
-<!--                                                <button type="button" class="btn btn-edit-constructors" data-resource-type="{.}">
+                                                <button type="button" class="btn btn-edit-constructors" data-resource-type="{.}">
                                                     <xsl:value-of>
                                                         <xsl:apply-templates select="key('resources', 'edit', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
                                                     </xsl:value-of>
                                                     <xsl:text> </xsl:text>
-                                                     query class description from the namespace ontology (because it might not be available as Linked Data) 
+                                                    <!-- query class description from the namespace ontology (because it might not be available as Linked Data) -->
                                                     <xsl:apply-templates select="key('resources', ., $type-metadata)" mode="ac:label"/>
                                                     <xsl:text> </xsl:text>
                                                     <xsl:value-of>
                                                         <xsl:apply-templates select="key('resources', 'constructors', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
                                                     </xsl:value-of>
-                                                </button>-->
+                                                </button>
                                             </li>
                                         </xsl:for-each>
                                     </ul>

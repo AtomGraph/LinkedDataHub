@@ -1118,6 +1118,7 @@ WHERE
     
     <xsl:template match="ul[contains-token(@class, 'dropdown-menu')][contains-token(@class, 'type-typeahead')]/li" mode="ixsl:onmousedown" priority="1">
         <xsl:param name="typeahead-class" select="'btn add-typeahead add-type-typeahead'" as="xs:string"/>
+        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'row-fluid')]" as="element()"/>
         <xsl:variable name="fieldset" select="ancestor::fieldset" as="element()"/>
         <xsl:variable name="doc-uri" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
@@ -1126,8 +1127,6 @@ WHERE
         <xsl:variable name="resource" select="key('resources', $resource-id, $typeahead-doc)" as="element()"/>
         <xsl:variable name="control-group" select="ancestor::div[contains-token(@class, 'control-group')]" as="element()"/>
         <xsl:variable name="forClass" select="../../ixsl:get(., 'dataset.forClass') ! tokenize(.) ! xs:anyURI(.)" as="xs:anyURI*"/>
-
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
         <xsl:for-each select="../..">
             <xsl:variable name="typeahead" as="element()">
@@ -1229,15 +1228,21 @@ WHERE
             </xsl:variable>
 
             <!-- remove the "old" property controls -->
-            <xsl:for-each select=".//div[contains-token(@class, 'control-group')][.//button[contains-token(@class, 'add-value')]]">
+<!--            <xsl:for-each select=".//div[contains-token(@class, 'control-group')][.//button[contains-token(@class, 'add-value')]]">
                 <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:for-each>
 
             <xsl:result-document href="?." method="ixsl:append-content">
-                <!-- add property form controls, except for rdf:type -->
+                 add property form controls, except for rdf:type 
                 <xsl:copy-of select="$new-fieldset/div[contains-token(@class, 'control-group')][not(input[@name = 'pu']/@value = '&rdf;type')]"/>
-            </xsl:result-document>
+            </xsl:result-document>-->
 
+            <xsl:for-each select="$fieldset">
+                <xsl:result-document href="?." method="ixsl:replace-content">
+                    <xsl:copy-of select="$new-fieldset/*"/>
+                </xsl:result-document>
+            </xsl:for-each>
+            
             <!-- add event listeners to the descendants of the fieldset TO-DO: replace with XSLT -->
             <xsl:if test="id(@id, ixsl:page())">
                 <xsl:apply-templates select="id(@id, ixsl:page())" mode="ldh:PostConstruct"/>
