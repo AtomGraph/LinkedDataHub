@@ -1208,6 +1208,8 @@ extension-element-prefixes="ixsl"
 
                         <xsl:message>
                             $type-metadata: <xsl:value-of select="serialize($type-metadata)"/>
+                        </xsl:message>
+                        <xsl:message>
                             $constructors: <xsl:value-of select="serialize($constructors)"/>
                         </xsl:message>
                         
@@ -1216,6 +1218,9 @@ extension-element-prefixes="ixsl"
                                 <div class="btn-group">
                                     <!-- show list of types that have constructors (excluding built-in system classes) -->
                                     <xsl:variable name="constructor-classes" select="distinct-values($constructors//srx:binding[@name = 'Type']/srx:uri)[not(starts-with(., '&dh;') or starts-with(., '&ldh;') or starts-with(., '&def;') or starts-with(., '&lapp;') or starts-with(., '&sp;') or starts-with(., '&nfo;'))]" as="xs:anyURI*"/>
+                        <xsl:message>
+                            $constructor-classes: <xsl:value-of select="$constructor-classes"/>
+                        </xsl:message>
                                     <button type="button" class="btn dropdown-toggle btn-edit-actions">
                                         <!-- only admins should see the button as only they have access to the ontologies with constructors in them -->
                                         <xsl:if test="not($acl:mode = '&acl;Control' and exists($constructor-classes))">
