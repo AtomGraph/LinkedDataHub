@@ -1234,6 +1234,10 @@ extension-element-prefixes="ixsl"
                                     </button>
                                     <ul class="dropdown-menu">
                                         <xsl:for-each select="$constructor-classes">
+                                            <xsl:message>
+                                                key('resources', '<xsl:value-of select="."/>', $type-metadata): <xsl:value-of select="serialize(key('resources', ., $type-metadata))"/>
+                                            </xsl:message>
+                                            
                                             <li>
                                                 <button type="button" class="btn btn-edit-constructors" data-resource-type="{.}">
                                                     <xsl:value-of>
