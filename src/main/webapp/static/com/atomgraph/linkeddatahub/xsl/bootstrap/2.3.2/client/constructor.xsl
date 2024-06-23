@@ -31,31 +31,6 @@ extension-element-prefixes="ixsl"
 exclude-result-prefixes="#all"
 >
 
-    <xsl:variable name="constructor-query" as="xs:string">
-        <![CDATA[
-            PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-            PREFIX sp:   <http://spinrdf.org/sp#>
-            PREFIX spin: <http://spinrdf.org/spin#>
-
-            SELECT  ?constructor ?construct
-            WHERE
-              { $Type (rdfs:subClassOf)*/spin:constructor  ?constructor .
-                ?constructor sp:text ?construct .
-              }
-        ]]>
-    </xsl:variable>
-    <xsl:variable name="shape-query" as="xs:string">
-        <![CDATA[
-            PREFIX  sh:   <http://www.w3.org/ns/shacl#>
-
-            DESCRIBE $Shape ?property
-            WHERE
-              { $Shape  sh:targetClass  $Type
-                OPTIONAL
-                  { $Shape  sh:property  ?property }
-              }
-        ]]>
-    </xsl:variable>
     <xsl:variable name="type-graph-query" as="xs:string">
         <![CDATA[
             SELECT DISTINCT  ?graph

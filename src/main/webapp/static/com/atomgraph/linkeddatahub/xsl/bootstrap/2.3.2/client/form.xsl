@@ -64,7 +64,32 @@ WHERE
   }
 ]]>
     </xsl:param>
+    <xsl:param name="constructor-query" as="xs:string">
+        <![CDATA[
+            PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+            PREFIX sp:   <http://spinrdf.org/sp#>
+            PREFIX spin: <http://spinrdf.org/spin#>
 
+            SELECT  $Type ?constructor ?construct
+            WHERE
+              { $Type (rdfs:subClassOf)*/spin:constructor  ?constructor .
+                ?constructor sp:text ?construct .
+              }
+        ]]>
+    </xsl:param>
+    <xsl:param name="shape-query" as="xs:string">
+        <![CDATA[
+            PREFIX  sh:   <http://www.w3.org/ns/shacl#>
+
+            DESCRIBE $Shape ?property
+            WHERE
+              { $Shape  sh:targetClass  $Type
+                OPTIONAL
+                  { $Shape  sh:property  ?property }
+              }
+        ]]>
+    </xsl:param>
+    
     <xsl:key name="violations-by-value" match="*" use="ldh:violationValue/text()"/>
     <xsl:key name="violations-by-focus-node" match="*" use="sh:focusNode/@rdf:resource | sh:focusNode/@rdf:nodeID"/>
 
