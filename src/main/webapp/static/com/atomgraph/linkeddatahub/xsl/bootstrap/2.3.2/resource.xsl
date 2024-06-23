@@ -1234,11 +1234,11 @@ extension-element-prefixes="ixsl"
                                     </button>
                                     <ul class="dropdown-menu">
                                         <xsl:for-each select="$constructor-classes">
-                                            <xsl:message>
-                                                key('resources', '<xsl:value-of select="."/>', $type-metadata): <xsl:value-of select="serialize(key('resources', ., $type-metadata))"/>
-                                            </xsl:message>
-                                            
                                             <li>
+                                                <xsl:message>
+                                                    key('resources', '<xsl:value-of select="."/>', $type-metadata): <xsl:value-of select="serialize(key('resources', ., $type-metadata))"/>
+                                                </xsl:message>
+                                            
                                                 <button type="button" class="btn btn-edit-constructors" data-resource-type="{.}">
                                                     <xsl:value-of>
                                                         <xsl:apply-templates select="key('resources', 'edit', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
