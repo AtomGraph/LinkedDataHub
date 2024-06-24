@@ -351,6 +351,14 @@ WHERE
                 <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': $query-string, 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
                 <xsl:variable name="property-metadata" select="document($request-uri)" as="document-node()"/>
 
+                <xsl:variable name="query-string" select="$constructor-query || ' VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }'" as="xs:string"/>
+                <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': $query-string, 'accept': 'application/sparql-results+xml' })" as="xs:anyURI"/>
+                <xsl:variable name="constructors" select="if (exists($types)) then document($request-uri) else ()" as="document-node()?"/>
+
+                <xsl:message>
+                    .btn-edit $constructors: <xsl:value-of select="serialize($constructors)"/>
+                </xsl:message>
+
                 <xsl:variable name="query-string" select="$constraint-query || ' VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }'" as="xs:string"/>
                 <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': $query-string, 'accept': 'application/sparql-results+xml' })" as="xs:anyURI"/>
                 <xsl:variable name="constraints" select="if (exists($types)) then document($request-uri) else ()" as="document-node()?"/>
@@ -373,6 +381,7 @@ WHERE
                         <xsl:apply-templates select="$resource" mode="bs2:RowForm">
                             <xsl:with-param name="type-metadata" select="$type-metadata" tunnel="yes"/>
                             <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/>
+                            <xsl:with-param name="constructors" select="$constructors" tunnel="yes"/>
                             <xsl:with-param name="constraints" select="$constraints" tunnel="yes"/>
                             <xsl:with-param name="shapes" select="$shapes" tunnel="yes"/>
                             <xsl:with-param name="object-metadata" select="$object-metadata" tunnel="yes"/>
