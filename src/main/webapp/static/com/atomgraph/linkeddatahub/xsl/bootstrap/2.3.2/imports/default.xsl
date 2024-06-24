@@ -991,37 +991,6 @@ exclude-result-prefixes="#all"
             <xsl:with-param name="forClass" select="$forClass"/>
         </xsl:apply-templates>
 
-        <!--        <xsl:text> </xsl:text>
-
-        <xsl:variable name="forClass-shapes" select="ldh:query-result(map{}, resolve-uri('ns', $ldt:base), $shape-query || ' VALUES $Type { ' || string-join(for $type in $forClass return '&lt;' || $type || '&gt;', ' ') || ' }')" as="document-node()"/>
-         forClass input is used by typeahead's FILTER ($Type IN ()) in client.xsl 
-        <xsl:choose>
-             SHACL shapes 
-            <xsl:when test="not($forClass = '&rdfs;Resource') and $forClass-shapes//rdf:Description[sh:targetClass/@rdf:resource = $forClass]">
-                <xsl:apply-templates select="$forClass-shapes//rdf:Description[sh:targetClass/@rdf:resource = $forClass]" mode="bs2:ShapeConstructor">
-                    <xsl:with-param name="modal-form" select="true()"/>
-                    <xsl:with-param name="create-graph" select="true()"/>
-                </xsl:apply-templates>
-            </xsl:when>
-             SPIN constraints 
-            <xsl:when test="not($forClass = '&rdfs;Resource') and ldh:query-result(map{}, resolve-uri('ns', $ldt:base), $constructor-query || ' VALUES $Type { ' || string-join(for $type in $forClass return '&lt;' || $type || '&gt;', ' ') || ' }')//srx:binding[@name = 'construct']/srx:literal">
-                <xsl:variable name="subclasses" select="ldh:listSubClasses($forClass, false(), $ldt:ontology)" as="attribute()*"/>
-                 add subclasses as forClass 
-                <xsl:for-each select="distinct-values($subclasses)[not(. = $forClass)]">
-                    <input type="hidden" class="forClass" value="{.}"/>
-                </xsl:for-each>
-                 bs2:Constructor sets forClass 
-                <xsl:apply-templates select="key('resources', $forClass, document(ac:document-uri($forClass)))" mode="bs2:Constructor">
-                    <xsl:with-param name="modal-form" select="true()"/>
-                    <xsl:with-param name="subclasses" select="$subclasses"/>
-                    <xsl:with-param name="create-graph" select="true()"/>
-                </xsl:apply-templates>
-            </xsl:when>
-            <xsl:otherwise>
-                <input type="hidden" class="forClass" value="{$forClass}"/>  required by $Type FILTER 
-            </xsl:otherwise>
-        </xsl:choose>-->
-
         <xsl:if test="$type-label">
             <xsl:apply-templates select="." mode="bs2:FormControlTypeLabel">
                 <xsl:with-param name="type" select="$type"/>
@@ -1046,37 +1015,6 @@ exclude-result-prefixes="#all"
             <xsl:with-param name="class" select="$class"/>
             <xsl:with-param name="forClass" select="$forClass"/>
         </xsl:call-template>
-        
-<!--        <xsl:text> </xsl:text>
-
-        <xsl:variable name="forClass-shapes" select="ldh:query-result(map{}, resolve-uri('ns', $ldt:base), $shape-query || ' VALUES $Type { ' || string-join(for $type in $forClass return '&lt;' || $type || '&gt;', ' ') || ' }')" as="document-node()"/>
-         forClass input is used by typeahead's FILTER ($Type IN ()) in client.xsl 
-        <xsl:choose>
-             SHACL shapes 
-            <xsl:when test="not($forClass = '&rdfs;Resource') and $forClass-shapes//rdf:Description[sh:targetClass/@rdf:resource = $forClass]">
-                <xsl:apply-templates select="$forClass-shapes//rdf:Description[sh:targetClass/@rdf:resource = $forClass]" mode="bs2:ShapeConstructor">
-                    <xsl:with-param name="modal-form" select="true()"/>
-                    <xsl:with-param name="create-graph" select="true()"/>
-                </xsl:apply-templates>
-            </xsl:when>
-             SPIN constraints 
-            <xsl:when test="not($forClass = '&rdfs;Resource') and ldh:query-result(map{}, resolve-uri('ns', $ldt:base), $constructor-query || ' VALUES $Type { ' || string-join(for $type in $forClass return '&lt;' || $type || '&gt;', ' ') || ' }')//srx:binding[@name = 'construct']/srx:literal">
-                <xsl:variable name="subclasses" select="ldh:listSubClasses($forClass, false(), $ldt:ontology)" as="attribute()*"/>
-                 add subclasses as forClass 
-                <xsl:for-each select="distinct-values($subclasses)[not(. = $forClass)]">
-                    <input type="hidden" class="forClass" value="{.}"/>
-                </xsl:for-each>
-                 bs2:Constructor sets forClass 
-                <xsl:apply-templates select="key('resources', $forClass, document(ac:document-uri($forClass)))" mode="bs2:Constructor">
-                    <xsl:with-param name="modal-form" select="true()"/>
-                    <xsl:with-param name="subclasses" select="$subclasses"/>
-                    <xsl:with-param name="create-graph" select="true()"/>
-                </xsl:apply-templates>
-            </xsl:when>
-            <xsl:otherwise>
-                <input type="hidden" class="forClass" value="{$forClass}"/>  required by $Type FILTER 
-            </xsl:otherwise>
-        </xsl:choose>-->
 
         <xsl:if test="$type-label">
             <xsl:apply-templates select="." mode="bs2:FormControlTypeLabel">
