@@ -259,16 +259,6 @@ LIMIT   10
                                                 <ul class="resource-typeahead typeahead dropdown-menu" id="ul-parent-container" style="display: none;"></ul>
                                             </span>
 
-                                            <!--
-                                            <input type="hidden" class="forClass" value="&def;Root" autocomplete="off"/>
-                                            <input type="hidden" class="forClass" value="&dh;Container" autocomplete="off"/>
-                                            -->
-                                            <!--
-                                            <a href="{ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), ldh:query-params(xs:anyURI('&ac;ModalMode'), xs:anyURI('&dh;Container')), ac:absolute-path(ldh:base-uri(.)))}" class="btn add-constructor create-action" title="&dh;Container" id="{generate-id()}-generate-containers-parent">
-                                                <input type="hidden" class="forClass" value="&dh;Container"/>
-                                            </a>
-                                            -->
-
                                             <span class="help-inline">
                                                 <xsl:value-of>
                                                     <xsl:apply-templates select="key('resources', '&dh;Container', document(ac:document-uri('&dh;')))" mode="ac:label"/>
@@ -302,15 +292,6 @@ LIMIT   10
                                                 <input type="text" name="ou" class="resource-typeahead typeahead" id="source-service" autocomplete="off"/>
                                                 <ul class="resource-typeahead typeahead dropdown-menu" id="ul-source-service" style="display: none;"></ul>
                                             </span>
-
-                                            <!--
-                                            <input type="hidden" class="forClass" value="&sd;Service" autocomplete="off"/>
-                                            -->
-                                            <!--
-                                            <a href="{ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), ldh:query-params(xs:anyURI('&ac;ModalMode'), xs:anyURI('&sd;Service')), ac:absolute-path(ldh:base-uri(.)))}" class="btn add-constructor create-action" title="&sd;Service" id="{generate-id()}-generate-containers-service">
-                                                <input type="hidden" class="forClass" value="&sd;Service"/>
-                                            </a>
-                                            -->
 
                                             <span class="help-inline">
                                                 <xsl:value-of>
@@ -558,7 +539,8 @@ LIMIT   10
                 <xsl:variable name="query-json-string" select="xml-to-json($select-xml)" as="xs:string"/>
                 <xsl:variable name="query-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $query-json-string ])"/>
                 <xsl:variable name="query-string" select="ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromQuery', [ $query-json ]), 'toString', [])" as="xs:string"/>
-                <xsl:variable name="endpoint" select="document(ac:build-uri($ldt:base, map{ 'uri': ac:document-uri($service-uri), 'accept': 'application/rdf+xml' }))//sd:endpoint/@rdf:resource" as="xs:anyURI"/> <!-- TO-DO: replace with <ixsl:schedule-action> -->
+                <xsl:variable name="service-doc" select="document(ac:build-uri($ldt:base, map{ 'uri': ac:document-uri($service-uri), 'accept': 'application/rdf+xml' }))" as="document-node()"/> <!-- TO-DO: replace with <ixsl:schedule-action> -->
+                <xsl:variable name="endpoint" select="key('resources', $service-uri, $service-doc)/sd:endpoint/@rdf:resource" as="xs:anyURI"/>
                 <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': $query-string })" as="xs:anyURI"/>
                 <xsl:variable name="request-uri" select="ldh:href($ldt:base, $ldt:base, map{}, $results-uri)" as="xs:anyURI"/>
 
