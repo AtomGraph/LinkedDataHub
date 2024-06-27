@@ -218,6 +218,7 @@ import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.ResIterator;
 import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.riot.resultset.ResultSetLang;
 import org.apache.jena.riot.system.ErrorHandlerFactory;
 import org.apache.jena.riot.system.ParserProfile;
 import org.apache.jena.riot.system.RiotLib;
@@ -575,6 +576,16 @@ public class Application extends ResourceConfig
         RDFLanguages.register(RDFLanguages.RDFPOST);
         RDFParserRegistry.registerLangTriples(RDFLanguages.RDFPOST, new RDFPostReaderFactory());
 
+        // register ResultSet languages until we start using Jena 5.x with https://github.com/apache/jena/pull/2510
+        RDFLanguages.register(ResultSetLang.RS_XML);
+        RDFLanguages.register(ResultSetLang.RS_JSON);
+        RDFLanguages.register(ResultSetLang.RS_CSV);
+        RDFLanguages.register(ResultSetLang.RS_TSV);
+        RDFLanguages.register(ResultSetLang.RS_Thrift);
+        RDFLanguages.register(ResultSetLang.RS_Protobuf);
+        // Not output-only text.
+        RDFLanguages.register(ResultSetLang.RS_None);
+        
         // add HTML/JSON-LD reader
         DocumentLoader documentLoader = new DocumentLoader();
         JsonLdOptions jsonLdOptions = new JsonLdOptions();

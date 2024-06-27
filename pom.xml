@@ -3,7 +3,7 @@
 
     <groupId>com.atomgraph</groupId>
     <artifactId>linkeddatahub</artifactId>
-    <version>5.0.0-SNAPSHOT</version>
+    <version>5.0.1-SNAPSHOT</version>
     <packaging>${packaging.type}</packaging>
 
     <name>AtomGraph LinkedDataHub</name>
@@ -135,18 +135,18 @@
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>server</artifactId>
-            <version>4.1.7-SNAPSHOT</version>
+            <version>4.1.8-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>client</artifactId>
-            <version>4.0.8-SNAPSHOT</version>
+            <version>4.0.9-SNAPSHOT</version>
             <classifier>classes</classifier>
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>client</artifactId>
-            <version>4.0.8-SNAPSHOT</version>
+            <version>4.0.9-SNAPSHOT</version>
             <type>war</type>
         </dependency>
         <!-- required by jsonld-java - version same as Jersey's HTTP Client -->
