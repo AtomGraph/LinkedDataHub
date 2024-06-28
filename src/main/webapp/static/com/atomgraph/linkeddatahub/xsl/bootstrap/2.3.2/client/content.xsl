@@ -145,7 +145,6 @@ exclude-result-prefixes="#all"
         <xsl:param name="base-uri" select="ldh:base-uri(.)" as="xs:anyURI"/>
         <xsl:param name="content-uri" select="if ($container/@about) then $container/@about else xs:anyURI(ac:absolute-path($base-uri) || '#' || $container/@id)" as="xs:anyURI"/>
         <xsl:variable name="query-uri" select="xs:anyURI(spin:query/@rdf:resource)" as="xs:anyURI"/>
-        <xsl:variable name="service-uri" select="xs:anyURI(ldh:service/@rdf:resource)" as="xs:anyURI?"/>
         
         <xsl:for-each select="$container">
             <ixsl:set-attribute name="typeof" select="$block-type" object="."/>
@@ -163,7 +162,6 @@ exclude-result-prefixes="#all"
                     <xsl:with-param name="content" select="."/>
                     <xsl:with-param name="content-uri" select="$content-uri"/>
                     <xsl:with-param name="query-uri" select="$query-uri"/>
-                    <xsl:with-param name="service-uri" select="$service-uri"/>
                 </xsl:call-template>
             </ixsl:schedule-action>
         </xsl:variable>
@@ -179,12 +177,12 @@ exclude-result-prefixes="#all"
         <xsl:param name="content" as="element()"/>
         <xsl:param name="content-uri" as="xs:anyURI"/>
         <xsl:param name="query-uri" as="xs:anyURI"/>
-        <xsl:param name="service-uri" as="xs:anyURI?"/>
 
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
                 <xsl:for-each select="?body">
                     <xsl:variable name="select-query" select="key('resources', $query-uri)" as="element()"/>
+                    <xsl:variable name="service-uri" select="xs:anyURI($select-query/ldh:service/@rdf:resource)" as="xs:anyURI?"/>
                     <!-- set $this variable value unless getting the query string from state -->
                     <xsl:variable name="select-string" select="replace($select-query/sp:text, '$this', '&lt;' || $this || '&gt;', 'q')" as="xs:string"/>
                     <xsl:variable name="select-xml" as="document-node()">
