@@ -411,17 +411,6 @@ LIMIT   10
             <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
     </xsl:template>
-
-    <!--
-    <xsl:template match="button[contains-token(@class, 'btn-add-data')]" mode="ixsl:onclick">
-        <xsl:call-template name="ldh:ShowAddDataForm">
-            <xsl:with-param name="form" as="element()">
-                <xsl:call-template name="ldh:AddDataForm"/>
-            </xsl:with-param>
-            <xsl:with-param name="graph" select="ac:absolute-path(ldh:base-uri(.))"/>
-        </xsl:call-template>
-    </xsl:template>
-    -->
     
     <xsl:template match="button[contains-token(@class, 'btn-add-ontology')]" mode="ixsl:onclick">
         <xsl:call-template name="ldh:ShowAddDataForm">

@@ -68,8 +68,11 @@ public class LDH
     /** File class */
     public static final OntClass File = m_model.createClass(NS + "File");
     
-    /** Content class */
-    public static final OntClass Content = m_model.createClass(NS + "Content");
+    /** Object class */
+    public static final OntClass Object = m_model.createClass(NS + "Object");
+
+    /** View class */
+    public static final OntClass View = m_model.createClass(NS + "View");
 
     /** URI syntax violation class */
     public static final OntClass URISyntaxViolation = m_model.createClass(NS + "URISyntaxViolation");
