@@ -201,6 +201,12 @@ exclude-result-prefixes="#all"
                     <xsl:variable name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.apps'))" as="element()?"/>
                     <xsl:variable name="endpoint" select="($service/sd:endpoint/@rdf:resource/xs:anyURI(.), sd:endpoint())[1]" as="xs:anyURI"/>
 
+                    <xsl:message>
+                        $service-uri: <xsl:value-of select="$service-uri"/>
+                        $service/sd:endpoint/@rdf:resource: <xsl:value-of select="$service/sd:endpoint/@rdf:resource"/>
+                        $endpoint: <xsl:value-of select="$endpoint"/>
+                    </xsl:message>
+                    
                     <xsl:choose>
                         <!-- service URI is not specified or specified and can be loaded -->
                         <xsl:when test="not($service-uri) or ($service-uri and exists($service))">
