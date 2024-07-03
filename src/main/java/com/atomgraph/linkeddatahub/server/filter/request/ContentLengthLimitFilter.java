@@ -16,8 +16,9 @@
  */
 package com.atomgraph.linkeddatahub.server.filter.request;
 
+import com.atomgraph.linkeddatahub.client.util.RejectTooLargeResponseInputStream;
 import com.atomgraph.linkeddatahub.server.exception.RequestContentTooLargeException;
-import com.atomgraph.linkeddatahub.server.util.stream.RejectTooLargeInputStream;
+import com.atomgraph.linkeddatahub.server.util.RejectTooLargeRequestInputStream;
 import java.io.IOException;
 import jakarta.annotation.Priority;
 import jakarta.ws.rs.client.ClientRequestContext;
@@ -57,7 +58,7 @@ public class ContentLengthLimitFilter implements ContainerRequestFilter, ClientR
         // we cannot abort here with Status.LENGTH_REQUIRED if we want to allow streaming. That is the job of RejectTooLongInputStream
         if (contentLengthString == null)
         {
-            crc.setEntityStream(new RejectTooLargeInputStream(crc.getEntityStream(), getMaxContentLength()));
+            crc.setEntityStream(new RejectTooLargeRequestInputStream(crc.getEntityStream(), getMaxContentLength()));
             return;
         }
         
@@ -68,7 +69,7 @@ public class ContentLengthLimitFilter implements ContainerRequestFilter, ClientR
             throw new RequestContentTooLargeException(getMaxContentLength(), contentLength);
         }
         
-        crc.setEntityStream(new RejectTooLargeInputStream(crc.getEntityStream(), getMaxContentLength()));
+        crc.setEntityStream(new RejectTooLargeRequestInputStream(crc.getEntityStream(), getMaxContentLength()));
     }
 
     @Override
@@ -80,7 +81,7 @@ public class ContentLengthLimitFilter implements ContainerRequestFilter, ClientR
         // we cannot abort here with Status.LENGTH_REQUIRED if we want to allow streaming. That is the job of RejectTooLongInputStream
         if (contentLengthString == null)
         {
-            responseContext.setEntityStream(new RejectTooLargeInputStream(responseContext.getEntityStream(), getMaxContentLength()));
+            responseContext.setEntityStream(new RejectTooLargeResponseInputStream(responseContext.getEntityStream(), getMaxContentLength()));
             return;
         }
         
@@ -91,7 +92,7 @@ public class ContentLengthLimitFilter implements ContainerRequestFilter, ClientR
             throw new RequestContentTooLargeException(getMaxContentLength(), contentLength);
         }
         
-        responseContext.setEntityStream(new RejectTooLargeInputStream(responseContext.getEntityStream(), getMaxContentLength()));
+        responseContext.setEntityStream(new RejectTooLargeResponseInputStream(responseContext.getEntityStream(), getMaxContentLength()));
     }
 
     public int getMaxContentLength()

@@ -14,8 +14,9 @@
  *  limitations under the License.
  *
  */
-package com.atomgraph.linkeddatahub.server.util.stream;
+package com.atomgraph.linkeddatahub.server.util;
 
+import com.atomgraph.linkeddatahub.util.LimitedInputStream;
 import com.atomgraph.linkeddatahub.server.exception.RequestContentTooLargeException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -24,7 +25,7 @@ import java.io.InputStream;
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-public class RejectTooLargeInputStream extends LimitedInputStream
+public class RejectTooLargeRequestInputStream extends LimitedInputStream
 {
 
     /**
@@ -33,7 +34,7 @@ public class RejectTooLargeInputStream extends LimitedInputStream
      * @param inputStream original input stream
      * @param pSizeMax maximum payload size in bytes
      */
-    public RejectTooLargeInputStream(InputStream inputStream, long pSizeMax)
+    public RejectTooLargeRequestInputStream(InputStream inputStream, long pSizeMax)
     {
         super(inputStream, pSizeMax);
     }
