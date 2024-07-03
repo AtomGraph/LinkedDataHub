@@ -14,34 +14,28 @@
  *  limitations under the License.
  *
  */
-package com.atomgraph.linkeddatahub.server.util.stream;
+package com.atomgraph.linkeddatahub.server.exception;
 
-import com.atomgraph.linkeddatahub.server.exception.RequestContentTooLargeException;
-import java.io.IOException;
-import java.io.InputStream;
+import jakarta.ws.rs.ClientErrorException;
+import jakarta.ws.rs.core.Response;
 
 /**
- *
+ * Exception thrown when the request body is larger than the configured maximum limit.
+ * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-public class RejectTooLargeInputStream extends LimitedInputStream
+public class RequestContentTooLargeException extends ClientErrorException
 {
 
     /**
-     * Constructs input stream.
+     * Constructs exception.
      * 
-     * @param inputStream original input stream
-     * @param pSizeMax maximum payload size in bytes
+     * @param maxContentLength maximum content length in bytes
+     * @param contentLength actual content length in bytes
      */
-    public RejectTooLargeInputStream(InputStream inputStream, long pSizeMax)
+    public RequestContentTooLargeException(long maxContentLength, long contentLength) // TO-DO: use sizes to generate a message?
     {
-        super(inputStream, pSizeMax);
-    }
-
-    @Override
-    protected void raiseError(long pSizeMax, long pCount) throws IOException
-    {
-        throw new RequestContentTooLargeException(pSizeMax, pCount);
+        super(Response.Status.REQUEST_ENTITY_TOO_LARGE);
     }
     
 }

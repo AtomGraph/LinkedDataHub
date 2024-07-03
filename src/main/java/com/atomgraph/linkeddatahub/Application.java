@@ -626,6 +626,14 @@ public class Application extends ResourceConfig
             importClient = getClient(keyStore, clientKeyStorePassword, trustStore, maxConnPerRoute, maxTotalConn, importKeepAliveStrategy);
             noCertClient = getNoCertClient(trustStore, maxConnPerRoute, maxTotalConn);
             
+            if (maxContentLength != null)
+            {
+                client.register(new ContentLengthLimitFilter(maxContentLength));
+                externalClient.register(new ContentLengthLimitFilter(maxContentLength));
+                importClient.register(new ContentLengthLimitFilter(maxContentLength));
+                noCertClient.register(new ContentLengthLimitFilter(maxContentLength));
+            }
+            
             if (proxyHostname != null)
             {
                 ClientRequestFilter rewriteFilter = new ClientUriRewriteFilter(baseURI, proxyScheme, proxyHostname, proxyPort); // proxyPort can be null
@@ -945,7 +953,7 @@ public class Application extends ResourceConfig
         register(ProxiedWebIDFilter.class);
         register(IDTokenFilter.class);
         register(AuthorizationFilter.class);
-        register(ContentLengthLimitFilter.class);
+        if (getMaxContentLength() != null) register(new ContentLengthLimitFilter(getMaxContentLength()));
         register(new RDFPostMediaTypeInterceptor()); // for application/x-www-form-urlencoded
     }
 

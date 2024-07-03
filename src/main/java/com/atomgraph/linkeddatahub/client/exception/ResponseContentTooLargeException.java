@@ -1,5 +1,5 @@
 /**
- *  Copyright 2020 Martynas Jusevičius <martynas@atomgraph.com>
+ *  Copyright 2024 Martynas Jusevičius <martynas@atomgraph.com>
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -14,26 +14,26 @@
  *  limitations under the License.
  *
  */
-package com.atomgraph.linkeddatahub.server.exception;
+package com.atomgraph.linkeddatahub.client.exception;
 
-import jakarta.ws.rs.ClientErrorException;
+import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Response;
 
 /**
- * Exception thrown when the request body is larger than the configured maximum limit.
+ * Exception thrown when the response body is larger than the configured maximum limit.
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-public class PayloadTooLargeException extends ClientErrorException
+public class ResponseContentTooLargeException extends WebApplicationException
 {
 
     /**
      * Constructs exception.
      * 
-     * @param maxPayloadSize maximum payload size in bytes
-     * @param payloadSize actual payload size in bytes
+     * @param maxContentLength maximum content length in bytes
+     * @param contentLength actual content length in bytes
      */
-    public PayloadTooLargeException(long maxPayloadSize, long payloadSize) // TO-DO: use sizes to generate a message?
+    public ResponseContentTooLargeException(long maxContentLength, long contentLength) // TO-DO: use sizes to generate a message?
     {
         super(Response.Status.REQUEST_ENTITY_TOO_LARGE);
     }
