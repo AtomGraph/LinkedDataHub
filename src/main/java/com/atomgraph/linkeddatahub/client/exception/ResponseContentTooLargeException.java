@@ -35,7 +35,7 @@ public class ResponseContentTooLargeException extends WebApplicationException
      */
     public ResponseContentTooLargeException(long maxContentLength, long contentLength) // TO-DO: use sizes to generate a message?
     {
-        super(Response.Status.REQUEST_ENTITY_TOO_LARGE);
+        super(Response.Status.BAD_GATEWAY);
     }
     
 }
