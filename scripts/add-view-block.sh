@@ -102,7 +102,11 @@ ntriples=$(./get.sh \
  --proxy "$proxy" \
   --accept 'application/n-triples' \
   "$target")
-echo "$ntriples"
+
+# extract the numbers from the sequence properties
+sequence_number=$(echo "$ntriples" | grep "<${target}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#_" | cut -d " " -f 2 | cut -d'#' -f 2 | cut -d '_' -f 2 | cut -d '>' -f 1 |  sort -nr | head -n1)
+sequence_number=$((sequence_number + 1)) # increase the counter
+sequence_property="http://www.w3.org/1999/02/22-rdf-syntax-ns#_${sequence_number}"
 
 args+=("-f")
 args+=("$cert_pem_file")
@@ -110,7 +114,6 @@ args+=("-p")
 args+=("$cert_password")
 args+=("-t")
 args+=("text/turtle") # content type
-
 
 if [ -n "$fragment" ] ; then
     # relative URI that will be resolved against the request URI
@@ -122,6 +125,7 @@ fi
 turtle+="@prefix ldh:	<https://w3id.org/atomgraph/linkeddatahub#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
 turtle+="@prefix spin:  <http://spinrdf.org/spin#> .\n"
+turtle+="<${target}> <${sequence_property}> ${subject} .\n"
 turtle+="${subject} a ldh:View .\n"
 turtle+="${subject} dct:title \"${title}\" .\n"
 turtle+="${subject} spin:query <${query}> .\n"
