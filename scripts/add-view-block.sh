@@ -96,6 +96,10 @@ args+=("$cert_password")
 args+=("-t")
 args+=("text/turtle") # content type
 
+ntriples=$(./get.sh "${args[@]}")
+echo "$ntriples"
+
+
 if [ -n "$fragment" ] ; then
     # relative URI that will be resolved against the request URI
     subject="<#${fragment}>"
