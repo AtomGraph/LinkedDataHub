@@ -4,7 +4,7 @@ print_usage()
 {
     printf "Appends a view for SPARQL SELECT query results.\n"
     printf "\n"
-    printf "Usage:  %s options\n" "$0"
+    printf "Usage:  %s options TARGET_URI\n" "$0"
     printf "\n"
     printf "Options:\n"
     printf "  -f, --cert-pem-file CERT_FILE        .pem file with the WebID certificate of the agent\n"
@@ -32,6 +32,11 @@ do
         ;;
         -p|--cert-password)
         cert_password="$2"
+        shift # past argument
+        shift # past value
+        ;;
+        --proxy)
+        proxy="$2"
         shift # past argument
         shift # past value
         ;;
@@ -89,15 +94,22 @@ if [ -z "$query" ] ; then
     exit 1
 fi
 
+target="$1"
+
+ntriples=$(./get.sh \
+  -f "$cert_pem_file" \
+  -p "$cert_password" \
+ --proxy "$proxy" \
+  --accept 'application/n-triples' \
+  "$target")
+echo "$ntriples"
+
 args+=("-f")
 args+=("$cert_pem_file")
 args+=("-p")
 args+=("$cert_password")
 args+=("-t")
 args+=("text/turtle") # content type
-
-ntriples=$(./get.sh "${args[@]}")
-echo "$ntriples"
 
 
 if [ -n "$fragment" ] ; then
